@@ -133,6 +133,18 @@ export async function runMemorizerAsync(
     );
     const freshMs = 30 * 60_000;
     if (Number.isFinite(startedMs) && Date.now() - startedMs < freshMs) {
+      // rose-r6 B07 (observabilite): le skip est temporaire par construction
+      // — l'age du run et l'echeance de reprise sont loggues pour que
+      // l'operateur ne conclue jamais a un blocage indefini.
+      const ageMinutes = Math.round((Date.now() - startedMs) / 60_000);
+      console.warn(
+        "[Memorizer] skip run_in_progress (temporary lock)",
+        JSON.stringify({
+          extraction_run_id: existingRun.id,
+          run_age_minutes: ageMinutes,
+          auto_recovery_after_minutes: 30,
+        }),
+      );
       return {
         status: "skipped",
         skip_reason: "run_in_progress",

@@ -1,3 +1,4 @@
+// @ts-nocheck
 function normalizeTextForStop(raw) {
   return (raw ?? "").trim().toLowerCase() // Normalize apostrophes/accents for common French variants
     .replace(/[’']/g, "'").normalize("NFD").replace(/\p{Diacritic}/gu, "");

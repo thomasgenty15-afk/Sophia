@@ -10,6 +10,34 @@ function env(name: string): string | null {
   return t.length > 0 ? t : null;
 }
 
+// SEC-08: the deterministic price-id fallback below must only ever apply
+// against a local Supabase instance, mirroring the MEGA stub in _shared/stripe.ts.
+function isMegaTestModeLocal(): boolean {
+  if ((Deno.env.get("MEGA_TEST_MODE") ?? "").trim() !== "1") return false;
+  const url = (Deno.env.get("SUPABASE_URL") ?? "").trim();
+  if (!url) return false;
+  try {
+    const host = new URL(url).hostname.toLowerCase();
+    return host === "127.0.0.1" || host === "localhost" || host === "kong" ||
+      host.startsWith("supabase_");
+  } catch {
+    return false;
+  }
+}
+
+// The MEGA Stripe stub emits "price_test_<tier>_<interval>" ids; recognize
+// them locally so deterministic tests don't depend on shell env price ids.
+function megaTestPriceIdParts(
+  priceId: string,
+): { tier: PaidTier; interval: BillingInterval } | null {
+  if (!isMegaTestModeLocal()) return null;
+  const m = priceId.match(
+    /^price_test_(system|alliance|architecte)_(monthly|yearly)$/,
+  );
+  if (!m) return null;
+  return { tier: m[1] as PaidTier, interval: m[2] as BillingInterval };
+}
+
 function isActiveSubscription(row: any): boolean {
   if (!row) return false;
   const status = String(row.status ?? "").toLowerCase();
@@ -37,7 +65,7 @@ export function tierFromStripePriceId(priceId: string | null | undefined): PaidT
   if (architecte.has(id)) return "architecte";
   if (alliance.has(id)) return "alliance";
   if (system.has(id)) return "system";
-  return null;
+  return megaTestPriceIdParts(id)?.tier ?? null;
 }
 
 export function intervalFromStripePriceId(priceId: string | null | undefined): BillingInterval | null {
@@ -55,7 +83,7 @@ export function intervalFromStripePriceId(priceId: string | null | undefined): B
   ].filter(Boolean) as string[]);
   if (monthly.has(id)) return "monthly";
   if (yearly.has(id)) return "yearly";
-  return null;
+  return megaTestPriceIdParts(id)?.interval ?? null;
 }
 
 export async function getEffectiveTierForUser(

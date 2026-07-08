@@ -36,6 +36,7 @@ import { DefenseCard, DefenseCardSkeleton } from "../components/dashboard-v2/Def
 import { DimensionSection } from "../components/dashboard-v2/DimensionSection";
 import { LabCardsPanel } from "../components/dashboard-v2/LabCardsPanel";
 import { LevelCompletionModal } from "../components/dashboard-v2/LevelCompletionModal";
+import { LevelTransitionScreen } from "../components/dashboard-v2/LevelTransitionScreen";
 import { MultiPartTransitionGateModal } from "../components/dashboard-v2/MultiPartTransitionGateModal";
 import { MultiPartTransitionQuestionnaireModal } from "../components/dashboard-v2/MultiPartTransitionQuestionnaireModal";
 import { Phase1FoundationCard } from "../components/dashboard-v2/Phase1FoundationCard";
@@ -1196,6 +1197,14 @@ export default function DashboardV2() {
   const transitionGlobalObjective = hasSequencedNextTransformation
     ? nextSequencedTransformationObjective
     : planContentV3?.global_objective ?? null;
+  // The objective resolution above can fall back to `user_summary` when the next
+  // transformation has no dedicated objective yet. In that case the summary and
+  // the objective are the same text, so we must not render the summary twice.
+  const shouldShowNextTransformationSummary = Boolean(
+    nextSequencedTransformation?.user_summary?.trim() &&
+      nextSequencedTransformation.user_summary.trim() !==
+        (transitionGlobalObjective?.trim() ?? null),
+  );
   const transitionQuestionnaireSchema = useMemo(
     () =>
       nextSequencedTransformation
@@ -2073,6 +2082,9 @@ export default function DashboardV2() {
     setLevelCompletionBusy(true);
     setLevelCompletionError(null);
     setDashboardActionError(null);
+    // La génération du niveau suivant prend plusieurs secondes : on ferme le
+    // questionnaire et on laisse LevelTransitionScreen porter l'attente.
+    setIsLevelCompletionModalOpen(false);
 
     try {
       const { data, error: fnError } = await supabase.functions.invoke<CompleteLevelResponse>(
@@ -2091,7 +2103,6 @@ export default function DashboardV2() {
       if (!data) throw new Error("La transition de niveau est vide.");
 
       setLevelCompletionSummary(data.summary);
-      setIsLevelCompletionModalOpen(false);
       clearLevelCompletionPending(levelCompletionPendingScope);
       await refetch();
     } catch (actionError) {
@@ -2102,6 +2113,9 @@ export default function DashboardV2() {
           ? actionError.message
           : "Impossible de valider ce niveau pour le moment.",
       );
+      // Rouvrir le bilan pour afficher l'erreur (les réponses sont conservées
+      // tant que la liste de questions ne change pas).
+      setIsLevelCompletionModalOpen(true);
     } finally {
       const pending = readActiveLevelCompletionPending(levelCompletionPendingScope);
       setLevelCompletionBusy(Boolean(pending));
@@ -3651,7 +3665,7 @@ export default function DashboardV2() {
                                       : `Objectif global : ${transitionGlobalObjective}`}
                                   </p>
                                 ) : null}
-                                {nextSequencedTransformation.user_summary ? (
+                                {shouldShowNextTransformationSummary ? (
                                   <p
                                     className={`mt-2 ${
                                       shouldWarnBeforeNextTransformation
@@ -4100,6 +4114,15 @@ export default function DashboardV2() {
           setIsLevelCompletionModalOpen(false);
         }}
         onSubmit={handleLevelCompletionSubmit}
+      />
+
+      <LevelTransitionScreen
+        isOpen={Boolean(levelCompletionBusy && !isLevelCompletionModalOpen)}
+        levelOrder={currentLevel?.phase_order ?? null}
+        levelTitle={currentLevel?.title ?? ""}
+        levelKey={plan && currentLevel
+          ? `${plan.id}:${currentLevel.phase_order}`
+          : null}
       />
     </div>
   );

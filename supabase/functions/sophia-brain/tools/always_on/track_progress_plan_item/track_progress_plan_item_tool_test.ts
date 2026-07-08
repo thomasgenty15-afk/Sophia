@@ -12,6 +12,7 @@ import {
   trackTargetEvidenceVerified,
 } from "./router.ts";
 import { runTrackProgressPlanItemV2 } from "./track_progress_plan_item_tool.ts";
+import { binaryItemPartialClarifyQuestion } from "./db.ts";
 
 function frame(patch: Partial<TurnFrame> = {}): TurnFrame {
   const base: TurnFrame = {
@@ -973,3 +974,52 @@ Deno.test("retarget correction: invalidates the wrong item entry then commits on
   );
 });
 
+
+Deno.test("partial sur item tout-ou-rien → needs_clarify, zero ecriture (nina-r7 B01, arbitrage 2026-07-08)", () => {
+  // Positif: item framework sans compteur, report d'avancement → question.
+  const clarify = binaryItemPartialClarifyQuestion({
+    status: "partial",
+    item: { dimension: "framework", target_reps: null, title: "Cartographier mes ruminations" },
+    fallbackTitle: "item-id",
+  });
+  assertEquals(clarify !== null, true);
+  assertEquals(clarify?.question.includes("encore en cours"), true);
+  assertEquals(clarify?.target, "Cartographier mes ruminations");
+
+  // Anti-faux-positifs: completed explicite → commit normal (pas de question);
+  // item a compteur → partial garde son comportement (entry sans increment);
+  // habitude → idem.
+  assertEquals(
+    binaryItemPartialClarifyQuestion({
+      status: "completed",
+      item: { dimension: "framework", target_reps: null, title: "X" },
+      fallbackTitle: "id",
+    }),
+    null,
+  );
+  assertEquals(
+    binaryItemPartialClarifyQuestion({
+      status: "partial",
+      item: { dimension: "framework", target_reps: 3, title: "X" },
+      fallbackTitle: "id",
+    }),
+    null,
+  );
+  assertEquals(
+    binaryItemPartialClarifyQuestion({
+      status: "partial",
+      item: { dimension: "habits", target_reps: null, title: "X" },
+      fallbackTitle: "id",
+    }),
+    null,
+  );
+  // Fail-open: dimension inconnue (snapshot incomplet) → pas de blocage.
+  assertEquals(
+    binaryItemPartialClarifyQuestion({
+      status: "partial",
+      item: { dimension: "", target_reps: null, title: "X" },
+      fallbackTitle: "id",
+    }),
+    null,
+  );
+});

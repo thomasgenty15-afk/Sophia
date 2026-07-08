@@ -89,6 +89,14 @@ import {
   directEffectConfirmationContextPrompt,
   withDirectEffectConfirmationContext,
 } from "./direct_effect_local_context.ts";
+import { runResearchGroundingLane } from "./research_grounding.ts";
+import {
+  sessionDecisionFromCoachingState,
+  sessionDecisionFromFeatureOpportunityState,
+  sessionDecisionFromPlanRealignmentState,
+  sessionDecisionsPromptBlock,
+  withSessionDecision,
+} from "./session_decisions.ts";
 import {
   executedToolsForStatus,
   type OperationRuntimeResult,
@@ -119,7 +127,7 @@ import { runFeatureOpportunitySkill } from "../skills/feature_opportunity/skill.
 import { runPlanRealignmentSkill } from "../skills/plan_realignment/skill.ts";
 import { runSafetyCrisisSkill } from "../skills/safety_crisis/skill.ts";
 import {
-  oneShotDirectEffectFromSafetyCrisisLocalDispatcherOutput,
+  safetyCrisisOneShotDirectEffectDecision,
   runSafetyCrisisLocalDispatcher,
 } from "../skills/safety_crisis/local_dispatcher.ts";
 import type { SafetyCrisisLocalDispatcherOutput } from "../skills/safety_crisis/contract.ts";
@@ -161,6 +169,12 @@ function parseJsonish(raw: unknown): unknown {
   }
 }
 
+function dispatcherModelCandidate(value: unknown): string | null {
+  const model = String(value ?? "").trim();
+  if (!model) return null;
+  return /^\s*gemini\b/i.test(model) ? null : model;
+}
+
 function buildDispatcherLlmRunner(meta?: {
   requestId?: string;
   userId?: string | null;
@@ -177,12 +191,13 @@ function buildDispatcherLlmRunner(meta?: {
     model_name: string;
   }) => {
     try {
-      const model = String(
-        Deno.env.get("SOPHIA_DISPATCHER_LLM_MODEL") ??
-          input.model_name ??
-          meta?.model ??
-          getGlobalAiModel("gemini-2.5-flash"),
-      ).trim();
+      const model = dispatcherModelCandidate(
+        Deno.env.get("SOPHIA_DISPATCHER_LLM_MODEL"),
+      ) ??
+        dispatcherModelCandidate(input.model_name) ??
+        dispatcherModelCandidate(meta?.model) ??
+        dispatcherModelCandidate(getGlobalAiModel()) ??
+        "gpt-5.4-mini";
       const raw = await generateWithGemini(
         input.system_prompt,
         input.user_prompt,
@@ -257,6 +272,7 @@ function buildConversationSkillContext(args: {
   recentEffectsSummary?: string | null;
   recentDirectEffectConfirmationContext?: Record<string, unknown> | null;
   userIdentity?: UserIdentityPack | null;
+  sessionDecisionsBlock?: string | null;
 }) {
   return {
     skill_id: args.skillId,
@@ -275,6 +291,10 @@ function buildConversationSkillContext(args: {
       recent_direct_effect_confirmation_context:
         args.recentDirectEffectConfirmationContext ?? null,
       user_identity: args.userIdentity ?? null,
+      // alex-r3 B01 (ceinture): meme si le routage envoie un recall de
+      // session vers un skill, le bloc de decisions reste visible — un
+      // routage rate ne produit plus une fausse amnesie.
+      session_decisions_block: args.sessionDecisionsBlock ?? null,
     },
     note_information: args.inboundNote ?? null,
   };
@@ -416,6 +436,27 @@ export function applyConversationSkillState(args: {
     const memo = args.output.state_patch.product_help_exit_memo;
     if (memo) next.__last_product_help_exit_memo = memo;
   }
+  // eva-r7 B01: un engagement de STYLE pris en session (flow feature_
+  // opportunity, decide par le dispatcher local) survit au flow — il est
+  // porte en cle de session et re-injecte au composeur a CHAQUE tour.
+  if (args.skillId === "feature_opportunity" && args.output.state_patch) {
+    const commitment = String(
+      (args.output.state_patch as Record<string, unknown>)
+        .session_style_commitment ?? "",
+    ).trim();
+    if (commitment) {
+      const previousCommitments = Array.isArray(
+          (next as Record<string, unknown>).__session_style_commitments,
+        )
+        ? ((next as Record<string, unknown>)
+          .__session_style_commitments as unknown[]).map(String)
+        : [];
+      next.__session_style_commitments = [
+        ...previousCommitments.filter((c) => c !== commitment),
+        commitment,
+      ].slice(-3);
+    }
+  }
   if (args.skillId === "coaching_recommendation" && args.output.state_patch) {
     const note =
       args.output.state_patch.coaching_recommendation_note_information;
@@ -425,6 +466,15 @@ export function applyConversationSkillState(args: {
         at: new Date().toISOString(),
       };
     }
+    // nina-r6 B01: la recommandation retenue (deja structuree dans l'etat du
+    // flow) est capturee a CHAQUE tour — elle survit au relachement du flow
+    // et grounde recall/recap/reparation via le bloc DECISIONS DE SESSION.
+    next = withSessionDecision(
+      next,
+      sessionDecisionFromCoachingState(
+        args.output.state_patch.coaching_recommendation_local_state,
+      ),
+    );
   }
   if (
     args.skillId === "daily_action_coaching_recommendation_v1" &&
@@ -447,6 +497,15 @@ export function applyConversationSkillState(args: {
         at: new Date().toISOString(),
       };
     }
+    // paul-r9 B02 / nina-r7 B04: le hand-off (initiative a creer, preference
+    // a regler) est une decision de session — capture structuree, meme
+    // mecanique que coaching.
+    next = withSessionDecision(
+      next,
+      sessionDecisionFromFeatureOpportunityState(
+        args.output.state_patch.feature_opportunity_local_state,
+      ),
+    );
   }
   if (args.skillId === "plan_realignment" && args.output.state_patch) {
     const note = args.output.state_patch.plan_realignment_note_information;
@@ -456,6 +515,14 @@ export function applyConversationSkillState(args: {
         at: new Date().toISOString(),
       };
     }
+    // nina-r7 B04: l'ajustement discute (jamais execute depuis le chat) est
+    // un reste-a-faire de session — le recap ne l'omet plus.
+    next = withSessionDecision(
+      next,
+      sessionDecisionFromPlanRealignmentState(
+        args.output.state_patch.plan_realignment_local_state,
+      ),
+    );
   }
   return next;
 }
@@ -721,6 +788,22 @@ function finalVisibleText(
   out = stripDeprecatedProductVocabulary(out);
   if (!isSafetyRoute(routeDecision)) out = ensureVisibleSophiaEmoji(out);
   return out.trim();
+}
+
+function sessionStyleCommitmentsPromptBlock(
+  tempMemory: Record<string, unknown> | null | undefined,
+): string | null {
+  const raw = (tempMemory as Record<string, unknown> | null | undefined)
+    ?.__session_style_commitments;
+  const commitments = Array.isArray(raw)
+    ? raw.map((c) => String(c ?? "").trim()).filter(Boolean)
+    : [];
+  if (commitments.length === 0) return null;
+  return [
+    "=== CONTRAINTE DE STYLE SESSION (engagement pris) ===",
+    ...commitments.map((c) => `- ${c}`),
+    "Cet engagement, pris avec le user sur cette conversation, PRIME sur tout reflexe de style par defaut (emoji de warmth compris), y compris en mode soutien. Si la contrainte dit sans emojis: ZERO emoji.",
+  ].join("\n");
 }
 
 function allowedDirectEffectsFromGate(
@@ -1022,11 +1105,28 @@ export async function processMessage(
         timezone: userTime?.timezone ?? meta?.clientTimezone ?? null,
         turn_frame: turnFrame,
       });
-    const localOneShotDirectEffect =
-      oneShotDirectEffectFromSafetyCrisisLocalDispatcherOutput(
-        precomputedSafetyCrisisLocalDispatcherOutput,
-        { turnFrame },
-      );
+    const safetyDirectEffectDecision = safetyCrisisOneShotDirectEffectDecision(
+      precomputedSafetyCrisisLocalDispatcherOutput,
+      { turnFrame },
+    );
+    const localOneShotDirectEffect = safetyDirectEffectDecision.effect;
+    // Demande explicite non admise ce tour (confiance/contenu/danger): le
+    // stage product_tool_boundary la differe HONNETEMENT au lieu du silence
+    // (eva-r9 B01, arbitrage 2026-07-08). Jamais pose sur un tour escalate
+    // (deja exclu par la decision) pour ne pas degrader le stage d'urgence.
+    if (
+      safetyDirectEffectDecision.deferred_reason &&
+      precomputedSafetyCrisisLocalDispatcherOutput
+    ) {
+      precomputedSafetyCrisisLocalDispatcherOutput = {
+        ...precomputedSafetyCrisisLocalDispatcherOutput,
+        product_tool_boundary: {
+          attempted: true,
+          attempt_kind: "tool_creation",
+          defer_reason: safetyDirectEffectDecision.deferred_reason,
+        },
+      };
+    }
     if (localOneShotDirectEffect) {
       const alreadyPresent = turnFrame.direct_effects.some((effect) =>
         effect.effect_type === localOneShotDirectEffect.effect_type
@@ -1555,6 +1655,9 @@ export async function processMessage(
         recentEffectsSummary,
         recentDirectEffectConfirmationContext,
         userIdentity: skillUserIdentity,
+        sessionDecisionsBlock: sessionDecisionsPromptBlock(
+          tempMemory as Record<string, unknown>,
+        ),
       });
       const localOneShotDirectEffectExecutor = async (
         request: LocalOneShotDirectEffectRequest,
@@ -1841,8 +1944,17 @@ export async function processMessage(
     dispatcherSignals,
   );
   const contextLoadStart = Date.now();
+  // needs_research (regression 3de0b9a2): le signal structure du dispatcher
+  // declenche l'execution — la logique vit dans research_grounding.ts, run.ts
+  // n'orchestre que l'appel et l'injection (charte cmd 4/6).
+  const researchGrounding = await runResearchGroundingLane({
+    turnFrame,
+    requestId,
+  });
   const injectedContext = [
     opts?.contextOverride,
+    researchGrounding.context_block,
+    researchGrounding.honesty_directive,
     skillExitInjectedContext,
     directEffectConfirmationContextPrompt(turnFrame),
     // F3: la section que la regle companion designe comme source de verite
@@ -1852,6 +1964,10 @@ export async function processMessage(
     // eva-r6 B02: directive de tour pour la preemption detresse SANS ideation
     // — le companion sortait un cadrage urgences disproportionne. Donnee de
     // tour (budget companion preserve), pas une regle de prompt.
+    // eva-r7 B01: contrainte de style de session — donnee de tour, portee
+    // par l'etat, injectee a chaque tour tant que la session vit.
+    sessionStyleCommitmentsPromptBlock(tempMemory),
+    sessionDecisionsPromptBlock(tempMemory),
     routeDecision.reason_code === "distress_support_priority"
       ? [
         "=== TOUR DE SOUTIEN (detresse non imminente) ===",
@@ -1940,7 +2056,7 @@ export async function processMessage(
       isPostCheckup: false,
       outageTemplate:
         "J'ai un souci technique sur ce tour. Je n'ai rien execute de plus.",
-      sophiaChatModel: meta?.model ?? getGlobalAiModel("gemini-2.5-flash"),
+      sophiaChatModel: meta?.model ?? getGlobalAiModel(),
       tempMemory,
       meta: {
         ...(meta ?? {}),

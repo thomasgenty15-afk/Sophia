@@ -130,7 +130,7 @@
   skill qui **persiste** la préférence et l'applique au runtime de rendu ; le
   pointeur produit reste secondaire. L'invariant BF-PREF-01 exige que la préférence
   survive à la fenêtre de contexte.
-- **Statut**: `fix_applied` (partiel — arbitrage produit) : la persistance conversationnelle des préférences est actée « version prochaine » ; doctrine FO bornée (application immédiate en session, engagement de SESSION explicite, jamais « à partir de maintenant » ; durable = Preferences coach). L'adhérence cross-mode en session reste différée (budget companion), voir eva-r5 B03.
+- **Statut**: `fix_applied` (partiel — arbitrage produit) : la persistance conversationnelle des préférences est actée « version prochaine » ; doctrine FO bornée (application immédiate en session, engagement de SESSION explicite, jamais « à partir de maintenant » ; durable = Preferences coach). Le volet cross-mode en session est fermé — chantier V2-F3 (2026-07-07) : règle companion « une préférence de style exprimée en session s'applique à TOUS les tours suivants, y compris en mode soutien » (compression companion incluse, budget < 13000, contrat 15/15), voir eva-r5 B03.
 - **Tests requis**:
   - positif: « arrête les emojis / parle plus direct » ⇒ écriture durable de
     préférence + application au rendu des tours suivants (y compris après reset de

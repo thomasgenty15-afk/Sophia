@@ -301,6 +301,7 @@ const CLARIFY_REASON_CODES = new Set([
   "target_ambiguous",
   "target_missing",
   "status_missing",
+  "partial_on_binary_item",
   "missing_time",
   "missing_instruction",
   "missing_payload",
@@ -325,7 +326,7 @@ function outcomeGuidance(
   reasonCode: string | null,
 ): string {
   if (status === "committed") {
-    return "Confirme sobrement, une seule fois, comme venant d'etre fait. Si la cible porte une date ('enregistre pour le ...'), enonce ce jour dans la confirmation.";
+    return "Confirme sobrement, une seule fois, comme venant d'etre fait. Un effet committe ne reste JAMAIS silencieux: meme si le tour porte un autre sujet principal (recherche, question), la reponse le mentionne en une ligne. Ne DEMENS jamais cet effet: 'pas compte / pas enregistre tant que pas coche dans l'app', 'je ne peux pas te dire/confirmer que c'est coche' et 'je peux t'aider a le formuler pour le suivi' sont INTERDITS sur un committed (ces disclaimers sont reserves aux outcomes blocked/needs_clarify), quel que soit le libelle de statut du handler (success, logged...). Si la cible porte une date ('enregistre pour le ...'), enonce ce jour dans la confirmation. Si ta derniere reponse etait du soutien face a un creux emotionnel, la confirmation garde une vraie phrase de pont qui reconnait ce tour (un emoji seul ne suffit pas).";
   }
   if (status === "needs_clarify") {
     return "Pose la question de clarification au user. N'accuse aucune ecriture: rien n'a ete enregistre.";
@@ -407,8 +408,17 @@ function deriveEffectsOutcome(args: {
   // question rendrait le contrat O muet — le composeur n'aurait rien a poser
   // et validerait emotionnellement sans effet. Quel que soit le chemin qui
   // produit le needs_clarify, une question existe toujours.
-  const fallbackClarifyQuestion = (effectType: string): string => {
+  const fallbackClarifyQuestion = (
+    effectType: string,
+    reasonCode?: string | null,
+  ): string => {
     if (effectType === "track_progress_plan_item") {
+      // target_not_evidenced couvre deux situations (cible non groundee,
+      // rose-r6 T2; input temporellement contradictoire, nina-r5 B01) — la
+      // question de fallback couvre les deux axes sans presumer.
+      if (reasonCode === "target_not_evidenced") {
+        return "Juste pour etre sure d'enregistrer juste : tu parles de quelle action de ton plan, et c'est deja fait ou tu comptes le faire ?";
+      }
       return "Tu parles de quelle action de ton plan exactement ?";
     }
     if (
@@ -431,6 +441,9 @@ function deriveEffectsOutcome(args: {
       const dateHint = stringValue(committedEffect.date_hint) ||
         stringValue(datedSource?.date_hint);
       const baseTarget = outcomeTargetFromEffect(committedEffect);
+      // paul-r8 B01 (cmd 15): coche committee mais patch compteur/statut
+      // rejete — la posture voyage en DONNEE sur l'outcome, pas en regle.
+      const patchFailed = committedEffect.item_patch_applied === false;
       return {
         effect_type: effectType,
         status: "committed",
@@ -439,7 +452,10 @@ function deriveEffectsOutcome(args: {
         target: dateHint && baseTarget
           ? `${baseTarget} (enregistre pour le ${dateHint})`
           : baseTarget,
-        guidance: outcomeGuidance("committed", null),
+        guidance: patchFailed
+          ? outcomeGuidance("committed", null) +
+            " ATTENTION: la coche est bien enregistree mais la mise a jour du compteur/statut de l'action a echoue ce tour — ne confirme NI le compteur, NI un changement de statut, NI un deblocage; invite a verifier le dashboard."
+          : outcomeGuidance("committed", null),
       };
     }
     const blockedEffect = findByType(blocked, effectType);
@@ -458,7 +474,7 @@ function deriveEffectsOutcome(args: {
         status,
         reason_code: reasonCode,
         clarify_question: status === "needs_clarify"
-          ? (hint || fallbackClarifyQuestion(effectType))
+          ? (hint || fallbackClarifyQuestion(effectType, reasonCode))
           : null,
         target: targetEffect ? outcomeTargetFromEffect(targetEffect) : null,
         guidance: outcomeGuidance(status, reasonCode),
@@ -732,6 +748,8 @@ export function activePlanSnapshotPromptBlock(
     'Le statut d\'un item ne dit PAS ce qui a ete coche: une habitude reste "active" meme deja cochee aujourd\'hui. Pour "qu\'est-ce que j\'ai coche/fait", reponds depuis les coches recentes (entries DB, format outcome@date) ci-dessus, jamais depuis le statut seul, et ne nie jamais une coche listee.',
     'La DATE des coches fait foi: pour "aujourd\'hui", ne compte QUE les coches datees du jour; une completion plus ancienne (coche a une autre date, ou mission completee avant) se cite avec sa date ("deja fait le 05/07"), jamais rangee sous aujourd\'hui. En confirmant un report date, enonce le jour retenu.',
     'Les sections ci-dessus font foi: "mes habitudes" = la section HABITUDES uniquement, meme si le titre d\'un framework decrit un comportement.',
+    'Un point ou recap "reste a faire" couvre TOUS les items non completes de cette liste (statuts active ET pending, toutes dimensions confondues): le total cite = le total de la liste, aucun item pending omis.',
+    'Une completion revendiquee en CONVERSATION qui n\'apparait pas dans les coches ci-dessus n\'est PAS enregistree: dans un recap ou un point, presente-la comme "a faire" (ou "annonce, pas encore enregistre"), jamais comme faite — meme si un message assistant precedent l\'a affirmee.',
   );
   return lines.join("\n");
 }
@@ -769,14 +787,44 @@ export function committedCorrectionReplyOverride(
   return hint || null;
 }
 
+/**
+ * Directive par-effet quand un tour porte des issues DIVERGENTES
+ * (nina-r5 B01): sur un tour multi-effets (ex. cancel committed + track
+ * bloque), le composeur generalise le succes de l'un a l'autre. La
+ * directive enumere, depuis les DONNEES de l'outcome, ce qui peut etre
+ * affirme cible par cible — jamais une reecriture de sortie.
+ */
+function mixedOutcomesDirective(
+  outcomes: DirectEffectOutcome[],
+): string | null {
+  const committed = outcomes.filter((o) => o.status === "committed");
+  const others = outcomes.filter((o) => o.status !== "committed");
+  if (committed.length === 0 || others.length === 0) return null;
+  const label = (o: DirectEffectOutcome) =>
+    o.target ? `"${o.target}"` : o.effect_type;
+  const lines = [
+    "MIXED_OUTCOMES_DIRECTIVE: ce tour porte des issues DIVERGENTES — chaque effet a la sienne, ne generalise JAMAIS l'issue de l'un a l'autre.",
+    ...committed.map((o) => `- ${label(o)} → FAIT: confirme-le.`),
+    ...others.map((o) =>
+      o.status === "needs_clarify" && o.clarify_question
+        ? `- ${label(o)} → PAS enregistre: pose la question (« ${o.clarify_question} ») — ne dis jamais fait/range/valide pour cette cible.`
+        : `- ${label(o)} → PAS enregistre: suis sa guidance — ne dis jamais fait/range/valide pour cette cible.`
+    ),
+    "Le vocabulaire de completion (fait, range, valide, enregistre, note) ne peut viser QUE les cibles marquees FAIT ci-dessus.",
+  ];
+  return lines.join("\n");
+}
+
 export function directEffectConfirmationContextPrompt(
   turnFrame: unknown,
 ): string | null {
   const context = buildDirectEffectConfirmationContext(turnFrame);
   if (!context) return null;
+  const mixedDirective = mixedOutcomesDirective(context.effects_outcome);
   return [
     "DIRECT_EFFECT_CONFIRMATION_CONTEXT:",
     JSON.stringify(context),
+    ...(mixedDirective ? [mixedDirective] : []),
     // Politique universelle (default-deny). Les postures par raison sont des
     // DONNEES (effects_outcome[].guidance), pas des regles a enumerer ici:
     // chaque nouvelle garde est honnete par construction.

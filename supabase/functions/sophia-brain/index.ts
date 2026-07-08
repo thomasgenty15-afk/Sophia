@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
+import { enforceRateLimit, RATE_PRESETS } from "../_shared/rate-limit.ts";
 import { filterFreshMessages } from "../_shared/message_freshness.ts";
 import { processMessage } from "./router.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
@@ -75,7 +76,9 @@ Deno.serve(async (req) => {
       scope: body?.scope ?? null,
       channel: body?.channel ?? null,
     }));
-    const message = (body?.message ?? body?.content ?? "").toString();
+    // SEC-12: cap the inbound message length. A single chat turn well under this
+    // limit; the bound prevents an oversized payload from inflating LLM token cost.
+    const message = (body?.message ?? body?.content ?? "").toString().slice(0, 8000);
     const clientHistory = Array.isArray(body?.history) ? body.history : [];
     let forceMode = (body?.forceMode ?? body?.force_mode) as string | undefined;
     const contextOverride =
@@ -160,6 +163,12 @@ Deno.serve(async (req) => {
       request_id: requestId,
       user_id: user.id,
     }));
+
+    const rateLimited = await enforceRateLimit(req, requestId, {
+      key: `sophia-brain:${user.id}`,
+      windows: RATE_PRESETS.llmChat,
+    });
+    if (rateLimited) return rateLimited;
 
     function sanitizeHistory(raw: any[]): any[] {
       const rows = Array.isArray(raw) ? raw : [];
@@ -261,10 +270,13 @@ Deno.serve(async (req) => {
         method: req.method,
       },
     });
+    // SEC-12: never leak raw exception text (which can expose table/column/policy
+    // names or Postgres error codes) to the client. Return a generic message; the
+    // full error is captured above via logEdgeFunctionError, correlatable by request_id.
     return jsonResponse(
       req,
       {
-        error: (error as any)?.message ?? String(error),
+        error: "Internal Server Error",
         request_id: requestId,
       },
       { status: 500, skipErrorLog: true },

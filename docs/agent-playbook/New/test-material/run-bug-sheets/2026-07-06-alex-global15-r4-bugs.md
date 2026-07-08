@@ -30,7 +30,7 @@ Taxonomie: `docs/agent-playbook/New/test-material/familly-bugs.md`
 - Preuve systeme: T5/T6/T9 `response_owner=coaching_recommendation`, `reason_code=active_coaching_recommendation` ; relâche seulement au « change de sujet » explicite (T7, `skill.status=exit`)
 - Correction attendue: la politique de sortie de flow doit relâcher `coaching_recommendation` sur débrief de raté, tour identitaire/émotionnel ou détresse, et rendre la main à `normal_reply`/soutien
 - Tests requis: chacun de ces tours pendant un flow coaching actif → `normal_reply`, pas de re-pitch ; positif (un vrai suivi de carte reste dans le flow)
-- Statut: open
+- Statut: `fix_applied` — chantier V2-C2 (2026-07-07) : exits doctrine coaching — un débrief de raté sans demande de levier, ou un tour identitaire/émotionnel sans continuation de la carte en cours → `exit_to_global_dispatcher` (le tour appartient au soutien/réponse normale), jamais un re-pitch. Anti-faux-positif : un vrai suivi de carte (« j'ai testé, on ajuste ? ») reste dans le flow.
 
 ## R4-B03 — Sur-attracteur `coaching_recommendation` (ouverture + réflexion)
 
@@ -43,7 +43,7 @@ Taxonomie: `docs/agent-playbook/New/test-material/familly-bugs.md`
 - Preuve systeme: T1 `skill.status=continue` sur ouverture simple ; T12 `response_owner=coaching_recommendation`, `memory_intent=coaching_recommendation_for_plan_action`, `direct_effects=[]`
 - Correction attendue: une ouverture d'apaisement ponctuelle et une réflexion hypothétique explicite doivent router `normal_reply` sans ouvrir de flow coaching persistant
 - Tests requis: « file-moi un truc rapide pour décrocher » → pas de flow persistant ; « je me demande si… je pense à voix haute » → `normal_reply`
-- Statut: open
+- Statut: `fix_applied` — chantier V2-C3 (2026-07-07) : doctrine dispatcher anti-sur-attracteur — demande PONCTUELLE d'apaisement (« un truc rapide pour décrocher ce soir ») → réponse normale directe (un geste concret), sans signal coaching ni flow persistant ; réflexion à voix haute explicitement non conclue → réponse normale d'écoute, aucun pitch de dispositif.
 
 ## R4-B04 — Fait futur daté explicite non persisté
 
@@ -56,7 +56,7 @@ Taxonomie: `docs/agent-playbook/New/test-material/familly-bugs.md`
 - Preuve systeme: 0 ligne sur `déplacement/hôtel/20 juillet` (tous statuts) ; message `881463cc` traité par run `95097d61` (7 items acceptés, aucun = ce fait) ; intention in-turn correcte `store_future_context_for_later_response` ; **régression** vs r3 (fait futur équivalent committé)
 - Correction attendue: un fait futur daté explicite avec intention `store_future_context` doit être persisté (`fact`/`event` daté) après batch
 - Tests requis: « garde en tête : le <date> … » → memory_item daté après batch ; anti-régression sur la normalisation temporelle
-- Statut: open
+- Statut: `fix_applied` — chantier V2-E1 (2026-07-07) : extraction v4 — un fait FUTUR daté explicitement confié (« garde en tête : le 20 juillet je pars 4 jours… ») est un `event` OBLIGATOIRE avec `event_start_at` futur résolu (+ `event_end_at` si durée), jamais abandonné ni absorbé dans un statement vague. Test e2e in-memory vert (event 20→24 juillet persisté actif avec ses dates), ancre prompt testée. Version `extraction.v4_future_dated_facts_contested_claims`.
 
 ## R4-B05 — Correction de mécanisme auto-invalidée (reproduction R3-B04)
 
@@ -82,7 +82,7 @@ Taxonomie: `docs/agent-playbook/New/test-material/familly-bugs.md`
 - Preuve systeme: memory_item actif « L'utilisateur considère la technique du 'mot de bascule' comme efficace » (run `95097d61`), contredit par le débat T2/T4
 - Correction attendue: une préférence/croyance de technique contestée par l'assistant dans le même échange ne doit pas être persistée comme fait actif non qualifié (candidate au mieux, ou qualifiée « affirmé par l'user, non validé »)
 - Tests requis: affirmation user réfutée par l'assistant dans le tour → pas d'item `active` non qualifié
-- Statut: open
+- Statut: `fix_applied` — chantier V2-E2 (2026-07-07) : extraction v4 — une affirmation user CONTESTÉE/nuancée par l'assistant dans le même échange n'est JAMAIS persistée en fait actif non qualifié : au mieux statement qualifié (« affirmé par l'utilisateur, non validé ») confidence basse, ou rejected_observation si réfutée. Critère = désaccord visible dans la conversation. Ancre prompt testée.
 
 ## R4-B07 — Planner d'effets ni cadence- ni polarity-aware
 
@@ -95,7 +95,7 @@ Taxonomie: `docs/agent-playbook/New/test-material/familly-bugs.md`
 - Preuve systeme: T11 `direct_effects=[create_one_shot_reminder]` sur « tous les matins à 7h » (`memory_intent=request_recurring_reminder`), requested 1/blocked 1 ; T14 `direct_effects=[create_one_shot_reminder]` sur « annule-le », requested 1/blocked 1 ; **régression** T11 vs r3
 - Correction attendue: planner cadence-aware (récurrent → aucun one-shot) et polarity-aware (annulation → aucun `create_*`) ; ne pas dépendre du gate pour masquer la mauvaise sélection
 - Tests requis: récurrent → `direct_effects_to_run` sans `create_one_shot_reminder` ; annulation/négation → sans `create_*` ; paraphrases couvertes
-- Statut: open
+- Statut: `fix_applied` — chantier V2-A3 (2026-07-07) : exemples négatifs verbatim ajoutés au bloc canonique one-shot du dispatcher — « un rappel tous les matins à 7h » → `direct_effects=[]` + `feature_opportunity/initiatives` (cadence) ; « annule-le » émis comme create SANS `intent=cancel` = INVALIDE (polarity). Les filets runtime restent la 2e ligne de défense. Tests d'ancre verts.
 
 ## R4-B08 — Boucle de clarification sur ordre explicite
 
@@ -108,7 +108,7 @@ Taxonomie: `docs/agent-playbook/New/test-material/familly-bugs.md`
 - Preuve systeme: T3 `response_owner=coaching_recommendation`, `direct_effects=[]`, aucune prise en compte explicite du write-depuis-chat
 - Correction attendue: dès que la cible est connue (T2), ne pas re-poser une question fermée ; intégrer un refus explicite du write-depuis-chat + l'explication de technique
 - Tests requis: ordre de création directe après disambiguation → réponse avec refus explicite + explication, pas nouvelle question fermée
-- Statut: open
+- Statut: `fix_applied` — chantier V2-C4 (2026-07-07) : doctrine coaching — quand la cible est connue du tour précédent et que le user ORDONNE (« crée-la », « remplis-la toi-même »), ne JAMAIS re-poser une question fermée sur un slot connu : réponse en une fois = refus honnête du write-en-chat si demandé + livrable conversationnel immédiat appliqué à son cas.
 
 ---
 
@@ -116,13 +116,13 @@ Taxonomie: `docs/agent-playbook/New/test-material/familly-bugs.md`
 
 | Bug | Tours | Famille | Severite | Statut |
 | --- | --- | --- | --- | --- |
-| R4-B01 | T9 | BF-SAFETY-01 | red | open |
-| R4-B02 | T5,T6,T9 | BF-ROUTE-02 | yellow | open |
-| R4-B03 | T1,T12 | BF-ROUTE-01 | yellow | open |
-| R4-B04 | T7 | BF-MEMORY-01 | yellow | open |
-| R4-B05 | T8 | a classifier (memory conflict) | yellow | open |
-| R4-B06 | T3 | a classifier (memory extraction) | yellow | open |
-| R4-B07 | T11,T14 | BF-EFFECT-03 | yellow | open |
-| R4-B08 | T3 | a classifier (BF-INTAKE-03) | yellow | open |
+| R4-B01 | T9 | BF-SAFETY-01 | red | fix_applied (X3) |
+| R4-B02 | T5,T6,T9 | BF-ROUTE-02 | yellow | fix_applied (V2-C2) |
+| R4-B03 | T1,T12 | BF-ROUTE-01 | yellow | fix_applied (V2-C3) |
+| R4-B04 | T7 | BF-MEMORY-01 | yellow | fix_applied (V2-E1) |
+| R4-B05 | T8 | a classifier (memory conflict) | yellow | fix_applied (X2) |
+| R4-B06 | T3 | a classifier (memory extraction) | yellow | fix_applied (V2-E2) |
+| R4-B07 | T11,T14 | BF-EFFECT-03 | yellow | fix_applied (V2-A3) |
+| R4-B08 | T3 | a classifier (BF-INTAKE-03) | yellow | fix_applied (V2-C4) |
 
 Note environnement: un `daily_batch` memorizer externe a tourné à 20:56 pendant le run (extraction_run `95097d61`) — incident d'environnement (cron/scheduler local écrivant pendant les tours), pas un bug produit. Fragmente la fenêtre mémoire mais n'excuse pas R4-B04 (message traité, fait non retenu). État durable réinitialisé et vérifié en fin de run (baseline restaurée : 4 active / 4 candidate / 1 invalidated ; sas reps=1).

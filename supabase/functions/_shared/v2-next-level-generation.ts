@@ -12,6 +12,7 @@ import type {
   PlanPhase,
   UserPlanItemRow,
 } from "./v2-types.ts";
+import { normalizeTimeOfDay, TIME_OF_DAY_VALUES } from "./time_of_day.ts";
 
 export type NextLevelGenerationDecision =
   | "keep"
@@ -186,16 +187,11 @@ function validatePlanItem(
   }
   const timeOfDay = value.time_of_day;
   if (timeOfDay !== null && timeOfDay !== undefined) {
-    const normalizedTimeOfDay = typeof timeOfDay === "string"
-      ? timeOfDay.trim()
-      : "";
-    if (
-      !["anytime", "morning", "afternoon", "evening"].includes(
-        normalizedTimeOfDay,
-      )
-    ) {
+    if (normalizeTimeOfDay(timeOfDay) === null) {
       issues.push(
-        `${label}.time_of_day must be null, anytime, morning, afternoon, or evening`,
+        `${label}.time_of_day must be null or one of ${
+          TIME_OF_DAY_VALUES.join(", ")
+        }`,
       );
     }
   }

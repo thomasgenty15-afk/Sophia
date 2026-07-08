@@ -592,7 +592,7 @@ export async function buildConversationPulse(
       userId: args.userId,
       source: args.source ?? "conversation_pulse_builder",
       model: (args.model ?? Deno.env.get("CONVERSATION_PULSE_MODEL") ??
-        getGlobalAiModel("gemini-2.5-flash")).trim() || "gemini-2.5-flash",
+        getGlobalAiModel()).trim() || getGlobalAiModel(),
     },
   );
 

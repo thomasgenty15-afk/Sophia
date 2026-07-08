@@ -101,6 +101,11 @@ Deno.test("buildActionMorningFallbackMessage summarizes multi-plan mornings", ()
   const instruction = buildActionMorningInstruction(schedule);
   assertStringIncludes(instruction, "lancement de journee");
   assertStringIncludes(instruction, "Ne demande jamais comment");
+  // Le nudge proactif ne doit jamais proposer une version reduite/minimale de
+  // l'action sans signal de resistance: la degradation est reservee au flow
+  // conversationnel reactif.
+  assertStringIncludes(instruction, "N'affaiblis jamais l'action");
+  assertEquals(instruction.includes("version faisable"), false);
 });
 
 Deno.test("buildLightMorningInstruction stays separate from action followups", () => {

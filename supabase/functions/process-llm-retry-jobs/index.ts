@@ -5,6 +5,11 @@ import { filterFreshMessages } from "../_shared/message_freshness.ts"
 import { processMessage } from "../sophia-brain/router.ts"
 import { logEdgeFunctionError } from "../_shared/error-log.ts"
 import { sendWhatsAppTextTracked } from "../whatsapp-webhook/wa_whatsapp_api.ts"
+import {
+  completeSkippedJob,
+  metadataRecord,
+  whatsappRetrySkipReason,
+} from "./retry_freshness.ts"
 
 // Internal worker: retries queued LLM responses (after full Google model fallback failed).
 // Trigger via cron or scripts/local_trigger_internal_job.sh:
@@ -77,8 +82,22 @@ Deno.serve(async (req) => {
       const scope = normalizeScope(job?.scope, "web")
       const channel = (job?.channel ?? "web").toString() as ("web" | "whatsapp" | string)
       const message = (job?.message ?? "").toString()
+      const jobMetadata = metadataRecord(job?.metadata)
 
       try {
+        if (scope === "whatsapp") {
+          const skipReason = await whatsappRetrySkipReason(admin, {
+            job,
+            userId: String(userId),
+            scope,
+          })
+          if (skipReason) {
+            await completeSkippedJob(admin, String(jobId), job, skipReason)
+            okCount += 1
+            continue
+          }
+        }
+
         // Fetch recent chat history for context.
         const { data: msgs, error: msgsErr } = await admin
           .from("chat_messages")
@@ -128,6 +147,7 @@ Deno.serve(async (req) => {
                 body: String(resp?.content ?? ""),
                 purpose: "llm_retry_recovered_reply",
                 isProactive: false,
+                replyToWaMessageId: String(jobMetadata.wa_message_id ?? "").trim() || null,
                 metadata: { llm_retry_job_id: jobId, llm_retry: true },
               })
               const outId = (sendResp as any)?.messages?.[0]?.id ?? null
@@ -209,7 +229,5 @@ Deno.serve(async (req) => {
     })
   }
 })
-
-
 
 

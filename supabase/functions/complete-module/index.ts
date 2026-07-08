@@ -4,6 +4,7 @@ import { generateWithGemini } from "../_shared/gemini.ts";
 import { WEEKS_CONTENT } from "../_shared/weeksContent.ts";
 import { processCoreIdentity } from "../_shared/identity-manager.ts";
 import { enforceCors, getCorsHeaders, handleCorsOptions } from "../_shared/cors.ts";
+import { enforceRateLimit, RATE_PRESETS } from "../_shared/rate-limit.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
 import { getRequestContext } from "../_shared/request_context.ts";
 
@@ -117,6 +118,12 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    const rateLimited = await enforceRateLimit(req, ctx.requestId, {
+      key: `complete-module:${user.id}`,
+      windows: RATE_PRESETS.llmStandard,
+    });
+    if (rateLimited) return rateLimited;
 
     const body = await req.json().catch(() => ({} as any));
     const { moduleId } = body as any;

@@ -124,7 +124,7 @@ export async function detectDefenseCardNewTriggers(args: {
       {
         requestId: meta?.requestId,
         userId,
-        model: getGlobalAiModel("gemini-2.5-flash"),
+        model: getGlobalAiModel(),
         source: "watcher:defense_card_trigger_detection",
       },
     );

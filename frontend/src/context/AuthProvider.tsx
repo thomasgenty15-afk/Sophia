@@ -5,6 +5,7 @@ import { isPrelaunchLockdownEnabled } from '../security/prelaunch';
 import {
   AuthContext,
   type AccessTier,
+  type AccountStatus,
   type AuthSubscription,
 } from './AuthContext';
 
@@ -15,6 +16,8 @@ type AuthProviderProps = {
 type ProfileAccessRow = {
   trial_end: string | null;
   access_tier: string | null;
+  account_status: string | null;
+  purge_at: string | null;
 };
 
 type SubscriptionRow = {
@@ -85,6 +88,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   );
   const [trialEnd, setTrialEnd] = useState<string | null>(null);
   const [accessTier, setAccessTier] = useState<AccessTier>("none");
+  const [accountStatus, setAccountStatus] = useState<AccountStatus>("active");
+  const [purgeAt, setPurgeAt] = useState<string | null>(null);
   const prelaunchLockdown = isPrelaunchLockdownEnabled();
 
   const clearLocalSession = async () => {
@@ -106,6 +111,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setSubscription(null);
     setTrialEnd(null);
     setAccessTier("none");
+    setAccountStatus("active");
+    setPurgeAt(null);
   };
 
   const refreshAdmin = async (u: User | null) => {
@@ -137,6 +144,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setSubscription(null);
       setTrialEnd(null);
       setAccessTier("none");
+      setAccountStatus("active");
+      setPurgeAt(null);
       return;
     }
     try {
@@ -148,10 +157,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
         // non-blocking
       }
 
-      // Fetch profile for trial_end + access_tier (DB computed)
+      // Fetch profile for trial_end + access_tier (DB computed) + deletion state
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('trial_end,access_tier')
+        .select('trial_end,access_tier,account_status,purge_at')
         .eq('id', u.id)
         .single();
 
@@ -167,6 +176,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const accessTierNormalized = normalizeAccessTier(profile?.access_tier);
       setTrialEnd(profile?.trial_end ?? null);
       setAccessTier(accessTierNormalized);
+      setAccountStatus(
+        profile?.account_status === "deletion_pending" ? "deletion_pending" : "active",
+      );
+      setPurgeAt(profile?.purge_at ?? null);
 
       // Fetch subscription (DB mirror); we attach `effective_tier` from profiles.access_tier
       const { data: subData } = await supabase
@@ -283,6 +296,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
+  const refreshAccountStatus = async () => {
+    await refreshSubscription(user);
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -294,6 +311,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
         subscription,
         trialEnd,
         accessTier,
+        accountStatus,
+        purgeAt,
+        refreshAccountStatus,
         signOut,
       }}
     >

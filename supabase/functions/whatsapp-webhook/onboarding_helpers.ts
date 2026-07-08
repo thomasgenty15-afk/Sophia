@@ -1,3 +1,4 @@
+// @ts-nocheck
 const PROFILE_KEY_MAP = {
   "conversation.tone": "tone",
   "conversation.verbosity": "verbosity",

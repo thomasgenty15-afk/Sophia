@@ -5,6 +5,7 @@ import {
   getCorsHeaders,
   handleCorsOptions,
 } from "../_shared/cors.ts";
+import { enforceRateLimit, RATE_PRESETS } from "../_shared/rate-limit.ts";
 import { generateWithGemini, getGlobalAiModel } from "../_shared/gemini.ts";
 import { buildActionFamilyKey } from "../_shared/memory/action_family.ts";
 import { computeScheduledForFromLocal } from "../_shared/scheduled_checkins.ts";
@@ -880,6 +881,14 @@ Deno.serve(async (req) => {
       }
       userId = authData.user.id;
     }
+
+    const requestId = `${crypto.randomUUID()}:classify-recurring-reminder`;
+    const rateLimited = await enforceRateLimit(req, requestId, {
+      key: `classify-recurring-reminder:${userId}`,
+      windows: RATE_PRESETS.llmStandard,
+    });
+    if (rateLimited) return rateLimited;
+
     const admin = createClient(supabaseUrl, serviceKey);
 
     const { data: reminder, error: reminderErr } = await admin
@@ -901,7 +910,6 @@ Deno.serve(async (req) => {
     const instruction = str((reminder as any).message_instruction);
     const rationale = str((reminder as any).rationale);
 
-    const requestId = `${crypto.randomUUID()}:classify-recurring-reminder`;
     let level: PersonalizationLevel = heuristicLevel(instruction, rationale);
     let reason = "Classification heuristique.";
     try {

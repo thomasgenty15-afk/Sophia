@@ -16,6 +16,12 @@ export type V2TrackingResult = {
   target: string;
   status: string;
   logged_progress_id?: string;
+  /**
+   * paul-r8 B01 (cmd 15): false quand l'entry est committee mais que le patch
+   * compteur/statut de l'item a ete rejete (ex. trigger DB) — le rendu doit
+   * confirmer la coche SANS pretendre que le compteur/statut a bouge.
+   */
+  item_patch_applied?: boolean;
 };
 
 async function resolveActiveTransformationRuntime(args: {
@@ -180,6 +186,38 @@ export async function invalidateChatEntryForRetarget(args: {
   return { invalidated: true };
 }
 
+/** nina-r7 B01 (arbitrage 2026-07-08): « j'ai avance » ≠ « j'ai fini ». Sur un
+ * item TOUT-OU-RIEN (pas de target_reps, pas une habitude), un report PARTIEL
+ * n'a aucun etat intermediaire a ecrire: zero ecriture, question de
+ * confirmation. Croisement de deux faits structures (status_hint du
+ * dispatcher × colonnes DB), aucune lecture de texte (cmd 0). Les items a
+ * compteur et les habitudes gardent le comportement partial existant (entry
+ * sans increment). */
+export function binaryItemPartialClarifyQuestion(args: {
+  status: "completed" | "missed" | "partial";
+  // Faits structures minimaux (DB row ou snapshot de plan): la garde ne lit
+  // jamais le texte du message.
+  item: {
+    dimension?: string | null;
+    target_reps?: number | null;
+    title?: string | null;
+  };
+  fallbackTitle: string;
+}): { question: string; target: string } | null {
+  if (args.status !== "partial") return null;
+  if (args.item.target_reps != null) return null;
+  const dimension = String(args.item.dimension ?? "").trim();
+  // Fail-open: dimension inconnue (source incomplete) ou habitude → le
+  // comportement partial existant (entry sans increment) reste le bon.
+  if (!dimension || dimension === "habits") return null;
+  const title = String(args.item.title ?? "").trim() || args.fallbackTitle;
+  return {
+    question:
+      `Tu veux que je marque « ${title} » comme faite, ou c'est encore en cours ? (cette action n'a pas d'état intermédiaire)`,
+    target: title,
+  };
+}
+
 export async function logPlanItemProgressV2(args: {
   supabase: SupabaseClient;
   userId: string;
@@ -242,6 +280,20 @@ export async function logPlanItemProgressV2(args: {
       message:
         "Je n'ai pas retrouvé ce plan item actif. Oriente vers le dashboard pour choisir l'item exact.",
       target: planItemId,
+      status,
+    };
+  }
+
+  const partialClarify = binaryItemPartialClarifyQuestion({
+    status,
+    item,
+    fallbackTitle: planItemId,
+  });
+  if (partialClarify) {
+    return {
+      mode: "needs_clarify",
+      message: partialClarify.question,
+      target: partialClarify.target,
       status,
     };
   }
@@ -413,6 +465,7 @@ export async function logPlanItemProgressV2(args: {
   // Deuxieme write du contrat dashboard: compteur + transition de statut.
   // Non-bloquant: l'entry committee reste la source de verite si le patch
   // echoue (le compteur peut etre recalcule), on ne casse pas un commit reel.
+  let itemPatchApplied: boolean | undefined = undefined;
   if (status === "completed") {
     const patch = planItemPatchForCompletedEntry(item, nowIso);
     if (patch) {
@@ -420,6 +473,7 @@ export async function logPlanItemProgressV2(args: {
         .from("user_plan_items")
         .update(patch)
         .eq("id", item.id);
+      itemPatchApplied = !patchResult.error;
       if (patchResult.error) {
         // rose-r3 B01: ce patch peut etre rejete par un trigger DB
         // (guard_unlocked_principles_update, reserve service_role) — le
@@ -446,6 +500,7 @@ export async function logPlanItemProgressV2(args: {
     target: title,
     status,
     logged_progress_id: entryId,
+    item_patch_applied: itemPatchApplied,
   };
 }
 
@@ -536,6 +591,9 @@ export function createTrackProgressPlanItemWrite(args: {
     if (written.mode !== "logged" || !written.logged_progress_id) {
       throw new Error(written.message);
     }
-    return { logged_progress_id: written.logged_progress_id };
+    return {
+      logged_progress_id: written.logged_progress_id,
+      item_patch_applied: written.item_patch_applied,
+    };
   };
 }

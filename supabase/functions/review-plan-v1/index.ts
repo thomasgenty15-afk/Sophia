@@ -4,6 +4,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 
 import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
+import { enforceRateLimit, RATE_PRESETS } from "../_shared/rate-limit.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
 import { generateWithGemini, getGlobalAiModel } from "../_shared/gemini.ts";
 import {
@@ -156,6 +157,12 @@ async function handleRequest(req: Request): Promise<Response> {
         { status: 401 },
       );
     }
+
+    const rateLimited = await enforceRateLimit(req, requestId, {
+      key: `review-plan-v1:${authData.user.id}`,
+      windows: RATE_PRESETS.llmStandard,
+    });
+    if (rateLimited) return rateLimited;
 
     const plan = parsePlanContent(parsedBody.data.plan_content);
     const admin = createClient(env.url, env.serviceRoleKey, {

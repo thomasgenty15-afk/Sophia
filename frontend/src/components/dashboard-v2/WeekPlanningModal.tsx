@@ -60,6 +60,37 @@ const inflightBundleLoads = new Map<
   Promise<WeekPlanningBundleResponse>
 >();
 
+// supabase.functions.invoke wraps a non-2xx response in a FunctionsHttpError
+// whose `.message` is the generic "Edge Function returned a non-2xx status
+// code". The useful message lives in the JSON body of `.context` (the Response),
+// e.g. { error: "Impossible de charger cet item de plan" }.
+async function resolveInvokeErrorMessage(
+  error: unknown,
+  fallback: string,
+): Promise<string> {
+  const context = (error as { context?: unknown })?.context;
+  if (context instanceof Response) {
+    try {
+      const body = await context.clone().json();
+      const message = typeof body?.error === "string"
+        ? body.error
+        : typeof body?.message === "string"
+        ? body.message
+        : "";
+      if (message) return message;
+    } catch {
+      try {
+        const text = (await context.clone().text()).trim();
+        if (text) return text.slice(0, 300);
+      } catch {
+        // fall through to the generic message below
+      }
+    }
+  }
+  if (error instanceof Error && error.message) return error.message;
+  return fallback;
+}
+
 function frenchLabel(day: DayCode) {
   return {
     mon: "Lun",
@@ -250,12 +281,12 @@ export function WeekPlanningModal({
           ])),
         );
       } catch (loadError) {
-        if (cancelled) return;
-        setError(
-          loadError instanceof Error
-            ? loadError.message
-            : "Impossible de charger le planning de la semaine.",
+        const message = await resolveInvokeErrorMessage(
+          loadError,
+          "Impossible de charger le planning de la semaine.",
         );
+        if (cancelled) return;
+        setError(message);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -338,9 +369,10 @@ export function WeekPlanningModal({
       onSaved(payload.bundle_status);
     } catch (saveError) {
       setError(
-        saveError instanceof Error
-          ? saveError.message
-          : "Impossible d'enregistrer le planning.",
+        await resolveInvokeErrorMessage(
+          saveError,
+          "Impossible d'enregistrer le planning.",
+        ),
       );
     } finally {
       setSaving(false);

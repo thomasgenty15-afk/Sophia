@@ -490,7 +490,7 @@ export async function runPlanRealignmentLocalDispatcher(
       {
         requestId: input.request_id ?? undefined,
         userId: input.user_id,
-        model: getGlobalAiModel("gemini-2.5-flash"),
+        model: getGlobalAiModel(),
         source: "plan_realignment.local_dispatcher",
         forceRealAi: true,
         reasoningEffort: "low",

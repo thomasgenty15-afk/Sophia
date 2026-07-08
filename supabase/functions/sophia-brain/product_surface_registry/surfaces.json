@@ -204,9 +204,10 @@
     "short_destination_label": "Cartes de défense",
     "user_facing_destination": "dans la section Cartes de défense",
     "platform_steps": [
-      "ouvre la section Cartes",
-      "choisis Carte de défense",
-      "reprends le brouillon proposé"
+      "ouvre la section Cartes de défense",
+      "choisis Nouvelle carte de défense",
+      "décris librement ta situation dans le champ proposé, puis réponds aux 3 questions",
+      "relis et ajuste la carte générée avant de l'enregistrer"
     ],
     "can_execute_from_chat": false,
     "chat_behavior": "platform_destination"
@@ -214,11 +215,11 @@
   {
     "destination_id": "state_potion",
     "surface_id": "state_potions",
-    "label": "État / Potions",
-    "short_destination_label": "État / Potions",
-    "user_facing_destination": "dans la section État / Potions",
+    "label": "Ressources / Potions",
+    "short_destination_label": "Ressources / Potions",
+    "user_facing_destination": "dans Dashboard > Ressources, section Potions",
     "platform_steps": [
-      "ouvre la section État / Potions",
+      "ouvre Dashboard > Ressources puis la section Potions",
       "choisis la potion recommandée",
       "active-la depuis la plateforme si elle te convient"
     ],

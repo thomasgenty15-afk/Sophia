@@ -4,6 +4,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 
 import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
+import { enforceRateLimit, RATE_PRESETS } from "../_shared/rate-limit.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
 import { generateWithGemini } from "../_shared/gemini.ts";
 import {
@@ -356,6 +357,12 @@ async function handleRequest(req: Request): Promise<Response> {
     if (authError || !authData?.user) {
       return jsonResponse(req, { error: "Unauthorized", request_id: requestId }, { status: 401 });
     }
+
+    const rateLimited = await enforceRateLimit(req, requestId, {
+      key: `draft-transformation-from-text-v1:${authData.user.id}`,
+      windows: RATE_PRESETS.llmHeavy,
+    });
+    if (rateLimited) return rateLimited;
 
     const draft = await draftTransformationFromText({
       requestId,

@@ -4,6 +4,7 @@ import {
   isCoachingRecommendationBridgeNote,
 } from "../../../_shared/coaching_parent_bridge.ts";
 import {
+  coachingDispatcherPromptForTest,
   initialCoachingRecommendationStateFromParentBridge,
   normalizeCoachingRecommendationLocalDispatcherOutput,
   reduceCoachingRecommendationLocalDispatcherOutput,
@@ -4068,4 +4069,104 @@ Deno.test("coaching complete without parent keeps current no-note behavior", () 
 
   assertEquals(reduced.status, "complete");
   assertEquals(reduced.note_information, null);
+});
+
+Deno.test("technique_coherence survives normalization and invalid values collapse to null (alex-r1 B04)", () => {
+  const forced = decision({
+    visible_task: {
+      kind: "recommend_feature",
+      instruction: "Recommend with doubt.",
+      conversation_context: {
+        state_summary: "Forced technique.",
+        known_values: {},
+        missing_or_weak_values: [],
+        candidate_features: [],
+        recommendation: {},
+        tone_constraints: [],
+        do_not_say: [],
+        evidence_used: [],
+      },
+      flow_context: {
+        technique_coherence: {
+          status: "forced_mismatch",
+          requested_technique: "mot_de_bascule",
+          suggested_technique: "externalisation",
+          why: "Le besoin est de vider une tete qui craint d'oublier, pas de couper un geste.",
+        },
+      },
+    },
+  });
+  assertEquals(
+    forced.visible_task.flow_context?.technique_coherence?.status,
+    "forced_mismatch",
+  );
+  assertEquals(
+    forced.visible_task.flow_context?.technique_coherence?.suggested_technique,
+    "externalisation",
+  );
+
+  // Anti-faux-positif: statut inconnu ou champ absent → null, jamais un
+  // forced_mismatch invente.
+  const invalid = decision({
+    visible_task: {
+      kind: "recommend_feature",
+      instruction: "x",
+      conversation_context: {
+        state_summary: "s",
+        known_values: {},
+        missing_or_weak_values: [],
+        candidate_features: [],
+        recommendation: {},
+        tone_constraints: [],
+        do_not_say: [],
+        evidence_used: [],
+      },
+      flow_context: { technique_coherence: { status: "maybe" } },
+    },
+  });
+  assertEquals(
+    invalid.visible_task.flow_context?.technique_coherence ?? null,
+    null,
+  );
+  const absent = decision({});
+  assertEquals(
+    absent.visible_task.flow_context?.technique_coherence ?? null,
+    null,
+  );
+});
+
+Deno.test("la doctrine de coherence potion s'applique des la collecte, sans cadre fabrique (rose-r7 B02)", () => {
+  const prompt = coachingDispatcherPromptForTest(
+    {
+      user_id: "user-test",
+      request_id: "req-test",
+      user_message: "donne-moi une potion de courage",
+      recent_messages: [],
+      previous_state: null,
+      active_plan_items: [],
+      turn_frame: null,
+    } as any,
+  );
+  // Positif: le contrat s'applique avant qu'une recommandation existe.
+  assertEquals(prompt.includes("DES LA COLLECTE"), true);
+  assertEquals(
+    prompt.includes("AVANT meme qu'une recommandation existe"),
+    true,
+  );
+  // Interdiction de la rationalisation retroactive observee (cadre 'evitement'
+  // jamais exprime par Rose fabrique pour justifier la bascule).
+  assertEquals(
+    prompt.includes("INTERDIT de fabriquer retroactivement un cadre"),
+    true,
+  );
+  // Anti-faux-positif: la reaffirmation coherente s'accepte sans requalifier.
+  assertEquals(
+    prompt.includes("s'accepte sans requalification"),
+    true,
+  );
+  // La regle levier-agnostique existante reste ancree (non-regression V4-5).
+  assertEquals(
+    prompt.includes("OBLIGATOIRE des qu'une technique OU un type de potion"),
+    true,
+  );
 });

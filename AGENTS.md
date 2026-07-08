@@ -1,12 +1,42 @@
-# Codex Safety Rules
+# Agent Safety Rules
 
-Never run `supabase db reset`.
+## Commandes à risque — validation humaine EXPLICITE obligatoire
 
-Never run destructive Supabase database commands unless the user explicitly asks for the exact command in the current conversation. This includes:
+Un agent IA ne peut JAMAIS lancer seul les commandes ci-dessous. Elles exigent
+que **l'utilisateur humain les tape lui-même** dans son terminal. Si une tâche
+semble en avoir besoin, **arrête-toi** et donne la commande exacte à l'utilisateur
+pour qu'il l'exécute — ne la lance pas, ne la contourne pas.
+
+- `supabase secrets set` / `supabase secrets unset`  (⚠️ un push `--env-file` a déjà écrasé tous les secrets staging par des valeurs dev)
 - `supabase db reset`
-- `supabase db push --linked`
-- direct SQL commands that delete, truncate, drop, or overwrite database data or schema
+- `supabase db push` (notamment `--linked`)
+- `supabase functions deploy`
+- `supabase projects delete` / `supabase branches delete`
+- `supabase link`
+- Écriture de secrets via la Management API (`POST`/`DELETE` sur `api.supabase.com/.../secrets`)
+- SQL direct qui `delete`, `truncate`, `drop` ou écrase des données/schéma
 
-Exception: during QA/test runs, if the user explicitly asks to clean the database in a targeted way, Codex may remove only the records created by that test run and only inside the clearly identified test perimeter. The cleanup must be narrowly scoped by test-specific identifiers such as temporary QA user ids, run ids, request ids, or source metadata. This exception does not allow broad resets, schema changes, truncates, or deletion outside the artifacts produced by the current test.
+Les **lectures** restent autorisées (GET Management API, SELECT, requêtes PostgREST en lecture).
 
-If a task appears to require one of these commands, stop and ask for explicit confirmation before running it.
+### Exception QA ciblée
+Pendant un run QA/test, si l'utilisateur le demande explicitement, un agent peut
+supprimer uniquement les enregistrements créés par CE run, dans un périmètre de test
+clairement identifié (user id temporaire, run id, request id, source metadata). Aucune
+autre suppression, reset, truncate ou changement de schéma.
+
+## Application (défense en profondeur)
+
+Ces règles ne reposent pas que sur la bonne volonté :
+
+1. **Hook Claude Code** — `.claude/hooks/block-risky-commands.sh` (via `.claude/settings.json`)
+   bloque ces commandes côté outil Bash (exit 2).
+2. **Garde shell** — la fonction `supabase()` de `~/.zshrc` (via `_confirm_risky_cmd`)
+   intercepte secrets set/unset · db reset/wipe/drop/push · functions deploy ·
+   migration repair · `--linked` · `--project-ref` · link : elle exige de taper `YES`
+   et bloque l'exécution non-interactive/agent (le `read` reçoit EOF → annulé).
+   `scripts/safe-supabase.sh` est la version portable/committée équivalente (autres
+   machines, CI).
+3. **Cette doc** — lue par les agents.
+
+Si tu es un agent et que ta commande est bloquée : c'est normal. Explique à
+l'utilisateur ce qu'il doit lancer, et laisse-le décider.

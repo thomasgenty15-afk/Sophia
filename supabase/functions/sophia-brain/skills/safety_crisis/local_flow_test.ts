@@ -7,8 +7,13 @@ import {
   dispatcherSystemPrompt,
   normalizeSafetyCrisisLocalDispatcherOutput,
   oneShotDirectEffectFromSafetyCrisisLocalDispatcherOutput,
+  safetyCrisisOneShotDirectEffectDecision,
   setSafetyCrisisLocalDispatcherForTest,
 } from "./local_dispatcher.ts";
+import {
+  normalizeLocalOneShotDirectEffectRequest,
+  oneShotDirectEffectFromLocalRequest,
+} from "../../router/one_shot_local_direct_effect.ts";
 import { mergeSafetyCrisisLocalState, reduceSafetyCrisis } from "./reducer.ts";
 import { runSafetyCrisisSkill } from "./skill.ts";
 import {
@@ -474,6 +479,7 @@ Deno.test("safety_crisis local dispatcher exposes explicit one-shot reminder as 
       explicitness: "explicit",
       target_status: "identified",
       confidence_band: "high",
+      content_risk: "safe",
       payload_hint: {
         raw_text:
           "mets-moi un rappel dans 30 minutes pour verifier que je tiens",
@@ -536,6 +542,93 @@ Deno.test("safety_crisis local dispatcher exposes explicit one-shot reminder as 
     }),
     null,
   );
+});
+
+Deno.test("safety reminder admission: escalate, contenu flagged et confiance moyenne ne creent jamais (eva-r9 B01)", () => {
+  const safeRequest = {
+    requested: true,
+    effect_type: "create_one_shot_reminder",
+    explicitness: "explicit",
+    target_status: "identified",
+    confidence_band: "high",
+    content_risk: "safe",
+    payload_hint: {
+      raw_text: "rappelle-moi ce soir a 21h de couper le telephone",
+      when_hint: "ce soir a 21h",
+      UTC_time: "2026-07-08T19:00:00.000Z",
+      local_label: "ce soir a 21:00",
+      instruction_hint: "couper le telephone",
+    },
+    reason: "rappel explicite",
+  };
+
+  // Positif: demande explicite, contenu safe, tour non escalade → servie.
+  const admitted = safetyCrisisOneShotDirectEffectDecision(dispatcherOutput({
+    flow_action: "provide_support_status",
+    safety_signals: { immediate_danger: false, uncertainty: "low" },
+    direct_effect_request: safeRequest,
+  }));
+  assert(admitted.effect);
+  assertEquals(admitted.deferred_reason, null);
+
+  // Escalade (flow_action ou immediate_danger): jamais servie, et pas de stage
+  // boundary non plus (il degraderait le stage d'urgence du reducer).
+  for (
+    const escalated of [
+      { flow_action: "safety_escalate", safety_signals: { uncertainty: "low" } },
+      {
+        flow_action: "provide_support_status",
+        safety_signals: { immediate_danger: true, uncertainty: "low" },
+      },
+    ]
+  ) {
+    const decision = safetyCrisisOneShotDirectEffectDecision(dispatcherOutput({
+      ...escalated,
+      direct_effect_request: safeRequest,
+    }));
+    assertEquals(decision.effect, null);
+    assertEquals(decision.deferred_reason, null);
+  }
+
+  // Contenu flagged (substances/moyens): ni cree, ni promis pour apres.
+  const flagged = safetyCrisisOneShotDirectEffectDecision(dispatcherOutput({
+    flow_action: "provide_support_status",
+    safety_signals: { immediate_danger: false, uncertainty: "low" },
+    direct_effect_request: { ...safeRequest, content_risk: "flagged" },
+  }));
+  assertEquals(flagged.effect, null);
+  assertEquals(flagged.deferred_reason, null);
+
+  // Confiance moyenne ou jugement de contenu absent: fail-closed pendant la
+  // crise, MAIS differe honnetement (le visible dira « pour apres »).
+  for (
+    const request of [
+      { ...safeRequest, confidence_band: "medium" },
+      { ...safeRequest, content_risk: null },
+    ]
+  ) {
+    const decision = safetyCrisisOneShotDirectEffectDecision(dispatcherOutput({
+      flow_action: "provide_support_status",
+      safety_signals: { immediate_danger: false, uncertainty: "low" },
+      direct_effect_request: request,
+    }));
+    assertEquals(decision.effect, null);
+    assert(decision.deferred_reason);
+  }
+
+  // Anti-faux-positif hors safety: un flow local sans jugement de contenu
+  // (content_risk null) reste accepte par la porte partagee; seul "flagged"
+  // bloque partout.
+  const withoutJudgement = normalizeLocalOneShotDirectEffectRequest({
+    ...safeRequest,
+    content_risk: undefined,
+  });
+  assert(oneShotDirectEffectFromLocalRequest(withoutJudgement));
+  const sharedFlagged = normalizeLocalOneShotDirectEffectRequest({
+    ...safeRequest,
+    content_risk: "flagged",
+  });
+  assertEquals(oneShotDirectEffectFromLocalRequest(sharedFlagged), null);
 });
 
 Deno.test("safety_crisis reducer escalates immediate danger and means nearby alone", () => {
@@ -1582,4 +1675,61 @@ Deno.test("safety_crisis first activation without known facts opens on risk chec
 
   assertEquals(reduced.phase, "immediate_risk_check");
   assertEquals(reduced.visibleTask.kind, "immediate_risk_check");
+});
+
+Deno.test("safety_crisis reducer consumes triage answers: danger denied + alone answered → support phase, never re-triage (rose-r5 B02)", () => {
+  // Le user vient de repondre au triage: pas de danger, mais seule.
+  const answered = reduceSafetyCrisis({
+    previousState: {
+      phase: "immediate_risk_check",
+      risk_band: "medium",
+    },
+    sourceRiskBand: "medium",
+    signals: emptySafetySignal({
+      immediate_danger: false,
+      user_currently_alone: true,
+      clarified_non_immediate: true,
+    }),
+    dispatcherOutput: dispatcherOutput({
+      flow_action: "answer_safety_check",
+      risk_score: 5,
+      safety_signals: {
+        immediate_danger: false,
+        user_currently_alone: true,
+        clarified_non_immediate: true,
+        uncertainty: "low",
+      },
+    }),
+  });
+  // La reponse est consommee: on passe au soutien (adresser la solitude),
+  // jamais un retour au meme triage.
+  assertEquals(answered.phase, "support_contact");
+
+  // Anti-faux-positif: reponse ambigue (danger inconnu, solitude inconnue)
+  // → le triage reste legitime.
+  const ambiguous = reduceSafetyCrisis({
+    previousState: {
+      phase: "immediate_risk_check",
+      risk_band: "medium",
+    },
+    sourceRiskBand: "medium",
+    signals: emptySafetySignal({
+      clarified_non_immediate: true,
+    }),
+  });
+  assertEquals(ambiguous.phase, "immediate_risk_check");
+
+  // Danger explicite → l'escalade prime toujours sur la consommation.
+  const danger = reduceSafetyCrisis({
+    previousState: {
+      phase: "immediate_risk_check",
+      risk_band: "medium",
+    },
+    sourceRiskBand: "high",
+    signals: emptySafetySignal({
+      immediate_danger: true,
+      user_currently_alone: true,
+    }),
+  });
+  assertEquals(danger.phase, "acute_grounding");
 });

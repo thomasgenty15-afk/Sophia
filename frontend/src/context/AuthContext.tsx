@@ -12,6 +12,8 @@ export type AuthSubscription = {
   effective_tier?: "system" | "alliance" | "architecte" | "none" | null;
 };
 
+export type AccountStatus = "active" | "deletion_pending";
+
 export interface AuthContextType {
   session: Session | null;
   user: User | null;
@@ -21,6 +23,9 @@ export interface AuthContextType {
   subscription: AuthSubscription | null;
   trialEnd: string | null;
   accessTier: AccessTier;
+  accountStatus: AccountStatus;
+  purgeAt: string | null;
+  refreshAccountStatus: () => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -33,6 +38,9 @@ export const AuthContext = createContext<AuthContextType>({
   subscription: null,
   trialEnd: null,
   accessTier: "none",
+  accountStatus: "active",
+  purgeAt: null,
+  refreshAccountStatus: async () => {},
   signOut: async () => {},
 });
 

@@ -2,6 +2,7 @@ import React from "react";
 import { ArrowRight, CreditCard, LockKeyhole, UserCog } from "lucide-react";
 import { Link, Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import DeletionPendingScreen from "../components/account/DeletionPendingScreen";
 
 function buildRedirectQuery(pathname: string, search: string) {
   const dest = `${pathname}${search || ""}`;
@@ -22,7 +23,7 @@ export function RequireUser({ children }: { children: React.ReactNode }) {
 }
 
 export function RequireAppAccess({ children }: { children: React.ReactNode }) {
-  const { user, loading, isAdmin, prelaunchLockdown, accessTier } = useAuth();
+  const { user, loading, isAdmin, prelaunchLockdown, accessTier, accountStatus } = useAuth();
   const location = useLocation();
   const lockdown = prelaunchLockdown;
 
@@ -31,6 +32,12 @@ export function RequireAppAccess({ children }: { children: React.ReactNode }) {
   // Always require a signed-in user for the app routes
   if (!user) {
     return <Navigate to={`/auth?${buildRedirectQuery(location.pathname, location.search)}`} replace />;
+  }
+
+  // Account flagged for deletion (RGPD): the app is sealed off; the only
+  // choices offered are restoring the account or signing out.
+  if (accountStatus === "deletion_pending") {
+    return <DeletionPendingScreen />;
   }
 
   // In prelaunch, only internal admins can access the app

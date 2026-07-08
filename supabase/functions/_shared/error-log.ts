@@ -60,22 +60,71 @@ async function signJwtHs256(secret: string, payload: Record<string, unknown>) {
   return `${toSign}.${base64Url(sig)}`
 }
 
-function normalizeError(err: unknown): { name: string; message: string; stack?: string } {
-  if (err instanceof Error) {
-    return { name: err.name || "Error", message: err.message || String(err), stack: err.stack }
+// Postgres / PostgREST / supabase-js errors carry the actual failure reason in
+// these fields rather than in `.message`. We capture them so a wrapped error
+// (`new AppError(..., { cause: pgError })`) stays diagnosable.
+function extractErrorFields(err: unknown): Record<string, string> {
+  if (!err || typeof err !== "object") return {}
+  const anyErr = err as Record<string, unknown>
+  const fields: Record<string, string> = {}
+  for (const key of ["name", "code", "details", "hint"]) {
+    const value = anyErr[key]
+    if (typeof value === "string" && value.trim()) {
+      fields[key] = value.trim()
+    } else if (typeof value === "number") {
+      fields[key] = String(value)
+    }
+  }
+  return fields
+}
+
+function normalizeError(err: unknown): {
+  name: string
+  message: string
+  stack?: string
+  fields: Record<string, string>
+  cause?: { name: string; message: string; fields: Record<string, string> }
+} {
+  const base = (() => {
+    if (err instanceof Error) {
+      return { name: err.name || "Error", message: err.message || String(err), stack: err.stack }
+    }
+    // Supabase client / fetch errors are often plain objects
+    const anyErr = err as any
+    const name = typeof anyErr?.name === "string" ? anyErr.name : "Error"
+    const message =
+      typeof anyErr?.message === "string"
+        ? anyErr.message
+        : typeof anyErr === "string"
+          ? anyErr
+          : JSON.stringify(anyErr ?? {})
+    const stack = typeof anyErr?.stack === "string" ? anyErr.stack : undefined
+    return { name, message, stack }
+  })()
+
+  // Walk `.cause` so the real underlying failure (e.g. a PostgREST error wrapped
+  // in a generic HttpError) is never silently dropped.
+  const rawCause = (err && typeof err === "object")
+    ? (err as { cause?: unknown }).cause
+    : undefined
+  let cause: { name: string; message: string; fields: Record<string, string> } | undefined
+  if (rawCause != null && rawCause !== err) {
+    const causeName = rawCause instanceof Error
+      ? (rawCause.name || "Error")
+      : typeof (rawCause as any)?.name === "string"
+        ? (rawCause as any).name
+        : "Error"
+    const causeMessage = rawCause instanceof Error
+      ? (rawCause.message || String(rawCause))
+      : typeof (rawCause as any)?.message === "string"
+        ? (rawCause as any).message
+        : typeof rawCause === "string"
+          ? rawCause
+          : (() => { try { return JSON.stringify(rawCause) } catch { return String(rawCause) } })()
+    cause = { name: causeName, message: causeMessage, fields: extractErrorFields(rawCause) }
   }
 
-  // Supabase client / fetch errors are often plain objects
-  const anyErr = err as any
-  const name = typeof anyErr?.name === "string" ? anyErr.name : "Error"
-  const message =
-    typeof anyErr?.message === "string"
-      ? anyErr.message
-      : typeof anyErr === "string"
-        ? anyErr
-        : JSON.stringify(anyErr ?? {})
-  const stack = typeof anyErr?.stack === "string" ? anyErr.stack : undefined
-  return { name, message, stack }
+  return { ...base, fields: extractErrorFields(err), cause }
 }
 
 function scrubText(value: string, maxLen: number): string {
@@ -153,8 +202,24 @@ export async function logEdgeFunctionError(args: {
           : createClient(url, envServiceKey, { auth: { persistSession: false } })
 
     const sev: Severity = args.severity ?? "error"
-    const { name, message, stack } = normalizeError(args.error)
-    const safeMessage = scrubText(message, 1200)
+    const { name, message, stack, fields, cause } = normalizeError(args.error)
+    // Surface the underlying cause (e.g. the real PostgREST/Postgres failure that
+    // was wrapped in a generic application error) directly in the message so it is
+    // visible without digging into metadata.
+    const causeSummary = cause
+      ? [cause.message, cause.fields.code ? `code=${cause.fields.code}` : "", cause.fields.details, cause.fields.hint]
+        .map((part) => String(part ?? "").trim())
+        .filter(Boolean)
+        .join(" | ")
+      : ""
+    const selfSummary = [fields.code ? `code=${fields.code}` : "", fields.details, fields.hint]
+      .map((part) => String(part ?? "").trim())
+      .filter(Boolean)
+      .join(" | ")
+    const enrichedMessage = [message, selfSummary, causeSummary ? `cause: ${causeSummary}` : ""]
+      .filter(Boolean)
+      .join(" | ")
+    const safeMessage = scrubText(enrichedMessage, 1200)
     const safeStack = stack ? scrubText(stack, 2400) : null
 
     const insertRow = {
@@ -166,7 +231,12 @@ export async function logEdgeFunctionError(args: {
       stack: safeStack,
       request_id: args.requestId ?? null,
       user_id: args.userId ?? null,
-      metadata: { ...(args.metadata ?? {}), error_name: name },
+      metadata: {
+        ...(args.metadata ?? {}),
+        error_name: name,
+        ...(Object.keys(fields).length > 0 ? { error_fields: fields } : {}),
+        ...(cause ? { error_cause: { name: cause.name, message: scrubText(cause.message, 600), ...cause.fields } } : {}),
+      },
     }
 
     const { error } = await admin.from("system_error_logs").insert(insertRow as any)

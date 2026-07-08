@@ -348,6 +348,7 @@ export function normalizeFeatureOpportunityLocalDispatcherOutput(
       ),
     },
     note_information: null,
+    session_style_commitment: text(root.session_style_commitment, 200) || null,
     evidence: stringArray(root.evidence, 8),
   };
 }
@@ -465,6 +466,8 @@ export function dispatcherPrompt(input: FeatureOpportunityLocalDispatcherInput) 
     "Priorise selon dispatcher_signal_context.feature et conserve dispatcher_signal_context dans le state jusqu'a la sortie.",
     "initiatives: contexte recurrent, rituel, soutien recurrent de Sophia, message recurrent, difficulte avant/apres un moment repete. Ces signaux font partie du scope feature_opportunity et ne doivent pas faire quitter le flow. Nom visible obligatoire: initiatives. Ne cite jamais les noms internes des anciennes surfaces de rappel.",
     "coach_preferences: feedback sur le style Sophia, trop de questions, trop long, ton inadequat, besoin de plus directif/doux.",
+    "Preference de style DURABLE ('pour la suite', 'a partir de maintenant', alex-r2 B03): la reponse porte TOUJOURS les trois volets — (1) application immediate ('je le fais des maintenant'), (2) honnetete sur la portee (le reglage durable depuis le chat arrive dans une prochaine version), (3) renvoi vers Preferences coach pour le reglage durable. INTERDIT: acquitter seulement 'sur cette conversation' sans les volets 2-3 (le user croirait la preference perdue ensuite), et n'expose jamais un libelle de portee interne comme formule seche.",
+    "session_style_commitment (eva-r7 B01): quand l'opportunite est une preference de STYLE que la reponse acquitte pour la session ('sans emojis', 'plus direct', 'reponses plus courtes'), remplis session_style_commitment avec la contrainte exacte en quelques mots (ex: 'sans emojis, ton sobre et direct'). Ce champ fait tenir l'engagement sur TOUS les tours suivants de la session, soutien compris. Laisse null si aucune contrainte de style n'est acquittee ce tour.",
     "Il n'y a aucun handoff local depuis feature_opportunity. Si le sujet sort de l'opportunite produit, question produit autonome incluse, utilise exit_to_global_dispatcher avec target_dispatcher=global.",
     "Sortent aussi du perimetre: une demande explicite de memorisation ('retiens que', 'garde-le en tete', 'je veux que tu le retiennes') et un report d'action accomplie/ratee ('c'est fait', 'marque-le'). Utilise exit_to_global_dispatcher: la memorisation et le tracking sont geres par le runtime global, jamais par une initiative.",
     "Sort aussi du perimetre: une demande d'INFORMATION ou de LECTURE ('montre-moi mon plan', 'mes actions actives', 'mes rappels en attente', 'où j'en suis ?', un recap). Utilise exit_to_global_dispatcher: la reponse normale possede la projection reelle du plan et des rappels. Ne tente jamais d'y repondre depuis ce flow et ne demande jamais au user de fournir sa propre liste.",
@@ -545,7 +548,7 @@ export async function runFeatureOpportunityLocalDispatcher(
       {
         requestId: input.request_id ?? undefined,
         userId: input.user_id,
-        model: getGlobalAiModel("gemini-2.5-flash"),
+        model: getGlobalAiModel(),
         source: "feature_opportunity.local_dispatcher",
         forceRealAi: true,
         reasoningEffort: "low",

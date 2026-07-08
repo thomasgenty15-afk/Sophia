@@ -477,3 +477,206 @@ Deno.test("committed correction reply override fires only on correction commits 
   // Commit normal sans correction → pas d'override (le composeur garde la main).
   assertEquals(committedCorrectionReplyOverride(frame(false, true)), null);
 });
+
+Deno.test("mixed outcomes: divergent effects get a per-effect directive, completion vocabulary scoped to committed (nina-r5 B01)", () => {
+  const frame = {
+    safety: { risk_band: "none", reason_codes: [], evidence: [] },
+    direct_effects: [
+      {
+        effect_type: "create_one_shot_reminder",
+        explicitness: "explicit",
+        payload_hint: { intent: "cancel" },
+      },
+      {
+        effect_type: "track_progress_plan_item",
+        explicitness: "explicit",
+        payload_hint: { target_item_id: "e205079e", status_hint: "completed" },
+      },
+    ],
+    direct_effect_lane: {
+      committed_effects: [{
+        type: "create_one_shot_reminder",
+        reminder_instruction: "rappel de 8h",
+        local_label: "08:00",
+      }],
+      requested_effects: [{
+        type: "track_progress_plan_item",
+        target_title: "Ranger les produits pieges hors de vue",
+        progress_status: "completed",
+      }],
+      allowed_effects: [],
+      blocked_effects: [{
+        type: "track_progress_plan_item",
+        reason_code: "target_not_evidenced",
+      }],
+    },
+  };
+  const context = buildDirectEffectConfirmationContext(frame);
+  const track = context?.effects_outcome.find((o) =>
+    o.effect_type === "track_progress_plan_item"
+  );
+  // Input contradictoire → clarification sur le QUAND, jamais un claim.
+  assertEquals(track?.status, "needs_clarify");
+  assertEquals(
+    track?.clarify_question?.includes("deja fait ou tu comptes le faire"),
+    true,
+  );
+
+  const prompt = directEffectConfirmationContextPrompt(frame);
+  assertEquals(prompt?.includes("MIXED_OUTCOMES_DIRECTIVE"), true);
+  assertEquals(prompt?.includes("issues DIVERGENTES"), true);
+  assertEquals(prompt?.includes('"rappel de 8h" → FAIT'), true);
+  assertEquals(
+    prompt?.includes('"Ranger les produits pieges hors de vue" → PAS enregistre'),
+    true,
+  );
+  assertEquals(
+    prompt?.includes("ne peut viser QUE les cibles marquees FAIT"),
+    true,
+  );
+});
+
+Deno.test("mixed outcomes directive absent when all outcomes agree (anti-faux-positif)", () => {
+  const committedOnly = directEffectConfirmationContextPrompt({
+    safety: { risk_band: "none", reason_codes: [], evidence: [] },
+    direct_effects: [],
+    direct_effect_lane: {
+      committed_effects: [{
+        type: "create_one_shot_reminder",
+        reminder_instruction: "boire de l'eau",
+        local_label: "09:00",
+      }],
+      requested_effects: [],
+      allowed_effects: [],
+      blocked_effects: [],
+    },
+  });
+  assertEquals(committedOnly?.includes("MIXED_OUTCOMES_DIRECTIVE"), false);
+
+  const blockedOnly = directEffectConfirmationContextPrompt({
+    safety: { risk_band: "none", reason_codes: [], evidence: [] },
+    direct_effects: [{
+      effect_type: "track_progress_plan_item",
+      explicitness: "explicit",
+      payload_hint: {},
+    }],
+    direct_effect_lane: {
+      committed_effects: [],
+      requested_effects: [],
+      allowed_effects: [],
+      blocked_effects: [{
+        type: "track_progress_plan_item",
+        reason_code: "contradicts_same_day_evidence",
+      }],
+    },
+  });
+  assertEquals(blockedOnly?.includes("MIXED_OUTCOMES_DIRECTIVE"), false);
+});
+
+Deno.test("committed track with failed item patch carries the honest counter guidance (paul-r8 B01, cmd 15)", () => {
+  const context = buildDirectEffectConfirmationContext({
+    safety: { risk_band: "none", reason_codes: [], evidence: [] },
+    direct_effects: [],
+    direct_effect_lane: {
+      committed_effects: [{
+        type: "track_progress_plan_item",
+        target_title: "Coupure ecran",
+        progress_status: "completed",
+        item_patch_applied: false,
+      }],
+      requested_effects: [],
+      allowed_effects: [],
+      blocked_effects: [],
+    },
+  });
+  const outcome = context?.effects_outcome[0];
+  assertEquals(outcome?.status, "committed");
+  assertEquals(outcome?.guidance.includes("ne confirme NI le compteur"), true);
+
+  // Anti-faux-positif: patch applique (ou non concerne) → guidance standard.
+  const ok = buildDirectEffectConfirmationContext({
+    safety: { risk_band: "none", reason_codes: [], evidence: [] },
+    direct_effects: [],
+    direct_effect_lane: {
+      committed_effects: [{
+        type: "track_progress_plan_item",
+        target_title: "Marche",
+        progress_status: "completed",
+        item_patch_applied: true,
+      }],
+      requested_effects: [],
+      allowed_effects: [],
+      blocked_effects: [],
+    },
+  });
+  assertEquals(
+    ok?.effects_outcome[0]?.guidance.includes("ne confirme NI le compteur"),
+    false,
+  );
+});
+
+Deno.test("committed guidance forbids every denial variant, whatever the handler status label (rose-r7 B01)", () => {
+  // Le contexte se derive du LEDGER (committed_effects), jamais du libelle de
+  // statut du handler: une lane track (status "logged") porte exactement la
+  // meme interdiction de dementi qu'une lane rappel (status "success").
+  const context = buildDirectEffectConfirmationContext({
+    safety: { risk_band: "none", reason_codes: [], evidence: [] },
+    direct_effects: [],
+    direct_effect_lane: {
+      // Statut volontairement non-"success": la garde ne doit pas le lire.
+      status: "logged",
+      committed_effects: [{
+        type: "track_progress_plan_item",
+        target_title: "Sas de decompression",
+        progress_status: "completed",
+        item_patch_applied: true,
+      }],
+      requested_effects: [],
+      allowed_effects: [],
+      blocked_effects: [],
+    },
+  });
+  const outcome = context?.effects_outcome[0];
+  assertEquals(outcome?.status, "committed");
+  // Les variantes exactes du dementi de rose-r7 T10 sont interdites en toutes
+  // lettres dans la guidance (donnee, cmd 16).
+  assertEquals(
+    outcome?.guidance.includes("je ne peux pas te dire/confirmer que c'est coche"),
+    true,
+  );
+  assertEquals(
+    outcome?.guidance.includes("je peux t'aider a le formuler pour le suivi"),
+    true,
+  );
+  assertEquals(
+    outcome?.guidance.includes("quel que soit le libelle de statut du handler"),
+    true,
+  );
+  // Et l'anti-silence (eva-r9 B02): un committe se mentionne toujours.
+  assertEquals(
+    outcome?.guidance.includes("ne reste JAMAIS silencieux"),
+    true,
+  );
+
+  // Anti-faux-positif: un track BLOQUE garde le droit au disclaimer honnete —
+  // la guidance committed ne s'applique pas.
+  const blocked = buildDirectEffectConfirmationContext({
+    safety: { risk_band: "none", reason_codes: [], evidence: [] },
+    direct_effects: [],
+    direct_effect_lane: {
+      committed_effects: [],
+      requested_effects: [],
+      allowed_effects: [],
+      blocked_effects: [{
+        type: "track_progress_plan_item",
+        reason_code: "target_not_evidenced",
+      }],
+    },
+  });
+  const blockedOutcome = blocked?.effects_outcome[0];
+  assertEquals(blockedOutcome?.status, "needs_clarify");
+  assertEquals(
+    blockedOutcome?.guidance.includes("ne reste JAMAIS silencieux"),
+    false,
+  );
+});

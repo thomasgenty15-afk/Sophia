@@ -358,8 +358,15 @@ Deno.test("committed track_progress reaches the confirmation channel and forbids
     { present: true, committedThisTurn: false, committedKnown: false },
   ).join("\n");
   assertStringIncludes(lines, "track_progress.committed=true");
+  // V5-3 (rose-r7 B01): l'interdiction couvre aussi les variantes observees
+  // (« je ne peux pas confirmer que c'est coche », « le formuler pour le
+  // suivi ») — contrat elargi, ancre mise a jour deliberement.
   assertStringIncludes(
     lines,
-    "ne dis jamais que tu ne peux pas cocher, marquer ou tracker depuis le chat",
+    "ne dis jamais que tu ne peux pas cocher, marquer, tracker ou 'confirmer que c'est coche' depuis le chat",
+  );
+  assertStringIncludes(
+    lines,
+    "ne propose jamais de 'le formuler pour le suivi'",
   );
 });

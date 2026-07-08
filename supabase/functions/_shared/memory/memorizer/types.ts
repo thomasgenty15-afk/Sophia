@@ -9,7 +9,7 @@ import type {
 } from "../types.v1.ts";
 
 export const MEMORY_EXTRACTION_PROMPT_VERSION =
-  "memory.memorizer.extraction.v4_future_dated_facts_contested_claims";
+  "memory.memorizer.extraction.v5_distress_self_label_never_persisted";
 export const MEMORY_EXTRACTION_MODEL_DEFAULT = "gemini-3-flash-preview";
 
 export interface MemorizerMessage {
@@ -65,6 +65,8 @@ export interface TemporalHint {
   precision: string;
   confidence: number;
   timezone: string;
+  /** Present pour une date ABSOLUE (« le 18 juillet ») — jamais pour un relatif. */
+  kind?: "absolute_date";
 }
 
 export interface PlanSignal {

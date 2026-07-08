@@ -8,6 +8,7 @@ import type {
   UserTransformationRow,
 } from "../types/v2";
 import { extractProfessionalSupport } from "./professionalSupport";
+import { getStoredReferralCode, normalizeReferralCode } from "./referral";
 
 export type IntakeAspectV2 = {
   label: string;
@@ -187,6 +188,9 @@ export type OnboardingV2Draft = {
   plan_review: PlanReviewDraft | null;
   roadmap_transition: RoadmapTransitionDraft | null;
   loading_request: OnboardingLoadingRequest | null;
+  // Parrainage : code capturé depuis ?ref= ou saisi manuellement, attaché au
+  // compte à l'inscription (métadonnées signUp).
+  referral_code: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -316,6 +320,7 @@ export function normalizeOnboardingV2Draft(
     plan_review: null,
     roadmap_transition: null,
     loading_request: null,
+    referral_code: null,
     created_at: createdAt,
     updated_at: nowIso,
   };
@@ -328,6 +333,8 @@ export function normalizeOnboardingV2Draft(
       ...baseDraft.profile,
       ...(draft?.profile ?? {}),
     },
+    referral_code: normalizeReferralCode(draft?.referral_code) ??
+      getStoredReferralCode(),
     created_at: createdAt,
     updated_at: updatedAt,
   };
@@ -461,13 +468,13 @@ export async function loadDraftFromServer(
   if (!baseUrl || !anonKey) return null;
 
   try {
-    const url = new URL(baseUrl);
-    url.searchParams.set("session_id", sessionId);
-
-    const response = await fetch(url.toString(), {
+    // SEC-10: pass the session id in a header, not the query string, so it does
+    // not leak into access logs / referrers.
+    const response = await fetch(baseUrl, {
       method: "GET",
       headers: {
         apikey: anonKey,
+        "x-session-id": sessionId,
       },
     });
     if (!response.ok) return null;

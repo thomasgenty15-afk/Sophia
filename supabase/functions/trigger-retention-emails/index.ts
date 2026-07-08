@@ -91,7 +91,9 @@ serve(async (req) => {
         trial_end
       `)
       .gte("trial_end", rangeStart.toISOString())
-      .lte("trial_end", rangeEnd.toISOString());
+      .lte("trial_end", rangeEnd.toISOString())
+      // RGPD: accounts pending deletion are excluded from all proactive processing.
+      .neq("account_status", "deletion_pending");
 
     if (error) throw error;
 

@@ -85,6 +85,38 @@ function errorMentions(error: unknown, token: string): boolean {
   return getErrorText(error).includes(token.toLowerCase());
 }
 
+// A wrapped query returned `{ error }` with no Postgres SQLSTATE (fetch/network
+// blip between the edge runtime and PostgREST), or a SQLSTATE in a transient
+// class (08 connection, 53 insufficient resources, 57 operator intervention /
+// statement timeout). Deterministic errors (bad input, constraint, unknown
+// column…) carry a stable SQLSTATE and must NOT be retried.
+function isTransientDbError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const code = String((error as Record<string, unknown>).code ?? "").trim();
+  if (!code) return true; // fetch/network failure — no SQLSTATE
+  if (/^(08|53|57)/.test(code)) return true;
+  const text = getErrorText(error);
+  return /fetch failed|error sending request|connection (closed|reset)|network|timeout|timed out|econnreset|502|503|504/
+    .test(text);
+}
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Retry an idempotent supabase-js read on transient failures. Returns the last
+// result either way so callers keep their existing `{ data, error }` handling.
+async function withDbRetry<T extends { error: unknown }>(
+  run: () => PromiseLike<T>,
+  attempts = 3,
+): Promise<T> {
+  let result = await run();
+  for (let attempt = 1; attempt < attempts; attempt += 1) {
+    if (!result.error || !isTransientDbError(result.error)) return result;
+    await sleep(80 * attempt);
+    result = await run();
+  }
+  return result;
+}
+
 function normalizePlanRow(
   row: Record<string, unknown> | null,
 ): HabitWeekPlanRow | null {
@@ -489,14 +521,16 @@ async function loadHabitItem(
   userId: string,
   planItemId: string,
 ): Promise<UserPlanItemRow> {
-  const { data, error } = await admin
-    .from("user_plan_items")
-    .select(
-      "id,user_id,cycle_id,transformation_id,plan_id,dimension,target_reps,scheduled_days,title,status",
-    )
-    .eq("id", planItemId)
-    .eq("user_id", userId)
-    .maybeSingle();
+  const { data, error } = await withDbRetry(() =>
+    admin
+      .from("user_plan_items")
+      .select(
+        "id,user_id,cycle_id,transformation_id,plan_id,dimension,target_reps,scheduled_days,title,status",
+      )
+      .eq("id", planItemId)
+      .eq("user_id", userId)
+      .maybeSingle()
+  );
   if (error) {
     throw new HabitWeekPlanningError(
       500,
@@ -576,27 +610,33 @@ async function loadWeekState(
 }> {
   const [planResult, occurrencesResult, rescheduleEventsResult] = await Promise
     .all([
-      admin
-        .from("user_habit_week_plans")
-        .select("*")
-        .eq("user_id", userId)
-        .eq("plan_item_id", item.id)
-        .eq("week_start_date", weekStartDate)
-        .maybeSingle(),
-      admin
-        .from("user_habit_week_occurrences")
-        .select("*")
-        .eq("user_id", userId)
-        .eq("plan_item_id", item.id)
-        .eq("week_start_date", weekStartDate)
-        .order("ordinal", { ascending: true }),
-      admin
-        .from("user_habit_week_reschedule_events")
-        .select("*")
-        .eq("user_id", userId)
-        .eq("plan_item_id", item.id)
-        .eq("week_start_date", weekStartDate)
-        .order("created_at", { ascending: true }),
+      withDbRetry(() =>
+        admin
+          .from("user_habit_week_plans")
+          .select("*")
+          .eq("user_id", userId)
+          .eq("plan_item_id", item.id)
+          .eq("week_start_date", weekStartDate)
+          .maybeSingle()
+      ),
+      withDbRetry(() =>
+        admin
+          .from("user_habit_week_occurrences")
+          .select("*")
+          .eq("user_id", userId)
+          .eq("plan_item_id", item.id)
+          .eq("week_start_date", weekStartDate)
+          .order("ordinal", { ascending: true })
+      ),
+      withDbRetry(() =>
+        admin
+          .from("user_habit_week_reschedule_events")
+          .select("*")
+          .eq("user_id", userId)
+          .eq("plan_item_id", item.id)
+          .eq("week_start_date", weekStartDate)
+          .order("created_at", { ascending: true })
+      ),
     ]);
 
   if (planResult.error) {

@@ -1,4 +1,4 @@
-import { generateWithGemini } from "../gemini.ts";
+import { generateWithGemini, getGlobalAiModel } from "../gemini.ts";
 import {
   DAILY_ACTION_REVIEW_SOURCE,
   type DailyActionMissingSlot,
@@ -1762,8 +1762,9 @@ export async function runDailyActionReviewLocalDispatcher(params: {
       {
         requestId: params.requestId,
         source: "daily_action_review.local_dispatcher",
-        model: "gemini-3-flash-preview",
+        model: getGlobalAiModel(),
         forceRealAi: true,
+        forceInitialModel: true,
         userId: params.userId,
       },
     );
@@ -1940,8 +1941,9 @@ export async function runDailyActionReviewVisibleAgent(params: {
       {
         requestId: params.requestId,
         source: visibleAgent.source,
-        model: "gemini-3-flash-preview",
+        model: getGlobalAiModel(),
         forceRealAi: true,
+        forceInitialModel: true,
         userId: params.userId,
       },
     );

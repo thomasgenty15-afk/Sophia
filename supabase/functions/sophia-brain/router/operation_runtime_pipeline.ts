@@ -28,7 +28,10 @@ import {
   runWeeklyReviewLocalDispatcher,
   runWeeklyReviewLocalRuntime,
 } from "../skills/weekly_review/runtime.ts";
-import { maybeRunOneShotReminderDirectEffect } from "../tools/always_on/one_shot_reminder/router.ts";
+import {
+  maybeRunOneShotReminderDirectEffect,
+  recurringNotSupportedDirectEffectResult,
+} from "../tools/always_on/one_shot_reminder/router.ts";
 import { withDirectEffectConfirmationContext } from "./direct_effect_local_context.ts";
 import {
   createTrackProgressPlanItemWrite,
@@ -480,6 +483,46 @@ export async function runDirectEffectLane(
       turnFrame,
       tempMemory: args.tempMemory,
       routeOrFrameChanged,
+    };
+  }
+
+  // Cadence a l'intake (alex-r1 B02): une demande RECURRENTE (cardinality
+  // decidee par le dispatcher) ne s'arme JAMAIS — direct_effects_to_run
+  // reste propre, et l'outcome canonique du tool (blocked/
+  // recurring_not_supported) est synthetise pour que le contrat de
+  // confirmation garde sa guidance honnete (Initiatives).
+  const recurringCreateEffect = (turnFrame?.direct_effects ?? []).find(
+    (effect) =>
+      effect.effect_type === "create_one_shot_reminder" &&
+      String(
+        (effect.payload_hint as Record<string, unknown>)?.cardinality ?? "",
+      ) === "recurring" &&
+      String(
+        (effect.payload_hint as Record<string, unknown>)?.intent ?? "",
+      ) !== "cancel",
+  );
+  if (recurringCreateEffect) {
+    const operationRuntime = oneShotReminderOperationRuntimeFromDirectEffect({
+      tempMemory: args.tempMemory,
+      result: recurringNotSupportedDirectEffectResult(),
+    });
+    return {
+      operationRuntime,
+      routeDecision: routeDecision
+        ? {
+          ...routeDecision,
+          blocked_paths: [
+            ...routeDecision.blocked_paths,
+            {
+              path: "create_one_shot_reminder",
+              reason_code: "recurring_not_supported",
+            },
+          ],
+        }
+        : routeDecision,
+      turnFrame,
+      tempMemory: operationRuntime?.nextTempMemory ?? args.tempMemory,
+      routeOrFrameChanged: true,
     };
   }
 

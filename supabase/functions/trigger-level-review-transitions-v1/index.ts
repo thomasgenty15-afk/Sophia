@@ -175,7 +175,7 @@ async function loadProfile(params: {
   const { data, error } = await params.admin
     .from("profiles")
     .select(
-      "id,timezone,whatsapp_opted_in,whatsapp_coaching_paused_until,access_tier",
+      "id,timezone,whatsapp_opted_in,whatsapp_coaching_paused_until,access_tier,account_status",
     )
     .eq("id", params.userId)
     .maybeSingle();
@@ -380,6 +380,14 @@ Deno.serve(async (req) => {
       }
 
       const profile = await loadProfile({ admin, userId: row.user_id });
+      // RGPD: accounts pending deletion are excluded from all proactive processing.
+      if (profile?.account_status === "deletion_pending") {
+        console.log(
+          `[trigger-level-review-transitions-v1] skip user ${row.user_id}: account deletion_pending`,
+        );
+        skipped++;
+        continue;
+      }
       const timezone = cleanText(profile?.timezone, "Europe/Paris");
       const userTime = await getUserTimeContext({
         supabase: admin as any,

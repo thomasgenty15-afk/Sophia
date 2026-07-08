@@ -360,7 +360,7 @@ ${dayList || "(aucun)"}
       {
         requestId: params.requestId,
         userId: params.userId ?? undefined,
-        model: getGlobalAiModel("gemini-2.5-flash"),
+        model: getGlobalAiModel(),
         source: "trigger-watcher-batch:day-coherence",
       },
     );
@@ -629,7 +629,7 @@ ${exclusionSnapshotBlock}
       {
         requestId: meta?.requestId,
         userId: meta?.userId ?? userId,
-        model: getGlobalAiModel("gemini-2.5-flash"),
+        model: getGlobalAiModel(),
         source: "trigger-watcher-batch",
       },
     );

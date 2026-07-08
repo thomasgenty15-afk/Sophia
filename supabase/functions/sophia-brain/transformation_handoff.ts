@@ -566,7 +566,7 @@ async function generateStoredTransformationHandoff(args: {
       userId: args.userId,
       source: "transformation_handoff",
       model: (args.model ?? Deno.env.get("TRANSFORMATION_HANDOFF_MODEL") ??
-        getGlobalAiModel("gemini-2.5-flash")).trim() || "gemini-2.5-flash",
+        getGlobalAiModel()).trim() || getGlobalAiModel(),
     },
   );
 

@@ -95,15 +95,23 @@ Deno.serve(async (req) => {
     if (!customerId) {
       // Recovery path: some envs missed persisting stripe_customer_id.
       // Best-effort lookup by email in Stripe, then persist back to profiles.
-      const email = (user as any)?.email ?? (profile as any)?.email ?? null;
+      // SEC-09: use ONLY the verified auth-provider email, never profiles.email
+      // (which is RLS-writable by the user and could point at a victim's email).
+      const email = (user as any)?.email ?? null;
       if (email) {
         try {
-          const customers = await stripeRequest<{ data: Array<{ id?: string }> }>({
+          const customers = await stripeRequest<{ data: Array<{ id?: string; metadata?: Record<string, unknown> }> }>({
             method: "GET",
             path: `/v1/customers?email=${encodeURIComponent(String(email))}&limit=10`,
             secretKey: stripeSecretKey,
           });
-          const ids = (customers?.data ?? []).map((c) => String((c as any)?.id ?? "").trim()).filter(Boolean);
+          // SEC-09: only ever bind a customer that Stripe itself attributes to THIS
+          // user via metadata.supabase_user_id (set when we create the customer at
+          // checkout). An email match alone is not proof of ownership.
+          const ids = (customers?.data ?? [])
+            .filter((c) => String((c as any)?.metadata?.supabase_user_id ?? "").trim() === user.id)
+            .map((c) => String((c as any)?.id ?? "").trim())
+            .filter(Boolean);
           // Prefer a customer that actually has an active subscription.
           for (const cid of ids) {
             const subs = await stripeRequest<{ data: any[] }>({

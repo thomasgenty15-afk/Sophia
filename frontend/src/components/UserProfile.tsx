@@ -1,16 +1,17 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { 
-  X, 
-  User, 
-  CreditCard, 
-  Settings, 
-  LogOut, 
-  Shield, 
+import {
+  X,
+  User,
+  CreditCard,
+  Settings,
+  LogOut,
+  Shield,
   Zap,
   Mail,
   Bell,
   Check,
-  ChevronRight
+  ChevronRight,
+  Gift
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -18,6 +19,7 @@ import { newRequestId, requestHeaders } from '../lib/requestId';
 import { useNavigate } from 'react-router-dom';
 
 import { DEFAULT_LOCALE, DEFAULT_TIMEZONE, detectBrowserTimezone, getAllSupportedTimezones } from '../lib/localization';
+import DataPrivacySection from './account/DataPrivacySection';
 
 interface UserProfileProps {
   isOpen: boolean;
@@ -520,6 +522,15 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
             <button onClick={() => setActiveTab('settings')} className={`${styles.sidebarItem(activeTab === 'settings')} justify-center min-[350px]:justify-start`}>
               <Settings className="w-4 h-4" /> Options
             </button>
+            <button
+              onClick={() => {
+                onClose();
+                navigate('/parrainage');
+              }}
+              className={`${styles.sidebarItem(false)} justify-center min-[350px]:justify-start`}
+            >
+              <Gift className="w-4 h-4" /> Parrainage
+            </button>
           </div>
 
           {/* CONTENT SCROLLABLE */}
@@ -1005,11 +1016,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                   </div>
                 </div>
 
-                <button 
+                <button
                   onClick={handleSignOut}
                   className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all ${
-                  isArchitect 
-                    ? "border-red-900/50 text-red-400 hover:bg-red-950/30" 
+                  isArchitect
+                    ? "border-red-900/50 text-red-400 hover:bg-red-950/30"
                     : "border-red-100 text-red-600 hover:bg-red-50"
                 }`}>
                   <span className="font-bold text-sm flex items-center gap-2">
@@ -1017,6 +1028,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                   </span>
                   <ChevronRight className="w-4 h-4" />
                 </button>
+
+                <DataPrivacySection isArchitect={isArchitect} />
               </div>
             )}
 

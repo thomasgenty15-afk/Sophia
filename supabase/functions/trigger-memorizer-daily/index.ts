@@ -77,10 +77,17 @@ async function loadCandidateUsers(args: {
   if (args.user_id) {
     const { data, error } = await args.admin
       .from("profiles")
-      .select("id,timezone")
+      .select("id,timezone,account_status")
       .eq("id", args.user_id)
       .maybeSingle();
     if (error) throw error;
+    // RGPD: accounts pending deletion are excluded from all proactive processing.
+    if (data?.account_status === "deletion_pending") {
+      console.log(
+        `[trigger-memorizer-daily] skip user ${args.user_id}: account deletion_pending`,
+      );
+      return [];
+    }
     return [{
       id: args.user_id,
       timezone: data?.timezone ?? null,
@@ -106,7 +113,8 @@ async function loadCandidateUsers(args: {
   const { data: profiles, error: profileError } = await args.admin
     .from("profiles")
     .select("id,timezone")
-    .in("id", userIds);
+    .in("id", userIds)
+    .neq("account_status", "deletion_pending");
   if (profileError) throw profileError;
 
   const timezoneByUser = new Map<string, string | null>(
@@ -115,10 +123,12 @@ async function loadCandidateUsers(args: {
       row.timezone == null ? null : String(row.timezone),
     ]),
   );
-  return userIds.map((id) => ({
-    id,
-    timezone: timezoneByUser.get(id) ?? null,
-  }));
+  return userIds
+    .filter((id) => timezoneByUser.has(id))
+    .map((id) => ({
+      id,
+      timezone: timezoneByUser.get(id) ?? null,
+    }));
 }
 
 // Les erreurs du client Supabase sont souvent des objets plats (pas des

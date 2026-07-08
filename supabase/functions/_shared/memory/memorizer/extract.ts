@@ -29,10 +29,11 @@ N'utilise jamais kind="preference" ou kind="goal" : encode les preferences/bound
 Pour une action ponctuelle deja realisee avec une date claire ("hier", "dimanche soir", "aujourd'hui"), utilise kind="event" plutot que action_observation.
 Un motif RECURRENT ou une fenetre de vulnerabilite ("le soir vers 19h je craque", "chaque dimanche", "souvent quand je suis seule") n'est PAS un event meme s'il contient une heure: c'est un kind="statement" (fait durable sur la personne), persistable sans date. Reserve kind="event" aux occurrences uniques datees.
 ETATS PRODUIT — exclusion stricte: l'etat d'un objet Sophia (rappel cree/annule/modifie, carte creee, plan ajuste, preference reglee) n'est JAMAIS un memory_item, meme si la conversation en parle: la base de donnees est la seule source de verite de ces etats, et la conversation peut decrire une action qui a ECHOUE (ex: "annule-le" suivi d'un refus — memoriser "rappel annule" serait faux). Ajoute ces observations a rejected_observations. Seul le fait personnel sous-jacent est memorisable (ex: "prefere ne pas preparer son sac le soir"), jamais l'etat de l'objet produit.
-Meme exclusion pour l'EXECUTION D'UNE ACTION DU PLAN deja rapportee a Sophia ("j'ai fait ma marche", "10 min faites"): ce suivi vit dans la base plan (user_plan_item_entries), pas en memoire — n'en fais ni event ni action_observation quand le report a ete adresse a Sophia dans la conversation. Seule une information personnelle NOUVELLE autour de l'action (contexte, difficulte, decouverte) est memorisable.
-IDENTITE — garde anti-fossilisation: une auto-etiquette identitaire pathologisante ou figee ("je suis insomniaque chronique", "je suis nul", "c'est ma nature", "j'ai toujours ete comme ca") n'est JAMAIS un fait durable active. Distingue: le SYMPTOME contextualise ("temps d'endormissement ~90 min ces dernieres semaines") est memorisable en statement; l'ETIQUETTE ("est insomniaque chronique") ne l'est pas — au mieux rejected_observation, jamais un item que Sophia pourrait refleter au user comme une verite sur lui. Si Sophia a recadre l'etiquette dans la conversation, ne la persiste pas du tout.
+Meme exclusion pour l'EXECUTION D'UNE ACTION DU PLAN deja rapportee a Sophia ("j'ai fait ma marche", "10 min faites"): ce suivi vit dans la base plan (user_plan_item_entries), pas en memoire — n'en fais ni event ni action_observation quand le report a ete adresse a Sophia dans la conversation. Cette exclusion tient MEME sous une intention memoire explicite ("retiens que j'ai fait ma marche", "note que mes 10 minutes comptent"): le wording "retiens/note" ne transforme pas un report d'action deja tracke en fait personnel — seule une information personnelle NOUVELLE autour de l'action (contexte, difficulte, decouverte) est memorisable.
+IDENTITE — garde anti-fossilisation: une auto-etiquette identitaire pathologisante ou figee ("je suis insomniaque chronique", "je suis nul", "c'est ma nature", "j'ai toujours ete comme ca") n'est JAMAIS un fait durable active. Distingue: le SYMPTOME contextualise ("temps d'endormissement ~90 min ces dernieres semaines") est memorisable en statement; l'ETIQUETTE ("est insomniaque chronique") ne l'est pas — au mieux rejected_observation, jamais un item que Sophia pourrait refleter au user comme une verite sur lui. Si Sophia a recadre l'etiquette dans la conversation, ne la persiste pas du tout. Cas special DETRESSE (nina-r7): une auto-devalorisation emise pendant un pic emotionnel aigu ("je suis faible", "je sers a rien", "ca sert a rien de me battre", "a quoi bon") est un ETAT TRANSITOIRE de ce moment, jamais un trait: ne la persiste sous AUCUNE forme (ni statement, ni observation du type "se decrit comme faible") — persister le creux fossiliserait la detresse et Sophia la refleterait plus tard comme une verite sur la personne. Le declencheur factuel non identitaire du creux (ex: "les horaires decales du nouveau travail pesent sur son sommeil") reste memorisable.
 FAIT FUTUR DATE CONFIE — persistance OBLIGATOIRE: quand le user confie un evenement a venir avec une date ("garde en tete: le 20 juillet je pars 4 jours chez ma mere", "note que jeudi prochain j'ai mon entretien"), c'est un memory_item kind="event" avec event_start_at dans le futur (resous la date depuis l'ancre temporelle fournie) — JAMAIS abandonne ni absorbe dans un statement vague. Un event futur date explicitement confie qui manque a la sortie est une erreur d'extraction. S'il y a une duree ("4 jours"), pose aussi event_end_at.
 CROYANCE CONTESTEE DANS L'ECHANGE: si une affirmation du user a ete CONTESTEE, nuancee ou recadree par l'assistant dans le meme echange (les messages assistant fournis en font foi), ne la persiste JAMAIS comme fait actif non qualifie. Au mieux: un statement explicitement qualifie ("affirme par l'utilisateur, non valide: ...") avec confidence basse, ou une rejected_observation si l'assistant l'a clairement refutee. Le critere est le desaccord visible dans la conversation, pas ton propre jugement du contenu.
+PREFERENCES DE STYLE/LEVIER — anti-fossilisation (rose-r6 B05): une preference de style d'accompagnement ou de levier ("prefere les outils de motivation active", "aime pas les methodes douces") issue d'UN SEUL enonce n'est JAMAIS un statement active: il faut une recurrence (plusieurs occurrences) ou une confirmation explicite. Si la meme fenetre de messages contient un marqueur de retractation ou de tiedeur envers cet enonce ("bof", "on verra", "finalement non", changement d'avis), degrade en candidate ou rejette. Un fait personnel simple non-preference (metier, horaire, contexte) reste persistable des une occurrence — ne sur-corrige pas.
 PRECISION DES FAITS CONFIES: quand le user confie explicitement un fait ("retiens que", "garde en tete", "note pour la suite"), persiste sa formulation PRECISE (heure, condition, exception: "c'est vers 23h que je craque, jamais en debut de soiree") — ne l'absorbe pas dans un statement plus vague deja connu; si un fait generique proche existe, utilise corrections[] operation_type="supersede" pour remplacer le vague par le precis.
 Pour sensitivity_categories, utilise uniquement: addiction, mental_health, family, relationship, work, financial, health, sexuality, self_harm, shame, trauma, other_sensitive.
 Si une correction contient la nouvelle verite correcte ("X est mon ex, pas ma soeur"), cree aussi un memory_item positif pour la nouvelle verite.
@@ -269,12 +270,23 @@ function enrichEventDatesFromSources(
     item.kind === "action_observation" &&
     /\b(a|ai|annule|annulé|reporte|reporté|marche|marché|fait|teste|testé|clarifie|clarifié)\b/i
       .test(item.content_text);
+  // Ceinture v4 (alex-r1 B01, probe V3): quand le LLM encode un fait futur
+  // date en STATEMENT au lieu d'un event, un texte portant une date ABSOLUE
+  // unique (jamais un motif recurrent « chaque/tous les ») reste promouvable
+  // en event date — la doctrine prompt decide, cette garde rattrape.
+  const RECURRENCE_MARKER = /\b(chaque|tous les|toutes les|les (lundis|mardis|mercredis|jeudis|vendredis|samedis|dimanches))\b/i;
+  const isAbsoluteDatedStatement = (item: ExtractedMemoryItem): boolean =>
+    item.kind === "statement" &&
+    !RECURRENCE_MARKER.test(item.content_text) &&
+    !RECURRENCE_MARKER.test(item.evidence_quote ?? "");
   return {
     ...payload,
     memory_items: payload.memory_items.map((item) => {
+      const absoluteDatedStatement = isAbsoluteDatedStatement(item);
       if (
         item.kind !== "event" &&
-        !isCompletedTemporalObservation(item)
+        !isCompletedTemporalObservation(item) &&
+        !absoluteDatedStatement
       ) {
         return item;
       }
@@ -285,10 +297,31 @@ function enrichEventDatesFromSources(
       ) {
         return item;
       }
-      const hint = item.source_message_ids.flatMap(getHints)
-        .sort((a, b) => b.confidence - a.confidence)[0];
+      // Fallback (alex-r1 B01): si les messages source ne donnent rien, la
+      // date peut vivre dans le texte normalise par l'extraction elle-meme
+      // (evidence_quote/content_text portent souvent « le 18 juillet »,
+      // parfois avec l'annee resolue). Jamais rejeter un event date sans
+      // avoir tente ces textes.
+      const itemTextHints = [item.evidence_quote, item.content_text]
+        .filter((t): t is string => typeof t === "string" && t.length > 0)
+        .flatMap((t) =>
+          resolveTemporalReferences(t, {
+            timezone: ctx.timezone ?? "Europe/Paris",
+          })
+        );
+      const allHints = [
+        ...item.source_message_ids.flatMap(getHints),
+        ...itemTextHints,
+      ].sort((a, b) => b.confidence - a.confidence);
+      // Un statement ne se promeut QUE sur une date absolue explicite.
+      const hint = absoluteDatedStatement
+        ? allHints.find((h) => h.kind === "absolute_date")
+        : allHints[0];
       if (!hint) return item;
-      const kind = item.kind === "action_observation" ? "event" : item.kind;
+      const kind = item.kind === "action_observation" ||
+          (absoluteDatedStatement && hint.kind === "absolute_date")
+        ? "event"
+        : item.kind;
       return {
         ...item,
         kind,
@@ -301,6 +334,12 @@ function enrichEventDatesFromSources(
             ? {
               promoted_from_kind: "action_observation",
               promotion_reason: "temporal_completed_observation",
+            }
+            : {}),
+          ...(absoluteDatedStatement && kind === "event"
+            ? {
+              promoted_from_kind: "statement",
+              promotion_reason: "absolute_dated_statement",
             }
             : {}),
           temporal_resolution_raw: hint.raw,

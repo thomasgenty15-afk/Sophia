@@ -14,6 +14,7 @@ import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 
 import { classifyPlanTypeForTransformation } from "../classify-plan-type-v1/index.ts";
 import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
+import { enforceRateLimit, RATE_PRESETS } from "../_shared/rate-limit.ts";
 import { distributePlanItemsV3 } from "../_shared/v2-plan-distribution.ts";
 import {
   buildPhase1Context,
@@ -500,6 +501,53 @@ function buildRuntimeWeekItems(args: {
   );
 }
 
+// Seuils (minutes locales) au-delà desquels le moment de la journée d'une action est
+// considéré comme passé → on ne pose plus l'occurrence sur aujourd'hui, elle glisse au
+// prochain jour disponible. "anytime", "night" et null ne sont jamais bloquants.
+// "wake_up" (action au réveil même) est passé dès 10h: le lever du jour est derrière.
+// NOTE: garder en phase avec generate-plan-v2/index.ts (carte de duplication).
+const MOMENT_PASSED_THRESHOLDS_MIN: Record<string, number> = {
+  wake_up: 10 * 60,
+  morning: 12 * 60,
+  afternoon: 18 * 60,
+  evening: 22 * 60,
+};
+
+function isMomentPassed(
+  timeOfDay: string | null,
+  nowLocalMinutes: number,
+): boolean {
+  if (!timeOfDay) return false;
+  const threshold = MOMENT_PASSED_THRESHOLDS_MIN[timeOfDay.trim().toLowerCase()];
+  if (threshold === undefined) return false;
+  return nowLocalMinutes >= threshold;
+}
+
+// Date locale ("YYYY-MM-DD") et minutes depuis minuit dans le fuseau donné, pour un
+// instant UTC ISO. Sert à savoir si la semaine partielle démarre réellement aujourd'hui
+// et quelle heure locale il est au moment de la matérialisation.
+function localDateAndMinutesInTz(
+  iso: string,
+  timeZone: string,
+): { date: string; minutes: number } {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date(iso));
+  const lookup: Record<string, string> = {};
+  for (const part of parts) lookup[part.type] = part.value;
+  const hour = lookup.hour === "24" ? 0 : Number(lookup.hour);
+  return {
+    date: `${lookup.year}-${lookup.month}-${lookup.day}`,
+    minutes: hour * 60 + Number(lookup.minute),
+  };
+}
+
 export async function materializeCurrentLevelWeekPlanning(args: {
   admin: SupabaseClient;
   userId: string;
@@ -524,6 +572,9 @@ export async function materializeCurrentLevelWeekPlanning(args: {
     if (item) itemsByTempId.set(tempId, item);
   }
 
+  const { date: todayLocalDate, minutes: nowLocalMinutes } =
+    localDateAndMinutesInTz(args.now, args.anchor.timezone);
+
   for (const week of runtime.weeks) {
     const weekOrder = Number(week.week_order);
     if (!Number.isInteger(weekOrder) || weekOrder < 1) continue;
@@ -541,29 +592,47 @@ export async function materializeCurrentLevelWeekPlanning(args: {
     );
     const missionDays = normalizeDayCodes(week.mission_days);
 
+    // La semaine partielle ne "démarre aujourd'hui" que si son premier jour visible est
+    // réellement la date locale du jour (et pas un effective_start_date futur).
+    const partialWeekStartsToday = weekOrder === 1 &&
+      args.anchor.is_partial_anchor_week &&
+      args.anchor.anchor_display_start === todayLocalDate;
+
     for (const [index, entry] of weekItems.entries()) {
+      // Si le moment de la journée de l'action est déjà passé et que la semaine partielle
+      // démarre aujourd'hui, on retire aujourd'hui (1er jour visible) des jours candidats
+      // de CET item : l'occurrence glisse au prochain jour disponible.
+      const dropToday = partialWeekStartsToday &&
+        visibleDays.length > 0 &&
+        isMomentPassed(entry.item.time_of_day, nowLocalMinutes);
+      const itemVisibleDays = dropToday ? visibleDays.slice(1) : visibleDays;
+
       const preferredDays = entry.item.dimension === "habits"
-        ? visibleDays
+        ? itemVisibleDays
         : (() => {
           const oneShotIndex = oneShotItems.findIndex((candidate) =>
             candidate.item.id === entry.item.id
           );
           const mapped = oneShotIndex >= 0 ? missionDays[oneShotIndex] : null;
-          if (mapped && visibleDays.includes(mapped)) return [mapped];
-          return visibleDays;
+          if (mapped && itemVisibleDays.includes(mapped)) return [mapped];
+          return itemVisibleDays;
         })();
 
       const targetRepsOverride = entry.item.dimension === "habits"
         ? Math.min(
-          visibleDays.length,
+          itemVisibleDays.length,
           effectiveWeeklyTarget(entry.item, entry.weeklyReps ?? undefined),
         )
         : 1;
-      const defaultDays = buildDefaultDays({
-        item: entry.item,
-        preferredDays,
-        targetRepsOverride,
-      });
+      // itemVisibleDays vide (aujourd'hui était le seul jour restant de la semaine
+      // partielle) → pas d'occurrence cette semaine, sans retomber sur les 7 jours.
+      const defaultDays = itemVisibleDays.length === 0
+        ? []
+        : buildDefaultDays({
+          item: entry.item,
+          preferredDays,
+          targetRepsOverride,
+        });
 
       const { data: existingPlanData, error: existingPlanError } = await args
         .admin
@@ -700,6 +769,13 @@ async function handleRequest(req: Request): Promise<Response> {
     }
 
     const userId = authData.user.id;
+
+    const rateLimited = await enforceRateLimit(req, requestId, {
+      key: `adjust-plan-v1:${userId}`,
+      windows: RATE_PRESETS.llmStandard,
+    });
+    if (rateLimited) return rateLimited;
+
     const admin = createClient(env.url, env.serviceRoleKey, {
       auth: { persistSession: false, autoRefreshToken: false },
     });

@@ -65,7 +65,8 @@ serve(async (req) => {
       });
     }
 
-    console.log(`[send-welcome-email] request_id=${ctx.requestId} user_id=${userId} target=${targetEmail}`);
+    // SEC-13: do not log raw recipient email (PII). user_id + request_id are enough to correlate.
+    console.log(`[send-welcome-email] request_id=${ctx.requestId} user_id=${userId}`);
 
     // 2. Vérifier si déjà envoyé (Idempotency)
     const { data: existingLogs } = await supabase

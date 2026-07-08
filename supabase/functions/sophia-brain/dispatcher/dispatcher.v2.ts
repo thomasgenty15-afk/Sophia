@@ -23,6 +23,7 @@ import {
   DOMAIN_KEYS_V1,
   DOMAIN_PREFIXES_V1,
 } from "../../_shared/memory/domain_keys.ts";
+import { getGlobalAiModel } from "../../_shared/gemini.ts";
 import { ENTITY_TYPES } from "../../_shared/memory/types.v1.ts";
 import type { SafetySignalContext } from "../safety/safety_context.ts";
 import {
@@ -963,7 +964,7 @@ export async function runDispatcher(
     direct_effect_time_context: input.direct_effect_time_context ?? null,
     plan_snapshot: input.plan_snapshot,
   });
-  const modelName = input.model_name ?? "gemini-3-flash-preview";
+  const modelName = input.model_name ?? getGlobalAiModel();
   let usedLlm = false;
   let output: TurnFrame;
 

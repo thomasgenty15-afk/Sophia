@@ -346,6 +346,9 @@ deno_version = 2
 # The mega test runner sets these automatically.
 INTERNAL_FUNCTION_SECRET = "env(INTERNAL_FUNCTION_SECRET)"
 SECRET_KEY = "env(SECRET_KEY)"
+# INV-5 confirmation tokens (account deletion). Falls back to
+# INTERNAL_FUNCTION_SECRET when unset — see _shared/account_lifecycle.ts.
+CONFIRMATION_TOKEN_SECRET = "env(CONFIRMATION_TOKEN_SECRET)"
 MEGA_TEST_MODE = "env(MEGA_TEST_MODE)"
 GEMINI_API_KEY = "env(GEMINI_API_KEY)"
 OPENAI_API_KEY = "env(OPENAI_API_KEY)"
@@ -427,6 +430,20 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.cycle-draft]
+verify_jwt = false
+
+# J+7 account purge (cron, X-Internal-Secret)
+[functions.purge-deleted-accounts]
+verify_jwt = false
+
+# Account deletion/restore/export authenticate in-function via auth.getUser()
+# (gateway verify_jwt is redundant and rejects ES256 user tokens on the local
+# stack — see referral-and-deletion-design memory note).
+[functions.account-deletion-v1]
+verify_jwt = false
+[functions.account-restore-v1]
+verify_jwt = false
+[functions.account-export-v1]
 verify_jwt = false
 
 [analytics]

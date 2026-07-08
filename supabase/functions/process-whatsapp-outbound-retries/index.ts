@@ -53,10 +53,37 @@ Deno.serve(async (req) => {
     let failCount = 0
     let skippedCount = 0
 
+    // RGPD: accounts pending deletion are excluded from all proactive processing.
+    const claimedUserIds = [...new Set(claimed.map((j: any) => String(j?.user_id ?? "")).filter(Boolean))]
+    const deletionPendingUserIds = new Set<string>()
+    if (claimedUserIds.length > 0) {
+      const { data: pendingProfiles, error: profilesErr } = await admin
+        .from("profiles")
+        .select("id")
+        .in("id", claimedUserIds)
+        .eq("account_status", "deletion_pending")
+      if (profilesErr) throw profilesErr
+      for (const p of pendingProfiles ?? []) deletionPendingUserIds.add(String((p as any).id))
+    }
+
     for (const job of claimed) {
       const outboundId = String(job?.id ?? "")
       const attemptCount = (Number(job?.attempt_count ?? 0) || 0) + 1
       const payload = (job?.graph_payload ?? {}) as any
+
+      const jobUserId = String(job?.user_id ?? "")
+      if (jobUserId && deletionPendingUserIds.has(jobUserId)) {
+        console.log(`[process-whatsapp-outbound-retries] request_id=${requestId} skip outbound ${outboundId}: account deletion_pending`)
+        failCount += 1
+        await markWhatsAppOutboundFailed(admin as any, outboundId, {
+          attempt_count: attemptCount,
+          retryable: false,
+          error_code: "account_deletion_pending",
+          error_message: "Account pending deletion: outbound retry dropped",
+          error_payload: { reason: "account_deletion_pending" },
+        })
+        continue
+      }
 
       try {
         const sendRes = await sendWhatsAppGraph(payload)

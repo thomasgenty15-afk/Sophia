@@ -9,6 +9,7 @@ import type {
   TrackProgressWrite,
 } from "./contract.ts";
 import type { TrackProgressSameDayEvidenceCheck } from "./db.ts";
+import { binaryItemPartialClarifyQuestion } from "./db.ts";
 import { executeTrackProgressWrite } from "./executor.ts";
 import { requestedEffectFromIntake, runTrackProgressIntake } from "./intake.ts";
 import {
@@ -157,7 +158,15 @@ function intentForProgressStatus(
 
 function planItems(
   planSnapshot: unknown,
-): Array<{ id: string; title: string; aliases: string[] }> {
+): Array<
+  {
+    id: string;
+    title: string;
+    aliases: string[];
+    dimension: string;
+    target_reps: number | null;
+  }
+> {
   const items = Array.isArray(planSnapshot)
     ? planSnapshot
     : Array.isArray((planSnapshot as any)?.items)
@@ -167,6 +176,13 @@ function planItems(
     .map((item: any) => ({
       id: String(item?.id ?? ""),
       title: String(item?.title ?? ""),
+      // nina-r7 B01: la garde partial-sur-binaire lit ces deux faits
+      // structures du snapshot (jamais le texte du message).
+      dimension: String(item?.dimension ?? ""),
+      target_reps: Number.isFinite(Number(item?.target_reps)) &&
+          item?.target_reps !== null && item?.target_reps !== undefined
+        ? Number(item.target_reps)
+        : null,
       aliases: [
         // Vocabulaire user-facing structurel de l'item: aliases si presents,
         // et description (le snapshot V2 la porte) — reduit la friction
@@ -366,6 +382,30 @@ export async function runTrackProgressPlanItemDirectEffect(
       reason_code: "target_not_evidenced",
       reply:
         `Tu parles de quelle action exactement ? Je pensais a "${item.title}" mais je prefere que tu me la nommes avant de la noter.`,
+      requested_effects: requestedEffects,
+    });
+  }
+
+  // nina-r7 B01 (arbitrage 2026-07-08): « j'ai avance » ≠ « j'ai fini ». Sur
+  // un item tout-ou-rien, un report partiel n'a aucun etat intermediaire a
+  // ecrire → question de confirmation, zero write. Garde ici (outcome
+  // needs_clarify de premiere classe, re-armable au tour suivant via 3g) —
+  // le double de db.ts reste en ceinture pour les autres chemins d'ecriture.
+  const partialClarify = binaryItemPartialClarifyQuestion({
+    status: requested.progress_status,
+    item: {
+      dimension: item.dimension,
+      target_reps: item.target_reps ?? null,
+      title: item.title,
+    },
+    fallbackTitle: requested.target_item_id,
+  });
+  if (partialClarify) {
+    return blockedResult({
+      intent: "clarify",
+      status: "needs_clarify",
+      reason_code: "partial_on_binary_item",
+      reply: partialClarify.question,
       requested_effects: requestedEffects,
     });
   }

@@ -102,6 +102,7 @@ const STAGE_PROMPTS: Record<SafetyCrisisVisibleTaskKind, string> = {
     "Commence par UNE phrase d'accueil qui reconnait ce que le user vient de confier (chaleureuse, sans dramatiser, sans consigne) — surtout au premier tour du flow.",
     "Puis verifier la securite immediate avec une formulation courte et directe.",
     "Utilise seulement conversation_context. Termine par la question la plus utile pour savoir si le user est en danger maintenant ou seul.",
+    "Ne RE-POSE JAMAIS une question deja repondue: si known_values.immediate_danger ou known_values.user_not_alone porte deja une valeur (true/false), ce fait est acquis — la question porte UNIQUEMENT sur un fait encore null, avec une formulation nouvelle (jamais la meme phrase qu'au tour precedent).",
   ].join("\n"),
   acute_grounding: [
     "Stage acute_grounding.",
@@ -110,6 +111,7 @@ const STAGE_PROMPTS: Record<SafetyCrisisVisibleTaskKind, string> = {
   ].join("\n"),
   support_contact: [
     "Stage support_contact.",
+    "Si known_values indique que le user vient de dire qu'il est SEUL, commence par accueillir cette solitude explicitement (une phrase de presence) — jamais une nouvelle question de triage.",
     "Aider le user a contacter ou garder une personne humaine reelle.",
     "Tu peux proposer une phrase simple a dire/envoyer si conversation_context indique que le support manque.",
   ].join("\n"),
@@ -188,6 +190,7 @@ function visibleSystemPrompt(input: SafetyCrisisVisibleAgentInput): string {
         }),
       },
     ),
+    "Ordre de rendu safety-first: si un rappel a ete commis ce tour, le contenu safety (accueil, verification, prochaine action) ouvre TOUJOURS ta reponse; la confirmation du rappel est UNE seule phrase sobre en toute FIN de message — jamais la premiere phrase, jamais avant la question safety du tour.",
     "Ne mentionne jamais JSON, dispatcher, reducer, prompt, table, DB ou outil interne.",
     "Si conversation_context.safety_resources.must_include_emergency_numbers=true, inclure exactement emergency_numbers et suicide_prevention_number.",
     "Si must_include_emergency_numbers=false et conversation_context.known_values.emergency_numbers_already_delivered=true, ne re-recite pas les numeros d'urgence (deja donnes): bascule vers un soutien emotionnel soutenu — presence, ancrage, renforcement du lien humain reel (la personne que le user va joindre) — sans repeter la hotline. Ne re-donne les numeros que si le user signale une nouvelle aggravation.",
@@ -310,7 +313,7 @@ export async function runSafetyCrisisVisibleAgentResult(
       {
         requestId: input.request_id ?? undefined,
         userId: input.user_id,
-        model: getGlobalAiModel("gemini-2.5-flash"),
+        model: getGlobalAiModel(),
         source: `safety_crisis.visible.${input.visible_task.kind}`,
         forceRealAi: true,
         reasoningEffort: "low",

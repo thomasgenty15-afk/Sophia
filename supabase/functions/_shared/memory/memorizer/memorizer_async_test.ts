@@ -471,3 +471,72 @@ Deno.test("future dated confided event survives the pipeline with its dates (ale
   assertEquals(String(written.event_start_at).startsWith("2026-07-20"), true);
   assertEquals(String(written.event_end_at).startsWith("2026-07-24"), true);
 });
+
+Deno.test("inverted event window is repaired in-pipeline: item persisted, end dropped, batch intact (eva-r8 B05)", async () => {
+  const repo = new InMemoryMemorizerRepository();
+  const result = await runMemorizerAsync(repo, {
+    user_id: "u",
+    messages: [
+      {
+        id: "m1",
+        user_id: "u",
+        role: "user" as const,
+        content: "hier soir j'ai fait ma soiree sans ecran de 22h30 a 22h",
+      },
+      {
+        id: "m2",
+        user_id: "u",
+        role: "user" as const,
+        content: "et retiens que je bosse en horaires decales le vendredi",
+      },
+    ],
+    llm_provider: async () =>
+      JSON.stringify({
+        memory_items: [
+          {
+            kind: "event",
+            content_text: "Soiree sans ecran hier soir.",
+            normalized_summary: "A fait une soiree sans ecran hier soir.",
+            domain_keys: ["habitudes.execution"],
+            confidence: 0.8,
+            importance_score: 0.5,
+            sensitivity_level: "normal",
+            sensitivity_categories: [],
+            source_message_ids: ["m1"],
+            evidence_quote: "soiree sans ecran de 22h30 a 22h",
+            event_start_at: "2026-07-06T22:30:00.000+02:00",
+            event_end_at: "2026-07-06T22:00:00.000+02:00",
+            time_precision: "part_of_day",
+          },
+          {
+            kind: "statement",
+            content_text: "Travaille en horaires decales le vendredi.",
+            normalized_summary: "Travaille en horaires decales le vendredi.",
+            domain_keys: ["travail.charge"],
+            confidence: 0.85,
+            importance_score: 0.6,
+            sensitivity_level: "normal",
+            sensitivity_categories: [],
+            source_message_ids: ["m2"],
+            evidence_quote: "je bosse en horaires decales le vendredi",
+          },
+        ],
+        entities: [],
+        corrections: [],
+        rejected_observations: [],
+      }),
+  });
+  assertEquals(result.status, "completed");
+  // Les DEUX items survivent: la fenetre inversee est reparee (end
+  // abandonne), jamais un batch entier perdu pour un item fautif.
+  assertEquals(result.persisted.length, 2);
+  const event = repo.memoryWrites.map((w) => w.candidate.item).find((i) =>
+    i.kind === "event"
+  );
+  assertEquals(event?.event_end_at ?? null, null);
+  assertEquals(
+    (event?.metadata as Record<string, unknown>)
+      ?.event_end_dropped_inverted_window,
+    true,
+  );
+});

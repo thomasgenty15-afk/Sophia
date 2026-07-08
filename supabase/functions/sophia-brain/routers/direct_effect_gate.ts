@@ -70,6 +70,22 @@ export async function runDirectEffectGate(
       "No matching direct effect candidate.",
     );
   }
+  // Cadence (alex-r1 B02): une demande RECURRENTE ne s'arme jamais en
+  // one-shot — la meme classification que le tool (payload_hint.cardinality,
+  // decidee par le dispatcher) se consomme ici, avant l'armement.
+  if (
+    input.effect_type === "create_one_shot_reminder" &&
+    String((effect.payload_hint as Record<string, unknown>)?.cardinality) ===
+      "recurring" &&
+    String((effect.payload_hint as Record<string, unknown>)?.intent) !==
+      "cancel"
+  ) {
+    return blocked(
+      toolId,
+      "recurring_not_supported",
+      "Recurring reminder requests are never armed as one-shot effects.",
+    );
+  }
   if (blocksDirectEffects(input.turn_frame.safety.risk_band)) {
     if (toolId !== "create_one_shot_reminder") {
       return blocked(

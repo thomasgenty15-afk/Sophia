@@ -174,6 +174,18 @@ export type CoachingRecommendationFlowContext = {
   missing_or_weak_values: string[];
   tone_constraints: string[];
   do_not_say: string[];
+  /**
+   * Coherence technique↔nature-du-besoin, decidee par le dispatcher local et
+   * RE-EVALUEE a chaque tour (alex-r1 B04, paul-r7 B02): quand le user force
+   * une technique incoherente avec le micro-cadre, le visible agent recoit
+   * un signal STRUCTURE au lieu d'une doctrine noyee — le doute sort.
+   */
+  technique_coherence?: {
+    status: "coherent" | "forced_mismatch";
+    requested_technique: string | null;
+    suggested_technique: string | null;
+    why: string | null;
+  } | null;
 };
 
 export type DifficultyClarifierStepContext = {

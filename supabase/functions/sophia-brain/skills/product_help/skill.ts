@@ -112,6 +112,11 @@ function visibleRuntimeContext(input: ProductHelpRunSkillInput) {
     recent_effects_summary:
       input.context.runtime_context?.recent_effects_summary ?? null,
     user_identity: input.context.runtime_context?.user_identity ?? null,
+    // alex-r3 B01 (ceinture): les decisions de session restent lisibles meme
+    // quand un recall est route ici — jamais de fausse amnesie.
+    session_decisions:
+      (input.context.runtime_context as { session_decisions_block?: string })
+        ?.session_decisions_block ?? null,
   };
 }
 

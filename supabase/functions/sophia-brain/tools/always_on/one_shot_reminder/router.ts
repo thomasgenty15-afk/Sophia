@@ -75,6 +75,32 @@ function baseDirectEffectResult(args: {
   };
 }
 
+/**
+ * Resultat canonique « demande recurrente, rien cree en ponctuel » — source
+ * unique partagee entre le router du tool et l'intake du runtime (alex-r1
+ * B02): la classification de cadence se consomme AVANT l'armement, sans
+ * dependre du gate aval pour masquer une mauvaise selection.
+ */
+export function recurringNotSupportedDirectEffectResult(
+  effectType: OneShotReminderDirectEffectTool = "create_one_shot_reminder",
+): OneShotReminderDirectEffectResult {
+  return {
+    ...baseDirectEffectResult({
+      detected: true,
+      intent: "create",
+      status: "blocked",
+      reason_code: "recurring_not_supported",
+      reply:
+        "Un rappel récurrent se règle dans les Initiatives — je n'ai rien créé en ponctuel.",
+    }),
+    requested_effects: [{ type: effectType, reason_code: "create" }],
+    blocked_effects: [{
+      type: effectType,
+      reason_code: "recurring_not_supported",
+    }],
+  };
+}
+
 function uniqueToolsFromCommitted(
   committedEffects: OneShotReminderCommittedEffect[],
 ): OneShotReminderDirectEffectTool[] {
@@ -430,21 +456,7 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
   // payload porte cardinality="recurring" et on bloque ici au lieu de creer
   // un faux ponctuel (multiflow T13: recurrent committe silencieusement).
   if (payloadText(createEffect, "cardinality") === "recurring") {
-    return {
-      ...baseDirectEffectResult({
-        detected: true,
-        intent: "create",
-        status: "blocked",
-        reason_code: "recurring_not_supported",
-        reply:
-          "Un rappel récurrent se règle dans les Initiatives — je n'ai rien créé en ponctuel.",
-      }),
-      requested_effects: [{ type: effectType, reason_code: "create" }],
-      blocked_effects: [{
-        type: effectType,
-        reason_code: "recurring_not_supported",
-      }],
-    };
+    return recurringNotSupportedDirectEffectResult(effectType);
   }
   const missingPayloadSlots: OneShotReminderDirectEffectResult["missing_slots"] =
     [];

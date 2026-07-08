@@ -59,6 +59,7 @@ export async function executeTrackProgressWrite(args: {
         target_title: args.requested_effect.target_title ?? "",
         progress_status: args.requested_effect.progress_status,
         value: args.requested_effect.value,
+        item_patch_applied: written.item_patch_applied,
       },
     };
   } catch (_error) {

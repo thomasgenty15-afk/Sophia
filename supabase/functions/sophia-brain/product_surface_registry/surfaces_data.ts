@@ -289,7 +289,8 @@ export const PRODUCT_SURFACE_DEFINITIONS = [
     "platform_steps": [
       "ouvre Ressources / Défense",
       "dans Cartes de défense libres, choisis Ajouter une carte",
-      "reprends les champs préparés par Sophia",
+      "décris librement ta situation dans le champ proposé, puis réponds aux 3 questions",
+      "relis et ajuste la carte générée avant de l'enregistrer",
     ],
     "can_execute_from_chat": false,
     "chat_behavior": "platform_destination",
@@ -297,11 +298,11 @@ export const PRODUCT_SURFACE_DEFINITIONS = [
   {
     "destination_id": "state_potion",
     "surface_id": "state_potions",
-    "label": "État / Potions",
-    "short_destination_label": "État / Potions",
-    "user_facing_destination": "dans la section État / Potions",
+    "label": "Ressources / Potions",
+    "short_destination_label": "Ressources / Potions",
+    "user_facing_destination": "dans Dashboard > Ressources, section Potions",
     "platform_steps": [
-      "ouvre la section État / Potions",
+      "ouvre Dashboard > Ressources puis la section Potions",
       "choisis la potion recommandée",
       "active-la depuis la plateforme si elle te convient",
     ],

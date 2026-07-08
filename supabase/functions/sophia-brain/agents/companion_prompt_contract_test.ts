@@ -136,6 +136,9 @@ Deno.test("companion normal reply prompt stays conversation-first and product-th
   // eva-r5 B03 / paul-r5 B04: adhérence des préférences de session à tous les tours.
   assert(prompt.includes("Une préférence de style exprimée en session"));
   assert(prompt.includes("y compris en mode soutien"));
+  // eva-r7 B01: la contrainte de style prime sur le reflexe de warmth.
+  assert(prompt.includes("Une contrainte de style acceptée en session"));
+  assert(prompt.includes("zéro emoji tant qu'elle tient"));
   assertEquals(prompt.includes("préparer une nouvelle version"), false);
   assertEquals(prompt.includes("POLYVALENCE ET ASSISTANCE"), false);
   assertEquals(prompt.includes("STYLE ET RYTHME"), false);
@@ -415,9 +418,16 @@ Deno.test("companion normal reply acknowledges explicit memorization requests", 
     prompt.includes("ne propose ni initiative ni rappel à la place"),
   );
   assert(prompt.includes("Jamais cet accusé pour une action du plan"));
+  // V5-3 (rose-r7 B01): la preuve committed prime — l'accusé positif vient
+  // AVANT le default-deny, toute lane confondue (success comme logged).
   assert(
     prompt.includes(
-      "sans effet commis prouvé, dis que ce n'est pas enregistré",
+      "un outcome committed (toute lane) s'accuse POSITIVEMENT",
+    ),
+  );
+  assert(
+    prompt.includes(
+      "sans committed, dis que ce n'est pas enregistré",
     ),
   );
 });

@@ -7,6 +7,12 @@ export const MORNING_LIGHT_GREETING_EVENT_CONTEXT = "morning_light_greeting_v2";
 export const ACTION_EVENING_REVIEW_EVENT_CONTEXT = "action_evening_review_v2";
 export const ACTION_MORNING_FOLLOWUP_EVENT_CONTEXT =
   "action_morning_followup_v2";
+// Nudge fin d'après-midi des actions du soir (time_of_day=evening).
+export const ACTION_LATE_AFTERNOON_EVENT_CONTEXT =
+  "action_late_afternoon_encouragement_v1";
+// Nudge ~21h35 des actions de nuit (night, ce soir) et pré-engagement des
+// actions au réveil (wake_up, demain matin).
+export const ACTION_NIGHT_PREP_EVENT_CONTEXT = "action_night_prep_v1";
 
 export const ACTION_EVENING_DONE_ID = "ACTION_DONE";
 export const ACTION_EVENING_PARTIAL_ID = "ACTION_PARTIAL";
@@ -484,7 +490,8 @@ export function buildActionMorningInstruction(
     "Objectif: encourager le user à réaliser les actions prévues aujourd'hui.",
     "Ton: court, concret, chaleureux, pas de bilan, pas de question lourde.",
     "Surface: lancement de journee. Ne demande jamais comment une action precedente s'est passee.",
-    "Varie l'ouverture et l'angle: cap du jour, premiere marche, version faisable, ancrage simple.",
+    "Varie l'ouverture et l'angle: cap du jour, premiere marche, ancrage simple.",
+    NO_WEAKENED_ACTION_RULE,
     `Nombre d'actions prévues: ${count}.`,
     schedule.transformations.length > 1
       ? "Le user a plusieurs transformations actives: regroupe sans faire long."
@@ -510,6 +517,114 @@ export function buildActionMorningGrounding(
       );
     }
   }
+  return lines.join("\n");
+}
+
+const NO_WEAKENED_ACTION_RULE =
+  "N'affaiblis jamais l'action: pas de version reduite, allegee, minimale, 'plus petit pas' ou '30 secondes'. L'action est deja calibree pour le user, encourage-la telle quelle. Une version minimale ne se propose que plus tard, en conversation, et seulement si le user exprime une resistance a l'action (trop dur, pas l'energie, deja rate); jamais de facon generique dans ce message proactif.";
+
+export function buildActionLateAfternoonInstruction(
+  schedule: TodayActionOccurrenceSchedule,
+): string {
+  const count = listTitles(schedule).length;
+  return [
+    "Message WhatsApp de fin d'après-midi.",
+    "Objectif: encourager le user à réaliser les actions prévues CE SOIR (time_of_day=evening).",
+    "Ton: court, concret, chaleureux, pas de bilan de journée, pas de question lourde.",
+    "Surface: transition vers la soirée. Ne demande jamais comment une action de la journée s'est passée.",
+    "Varie l'ouverture et l'angle: cap du soir, première marche, ancrage simple.",
+    NO_WEAKENED_ACTION_RULE,
+    `Nombre d'actions du soir prévues: ${count}.`,
+    schedule.transformations.length > 1
+      ? "Le user a plusieurs transformations actives: regroupe sans faire long."
+      : "Le user a une transformation active.",
+    "Une seule idée principale, 1 à 3 phrases maximum.",
+  ].join("\n");
+}
+
+export function buildActionLateAfternoonFallbackMessage(
+  schedule: TodayActionOccurrenceSchedule,
+): string {
+  const titles = listTitles(schedule);
+  if (titles.length === 0) return "Je te souhaite une bonne soirée.";
+  if (titles.length === 1) {
+    return `Ce soir, garde le cap sur "${titles[0]}". C'est le bon moment.`;
+  }
+  return `Ce soir, tu as ${titles.length} actions prévues: ${
+    titles.slice(0, 3).map((title) => `"${title}"`).join(", ")
+  }. On garde ça simple.`;
+}
+
+export function buildActionNightPrepInstruction(args: {
+  nightSchedule: TodayActionOccurrenceSchedule;
+  wakeUpSchedule: TodayActionOccurrenceSchedule;
+}): string {
+  const nightCount = listTitles(args.nightSchedule).length;
+  const wakeUpCount = listTitles(args.wakeUpSchedule).length;
+  return [
+    "Message WhatsApp de fin de soirée (~21h35-22h).",
+    nightCount > 0 && wakeUpCount > 0
+      ? "Objectif double: encourager les actions de CE SOIR (rituel de nuit/coucher) ET poser un pré-engagement simple pour les actions de DEMAIN AU RÉVEIL. Distingue clairement les deux moments dans le message."
+      : nightCount > 0
+      ? "Objectif: encourager le user à réaliser les actions de CE SOIR (rituel de nuit/coucher, time_of_day=night)."
+      : "Objectif: pré-engagement pour les actions de DEMAIN AU RÉVEIL (time_of_day=wake_up). Le moment de levier est MAINTENANT, la veille: préparer le terrain (réveil réglé, intention posée), pas exécuter l'action ce soir.",
+    "Ton: calme, apaisant, très court. C'est la fin de journée: aucune pression, aucune accountability, pas de bilan.",
+    "Ne demande jamais comment une action de la journée s'est passée.",
+    NO_WEAKENED_ACTION_RULE,
+    wakeUpCount > 0
+      ? "Pour les actions au réveil: parle bien de DEMAIN MATIN (« demain au réveil… »), jamais comme si c'était à faire ce soir."
+      : "",
+    `Actions de ce soir: ${nightCount}. Actions de demain au réveil: ${wakeUpCount}.`,
+    "Une seule idée principale, 1 à 3 phrases maximum, zéro ou une question très légère.",
+  ].filter(Boolean).join("\n");
+}
+
+export function buildActionNightPrepFallbackMessage(args: {
+  nightSchedule: TodayActionOccurrenceSchedule;
+  wakeUpSchedule: TodayActionOccurrenceSchedule;
+}): string {
+  const nightTitles = listTitles(args.nightSchedule);
+  const wakeUpTitles = listTitles(args.wakeUpSchedule);
+  if (nightTitles.length > 0 && wakeUpTitles.length > 0) {
+    return `Ce soir: "${nightTitles[0]}". Et demain au réveil: "${
+      wakeUpTitles[0]
+    }" — tu peux déjà préparer le terrain ce soir. Bonne nuit.`;
+  }
+  if (nightTitles.length > 0) {
+    return `Ce soir, garde le cap sur "${nightTitles[0]}". Bonne nuit.`;
+  }
+  if (wakeUpTitles.length > 0) {
+    return `Demain au réveil: "${
+      wakeUpTitles[0]
+    }". Tu peux préparer le terrain ce soir, tranquillement. Bonne nuit.`;
+  }
+  return "Bonne nuit, à demain.";
+}
+
+export function buildActionNightPrepGrounding(args: {
+  localDate: string;
+  weekday: string;
+  nightSchedule: TodayActionOccurrenceSchedule;
+  wakeUpSchedule: TodayActionOccurrenceSchedule;
+}): string {
+  const lines = [
+    `local_date=${args.localDate}`,
+    `weekday=${args.weekday}`,
+  ];
+  const pushGroup = (
+    label: string,
+    schedule: TodayActionOccurrenceSchedule,
+  ) => {
+    for (const transformation of schedule.transformations) {
+      for (const occurrence of transformation.occurrences) {
+        lines.push(
+          `- group=${label} occurrence_id=${occurrence.occurrence_id} item_id=${occurrence.plan_item_id} title=${occurrence.title}`,
+        );
+      }
+    }
+  };
+  pushGroup("tonight", args.nightSchedule);
+  pushGroup("tomorrow_wake_up", args.wakeUpSchedule);
   return lines.join("\n");
 }
 

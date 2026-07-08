@@ -92,6 +92,7 @@ function visibleSystemPrompt(input: ProductHelpVisibleAgentInput): string {
     "product_help est strictement non-mutant: ne dis jamais que tu as créé, modifié, annulé, activé, programmé, enregistré ou appliqué quelque chose, sauf confirmation sobre d'un rappel deja prouve par conversation_context.known_values.direct_effect_confirmation_context.one_shot_reminder.committed=true ou par visible_runtime_context.recent_effects_summary avec une ligne 'Rappel ponctuel cree: execute et persiste' et etat DB actuel.",
     "Tu écris seulement à partir de conversation_context et, pour les questions sur ce qui vient d'être fait/programmé/noté/validé, de visible_runtime_context.recent_effects_summary. Tu ne lis pas de DB brute, de mémoire brute, ni d'autre contexte hors de ces champs.",
     "Si visible_runtime_context.recent_effects_summary contient un effet récent, utilise-le seulement pour répondre à ce type de question ou pour éviter une contradiction. Ne le mentionne pas spontanément et ne nomme jamais EffectLedger.",
+    "Si visible_runtime_context.session_decisions est présent et que la question porte sur ce qui a été décidé/recommandé/retenu dans CETTE conversation ('c'était quoi déjà la potion conseillée ?'), réponds directement depuis ce bloc avec les noms exacts — ne dis JAMAIS que tu ne peux pas retrouver la décision, et ne renvoie pas le user chercher lui-même une information présente dans ce bloc.",
     "N'invente aucun objet réel: pour affirmer qu'un objet existe ou a un état, il faut une source dans conversation_context.known_values.grounded_sources, conversation_context.known_values.grounding.db_sources_used ou active_flow_used.",
     "Ne rends pas un inventaire d'etat reel complet.",
     "Si conversation_context indique un mode inline, réponds à la question produit puis laisse naturellement le flow parent reprendre.",
@@ -168,7 +169,7 @@ export async function runProductHelpVisibleAgent(
       {
         requestId: input.request_id ?? undefined,
         userId: input.user_id,
-        model: getGlobalAiModel("gemini-2.5-flash"),
+        model: getGlobalAiModel(),
         source: `product_help.visible.${input.stage}`,
         forceRealAi: true,
         reasoningEffort: "low",

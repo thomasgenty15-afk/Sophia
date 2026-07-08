@@ -2,6 +2,15 @@ const MORNING_ENCOURAGEMENT_START_LOCAL_TIME = "08:00";
 const MORNING_ENCOURAGEMENT_END_LOCAL_TIME = "10:00";
 const EVENING_REVIEW_START_LOCAL_TIME = "19:00";
 const EVENING_REVIEW_END_LOCAL_TIME = "21:30";
+// Nudge des actions du soir (time_of_day=evening): fin d'après-midi, avant
+// que le soir commence.
+const LATE_AFTERNOON_NUDGE_START_LOCAL_TIME = "16:45";
+const LATE_AFTERNOON_NUDGE_END_LOCAL_TIME = "17:45";
+// Nudge des actions de nuit (night, ce soir) et de pré-engagement réveil
+// (wake_up, demain matin). Fenêtre volontairement APRÈS la fin de la review
+// du soir (21:30) pour exclure toute collision le même soir.
+const NIGHT_PREP_START_LOCAL_TIME = "21:35";
+const NIGHT_PREP_END_LOCAL_TIME = "22:00";
 
 function cleanText(value: unknown, fallback = ""): string {
   const text = String(value ?? "").trim();
@@ -61,5 +70,27 @@ export function randomEveningReviewLocalTime(params: {
     startLocalTime: EVENING_REVIEW_START_LOCAL_TIME,
     endLocalTime: EVENING_REVIEW_END_LOCAL_TIME,
     seed: `${params.userId}:${params.localDate}:daily_review`,
+  });
+}
+
+export function randomLateAfternoonNudgeLocalTime(params: {
+  userId: string;
+  localDate: string;
+}): string {
+  return stableTimeInRange({
+    startLocalTime: LATE_AFTERNOON_NUDGE_START_LOCAL_TIME,
+    endLocalTime: LATE_AFTERNOON_NUDGE_END_LOCAL_TIME,
+    seed: `${params.userId}:${params.localDate}:action_late_afternoon`,
+  });
+}
+
+export function randomNightPrepLocalTime(params: {
+  userId: string;
+  localDate: string;
+}): string {
+  return stableTimeInRange({
+    startLocalTime: NIGHT_PREP_START_LOCAL_TIME,
+    endLocalTime: NIGHT_PREP_END_LOCAL_TIME,
+    seed: `${params.userId}:${params.localDate}:action_night_prep`,
   });
 }

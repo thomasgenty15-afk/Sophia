@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { ArrowLeft, Shield, FileText, Scale, Mail, Briefcase } from 'lucide-react';
+import { ArrowLeft, Shield, FileText, Scale, Mail, Briefcase, Gift } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import SEO from '../components/SEO';
 
@@ -89,6 +89,9 @@ const Legal = () => {
           </a>
           <a href="#cgv" className="flex items-center gap-2 rounded-full border border-white/54 bg-white/52 px-4 py-2 text-sm font-bold text-[#405148] shadow-sm backdrop-blur transition-colors hover:bg-[#e3f1e6] hover:text-[#002d21]">
             <Scale className="h-4 w-4" /> CGV
+          </a>
+          <a href="#parrainage" className="flex items-center gap-2 rounded-full border border-white/54 bg-white/52 px-4 py-2 text-sm font-bold text-[#405148] shadow-sm backdrop-blur transition-colors hover:bg-[#e3f1e6] hover:text-[#002d21]">
+            <Gift className="h-4 w-4" /> Parrainage
           </a>
         </div>
 
@@ -248,7 +251,40 @@ const Legal = () => {
 
               <h3>5. Vos Droits</h3>
               <p>
-                Conformément au RGPD, vous disposez d'un droit d'accès, de rectification, d'effacement, de limitation et de portabilité de vos données.
+                Conformément au RGPD, vous disposez d'un droit d'accès, de rectification, d'effacement, de limitation et de portabilité de vos données. Vous pouvez exercer directement les droits d'effacement et de portabilité depuis l'application, sans nous contacter : menu <strong>Compte → Options → Mes données</strong> (export de vos données) et <strong>Supprimer mon compte</strong>.
+              </p>
+
+              <h3>6. Conservation et Suppression des Données</h3>
+              <p>
+                <strong>Suppression de compte en libre-service :</strong> vous pouvez supprimer votre compte à tout moment depuis l'application. La suppression se déroule en deux temps :
+              </p>
+              <ul>
+                <li>
+                  <strong>Immédiatement :</strong> votre accès est désactivé, les messages WhatsApp cessent et votre abonnement est résilié sans nouveau prélèvement.
+                </li>
+                <li>
+                  <strong>Sous 7 jours :</strong> l'ensemble de vos données (profil, plans, conversations, souvenirs) est définitivement et irréversiblement supprimé de nos bases de données. Pendant ce délai, vous pouvez annuler la suppression en vous reconnectant.
+                </li>
+              </ul>
+              <p>
+                <strong>Données conservées après la suppression :</strong>
+              </p>
+              <ul>
+                <li>
+                  Les <strong>factures</strong> liées à vos paiements, conservées par obligation légale de conservation comptable (article L.123-22 du Code de commerce).
+                </li>
+                <li>
+                  Une <strong>trace minimale anonymisée</strong> de la suppression (empreintes cryptographiques de l'email et du numéro de téléphone, et date de suppression), conservée comme preuve de conformité. Elle ne permet pas de vous identifier.
+                </li>
+                <li>
+                  Des données de mesure d'usage technique (volumes et coûts de calcul), <strong>anonymisées</strong> au moment de la suppression : elles ne sont plus rattachées à aucune personne.
+                </li>
+              </ul>
+              <p>
+                <strong>Sauvegardes techniques :</strong> des copies de sauvegarde de nos bases de données peuvent subsister temporairement après la suppression. Elles expirent automatiquement selon leur cycle de rotation et ne sont jamais utilisées pour restaurer des données supprimées, sauf incident technique majeur affectant l'ensemble du service.
+              </p>
+              <p>
+                <strong>Export de vos données :</strong> vous pouvez à tout moment télécharger une copie de vos données (profil, plans, conversations, souvenirs) au format JSON depuis le menu Compte. Par sécurité, une ré-authentification est exigée, une notification vous est envoyée à chaque demande et l'export est limité à un par 24 heures.
               </p>
               <div className="not-prose mt-6 flex items-start gap-4 rounded-2xl border border-[#cfe8d7] bg-[#eef8ef] p-6">
                 <Mail className="mt-1 h-6 w-6 flex-shrink-0 text-[#002d21]" />
@@ -304,6 +340,49 @@ const Legal = () => {
               <h3>5. Loi Applicable</h3>
               <p>
                 Les présentes CGV sont soumises à la loi française. En cas de litige, compétence est attribuée aux tribunaux compétents du ressort du siège social de IKIZEN, nonobstant pluralité de défendeurs ou appel en garantie.
+              </p>
+            </div>
+          </section>
+
+          {/* PROGRAMME DE PARRAINAGE */}
+          <section id="parrainage" className="scroll-mt-32 rounded-3xl border border-[#eadfce] bg-white/72 p-8 shadow-sm backdrop-blur md:p-12">
+            <div className="mb-8 flex items-center gap-4 border-b border-[#eadfce] pb-8">
+              <div className="rounded-full bg-[#e3f1e6] p-3 text-[#002d21]">
+                <Gift className="h-8 w-8" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-[#17211d]">Programme de Parrainage</h2>
+                <p className="text-sm text-[#6f8178]">Conditions du programme</p>
+              </div>
+            </div>
+
+            <div className="prose prose-slate max-w-none text-[#52635b] prose-headings:font-bold prose-headings:text-[#17211d]">
+              <h3>1. Principe</h3>
+              <p>
+                Chaque Utilisateur dispose d'un code de parrainage personnel, partageable sous forme de lien ou de code. Lorsqu'une personne (le « Filleul ») crée un compte Sophia avec ce code, son essai gratuit est porté à 30 jours (au lieu de 14 jours). Le code doit être renseigné au moment de l'inscription : il ne peut pas être ajouté ultérieurement à un compte existant.
+              </p>
+
+              <h3>2. Récompense du Parrain</h3>
+              <p>
+                Le Parrain reçoit un (1) mois d'abonnement offert, correspondant au tarif mensuel de sa formule en cours, sous la forme d'un avoir déduit de ses prochaines factures. Cette récompense est créditée <strong>uniquement lorsque le Filleul règle sa première facture d'un montant strictement supérieur à zéro</strong>. L'inscription seule du Filleul, la période d'essai ou une facture à 0&nbsp;€ n'ouvrent droit à aucune récompense.
+              </p>
+              <p>
+                Si le Parrain n'est pas encore abonné au moment de la conversion de son Filleul, la récompense est conservée et appliquée automatiquement sur ses premières factures dès qu'il souscrit un abonnement.
+              </p>
+
+              <h3>3. Plafond</h3>
+              <p>
+                Le nombre de mois offerts est plafonné à douze (12) mois par période glissante de douze (12) mois par Parrain. Au-delà de ce plafond, les parrainages restent comptabilisés mais n'ouvrent plus droit à récompense.
+              </p>
+
+              <h3>4. Réserve anti-fraude</h3>
+              <p className="rounded-2xl border border-[#f6d8b8] bg-[#fff8ec] p-4 text-sm font-medium text-[#8a5633]">
+                L'auto-parrainage (même personne, même numéro de téléphone ou comptes multiples) est interdit. Le Filleul doit être un nouvel utilisateur ne disposant pas déjà d'un compte Sophia. IKIZEN se réserve le droit de refuser, suspendre ou annuler toute récompense obtenue en violation de ces conditions ou par tout moyen frauduleux ou abusif, et de suspendre les comptes concernés.
+              </p>
+
+              <h3>5. Nature de la récompense</h3>
+              <p>
+                Les mois offerts n'ont aucune valeur monétaire : ils ne sont ni remboursables, ni cessibles, ni convertibles en espèces. IKIZEN peut modifier ou mettre fin au programme de parrainage à tout moment ; les récompenses déjà acquises restent alors dues.
               </p>
             </div>
           </section>

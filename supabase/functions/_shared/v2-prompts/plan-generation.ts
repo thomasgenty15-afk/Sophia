@@ -177,7 +177,7 @@ Items répétitifs à ancrer. Chaque item a :
 - un \`kind\` : "habit"
 - un \`cadence_label\` (ex: "quotidien", "3x/semaine", "chaque matin")
 - un \`target_reps\` si pertinent
-- un \`time_of_day\` si pertinent ("morning", "afternoon", "evening", "anytime")
+- un \`time_of_day\` — OBLIGATOIRE (non null) dès que l'habitude a un ancrage horaire : "wake_up" (au réveil même : se lever, lumière dès le lever, réveil sans snooze) | "morning" (dans la matinée) | "afternoon" | "evening" (le soir) | "night" (tard le soir : se coucher, écrans off, rituel de nuit) ; sinon "anytime". Attention : "se lever" → "wake_up" (PAS "morning") ; "se coucher" → "night" (PAS "evening")
 - des \`scheduled_days\` si pertinent (ex: ["lundi", "mercredi", "vendredi"])
 
 ## Débloquage conditionnel
@@ -345,7 +345,7 @@ Tu dois retourner UNIQUEMENT un JSON valide conforme au schéma suivant :
 - \`tracking_type\` : "boolean" | "count" | "scale" | "text" | "milestone"
 - \`support_mode\` : "always_available" | "recommended_now" | "unlockable" (obligatoire si dimension = "support", null sinon)
 - \`support_function\` : "practice" | "rescue" | "understanding" (obligatoire si dimension = "support", null sinon)
-- \`time_of_day\` : "morning" | "afternoon" | "evening" | "anytime" | null
+- \`time_of_day\` : "wake_up" | "morning" | "afternoon" | "evening" | "night" | "anytime" | null. Règle : mets une valeur explicite dès qu'une action (habit OU mission) a un ancrage horaire clair ; ne laisse jamais \`null\` dans ce cas. "anytime"/null uniquement si le moment n'a pas d'importance. Sémantique : "wake_up" = au réveil même (se lever, lumière dès le lever, réveil sans snooze — PAS "morning") ; "morning" = dans la matinée après le lever ; "evening" = le soir ; "night" = tard le soir / rituel de coucher (se coucher, écrans off — PAS "evening").
 - \`activation_condition.type\` : "immediate" | "after_item_completion" | "after_habit_traction" | "after_milestone"
 
 ### Contraintes quantitatives
@@ -1322,7 +1322,7 @@ Priorité des champs hebdo :
 - \`tracking_type\` : "boolean" | "count" | "scale" | "text" | "milestone"
 - \`support_mode\` : toujours \`null\`
 - \`support_function\` : toujours \`null\`
-- \`time_of_day\` : "morning" | "afternoon" | "evening" | "anytime" | null
+- \`time_of_day\` : "wake_up" | "morning" | "afternoon" | "evening" | "night" | "anytime" | null. Règle : mets une valeur explicite dès qu'une action (habit OU mission) a un ancrage horaire clair ; ne laisse jamais \`null\` dans ce cas. "anytime"/null uniquement si le moment n'a pas d'importance. Sémantique : "wake_up" = au réveil même (se lever, lumière dès le lever, réveil sans snooze — PAS "morning") ; "morning" = dans la matinée après le lever ; "evening" = le soir ; "night" = tard le soir / rituel de coucher (se coucher, écrans off — PAS "evening").
 - \`activation_condition.type\` : "immediate" | "after_item_completion" | "after_habit_traction" | "after_milestone"
 - \`heartbeat.tracking_mode\` : "manual" | "inferred"
 - \`primary_metric.measurement_mode\` : "absolute_value" | "count" | "frequency" | "duration" | "score" | "milestone" | "qualitative"

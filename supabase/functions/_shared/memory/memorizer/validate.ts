@@ -137,6 +137,22 @@ export function validateExtractedItem(
       );
     }
   }
+  // eva-r8 B05 (amont): une fenetre inversee (event_end < event_start, sortie
+  // LLM) violerait chk_memory_items_event_end_after_start a l'insert et — sans
+  // isolation — perdait tout le batch. Reparation de contrat non semantique:
+  // on abandonne la borne de fin fautive, l'event reste date par son debut.
+  if (
+    normalizedItem.event_start_at &&
+    normalizedItem.event_end_at &&
+    Date.parse(normalizedItem.event_end_at) <
+      Date.parse(normalizedItem.event_start_at)
+  ) {
+    normalizedItem.event_end_at = null;
+    normalizedItem.metadata = {
+      ...(normalizedItem.metadata ?? {}),
+      event_end_dropped_inverted_window: true,
+    };
+  }
   if (
     normalizedItem.kind === "event" &&
     (!normalizedItem.event_start_at || !normalizedItem.time_precision)

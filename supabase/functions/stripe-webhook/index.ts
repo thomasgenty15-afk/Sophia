@@ -18,6 +18,11 @@ import {
   type SubscriptionSnapshot,
   type SubTier,
 } from "../_shared/subscription-notification.ts";
+import {
+  applyBankedReferralRewards,
+  claimReferralRewardForInvoice,
+  resolveInvoiceUserId,
+} from "../_shared/referral-reward.ts";
 
 const SUBSCRIPTION_CONFIRMED_PURPOSE = "subscription_confirmed";
 const SUBSCRIPTION_MODIFIED_PURPOSE = "subscription_modified";
@@ -30,9 +35,32 @@ function requireEnv(name: string): string {
   return v;
 }
 
+function isLocalSupabaseEnv(): boolean {
+  const url = (Deno.env.get("SUPABASE_URL") ?? "").trim();
+  if (!url) return false;
+  try {
+    const host = new URL(url).hostname.toLowerCase();
+    return host === "127.0.0.1" || host === "localhost" || host === "kong" ||
+      host.startsWith("supabase_");
+  } catch {
+    return false;
+  }
+}
+
 function isMegaTestMode(): boolean {
   const megaRaw = (Deno.env.get("MEGA_TEST_MODE") ?? "").trim();
-  return megaRaw === "1";
+  if (megaRaw !== "1") return false;
+  // SEC-08: MEGA_TEST_MODE disables Stripe webhook signature verification. It must
+  // NEVER take effect in a deployed environment. If the flag is set against a real
+  // (non-local) Supabase URL, ignore it and keep signature verification enforced.
+  if (!isLocalSupabaseEnv()) {
+    console.error(JSON.stringify({
+      tag: "stripe_webhook_mega_test_mode_ignored_in_prod",
+      reason: "MEGA_TEST_MODE=1 is not honored outside a local Supabase environment",
+    }));
+    return false;
+  }
+  return true;
 }
 
 type StripeEvent = {
@@ -360,6 +388,40 @@ Deno.serve(async (req) => {
           }).eq("id", userId);
         }
 
+        // Referral: a referrer who just became a paying customer picks up the
+        // months banked while they were still on trial. Best-effort — a
+        // failure here must not break the subscription mirror, and the banked
+        // rows are retried on the next subscription/invoice event.
+        if (status === "active" || status === "trialing") {
+          try {
+            const bankedResult = await applyBankedReferralRewards({
+              admin,
+              referrerId: userId,
+              requestId,
+            });
+            if (bankedResult.credited > 0) {
+              console.log(
+                `[stripe-webhook] request_id=${requestId} applied ${bankedResult.credited} banked referral reward(s) user_id=${userId}`,
+              );
+            }
+          } catch (referralErr) {
+            console.warn(
+              "[stripe-webhook] banked referral rewards application failed",
+              referralErr,
+            );
+            await logEdgeFunctionError({
+              functionName: "stripe-webhook",
+              error: referralErr,
+              severity: "warn",
+              title: "referral_banked_rewards_apply_failed",
+              requestId,
+              userId,
+              source: "stripe",
+              metadata: { stripe_subscription_id: stripeSubscriptionId },
+            });
+          }
+        }
+
         const prevRow = prevSub as
           | {
             status?: string | null;
@@ -387,7 +449,26 @@ Deno.serve(async (req) => {
           Date.now(),
         );
 
+        // RGPD: accounts pending deletion are excluded from all proactive processing.
+        // The subscriptions mirror above stays exact; only the confirmation message is suppressed.
+        let deletionPending = false;
         if (notifKind) {
+          const { data: profileStatus } = await admin
+            .from("profiles")
+            .select("account_status")
+            .eq("id", userId)
+            .maybeSingle();
+          deletionPending =
+            (profileStatus as { account_status?: string | null } | null)
+              ?.account_status === "deletion_pending";
+          if (deletionPending) {
+            console.log(
+              `[stripe-webhook] request_id=${requestId} subscription notification suppressed user_id=${userId} reason=account_deletion_pending`,
+            );
+          }
+        }
+
+        if (notifKind && !deletionPending) {
           try {
             await sendSubscriptionWhatsapp({
               admin,
@@ -451,7 +532,93 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Ignore other events (payment_succeeded/failed will reflect via subscription.updated status)
+    // Referral conversion: the referrer's reward is triggered by the referred
+    // user's first PAID invoice — never at signup, never on a 0€ invoice.
+    if (evt.type === "invoice.payment_succeeded") {
+      const invoice = evt.data.object ?? {};
+      const stripeInvoiceId = invoice?.id as string | undefined;
+      const amountPaid = Number(invoice?.amount_paid ?? 0);
+
+      if (!stripeInvoiceId || !(amountPaid > 0)) {
+        return jsonResponse(req, {
+          ok: true,
+          ignored: true,
+          reason: "zero_amount_invoice",
+          type: evt.type,
+          request_id: requestId,
+        });
+      }
+
+      const referredUserId = await resolveInvoiceUserId(admin, invoice);
+      if (!referredUserId) {
+        // Likely an out-of-order delivery (invoice before the subscription
+        // mirror). Release the event-id claim and 500 so Stripe redelivers
+        // once the mapping exists; the reward claim itself is idempotent.
+        await admin.from("stripe_webhook_events").delete().eq("id", evt.id);
+        console.warn(
+          `[stripe-webhook] request_id=${requestId} could not resolve user for invoice ${stripeInvoiceId}`,
+        );
+        return serverError(req, requestId, "Unresolved invoice user");
+      }
+
+      const claim = await claimReferralRewardForInvoice({
+        admin,
+        referredUserId,
+        stripeInvoiceId,
+      });
+
+      if (claim.claimed && !claim.capped && claim.referrer_id) {
+        console.log(
+          `[stripe-webhook] request_id=${requestId} referral converted referred=${referredUserId} referrer=${claim.referrer_id}`,
+        );
+        // Credit now if the referrer is already a paying customer; otherwise
+        // the reward stays banked until their own subscription shows up.
+        try {
+          await applyBankedReferralRewards({
+            admin,
+            referrerId: claim.referrer_id,
+            requestId,
+          });
+        } catch (creditErr) {
+          // The reward row is back to banked (see referral-reward.ts): it will
+          // be retried on the referrer's next subscription/invoice event.
+          console.warn(
+            "[stripe-webhook] referral credit failed, reward stays banked",
+            creditErr,
+          );
+          await logEdgeFunctionError({
+            functionName: "stripe-webhook",
+            error: creditErr,
+            severity: "warn",
+            title: "referral_credit_failed_reward_banked",
+            requestId,
+            userId: claim.referrer_id,
+            source: "stripe",
+            metadata: {
+              stripe_invoice_id: stripeInvoiceId,
+              referred_user_id: referredUserId,
+            },
+          });
+        }
+      } else if (claim.claimed && claim.capped) {
+        console.log(
+          `[stripe-webhook] request_id=${requestId} referral conversion tracked but capped referrer=${claim.referrer_id} months_last_12m=${claim.months_last_12m}`,
+        );
+      }
+
+      return jsonResponse(req, {
+        ok: true,
+        type: evt.type,
+        referral: {
+          claimed: claim.claimed,
+          capped: claim.capped ?? false,
+          reason: claim.reason ?? null,
+        },
+        request_id: requestId,
+      });
+    }
+
+    // Ignore other events (payment_failed will reflect via subscription.updated status)
     return jsonResponse(req, {
       ok: true,
       ignored: true,

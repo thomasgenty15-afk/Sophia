@@ -4,6 +4,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 
 import { enforceCors, getCorsHeaders } from "../_shared/cors.ts";
+import { enforceRateLimit, getClientIp, RATE_PRESETS } from "../_shared/rate-limit.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
 import {
   jsonResponse,
@@ -131,9 +132,12 @@ class CycleDraftError extends Error {
 }
 
 function getCycleDraftCorsHeaders(req: Request): Record<string, string> {
+  const base = getCorsHeaders(req);
   return {
-    ...getCorsHeaders(req),
+    ...base,
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    // SEC-10: allow the session id to travel in a header instead of the query string.
+    "Access-Control-Allow-Headers": `${base["Access-Control-Allow-Headers"]}, x-session-id`,
   };
 }
 
@@ -330,6 +334,21 @@ async function handleRequest(req: Request): Promise<Response> {
 
     if (req.method === "POST" && isHydratePath(pathname)) {
       return await handleHydrateDraft(req, admin, env, requestId);
+    }
+
+    // SEC-06: the guest LLM routes below are unauthenticated and each invokes a
+    // premium Gemini generation. Rate-limit them per client IP to prevent
+    // uncapped cost/DoS abuse (enforceCors deliberately allows Origin-less calls,
+    // so it cannot stand in for this).
+    const isGuestLlmRoute = req.method === "POST" &&
+      (isIntakePath(pathname) || isQuestionnairePath(pathname) ||
+        isClassifyPath(pathname));
+    if (isGuestLlmRoute) {
+      const rateLimited = await enforceRateLimit(req, requestId, {
+        key: `cycle-draft-guest:${getClientIp(req)}`,
+        windows: RATE_PRESETS.guest,
+      });
+      if (rateLimited) return rateLimited;
     }
 
     if (req.method === "POST" && isIntakePath(pathname)) {
@@ -552,8 +571,12 @@ async function handleGetDraft(
   admin: SupabaseClient,
   requestId: string,
 ): Promise<Response> {
+  // SEC-10: prefer the session id from a header (not the query string, which can
+  // leak into access logs / referrers). Keep the query param as a fallback for
+  // backward compatibility with older clients.
   const sessionId = String(
-    new URL(req.url).searchParams.get("session_id") ?? "",
+    req.headers.get("x-session-id") ??
+      new URL(req.url).searchParams.get("session_id") ?? "",
   ).trim();
   if (!sessionId) {
     return cycleDraftResponse(

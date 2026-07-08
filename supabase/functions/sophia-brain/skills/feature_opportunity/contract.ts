@@ -73,6 +73,13 @@ export type FeatureOpportunityLocalDispatcherOutput = {
     conversation_context: FeatureOpportunityConversationContext;
   };
   note_information: NoteInformation | null;
+  /**
+   * Engagement de STYLE pris pour la session (eva-r7 B01): quand le flow
+   * acquitte une preference de style ("sans emojis, ton direct") avec un
+   * engagement de session, la contrainte exacte voyage ici — l'etat de
+   * session la porte ensuite a CHAQUE tour du composeur.
+   */
+  session_style_commitment?: string | null;
   evidence: string[];
 };
 

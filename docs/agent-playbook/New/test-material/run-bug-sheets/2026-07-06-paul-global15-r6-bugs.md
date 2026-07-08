@@ -11,9 +11,9 @@
 
 | Bug id | Tours | Famille | Severite | Statut |
 | --- | --- | --- | --- | --- |
-| R6-B01 | T13 | BF-LEDGER-02 (+ connexe BF-EFFECT-03/BF-STATUS-02) | red | open |
-| R6-B02 | T9 | BF-SAFETY-01 | yellow | open |
-| R6-B03 | T8 | BF-INTAKE-05 | yellow | open |
+| R6-B01 | T13 | BF-LEDGER-02 (+ connexe BF-EFFECT-03/BF-STATUS-02) | red | fix_applied (X1) |
+| R6-B02 | T9 | BF-SAFETY-01 | yellow | fix_applied (X3 + V2-C5) |
+| R6-B03 | T8 | BF-INTAKE-05 | yellow | fix_applied (V2-B1) |
 
 ### Non-régressions confirmées (surfaces rouges du r5)
 
@@ -107,7 +107,7 @@
   contractuelle, pas un blacklist du mot « potion ». Cohérent avec la mémoire QA
   « ton proactif sans tendresse non groundée » (soutien sur signal explicite, sans
   substitution par un pitch).
-- **Statut**: `fix_applied` (partiel, doctrine) — chantier X3 (2026-07-07) : quand la route est `distress_support_priority`, une directive de tour injectée impose « soutien groundé, aucun dispositif/carte/potion ce tour ». Le cas précis T9 (medium + emotional_distress seul, owner coaching) n'est pas préempté par la route (design 1c : les urges restent coachables) — la règle d'altitude coaching existante (Y3/C5b) doit porter ce cas ; à réévaluer si récurrent.
+- **Statut**: `fix_applied` — chantier X3 complété par V2-C5 (2026-07-07, décision produit actée : « soutien d'abord, pitch différé ») : doctrine locale coaching + règles visibles — band `medium` (quel que soit le code) + coaching émotionnel → le PREMIER mouvement de la réponse ne nomme JAMAIS un dispositif (ni carte, ni potion, ni feature) : soutien groundé d'abord, puis au plus une ouverture douce (« si tu veux, j'ai un outil ») — proposer, pas mener. Anti-faux-positif : demande EXPLICITE d'outil reste servie. **Probe live** (Nina) : creux medium → soutien pur, zéro dispositif nommé au premier mouvement (`distress_support_priority`, 4 lanes reco bloquées).
 - **Fix reference**: chantier X (2026-07-07)
 - **Tests requis**:
   - positif: message émotionnel `medium` (`emotional`) ⇒ réponse de soutien avant
@@ -137,7 +137,7 @@
   risque est latent (impact nul ce tour car redirect seul), mais deviendrait un
   effet contraire si un flow aval consommait `drift_type` pour décider du sens de
   l'ajustement.
-- **Statut**: `open`
+- **Statut**: `fix_applied` — chantier V2-B1 (2026-07-07) : `plan_too_light` sur toute la chaîne (enum turn_frame, DRIFT_TYPES local, liste blanche du sanitizer runtime `dispatcher.v2.ts` — 3e copie de l'enum qui rabattait sur `ambiguous`, doctrine de direction + exemple JSON, branche visible « corser »). Tests contrat + régression sanitizer verts. **Probe live** (Nina) : « trop mou, corse-le » → `drift_type=plan_too_light` en trace, rendu corsage. Cf. nina-r4 B03.
 - **Fix reference**: —
 - **Tests requis**:
   - positif: « plan trop mou / corser » ⇒ `drift_type` = direction « alourdir ».

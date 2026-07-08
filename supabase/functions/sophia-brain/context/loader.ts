@@ -604,6 +604,11 @@ export async function loadContextForMode(
         userId: opts.userId,
         scope: opts.scope,
         userTimePromptBlock: opts.userTime?.prompt_block,
+        // rose-r7 B03 / eva-r9 B03: turn_summary_logs est un log interne non
+        // expose par RLS — sans client service-role, ce bloc etait
+        // silencieusement VIDE sur le chemin web (le seul call site sans),
+        // et les recaps de session omettaient les effets crees/annules.
+        ledgerReadClient: serviceRoleLedgerReadClient(),
       }).then((block) => {
         if (block) {
           context.recentEffectsSummary = block;
@@ -2722,7 +2727,18 @@ function formatRecentEffectLine(args: {
         ? formatScheduledForUserTimezone(scheduledRaw, args.timezone)
         : "";
       const instruction = extractReminderInstruction(checkin?.message_payload);
-      pieces.push(`état DB actuel: ${currentStatus}`);
+      // nina-r6 B04: lifecycle en langage user — un rappel deja delivre se
+      // dit « cree puis declenche », jamais omis d'un recap.
+      const lifecycleLabel = currentStatus === "pending"
+        ? "programmé (pas encore déclenché)"
+        : ["awaiting_user", "delivered", "sent", "completed"].includes(
+            currentStatus,
+          )
+        ? "créé puis déjà déclenché"
+        : currentStatus === "cancelled"
+        ? "créé puis annulé"
+        : currentStatus;
+      pieces.push(`état DB actuel: ${lifecycleLabel}`);
       if (scheduledLocal) pieces.push(`prévu: ${scheduledLocal}`);
       if (instruction && instruction !== detail) {
         pieces.push(`instruction DB: ${instruction.slice(0, 140)}`);
@@ -2758,12 +2774,14 @@ export async function loadRecentEffectsLedgerSummary(args: {
 }): Promise<string | null> {
   try {
     const ledgerClient = args.ledgerReadClient ?? args.supabase;
+    // eva-r8 B04: fenetre etendue a la SESSION (15 tours) — un track commite
+    // en debut de soiree doit exister encore au recap de fin de soiree.
     const entries = await loadRecentEffectHistory({
       supabase: ledgerClient,
       userId: args.userId,
-      limit: 40,
+      limit: 60,
       scope: args.scope ?? null,
-      turnLimit: 5,
+      turnLimit: 15,
     });
     const relevant = entries.filter((entry) => {
       const status = String(entry.status ?? "");
@@ -2774,7 +2792,7 @@ export async function loadRecentEffectsLedgerSummary(args: {
       }
       if (String(entry.effect_type ?? "") === "final_reply.claim") return false;
       return String(entry.kind ?? "durable_effect") === "durable_effect";
-    }).slice(0, 8);
+    }).slice(0, 12);
     if (relevant.length === 0) return null;
 
     const timezone = extractTimezoneFromUserTimeBlock(args.userTimePromptBlock);
@@ -2789,8 +2807,9 @@ export async function loadRecentEffectsLedgerSummary(args: {
     });
 
     const lines = [
-      "=== EFFETS RÉCENTS (EffectLedger, fenêtre 5 tours) ===",
-      "Usage: utiliser seulement si le user demande ce qui vient d'être fait, programmé, noté, validé, annulé, ou si nécessaire pour ne pas contredire un effet récent. Ne pas le mentionner spontanément.",
+      "=== EFFETS RÉCENTS (EffectLedger, fenêtre session — 15 tours) ===",
+      "Usage: utiliser si le user demande ce qui vient d'être fait, programmé, noté, validé, annulé, OU fait un point/récap de session ('on a fait quoi ce soir', 'qu'est-ce qui est enregistré', 'j'ai quoi de prévu'), ou si nécessaire pour ne pas contredire un effet récent. Ne pas le mentionner spontanément hors de ces cas.",
+      `Récap de session: cette liste contient ${relevant.length} effet(s) — chacun se mentionne avec son état ('programmé', 'créé puis déjà déclenché', 'créé puis annulé') — un effet de la session ne s'OMET jamais d'un récap, même déjà déclenché ou annulé.`,
       "Source: timeline d'exécution récente. Pour dire si un objet existe encore maintenant, l'état DB actuel est prioritaire.",
       ...relevant.map((entry) =>
         formatRecentEffectLine({ entry, scheduledCheckins, timezone })

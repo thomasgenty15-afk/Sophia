@@ -213,7 +213,7 @@ export async function runWeeklyReviewVisibleAgent(
       {
         requestId: input.request_id ?? undefined,
         userId: input.user_id,
-        model: getGlobalAiModel("gemini-2.5-flash"),
+        model: getGlobalAiModel(),
         source: `${spec.source}.${input.stage}`,
         forceRealAi: true,
         reasoningEffort: "low",

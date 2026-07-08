@@ -3713,7 +3713,7 @@ export async function runWeeklyReviewLocalDispatcher(input: {
     {
       requestId: input.request_id ?? undefined,
       userId: input.user_id,
-      model: getGlobalAiModel("gemini-2.5-flash"),
+      model: getGlobalAiModel(),
       source: "weekly_adaptive_review.local_dispatcher",
       forceRealAi: true,
       reasoningEffort: "low",

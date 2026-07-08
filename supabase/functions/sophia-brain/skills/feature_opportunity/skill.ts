@@ -180,6 +180,10 @@ export async function runFeatureOpportunitySkill(
       state_patch: {
         feature_opportunity_local_state: null,
         feature_opportunity_note_information: reduced.note_information,
+        session_style_commitment:
+        ("session_style_commitment" in decision
+          ? decision.session_style_commitment
+          : null) ?? null,
       },
     });
   }
@@ -229,6 +233,10 @@ export async function runFeatureOpportunitySkill(
     state_patch: {
       feature_opportunity_local_state: reduced.local_state,
       feature_opportunity_note_information: reduced.note_information,
+      session_style_commitment:
+        ("session_style_commitment" in decision
+          ? decision.session_style_commitment
+          : null) ?? null,
     },
   });
 }

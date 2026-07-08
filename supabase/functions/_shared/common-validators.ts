@@ -1,4 +1,5 @@
 import { z } from "npm:zod@3.22.4";
+import { TIME_OF_DAY_VALUES } from "./time_of_day.ts";
 
 // --- 1. ROUTER (DISPATCHER) ---
 
@@ -15,7 +16,7 @@ export const MiniActionSchema = z.object({
   questType: z.string().optional(),
   type: z.enum(['mission', 'habitude', 'framework']),
   tracking_type: z.enum(['boolean', 'counter']),
-  time_of_day: z.enum(['morning', 'afternoon', 'evening', 'night', 'any_time']),
+  time_of_day: z.enum(TIME_OF_DAY_VALUES),
   targetReps: z.number().optional(),
   tips: z.string().optional(),
   rationale: z.string().optional(),

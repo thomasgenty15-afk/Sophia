@@ -297,7 +297,7 @@ Deno.serve(async (req) => {
     const { data: profile, error: profErr } = await admin
       .from("profiles")
       .select(
-        "phone_number, full_name, whatsapp_opted_in, whatsapp_opted_out_at, phone_invalid, whatsapp_last_inbound_at, trial_end, timezone",
+        "phone_number, full_name, whatsapp_opted_in, whatsapp_opted_out_at, phone_invalid, whatsapp_last_inbound_at, trial_end, timezone, account_status",
       )
       .eq("id", body.user_id)
       .maybeSingle();
@@ -321,6 +321,22 @@ Deno.serve(async (req) => {
         userId: userIdForLog,
         status: 409,
         error: "Phone marked invalid",
+        purpose,
+        metadataExtra,
+      });
+    }
+    // Central silence gate for accounts being deleted (RGPD flow): nothing goes
+    // out except the single final confirmation sent by account-deletion-v1.
+    if (
+      (profile as any).account_status === "deletion_pending" &&
+      purpose !== "account_deletion_confirmed"
+    ) {
+      return await preflightErrorResponse({
+        req,
+        requestId,
+        userId: userIdForLog,
+        status: 409,
+        error: "Account deletion pending",
         purpose,
         metadataExtra,
       });
@@ -352,7 +368,11 @@ Deno.serve(async (req) => {
     const isLifecycleAccessMessage = purpose === "end_trial" ||
       purpose === "end_subscription" ||
       purpose === "subscription_confirmed" ||
-      purpose === "subscription_modified";
+      purpose === "subscription_modified" ||
+      // Final deletion confirmation: sent right after the subscription was
+      // cancelled at T0, so it must bypass the paywall gate like the other
+      // lifecycle messages.
+      purpose === "account_deletion_confirmed";
 
     // Plan gating: WhatsApp is available only on Alliance + Architecte.
     // This prevents "System" users from receiving proactive WhatsApp messages.

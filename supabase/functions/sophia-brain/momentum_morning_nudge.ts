@@ -200,6 +200,104 @@ function sameTitle(a: string, b: string): boolean {
   return normalizeTitle(a) === normalizeTitle(b);
 }
 
+const SUPPORT_SOFTLY_FALLBACK_TEXT =
+  "Je te laisse juste un message doux ce matin. Pas besoin de performer quoi que ce soit la tout de suite, tu peux deja prendre soin de toi aujourd'hui.";
+const SUPPORT_SOFTLY_INSTRUCTION =
+  "Message WhatsApp du matin, tres court, tres doux. Tu n'es PAS dans un nudge d'actions. Tu n'insistes sur aucune action du jour. Tu reconnais sobrement que le contexte recent peut demander de la douceur, puis tu laisses une ouverture simple et non pressante. Aucune accountability, aucune culpabilisation, aucune logique de performance.";
+
+export type ActionNudgeSlot = "morning" | "late_afternoon" | "night_prep";
+
+const ACTION_NUDGE_SLOT_LABELS: Record<
+  ActionNudgeSlot,
+  { moment: string; reference: string }
+> = {
+  morning: { moment: "du matin", reference: "ce matin" },
+  late_afternoon: {
+    moment: "de fin d'après-midi",
+    reference: "ce soir",
+  },
+  night_prep: { moment: "de fin de soirée", reference: "ce soir" },
+};
+
+function buildSupportSoftlyInstruction(slot: ActionNudgeSlot): string {
+  const labels = ACTION_NUDGE_SLOT_LABELS[slot];
+  return `Message WhatsApp ${labels.moment}, tres court, tres doux. Tu n'es PAS dans un nudge d'actions. Tu n'insistes sur aucune action du jour. Tu reconnais sobrement que le contexte recent peut demander de la douceur, puis tu laisses une ouverture simple et non pressante. Aucune accountability, aucune culpabilisation, aucune logique de performance.`;
+}
+
+function buildSupportSoftlyFallbackText(slot: ActionNudgeSlot): string {
+  const labels = ACTION_NUDGE_SLOT_LABELS[slot];
+  return `Je te laisse juste un message doux ${labels.reference}. Pas besoin de performer quoi que ce soit la tout de suite, tu peux deja prendre soin de toi.`;
+}
+
+export type ActionNudgeMomentumGateOutcome =
+  | { outcome: "deliver"; reason: string; state: MomentumStateLabel | null }
+  | { outcome: "cancel"; reason: string; state: MomentumStateLabel | null }
+  | {
+    outcome: "support_softly";
+    reason: string;
+    state: MomentumStateLabel | null;
+    instruction: string;
+    fallback_text: string;
+  };
+
+/**
+ * Gate momentum des nudges d'action proactifs (créneaux matin / fin d'aprem /
+ * prépa nuit). Priorité au système d'état: quand la personne ne va pas bien,
+ * on ne pousse PAS les actions.
+ *
+ * - pause_consentie ou policy sans proactif → on annule le nudge d'action.
+ * - soutien_emotionnel → on REMPLACE le nudge d'action par un message doux
+ *   (au plus un par jour, géré par l'appelant), puis silence des actions
+ *   pour la journée.
+ * - sinon → le nudge d'action part normalement.
+ *
+ * Lit l'état depuis la temp memory WhatsApp (readMomentumStateV2), donc
+ * évaluable au moment de la LIVRAISON (état frais), pas à la planification.
+ */
+export function evaluateActionNudgeMomentumGate(args: {
+  tempMemory: unknown;
+  slot: ActionNudgeSlot;
+}): ActionNudgeMomentumGateOutcome {
+  const momentum = readMomentumStateV2(args.tempMemory);
+  const state = momentum.current_state ?? null;
+
+  if (state === "pause_consentie") {
+    return {
+      outcome: "cancel",
+      reason: "action_nudge_gate:pause_consentie",
+      state,
+    };
+  }
+  if (state) {
+    const policy = getMomentumPolicyDefinition(state);
+    if (
+      policy.proactive_policy === "none" || policy.max_proactive_per_7d <= 0
+    ) {
+      return {
+        outcome: "cancel",
+        reason: `action_nudge_gate:no_proactive:${state}`,
+        state,
+      };
+    }
+  }
+  if (state === "soutien_emotionnel") {
+    return {
+      outcome: "support_softly",
+      reason: "action_nudge_gate:soutien_emotionnel",
+      state,
+      instruction: buildSupportSoftlyInstruction(args.slot),
+      fallback_text: buildSupportSoftlyFallbackText(args.slot),
+    };
+  }
+  return {
+    outcome: "deliver",
+    reason: state
+      ? `action_nudge_gate:deliver:${state}`
+      : "action_nudge_gate:deliver:no_state",
+    state,
+  };
+}
+
 export function buildMomentumMorningPlan(args: {
   tempMemory: any;
   payload: unknown;
@@ -270,10 +368,8 @@ export function buildMomentumMorningPlan(args: {
       state,
       strategy,
       relevance: "medium",
-      fallback_text:
-        "Je te laisse juste un message doux ce matin. Pas besoin de performer quoi que ce soit la tout de suite, tu peux deja prendre soin de toi aujourd'hui.",
-      instruction:
-        "Message WhatsApp du matin, tres court, tres doux. Tu n'es PAS dans un nudge d'actions. Tu n'insistes sur aucune action du jour. Tu reconnais sobrement que le contexte recent peut demander de la douceur, puis tu laisses une ouverture simple et non pressante. Aucune accountability, aucune culpabilisation, aucune logique de performance.",
+      fallback_text: SUPPORT_SOFTLY_FALLBACK_TEXT,
+      instruction: SUPPORT_SOFTLY_INSTRUCTION,
       event_grounding: buildGrounding({
         state,
         strategy,

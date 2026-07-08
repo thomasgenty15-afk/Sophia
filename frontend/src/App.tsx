@@ -15,6 +15,7 @@ import ProductArchitect from "./pages/ProductArchitect";
 import Formules from "./pages/Formules";
 import UpgradePlan from "./pages/UpgradePlan"; // IMPORT UPGRADE PAGE
 import Account from "./pages/Account";
+import Parrainage from "./pages/Parrainage";
 import Auth from "./pages/Auth";
 import EmailVerified from "./pages/EmailVerified";
 import ResetPassword from "./pages/ResetPassword";
@@ -33,8 +34,14 @@ import {
 } from "./security/RouteGuards";
 import { OnboardingAmbientAudioProvider } from "./context/OnboardingAmbientAudioContext";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import { captureReferralCodeFromUrl } from "./lib/referral";
 
 function App() {
+  // Parrainage : les liens de partage pointent vers n'importe quelle page du
+  // site avec ?ref=CODE ; on capture le code dès le chargement initial.
+  React.useEffect(() => {
+    captureReferralCodeFromUrl();
+  }, []);
   return (
     <ToastProvider>
     <AuthProvider>
@@ -70,6 +77,14 @@ function App() {
                 element={
                   <RequireAppAccess>
                     <Account />
+                  </RequireAppAccess>
+                }
+              />
+              <Route
+                path="/parrainage"
+                element={
+                  <RequireAppAccess>
+                    <Parrainage />
                   </RequireAppAccess>
                 }
               />

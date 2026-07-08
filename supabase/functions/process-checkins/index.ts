@@ -34,11 +34,14 @@ import {
 } from "../_shared/scheduled_checkins.ts";
 import {
   ACTION_EVENING_REVIEW_EVENT_CONTEXT,
+  ACTION_LATE_AFTERNOON_EVENT_CONTEXT,
   ACTION_MORNING_EVENT_CONTEXT,
   ACTION_MORNING_FOLLOWUP_EVENT_CONTEXT,
+  ACTION_NIGHT_PREP_EVENT_CONTEXT,
   buildLightMorningFallbackMessage,
   buildLightMorningInstruction,
   loadTodayActionOccurrences,
+  localDateYmdInTimezone,
   MORNING_LIGHT_GREETING_EVENT_CONTEXT,
 } from "../_shared/action_occurrences.ts";
 import {
@@ -109,8 +112,10 @@ import {
   isMomentumOutreachEventContext,
 } from "../sophia-brain/momentum_outreach.ts";
 import {
+  type ActionNudgeSlot,
   buildMomentumMorningPlan,
   buildMorningNudgePayloadV2,
+  evaluateActionNudgeMomentumGate,
   isMorningNudgeEventContext,
   resolveMorningNudgePlanV2,
 } from "../sophia-brain/momentum_morning_nudge.ts";
@@ -1616,6 +1621,7 @@ async function processDueDailyBilanWinbacks(params: {
     .not("whatsapp_last_inbound_at", "is", null)
     .lt("whatsapp_last_inbound_at", winbackStep1CutoffIso)
     .lt("whatsapp_bilan_winback_step", 3)
+    .neq("account_status", "deletion_pending")
     .limit(100);
   if (error) throw error;
   if (!profiles || profiles.length === 0) return 0;
@@ -2017,10 +2023,21 @@ async function processPendingAccessEndedNotifications(params: {
 
     const { data: profile, error: profileErr } = await params.supabaseAdmin
       .from("profiles")
-      .select("full_name")
+      .select("full_name,account_status")
       .eq("id", row.user_id)
       .maybeSingle();
     if (profileErr) throw profileErr;
+    if ((profile as any)?.account_status === "deletion_pending") {
+      console.log(
+        `[process-checkins] access_ended_skipped user_id=${row.user_id} reason=account_deletion_pending`,
+      );
+      await params.supabaseAdmin
+        .from("whatsapp_pending_actions")
+        .update({ status: "cancelled", processed_at: nowIso })
+        .eq("id", row.id)
+        .eq("status", "pending");
+      continue;
+    }
 
     const bodyText = buildAccessEndedInitialMessage({
       reason,
@@ -2245,10 +2262,29 @@ async function processDueRendezVous(params: {
     const { data: profile } = await params.supabaseAdmin
       .from("profiles")
       .select(
-        "access_tier,trial_end,whatsapp_opted_in,whatsapp_last_inbound_at,whatsapp_last_outbound_at,timezone",
+        "access_tier,trial_end,whatsapp_opted_in,whatsapp_last_inbound_at,whatsapp_last_outbound_at,timezone,account_status",
       )
       .eq("id", userId)
       .maybeSingle();
+
+    if ((profile as any)?.account_status === "deletion_pending") {
+      console.log(
+        `[process-checkins] request_id=${params.requestId} rendez_vous_skipped user_id=${userId} rdv_id=${rdvId} reason=account_deletion_pending`,
+      );
+      await transitionRendezVous(
+        params.supabaseAdmin as any,
+        rdvId,
+        "cancelled",
+        {
+          nowIso,
+          eventMetadata: {
+            source: "process_checkins",
+            reason: "account_deletion_pending",
+          },
+        },
+      ).catch(() => undefined);
+      continue;
+    }
 
     if (
       !isWhatsappCoachingAccessAllowed(
@@ -2485,9 +2521,22 @@ Deno.serve(async (req) => {
         // Ensure quiet window is satisfied before sending.
         const { data: profile } = await supabaseAdmin
           .from("profiles")
-          .select("whatsapp_last_inbound_at, whatsapp_last_outbound_at")
+          .select("whatsapp_last_inbound_at, whatsapp_last_outbound_at, account_status")
           .eq("id", row.user_id)
           .maybeSingle();
+        if ((profile as any)?.account_status === "deletion_pending") {
+          console.log(
+            `[process-checkins] request_id=${requestId} deferred_send_skipped pending_id=${row.id} reason=account_deletion_pending`,
+          );
+          await supabaseAdmin
+            .from("whatsapp_pending_actions")
+            .update({
+              status: "cancelled",
+              processed_at: new Date().toISOString(),
+            })
+            .eq("id", row.id);
+          continue;
+        }
         const lastInbound = profile?.whatsapp_last_inbound_at
           ? new Date(profile.whatsapp_last_inbound_at).getTime()
           : null;
@@ -2694,6 +2743,10 @@ Deno.serve(async (req) => {
         eventContext === ACTION_MORNING_FOLLOWUP_EVENT_CONTEXT;
       const isMorningLightGreeting =
         eventContext === MORNING_LIGHT_GREETING_EVENT_CONTEXT;
+      const isActionLateAfternoon =
+        eventContext === ACTION_LATE_AFTERNOON_EVENT_CONTEXT;
+      const isActionNightPrep =
+        eventContext === ACTION_NIGHT_PREP_EVENT_CONTEXT;
       const isActionEveningReview =
         eventContext === ACTION_EVENING_REVIEW_EVENT_CONTEXT;
       const isWeeklyPlanningValidationPrompt =
@@ -2946,10 +2999,24 @@ Deno.serve(async (req) => {
         const { data: profile } = await supabaseAdmin
           .from("profiles")
           .select(
-            "whatsapp_last_inbound_at, whatsapp_last_outbound_at, timezone, whatsapp_coaching_paused_until, whatsapp_bilan_opted_in, whatsapp_bilan_paused_until, whatsapp_bilan_missed_streak, whatsapp_bilan_last_prompt_at, whatsapp_bilan_winback_step, whatsapp_bilan_last_winback_at,onboarding_completed,whatsapp_state",
+            "whatsapp_last_inbound_at, whatsapp_last_outbound_at, timezone, whatsapp_coaching_paused_until, whatsapp_bilan_opted_in, whatsapp_bilan_paused_until, whatsapp_bilan_missed_streak, whatsapp_bilan_last_prompt_at, whatsapp_bilan_winback_step, whatsapp_bilan_last_winback_at,onboarding_completed,whatsapp_state,account_status",
           )
           .eq("id", checkin.user_id)
           .maybeSingle();
+        // RGPD: accounts pending deletion are excluded from all proactive processing.
+        if ((profile as any)?.account_status === "deletion_pending") {
+          console.log(
+            `[process-checkins] request_id=${requestId} checkin_skipped checkin_id=${checkin.id} user_id=${checkin.user_id} reason=account_deletion_pending`,
+          );
+          await supabaseAdmin
+            .from("scheduled_checkins")
+            .update({
+              status: "cancelled",
+              processed_at: new Date().toISOString(),
+            })
+            .eq("id", checkin.id);
+          continue;
+        }
         userProfileSnapshot = (profile as Record<string, unknown> | null) ??
           null;
         userTimezone = String((profile as any)?.timezone ?? "").trim() ||
@@ -3535,7 +3602,80 @@ Deno.serve(async (req) => {
           );
         }
       }
-      if (isActionMorningEncouragement || isMorningLightGreeting) {
+      // ── Gate momentum des nudges d'action (règle B: priorité au système
+      // d'état). Évalué à la LIVRAISON pour lire l'état frais du jour.
+      // - état soutien_emotionnel → le nudge d'action est REMPLACÉ par un
+      //   message doux (au plus un par jour), puis les autres nudges d'action
+      //   de la journée se taisent;
+      // - pause_consentie / policy sans proactif → nudge annulé;
+      // - sinon → le nudge d'action part normalement.
+      const isActionSlotNudge = isActionMorningEncouragement ||
+        isActionLateAfternoon || isActionNightPrep;
+      if (isActionSlotNudge) {
+        const gateSlot: ActionNudgeSlot = isActionMorningEncouragement
+          ? "morning"
+          : isActionLateAfternoon
+          ? "late_afternoon"
+          : "night_prep";
+        const gateTempMemory = await fetchWhatsappTempMemory(
+          supabaseAdmin,
+          String(checkin.user_id),
+        ).catch(() => ({} as Record<string, unknown>));
+        const todayLocalDate = localDateYmdInTimezone(
+          userTimezone,
+          new Date(),
+        );
+        const supportSentToday = String(
+          (gateTempMemory as any)?.__action_nudge_support_sent_local_date ??
+            "",
+        ) === todayLocalDate;
+        if (supportSentToday) {
+          await markScheduledCheckinDeliveryState({
+            supabaseAdmin,
+            checkinId: checkin.id,
+            status: "cancelled",
+            errorMessage: "action_nudge_muted_support_presence_sent_today",
+            requestId,
+          });
+          continue;
+        }
+        const gate = evaluateActionNudgeMomentumGate({
+          tempMemory: gateTempMemory,
+          slot: gateSlot,
+        });
+        if (gate.outcome === "cancel") {
+          await markScheduledCheckinDeliveryState({
+            supabaseAdmin,
+            checkinId: checkin.id,
+            status: "cancelled",
+            errorMessage: gate.reason,
+            requestId,
+          });
+          continue;
+        }
+        if (gate.outcome === "support_softly") {
+          mode = "dynamic";
+          payload = {
+            ...payload,
+            source: "process_checkins:action_nudge_support_softly",
+            presence_kind: "support_softly",
+            momentum_state: gate.state,
+            instruction: gate.instruction,
+            event_grounding:
+              `event_context=${eventContext}\naction_nudge_gate=support_softly\nmomentum_state=${gate.state}`,
+            chat_capability: "track_progress_only",
+          };
+          bodyText = gate.fallback_text;
+          console.log(
+            `[process-checkins] request_id=${requestId} action_nudge_gate=support_softly checkin_id=${checkin.id} slot=${gateSlot} state=${gate.state}`,
+          );
+        }
+      }
+
+      if (
+        (isActionMorningEncouragement || isMorningLightGreeting) &&
+        payload?.presence_kind !== "support_softly"
+      ) {
         const occurrenceIds = parseStringArray(payload?.occurrence_ids);
         if (isActionMorningEncouragement && occurrenceIds.length === 0) {
           await markScheduledCheckinDeliveryState({

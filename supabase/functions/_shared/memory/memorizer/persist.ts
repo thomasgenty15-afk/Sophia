@@ -196,6 +196,7 @@ export class SupabaseMemorizerRepository implements MemorizerPersistRepository {
       if (!item.source_message_ids.length) {
         throw new Error("memory_v2_write_missing_source");
       }
+      try {
       const { data: inserted, error: itemError } = await (this.supabase as any)
         .from("memory_items")
         .insert({
@@ -323,6 +324,22 @@ export class SupabaseMemorizerRepository implements MemorizerPersistRepository {
         status: decision.status,
         candidate,
       });
+      } catch (itemPersistError) {
+        // eva-r8 B05 (cmd 15 esprit): un item rejete par la DB ne perd JAMAIS
+        // le reste du batch — echec isole, loggue structure et requetable,
+        // la boucle continue.
+        console.error(
+          "[Memorizer] item_persist_failed (batch continues, item skipped)",
+          JSON.stringify({
+            extraction_run_id: args.extraction_run_id,
+            canonical_key: item.canonical_key ?? null,
+            kind: item.kind,
+            error: itemPersistError instanceof Error
+              ? itemPersistError.message
+              : String(itemPersistError),
+          }),
+        );
+      }
     }
     return persisted;
   }
@@ -645,7 +662,16 @@ export async function failExtractionRun(
 ): Promise<void> {
   await repo.updateExtractionRun(runId, {
     status: "failed",
-    error_message: error instanceof Error ? error.message : String(error),
+    // eva-r8 (observabilite): un objet d'erreur Supabase serialisait en
+    // "[object Object]" — JSON.stringify prime sur String pour les non-Error.
+    error_message: error instanceof Error ? error.message : (() => {
+      try {
+        const encoded = JSON.stringify(error);
+        return encoded && encoded !== "{}" ? encoded : String(error);
+      } catch {
+        return String(error);
+      }
+    })(),
     duration_ms: durationMs,
     finished_at: new Date().toISOString(),
   });

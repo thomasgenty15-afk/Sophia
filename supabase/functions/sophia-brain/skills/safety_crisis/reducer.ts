@@ -675,6 +675,16 @@ export function reduceSafetyCrisis(args: {
     phase = "exit_check";
   } else if (humanSupportAvailable && !currentRiskSignal) {
     phase = "stabilizing";
+  } else if (
+    (args.signals.clarified_non_immediate ||
+      args.signals.immediate_danger === false) &&
+    args.signals.user_currently_alone !== null
+  ) {
+    // rose-r5 B02: la reponse au triage est CONSOMMEE — danger nie + statut
+    // de solitude donne (meme « seule »=oui) ne re-posent JAMAIS la meme
+    // question. Le tour suivant appartient au soutien (adresser la solitude,
+    // rester avec la personne); le gate side-effects reste actif via la phase.
+    phase = "support_contact";
   } else if (args.signals.clarified_non_immediate) {
     phase = "immediate_risk_check";
   } else if (

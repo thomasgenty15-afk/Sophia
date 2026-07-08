@@ -1172,6 +1172,23 @@ function normalizeFlowContext(
     do_not_say: stringArray(root.do_not_say, 8).length > 0
       ? stringArray(root.do_not_say, 8)
       : fallback.do_not_say,
+    technique_coherence: normalizeTechniqueCoherence(
+      root.technique_coherence,
+    ),
+  };
+}
+
+function normalizeTechniqueCoherence(
+  raw: unknown,
+): CoachingRecommendationFlowContext["technique_coherence"] {
+  if (!isRecord(raw)) return null;
+  const status = text(raw.status);
+  if (status !== "coherent" && status !== "forced_mismatch") return null;
+  return {
+    status,
+    requested_technique: text(raw.requested_technique) || null,
+    suggested_technique: text(raw.suggested_technique) || null,
+    why: text(raw.why) || null,
   };
 }
 
@@ -3100,6 +3117,14 @@ export function reduceCoachingRecommendationLocalDispatcherOutput(args: {
   };
 }
 
+/** Hook de test contrat (rose-r7 B02): la doctrine de coherence doit rester
+ * ancree dans le prompt — la probe live ne suffit pas comme preuve. */
+export function coachingDispatcherPromptForTest(
+  input: CoachingRecommendationLocalDispatcherInput,
+): string {
+  return dispatcherPrompt(input);
+}
+
 function dispatcherPrompt(input: CoachingRecommendationLocalDispatcherInput) {
   return [
     "Tu es le dispatcher local du skill coaching_recommendation.",
@@ -3167,7 +3192,14 @@ function dispatcherPrompt(input: CoachingRecommendationLocalDispatcherInput) {
     "Regle prioritaire detresse (prime sur la continuation du flow): si le message courant porte de la devalorisation de soi ('je sers a rien', 'je suis un poids', 'au fond du trou'), du desespoir generalise ('a quoi bon', 'j'y arriverai jamais' etendu a la vie entiere) ou une idee de disparaitre / que ce serait pareil sans soi, tu ne recommandes AUCUN dispositif ce tour (ni carte, ni potion, ni feature) — meme si le flow etait en train d'en proposer un. Emets flow_action=exit_to_global_dispatcher avec coaching_intent.kind=safety: le tour devient un tour de soutien. Un simple decouragement lie a une action ratee ('degoute d'avoir rate mon sas') n'est PAS ce cas: le coaching continue, accueil emotionnel d'abord.",
     "Sortie obligatoire sur demande de MODIFICATION DURABLE du plan: 'modifier mon plan pour de bon', 'supprime/ajoute cette action', 'allege ma semaine', 'reorganise mon plan' → exit_to_global_dispatcher (coaching_intent=plan_misaligned), avec une note_information qui porte la demande exacte du user (ses mots) et le contexte coaching collecte. L'ajustement durable du plan n'appartient jamais au coaching, meme si la demande arrive au milieu d'une recommandation. Anti-faux-positif: adapter la MANIERE de faire une action ('comment je m'y prends ce soir', une variante du meme cas) reste du coaching, pas un ajustement de plan.",
     "Sortie sur REJET de la recommandation: si le user decline explicitement la reco posee ('non', 'pas ca', 'ca m'aide pas', 'je veux pas de carte') ET exprime une autre demande nettement typee (rappel, preference, produit, ajustement, information), exit_to_global_dispatcher avec note_information qui dit ce qui a ete propose, le refus, et la nouvelle demande (avec ses mots). S'il decline sans autre demande, ne re-propose pas la meme reco: clarifie le besoin ou soutiens.",
-    "Micro-cadre nature d'action → technique (PRIME sur le wording user): blocage PONCTUEL de demarrage → carte d'attaque (texte magique/ancre); piege RECURRENT ou anticipe (meme moment qui revient, automatisme) → carte de defense/reperage; corvee LOGISTIQUE de preparation → preparer le terrain; etat emotionnel global → potion. Si le user FORCE une technique incoherente avec cette structure ('mot de bascule' sur un automatisme recurrent, 'attaque' sur un piege recurrent), ne l'adopte pas telle quelle: signale le doute en une phrase, propose la technique adaptee ET celle demandee, laisse choisir. Une vraie fenetre de rupture demandee comme mot de bascule reste servie sans doute.",
+    "Micro-cadre nature d'action → technique (PRIME sur le wording user): blocage PONCTUEL de demarrage → carte d'attaque (texte magique/ancre); piege RECURRENT ou anticipe (meme moment qui revient, automatisme) → carte de defense/reperage; corvee LOGISTIQUE de preparation → preparer le terrain; etat emotionnel global → potion. Une vraie fenetre de rupture demandee comme mot de bascule reste servie sans doute.",
+    "technique_coherence (OBLIGATOIRE des qu'une technique OU un type de potion est nomme par le user ou selectionne — levier-agnostique): emets visible_task.flow_context.technique_coherence = { status: 'coherent'|'forced_mismatch', requested_technique, suggested_technique, why }. status='forced_mismatch' dans les DEUX sens: (1) le user FORCE un levier/type incoherent avec l'etat decrit ('mot de bascule' sur un automatisme recurrent, potion 'courage' alors que toute la session decrit une surcharge → apaisement); (2) le wording user est COHERENT avec le catalogue et c'est TOI qui voudrais requalifier (evitement diffus multi-domaines + demande 'courage' cohérente → ne requalifie pas en carte sans doute). RE-EVALUE a CHAQUE tour: un recadrage du besoin invalide le statut precedent — recalcule depuis le besoin recadre, jamais depuis le levier deja servi. Un changement de position vs un tour precedent s'EXPLIQUE toujours en une phrase.",
+    "technique_coherence DES LA COLLECTE (rose-r7 B02): ce contrat s'applique AVANT meme qu'une recommandation existe — si le user nomme un type de potion/technique en contradiction avec l'etat deja collecte ('donne-moi courage' alors que les tours decrivent surcharge/besoin d'apaisement), le tour exprime le doute + la difference + les options proches, JAMAIS une bascule seche. INTERDIT de fabriquer retroactivement un cadre que le user n'a pas exprime ('evitement', 'peur', 'manque d'audace') pour justifier le type force: si le forçage ne colle pas a ce qui a ete dit, dis-le avec ce qui a ete dit. Une reaffirmation coherente du user apres l'echange ('ok, apaisement alors') s'accepte sans requalification.",
+    "Fit potion vs carte (nina-r6 B05): un evitement/etat DIFFUS couvrant plusieurs domaines hors plan → etat interne (potion), pas une carte; un blocage UNIQUE sur une action identifiable → carte. JAMAIS de carte proposee sans cible atteignable (item du plan ou action candidate nommee). Zone grise → expose l'arbitrage (les deux options + la difference), ne tranche pas seul.",
+    "Demande composite apres acceptation (paul-r8 B04): quand le user ACCEPTE la recommandation posee ET ajoute une nouvelle demande dans le meme message ('ok pour la carte + un declic a me dire en attendant'), le tour ADRESSE la nouvelle demande (la technique demandee servie ou discutee via technique_coherence) — jamais un re-pitch de la recommandation deja acceptee. L'acceptation se consomme en une phrase d'accuse, le reste du tour appartient a la nouvelle demande.",
+    "Completion de collecte (rose-r5 B01): quand le user a fourni TOUS les elements d'une carte au fil de la conversation et dit 'on la fait maintenant', le tour livre la carte FORMULEE EN ENTIER dans la conversation (les composants recapitules, prets a recopier) + UNE phrase de handoff vers l'action dans le Plan — jamais un renvoi app a vide qui lui fait tout re-saisir. Ce tour CLOT la construction: state_updates.status='closing' et close_after_visible=true (le flow ne reste pas 'continue' indefiniment sur une collecte finie).",
+    "Progres rapporte avant levier (alex-r1 B03): si le message contient un progres accompli ('ecrans regles', 'j'ai teste hier'), la reponse VALORISE ce progres en premier mouvement; un levier (potion, carte) ne vient qu'apres et seulement s'il sert la demande du tour — jamais un template de reco mecanique sur un tour de correction ou identitaire.",
+    "Sortie sur demande de SOUTIEN RECURRENT (nina-r6 B02, cmd 9): une demande de message/coup de pouce REGULIER envoye par Sophia ('un petit message chaque soir vers 21h30', 'un truc regulier') n'est PAS une continuation du coaching en cours — c'est une opportunite initiatives qui appartient au dispatcher global: exit_to_global_dispatcher avec note_information (ce qui etait en cours + la demande exacte avec ses mots). Anti-faux-positif: une vraie continuation ('ok pour la carte, aide-moi a la remplir') reste dans le flow.",
     "Sortie sur DEBRIEF ou tour identitaire/emotionnel sans demande: un debrief de rate ('j'ai pas reussi hier, voila ce qui s'est passe') ou un self-label identitaire ('je suis comme ca') SANS demande de levier ni continuation de la carte en cours → exit_to_global_dispatcher (le tour appartient au soutien/reponse normale), jamais un re-pitch. Anti-faux-positif: un vrai suivi de carte ('j'ai teste la carte, ca a donne ca, on ajuste ?') reste dans le flow.",
     "Ordre explicite apres desambiguisation: quand la cible est connue (tour precedent) et que le user ordonne ('cree-la', 'remplis-la toi-meme', 'fais court'), ne RE-POSE JAMAIS une question fermee sur un slot deja connu. Reponds en une fois: le refus honnete du write-en-chat si demande ('je ne remplis pas la carte d'ici') + le livrable conversationnel immediat (le contenu applique a son cas).",
     "Altitude sur signal emotionnel medium: si le contexte safety du tour est band=medium (quel que soit le code) et coaching_type=emotional, le PREMIER mouvement de la reponse ne nomme JAMAIS un dispositif (ni carte, ni potion, ni feature): soutien groundé d'abord, puis au plus une ouverture douce ('si tu veux, j'ai un outil qui peut aider') — proposer, pas mener. Anti-faux-positif: une demande EXPLICITE d'outil reste servie directement.",
@@ -3320,7 +3352,7 @@ export async function runCoachingRecommendationLocalDispatcher(
     const generationOptions = {
       requestId: input.request_id ?? undefined,
       userId: input.user_id,
-      model: getGlobalAiModel("gemini-2.5-flash"),
+      model: getGlobalAiModel(),
       source: "coaching_recommendation.local_dispatcher",
       forceRealAi: true,
       reasoningEffort: "low" as const,
@@ -3369,7 +3401,7 @@ export async function runCoachingRecommendationLocalDispatcher(
       {
         requestId: input.request_id ?? undefined,
         userId: input.user_id,
-        model: getGlobalAiModel("gemini-2.5-flash"),
+        model: getGlobalAiModel(),
         source: "coaching_recommendation.local_dispatcher.contract_retry",
         forceRealAi: true,
         reasoningEffort: "low",

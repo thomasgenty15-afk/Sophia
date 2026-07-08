@@ -154,11 +154,17 @@ Deno.serve(async (req) => {
 
       const { data: profile, error: profErr } = await admin
         .from("profiles")
-        .select("id,full_name,email,phone_invalid,whatsapp_opted_in,whatsapp_opted_out_at")
+        .select("id,full_name,email,phone_invalid,whatsapp_opted_in,whatsapp_opted_out_at,account_status")
         .eq("id", userId)
         .maybeSingle()
       if (profErr) throw profErr
       if (!profile) {
+        skipped += 1
+        continue
+      }
+      // RGPD: accounts pending deletion are excluded from all proactive processing.
+      if ((profile as any).account_status === "deletion_pending") {
+        console.log(`[process-whatsapp-optin-recovery] skip user ${userId}: account deletion_pending`)
         skipped += 1
         continue
       }

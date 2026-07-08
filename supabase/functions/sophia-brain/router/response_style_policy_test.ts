@@ -14,7 +14,16 @@ Deno.test("visible output style rules define shared conversation contract", () =
   );
   assertStringIncludes(VISIBLE_OUTPUT_STYLE_RULES, "tutoiement");
   assertStringIncludes(VISIBLE_OUTPUT_STYLE_RULES, "Format conversationnel");
-  assertStringIncludes(VISIBLE_OUTPUT_STYLE_RULES, "message court");
+  assertStringIncludes(VISIBLE_OUTPUT_STYLE_RULES, "court par defaut");
+  assertStringIncludes(VISIBLE_OUTPUT_STYLE_RULES, "Proportionnalite d'accueil");
+  assertStringIncludes(
+    VISIBLE_OUTPUT_STYLE_RULES,
+    "long, personnel, charge emotionnellement",
+  );
+  assertStringIncludes(
+    VISIBLE_OUTPUT_STYLE_RULES,
+    "reponds a minima proportionnellement",
+  );
   assertStringIncludes(VISIBLE_OUTPUT_STYLE_RULES, "accorde les adjectifs");
   assertStringIncludes(VISIBLE_OUTPUT_STYLE_RULES, "contente");
   assertStringIncludes(VISIBLE_OUTPUT_STYLE_RULES, "une seule question");
@@ -38,7 +47,16 @@ Deno.test("visible conversation flow rules prioritize latest message without rou
     VISIBLE_CONVERSATION_FLOW_RULES,
     "dernier message utilisateur",
   );
+  assertStringIncludes(VISIBLE_CONVERSATION_FLOW_RULES, "Accueille d'abord");
+  assertStringIncludes(
+    VISIBLE_CONVERSATION_FLOW_RULES,
+    "avant de proposer une grille, une carte, un plan",
+  );
   assertStringIncludes(VISIBLE_CONVERSATION_FLOW_RULES, "5 derniers messages");
+  assertStringIncludes(
+    VISIBLE_CONVERSATION_FLOW_RULES,
+    "ponctuation d'interpellation",
+  );
   assertStringIncludes(
     VISIBLE_CONVERSATION_FLOW_RULES,
     "réponds d'abord à cette demande",

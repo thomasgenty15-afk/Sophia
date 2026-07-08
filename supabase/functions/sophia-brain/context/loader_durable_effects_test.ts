@@ -483,12 +483,14 @@ Deno.test("loadRecentEffectsLedgerSummary injects committed effects with current
   assertStringIncludes(summary, "EFFETS RÉCENTS");
   assertStringIncludes(summary, "Rappel ponctuel créé");
   assertStringIncludes(summary, "exécuté et persisté");
-  assertStringIncludes(summary, "état DB actuel: pending");
+  assertStringIncludes(summary, "état DB actuel: programmé (pas encore déclenché)");
   assertStringIncludes(summary, "relire la synthese avant de l'envoyer");
   assertStringIncludes(summary, "ne révèle pas le nom EffectLedger");
 });
 
-Deno.test("loadRecentEffectsLedgerSummary expires effects outside the last five ledger turns", async () => {
+// eva-r8 B04: la fenetre est passee de 5 tours a la SESSION (15 tours) pour
+// que le recap de fin de soiree voie encore un effet du debut de session.
+Deno.test("loadRecentEffectsLedgerSummary expires effects outside the last fifteen ledger turns", async () => {
   const supabase = makeFakeSupabase({
     turn_summary_logs: [{
       scope: "web",
@@ -508,11 +510,11 @@ Deno.test("loadRecentEffectsLedgerSummary expires effects outside the last five 
             payload_summary: { reminder_instruction: "ancien rappel" },
             db_ref: { table: "scheduled_checkins", id: "rem-old" },
           },
-          ...[1, 2, 3, 4, 5].map((n) => ({
+          ...Array.from({ length: 15 }, (_, i) => i + 1).map((n) => ({
             turn_id: `turn-keep-${n}`,
             user_id: "u1",
             source_message_id: `source-not-required-${n}`,
-            created_at: `2026-07-01T10:0${n}:00.000Z`,
+            created_at: `2026-07-01T10:${String(n).padStart(2, "0")}:00.000Z`,
             status: "committed",
             kind: "durable_effect",
             effect_type: "one_shot_reminder.create",
@@ -524,7 +526,7 @@ Deno.test("loadRecentEffectsLedgerSummary expires effects outside the last five 
         ],
       },
     }],
-    scheduled_checkins: [1, 2, 3, 4, 5].map((n) => ({
+    scheduled_checkins: Array.from({ length: 15 }, (_, i) => i + 1).map((n) => ({
       id: `rem-keep-${n}`,
       scheduled_for: "2026-07-01T12:20:00.000Z",
       status: "pending",
@@ -540,7 +542,7 @@ Deno.test("loadRecentEffectsLedgerSummary expires effects outside the last five 
   });
 
   if (!summary) throw new Error("expected non-null summary");
-  assertStringIncludes(summary, "rappel recent 5");
+  assertStringIncludes(summary, "rappel recent 15");
   assertEquals(summary.includes("ancien rappel"), false);
 });
 

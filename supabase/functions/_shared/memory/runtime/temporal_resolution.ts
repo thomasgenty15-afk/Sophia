@@ -7,12 +7,29 @@ export interface TemporalResolution {
   precision: TemporalPrecision;
   confidence: number;
   timezone: string;
+  /** Present pour une date ABSOLUE (« le 18 juillet », « 18/07/2026 ») — jamais pour un relatif. */
+  kind?: "absolute_date";
 }
 
 export interface TemporalResolutionOptions {
   now?: Date | string;
   timezone?: string | null;
 }
+
+const MONTHS: Record<string, number> = {
+  janvier: 1,
+  fevrier: 2,
+  mars: 3,
+  avril: 4,
+  mai: 5,
+  juin: 6,
+  juillet: 7,
+  aout: 8,
+  septembre: 9,
+  octobre: 10,
+  novembre: 11,
+  decembre: 12,
+};
 
 const WEEKDAYS: Record<string, number> = {
   dimanche: 0,
@@ -280,6 +297,69 @@ export function resolveTemporalReferences(
       confidence: 0.82,
       timezone: timeZone,
     });
+  }
+
+  // Dates ABSOLUES francaises (alex-r1 B01): « le 18 juillet », « 18 juillet
+  // 2026 », « 18/07 », « a partir du 18/07/2026 ». Sans annee explicite, on
+  // choisit l'occurrence la plus PROCHE de maintenant (les events confies
+  // peuvent etre passes comme futurs).
+  const closestYear = (month: number, day: number): number => {
+    let best = today.year;
+    let bestDist = Infinity;
+    for (const year of [today.year - 1, today.year, today.year + 1]) {
+      const candidate = Date.UTC(year, month - 1, day);
+      const ref = Date.UTC(today.year, today.month - 1, today.day);
+      const dist = Math.abs(candidate - ref);
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = year;
+      }
+    }
+    return best;
+  };
+  const pushAbsolute = (
+    raw: string,
+    day: number,
+    month: number,
+    year: number | null,
+    confidence: number,
+  ) => {
+    if (month < 1 || month > 12 || day < 1 || day > 31) return;
+    const resolvedYear = year ?? closestYear(month, day);
+    push({
+      ...localRange(
+        timeZone,
+        { year: resolvedYear, month, day },
+        0,
+        24,
+        "day",
+        raw,
+        confidence,
+      ),
+      kind: "absolute_date",
+    });
+  };
+  const monthNames = Object.keys(MONTHS).join("|");
+  const namedDateRe = new RegExp(
+    `\\b(?:le |du |au |a partir du )?([1-9]|[12][0-9]|3[01]|1er)(?:er)? (${monthNames})(?: (20[0-9]{2}))?\\b`,
+    "g",
+  );
+  for (const match of text.matchAll(namedDateRe)) {
+    const day = Number(String(match[1]).replace("er", "")) || 1;
+    const month = MONTHS[match[2]];
+    const year = match[3] ? Number(match[3]) : null;
+    pushAbsolute(match[0].trim(), day, month, year, year ? 0.95 : 0.9);
+  }
+  const numericDateRe =
+    /\b(?:le |du |au |a partir du )?(0?[1-9]|[12][0-9]|3[01])\/(0?[1-9]|1[0-2])(?:\/(20[0-9]{2}))?\b/g;
+  for (const match of text.matchAll(numericDateRe)) {
+    pushAbsolute(
+      match[0].trim(),
+      Number(match[1]),
+      Number(match[2]),
+      match[3] ? Number(match[3]) : null,
+      match[3] ? 0.95 : 0.88,
+    );
   }
 
   for (const [rawDay, weekday] of Object.entries(WEEKDAYS)) {

@@ -70,6 +70,16 @@ const PAYWALL_NOTICE_COOLDOWN_MS = Number.parseInt(
     String(6 * 60 * 60 * 1000),
   10,
 );
+const WHATSAPP_BRAIN_RETRY_WATCHDOG_DELAY_SECONDS = (() => {
+  const raw = Number(
+    (Deno.env.get("WHATSAPP_BRAIN_RETRY_WATCHDOG_DELAY_SECONDS") ?? "").trim(),
+  );
+  if (Number.isFinite(raw) && raw >= 60) {
+    return Math.floor(Math.min(raw, 3600));
+  }
+  // Edge timeout is around 150s; this aims for roughly one minute after abort.
+  return 210;
+})();
 const GENERIC_UNSUPPORTED_REPLY =
   "Je n'arrive pas encore à lire ce type de contenu, mais c'est dans les tuyaux, je te ferai savoir quand c'est au point :)";
 function getUnsupportedReplyByType(type) {
@@ -184,14 +194,100 @@ function logWebhookTrace(args) {
   console.log(`[whatsapp-webhook] trace ${JSON.stringify(payload)}`);
 }
 
+async function enqueueWhatsAppBrainRetryWatchdog(args: {
+  admin: any;
+  requestId: string;
+  processId: string;
+  userId: string;
+  inboundText: string;
+  inboundChatMessageId: string | null;
+  inboundChatMessageCreatedAt: string | null;
+  waMessageId: string | null;
+  fromE164: string;
+  startedAtMs: number;
+}) {
+  const text = String(args.inboundText ?? "").trim();
+  if (!text) return;
+  try {
+    const { data, error } = await args.admin.rpc("enqueue_llm_retry_job", {
+      p_user_id: args.userId,
+      p_scope: "whatsapp",
+      p_channel: "whatsapp",
+      p_message: text,
+      p_metadata: {
+        reason: "whatsapp_brain_watchdog",
+        source: "whatsapp-webhook",
+        request_id: args.processId,
+        webhook_request_id: args.requestId,
+        source_chat_message_id: args.inboundChatMessageId,
+        source_chat_message_created_at: args.inboundChatMessageCreatedAt,
+        wa_message_id: args.waMessageId,
+        from_e164: args.fromE164,
+        delay_seconds: WHATSAPP_BRAIN_RETRY_WATCHDOG_DELAY_SECONDS,
+      },
+    });
+    if (error) throw error;
+    logWebhookTrace({
+      requestId: args.requestId,
+      processId: args.processId,
+      phase: "brain_retry_watchdog_enqueued",
+      startedAtMs: args.startedAtMs,
+      extra: {
+        llm_retry_job_id: data ?? null,
+        delay_seconds: WHATSAPP_BRAIN_RETRY_WATCHDOG_DELAY_SECONDS,
+      },
+    });
+  } catch (error) {
+    console.warn("[whatsapp-webhook] brain retry watchdog enqueue failed", {
+      request_id: args.processId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
+
+// SEC-01: the loopback/simulation transport both (a) bypasses Meta's X-Hub
+// signature check and (b) selects the acting user by a body-supplied id via the
+// service-role client. A raw request header must therefore NEVER be enough to
+// enable it. We only honor it from a trusted caller: a local/kong dev instance
+// (where the persona test harnesses run) or a request carrying a valid internal
+// secret. In production, an unauthenticated request can no longer flip loopback,
+// so the signature check is always enforced for public traffic.
+function isLocalSupabaseEnv(): boolean {
+  const url = (Deno.env.get("SUPABASE_URL") ?? "").trim();
+  if (!url) return false;
+  try {
+    const host = new URL(url).hostname.toLowerCase();
+    return host === "127.0.0.1" || host === "localhost" || host === "kong" ||
+      host.startsWith("supabase_");
+  } catch {
+    return false;
+  }
+}
+
+function hasValidInternalSecret(req: Request): boolean {
+  const expected = (Deno.env.get("INTERNAL_FUNCTION_SECRET")?.trim()) ||
+    (isLocalSupabaseEnv() ? Deno.env.get("SECRET_KEY")?.trim() : "");
+  const got = req.headers.get("x-internal-secret")?.trim();
+  return Boolean(expected && got && got === expected);
+}
+
 Deno.serve(async (req) => {
   const requestId = getRequestId(req);
   const requestStartedAtMs = Date.now();
   const prevLoopback = globalThis.__SOPHIA_WA_LOOPBACK;
   const transport = String(req.headers.get("x-sophia-wa-transport") ?? "")
     .trim().toLowerCase();
-  const loopback = transport === "loopback" || transport === "simulate" ||
-    transport === "simulator";
+  const loopbackRequested = transport === "loopback" ||
+    transport === "simulate" || transport === "simulator";
+  const loopbackTrusted = isLocalSupabaseEnv() || hasValidInternalSecret(req);
+  const loopback = loopbackRequested && loopbackTrusted;
+  if (loopbackRequested && !loopbackTrusted) {
+    console.warn(JSON.stringify({
+      tag: "whatsapp_webhook_loopback_denied",
+      request_id: requestId,
+      reason: "untrusted_caller",
+    }));
+  }
   globalThis.__SOPHIA_WA_LOOPBACK = loopback;
   try {
     logWebhookTrace({
@@ -488,12 +584,12 @@ Deno.serve(async (req) => {
         const simUserId = loopback ? String(msg.sim_user_id ?? "").trim() : "";
         const { data: candidates, error: profErr } = simUserId
           ? await admin.from("profiles").select(
-            "id, full_name, email, phone_invalid, whatsapp_opted_in, whatsapp_opted_out_at, whatsapp_optout_confirmed_at, whatsapp_state, whatsapp_state_updated_at, whatsapp_onboarding_started_at, phone_verified_at, trial_end, onboarding_completed",
+            "id, full_name, email, phone_invalid, whatsapp_opted_in, whatsapp_opted_out_at, whatsapp_optout_confirmed_at, whatsapp_state, whatsapp_state_updated_at, whatsapp_onboarding_started_at, phone_verified_at, trial_end, onboarding_completed, account_status",
           ).eq("id", simUserId).limit(1)
           : await admin.from(
             "profiles",
           ).select(
-            "id, full_name, email, phone_invalid, whatsapp_opted_in, whatsapp_opted_out_at, whatsapp_optout_confirmed_at, whatsapp_state, whatsapp_state_updated_at, whatsapp_onboarding_started_at, phone_verified_at, trial_end, onboarding_completed",
+            "id, full_name, email, phone_invalid, whatsapp_opted_in, whatsapp_opted_out_at, whatsapp_optout_confirmed_at, whatsapp_state, whatsapp_state_updated_at, whatsapp_onboarding_started_at, phone_verified_at, trial_end, onboarding_completed, account_status",
           ) // NOTE: users may have stored phone_number as "+33..." OR "33..." OR "06..." from manual input.
             // We try a small set of safe variants to avoid false "unknown number" prompts.
             .in(
@@ -537,6 +633,14 @@ Deno.serve(async (req) => {
             ambiguous: !verified,
           };
         })();
+        // RGPD: accounts pending deletion are excluded from all proactive processing.
+        // Inbound messages for such accounts are ignored (no reply, no unlinked prompt).
+        if ((profile as any)?.account_status === "deletion_pending") {
+          console.log(
+            `[whatsapp-webhook] request_id=${requestId} inbound_ignored user_id=${(profile as any).id} reason=account_deletion_pending`,
+          );
+          continue;
+        }
         if (!profile) {
           logWebhookTrace({
             requestId,
@@ -626,10 +730,13 @@ Deno.serve(async (req) => {
         // Scheduled / recurring reminder template buttons:
         // - daily bilan: "Carrément!" / "On le fait demain!"
         // - generic check-in: "Oui !" / "Une prochaine fois !"
+        // - morning nudge (morning_nudge_v1) + weekly bilan (sophia_bilan_weekly_v1): "Go !"
         // and recurring reminder consent: "Avec plaisir !" / "Not this time"
-        const isCheckinYes = /^(oui\b|avec\s+plaisir\b|carr[ée]ment\b)/i.test(
-          textLower,
-        );
+        const isCheckinYes =
+          /^(oui\b|go+\b|let'?s\s*go\b|c[’']?est\s+parti\b|avec\s+plaisir\b|carr[ée]ment\b)/i
+            .test(
+              textLower,
+            );
         const isCheckinLater =
           /plus\s*tard|une\s+prochaine\s+fois|on\s+le\s+fait\s+demain|not\s+this\s+time/i
             .test(
@@ -734,7 +841,7 @@ Deno.serve(async (req) => {
             request_id: processId,
             webhook_request_id: requestId,
           },
-        }).select("id").maybeSingle();
+        }).select("id,created_at").maybeSingle();
         if (inErr) throw inErr;
         // Mark dedup row as processed + link to the logged chat message.
         await admin.from("whatsapp_inbound_dedup").update({
@@ -1084,6 +1191,18 @@ Deno.serve(async (req) => {
           requestId,
           processId,
           phase: "before_reply_with_brain",
+          startedAtMs: processStartedAtMs,
+        });
+        await enqueueWhatsAppBrainRetryWatchdog({
+          admin,
+          requestId,
+          processId,
+          userId: profile.id,
+          inboundText: (msg.text ?? "").trim() || "Salut",
+          inboundChatMessageId: insertedIn?.id ?? null,
+          inboundChatMessageCreatedAt: insertedIn?.created_at ?? null,
+          waMessageId: msg.wa_message_id ?? null,
+          fromE164,
           startedAtMs: processStartedAtMs,
         });
         await replyWithBrain({

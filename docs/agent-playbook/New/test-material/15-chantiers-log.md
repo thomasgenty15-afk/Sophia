@@ -8281,3 +8281,281 @@ a observer avant de durcir (risque inverse: stickiness eva-r6 T14).
 Tests: 348+ verts au sweep, 3 echecs preexistants inchanges. Probes Paul
 (correction same-day + trajectoire), cleanup verifie (0 entry, reps
 baseline, scope purge). Feuilles r4/r6 mises a jour.
+
+---
+
+## 2026-07-07 — Chantier V2 : reliquat complet de la vague r4/r6 (A→G)
+
+Source: tous les findings restes ouverts apres X, plan detaille approuve
+(blocs A direct effects, B plan_too_light, C doctrine coaching, D safety
+anti-FP, E extraction v4, F companion, G statuts). Decisions produit
+actees en amont: medium+emotionnel → « soutien d'abord, pitch differe »
+(doctrine, pas de route); compression companion incluse; toujours pas de
+reschedule V1.
+
+A1 — Heure relative (nina-r4 B04): NON REPRODUIT avec preuve. Probe
+controlee `client_now_iso` connu sur les deux chemins: hors flow
+payload=committed=DB=17:48Z (15:48+2h); sous flow 18:48Z partout. Clos,
+a rouvrir si un run reel reproduit l'ecart.
+
+A2 — Cancel d'un rappel delivre (eva-r6 B03): a 0 pending, lecture
+elargie tous statuts (`readRecentOneShotReminderRows`, 48h, best-effort)
+→ outcomes `cancel_already_delivered` / `cancel_already_cancelled` /
+`no_pending_reminder` + guidance dediee + replies honnetes. Tests 104/104.
+Probe live: rappel marque awaiting_user → « annule-le » → blocked +
+« il a deja ete envoye... plus en attente » (fini le « rien a annuler »).
+
+A3 — Planner cadence/polarity (alex-r4 B07): exemples negatifs verbatim
+au bloc canonique (« tous les matins a 7h » → direct_effects=[] + FO;
+« annule-le » emis en create sans intent = INVALIDE). Ancres testees.
+
+B1 — plan_too_light (nina-r4 B03, paul-r6 B03): enum turn_frame + Set
+DRIFT_TYPES + doctrine de direction dispatcher + exemple JSON + branche
+visible « corser ». DECOUVERTE EN PROBE: une 3e copie de l'enum vivait
+dans le sanitizer runtime (`dispatcher.v2.ts:496`) et rabattait
+silencieusement `plan_too_light` sur `ambiguous` — la doctrine etait
+bonne, la garde mangeait la valeur. Fix + test de regression sanitizer +
+bump version prompt (`plan_too_light_direction_v1`). Probe live apres fix:
+« trop mou, corse-le » → drift_type=plan_too_light en trace, rendu corsage.
+Lecon (meme famille que le cmd 15/16): tout ajout d'enum doit lister TOUTES
+les copies — contrat, Set local, ET liste blanche du sanitizer.
+
+C1-C6 + D1 — Lot doctrine. C1 micro-cadre nature→technique (prime sur le
+wording; force incoherent → doute + les deux options) + exemple dispatcher
+« mot de bascule » sous-route (rose-r4 B01, nina-r4 B01/B02). C2 exits
+debrief-de-rate / tour identitaire sans continuation (alex-r4 B02).
+C3 anti-sur-attracteur: ouverture ponctuelle → geste direct sans flow;
+reflexion a voix haute → ecoute (alex-r4 B03). C4 ordre explicite apres
+desambiguisation: jamais re-question fermee sur slot connu; « remplis-la
+toi-meme » → refus honnete + livrable (alex-r4 B08). C5 medium+emotionnel:
+premier mouvement sans dispositif nomme, ouverture douce ensuite (paul-r6
+B02, decision actee). C6 heure ambigue sous flow: demander le creneau,
+deni de capacite INTERDIT (eva-r6 B01, recurrence ×2). D1 auto-derision
+d'habitude non clinique ≠ worthlessness (eva-r6 T1).
+
+E — Extraction v4 (alex-r4 B04/B06): fait FUTUR date confie = event
+OBLIGATOIRE avec dates resolues (test e2e in-memory: event 20→24 juillet
+persiste actif); croyance contestee par l'assistant dans l'echange →
+jamais active non qualifie. Version
+`extraction.v4_future_dated_facts_contested_claims`.
+
+F — Companion (nina-r3 B03, eva-r5 B03/paul-r5 B04): compression ~400
+chars (reformulations seules, ancres du contrat conservees) pour loger
+F2 pont post-detresse et F3 adherence des preferences de session a tous
+les tours (soutien inclus). Decouverte probes: la regle generique F2 seule
+laissait passer des confirmations seches (2/3) — la meme exigence portee
+dans la GUIDANCE de commit (`outcomeGuidance` committed) l'a rendue
+effective (2/2 avec vraie phrase de pont). Budget < 13000, contrat 15/15.
+
+Probes live (Nina, client_now controle): cancel delivre, trop mou →
+plan_too_light, creux medium → soutien pur (distress_support_priority,
+4 lanes bloquees, band redescendu low au tour suivant), heure ambigue
+sous flow → question de creneau puis commit 21h45 (+ bonus: 21h30 passe
+→ past_time honnete), pont post-detresse ×2. Cleanup verifie: 0 pending,
+scopes qa-v2b-* purges (46 messages).
+
+Tests: sweep COMPLET compare a la baseline par stash (1399 verts) —
+ZERO nouvel echec (23 preexistants identiques byte-a-byte, dont les 2
+architecture + 1 write_policy connus). Feuilles nina-r4 (B01→B06 tous
+clos), alex-r4 (B02-B08 + recap), eva-r6 (B01-B03 + note T1), paul-r6
+(B02-B03 + synthese), rose-r4 (B01), nina-r3 (B03), eva-r5 (B03),
+paul-r5 (B04) mises a jour.
+
+Observation cosmetique consignee (non bloquante, a surveiller): sur les
+confirmations de rappel, le composeur echo parfois le libelle user
+verbatim (« pour MA seance de sport » au lieu de « ta seance ») — miroir
+grammatical du label, pas un bug de verite.
+
+---
+
+## 2026-07-07 — Chantier V3 : vague du 07/07 (1 red + reproductions + nouveaux angles)
+
+Source: 5 runs 07-07 (alex-r1, eva-r7, nina-r5 RED, paul-r7, rose-r5).
+Bilan de vague: 1 run red (contre 3 la vague precedente); le red est le
+pattern rendu↔verite sous un angle neuf (multi-effets divergents); 3
+reproductions de fixes V2 insuffisants, chacune avec sa cause identifiee.
+Arbitrage confirme en amont: AUCUNE generation de carte depuis le chat.
+
+V3-1 — Rendu multi-effets (nina-r5 B01/B02 RED). Le runtime etait juste
+(cancel committed, track bloque target_not_evidenced→needs_clarify avec
+question) — le composeur a generalise le succes d'un effet a l'autre puis
+le recap a relu le mensonge dans l'historique. Fix: (a) directive
+deterministe MIXED_OUTCOMES_DIRECTIVE injectee quand un tour porte des
+issues DIVERGENTES — enumeration par effet depuis les DONNEES de
+l'outcome, vocabulaire de completion reserve aux cibles committed (donnee
+d'entree, jamais une reecriture de sortie); (b) question de clarify dediee
+sur input contradictoire (« c'est deja fait ou tu comptes le faire ? »),
+reconciliee avec l'invariant rose-r6 (quelle action + quand); (c) regle
+ancree DANS le bloc snapshot: completion revendiquee en conversation sans
+coche = pas faite, meme si un message assistant l'a affirmee. Probe live:
+cancel + track ambigu meme tour → cancel confirme SEUL + question, zero
+claim generalise; variante auto-corrigee (« enfin non c'est deja fait »)
+→ les DEUX committes et rendus, DB alignee.
+
+V3-2 — Fait futur date, la vraie source (alex-r1 B01, repro R4-B04).
+Mon fix v4 etait au mauvais etage: le prompt emettait l'event, le gate
+`event_missing_date` REJETAIT une date ecrite en toutes lettres — le
+resolveur temporel ne connaissait aucune date absolue. Fix: dates absolues
+francaises dans le resolveur existant (mois nommes + JJ/MM, annee =
+occurrence la plus proche si absente, tag kind=absolute_date), fallback
+evidence_quote/content_text dans l'enrichissement, et ceinture: un
+STATEMENT a date absolue non recurrente est promu en event date (observe
+en probe: le LLM encode parfois en statement malgre la doctrine). Lecon:
+mon test V2 passait parce que le fake LLM fournissait les dates — tester
+le payload SANS dates. Probe live: « le 25 juillet je demenage » → batch
+→ event actif date 25 juillet minuit Paris.
+
+V3-3 — Cadence a l'intake (alex-r1 B02, repro R4-B07). Fin de la
+dependance au gate aval: la meme classification (cardinality du payload,
+decidee par le dispatcher) se consomme AVANT l'armement, aux deux points
+— gate (`recurring_not_supported`) et lane message-intake (n'arme pas,
+synthetise l'outcome canonique du tool via un helper partage, guidance
+Initiatives conservee). Zero matching lexical nouveau. Probe live:
+« tous les matins a 7h » → direct_effects_to_run=[], rendu Initiatives.
+
+V3-4 — technique_coherence structuree (alex-r1 B04, paul-r7 B02). La
+doctrine C1 noyee ne sortait pas le doute quand le user force. Fix
+pattern canonique « le prompt decide, le champ porte »: le dispatcher
+local coaching emet technique_coherence (coherent|forced_mismatch +
+requested/suggested/why), RE-EVALUE a chaque recadrage du besoin; le
+visible agent sur forced_mismatch ouvre par le doute + les deux options.
+Probe live: mot de bascule force sur grignotage recurrent → « je ne
+partirais pas sur un mot de bascule ici » + defense proposee.
+
+V3-5 — Safety: le triage consomme les reponses (rose-r5 B02). Cause
+visible dans la chaine de phases du reducer: danger nie + « seule »
+repondu mais moyens inconnus → retombait sur immediate_risk_check →
+re-question verbatim. Fix: reponse consommee (danger nie + statut
+solitude donne) → phase support_contact (adresser la solitude), re-triage
+seulement sur reponse absente/ambigue, escalade danger inchangee, gate
+side-effects intact; + dispatcher local (remplir les signaux des que
+repondu) + visible (jamais re-poser une question a known_value non null;
+accueillir la solitude dite en premier). Probe live: ideation passive →
+triage; « non pas de danger, mais toute seule » → soutien + contact
+humain, zero re-question.
+
+V3-6 — Lot doctrine + le no-emoji structurel (eva-r7 B01, paul-r7
+B01/B03/B04/B05, rose-r5 B01, alex-r1 B03, eva-r7 B02). Altitude
+plan_realignment keyee sur explicit_adjust_request=false (proposer, pas
+envoyer). QUI DECLENCHE decide la route (user→coaching, Sophia→
+initiatives). Exclusion plan-state tient sous « retiens que ». Invariant
+snapshot « reste a faire = tous les non-completes » (la donnee etait
+complete, le composeur omettait). Rose: completion de collecte → carte
+formulee EN ENTIER + handoff une fois + flow closing (arbitrage respecte:
+rien d'ecrit). Bridge creneau hors flow (decliner + proposer le rappel
+avec question d'heure). Progres rapporte valorise avant levier.
+NO-EMOJI: la clause d'exception dans la regle warmth ne suffisait PAS
+(verifie en probe, 💛 reintroduit) — cablage structurel: le flow
+feature_opportunity emet session_style_commitment (decide par son
+dispatcher local), porte en cle de session temp_memory, REINJECTE au
+composeur a chaque tour en directive. Probe live: « arrete les emojis »
+→ tour de soutien suivant → ZERO emoji.
+
+Validation: sweep complet vs baseline par stash — ZERO nouvel echec
+(23 preexistants identiques). 542 verts sur les suites touchees (3
+echecs = les preexistants connus). 7 probes live vertes (multi-effets
+divergent + auto-corrige, fait date 25/07, recurrent 7h, forcage
+incoherent, triage repondu, slots Rose, no-emoji soutien). Cleanup
+verifie: 0 pending, 0 entry residuelle, scopes qa-v3-* purges. Feuilles
+des 5 runs mises a jour (restent open: eva-r7 B03 — KB resiliation, en
+attente du parcours reel; eva-r7 B04 — band low sur recuperation, a
+observer, deja arbitre).
+
+---
+
+## 2026-07-08 — Chantier V4 : vague r6/r8 (2 reds + cluster needs_research 5/5 + reouverture trigger)
+
+Source: 5 runs 07-07 soir (rose-r6, nina-r6 RED, paul-r8 RED, alex-r2,
+eva-r8). Decisions produit actees en amont: needs_research → REBRANCHER;
+trigger DB principe → won't-fix REOUVERT (3 reproductions en 2 jours);
+need_explanation → n'existe pas, on l'oublie (note posee aux guidelines QA).
+
+V4-1 — needs_research rebranche (5/5 runs, regression 3de0b9a2 du 30/06).
+Module dedie `router/research_grounding.ts`: signal structure du dispatcher
+(cmd 0) → searchWithGeminiGrounding gatee safety → bloc « RECHERCHE WEB »
+injecte au composeur (pin prioritaire companion existant); echec/timeout →
+directive d'honnetete (« ne dis JAMAIS avoir verifie, reponds de memoire en
+le disant ») — le claim de fausse fraicheur (eva T8, paul T7) est mort dans
+les DEUX branches. Events research_grounding re-emis (observabilite
+revenue, derniers dataient du 13/06). run.ts n'orchestre que (cmd 4/6).
++ contre-exemple dispatcher (rose-r6 B02): info du monde externe sans
+question Sophia → jamais product_help. Probes live: voie echec honnete
+(timeout 12s → passe a 20s) PUIS voie succes (vraie recherche, event
+success, reponse groundee nuancee).
+
+V4-2 — Trigger DB principe (paul-r8 B01 RED, eva-r8 B03, rose-r3 B01
+reouvert). Migration cascade-marker: unlock_transformation_principle
+(seule porte legitime, deja SECURITY DEFINER + whitelist + ownership) pose
+un GUC transactionnel le temps de son UPDATE; le guard le reconnait — une
+modification directe ne porte jamais le marqueur et reste bloquee (la
+garde devient discriminante, pas plus faible; rollback-tests des deux
+invariants sous authenticated). + volet cmd 15: item_patch_applied voyage
+db→executor→outcome; guidance committed « ne confirme NI compteur NI
+statut NI deblocage » quand le patch echoue (ceinture, ne devrait plus
+tirer). Probe live scenario rouge exact: 3e rep via chat → entry + 2→3 +
+in_maintenance + hara_hachi_bu debloque. Bonus: le guard a bloque mon
+propre cleanup superuser sans claim — anti-regression demontree en live.
+
+V4-3 — Decisions de session (nina-r6 B01 RED, « potion anti-fringale »).
+Meme famille que session_style_commitment: la reco retenue (structuree
+dans l'etat du flow: feature+lever+technique+potion_type) est capturee a
+chaque tour, survit au relachement (__session_decisions), bloc « DECISIONS
+DE SESSION » injecte avec le CATALOGUE canonique des 6 potions
+(miroir type-verifie de CoachingPotionType — un drift casse le typecheck)
++ regles: recall/recap/reparation depuis la liste jamais la memoire libre;
+correction user → trancher explicitement. Probe live scenario rouge exact
+(distracteur « plan anti-fringale » dans le contexte): « redis-moi la
+potion » → « C'etait potion amour. »
+
+V4-4 — Dementi de commit (alex-r2 B01, l'inverse du red nina-r5) +
+recaps de session (3 runs). Dementi: conflit de regles a la source — la
+regle companion « sans effet commis prouve, dis que ce n'est pas
+enregistre » gagnait sur un COMMITTED; fix double etage: guidance
+committed (donnee, cmd 16) porte l'interdiction verbatim du disclaimer
+in-app sur un commit + clause d'exception dans la regle companion.
+Recaps: fenetre EFFETS RECENTS 5→15 tours (session), lifecycle en langage
+user (programme / cree puis deja declenche / cree puis annule), usage
+elargi aux intentions de recap, regle « un effet de session ne s'omet
+jamais »; les recommandations ouvertes se listent en « reste a faire »
+via le bloc decisions. Probe live: recap avec initiative a creer + rappel
+delivre + carte retenue → les trois listes.
+
+V4-5 — Cluster coaching. technique_coherence devient LEVIER-AGNOSTIQUE
+(potion_type, DEUX sens: forcage incoherent → doute+options; wording user
+coherent → pas de requalification sans doute; changement de position
+toujours explique) + fit (evitement diffus multi-domaines → potion; jamais
+de carte sans cible atteignable; zone grise → exposer l'arbitrage).
+Pacing 1er tour minimise (eva-r8 B01): reflet + une question, aucun
+dispositif nomme. Composite post-acceptation (paul-r8 B04): l'acceptation
+se consomme en une phrase, la nouvelle demande est adressee. Exit local
+sur soutien recurrent (nina-r6 B02, cmd 9/17): exit_to_global_dispatcher.
+Mapping dispatcher: choix de levier ≠ style feedback. Probes live: forcage
+courage sur surcharge → doute + difference (fini la capitulation);
+demande d'initiative sous flow carte → feature_opportunity/initiatives.
+
+V4-6 — Memorizer. Fenetre inversee (eva-r8 B05): reparee a la VALIDATION
+(event_end abandonne + metadata) + persist PAR ITEM (un rejet DB ne perd
+plus jamais le batch, log structure item_persist_failed) + error_message
+lisible (fini [object Object]). Verrou running (rose-r6 B07): VERIFIE — le
+TTL 30 min existait deja (X2), le « bloque indefiniment » venait de
+retries dans la fenetre; ajout du log d'age au skip (run_age_minutes +
+auto_recovery_after_minutes) pour l'operateur. Preference fossilisee
+(rose-r6 B05): regle d'extraction prompt-level (recurrence/confirmation
+exigee, retractation dans la fenetre → candidate; anti-sur-correction).
+
+V4-7 — Petits. Exemple recurrent verbatim paul-r8 au bloc canonique.
+Doctrine FO trois volets sur preference durable (application + honnetete
+« version prochaine » + renvoi Preferences coach, zero « sur cette
+conversation » sec). Accord de genre systematique companion. Registre
+potions reconcilie avec le frontend (Ressources / Potions, surfaces_data
++ surfaces.json). Note guidelines QA: need_explanation n'existe pas (on
+l'oublie), needs_research consomme depuis V4.
+
+Validation: sweep complet vs baseline — ZERO nouvel echec (2 tests loader
+mis a jour au nouveau contrat deliberre fenetre 15 tours). Probes live:
+recherche (succes + echec honnete), 3e rep Paul (rouge exact), recall
+potion Nina (rouge exact, distracteur present), forcage potion Rose,
+exit initiative sous flow, recap de session complet. Cleanup verifie
+(0 residu, scopes qa-v4-* purges, etat Paul revert au baseline via claim
+service_role — le guard ayant bloque le cleanup superuser, preuve vivante
+de l'anti-regression). Feuilles des 5 runs mises a jour.

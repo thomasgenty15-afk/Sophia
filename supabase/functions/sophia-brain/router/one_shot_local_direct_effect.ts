@@ -10,6 +10,10 @@ export type LocalOneShotDirectEffectRequest = {
   explicitness: "explicit" | "implied" | "weak" | "none";
   target_status: "identified" | "ambiguous" | "missing" | "none";
   confidence_band: "low" | "medium" | "high";
+  /** Jugement LLM du contenu du rappel dans le contexte du tour (safety:
+   * substances, moyens, adjacent automutilation → flagged). null = flow dont
+   * le prompt n'emet pas ce champ; seul "flagged" bloque partout. */
+  content_risk: "safe" | "flagged" | null;
   payload_hint: OneShotReminderPayloadHint;
   reason: string | null;
 };
@@ -31,6 +35,7 @@ export function emptyLocalOneShotDirectEffectRequest(): LocalOneShotDirectEffect
     explicitness: "none",
     target_status: "none",
     confidence_band: "low",
+    content_risk: null,
     payload_hint: emptyOneShotReminderPayloadHint(),
     reason: null,
   };
@@ -61,6 +66,9 @@ export function normalizeLocalOneShotDirectEffectRequest(
         root.confidence_band === "low"
       ? root.confidence_band
       : "low",
+    content_risk: root.content_risk === "safe" || root.content_risk === "flagged"
+      ? root.content_risk
+      : null,
     payload_hint: {
       ...emptyOneShotReminderPayloadHint(),
       raw_text: cleanText(payloadRoot.raw_text, 600),
@@ -96,6 +104,9 @@ export function shouldAcceptLocalOneShotDirectEffect(args: {
       request.explicitness === "explicit" &&
       request.target_status === "identified" &&
       request.confidence_band !== "low" &&
+      // Un contenu juge a risque par le dispatcher local ne devient JAMAIS un
+      // rappel, quel que soit le flow. null = flow sans jugement (accepte).
+      request.content_risk !== "flagged" &&
       request.payload_hint.raw_text &&
       request.payload_hint.when_hint &&
       request.payload_hint.UTC_time &&

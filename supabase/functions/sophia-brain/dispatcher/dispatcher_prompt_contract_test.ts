@@ -201,6 +201,12 @@ Deno.test("dispatcher prompt defines plan realignment and boundaries", () => {
     item.user_message.includes("Le plan est trop lourd cette semaine")
   );
 
+  // paul-r7 B04: qui declenche decide la route (user → coaching, Sophia → initiatives).
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes("QUI DECLENCHE decide la route"),
+    true,
+  );
+
   // nina-r4 B03 / paul-r6 B03: la doctrine de direction est ancree et les deux
   // exemples opposes ne collapsent jamais l'un sur l'autre.
   assertEquals(
@@ -783,5 +789,55 @@ Deno.test("dispatcher prompt requires a verbatim target_evidence quote and defin
   assertEquals(
     retro?.expected.direct_effects?.[0]?.payload_hint?.target_evidence,
     "sas de decompression sans fumer",
+  );
+});
+
+Deno.test("dispatcher prompt: un fragment temporel incident dans une recherche n'est jamais un rappel (eva-r9 B02)", () => {
+  // Positif: la definition d'explicite exige un acte de rappel adresse a Sophia.
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "EXPLICITE = un acte de rappel adresse a Sophia",
+    ),
+    true,
+  );
+  // Contre-exemple verbatim: recherche + « ce soir » incident → aucun effet.
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "que je puisse tester ce soir",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "decrit le moment ou le USER agira, pas une notification a programmer",
+    ),
+    true,
+  );
+  // Anti-faux-positif: la demande imperative reste couverte par le bloc.
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes("'rappelle-moi'"),
+    true,
+  );
+});
+
+Deno.test("dispatcher prompt: un recall de session n'est jamais product_help (alex-r3 B01)", () => {
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "c'etait quoi deja la potion que tu m'avais conseillee ?",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "la reponse vient des decisions de session, pas d'une explication produit",
+    ),
+    true,
+  );
+  // Anti-faux-positif: comprendre le produit reste product_help.
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "\"a quoi sert une potion ?\" / \"ou je trouve mes potions ?\" restent product_help",
+    ),
+    true,
   );
 });

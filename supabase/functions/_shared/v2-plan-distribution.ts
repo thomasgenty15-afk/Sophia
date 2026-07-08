@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3";
 
 import { logV2Event, V2_EVENT_TYPES } from "./v2-events.ts";
+import { normalizeTimeOfDay } from "./time_of_day.ts";
 import type {
   HabitState,
   PlanContentItem,
@@ -546,13 +547,6 @@ function normalizeScheduledDays(days: string[] | null): string[] | null {
     }
     return normalized;
   });
-}
-
-function normalizeTimeOfDay(value: string | null): string | null {
-  if (!value) return null;
-  const normalized = value.trim().toLowerCase();
-  if (normalized === "any_time") return "anytime";
-  return normalized;
 }
 
 function getInitialHabitState(

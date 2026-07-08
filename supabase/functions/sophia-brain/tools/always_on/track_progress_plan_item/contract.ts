@@ -25,6 +25,8 @@ export type TrackProgressWrite = (input: {
   correction?: boolean;
 }) => Promise<{
   logged_progress_id: string;
+  /** false = entry committee mais patch compteur/statut rejete (cmd 15). */
+  item_patch_applied?: boolean;
   // Entry identique (item, jour, outcome) deja en DB, ecrite par un autre
   // message: rien de re-ecrit, l'id renvoye est celui de l'entry existante.
   already_logged?: boolean;
@@ -37,6 +39,8 @@ export type TrackProgressCommittedEffect = {
   target_title: string;
   progress_status: TrackProgressStatus;
   value: number;
+  /** false = coche committee, compteur/statut NON mis a jour (paul-r8 B01). */
+  item_patch_applied?: boolean;
 };
 
 export type TrackProgressRequestedEffect = {

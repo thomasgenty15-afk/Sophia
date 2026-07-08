@@ -166,3 +166,57 @@ Deno.test("orchestrator: deduplicates repeated effect types", async () => {
   assertEquals(result.allowed, ["create_one_shot_reminder"]);
   assertEquals(Object.keys(result.outcomes).length, 1);
 });
+
+Deno.test("gate never arms a recurring reminder request as one-shot (alex-r1 B02)", async () => {
+  const result = await runEffectGateOrchestrator({
+    turn_frame: frame({
+      direct_effects: [{
+        effect_type: "create_one_shot_reminder",
+        explicitness: "explicit",
+        target_status: "identified",
+        confidence_band: "high",
+        payload_hint: {
+          cardinality: "recurring",
+          when_hint: "tous les matins a 7h",
+        },
+      }],
+    }),
+    direct_effects_to_run: ["create_one_shot_reminder"],
+  });
+  // La selection est propre AVANT l'executor: rien d'arme, raison canonique.
+  assertEquals(result.allowed, []);
+  assertEquals(
+    result.additional_blocked_paths[0]?.reason_code,
+    "recurring_not_supported",
+  );
+});
+
+Deno.test("gate keeps arming a one-shot (cardinality once) and a cancel of a recurring-tagged payload (anti-faux-positif)", async () => {
+  const once = await runEffectGateOrchestrator({
+    turn_frame: frame({
+      direct_effects: [{
+        effect_type: "create_one_shot_reminder",
+        explicitness: "explicit",
+        target_status: "identified",
+        confidence_band: "high",
+        payload_hint: { cardinality: "once", when_hint: "demain a 7h" },
+      }],
+    }),
+    direct_effects_to_run: ["create_one_shot_reminder"],
+  });
+  assertEquals(once.allowed, ["create_one_shot_reminder"]);
+
+  const cancel = await runEffectGateOrchestrator({
+    turn_frame: frame({
+      direct_effects: [{
+        effect_type: "create_one_shot_reminder",
+        explicitness: "explicit",
+        target_status: "identified",
+        confidence_band: "high",
+        payload_hint: { intent: "cancel", cardinality: "recurring" },
+      }],
+    }),
+    direct_effects_to_run: ["create_one_shot_reminder"],
+  });
+  assertEquals(cancel.allowed, ["create_one_shot_reminder"]);
+});

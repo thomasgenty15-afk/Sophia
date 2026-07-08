@@ -256,7 +256,7 @@ RÈGLES ABSOLUES:
       {
         requestId: meta?.requestId,
         userId: meta?.userId ?? undefined,
-        model: meta?.model ?? getGlobalAiModel("gemini-2.5-flash"),
+        model: meta?.model ?? getGlobalAiModel(),
         source: "sophia-brain:sentry",
         forceRealAi: meta?.forceRealAi,
       },

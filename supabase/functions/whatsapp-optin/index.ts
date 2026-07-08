@@ -130,7 +130,13 @@ serve(async (req: Request) => {
     const body = req.headers.get("content-type")?.toLowerCase().includes("application/json")
       ? await req.json().catch(() => ({}))
       : {}
-    let overrides: { template_name?: string; template_lang?: string; force?: boolean } = body ?? {}
+    // SEC-07: `force` (bypasses the send-once idempotency guard) and the template
+    // overrides are privileged controls. Honor them ONLY on the internal-secret
+    // path. A user-authenticated caller cannot force repeated Meta-billed sends or
+    // pick an arbitrary template — their body fields are ignored and env defaults
+    // (with strict send-once) apply.
+    let overrides: { template_name?: string; template_lang?: string; force?: boolean } =
+      isInternal ? (body ?? {}) : {}
 
     let userId = ""
     let supabase: ReturnType<typeof createClient>

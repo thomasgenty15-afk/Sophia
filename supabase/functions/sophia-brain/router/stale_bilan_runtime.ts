@@ -57,7 +57,7 @@ export async function classifyStaleBilanResponse(params: {
       {
         requestId: params.requestId,
         userId: params.userId ?? undefined,
-        model: getGlobalAiModel("gemini-2.5-flash"),
+        model: getGlobalAiModel(),
         source: "bilan_stale_classify",
         forceRealAi: true,
       },

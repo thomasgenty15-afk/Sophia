@@ -24,6 +24,7 @@ export type DirectEffectGateOutcome =
       | "safety_high"
       | "pending_confirmation_active"
       | "duplicate_source_message"
-      | "duplicate_db";
+      | "duplicate_db"
+      | "recurring_not_supported";
     message: string;
   };
