@@ -5111,6 +5111,36 @@ Deno.serve(async (req) => {
           });
         }
 
+        // Règle B: un message doux envoyé → les autres nudges d'action de la
+        // journée se taisent (marqueur jour dans la temp memory WhatsApp).
+        // Persisté seulement APRÈS envoi réussi pour ne pas muter la journée
+        // sur un envoi échoué/retryé.
+        if (
+          sentViaWhatsapp && payload?.presence_kind === "support_softly"
+        ) {
+          try {
+            const freshTempMemory = await fetchWhatsappTempMemory(
+              supabaseAdmin,
+              String(checkin.user_id),
+            );
+            (freshTempMemory as Record<string, unknown>)
+              .__action_nudge_support_sent_local_date = localDateYmdInTimezone(
+                userTimezone,
+                new Date(),
+              );
+            await persistWhatsappTempMemory({
+              supabaseAdmin,
+              userId: String(checkin.user_id),
+              tempMemory: freshTempMemory as Record<string, unknown>,
+            });
+          } catch (error) {
+            console.warn(
+              `[process-checkins] request_id=${requestId} support_presence_marker_persist_failed checkin_id=${checkin.id}`,
+              error,
+            );
+          }
+        }
+
         if (isMomentumMorningNudge) {
           if (payload?.morning_nudge_v2) {
             console.log(

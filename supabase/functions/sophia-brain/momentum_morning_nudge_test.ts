@@ -9,6 +9,7 @@ import {
   buildMorningNudgeAnchorV2,
   buildMorningNudgePayloadV2,
   buildMorningNudgePlanV2,
+  evaluateActionNudgeMomentumGate,
   type LastNudgeInfo,
   type MorningNudgeV2Input,
   selectPostureV2,
@@ -1024,4 +1025,65 @@ Deno.test("V2 morning nudge payload is canonical and not V1 nominal", () => {
   assertEquals(payload?.target_item_titles, ["Marcher 10 min"]);
   assertEquals(payload?.morning_anchor?.kind, "none");
   assertEquals(payload?.sent_at, NOW_ISO);
+});
+
+// ── evaluateActionNudgeMomentumGate (règle B: priorité au système d'état) ────
+
+Deno.test("action nudge gate delivers when no momentum state stored", () => {
+  const gate = evaluateActionNudgeMomentumGate({
+    tempMemory: {},
+    slot: "morning",
+  });
+  assertEquals(gate.outcome, "deliver");
+});
+
+Deno.test("action nudge gate delivers on healthy momentum state", () => {
+  const gate = evaluateActionNudgeMomentumGate({
+    tempMemory: tempMemoryWithMomentum("momentum"),
+    slot: "morning",
+  });
+  assertEquals(gate.outcome, "deliver");
+});
+
+Deno.test("action nudge gate replaces the nudge on soutien_emotionnel", () => {
+  const gate = evaluateActionNudgeMomentumGate({
+    tempMemory: tempMemoryWithMomentum("soutien_emotionnel"),
+    slot: "morning",
+  });
+  assertEquals(gate.outcome, "support_softly");
+  if (gate.outcome === "support_softly") {
+    assertStringIncludes(gate.instruction, "PAS dans un nudge d'actions");
+    assertStringIncludes(gate.instruction, "du matin");
+    assertStringIncludes(gate.fallback_text, "ce matin");
+  }
+});
+
+Deno.test("action nudge gate adapts support wording to the slot", () => {
+  for (
+    const [slot, momentLabel] of [
+      ["late_afternoon", "de fin d'après-midi"],
+      ["night_prep", "de fin de soirée"],
+    ] as const
+  ) {
+    const gate = evaluateActionNudgeMomentumGate({
+      tempMemory: tempMemoryWithMomentum("soutien_emotionnel"),
+      slot,
+    });
+    assertEquals(gate.outcome, "support_softly");
+    if (gate.outcome === "support_softly") {
+      assertStringIncludes(gate.instruction, momentLabel);
+      assertStringIncludes(gate.fallback_text, "ce soir");
+    }
+  }
+});
+
+Deno.test("action nudge gate cancels on pause_consentie", () => {
+  const gate = evaluateActionNudgeMomentumGate({
+    tempMemory: tempMemoryWithMomentum("pause_consentie"),
+    slot: "morning",
+  });
+  assertEquals(gate.outcome, "cancel");
+  if (gate.outcome === "cancel") {
+    assertStringIncludes(gate.reason, "pause_consentie");
+  }
 });
