@@ -14,9 +14,11 @@ export type UsePotionsResult = {
   loading: boolean;
   activatingPotionType: PotionType | null;
   schedulingSessionId: string | null;
+  deletingSessionId: string | null;
   definitions: PotionDefinition[];
   sessions: UserPotionSessionRow[];
   latestSessionByType: Partial<Record<PotionType, UserPotionSessionRow>>;
+  sessionsByType: Partial<Record<PotionType, UserPotionSessionRow[]>>;
   usageCountByType: Partial<Record<PotionType, number>>;
   activatePotion: (
     potionType: PotionType,
@@ -24,6 +26,7 @@ export type UsePotionsResult = {
     freeText: string,
     options?: { potionScope?: PotionScopeSelection | null },
   ) => Promise<void>;
+  deletePotion: (sessionId: string) => Promise<void>;
   schedulePotionFollowUp: (
     sessionId: string,
     localTimeHHMM: string,
@@ -44,6 +47,9 @@ export function usePotions(scope: LabScopeInput): UsePotionsResult {
   const [schedulingSessionId, setSchedulingSessionId] = useState<string | null>(
     null,
   );
+  const [deletingSessionId, setDeletingSessionId] = useState<string | null>(
+    null,
+  );
   const [sessions, setSessions] = useState<UserPotionSessionRow[]>([]);
 
   const refresh = useCallback(async () => {
@@ -55,17 +61,16 @@ export function usePotions(scope: LabScopeInput): UsePotionsResult {
 
     setLoading(true);
     try {
-      let query = supabase
+      // Scope-agnostic on purpose: a potion is shown wherever the user is, in
+      // the plan or out of it. We only scope to the active cycle + user, not to
+      // scope_kind / transformation_id, so an activated potion is never hidden
+      // behind the currently selected dashboard scope.
+      const query = supabase
         .from("user_potion_sessions")
         .select("*")
         .eq("cycle_id", scope.cycleId)
-        .eq("scope_kind", scope.kind)
         .eq("status", "completed")
         .order("generated_at", { ascending: false });
-
-      query = scope.kind === "transformation"
-        ? query.eq("transformation_id", scope.transformationId)
-        : query.is("transformation_id", null);
 
       const { data, error } = await query;
 
@@ -110,6 +115,9 @@ export function usePotions(scope: LabScopeInput): UsePotionsResult {
       await refresh();
     } catch (error) {
       console.error("[usePotions] activatePotion failed:", error);
+      // Re-throw so the caller can surface the failure to the user instead of
+      // silently closing the modal as if the activation had succeeded.
+      throw error;
     } finally {
       setActivatingPotionType(null);
     }
@@ -117,7 +125,26 @@ export function usePotions(scope: LabScopeInput): UsePotionsResult {
 
   const latestSessionByType: Partial<Record<PotionType, UserPotionSessionRow>> =
     {};
+  const sessionsByType: Partial<Record<PotionType, UserPotionSessionRow[]>> = {};
   const usageCountByType: Partial<Record<PotionType, number>> = {};
+
+  const deletePotion = useCallback(async (sessionId: string) => {
+    if (!sessionId || deletingSessionId) return;
+    setDeletingSessionId(sessionId);
+    try {
+      const { error } = await supabase.functions.invoke(
+        "archive-potion-session-v1",
+        { body: { session_id: sessionId } },
+      );
+      if (error) throw error;
+      await refresh();
+    } catch (error) {
+      console.error("[usePotions] deletePotion failed:", error);
+      throw error;
+    } finally {
+      setDeletingSessionId(null);
+    }
+  }, [deletingSessionId, refresh]);
 
   const schedulePotionFollowUp = useCallback(async (
     sessionId: string,
@@ -166,17 +193,21 @@ export function usePotions(scope: LabScopeInput): UsePotionsResult {
     if (!latestSessionByType[session.potion_type]) {
       latestSessionByType[session.potion_type] = session;
     }
+    (sessionsByType[session.potion_type] ??= []).push(session);
   }
 
   return {
     loading,
     activatingPotionType,
     schedulingSessionId,
+    deletingSessionId,
     definitions: POTION_LIST,
     sessions,
     latestSessionByType,
+    sessionsByType,
     usageCountByType,
     activatePotion,
+    deletePotion,
     schedulePotionFollowUp,
     reactivatePotion,
     refresh,

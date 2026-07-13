@@ -17,6 +17,10 @@ import { linkMemoryItemToAction } from "./link_action.ts";
 import { linkMemoryItemToEntities } from "./link_entity.ts";
 import { linkMemoryItemToTopic } from "./link_topic.ts";
 import {
+  applyCreatedTopicsToCandidates,
+  planCandidateTopics,
+} from "./create_topics.ts";
+import {
   completeAsyncMemorizerExtraction,
   failExtractionRun,
   type MemorizerPersistRepository,
@@ -44,6 +48,15 @@ export interface MemorizerAsyncInput {
   existing_memory_items?: KnownMemoryItem[];
   active_topic?: KnownTopic | null;
   plan_signals?: PlanSignal[];
+  /**
+   * P2-5b: instructions des rappels réels du user (tous statuts, fenêtre
+   * récente) — le write policy rejette les items « objet rappel » dont le
+   * contenu recouvre une de ces instructions (états d'outils exclus de la
+   * mémoire, la DB des rappels étant la seule vérité).
+   */
+  reminder_instructions?: string[];
+  /** P2-5c: prenom/genre du user pour la redaction des items. */
+  user_profile?: { first_name?: string | null; gender?: string | null } | null;
   trigger_type?: string;
   model_name?: string;
   llm_provider?: ExtractionLlmProvider;
@@ -242,6 +255,7 @@ export async function runMemorizerAsync(
       known_entities: input.known_entities,
       injected_memory_items: input.existing_memory_items,
       plan_signals: input.plan_signals,
+      user_profile: input.user_profile ?? null,
     }, {
       llm_provider: input.llm_provider,
       model_name: batch.model_name,
@@ -300,7 +314,30 @@ export async function runMemorizerAsync(
           : null,
       };
     });
-    const decisions = decideInitialWriteStatuses(candidates);
+    // Chainon manquant historique: les topic_hints qui ne matchent aucun topic
+    // connu creent maintenant des topics candidats, sinon user_topic_memories
+    // reste vide a jamais (rien d'autre ne cree de topics).
+    let linkedCandidates = candidates;
+    if (repo.createCandidateTopics) {
+      const topicPlans = planCandidateTopics({
+        candidates,
+        known_topics: input.known_topics,
+      });
+      if (topicPlans.length > 0) {
+        const createdTopics = await repo.createCandidateTopics({
+          user_id: input.user_id,
+          topics: topicPlans,
+        });
+        linkedCandidates = applyCreatedTopicsToCandidates({
+          candidates,
+          plans: topicPlans,
+          created: createdTopics,
+        });
+      }
+    }
+    const decisions = decideInitialWriteStatuses(linkedCandidates, {
+      reminder_instructions: input.reminder_instructions ?? [],
+    });
     const persisted = repo.persistMemoryWrites
       ? await repo.persistMemoryWrites({
         user_id: input.user_id,

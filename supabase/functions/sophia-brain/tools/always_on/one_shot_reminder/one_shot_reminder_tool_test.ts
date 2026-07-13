@@ -1683,8 +1683,11 @@ Deno.test("router: create blocks duplicate_pending when an identical pending rem
     ["duplicate_pending"],
   );
   assertEquals(duplicate.missing_slots, []);
+  // R-1 (BF-STATUS-01): la reponse duplicate_pending est devenue
+  // existence-POSITIVE (« existe deja et il est bien en attente ») — un
+  // doublon prouve l'existence, il ne la nie pas. Ancre mise a jour.
   assertEquals(
-    duplicate.reply?.includes("déjà programmé"),
+    duplicate.reply?.includes("existe déjà et il est bien en attente"),
     true,
   );
   assertEquals(upserts.length, 0);
@@ -1780,6 +1783,10 @@ Deno.test("router: create blocked past_time yields an explicit no-creation reply
       UTC_time: "2026-05-29T17:00:00.000Z",
       when_hint: "ce soir à 19h",
       local_label: "19:00",
+      // raw_text cohérent avec le scénario (le défaut du helper porte
+      // « demain à 9h », ce qui déclencherait la réparation P0-5 légitime).
+      raw_text: "fais moi un rappel ce soir à 19h stp",
+      instruction_hint: "rappel de ce soir",
     }),
   });
   assertEquals(pastTime.status, "needs_clarify");
@@ -1923,4 +1930,517 @@ Deno.test("cancel intent never touches the create path (F4, paul-broadflow15 T14
   });
   assertEquals(create.status, "success");
   assertEquals(upserts.length, 1);
+});
+
+Deno.test("router: intent=status lit les pending et repond depuis la verite DB, zero write (R-1, BF-STATUS-01)", async () => {
+  const upserts: any[] = [];
+  // Positif: un pending existe → la lane status le confirme avec son heure.
+  const withPending = await maybeRunOneShotReminderDirectEffect({
+    supabase: makeFakeSupabaseForCreate({
+      profile: { timezone: "Europe/Paris", locale: "fr-FR" },
+      onUpsert: (row) => upserts.push(row),
+      pendingRows: [{
+        id: "existing-1",
+        scheduled_for: "2026-05-30T05:30:00.000Z",
+        message_payload: { reminder_instruction: "préparer mes affaires" },
+      }],
+    }) as any,
+    userId: "u1",
+    message: "mon rappel de demain à 7h30, il est bien enregistré ?",
+    now: new Date("2026-05-29T19:00:00.000Z"),
+    userTimezone: "Europe/Paris",
+    turnFrame: frameWithStructuredCreate({ intent: "status" }),
+  });
+  assertEquals(withPending.status, "success");
+  assertEquals((withPending as any).debug?.reason_code, "status_report");
+  assertEquals(upserts.length, 0);
+  const statusEffect = withPending.committed_effects.find((e: any) =>
+    e.type === "one_shot_reminder_status"
+  ) as any;
+  assertExists(statusEffect);
+  assertEquals(statusEffect.pending_count, 1);
+  assertEquals(String(statusEffect.target_title).includes("07:30"), true);
+  assertEquals(
+    String(statusEffect.target_title).includes("préparer mes affaires"),
+    true,
+  );
+  assertEquals(withPending.reply?.includes("07:30"), true);
+  assertEquals(withPending.reply?.toLowerCase().includes("oui"), true);
+
+  // Anti-faux-positif: aucun pending → dire "aucun", jamais inventer.
+  const empty = await maybeRunOneShotReminderDirectEffect({
+    supabase: makeFakeSupabaseForCreate({
+      profile: { timezone: "Europe/Paris", locale: "fr-FR" },
+      pendingRows: [],
+    }) as any,
+    userId: "u1",
+    message: "j'ai quoi comme rappels posés ?",
+    now: new Date("2026-05-29T19:00:00.000Z"),
+    userTimezone: "Europe/Paris",
+    turnFrame: frameWithStructuredCreate({ intent: "status" }),
+  });
+  assertEquals(empty.status, "success");
+  const emptyEffect = empty.committed_effects.find((e: any) =>
+    e.type === "one_shot_reminder_status"
+  ) as any;
+  assertEquals(emptyEffect.pending_count, 0);
+  assertEquals(
+    empty.reply?.includes("aucun rappel ponctuel en attente"),
+    true,
+  );
+});
+
+Deno.test("router: intent=replace annule l'ancien puis cree le nouveau, atomique et jamais deux pending (R-2, eva-g16 B01)", async () => {
+  const upserts: any[] = [];
+  const cancelCalls: string[] = [];
+  const replaced = await maybeRunOneShotReminderDirectEffect({
+    supabase: makeFakeSupabaseForCreate({
+      profile: { timezone: "Europe/Paris", locale: "fr-FR" },
+      onUpsert: (row) => upserts.push(row),
+      pendingRows: [],
+    }) as any,
+    userId: "u1",
+    message: "annule-le et remets-le à 23h",
+    now: new Date("2026-05-29T19:00:00.000Z"),
+    userTimezone: "Europe/Paris",
+    turnFrame: frameWithStructuredCreate({
+      intent: "replace",
+      replace_target_label: "22h30",
+      when_hint: "ce soir à 23h",
+      UTC_time: "2026-05-29T21:00:00.000Z",
+      local_label: "23:00",
+      instruction_hint: "poser le téléphone",
+      raw_text: "annule-le et remets-le à 23h",
+    }),
+    cancelReminder: (async (params: any) => {
+      cancelCalls.push(String(params.message ?? ""));
+      return {
+        detected: true,
+        status: "cancelled",
+        cancelled_ids: ["old-1"],
+        cancelled_local_labels: ["22:30"],
+      };
+    }) as any,
+  });
+  assertEquals(replaced.status, "success");
+  assertEquals(cancelCalls, ["22h30"]);
+  const types = replaced.committed_effects.map((e: any) => e.type).sort();
+  assertEquals(
+    types.includes("cancel_one_shot_reminder") &&
+      types.includes("create_one_shot_reminder"),
+    true,
+  );
+  assertEquals(upserts.length, 1);
+  assertEquals(replaced.reply?.includes("annulé"), true);
+
+  // Ambiguité: plusieurs pendings sans cible → clarify, ZERO write.
+  const ambiguous = await maybeRunOneShotReminderDirectEffect({
+    supabase: makeFakeSupabaseForCreate({
+      profile: { timezone: "Europe/Paris", locale: "fr-FR" },
+      onUpsert: () => {
+        throw new Error("aucun write attendu sur replace ambigu");
+      },
+      pendingRows: [],
+    }) as any,
+    userId: "u1",
+    message: "annule-le et remets-le à 23h",
+    now: new Date("2026-05-29T19:00:00.000Z"),
+    userTimezone: "Europe/Paris",
+    turnFrame: frameWithStructuredCreate({
+      intent: "replace",
+      when_hint: "ce soir à 23h",
+      UTC_time: "2026-05-29T21:00:00.000Z",
+      local_label: "23:00",
+      instruction_hint: "poser le téléphone",
+    }),
+    cancelReminder: (async () => ({
+      detected: true,
+      status: "ambiguous_target",
+      pending_count: 2,
+    })) as any,
+  });
+  assertEquals(ambiguous.status, "needs_clarify");
+  assertEquals(
+    (ambiguous as any).debug?.reason_code,
+    "replace_target_ambiguous",
+  );
+  assertEquals(ambiguous.committed_effects, []);
+
+  // Cancel en echec technique → RIEN n'est recree (anti-doublon).
+  const failed = await maybeRunOneShotReminderDirectEffect({
+    supabase: makeFakeSupabaseForCreate({
+      profile: { timezone: "Europe/Paris", locale: "fr-FR" },
+      onUpsert: () => {
+        throw new Error("aucun write attendu sur cancel failed");
+      },
+      pendingRows: [],
+    }) as any,
+    userId: "u1",
+    message: "annule-le et remets-le à 23h",
+    now: new Date("2026-05-29T19:00:00.000Z"),
+    userTimezone: "Europe/Paris",
+    turnFrame: frameWithStructuredCreate({
+      intent: "replace",
+      when_hint: "ce soir à 23h",
+      UTC_time: "2026-05-29T21:00:00.000Z",
+      local_label: "23:00",
+      instruction_hint: "poser le téléphone",
+    }),
+    cancelReminder: (async () => ({
+      detected: true,
+      status: "failed",
+      reason: "boom",
+    })) as any,
+  });
+  assertEquals(failed.status, "failed");
+  assertEquals((failed as any).debug?.reason_code, "replace_cancel_failed");
+  assertEquals(failed.committed_effects, []);
+});
+
+Deno.test("router: cancel avec payload de creation COHERENT → clarify (jamais deviner replace ni cancel), cancel pur sur-rempli → cancel (round6 S2 / F4)", async () => {
+  // Cas ambigu: intent=cancel mais payload complet coherent (when_hint 23h,
+  // local_label 23:00) → needs_clarify, ZERO write.
+  const ambiguous = await maybeRunOneShotReminderDirectEffect({
+    supabase: makeFakeSupabaseForCreate({
+      profile: { timezone: "Europe/Paris", locale: "fr-FR" },
+      onUpsert: () => {
+        throw new Error("aucun write attendu");
+      },
+    }) as any,
+    userId: "u1",
+    message: "annule ce rappel, et mets-m'en un nouveau à 23h",
+    now: new Date("2026-05-29T19:00:00.000Z"),
+    turnFrame: frameWithStructuredCreate({
+      intent: "cancel",
+      when_hint: "ce soir à 23h",
+      UTC_time: "2026-05-29T21:00:00.000Z",
+      local_label: "23:00",
+      instruction_hint: "poser le téléphone",
+    }),
+    cancelReminder: (async () => {
+      throw new Error("le cancel ne doit pas s'executer sur un cas ambigu");
+    }) as any,
+  });
+  assertEquals(ambiguous.status, "needs_clarify");
+  assertEquals(
+    (ambiguous as any).debug?.reason_code,
+    "cancel_or_replace_ambiguous",
+  );
+  assertEquals(ambiguous.committed_effects, []);
+  assertEquals(ambiguous.reply?.includes("23:00"), true);
+
+  // Cancel pur sur-rempli (leftover incoherent: cible 19h, label residuel
+  // 09:00) → le cancel s'execute normalement (F4 preserve).
+  const pure = await maybeRunOneShotReminderDirectEffect({
+    supabase: makeFakeSupabaseForCreate({
+      profile: { timezone: "Europe/Paris", locale: "fr-FR" },
+      onUpsert: () => {
+        throw new Error("aucun write attendu");
+      },
+    }) as any,
+    userId: "u1",
+    message: "le rappel de 19h, finalement annule-le",
+    now: new Date("2026-05-29T10:00:00.000Z"),
+    turnFrame: frameWithStructuredCreate({
+      intent: "cancel",
+      when_hint: "le rappel de 19h",
+    }),
+    cancelReminder: (async () => ({
+      detected: true,
+      status: "cancelled",
+      cancelled_ids: ["ck-19"],
+      cancelled_local_labels: ["19:00"],
+    })) as any,
+  });
+  assertEquals(pure.status, "success");
+  assertEquals(pure.intent, "cancel");
+});
+
+Deno.test("executor: create nu avec instruction identique a un pending a une autre heure → clarify deplacer/ajouter, zero write (round7 S2 T3)", async () => {
+  const upserts: any[] = [];
+  const moved = await maybeRunOneShotReminderDirectEffect({
+    supabase: makeFakeSupabaseForCreate({
+      profile: { timezone: "Europe/Paris", locale: "fr-FR" },
+      onUpsert: (row) => upserts.push(row),
+      pendingRows: [{
+        id: "existing-1",
+        scheduled_for: "2026-05-29T20:30:00.000Z",
+        message_payload: {
+          reminder_instruction: "poser le téléphone hors de la chambre",
+        },
+      }],
+    }) as any,
+    userId: "u1",
+    message: "En fait mets-le plutôt à 23h",
+    now: new Date("2026-05-29T18:00:00.000Z"),
+    turnFrame: frameWithStructuredCreate({
+      when_hint: "ce soir à 23h",
+      UTC_time: "2026-05-29T21:00:00.000Z",
+      local_label: "23:00",
+      instruction_hint: "poser le téléphone hors de la chambre",
+    }),
+  });
+  assertEquals(moved.status, "needs_clarify");
+  assertEquals((moved as any).debug?.reason_code, "same_instruction_pending");
+  assertEquals(moved.committed_effects, []);
+  assertEquals(upserts.length, 0);
+  assertEquals(moved.reply?.includes("DÉPLACER"), true);
+
+  // Anti-faux-positif: instruction differente a une autre heure → cree.
+  const distinct = await maybeRunOneShotReminderDirectEffect({
+    supabase: makeFakeSupabaseForCreate({
+      profile: { timezone: "Europe/Paris", locale: "fr-FR" },
+      onUpsert: (row) => upserts.push(row),
+      pendingRows: [{
+        id: "existing-1",
+        scheduled_for: "2026-05-29T20:30:00.000Z",
+        message_payload: { reminder_instruction: "sortir la poubelle" },
+      }],
+    }) as any,
+    userId: "u1",
+    message: "rappelle-moi à 23h de poser le téléphone hors de la chambre",
+    now: new Date("2026-05-29T18:00:00.000Z"),
+    turnFrame: frameWithStructuredCreate({
+      when_hint: "ce soir à 23h",
+      UTC_time: "2026-05-29T21:00:00.000Z",
+      local_label: "23:00",
+      instruction_hint: "poser le téléphone hors de la chambre",
+    }),
+  });
+  assertEquals(distinct.status, "success");
+  assertEquals(upserts.length, 1);
+});
+
+Deno.test("router: replace au payload incomplet ne touche a RIEN (tout-ou-rien, round12 S2)", async () => {
+  const noWrite = () => {
+    throw new Error("aucun write attendu");
+  };
+  const incomplete = await maybeRunOneShotReminderDirectEffect({
+    supabase: makeFakeSupabaseForCreate({
+      profile: { timezone: "Europe/Paris", locale: "fr-FR" },
+      onUpsert: noWrite,
+    }) as any,
+    userId: "u1",
+    message: "annule-le et remets-le plus tard",
+    now: new Date("2026-05-29T18:00:00.000Z"),
+    turnFrame: frameWithStructuredCreate({
+      intent: "replace",
+      // raw_text cohérent avec le scénario: aucun moment exploitable — la
+      // complétion structurelle (V6) ne doit rien résoudre ici (le défaut du
+      // helper porte « demain à 9h », qui contredirait le « plus tard » testé).
+      raw_text: "annule-le et remets-le plus tard",
+      when_hint: "plus tard",
+      UTC_time: null,
+      local_label: null,
+      instruction_hint: "poser le téléphone",
+    }),
+    cancelReminder: (async () => {
+      throw new Error("le cancel ne doit JAMAIS courir avant validation du create");
+    }) as any,
+  });
+  assertEquals(incomplete.status, "needs_clarify");
+  assertEquals(
+    (incomplete as any).debug?.reason_code,
+    "replace_payload_incomplete",
+  );
+  assertEquals(incomplete.committed_effects, []);
+  assertEquals(incomplete.reply?.includes("rien n'a été annulé"), true);
+});
+
+Deno.test("router: replace avec UTC_time vide mais moment exploitable dans le payload → complétion structurelle, replace exécuté (V6, harness S2 T4)", async () => {
+  const upserts: any[] = [];
+  const cancelCalls: string[] = [];
+  const replaced = await maybeRunOneShotReminderDirectEffect({
+    supabase: makeFakeSupabaseForCreate({
+      profile: { timezone: "Europe/Paris", locale: "fr-FR" },
+      onUpsert: (row) => upserts.push(row),
+      pendingRows: [],
+    }) as any,
+    userId: "u1",
+    message:
+      "Ok alors fais simple : annule ce rappel, et mets-m'en un nouveau à 23h pour poser le téléphone hors de la chambre.",
+    now: new Date("2026-05-29T19:00:00.000Z"),
+    userTimezone: "Europe/Paris",
+    turnFrame: frameWithStructuredCreate({
+      intent: "replace",
+      replace_target_label: "22h30",
+      // Le tour raté du harness: le dispatcher a émis le replace SANS
+      // résoudre UTC_time, alors que « à 23h » est dans ses propres champs.
+      raw_text: "mets-m'en un nouveau à 23h pour poser le téléphone hors de la chambre",
+      when_hint: "à 23h",
+      UTC_time: null,
+      local_label: null,
+      instruction_hint: "poser le téléphone hors de la chambre",
+    }),
+    cancelReminder: (async (params: any) => {
+      cancelCalls.push(String(params.message ?? ""));
+      return {
+        detected: true,
+        status: "cancelled",
+        cancelled_ids: ["old-1"],
+        cancelled_local_labels: ["22:30"],
+      };
+    }) as any,
+  });
+  assertEquals(replaced.status, "success");
+  assertEquals(cancelCalls, ["22h30"]);
+  const types = replaced.committed_effects.map((e: any) => e.type).sort();
+  assertEquals(
+    types.includes("cancel_one_shot_reminder") &&
+      types.includes("create_one_shot_reminder"),
+    true,
+  );
+  // 23h Paris (CEST) le 2026-05-29 = 21:00Z — résolu par le parseur, ancré
+  // sur l'horloge client, jamais deviné.
+  assertEquals(upserts.length, 1);
+  assertEquals(String(upserts[0]?.scheduled_for ?? ""), "2026-05-29T21:00:00.000Z");
+});
+
+Deno.test("router: reschedule sans AUCUN pending → dégrade en create (P0-4, nina R1-B02)", async () => {
+  // Positif: « remets-le à 21h30 » avec zéro rappel en attente = rien à
+  // déplacer, l'intention réelle est de (re)poser le rappel → create.
+  const upserts: any[] = [];
+  const recreated = await maybeRunOneShotReminderDirectEffect({
+    supabase: makeFakeSupabaseForCreate({
+      profile: { timezone: "Europe/Paris", locale: "fr-FR" },
+      onUpsert: (row) => upserts.push(row),
+      pendingRows: [],
+    }) as any,
+    userId: "u1",
+    message: "Remets-moi le rappel de 21h30 pour éteindre les écrans.",
+    now: new Date("2026-05-29T18:00:00.000Z"),
+    userTimezone: "Europe/Paris",
+    turnFrame: frameWithStructuredCreate({
+      intent: "reschedule",
+      raw_text: "Remets-moi le rappel de 21h30 pour éteindre les écrans.",
+      when_hint: "à 21h30",
+      UTC_time: "2026-05-29T19:30:00.000Z",
+      local_label: "21:30",
+      instruction_hint: "éteindre les écrans",
+    }),
+  });
+  assertEquals(recreated.status, "success");
+  assertEquals(upserts.length, 1);
+  assertEquals(
+    recreated.committed_effects.some((e: any) =>
+      e.type === "create_one_shot_reminder"
+    ),
+    true,
+  );
+
+  // Payload sans heure exploitable → clarify honnête SANS proposer le
+  // replace (aucune cible): reason reschedule_no_target.
+  const noTime = await maybeRunOneShotReminderDirectEffect({
+    supabase: makeFakeSupabaseForCreate({
+      profile: { timezone: "Europe/Paris", locale: "fr-FR" },
+      onUpsert: () => {
+        throw new Error("aucun write attendu");
+      },
+      pendingRows: [],
+    }) as any,
+    userId: "u1",
+    message: "Remets-le moi ce soir.",
+    now: new Date("2026-05-29T18:00:00.000Z"),
+    turnFrame: frameWithStructuredCreate({
+      intent: "reschedule",
+      raw_text: "Remets-le moi ce soir.",
+      when_hint: "ce soir",
+      UTC_time: null,
+      local_label: null,
+      instruction_hint: "éteindre les écrans",
+    }),
+  });
+  assertEquals(noTime.status, "needs_clarify");
+  assertEquals((noTime as any).debug?.reason_code, "reschedule_no_target");
+  assertEquals(noTime.reply?.includes("annule-le et remets-le"), false);
+
+  // Anti-faux-positif (non-régression eva-r5 B01): un pending EXISTE → le
+  // reschedule implicite reste bloqué honnête, zéro write.
+  const blocked = await maybeRunOneShotReminderDirectEffect({
+    supabase: makeFakeSupabaseForCreate({
+      profile: { timezone: "Europe/Paris", locale: "fr-FR" },
+      onUpsert: () => {
+        throw new Error("aucun write attendu");
+      },
+      pendingRows: [{
+        id: "p1",
+        scheduled_for: "2026-05-29T20:30:00.000Z",
+        message_payload: { reminder_instruction: "poser le téléphone" },
+      }],
+    }) as any,
+    userId: "u1",
+    message: "Mets-le plutôt à 23h.",
+    now: new Date("2026-05-29T18:00:00.000Z"),
+    turnFrame: frameWithStructuredCreate({
+      intent: "reschedule",
+      raw_text: "Mets-le plutôt à 23h.",
+      when_hint: "à 23h",
+      UTC_time: "2026-05-29T21:00:00.000Z",
+      local_label: "23:00",
+      instruction_hint: "poser le téléphone",
+    }),
+  });
+  assertEquals(blocked.status, "blocked");
+  assertEquals((blocked as any).debug?.reason_code, "reschedule_not_supported");
+  assertEquals(blocked.committed_effects, []);
+});
+
+Deno.test("router: UTC_time passé mais payload explicitement 'demain' → réparation déterministe (P0-5, rose RMR-B01)", async () => {
+  // Positif: le dispatcher a résolu 'demain 19h15' à la date du jour (passée);
+  // le parseur (day_offset=1) répare vers demain — le rappel se crée au bon
+  // jour au lieu d'un clarify past_time désinformant.
+  const upserts: any[] = [];
+  const repaired = await maybeRunOneShotReminderDirectEffect({
+    supabase: makeFakeSupabaseForCreate({
+      profile: { timezone: "Europe/Paris", locale: "fr-FR" },
+      onUpsert: (row) => upserts.push(row),
+      pendingRows: [],
+    }) as any,
+    userId: "u1",
+    message: "Remets-moi un rappel demain à 19h15 pour arroser les plantes.",
+    now: new Date("2026-05-29T18:00:00.000Z"),
+    userTimezone: "Europe/Paris",
+    turnFrame: frameWithStructuredCreate({
+      intent: null,
+      raw_text: "un rappel demain à 19h15 pour arroser les plantes",
+      when_hint: "demain à 19h15",
+      // 19h15 Paris AUJOURD'HUI = 17:15Z — déjà passé (now=18:00Z).
+      UTC_time: "2026-05-29T17:15:00.000Z",
+      local_label: "demain à 19h15",
+      instruction_hint: "arroser les plantes",
+    }),
+  });
+  assertEquals(repaired.status, "success");
+  assertEquals(upserts.length, 1);
+  assertEquals(
+    String(upserts[0]?.scheduled_for ?? ""),
+    "2026-05-30T17:15:00.000Z",
+  );
+
+  // Anti-faux-positif (décision V2-A): un horaire passé SANS futur explicite
+  // ('à 8h' dit à 18h) reste un clarify past_time — aucune devinette.
+  const stillPast = await maybeRunOneShotReminderDirectEffect({
+    supabase: makeFakeSupabaseForCreate({
+      profile: { timezone: "Europe/Paris", locale: "fr-FR" },
+      onUpsert: () => {
+        throw new Error("aucun write attendu");
+      },
+      pendingRows: [],
+    }) as any,
+    userId: "u1",
+    message: "Rappelle-moi à 8h de sortir la poubelle.",
+    now: new Date("2026-05-29T18:00:00.000Z"),
+    userTimezone: "Europe/Paris",
+    turnFrame: frameWithStructuredCreate({
+      intent: null,
+      raw_text: "Rappelle-moi à 8h de sortir la poubelle.",
+      when_hint: "à 8h",
+      UTC_time: "2026-05-29T06:00:00.000Z",
+      local_label: "08:00",
+      instruction_hint: "sortir la poubelle",
+    }),
+  });
+  assertEquals(stillPast.status, "needs_clarify");
+  assertEquals((stillPast as any).debug?.reason_code, "past_time");
+  assertEquals(stillPast.committed_effects, []);
 });

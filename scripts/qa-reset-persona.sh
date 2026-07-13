@@ -8,8 +8,10 @@ CONNECTION_NAME="${2:-}"
   exit 2
 }
 
+# Whitelist: personas QA locales uniquement. Le 2e filet (is_test_persona=true
+# dans auth metadata, verifie plus bas) reste obligatoire quoi qu'il arrive.
 case "$PERSONA" in
-  qa-skill) ;;
+  qa-skill|paul|eva|alex|rose|nina) ;;
   *)
     printf 'refusing reset: persona must be whitelisted, got %s\n' "$PERSONA" >&2
     exit 1

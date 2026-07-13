@@ -2663,29 +2663,42 @@ export function normalizeCoachingRecommendationLocalDispatcherOutput(
     direct_effect_request: normalizeLocalOneShotDirectEffectRequest(
       root.direct_effect_request,
     ),
-    state_updates: {
-      stage: enumValue(
-        stateRoot.stage,
-        new Set([
-          "understand_need",
-          "compare_options",
-          "recommend",
-          "followup",
-          "closing",
-        ]),
-        action === "recommend_feature" ? "recommend" : "understand_need",
-      ),
-      status: enumValue(
-        stateRoot.status,
-        new Set(["active", "closing", "closed", "exit_to_global"]),
-        action === "close_flow" ? "closed" : "active",
-      ),
-      turn_count_increment: Math.max(
-        0,
-        Math.min(1, Number(stateRoot.turn_count_increment ?? 1) || 1),
-      ),
-      close_after_visible: stateRoot.close_after_visible === true,
-    },
+    state_updates: (() => {
+      // Garde structurelle (paul-triflow15 B03, probe qa-v6-p6): le tour qui
+      // pose le handoff de creation ne clot JAMAIS le flow — un re-ordre de
+      // creation doit retomber ici (ou le cliquet vit), pas dans le companion.
+      // Contrainte sur champs structures deja produits, pas de semantique.
+      const materializationHandoff =
+        stateRoot.materialization_handoff_done === true &&
+        action !== "exit_to_global_dispatcher";
+      return {
+        stage: enumValue(
+          stateRoot.stage,
+          new Set([
+            "understand_need",
+            "compare_options",
+            "recommend",
+            "followup",
+            "closing",
+          ]),
+          action === "recommend_feature" ? "recommend" : "understand_need",
+        ),
+        status: materializationHandoff ? "active" as const : enumValue(
+          stateRoot.status,
+          new Set(["active", "closing", "closed", "exit_to_global"]),
+          action === "close_flow" ? "closed" : "active",
+        ),
+        turn_count_increment: Math.max(
+          0,
+          Math.min(1, Number(stateRoot.turn_count_increment ?? 1) || 1),
+        ),
+        close_after_visible: materializationHandoff
+          ? false
+          : stateRoot.close_after_visible === true,
+        materialization_handoff_done:
+          stateRoot.materialization_handoff_done === true,
+      };
+    })(),
     visible_task: {
       kind: visibleKind,
       instruction,
@@ -2818,6 +2831,11 @@ function mergeState(args: {
       args.previous?.recommendation_decision ?? null,
     last_visible_task_kind: stepContext?.task_kind ??
       args.previous?.last_visible_task_kind ?? null,
+    // Cliquet: une fois le handoff produit rendu, il reste acte pour toute la
+    // vie du flow — un nouvel ordre de creation ne rouvre pas l'explication.
+    materialization_handoff_done:
+      args.output.state_updates.materialization_handoff_done === true ||
+      args.previous?.materialization_handoff_done === true,
     turn_count: turnCount,
     max_turns: 4,
   };
@@ -3166,7 +3184,7 @@ function dispatcherPrompt(input: CoachingRecommendationLocalDispatcherInput) {
     "Si previous_state existe et que le user dit un nouveau cas, un deuxieme cas, une autre action, ou corrige 'je parle de X', cela reste dans coaching_recommendation si le besoin reste de choisir un soutien, levier ou type de coaching.",
     "Exemple de regle: apres une recommandation pour un mail perso hors plan, 'deuxieme cas: dans mon plan j'ai preparer le dossier mutuelle, je bloque pareil' est un target_switch explicite vers plan_action, pas une sortie global.",
     "Exemple miroir obligatoire: apres une recommandation pour une action du plan, 'autre cas: j'ai un mail a Camille qui n'est pas dans mon plan, je bloque pareil' est un target_switch explicite vers no_plan_action, pas une sortie global.",
-    "Dans un flow actif, ne produis jamais exit_to_global_dispatcher seulement parce que la cible passe de hors plan a plan, de plan a hors plan, ou d'action a emotion liee au coaching. C'est un changement de cible local.",
+    "Dans un flow actif, ne produis jamais exit_to_global_dispatcher seulement parce que la cible passe de hors plan a plan, de plan a hors plan, ou d'action a emotion liee au coaching. C'est un changement de cible local. Exception: un DEPOT DISCURSIF PROFOND (le user veut PARLER de ce qui le pese, pas etre equipe) n'est PAS un changement de cible vers emotional — c'est la sortie prioritaire dediee (voir regle DEPOT DISCURSIF PROFOND).",
     "Si la nouvelle cible est mentionnee mais que sa relation au plan ou son type n'est pas clair, garde l'ownership et utilise change_confirm_coaching_type.",
     "Frontiere du flow: tu possedes ce tour seulement si le message courant continue le travail de recommandation de coaching en cours: clarifier le blocage, adapter le levier propose, demander une aide plus concrete sur la meme action, ou poursuivre l'execution immediate de cette action.",
     "Hors perimetre: si le message courant introduit une intention autonome qui doit etre arbitree globalement - question produit autonome, statut ou recap d'une operation, preference ou memoire durable, nouvelle action tool distincte, changement de sujet, ou refus du cadre de recommandation actuel - utilise exit_to_global_dispatcher.",
@@ -3176,7 +3194,7 @@ function dispatcherPrompt(input: CoachingRecommendationLocalDispatcherInput) {
     "Invariant de coherence de sortie: exit_to_global_dispatcher est mutuellement exclusif avec une recommandation coaching active.",
     "Si flow_action=exit_to_global_dispatcher: feature_candidates doit etre [], recommendation.primary_feature=null, recommendation.secondary_feature=null, visible_task.kind=exit_ack, state_updates.status=exit_to_global, et note_information doit expliquer le vrai sujet hors coaching.",
     "Si recommendation.primary_feature est attack_card, defense_card, adjust_plan ou state_potion, ou si visible_task.kind est action_plan_coaching, no_plan_coaching ou emotion_coaching, alors flow_action ne peut jamais etre exit_to_global_dispatcher: utilise recommend_feature, answer_followup ou compare_features avec state_updates.status=active.",
-    "Si flow_context.recommendation.primary_feature est non-null, flow_action ne peut pas etre exit_to_global_dispatcher. Inversement, en sortie global, flow_context.recommendation.primary_feature doit etre null.",
+    "Si flow_context.recommendation.primary_feature est non-null, flow_action ne peut pas etre exit_to_global_dispatcher. Inversement, en sortie global, flow_context.recommendation.primary_feature doit etre null. Exception unique: les sorties prioritaires detresse et DEPOT DISCURSIF PROFOND abandonnent la recommandation posee (le user s'en est desengage) — dans ces deux cas rends recommendation nulle et sors.",
     "Sortie autorisee uniquement: exit_to_global_dispatcher vers le dispatcher global. Aucun handoff local vers product_help, safety_crisis ou un autre dispatcher n'existe dans ce flow.",
     "Si le user demande ou trouver, comment preparer, consulter ou utiliser la feature que ce flow vient de recommander, garde l'ownership coaching et utilise l'agent visible du type courant avec les infos de product_guidance injectees.",
     "Invariant stable recommendation product follow-up: si previous_state.current_recommendation ou previous_state.recommendation_decision.primary_feature existe et que le dernier message demande ou/comment trouver, ou exactement preparer, acceder, consulter ou utiliser ce meme levier, ce n'est pas un changement de coaching_type.",
@@ -3190,21 +3208,31 @@ function dispatcherPrompt(input: CoachingRecommendationLocalDispatcherInput) {
     "Les infos produit canoniques des 4 leviers coaching sont dans coaching_feature_product_guidance; copie la fiche utile dans flow_context.product_guidance et step_context.product_guidance.",
     "Utilise exit_to_global_dispatcher seulement pour un vrai nouveau sujet hors recommandation coaching: demande autonome de rappel/statut/preference/produit pur, small talk sans besoin coaching, ou safety via coaching_intent=safety. Une variation de cas coaching n'est pas un exit.",
     "Regle prioritaire detresse (prime sur la continuation du flow): si le message courant porte de la devalorisation de soi ('je sers a rien', 'je suis un poids', 'au fond du trou'), du desespoir generalise ('a quoi bon', 'j'y arriverai jamais' etendu a la vie entiere) ou une idee de disparaitre / que ce serait pareil sans soi, tu ne recommandes AUCUN dispositif ce tour (ni carte, ni potion, ni feature) — meme si le flow etait en train d'en proposer un. Emets flow_action=exit_to_global_dispatcher avec coaching_intent.kind=safety: le tour devient un tour de soutien. Un simple decouragement lie a une action ratee ('degoute d'avoir rate mon sas') n'est PAS ce cas: le coaching continue, accueil emotionnel d'abord.",
+    "Regle prioritaire DEPOT DISCURSIF PROFOND (prime sur la continuation du flow ET sur une recommandation deja posee): si le dernier message est un depot personnel lourd a intention discursive — le user se confie, raconte une histoire intime, dit vouloir juste parler ('j'ai juste envie de parler', 'laisse tomber la carte/potion, le vrai truc c'est...'), refuse le dispositif propose sans autre demande typee et enchaine sur le fond, ou ramene la conversation a ce qui le pese vraiment — et qu'il ne demande ni levier, ni methode, ni la poursuite de la construction en cours: ce tour n'appartient plus au coaching. Emets flow_action=exit_to_global_dispatcher avec coaching_intent.kind=general_support, target_switch.status=none, feature_candidates=[], recommendation.primary_feature=null, recommendation.secondary_feature=null, visible_task.kind=exit_ack, state_updates.status=exit_to_global, et note_information qui porte le sujet du depot avec les mots du user. Le dispatcher global arbitrera (soutien, discussion de fond). Ne reformule JAMAIS ce depot en cible emotional locale ni en pitch de potion.",
+    "Abandon de recommandation sur depot discursif: une recommandation deja posee (previous_state.current_recommendation ou recommendation_decision) est ABANDONNEE par ce desengagement du user — l'invariant 'recommandation active interdit l'exit' ne s'applique pas a la sortie DEPOT DISCURSIF PROFOND ni a la sortie detresse: rends recommendation nulle, feature_candidates=[] et sors. Anti-faux-positifs: une emotion rattachee a l'action en cours AVEC demande d'aide ('j'ai peur de m'y mettre, aide-moi', 'comment je m'y prends ce soir') reste du coaching; un suivi de la carte en cours ('j'ai teste, on ajuste ?') reste du coaching; un refus sec sans depot ('non pas ca') reste du coaching (clarifie ou soutiens sans re-pitcher).",
+    "Sortie sur PIVOT EMOTIONNEL DOUX (rose-multiflow B02, eva-g16 B02): la sortie discursive n'exige NI refus frontal NI depot long. Si le dernier message pivote vers un besoin purement emotionnel — demande de reassurance ou d'apaisement ('j'ai juste besoin d'etre rassuree', 'dis-moi juste que c'est normal'), depot d'un ressenti de fond (solitude, vide) sans demande d'outil, ou cloture apaisee du volet emotionnel ('ca va mieux, merci') — et ne demande ni levier, ni methode, ni la poursuite de la construction en cours: emets flow_action=exit_to_global_dispatcher avec coaching_intent.kind=general_support, memes invariants que le DEPOT DISCURSIF PROFOND (recommandation abandonnee, feature_candidates=[], visible_task.kind=exit_ack, state_updates.status=exit_to_global, note_information avec les mots du user). Ne re-sers JAMAIS la formule de soutien d'un tour precedent ni un pitch de potion sur ce pivot. Anti-faux-positifs: une demande de methode ou de continuation de la carte reste du coaching; une emotion liee a l'action en cours avec demande d'aide reste du coaching.",
     "Sortie obligatoire sur demande de MODIFICATION DURABLE du plan: 'modifier mon plan pour de bon', 'supprime/ajoute cette action', 'allege ma semaine', 'reorganise mon plan' → exit_to_global_dispatcher (coaching_intent=plan_misaligned), avec une note_information qui porte la demande exacte du user (ses mots) et le contexte coaching collecte. L'ajustement durable du plan n'appartient jamais au coaching, meme si la demande arrive au milieu d'une recommandation. Anti-faux-positif: adapter la MANIERE de faire une action ('comment je m'y prends ce soir', une variante du meme cas) reste du coaching, pas un ajustement de plan.",
-    "Sortie sur REJET de la recommandation: si le user decline explicitement la reco posee ('non', 'pas ca', 'ca m'aide pas', 'je veux pas de carte') ET exprime une autre demande nettement typee (rappel, preference, produit, ajustement, information), exit_to_global_dispatcher avec note_information qui dit ce qui a ete propose, le refus, et la nouvelle demande (avec ses mots). S'il decline sans autre demande, ne re-propose pas la meme reco: clarifie le besoin ou soutiens.",
+    "Sortie sur REJET de la recommandation: si le user decline explicitement la reco posee ('non', 'pas ca', 'ca m'aide pas', 'je veux pas de carte') ET exprime une autre demande nettement typee (rappel, preference, produit, ajustement, information), exit_to_global_dispatcher avec note_information qui dit ce qui a ete propose, le refus, et la nouvelle demande (avec ses mots). S'il decline ET depose un sujet de fond ou dit vouloir juste parler, applique la sortie DEPOT DISCURSIF PROFOND. S'il decline sans rien d'autre, ne re-propose pas la meme reco: clarifie le besoin ou soutiens.",
     "Micro-cadre nature d'action → technique (PRIME sur le wording user): blocage PONCTUEL de demarrage → carte d'attaque (texte magique/ancre); piege RECURRENT ou anticipe (meme moment qui revient, automatisme) → carte de defense/reperage; corvee LOGISTIQUE de preparation → preparer le terrain; etat emotionnel global → potion. Une vraie fenetre de rupture demandee comme mot de bascule reste servie sans doute.",
-    "technique_coherence (OBLIGATOIRE des qu'une technique OU un type de potion est nomme par le user ou selectionne — levier-agnostique): emets visible_task.flow_context.technique_coherence = { status: 'coherent'|'forced_mismatch', requested_technique, suggested_technique, why }. status='forced_mismatch' dans les DEUX sens: (1) le user FORCE un levier/type incoherent avec l'etat decrit ('mot de bascule' sur un automatisme recurrent, potion 'courage' alors que toute la session decrit une surcharge → apaisement); (2) le wording user est COHERENT avec le catalogue et c'est TOI qui voudrais requalifier (evitement diffus multi-domaines + demande 'courage' cohérente → ne requalifie pas en carte sans doute). RE-EVALUE a CHAQUE tour: un recadrage du besoin invalide le statut precedent — recalcule depuis le besoin recadre, jamais depuis le levier deja servi. Un changement de position vs un tour precedent s'EXPLIQUE toujours en une phrase.",
-    "technique_coherence DES LA COLLECTE (rose-r7 B02): ce contrat s'applique AVANT meme qu'une recommandation existe — si le user nomme un type de potion/technique en contradiction avec l'etat deja collecte ('donne-moi courage' alors que les tours decrivent surcharge/besoin d'apaisement), le tour exprime le doute + la difference + les options proches, JAMAIS une bascule seche. INTERDIT de fabriquer retroactivement un cadre que le user n'a pas exprime ('evitement', 'peur', 'manque d'audace') pour justifier le type force: si le forçage ne colle pas a ce qui a ete dit, dis-le avec ce qui a ete dit. Une reaffirmation coherente du user apres l'echange ('ok, apaisement alors') s'accepte sans requalification.",
+    "technique_coherence (OBLIGATOIRE des qu'une technique OU un type de potion est nomme par le user ou selectionne — levier-agnostique): emets visible_task.flow_context.technique_coherence = { status: 'coherent'|'forced_mismatch', requested_technique, suggested_technique, why }. status='forced_mismatch' dans les DEUX sens: (1) le user FORCE un levier/type incoherent avec l'etat decrit ('mot de bascule' sur un automatisme recurrent, potion 'courage' alors que toute la session decrit une surcharge → apaisement); (2) le wording user est COHERENT avec le catalogue et c'est TOI qui voudrais requalifier (evitement diffus multi-domaines + demande 'courage' cohérente → ne requalifie pas en carte sans doute). Les CARTES suivent exactement le meme contrat (eva-g16 B03): si le user dit 'attaque' ('vas-y pour l'attaque') alors que le moment decrit est DEFENSIF (meme moment qui revient, tenir/se proteger pendant, tentation/derapage) → forced_mismatch avec requested_technique='attack_card' et suggested_technique='defense_card' — le mot-cle user ne choisit JAMAIS la carte, la nature de l'action choisit (micro-cadre ci-dessus). RE-EVALUE a CHAQUE tour: un recadrage du besoin invalide le statut precedent — recalcule depuis le besoin recadre, jamais depuis le levier deja servi. Un changement de position vs un tour precedent s'EXPLIQUE toujours en une phrase.",
+    "technique_coherence DES LA COLLECTE (rose-r7 B02): ce contrat s'applique AVANT meme qu'une recommandation existe — si le user nomme un type de potion/technique en contradiction avec l'etat deja collecte ('donne-moi courage' alors que les tours decrivent surcharge/besoin d'apaisement), le tour exprime le doute + la difference + les options proches, JAMAIS une bascule seche. La COLLECTE inclut ce que le user a dit AVANT l'entree dans ce flow: recent_messages EST l'etat collecte quand le flow vient de s'ouvrir — 'deborde, tout me pese, je dors mal, epuisee mentalement' au tour precedent + 'donne-moi une potion de courage' maintenant = forced_mismatch (suggested=apaisement), meme si aucun tour de collecte in-flow n'a eu lieu. INTERDIT de fabriquer retroactivement un cadre que le user n'a pas exprime ('evitement', 'peur', 'manque d'audace', 'un trop-plein qui te bloque' requalifie en blocage) pour justifier le type force: si le forçage ne colle pas a ce qui a ete dit, dis-le avec ce qui a ete dit. Une reaffirmation coherente du user apres l'echange ('ok, apaisement alors') s'accepte sans requalification.",
     "Fit potion vs carte (nina-r6 B05): un evitement/etat DIFFUS couvrant plusieurs domaines hors plan → etat interne (potion), pas une carte; un blocage UNIQUE sur une action identifiable → carte. JAMAIS de carte proposee sans cible atteignable (item du plan ou action candidate nommee). Zone grise → expose l'arbitrage (les deux options + la difference), ne tranche pas seul.",
     "Demande composite apres acceptation (paul-r8 B04): quand le user ACCEPTE la recommandation posee ET ajoute une nouvelle demande dans le meme message ('ok pour la carte + un declic a me dire en attendant'), le tour ADRESSE la nouvelle demande (la technique demandee servie ou discutee via technique_coherence) — jamais un re-pitch de la recommandation deja acceptee. L'acceptation se consomme en une phrase d'accuse, le reste du tour appartient a la nouvelle demande.",
+    "technique_coherence AU PREMIER TOUR + STABILITE (eva-global18 T1-T3): le doute d'adequation s'exprime DES LE TOUR ou le user force la technique — pas apres confrontation (T1 'mot de bascule' sur une action de LANCEMENT accepte sans reserve, doute arrive seulement a T2 = l'erreur observee). Et une fois la technique posee (choisie ou acceptee), elle est STABLE: ne derive jamais silencieusement (mot de bascule → 'mot d'appui' → texte magique, phrase 'Stop' → 'Juste un pas' sur 3 tours sans jamais demander) — un changement de technique ou de phrase s'annonce en une ligne et se fait choisir.",
+    "OUTIL DEMANDE ≠ OUTIL RECOMMANDE (nina-untested T8): quand le user demande un outil NOMME ('tu peux m'activer une potion pour ca ?') et que la recommandation sert AUTRE chose (carte de defense), la reponse porte TOUJOURS les deux DES LE PREMIER TOUR: accuse reception de la demande de potion + pourquoi l'autre levier colle mieux ici (une phrase) + l'option demandee reste ouverte. Substituer en silence (aucun mot sur la potion demandee) force le user a re-poser sa question — c'est l'erreur observee (le T9 du meme run prouve que l'explication existe: elle doit venir a T8).",
+    "GATE D'AMBIGUITE (nina-untested T13): cible absente + signal flou ('fais-moi un truc pour le week-end', 'je derape') = UNE question de cadrage AVANT toute proposition — jamais une reco directe presomptueuse. ANTI-RECITATION intra-session: une technique deja expliquee dans cette session se REFERENCE en une phrase ('meme mecanique que la carte de tout a l'heure, appliquee au week-end'), elle ne se re-deroule jamais a l'identique (la structure moment critique/piege/geste de retour/plan B recitee deux fois quasi verbatim = l'erreur observee).",
     "Completion de collecte (rose-r5 B01): quand le user a fourni TOUS les elements d'une carte au fil de la conversation et dit 'on la fait maintenant', le tour livre la carte FORMULEE EN ENTIER dans la conversation (les composants recapitules, prets a recopier) + UNE phrase de handoff vers l'action dans le Plan — jamais un renvoi app a vide qui lui fait tout re-saisir. Ce tour CLOT la construction: state_updates.status='closing' et close_after_visible=true (le flow ne reste pas 'continue' indefiniment sur une collecte finie).",
     "Progres rapporte avant levier (alex-r1 B03): si le message contient un progres accompli ('ecrans regles', 'j'ai teste hier'), la reponse VALORISE ce progres en premier mouvement; un levier (potion, carte) ne vient qu'apres et seulement s'il sert la demande du tour — jamais un template de reco mecanique sur un tour de correction ou identitaire.",
     "Sortie sur demande de SOUTIEN RECURRENT (nina-r6 B02, cmd 9): une demande de message/coup de pouce REGULIER envoye par Sophia ('un petit message chaque soir vers 21h30', 'un truc regulier') n'est PAS une continuation du coaching en cours — c'est une opportunite initiatives qui appartient au dispatcher global: exit_to_global_dispatcher avec note_information (ce qui etait en cours + la demande exacte avec ses mots). Anti-faux-positif: une vraie continuation ('ok pour la carte, aide-moi a la remplir') reste dans le flow.",
     "Sortie sur DEBRIEF ou tour identitaire/emotionnel sans demande: un debrief de rate ('j'ai pas reussi hier, voila ce qui s'est passe') ou un self-label identitaire ('je suis comme ca') SANS demande de levier ni continuation de la carte en cours → exit_to_global_dispatcher (le tour appartient au soutien/reponse normale), jamais un re-pitch. Anti-faux-positif: un vrai suivi de carte ('j'ai teste la carte, ca a donne ca, on ajuste ?') reste dans le flow.",
     "Ordre explicite apres desambiguisation: quand la cible est connue (tour precedent) et que le user ordonne ('cree-la', 'remplis-la toi-meme', 'fais court'), ne RE-POSE JAMAIS une question fermee sur un slot deja connu. Reponds en une fois: le refus honnete du write-en-chat si demande ('je ne remplis pas la carte d'ici') + le livrable conversationnel immediat (le contenu applique a son cas).",
+    "FRONTIERE ADVISORY DES L'INTENTION DE CREATION (rose-hard15 T7): des que le user exprime une intention de creation explicite ('cree-la', 'tu peux la faire ?', 'mets-la en place') — MEME pendant la collecte de slots — le tour enonce la frontiere (le chat recommande et prepare le contenu; la creation se fait dans Ressources/le Plan) AVANT de continuer a collecter. Continuer la collecte sans l'enoncer laisse croire a une creation assistee et rend le renvoi final arbitraire (2x 'cree-la' avant l'enonce = l'erreur observee).",
+    "Bascule vers la CREATION = handoff produit, jamais une re-explication (paul-triflow15 B03): quand le user ordonne la creation/materialisation de la carte deja presentee ('cree-la', 'vas-y cree-la', 'ajoute-la', 'mets-la en place'), le tour ACTE — il n'explique plus. visible_task.instruction ordonne: (1) une phrase qui acte la frontiere (la carte se cree depuis la plateforme, destination stable de la regle destination) + (2) le livrable conversationnel pret a recopier SI pas encore donne — SANS re-servir la definition ni les composants deja rendus dans recent_messages (une definition deja donnee ne se redonne JAMAIS, meme reformulee). Emets state_updates.materialization_handoff_done=true. Ce tour ne CLOT pas le flow (status=active, close_after_visible=false, jamais close_flow): un re-ordre de creation ou une question de contenu doit retomber dans ce flow.",
+    "Si previous_state.materialization_handoff_done=true et que le user re-ordonne la creation ('cree-la' a nouveau, 'vas-y cree-la s'il te plait'), la reponse est un handoff NET en 1-2 phrases: destination + encouragement, ZERO re-explication, ZERO re-definition, ZERO nouvelle question. Exemple INVALIDE (probe qa-v6-p6): sur 'Vas-y cree-la s'il te plait', repondre par une question de cadrage ('tu veux te debloquer a quel moment precis: avant de t'asseoir, ou une fois pose ?') est INTERDIT — le user n'a rien demande de nouveau, il re-ordonne la creation: c'est un handoff, pas une collecte. Anti-faux-positif: une vraie question de contenu apres le handoff ('je mets quoi dans le geste de retour ?') reste une aide a formuler servie normalement.",
     "Altitude sur signal emotionnel medium: si le contexte safety du tour est band=medium (quel que soit le code) et coaching_type=emotional, le PREMIER mouvement de la reponse ne nomme JAMAIS un dispositif (ni carte, ni potion, ni feature): soutien groundé d'abord, puis au plus une ouverture douce ('si tu veux, j'ai un outil qui peut aider') — proposer, pas mener. Anti-faux-positif: une demande EXPLICITE d'outil reste servie directement.",
     "Rappel a heure AMBIGUE pendant le flow ('vers la fin de soiree', 'ce soir ou demain'): tu ne peux pas emettre le direct effect (pas de moment exploitable) mais tu ne NIES JAMAIS la capacite ('je ne peux pas te la poser d'ici' est INTERDIT — la capacite existe): la reponse DEMANDE le creneau precis ('tu veux ca a quelle heure ?') et le rappel partira des que l'heure est claire.",
     "Anti-repetition de reco: previous_state porte la recommandation deja posee (current_recommendation/recommendation_decision). Une reco deja emise sur le meme topic dans ce flow ne se RE-PITCHE JAMAIS (ni re-nommer la technique, ni re-vendre le dispositif): si le user revient dessus, avance concretement (contenu, application au cas); s'il exprime un doute ou un echec, accueille d'abord puis propose au plus une VERSION MINIMALE ou une alternative differente — jamais la meme proposition reformulee une 3e fois.",
+    "Demande TACTIQUE IMMEDIATE (paul-triflow r2 B01): quand le user demande UN geste concret pour une fenetre courte ('un seul truc pour ce soir', 'la maintenant', 'juste pour cette fois, pour pas rechuter') alors qu'un dispositif a deja ete recommande ou handoffe, le tour LIVRE le geste unique demande — flow_action=answer_followup, visible_task.instruction ordonne de donner LE geste applique a son cas en langage courant, sans re-nommer ni re-vendre le dispositif deja acte; la carte se mentionne AU PLUS en une phrase de fin comme suite optionnelle. Re-recommander de CONSTRUIRE l'outil deja handoffe sur cette demande est INTERDIT (c'est l'erreur observee). Anti-faux-positif: une demande de METHODE ou d'OUTIL ('quel outil je devrais utiliser', 'comment je construis la carte') garde la recommandation/construction normale.",
     "Au plus 4 tours: si le besoin est assez clair, recommande 1 feature principale et au plus 1 secondaire.",
     ...directEffectLocalDispatcherPromptLines(),
     ...localOneShotDirectEffectPromptLines("coaching_recommendation actif"),
@@ -3235,7 +3263,7 @@ function dispatcherPrompt(input: CoachingRecommendationLocalDispatcherInput) {
       expected_json_shape: {
         coherence_contract: {
           exit_to_global_dispatcher:
-            "autorise seulement pour un vrai sujet hors coaching; exige feature_candidates=[], recommendation.primary_feature=null, recommendation.secondary_feature=null, visible_task.kind=exit_ack, state_updates.status=exit_to_global, note_information non-null",
+            "autorise pour un vrai sujet hors coaching OU un depot discursif profond / desengagement du cadre de recommandation (le user veut parler, pas etre equipe — la recommandation posee est alors abandonnee); exige feature_candidates=[], recommendation.primary_feature=null, recommendation.secondary_feature=null, visible_task.kind=exit_ack, state_updates.status=exit_to_global, note_information non-null",
           active_recommendation:
             "si une feature coaching est recommandee ou si visible_task.kind est action_plan_coaching/no_plan_coaching/emotion_coaching, flow_action doit etre recommend_feature|answer_followup|compare_features et state_updates.status=active",
           forbidden_contradiction:
@@ -3278,6 +3306,7 @@ function dispatcherPrompt(input: CoachingRecommendationLocalDispatcherInput) {
           status: "active|closing|closed|exit_to_global",
           turn_count_increment: 1,
           close_after_visible: false,
+          materialization_handoff_done: false,
         },
         visible_task: {
           kind:

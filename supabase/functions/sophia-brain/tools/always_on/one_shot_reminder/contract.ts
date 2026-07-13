@@ -33,7 +33,11 @@ export type OneShotReminderConstraint =
 export type OneShotReminderDirectEffectTool =
   | "create_one_shot_reminder"
   | "cancel_one_shot_reminder"
-  | "replace_one_shot_reminder";
+  | "replace_one_shot_reminder"
+  // R-1 (BF-STATUS-01): lane de LECTURE — la question de statut/verification
+  // devient un outcome porte par le contrat total, jamais un tour muet.
+  | "one_shot_reminder_status"
+  | "read_one_shot_reminder_status";
 
 export type OneShotReminderEffect = {
   type: OneShotReminderDirectEffectTool;
@@ -55,6 +59,10 @@ export type OneShotReminderCommittedEffect = {
   reminder_instruction?: string;
   target_reminder_ids?: string[];
   target_local_labels?: string[];
+  /** Lane status (lecture): projection user-facing de la verite DB. */
+  target_title?: string;
+  pending_count?: number;
+  pending_labels?: string[];
 };
 
 export type OneShotReminderFailedEffect = {
@@ -122,6 +130,18 @@ export type OneShotReminderDirectEffectResult = {
   reminder_instruction: string | null;
   target_reminder_ids: string[];
   missing_slots: OneShotReminderState["missing_slots"];
+  /**
+   * P2-3d (rose-lifecycle R1-B03): clarification replace en attente — le
+   * runtime la persiste en temp_memory et l'expose UNE fois au dispatcher au
+   * tour suivant (mécanique 3g), pour que la réponse du user complète CE
+   * replace au lieu d'être reclassée comme un énoncé neuf (boucle reschedule).
+   */
+  pending_clarification?: {
+    intent: "replace";
+    reason_code: string;
+    clarify_question: string;
+    known_slots: Record<string, unknown>;
+  } | null;
   debug: {
     reason_code: string;
     parse_source?: string;
@@ -139,7 +159,10 @@ export type OneShotReminderToolOutcome =
       | "missing_time"
       | "past_time"
       | "unsupported_time"
-      | "duplicate_pending";
+      | "duplicate_pending"
+      // Filet anti-deplacement fantome (round7 S2): meme instruction deja
+      // pending a une autre heure — clarifier deplacer/ajouter.
+      | "same_instruction_pending";
     user_message: string;
   }
   | {

@@ -82,13 +82,17 @@ type EditCardDraft = {
 };
 
 function ConfettiBurst() {
-  const colors = ["#10b981", "#8b5cf6", "#f59e0b", "#3b82f6", "#ec4899"];
-  const dots = Array.from({ length: 12 }, (_, i) => {
-    const angle = (i / 12) * 360;
-    const distance = 20 + Math.random() * 20;
-    const x = Math.cos((angle * Math.PI) / 180) * distance;
-    const y = Math.sin((angle * Math.PI) / 180) * distance - 10;
-    return { x, y, color: colors[i % colors.length], delay: Math.random() * 0.15 };
+  // Randomized once at mount via a lazy initializer: calling Math.random() in
+  // the render body is impure and would reshuffle the burst on every re-render.
+  const [dots] = useState(() => {
+    const colors = ["#10b981", "#8b5cf6", "#f59e0b", "#3b82f6", "#ec4899"];
+    return Array.from({ length: 12 }, (_, i) => {
+      const angle = (i / 12) * 360;
+      const distance = 20 + Math.random() * 20;
+      const x = Math.cos((angle * Math.PI) / 180) * distance;
+      const y = Math.sin((angle * Math.PI) / 180) * distance - 10;
+      return { x, y, color: colors[i % colors.length], delay: Math.random() * 0.15 };
+    });
   });
 
   return (
@@ -859,11 +863,17 @@ export function DefenseCard({
       : "Si tu n'as pas d'idee, ce n'est pas grave.";
   };
 
-  useEffect(() => {
-    if (!focusPlanDefenseTriggerKey || !focusPlanDefenseToken) return;
-    setExpanded(true);
-    setIsPlanCardsSectionOpen(true);
-  }, [focusPlanDefenseTriggerKey, focusPlanDefenseToken]);
+  // When the parent fires a new focus token, open the card + plan cards section.
+  // Handled during render (React's "adjusting state on prop change" pattern)
+  // rather than in an effect, which would trigger a cascading render.
+  const [prevFocusToken, setPrevFocusToken] = useState(focusPlanDefenseToken);
+  if (focusPlanDefenseToken !== prevFocusToken) {
+    setPrevFocusToken(focusPlanDefenseToken);
+    if (focusPlanDefenseTriggerKey && focusPlanDefenseToken) {
+      setExpanded(true);
+      setIsPlanCardsSectionOpen(true);
+    }
+  }
 
   return (
     <section className="overflow-hidden rounded-[30px] border border-stone-200 bg-white shadow-[0_24px_80px_-52px_rgba(15,23,42,0.32)]">
@@ -1058,8 +1068,8 @@ export function DefenseCard({
               className="absolute inset-0 bg-stone-950/55 backdrop-blur-sm"
               onClick={() => setIsDifficultyMapOpen(false)}
             />
-            <div className="relative z-10 w-full max-w-2xl overflow-hidden rounded-[28px] border border-stone-200 bg-white shadow-2xl">
-              <div className="flex items-start justify-between gap-4 border-b border-stone-200 px-5 py-5">
+            <div className="relative z-10 flex max-h-[calc(100dvh-2rem)] w-full max-w-2xl flex-col overflow-hidden rounded-[28px] border border-stone-200 bg-white shadow-2xl">
+              <div className="flex shrink-0 items-start justify-between gap-4 border-b border-stone-200 px-5 py-5">
                 <div className="flex items-start gap-3">
                   <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-50">
                     <Shield className="h-5 w-5 text-blue-700" />
@@ -1080,7 +1090,7 @@ export function DefenseCard({
                 </button>
               </div>
 
-              <div className="space-y-4 px-5 py-5">
+              <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5">
                 {difficultyMapSummary ? (
                   <div className="rounded-2xl border border-blue-100 bg-blue-50/70 p-4">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-blue-700">
@@ -1121,8 +1131,8 @@ export function DefenseCard({
               className="absolute inset-0 bg-stone-950/55 backdrop-blur-sm"
               onClick={closeAddForm}
             />
-            <div className="relative z-10 w-full max-w-2xl overflow-hidden rounded-[28px] border border-stone-200 bg-white shadow-2xl">
-              <div className="flex items-start justify-between gap-4 border-b border-stone-200 px-5 py-5">
+            <div className="relative z-10 flex max-h-[calc(100dvh-2rem)] w-full max-w-2xl flex-col overflow-hidden rounded-[28px] border border-stone-200 bg-white shadow-2xl">
+              <div className="flex shrink-0 items-start justify-between gap-4 border-b border-stone-200 px-5 py-5">
                 <div className="flex items-start gap-3">
                   <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-50">
                     <Shield className="h-5 w-5 text-blue-700" />
@@ -1143,7 +1153,7 @@ export function DefenseCard({
                 </button>
               </div>
 
-              <div className="space-y-4 px-5 py-5">
+              <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5">
                 {addStep === "need" ? (
                   <label className="block">
                     <span className="text-sm font-semibold text-stone-900">
@@ -1245,8 +1255,9 @@ export function DefenseCard({
                 {addError ? (
                   <p className="text-xs text-rose-600">{addError}</p>
                 ) : null}
+              </div>
 
-                <div className="flex flex-wrap items-center justify-between gap-3 border-t border-stone-200 pt-4">
+              <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-stone-200 px-5 py-4">
                   <div className="flex flex-wrap items-center gap-2">
                     {addStep !== "need" ? (
                       <button
@@ -1329,7 +1340,6 @@ export function DefenseCard({
                     </button>
                   ) : null}
                 </div>
-              </div>
             </div>
           </div>,
           document.body,

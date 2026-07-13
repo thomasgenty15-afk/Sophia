@@ -13,6 +13,7 @@ export type ActiveLocalConversationFlowSkillId =
   | "coaching_recommendation"
   | "plan_realignment"
   | "feature_opportunity"
+  | "presence_conversation"
   | "safety_crisis";
 
 const ACTIVE_LOCAL_CONVERSATION_FLOW_SKILL_IDS = new Set<
@@ -24,6 +25,7 @@ const ACTIVE_LOCAL_CONVERSATION_FLOW_SKILL_IDS = new Set<
   "coaching_recommendation",
   "plan_realignment",
   "feature_opportunity",
+  "presence_conversation",
   "safety_crisis",
 ]);
 
@@ -164,7 +166,13 @@ export function readActiveFlowState(tempMemory: unknown): ActiveFlowState {
 export function shouldSkipGlobalDispatcherForActiveLocalFlow(args: {
   activeSkillState: unknown;
 }): boolean {
-  return activeLocalConversationSkillId(args.activeSkillState) !== "";
+  const skillId = activeLocalConversationSkillId(args.activeSkillState);
+  // presence_conversation n'a PAS de dispatcher local: il dépend du dispatcher
+  // GLOBAL à chaque tour pour classer le kind (maintain/pivot_action/tool_pull/
+  // closure/topic_change) et détecter les signaux de sortie. On ne le saute
+  // donc jamais quand la présence est active.
+  if (skillId === "presence_conversation") return false;
+  return skillId !== "";
 }
 
 export function clearLegacyRuntimeState<

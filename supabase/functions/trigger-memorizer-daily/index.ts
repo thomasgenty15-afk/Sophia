@@ -530,6 +530,18 @@ async function runDailyMemorizerForUser(args: {
     known_memory_items_count: knownItems.length,
     plan_signal_count: planSignals.length,
   });
+  // P2-5b (eva-global17 R1-B05, paul-untested R1-B06): les instructions des
+  // rappels reels alimentent le filtre write-policy « objet rappel » — un
+  // item memoire qui recouvre une instruction de rappel + un horaire est un
+  // etat d'outil, jamais un fait de vie.
+  const reminderInstructions = await loadReminderInstructions(
+    args.admin,
+    args.user_id,
+  );
+  const userProfile = await loadUserProfileForExtraction(
+    args.admin,
+    args.user_id,
+  );
   const result = await runMemorizerAsyncIfEnabled(
     new SupabaseMemorizerRepository(args.admin),
     {
@@ -540,6 +552,8 @@ async function runDailyMemorizerForUser(args: {
       plan_signals: planSignals,
       active_topic: knownTopics[0] ?? null,
       trigger_type: "daily_batch",
+      reminder_instructions: reminderInstructions,
+      user_profile: userProfile,
     },
   );
   const extractionRunSummary = await loadExtractionRunSummary(
@@ -715,4 +729,54 @@ async function handleRequest(req: Request): Promise<Response> {
 
 if (import.meta.main) {
   Deno.serve(handleRequest);
+}
+
+// P2-5b: instructions des rappels ponctuels du user (tous statuts, 14 jours)
+// pour le filtre write-policy « objet rappel » du memorizer.
+async function loadReminderInstructions(
+  admin: ReturnType<typeof createClient>,
+  userId: string,
+): Promise<string[]> {
+  try {
+    const sinceIso = new Date(Date.now() - 14 * 24 * 3_600_000).toISOString();
+    const { data, error } = await (admin as any)
+      .from("scheduled_checkins")
+      .select("message_payload")
+      .eq("user_id", userId)
+      .like("event_context", "one_shot_reminder:%")
+      .gte("created_at", sinceIso)
+      .limit(50);
+    if (error) throw error;
+    return (Array.isArray(data) ? data : [])
+      .map((row: any) =>
+        String(row?.message_payload?.reminder_instruction ?? "").trim()
+      )
+      .filter(Boolean);
+  } catch (_error) {
+    // best-effort: sans instructions, le filtre garde son volet lexical.
+    return [];
+  }
+}
+
+// P2-5c (nina-untested R1-B07): prenom/genre pour la redaction des items —
+// sans eux, l'extraction inferait le masculin par defaut.
+async function loadUserProfileForExtraction(
+  admin: ReturnType<typeof createClient>,
+  userId: string,
+): Promise<{ first_name: string | null; gender: string | null } | null> {
+  try {
+    const { data, error } = await (admin as any)
+      .from("profiles")
+      .select("first_name,gender")
+      .eq("id", userId)
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) return null;
+    return {
+      first_name: String(data.first_name ?? "").trim() || null,
+      gender: String(data.gender ?? "").trim() || null,
+    };
+  } catch (_error) {
+    return null;
+  }
 }

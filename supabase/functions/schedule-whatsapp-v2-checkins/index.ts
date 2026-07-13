@@ -307,7 +307,11 @@ async function cancelPendingWhatsappCoachingCheckins(params: {
       delivery_last_error_at: params.nowIso,
     } as any)
     .eq("user_id", params.userId)
-    .in("status", ["pending", "retrying", "awaiting_user"] as any);
+    .in("status", ["pending", "retrying", "awaiting_user"] as any)
+    // Les rappels ponctuels demandés par le user (chat, tous canaux) ne sont
+    // pas du coaching WhatsApp: l'inéligibilité ne doit jamais les annuler
+    // (disparitions Nina/Rose/Eva du 12/07, chantier P0).
+    .not("event_context", "like", "one_shot_reminder:%");
   if (error) throw error;
 
   const { error: pendingActionsError } = await params.supabaseAdmin

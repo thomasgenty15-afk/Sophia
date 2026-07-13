@@ -165,6 +165,14 @@ export async function runFeatureOpportunitySkill(
     userMessage: input.user_message,
   });
   if (reduced.status === "exit") {
+    // P0-1 (ALEX-CPR-B01): la lane direct effect s'exécute AVANT le return de
+    // sortie — sinon un rappel demandé au tour d'exit est perdu sans écriture
+    // pendant que la confirmation re-présente un committed du ledger.
+    if (
+      input.direct_effect_executor && decision.direct_effect_request?.requested
+    ) {
+      await input.direct_effect_executor(decision.direct_effect_request);
+    }
     return baseOutput("feature_opportunity", {
       status: reduced.status,
       response_intent: reduced.reason_code,

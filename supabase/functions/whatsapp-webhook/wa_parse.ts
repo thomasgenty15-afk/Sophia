@@ -36,6 +36,10 @@ export function extractMessages(payload) {
           text,
           interactive_id,
           interactive_title,
+          // wamid of the message this one replies to (present on quick-reply
+          // button taps). Lets us route the reply to the exact pending it
+          // answers instead of guessing with the most-recent one.
+          reply_to_wa_message_id: m.context?.id ?? undefined,
           profile_name: profileName,
           sim_user_id: m.sophia_user_id ?? m.metadata?.sophia_user_id ?? undefined
         });

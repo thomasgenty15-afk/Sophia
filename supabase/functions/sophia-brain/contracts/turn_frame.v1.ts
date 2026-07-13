@@ -111,6 +111,32 @@ export type FeatureOpportunitySignalContext = {
   priority_reason: string;
 };
 
+// Flow « Présence » (mode ami): une conversation pure centrée sur un sujet de
+// fond. Aucune offre produit n'y vit: si le user demande un outil, on SORT.
+// `kind` classe le mouvement conversationnel du tour COURANT (utilisé surtout
+// quand le flow est déjà actif pour décider maintien vs sortie):
+// - maintain: le user continue d'explorer/déposer/raisonner — y compris les
+//   demandes de méthode (« concrètement je fais quoi ? »), servies en
+//   conversation. Défaut.
+// - tool_pull: il accepte ou demande explicitement un dispositif produit
+//   (« ok vas-y la carte », « prépare-moi une potion ») → sortie du flow vers
+//   le dispatcher global.
+// - closure: clôture naturelle (« merci, bonne nuit »).
+// - topic_change: pivot net vers un autre sujet ou une tâche.
+export type PresenceConversationKind =
+  | "maintain"
+  | "tool_pull"
+  | "closure"
+  | "topic_change";
+
+export type PresenceConversationSignalContext = {
+  kind: PresenceConversationKind;
+  // Sujet lourd/personnel que le user est en train de traiter — sert la
+  // continuité visible et le contexte re-synthétisé au handoff.
+  topic_hint?: string | null;
+  reason: string;
+};
+
 export type DispatcherSkillSignals = {
   product_help?: SkillSignal;
   coaching_recommendation?: SkillSignal & {
@@ -121,6 +147,9 @@ export type DispatcherSkillSignals = {
   };
   feature_opportunity?: SkillSignal & {
     context?: FeatureOpportunitySignalContext;
+  };
+  presence_conversation?: SkillSignal & {
+    context?: PresenceConversationSignalContext;
   };
 };
 
@@ -252,6 +281,15 @@ export type TurnFrame = {
   note_information?: NoteInformation | null;
 
   skill_signals: DispatcherSkillSignals;
+
+  // P1-2 (ALEX-CPR-B04 / EVA-CPR-B03): contrainte de STYLE session formulée
+  // court, ancrée sur les mots du user (« réponses plus courtes le soir »,
+  // « pas de technique »). Champ RACINE (pas dans skill_signals: un signal
+  // non-detected est droppé par la normalisation, or la contrainte de style
+  // arrive souvent sans vraie opportunité produit). Le runtime l'installe en
+  // `__session_style_commitments` (temp_memory, session only, jamais une
+  // préférence durable — BF-PREF-01). Null sinon.
+  session_style_commitment_hint?: string | null;
 
   needs_research?: DispatcherResearchSignal;
 

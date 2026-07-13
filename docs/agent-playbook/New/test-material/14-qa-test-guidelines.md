@@ -194,7 +194,17 @@ conversationnels Sophia. Elle complete les fiches specialisees, notamment :
   fait X ») reste un bug (domaine track_progress, preuve de commit requise) —
   la tolerance memorizer ne s'applique qu'aux faits personnels.
 - Nettoyage : supprimer les `memory_items` crees par le batch de test en fin
-  de run, comme tout autre effet durable.
+  de run, comme tout autre effet durable — Y COMPRIS les items `status=candidate`
+  (P2-5/paul-untested R1-B05 : un candidate residuel degradait le recall du
+  loader actif ; le loader filtre desormais, mais un candidate de test reste
+  de la pollution inter-runs).
+- SCOPING OBLIGATOIRE (cause des 3 batchs « fantomes » mid-run, nina/rose/paul
+  12-13/07) : `trigger-memorizer-daily` appele SANS `user_id` balaye TOUTE la
+  flotte — le memorizer de fin de run d'un agent tombait au milieu des runs
+  des autres personas. TOUJOURS passer `user_id` du persona du run dans le
+  payload. Audit 13/07 : aucun declenchement async post-tour n'existe dans le
+  code (`memorizer_async.ts` n'est joignable que via `trigger-memorizer-daily`) ;
+  un batch mid-run = un appelant externe, presque toujours un autre run QA.
 - Hygiene : il n'existe AUCUN chemin d'ecriture memoire in-turn dans le code
   (`memory_items`/`memory_message_processing` ne sont ecrits que par le
   batch). Si un run observe des writes memoire « pendant les tours » (cas Eva
@@ -211,6 +221,10 @@ conversationnels Sophia. Elle complete les fiches specialisees, notamment :
 - Le runtime relache de lui-meme un flow local sans message depuis plus de 4h
   (borne de fraicheur `active_flow_state`), mais un T1 propre reste la regle
   pour ne pas polluer le verdict du run.
+- PERSONAS : ne JAMAIS rejouer de contenus hors-persona sur les comptes
+  nommes (incident alex 12/07 : messages type-cannabis d'une probe
+  trans-persona anterieure extraits par le memorizer comme faits d'Alex).
+  Une probe qui a besoin d'un profil different utilise un compte jetable.
 
 ## Organisation Des Variantes
 

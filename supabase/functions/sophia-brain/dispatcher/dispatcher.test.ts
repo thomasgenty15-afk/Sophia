@@ -472,3 +472,277 @@ Deno.test("dispatcher preserves needs_research without creating a route", async 
   assertEquals(frame.direct_effects, []);
   assertNoLegacyRouteFields(frame);
 });
+
+Deno.test("dispatcher keeps presence_conversation signal with kind", async () => {
+  const frame = await dispatch(
+    "Ça fait 9 mois que je galère avec ce truc, et je me rends compte que...",
+    {
+      skill_signals: {
+        presence_conversation: {
+          detected: true,
+          confidence_band: "high",
+          reason: "vulnerable_personal_reflection",
+          context: {
+            kind: "maintain",
+            topic_hint: "anxiété de performance",
+            reason: "long vulnerable reflection, wants to process",
+          },
+        },
+      },
+    },
+  );
+
+  assertEquals(frame.skill_signals.presence_conversation?.detected, true);
+  assertEquals(
+    frame.skill_signals.presence_conversation?.context?.kind,
+    "maintain",
+  );
+  assertEquals(
+    frame.skill_signals.presence_conversation?.context?.topic_hint,
+    "anxiété de performance",
+  );
+  assertEquals(frame.skill_signals.coaching_recommendation, undefined);
+  assertNoLegacyRouteFields(frame);
+});
+
+Deno.test("dispatcher normalizes unknown presence kind to maintain", async () => {
+  const frame = await dispatch("je réfléchis à voix haute", {
+    skill_signals: {
+      presence_conversation: {
+        detected: true,
+        confidence_band: "medium",
+        context: { kind: "not_a_real_kind", reason: "x" },
+      },
+    },
+  });
+  assertEquals(
+    frame.skill_signals.presence_conversation?.context?.kind,
+    "maintain",
+  );
+});
+
+Deno.test("dispatcher drops presence_conversation when not detected", async () => {
+  const frame = await dispatch("où je trouve mes potions ?", {
+    skill_signals: {
+      presence_conversation: {
+        detected: false,
+        confidence_band: "low",
+        context: { kind: "maintain", reason: "x" },
+      },
+    },
+  });
+  assertEquals(frame.skill_signals.presence_conversation, undefined);
+});
+
+Deno.test("dispatcher prompt documents presence_conversation + anti-false-positives", () => {
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes("skill_signals.presence_conversation"),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes("presence_conversation ="),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes("ANTI-FAUX-POSITIFS presence_conversation"),
+    true,
+  );
+  // Une demande de méthode reste maintain; seule une demande explicite de
+  // dispositif produit (tool_pull) fait sortir. Le dispatcher doit aussi être
+  // informé quand un flow présence est actif (flag minimal, pas d'état).
+  assertEquals(DISPATCHER_V2_SYSTEM_PROMPT.includes("tool_pull"), true);
+  assertEquals(DISPATCHER_V2_SYSTEM_PROMPT.includes("pivot_action"), false);
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes("presence_conversation_active"),
+    true,
+  );
+});
+
+Deno.test("dispatcher keeps session style hint at root even without a detected skill signal (P1-2, alex-cpr B04)", async () => {
+  const frame = await dispatch(
+    "Ce soir reponds plus court stp, et zero emojis",
+    {
+      session_style_commitment_hint: "reponses plus courtes ce soir, zero emojis",
+      skill_signals: {
+        feature_opportunity: {
+          detected: false,
+          confidence_band: "low",
+          reason: "style_constraint_only",
+        },
+      },
+    },
+  );
+
+  // Le hint survit à la normalisation (champ racine, pas un skill signal).
+  assertEquals(
+    frame.session_style_commitment_hint,
+    "reponses plus courtes ce soir, zero emojis",
+  );
+  // Anti-effet-de-bord: le signal non-detected reste droppé — la contrainte
+  // de style ne force aucun routing feature_opportunity.
+  assertEquals(frame.skill_signals.feature_opportunity, undefined);
+});
+
+Deno.test("dispatcher leaves session style hint empty when no constraint is expressed (P1-2 anti-FP)", async () => {
+  const frame = await dispatch("J'ai fait ma marche", {
+    direct_effects: [{
+      effect_type: "track_progress_plan_item",
+      explicitness: "explicit",
+      target_status: "identified",
+      confidence_band: "high",
+      payload_hint: { plan_item_id: "walk", status_hint: "done" },
+    }],
+  });
+
+  assertEquals(frame.session_style_commitment_hint ?? null, null);
+});
+
+Deno.test("dispatcher drops a bare create on a status_check turn (P2-1, paul-untested R1-B01)", async () => {
+  const frame = await dispatch(
+    "Mon rappel de demain matin 8h pour le sac, il est toujours bon hein ?",
+    {
+      direct_effects: [{
+        effect_type: "create_one_shot_reminder",
+        explicitness: "explicit",
+        target_status: "identified",
+        confidence_band: "high",
+        payload_hint: {
+          raw_text: "demain matin 8h preparer le sac",
+          when_hint: "demain 8h",
+        },
+      }],
+      memory_plan: {
+        response_intent: "status_check_reminder",
+        context_need: "targeted",
+        memory_mode: "light",
+        context_budget_tier: "small",
+        targets: [],
+        retrieval_policy: "taxonomy_first",
+      },
+    },
+  );
+
+  // Incohérence intra-frame résolue côté sûreté: le create pur est droppé,
+  // la projection DB répond au statut.
+  assertEquals(frame.direct_effects, []);
+  assertEquals(frame.memory_plan.response_intent, "status_check_reminder");
+});
+
+Deno.test("dispatcher keeps cancel/status intents on a status_check turn (P2-1 anti-FP, rose T14 multi-intention)", async () => {
+  const frame = await dispatch(
+    "Annule le rappel de 12h30 et dis-moi ce qui reste de prévu.",
+    {
+      direct_effects: [{
+        effect_type: "create_one_shot_reminder",
+        explicitness: "explicit",
+        target_status: "identified",
+        confidence_band: "high",
+        payload_hint: { intent: "cancel", when_hint: "12h30" },
+      }],
+      memory_plan: {
+        response_intent: "status_check_reminder",
+        context_need: "targeted",
+        memory_mode: "light",
+        context_budget_tier: "small",
+        targets: [],
+        retrieval_policy: "taxonomy_first",
+      },
+    },
+  );
+
+  // Le cancel du même tour SURVIT — seule la création pure est incohérente
+  // avec un tour statut.
+  assertEquals(frame.direct_effects.length, 1);
+  assertEquals(
+    (frame.direct_effects[0].payload_hint as { intent?: string }).intent,
+    "cancel",
+  );
+});
+
+Deno.test("dispatcher keeps a bare create when the turn is a real request (P2-1 anti-FP)", async () => {
+  const frame = await dispatch("Rappelle-moi demain a 9h d'appeler Paul", {
+    direct_effects: [{
+      effect_type: "create_one_shot_reminder",
+      explicitness: "explicit",
+      target_status: "identified",
+      confidence_band: "high",
+      payload_hint: { raw_text: "demain a 9h appeler Paul" },
+    }],
+    memory_plan: {
+      response_intent: "confirm_reminder_created",
+      context_need: "minimal",
+      memory_mode: "none",
+      context_budget_tier: "tiny",
+      targets: [],
+      retrieval_policy: "taxonomy_first",
+    },
+  });
+
+  assertEquals(frame.direct_effects.length, 1);
+});
+
+Deno.test("conversation_risk porte une traîne décroissante après un tour chargé (P3-A, alex-safety R1-B03)", async () => {
+  // Tour précédent en crise (score 10) → traîne 6 ce tour, band plancher low.
+  const frame = await dispatch("bon sinon, ma journée s'est bien passée", {});
+  assertEquals(frame.conversation_risk?.score, 0);
+
+  const trailed = await runDispatcher({
+    ...baseInput("bon sinon, ma journée s'est bien passée", async () => ({})),
+    conversation_risk_history: [10],
+  });
+  assertEquals(trailed.conversation_risk?.score, 6);
+  assertEquals(
+    trailed.conversation_risk?.reason_codes.includes("previous_risk_trail"),
+    true,
+  );
+  // Plancher de traçabilité: none → low pendant la traîne (non bloquant).
+  assertEquals(trailed.safety.risk_band, "low");
+
+  // Décroissance: medium (6) → 2 → 0 (anti-FP: pas de traîne infinie).
+  const fading = await runDispatcher({
+    ...baseInput("ok", async () => ({})),
+    conversation_risk_history: [6, 2],
+  });
+  assertEquals(fading.conversation_risk?.score, 0);
+  assertEquals(fading.safety.risk_band, "none");
+});
+
+Deno.test("le sanitizer conserve deux effets de TYPES distincts dans un tour (P3-D, eva-global18 T9)", async () => {
+  const frame = await dispatch(
+    "Marque la marche comme ratée pour hier, et rappelle-moi demain à 18h d'appeler le kiné.",
+    {
+      direct_effects: [
+        {
+          effect_type: "track_progress_plan_item",
+          explicitness: "explicit",
+          target_status: "identified",
+          confidence_band: "high",
+          payload_hint: {
+            target_item_id: "walk",
+            status_hint: "missed",
+            date_hint: "2026-07-12",
+            target_evidence: "la marche",
+          },
+        },
+        {
+          effect_type: "create_one_shot_reminder",
+          explicitness: "explicit",
+          target_status: "identified",
+          confidence_band: "high",
+          payload_hint: {
+            raw_text: "rappelle-moi demain à 18h d'appeler le kiné",
+            when_hint: "demain à 18h",
+            UTC_time: "2026-07-14T16:00:00.000Z",
+            local_label: "demain à 18h",
+            instruction_hint: "appeler le kiné",
+          },
+        },
+      ],
+    },
+  );
+
+  assertEquals(
+    frame.direct_effects.map((effect) => effect.effect_type).sort(),
+    ["create_one_shot_reminder", "track_progress_plan_item"],
+  );
+});

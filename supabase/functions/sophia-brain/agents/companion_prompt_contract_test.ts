@@ -215,13 +215,13 @@ Deno.test("companion normal reply explains active action and platform context us
   });
 
   assert(prompt.includes("Session focus courte"));
-  assert(prompt.includes("demain, ce soir, cette semaine"));
+  assert(prompt.includes("repères temporels injectés"));
   assert(prompt.includes("j'ai quoi à faire ?"));
-  assert(prompt.includes("je suis bloqué sur X"));
-  assert(prompt.includes("Si une action active pertinente est listée"));
-  assert(prompt.includes("Ne le mentionne pas sauf si pertinent ou demandé"));
+  assert(prompt.includes("je suis bloqué"));
+  assert(prompt.includes("Action active pertinente listée"));
+  assert(prompt.includes("ne le mentionne que si pertinent"));
   assert(prompt.includes("En cas de doute, reste neutre"));
-  assert(prompt.includes('n\'écris pas "je sais que tu..."'));
+  assert(prompt.includes('"je sais que tu..." seulement si naturel et utile'));
 });
 
 Deno.test("companion normal reply requires platform fallback for non-injected Sophia objects", () => {
@@ -232,13 +232,13 @@ Deno.test("companion normal reply requires platform fallback for non-injected So
     userState: { risk_level: 0, temp_memory: {} },
   });
 
-  assert(prompt.includes("hors actions actives injectées"));
+  assert(prompt.includes("hors éléments injectés"));
   assert(prompt.includes("cartes de défense/attaque actives"));
   assert(prompt.includes("rappels récurrents actifs"));
-  assert(prompt.includes("préférences configurées"));
+  assert(prompt.includes("préférences, objets Sophia"));
   assert(prompt.includes("vue complète dans la plateforme"));
-  assert(prompt.includes("N'hallucine aucune liste"));
-  assert(prompt.includes("ne dis jamais que tu vas vérifier ailleurs"));
+  assert(prompt.includes("Aucune liste inventée"));
+  assert(prompt.includes('jamais "je vais vérifier ailleurs"'));
 });
 
 Deno.test("companion visible-answer guard names all forbidden internals", () => {
@@ -412,10 +412,10 @@ Deno.test("companion normal reply acknowledges explicit memorization requests", 
     userState: { risk_level: 0, temp_memory: {} },
   });
 
-  assert(prompt.includes("Retenir un fait personnel"));
+  assert(prompt.includes("Fait personnel explicitement confié à retenir"));
   assert(prompt.includes("mémorisation automatique"));
   assert(
-    prompt.includes("ne propose ni initiative ni rappel à la place"),
+    prompt.includes("ni initiative ni rappel à la place"),
   );
   assert(prompt.includes("Jamais cet accusé pour une action du plan"));
   // V5-3 (rose-r7 B01): la preuve committed prime — l'accusé positif vient

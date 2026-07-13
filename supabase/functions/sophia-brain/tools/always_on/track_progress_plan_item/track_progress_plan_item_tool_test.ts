@@ -1023,3 +1023,372 @@ Deno.test("partial sur item tout-ou-rien → needs_clarify, zero ecriture (nina-
     null,
   );
 });
+
+Deno.test("partial sur une task a target_reps=1 → clarify: une task est tout-ou-rien (rejeu V6, probe nina)", () => {
+  // Positif: le tour rouge de la probe — task boolean target_reps=1,
+  // « j'ai avancé » n'a aucun etat intermediaire a ecrire.
+  const clarify = binaryItemPartialClarifyQuestion({
+    status: "partial",
+    item: {
+      kind: "task",
+      dimension: "nutrition",
+      target_reps: 1,
+      tracking_type: "boolean",
+      title: "Planifier deux dîners de la semaine",
+    },
+    fallbackTitle: "item-id",
+  });
+  assertEquals(clarify !== null, true);
+  assertEquals(clarify?.target, "Planifier deux dîners de la semaine");
+
+  // Task sans reps: binaire aussi.
+  assertEquals(
+    binaryItemPartialClarifyQuestion({
+      status: "partial",
+      item: { kind: "task", dimension: "sport", target_reps: null, title: "X" },
+      fallbackTitle: "id",
+    }) !== null,
+    true,
+  );
+  // Anti-faux-positifs structurels:
+  // task a repetitions reelles (>1) → etat intermediaire, pas de question.
+  assertEquals(
+    binaryItemPartialClarifyQuestion({
+      status: "partial",
+      item: { kind: "task", dimension: "sport", target_reps: 3, title: "X" },
+      fallbackTitle: "id",
+    }),
+    null,
+  );
+  // habitude (meme boolean, meme reps=1): la cadence est l'etat intermediaire.
+  assertEquals(
+    binaryItemPartialClarifyQuestion({
+      status: "partial",
+      item: {
+        kind: "habit",
+        dimension: "nutrition",
+        target_reps: 7,
+        tracking_type: "boolean",
+        title: "X",
+      },
+      fallbackTitle: "id",
+    }),
+    null,
+  );
+  // tracking quantifie (duree/quantite): un partial est reellement mesurable.
+  assertEquals(
+    binaryItemPartialClarifyQuestion({
+      status: "partial",
+      item: {
+        kind: "task",
+        dimension: "sport",
+        target_reps: 1,
+        tracking_type: "duration",
+        title: "X",
+      },
+      fallbackTitle: "id",
+    }),
+    null,
+  );
+});
+
+Deno.test("track NEGATIF: la description ne suffit pas à nommer la cible (P1-1, nina R1-B04)", async () => {
+  const snapshotItem = {
+    id: "option-saine",
+    title: "Préparer une option saine à portée",
+    description:
+      "Vider les placards de ce qui est trop tentant et mettre une option saine visible",
+  };
+  // Rouge rejoué: « je vide mes placards » matche la DESCRIPTION mais ne
+  // nomme pas l'action — un missed là-dessus est un échec non consenti.
+  const writes: unknown[] = [];
+  const blocked = await runTrackProgressPlanItemDirectEffect({
+    message: "Je repousse depuis des jours, je devais vider mes placards.",
+    plan_snapshot: [snapshotItem],
+    turn_frame: frame({
+      direct_effects: [{
+        effect_type: "track_progress_plan_item",
+        explicitness: "explicit",
+        target_status: "identified",
+        confidence_band: "high",
+        payload_hint: {
+          target_item_id: "option-saine",
+          target_title: "Préparer une option saine à portée",
+          status_hint: "missed",
+          target_evidence: "vider mes placards",
+        },
+      }] as any,
+    }),
+    write_progress: async (input) => {
+      writes.push(input);
+      return { logged_progress_id: "never" };
+    },
+  });
+  assertEquals(blocked.status, "needs_clarify");
+  assertEquals(blocked.debug.reason_code, "target_not_evidenced");
+  assertEquals(blocked.committed_effects, []);
+  assertEquals(writes.length, 0);
+
+  // Positif: un raté explicitement rapporté qui NOMME l'action (token du
+  // titre) s'écrit normalement.
+  const committed = await runTrackProgressPlanItemDirectEffect({
+    message: "J'ai zappé mon option saine hier, rien préparé.",
+    plan_snapshot: [snapshotItem],
+    turn_frame: frame({
+      direct_effects: [{
+        effect_type: "track_progress_plan_item",
+        explicitness: "explicit",
+        target_status: "identified",
+        confidence_band: "high",
+        payload_hint: {
+          target_item_id: "option-saine",
+          target_title: "Préparer une option saine à portée",
+          status_hint: "missed",
+          target_evidence: "mon option saine",
+        },
+      }] as any,
+    }),
+    write_progress: async (input) => {
+      writes.push(input);
+      return { logged_progress_id: "progress-ok" };
+    },
+  });
+  assertEquals(committed.status, "logged");
+  assertEquals(writes.length, 1);
+
+  // Anti-faux-positif: un report POSITIF garde la tolérance description
+  // (friction basse, aucun échec écrit).
+  const positive = await runTrackProgressPlanItemDirectEffect({
+    message: "C'est bon, j'ai vidé mes placards de ce qui est trop tentant !",
+    plan_snapshot: [snapshotItem],
+    turn_frame: frame({
+      direct_effects: [{
+        effect_type: "track_progress_plan_item",
+        explicitness: "explicit",
+        target_status: "identified",
+        confidence_band: "high",
+        payload_hint: {
+          target_item_id: "option-saine",
+          target_title: "Préparer une option saine à portée",
+          status_hint: "completed",
+          target_evidence: "vidé mes placards",
+        },
+      }] as any,
+    }),
+    write_progress: async (input) => {
+      writes.push(input);
+      return { logged_progress_id: "progress-ok-2" };
+    },
+  });
+  assertEquals(positive.status, "logged");
+  assertEquals(writes.length, 2);
+});
+
+// ── P2-4 (vague untested-surfaces 12/07) ────────────────────────────────────
+
+Deno.test("G1: la cible nommée par Sophia au tour précédent + confirmation user vaut evidence pour un POSITIF (P2-4b, nina-untested R1-B03)", () => {
+  // Le user confirme sans retaper le titre — le titre vit dans la fenêtre
+  // d'évidence (message de Sophia du tour précédent).
+  assertEquals(
+    trackTargetEvidenceVerified({
+      target_evidence: "bah si je te confirme",
+      target_title: "préparer une option saine à portée",
+      target_aliases: [],
+      texts: [
+        "bah si je te confirme que c'est ça, à 100%, note-la",
+        'Tu parles de quelle action exactement ? Je pensais à "préparer une option saine à portée" mais je préfère que tu me la nommes.',
+      ],
+      allow_window_title_match: true,
+    }),
+    true,
+  );
+  // MISSED: le nommage strict par le USER reste obligatoire (P1-1) — même
+  // fenêtre, pas de fallback.
+  assertEquals(
+    trackTargetEvidenceVerified({
+      target_evidence: "bah si je te confirme",
+      target_title: "préparer une option saine à portée",
+      target_aliases: [],
+      texts: [
+        "bah si je te confirme que c'est raté, note-le",
+        'Je pensais à "préparer une option saine à portée".',
+      ],
+      allow_window_title_match: false,
+    }),
+    false,
+  );
+  // Anti-faux-positif: titre absent de la fenêtre → le fallback ne sauve pas
+  // une cible devinée.
+  assertEquals(
+    trackTargetEvidenceVerified({
+      target_evidence: "un autre truc du plan",
+      target_title: "préparer une option saine à portée",
+      target_aliases: [],
+      texts: ["j'ai fait un autre truc du plan"],
+      allow_window_title_match: true,
+    }),
+    false,
+  );
+});
+
+Deno.test("correction sans cible d'origine résoluble → clarify, jamais d'append silencieux (P2-4a, alex-untested R1-B01)", async () => {
+  const writes: unknown[] = [];
+  const correctionFrame = frame({
+    direct_effects: [{
+      effect_type: "track_progress_plan_item",
+      explicitness: "explicit",
+      target_status: "identified",
+      confidence_band: "high",
+      payload_hint: {
+        target_item_id: "screens",
+        target_title: "réduire les écrans",
+        status_hint: "completed",
+        target_evidence: "les écrans",
+        correction: true,
+        // retarget_from ABSENT: correction à moitié émise (le bug observé).
+      },
+    }],
+  });
+  const result = await runTrackProgressPlanItemDirectEffect({
+    message: "c'était pas le carnet en fait, c'est les écrans que j'ai faits",
+    plan_snapshot: [
+      { id: "walk", title: "marche" },
+      { id: "screens", title: "réduire les écrans" },
+      { id: "carnet", title: "sortir le carnet" },
+    ],
+    turn_frame: correctionFrame,
+    // Aucune entrée du jour sur la cible corrigée (écrans) → ce n'est PAS une
+    // correction de statut → clarify.
+    same_day_evidence_check: async () => null,
+    write_progress: async (input) => {
+      writes.push(input);
+      return { logged_progress_id: "should-not-write" };
+    },
+  });
+  assertEquals(result.status, "needs_clarify");
+  assertEquals(result.debug.reason_code, "correction_retarget_missing");
+  assertEquals(writes.length, 0);
+  assertEquals(String(result.reply ?? "").includes("?"), true);
+});
+
+Deno.test("correction de STATUT même item (retarget légitimement absent) écrit toujours (P2-4a anti-FP)", async () => {
+  const writes: unknown[] = [];
+  const statusCorrectionFrame = frame({
+    direct_effects: [{
+      effect_type: "track_progress_plan_item",
+      explicitness: "explicit",
+      target_status: "identified",
+      confidence_band: "high",
+      payload_hint: {
+        target_item_id: "walk",
+        target_title: "marche",
+        status_hint: "completed",
+        target_evidence: "ma marche",
+        correction: true,
+      },
+    }],
+  });
+  const result = await runTrackProgressPlanItemDirectEffect({
+    message: "finalement je l'ai faite ma marche, corrige",
+    plan_snapshot: [{ id: "walk", title: "marche" }],
+    turn_frame: statusCorrectionFrame,
+    // Une entrée opposée du jour EXISTE sur la même cible → correction de
+    // statut nominale (3h), la garde ne tire pas.
+    same_day_evidence_check: async () => ({ outcome: "missed" }),
+    write_progress: async (input) => {
+      writes.push(input);
+      return { logged_progress_id: "progress-corrected" };
+    },
+  });
+  assertEquals(result.status, "logged");
+  assertEquals(writes.length, 1);
+});
+
+// ── P3-C (paul-untested16 R1-B01) ───────────────────────────────────────────
+
+Deno.test("correction avec last_track_commit frais → retarget auto-complété et EXÉCUTÉ (P3-C)", async () => {
+  const writes: Array<Record<string, unknown>> = [];
+  const correctionFrame = frame({
+    direct_effects: [{
+      effect_type: "track_progress_plan_item",
+      explicitness: "explicit",
+      target_status: "identified",
+      confidence_band: "high",
+      payload_hint: {
+        target_item_id: "sortie",
+        target_title: "sortie active",
+        status_hint: "completed",
+        target_evidence: "la sortie",
+        correction: true,
+        // retarget_from ABSENT — la moitié d'émission observée chez paul.
+      },
+    }],
+  });
+  const result = await runTrackProgressPlanItemDirectEffect({
+    message: "corrige : c'est la sortie que j'ai faite, pas les affaires",
+    plan_snapshot: [
+      { id: "affaires", title: "préparer ses affaires" },
+      { id: "sortie", title: "sortie active" },
+    ],
+    turn_frame: correctionFrame,
+    last_track_commit: {
+      target_item_id: "affaires",
+      target_title: "préparer ses affaires",
+      progress_status: "completed",
+    },
+    write_progress: async (input) => {
+      writes.push(input as Record<string, unknown>);
+      return { logged_progress_id: "progress-retargeted" };
+    },
+  });
+  assertEquals(result.status, "logged");
+  assertEquals(writes.length, 1);
+  // Le write porte la cible d'origine à invalider — le chemin retarget.
+  assertEquals(writes[0].retarget_from_item_id, "affaires");
+});
+
+Deno.test("bascule de cible: date_hint = aujourd'hui ne contourne plus la garde (P3-C anti-trou)", async () => {
+  const writes: unknown[] = [];
+  const switchFrame = frame({
+    direct_effect_time_context: {
+      now_utc: "2026-07-13T10:00:00.000Z",
+      user_timezone: "Europe/Paris",
+      user_locale: "fr-FR",
+      user_local_datetime: "2026-07-13T12:00",
+      user_local_human: "lundi 13 juillet, 12:00",
+    },
+    direct_effects: [{
+      effect_type: "track_progress_plan_item",
+      explicitness: "explicit",
+      target_status: "identified",
+      confidence_band: "high",
+      payload_hint: {
+        target_item_id: "sortie",
+        target_title: "sortie active",
+        status_hint: "completed",
+        target_evidence: "la sortie",
+        date_hint: "2026-07-13",
+      },
+    }],
+  });
+  const result = await runTrackProgressPlanItemDirectEffect({
+    message: "en fait c'est la sortie",
+    plan_snapshot: [
+      { id: "affaires", title: "préparer ses affaires" },
+      { id: "sortie", title: "sortie active" },
+    ],
+    turn_frame: switchFrame,
+    last_track_commit: {
+      target_item_id: "affaires",
+      target_title: "préparer ses affaires",
+      progress_status: "completed",
+    },
+    write_progress: async (input) => {
+      writes.push(input);
+      return { logged_progress_id: "should-not-write" };
+    },
+  });
+  assertEquals(result.status, "needs_clarify");
+  assertEquals(result.debug.reason_code, "target_switch_ambiguous");
+  assertEquals(writes.length, 0);
+});

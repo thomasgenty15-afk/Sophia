@@ -5,14 +5,30 @@ import type {
   WriteDecision,
 } from "./types.ts";
 import type { MemorizerPersistRepository } from "./persist.ts";
+import type { CandidateTopicPlan, CreatedTopicRef } from "./create_topics.ts";
 
 export class InMemoryMemorizerRepository implements MemorizerPersistRepository {
   runs: MemoryExtractionRunRow[] = [];
   processing: MessageProcessingRow[] = [];
   memoryWrites: PersistedMemoryWrite[] = [];
+  createdTopics: Array<CandidateTopicPlan & { topic_id: string }> = [];
   updates: Array<{ id: string; patch: Record<string, unknown> }> = [];
   estimatedCostForUserDay = 0;
   nextRun = 1;
+  nextTopic = 1;
+
+  async createCandidateTopics(args: {
+    user_id: string;
+    topics: CandidateTopicPlan[];
+  }): Promise<CreatedTopicRef[]> {
+    return args.topics.map((plan) => {
+      const existing = this.createdTopics.find((t) => t.slug === plan.slug);
+      if (existing) return { slug: plan.slug, topic_id: existing.topic_id };
+      const topic_id = `topic-${this.nextTopic++}`;
+      this.createdTopics.push({ ...plan, topic_id });
+      return { slug: plan.slug, topic_id };
+    });
+  }
 
   async findExtractionRun(args: {
     user_id: string;

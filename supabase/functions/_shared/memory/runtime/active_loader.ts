@@ -4,6 +4,8 @@ import { buildMemoryV2LoaderPlan } from "./dispatcher_plan_adapter.ts";
 import { detectMemorySignals } from "./signal_detection.ts";
 import { resolveTemporalReferences } from "./temporal_resolution.ts";
 import { routeTopic, type TopicRouterTopic } from "./topic_router.ts";
+import { parseVectorColumn } from "../../pgvector.ts";
+import { geminiEmbed } from "../../llm.ts";
 import {
   readActiveTopicStateV2,
   updateActiveTopicStateV2,
@@ -153,9 +155,9 @@ async function loadTopicsForActiveLoader(
     title: String(row.title ?? row.slug ?? row.topic_slug ?? "topic"),
     search_doc: row.search_doc ?? null,
     lifecycle_stage: row.lifecycle_stage ?? null,
-    embedding: Array.isArray(row.search_doc_embedding)
-      ? row.search_doc_embedding
-      : null,
+    // PostgREST returns pgvector columns as JSON strings — parse them or the
+    // topic router silently degrades to lexical matching.
+    embedding: parseVectorColumn(row.search_doc_embedding),
   }));
   return {
     active: topics.find((topic) => topic.id === activeTopicId) ?? topics[0] ??
@@ -289,6 +291,9 @@ export function formatMemoryV2PayloadForPrompt(
       payload.topic_id ?? "none"
     }; hints=${payload.hints.length ? payload.hints.join(",") : "none"}`,
     "Consignes:",
+    "- PRIORITE ABSOLUE — restitution d'un fait confie: si le user demande de restituer ou verifier un fait (date, nom, chiffre, objectif) et qu'un souvenir charge ci-dessous le contient, ta reponse DOIT citer ce fait tel quel. Un souvenir charge prime sur toute reconstruction depuis la conversation.",
+    "- Si le fait demande n'est PAS dans les souvenirs charges, dis-le simplement, sans supposer ni approximer.",
+    "- Pour un bilan ou une demande du type 'ce que tu sais de moi', appuie-toi d'abord sur les souvenirs charges et cite leurs faits concrets, pas seulement l'ambiance de la conversation.",
     "- Utilise uniquement ces souvenirs comme contexte memoire durable V2 pour cette reponse.",
     "- Si un souvenir est liste ci-dessous, tu y as acces pour ce tour: ne reponds pas que tu n'as pas acces a l'historique.",
     "- Quand la question demande ce qu'il faut eviter, proposer ou recommander, priorise les lignes marquees CONTRAINTE UTILISATEUR avant les souvenirs generaux.",
@@ -301,7 +306,7 @@ export function formatMemoryV2PayloadForPrompt(
     "- Ne deduis jamais le prenom du user depuis un souvenir du type 'X est mon/ma ...'; X est une personne tierce sauf souvenir contraire explicite.",
     "- Quand une ligne SENSITIVE_DIRECT est chargee parce que le user demande explicitement le sujet, nomme le sujet sobrement et rappelle qu'il est sensible si le souvenir le dit.",
     "- Quand une ligne PRIVACY_BOUNDARY est chargee, elle sert a eviter une divulgation hors contexte; ne l'utilise pas comme raison de refuser une demande directe autorisee.",
-    "- N'invente pas de duree, frequence, quantite, nom ou objectif absent des souvenirs charges ou du message courant.",
+    "- N'invente pas de date, temporalite, duree, frequence, quantite, nom ou objectif absent des souvenirs charges ou du message courant.",
     "- Ne revele jamais les ids internes ni les details de provenance.",
     "- Si le contexte est insuffisant ou ambigu, demande une precision au user.",
   ];
@@ -453,12 +458,32 @@ export async function runMemoryV2ActiveLoader(
       input.userId,
       activeState.active_topic_id,
     );
+    // Embedding du message pour le routage semantique. Best-effort et borne
+    // dans le temps: en echec, le routeur retombe sur le lexical (repli).
+    // Sans cet embedding, cosineSimilarity n'a jamais tourne au runtime et le
+    // routage etait lexical-only (constat QA du 10/07: items ranges dans les
+    // mauvais topics sur les questions de rappel).
+    let messageEmbedding: number[] | null = null;
+    try {
+      messageEmbedding = await withTimeout(
+        geminiEmbed(input.userMessage, input.requestId ?? undefined, {
+          source: "memory-v2:runtime_topic_router",
+          userId: input.userId,
+          operationName: "memory.runtime_message_vectorization",
+        }),
+        Math.max(500, envNumber("memory_v2_message_embed_timeout_ms", 2000)),
+        "memory_v2_message_embed",
+      );
+    } catch {
+      messageEmbedding = null;
+    }
     const topicRoute = await routeTopic({
       message: input.userMessage,
       retrieval_mode: loaderPlan.retrieval_mode,
       signals,
       active_topic: topics.active,
       candidate_topics: topics.candidates,
+      message_embedding: messageEmbedding,
       recent_messages: (input.history ?? [])
         .slice(-5)
         .map((m) => String(m?.content ?? m ?? "")),

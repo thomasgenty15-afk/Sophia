@@ -57,6 +57,8 @@ export type TrackProgressRequestedEffect = {
 };
 
 export type TrackProgressDirectEffectResult = {
+  /** P2-4a: slots additionnels portés au 3g (ex. retarget_from_candidate). */
+  known_slots_extra?: Record<string, unknown> | null;
   detected: boolean;
   intent: TrackProgressIntent;
   status:

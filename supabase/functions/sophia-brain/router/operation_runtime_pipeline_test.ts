@@ -476,3 +476,48 @@ Deno.test("direct effect runtime merges ledger into visible runtime without dete
     "checkin-1",
   );
 });
+
+Deno.test("dedupe committed → statut terminal superseded_by_dedup, comptabilité soldée (P2-6, eva-global17 R1-B03)", () => {
+  const merged = mergeDirectEffectRuntimeIntoVisibleRuntime({
+    directRuntime: {
+      content: "",
+      nextTempMemory: {},
+      toolExecution: "success",
+      executedTools: ["create_one_shot_reminder"],
+      toolSkillRun: {
+        requested_effects: [{ type: "create_one_shot_reminder" }],
+        allowed_effects: [{ type: "create_one_shot_reminder" }],
+        committed_effects: [{
+          type: "create_one_shot_reminder",
+          id: "chk-1",
+          local_label: "21h15",
+        }],
+        blocked_effects: [],
+      },
+    },
+    visibleRuntime: {
+      content: "ok",
+      nextTempMemory: {},
+      toolExecution: "success",
+      executedTools: ["create_one_shot_reminder"],
+      toolSkillRun: {
+        requested_effects: [{ type: "create_one_shot_reminder" }],
+        allowed_effects: [{ type: "create_one_shot_reminder" }],
+        committed_effects: [{
+          type: "create_one_shot_reminder",
+          id: "chk-1",
+          local_label: "21h15",
+        }],
+        blocked_effects: [],
+      },
+    },
+  });
+  const run = merged?.toolSkillRun as Record<string, unknown>;
+  const committed = run.committed_effects as unknown[];
+  const superseded = run.superseded_effects as Array<Record<string, unknown>>;
+  // UNE écriture réelle, et le doublon reçoit un statut terminal explicite —
+  // requested(2) = committed(1) + superseded(1).
+  assertEquals(committed.length, 1);
+  assertEquals(superseded.length, 1);
+  assertEquals(superseded[0].reason_code, "superseded_by_dedup");
+});

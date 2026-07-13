@@ -37,6 +37,12 @@ function makeFakeSupabase(rowsByTable: TableRowsByName) {
         like(_col: string, _val: string) {
           return this;
         },
+        gte(_col: string, _val: unknown) {
+          return this;
+        },
+        not(_col: string, _op: string, _val: unknown) {
+          return this;
+        },
         in(_col: string, _vals: unknown[]) {
           return this;
         },

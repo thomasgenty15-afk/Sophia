@@ -348,6 +348,7 @@ export function buildPotionActivationPrompt(args: {
   potionScope?: PotionScopeSelection | null;
   rappelScope?: RappelScopeSelection | null;
   targetBinding?: Record<string, unknown> | null;
+  recentContext?: string | null;
 }): string {
   const answerLines = args.definition.questionnaire.map((question) => {
     const rawAnswer = args.answers[question.id];
@@ -510,7 +511,7 @@ ${JSON.stringify(args.context.questionnaire_answers ?? {}, null, 2)}
 
 ${formatPotionBaseContextForPrompt(args.baseContext)}
 ${potionScopeBlock}
-
+${args.recentContext ? `\n${args.recentContext}\n` : ""}
 Rappels importants:
 - traite d'abord l'etat interieur, pas la mecanique du plan
 - si la potion est de clarte, l'etat interieur est la perte de sens du plan: reconnecte les actions au pourquoi profond quand il est disponible

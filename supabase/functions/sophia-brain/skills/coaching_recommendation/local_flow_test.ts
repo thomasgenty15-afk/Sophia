@@ -4170,3 +4170,635 @@ Deno.test("la doctrine de coherence potion s'applique des la collecte, sans cadr
     true,
   );
 });
+
+Deno.test("coaching local dispatcher prompt defines the deep discursive deposit exit (nav-frontieres NAV-B01)", async () => {
+  const source = await Deno.readTextFile(
+    new URL("./local_flow.ts", import.meta.url),
+  );
+  assertEquals(
+    source.includes("Regle prioritaire DEPOT DISCURSIF PROFOND"),
+    true,
+  );
+  assertEquals(
+    source.includes(
+      "prime sur la continuation du flow ET sur une recommandation deja posee",
+    ),
+    true,
+  );
+  assertEquals(
+    source.includes("Abandon de recommandation sur depot discursif"),
+    true,
+  );
+  assertEquals(
+    source.includes(
+      "l'invariant 'recommandation active interdit l'exit' ne s'applique pas",
+    ),
+    true,
+  );
+  // La regle "changement de cible local action→emotion" ne doit plus avaler le
+  // depot discursif (c'etait le piege de B6/B7 du run nav-frontieres-r1).
+  assertEquals(
+    source.includes("n'est PAS un changement de cible vers emotional"),
+    true,
+  );
+  // Le rejet d'une reco suivi d'un depot de fond route vers la sortie
+  // discursive, pas vers "clarifie ou soutiens" dans le flow.
+  assertEquals(
+    source.includes(
+      "S'il decline ET depose un sujet de fond ou dit vouloir juste parler",
+    ),
+    true,
+  );
+  // Anti-faux-positifs conserves: l'emotion liee a l'action avec demande
+  // d'aide et le suivi de carte restent du coaching.
+  assertEquals(
+    source.includes("reste du coaching; un suivi de la carte en cours"),
+    true,
+  );
+});
+
+// Replay B7 du run nav-frontieres-r1: coaching emotional actif avec une potion
+// deja recommandee (state_potion), le user refuse la potion et depose un sujet
+// de fond ("je veux juste parler"). Le garde ne doit PAS convertir la sortie en
+// continuation (active_flow_non_critical_exit_blocked): une sortie propre
+// (exit_ack, recommendation nulle, candidates vides) est preservee meme avec
+// une recommandation posee dans le state precedent.
+Deno.test("coaching reducer preserves a clean discursive-deposit exit despite a standing recommendation", () => {
+  const reduced = reduceCoachingRecommendationLocalDispatcherOutput({
+    previous: {
+      stage: "recommend" as const,
+      user_need_summary: "Se sent a cote de sa vie, procrastine le soir.",
+      candidate_features: [{
+        feature: "state_potion" as const,
+        fit: "high" as const,
+        why: "Etat emotionnel global.",
+        destination_hint: "Potions",
+      }],
+      current_recommendation: {
+        feature: "state_potion" as const,
+        fit: "high" as const,
+        why: "Potion clarte pour retrouver le sens.",
+        destination_hint: "Potions",
+      },
+      secondary_recommendation: null,
+      unresolved_question: null,
+      last_answer_summary: "Potion clarte recommandee.",
+      parent_flow_id: null,
+      parent_return_focus: null,
+      parent_action_context: null,
+      parent_state_summary: null,
+      coaching_type: "emotional" as const,
+      coaching_type_confidence: "high",
+      coaching_type_evidence: ["sentiment d'etre a cote de sa vie"],
+      pending_type_change: null,
+      dispatcher_signal_context: {
+        coaching_type: "emotional" as const,
+        confidence: 0.9,
+        action_context: null,
+        reason: "Etat emotionnel global.",
+      },
+      difficulty: null,
+      cause_analysis: null,
+      recommendation_decision: null,
+      last_visible_task_kind: "emotion_coaching" as const,
+      turn_count: 3,
+      max_turns: 4,
+    },
+    output: decision({
+      flow_action: "exit_to_global_dispatcher",
+      coaching_intent: {
+        kind: "general_support",
+        summary:
+          "Le user refuse la potion et depose un sujet de fond: vide depuis sa rupture, il veut juste en parler.",
+      },
+      target_switch: {
+        status: "none",
+        to_coaching_type: null,
+        target: null,
+      },
+      recommendation: {
+        primary_feature: null,
+        secondary_feature: null,
+        why_primary: null,
+        user_facing_next_step: null,
+      },
+      feature_candidates: [],
+      state_updates: {
+        stage: "followup",
+        status: "exit_to_global",
+        turn_count_increment: 1,
+        close_after_visible: false,
+      },
+      visible_task: {
+        kind: "exit_ack",
+        instruction:
+          "Accuser le depot et rendre la main au dispatcher global (discussion de fond).",
+        conversation_context: {
+          state_summary: "Depot discursif profond, hors cadre coaching.",
+          known_values: {},
+          missing_or_weak_values: [],
+          candidate_features: [],
+          recommendation: {},
+          tone_constraints: [],
+          do_not_say: [],
+          evidence_used: [],
+        },
+      },
+      note_information: {
+        needed: true,
+        reason: "deep_discussion_deposit",
+        summary:
+          "Refus de la potion; depuis sa rupture en mars il joue un role et se sent vide le soir; veut juste parler.",
+      },
+      evidence: [
+        "Non j'ai pas envie d'une potion la. J'ai juste envie de parler pour une fois.",
+      ],
+    }),
+    userMessage:
+      "Non j'ai pas envie d'une potion là. J'ai juste envie de parler pour une fois. Depuis ma rupture en mars je fais tout ce qu'il faut mais c'est comme si je jouais un rôle.",
+  });
+
+  assertEquals(reduced.status, "exit");
+  assertEquals(reduced.reason_code, "coaching_recommendation_exit_to_global");
+  assertEquals(reduced.diagnosis.exit_rejected_reason, null);
+  assertEquals(reduced.local_state, null);
+  assertEquals(reduced.note_information !== null, true);
+});
+
+Deno.test("le handoff de creation coupe la re-explication (paul-triflow15 B03)", () => {
+  const prompt = coachingDispatcherPromptForTest(
+    {
+      user_id: "user-test",
+      request_id: "req-test",
+      user_message: "ok vas-y cree-la",
+      recent_messages: [],
+      previous_state: null,
+      active_plan_items: [],
+      turn_frame: null,
+    } as any,
+  );
+  // Positif: l'ordre de creation devient un handoff qui acte, plus une explication.
+  assertEquals(
+    prompt.includes(
+      "Bascule vers la CREATION = handoff produit, jamais une re-explication",
+    ),
+    true,
+  );
+  assertEquals(
+    prompt.includes("state_updates.materialization_handoff_done=true"),
+    true,
+  );
+  // Ratchet: un 2e ordre de creation apres handoff = 1-2 phrases nettes.
+  assertEquals(prompt.includes("handoff NET en 1-2 phrases"), true);
+  assertEquals(
+    prompt.includes("ZERO re-explication, ZERO re-definition"),
+    true,
+  );
+  // Anti-faux-positif: une vraie question de contenu apres handoff reste servie.
+  assertEquals(
+    prompt.includes("je mets quoi dans le geste de retour"),
+    true,
+  );
+  // Le miroir visible: l'agent ne re-sert jamais la definition sur un handoff.
+  assertEquals(
+    COACHING_VISIBLE_GLOBAL_RULES.includes(
+      "Ordre de creation ('cree-la') = handoff, pas explication",
+    ),
+    true,
+  );
+});
+
+Deno.test("materialization_handoff_done se normalise et se cliquete dans l'etat (paul-triflow15 B03)", () => {
+  // Normalisation: absent → false, true explicite → true.
+  const absent = decision({});
+  assertEquals(absent.state_updates.materialization_handoff_done, false);
+  const set = decision({
+    state_updates: {
+      stage: "followup",
+      status: "active",
+      turn_count_increment: 1,
+      close_after_visible: false,
+      materialization_handoff_done: true,
+    },
+  });
+  assertEquals(set.state_updates.materialization_handoff_done, true);
+
+  const basePrevious = {
+    stage: "recommend" as const,
+    user_need_summary: "Carte de defense presentee.",
+    candidate_features: [],
+    current_recommendation: null,
+    secondary_recommendation: null,
+    unresolved_question: null,
+    last_answer_summary: null,
+    parent_flow_id: null,
+    parent_return_focus: null,
+    parent_action_context: null,
+    parent_state_summary: null,
+    coaching_type: "plan_action" as const,
+    coaching_type_confidence: "high" as const,
+    coaching_type_evidence: ["plan"],
+    pending_type_change: null,
+    dispatcher_signal_context: {
+      coaching_type: "plan_action" as const,
+      confidence: 0.9,
+      action_context: {
+        source: "plan" as const,
+        plan_item_id: "item-1",
+        action_title: "Preparer le dossier mutuelle",
+      },
+      reason: "Plan action launch blocker.",
+    },
+    difficulty: null,
+    cause_analysis: null,
+    recommendation_decision: null,
+    last_visible_task_kind: "action_plan_coaching" as const,
+    turn_count: 1,
+    max_turns: 4,
+  };
+
+  // Le tour du handoff pose le flag dans l'etat.
+  const handoffTurn = reduceCoachingRecommendationLocalDispatcherOutput({
+    previous: basePrevious,
+    output: decision({
+      state_updates: {
+        stage: "followup",
+        status: "active",
+        turn_count_increment: 1,
+        close_after_visible: false,
+        materialization_handoff_done: true,
+      },
+    }),
+    userMessage: "ok cree-la",
+  });
+  assertEquals(handoffTurn.local_state?.materialization_handoff_done, true);
+
+  // Cliquet: au tour suivant, meme si le dispatcher omet le flag, il reste true.
+  const nextTurn = reduceCoachingRecommendationLocalDispatcherOutput({
+    previous: { ...basePrevious, materialization_handoff_done: true },
+    output: decision({}),
+    userMessage: "cree-la s'il te plait",
+  });
+  assertEquals(nextTurn.local_state?.materialization_handoff_done, true);
+
+  // Anti-faux-positif: sans handoff, le flag reste false/absent.
+  const noHandoff = reduceCoachingRecommendationLocalDispatcherOutput({
+    previous: basePrevious,
+    output: decision({}),
+    userMessage: "explique-moi la difference",
+  });
+  assertEquals(
+    noHandoff.local_state?.materialization_handoff_done ?? false,
+    false,
+  );
+});
+
+Deno.test("le pivot emotionnel doux sort du flow coaching sans refus frontal (rose-multiflow B02, eva-g16 B02)", () => {
+  const prompt = coachingDispatcherPromptForTest(
+    {
+      user_id: "user-test",
+      request_id: "req-test",
+      user_message: "j'ai juste besoin d'etre rassuree la",
+      recent_messages: [],
+      previous_state: null,
+      active_plan_items: [],
+      turn_frame: null,
+    } as any,
+  );
+  // Positif: la sortie discursive couvre le pivot doux (reassurance/cloture apaisee).
+  assertEquals(
+    prompt.includes("Sortie sur PIVOT EMOTIONNEL DOUX"),
+    true,
+  );
+  assertEquals(
+    prompt.includes("n'exige NI refus frontal NI depot long"),
+    true,
+  );
+  // eva-g16 B02: un depot de ressenti de fond sans demande d'outil sort aussi,
+  // jamais un pitch de potion.
+  assertEquals(
+    prompt.includes(
+      "depot d'un ressenti de fond (solitude, vide) sans demande d'outil",
+    ),
+    true,
+  );
+  assertEquals(
+    prompt.includes("ni un pitch de potion sur ce pivot"),
+    true,
+  );
+  // Anti-repetition inter-tours sur le pivot (rose T13).
+  assertEquals(
+    prompt.includes(
+      "Ne re-sers JAMAIS la formule de soutien d'un tour precedent",
+    ),
+    true,
+  );
+  // Anti-faux-positifs: methode/continuation de carte restent du coaching.
+  assertEquals(
+    prompt.includes(
+      "une demande de methode ou de continuation de la carte reste du coaching",
+    ),
+    true,
+  );
+  // Non-regression: la sortie refus frontal / depot profond reste ancree.
+  assertEquals(
+    prompt.includes("Regle prioritaire DEPOT DISCURSIF PROFOND"),
+    true,
+  );
+});
+
+Deno.test("la coherence technique s'applique aux cartes: le mot-cle ne choisit pas la carte (eva-g16 B03)", () => {
+  const prompt = coachingDispatcherPromptForTest(
+    {
+      user_id: "user-test",
+      request_id: "req-test",
+      user_message: "vas-y pour l'attaque",
+      recent_messages: [],
+      previous_state: null,
+      active_plan_items: [],
+      turn_frame: null,
+    } as any,
+  );
+  // Positif: le contrat technique_coherence couvre explicitement les cartes.
+  assertEquals(
+    prompt.includes("Les CARTES suivent exactement le meme contrat"),
+    true,
+  );
+  assertEquals(
+    prompt.includes(
+      "requested_technique='attack_card' et suggested_technique='defense_card'",
+    ),
+    true,
+  );
+  assertEquals(
+    prompt.includes(
+      "le mot-cle user ne choisit JAMAIS la carte, la nature de l'action choisit",
+    ),
+    true,
+  );
+  // Non-regression: le micro-cadre nature d'action → technique reste la base.
+  assertEquals(
+    prompt.includes("Micro-cadre nature d'action → technique"),
+    true,
+  );
+  // Miroir visible: interdiction de la contradiction definition/conclusion.
+  assertEquals(
+    COACHING_VISIBLE_GLOBAL_RULES.includes(
+      "Coherence definition↔conclusion (eva-g16 B03)",
+    ),
+    true,
+  );
+  assertEquals(
+    COACHING_VISIBLE_GLOBAL_RULES.includes(
+      "INTERDIT de decrire un cas qui matche la definition defense et de conclure 'attaque'",
+    ),
+    true,
+  );
+  // Anti-faux-positif: un vrai moment de demarrage demande en attaque reste servi
+  // sans doute (le contrat ne cree un doute que sur mismatch nature/wording).
+  assertEquals(
+    prompt.includes(
+      "Une vraie fenetre de rupture demandee comme mot de bascule reste servie sans doute",
+    ),
+    true,
+  );
+});
+
+Deno.test("le tour du handoff de creation ne clot jamais le flow (probe qa-v6-p6)", () => {
+  // Positif: meme si le dispatcher rend closing/close_after_visible, le tour
+  // qui pose materialization_handoff_done reste actif — le re-ordre de
+  // creation doit retomber dans ce flow (ou vit le cliquet).
+  const output = decision({
+    state_updates: {
+      stage: "followup",
+      status: "closing",
+      turn_count_increment: 1,
+      close_after_visible: true,
+      materialization_handoff_done: true,
+    },
+  });
+  assertEquals(output.state_updates.status, "active");
+  assertEquals(output.state_updates.close_after_visible, false);
+  assertEquals(output.state_updates.materialization_handoff_done, true);
+
+  // Anti-faux-positif: sans handoff, closing reste closing (rose-r5 B01:
+  // la collecte finie CLOT la construction).
+  const closing = decision({
+    state_updates: {
+      stage: "closing",
+      status: "closing",
+      turn_count_increment: 1,
+      close_after_visible: true,
+    },
+  });
+  assertEquals(closing.state_updates.status, "closing");
+  assertEquals(closing.state_updates.close_after_visible, true);
+});
+
+Deno.test("la branche exit exécute le direct effect avant de rendre la main (P0-1, ALEX-CPR-B01)", async () => {
+  // Positif: un rappel explicite demandé AU TOUR de sortie n'est jamais
+  // perdu — l'exécuteur de lane est appelé avant le return exit.
+  const executorCalls: any[] = [];
+  const output = await runCoachingRecommendationSkill({
+    user_message:
+      "Laisse tomber la carte. Par contre rappelle-moi à 22h30 de poser le téléphone.",
+    context: {
+      skill_id: "coaching_recommendation",
+      user_id: "u1",
+      recent_messages: [],
+      active_skill_working_state: null,
+      turn_frame: {
+      skill_signals: {
+        coaching_recommendation: {
+          detected: true,
+          confidence_band: "high",
+          context: {
+            coaching_type: "no_plan_action",
+            confidence: 0.9,
+            action_context: { source: "free" },
+            reason: "Blocage personnel identifiable.",
+          },
+        },
+      },
+    } as any,
+      relevant_memory_items: [],
+      plan_items: [],
+      product_surfaces: [],
+      exclusions: [],
+      runtime_context: {},
+    } as any,
+    local_dispatcher: async () =>
+      decision({
+        flow_action: "exit_to_global_dispatcher",
+        coaching_intent: {
+          kind: "general_support",
+          summary: "Depot discursif, le user veut parler.",
+        },
+        feature_candidates: [],
+        recommendation: {
+          primary_feature: null,
+          secondary_feature: null,
+          why_primary: null,
+          user_facing_next_step: null,
+        },
+        state_updates: {
+          stage: "closing",
+          status: "exit_to_global",
+          turn_count_increment: 1,
+          close_after_visible: false,
+        },
+        visible_task: {
+          kind: "exit_ack",
+          instruction: "",
+          conversation_context: {
+            state_summary: "exit",
+            known_values: {},
+            missing_or_weak_values: [],
+            candidate_features: [],
+            recommendation: {},
+            tone_constraints: [],
+            do_not_say: [],
+            evidence_used: [],
+          },
+        },
+        note_information: {
+          audience: "global_dispatcher",
+          summary: "Le user veut parler du fond.",
+        },
+        direct_effect_request: {
+          requested: true,
+          effect_type: "create_one_shot_reminder",
+          explicitness: "explicit",
+          target_status: "identified",
+          confidence_band: "high",
+          payload_hint: {
+            raw_text: "rappelle-moi à 22h30 de poser le téléphone",
+            when_hint: "à 22h30",
+            UTC_time: "2026-05-29T20:30:00.000Z",
+            local_label: "22:30",
+            instruction_hint: "poser le téléphone",
+          },
+          reason: "rappel explicite au tour de sortie",
+        },
+      }),
+    direct_effect_executor: (async (request: any) => {
+      executorCalls.push(request);
+      return { turn_frame: null };
+    }) as any,
+    visible_agent: (async () => "jamais appelé sur exit") as any,
+  } as any);
+
+  assertEquals(output.status, "exit");
+  assertEquals(executorCalls.length, 1);
+  assertEquals(executorCalls[0]?.effect_type, "create_one_shot_reminder");
+
+  // Anti-faux-positif: exit SANS direct_effect_request → exécuteur jamais appelé.
+  const noRequestCalls: any[] = [];
+  const clean = await runCoachingRecommendationSkill({
+    user_message: "Laisse tomber, je veux juste parler.",
+    context: {
+      skill_id: "coaching_recommendation",
+      user_id: "u1",
+      recent_messages: [],
+      active_skill_working_state: null,
+      turn_frame: {
+      skill_signals: {
+        coaching_recommendation: {
+          detected: true,
+          confidence_band: "high",
+          context: {
+            coaching_type: "no_plan_action",
+            confidence: 0.9,
+            action_context: { source: "free" },
+            reason: "Blocage personnel identifiable.",
+          },
+        },
+      },
+    } as any,
+      relevant_memory_items: [],
+      plan_items: [],
+      product_surfaces: [],
+      exclusions: [],
+      runtime_context: {},
+    } as any,
+    local_dispatcher: async () =>
+      decision({
+        flow_action: "exit_to_global_dispatcher",
+        coaching_intent: {
+          kind: "general_support",
+          summary: "Depot discursif.",
+        },
+        feature_candidates: [],
+        recommendation: {
+          primary_feature: null,
+          secondary_feature: null,
+          why_primary: null,
+          user_facing_next_step: null,
+        },
+        state_updates: {
+          stage: "closing",
+          status: "exit_to_global",
+          turn_count_increment: 1,
+          close_after_visible: false,
+        },
+        visible_task: {
+          kind: "exit_ack",
+          instruction: "",
+          conversation_context: {
+            state_summary: "exit",
+            known_values: {},
+            missing_or_weak_values: [],
+            candidate_features: [],
+            recommendation: {},
+            tone_constraints: [],
+            do_not_say: [],
+            evidence_used: [],
+          },
+        },
+        note_information: {
+          audience: "global_dispatcher",
+          summary: "Le user veut parler.",
+        },
+      }),
+    direct_effect_executor: (async (request: any) => {
+      noRequestCalls.push(request);
+      return { turn_frame: null };
+    }) as any,
+    visible_agent: (async () => "jamais appelé sur exit") as any,
+  } as any);
+  assertEquals(clean.status, "exit");
+  assertEquals(noRequestCalls.length, 0);
+});
+
+Deno.test("la demande tactique immédiate livre un geste, pas une re-reco d'outil (paul-triflow r2 B01)", () => {
+  const prompt = coachingDispatcherPromptForTest(
+    {
+      user_id: "user-test",
+      request_id: "req-test",
+      user_message: "Donne-moi un seul truc pour ce soir, pour pas rechuter dans le canapé.",
+      recent_messages: [],
+      previous_state: null,
+      active_plan_items: [],
+      turn_frame: null,
+    } as any,
+  );
+  // Positif: le geste unique se livre, sans re-vendre le dispositif acté.
+  assertEquals(prompt.includes("Demande TACTIQUE IMMEDIATE"), true);
+  assertEquals(
+    prompt.includes("le tour LIVRE le geste unique demande"),
+    true,
+  );
+  assertEquals(
+    prompt.includes(
+      "Re-recommander de CONSTRUIRE l'outil deja handoffe sur cette demande est INTERDIT",
+    ),
+    true,
+  );
+  // Anti-faux-positif: la demande de méthode/outil garde la reco.
+  assertEquals(
+    prompt.includes(
+      "une demande de METHODE ou d'OUTIL ('quel outil je devrais utiliser'",
+    ),
+    true,
+  );
+});

@@ -365,6 +365,16 @@ export function recordFailedEffect(
   return recordEffect(ledger, "failed", entry);
 }
 
+// P2-6 (eva-global17 R1-B03): statut terminal explicite pour une entrée
+// absorbée par la dédup de convergence idempotente — la comptabilité ne ment
+// plus par omission (somme des statuts terminaux = requested).
+export function recordSupersededEffect(
+  ledger: EffectLedger,
+  entry: Omit<EffectLedgerEntry, "status">,
+): EffectLedgerEntry {
+  return recordEffect(ledger, "superseded", entry);
+}
+
 export function hasCommittedEffect(
   ledger: EffectLedger,
   predicate: (entry: EffectLedgerEntry) => boolean,

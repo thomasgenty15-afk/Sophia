@@ -41,8 +41,11 @@ export const WHATSAPP_TEMPLATE_CATALOG: Record<
   },
   sophia_reminder_consent_v1_: {
     name: "sophia_reminder_consent_v1_",
+    // NOTE: keep this body in sync with the Meta-approved template. The button
+    // label was changed to "Pas maintenant" (decline is recognized by the
+    // isCheckinLater regex in whatsapp-webhook/index.ts).
     body: "Hello, tu veux que je t'envoie ton rendez-vous maintenant ? 😊",
-    buttons: ["Avec plaisir !", "Not this time"],
+    buttons: ["Avec plaisir !", "Pas maintenant"],
   },
   end_subscription_v1: {
     name: "end_subscription_v1",
@@ -84,6 +87,39 @@ export const WHATSAPP_TEMPLATE_CATALOG: Record<
     name: "morning_nudge_v1",
     body: "Hello ! Prêt pour ton boost du matin ? 💥",
     buttons: ["Go !"],
+  },
+  // Out-of-24h "bonne journée" variants: self-contained, no button, no pending.
+  // Used only when nothing is planned and the 24h window is closed.
+  morning_light_v1: {
+    name: "morning_light_v1",
+    body:
+      "Hello 🙂 Juste un petit mot pour te souhaiter une belle journée. Rien de prévu de mon côté aujourd'hui, profite bien !",
+    buttons: [],
+  },
+  morning_light_v2: {
+    name: "morning_light_v2",
+    body:
+      "Coucou ✨ Belle journée à toi aujourd'hui. Prends-la à ton rythme, sans te mettre la pression.",
+    buttons: [],
+  },
+  morning_light_v3: {
+    name: "morning_light_v3",
+    body:
+      "Hello ! J'espère que ta journée démarre en douceur. Je reste dispo si tu as besoin, sinon passe une super journée 🙂",
+    buttons: [],
+  },
+  morning_light_v4: {
+    name: "morning_light_v4",
+    body:
+      "Bonjour 🌤️ Une belle journée à toi. Pas d'objectif particulier de mon côté aujourd'hui, juste l'envie de te souhaiter le meilleur.",
+    buttons: [],
+  },
+  // Potion follow-up consent teaser with the potion name injected as {{1}}.
+  // {{1}} carries the already-elided segment ("d'apaisement", "de guérison", …).
+  sophia_potion_reminder_v1: {
+    name: "sophia_potion_reminder_v1",
+    body: "Hello 🙂 Prêt(e) pour ton message {{1}} du jour ?",
+    buttons: ["Oui !"],
   },
   sophia_birthday_v1: {
     name: "sophia_birthday_v1",
@@ -161,4 +197,54 @@ export function renderWhatsAppTemplate(args: {
     known: true,
     params: effectiveParams,
   };
+}
+
+// --- Morning "bonne journée" variants (out-of-24h, self-contained) -----------
+
+export const MORNING_LIGHT_TEMPLATE_VARIANTS = [
+  "morning_light_v1",
+  "morning_light_v2",
+  "morning_light_v3",
+  "morning_light_v4",
+] as const;
+
+// Deterministic rotation keyed on the local date (YYYY-MM-DD). No Math.random /
+// Date.now so the same day always maps to the same variant (idempotent retries).
+export function pickMorningLightVariant(localDateYmd: unknown): string {
+  const digits = String(localDateYmd ?? "").replace(/\D/g, "");
+  let sum = 0;
+  for (const ch of digits) sum += ch.charCodeAt(0);
+  const idx = sum % MORNING_LIGHT_TEMPLATE_VARIANTS.length;
+  return MORNING_LIGHT_TEMPLATE_VARIANTS[idx];
+}
+
+// --- Potion follow-up reminder: elided segment injected as {{1}} -------------
+
+// The value already carries the correct elision so the body reads naturally:
+// "…ton message d'apaisement du jour ?" / "…ton message de guérison du jour ?".
+export const POTION_REMINDER_SEGMENTS: Record<string, string> = {
+  rappel: "de rappel",
+  courage: "de courage",
+  guerison: "de guérison",
+  clarte: "de clarté",
+  amour: "d'amour",
+  apaisement: "d'apaisement",
+};
+
+export function elidedPotionSegment(potionType: unknown): string | null {
+  const key = String(potionType ?? "").trim().toLowerCase();
+  return POTION_REMINDER_SEGMENTS[key] ?? null;
+}
+
+// Build the WhatsApp `components` array injecting the potion segment as {{1}}.
+// Returns null when the potion type is unknown, so callers can fall back to the
+// generic reminder template instead of shipping broken French.
+export function potionReminderComponents(
+  potionType: unknown,
+): unknown[] | null {
+  const segment = elidedPotionSegment(potionType);
+  if (!segment) return null;
+  return [
+    { type: "body", parameters: [{ type: "text", text: segment }] },
+  ];
 }

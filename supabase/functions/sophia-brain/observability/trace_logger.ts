@@ -124,6 +124,31 @@ export async function logConversationTurn(
   trace: ConversationTurnTrace,
   opts: { supabase?: unknown } = {},
 ): Promise<void> {
+  // P1-4 (paul-triflow r2 B02): un insert de trace raté était avalé par un
+  // console.warn côté appelant — des tours entiers disparaissaient de l'audit
+  // (12/15 lignes persistées). Retry borné ici; l'échec final remonte.
+  // Invariant visé: N tours envoyés = N lignes persistées.
+  let lastError: unknown = null;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      await logConversationTurnOnce(trace, opts);
+      return;
+    } catch (error) {
+      lastError = error;
+      if (attempt < 2) {
+        await new Promise((resolve) =>
+          setTimeout(resolve, 250 * (attempt + 1))
+        );
+      }
+    }
+  }
+  throw lastError;
+}
+
+async function logConversationTurnOnce(
+  trace: ConversationTurnTrace,
+  opts: { supabase?: unknown } = {},
+): Promise<void> {
   if (traceSinkForTest) {
     await traceSinkForTest(trace);
     return;

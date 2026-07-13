@@ -732,7 +732,7 @@ export const PRODUCT_HELP_FEATURES: ProductHelpFeature[] = [
       "rappel prevu",
     ],
     explain:
-      "Un rappel ponctuel est un message unique que j'envoie a l'heure convenue (par exemple « rappelle-moi ce soir a 21h de couper les ecrans »). Il se cree directement en conversation avec moi et part une seule fois, contrairement a une initiative qui est recurrente.",
+      "Un rappel ponctuel est un message unique que j'envoie a l'heure convenue (par exemple « rappelle-moi ce soir a 21h de couper les ecrans »). Il se cree directement en conversation avec moi et part une seule fois, contrairement a une initiative qui est recurrente. Matrice canal/surface (nina-untested R1-B04): PONCTUEL = creation, annulation, statut et remplacement DANS LE CHAT (gestion visuelle ensuite dans Dashboard > Initiatives) ; RECURRENT = Dashboard > Initiatives uniquement ; CANAL: si le compte WhatsApp du user est lie a Sophia, les rappels peuvent etre delivres sur WhatsApp, sinon ils vivent dans la conversation web.",
     how_to:
       "Demande-le moi simplement en conversation avec le moment et l'objet (« rappelle-moi demain a 8h30 d'appeler ma soeur »). Une fois cree, il apparait dans Dashboard > Initiatives, dans la section des rappels, ou tu peux le voir, le modifier, le mettre en pause ou le supprimer.",
     benefits: [
@@ -760,6 +760,63 @@ export const PRODUCT_HELP_FEATURES: ProductHelpFeature[] = [
       "Ne pas dire qu'un rappel est programme sans commit prouve.",
       "Ne pas dire que les rappels ponctuels ne sont pas visibles dans l'app: ils apparaissent dans Dashboard > Initiatives.",
       "Ne pas confondre rappel ponctuel (unique) et initiative (recurrente).",
+      "Ne JAMAIS dire que les rappels ponctuels « se gerent dans Dashboard > Initiatives » comme reponse a « ou les creer »: ils se creent et s'annulent DANS LE CHAT (l'app sert a les consulter) — c'est l'erreur observee (nina-untested T1).",
+      "Ne pas rester evasive sur le canal WhatsApp: il existe (avec compte lie), dis-le honnetement avec sa condition.",
+    ],
+  },
+  {
+    id: "account.subscription",
+    label: "Abonnement",
+    aliases: [
+      "abonnement",
+      "formule",
+      "palier",
+      "offre",
+      "upgrade",
+      "passer a la formule au-dessus",
+      "changer de formule",
+      "facturation",
+      "paiement",
+      "prelevement",
+      "resilier",
+      "resiliation",
+      "portail de facturation",
+    ],
+    explain:
+      "L'abonnement Sophia a trois formules: System, Alliance et Architecte (facturation mensuelle ou annuelle), Architecte etant la plus complete. L'abonnement se gere depuis la plateforme via le portail de facturation Stripe: changement de formule (montee ou descente), factures, moyen de paiement. La page Upgrade permet de passer a une formule superieure et affiche le detail des fonctionnalites et des prix de chaque formule — le chat ne les detaille pas.",
+    how_to:
+      "Pour changer de formule: ouvre la page Compte puis « Gerer mon abonnement » (portail de facturation), ou la page Upgrade pour monter de palier. Avant toute confirmation, le portail affiche le detail exact du changement (montant, application immediate ou a la prochaine echeance, prorata eventuel calcule par Stripe): c'est cette page qui fait foi, pas le chat.",
+    benefits: [
+      "Changement de formule en autonomie, avec le detail chiffre affiche avant confirmation.",
+      "Factures et moyen de paiement centralises dans le portail.",
+    ],
+    locations: [
+      {
+        surface: "Compte > Gerer mon abonnement (portail Stripe)",
+        when_visible: "Quand le user a un abonnement actif.",
+        user_can_do: [
+          "changer de formule",
+          "voir les factures",
+          "mettre a jour le moyen de paiement",
+          "resilier",
+        ],
+      },
+      {
+        surface: "Page Upgrade",
+        when_visible: "Quand une formule superieure est disponible.",
+        user_can_do: ["passer a une formule superieure"],
+      },
+    ],
+    limits: [
+      "Rien ne se change depuis le chat: ni formule, ni paiement, ni resiliation.",
+      "Sophia ne connait pas les montants exacts, promotions ou dates de prelevement du compte: le portail de facturation fait foi.",
+      "En cas de suppression de compte, l'abonnement est annule immediatement sans remboursement au prorata (indique dans l'UI de suppression).",
+    ],
+    sophia_must_not_claim: [
+      "Ne jamais citer un montant, un prix, une date de prelevement ou un prorata chiffre: Sophia ne les connait pas (les NOMS de formules System/Alliance/Architecte, eux, peuvent etre cites).",
+      "Ne jamais inventer la liste des fonctionnalites incluses dans une formule: renvoyer a la page Upgrade qui les affiche.",
+      "Ne jamais promettre qu'un changement prend effet immediatement ou a l'echeance: le portail l'affiche au moment du changement.",
+      "Ne pas dire qu'un changement d'abonnement a ete fait depuis le chat.",
     ],
   },
   {

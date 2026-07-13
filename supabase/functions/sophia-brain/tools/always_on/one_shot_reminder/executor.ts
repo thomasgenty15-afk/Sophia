@@ -445,6 +445,49 @@ export async function maybeCreateOneShotReminderFromStructuredEffect(params: {
         user_message: compactText(params.effect.request_text ?? "", 500),
       };
     }
+    // Filet anti-deplacement fantome (round7 S2 T3 / eva-g16 B01): un create
+    // NU dont l'instruction est IDENTIQUE a un pending existant a une AUTRE
+    // heure est presque toujours un deplacement mal etiquete par le
+    // dispatcher (« mets-le plutot a 23h ») — creer ferait deux rappels et
+    // la reponse mentirait (« c'est ajuste »). On ne devine pas: clarify
+    // (deplacer ou ajouter ?), zero write, re-arm au tour suivant (3g).
+    // Comparaison de deux champs STRUCTURES (instruction payload vs
+    // reminder_instruction DB), jamais le texte du message (cmd 0).
+    const normalizedNewInstruction = String(
+      params.effect.reminder_instruction ?? "",
+    )
+      .normalize("NFD").replace(/\p{Diacritic}/gu, "")
+      .toLowerCase().replace(/\s+/g, " ").trim();
+    if (normalizedNewInstruction) {
+      const sameInstruction = pendingRows.find((row) => {
+        const rowSourceMessageId = String(
+          (row?.message_payload as Record<string, unknown> | null | undefined)
+            ?.source_message_id ?? "",
+        ).trim();
+        if (
+          turnSourceMessageId && rowSourceMessageId === turnSourceMessageId
+        ) {
+          return false;
+        }
+        const rowInstruction = String(
+          (row?.message_payload as Record<string, unknown> | null | undefined)
+            ?.reminder_instruction ?? "",
+        )
+          .normalize("NFD").replace(/\p{Diacritic}/gu, "")
+          .toLowerCase().replace(/\s+/g, " ").trim();
+        const rowMs = new Date(String(row?.scheduled_for ?? "")).getTime();
+        return rowInstruction === normalizedNewInstruction &&
+          Number.isFinite(rowMs) && rowMs !== scheduledMs;
+      });
+      if (sameInstruction) {
+        return {
+          detected: true,
+          status: "needs_clarify",
+          reason: "same_instruction_pending",
+          user_message: compactText(params.effect.request_text ?? "", 500),
+        };
+      }
+    }
   } catch (_error) {
     // Lecture non bloquante: en cas d'echec on laisse la creation suivre
     // son cours plutot que de bloquer un rappel legitime.
@@ -516,6 +559,63 @@ export async function maybeCreateOneShotReminder(params: {
     reason: "missing_time",
     user_message: compactText(params.message, 500),
   };
+}
+
+// P2-3c: tokens de contenu (≥4 lettres, hors vocabulaire de la mécanique
+// rappel) — le recouvrement message↔instruction sert UNIQUEMENT à résoudre
+// une cible unique, jamais à deviner entre plusieurs candidats positifs.
+const REMINDER_MATCH_STOPWORDS = new Set([
+  "rappel",
+  "rappels",
+  "rappelle",
+  "demain",
+  "matin",
+  "soir",
+  "midi",
+  "celui",
+  "celle",
+  "pour",
+  "dans",
+  "avec",
+  "annule",
+  "annuler",
+  "remplace",
+  "remets",
+  "supprime",
+  "heure",
+  "vers",
+  "plutot",
+]);
+
+function reminderMatchTokens(text: string): Set<string> {
+  return new Set(
+    String(text ?? "")
+      .normalize("NFD")
+      .replace(/\p{Diacritic}/gu, "")
+      .toLowerCase()
+      .split(/[^a-z0-9]+/)
+      .filter((token) =>
+        token.length >= 4 && !REMINDER_MATCH_STOPWORDS.has(token)
+      ),
+  );
+}
+
+function reminderInstructionOverlapScore(
+  message: string,
+  row: unknown,
+): number {
+  const instruction = String(
+    ((row as Record<string, unknown> | null)?.message_payload as
+      | Record<string, unknown>
+      | undefined)?.reminder_instruction ?? "",
+  );
+  if (!instruction.trim()) return 0;
+  const messageTokens = reminderMatchTokens(message);
+  let overlap = 0;
+  for (const token of reminderMatchTokens(instruction)) {
+    if (messageTokens.has(token)) overlap += 1;
+  }
+  return overlap;
 }
 
 export async function maybeCancelOneShotReminder(params: {
@@ -592,7 +692,7 @@ export async function maybeCancelOneShotReminder(params: {
   }
 
   const textTargetHHMM = extractTargetHHMMFromMessage(params.message);
-  const targets = textTargetHHMM
+  let targets = textTargetHHMM
     ? pendingRows.filter((row: any) =>
       localHHMMForScheduledFor(
         String(row?.scheduled_for ?? ""),
@@ -602,6 +702,20 @@ export async function maybeCancelOneShotReminder(params: {
     : pendingRows.length === 1
     ? pendingRows
     : [];
+
+  // P2-3c (rose-lifecycle R1-B02): résolution par CONTENU D'INSTRUCTION —
+  // « celui de la carto demain matin » nommait la cible de façon unique mais
+  // le matching (heure locale uniquement) rendait replace_target_ambiguous.
+  // Sans heure dans le message, un recouvrement de tokens d'instruction qui
+  // désigne UN SEUL pending résout la cible ; ≥2 candidats positifs = vraie
+  // ambiguïté, clarify inchangé.
+  if (targets.length === 0 && pendingRows.length > 1 && !textTargetHHMM) {
+    const scored = pendingRows.map((row: any) => ({
+      row,
+      score: reminderInstructionOverlapScore(params.message, row),
+    })).filter((entry) => entry.score > 0);
+    if (scored.length === 1) targets = [scored[0].row];
+  }
 
   // Ambiguite: plusieurs pending et aucune heure cible identifiable — on ne
   // devine JAMAIS quoi annuler (l'ancien code ciblait TOUS les pending).

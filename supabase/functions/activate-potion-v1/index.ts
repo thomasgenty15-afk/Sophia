@@ -25,6 +25,11 @@ import {
 import { getRequestContext } from "../_shared/request_context.ts";
 import { loadLabScopeContext } from "../_shared/v2-lab-context.ts";
 import { loadPotionBaseContext } from "../_shared/potion-base-context.ts";
+import {
+  buildPotionInputText,
+  formatPotionRecentContextForPrompt,
+  loadPotionRecentContext,
+} from "../_shared/potion-recent-context.ts";
 import type {
   LabScopeKind,
   PotionScopeSelection,
@@ -94,14 +99,11 @@ function normalizeRappelScope(
     potionType !== "rappel" && potionType !== "courage" &&
     potionType !== "amour" && potionType !== "apaisement"
   ) return null;
-  if (!raw) {
-    return {
-      scope_kind: "out_of_plan",
-      target_scope: null,
-      target_plan_item_id: null,
-      target_label: null,
-    };
-  }
+  // When no explicit scope is provided (amour/apaisement have no scope picker
+  // in the UI), do NOT force out_of_plan: returning null lets the activation
+  // keep the dashboard scope (scope_kind + transformation_id) it was launched
+  // from, so the potion stays attached to the current transformation.
+  if (!raw) return null;
   if (raw.scope_kind === "out_of_plan") {
     return {
       scope_kind: "out_of_plan",
@@ -293,6 +295,13 @@ async function activatePotion(args: {
     );
   }
 
+  const recentContext = await loadPotionRecentContext({
+    admin,
+    userId: args.userId,
+    inputText: buildPotionInputText(args.answers, args.freeText),
+    requestId: args.requestId,
+  });
+
   const raw = await generateWithGemini(
     POTION_SYSTEM_PROMPT,
     buildPotionActivationPrompt({
@@ -303,6 +312,7 @@ async function activatePotion(args: {
       freeText: args.freeText,
       potionScope: rappelBinding.potion_scope,
       targetBinding: rappelBinding.target_binding,
+      recentContext: formatPotionRecentContextForPrompt(recentContext),
     }),
     0.45,
     true,

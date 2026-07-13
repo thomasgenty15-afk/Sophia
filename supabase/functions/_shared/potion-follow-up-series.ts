@@ -26,6 +26,7 @@ export type PotionFollowUpSeriesInput = {
   potionScope?: PotionScopeSelection | null;
   rappelScope?: RappelScopeSelection | null;
   targetBinding?: Record<string, unknown> | null;
+  recentContext?: string | null;
 };
 
 type PotionFollowUpSeriesOptions = {
@@ -1037,6 +1038,7 @@ function buildSeriesPrompt(args: PotionFollowUpSeriesInput): string {
     `Il faut exactement ${args.durationDays} messages, dans l'ordre.`,
     "Chaque message est court, naturel, en tutoiement, non medical, non culpabilisant, et different des autres.",
     "Ne dis pas Bonjour/Salut/Coucou. Ne demande pas de refaire tout le plan.",
+    "Si recent_context est fourni, chaque message DOIT s'ancrer dans le sujet reel de l'utilisateur decrit dedans (sa situation, ses mots, son declencheur), pas dans des generalites d'apaisement; ne recopie pas la conversation et n'invente rien qui n'y soit pas.",
     args.potionType === "clarte"
       ? "Pour clarte, chaque message doit reconnecter le plan au pourquoi profond. Ce n'est pas une aide pour prioriser, decouper ou trouver quoi faire."
       : "Respecte l'intention source sans la recopier mot pour mot.",
@@ -1045,7 +1047,9 @@ function buildSeriesPrompt(args: PotionFollowUpSeriesInput): string {
     guerisonGuidance ?? "",
     amourGuidance ?? "",
     apaisementGuidance ?? "",
-    `Themes a couvrir: ${themes.slice(0, args.durationDays).join(" | ")}`,
+    `Progression indicative des ${args.durationDays} jours (un GUIDE de posture, pas un contenu impose — avec recent_context, le sujet reel de l'utilisateur prime sur ces intitules): ${
+      themes.slice(0, args.durationDays).join(" | ")
+    }`,
   ].filter(Boolean).join("\n");
 }
 
@@ -1072,6 +1076,7 @@ function buildSeriesUserPrompt(args: PotionFollowUpSeriesInput): string {
         plan_items: args.baseContext.plan_items.slice(0, 8),
       }
       : null,
+    recent_context: args.recentContext?.trim() || null,
   });
 }
 

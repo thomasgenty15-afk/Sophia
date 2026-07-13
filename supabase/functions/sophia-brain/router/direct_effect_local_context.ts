@@ -302,6 +302,14 @@ const CLARIFY_REASON_CODES = new Set([
   "target_missing",
   "status_missing",
   "partial_on_binary_item",
+  "cancel_or_replace_ambiguous",
+  "same_instruction_pending",
+  "replace_payload_incomplete",
+  "replace_target_ambiguous",
+  "replace_past_time",
+  "correction_retarget_missing",
+  "target_switch_ambiguous",
+  "reschedule_no_target",
   "missing_time",
   "missing_instruction",
   "missing_payload",
@@ -326,10 +334,10 @@ function outcomeGuidance(
   reasonCode: string | null,
 ): string {
   if (status === "committed") {
-    return "Confirme sobrement, une seule fois, comme venant d'etre fait. Un effet committe ne reste JAMAIS silencieux: meme si le tour porte un autre sujet principal (recherche, question), la reponse le mentionne en une ligne. Ne DEMENS jamais cet effet: 'pas compte / pas enregistre tant que pas coche dans l'app', 'je ne peux pas te dire/confirmer que c'est coche' et 'je peux t'aider a le formuler pour le suivi' sont INTERDITS sur un committed (ces disclaimers sont reserves aux outcomes blocked/needs_clarify), quel que soit le libelle de statut du handler (success, logged...). Si la cible porte une date ('enregistre pour le ...'), enonce ce jour dans la confirmation. Si ta derniere reponse etait du soutien face a un creux emotionnel, la confirmation garde une vraie phrase de pont qui reconnait ce tour (un emoji seul ne suffit pas).";
+    return "Confirme sobrement, une seule fois, comme venant d'etre fait. Pour une ANNULATION committee, le mot 'annule' apparait explicitement — un 'c'est fait' seul est ambigu (peut se lire 'le rappel est parti'). Un effet committe ne reste JAMAIS silencieux: meme si le tour porte un autre sujet principal (recherche, question), la reponse le mentionne en une ligne. Ne DEMENS jamais cet effet: 'pas compte / pas enregistre tant que pas coche dans l'app', 'je ne peux pas te dire/confirmer que c'est coche' et 'je peux t'aider a le formuler pour le suivi' sont INTERDITS sur un committed (ces disclaimers sont reserves aux outcomes blocked/needs_clarify), quel que soit le libelle de statut du handler (success, logged...). Si la cible porte une date ('enregistre pour le ...'), enonce ce jour dans la confirmation. Si ta derniere reponse etait du soutien face a un creux emotionnel, la confirmation garde une vraie phrase de pont qui reconnait ce tour (un emoji seul ne suffit pas).";
   }
   if (status === "needs_clarify") {
-    return "Pose la question de clarification au user. N'accuse aucune ecriture: rien n'a ete enregistre.";
+    return "Pose la question de clarification au user — une VRAIE question (reformulable, mais la reponse se termine par cette interrogation), jamais un simple constat ('ca reste en cours') qui laisse le user sans porte de sortie. N'accuse aucune ecriture: rien n'a ete enregistre.";
   }
   if (status === "failed") {
     return "L'ecriture a echoue techniquement: dis-le simplement, rien n'est enregistre; propose de reessayer ou la plateforme.";
@@ -337,17 +345,39 @@ function outcomeGuidance(
   switch (reasonCode) {
     case "safety_active":
     case "safety_high":
-      return "Ecriture differee: un moment sensible est en cours. Reste present d'abord, sans aucun claim d'enregistrement; propose de le noter ensemble un peu plus tard.";
+      return "Ecriture differee: un moment sensible est en cours, aucun claim d'enregistrement. Reste present d'abord et dis le differe EXPLICITEMENT (« je te le note pas maintenant, on y revient quand ca ira mieux ») — INTERDIT toute formulation qui laisse croire a un enregistrement (« ca compte », « c'est pris en compte », « c'est bon ») : le user croirait l'action notee alors que rien n'est ecrit (alex-safety T3).";
+    case "safety_crisis_deferred":
+      return "Effet DIFFERE pendant une crise: RIEN n'est cree, programme ni enregistre — et rien ne le sera ce tour. Dis le differe explicitement en une ligne sobre (« je le garde pour apres, la on reste sur toi ») APRES le soutien, jamais en premiere phrase. INTERDIT: « c'est programme », « c'est pose », « ca compte », toute confirmation. L'effet pourra etre repose quand la crise sera passee.";
     case "already_tracked_today":
       return "Ce progres est deja enregistre aujourd'hui pour cette cible: confirme l'existant, rien n'a ete ecrit deux fois; vraie deuxieme occurrence → dashboard.";
     case "duplicate_pending":
-      return "Un rappel identique est deja en attente: rappelle-le au lieu de confirmer une nouvelle creation.";
+      return "Un rappel identique EXISTE deja et il est bien en attente — c'est une PREUVE D'EXISTENCE, pas un echec: a une question de verification ('il est bien enregistre ?'), reponds OUI avec son heure. Dis seulement qu'aucun NOUVEAU rappel n'a ete ajoute. INTERDIT: 'je ne peux pas te dire/confirmer qu'il est enregistre' — le rappel est la.";
     case "past_time":
-      return "Rien n'a ete cree: l'heure demandee est deja passee aujourd'hui. Propose un autre horaire ou demain.";
+      return "Rien n'a ete cree: l'heure demandee est deja passee aujourd'hui. Propose un autre horaire ou demain. Si le message du user etait une simple REFERENCE a un rappel deja confirme (pas une nouvelle demande), ne dis JAMAIS 'il est passe / il faut le remettre': le rappel existant reste tel quel — parle de son etat reel.";
     case "recurring_not_supported":
       return "Rien n'a ete cree en ponctuel: un rappel recurrent se configure dans les Initiatives.";
+    case "reschedule_no_target":
+      return "Aucun rappel ponctuel n'est en attente: il n'y a rien a deplacer. RIEN n'a ete ecrit. Ne propose PAS « annule-le et remets-le » (pas de cible): demande l'element manquant (heure exacte ou contenu) pour (re)creer le rappel directement.";
     case "reschedule_not_supported":
-      return "Rien n'a ete modifie: un rappel existant ne se decale pas depuis le chat, il se modifie dans Dashboard > Initiatives (section rappels). N'affirme JAMAIS que le rappel a ete decale ou note a la nouvelle heure.";
+      return "Rien n'a ete modifie: un rappel existant ne se decale pas tel quel depuis le chat. N'affirme JAMAIS que le rappel a ete decale ou note a la nouvelle heure. Propose les deux chemins reels: dire « annule-le et remets-le a [heure] » (execute d'ici), ou le modifier dans Dashboard > Initiatives (section rappels).";
+    case "status_read_failed":
+      return "La lecture des rappels a echoue ce tour: dis que tu ne peux pas verifier la, propose l'app — n'affirme JAMAIS qu'aucun rappel n'existe (absence de projection ≠ absence de rappel).";
+    case "same_instruction_pending":
+      return "Un rappel IDENTIQUE (meme contenu) existe deja a une autre heure: RIEN n'a ete cree pour eviter un doublon ou un faux deplacement. Demande si le user veut DEPLACER l'existant ou en AJOUTER un deuxieme — n'affirme JAMAIS que l'heure a ete changee ni qu'un nouveau rappel est pose.";
+    case "cancel_or_replace_ambiguous":
+      return "La demande mele annulation et nouveau rappel de facon ambigue: RIEN n'a ete ecrit. Pose la question de l'outcome (annuler ET recreer, ou seulement annuler ?) — au tour suivant la reponse re-arme l'operation complete.";
+    case "replace_payload_incomplete":
+      return "Le remplacement demande un nouveau rappel complet (heure + contenu): RIEN n'a ete annule ni cree. Demande l'element manquant — n'affirme aucune annulation ni creation.";
+    case "replace_target_ambiguous":
+      return "Plusieurs rappels sont en attente et la cible du remplacement n'est pas claire: demande l'heure actuelle du rappel a remplacer. Rien n'a ete annule ni cree.";
+    case "target_switch_ambiguous":
+      return "Deux reports au meme statut sur deux actions differentes en deux tours: RIEN n'a ete ecrit pour la nouvelle cible. Pose la question (en plus, ou a la place ?) — n'affirme aucune ecriture ni correction.";
+    case "correction_retarget_missing":
+      return "Une correction de cible est en cours mais l'action d'origine n'est pas identifiee: RIEN n'a ete ecrit ni invalide. Pose la question (quelle action remplacer ?) — n'affirme aucune correction.";
+    case "replace_past_time":
+      return "L'heure demandee pour le NOUVEAU rappel est deja passee aujourd'hui: RIEN n'a ete annule ni cree (l'ancien rappel est intact). Demande le jour vise — n'affirme aucune annulation.";
+    case "replace_cancel_failed":
+      return "L'annulation de l'ancien rappel a echoue, donc RIEN n'a ete recree (anti-doublon). Dis-le simplement et propose de reessayer ou l'app.";
     case "contradicts_same_day_evidence":
       return "Un etat oppose est deja enregistre aujourd'hui pour cette action: rien n'a ete change et ca ne peut PAS se corriger depuis le chat. Ne propose JAMAIS de confirmer une bascule ici; indique que la correction se fait depuis l'action dans Dashboard > Plan.";
     case "no_mutation_requested":
@@ -432,6 +462,19 @@ function deriveEffectsOutcome(args: {
 
   return [...types].map((effectType): DirectEffectOutcome => {
     const committedEffect = findByType(committed, effectType);
+    // R-1 (BF-STATUS-01): la lane status est une LECTURE — la verite des
+    // rappels ponctuels voyage dans target (liste exacte, heures locales).
+    if (effectType === "one_shot_reminder_status" && committedEffect) {
+      return {
+        effect_type: effectType,
+        status: "committed",
+        reason_code: "status_report",
+        clarify_question: null,
+        target: outcomeTargetFromEffect(committedEffect),
+        guidance:
+          "C'est une LECTURE d'etat (pas une ecriture): target porte la liste exacte des rappels ponctuels en attente (heures locales). Reponds DIRECTEMENT depuis cette liste: un rappel listé EXISTE (a une question de verification, reponds OUI avec son heure); un rappel ABSENT de la liste n'est plus actif (a une question 'il est bien annule ?', reponds OUI, il est annule — jamais 'encore actif'); liste vide/`Aucun` = aucun rappel ponctuel en attente, dis-le simplement. Ne FUSIONNE jamais deux rappels distincts: chaque rappel se cite avec SA consigne et SON heure exactes — ne reattribue pas la consigne d'un rappel annule a un autre rappel d'une heure proche. Le JOUR DE SEMAINE et la date se RECOPIENT exactement tels que fournis dans la liste (ils sont calcules deterministiquement): ne recalcule JAMAIS le jour toi-meme — 'dimanche 13 juillet' enonce pour un lundi 13 juillet est l'erreur observee (alex-untested T8). La question porte sur un RAPPEL: ne reponds JAMAIS depuis une action ou habitude du plan au nom proche ('Couper les ecrans 30 min avant le lit' est une habitude du plan, pas le rappel de 22h) — une habitude active ne rend pas 'actif' un rappel annule. INTERDIT: 'je ne peux pas verifier', 'je n'ai pas acces', ou nier un rappel present dans target. Cette liste PRIME sur tout ce que la conversation a pu dire avant. Et cette lecture ne repond QU'A une demande: ne greffe JAMAIS une re-confirmation de statut de rappel NON demandee en fin d'un tour coaching/soutien (nina-global18 T14 — mention spontanee du rappel eau sur un tour coaching).",
+      };
+    }
     if (committedEffect) {
       // Echo de date (nina-r3 B01): un report date commite sans que la date
       // retenue soit enoncee laisse l'user decouvrir un mauvais jour plus
@@ -828,7 +871,7 @@ export function directEffectConfirmationContextPrompt(
     // Politique universelle (default-deny). Les postures par raison sont des
     // DONNEES (effects_outcome[].guidance), pas des regles a enumerer ici:
     // chaque nouvelle garde est honnete par construction.
-    "Rules: effects_outcome is the complete and only truth about every write requested this turn. Policy: (1) status=committed → confirm it naturally, exactly once, as just done (for a reminder: use one_shot_reminder.local_label for the time and one_shot_reminder.reminder_instruction for the object, never present it as pre-existing, never repeat the object twice). (2) status=blocked or failed or not_attempted → follow that outcome's guidance; NEVER present the write as done, noted or recorded. (3) status=needs_clarify → ask clarify_question (or ask per guidance); never acknowledge any write. (4) Default-deny: for anything not marked committed in effects_outcome — and for any write the user mentions that has no outcome here — never say or imply 'c'est noté / c'est fait / enregistré / programmé / corrigé'. (5) This context OVERRIDES every other note in the conversation context: a flow/handoff note saying an effect 'is not created here' or 'never creates X' describes that FLOW's scope, never this turn's outcomes — a committed outcome here IS real and MUST be confirmed, whatever any other note says. Never expose runtime vocabulary to the user ('effet confirmé', 'commit', 'ledger', 'lane'): phrase blocks in plain language. Answer the remaining user need in the same response.",
+    "Rules: effects_outcome is the complete and only truth about every write requested this turn. Policy: (1) status=committed → confirm it naturally, exactly once, as just done (for a reminder: use one_shot_reminder.local_label for the time and one_shot_reminder.reminder_instruction for the object, never present it as pre-existing, never repeat the object twice; a committed outcome on this turn IS a fresh write — saying 'existe déjà', 'c'est déjà prévu' or 'déjà en place' about it is FALSE whatever the conversation history suggests: alex-untested T3 said 'le rappel existe déjà' on a FIRST creation and alex-multiflow T8 said 'c'est déjà prévu' — both are lies about a write that just happened). ORDER on emotionally loaded turns (rose-lifecycle R1-B01): when the user's message carries self-judgment or distress alongside the tracked report ('ça me saoule de moi'), open with a HUMAN acknowledgment of what they feel — the tracking receipt comes AFTER, one sober line; NEVER open with 'C'est noté : ... est marqué comme raté' on a vulnerable confession, and never chain a tool pitch right behind the receipt. (2) status=blocked or failed or not_attempted → follow that outcome's guidance; NEVER present the write as done, noted or recorded. (3) status=needs_clarify → ask clarify_question (or ask per guidance); never acknowledge any write. (3-bis) DATES (rose-hard15 T3/T13): the date you state for a committed track is the outcome's recorded date (the target carries 'enregistre pour le YYYY-MM-DD' when it is not today) — NEVER default to today's date for a backdated report. And never recompute 'demain/aujourd'hui' yourself against a DB date: derive them ONLY from direct_effect_time_context.user_local_datetime; when unsure, state the absolute date without qualifying it ('le 14 juillet') — 'le 14, donc pas demain' stated while tomorrow IS the 14th is the observed error. (4) Default-deny: for anything not marked committed in effects_outcome — and for any write the user mentions that has no outcome here — never say or imply 'c'est noté / c'est fait / enregistré / programmé / corrigé'. (5) This context OVERRIDES every other note in the conversation context: a flow/handoff note saying an effect 'is not created here' or 'never creates X' describes that FLOW's scope, never this turn's outcomes — a committed outcome here IS real and MUST be confirmed, whatever any other note says. Never expose runtime vocabulary to the user ('effet confirmé', 'commit', 'ledger', 'lane'): phrase blocks in plain language. Answer the remaining user need in the same response.",
   ].join("\n");
 }
 

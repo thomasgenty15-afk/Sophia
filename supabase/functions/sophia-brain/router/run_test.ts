@@ -14,6 +14,7 @@ import {
   applySafetyCrisisSkillState,
   buildTurnFrameForRuntime,
   effectLedgerTraceForTest,
+  ensureClarifyQuestionVisible,
   mergeVisibleTextForTest,
 } from "./run.ts";
 
@@ -643,11 +644,18 @@ Deno.test("readActiveFlowState active safety keeps safety ownership and skips pr
   );
   assertEquals(decision.response_owner, "safety");
   assertEquals(decision.selected_handler, "safety_crisis");
+  // P3-A (alex-safety-escalation R1-B01): AUCUN effet durable pendant une
+  // crise active — l'ancien contrat (rappel admis, reason *_with_direct_
+  // effects) était le bug observé (rappel committé au milieu d'une crise).
+  assertEquals(decision.reason_code, "active_safety_crisis");
+  assertEquals(decision.direct_effects_to_run, []);
   assertEquals(
-    decision.reason_code,
-    "active_safety_crisis_with_direct_effects",
+    decision.blocked_paths.some((blocked) =>
+      blocked.path === "direct_effects.create_one_shot_reminder" &&
+      blocked.reason_code === "active_safety_priority"
+    ),
+    true,
   );
-  assertEquals(decision.direct_effects_to_run, ["create_one_shot_reminder"]);
   assertEquals(decision.active_flow_arbitration?.decision, "continue_active");
   assertEquals(
     decision.active_flow_arbitration?.active_owner,
@@ -991,4 +999,50 @@ Deno.test("global router does not run ambiguous direct effects", () => {
     path: "direct_effects.create_one_shot_reminder",
     reason_code: "target_ambiguous",
   }]);
+});
+
+Deno.test("ensureClarifyQuestionVisible re-injects a suppressed clarify question (P2-2, nina-untested R1-B02)", () => {
+  const clarifyFrame = frame({
+    direct_effects: [{
+      effect_type: "track_progress_plan_item",
+      explicitness: "explicit",
+      target_status: "identified",
+      confidence_band: "high",
+      payload_hint: {},
+    }],
+  }) as TurnFrame & Record<string, unknown>;
+  (clarifyFrame as Record<string, unknown>).direct_effect_lane = {
+    requested_effects: [{ type: "track_progress_plan_item" }],
+    allowed_effects: [{ type: "track_progress_plan_item" }],
+    committed_effects: [],
+    blocked_effects: [{
+      type: "track_progress_plan_item",
+      reason_code: "target_not_evidenced",
+      status: "needs_clarify",
+      clarify_question:
+        "Tu parles de quelle action exactement ? Je pensais à « préparer une option saine ».",
+    }],
+  };
+
+  // Le composeur a supprimé la question: elle est ré-injectée telle quelle.
+  const withoutQuestion =
+    "Dans ce fil, elle reste seulement signalée, pas confirmée.";
+  const repaired = ensureClarifyQuestionVisible(withoutQuestion, clarifyFrame);
+  assertEquals(repaired.includes("?"), true);
+  assertEquals(repaired.includes("quelle action"), true);
+
+  // Anti-faux-positif 1: le composeur a déjà posé UNE question (reformulation
+  // permise) → aucune injection.
+  const withQuestion = "Tu parles de laquelle, la marche ou la lecture ?";
+  assertEquals(
+    ensureClarifyQuestionVisible(withQuestion, clarifyFrame),
+    withQuestion,
+  );
+
+  // Anti-faux-positif 2: aucun outcome needs_clarify → texte inchangé.
+  const plainFrame = frame();
+  assertEquals(
+    ensureClarifyQuestionVisible(withoutQuestion, plainFrame),
+    withoutQuestion,
+  );
 });

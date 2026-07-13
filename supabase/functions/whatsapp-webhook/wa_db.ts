@@ -44,6 +44,63 @@ export async function fetchLatestPending(
   }
   return null;
 }
+// Resolve the pending action a quick-reply button actually answers, using the
+// wamid of the template it replied to (`context.id`). Chains:
+//   inbound context.id
+//     → whatsapp_outbound_messages.provider_message_id
+//     → metadata.original_checkin_id
+//     → whatsapp_pending_actions.scheduled_checkin_id (status = pending)
+// Returns null when nothing links up, so callers fall back to the latest pending.
+export async function resolvePendingByReplyContext(
+  admin: any,
+  userId: string,
+  kind: string,
+  replyToWaMessageId: string | null | undefined,
+) {
+  const replyWamid = String(replyToWaMessageId ?? "").trim();
+  if (!replyWamid) return null;
+
+  const { data: outbound, error: outboundErr } = await admin
+    .from("whatsapp_outbound_messages")
+    .select("metadata")
+    .eq("user_id", userId)
+    .eq("provider_message_id", replyWamid)
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (outboundErr) throw outboundErr;
+  const originalCheckinId = String(
+    (outbound?.metadata as any)?.original_checkin_id ?? "",
+  ).trim();
+  if (!originalCheckinId) return null;
+
+  const nowIso = new Date().toISOString();
+  const { data: pending, error: pendErr } = await admin
+    .from("whatsapp_pending_actions")
+    .select("id, kind, status, scheduled_checkin_id, payload, created_at, expires_at")
+    .eq("user_id", userId)
+    .eq("kind", kind)
+    .eq("status", "pending")
+    .eq("scheduled_checkin_id", originalCheckinId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (pendErr) throw pendErr;
+  if (!pending) return null;
+
+  const expiresAt = typeof pending?.expires_at === "string"
+    ? pending.expires_at
+    : null;
+  if (expiresAt && expiresAt <= nowIso) {
+    await admin.from("whatsapp_pending_actions").update({
+      status: "expired",
+      processed_at: nowIso,
+    }).eq("id", pending.id).eq("status", "pending");
+    return null;
+  }
+  return pending;
+}
+
 export async function markPending(admin: any, id: string, status: string) {
   await admin.from("whatsapp_pending_actions").update({
     status,

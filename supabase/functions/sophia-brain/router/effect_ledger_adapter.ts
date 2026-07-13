@@ -4,6 +4,7 @@ import {
   type EffectLedger,
   recordAllowedEffect,
   recordBlockedEffect,
+  recordSupersededEffect,
   recordCommittedEffect,
   recordFailedEffect,
   recordRequestedEffect,
@@ -89,11 +90,15 @@ function committedIdFromEffect(effect: Record<string, unknown>): string | null {
     const value = String(effect[key] ?? "").trim();
     if (value) return value;
   }
-  const scheduledCheckinIds = Array.isArray(effect.scheduled_checkin_ids)
-    ? effect.scheduled_checkin_ids
-    : [];
-  const scheduledCheckinId = String(scheduledCheckinIds[0] ?? "").trim();
-  return scheduledCheckinId || null;
+  // P2-6 (paul-untested warning): les commits cancel_one_shot_reminder
+  // portent la liste `ids` (lignes annulées) — sans ce fallback, db_ref.id
+  // restait None sur tous les cancels (trou d'audit).
+  for (const listKey of ["scheduled_checkin_ids", "ids"]) {
+    const list = Array.isArray(effect[listKey]) ? effect[listKey] : [];
+    const first = String(list[0] ?? "").trim();
+    if (first) return first;
+  }
+  return null;
 }
 
 function effectPayloadSummary(
@@ -139,7 +144,8 @@ export function recordToolSkillEffectsInLedger(args: {
       | "requested_effects"
       | "allowed_effects"
       | "committed_effects"
-      | "failed_effects",
+      | "failed_effects"
+      | "superseded_effects",
     record: (
       ledger: EffectLedger,
       entry: Parameters<typeof recordRequestedEffect>[1],
@@ -181,6 +187,8 @@ export function recordToolSkillEffectsInLedger(args: {
   recordEffectArray("allowed_effects", recordAllowedEffect);
   recordEffectArray("committed_effects", recordCommittedEffect);
   recordEffectArray("failed_effects", recordFailedEffect);
+  // P2-6: doublon absorbé par la convergence idempotente → statut terminal.
+  recordEffectArray("superseded_effects", recordSupersededEffect);
 
   const blockedEffects = Array.isArray(run.blocked_effects)
     ? run.blocked_effects as unknown[]

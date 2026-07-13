@@ -16,6 +16,8 @@ import type {
   PlanRealignmentDriftType,
   PlanRealignmentScope,
   PlanRealignmentSignalContext,
+  PresenceConversationKind,
+  PresenceConversationSignalContext,
   RiskBand,
   TurnFrame,
 } from "../contracts/turn_frame.v1.ts";
@@ -144,13 +146,30 @@ function evaluateConversationRisk(input: RunDispatcherInput): ConversationRisk {
   const previousScores = recentConversationRiskScores(
     input.conversation_risk_history,
   );
+  // P3-A (alex-safety-escalation R1-B03): l'accumulateur était un stub inerte
+  // (score=0 sur 15 tours, tour d'idéation compris) — la vigilance post-crise
+  // ne tenait que par le composeur. TRAÎNE portée par le pregate: le score du
+  // tour précédent décroît de 4 par tour (medium≈6 → 2 → 0 ; crise≈10 → 6 →
+  // 2 → 0), le pregate garde ainsi 1-2 tours de mémoire après une détresse.
+  const latestPrevious = previousScores.length > 0
+    ? previousScores[previousScores.length - 1]
+    : 0;
+  const trailScore = Math.max(0, latestPrevious - 4);
   return {
-    score: 0,
+    score: trailScore,
     threshold: CONVERSATION_RISK_THRESHOLD,
     should_exit_flows: false,
-    reason_codes: [],
+    reason_codes: trailScore > 0 ? ["previous_risk_trail"] : [],
     previous_scores: previousScores,
-    matrix: [],
+    matrix: trailScore > 0
+      ? [{
+        signal: "previous_risk",
+        detected: true,
+        weight: 1,
+        contribution: trailScore,
+        evidence: "traine du band du tour precedent",
+      }]
+      : [],
     context_summary: null,
   };
 }
@@ -518,6 +537,22 @@ function sanitizePlanRealignmentSignalContext(
   };
 }
 
+function sanitizePresenceConversationSignalContext(
+  raw: unknown,
+): PresenceConversationSignalContext | undefined {
+  const root = objectRecord(raw);
+  if (!root) return undefined;
+  return {
+    kind: enumString<PresenceConversationKind>(
+      root.kind,
+      ["maintain", "tool_pull", "closure", "topic_change"],
+      "maintain",
+    ),
+    topic_hint: optionalText(root.topic_hint, 200),
+    reason: optionalText(root.reason, 240) ?? "",
+  };
+}
+
 function sanitizeResearchSignal(
   raw: unknown,
   fallback: DispatcherResearchSignal,
@@ -609,6 +644,7 @@ function sanitizeSkillSignal(
     | "coaching_recommendation"
     | "feature_opportunity"
     | "plan_realignment"
+    | "presence_conversation"
     | "product_help",
 ): {
   detected: boolean;
@@ -618,7 +654,8 @@ function sanitizeSkillSignal(
   context?:
     | CoachingRecommendationSignalContext
     | FeatureOpportunitySignalContext
-    | PlanRealignmentSignalContext;
+    | PlanRealignmentSignalContext
+    | PresenceConversationSignalContext;
 } | null {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
   const signal = raw as Record<string, unknown>;
@@ -636,6 +673,8 @@ function sanitizeSkillSignal(
     ? sanitizeFeatureOpportunitySignalContext(signal.context)
     : kind === "plan_realignment"
     ? sanitizePlanRealignmentSignalContext(signal.context)
+    : kind === "presence_conversation"
+    ? sanitizePresenceConversationSignalContext(signal.context)
     : undefined;
   return {
     detected: signal.detected === true,
@@ -668,6 +707,10 @@ function sanitizeSkillSignals(
     root.plan_realignment,
     "plan_realignment",
   );
+  const directPresenceConversation = sanitizeSkillSignal(
+    root.presence_conversation,
+    "presence_conversation",
+  );
   const entryRoot = root.entry && typeof root.entry === "object" &&
       !Array.isArray(root.entry)
     ? root.entry as Record<string, unknown>
@@ -688,12 +731,18 @@ function sanitizeSkillSignals(
     entryRoot.plan_realignment,
     "plan_realignment",
   );
+  const entryPresenceConversation = sanitizeSkillSignal(
+    entryRoot.presence_conversation,
+    "presence_conversation",
+  );
   const productHelp = directProductHelp ?? entryProductHelp;
   const coachingRecommendation = directCoachingRecommendation ??
     entryCoachingRecommendation;
   const featureOpportunity = directFeatureOpportunity ??
     entryFeatureOpportunity;
   const planRealignment = directPlanRealignment ?? entryPlanRealignment;
+  const presenceConversation = directPresenceConversation ??
+    entryPresenceConversation;
   const signals: NonNullable<TurnFrame["skill_signals"]> = {};
   if (productHelp?.detected === true) {
     signals.product_help = productHelp;
@@ -706,6 +755,9 @@ function sanitizeSkillSignals(
   }
   if (featureOpportunity?.detected === true) {
     signals.feature_opportunity = featureOpportunity as any;
+  }
+  if (presenceConversation?.detected === true) {
+    signals.presence_conversation = presenceConversation as any;
   }
   return signals;
 }
@@ -772,6 +824,13 @@ function sanitizeLlmTurnFrame(
   const skillSignals = sanitizeSkillSignals(raw?.skill_signals);
   const baselineConversationRisk = baseline.conversation_risk ??
     evaluateConversationRisk(input);
+  // P3-A: en fenêtre de traîne post-détresse, un band none remonte au
+  // plancher « low » (traçabilité pregate, non bloquant) — une mention
+  // chargée dans la fenêtre n'arrive plus sur un pregate amnésique.
+  const safetyRiskWithTrail =
+    baselineConversationRisk.score > 0 && safetyRisk === "none"
+      ? "low" as const
+      : safetyRisk;
   const safetyBlocksToolSkills = safetyRisk === "high" ||
     safetyRisk === "critical";
   const needsResearch = sanitizeResearchSignal(
@@ -780,12 +839,58 @@ function sanitizeLlmTurnFrame(
     input.user_message,
   );
   const directEffects = sanitizeDirectEffects(raw?.direct_effects);
+  const memoryPlan = suppressActionAndLevelMemoryDuringReview(
+    sanitizeMemoryPlan(raw?.memory_plan, baseline.memory_plan),
+    input,
+  );
+  // P2-1 (paul-untested15 R1-B01, eva-global17 R1-B02): invariant de cohérence
+  // intra-frame — un tour que le plan classe status_check_* ne porte JAMAIS un
+  // create silencieux (« il est toujours bon mon rappel de 8h ? » sortait en
+  // create explicit/high ET response_intent=status_check_reminder → rappel
+  // annulé recréé sans le dire). Le create pur est droppé, la projection DB
+  // répond ; les intents cancel/replace/status du même tour survivent
+  // (multi-intention rose T14 : « annule-le et dis-moi ce qui reste »).
+  const responseIntentNormalized = String(memoryPlan.response_intent ?? "")
+    .trim().toLowerCase();
+  const statusCheckIntent = responseIntentNormalized.startsWith(
+    "status_check",
+  ) || responseIntentNormalized.startsWith("verify_reminder");
+  let guardedDirectEffects = statusCheckIntent
+    ? directEffects.filter((effect) => {
+      if (effect.effect_type !== "create_one_shot_reminder") return true;
+      const payloadIntent = String(
+        (effect.payload_hint as Record<string, unknown> | undefined)?.intent ??
+          "create",
+      ).trim().toLowerCase();
+      return payloadIntent !== "create" && payloadIntent !== "";
+    })
+    : directEffects;
+  // P3-C (paul-untested16 R1-B01): même invariant intra-frame que P2-1, côté
+  // CORRECTION — le frame se classait lui-même track_progress_correction
+  // (confiance 0.95) pendant que l'émission portait correction=false : la
+  // fausse entrée survivait. Le flag se pose déterministiquement depuis la
+  // classification du frame ; le runtime résout retarget_from (last commit).
+  if (responseIntentNormalized.includes("correction")) {
+    guardedDirectEffects = guardedDirectEffects.map((effect) => {
+      if (effect.effect_type !== "track_progress_plan_item") return effect;
+      const payload = (effect.payload_hint ?? {}) as Record<string, unknown>;
+      if (payload.correction === true) return effect;
+      return {
+        ...effect,
+        payload_hint: { ...payload, correction: true },
+      };
+    });
+  }
+  // P1-2: champ racine (survit même quand aucun skill signal n'est detected).
+  const sessionStyleCommitmentHint = String(
+    raw?.session_style_commitment_hint ?? "",
+  ).trim().slice(0, 200);
   return {
     ...baseline,
     user_id: input.user_id,
     channel: input.channel,
     safety: {
-      risk_band: safetyRisk,
+      risk_band: safetyRiskWithTrail,
       reason_codes: Array.isArray(raw?.safety?.reason_codes)
         ? raw.safety.reason_codes.map(String)
         : baseline.safety.reason_codes,
@@ -794,19 +899,17 @@ function sanitizeLlmTurnFrame(
         : baseline.safety.evidence,
     },
     conversation_risk: baselineConversationRisk,
-    direct_effects: safetyBlocksToolSkills ? [] : directEffects,
+    direct_effects: safetyBlocksToolSkills ? [] : guardedDirectEffects,
     direct_effect_time_context: baseline.direct_effect_time_context,
     note_information: baseline.note_information,
     skill_signals: safetyBlocksToolSkills ? {} : skillSignals,
+    session_style_commitment_hint: sessionStyleCommitmentHint || null,
     needs_research: safetyBlocksToolSkills
       ? DEFAULT_RESEARCH_SIGNAL
       : needsResearch,
     action_reference: baseline.action_reference,
     level_reference: baseline.level_reference,
-    memory_plan: suppressActionAndLevelMemoryDuringReview(
-      sanitizeMemoryPlan(raw?.memory_plan, baseline.memory_plan),
-      input,
-    ),
+    memory_plan: memoryPlan,
   };
 }
 

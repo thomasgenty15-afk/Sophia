@@ -132,13 +132,44 @@ function coachingRecommendationDetected(turnFrame: TurnFrame): boolean {
 }
 
 function featureOpportunityDetected(turnFrame: TurnFrame): boolean {
-  return turnFrame.skill_signals.feature_opportunity?.detected === true &&
-    turnFrame.skill_signals.feature_opportunity.confidence_band !== "low";
+  const signal = turnFrame.skill_signals.feature_opportunity;
+  if (signal?.detected !== true) return false;
+  if (signal.confidence_band === "low") return false;
+  // P2-8 (paul-untested R1-B03): un tour porteur d'un direct effect EXPLICITE
+  // (cancel/create/track) est transactionnel — un signal feature MEDIUM ne
+  // prend pas l'ownership (risque de pitch sur un tour d'annulation pure);
+  // l'opportunité reste candidate pour un tour calme ultérieur. high/critical
+  // garde la main.
+  if (
+    signal.confidence_band === "medium" &&
+    (turnFrame.direct_effects ?? []).some((effect) =>
+      effect.explicitness === "explicit" &&
+      effect.target_status === "identified" &&
+      (effect.confidence_band === "high" ||
+        effect.confidence_band === "critical")
+    )
+  ) return false;
+  return true;
 }
 
 function planRealignmentDetected(turnFrame: TurnFrame): boolean {
   return turnFrame.skill_signals.plan_realignment?.detected === true &&
     turnFrame.skill_signals.plan_realignment.confidence_band !== "low";
+}
+
+// Entrée présence CONSERVATRICE: signal explicite ET confiance forte. La
+// règle des deux tours (un signal moyen n'entre qu'en se répétant) est portée
+// par la calibration de confidence du dispatcher (il voit recent_messages),
+// pas par un état candidat threadé ici. Un tour classé comme mouvement de
+// SORTIE (tool_pull/closure/topic_change) n'ouvre jamais un flow présence.
+function presenceEntryEligible(turnFrame: TurnFrame): boolean {
+  const signal = turnFrame.skill_signals.presence_conversation;
+  if (signal?.detected !== true) return false;
+  if (
+    signal.confidence_band !== "high" && signal.confidence_band !== "critical"
+  ) return false;
+  const kind = signal.context?.kind ?? "maintain";
+  return kind === "maintain";
 }
 
 function activeConversationSkillId(activeSkillState: unknown): string {
@@ -158,7 +189,8 @@ function isActiveConversationSkill(
     | "plan_realignment"
     | "daily_action_coaching_recommendation_v1"
     | "feature_opportunity"
-    | "weekly_adaptive_review_v1",
+    | "weekly_adaptive_review_v1"
+    | "presence_conversation",
 ): boolean {
   const record = activeSkillState && typeof activeSkillState === "object" &&
       !Array.isArray(activeSkillState)
@@ -173,6 +205,9 @@ export function runConversationRouters(input: {
   active_skill_state?: unknown;
   flow_intervention_context?: FlowInterventionContext;
   safety_context_risk_band: RiskBand;
+  // Kill-switch du flow présence (SOPHIA_PRESENCE_FLOW_ENABLED). Gate l'ENTRÉE
+  // uniquement; la continuation d'un flow déjà entré reste possible.
+  presence_flow_enabled?: boolean;
 }): RouteDecision {
   void input.flow_intervention_context;
 
@@ -220,21 +255,22 @@ export function runConversationRouters(input: {
   if (
     isActiveConversationSkill(input.active_skill_state, "safety_crisis")
   ) {
-    const safetyAllowedDirectEffects = directEffectsToRun.filter((effect) =>
-      effect === "create_one_shot_reminder"
-    );
+    // P3-A (alex-safety-escalation R1-B01): AUCUN effet durable pendant une
+    // crise active — l'exception V5-1 (rappel bénin) ne vaut QUE pour la
+    // détresse medium NON-crise (branche distress_support ci-dessous). Un
+    // rappel committé au milieu d'une crise suicidaire est le bug observé ;
+    // le runtime rend un différé honnête (safety_crisis_deferred), jamais un
+    // commit ni une confirmation. Parité avec track_progress (déjà bloqué).
     return buildRouteDecision({
       response_owner: "safety",
       selected_handler: "safety_crisis",
-      direct_effects_to_run: safetyAllowedDirectEffects,
+      direct_effects_to_run: [],
       blocked_paths: [
         ...blockedPaths,
-        ...directEffectsToRun
-          .filter((effect) => effect !== "create_one_shot_reminder")
-          .map((effect) => ({
-            path: `direct_effects.${effect}`,
-            reason_code: "active_safety_priority",
-          })),
+        ...directEffectsToRun.map((effect) => ({
+          path: `direct_effects.${effect}`,
+          reason_code: "active_safety_priority",
+        })),
         { path: "product_help", reason_code: "active_safety_priority" },
         {
           path: "coaching_recommendation",
@@ -253,9 +289,7 @@ export function runConversationRouters(input: {
       active_owner: "safety_crisis",
       arbitration_decision: "continue_active",
       resume_policy: "resume_active",
-      reason_code: safetyAllowedDirectEffects.length > 0
-        ? "active_safety_crisis_with_direct_effects"
-        : "active_safety_crisis",
+      reason_code: "active_safety_crisis",
     });
   }
 
@@ -263,22 +297,19 @@ export function runConversationRouters(input: {
   if (distress === "ideation") {
     // Ideation passive a band medium: le chemin safety possede le tour
     // (meme contrat que high/critical), avec desescalade geree par le flow.
-    const safetyAllowedDirectEffects = directEffectsToRun.filter((effect) =>
-      effect === "create_one_shot_reminder"
-    );
+    // P3-A: même parité qu'en crise active — zéro effet durable, différé
+    // honnête (le cas exclu de V5-1).
     return buildRouteDecision({
       response_owner: "safety",
       selected_handler: "safety_crisis",
-      direct_effects_to_run: safetyAllowedDirectEffects,
+      direct_effects_to_run: [],
       reason_code: "distress_ideation_safety_priority",
       blocked_paths: [
         ...blockedPaths,
-        ...directEffectsToRun
-          .filter((effect) => effect !== "create_one_shot_reminder")
-          .map((effect) => ({
-            path: `direct_effects.${effect}`,
-            reason_code: "distress_ideation_safety_priority",
-          })),
+        ...directEffectsToRun.map((effect) => ({
+          path: `direct_effects.${effect}`,
+          reason_code: "distress_ideation_safety_priority",
+        })),
         { path: "product_help", reason_code: "distress_ideation_safety_priority" },
         {
           path: "coaching_recommendation",
@@ -322,6 +353,28 @@ export function runConversationRouters(input: {
           reason_code: "distress_support_priority",
         },
       ],
+    });
+  }
+
+  // Flow présence actif: on continue TOUJOURS ici (collant). Les sorties
+  // (tool_pull, topic_change, closure, expiration) sont décidées par le skill
+  // lui-même (statut != continue → état effacé → re-dispatch global au tour
+  // suivant, charte cmd 17). Les effets directs (rappel, coche) passent sans
+  // fermer le flow (parenthèse tâche).
+  if (
+    isActiveConversationSkill(input.active_skill_state, "presence_conversation")
+  ) {
+    return buildRouteDecision({
+      response_owner: "presence_conversation",
+      selected_handler: "presence_conversation",
+      direct_effects_to_run: directEffectsToRun,
+      blocked_paths: blockedPaths,
+      active_owner: "presence_conversation",
+      arbitration_decision: "continue_active",
+      resume_policy: "resume_active",
+      reason_code: directEffectsToRun.length > 0
+        ? "active_presence_conversation_with_direct_effects"
+        : "active_presence_conversation",
     });
   }
 
@@ -433,6 +486,28 @@ export function runConversationRouters(input: {
       reason_code: directEffectsToRun.length > 0
         ? "active_feature_opportunity_with_direct_effects"
         : "active_feature_opportunity",
+    });
+  }
+
+  // ENTRÉE présence: uniquement quand AUCUN flow local n'est actif (les
+  // continuations ci-dessus gardent la main sinon — pas de préemption
+  // parent→enfant). Un flow actif qui doit rendre la main le décide lui-même
+  // (exit_to_global_dispatcher → re-dispatch global le même tour); l'entrée se
+  // fait alors ici, état purgé. Prioritaire sur les signaux frais produit/
+  // coaching: un dépôt discursif fort prime sur un signal levier concurrent
+  // (le dispatcher n'émet presence high/critical que sur intention discursive).
+  if (
+    input.presence_flow_enabled === true &&
+    presenceEntryEligible(input.turn_frame)
+  ) {
+    return buildRouteDecision({
+      response_owner: "presence_conversation",
+      selected_handler: "presence_conversation",
+      direct_effects_to_run: directEffectsToRun,
+      blocked_paths: blockedPaths,
+      arbitration_decision: "enter_presence",
+      resume_policy: "enter_fresh",
+      reason_code: "presence_conversation_entry",
     });
   }
 

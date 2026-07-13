@@ -36,6 +36,14 @@ import {
 import { debounceAndBurstMerge } from "./debounce.ts";
 import { runAgentAndVerify } from "./agent_exec.ts";
 import {
+  applyPresenceFlowState,
+  commitPresenceResult,
+  type PresenceApplyResult,
+} from "../skills/presence_conversation/apply.ts";
+import { stripToPresenceContext } from "../skills/presence_conversation/context.ts";
+import { buildPresenceSystemBlock } from "../skills/presence_conversation/prompt.ts";
+import { buildPresenceThreadContext } from "../skills/presence_conversation/thread.ts";
+import {
   buildNeutralTurnFrame,
   type DispatcherLlmRunner,
   type DispatcherRunStats,
@@ -81,10 +89,16 @@ import {
   oneShotDirectEffectFromLocalRequest,
 } from "./one_shot_local_direct_effect.ts";
 import {
+  ageLastTrackCommitMarker,
+  lastTrackCommitForDispatcher,
   pendingTrackProgressClarificationForDispatcher,
 } from "../tools/always_on/track_progress_plan_item/router.ts";
 import {
+  pendingOneShotReminderClarificationForDispatcher,
+} from "../tools/always_on/one_shot_reminder/router.ts";
+import {
   activePlanSnapshotPromptBlock,
+  buildDirectEffectConfirmationContext,
   committedCorrectionReplyOverride,
   directEffectConfirmationContextPrompt,
   withDirectEffectConfirmationContext,
@@ -445,16 +459,10 @@ export function applyConversationSkillState(args: {
         .session_style_commitment ?? "",
     ).trim();
     if (commitment) {
-      const previousCommitments = Array.isArray(
-          (next as Record<string, unknown>).__session_style_commitments,
-        )
-        ? ((next as Record<string, unknown>)
-          .__session_style_commitments as unknown[]).map(String)
-        : [];
-      next.__session_style_commitments = [
-        ...previousCommitments.filter((c) => c !== commitment),
+      next = installSessionStyleCommitment(
+        next as Record<string, unknown>,
         commitment,
-      ].slice(-3);
+      ) as typeof next;
     }
   }
   if (args.skillId === "coaching_recommendation" && args.output.state_patch) {
@@ -786,8 +794,58 @@ function finalVisibleText(
   );
   let out = stripHiddenHtmlComments(correctionOverride ?? text);
   out = stripDeprecatedProductVocabulary(out);
-  if (!isSafetyRoute(routeDecision)) out = ensureVisibleSophiaEmoji(out);
+  if (!isSafetyRoute(routeDecision)) {
+    out = ensureVisibleSophiaEmoji(out);
+    out = ensureClarifyQuestionVisible(out, turnFrame ?? null);
+  }
   return out.trim();
+}
+
+/**
+ * P2-2 (nina-untested R1-B02, rose-lifecycle R1-B05): un outcome
+ * needs_clarify d'un tool skill DOIT aboutir à une question visible — le
+ * composeur la supprimait (« reste seulement signalée, pas confirmée »),
+ * rendant la boucle de ré-armement 3g inarmable, ou pire, AFFIRMAIT l'effet
+ * (verify rose T15). Reformuler est permis (toute question compte) ;
+ * supprimer non : la question contractuelle de la lane est ré-injectée.
+ */
+export function ensureClarifyQuestionVisible(
+  text: string,
+  turnFrame: TurnFrame | null,
+): string {
+  if (!turnFrame || text.includes("?")) return text;
+  const context = buildDirectEffectConfirmationContext(turnFrame);
+  const clarify = (context?.effects_outcome ?? []).find((outcome) =>
+    outcome.status === "needs_clarify" &&
+    String(outcome.clarify_question ?? "").trim().length > 0
+  );
+  if (!clarify) return text;
+  return `${text.trim()}\n\n${String(clarify.clarify_question).trim()}`;
+}
+
+/**
+ * Installe un engagement de style SESSION dans temp_memory (dédup + fenêtre
+ * de 3). Deux producteurs: le dispatcher local feature_opportunity
+ * (state_patch, eva-r7 B01) et le dispatcher GLOBAL via le champ racine
+ * `session_style_commitment_hint` du TurnFrame (P1-2, ALEX-CPR-B04 — capture
+ * quel que soit l'owner du tour, même sans signal feature_opportunity).
+ */
+function installSessionStyleCommitment(
+  tempMemory: Record<string, unknown>,
+  commitment: string,
+): Record<string, unknown> {
+  const clean = String(commitment ?? "").trim();
+  if (!clean) return tempMemory;
+  const previous = Array.isArray(tempMemory.__session_style_commitments)
+    ? (tempMemory.__session_style_commitments as unknown[]).map(String)
+    : [];
+  return {
+    ...tempMemory,
+    __session_style_commitments: [
+      ...previous.filter((c) => c !== clean),
+      clean,
+    ].slice(-3),
+  };
 }
 
 function sessionStyleCommitmentsPromptBlock(
@@ -1004,6 +1062,16 @@ export async function processMessage(
     shouldSkipGlobalDispatcherForActiveLocalFlow({
       activeSkillState: activeFlowState.activeSkillState,
     });
+  // Fenetre de re-arm O4: une clarification d'ecriture posee au tour
+  // precedent est exposee une fois au dispatcher pour qu'il re-emette
+  // l'effet complete si le message courant y repond (eva-r2 B01).
+  // P2-3d (rose-lifecycle R1-B03): meme fenetre pour le clarify REPLACE
+  // rappel. Hoistee hors du builder: le ré-arm déterministe post-dispatcher
+  // (P2-4b) relit la même clarification (l'exposition ne se consomme qu'une
+  // fois).
+  const pendingClarificationForTurn =
+    pendingTrackProgressClarificationForDispatcher(tempMemory) ??
+      pendingOneShotReminderClarificationForDispatcher(tempMemory);
   const dispatcherInput: RunDispatcherInput = {
     user_message: userMessage,
     recent_messages: recentMessagesForTurnFrame,
@@ -1011,12 +1079,21 @@ export async function processMessage(
     channel,
     active_skill_state: activeFlowState.activeSkillState,
     flow_state_context: (() => {
-      // Fenetre de re-arm O4: une clarification d'ecriture posee au tour
-      // precedent est exposee une fois au dispatcher pour qu'il re-emette
-      // l'effet complete si le message courant y repond (eva-r2 B01).
-      const pendingClarification =
-        pendingTrackProgressClarificationForDispatcher(tempMemory);
-      if (!lastLocalFlowExitContext && !pendingClarification) return null;
+      const pendingClarification = pendingClarificationForTurn;
+      // P2-4a: fait structuré du dernier commit track — rend 3h-bis
+      // exécutable (retarget_from clé en main, plus de fouille de
+      // recent_messages qui échouait en émission).
+      const lastTrackCommit = lastTrackCommitForDispatcher(tempMemory);
+      // Le flow presence n'a PAS de dispatcher local: le dispatcher global
+      // doit savoir qu'une discussion de fond est active pour classer le
+      // mouvement du tour (context.kind). Flag minimal — pas de dump d'etat.
+      const presenceActive = String(
+        (activeFlowState.activeSkillState as any)?.skill_id ?? "",
+      ) === "presence_conversation";
+      if (
+        !lastLocalFlowExitContext && !pendingClarification && !presenceActive &&
+        !lastTrackCommit
+      ) return null;
       return {
         ...(lastLocalFlowExitContext
           ? { last_local_flow_exit: lastLocalFlowExitContext }
@@ -1024,6 +1101,8 @@ export async function processMessage(
         ...(pendingClarification
           ? { pending_direct_effect_clarification: pendingClarification }
           : {}),
+        ...(presenceActive ? { presence_conversation_active: true } : {}),
+        ...(lastTrackCommit ? { last_track_commit: lastTrackCommit } : {}),
       };
     })(),
     direct_effect_time_context: userTime
@@ -1037,7 +1116,14 @@ export async function processMessage(
       : undefined,
     plan_snapshot: planItemSnapshot,
     safety_context_output: safetyContextOutput,
-    conversation_risk_history: [],
+    // P3-A: traîne pregate — les scores des tours précédents viennent de
+    // temp_memory (commit post-génération plus bas).
+    conversation_risk_history: Array.isArray(
+        (tempMemory as Record<string, unknown>)?.__conversation_risk_scores,
+      )
+      ? (tempMemory as Record<string, unknown>)
+        .__conversation_risk_scores as number[]
+      : [],
     source_message_id: loggedMessageId ?? requestId,
     turn_id: requestId,
     model_name: meta?.model,
@@ -1057,14 +1143,190 @@ export async function processMessage(
     turnFrame,
     inboundDailyCoachingBridgeNote,
   );
+  // P1-2 (ALEX-CPR-B04): un engagement de STYLE session se capture QUEL QUE
+  // SOIT l'owner du tour — le dispatcher global porte la contrainte au champ
+  // RACINE `session_style_commitment_hint` (un signal skill non-detected est
+  // droppé par la normalisation, la contrainte arrive souvent sans opportunité
+  // produit); on l'installe ici, avant routing, pour que le bloc CONTRAINTE DE
+  // STYLE SESSION soit vrai dès ce tour et les suivants.
+  // Session only (temp_memory) — jamais une préférence durable (BF-PREF-01).
+  // NB: le companion reconstruit temp_memory depuis l'état pré-routing — cette
+  // installation rend les blocs prompt vrais dès CE tour, et elle est
+  // RÉ-APPLIQUÉE post-génération (même pattern que le commit présence).
+  const sessionStyleCommitmentHintForTurn = String(
+    turnFrame.session_style_commitment_hint ?? "",
+  ).trim().slice(0, 200);
+  if (sessionStyleCommitmentHintForTurn) {
+    tempMemory = installSessionStyleCommitment(
+      tempMemory,
+      sessionStyleCommitmentHintForTurn,
+    );
+  }
+  // P2-4b (nina-untested R1-B03): ré-arm DÉTERMINISTE sur confirmation pure.
+  // Le 3g demande au dispatcher de ré-émettre l'effet quand le user confirme
+  // la cible proposée — l'émission restait flaky (« bah si je te confirme, à
+  // 100% » → aucun effet, 2e blocage d'un report légitime). Quand le frame
+  // classe la réponse en confirmation (kind=yes) et que la clarification
+  // track pendante porte des slots complets sur une question de CIBLE,
+  // l'effet se synthétise depuis les known_slots — les gardes aval (G1
+  // fenêtre, idempotence, same-day) restent entières.
+  if (
+    pendingClarificationForTurn?.effect_type === "track_progress_plan_item" &&
+    ["target_not_evidenced", "target_ambiguous", "target_missing"].includes(
+      String(pendingClarificationForTurn.reason_code ?? ""),
+    )
+  ) {
+    const slots = (pendingClarificationForTurn.known_slots ?? {}) as Record<
+      string,
+      unknown
+    >;
+    const pendingTargetId = String(slots.target_item_id ?? "").trim();
+    const progressStatus = String(slots.progress_status ?? "").trim();
+    const hasTrackEffect = turnFrame.direct_effects.some((effect) =>
+      effect.effect_type === "track_progress_plan_item"
+    );
+    if (pendingTargetId && !hasTrackEffect &&
+      turnFrame.confirmation_response?.kind === "yes" && progressStatus
+    ) {
+      // Aucun effet ré-émis mais confirmation classée: synthèse depuis les
+      // known_slots.
+      turnFrame = {
+        ...turnFrame,
+        direct_effects: [...turnFrame.direct_effects, {
+          effect_type: "track_progress_plan_item",
+          explicitness: "explicit",
+          target_status: "identified",
+          confidence_band: "high",
+          payload_hint: {
+            target_item_id: pendingTargetId,
+            status_hint: progressStatus,
+            ...(String(slots.date_hint ?? "").trim()
+              ? { date_hint: String(slots.date_hint) }
+              : {}),
+            target_evidence: String(slots.target_title ?? ""),
+          },
+        }],
+      };
+    } else if (pendingTargetId && hasTrackEffect) {
+      // Effet ré-émis vers LA cible que la question proposait: c'est une
+      // RÉSOLUTION de clarification, pas une correction — le dispatcher pose
+      // parfois correction=true sur « si je te confirme que c'est ça » et la
+      // garde correction-sans-retarget re-bloquait un report légitime (3e
+      // blocage). Normalisation du flag, retarget absent uniquement.
+      turnFrame = {
+        ...turnFrame,
+        direct_effects: turnFrame.direct_effects.map((effect) => {
+          if (effect.effect_type !== "track_progress_plan_item") return effect;
+          const payload = (effect.payload_hint ?? {}) as Record<
+            string,
+            unknown
+          >;
+          if (
+            String(payload.target_item_id ?? "") !== pendingTargetId ||
+            payload.correction !== true ||
+            String(payload.retarget_from ?? "").trim()
+          ) return effect;
+          const { correction: _correction, ...rest } = payload;
+          return { ...effect, payload_hint: rest };
+        }),
+      };
+    }
+  }
   const dispatcherLatencyMs = Date.now() - dispatcherStart;
 
   let currentActiveSkillState = activeFlowState.activeSkillState;
+  const presenceFlowEnabled = envFlagEnabled("SOPHIA_PRESENCE_FLOW_ENABLED");
   let routeDecision = runConversationRouters({
     turn_frame: turnFrame,
     active_skill_state: currentActiveSkillState,
     safety_context_risk_band: safetyContextOutput.risk_band,
+    presence_flow_enabled: presenceFlowEnabled,
   });
+
+  // ── Flow présence: transition calculée AVANT tout runtime ────────────────
+  // Sur une SORTIE (tool_pull / topic_change / closure / expired), le tour
+  // est re-dispatché globalement immédiatement (charte cmd 17): le user qui
+  // demande une carte atterrit dans coaching CE tour-ci, pas au suivant.
+  // Le commit de l'état (poubelle ou maintien) reste fait post-génération.
+  let presenceApplyResult: PresenceApplyResult | null = null;
+  let presenceExited = false;
+  let presenceNowIso = "";
+  if (routeDecision.response_owner === "presence_conversation") {
+    const presenceSignal = turnFrame.skill_signals.presence_conversation;
+    const presenceKind = presenceSignal?.context?.kind ?? "maintain";
+    presenceNowIso = turnFrame.direct_effect_time_context?.now_utc ??
+      new Date().toISOString();
+    const presenceLocalDate =
+      (turnFrame.direct_effect_time_context?.user_local_datetime ?? "")
+        .slice(0, 10) || presenceNowIso.slice(0, 10);
+    presenceApplyResult = applyPresenceFlowState({
+      tempMemory: tempMemory as Record<string, unknown>,
+      activeSkillState: currentActiveSkillState,
+      kind: presenceKind,
+      nowIso: presenceNowIso,
+      localDate: presenceLocalDate,
+      topicHint: presenceSignal?.context?.topic_hint ?? null,
+      entryReason: routeDecision.reason_code,
+    });
+    console.log(
+      `[presence] request_id=${requestId} transition=${presenceApplyResult.transition}` +
+        ` kind=${presenceKind}` +
+        (presenceApplyResult.exit_reason
+          ? ` exit_reason=${presenceApplyResult.exit_reason}`
+          : "") +
+        ` turns=${presenceApplyResult.flow_state?.turns_in_flow ?? 0}`,
+    );
+    if (presenceApplyResult.transition === "exit") {
+      // Poubelle immédiate + re-dispatch global du MÊME tour. L'entrée
+      // présence est désactivée sur ce re-routage pour éviter la ré-entrée
+      // instantanée sur le signal du tour de sortie.
+      presenceExited = true;
+      currentActiveSkillState = null;
+      tempMemory = clearActiveConversationSkillState(
+        tempMemory as Record<string, unknown>,
+      );
+      routeDecision = runConversationRouters({
+        turn_frame: turnFrame,
+        active_skill_state: null,
+        safety_context_risk_band: safetyContextOutput.risk_band,
+        presence_flow_enabled: false,
+      });
+      console.log(
+        `[presence] request_id=${requestId} exit_reroute owner=${routeDecision.response_owner} reason=${routeDecision.reason_code}`,
+      );
+      presenceApplyResult = null; // état déjà purgé, rien à committer.
+    }
+  }
+  // Entrée présence atteinte via la sortie d'un AUTRE flow local (ex: coaching
+  // → exit_to_global_dispatcher sur dépôt discursif → re-dispatch → présence).
+  // Le bloc de transition ci-dessus a tourné avant la boucle des owners: il
+  // faut appliquer l'entrée ici, sinon la génération présence (contexte
+  // strippé + fil + état collant) ne s'arme pas sur le tour de re-dispatch.
+  const applyPresenceEntryAfterLocalFlowExit = () => {
+    if (routeDecision.response_owner !== "presence_conversation") return;
+    if (presenceApplyResult) return;
+    const presenceSignal = turnFrame.skill_signals.presence_conversation;
+    presenceNowIso = turnFrame.direct_effect_time_context?.now_utc ??
+      new Date().toISOString();
+    const presenceLocalDate =
+      (turnFrame.direct_effect_time_context?.user_local_datetime ?? "")
+        .slice(0, 10) || presenceNowIso.slice(0, 10);
+    presenceApplyResult = applyPresenceFlowState({
+      tempMemory: tempMemory as Record<string, unknown>,
+      activeSkillState: currentActiveSkillState,
+      kind: presenceSignal?.context?.kind ?? "maintain",
+      nowIso: presenceNowIso,
+      localDate: presenceLocalDate,
+      topicHint: presenceSignal?.context?.topic_hint ?? null,
+      entryReason: routeDecision.reason_code,
+    });
+    console.log(
+      `[presence] request_id=${requestId} transition=${presenceApplyResult.transition}` +
+        ` after_local_flow_exit turns=${
+          presenceApplyResult.flow_state?.turns_in_flow ?? 0
+        }`,
+    );
+  };
   let precomputedSafetyCrisisLocalDispatcherOutput:
     | SafetyCrisisLocalDispatcherOutput
     | null = null;
@@ -1347,7 +1609,12 @@ export async function processMessage(
           turn_frame: turnFrame,
           active_skill_state: currentActiveSkillState,
           safety_context_risk_band: safetyContextOutput.risk_band,
+          // Un flow qui rend la main sur un dépôt discursif doit pouvoir
+          // atterrir en présence CE tour (l'entrée reste gouvernée par le
+          // signal du dispatcher re-sollicité).
+          presence_flow_enabled: presenceFlowEnabled,
         });
+        applyPresenceEntryAfterLocalFlowExit();
         if (localFlowExitRedispatchCount <= 2) continue visibleOwnerDispatch;
         skillExitInjectedContext = [
           "LOCAL FLOW weekly_adaptive_review_v1 EXITED TO GLOBAL.",
@@ -1403,7 +1670,11 @@ export async function processMessage(
             total_latency_ms: Date.now() - turnStartMs,
           }, { supabase });
         } catch (error) {
-          console.warn("[Router] logConversationTurn failed", error);
+          // P1-4: échec visible après retries (cf. autre call site).
+          console.error(
+            "[Router] logConversationTurn failed after retries",
+            { turn_id: turnFrame.turn_id, error: String(error) },
+          );
         }
         await persistEffectLedgerForRuntimeTurn({
           supabase,
@@ -1562,7 +1833,12 @@ export async function processMessage(
           total_latency_ms: Date.now() - turnStartMs,
         }, { supabase });
       } catch (error) {
-        console.warn("[Router] logConversationTurn failed", error);
+        // P1-4: après retries épuisés, l'échec doit être VISIBLE dans les
+        // logs d'audit (un tour sans trace fausse toute vérification QA).
+        console.error(
+          "[Router] logConversationTurn failed after retries",
+          { turn_id: turnFrame.turn_id, error: String(error) },
+        );
       }
       await persistEffectLedgerForRuntimeTurn({
         supabase,
@@ -1813,7 +2089,13 @@ export async function processMessage(
           turn_frame: turnFrame,
           active_skill_state: currentActiveSkillState,
           safety_context_risk_band: safetyContextOutput.risk_band,
+          // Un flow qui rend la main sur un dépôt discursif (ex: coaching →
+          // exit_to_global_dispatcher) doit pouvoir atterrir en présence CE
+          // tour — sans ce flag, le re-dispatch retombait en normal_reply
+          // malgré un signal présence high (run nav-frontieres-r2, B6'-T5).
+          presence_flow_enabled: presenceFlowEnabled,
         });
+        applyPresenceEntryAfterLocalFlowExit();
         if (localFlowExitRedispatchCount <= 2) continue visibleOwnerDispatch;
         skillExitInjectedContext = [
           `LOCAL FLOW ${skillId} EXITED TO GLOBAL.`,
@@ -1880,7 +2162,11 @@ export async function processMessage(
             total_latency_ms: Date.now() - turnStartMs,
           }, { supabase });
         } catch (error) {
-          console.warn("[Router] logConversationTurn failed", error);
+          // P1-4: échec visible après retries (cf. autre call site).
+          console.error(
+            "[Router] logConversationTurn failed after retries",
+            { turn_id: turnFrame.turn_id, error: String(error) },
+          );
         }
         await persistEffectLedgerForRuntimeTurn({
           supabase,
@@ -1974,8 +2260,39 @@ export async function processMessage(
         "Soutien groundé sur ce que la personne vient de dire: valide, reste present, une question douce au plus.",
         "AUCUNE ressource d'urgence, hotline ou consigne de securite ('te faire du mal', 'urgences'): ces cadrages sont reserves a l'ideation, absente ici — les employer sur-escalade et inquiete.",
         "Aucun dispositif, carte, potion ou feature ce tour. Pas de lexique clinique ('stabilise').",
+        "Si un effet legitime (rappel, coche) est COMMITTE ce tour (voir le contexte de confirmation): confirme-le en UNE ligne sobre EN FIN de reponse — jamais en ouverture, le soutien vient d'abord (V5-1).",
       ].join("\n")
       : null,
+    // P3-E (nina-global18 T15): recall d'intention mémoire explicite avec
+    // mémoire durable potentiellement vide — la réponse restitue depuis
+    // l'HISTORIQUE de cette conversation, jamais une liste de techniques
+    // substituée. Directive de tour, déclenchée par le plan du frame.
+    String(turnFrame.memory_plan?.response_intent ?? "").toLowerCase()
+        .includes("recall")
+      ? [
+        "=== RECALL (restitution demandée) ===",
+        "Si la mémoire durable ne porte pas le fait demandé, cherche-le dans l'historique de CETTE conversation (le user l'a peut-être confié il y a quelques tours) et restitue-le exactement.",
+        "Introuvable des deux côtés → dis-le honnêtement en une phrase. Ne substitue JAMAIS une liste d'outils, de techniques ou un récap générique à la place du fait demandé.",
+      ].join("\n")
+      : null,
+    // P2-7a (eva-global17 R1-B01): TRAINE COURTE post-détresse — le pregate
+    // évalue le tour isolément, un band medium à N retombait à none à N+1 et
+    // la confirmation d'un rappel bénin OUVRAIT la réponse (« C'est posé pour
+    // demain à 12h30 » en 1re phrase sur « me lâche pas maintenant »).
+    // L'arbitrage V5-1 (soutien d'abord, confirmation sobre en fin) vaut
+    // aussi au tour qui suit. Donnée de tour, un seul tour de traîne.
+    (() => {
+      const lastBand = String(
+        (tempMemory as Record<string, unknown>)?.__last_turn_risk_band ?? "",
+      );
+      const currentBand = String(turnFrame.safety?.risk_band ?? "none");
+      if (!["medium", "high", "critical"].includes(lastBand)) return null;
+      if (["medium", "high", "critical"].includes(currentBand)) return null;
+      return [
+        "=== TRAINE POST-DETRESSE (le tour precedent etait charge) ===",
+        "Le message precedent portait une detresse reelle. Meme si ce tour execute un effet legitime (rappel, coche), la composition reste SOUTIEN D'ABORD: ouvre par la presence a ce que la personne traverse; la confirmation de l'effet vient EN FIN, en une ligne sobre. Ne commence JAMAIS par 'C'est pose/note/cale pour...'.",
+      ].join("\n");
+    })(),
   ].filter(Boolean).join("\n\n") || undefined;
   const contextLoadResult = await loadContextForMode({
     supabase,
@@ -2026,11 +2343,53 @@ export async function processMessage(
   const contextLatencyMs = Date.now() - contextLoadStart;
   const context = buildContextString(contextLoadResult.context);
 
+  // ── Flow présence (mode ami): assemblage de génération ──────────────────
+  // La transition (enter/maintain/exit) a été décidée en amont, juste après
+  // le routing (les sorties ont déjà été re-dispatchées). Ici: conversation
+  // pure — contexte STRIPPÉ (aucun bloc produit, garantie structurelle) +
+  // FIL DE LA DISCUSSION verbatim depuis l'entrée (soupape résumé en cas de
+  // débordement) + prompt de présence + modèle deep.
+  let presenceContext: string | null = null;
+  let presenceModel: string | null = null;
+  if (
+    routeDecision.response_owner === "presence_conversation" &&
+    presenceApplyResult && presenceApplyResult.flow_state
+  ) {
+    const thread = await buildPresenceThreadContext({
+      supabase,
+      userId,
+      scope,
+      flowState: presenceApplyResult.flow_state,
+      requestId,
+    });
+    // Le repli éventuel du fil met à jour le résumé porté par l'état.
+    presenceApplyResult = {
+      ...presenceApplyResult,
+      flow_state: thread.flowState,
+    };
+    presenceContext = [
+      buildPresenceSystemBlock(),
+      // P1-2 (ALEX-CPR-B04): l'allowlist presence retirait le bloc de
+      // contrainte de style session — la presence promettait « je retiens »
+      // puis répondait en pavé. L'engagement PRIME aussi en mode ami.
+      sessionStyleCommitmentsPromptBlock(tempMemory) ?? "",
+      buildContextString(stripToPresenceContext(contextLoadResult.context)),
+      thread.block,
+    ].filter((part) => part && part.trim().length > 0).join("\n\n");
+    presenceModel =
+      String(Deno.env.get("SOPHIA_COMPANION_MODEL_DEEP") ?? "").trim() || null;
+  }
+
   const routeIsPureDirectEffect =
     routeDecision.response_owner === "normal_reply" &&
     routeDecision.direct_effects_to_run.length > 0 &&
     operationRuntime?.content &&
-    routeDecision.reason_code !== "direct_effects_then_normal_reply";
+    routeDecision.reason_code !== "direct_effects_then_normal_reply" &&
+    // P3-A (rose-hard15 T10, probe P3-2): un tour de détresse medium ne se
+    // rend JAMAIS par la reply cannée de la lane (elle ouvre par « C'est
+    // programmé... ») — le composeur passe, avec la directive soutien
+    // d'abord + confirmation sobre en fin.
+    routeDecision.reason_code !== "distress_support_priority";
   const targetMode: AgentMode = opts?.forceMode === "sentry" ||
       routeDecision.response_owner === "safety"
     ? "sentry"
@@ -2048,7 +2407,7 @@ export async function processMessage(
       userMessage,
       history,
       state,
-      context,
+      context: presenceContext ?? context,
       targetMode,
       nCandidates: 1,
       checkupActive: false,
@@ -2056,13 +2415,18 @@ export async function processMessage(
       isPostCheckup: false,
       outageTemplate:
         "J'ai un souci technique sur ce tour. Je n'ai rien execute de plus.",
-      sophiaChatModel: meta?.model ?? getGlobalAiModel(),
+      sophiaChatModel: presenceModel ?? meta?.model ?? getGlobalAiModel(),
       tempMemory,
       meta: {
         ...(meta ?? {}),
         requestId,
         userId,
         blockSideEffects: true,
+        // Présence sur gpt-5.4: effort de raisonnement LOW. Sans ça, le
+        // reasoning model tourne à l'effort par défaut de l'API (medium/high)
+        // et crame son budget de sortie en raisonnement interne → contenu
+        // visible VIDE de façon intermittente (bug observé au replay du 09/07).
+        ...(presenceContext ? { reasoningEffort: "low" as const } : {}),
       },
     })
     : {
@@ -2080,6 +2444,70 @@ export async function processMessage(
 
   tempMemory = cleanupLegacyRuntimeState(agentOut.tempMemory ?? tempMemory);
   if (localFlowExitSkillRun) {
+    tempMemory = clearActiveConversationSkillState(
+      tempMemory as Record<string, unknown>,
+    );
+  }
+  // P1-2 (ALEX-CPR-B04): le companion reconstruit temp_memory depuis l'état
+  // PRÉ-routing (agents/companion.ts, nextTempMemory) — l'engagement de style
+  // installé avant routing serait perdu ici. Ré-application sur la tempMemory
+  // finale, même pattern que le commit présence ci-dessous.
+  if (sessionStyleCommitmentHintForTurn) {
+    tempMemory = installSessionStyleCommitment(
+      tempMemory,
+      sessionStyleCommitmentHintForTurn,
+    );
+  }
+  // P2-4a: vieillissement du marqueur de dernier commit track (mutation
+  // in-place — la garde de bascule de cible ne regarde que le tour N-1).
+  ageLastTrackCommitMarker(tempMemory, turnFrame.source_message_id ?? null);
+  // P2-7a: mémoire d'un tour du band effectif — alimente la TRAINE
+  // POST-DETRESSE du tour suivant (commit post-génération, zone sûre).
+  // P3-A: + historique de scores pour la traîne du pregate
+  // (conversation_risk) — band → score (medium 6, high 9, critical 10),
+  // majoré à 10 si le tour était une crise (owner safety).
+  {
+    const effectiveBand = String(
+      runtimeSafetyRiskBand ?? turnFrame.safety?.risk_band ?? "none",
+    );
+    const bandScore = effectiveBand === "critical"
+      ? 10
+      : effectiveBand === "high"
+      ? 9
+      : effectiveBand === "medium"
+      ? 6
+      : effectiveBand === "low"
+      ? 2
+      : 0;
+    const turnScore = isSafetyRoute(routeDecision)
+      ? Math.max(bandScore, 10)
+      : bandScore;
+    const previousTrail = Array.isArray(
+        (tempMemory as Record<string, unknown>).__conversation_risk_scores,
+      )
+      ? (tempMemory as Record<string, unknown>)
+        .__conversation_risk_scores as number[]
+      : [];
+    tempMemory = {
+      ...(tempMemory as Record<string, unknown>),
+      __last_turn_risk_band: effectiveBand,
+      __conversation_risk_scores: [...previousTrail, turnScore].slice(-5),
+    };
+  }
+  // Commit de l'état présence sur la tempMemory finale (post-génération) pour
+  // ne pas se faire écraser par le générateur: enter/maintain → persiste le
+  // flow (collant), exit → efface (poubelle + re-dispatch global au prochain
+  // tour).
+  if (presenceApplyResult) {
+    tempMemory = commitPresenceResult(
+      tempMemory as Record<string, unknown>,
+      presenceApplyResult,
+      presenceNowIso,
+    );
+  } else if (presenceExited) {
+    // Sur une SORTIE présence, garantir que l'état effacé survit à toute
+    // réassignation de tempMemory pendant la génération/le loader mémoire
+    // (sinon le tour suivant re-verrait la présence active).
     tempMemory = clearActiveConversationSkillState(
       tempMemory as Record<string, unknown>,
     );

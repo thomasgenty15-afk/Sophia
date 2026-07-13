@@ -1,0 +1,588 @@
+{
+  "ok": true,
+  "request_id": "3823b2b0-4a52-4848-8a04-3d5512490afe",
+  "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+  "channel": "web",
+  "scope": "web",
+  "empty_response": false,
+  "aborted": false,
+  "abort_reason": null,
+  "logged_message_id": null,
+  "latest_message_id": null,
+  "response": {
+    "content": "Oui — demain matin vers 8h, je te le rappellerai : noter comment tu as dormi.  \nEt vu comment ça t’échappe facilement, c’est une bonne idée de le poser comme ça.",
+    "mode": "companion",
+    "delivery": {
+      "mode": "text_reply"
+    },
+    "tool_execution": "success",
+    "executed_tools": [
+      "create_one_shot_reminder"
+    ],
+    "conversation_turn_trace": {
+      "turn_frame": {
+        "turn_id": "3823b2b0-4a52-4848-8a04-3d5512490afe",
+        "source_message_id": "967dc21f-7234-49fa-8ba9-7b5ecab77bbd",
+        "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+        "channel": "web",
+        "safety": {
+          "risk_band": "none",
+          "reason_codes": [],
+          "evidence": []
+        },
+        "conversation_risk": {
+          "score": 0,
+          "threshold": 8,
+          "should_exit_flows": false,
+          "reason_codes": [],
+          "previous_scores": [],
+          "matrix": [],
+          "context_summary": null
+        },
+        "direct_effects": [
+          {
+            "effect_type": "create_one_shot_reminder",
+            "explicitness": "explicit",
+            "target_status": "identified",
+            "confidence_band": "high",
+            "payload_hint": {
+              "raw_text": "me rappeler demain matin vers 8h de noter comment j'ai dormi",
+              "when_hint": "demain matin vers 8h",
+              "UTC_time": "2026-07-11T06:00:00Z",
+              "local_label": "demain matin vers 8h",
+              "instruction_hint": "noter comment j'ai dormi",
+              "cardinality": "once"
+            }
+          }
+        ],
+        "direct_effect_time_context": {
+          "now_utc": "2026-07-10T20:58:45.005Z",
+          "user_timezone": "Europe/Paris",
+          "user_locale": "fr-FR",
+          "user_local_datetime": "2026-07-10T22:58:45",
+          "user_local_human": "vendredi 10 juillet 2026 à 22:58"
+        },
+        "note_information": null,
+        "skill_signals": {},
+        "needs_research": {
+          "detected": false,
+          "value": false,
+          "query": null,
+          "domain_hint": null,
+          "confidence": 0,
+          "reason": null
+        },
+        "action_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_inference_unavailable"
+        },
+        "level_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_inference_unavailable"
+        },
+        "memory_plan": {
+          "response_intent": "reminder_creation",
+          "reasoning_complexity": "low",
+          "context_need": "minimal",
+          "memory_mode": "none",
+          "model_tier_hint": "lite",
+          "context_budget_tier": "tiny",
+          "targets": [],
+          "retrieval_policy": "force_taxonomy",
+          "plan_confidence": 0.7
+        },
+        "direct_effect_lane": {
+          "selected_handler": "create_one_shot_reminder",
+          "toolExecution": "success",
+          "executedTools": [
+            "create_one_shot_reminder"
+          ],
+          "requested_effects": [
+            {
+              "type": "create_one_shot_reminder",
+              "scheduled_for": "2026-07-11T06:00:00+00:00",
+              "local_label": "demain matin vers 8h",
+              "reminder_instruction": "noter comment j'ai dormi",
+              "reason_code": "payload"
+            }
+          ],
+          "allowed_effects": [
+            {
+              "type": "create_one_shot_reminder",
+              "scheduled_for": "2026-07-11T06:00:00+00:00",
+              "local_label": "demain matin vers 8h",
+              "reminder_instruction": "noter comment j'ai dormi",
+              "reason_code": "payload"
+            }
+          ],
+          "committed_effects": [
+            {
+              "type": "create_one_shot_reminder",
+              "id": "6536873c-370e-4bdc-ada8-7d9c2ef874b6",
+              "scheduled_for": "2026-07-11T06:00:00+00:00",
+              "local_label": "demain matin vers 8h",
+              "reminder_instruction": "noter comment j'ai dormi"
+            }
+          ],
+          "blocked_effects": [],
+          "visible_confirmation_hint": "C'est programmé pour demain matin vers 8h: je te ferai un rappel pour noter comment j'ai dormi."
+        },
+        "direct_effect_confirmation_context": {
+          "effects_outcome": [
+            {
+              "effect_type": "create_one_shot_reminder",
+              "status": "committed",
+              "reason_code": null,
+              "clarify_question": null,
+              "target": "noter comment j'ai dormi",
+              "guidance": "Confirme sobrement, une seule fois, comme venant d'etre fait. Un effet committe ne reste JAMAIS silencieux: meme si le tour porte un autre sujet principal (recherche, question), la reponse le mentionne en une ligne. Ne DEMENS jamais cet effet: 'pas compte / pas enregistre tant que pas coche dans l'app', 'je ne peux pas te dire/confirmer que c'est coche' et 'je peux t'aider a le formuler pour le suivi' sont INTERDITS sur un committed (ces disclaimers sont reserves aux outcomes blocked/needs_clarify), quel que soit le libelle de statut du handler (success, logged...). Si la cible porte une date ('enregistre pour le ...'), enonce ce jour dans la confirmation. Si ta derniere reponse etait du soutien face a un creux emotionnel, la confirmation garde une vraie phrase de pont qui reconnait ce tour (un emoji seul ne suffit pas)."
+            }
+          ],
+          "has_committed_one_shot_reminder": true,
+          "has_requested_one_shot_reminder": true,
+          "one_shot_reminder": {
+            "committed": true,
+            "local_label": "demain matin vers 8h",
+            "reminder_instruction": "noter comment j'ai dormi"
+          },
+          "blocked_one_shot_reminder": null,
+          "track_progress": null,
+          "blocked_track_progress": null,
+          "confirmation_text": null,
+          "committed_effects": [],
+          "requested_effects": [],
+          "blocked_effects": [],
+          "do_not_recreate": true,
+          "do_not_reroute": true,
+          "do_not_redemand": true,
+          "do_not_confirm_without_commit": true,
+          "remaining_user_need_must_continue": true
+        }
+      },
+      "route_decision": {
+        "route_version": "v1",
+        "response_owner": "normal_reply",
+        "blocked_paths": [],
+        "direct_effects_to_run": [
+          "create_one_shot_reminder"
+        ],
+        "reason_code": "direct_effects_then_normal_reply",
+        "memory_used_for_route": false,
+        "memory_item_ids_used_for_route": [],
+        "memory_use_kind": "none"
+      },
+      "effect_ledger": {
+        "turn_id": "3823b2b0-4a52-4848-8a04-3d5512490afe",
+        "counts": {
+          "requested": 1,
+          "allowed": 1,
+          "blocked": 0,
+          "committed": 1,
+          "failed": 0,
+          "proposed": 0,
+          "delivered": 0,
+          "cancelled": 0,
+          "superseded": 0,
+          "asked": 0,
+          "resolved": 0,
+          "topic_change": 0
+        },
+        "entries": [
+          {
+            "effect_id": "3823b2b0-4a52-4848-8a04-3d5512490afe:requested_effects:one_shot_reminder.create:0",
+            "kind": "durable_effect",
+            "effect_type": "one_shot_reminder.create",
+            "operation_type": "create_one_shot_reminder",
+            "operation_id": null,
+            "committed_id": null,
+            "tool_id": "create_one_shot_reminder",
+            "status": "requested",
+            "reason_code": "payload",
+            "source": "router",
+            "payload_summary": {
+              "scheduled_for": "2026-07-11T06:00:00+00:00",
+              "local_label": "demain matin vers 8h",
+              "reminder_instruction": "noter comment j'ai dormi"
+            },
+            "db_ref": null,
+            "error_message": null,
+            "surface_id": null,
+            "owner": null,
+            "ambiguity_kind": null,
+            "selected_candidate_id": null
+          },
+          {
+            "effect_id": "3823b2b0-4a52-4848-8a04-3d5512490afe:allowed_effects:one_shot_reminder.create:0",
+            "kind": "durable_effect",
+            "effect_type": "one_shot_reminder.create",
+            "operation_type": "create_one_shot_reminder",
+            "operation_id": null,
+            "committed_id": null,
+            "tool_id": "create_one_shot_reminder",
+            "status": "allowed",
+            "reason_code": "payload",
+            "source": "router",
+            "payload_summary": {
+              "scheduled_for": "2026-07-11T06:00:00+00:00",
+              "local_label": "demain matin vers 8h",
+              "reminder_instruction": "noter comment j'ai dormi"
+            },
+            "db_ref": null,
+            "error_message": null,
+            "surface_id": null,
+            "owner": null,
+            "ambiguity_kind": null,
+            "selected_candidate_id": null
+          },
+          {
+            "effect_id": "3823b2b0-4a52-4848-8a04-3d5512490afe:committed_effects:one_shot_reminder.create:0",
+            "kind": "durable_effect",
+            "effect_type": "one_shot_reminder.create",
+            "operation_type": "create_one_shot_reminder",
+            "operation_id": null,
+            "committed_id": "6536873c-370e-4bdc-ada8-7d9c2ef874b6",
+            "tool_id": "create_one_shot_reminder",
+            "status": "committed",
+            "reason_code": "success",
+            "source": "executor",
+            "payload_summary": {
+              "scheduled_for": "2026-07-11T06:00:00+00:00",
+              "local_label": "demain matin vers 8h",
+              "reminder_instruction": "noter comment j'ai dormi"
+            },
+            "db_ref": {
+              "table": "scheduled_checkins",
+              "id": "6536873c-370e-4bdc-ada8-7d9c2ef874b6"
+            },
+            "error_message": null,
+            "surface_id": null,
+            "owner": null,
+            "ambiguity_kind": null,
+            "selected_candidate_id": null
+          }
+        ]
+      },
+      "response_owner": "normal_reply",
+      "tool_skill_run": {
+        "selected_handler": "create_one_shot_reminder",
+        "status": "success",
+        "reason": "payload",
+        "requested_effects": [
+          {
+            "type": "create_one_shot_reminder",
+            "scheduled_for": "2026-07-11T06:00:00+00:00",
+            "local_label": "demain matin vers 8h",
+            "reminder_instruction": "noter comment j'ai dormi",
+            "reason_code": "payload"
+          }
+        ],
+        "allowed_effects": [
+          {
+            "type": "create_one_shot_reminder",
+            "scheduled_for": "2026-07-11T06:00:00+00:00",
+            "local_label": "demain matin vers 8h",
+            "reminder_instruction": "noter comment j'ai dormi",
+            "reason_code": "payload"
+          }
+        ],
+        "committed_effects": [
+          {
+            "type": "create_one_shot_reminder",
+            "id": "6536873c-370e-4bdc-ada8-7d9c2ef874b6",
+            "scheduled_for": "2026-07-11T06:00:00+00:00",
+            "local_label": "demain matin vers 8h",
+            "reminder_instruction": "noter comment j'ai dormi"
+          }
+        ],
+        "blocked_effects": []
+      }
+    }
+  },
+  "conversation_turn_trace": {
+    "turn_frame": {
+      "turn_id": "3823b2b0-4a52-4848-8a04-3d5512490afe",
+      "source_message_id": "967dc21f-7234-49fa-8ba9-7b5ecab77bbd",
+      "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+      "channel": "web",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "conversation_risk": {
+        "score": 0,
+        "threshold": 8,
+        "should_exit_flows": false,
+        "reason_codes": [],
+        "previous_scores": [],
+        "matrix": [],
+        "context_summary": null
+      },
+      "direct_effects": [
+        {
+          "effect_type": "create_one_shot_reminder",
+          "explicitness": "explicit",
+          "target_status": "identified",
+          "confidence_band": "high",
+          "payload_hint": {
+            "raw_text": "me rappeler demain matin vers 8h de noter comment j'ai dormi",
+            "when_hint": "demain matin vers 8h",
+            "UTC_time": "2026-07-11T06:00:00Z",
+            "local_label": "demain matin vers 8h",
+            "instruction_hint": "noter comment j'ai dormi",
+            "cardinality": "once"
+          }
+        }
+      ],
+      "direct_effect_time_context": {
+        "now_utc": "2026-07-10T20:58:45.005Z",
+        "user_timezone": "Europe/Paris",
+        "user_locale": "fr-FR",
+        "user_local_datetime": "2026-07-10T22:58:45",
+        "user_local_human": "vendredi 10 juillet 2026 à 22:58"
+      },
+      "note_information": null,
+      "skill_signals": {},
+      "needs_research": {
+        "detected": false,
+        "value": false,
+        "query": null,
+        "domain_hint": null,
+        "confidence": 0,
+        "reason": null
+      },
+      "action_reference": {
+        "detected": false,
+        "status": "none",
+        "expansion_policy": "none",
+        "reason": "semantic_inference_unavailable"
+      },
+      "level_reference": {
+        "detected": false,
+        "status": "none",
+        "expansion_policy": "none",
+        "reason": "semantic_inference_unavailable"
+      },
+      "memory_plan": {
+        "response_intent": "reminder_creation",
+        "reasoning_complexity": "low",
+        "context_need": "minimal",
+        "memory_mode": "none",
+        "model_tier_hint": "lite",
+        "context_budget_tier": "tiny",
+        "targets": [],
+        "retrieval_policy": "force_taxonomy",
+        "plan_confidence": 0.7
+      },
+      "direct_effect_lane": {
+        "selected_handler": "create_one_shot_reminder",
+        "toolExecution": "success",
+        "executedTools": [
+          "create_one_shot_reminder"
+        ],
+        "requested_effects": [
+          {
+            "type": "create_one_shot_reminder",
+            "scheduled_for": "2026-07-11T06:00:00+00:00",
+            "local_label": "demain matin vers 8h",
+            "reminder_instruction": "noter comment j'ai dormi",
+            "reason_code": "payload"
+          }
+        ],
+        "allowed_effects": [
+          {
+            "type": "create_one_shot_reminder",
+            "scheduled_for": "2026-07-11T06:00:00+00:00",
+            "local_label": "demain matin vers 8h",
+            "reminder_instruction": "noter comment j'ai dormi",
+            "reason_code": "payload"
+          }
+        ],
+        "committed_effects": [
+          {
+            "type": "create_one_shot_reminder",
+            "id": "6536873c-370e-4bdc-ada8-7d9c2ef874b6",
+            "scheduled_for": "2026-07-11T06:00:00+00:00",
+            "local_label": "demain matin vers 8h",
+            "reminder_instruction": "noter comment j'ai dormi"
+          }
+        ],
+        "blocked_effects": [],
+        "visible_confirmation_hint": "C'est programmé pour demain matin vers 8h: je te ferai un rappel pour noter comment j'ai dormi."
+      },
+      "direct_effect_confirmation_context": {
+        "effects_outcome": [
+          {
+            "effect_type": "create_one_shot_reminder",
+            "status": "committed",
+            "reason_code": null,
+            "clarify_question": null,
+            "target": "noter comment j'ai dormi",
+            "guidance": "Confirme sobrement, une seule fois, comme venant d'etre fait. Un effet committe ne reste JAMAIS silencieux: meme si le tour porte un autre sujet principal (recherche, question), la reponse le mentionne en une ligne. Ne DEMENS jamais cet effet: 'pas compte / pas enregistre tant que pas coche dans l'app', 'je ne peux pas te dire/confirmer que c'est coche' et 'je peux t'aider a le formuler pour le suivi' sont INTERDITS sur un committed (ces disclaimers sont reserves aux outcomes blocked/needs_clarify), quel que soit le libelle de statut du handler (success, logged...). Si la cible porte une date ('enregistre pour le ...'), enonce ce jour dans la confirmation. Si ta derniere reponse etait du soutien face a un creux emotionnel, la confirmation garde une vraie phrase de pont qui reconnait ce tour (un emoji seul ne suffit pas)."
+          }
+        ],
+        "has_committed_one_shot_reminder": true,
+        "has_requested_one_shot_reminder": true,
+        "one_shot_reminder": {
+          "committed": true,
+          "local_label": "demain matin vers 8h",
+          "reminder_instruction": "noter comment j'ai dormi"
+        },
+        "blocked_one_shot_reminder": null,
+        "track_progress": null,
+        "blocked_track_progress": null,
+        "confirmation_text": null,
+        "committed_effects": [],
+        "requested_effects": [],
+        "blocked_effects": [],
+        "do_not_recreate": true,
+        "do_not_reroute": true,
+        "do_not_redemand": true,
+        "do_not_confirm_without_commit": true,
+        "remaining_user_need_must_continue": true
+      }
+    },
+    "route_decision": {
+      "route_version": "v1",
+      "response_owner": "normal_reply",
+      "blocked_paths": [],
+      "direct_effects_to_run": [
+        "create_one_shot_reminder"
+      ],
+      "reason_code": "direct_effects_then_normal_reply",
+      "memory_used_for_route": false,
+      "memory_item_ids_used_for_route": [],
+      "memory_use_kind": "none"
+    },
+    "effect_ledger": {
+      "turn_id": "3823b2b0-4a52-4848-8a04-3d5512490afe",
+      "counts": {
+        "requested": 1,
+        "allowed": 1,
+        "blocked": 0,
+        "committed": 1,
+        "failed": 0,
+        "proposed": 0,
+        "delivered": 0,
+        "cancelled": 0,
+        "superseded": 0,
+        "asked": 0,
+        "resolved": 0,
+        "topic_change": 0
+      },
+      "entries": [
+        {
+          "effect_id": "3823b2b0-4a52-4848-8a04-3d5512490afe:requested_effects:one_shot_reminder.create:0",
+          "kind": "durable_effect",
+          "effect_type": "one_shot_reminder.create",
+          "operation_type": "create_one_shot_reminder",
+          "operation_id": null,
+          "committed_id": null,
+          "tool_id": "create_one_shot_reminder",
+          "status": "requested",
+          "reason_code": "payload",
+          "source": "router",
+          "payload_summary": {
+            "scheduled_for": "2026-07-11T06:00:00+00:00",
+            "local_label": "demain matin vers 8h",
+            "reminder_instruction": "noter comment j'ai dormi"
+          },
+          "db_ref": null,
+          "error_message": null,
+          "surface_id": null,
+          "owner": null,
+          "ambiguity_kind": null,
+          "selected_candidate_id": null
+        },
+        {
+          "effect_id": "3823b2b0-4a52-4848-8a04-3d5512490afe:allowed_effects:one_shot_reminder.create:0",
+          "kind": "durable_effect",
+          "effect_type": "one_shot_reminder.create",
+          "operation_type": "create_one_shot_reminder",
+          "operation_id": null,
+          "committed_id": null,
+          "tool_id": "create_one_shot_reminder",
+          "status": "allowed",
+          "reason_code": "payload",
+          "source": "router",
+          "payload_summary": {
+            "scheduled_for": "2026-07-11T06:00:00+00:00",
+            "local_label": "demain matin vers 8h",
+            "reminder_instruction": "noter comment j'ai dormi"
+          },
+          "db_ref": null,
+          "error_message": null,
+          "surface_id": null,
+          "owner": null,
+          "ambiguity_kind": null,
+          "selected_candidate_id": null
+        },
+        {
+          "effect_id": "3823b2b0-4a52-4848-8a04-3d5512490afe:committed_effects:one_shot_reminder.create:0",
+          "kind": "durable_effect",
+          "effect_type": "one_shot_reminder.create",
+          "operation_type": "create_one_shot_reminder",
+          "operation_id": null,
+          "committed_id": "6536873c-370e-4bdc-ada8-7d9c2ef874b6",
+          "tool_id": "create_one_shot_reminder",
+          "status": "committed",
+          "reason_code": "success",
+          "source": "executor",
+          "payload_summary": {
+            "scheduled_for": "2026-07-11T06:00:00+00:00",
+            "local_label": "demain matin vers 8h",
+            "reminder_instruction": "noter comment j'ai dormi"
+          },
+          "db_ref": {
+            "table": "scheduled_checkins",
+            "id": "6536873c-370e-4bdc-ada8-7d9c2ef874b6"
+          },
+          "error_message": null,
+          "surface_id": null,
+          "owner": null,
+          "ambiguity_kind": null,
+          "selected_candidate_id": null
+        }
+      ]
+    },
+    "response_owner": "normal_reply",
+    "tool_skill_run": {
+      "selected_handler": "create_one_shot_reminder",
+      "status": "success",
+      "reason": "payload",
+      "requested_effects": [
+        {
+          "type": "create_one_shot_reminder",
+          "scheduled_for": "2026-07-11T06:00:00+00:00",
+          "local_label": "demain matin vers 8h",
+          "reminder_instruction": "noter comment j'ai dormi",
+          "reason_code": "payload"
+        }
+      ],
+      "allowed_effects": [
+        {
+          "type": "create_one_shot_reminder",
+          "scheduled_for": "2026-07-11T06:00:00+00:00",
+          "local_label": "demain matin vers 8h",
+          "reminder_instruction": "noter comment j'ai dormi",
+          "reason_code": "payload"
+        }
+      ],
+      "committed_effects": [
+        {
+          "type": "create_one_shot_reminder",
+          "id": "6536873c-370e-4bdc-ada8-7d9c2ef874b6",
+          "scheduled_for": "2026-07-11T06:00:00+00:00",
+          "local_label": "demain matin vers 8h",
+          "reminder_instruction": "noter comment j'ai dormi"
+        }
+      ],
+      "blocked_effects": []
+    }
+  },
+  "trace_error": null
+}

@@ -29,8 +29,10 @@ import {
   runWeeklyReviewLocalRuntime,
 } from "../skills/weekly_review/runtime.ts";
 import {
+  applyOneShotReminderPendingClarification,
   maybeRunOneShotReminderDirectEffect,
   recurringNotSupportedDirectEffectResult,
+  safetyCrisisDeferredDirectEffectResult,
 } from "../tools/always_on/one_shot_reminder/router.ts";
 import { withDirectEffectConfirmationContext } from "./direct_effect_local_context.ts";
 import {
@@ -40,6 +42,7 @@ import {
 import {
   applyTrackProgressDirectEffectFailureState,
   applyTrackProgressDirectEffectRuntimeState,
+  freshLastTrackCommit,
   runTrackProgressPlanItemDirectEffect,
   TRACK_PROGRESS_PLAN_ITEM_RUNTIME_KEY,
 } from "../tools/always_on/track_progress_plan_item/router.ts";
@@ -208,6 +211,14 @@ function oneShotReminderOperationRuntimeFromDirectEffect(args: {
   result: Awaited<ReturnType<typeof maybeRunOneShotReminderDirectEffect>>;
 }): OperationRuntimeResult | null {
   if (!args.result.detected || !args.result.reply) return null;
+  // P2-3d: le clarify replace en attente se persiste (ou se supersède) —
+  // mutation IN-PLACE volontaire: l'objet est aussi référencé par
+  // state.temp_memory, et seule la mutation in-place survit à la
+  // reconstruction de temp_memory par le companion (leçon P1-2).
+  applyOneShotReminderPendingClarification({
+    temp_memory: args.tempMemory as Record<string, unknown>,
+    pending_clarification: args.result.pending_clarification ?? null,
+  });
   return {
     content: args.result.reply,
     nextTempMemory: clearLegacyRuntimeStateForDirectEffect(args.tempMemory),
@@ -293,12 +304,46 @@ function mergeEffectArray(
     | "requested_effects"
     | "allowed_effects"
     | "committed_effects"
-    | "blocked_effects",
+    | "blocked_effects"
+    | "superseded_effects",
 ): unknown[] {
   return [
     ...(Array.isArray(directRun[key]) ? directRun[key] as unknown[] : []),
     ...(Array.isArray(visibleRun[key]) ? visibleRun[key] as unknown[] : []),
   ];
+}
+
+function dedupeCommittedEffects(effects: unknown[]): {
+  kept: unknown[];
+  superseded: unknown[];
+} {
+  const seen = new Set<string>();
+  const kept: unknown[] = [];
+  // P2-6 (eva-global17 R1-B03): l'absorption silencieuse du doublon faisait
+  // mentir la comptabilité (requested=2, allowed=2, committed=1, rien ne
+  // solde la 2e entrée). Le doublon reçoit un statut terminal explicite
+  // `superseded_by_dedup` — la somme des statuts terminaux = requested.
+  const superseded: unknown[] = [];
+  for (const effect of effects) {
+    const type = String((effect as any)?.type ?? "").trim();
+    const id = String((effect as any)?.id ?? "").trim();
+    // Sans id on ne peut pas identifier l'écriture: on conserve l'entrée.
+    if (!type || !id) {
+      kept.push(effect);
+      continue;
+    }
+    const key = `${type}:${id}`;
+    if (seen.has(key)) {
+      superseded.push({
+        ...(effect as Record<string, unknown>),
+        reason_code: "superseded_by_dedup",
+      });
+      continue;
+    }
+    seen.add(key);
+    kept.push(effect);
+  }
+  return { kept, superseded };
 }
 
 export function mergeDirectEffectRuntimeIntoVisibleRuntime(args: {
@@ -310,11 +355,19 @@ export function mergeDirectEffectRuntimeIntoVisibleRuntime(args: {
   const visibleContent = String(args.visibleRuntime.content ?? "").trim();
   const directRun = args.directRuntime.toolSkillRun ?? {};
   const visibleRun = args.visibleRuntime.toolSkillRun ?? {};
-  const committedEffects = mergeEffectArray(
+  // Convergence idempotente (P0, harness S1 T2): la même écriture exécutée
+  // par deux lanes du tour (pre-loop + executor local/re-exec) rend le MÊME
+  // committed (même id) — le ledger du tour la porte UNE fois, pas deux.
+  const dedupedCommitted = dedupeCommittedEffects(mergeEffectArray(
     directRun,
     visibleRun,
     "committed_effects",
-  );
+  ));
+  const committedEffects = dedupedCommitted.kept;
+  const supersededEffects = [
+    ...mergeEffectArray(directRun, visibleRun, "superseded_effects"),
+    ...dedupedCommitted.superseded,
+  ];
   const blockedEffects = mergeEffectArray(
     directRun,
     visibleRun,
@@ -347,6 +400,7 @@ export function mergeDirectEffectRuntimeIntoVisibleRuntime(args: {
       ),
       committed_effects: committedEffects,
       blocked_effects: blockedEffects,
+      superseded_effects: supersededEffects,
       direct_effect_lane: {
         selected_handler: directRun.selected_handler ?? null,
         status: directRun.status ?? null,
@@ -421,6 +475,8 @@ export async function runTrackProgressRuntimeLane(params: {
       no_mutation_requested: Boolean(blockedReason),
       blocked_reason_code: blockedReason,
       evidence_messages: params.evidenceMessages ?? [],
+      // P2-4a: bascule de cible vs commit du tour précédent → clarify.
+      last_track_commit: freshLastTrackCommit(params.tempMemory),
       same_day_evidence_check: createTrackProgressSameDayEvidenceCheck({
         supabase: params.supabase,
         userId: params.userId,
@@ -526,6 +582,43 @@ export async function runDirectEffectLane(
     };
   }
 
+  // P3-A (alex-safety-escalation R1-B01): la ROUTE décide, plus le bypass
+  // routeSafetyActive (c'est lui qui laissait committer un rappel au milieu
+  // d'une crise suicidaire). Crise (active_safety_priority / idéation) →
+  // différé honnête synthétisé, ZÉRO exécution — parité avec track_progress.
+  const crisisBlockReasons = new Set([
+    "active_safety_priority",
+    "distress_ideation_safety_priority",
+  ]);
+  const routeBlocksReminderForCrisis = Boolean(
+    routeDecision?.blocked_paths.some((blocked) =>
+      blocked.path === "direct_effects.create_one_shot_reminder" &&
+      crisisBlockReasons.has(String(blocked.reason_code ?? ""))
+    ),
+  );
+  if (routeBlocksReminderForCrisis) {
+    const operationRuntime = oneShotReminderOperationRuntimeFromDirectEffect({
+      tempMemory: args.tempMemory,
+      result: safetyCrisisDeferredDirectEffectResult(),
+    });
+    return {
+      operationRuntime,
+      routeDecision,
+      turnFrame,
+      tempMemory: operationRuntime?.nextTempMemory ?? args.tempMemory,
+      routeOrFrameChanged: true,
+    };
+  }
+  // V5-1 dans le bon sens (rose-hard15 T10): en détresse medium NON-crise,
+  // la route (distress_support_priority) admet les direct effects — le
+  // rappel bénin explicite est SERVI (confirmation sobre en fin via la
+  // traîne de composition), au lieu d'être bloqué par le seuil de band.
+  const reminderAllowedDespiteBand = Boolean(
+    args.routeDecision?.direct_effects_to_run.includes(
+      "create_one_shot_reminder",
+    ),
+  );
+
   routeDecision = routeWithDirectEffect({
     routeDecision,
     effectType: "create_one_shot_reminder",
@@ -535,7 +628,8 @@ export async function runDirectEffectLane(
     turnFrame !== args.turnFrame;
 
   const oneShotReminderDirectEffect =
-    (!blocksDirectEffects(runtimeSafetyRiskBand as any) || routeSafetyActive)
+    (!blocksDirectEffects(runtimeSafetyRiskBand as any) ||
+        reminderAllowedDespiteBand)
       ? await maybeRunOneShotReminderDirectEffect({
         supabase: args.supabase,
         userId: args.userId,

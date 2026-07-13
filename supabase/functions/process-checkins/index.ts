@@ -16,6 +16,10 @@ import {
 } from "../_shared/whatsapp_winback.ts";
 import { computeNextRetryAtIso } from "../_shared/whatsapp_outbound_tracking.ts";
 import {
+  pickMorningLightVariant,
+  potionReminderComponents,
+} from "../_shared/whatsapp_templates.ts";
+import {
   ACCESS_ENDED_NOTIFICATION_KIND,
   ACCESS_REACTIVATION_OFFER_KIND,
   accessEndedPurpose,
@@ -214,7 +218,11 @@ async function pauseWhatsappCoachingWorkForUser(params: {
       delivery_last_request_id: params.requestId,
     } as any)
     .eq("user_id", params.userId)
-    .in("status", WHATSAPP_COACHING_PAUSED_STATUSES as any);
+    .in("status", WHATSAPP_COACHING_PAUSED_STATUSES as any)
+    // Les rappels ponctuels demandés par le user (chat, tous canaux) ne sont
+    // pas du coaching WhatsApp: la pause d'éligibilité ne doit jamais les
+    // annuler (disparitions Nina/Rose/Eva du 12/07, chantier P0).
+    .not("event_context", "like", "one_shot_reminder:%");
 
   await params.supabaseAdmin
     .from("whatsapp_pending_actions")
@@ -4817,6 +4825,81 @@ Deno.serve(async (req) => {
         payload = weeklyReviewPayload;
         bodyText = weeklyReviewIntro;
       }
+      // Out-of-24h "bonne journée" (nothing planned): ship a self-contained
+      // template variant directly — no teaser, no "Go !" pending. Inside the
+      // 24h window we fall through to the normal AI-generated text below.
+      if (isMorningLightGreeting && !in24hConversationWindow) {
+        const attemptCount = Math.max(
+          1,
+          Number((checkin as any)?.delivery_attempt_count ?? 0) + 1,
+        );
+        const localDateYmd = localDateYmdInTimezone(userTimezone, new Date());
+        const variantName = pickMorningLightVariant(localDateYmd);
+        const variantLang =
+          (Deno.env.get("WHATSAPP_MORNING_LIGHT_TEMPLATE_LANG") ?? "fr").trim();
+        try {
+          const resp = await callWhatsappSend({
+            user_id: checkin.user_id,
+            message: {
+              type: "template",
+              name: variantName,
+              language: variantLang,
+            },
+            purpose: "morning_light",
+            require_opted_in: true,
+            force_template: true,
+            metadata_extra: {
+              source: "scheduled_checkin",
+              event_context: checkin.event_context,
+              original_checkin_id: checkin.id,
+              purpose: "morning_light",
+              morning_light_variant: variantName,
+            },
+          });
+          if (Boolean((resp as any)?.skipped)) {
+            await markScheduledCheckinDeliveryState({
+              supabaseAdmin,
+              checkinId: checkin.id,
+              status: "cancelled",
+              attemptCount,
+              errorMessage: String(
+                (resp as any)?.skip_reason ?? "morning_light_skipped",
+              ),
+              requestId: String((resp as any)?.request_id ?? requestId),
+            });
+            continue;
+          }
+          await markScheduledCheckinDeliveryState({
+            supabaseAdmin,
+            checkinId: checkin.id,
+            status: "sent",
+            attemptCount,
+            draftMessage: null,
+            errorMessage: null,
+            requestId: String((resp as any)?.request_id ?? requestId),
+          });
+          processedCount++;
+          continue;
+        } catch (e) {
+          const status = (e as any)?.status;
+          const msg = e instanceof Error ? e.message : String(e);
+          const nextStatus = shouldRetryScheduledCheckinDelivery(status)
+            ? "retrying"
+            : "failed";
+          await markScheduledCheckinDeliveryState({
+            supabaseAdmin,
+            checkinId: checkin.id,
+            status: nextStatus,
+            attemptCount,
+            scheduledFor: nextStatus === "retrying"
+              ? computeNextRetryAtIso(attemptCount)
+              : null,
+            errorMessage: msg,
+            requestId,
+          });
+          continue;
+        }
+      }
       if (mode === "dynamic") {
         try {
           bodyText = await generateDynamicWhatsAppCheckinMessage({
@@ -4955,16 +5038,31 @@ Deno.serve(async (req) => {
           );
           continue;
         }
+        // Potion follow-up rendez-vous: use the named potion template with the
+        // potion label injected as {{1}} (already elided). Unknown potion types
+        // fall back to the generic reminder rather than shipping broken French.
+        const potionReminderCmp =
+          cleanText(payload?.source) === "potion_follow_up_series"
+            ? potionReminderComponents(payload?.potion_type)
+            : null;
+        const reminderTemplateName = potionReminderCmp
+          ? (Deno.env.get("WHATSAPP_POTION_REMINDER_TEMPLATE_NAME") ??
+            "sophia_potion_reminder_v1").trim()
+          : (Deno.env.get("WHATSAPP_RECURRING_REMINDER_TEMPLATE_NAME") ??
+            "sophia_reminder_consent_v1_").trim();
+        const reminderTemplateLang = potionReminderCmp
+          ? (Deno.env.get("WHATSAPP_POTION_REMINDER_TEMPLATE_LANG") ?? "fr")
+            .trim()
+          : (Deno.env.get("WHATSAPP_RECURRING_REMINDER_TEMPLATE_LANG") ?? "fr")
+            .trim();
         await enqueueProactiveTemplateCandidate(supabaseAdmin as any, {
           userId: checkin.user_id,
           purpose: "recurring_reminder",
           message: {
             type: "template",
-            name: (Deno.env.get("WHATSAPP_RECURRING_REMINDER_TEMPLATE_NAME") ??
-              "sophia_reminder_consent_v1_").trim(),
-            language:
-              (Deno.env.get("WHATSAPP_RECURRING_REMINDER_TEMPLATE_LANG") ??
-                "fr").trim(),
+            name: reminderTemplateName,
+            language: reminderTemplateLang,
+            ...(potionReminderCmp ? { components: potionReminderCmp } : {}),
           },
           requireOptedIn: true,
           forceTemplate: true,

@@ -7,6 +7,8 @@ import type {
   WriteDecision,
   KnownMemoryItem,
 } from "./types.ts";
+import type { CandidateTopicPlan, CreatedTopicRef } from "./create_topics.ts";
+import { defaultTopicSearchDocEmbedder } from "../compaction/topic_compaction.ts";
 import { maxSensitivityLevel } from "../compaction/sensitivity.ts";
 import {
   deleteMemoryItem,
@@ -43,6 +45,10 @@ export interface MemorizerPersistRepository {
     extraction_run_id: string;
     decisions: WriteDecision[];
   }): Promise<PersistedMemoryWrite[]>;
+  createCandidateTopics?(args: {
+    user_id: string;
+    topics: CandidateTopicPlan[];
+  }): Promise<CreatedTopicRef[]>;
   applyCorrections?(args: {
     user_id: string;
     extraction_run_id: string;
@@ -97,6 +103,67 @@ export class SupabaseMemorizerRepository implements MemorizerPersistRepository {
       .update({ sensitivity_max: sensitivityMax })
       .eq("id", topicId);
     if (updateError) throw updateError;
+  }
+
+  async createCandidateTopics(args: {
+    user_id: string;
+    topics: CandidateTopicPlan[];
+  }): Promise<CreatedTopicRef[]> {
+    const created: CreatedTopicRef[] = [];
+    for (const plan of args.topics) {
+      // Reuse an existing topic with the same slug rather than overwrite it
+      // (unique on user_id+slug); only brand-new slugs get an insert.
+      const { data: existing, error: selectError } = await (this.supabase as any)
+        .from("user_topic_memories")
+        .select("id")
+        .eq("user_id", args.user_id)
+        .eq("slug", plan.slug)
+        .maybeSingle();
+      if (selectError) throw selectError;
+      if (existing?.id) {
+        created.push({ slug: plan.slug, topic_id: String(existing.id) });
+        continue;
+      }
+      // Embed at creation: candidate topics only reach the compaction
+      // threshold after several changes, and the runtime router degrades to
+      // lexical matching while search_doc_embedding is null. Best-effort — a
+      // failed embedding never blocks topic creation.
+      let embedding: number[] | null = null;
+      try {
+        embedding = plan.search_doc
+          ? await defaultTopicSearchDocEmbedder(
+            plan.search_doc,
+            null,
+            args.user_id,
+          )
+          : null;
+      } catch {
+        embedding = null;
+      }
+      const { data: inserted, error: insertError } = await (this.supabase as any)
+        .from("user_topic_memories")
+        .insert({
+          user_id: args.user_id,
+          slug: plan.slug,
+          title: plan.title,
+          status: "active",
+          lifecycle_stage: "candidate",
+          search_doc: plan.search_doc,
+          ...(embedding ? { search_doc_embedding: embedding } : {}),
+          // Also flag for the compaction cron (embedding refresh + summary).
+          pending_changes_count: 1,
+          metadata: {
+            domain_keys: plan.domain_keys,
+            created_by: "memorizer",
+            topic_origin: "topic_hint",
+          },
+        })
+        .select("id")
+        .single();
+      if (insertError) throw insertError;
+      created.push({ slug: plan.slug, topic_id: String(inserted.id) });
+    }
+    return created;
   }
 
   async findExtractionRun(args: {
@@ -197,12 +264,30 @@ export class SupabaseMemorizerRepository implements MemorizerPersistRepository {
         throw new Error("memory_v2_write_missing_source");
       }
       try {
+      // P3-E (rose-hard15 T16): embedding à la CRÉATION — différé au cron de
+      // compaction, il restait NULL et tuait le recall sémantique
+      // inter-session (fait « dimanche soir seule » jamais remonté).
+      // Best-effort: un échec d'embedding ne bloque jamais la persistance
+      // (le cron reste le filet de backfill).
+      let itemEmbedding: number[] | null = null;
+      try {
+        itemEmbedding = await defaultTopicSearchDocEmbedder(
+          [item.content_text, item.normalized_summary].filter(Boolean).join(
+            "\n",
+          ),
+          null,
+          args.user_id,
+        );
+      } catch {
+        itemEmbedding = null;
+      }
       const { data: inserted, error: itemError } = await (this.supabase as any)
         .from("memory_items")
         .insert({
           user_id: args.user_id,
           kind: item.kind,
           status: decision.status,
+          ...(itemEmbedding ? { embedding: itemEmbedding } : {}),
           content_text: item.content_text,
           normalized_summary: item.normalized_summary,
           domain_keys: item.domain_keys,

@@ -430,6 +430,16 @@ export async function runCoachingRecommendationSkill(
     dispatcherSignalContext: dispatcherSignalContext(input),
   });
   if (reduced.status === "exit") {
+    // P0-1 (ALEX-CPR-B01): un direct effect explicite demandé AU TOUR de
+    // sortie ne se perd jamais — la lane s'exécute AVANT de rendre la main au
+    // dispatcher global. Le return court-circuitait le writer (rappel jamais
+    // écrit) pendant que le contexte de confirmation re-présentait un
+    // committed du ledger → « c'est noté » fantôme.
+    if (
+      input.direct_effect_executor && decision.direct_effect_request?.requested
+    ) {
+      await input.direct_effect_executor(decision.direct_effect_request);
+    }
     return baseOutput("coaching_recommendation", {
       status: reduced.status,
       response_intent: reduced.reason_code,

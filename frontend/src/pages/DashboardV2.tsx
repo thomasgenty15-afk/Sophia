@@ -681,7 +681,14 @@ export default function DashboardV2() {
   });
   const currentLevel = logic.phases.find((phase) => phase.state === "active") ?? null;
   const levelCompletionPendingScope = useMemo<LevelCompletionPendingScope | null>(() => {
-    if (!user || !transformation || !plan || !currentLevel) return null;
+    if (
+      !user?.id ||
+      !transformation?.id ||
+      !plan?.id ||
+      !currentLevel?.phase_id
+    ) {
+      return null;
+    }
     return {
       user_id: user.id,
       transformation_id: transformation.id,
@@ -854,8 +861,9 @@ export default function DashboardV2() {
     setPlanReviewInput("");
   };
 
+  const reviewSessionTransformationId = transformation?.id ?? null;
   useEffect(() => {
-    if (!transformation) {
+    if (!reviewSessionTransformationId) {
       clearPlanReviewSessionState();
       return;
     }
@@ -866,7 +874,7 @@ export default function DashboardV2() {
       const { data, error: sessionError } = await supabase
         .from("user_plan_review_requests")
         .select("*")
-        .eq("transformation_id", transformation.id)
+        .eq("transformation_id", reviewSessionTransformationId)
         .order("updated_at", { ascending: false })
         .limit(5);
 
@@ -976,7 +984,7 @@ export default function DashboardV2() {
     return () => {
       cancelled = true;
     };
-  }, [transformation?.id]);
+  }, [reviewSessionTransformationId]);
 
   useEffect(() => {
     if (!planReviewProposal?.review_id || !planReviewSessionExpiresAt) return;
@@ -1215,7 +1223,7 @@ export default function DashboardV2() {
           previousTransformationId:
             transformation?.id ?? activePlanContent?.transformation_id ?? null,
         })
-        : hasSimpleNextTransformation && transformation
+        : hasSimpleNextTransformation && transformation?.id
           ? buildSimpleTransitionQuestionnaireSchema({
             transformationId: transformation.id,
             currentTransformationTitle: transformation.title ?? activePlanContent?.title ?? null,
@@ -1445,7 +1453,7 @@ export default function DashboardV2() {
           key: "lab",
           icon: Hammer,
           label: "Ressources",
-          mobileLabel: "Outils",
+          mobileLabel: "Ressources",
           activeColor: "text-[#d1ded4]",
           activeBg: "bg-[#eef5ee]",
         },
@@ -3837,10 +3845,13 @@ export default function DashboardV2() {
                           potionsLoading={potions.loading}
                           potionDefinitions={potions.definitions}
                           potionLatestSessions={potions.latestSessionByType}
+                          potionSessionsByType={potions.sessionsByType}
                           potionUsageCount={potions.usageCountByType}
                           activatingPotionType={potions.activatingPotionType}
                           schedulingPotionSessionId={potions.schedulingSessionId}
+                          deletingPotionSessionId={potions.deletingSessionId}
                           onActivatePotion={potions.activatePotion}
+                          onDeletePotion={potions.deletePotion}
                           onReactivatePotion={potions.reactivatePotion}
                           onSchedulePotionFollowUp={potions.schedulePotionFollowUp}
                           planItems={planItems}

@@ -111,6 +111,20 @@ export function hasRecurringCadenceHint(message: string): boolean {
     weekdayCount(text) >= 2;
 }
 
+/**
+ * Vrai si le texte porte un JOUR FUTUR EXPLICITE (demain / après-demain) —
+ * par opposition au bump automatique d'un horaire nu déjà passé. Sert à la
+ * réparation déterministe d'un UTC_time dispatcher résolu au passé
+ * (rose-multiflow RMR-B01): on ne répare que sur futur explicite.
+ */
+export function hasExplicitFutureDayHint(message: string): boolean {
+  const text = normalizeText(message);
+  if (/\bapres demain|apres-demain|après demain|après-demain\b/.test(text)) {
+    return true;
+  }
+  return /\bdemain\b/.test(text);
+}
+
 export function parseOneShotReminderRequest(args: {
   message: string;
   timezone: string;

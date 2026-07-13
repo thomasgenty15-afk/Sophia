@@ -143,41 +143,50 @@ function lexicalSimilarity(
   let overlap = 0;
   for (const t of left) if (right.has(t)) overlap++;
   const jaccard = overlap / (left.size + right.size - overlap);
-  const m = normalize(message);
-  const slug = normalize(topic.slug ?? topic.title);
   let bonus = 0;
   const messageTokens = tokens(message);
+  // Purge charte anti-patching (commandement 0, 10/07/2026): les bonus regex
+  // par sujet (rupture/lina, travail/manager, cannabis, sommeil...) faisaient
+  // du routing metier par regex. Le routage semantique passe desormais par
+  // les embeddings (voie principale); le lexical ne sert que de repli, avec
+  // le seul bonus GENERIQUE des tokens d'identite du topic.
   const identityTokens = [...tokens(`${topic.slug ?? ""} ${topic.title}`)]
     .filter((token) => token.length >= 4 && !GENERIC_TOPIC_WORDS.has(token));
   if (identityTokens.some((token) => messageTokens.has(token))) {
     bonus += 0.62;
   }
-  if (
-    slug.includes("rupture") &&
-    /(rupture|lina|couple|reecrire|messages?|dedans)/.test(m)
-  ) {
-    bonus += 0.5;
+  return Math.min(0.95, jaccard + bonus);
+}
+
+// Les cosinus Gemini (gemini-embedding-001) vivent sur une echelle compressee:
+// le plancher entre deux textes FR quelconques est ~0.55-0.64 et un vrai match
+// thematique commence vers 0.68 (calibration reelle du 10/07/2026, 8 inputs
+// contre 6 topics persona). Ce remapping par morceaux projette ces cosinus sur
+// l'echelle historique du routeur (calibree lexical), pour que les seuils de
+// decision et les shortlists mixtes cosine/lexical restent coherents.
+const COSINE_TO_ROUTER_SCALE: Array<[number, number]> = [
+  [0.55, 0.28],
+  [0.64, 0.42],
+  [0.68, 0.55],
+  [0.75, 0.70],
+  [0.85, 0.90],
+  [1.0, 0.98],
+];
+
+export function normalizeCosineToRouterScale(cosine: number): number {
+  if (!Number.isFinite(cosine)) return Number.NaN;
+  const first = COSINE_TO_ROUTER_SCALE[0];
+  if (cosine <= first[0]) {
+    return Math.max(0, (cosine / first[0]) * first[1]);
   }
-  if (slug.includes("travail") || slug.includes("manager")) {
-    if (/(travail|manager|reunion|collegue|humilie)/.test(m)) bonus += 0.58;
-  }
-  if (slug.includes("discipline") || slug.includes("matin")) {
-    if (/(routine|matin|repousse|procrastin|rate|habitude)/.test(m)) {
-      bonus += 0.55;
+  for (let i = 1; i < COSINE_TO_ROUTER_SCALE.length; i++) {
+    const [x1, y1] = COSINE_TO_ROUTER_SCALE[i - 1];
+    const [x2, y2] = COSINE_TO_ROUTER_SCALE[i];
+    if (cosine <= x2) {
+      return y1 + ((cosine - x1) / (x2 - x1)) * (y2 - y1);
     }
   }
-  if (
-    slug.includes("cannabis") && /(cannabis|fumer|fumai|joint|arret)/.test(m)
-  ) {
-    bonus += 0.58;
-  }
-  if (
-    (slug.includes("sommeil") || slug.includes("energie")) &&
-    /(dormi|dors|sommeil|fatigue|vide|energie)/.test(m)
-  ) {
-    bonus += 0.55;
-  }
-  return Math.min(0.95, jaccard + bonus);
+  return COSINE_TO_ROUTER_SCALE[COSINE_TO_ROUTER_SCALE.length - 1][1];
 }
 
 function topicSimilarity(
@@ -191,7 +200,9 @@ function topicSimilarity(
     return Math.max(0, Math.min(1, topic.similarity));
   }
   const cosine = cosineSimilarity(input.message_embedding, topic.embedding);
-  if (Number.isFinite(cosine)) return Math.max(0, Math.min(1, cosine));
+  if (Number.isFinite(cosine)) {
+    return Math.max(0, Math.min(1, normalizeCosineToRouterScale(cosine)));
+  }
   return lexicalSimilarity(input.message, topic);
 }
 

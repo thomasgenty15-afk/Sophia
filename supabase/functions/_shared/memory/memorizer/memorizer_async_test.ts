@@ -425,8 +425,11 @@ Deno.test("concurrent trigger on a fresh running run skips instead of double-wri
     },
   } as never);
   assertEquals(outer.status, "completed");
-  assertEquals(innerResult?.status, "skipped");
-  assertEquals(innerResult?.skip_reason, "run_in_progress");
+  const inner = innerResult as
+    | Awaited<ReturnType<typeof runMemorizerAsync>>
+    | null;
+  assertEquals(inner?.status, "skipped");
+  assertEquals(inner?.skip_reason, "run_in_progress");
   // Une seule vague ecrite: N faits acceptes = N memory_items, pas 2N.
   assertEquals(repo.memoryWrites.length, 1);
 });

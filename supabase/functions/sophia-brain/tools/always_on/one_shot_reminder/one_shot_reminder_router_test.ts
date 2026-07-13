@@ -491,7 +491,15 @@ Deno.test("reschedule_intent_blocks_honestly_with_outcome (eva-r5 B01)", async (
   // improvise un faux "c'est note : 21h30").
   const message = "mets-le à 21h30 au lieu de 22h";
   const result = await maybeRunOneShotReminderDirectEffect({
-    supabase: fakeSupabase(),
+    // Le scénario d'eva-r5 B01 suppose un rappel EXISTANT (« au lieu de
+    // 22h ») — le fixture le porte: sans aucun pending, le runtime dégrade
+    // légitimement en create depuis P0-4 (nina R1-B02).
+    supabase: fakeCancelSupabase([{
+      id: "pending-22h",
+      scheduled_for: "2026-07-06T20:00:00.000Z",
+      status: "pending",
+      event_context: "one_shot_reminder:poser_le_telephone",
+    }]) as any,
     userId: "user-1",
     message,
     now: new Date("2026-07-06T18:00:00.000Z"),
@@ -521,6 +529,7 @@ function fakeCancelSupabase(rows: Array<{
   scheduled_for: string;
   status: string;
   event_context: string;
+  message_payload?: Record<string, unknown>;
 }>) {
   function chain(filters: { pendingOnly: boolean }) {
     const self: any = {
@@ -535,6 +544,24 @@ function fakeCancelSupabase(rows: Array<{
         }
         return self;
       },
+      // P2-3c: chemin d'écriture du cancel (update → in → eq → select).
+      update: () => ({
+        in: (_col: string, ids: string[]) => ({
+          eq: () => ({
+            select: async () => ({
+              data: rows
+                .filter((row) =>
+                  ids.includes(row.id) && row.status === "pending"
+                )
+                .map((row) => ({
+                  id: row.id,
+                  scheduled_for: row.scheduled_for,
+                })),
+              error: null,
+            }),
+          }),
+        }),
+      }),
       limit: async () => ({
         data: filters.pendingOnly
           ? rows.filter((row) => row.status === "pending")
@@ -620,4 +647,289 @@ Deno.test("cancel with truly no reminder still says nothing to cancel", async ()
     String(result.reply ?? "").includes("rien à annuler"),
     true,
   );
+});
+
+// ── P2-3 (vague untested-surfaces 12/07) ────────────────────────────────────
+
+Deno.test("replace: heure nue passée héritée du jour du rappel remplacé (P2-3a, alex-untested R1-B02)", async () => {
+  // 23h17 locale ; l'ancien rappel est demain 21h50 ; « remets-en un à
+  // 21h15 » résolu par le dispatcher au JOUR COURANT (passé). Avant le fix :
+  // cancel committé PUIS create bloqué past_time → plus aucun rappel.
+  // Attendu : l'heure hérite du jour de l'ancre AVANT toute mutation.
+  let cancelCalls = 0;
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeCancelSupabase([{
+      id: "pending-2150",
+      scheduled_for: "2026-07-07T19:50:00.000Z",
+      status: "pending",
+      event_context: "one_shot_reminder:micro_pause",
+    }]) as never,
+    userId: "user-1",
+    message: "annule celui de 21h50 et remets-en un à 21h15",
+    now: new Date("2026-07-06T21:17:00.000Z"),
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      intent: "replace",
+      raw_text: "annule celui de 21h50 et remets-en un à 21h15",
+      when_hint: "21h15",
+      UTC_time: "2026-07-06T19:15:00.000Z",
+      local_label: "21h15",
+      instruction_hint: "micro-pause active",
+      replace_target_label: "21h50",
+    }),
+    // Court-circuite APRÈS la réparation : la cible du test est l'admission
+    // temporelle, pas l'exécution complète du replace.
+    cancelReminder: (async () => {
+      cancelCalls += 1;
+      return {
+        detected: true,
+        status: "ambiguous_target",
+        pending_count: 2,
+        user_message: "",
+      };
+    }) as never,
+  });
+  assertEquals(cancelCalls, 1);
+  assertEquals(result.debug.reason_code, "replace_target_ambiguous");
+  // La réparation a bien porté le nouveau rappel à J+1 (jour de l'ancre).
+  assertEquals(
+    String(result.pending_clarification?.known_slots?.UTC_time ?? ""),
+    "2026-07-07T19:15:00.000Z",
+  );
+});
+
+Deno.test("replace: heure passée SANS ancre résoluble → clarify, rien annulé (P2-3a anti-FP)", async () => {
+  let cancelCalls = 0;
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeCancelSupabase([]) as never,
+    userId: "user-1",
+    message: "annule celui de 21h50 et remets-en un à 21h15",
+    now: new Date("2026-07-06T21:17:00.000Z"),
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      intent: "replace",
+      raw_text: "annule celui de 21h50 et remets-en un à 21h15",
+      when_hint: "21h15",
+      UTC_time: "2026-07-06T19:15:00.000Z",
+      local_label: "21h15",
+      instruction_hint: "micro-pause active",
+      replace_target_label: "21h50",
+    }),
+    cancelReminder: (async () => {
+      cancelCalls += 1;
+      return { detected: true, status: "no_reminder", user_message: "" };
+    }) as never,
+  });
+  assertEquals(result.status, "needs_clarify");
+  assertEquals(result.debug.reason_code, "replace_past_time");
+  // AUCUNE mutation : le cancel n'a jamais été tenté.
+  assertEquals(cancelCalls, 0);
+  assertEquals(result.committed_effects.length, 0);
+  assertEquals(result.pending_clarification?.reason_code, "replace_past_time");
+});
+
+Deno.test("cancel: cible résolue par contenu d'instruction sans heure (P2-3c, rose-lifecycle R1-B02)", async () => {
+  const { maybeCancelOneShotReminder } = await import("./executor.ts");
+  const outcome = await maybeCancelOneShotReminder({
+    supabase: fakeCancelSupabase([
+      {
+        id: "pending-carto",
+        scheduled_for: "2026-07-07T07:00:00.000Z",
+        status: "pending",
+        event_context: "one_shot_reminder:carto",
+        message_payload: {
+          reminder_instruction: "finir la carto de mes ruminations",
+        },
+      },
+      {
+        id: "pending-lessive",
+        scheduled_for: "2026-07-07T16:00:00.000Z",
+        status: "pending",
+        event_context: "one_shot_reminder:lessive",
+        message_payload: { reminder_instruction: "sortir la lessive" },
+      },
+    ]) as never,
+    userId: "user-1",
+    message: "annule celui de la carto demain matin",
+    now: new Date("2026-07-06T21:00:00.000Z"),
+  });
+  assertEquals(outcome.detected, true);
+  assertEquals((outcome as { status: string }).status, "cancelled");
+  assertEquals(
+    (outcome as { cancelled_ids?: string[] }).cancelled_ids,
+    ["pending-carto"],
+  );
+});
+
+Deno.test("cancel: deux candidats positifs au contenu → vraie ambiguïté, clarify (P2-3c anti-FP)", async () => {
+  const { maybeCancelOneShotReminder } = await import("./executor.ts");
+  const outcome = await maybeCancelOneShotReminder({
+    supabase: fakeCancelSupabase([
+      {
+        id: "pending-carto-1",
+        scheduled_for: "2026-07-07T07:00:00.000Z",
+        status: "pending",
+        event_context: "one_shot_reminder:carto1",
+        message_payload: { reminder_instruction: "finir la carto du matin" },
+      },
+      {
+        id: "pending-carto-2",
+        scheduled_for: "2026-07-07T16:00:00.000Z",
+        status: "pending",
+        event_context: "one_shot_reminder:carto2",
+        message_payload: { reminder_instruction: "relire la carto du soir" },
+      },
+    ]) as never,
+    userId: "user-1",
+    message: "annule celui de la carto",
+    now: new Date("2026-07-06T21:00:00.000Z"),
+  });
+  assertEquals((outcome as { status: string }).status, "ambiguous_target");
+});
+
+Deno.test("pending replace clarify: persisté, exposé UNE fois, supersédé (P2-3d, rose-lifecycle R1-B03)", async () => {
+  const {
+    applyOneShotReminderPendingClarification,
+    pendingOneShotReminderClarificationForDispatcher,
+  } = await import("./router.ts");
+  const tempMemory: Record<string, unknown> = {};
+  applyOneShotReminderPendingClarification({
+    temp_memory: tempMemory,
+    pending_clarification: {
+      intent: "replace",
+      reason_code: "replace_target_ambiguous",
+      clarify_question: "Lequel je remplace ?",
+      known_slots: { UTC_time: "2026-07-07T19:15:00.000Z" },
+    },
+  });
+  // Exposé au dispatcher une fois…
+  const exposed = pendingOneShotReminderClarificationForDispatcher(tempMemory);
+  assertEquals(exposed?.effect_type, "create_one_shot_reminder");
+  assertEquals(exposed?.intent, "replace");
+  assertEquals(
+    String(exposed?.known_slots?.UTC_time ?? ""),
+    "2026-07-07T19:15:00.000Z",
+  );
+  // …puis plus jamais (pas de pollution des tours ultérieurs).
+  assertEquals(
+    pendingOneShotReminderClarificationForDispatcher(tempMemory),
+    null,
+  );
+  // Toute exécution de lane sans nouveau clarify supersède le pending.
+  applyOneShotReminderPendingClarification({
+    temp_memory: tempMemory,
+    pending_clarification: null,
+  });
+  assertEquals(
+    "__one_shot_reminder_pending_clarification" in tempMemory,
+    false,
+  );
+});
+
+Deno.test("différé de crise: résultat canonique, zéro exécution (P3-A, alex-safety R1-B01)", async () => {
+  const { safetyCrisisDeferredDirectEffectResult } = await import(
+    "./router.ts"
+  );
+  const result = safetyCrisisDeferredDirectEffectResult();
+  assertEquals(result.status, "blocked");
+  assertEquals(result.debug.reason_code, "safety_crisis_deferred");
+  assertEquals(result.committed_effects.length, 0);
+  assertEquals(result.executed_tools.length, 0);
+  // Le différé est explicite, jamais une confirmation.
+  assertEquals(String(result.reply ?? "").includes("garde"), true);
+  assertEquals(String(result.reply ?? "").includes("programmé"), false);
+});
+
+// ── P3-B temps déterministe (paul-untested16 T12, rose-hard15 T11) ─────────
+
+Deno.test("P3-B couche 1: « demain à 19h » de nuit → le parseur prime sur l'UTC_time LLM dérivé", async () => {
+  // 02h49 Paris (00:49Z). Le LLM a résolu « demain 19h » à AUJOURD'HUI 19h
+  // (futur, donc jamais rattrapé par past_time) — le parseur ancré client
+  // corrige au 14/07.
+  let writtenRow: any = null;
+  const message = "rappelle-moi demain à 19h d'appeler mon frère";
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeSupabase({ onUpsert: (row) => writtenRow = row }),
+    userId: "user-1",
+    message,
+    now: new Date("2026-07-13T00:49:00.000Z"),
+    userTimezone: "Europe/Paris",
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      raw_text: message,
+      when_hint: "demain à 19h",
+      UTC_time: "2026-07-13T17:00:00.000Z",
+      local_label: "demain à 19h",
+      instruction_hint: "appeler mon frère",
+    }),
+  });
+  assertEquals(result.status, "success");
+  assertEquals(writtenRow?.scheduled_for, "2026-07-14T17:00:00.000Z");
+});
+
+Deno.test("P3-B couche 2: « demain matin » sans heure parseable → jour forcé à J+1, heure LLM gardée", async () => {
+  let writtenRow: any = null;
+  const message = "rappelle-moi demain matin de préparer le dossier";
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeSupabase({ onUpsert: (row) => writtenRow = row }),
+    userId: "user-1",
+    message,
+    now: new Date("2026-07-13T00:30:00.000Z"),
+    userTimezone: "Europe/Paris",
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      raw_text: message,
+      when_hint: "demain matin",
+      // Le LLM a mis « ce matin » (aujourd'hui 9h locale = 07:00Z).
+      UTC_time: "2026-07-13T07:00:00.000Z",
+      local_label: "demain matin",
+      instruction_hint: "préparer le dossier",
+    }),
+  });
+  assertEquals(result.status, "success");
+  const written = new Date(String(writtenRow?.scheduled_for));
+  const day = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Paris",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(written);
+  assertEquals(day, "2026-07-14");
+});
+
+Deno.test("P3-B anti-FP: UTC_time LLM correct conservé + heure nue passée garde past_time (V2-A)", async () => {
+  // Cas nominal: parseur et LLM d'accord → aucun changement (contrat A1).
+  let writtenRow: any = null;
+  const message = "rappelle-moi demain à 09h10 de relire le plan";
+  const nominal = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeSupabase({ onUpsert: (row) => writtenRow = row }),
+    userId: "user-1",
+    message,
+    now: new Date("2026-06-24T08:00:00.000Z"),
+    userTimezone: "Europe/Paris",
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      raw_text: message,
+      when_hint: "demain à 09h10",
+      UTC_time: "2026-06-25T07:10:00.000Z",
+      local_label: "demain à 09h10",
+      instruction_hint: "relire le plan",
+    }),
+  });
+  assertEquals(nominal.status, "success");
+  assertEquals(writtenRow?.scheduled_for, "2026-06-25T07:10:00.000Z");
+
+  // Heure nue déjà passée SANS « demain »: le bump du parseur ne remplace
+  // pas le clarify past_time (ambiguïté volontaire, décision V2-A).
+  const past = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeSupabase({}),
+    userId: "user-1",
+    message: "rappelle-moi à 15h de sortir la poubelle",
+    now: new Date("2026-07-13T14:30:00.000Z"),
+    userTimezone: "Europe/Paris",
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      raw_text: "rappelle-moi à 15h de sortir la poubelle",
+      when_hint: "à 15h",
+      UTC_time: "2026-07-13T13:00:00.000Z",
+      local_label: "15h",
+      instruction_hint: "sortir la poubelle",
+    }),
+  });
+  assertEquals(past.status !== "success", true);
+  assertEquals(past.debug.reason_code, "past_time");
 });

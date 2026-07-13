@@ -8559,3 +8559,590 @@ exit initiative sous flow, recap de session complet. Cleanup verifie
 (0 residu, scopes qa-v4-* purges, etat Paul revert au baseline via claim
 service_role — le guard ayant bloque le cleanup superuser, preuve vivante
 de l'anti-regression). Feuilles des 5 runs mises a jour.
+
+---
+
+## Chantier — Flow « Présence » (mode ami) — 2026-07-09
+
+**Origine.** Conversation nocturne (user f3bd26a5, sujet intime) où
+coaching_recommendation a sur-poussé potion/carte pendant que le user voulait
+seulement discuter (3 re-pitchs, « arrête d'insister »), a inventé un faux
+diagnostic depuis un `difficulty_summary` périmé, et n'a jamais posé de vraie
+question. Comparaison ChatGPT très défavorable. Familles: routing (owner
+manquant pour les discussions de fond), context staleness (coaching).
+
+**Décision.** Nouveau flow local `presence_conversation` (design verrouillé:
+docs/agent-playbook/New/presence-flow-design.md). Foyer collant des discussions
+de fond: présence pure, catalogue produit RETIRÉ du contexte (anti-poussée
+structurelle), offre d'outil unique sur pivot_action, sortie uniquement sur
+signal explicite (tool_pull/topic_change/closure) ou expiration (6h / jour),
+toutes les sorties passent par le dispatcher global (charte cmd 17), zéro regex
+d'intention (cmd 0). Réutilise le générateur companion (pas de visible agent
+bespoke), modèle deep.
+
+**Fichiers.**
+- Contrats: contracts/turn_frame.v1.ts (signal presence_conversation + kind),
+  contracts/route_decision.v1.ts (owner).
+- Dispatcher: dispatcher/dispatcher.v2.ts (normalisation), dispatcher.prompts.ts
+  (doctrine + anti-faux-positifs).
+- Skill: skills/presence_conversation/{state,apply,prompt,context}.ts.
+- Routing: routers/routers.ts (entrée conservatrice + préemption coaching +
+  continuation collante), router/run.ts (génération strippée + deep + commit
+  d'état + flag).
+
+**Flag.** `SOPHIA_PRESENCE_FLOW_ENABLED` (défaut OFF). Modèle:
+`SOPHIA_COMPANION_MODEL_DEEP`.
+
+**Tests.** dispatcher.test.ts (signal), skills/presence_conversation/*_test.ts
+(machine à états, prompt, strip contexte, application d'état), router/
+run_presence_routing.test.ts (entrée/préemption/flag/safety/parenthèse tâche),
+run_presence_replay.test.ts (replay étalon 09/07: entrée→maintien→offre→exit).
+
+**Reste.** Choix d'outil sur pivot_action (offerFeatureLabel encore null =
+protocole sans nommer d'outil). Chantier connexe SÉPARÉ: intake coaching doit
+re-synthétiser `difficulty_summary` au pivot de sujet (bug « peur de craquer »).
+Validation LLM réelle: run QA staging après déploiement (flag on).
+
+## 2026-07-11 — Chantier R : rappels « 5 runs verts d'affilée » (directive focus rappels)
+
+**Déclencheur.** Directive utilisateur post-vague 10/07 : « focus rappels, autant de
+runs réels que nécessaire, réglé = 5 runs différents verts d'affilée, pas de
+facilité ». Bugs d'entrée : paul-triflow R1-B01 (verify nie un rappel committé,
+red), alex-multiflow B1 (même trou, hedge), eva-g16 B01 (reschedule → create
+dupliqué + instruction polluée, red).
+
+**Harness.** `reminder_harness.ts` (scratchpad session) : 5 scénarios multi-tours
+en conditions réelles (test-send-message, force_full_ai, horloge simulée ≥ réel),
+assertions DB-groundées (pending/cancelled exacts par run + heures UTC) + texte
+(vocabulaire de déni interdit, heures locales exigées), pre-clean + cleanup par
+scénario, JWT frais par scénario. S1 triflow-verify différé (rejeu paul exact),
+S2 reschedule/replace (rejeu eva), S3 multi-rappels + cancel ciblé + liste,
+S4 pièges d'extraction (fragment temporel, statut sans re-create, doublon),
+S5 cross-flow (rappel relatif dans flow coaching + verify post-exit + récap).
+Round 1 (baseline) : 5/5 RED — tous les bugs de la vague reproduits + 1 neuf
+(question de statut → create fantôme à minuit).
+
+**Cause racine majeure (BF-STATUS-01).** Le bloc contexte « RENDEZ-VOUS
+CONFIGURÉS (SOURCE DE VÉRITÉ) » s'injectait sur TOUT message contenant le mot
+« rappel » et ordonnait « base-toi UNIQUEMENT sur cette section » — qui ne
+contient QUE les récurrents. Les rappels ponctuels étaient invisibles PAR
+INSTRUCTION explicite : c'est ça qui faisait nier des rappels committés (paul
+T11, alex T12, et les dénis du harness). Bloc rebordé à son périmètre
+(`context/loader.ts`) : récurrents only, renvoi croisé obligatoire vers « ÉTAT
+DURABLE ACTUEL », interdiction de « aucun rappel » depuis cette seule section.
+
+**Fixes (charte : le dispatcher oriente, le runtime lit/exécute, l'outcome décrit).**
+1. **Lane STATUS** : question de vérification/liste/statut → `intent='status'`
+   (règle 38 réécrite + exemples verbatim des tours ratés observés), le runtime
+   LIT les pending (`readPendingOneShotReminderRows`, timezone profil via
+   `getUserTimeContext` — fix heure UTC rendue), outcome `one_shot_reminder_status`
+   portant la liste exacte, guidance « un rappel listé EXISTE, réponds OUI;
+   liste vide, dis-le; ne dis JAMAIS que tu ne peux pas vérifier ».
+2. **`duplicate_pending` existence-positive** : un doublon détecté = PREUVE
+   d'existence → « oui il existe (heure) , rien d'ajouté » (fini « je ne peux
+   pas te confirmer, il y a déjà un rappel identique »).
+3. **Reschedule/replace** : RÈGLE DU PRONOM (« mets-LE à 23h » → reschedule,
+   bloqué honnête proposant les vrais chemins) ; lane REPLACE explicite
+   (« annule-le et remets-le à X » → cancel ciblé + create, atomique,
+   TOUT-OU-RIEN : payload du nouveau validé AVANT d'annuler — un demi-replace
+   round12 avait laissé 0 rappel) ; cancel sur-rempli cohérent → clarify
+   `cancel_or_replace_ambiguous` (jamais deviner, cf. faux-replace du test F4) ;
+   ambiguïté de cible → clarify.
+4. **Filet anti-déplacement fantôme** (`executor.ts`) : create NU dont
+   l'instruction est IDENTIQUE (normalisée) à un pending à une AUTRE heure →
+   `same_instruction_pending` needs_clarify (« déplacer ou ajouter ? »), zéro
+   write. Comparaison de champs structurés payload↔DB, jamais le texte (cmd 0).
+   Anti-FP testé : instruction différente → create normal.
+5. **Ceintures loader** : lecture checkins échouée → jamais « aucun » ;
+   directive d'inventaire deux sections ; doctrine cancel multi-clauses
+   (« annule X, garde Y » → cancel ciblé, jamais zéro effet).
+
+**Validation.** ~14 rounds de runs réels (~70 runs, ~450 tours IA), chaque échec
+→ fix source → rejeu complet des 5. Deux artefacts d'évaluateur corrigés en
+route (mentions « annulé » légitimes pénalisées à tort). Rounds intermédiaires :
+pannes d'environnement documentées (JWT 1h → refresh par scénario ; edge runtime
+503 transitoire). **Round 9 : 5/5 GREEN ; round 13 (code final) : 5/5 GREEN** ;
+round 14 de confirmation : 5/5 GREEN — soit 10 runs différents verts d'affilée sur le code final (2× le critère demandé). 125 tests unitaires du domaine verts ; sweep
+complet : zéro nouvel échec imputable au chantier (l'unique delta vs baseline —
+budget companion 14286/13000 — vient des ajouts présence commités les 09-10/07,
+hors périmètre, signalé à l'utilisateur).
+
+**Feuilles.** paul-triflow R1-B01, alex-multiflow B1, eva-g16 B01 → fix_applied.
+**Restes hors périmètre rappels** : exit presence sur topic-change transactionnel
+(paul R1-B02), handoff « crée-la » coaching (R1-B03), budget companion.
+
+## 2026-07-12 — Chantier V6 « coutures » (restes vague 10-07 + dette de rejeu V5 + ops)
+
+**Périmètre** (demande utilisateur : « règle tout ça », charte anti-patching en tête) :
+budget companion, exit presence transactionnel (paul-triflow R1-B02), handoff
+« crée-la » (R1-B03), coutures coaching entrée/sortie (rose-multiflow R1-B01/B02,
+eva-g16 B02), cohérence cartes (eva-g16 B03), rejeux V5 jamais exercés, ops
+(memorizer orphelin, whitelist reset).
+
+**V6-1 — Budget companion : 14286 → 12926/13000.** Compression par fusion des
+doublons intra-prompt (règles internals/tutoiement/effets déjà portées par les
+blocs VISIBLE_* partagés) + reformulations serrées dans `response_style_policy.ts`
+(partagé par ~10 visible agents — la compression paie partout) et `companion.ts`.
+ZÉRO règle supprimée, sémantique présence (proportionnalité d'accueil,
+ponctuation d'interpellation, accueil avant grille) préservée. Ancres de tests
+mises à jour sur les nouvelles formulations (18 tests companion+policy verts).
+
+**V6-2 — Exit presence sur lecture transactionnelle (BF-ROUTE-02).** Cause :
+presence n'a pas de dispatcher local — la sortie dépend du `context.kind` classé
+par le dispatcher GLOBAL, et « c'est quoi mes actions en cours ? » n'était listé
+nulle part comme sortie → fallback `maintain` (collant). Fix source : le kind
+`topic_change` couvre explicitement la demande d'INFORMATION/LECTURE
+transactionnelle (actions, plan, rappels, statut, récap), « JAMAIS un maintain,
+même à conversation_risk=0 », exemples verbatim du tour raté ; anti-FP : demande
+de MÉTHODE / retour émotionnel = maintain (`dispatcher.prompts.ts` — le chemin
+runtime topic_change→re-dispatch existait déjà). Probe qa-v6-p5 (rejeu T8→T10) :
+entrée presence, maintien, exit + liste exacte des 4 actions actives.
+
+**V6-3 — « crée-la » = handoff, jamais une 3e définition (renderer/altitude).**
+Cause : aucun état ne traquait le handoff — règles anti-répétition prompt-only.
+Fix structurel : champ `materialization_handoff_done` (contract), posé par le
+dispatcher local au tour du handoff, CLIQUET dans le reducer (ne redescend
+jamais), + garde structurelle découverte par la probe : le tour du handoff ne
+clôt JAMAIS le flow (normalize force status=active quand le flag est émis) —
+sinon le re-ordre atterrit dans le companion, hors cliquet. Doctrine : handoff =
+acte (frontière + destination + livrable si pas donné), re-ordre = 1-2 phrases
+nettes, zéro question de slot (exemple INVALIDE verbatim), miroir visible agents.
+Probe qa-v6-p6 : 2e « crée-la » → handoff net, zéro re-définition.
+
+**V6-4 — Coutures coaching entrée/sortie (BF-ROUTE-01/02).** Entrée : « la cue
+de VULNÉRABILITÉ prime sur le contenu concret » — aveu émotionnel contenant un
+moment concret d'échec sans pull d'aide ≠ coaching ; « le user ne doit jamais
+avoir à recadrer pour être entendu » ; anti-FP : pull explicite route coaching
+(`dispatcher.prompts.ts`). Sortie : « PIVOT ÉMOTIONNEL DOUX » — la sortie
+discursive n'exige NI refus frontal NI dépôt long (réassurance, ressenti de fond
+sans demande d'outil, clôture apaisée) → exit_to_global general_support, mêmes
+invariants que le dépôt discursif, anti-répétition de la formule de soutien
+(`local_flow.ts`). Probes qa-v6-p7 (pivot doux → presence, clôture → zéro
+re-pitch) et qa-v6-p9 (aveu sans pull → accueil ; pull → coaching).
+
+**V6-5 — Cohérence cartes (généralisation du contrat technique_coherence).**
+Le contrat levier-agnostique couvre explicitement les CARTES : « attaque » forcé
+sur un moment défensif → forced_mismatch (requested=attack_card,
+suggested=defense_card), « le mot-clé user ne choisit JAMAIS la carte » ;
+invariant visible « définition énoncée == conclusion » (interdit de décrire un
+cas défense et conclure attaque). Probe qa-v6-p8 : doute exprimé, pas de flip.
+
+**V6-6 — Dette de rejeu V5 : 4 probes live des scénarios jamais exercés.**
+qa-v6-p1 (V5-3, track committed puis vérification → confirmation positive, zéro
+démenti), qa-v6-p2 (V5-5, forçage potion courage en collecte → doute +
+requalification argumentée, zéro bascule sèche), qa-v6-p3 (V5-4, recall de la
+potion conseillée → même potion, zéro amnésie), qa-v6-p4 (V5-6, « j'ai avancé »
+sur item binaire → clarify, zéro write). **La probe p4 a trouvé un vrai résiduel
+V5-6** : la garde binaire traitait `target_reps != null` comme « item à reps »
+et committait un write partial (value 0.5) sur une task boolean à target_reps=1
+(toutes les tasks des personas). Fix source : la garde lit `kind` et
+`tracking_type` — une task est tout-ou-rien dès que reps ≤ 1 et tracking boolean ;
+habitude / tracking quantifié / kind inconnu = fail-open historique
+(`db.ts` + enrichissement kind du snapshot dans `router.ts`, tests étendus).
+
+**V6-7 — Ops.** Memorizer : 0 ligne orpheline restante (audit
+`memory_message_processing` vs `chat_messages`), `trigger-memorizer-daily`
+rejoué → HTTP 200, 3 users, zéro FK ; cause identifiée : cleanup QA supprimant
+des messages PENDANT le batch (ne pas lancer reset et memorizer en parallèle).
+Whitelist `qa-reset-persona.sh` étendue aux 5 personas QA (le filet
+`is_test_persona=true` reste obligatoire) ; reject path vérifié.
+
+**Validation.** Harness `v6_probes.ts` : 9 probes multi-tours réelles
+(test-send-message, force_full_ai, assertions DB avec snapshot/restore des
+plan items, cleanup par scope). Itérations honnêtes : 3 échecs intermédiaires
+→ 2 fixes source (garde binaire task ; flow clos au tour du handoff) + 3
+assertions d'évaluateur sur-strictes corrigées (forme libre du clarify, mot
+verbatim, « c'est trop tard » déclenchant légitimement le cluster détresse).
+Tests unitaires des domaines touchés verts (65 coaching, 17 track, 28
+dispatcher, 18 companion/policy, 112 voisins). Sweep vs baseline : voir clôture.
+Delta HORS chantier vérifié par worktree HEAD propre : « daily action review
+repair ambiguous coaching child flow » échoue déjà sur HEAD (refactor daily
+committé par une autre session).
+
+## Chantier M — Réutilisation mémoire en conversation (2026-07-10)
+
+**Famille : BF-MEMORY. Origine : run QA réel Alex (2 conversations + batterie
+B1-B6) — le stockage memorizer→topics était devenu bon, la réutilisation
+échouait à 5 endroits distincts, chacun prouvé par trace.**
+
+**M-1 — Dispatcher (source amont).** Une demande de restitution de fait confié
+partait en `memory_mode=none` → loader jamais lancé. Fix : règle RESTITUTION
+DE FAIT CONFIE dans le contrat memory_plan du prompt dispatcher (jamais de
+regex signal — commandement 0) ; anti-faux-positif : les questions produit ne
+forcent pas la mémoire. Contract tests 29/29.
+
+**M-2 — Budget prompt companion (découverte majeure).** Le cap 5000 tokens
+tronquait par la queue ~2/3 du contexte assemblé (mesuré : base ~13k chars +
+contexte ~19k) : le bloc MEMOIRE V2 et le plan de semaine mouraient à CHAQUE
+tour — le composeur confabulait (« la semaine prochaine » avec « 15 août »
+sous les yeux, avant troncature). Fix : cap → 8000 tokens + memoryV2Payload
+remonté avant les blocs conversationnels dans buildContextString (l'ordre
+d'assemblage = ordre de survie sous troncature) + politique default-deny en
+tête du bloc mémoire (fait chargé prime, jamais inventer de temporalité).
+Résiduel architecturral flaggé : budget par sections structurées.
+
+**M-3 — Potions, consentement structurel.** Les items sensibles étouffaient la
+personnalisation même quand le user nommait lui-même le sujet dans son input.
+Fix : `user_named_theme` (thème routé ≥ seuil depuis les mots du user, pure
+donnée d'embedding, zéro string-match) assouplit la consigne sensibilité ;
+squelette des séries 7j : guide, pas carcan. Anti-faux-positif : sujet
+sensible non nommé reste tu.
+
+**M-4 — Routage sémantique runtime.** Personne ne calculait l'embedding du
+message ; le routeur topics tournait lexical-only avec des bonus regex métier
+codés en dur (rupture/lina, cannabis, sommeil…). Fix : embedding du message
+dans runMemoryV2ActiveLoader (best-effort, time-boxé, repli lexical), purge
+des regex métier (commandement 0), remap cosinus→échelle routeur ancré sur
+calibration réelle (bruit FR-FR raw 0.55-0.64 → <0.45 ; on-thème 0.68+ →
+>0.55) pour garder les seuils de décision et les shortlists mixtes cohérents.
+Fix connexe pgvector : PostgREST renvoie les colonnes vector en string —
+`parseVectorColumn` partagé.
+
+**M-5 — Ranking intra-topic.** `loadTopicItems` faisait `.limit(n)` SANS
+ORDER BY : lignes arbitraires, l'objectif 10km (item le plus saillant du
+topic course) tombait hors budget. Fix : sur-échantillonnage + classement
+déterministe importance×0.6 + récence×0.4 (`rankTopicItemsForBudget`,
+exportée et testée) ; anti-faux-positif : un vieux fait important n'affame
+pas les updates fraîches.
+
+**Validation.** Tours rouges rejoués + paraphrases + anti-faux-positifs en IA
+réelle locale : anniversaire → « 15 août » (2 formulations), objectif →
+« 10 km à Lyon en octobre avec Marc », « j'ai encore craqué » → routage
+sémantique usage-de-cannabis (stay, 7 items) sans le mot cannabis, message
+vague → aucun chargement, frère jamais mentionné → refus honnête, bilan →
+faits concrets cités, mini-run interruption/status/retour au fil vert.
+Traces : memory_observability_events + llm_usage_events
+(memory.runtime_message_vectorization). Tests : 167 verts (1 rouge
+pré-existant hors périmètre : write_policy_test « unlinked → active »,
+chip ouverte).
+
+**Clôture V6 (2026-07-12 soir) + constat pour le chantier suivant.**
+Probes V6 : deux passes complètes consécutives ALL GREEN (passes 11-12, 9 probes
+× 2 = 18 runs verts). Sweep vs HEAD propre (worktree) : l'unique delta est le
+test budget companion passé au VERT ; zéro nouvel échec imputable au chantier
+(35 échecs préexistants, familles memory-legacy/deletion/parrainage/stripe
+d'autres chantiers). Non-régression harness rappels : itérations avec 3 fixes
+source supplémentaires — (a) guidance clarify « une VRAIE question », (b)
+lifecycle des ANNULÉS (24h) injecté dans l'état durable + anti-fusion
+habitude/rappel dans la guidance status, (c) complétion structurelle de
+l'heure par le parseur déterministe, ensuite RESTREINTE à intent='replace'
+après qu'un run a montré qu'elle rouvrait le doublon eva-g16 B01 sur un create
+nu anaphorique (« ce qu'il désigne ») — l'absence d'UTC_time sur un create nu
+est une barrière volontaire aux sur-émissions. Scénarios S1-S5 : verts
+individuellement et 4-5/5 par run complet, les rouges restants étant (1) des
+502 en rafale de l'edge runtime local (>6h de charge ; retry + restart
+conteneur documentés), (2) la CONCURRENCE d'écriture sur scheduled_checkins :
+lanes cron (nudge du soir, follow-ups de potion dupliqués du 10/07 purgés),
+cancels de masse WhatsApp sans filtre event_context (`process-checkins:211`,
+`schedule-whatsapp-v2-checkins:302` — vérifiés sur pièces, à exempter
+`one_shot_reminder:%`), cleanups QA concurrents. Assertions du harness
+hermétisées (scope par source_message_id→chat_messages.scope). CONSTAT
+ARCHITECTURAL acté avec l'utilisateur : les fixes structurels ne régressent
+jamais ; les fixes prompt plafonnent (dispatcher 44 ko) — la suite est le
+chantier P0 « intégrité d'écriture » (write-through committed=ligne DB
+vérifiée, re-exec des direct effects sur TOUS les chemins d'exit y compris
+presence — cause du commit fantôme ALEX-CPR-B01, feuille du 12/07 —, exemption
+des cancels de masse, trigger d'audit AFTER DELETE), 100 % déterministe.
+
+## 2026-07-12 — Chantier P0 « intégrité d'écriture rappels » (vague multiflow 12/07)
+
+**Origine.** 6 bugs rappels remontés par la vague multiflow du 12/07 (autre agent
+QA) après une semaine de chantiers : la question de fond posée par l'utilisateur
+était « les fixes sont-ils scalables ? ». Réponse actée : les fixes structurels
+tiennent, les fixes prompt plafonnent — ce chantier est 100 % déterministe.
+
+**P0-1 — Commit fantôme sur sortie de flow (ALEX-CPR-B01, BF-LEDGER-01).**
+Cause tracée sur pièces : (a) la branche EXIT des 3 flows locaux
+(coaching/feature_opportunity/plan_realignment, `skill.ts`) retournait AVANT
+l'appel de l'exécuteur de lane — le `direct_effect_request` du dispatcher local
+était perdu, effects vidés par le reducer ; (b) le filet re-exec de `run.ts`
+est gâté sur le frame RE-DISPATCHÉ (pas sur la demande droppée) ; (c) l'id
+« committed » venait de `loadRecentDirectEffectConfirmationContext`
+(`context/loader.ts`) qui re-présentait un committed du ledger SANS rejeter le
+cas « ligne DB disparue » — la fabrique du « c'est noté » fantôme. Fix double :
+la branche exit exécute le direct effect AVANT le return (3 skills) + WRITE-
+THROUGH : un committed du ledger sans ligne DB relue n'est jamais re-présenté.
+Validation : tests unitaires (exit→executor, anti-FP) + **probe A/B live
+rejouée 2× GREEN** (rappel au tour de sortie presence→tool_pull PERSISTE, id
+committed = ligne DB lisible ; contrôle plain PERSISTE ; zéro committed sans
+ligne).
+
+**P0-2 — Disparitions de rappels (Nina/Rose/Eva) + cancels de masse.**
+Le trigger d'audit AFTER DELETE (migration
+`20260712230000_scheduled_checkins_delete_audit.sql`, appliquée localement,
+smoke-testée : capture la requête appelante) a tranché : purges par cleanups
+de runs/harness QA CONCURRENTS (`deno_postgres`), pas un chemin produit.
+Ceintures posées : exemption `event_context like 'one_shot_reminder:%'` des
+deux cancels de masse WhatsApp sans filtre (`process-checkins:211`,
+`schedule-whatsapp-v2-checkins:302`) qui auraient annulé les one-shots d'un
+user inéligible. Consigne QA : jamais deux runs/cleanups parallèles sur les
+mêmes personas.
+
+**P0-3 — Statut halluciné « sortir le chien à 21:35 » (nina R1-B03).**
+Cause : le bloc « Rappels ponctuels en attente » de l'ÉTAT DURABLE listait
+TOUS les `scheduled_checkins` pending sans filtre — un checkin CRON
+(night-prep 21:35) y figurait comme rappel SANS instruction, que le composeur
+baptisait. Fix : filtre `one_shot_reminder:%` sur la requête du loader ; par
+prudence l'exemple de doctrine « chien/21h35 » (collision avec l'heure réelle
+du night-prep) devient « lessive/18h05 ».
+
+**P0-4 — « Remets-le » sans cible (nina R1-B02).** intent=reschedule avec
+ZÉRO pending → dégradé en create si payload complet ; sinon clarify
+`reschedule_no_target` sans consigne inexécutable ; pending existant = blocage
+honnête inchangé (non-régression eva-r5 B01 testée).
+
+**P0-5 — Référence temporelle + « demain » au passé (rose RMR-B01).**
+Règle 38 : une référence temporelle à un rappel confirmé = intent='status',
+jamais un create (verbatim). Réparation déterministe : UTC_time passé + futur
+EXPLICITE dans le payload (`hasExplicitFutureDayHint`) → re-résolution parseur
+à J+1 ; horaire passé sans « demain » garde le clarify past_time (anti-FP).
+Guidance past_time : jamais « il faut la remettre » sur une référence.
+
+**Notes.** EVA-CPR-W01 (dedup par wording) : la garde same-instant existante
+couvre déjà le doublon à heure identique ; deux heures différentes = deux
+rappels légitimes — watch-point maintenu, pas de fix. La complétion d'heure
+V6 reste STRICTEMENT réservée à intent='replace' (un create nu sans UTC_time
+est une barrière volontaire).
+
+**Validation P0 (clôture).** Probe A/B ALEX-CPR-B01 rejouée 2× GREEN (rappel au
+tour de sortie presence persiste, id committed = ligne DB ; contrôle plain
+persiste ; zéro committed sans ligne). Convergence idempotente ajoutée en
+route : la même écriture exécutée par deux lanes du tour rend UN marqueur
+committed (dedupe par type+id, `operation_runtime_pipeline.ts`). **Harness
+rappels final : 5/5 GREEN.** 170+ tests unitaires du domaine verts ; sweep vs
+baseline V6 : seul delta transitoire = les 12 tests loader (fake complété
+gte/not, 17/17 verts ensuite). Résiduel connu hors P0 (famille plateau prompt,
+non aggravé) : rare tour où le dispatcher n'émet pas le cancel demandé et où le
+composeur l'affirme — couvert par la politique default-deny à renforcer si la
+prochaine vague le revoit.
+
+## 2026-07-12 — Chantier P1 « hors rappels » (vague multiflow 12/07)
+
+**Périmètre.** Les bugs NON-rappels de la vague 12/07 (nina R1-B04, ALEX-CPR-B04,
+EVA-CPR-B01/B02/B03, paul R2-B01/B02, rose RMR-B02/B03), en aval du chantier P0.
+Charte anti-patching : source amont, triplets, probes live, feuilles.
+
+**P1-1 — Track négatif non consenti (nina R1-B04, BF-EFFECT-01).** Un blocage
+au PRÉSENT (« je repousse », « je bloque ») était traité comme un report et
+écrivait un `missed` sur l'action « la plus proche ». Double garde : doctrine
+dispatcher 3d étendue (blocage présent ≠ report, verbatim du tour en
+contre-exemple) + garde runtime G1 durcie pour le négatif —
+`progress_status=missed` exige une cible nommée via `strict_aliases` (aliases
+structurés SANS la description, `track_progress_plan_item/router.ts`). Le
+positif reste servi : « hier c'est raté pour <item nommé> » écrit bien.
+
+**P1-2 — Engagement de style session (ALEX-CPR-B04 + EVA-CPR-B03, BF-PREF-01
+won't-fix côté durable).** Une contrainte de style exprimée en chat (« plus
+courte le soir », « pas envie de parler technique ») n'était installée nulle
+part → promesse « je retiens » non tenue. Fix en quatre pièces :
+1. Champ RACINE `session_style_commitment_hint` du TurnFrame — PAS dans
+   `skill_signals` : la normalisation droppe tout signal non-detected, or la
+   contrainte arrive souvent sans opportunité produit (`turn_frame.v1.ts`,
+   `dispatcher.v2.ts` sanitizer).
+2. Règle dispatcher : remplir le champ QUEL QUE SOIT l'owner du tour,
+   session-only (ne remplace pas coach_preferences durable).
+3. Installation runtime `installSessionStyleCommitment` (dédup, fenêtre 3)
+   AVANT routing (les blocs prompt sont vrais dès ce tour) **et RÉ-APPLIQUÉE
+   post-génération** : découverte de probe — `runCompanion` reconstruit
+   `temp_memory` depuis l'état PRÉ-routing (`companion.ts` nextTempMemory) et
+   perdait la clé ; même pattern que le commit présence post-génération
+   (`run.ts`). Toute clé installée entre le load et l'agent subit ce clobber —
+   piège documenté pour les prochains états de session.
+4. Bloc « CONTRAINTE DE STYLE SESSION » injecté aussi dans le contexte
+   presence (l'allowlist `stripToPresenceContext` le retirait — la presence
+   promettait puis répondait en pavé).
+Reste ouvert (composeurs) : le volet « réponse 3 volets » (honnêteté
+durabilité + renvoi Préférences).
+
+**P1-3 — Micro-geste immédiat (paul R2-B01).** Règle « Demande TACTIQUE
+IMMÉDIATE » dans le dispatcher local coaching : fenêtre courte + « un seul
+truc » = livrer LE geste concret, jamais re-recommander l'outil déjà handoffé
+(la carte devient suite optionnelle).
+
+**P1-4 — Flush des traces (paul R2-B02, BF-TEST-01).** `logConversationTurn`
+wrappé retry ×3 avec backoff (250/500 ms) ; l'échec final n'est plus avalé par
+un warn — `console.error` structuré aux 3 call sites. Invariant : N tours = N
+lignes `conversation_turn_traces`.
+
+**Validation P1 (clôture).** Tests : dispatcher 53/53 (dont triplet
+racine-du-TurnFrame + ancre prompt), track/coaching 89/89, sweep suites
+touchées 302 verts (2 échecs = baseline connue depuis V4). Probes live
+`p1_probes.ts` (5 scénarios : nina blocage/raté explicite, alex style N+2
+tours avec vérif DB `__session_style_commitments`, paul geste unique, eva
+pivot+contrainte tenue, rose « c'était bien calé ? ») : **2 passes ALL GREEN
+consécutives** + rejeu rose T8 via probe V6 n°7 GREEN. Le seul rouge
+intermédiaire réel était la persistance temp_memory (fix 3 ci-dessus), attrapé
+par l'assertion DB de la probe — le rendu, lui, était déjà correct (leçon :
+asserter l'état, pas seulement le texte).
+
+## 2026-07-13 — Chantier P2 « untested surfaces » (vague 5 runs du 12-13/07)
+
+**Périmètre.** Les 30 lignes des 5 runs ciblant les angles morts (eva-global17,
+alex-untested-surfaces, rose-lifecycle16, paul-untested15, nina-untested15).
+La vague a AUSSI validé le passé : 4 familles rouges historiques re-testées non
+reproduites (feuille eva), sous-système rappel simple VERT (nina).
+
+**P2-1 — Invariant intra-frame status_check ⇒ zéro create (paul R1-B01, eva
+R1-B02, sev-1).** « il est toujours bon mon rappel de 8h ? » sortait en create
+explicit/high alors que le MÊME frame disait response_intent=status_check → un
+rappel annulé recréé en silence. Garde au sanitizer (`dispatcher.v2.ts`) : le
+create PUR d'un tour status_check est droppé, les intents cancel/replace/status
+survivent (anti-FP multi-intention rose T14 testé).
+
+**P2-2 — Default-deny des claims + clarify toujours visible (rose R1-B04/B05,
+nina R1-B02, sev-1).** Le résiduel documenté à P0 est reproduit → structurel :
+(1) `ensureClarifyQuestionVisible` dans `finalVisibleText` (point unique des 4
+chemins visibles) — un outcome needs_clarify sans « ? » dans le texte final
+ré-injecte la question contractuelle de la lane ; (2) règle 46 multi-intention
+(cancel jamais absorbé par la question de statut, verbatim rose T14) ;
+(3) guidance committed durcie (« existe déjà » sur un commit frais = mensonge).
+
+**P2-3 — Chaîne replace (alex R1-B02 sev-1, rose R1-B02/B03, eva R1-B04).**
+(a) Admission TEMPORELLE avant le cancel + héritage du jour du rappel remplacé
+pour une heure nue résolue au passé — fin du demi-replace qui laissait le user
+sans aucun rappel ; toujours passé → `replace_past_time`, rien d'annulé.
+(b) Résolution de cible par CONTENU d'instruction (« celui de la carto ») —
+match unique résout, ≥2 candidats clarifient. (c) Pending clarify replace
+persisté (`__one_shot_reminder_pending_clarification`, mécanique 3g) : la
+réponse au clarify complète LE replace, plus jamais reclassée reschedule
+(boucle rose T6→T8).
+
+**P2-4 — Intake track (alex R1-B01 sev-1, nina R1-B01/B03, alex R1-B05).**
+La partie la plus disputée du chantier — trois passes probe pour converger :
+(1) correction=true sans retarget_from ET aucune entrée du jour sur la cible →
+clarify (fin de l'append silencieux) ; la correction de STATUT même item reste
+nominale (distinction par entrée du jour existante). (2) `last_track_commit`
+structuré exposé au dispatcher (3h-bis exécutable) — INSUFFISANT seul : le
+dispatcher émettait encore correction=false en live. (3) Garde runtime de
+BASCULE DE CIBLE : report same-status sur une autre cible que le commit du
+TOUR PRÉCÉDENT (fraîcheur 1 tour via vieillissement in-place), même jour, sans
+flags → « en plus ou à la place ? » (retarget_candidate dans les known_slots,
+le 3g arbitre — coût assumé : une question sur les vrais reports additifs
+consécutifs). (4) Confirmation vaut evidence pour le POSITIF : G1 accepte le
+titre nommé par Sophia dans la fenêtre (jamais pour missed) + ré-arm
+DÉTERMINISTE sur confirmation (kind=yes + clarify de cible pendant → effet
+synthétisé des known_slots) + normalisation du correction=true parasite qu'une
+résolution de clarification déclenchait (notre propre garde re-bloquait la
+confirmation — attrapé en probe). Anti-instruction (alex B05) : prompt 3e
+renforcé, garde structurelle impossible sans fait de frame — documenté.
+
+**P2-5 — Mémoire (paul R1-B05/B06, eva R1-B05, nina R1-B07).** (1) Le seul
+chemin loader sans filtre de statut (jointure topic) filtre `active` — un
+candidate résiduel ne casse plus le recall fleet-wide ; assert en ceinture ;
+test recalé sur le contrat filtre. (2) Filtre de PERSISTANCE
+`reminder_object_state` au write policy : contenu recouvrant une instruction
+de rappel réelle (+horaire) ou vocabulaire rappel+horaire → reject ; les
+instructions réelles viennent de scheduled_checkins (le prompt seul recidivait
+depuis F4). (3) Genre : user_profile injecté à l'extraction, jamais de
+masculin par défaut. Candidates résiduels purgés (d5416413 + 2 alex).
+
+**P2-6 — Comptabilité ledger (eva R1-B03).** La dédup de convergence
+idempotente émet `superseded_by_dedup` (statut terminal) — somme des statuts
+terminaux = requested ; db_ref.id des cancels renseigné (fallback `ids[0]`).
+
+**P2-7 — Composition.** Traîne courte post-détresse (`__last_turn_risk_band`,
+1 tour, directive soutien-d'abord/confirmation-en-fin — eva R1-B01) ; accueil
+humain avant reçu de tracking sur aveu chargé (rose R1-B01) ; anti-répétition
+CTA plan_realignment (alex R1-B06) ; outil demandé ≠ outil recommandé (accusé
++ différence dès T1, nina R1-B05) ; gate d'ambiguïté + anti-récitation (nina
+R1-B06).
+
+**P2-8 — Divers.** Matrice canal/surface rappels dans la KB product_help
+(ponctuel=chat, récurrent=Initiatives, WhatsApp si lié — nina R1-B04) ; entrée
+KB abonnement groundée (portail Stripe, zéro chiffre inventé — paul R1-B04) ;
+origine potion dans la projection récurrents (alex R1-B07) ; jour de semaine
+recopié jamais recalculé (alex R1-B04) ; direct effect explicite > signal
+feature medium pour l'ownership (paul R1-B03, routers.ts).
+
+**P2-9 — Environnement (les 3 E1).** Audit : AUCUN déclenchement memorizer
+async post-tour dans le code — `trigger-memorizer-daily` sans user_id balaye
+la flotte : les batchs fantômes mid-run = memorizer de fin de run d'un autre
+agent QA. Guidelines : user_id obligatoire, purge des candidates de test,
+jamais de contenus hors-persona sur les comptes nommés.
+
+**Validation P2 (clôture).** Probes `p2_probes.ts` (5 scénarios sev-1 : paul
+T10 statut→zéro create, rose T14/T15 cancel+verify DB, alex T6 replace soir,
+nina T2-T3 confirmation, alex T2 correction) : **2 passes ALL GREEN
+consécutives** après convergence. Harness rappels : **5/5 GREEN**
+(non-régression P0). Sweep complet sophia-brain+memory : 1044+ verts, 17
+échecs = baseline connue, zéro nouveau (le seul delta = test loader recalé sur
+le contrat filtre, volontaire). Leçons : (i) une probe qui sur-contraint
+fabrique des faux rouges — asserter l'INVARIANT (committé au plus tard à T2,
+une seule fois), pas un chemin unique ; (ii) une garde d'intégrité peut
+bloquer la résolution de sa propre clarification — toujours prober le cycle
+clarify→réponse complet ; (iii) le pattern « fait structuré exposé au
+dispatcher » ne suffit pas toujours : quand l'émission reste flaky, le runtime
+doit pouvoir synthétiser l'effet depuis l'état (ré-arm déterministe).
+
+## 2026-07-13 — Chantier P3 « safety × effets + temps déterministe » (vague 5 runs du 13/07)
+
+**Contexte.** La vague a validé P2 en réel (10/10 fixes GREEN chez paul, tableaux
+de re-tests verts chez eva/nina/rose) et ouvert deux clusters d'intégrité.
+
+**P3-A — Safety × effets durables (alex R1-B01 sev-1, rose T10, alex B02/B03,
+nina T7 tranché).** L'arbitrage V5-1 était appliqué à l'envers des deux côtés :
+un rappel trivial COMMITTÉ au milieu d'une crise suicidaire (la permission ne
+testait pas sa condition d'exclusion), et le rappel bénin en medium NON-crise
+BLOQUÉ (le cas que V5-1 autorise). Triple verrou crise : (1) les deux branches
+crise du router (flow actif + idéation) n'admettent plus aucun direct effect ;
+(2) le bypass pipeline `routeSafetyActive` supprimé — un blocage crise
+synthétise `safety_crisis_deferred` (différé honnête canonique) ; (3) la lane
+locale safety ne sert plus jamais d'effet (l'admission bénin+high était le
+trou), différé systématique. Côté medium non-crise : la route distress_support
+admet la lane rappel malgré le seuil de band, ET le tour ne se rend plus par la
+reply cannée de la lane (elle ouvrait par « C'est programmé... ») — le
+composeur passe avec soutien-d'abord/confirmation-en-fin. Guidances durcies
+(« ça compte » interdit). Traîne pregate : `conversation_risk` n'était qu'un
+stub (score=0 sur 15 tours, idéation comprise) — implémenté : historique de
+scores en temp_memory, décroissance -4/tour, plancher band `low` en fenêtre de
+traîne. Design nina T7 tranché strict : différé aussi pendant stabilizing.
+
+**P3-B — Temps déterministe (paul T12 red, rose T11 red, rose T3/T13).**
+« demain à 19h » à 02h49 committé AUJOURD'HUI (deux dates futures, jamais
+rattrapées par past_time). Le parseur déterministe (ancré client_now +
+timezone) PRIME désormais sur l'UTC_time LLM, en couches : demain-famille +
+parseur → parseur ; demain-famille + parseur muet → jour forcé à J+1, heure
+LLM gardée ; deux résolutions futures divergentes → parseur ; l'ambiguïté
+heure-nue-passée garde past_time (V2-A intact). Piège attrapé en probe : le
+parseur doit lire le when_hint ISOLÉ, pas le raw_text d'un replace qui porte
+les deux heures (« annule 14h, recrée 15h » → le parseur prenait 14h). Rendu :
+dates énoncées depuis l'outcome (jamais now), demain/aujourd'hui dérivés de
+user_local_datetime uniquement.
+
+**P3-C — Correction track, 3e couche (paul T2, reproduction alex T2).** Le
+frame se classait `track_progress_correction` (0.95) pendant que l'émission
+portait correction=false. (1) Invariant intra-frame au sanitizer (le flag se
+pose depuis la classification, symétrique P2-1) ; (2) retarget AUTO :
+correction sans retarget_from + last_track_commit frais sur une autre cible →
+le retarget s'exécute au lieu de clarifier ; (3) trou fermé : date_hint posé
+sur aujourd'hui ne contourne plus la garde de bascule P2-4.
+
+**P3-D — Multi-effets distincts (eva T9).** Règle 3d-ter-bis (track + create
+dans un tour = les deux émis, jamais d'aplatissement) + test sanitizer.
+Probe : 1 missed + 1 pending dans le même tour.
+
+**P3-E — Mémoire.** `stripDeprecatedProductVocabulary` enfin implémenté
+(slugs internes → libellés français, garde de rendu déterministe — nina T15) ;
+directive RECALL (historique du run si mémoire vide, jamais une liste de
+techniques substituée) ; embedding généré À LA CRÉATION des memory_items
+(rose T16 — le recall inter-session ne dépend plus du cron) ; extraction :
+français strict + contenu de crise jamais persisté actif.
+
+**P3-F.** Héritage d'instruction sur replace « même texte » (avant toute
+mutation — nina T12) ; plage de dates jamais collapsée (3f) ; technique
+stable dès T1 (eva) ; frontière de capacité avant reframe initiative (eva
+T8) ; anti-répétition étendue au CORPS du CTA + différenciation de capacité
+(paul T10) ; KB abonnement avec les 3 formules réelles (System/Alliance/
+Architecte, groundées frontend, zéro prix) ; frontière advisory dès
+l'intention de création (rose T7) ; statut de rappel jamais greffé non
+demandé (nina T14).
+
+**Validation P3 (clôture).** 6 probes live (crise→zéro commit, medium→servi
++ordre, demain-de-nuit→J+1, correction→retarget exécuté, multi-intent→2
+commits, même-texte→instruction héritée) : **2 passes ALL GREEN** après
+convergence (3 itérations : lane safety locale oubliée au 1er tour de probe,
+reply cannée court-circuitant le composeur, parseur sur raw_text multi-heures).
+Harness rappels **5/5 GREEN**. Sweep 1056 verts, 17 échecs = baseline connue,
+zéro nouveau (le test loader P2-5 recalé est même reparti vert). Trois tests
+historiques recalés volontairement : ils codifiaient l'admission d'effets en
+crise (le contrat que la vague a prouvé dangereux).

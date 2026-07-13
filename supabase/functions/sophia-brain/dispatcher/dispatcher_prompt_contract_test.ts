@@ -398,6 +398,69 @@ Deno.test("dispatcher prompt keeps presence-first during acute craving windows",
   );
 });
 
+Deno.test("dispatcher prompt keeps coaching out of ungrounded emotional confessions (rose-multiflow B01)", () => {
+  // Positif: la cue de vulnerabilite prime sur le moment concret d'echec.
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "La cue de VULNERABILITE prime sur le contenu concret",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "un moment/mission concret d'echec",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "le user ne doit jamais avoir a recadrer pour etre entendu",
+    ),
+    true,
+  );
+  // Anti-faux-positif: le pull explicite garde l'entree coaching.
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      'un pull explicite ("je suis preneuse"',
+    ),
+    true,
+  );
+});
+
+Deno.test("dispatcher prompt exits presence flow on transactional read (paul-triflow15 T10)", () => {
+  // Positif: une lecture d'etat pendant un flow presence actif est un topic_change,
+  // jamais un maintain — la reponse normale possede la projection plan/rappels.
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "Y COMPRIS une demande d'INFORMATION ou de LECTURE transactionnelle",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes('"c\'est quoi mes actions en cours ?"'),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "JAMAIS un maintain, meme a conversation_risk=0",
+    ),
+    true,
+  );
+  // Anti-faux-positif: la demande de methode et le retour emotionnel restent maintain.
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "une demande de METHODE sur le sujet en cours ou un retour emotionnel au meme sujet reste maintain",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      'une demande de METHODE ("concretement je fais quoi',
+    ),
+    true,
+  );
+});
+
 Deno.test("dispatcher prompt teaches canonical track_progress payload contract", () => {
   assertEquals(
     DISPATCHER_V2_SYSTEM_PROMPT.includes(
@@ -538,13 +601,39 @@ Deno.test("dispatcher prompt treats reminder verification questions as non-creat
   // ET recap, plus la re-emission depuis l'historique (message courant only).
   assertEquals(
     DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "Une question de verification, de statut ou de RECAP sur les rappels",
+      "Une question de VERIFICATION, de STATUT ou de RECAP sur les rappels",
+    ),
+    true,
+  );
+  // R-1 (BF-STATUS-01): la question de statut devient un intent 'status'
+  // execute par le runtime (lecture DB) — plus jamais un tour muet ni un
+  // create nu. Ancre mise a jour deliberement.
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "emets create_one_shot_reminder avec payload_hint.intent='status'",
     ),
     true,
   );
   assertEquals(
     DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "n'est jamais une demande de creation: n'emets pas create_one_shot_reminder",
+      "il est bien enregistre ?",
+    ),
+    true,
+  );
+  // R-2 (eva-g16 B01): regle du pronom sur le decalage + replace explicite.
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes("REGLE DU PRONOM (eva-g16 B01"),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "payload_hint.intent='replace'",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "payload_hint.replace_target_label",
     ),
     true,
   );
@@ -838,6 +927,54 @@ Deno.test("dispatcher prompt: un recall de session n'est jamais product_help (al
     DISPATCHER_V2_SYSTEM_PROMPT.includes(
       "\"a quoi sert une potion ?\" / \"ou je trouve mes potions ?\" restent product_help",
     ),
+    true,
+  );
+});
+
+Deno.test("dispatcher prompt forbids memory_none on confided-fact recall", () => {
+  // Positif: la regle de restitution existe et interdit memory_none.
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes("RESTITUTION DE FAIT CONFIE"),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes("memory_mode=none est INTERDIT"),
+    true,
+  );
+  // La regle exige un chargement large de la memoire durable.
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "mets au minimum memory_mode=broad avec context_need=broad",
+    ),
+    true,
+  );
+  // Anti-faux-positif: les questions produit ne forcent pas la memoire.
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "ne s'applique pas aux questions sur le produit",
+    ),
+    true,
+  );
+});
+
+Deno.test("dispatcher prompt captures session style constraints at the turn frame root (P1-2, alex-cpr B04 / eva-cpr B03)", () => {
+  // La regle vit au champ RACINE: un signal skill non-detected est droppé par
+  // la normalisation, la contrainte de style doit survivre sans lui.
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "session_style_commitment_hint (champ RACINE du TurnFrame",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "MEME si aucun signal feature_opportunity n'est detecte",
+    ),
+    true,
+  );
+  // Session-only: jamais une préférence durable (BF-PREF-01).
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes("Ce hint est session-only"),
     true,
   );
 });

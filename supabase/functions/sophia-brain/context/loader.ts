@@ -1062,6 +1062,12 @@ export function buildContextString(loaded: LoadedContext): string {
   // d'une carte/rappel/préférence. Voir chantier 2 phase B.
   if (loaded.durableEffectsSummary) ctx += loaded.durableEffectsSummary;
   if (loaded.recentEffectsSummary) ctx += loaded.recentEffectsSummary;
+  // Memoire durable V2 placée AVANT les blocs conversationnels volumineux:
+  // l'ordre d'assemblage est l'ordre de survie sous le budget prompt du
+  // companion (troncature par la queue, ~5k tokens). Les faits durables
+  // chargés pour ce tour ne doivent jamais être amputés au profit de
+  // shortTerm/recentTurns, déjà largement portés par l'history du modèle.
+  if (loaded.memoryV2Payload) ctx += loaded.memoryV2Payload;
   if (loaded.whatsappFilRouge) ctx += loaded.whatsappFilRouge;
   if (loaded.shortTerm) ctx += loaded.shortTerm;
   if (loaded.recentTurns) ctx += loaded.recentTurns;
@@ -1073,7 +1079,6 @@ export function buildContextString(loaded: LoadedContext): string {
     ctx += loaded.currentWeekPlanContext + "\n\n";
   }
   if (loaded.planItemIndicators) ctx += loaded.planItemIndicators + "\n\n";
-  if (loaded.memoryV2Payload) ctx += loaded.memoryV2Payload;
   if (loaded.identity) ctx += loaded.identity;
   if (loaded.eventMemories) ctx += loaded.eventMemories;
   if (loaded.globalMemories) ctx += loaded.globalMemories;
@@ -2345,7 +2350,7 @@ async function loadRendezVousSummary(
     const { data, error } = await supabase
       .from("user_recurring_reminders")
       .select(
-        "message_instruction, local_time_hhmm, scheduled_days, status, rationale, updated_at",
+        "message_instruction, local_time_hhmm, scheduled_days, status, rationale, updated_at, source_kind, initiative_kind",
       )
       .eq("user_id", userId)
       .order("updated_at", { ascending: false })
@@ -2366,13 +2371,18 @@ async function loadRendezVousSummary(
     const inactive = data.filter((row: any) =>
       String(row?.status ?? "") !== "active"
     );
-    let block = "=== RENDEZ-VOUS CONFIGURÉS (SOURCE DE VÉRITÉ) ===\n";
+    // R-1 (BF-STATUS-01, cause racine des dénis paul-triflow T11 / alex T12):
+    // ce bloc s'injecte sur tout message contenant « rappel » et s'annonçait
+    // « SOURCE DE VÉRITÉ » avec « base-toi UNIQUEMENT sur cette section » —
+    // il ne contient QUE les récurrents, donc les rappels PONCTUELS devenaient
+    // invisibles PAR INSTRUCTION. Le bloc se borne désormais à son périmètre.
+    let block = "=== RAPPELS RÉCURRENTS CONFIGURÉS (rendez-vous) ===\n";
     block +=
       `- Total: ${data.length} | actifs: ${active.length} | inactifs: ${inactive.length}\n`;
     block +=
-      "- Cette section reflète UNIQUEMENT user_recurring_reminders (configuration générique), pas les occurrences scheduled_checkins.\n";
+      "- PÉRIMÈTRE: cette section couvre UNIQUEMENT les rappels RÉCURRENTS (configuration user_recurring_reminders). Les rappels PONCTUELS en attente sont listés dans « ÉTAT DURABLE ACTUEL » — pour toute question sur UN rappel précis ('mon rappel de 7h30'), un inventaire ('j'ai quoi comme rappels ?') ou une vérification, croise LES DEUX sections. Ne réponds JAMAIS 'aucun rappel' ou 'pas d'autre rappel' depuis cette seule section.\n";
     block +=
-      "- Si le user demande s'il a déjà des rendez-vous, base-toi UNIQUEMENT sur cette section.\n";
+      "- Si le user demande ses rendez-vous/relances RÉCURRENTS spécifiquement, cette section fait foi pour ce périmètre-là.\n";
 
     if (active.length > 0) {
       block += "Actifs:\n";
@@ -2385,7 +2395,14 @@ async function loadRendezVousSummary(
           Array.isArray(row?.scheduled_days) && row.scheduled_days.length > 0
             ? row.scheduled_days.join(", ")
             : "jours non précisés";
-        block += `- ${instruction} | ${days} | ${time}\n`;
+        // P2-8 (alex-untested R1-B07): la généalogie répond à « ça vient
+        // d'où ? » — une série issue d'une potion se nomme comme telle.
+        const origin =
+          String(row?.initiative_kind ?? "") === "potion_follow_up" ||
+            String(row?.source_kind ?? "").includes("potion")
+            ? " | origine: série de suivi d'une potion"
+            : "";
+        block += `- ${instruction} | ${days} | ${time}${origin}\n`;
       }
     }
 
@@ -2859,6 +2876,12 @@ export async function loadRecentDirectEffectConfirmationContext(args: {
     const checkin = dbId ? scheduledCheckins.get(dbId) : null;
     const currentStatus = String(checkin?.status ?? "").trim();
     if (checkin && currentStatus && currentStatus !== "pending") return null;
+    // Write-through (P0-1, ALEX-CPR-B01): un committed du ledger dont la
+    // ligne DB n'existe PLUS (id introuvable) ne se re-présente JAMAIS comme
+    // vérité — c'était la fabrique du « c'est noté » fantôme au tour de
+    // sortie de flow. Sans ligne relue, pas de confirmation.
+    if (dbId && !checkin) return null;
+    if (!dbId) return null;
 
     const payload = committedReminder.payload_summary ?? {};
     const reminderInstruction = checkin
@@ -2934,6 +2957,7 @@ export async function loadDurableEffectsSummary(
       attackRes,
       defenseRes,
       checkinsRes,
+      cancelledRes,
       prefsRes,
       recurringRes,
       potionRes,
@@ -2962,8 +2986,27 @@ export async function loadDurableEffectsSummary(
         .select("id,scheduled_for,status,message_payload", { count: "exact" })
         .eq("user_id", userId)
         .eq("status", "pending")
+        // P0-3 (nina R1-B03): seuls les RAPPELS user sont des « rappels
+        // ponctuels ». Sans ce filtre, un checkin cron (night-prep 21:35,
+        // reviews) apparaissait ici comme un rappel SANS instruction — le
+        // composeur lui inventait un objet (« sortir le chien à 21:35 »)
+        // tout en niant le vrai rappel.
+        .like("event_context", "one_shot_reminder:%")
         .order("scheduled_for", { ascending: true })
         .limit(50),
+      // Chantier V6 (harness S3 T5): les one-shots ANNULES recemment restent
+      // visibles — sans eux, une verification post-annulation ('il est encore
+      // actif ?') routee hors lane status se rabat sur une habitude du plan
+      // au nom proche et repond 'encore actif' sur un rappel annule.
+      supabase
+        .from("scheduled_checkins")
+        .select("id,scheduled_for,status,message_payload")
+        .eq("user_id", userId)
+        .eq("status", "cancelled")
+        .like("event_context", "one_shot_reminder%")
+        .gte("created_at", new Date(Date.now() - 24 * 3600 * 1000).toISOString())
+        .order("scheduled_for", { ascending: true })
+        .limit(5),
       // CHANTIER E6 (2026-05-28) — On récupère source_type pour distinguer les
       // préférences définies par l'utilisateur (explicit_user/ui/...) des
       // réglages par défaut système (system_default). Voir A11 T13 où les 9
@@ -3028,6 +3071,9 @@ export async function loadDurableEffectsSummary(
     lines.push(
       "Cette liste PRIME sur tout ce que la conversation a pu dire avant (y compris un ancien tour niant une création): un rappel listé ici EXISTE — ne nie jamais son existence; un élément absent d'ici n'existe pas.",
     );
+    lines.push(
+      "Question d'inventaire ('j'ai quoi comme rappels ?'): la réponse couvre les DEUX sections — rappels PONCTUELS en attente ET rappels récurrents actifs. Ne dis JAMAIS 'pas d'autre rappel' si l'une des deux sections liste encore une entrée non mentionnée.",
+    );
 
     if (attack) {
       const title = extractCardTitleFromContent(attack?.content) ||
@@ -3051,7 +3097,17 @@ export async function loadDurableEffectsSummary(
       lines.push("- Carte de défense active: aucune.");
     }
 
-    if (checkins.length === 0) {
+    if (checkinsRes.error) {
+      // R-1 (BF-STATUS-01): une lecture echouee n'est JAMAIS rendue comme une
+      // absence — « aucun » sur une erreur ferait nier des rappels reels.
+      console.warn(
+        "[ContextLoader] durable checkins read failed (non-blocking):",
+        checkinsRes.error,
+      );
+      lines.push(
+        "- Rappels ponctuels en attente: lecture indisponible ce tour — n'affirme NI présence NI absence de rappel ponctuel; renvoie vers l'app si on te demande.",
+      );
+    } else if (checkins.length === 0) {
       lines.push("- Rappels ponctuels en attente: aucun.");
     } else {
       // Chantier 6 (2026-05-28) — Détailler TOUS les rappels en attente,
@@ -3090,6 +3146,27 @@ export async function loadDurableEffectsSummary(
           `  • … et ${
             checkinsTotal - checkins.length
           } autre(s) rappel(s) en attente non listé(s) ici — ne présente jamais cette liste comme complète, renvoie vers la plateforme pour le détail.`,
+        );
+      }
+    }
+
+    // Chantier V6 (harness S3 T5): le lifecycle des annulations reste visible.
+    // Sans cette ligne, « il est encore actif ? » après un cancel se rabat sur
+    // une habitude du plan au nom proche et affirme « encore actif » sur un
+    // rappel annulé.
+    const cancelled = (cancelledRes?.data ?? []) as any[];
+    if (cancelled.length > 0) {
+      lines.push(
+        "- Rappels ponctuels ANNULÉS (dernières 24h) — ils ne partiront PAS; à une question « il est encore actif ? » sur l'un d'eux, réponds qu'il est annulé; ne le confonds pas avec une action ou habitude du plan au nom proche:",
+      );
+      for (const row of cancelled) {
+        const instruction = extractReminderInstruction(row?.message_payload);
+        const scheduledRaw = String(row?.scheduled_for ?? "").trim();
+        const scheduledLocal = scheduledRaw
+          ? formatScheduledForUserTimezone(scheduledRaw, userTimezone)
+          : "";
+        lines.push(
+          `  • ${scheduledLocal ? `${scheduledLocal} — ` : ""}${instruction} (ANNULÉ).`,
         );
       }
     }

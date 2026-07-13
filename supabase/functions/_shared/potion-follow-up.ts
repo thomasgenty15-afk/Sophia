@@ -8,6 +8,11 @@ import {
   type PotionFollowUpSeriesItem,
 } from "./potion-follow-up-series.ts";
 import { computeScheduledForFromLocal } from "./scheduled_checkins.ts";
+import {
+  buildPotionInputText,
+  formatPotionRecentContextForPrompt,
+  loadPotionRecentContext,
+} from "./potion-recent-context.ts";
 import type { PotionScopeSelection, UserPotionSessionRow } from "./v2-types.ts";
 
 export class PotionFollowUpSchedulingError extends Error {
@@ -234,9 +239,18 @@ export async function schedulePotionFollowUpForSession(args: {
           ? potionScope.target_plan_item_id ?? null
           : null,
       });
+      const recentContext = await loadPotionRecentContext({
+        admin: args.admin,
+        userId: args.userId,
+        inputText: buildPotionInputText(
+          (session.questionnaire_answers ?? {}) as Record<string, string>,
+          session.free_text ?? null,
+        ),
+      });
       return await generatePotionFollowUpSeries({
         ...baseSeriesInput,
         baseContext,
+        recentContext: formatPotionRecentContextForPrompt(recentContext),
       }, {
         userId: args.userId,
       });

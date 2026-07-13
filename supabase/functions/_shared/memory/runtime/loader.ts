@@ -869,6 +869,40 @@ async function loadLevelHandoffItems(args: {
     .slice(0, Math.max(1, args.limit));
 }
 
+// Classement deterministe des items d'un topic sous le budget: la requete
+// brute n'a AUCUN ordre (constat QA 10/07: l'objectif 10km, item le plus
+// saillant du topic course, tombait hors des 3 premieres lignes arbitraires
+// de Postgres). Composite importance + recence: l'importance porte les faits
+// structurants (objectifs, contraintes), la recence empeche un vieux fait
+// important d'affamer les updates fraiches.
+export function rankTopicItemsForBudget(
+  items: MemoryV2Item[],
+  limit: number,
+  nowMs = Date.now(),
+): MemoryV2Item[] {
+  const scored = items.map((item) => {
+    const importance = Math.max(
+      0,
+      Math.min(1, Number(item.importance_score ?? 0)),
+    );
+    const observed = Date.parse(
+      String(
+        (item as { observed_at?: string | null }).observed_at ??
+          (item as { created_at?: string | null }).created_at ?? "",
+      ),
+    );
+    const ageDays = Number.isFinite(observed)
+      ? Math.max(0, (nowMs - observed) / 86_400_000)
+      : 365;
+    const recency = 1 / (1 + ageDays / 14);
+    return { item, score: importance * 0.6 + recency * 0.4 };
+  });
+  return scored
+    .sort((a, b) => b.score - a.score)
+    .slice(0, Math.max(1, limit))
+    .map((entry) => entry.item);
+}
+
 async function loadTopicItems(
   supabase: any,
   userId: string,
@@ -880,13 +914,19 @@ async function loadTopicItems(
       .from("memory_item_topics")
       .select("memory_items(*)")
       .eq("topic_id", topicId)
-      .limit(limit),
+      .limit(Math.min(60, Math.max(1, limit) * 5)),
   );
-  return rows
+  const items = rows
     .map((row) => row.memory_items)
     .filter(Boolean)
     .filter((item) => String(item.user_id ?? "") === userId)
+    // P2-5a (paul-untested R1-B05): seul chemin sans filtre de statut — un
+    // item `candidate` résiduel remonté par la jointure topic faisait jeter
+    // `assertOnlyActiveMemoryItems` et cassait le recall ENTIER du tour,
+    // fleet-wide tant qu'un candidate existait. L'assert reste en ceinture.
+    .filter((item) => String(item.status ?? "") === "active")
     .map((item) => ({ ...item, topic_ids: [topicId] }));
+  return rankTopicItemsForBudget(items, limit);
 }
 
 async function loadTopicEntities(

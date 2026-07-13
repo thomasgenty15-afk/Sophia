@@ -201,15 +201,32 @@ export function binaryItemPartialClarifyQuestion(args: {
     dimension?: string | null;
     target_reps?: number | null;
     title?: string | null;
+    kind?: string | null;
+    tracking_type?: string | null;
   };
   fallbackTitle: string;
 }): { question: string; target: string } | null {
   if (args.status !== "partial") return null;
-  if (args.item.target_reps != null) return null;
+  const kind = String(args.item.kind ?? "").trim();
   const dimension = String(args.item.dimension ?? "").trim();
-  // Fail-open: dimension inconnue (source incomplete) ou habitude → le
-  // comportement partial existant (entry sans increment) reste le bon.
-  if (!dimension || dimension === "habits") return null;
+  const tracking = String(args.item.tracking_type ?? "").trim();
+  const reps = args.item.target_reps ?? null;
+  // Habitude: le comportement partial existant (entry sans increment) reste
+  // le bon — la cadence hebdo EST un etat intermediaire.
+  if (kind === "habit" || dimension === "habits") return null;
+  // Tracking quantifie (duree, quantite): un etat intermediaire existe.
+  if (tracking && tracking !== "boolean") return null;
+  if (kind === "task") {
+    // Rejeu V6 (probe nina): une task est tout-ou-rien meme avec
+    // target_reps=1 — une seule rep = fini. Seules des reps reelles (>1)
+    // ouvrent un etat intermediaire.
+    if (reps != null && reps > 1) return null;
+  } else {
+    // Kind inconnu (source incomplete): fail-open historique — seul un item
+    // sans reps et a dimension connue est repute binaire.
+    if (reps != null) return null;
+    if (!dimension) return null;
+  }
   const title = String(args.item.title ?? "").trim() || args.fallbackTitle;
   return {
     question:

@@ -6,6 +6,7 @@ export type ResponseOwner =
   | "daily_action_coaching_recommendation_v1"
   | "feature_opportunity"
   | "weekly_adaptive_review_v1"
+  | "presence_conversation"
   | "direct_effect"
   | "normal_reply";
 

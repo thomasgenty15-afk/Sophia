@@ -35,6 +35,16 @@ export type TrackProgressPlanItemRouterInput = {
   evidence_messages?: string[];
   no_mutation_requested?: boolean;
   blocked_reason_code?: string | null;
+  /**
+   * P2-4a: dernier commit track du TOUR PRÉCÉDENT (freshLastTrackCommit) —
+   * une bascule de cible à statut identique le même jour, sans flags de
+   * correction, se clarifie au lieu de s'empiler (« en plus ou à la place ? »).
+   */
+  last_track_commit?: {
+    target_item_id: string;
+    target_title: string;
+    progress_status: string;
+  } | null;
   write_progress: TrackProgressWrite;
 };
 
@@ -123,9 +133,13 @@ function blockedResult(params: {
   requested_effects?: TrackProgressRequestedEffect[];
   allowed_effects?: TrackProgressRequestedEffect[];
   reply?: string | null;
+  known_slots_extra?: Record<string, unknown>;
 }): TrackProgressDirectEffectResult {
   return enforceTrackProgressReplyInvariant({
     detected: true,
+    ...(params.known_slots_extra
+      ? { known_slots_extra: params.known_slots_extra }
+      : {}),
     intent: params.intent,
     status: params.status ?? "blocked",
     reply: params.reply ?? null,
@@ -163,6 +177,8 @@ function planItems(
     id: string;
     title: string;
     aliases: string[];
+    strict_aliases: string[];
+    kind: string;
     dimension: string;
     target_reps: number | null;
   }
@@ -176,8 +192,9 @@ function planItems(
     .map((item: any) => ({
       id: String(item?.id ?? ""),
       title: String(item?.title ?? ""),
-      // nina-r7 B01: la garde partial-sur-binaire lit ces deux faits
-      // structures du snapshot (jamais le texte du message).
+      // nina-r7 B01: la garde partial-sur-binaire lit ces faits structures
+      // du snapshot (jamais le texte du message).
+      kind: String(item?.item_type ?? item?.kind ?? ""),
       dimension: String(item?.dimension ?? ""),
       target_reps: Number.isFinite(Number(item?.target_reps)) &&
           item?.target_reps !== null && item?.target_reps !== undefined
@@ -192,6 +209,12 @@ function planItems(
           : []),
         String(item?.description ?? ""),
       ].filter(Boolean),
+      // Vocabulaire STRICT (sans description): un track NEGATIF exige que la
+      // citation nomme l'action par son titre ou un alias structure — la
+      // description matche trop large pour ecrire un echec (nina R1-B04).
+      strict_aliases: (Array.isArray(item?.aliases)
+        ? item.aliases.map((alias: unknown) => String(alias ?? ""))
+        : []).filter(Boolean),
     }))
     .filter((item: { id: string; title: string }) => item.id && item.title);
 }
@@ -221,7 +244,25 @@ export function trackTargetEvidenceVerified(args: {
   target_title: string;
   target_aliases?: string[];
   texts: string[];
+  /**
+   * P2-4b (nina-untested R1-B03): pour un report POSITIF, la cible que
+   * SOPHIA vient de nommer dans la fenêtre d'évidence vaut nommage — le user
+   * qui CONFIRME (« bah si je te confirme, note-la ») n'a pas à retaper le
+   * titre. Jamais activé pour `missed` (P1-1: nommage strict par le user).
+   */
+  allow_window_title_match?: boolean;
 }): boolean {
+  if (args.allow_window_title_match) {
+    const normalizedTitle = normalizeEvidenceText(args.target_title);
+    if (
+      normalizedTitle.length >= 6 &&
+      args.texts.some((text) =>
+        normalizeEvidenceText(text).includes(normalizedTitle)
+      )
+    ) {
+      return true;
+    }
+  }
   const quote = normalizeEvidenceText(String(args.target_evidence ?? ""));
   if (!quote) return false;
   const quoteExists = args.texts.some((text) =>
@@ -372,8 +413,16 @@ export async function runTrackProgressPlanItemDirectEffect(
     !trackTargetEvidenceVerified({
       target_evidence: intake.target_evidence,
       target_title: item.title,
-      target_aliases: item.aliases,
+      // P1-1 (nina R1-B04): un track NEGATIF ecrit un echec durable — la
+      // citation doit nommer l'action par son TITRE ou un alias structure;
+      // la description (vocabulaire large) ne suffit pas (« placards »
+      // matchait la description d'une action jamais nommee → missed non
+      // consenti). Les reports positifs gardent la tolerance description.
+      target_aliases: requested.progress_status === "missed"
+        ? item.strict_aliases
+        : item.aliases,
       texts: [input.message, ...(input.evidence_messages ?? [])],
+      allow_window_title_match: requested.progress_status !== "missed",
     })
   ) {
     return blockedResult({
@@ -386,6 +435,81 @@ export async function runTrackProgressPlanItemDirectEffect(
     });
   }
 
+  // P2-4a (alex-untested R1-B01) + P3-C (paul-untested16 R1-B01): une
+  // CORRECTION DE CIBLE à moitié émise (correction=true sans retarget_from)
+  // faisait un append silencieux. Résolution en deux temps :
+  // 1. le commit du TOUR PRÉCÉDENT sur une AUTRE cible est la cible
+  //    d'origine évidente → retarget_from complété automatiquement, le
+  //    retarget s'EXÉCUTE (invalidation + écriture) au lieu de re-demander ;
+  // 2. sans candidat frais ET sans entrée du jour sur la cible corrigée
+  //    (distinction avec la correction de STATUT, même item), on demande.
+  let effectiveRetargetFrom = intake.retarget_from_item_id;
+  if (
+    intake.is_correction && !effectiveRetargetFrom &&
+    requested.progress_status !== "missed"
+  ) {
+    if (
+      input.last_track_commit &&
+      input.last_track_commit.target_item_id !== requested.target_item_id
+    ) {
+      effectiveRetargetFrom = input.last_track_commit.target_item_id;
+    } else if (input.same_day_evidence_check) {
+      const sameTargetPrior = await input.same_day_evidence_check({
+        target_item_id: requested.target_item_id,
+        progress_status: requested.progress_status,
+        date_hint: requested.date_hint ?? null,
+      });
+      if (!sameTargetPrior) {
+        return blockedResult({
+          intent: "clarify",
+          status: "needs_clarify",
+          reason_code: "correction_retarget_missing",
+          reply:
+            `Ok pour "${item.title}" — mais c'était à la place de quelle action que je l'avais noté ? Dis-moi laquelle et je corrige les deux d'un coup.`,
+          requested_effects: requestedEffects,
+        });
+      }
+    }
+  }
+
+  // P2-4a (alex-untested R1-B01, garde finale): le dispatcher n'émet pas
+  // toujours les flags de correction (« c'était pas le carnet, c'est les
+  // écrans » émis en report nu malgré 3h-bis + last_track_commit structuré).
+  // Déterminisme du runtime: un report SAME-STATUS sur une AUTRE cible que le
+  // commit du TOUR PRÉCÉDENT, même jour, sans flags = indécidable entre
+  // « en plus » et « à la place » → on demande, on n'empile jamais. Les
+  // known_slots portent la cible d'origine pour que la réponse re-arme soit
+  // le report additif, soit le retarget (3g).
+  // P3-C: un date_hint posé sur AUJOURD'HUI ne contourne plus la garde (le
+  // dispatcher date souvent le jour courant explicitement — c'est le trou
+  // par lequel paul-untested16 T2 est passé).
+  const localToday = String(
+    (input.turn_frame.direct_effect_time_context as
+      | { user_local_datetime?: string }
+      | undefined)?.user_local_datetime ?? "",
+  ).slice(0, 10);
+  const dateHintIsTodayOrAbsent = !requested.date_hint ||
+    (localToday.length === 10 && requested.date_hint === localToday);
+  if (
+    !intake.is_correction && input.last_track_commit &&
+    input.last_track_commit.target_item_id !== requested.target_item_id &&
+    input.last_track_commit.progress_status === requested.progress_status &&
+    dateHintIsTodayOrAbsent
+  ) {
+    return blockedResult({
+      intent: "clarify",
+      status: "needs_clarify",
+      reason_code: "target_switch_ambiguous",
+      reply:
+        `Juste pour être sûre d'enregistrer juste : "${item.title}", c'est EN PLUS de "${input.last_track_commit.target_title}" que je viens de noter, ou À LA PLACE ?`,
+      requested_effects: requestedEffects,
+      known_slots_extra: {
+        retarget_from_candidate: input.last_track_commit.target_item_id,
+        retarget_from_title: input.last_track_commit.target_title,
+      },
+    });
+  }
+
   // nina-r7 B01 (arbitrage 2026-07-08): « j'ai avance » ≠ « j'ai fini ». Sur
   // un item tout-ou-rien, un report partiel n'a aucun etat intermediaire a
   // ecrire → question de confirmation, zero write. Garde ici (outcome
@@ -394,6 +518,7 @@ export async function runTrackProgressPlanItemDirectEffect(
   const partialClarify = binaryItemPartialClarifyQuestion({
     status: requested.progress_status,
     item: {
+      kind: item.kind,
       dimension: item.dimension,
       target_reps: item.target_reps ?? null,
       title: item.title,
@@ -441,6 +566,10 @@ export async function runTrackProgressPlanItemDirectEffect(
   const allowed: TrackProgressRequestedEffect = {
     ...requested,
     target_title: item.title,
+    // P3-C: retarget résolu automatiquement depuis le commit du tour
+    // précédent quand le dispatcher a émis la correction à moitié.
+    retarget_from_item_id: effectiveRetargetFrom ??
+      requested.retarget_from_item_id ?? null,
   };
   const execution = await executeTrackProgressWrite({
     requested_effect: allowed,
@@ -506,6 +635,9 @@ export function applyTrackProgressDirectEffectRuntimeState(args: {
       status: committed?.progress_status ?? "",
       source_message_id: source_message_id ?? null,
       committed_effects: result.committed_effects,
+      // P2-4a: fraîcheur en tours — la garde de bascule de cible ne regarde
+      // que le commit du TOUR PRÉCÉDENT (vieilli par run.ts à chaque tour).
+      committed_turns_ago: 0,
     };
     return {
       toolExecution: "success",
@@ -523,12 +655,14 @@ export function applyTrackProgressDirectEffectRuntimeState(args: {
       source_message_id: source_message_id ?? null,
       // Slots deja etablis: le dispatcher peut re-emettre l'effet complete
       // quand le user repond a la clarification (chantier O4, eva-r2 B01).
-      known_slots: requestedSnapshot
+      known_slots: requestedSnapshot || result.known_slots_extra
         ? {
-          target_item_id: requestedSnapshot.target_item_id ?? null,
-          target_title: requestedSnapshot.target_title ?? null,
-          progress_status: requestedSnapshot.progress_status ?? null,
-          date_hint: requestedSnapshot.date_hint ?? null,
+          target_item_id: requestedSnapshot?.target_item_id ?? null,
+          target_title: requestedSnapshot?.target_title ?? null,
+          progress_status: requestedSnapshot?.progress_status ?? null,
+          date_hint: requestedSnapshot?.date_hint ?? null,
+          // P2-4a: cible d'origine candidate au retarget (« à la place »).
+          ...(result.known_slots_extra ?? {}),
         }
         : null,
     };
@@ -583,6 +717,76 @@ export function pendingTrackProgressClarificationForDispatcher(
   };
 }
 
+/**
+ * P2-4a (alex-untested R1-B01, 2e occurrence live): le dispatcher n'appliquait
+ * pas 3h-bis (correction de cible émise SANS correction/retarget_from) — il
+ * devait retrouver l'item corrigé en fouillant recent_messages. Ce fait
+ * STRUCTURÉ (dernier commit track) rend la règle exécutable: retarget_from =
+ * last_track_commit.target_item_id, fourni clé en main (même mécanique que
+ * les known_slots du 3g).
+ */
+export function lastTrackCommitForDispatcher(
+  tempMemory: unknown,
+): {
+  target_item_id: string;
+  target_title: string;
+  progress_status: string;
+} | null {
+  const runtime = (tempMemory as Record<string, unknown> | null | undefined)
+    ?.[TRACK_PROGRESS_PLAN_ITEM_RUNTIME_KEY] as
+      | Record<string, unknown>
+      | undefined;
+  if (!runtime || runtime.mode !== "logged") return null;
+  const committed = Array.isArray(runtime.committed_effects)
+    ? runtime.committed_effects[0] as Record<string, unknown> | undefined
+    : undefined;
+  const targetItemId = String(committed?.target_item_id ?? "").trim();
+  if (!targetItemId) return null;
+  return {
+    target_item_id: targetItemId,
+    target_title: String(committed?.target_title ?? ""),
+    progress_status: String(committed?.progress_status ?? ""),
+  };
+}
+
+/** Le dernier commit track s'il date du TOUR PRÉCÉDENT (fraîcheur 1 tour). */
+export function freshLastTrackCommit(
+  tempMemory: unknown,
+): {
+  target_item_id: string;
+  target_title: string;
+  progress_status: string;
+} | null {
+  const runtime = (tempMemory as Record<string, unknown> | null | undefined)
+    ?.[TRACK_PROGRESS_PLAN_ITEM_RUNTIME_KEY] as
+      | Record<string, unknown>
+      | undefined;
+  if (Number(runtime?.committed_turns_ago ?? Number.NaN) !== 0) return null;
+  return lastTrackCommitForDispatcher(tempMemory);
+}
+
+/**
+ * P2-4a: vieillissement du marqueur de commit — appelé par run.ts en fin de
+ * tour (mutation in-place, seule forme qui survit à la reconstruction de
+ * temp_memory par le companion). Un tour qui re-committe re-pose 0.
+ */
+export function ageLastTrackCommitMarker(
+  tempMemory: unknown,
+  currentSourceMessageId: string | null,
+): void {
+  const runtime = (tempMemory as Record<string, unknown> | null | undefined)
+    ?.[TRACK_PROGRESS_PLAN_ITEM_RUNTIME_KEY] as
+      | Record<string, unknown>
+      | undefined;
+  if (!runtime || runtime.mode !== "logged") return;
+  const commitSource = String(runtime.source_message_id ?? "");
+  if (currentSourceMessageId && commitSource === currentSourceMessageId) {
+    return;
+  }
+  runtime.committed_turns_ago =
+    Number(runtime.committed_turns_ago ?? 0) + 1;
+}
+
 export function applyTrackProgressDirectEffectFailureState(args: {
   temp_memory: any;
   source_message_id?: string | null;
@@ -631,6 +835,8 @@ export async function maybeRunTrackProgressPlanItemRuntime(
       same_day_evidence_check: input.same_day_evidence_check,
       no_mutation_requested: input.no_mutation_requested,
       blocked_reason_code: input.blocked_reason_code,
+      last_track_commit: input.last_track_commit ??
+        freshLastTrackCommit(input.temp_memory),
       write_progress: input.write_progress,
       recent_writes_idempotency: input.recent_writes_idempotency ?? {
         source_message_ids: previousSourceMessageId

@@ -330,22 +330,21 @@ export function safetyCrisisOneShotDirectEffectDecision(
   });
   const escalated = output?.flow_action === "safety_escalate" ||
     output?.safety_signals.immediate_danger === true;
-  if (
-    effect && !escalated && request?.confidence_band === "high" &&
-    request?.content_risk === "safe"
-  ) {
-    return { effect, deferred_reason: null };
-  }
+  // P3-A (alex-safety-escalation R1-B01): AUCUN effet durable ne se committe
+  // depuis un tour de crise safety — jamais. L'ancienne admission (bénin +
+  // haute confiance + non-escalade) committait un rappel trivial au milieu
+  // d'une crise suicidaire (« mets-moi un rappel de racheter des capsules »
+  // au tour qui suit l'idéation). L'exception V5-1 vit UNIQUEMENT sur la
+  // route détresse medium NON-crise (distress_support, hors de ce flow).
+  // Ici: différé honnête systématique quand la demande est explicite et le
+  // contenu sain; sinon silence (le contrat de refus des contenus flaggés
+  // reste inchangé).
+  void effect;
   const explicitRequest = request?.requested === true &&
     request.effect_type === "create_one_shot_reminder" &&
     request.explicitness === "explicit";
-  // Differable seulement hors escalade (le stage boundary passerait devant le
-  // stage escalation dans le reducer), hors contenu flagged (pas de promesse
-  // « pour apres » sur un contenu a risque), et si le global n'a pas deja
-  // flagge le rappel (la lane globale s'en charge alors).
   const deferrable = explicitRequest && !escalated &&
-    request.content_risk !== "flagged" &&
-    !turnFrameHasOneShotReminderDirectEffect(options?.turnFrame ?? null);
+    request.content_risk !== "flagged";
   return {
     effect: null,
     deferred_reason: deferrable

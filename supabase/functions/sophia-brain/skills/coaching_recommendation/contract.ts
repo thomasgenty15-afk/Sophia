@@ -346,6 +346,13 @@ export type CoachingRecommendationLocalState = {
   recommendation_decision: CoachingRecommendationDecision | null;
   last_visible_decision?: CoachingVisibleDecision | null;
   last_visible_task_kind: CoachingVisibleStepContext["task_kind"] | null;
+  /**
+   * Cliquet handoff produit (paul-triflow15 B03): passe a true au premier tour
+   * ou le user ordonne la creation de la carte et ou le handoff (destination +
+   * frontiere write-en-chat) a ete rendu. Tant que le flow vit, un nouvel ordre
+   * de creation ne redeclenche JAMAIS une re-explication de la definition.
+   */
+  materialization_handoff_done?: boolean;
   turn_count: number;
   max_turns: number;
 };
@@ -403,6 +410,7 @@ export type CoachingRecommendationLocalDispatcherOutput = {
     status: "active" | "closing" | "closed" | "exit_to_global";
     turn_count_increment: number;
     close_after_visible: boolean;
+    materialization_handoff_done?: boolean;
   };
   visible_task: {
     kind: CoachingRecommendationVisibleTaskKind;

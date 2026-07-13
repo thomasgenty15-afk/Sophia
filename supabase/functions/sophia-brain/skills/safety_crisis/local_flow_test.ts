@@ -509,37 +509,15 @@ Deno.test("safety_crisis local dispatcher exposes explicit one-shot reminder as 
   );
   assertEquals(reminder.product_tool_boundary.attempted, false);
   assertEquals(reminder.no_tooling.db_write_committed, false);
+  // P3-A (alex-safety-escalation R1-B01): AUCUN effet ne se committe depuis
+  // un tour de crise — la demande explicite saine est DIFFÉRÉE honnêtement,
+  // plus jamais exposée comme effet exécutable (l'ancien contrat committait
+  // un rappel trivial au milieu d'une crise suicidaire).
+  const crisisDecision = safetyCrisisOneShotDirectEffectDecision(reminder);
+  assertEquals(crisisDecision.effect, null);
+  assert(crisisDecision.deferred_reason);
   assertEquals(
-    oneShotDirectEffectFromSafetyCrisisLocalDispatcherOutput(reminder)
-      ?.payload_hint,
-    {
-      raw_text:
-        "mets-moi un rappel dans 30 minutes pour verifier que je tiens",
-      when_hint: "dans 30 minutes",
-      UTC_time: "2026-06-24T12:30:00.000Z",
-      local_label: "dans 30 minutes",
-      instruction_hint: "verifier que je tiens",
-    },
-  );
-  assertEquals(
-    oneShotDirectEffectFromSafetyCrisisLocalDispatcherOutput(reminder, {
-      turnFrame: turnFrame({
-        direct_effects: [{
-          effect_type: "create_one_shot_reminder",
-          explicitness: "explicit",
-          target_status: "identified",
-          confidence_band: "high",
-          payload_hint: {
-            raw_text:
-              "mets-moi un rappel dans 30 minutes pour verifier que je tiens",
-            when_hint: "dans 30 minutes",
-            UTC_time: "2026-06-24T12:30:00.000Z",
-            local_label: "dans 30 minutes",
-            instruction_hint: "verifier que je tiens",
-          },
-        }],
-      }),
-    }),
+    oneShotDirectEffectFromSafetyCrisisLocalDispatcherOutput(reminder),
     null,
   );
 });
@@ -562,14 +540,16 @@ Deno.test("safety reminder admission: escalate, contenu flagged et confiance moy
     reason: "rappel explicite",
   };
 
-  // Positif: demande explicite, contenu safe, tour non escalade → servie.
+  // P3-A: demande explicite, contenu safe, tour non escalade → DIFFÉRÉE
+  // (plus jamais servie depuis un tour de crise — le medium non-crise passe
+  // par la route distress_support, hors de ce flow).
   const admitted = safetyCrisisOneShotDirectEffectDecision(dispatcherOutput({
     flow_action: "provide_support_status",
     safety_signals: { immediate_danger: false, uncertainty: "low" },
     direct_effect_request: safeRequest,
   }));
-  assert(admitted.effect);
-  assertEquals(admitted.deferred_reason, null);
+  assertEquals(admitted.effect, null);
+  assert(admitted.deferred_reason);
 
   // Escalade (flow_action ou immediate_danger): jamais servie, et pas de stage
   // boundary non plus (il degraderait le stage d'urgence du reducer).

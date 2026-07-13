@@ -738,7 +738,7 @@ Deno.serve(async (req) => {
               textLower,
             );
         const isCheckinLater =
-          /plus\s*tard|une\s+prochaine\s+fois|on\s+le\s+fait\s+demain|not\s+this\s+time/i
+          /plus\s*tard|une\s+prochaine\s+fois|on\s+le\s+fait\s+demain|not\s+this\s+time|pas\s+maintenant|pas\s+pour\s+le\s+moment|pas\s+cette\s+semaine/i
             .test(
               textLower,
             );
@@ -970,6 +970,7 @@ Deno.serve(async (req) => {
           actionId,
           inboundText: msg.text ?? "",
           inboundChatMessageId: insertedIn?.id ?? null,
+          replyToWaMessageId: msg.reply_to_wa_message_id ?? null,
         });
         logWebhookTrace({
           requestId,

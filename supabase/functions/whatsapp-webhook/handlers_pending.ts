@@ -1,4 +1,8 @@
-import { fetchLatestPending, markPending } from "./wa_db.ts";
+import {
+  fetchLatestPending,
+  markPending,
+  resolvePendingByReplyContext,
+} from "./wa_db.ts";
 import { sendWhatsAppTextTracked } from "./wa_whatsapp_api.ts";
 import {
   ACCESS_REACTIVATION_OFFER_KIND,
@@ -635,7 +639,20 @@ async function createWeeklyPlanningPromptAfterWeeklyDelivered(params: {
   if (error) throw error;
 }
 
-async function fetchLatestCheckinPending(admin: any, userId: string) {
+async function fetchLatestCheckinPending(
+  admin: any,
+  userId: string,
+  replyToWaMessageId?: string | null,
+) {
+  // Prefer the pending the button actually replied to (via wamid); only when
+  // that can't be resolved do we fall back to the most-recent pending.
+  const targeted = await resolvePendingByReplyContext(
+    admin,
+    userId,
+    "scheduled_checkin",
+    replyToWaMessageId,
+  );
+  if (targeted) return targeted;
   return await fetchLatestPending(admin, userId, "scheduled_checkin");
 }
 
@@ -2464,6 +2481,7 @@ export async function handlePendingActions(params: {
   actionId?: string | null;
   inboundText: string;
   inboundChatMessageId?: string | null;
+  replyToWaMessageId?: string | null;
 }) {
   const { admin, userId, fromE164, requestId } = params;
   const handledActionEveningReview = await handleActionEveningReviewReply({
@@ -2643,7 +2661,11 @@ export async function handlePendingActions(params: {
   }
   // If user accepts a scheduled check-in template, send the actual draft_message immediately.
   if (params.isCheckinYes && !params.isOptInYes) {
-    const pending = await fetchLatestCheckinPending(admin, userId);
+    const pending = await fetchLatestCheckinPending(
+      admin,
+      userId,
+      params.replyToWaMessageId,
+    );
     // Don't swallow generic "oui" messages if there is no pending scheduled_checkin.
     if (!pending) return false;
     if (!shouldGenericCheckinYesHandlePending(pending)) return false;
@@ -2806,7 +2828,11 @@ export async function handlePendingActions(params: {
   }
   // If user says later for check-in, cancel and reschedule in 10 minutes.
   if (params.isCheckinLater && !params.isOptInYes) {
-    const pending = await fetchLatestCheckinPending(admin, userId);
+    const pending = await fetchLatestCheckinPending(
+      admin,
+      userId,
+      params.replyToWaMessageId,
+    );
     // Don't swallow generic "plus tard" messages if there is no pending scheduled_checkin.
     if (!pending) return false;
     if (pending?.scheduled_checkin_id) {

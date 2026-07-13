@@ -198,32 +198,39 @@ Deno.test("loader supports all three modes with a fake client", async () => {
     });
     assertEquals(payload.retrieval_mode, mode);
   }
-  await assertRejects(() =>
-    loadMemoryV2Payload({
-      supabase: {
-        from: () => ({
-          select: () => ({
-            eq: () => ({
-              limit: () =>
-                Promise.resolve({
-                  data: [{
-                    memory_items: {
-                      id: "bad",
-                      user_id: "u1",
-                      kind: "fact",
-                      content_text: "x",
-                      status: "archived",
-                    },
-                  }],
-                }),
-            }),
+  // P2-5a (paul-untested R1-B05): un item NON-ACTIF remonté par la jointure
+  // topic est FILTRÉ, plus jeté — l'ancien fail-hard cassait le recall ENTIER
+  // du tour dès qu'un `candidate`/`archived` résiduel existait (fleet-wide).
+  // L'assert `assertOnlyActiveMemoryItems` reste en ceinture sur les autres
+  // chemins (testé plus haut).
+  const filteredPayload = await loadMemoryV2Payload({
+    supabase: {
+      from: () => ({
+        select: () => ({
+          eq: () => ({
+            limit: () =>
+              Promise.resolve({
+                data: [{
+                  memory_items: {
+                    id: "bad",
+                    user_id: "u1",
+                    kind: "fact",
+                    content_text: "x",
+                    status: "archived",
+                  },
+                }],
+              }),
           }),
         }),
-      },
-      user_id: "u1",
-      retrieval_mode: "topic_continuation",
-      active_topic_id: "t1",
-    })
+      }),
+    },
+    user_id: "u1",
+    retrieval_mode: "topic_continuation",
+    active_topic_id: "t1",
+  });
+  assertEquals(
+    filteredPayload.items.some((item) => item.id === "bad"),
+    false,
   );
 });
 
