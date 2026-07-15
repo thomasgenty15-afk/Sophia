@@ -37,6 +37,15 @@ import {
   generateDynamicWhatsAppCheckinMessage,
 } from "../_shared/scheduled_checkins.ts";
 import {
+  evaluatePotionSupportQuietGate,
+  isPotionSupportPayload,
+  loadLatestConversationExchangeAt,
+  persistPotionSupportContext,
+  type PotionSupportPreparation,
+  preparePotionSupportOpening,
+} from "../_shared/potion-support-runtime.ts";
+import { cancelPotionSupportCampaign } from "../_shared/potion-support-cancellation.ts";
+import {
   ACTION_EVENING_REVIEW_EVENT_CONTEXT,
   ACTION_LATE_AFTERNOON_EVENT_CONTEXT,
   ACTION_MORNING_EVENT_CONTEXT,
@@ -138,6 +147,10 @@ import {
   writeRepairMode,
 } from "../sophia-brain/repair_mode_engine.ts";
 import { transitionRendezVous } from "../_shared/v2-rendez-vous.ts";
+import {
+  armPotionSupportPresence,
+  clearPotionSupportPresence,
+} from "../sophia-brain/skills/presence_conversation/apply.ts";
 import { registerRendezVousRefusal } from "../sophia-brain/rendez_vous_decision.ts";
 
 console.log("Process Checkins: Function initialized");
@@ -1440,6 +1453,106 @@ async function persistWhatsappTempMemory(params: {
   );
 }
 
+function objectRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
+
+function activeConversationState(
+  tempMemory: Record<string, unknown>,
+): Record<string, unknown> {
+  const canonical = objectRecord(tempMemory.__active_conversation_skill_v1);
+  if (cleanText(canonical.skill_id)) return canonical;
+  return objectRecord(tempMemory.__active_skill_state);
+}
+
+function activeConversationSkillId(
+  tempMemory: Record<string, unknown>,
+): string {
+  return cleanText(activeConversationState(tempMemory).skill_id);
+}
+
+function isPotionSupportPresenceState(
+  tempMemory: Record<string, unknown>,
+): boolean {
+  const active = activeConversationState(tempMemory);
+  if (cleanText(active.skill_id) !== "presence_conversation") return false;
+  const working = objectRecord(active.working_state);
+  const flow = objectRecord(working.presence_flow_state);
+  const entry = objectRecord(flow.entry_context);
+  return cleanText(entry.source) === "potion_support";
+}
+
+function isPotionPriorityFlow(skillId: string): boolean {
+  return skillId === "safety_crisis" ||
+    skillId === "weekly_adaptive_review_v1" ||
+    skillId === "daily_action_review_v1" ||
+    skillId === "daily_action_coaching_recommendation_v1";
+}
+
+async function hasPendingPotionPriorityPrompt(params: {
+  supabaseAdmin: ReturnType<typeof createClient>;
+  userId: string;
+}): Promise<boolean> {
+  const { data, error } = await params.supabaseAdmin
+    .from("whatsapp_pending_actions")
+    .select("payload")
+    .eq("user_id", params.userId)
+    .eq("kind", "scheduled_checkin")
+    .eq("status", "pending")
+    .limit(30);
+  if (error) throw error;
+  return (data ?? []).some((row: Record<string, unknown>) => {
+    const payload = objectRecord(row.payload);
+    const eventContext = cleanText(payload.event_context);
+    const capability = cleanText(payload.chat_capability);
+    return eventContext === ACTION_EVENING_REVIEW_EVENT_CONTEXT ||
+      eventContext === WEEKLY_PROGRESS_REVIEW_EVENT_CONTEXT ||
+      capability === "daily_action_review";
+  });
+}
+
+async function armDeliveredPotionSupportPresence(params: {
+  supabaseAdmin: ReturnType<typeof createClient>;
+  userId: string;
+  timezone: string;
+  nowIso: string;
+  sourcePotionSessionId: string;
+  recurringReminderId: string;
+  scheduledCheckinId: string;
+  topicHint: string | null;
+  anchorEvidenceRefs: Array<{
+    source_type: string;
+    source_id: string;
+    source_field: string | null;
+  }>;
+}) {
+  const tempMemory = await fetchWhatsappTempMemory(
+    params.supabaseAdmin,
+    params.userId,
+  ).catch(() => ({}));
+  const next = armPotionSupportPresence({
+    tempMemory,
+    nowIso: params.nowIso,
+    localDate: localDateYmdInTimezone(params.timezone, new Date(params.nowIso)),
+    topicHint: params.topicHint,
+    entryContext: {
+      source: "potion_support",
+      source_potion_session_id: params.sourcePotionSessionId,
+      recurring_reminder_id: params.recurringReminderId,
+      scheduled_checkin_id: params.scheduledCheckinId,
+      anchor_evidence_refs: params.anchorEvidenceRefs,
+      awaiting_first_reply: true,
+    },
+  });
+  await persistWhatsappTempMemory({
+    supabaseAdmin: params.supabaseAdmin,
+    userId: params.userId,
+    tempMemory: next,
+  });
+}
+
 function buildWeeklyAdaptiveReviewSkillState(params: {
   weeklyProgressReview: unknown;
   weeklyAdaptiveReview: unknown;
@@ -1478,11 +1591,12 @@ async function activateWeeklyAdaptiveReviewState(params: {
     params.supabaseAdmin,
     params.userId,
   ).catch(() => ({}));
+  const withoutPotionPresence = clearPotionSupportPresence(tempMemory);
   await persistWhatsappTempMemory({
     supabaseAdmin: params.supabaseAdmin,
     userId: params.userId,
     tempMemory: {
-      ...tempMemory,
+      ...withoutPotionPresence,
       __active_skill_state: buildWeeklyAdaptiveReviewSkillState(params),
     },
   });
@@ -2597,7 +2711,9 @@ Deno.serve(async (req) => {
         // Ensure quiet window is satisfied before sending.
         const { data: profile } = await supabaseAdmin
           .from("profiles")
-          .select("whatsapp_last_inbound_at, whatsapp_last_outbound_at, account_status")
+          .select(
+            "whatsapp_last_inbound_at, whatsapp_last_outbound_at, account_status",
+          )
           .eq("id", row.user_id)
           .maybeSingle();
         if ((profile as any)?.account_status === "deletion_pending") {
@@ -2846,6 +2962,12 @@ Deno.serve(async (req) => {
       );
       const recurringReminderId = getRecurringReminderIdFromEventContext(
         eventContext,
+      );
+      const initialMessagePayload = objectRecord(
+        (checkin as any)?.message_payload,
+      );
+      const isPotionSupportCheckin = isPotionSupportPayload(
+        initialMessagePayload,
       );
       let userTimezone = "Europe/Paris";
       let userProfileSnapshot: Record<string, unknown> | null = null;
@@ -3200,13 +3322,113 @@ Deno.serve(async (req) => {
           : null;
         in24hConversationWindow = lastInbound !== null &&
           Date.now() - lastInbound < 24 * 60 * 60 * 1000;
-        const lastActivity = Math.max(lastInbound ?? 0, lastOutbound ?? 0);
-        if (lastActivity > 0 && Date.now() - lastActivity < quietMs) {
-          const waitMs = Math.max(0, quietMs - (Date.now() - lastActivity));
+        let lastActivity = Math.max(lastInbound ?? 0, lastOutbound ?? 0);
+        if (isPotionSupportCheckin) {
+          const potionTempMemory = await fetchWhatsappTempMemory(
+            supabaseAdmin,
+            String(checkin.user_id),
+          ).catch(() => ({}));
+          const activeSkillId = activeConversationSkillId(potionTempMemory);
+          if (activeSkillId === "safety_crisis") {
+            await cancelPotionSupportCampaign({
+              admin: supabaseAdmin as any,
+              userId: String(checkin.user_id),
+              recurringReminderId,
+              sourcePotionSessionId: cleanText(
+                initialMessagePayload.source_potion_session_id,
+              ),
+              reason: "cancelled_safety",
+            });
+            continue;
+          }
+          if (
+            isPotionPriorityFlow(activeSkillId) ||
+            (activeSkillId && !isPotionSupportPresenceState(potionTempMemory))
+          ) {
+            await markScheduledCheckinDeliveryState({
+              supabaseAdmin,
+              checkinId: checkin.id,
+              status: "cancelled",
+              errorMessage: `potion_support_preempted_by:${activeSkillId}`,
+              requestId,
+            });
+            continue;
+          }
+          if (
+            await hasPendingPotionPriorityPrompt({
+              supabaseAdmin,
+              userId: String(checkin.user_id),
+            }).catch(() => false)
+          ) {
+            await markScheduledCheckinDeliveryState({
+              supabaseAdmin,
+              checkinId: checkin.id,
+              status: "cancelled",
+              errorMessage: "potion_support_preempted_by_pending_daily_weekly",
+              requestId,
+            });
+            continue;
+          }
+          const latestCrossChannel = await loadLatestConversationExchangeAt({
+            admin: supabaseAdmin as any,
+            userId: String(checkin.user_id),
+          }).catch(() => null);
+          const latestCrossChannelMs = latestCrossChannel
+            ? new Date(latestCrossChannel).getTime()
+            : 0;
+          if (Number.isFinite(latestCrossChannelMs)) {
+            lastActivity = Math.max(lastActivity, latestCrossChannelMs);
+          }
+        }
+        const requiredQuietMs = isPotionSupportCheckin
+          ? 2 * 60 * 60 * 1000
+          : quietMs;
+        if (lastActivity > 0 && Date.now() - lastActivity < requiredQuietMs) {
+          const waitMs = Math.max(
+            0,
+            requiredQuietMs - (Date.now() - lastActivity),
+          );
           const nextIso = new Date(Date.now() + waitMs).toISOString();
+          if (isPotionSupportCheckin && recurringReminderId) {
+            const { data: nextPotionSlot } = await supabaseAdmin
+              .from("scheduled_checkins")
+              .select("id,scheduled_for")
+              .eq("user_id", checkin.user_id)
+              .eq("recurring_reminder_id", recurringReminderId)
+              .neq("id", checkin.id)
+              .in("status", ["pending", "retrying", "awaiting_user"])
+              .order("scheduled_for", { ascending: true })
+              .limit(1)
+              .maybeSingle();
+            const nextSlotMs = nextPotionSlot?.scheduled_for
+              ? new Date(nextPotionSlot.scheduled_for).getTime()
+              : Number.NaN;
+            if (
+              Number.isFinite(nextSlotMs) &&
+              new Date(nextIso).getTime() >= nextSlotMs
+            ) {
+              await markScheduledCheckinDeliveryState({
+                supabaseAdmin,
+                checkinId: checkin.id,
+                status: "cancelled",
+                errorMessage: "potion_support_quiet_window_crosses_next_day",
+                requestId,
+              });
+              continue;
+            }
+          }
           await supabaseAdmin
             .from("scheduled_checkins")
-            .update({ scheduled_for: nextIso })
+            .update({
+              scheduled_for: nextIso,
+              status: isPotionSupportCheckin ? "retrying" : checkin.status,
+              ...(isPotionSupportCheckin
+                ? {
+                  delivery_last_error: "potion_support_quiet_window_2h",
+                  delivery_last_error_at: new Date().toISOString(),
+                }
+                : {}),
+            })
             .eq("id", checkin.id);
           if (isMomentumOutreach) {
             await logMomentumObservabilityEvent({
@@ -3506,6 +3728,7 @@ Deno.serve(async (req) => {
       let payload = ((checkin as any)?.message_payload ?? {}) as any;
       let bodyText = String((checkin as any)?.draft_message ?? "").trim();
       let tempMemory: Record<string, unknown> = {};
+      let potionSupportPreparation: PotionSupportPreparation | null = null;
       if (recurringReminderId && forceDynamicRecurringReminder) {
         const existingGrounding = cleanText(payload?.event_grounding);
         payload = {
@@ -4034,6 +4257,31 @@ Deno.serve(async (req) => {
             continue;
           }
           const usedTemplate = Boolean((resp as any)?.used_template);
+
+          // Daily outranks a potion-opened Presence conversation. Preserve all
+          // chat messages for the next reconciliation, but never resume that
+          // old ownership after the daily review.
+          try {
+            const currentTempMemory = await fetchWhatsappTempMemory(
+              supabaseAdmin,
+              String(checkin.user_id),
+            );
+            const withoutPotionPresence = clearPotionSupportPresence(
+              currentTempMemory,
+            );
+            if (withoutPotionPresence !== currentTempMemory) {
+              await persistWhatsappTempMemory({
+                supabaseAdmin,
+                userId: String(checkin.user_id),
+                tempMemory: withoutPotionPresence,
+              });
+            }
+          } catch (error) {
+            console.warn(
+              `[process-checkins] request_id=${requestId} daily_potion_presence_preemption_failed checkin_id=${checkin.id}`,
+              error,
+            );
+          }
 
           const initialDailyReviewNoteInformation = {
             source_flow_id: "process_checkins.action_evening_review_v2",
@@ -5017,7 +5265,166 @@ Deno.serve(async (req) => {
           continue;
         }
       }
-      if (mode === "dynamic") {
+      if (
+        mode === "dynamic" && isPotionSupportCheckin && !in24hConversationWindow
+      ) {
+        // Outside the 24h window, only the named consent template is sent.
+        // The actual support opening is generated fresh after the user's Oui.
+        bodyText = "";
+      } else if (mode === "dynamic" && isPotionSupportCheckin) {
+        const sourcePotionSessionId = cleanText(
+          payload?.source_potion_session_id,
+        );
+        const dayIndex = Math.max(1, Number(payload?.day_index ?? 1) || 1);
+        try {
+          potionSupportPreparation = await preparePotionSupportOpening({
+            admin: supabaseAdmin as any,
+            userId: String(checkin.user_id),
+            sessionId: sourcePotionSessionId,
+            dayIndex,
+            nowIso: new Date().toISOString(),
+            requestId,
+          });
+          await persistPotionSupportContext({
+            admin: supabaseAdmin as any,
+            userId: String(checkin.user_id),
+            sessionId: sourcePotionSessionId,
+            context: potionSupportPreparation.context_after,
+            nowIso: new Date().toISOString(),
+          });
+          const supportPayload = objectRecord(payload?.potion_support_v1);
+          payload = {
+            ...payload,
+            generated_at: new Date().toISOString(),
+            potion_support_v1: {
+              ...supportPayload,
+              preparation_status: potionSupportPreparation.decision === "send"
+                ? "prepared"
+                : "skipped",
+              decision_reason: potionSupportPreparation.decision,
+              read_cutoff: potionSupportPreparation.read_cutoff,
+              anchor_fact: potionSupportPreparation.anchor_fact,
+              question_candidate: potionSupportPreparation.question_candidate,
+              generated_at: new Date().toISOString(),
+            },
+          };
+          await supabaseAdmin
+            .from("scheduled_checkins")
+            .update({ message_payload: payload })
+            .eq("id", checkin.id);
+          if (potionSupportPreparation.decision !== "send") {
+            if (
+              potionSupportPreparation.decision === "skip_user_boundary" ||
+              potionSupportPreparation.decision === "skip_resolved"
+            ) {
+              await cancelPotionSupportCampaign({
+                admin: supabaseAdmin as any,
+                userId: String(checkin.user_id),
+                recurringReminderId,
+                sourcePotionSessionId,
+                reason: potionSupportPreparation.decision ===
+                    "skip_user_boundary"
+                  ? "cancelled_user_boundary"
+                  : "completed_resolved",
+              });
+            } else {
+              await markScheduledCheckinDeliveryState({
+                supabaseAdmin,
+                checkinId: checkin.id,
+                status: "cancelled",
+                errorMessage: potionSupportPreparation.decision,
+                requestId,
+              });
+            }
+            continue;
+          }
+          bodyText = potionSupportPreparation.opening_text ?? "";
+
+          // Same gate, second read: a message arriving during generation wins.
+          const latestExchangeAt = await loadLatestConversationExchangeAt({
+            admin: supabaseAdmin as any,
+            userId: String(checkin.user_id),
+          });
+          const secondGate = evaluatePotionSupportQuietGate({
+            nowMs: Date.now(),
+            lastExchangeAt: latestExchangeAt,
+          });
+          if (!secondGate.allowed && secondGate.nextAllowedAt) {
+            await markScheduledCheckinDeliveryState({
+              supabaseAdmin,
+              checkinId: checkin.id,
+              status: "retrying",
+              scheduledFor: secondGate.nextAllowedAt,
+              errorMessage: "potion_support_activity_during_generation",
+              requestId,
+            });
+            continue;
+          }
+          const latestTempMemory = await fetchWhatsappTempMemory(
+            supabaseAdmin,
+            String(checkin.user_id),
+          ).catch(() => ({}));
+          const latestActiveSkill = activeConversationSkillId(
+            latestTempMemory,
+          );
+          if (latestActiveSkill === "safety_crisis") {
+            await cancelPotionSupportCampaign({
+              admin: supabaseAdmin as any,
+              userId: String(checkin.user_id),
+              recurringReminderId,
+              sourcePotionSessionId,
+              reason: "cancelled_safety",
+            });
+            continue;
+          }
+          if (
+            isPotionPriorityFlow(latestActiveSkill) ||
+            (latestActiveSkill &&
+              !isPotionSupportPresenceState(latestTempMemory))
+          ) {
+            await markScheduledCheckinDeliveryState({
+              supabaseAdmin,
+              checkinId: checkin.id,
+              status: "cancelled",
+              errorMessage:
+                `potion_support_preempted_after_generation:${latestActiveSkill}`,
+              requestId,
+            });
+            continue;
+          }
+          if (
+            await hasPendingPotionPriorityPrompt({
+              supabaseAdmin,
+              userId: String(checkin.user_id),
+            }).catch(() => false)
+          ) {
+            await markScheduledCheckinDeliveryState({
+              supabaseAdmin,
+              checkinId: checkin.id,
+              status: "cancelled",
+              errorMessage:
+                "potion_support_pending_daily_weekly_after_generation",
+              requestId,
+            });
+            continue;
+          }
+        } catch (e) {
+          console.warn(
+            `[process-checkins] request_id=${requestId} potion_support_generation_failed checkin_id=${checkin.id}`,
+            e,
+          );
+          await markScheduledCheckinDeliveryState({
+            supabaseAdmin,
+            checkinId: checkin.id,
+            status: "cancelled",
+            errorMessage: e instanceof Error
+              ? `potion_support_generation_failed:${e.message}`
+              : "potion_support_generation_failed",
+            requestId,
+          });
+          continue;
+        }
+      } else if (mode === "dynamic") {
         try {
           bodyText = await generateDynamicWhatsAppCheckinMessage({
             admin: supabaseAdmin as any,
@@ -5040,7 +5447,10 @@ Deno.serve(async (req) => {
         }
       }
       // Ensure bodyText is never empty/null for the fallback
-      if (!bodyText.trim()) {
+      if (
+        !bodyText.trim() &&
+        !(isPotionSupportCheckin && !in24hConversationWindow)
+      ) {
         bodyText = "Comment ça va depuis tout à l'heure ?";
       }
 
@@ -5048,6 +5458,11 @@ Deno.serve(async (req) => {
       // - if a message was exchanged recently: no greeting prefix
       // - otherwise: prepend a short cold-open greeting variant
       try {
+        if (isPotionSupportCheckin && !bodyText.trim()) {
+          throw new Error(
+            "potion_support_template_has_no_visible_draft",
+          );
+        }
         const { data: profileForGreeting } = await supabaseAdmin
           .from("profiles")
           .select("whatsapp_last_inbound_at, whatsapp_last_outbound_at")
@@ -5064,10 +5479,12 @@ Deno.serve(async (req) => {
           allowRelaunchGreeting,
         });
       } catch (e) {
-        console.warn(
-          `[process-checkins] request_id=${requestId} greeting_policy_failed checkin_id=${checkin.id}`,
-          e,
-        );
+        if (!isPotionSupportCheckin || bodyText.trim()) {
+          console.warn(
+            `[process-checkins] request_id=${requestId} greeting_policy_failed checkin_id=${checkin.id}`,
+            e,
+          );
+        }
       }
       const renderedDraftMessage = bodyText.trim() || null;
       if (
@@ -5159,7 +5576,8 @@ Deno.serve(async (req) => {
         // potion label injected as {{1}} (already elided). Unknown potion types
         // fall back to the generic reminder rather than shipping broken French.
         const potionReminderCmp =
-          cleanText(payload?.source) === "potion_follow_up_series"
+          (cleanText(payload?.source) === "potion_follow_up_series" ||
+              isPotionSupportCheckin)
             ? potionReminderComponents(payload?.potion_type)
             : null;
         const reminderTemplateName = potionReminderCmp
@@ -5309,6 +5727,78 @@ Deno.serve(async (req) => {
             requestId: String((resp as any)?.request_id ?? requestId),
           });
           continue;
+        }
+
+        if (
+          isPotionSupportCheckin && !usedTemplate &&
+          potionSupportPreparation?.decision === "send"
+        ) {
+          const armedAt = new Date().toISOString();
+          const sourcePotionSessionId = cleanText(
+            payload?.source_potion_session_id,
+          );
+          try {
+            await armDeliveredPotionSupportPresence({
+              supabaseAdmin,
+              userId: String(checkin.user_id),
+              timezone: userTimezone,
+              // Start just before generation so Presence's verbatim thread
+              // includes the proactive opener logged by whatsapp-send.
+              nowIso: potionSupportPreparation.read_cutoff,
+              sourcePotionSessionId,
+              recurringReminderId: cleanText(recurringReminderId),
+              scheduledCheckinId: String(checkin.id),
+              topicHint: potionSupportPreparation.anchor_fact?.text ?? null,
+              anchorEvidenceRefs:
+                potionSupportPreparation.anchor_fact?.evidence_refs ?? [],
+            });
+            const supportPayload = objectRecord(payload?.potion_support_v1);
+            payload = {
+              ...payload,
+              potion_support_v1: {
+                ...supportPayload,
+                presence_armed_at: armedAt,
+              },
+            };
+            await supabaseAdmin.from("scheduled_checkins").update({
+              message_payload: payload,
+            }).eq("id", checkin.id);
+            const contextWithOpening = {
+              ...potionSupportPreparation.context_after,
+              opening_history: [
+                ...potionSupportPreparation.context_after.opening_history,
+                {
+                  day_index: Math.max(
+                    1,
+                    Number(payload?.day_index ?? 1) || 1,
+                  ),
+                  scheduled_checkin_id: String(checkin.id),
+                  sent_at: armedAt,
+                  opening_text: renderedDraftMessage,
+                  anchor_evidence_refs:
+                    potionSupportPreparation.anchor_fact?.evidence_refs ?? [],
+                  question_evidence_refs:
+                    potionSupportPreparation.question_candidate
+                      ?.evidence_refs ?? [],
+                  outcome: "sent" as const,
+                },
+              ].slice(-7),
+            };
+            await persistPotionSupportContext({
+              admin: supabaseAdmin as any,
+              userId: String(checkin.user_id),
+              sessionId: sourcePotionSessionId,
+              context: contextWithOpening,
+              nowIso: armedAt,
+            });
+          } catch (error) {
+            // Message is already delivered: never retry it merely because the
+            // local ownership marker failed to persist.
+            console.warn(
+              `[process-checkins] request_id=${requestId} potion_support_presence_arm_failed checkin_id=${checkin.id}`,
+              error,
+            );
+          }
         }
 
         if (isWeeklyProgressReview && !usedTemplate) {

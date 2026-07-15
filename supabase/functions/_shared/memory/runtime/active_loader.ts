@@ -282,11 +282,54 @@ function classifyPromptMemoryItem(item: MemoryV2Payload["items"][number]): {
   return { label: "SOUVENIR", instruction: null };
 }
 
+// P12-G (rose-hard25 R1-B06): tokens de contrainte de STYLE explicite dans le
+// content d'un item preference (match lexical borne, jamais de LLM).
+const STYLE_CONSTRAINT_TOKEN =
+  /\b(emojis?|smileys?|ton|tutoie(?:ment)?|vouvoie(?:ment)?|cash|directe?|style)\b/;
+// Marqueur de preference: le schema n'a pas de kind="preference" (encode en
+// statement/fact), on exige donc un verbe de volonte/preference explicite ou
+// metadata.statement_role=preference quand il est porte.
+const STYLE_PREFERENCE_MARKER =
+  /\b(veu(?:t|x)|prefere|preference|aime pas|n'aime pas|deteste|demande|exige)\b/;
+
+/**
+ * P12-G (rose-hard25 R1-B06): un memory_item actif de type preference portant
+ * une contrainte de STYLE explicite (« veut parler cash, sans emojis ») etait
+ * charge comme simple fait de contexte noye dans le bloc memoire — 9 tours
+ * sur 16 portaient des emojis malgre la preference active. La contrainte est
+ * promue en DIRECTIVE DE STYLE contraignante en tete du bloc memoire.
+ * Detection deterministe bornee: item fact/statement actif + marqueur de
+ * preference + token de style. Pure et exportee pour etre testable.
+ */
+export function memoryStylePreferenceDirectiveLines(
+  items: MemoryV2Payload["items"],
+): string[] {
+  const styleItems = items.filter((item) => {
+    if (String(item.status ?? "") !== "active") return false;
+    if (item.kind !== "fact" && item.kind !== "statement") return false;
+    const text = normalizePromptText(item.content_text);
+    const preferenceShaped =
+      String(item.metadata?.statement_role ?? "") === "preference" ||
+      STYLE_PREFERENCE_MARKER.test(text);
+    return preferenceShaped && STYLE_CONSTRAINT_TOKEN.test(text);
+  });
+  if (styleItems.length === 0) return [];
+  return [
+    "STYLE IMPOSE PAR PREFERENCE UTILISATEUR (memoire active) — s'applique a CHAQUE reponse de ce tour, soutien et coaching compris, tant que le user ne la retire pas:",
+    ...styleItems.slice(0, 2).map((item) =>
+      `- « ${trimLine(item.content_text, 160)} »`
+    ),
+  ];
+}
+
 export function formatMemoryV2PayloadForPrompt(
   payload: MemoryV2Payload,
 ): string {
   const lines = [
     "=== MEMOIRE V2 ACTIVE ===",
+    // P12-G: la directive de style survit en tete du bloc, jamais noyee dans
+    // les souvenirs.
+    ...memoryStylePreferenceDirectiveLines(payload.items),
     `mode=${payload.retrieval_mode}; topic_id=${
       payload.topic_id ?? "none"
     }; hints=${payload.hints.length ? payload.hints.join(",") : "none"}`,

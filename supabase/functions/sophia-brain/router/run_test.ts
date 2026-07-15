@@ -16,12 +16,28 @@ import {
   effectLedgerTraceForTest,
   ensureClarifyQuestionVisible,
   ensureCommittedRenderParity,
+  isExplicitPotionSupportStopMessage,
   isReminderReadoutQuestion,
   mergeVisibleTextForTest,
   stripCommitClaimBeforeClarify,
   stripTrackClaimWithoutCommit,
   stripUnfoundedReminderCapacityDenial,
 } from "./run.ts";
+
+Deno.test("potion support stop detector accepts explicit space requests only", () => {
+  assertEquals(
+    isExplicitPotionSupportStopMessage("Laisse-moi tranquille"),
+    true,
+  );
+  assertEquals(
+    isExplicitPotionSupportStopMessage(
+      "J'ai besoin d'espace, ne me relance plus",
+    ),
+    true,
+  );
+  assertEquals(isExplicitPotionSupportStopMessage("pas aujourd'hui"), false);
+  assertEquals(isExplicitPotionSupportStopMessage("merci ça va mieux"), false);
+});
 
 function frame(patch: Partial<TurnFrame> = {}): TurnFrame {
   return {
@@ -1352,7 +1368,8 @@ Deno.test("stripUnfoundedReminderCapacityDenial: refus de capacité confabulé s
     guarded.normalize("NFD").replace(/\p{Diacritic}/gu, ""),
   ), false);
   assertEquals(guarded.includes("C'est noté pour le puzzle."), true);
-  assertEquals(/redonne-le moi/.test(guarded), true);
+  // P12-V: récupération générique (elle couvre aussi les mutations).
+  assertEquals(/dis-moi exactement ce que tu veux/.test(guarded), true);
 
   // Anti-faux-positif: un outcome rappel BLOQUÉ existe (raison contractuelle)
   // → le refus est la vérité, intact.
@@ -1782,4 +1799,79 @@ Deno.test("commitPostTurnRiskTrail: bande = MAX(runtime, frame) — snapshot run
   );
   assertEquals(calm.__last_turn_risk_band, "none");
   assertEquals(calm.__conversation_risk_scores, [6, 6, 0]);
+});
+
+Deno.test("stripRetractedSessionMention: contenu rétracté restitué depuis l'history → strip; réouverture NOMINATIVE intacte (P12-V, probe P12-3)", async () => {
+  const { stripRetractedSessionMention } = await import("./run.ts");
+  const history = [
+    {
+      role: "user",
+      content:
+        "au fait, retiens que je veux me remettre à la natation, ça me trotte dans la tête.",
+    },
+    { role: "assistant", content: "C'est noté." },
+    {
+      role: "user",
+      content:
+        "ah et en fait, oublie ce que je t'ai dit tout à l'heure sur la natation, laisse tomber ce projet.",
+    },
+    { role: "assistant", content: "C'est bon, je le mets de côté." },
+  ];
+  // Positif: recall GÉNÉRIQUE + restitution → la phrase saute.
+  const guarded = stripRetractedSessionMention(
+    "Tu voulais te remettre à la natation. C'est le seul objectif que j'ai sous la main.",
+    history,
+    "tu te souviens de ce que je t'ai dit que je voulais faire ?",
+    frame(),
+  );
+  assertEquals(/natation/i.test(guarded), false);
+  assertEquals(guarded.trim().length > 0, true);
+  // Anti-FP 1: réouverture NOMINATIVE (le user renomme la natation) → intact.
+  const reopened = "Pour la natation, tu m'avais demandé de laisser tomber — on la reprend ?";
+  assertEquals(
+    stripRetractedSessionMention(
+      reopened,
+      history,
+      "finalement parle-moi de la natation, je re-réfléchis",
+      frame(),
+    ),
+    reopened,
+  );
+  // Anti-FP 2: aucune rétractation dans l'history → intact.
+  const noRetraction = [
+    { role: "user", content: "retiens que je veux me remettre à la natation." },
+    { role: "assistant", content: "C'est noté." },
+  ];
+  const normalReply = "Tu voulais te remettre à la natation.";
+  assertEquals(
+    stripRetractedSessionMention(
+      normalReply,
+      noRetraction,
+      "tu te souviens de ce que je voulais faire ?",
+      frame(),
+    ),
+    normalReply,
+  );
+});
+
+Deno.test("stripUnfoundedReminderCapacityDenial: refus confabulé sur une MUTATION (« je ne peux pas décaler ça depuis ce chat ») → strip (P12-V, probe P12-5 passe 4)", () => {
+  const emptyFrame = frame({
+    direct_effects: [{
+      effect_type: "track_progress_plan_item",
+      explicitness: "explicit",
+      target_status: "identified",
+      confidence_band: "high",
+      payload_hint: {},
+    }],
+  } as any);
+  const guarded = stripUnfoundedReminderCapacityDenial(
+    "Je ne peux pas décaler ça depuis ce chat. Tes deux rappels de ce soir restent à 19h et 22h.",
+    emptyFrame,
+  );
+  assertEquals(/je ne peux pas decaler/i.test(
+    guarded.normalize("NFD").replace(/\p{Diacritic}/gu, ""),
+  ), false);
+  assertEquals(/19h et 22h/.test(guarded), true);
+  // Anti-FP: refus LÉGITIME (outcome rappel bloqué existant) → intact —
+  // couvert par le test P10-C existant (blockedReminderFrame).
 });

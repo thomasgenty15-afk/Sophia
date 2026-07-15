@@ -389,9 +389,18 @@ Deno.test("P12-E (eva-hard25 R1-B05): retracted-in-session block forbids spontan
     block!.includes("INTERDIT DE RESTITUTION ET DE MENTION SPONTANÉE"),
     "reinforced header missing",
   );
+  // P12-V (probe P12-3 passe 1): l'exception de réouverture est NOMINATIVE —
+  // « rouvre le sujet » se lisait comme couvrant une question de recall
+  // générique et l'objectif rétracté ressortait mot pour mot.
   assert(
-    block!.includes("n'en parle que si l'utilisateur rouvre lui-même le sujet"),
-    "reopen-only clause missing",
+    block!.includes(
+      "RENOMME lui-même ce contenu par ses propres mots",
+    ),
+    "nominative reopen-only clause missing",
+  );
+  assert(
+    block!.includes("ne rouvre RIEN"),
+    "generic-recall counter-example missing",
   );
 });
 

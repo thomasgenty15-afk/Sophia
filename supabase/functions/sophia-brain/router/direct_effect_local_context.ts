@@ -320,6 +320,9 @@ const CLARIFY_REASON_CODES = new Set([
   "ambiguity_present",
   "target_not_evidenced",
   "cancel_target_ambiguous",
+  // P12-D8a (paul-p9reval R1-B03): plusieurs rappels ANNULÉS récents peuvent
+  // porter l'instruction à hériter — clarify nominatif, pas un blocage sec.
+  "cancelled_antecedent_ambiguous",
 ]);
 
 const FAILED_REASON_CODES = new Set([
@@ -372,17 +375,34 @@ function outcomeGuidance(
     case "reschedule_no_target":
       return "Aucun rappel ponctuel n'est en attente: il n'y a rien a deplacer. RIEN n'a ete ecrit. Ne propose PAS « annule-le et remets-le » (pas de cible): demande l'element manquant (heure exacte ou contenu) pour (re)creer le rappel directement.";
     case "reschedule_not_supported":
-      return "Rien n'a ete modifie: un rappel existant ne se decale pas tel quel depuis le chat. N'affirme JAMAIS que le rappel a ete decale ou note a la nouvelle heure. Propose les deux chemins reels: dire « annule-le et remets-le a [heure] » (execute d'ici), ou le modifier dans Dashboard > Initiatives (section rappels).";
+      // P12-D6 (alex-untested24 R1-B06): la guidance V1 dictait « annule-le
+      // et remets-le a [heure] » — consigne circulaire (le meme intent
+      // re-bloquait) et gabarit « [heure] » fuite au rendu (nina T12). La
+      // cible manquante se demande NOMINATIVEMENT depuis l'outcome.
+      return "Rien n'a ete modifie: la cible du deplacement n'est pas identifiable ce tour. N'affirme JAMAIS que le rappel a ete decale ou note a la nouvelle heure. Demande LEQUEL des rappels en attente est vise (cite chaque candidat de l'outcome avec son objet et son heure — jamais « donne-moi l'intitule exact », jamais de gabarit entre crochets): la reponse du user executera le deplacement directement.";
     case "status_read_failed":
       return "La lecture des rappels a echoue ce tour: dis que tu ne peux pas verifier la, propose l'app — n'affirme JAMAIS qu'aucun rappel n'existe (absence de projection ≠ absence de rappel).";
     case "same_instruction_pending":
-      return "Un rappel IDENTIQUE (meme contenu) existe deja a une autre heure: RIEN n'a ete cree pour eviter un doublon ou un faux deplacement. Demande si le user veut DEPLACER l'existant ou en AJOUTER un deuxieme — n'affirme JAMAIS que l'heure a ete changee ni qu'un nouveau rappel est pose.";
+      // P12-D2c (nina-p10reval R1-B04): les deux options offertes sont
+      // EXECUTABLES au tour suivant (la reponse-option est consommee par le
+      // runtime) — jamais de formule a recopier avec un gabarit « [heure] ».
+      return "Un rappel IDENTIQUE (meme contenu) existe deja a une autre heure: RIEN n'a ete cree pour eviter un doublon ou un faux deplacement. Demande si le user veut DEPLACER l'existant ou en AJOUTER un deuxieme (sa reponse « deplace-le » ou « ajoute-le » suffira, ne dicte AUCUNE formule a recopier ni gabarit entre crochets) — n'affirme JAMAIS que l'heure a ete changee ni qu'un nouveau rappel est pose.";
+    case "clarify_dismissed":
+      // P12-D2a (alex-untested24 R1-B03c): retractation sous clarify actif —
+      // le pending est purge, zero question residuelle.
+      return "Le user a retire sa demande: la clarification precedente est ABANDONNEE, rien n'a ete cree ni change. Confirme sobrement en une ligne et passe a autre chose — ne repose JAMAIS la question du clarify precedent.";
+    case "cancelled_antecedent_ambiguous":
+      // P12-D8a (paul-p9reval R1-B03): plusieurs rappels annules recents
+      // correspondent — la question cite chaque candidat nominativement.
+      return "Plusieurs rappels ANNULES recemment correspondent a la demande de re-creation: RIEN n'a ete cree. Pose la question en citant chaque candidat (objet + creneau) depuis l'outcome — la reponse du user recreera le bon.";
     case "cancel_or_replace_ambiguous":
       return "La demande mele annulation et nouveau rappel de facon ambigue: RIEN n'a ete ecrit. Pose la question de l'outcome (annuler ET recreer, ou seulement annuler ?) — au tour suivant la reponse re-arme l'operation complete.";
     case "replace_payload_incomplete":
       return "Le remplacement demande un nouveau rappel complet (heure + contenu): RIEN n'a ete annule ni cree. Demande l'element manquant — n'affirme aucune annulation ni creation.";
     case "replace_target_ambiguous":
-      return "Plusieurs rappels sont en attente et la cible du remplacement n'est pas claire: demande l'heure actuelle du rappel a remplacer. Rien n'a ete annule ni cree.";
+      // P12-D5/D7: question NOMINATIVE — chaque candidat cite (objet +
+      // heure) depuis l'outcome, jamais « donne l'heure actuelle » sec.
+      return "Plusieurs rappels sont en attente et la cible du remplacement n'est pas claire: demande LEQUEL en citant chaque candidat de l'outcome (objet + heure) — le user peut repondre par le contenu ou par l'heure. Rien n'a ete annule ni cree.";
     case "target_switch_ambiguous":
       return "Deux reports au meme statut sur deux actions differentes en deux tours: RIEN n'a ete ecrit pour la nouvelle cible. Pose la question (en plus, ou a la place ?) — n'affirme aucune ecriture ni correction.";
     case "correction_retarget_missing":

@@ -19,6 +19,19 @@ import type { PresenceConversationKind } from "../../contracts/turn_frame.v1.ts"
 // de jour local.
 export const PRESENCE_INACTIVITY_EXPIRY_MS = 6 * 60 * 60 * 1000;
 
+export type PresenceEntryContext = {
+  source: "potion_support";
+  source_potion_session_id: string;
+  recurring_reminder_id: string;
+  scheduled_checkin_id: string;
+  anchor_evidence_refs: Array<{
+    source_type: string;
+    source_id: string;
+    source_field: string | null;
+  }>;
+  awaiting_first_reply: boolean;
+};
+
 export type PresenceFlowState = {
   version: 1;
   entered_at: string;
@@ -34,6 +47,8 @@ export type PresenceFlowState = {
   thread_summary: string | null;
   // Nombre de messages déjà pliés dans thread_summary (curseur d'incrément).
   thread_summary_folded_count: number;
+  /** Optional server-owned provenance. Never rendered verbatim. */
+  entry_context?: PresenceEntryContext | null;
 };
 
 export type PresenceExitReason =
@@ -57,6 +72,7 @@ export function enterPresenceFlow(input: {
   localDate: string;
   topicHint?: string | null;
   entryReason: string;
+  entryContext?: PresenceEntryContext | null;
 }): PresenceFlowState {
   return {
     version: 1,
@@ -68,6 +84,7 @@ export function enterPresenceFlow(input: {
     local_date: input.localDate,
     thread_summary: null,
     thread_summary_folded_count: 0,
+    entry_context: input.entryContext ?? null,
   };
 }
 
@@ -86,8 +103,17 @@ export function isPresenceExpired(input: {
   nowIso: string;
   localDate: string;
 }): boolean {
-  if (input.state.local_date && input.localDate &&
-    input.localDate !== input.state.local_date) {
+  // A proactive potion door-opener waits for semantic admission on the first
+  // reply. It must not lose ownership merely because the reply came 6h later;
+  // topic_change/tool_pull/closure still exit through the global classifier.
+  if (
+    input.state.entry_context?.source === "potion_support" &&
+    input.state.entry_context.awaiting_first_reply
+  ) return false;
+  if (
+    input.state.local_date && input.localDate &&
+    input.localDate !== input.state.local_date
+  ) {
     return true;
   }
   const lastMs = parseIsoMs(input.state.last_activity_at);
@@ -139,6 +165,9 @@ export function stepPresenceFlow(input: {
     turns_in_flow: input.state.turns_in_flow + 1,
     last_activity_at: input.nowIso,
     local_date: input.localDate,
+    entry_context: input.state.entry_context?.source === "potion_support"
+      ? { ...input.state.entry_context, awaiting_first_reply: false }
+      : input.state.entry_context,
   };
   return { status: "continue", next_state };
 }

@@ -30,6 +30,7 @@ import {
   formatPotionRecentContextForPrompt,
   loadPotionRecentContext,
 } from "../_shared/potion-recent-context.ts";
+import { buildPotionSupportContext } from "../_shared/potion-support-context.ts";
 import type {
   LabScopeKind,
   PotionScopeSelection,
@@ -355,6 +356,15 @@ async function activatePotion(args: {
   }
 
   const now = new Date().toISOString();
+  const potionSupportContext = buildPotionSupportContext({
+    nowIso: now,
+    potionType: args.potionType,
+    questionnaireAnswers: args.answers,
+    freeText: args.freeText,
+    content: validation.content,
+    baseContext,
+    recentContext,
+  });
   const row = {
     user_id: args.userId,
     cycle_id: context.cycle_id,
@@ -372,6 +382,7 @@ async function activatePotion(args: {
     metadata: {
       classification_type_key: context.classification?.type_key ?? null,
       potion_title: definition.title,
+      potion_support_v1: potionSupportContext,
       ...(rappelBinding.potion_scope
         ? {
           potion_scope: rappelBinding.potion_scope,

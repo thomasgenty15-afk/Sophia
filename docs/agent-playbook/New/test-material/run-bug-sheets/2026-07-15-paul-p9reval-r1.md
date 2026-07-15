@@ -22,8 +22,8 @@ sont des coutures de rendu/projection/intake autour du cycle cancel.
   item annulé (ou une entrée agrégée avec `cancelled_items[]` ids+labels) + directive de rendu
   « mass cancel ⇒ énumération des N items + état restant relu ». Extension du contrat P7-B
   (N commits ⇒ N annoncés) au cancel de masse.
-- Statut: open
-- Fix reference: —
+- Statut: fix_applied
+- Fix reference: P12-C (ledger mass-cancel : une entrée committed PAR rappel annulé, labels par item — router.ts ; test « mass-cancel → une entrée committed PAR rappel annulé »)
 - Tests requis: (1) positif mass-cancel 3 items ⇒ rendu énumère 3 + état restant ;
   (2) paraphrase (« vire tout ce que je t'ai mis ce matin ») ; (3) anti-FP re-joué
   (« ils sont tous bons, annule juste celui de Xh » ⇒ 1 seul) ; (4) contrat ledger :
@@ -49,8 +49,8 @@ sont des coutures de rendu/projection/intake autour du cycle cancel.
   et interdiction contractuelle d'affirmer l'exhaustivité si count > liste chargée. Bonus :
   distinguer dans la projection `cancelled_by_user_request` vs `cancelled_by_replace` pour que
   « lesquels tu viens d'annuler » réponde sur le bon sous-ensemble.
-- Statut: open
-- Fix reference: —
+- Statut: fix_applied
+- Fix reference: P12-G (loader.ts branche cancelled : count exact + charge 50 + interdiction d'exhaustivité sur liste tronquée)
 - Tests requis: (1) 6+ cancels en 24h ⇒ énumération complète ou refus d'exhaustivité ;
   (2) mélange replace-cancels + cancels directs ⇒ « viens d'annuler » scoped au tour/à la demande ;
   (3) anti-régression du C3 pending (count exact déjà en place) ; (4) invariant renderer :
@@ -74,8 +74,8 @@ sont des coutures de rendu/projection/intake autour du cycle cancel.
   antécédents CANCELLED récents (fenêtre 24h du snapshot) quand l'entité est nommée
   (« celui des poubelles ») et unique ; clarify seulement si plusieurs candidats. C'est la même
   condition d'antécédent résoluble que P9-A, élargie d'un statut.
-- Statut: open
-- Fix reference: —
+- Statut: fix_applied
+- Fix reference: P12-D8a (héritage d'instruction étendu aux CANCELLED 24h, clarify nominatif si ≥2 candidats annulés — router.ts)
 - Tests requis: (1) positif : cancel puis « remets celui des X » ⇒ create avec instruction héritée,
   zéro redemande ; (2) ambiguïté : deux rappels annulés proches ⇒ clarify nominatif par item ;
   (3) anti-FP : « remets celui des X » sans aucun antécédent ⇒ clarify/create dégradé actuel
@@ -87,3 +87,4 @@ sont des coutures de rendu/projection/intake autour du cycle cancel.
   P8-D voulu (garantie = récupération déterministe), à surveiller seulement si un claim fuit.
 - P11: metadata de `mass_cancel_executed` porte `"error_name": "Error"` sur un événement
   d'audit nominal — cosmétique logger à nettoyer à l'occasion.
+  → fermé par P12-C (guard-log.ts : marqueur d'audit nommé).

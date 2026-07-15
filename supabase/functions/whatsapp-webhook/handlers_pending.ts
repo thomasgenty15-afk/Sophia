@@ -15,6 +15,13 @@ import {
   applyWhatsappProactiveOpeningPolicy,
   generateDynamicWhatsAppCheckinMessage,
 } from "../_shared/scheduled_checkins.ts";
+import {
+  isPotionSupportPayload,
+  persistPotionSupportContext,
+  type PotionSupportPreparation,
+  preparePotionSupportOpening,
+} from "../_shared/potion-support-runtime.ts";
+import { cancelPotionSupportCampaign } from "../_shared/potion-support-cancellation.ts";
 import type { RendezVousKind } from "../_shared/v2-types.ts";
 import { transitionRendezVous } from "../_shared/v2-rendez-vous.ts";
 import { registerRendezVousRefusal } from "../sophia-brain/rendez_vous_decision.ts";
@@ -87,6 +94,10 @@ import {
 import {
   buildUserTimeContextFromValues,
 } from "../_shared/user_time_context.ts";
+import {
+  armPotionSupportPresence,
+  clearPotionSupportPresence,
+} from "../sophia-brain/skills/presence_conversation/apply.ts";
 
 type DailyOccurrenceOutcomeApplyResult = {
   status: string;
@@ -552,9 +563,12 @@ async function activateWeeklyAdaptiveReviewState(params: {
   const tempMemory = state.temp_memory && typeof state.temp_memory === "object"
     ? state.temp_memory
     : {};
+  const withoutPotionPresence = clearPotionSupportPresence(
+    tempMemory as Record<string, unknown>,
+  );
   await updateUserState(params.admin, params.userId, "whatsapp", {
     temp_memory: {
-      ...tempMemory,
+      ...withoutPotionPresence,
       __active_skill_state: {
         skill_id: "weekly_adaptive_review_v1",
         weekly_progress_review: progressReview ?? null,
@@ -1808,8 +1822,7 @@ async function handleActionEveningReviewReply(params: {
         updated_at: nowForHandoff,
         turn_count: 0,
         working_state: {
-          daily_action_coaching_recommendation_state:
-            initialCoachingState,
+          daily_action_coaching_recommendation_state: initialCoachingState,
         },
       }
       : null;
@@ -1904,11 +1917,10 @@ async function handleActionEveningReviewReply(params: {
       params.userId,
       "whatsapp",
     );
-    let tempMemoryAfterChild =
-      stateAfterChildRaw.temp_memory &&
-          typeof stateAfterChildRaw.temp_memory === "object"
-        ? { ...stateAfterChildRaw.temp_memory }
-        : {};
+    let tempMemoryAfterChild = stateAfterChildRaw.temp_memory &&
+        typeof stateAfterChildRaw.temp_memory === "object"
+      ? { ...stateAfterChildRaw.temp_memory }
+      : {};
     if (childOutput.status === "continue" && childLocalState) {
       const activeChildState = {
         ...activeDailyActionCoachingState,
@@ -1926,8 +1938,8 @@ async function handleActionEveningReviewReply(params: {
       );
     }
     if (childNote) {
-      tempMemoryAfterChild.__last_daily_action_coaching_recommendation_exit_memo =
-        {
+      tempMemoryAfterChild
+        .__last_daily_action_coaching_recommendation_exit_memo = {
           note_information: childNote,
           at: new Date().toISOString(),
         };
@@ -2741,11 +2753,16 @@ export async function handlePendingActions(params: {
     const outboundPurpose = "scheduled_checkin";
     const draft = payload?.draft_message;
     let textToSend = typeof draft === "string" ? draft.trim() : "";
+    let potionSupportPreparation: PotionSupportPreparation | null = null;
+    let potionSupportSessionId = "";
+    let potionSupportReminderId = "";
+    let resolvedScheduledRow: Record<string, unknown> | null = null;
     if (scheduledId && mode === "dynamic") {
       try {
         const { data: row } = await admin.from("scheduled_checkins").select(
-          "event_context,message_payload,draft_message,scheduled_for",
+          "event_context,message_payload,draft_message,scheduled_for,recurring_reminder_id",
         ).eq("id", scheduledId).maybeSingle();
+        resolvedScheduledRow = row as Record<string, unknown> | null;
         const p2 = row?.message_payload ?? {};
         resolvedMessagePayload = p2 && typeof p2 === "object"
           ? p2 as Record<string, unknown>
@@ -2754,12 +2771,100 @@ export async function handlePendingActions(params: {
           row?.event_context ?? payloadEventContext,
         );
         outboundEventContext = rowEventContext || payloadEventContext;
+        if (isPotionSupportPayload(p2)) {
+          potionSupportSessionId = cleanText(
+            p2?.source_potion_session_id,
+          );
+          potionSupportReminderId = cleanText(row?.recurring_reminder_id) ||
+            (rowEventContext.startsWith("recurring_reminder:")
+              ? rowEventContext.slice("recurring_reminder:".length).trim()
+              : "");
+          const userState = await getUserState(admin, userId, "whatsapp");
+          const tempMemory = recordOrEmpty(userState.temp_memory);
+          if (
+            activeConversationSkillIdFromTempMemory(tempMemory) ===
+              "safety_crisis"
+          ) {
+            await cancelPotionSupportCampaign({
+              admin,
+              userId,
+              recurringReminderId: potionSupportReminderId,
+              sourcePotionSessionId: potionSupportSessionId,
+              reason: "cancelled_safety",
+            });
+            await markPending(admin, pending.id, "cancelled");
+            return false;
+          }
+          const activeSkillId = activeConversationSkillIdFromTempMemory(
+            tempMemory,
+          );
+          if (
+            activeSkillId === "weekly_adaptive_review_v1" ||
+            activeSkillId === "daily_action_review_v1" ||
+            activeSkillId === "daily_action_coaching_recommendation_v1"
+          ) {
+            await markPending(admin, pending.id, "cancelled");
+            if (scheduledId) {
+              await admin.from("scheduled_checkins").update({
+                status: "cancelled",
+                processed_at: new Date().toISOString(),
+                delivery_last_error:
+                  `potion_support_preempted_by:${activeSkillId}`,
+                delivery_last_error_at: new Date().toISOString(),
+              }).eq("id", scheduledId);
+            }
+            return false;
+          }
+          potionSupportPreparation = await preparePotionSupportOpening({
+            admin,
+            userId,
+            sessionId: potionSupportSessionId,
+            dayIndex: Math.max(1, Number(p2?.day_index ?? 1) || 1),
+            nowIso: new Date().toISOString(),
+            requestId,
+          });
+          await persistPotionSupportContext({
+            admin,
+            userId,
+            sessionId: potionSupportSessionId,
+            context: potionSupportPreparation.context_after,
+            nowIso: new Date().toISOString(),
+          });
+          if (potionSupportPreparation.decision !== "send") {
+            if (
+              potionSupportPreparation.decision === "skip_user_boundary" ||
+              potionSupportPreparation.decision === "skip_resolved"
+            ) {
+              await cancelPotionSupportCampaign({
+                admin,
+                userId,
+                recurringReminderId: potionSupportReminderId,
+                sourcePotionSessionId: potionSupportSessionId,
+                reason: potionSupportPreparation.decision ===
+                    "skip_user_boundary"
+                  ? "cancelled_user_boundary"
+                  : "completed_resolved",
+              });
+            }
+            await markPending(admin, pending.id, "cancelled");
+            if (scheduledId) {
+              await admin.from("scheduled_checkins").update({
+                status: "cancelled",
+                processed_at: new Date().toISOString(),
+                delivery_last_error: potionSupportPreparation.decision,
+                delivery_last_error_at: new Date().toISOString(),
+              }).eq("id", scheduledId);
+            }
+            return true;
+          }
+          textToSend = potionSupportPreparation.opening_text ?? "";
+        }
         const persistedDraft = typeof row?.draft_message === "string"
           ? row.draft_message.trim()
           : "";
-        if (persistedDraft) {
+        if (!potionSupportPreparation && persistedDraft) {
           textToSend = persistedDraft;
-        } else {
+        } else if (!potionSupportPreparation) {
           textToSend = await generateDynamicWhatsAppCheckinMessage({
             admin,
             userId,
@@ -2777,12 +2882,28 @@ export async function handlePendingActions(params: {
             ),
           });
         }
-      } catch {
+      } catch (error) {
         // best-effort fallback
+        if (potionSupportSessionId) {
+          console.warn(
+            `[handlers_pending] potion_support_generation_failed scheduled_checkin_id=${scheduledId}`,
+            error,
+          );
+          await markPending(admin, pending.id, "cancelled");
+          if (scheduledId) {
+            await admin.from("scheduled_checkins").update({
+              status: "cancelled",
+              processed_at: new Date().toISOString(),
+              delivery_last_error: "potion_support_generation_failed",
+              delivery_last_error_at: new Date().toISOString(),
+            }).eq("id", scheduledId);
+          }
+          return true;
+        }
         textToSend = textToSend || "Comment ça va depuis tout à l’heure ?";
       }
     }
-    if (!textToSend.trim()) {
+    if (!textToSend.trim() && !potionSupportSessionId) {
       textToSend = "Comment ça va depuis tout à l'heure ?";
     }
     textToSend = applyWhatsappProactiveOpeningPolicy({
@@ -2818,6 +2939,115 @@ export async function handlePendingActions(params: {
           event_context: outboundEventContext || null,
         },
       });
+      if (outboundEventContext === ACTION_EVENING_REVIEW_EVENT_CONTEXT) {
+        try {
+          const state = await getUserState(admin, userId, "whatsapp");
+          const tempMemory = recordOrEmpty(state.temp_memory);
+          const nextTempMemory = clearPotionSupportPresence(tempMemory);
+          if (nextTempMemory !== tempMemory) {
+            await updateUserState(admin, userId, "whatsapp", {
+              temp_memory: nextTempMemory,
+            });
+          }
+        } catch (error) {
+          console.warn(
+            `[handlers_pending] daily_potion_presence_preemption_failed scheduled_checkin_id=${scheduledId}`,
+            error,
+          );
+        }
+      }
+      if (potionSupportPreparation && scheduledId) {
+        const armedAt = new Date().toISOString();
+        try {
+          const { data: profile } = await admin.from("profiles")
+            .select("timezone")
+            .eq("id", userId)
+            .maybeSingle();
+          const timezone = cleanText(profile?.timezone) || "Europe/Paris";
+          const localDate = new Intl.DateTimeFormat("en-CA", {
+            timeZone: timezone,
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+          }).format(new Date(potionSupportPreparation.read_cutoff));
+          const state = await getUserState(admin, userId, "whatsapp");
+          const tempMemory = recordOrEmpty(state.temp_memory);
+          const nextTempMemory = armPotionSupportPresence({
+            tempMemory,
+            // Include the accepted opener in Presence's verbatim thread.
+            nowIso: potionSupportPreparation.read_cutoff,
+            localDate,
+            topicHint: potionSupportPreparation.anchor_fact?.text ?? null,
+            entryContext: {
+              source: "potion_support",
+              source_potion_session_id: potionSupportSessionId,
+              recurring_reminder_id: potionSupportReminderId,
+              scheduled_checkin_id: scheduledId,
+              anchor_evidence_refs:
+                potionSupportPreparation.anchor_fact?.evidence_refs ?? [],
+              awaiting_first_reply: true,
+            },
+          });
+          await updateUserState(admin, userId, "whatsapp", {
+            temp_memory: nextTempMemory,
+          });
+          const sourcePayload = recordOrEmpty(
+            resolvedScheduledRow?.message_payload,
+          );
+          const supportPayload = recordOrEmpty(
+            sourcePayload.potion_support_v1,
+          );
+          await admin.from("scheduled_checkins").update({
+            draft_message: textToSend,
+            message_payload: {
+              ...sourcePayload,
+              generated_at: armedAt,
+              potion_support_v1: {
+                ...supportPayload,
+                preparation_status: "prepared",
+                decision_reason: "send",
+                read_cutoff: potionSupportPreparation.read_cutoff,
+                anchor_fact: potionSupportPreparation.anchor_fact,
+                question_candidate: potionSupportPreparation.question_candidate,
+                generated_at: armedAt,
+                presence_armed_at: armedAt,
+              },
+            },
+          }).eq("id", scheduledId);
+          await persistPotionSupportContext({
+            admin,
+            userId,
+            sessionId: potionSupportSessionId,
+            context: {
+              ...potionSupportPreparation.context_after,
+              opening_history: [
+                ...potionSupportPreparation.context_after.opening_history,
+                {
+                  day_index: Math.max(
+                    1,
+                    Number(sourcePayload.day_index ?? 1) || 1,
+                  ),
+                  scheduled_checkin_id: scheduledId,
+                  sent_at: armedAt,
+                  opening_text: textToSend,
+                  anchor_evidence_refs:
+                    potionSupportPreparation.anchor_fact?.evidence_refs ?? [],
+                  question_evidence_refs:
+                    potionSupportPreparation.question_candidate
+                      ?.evidence_refs ?? [],
+                  outcome: "sent" as const,
+                },
+              ].slice(-7),
+            },
+            nowIso: armedAt,
+          });
+        } catch (error) {
+          console.warn(
+            `[handlers_pending] potion_support_presence_arm_failed scheduled_checkin_id=${scheduledId}`,
+            error,
+          );
+        }
+      }
       if (outboundEventContext === "weekly_progress_review_v2") {
         await activateWeeklyAdaptiveReviewState({
           admin,
@@ -2984,11 +3214,11 @@ export async function handlePendingActions(params: {
 
 export async function resumeDailyActionReviewAfterDailyActionCoachingReturn(
   params: {
-  admin: any;
-  userId: string;
-  fromE164: string;
-  requestId: string;
-},
+    admin: any;
+    userId: string;
+    fromE164: string;
+    requestId: string;
+  },
 ) {
   const state = await getUserState(params.admin, params.userId, "whatsapp");
   const coachingReturnNote =

@@ -120,6 +120,44 @@ Deno.test("expiration on local day change", () => {
   );
 });
 
+Deno.test("potion door-opener waits for semantic first-reply classification beyond 6h", () => {
+  const state = baseState({
+    entry_reason: "potion_support_door_opener",
+    entry_context: {
+      source: "potion_support",
+      source_potion_session_id: "session-1",
+      recurring_reminder_id: "reminder-1",
+      scheduled_checkin_id: "checkin-1",
+      anchor_evidence_refs: [],
+      awaiting_first_reply: true,
+    },
+  });
+  const related = stepPresenceFlow({
+    state,
+    kind: "maintain",
+    nowIso: "2026-07-10T08:00:00.000Z",
+    localDate: "2026-07-10",
+  });
+  assertEquals(related.status, "continue");
+  if (related.status === "continue") {
+    assertEquals(
+      related.next_state.entry_context?.awaiting_first_reply,
+      false,
+    );
+  }
+
+  const unrelated = stepPresenceFlow({
+    state,
+    kind: "topic_change",
+    nowIso: "2026-07-10T08:00:00.000Z",
+    localDate: "2026-07-10",
+  });
+  assertEquals(unrelated.status, "exit");
+  if (unrelated.status === "exit") {
+    assertEquals(unrelated.exit_reason, "topic_change");
+  }
+});
+
 Deno.test("withThreadSummary folds monotonically", () => {
   let s = baseState();
   s = withThreadSummary(s, "résumé v1", 20);

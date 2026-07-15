@@ -591,6 +591,49 @@ Deno.test("extraction prompt: retractation vaut pour toute categorie, version nu
   );
 });
 
+Deno.test("extraction prompt: etat transitoire d'outil jamais active (P12-G, rose-hard25 warning)", () => {
+  const prompt = buildExtractionPrompt({
+    messages: [{
+      id: "m1",
+      user_id: "u",
+      role: "user",
+      content: "je veux deux potions distinctes, une pour le jour une pour le soir",
+    }],
+  });
+  // Positif: la demande d'artefact d'outil en cours de session est nommée
+  // comme état transitoire, avec le verbatim persisté à tort.
+  assertEquals(
+    prompt.system_prompt.includes("ETAT TRANSITOIRE D'OUTIL"),
+    true,
+  );
+  assertEquals(
+    prompt.system_prompt.includes(
+      "L'utilisatrice veut deux potions distinctes",
+    ),
+    true,
+  );
+  assertEquals(
+    prompt.system_prompt.includes(
+      "potion, carte, rappel en cours de creation ou de discussion",
+    ),
+    true,
+  );
+  assertEquals(
+    prompt.system_prompt.includes(
+      "candidate au mieux, et jamais persistee comme preference",
+    ),
+    true,
+  );
+  // Anti-faux-positif: le besoin de fond exprimé comme durable reste
+  // memorisable.
+  assertEquals(
+    prompt.system_prompt.includes(
+      "Le besoin de fond sous-jacent exprime comme durable",
+    ),
+    true,
+  );
+});
+
 Deno.test("extraction prompt version bumped for retraction-all-categories (P8-C)", () => {
   assertEquals(
     MEMORY_EXTRACTION_PROMPT_VERSION.includes("v7_retraction_all_categories"),

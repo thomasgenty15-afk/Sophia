@@ -12,6 +12,7 @@ import {
   daypartWindowFromReference,
   extractQuotedReminderInstruction,
   extractReminderInstruction,
+  hasAdditiveReminderMarker,
   isDegenerateReminderInstruction,
   isReminderEntityReference,
   isReminderInstructionInvarianceAnaphora,
@@ -213,6 +214,220 @@ export function pendingCreateClarificationReason(
   if (!runtime || runtime.mode !== "needs_clarify") return null;
   if (runtime.intent !== "create") return null;
   return String(runtime.reason_code ?? "").trim() || null;
+}
+
+/** P12-D1 (alex-untested24 R1-B03): état COMPLET du clarify one-shot en
+ * attente — TOUS intents (create ET replace) — lu sans consommer
+ * l'exposition dispatcher. Sert à la fusion généralisée du tour-réponse et
+ * aux conditions de désarmement (rétractation D2a, composite D2b). */
+export function pendingOneShotReminderClarificationState(
+  tempMemory: unknown,
+): {
+  intent: "create" | "replace";
+  reason_code: string;
+  clarify_question: string;
+  known_slots: Record<string, unknown>;
+} | null {
+  const runtime = (tempMemory as Record<string, unknown> | null | undefined)
+    ?.[ONE_SHOT_REMINDER_CLARIFICATION_RUNTIME_KEY] as
+      | Record<string, unknown>
+      | undefined;
+  if (!runtime || runtime.mode !== "needs_clarify") return null;
+  return {
+    intent: runtime.intent === "create" ? "create" : "replace",
+    reason_code: String(runtime.reason_code ?? "").trim(),
+    clarify_question: String(runtime.clarify_question ?? ""),
+    known_slots: runtime.known_slots && typeof runtime.known_slots === "object"
+      ? runtime.known_slots as Record<string, unknown>
+      : {},
+  };
+}
+
+/**
+ * P12-D2a (alex-untested24 R1-B03c, doctrine P9): RÉTRACTATION sous clarify
+ * actif — « laisse tomber », « oublie », « c'est bon on annule » — le pending
+ * doit être PURGÉ, zéro question résiduelle. Condition de désarmement (test
+ * prémisse-fausse): un message qui porte une NOUVELLE spec explicite (heure
+ * chiffrée, jour nommé, « rappelle-moi ») n'est PAS une rétractation, il se
+ * lit à neuf.
+ */
+export function isBareClarifyRetraction(message: string): boolean {
+  const text = String(message ?? "").normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/[’']/g, " ").toLowerCase();
+  const retracts = /\b(laisse|laissez|laissons) tomber\b/.test(text) ||
+    /\boublie\b(?!\s+pas\b)/.test(text) ||
+    /\bc est bon[,. ]+\s*(on |tu )?(annule|laisse|oublie)\b/.test(text) ||
+    /\bon annule\b/.test(text) ||
+    /\b(abandonne|finalement non|non c est bon)\b/.test(text);
+  if (!retracts) return false;
+  const carriesNewSpec = /\b\d{1,2}\s*h(\d{2})?\b/.test(text) ||
+    /\b(demain|apres[- ]demain|lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)\b/
+      .test(text) ||
+    /\brappelle[- ]?(moi|nous)\b/.test(text);
+  return !carriesNewSpec;
+}
+
+/**
+ * P12-D2d (nina-p10reval R1-B04 T12): AUCUN texte visible ne porte un
+ * placeholder de template (« [heure] », « [objet] »…) — le backstop qui
+ * recopiait une consigne runtime fuyait le gabarit brut à l'utilisateur.
+ * Remplacement naturel pour les gabarits connus, strip générique sinon.
+ */
+export function stripTemplatePlaceholders(
+  text: string | null | undefined,
+): string | null {
+  if (text === null || text === undefined) return text ?? null;
+  return String(text)
+    .replace(/\[\s*heures?\s*\]/gi, "la nouvelle heure")
+    .replace(/\[\s*objets?\s*\]/gi, "l'objet du rappel")
+    .replace(/\[\s*(date|jour)\s*\]/gi, "le jour")
+    .replace(/\s?\[[a-zà-ÿ' _-]{2,24}\]/gi, "")
+    .replace(/ {2,}/g, " ")
+    .trim();
+}
+
+function sanitizeOneShotReminderVisibleResult(
+  result: OneShotReminderDirectEffectResult,
+): OneShotReminderDirectEffectResult {
+  const cleanReply = stripTemplatePlaceholders(result.reply);
+  const pending = result.pending_clarification
+    ? {
+      ...result.pending_clarification,
+      clarify_question: stripTemplatePlaceholders(
+        result.pending_clarification.clarify_question,
+      ) ?? result.pending_clarification.clarify_question,
+    }
+    : result.pending_clarification;
+  if (cleanReply === result.reply && pending === result.pending_clarification) {
+    return result;
+  }
+  return { ...result, reply: cleanReply, pending_clarification: pending };
+}
+
+/**
+ * P12-D4 (nina-p10reval R1-B03a): jour nommé ATTACHÉ à la référence d'entité
+ * (« celui de vendredi », « le rappel de jeudi ») — par opposition au jour de
+ * DESTINATION (« décale-le à vendredi », qui reste un replace). Retourne le
+ * token de jour ancré sur l'entité, ou null.
+ */
+function entityAnchoredDayToken(text: string): string | null {
+  const normalized = String(text ?? "").normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "").replace(/[’']/g, " ").toLowerCase();
+  const match = normalized.match(
+    /\b(?:celui|celle|le rappel|mon rappel|ce rappel)\s+(?:de|du|d)\s*(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche|demain|apres[- ]demain)\b/,
+  );
+  return match ? match[1] : null;
+}
+
+/** Jour civil local (fr, minuscule) d'un ISO — pour matcher un jour nommé. */
+function localWeekdayName(iso: string, timezone: string): string {
+  try {
+    return new Intl.DateTimeFormat("fr-FR", {
+      timeZone: timezone,
+      weekday: "long",
+    }).format(new Date(iso)).toLowerCase();
+  } catch (_error) {
+    return "";
+  }
+}
+
+/**
+ * P12-D7 (alex-untested24 R1-B06/B07, principe P5-E): tokens de CONTENU du
+ * message — les verbes de commande et le vocabulaire de la mécanique rappel
+ * sont exclus pour que « mets le rappel des courses à 16h » ne matche que par
+ * « courses ». Sert à résoudre une cible UNIQUE par évidence nommée, jamais à
+ * deviner entre plusieurs candidats positifs.
+ */
+const ROUTER_COMMAND_STOPWORDS = new Set([
+  "rappel", "rappels", "rappelle", "rappelles", "annule", "annuler",
+  "remets", "remet", "remettre", "decale", "decaler", "repousse", "avance",
+  "replanifie", "reprogramme", "supprime", "mets", "mettre", "celui",
+  "celle", "heure", "heures", "lieu", "demain", "matin", "soir", "midi",
+  "nuit", "plutot", "maintenant", "nouvelle", "nouveau", "aujourd", "manque",
+  "peux", "veux", "vais", "faut", "cette", "stp", "merci", "lundi", "mardi",
+  "mercredi", "jeudi", "vendredi", "samedi", "dimanche", "garde", "gardes",
+  "conserve", "rajoute", "rajoutes", "ajoute", "ajouter",
+]);
+
+function reminderContentTokensFromMessage(text: string): string[] {
+  return [...oneShotInstructionTokens(text)]
+    .filter((token) => !ROUTER_COMMAND_STOPWORDS.has(token));
+}
+
+/** Score de recouvrement contenu-message ↔ instruction d'un pending
+ * (tolérance morphologique, mêmes règles que instructionTokensOverlap). */
+function messageContentOverlapScore(
+  message: string,
+  rowInstruction: string,
+): number {
+  const contentTokens = reminderContentTokensFromMessage(message);
+  if (contentTokens.length === 0) return 0;
+  const rowTokens = [...oneShotInstructionTokens(rowInstruction)];
+  const morphMatch = (x: string, y: string) => {
+    if (x === y) return true;
+    const shared = Math.min(x.length, y.length);
+    if (shared < 5) return false;
+    return x.slice(0, 5) === y.slice(0, 5);
+  };
+  return contentTokens.filter((token) =>
+    rowTokens.some((rowToken) => morphMatch(token, rowToken))
+  ).length;
+}
+
+/**
+ * P12-D4/D8a: résolution civile d'un jour nommé + HH:MM (prochaine
+ * occurrence, timezone user) via une date absolue française — la seule forme
+ * sûre du parseur (le fallback naïf ancrait un jour de semaine nu sur
+ * aujourd'hui, leçon P9-C).
+ */
+function composeNamedDayWithHHMM(args: {
+  dayToken: string;
+  hhmm: string;
+  timezone: string;
+  nowUtcIso: string;
+}): string | null {
+  const weekdayFmt = new Intl.DateTimeFormat("fr-FR", {
+    timeZone: args.timezone,
+    weekday: "long",
+  });
+  const civilFmt = new Intl.DateTimeFormat("fr-CA", {
+    timeZone: args.timezone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  const monthNames = [
+    "janvier", "février", "mars", "avril", "mai", "juin",
+    "juillet", "août", "septembre", "octobre", "novembre", "décembre",
+  ];
+  const nowMs = new Date(args.nowUtcIso).getTime();
+  if (!Number.isFinite(nowMs)) return null;
+  for (let dayOffset = 1; dayOffset <= 14; dayOffset += 1) {
+    const candidate = new Date(nowMs + dayOffset * 86_400_000);
+    const matchesToken = args.dayToken === "demain"
+      ? dayOffset === 1
+      : args.dayToken.startsWith("apres")
+      ? dayOffset === 2
+      : weekdayFmt.format(candidate).toLowerCase() === args.dayToken;
+    if (!matchesToken) continue;
+    const civil = civilFmt.format(candidate);
+    const [yearStr, monthStr, dayStr] = civil.split("-");
+    const composed = `rappelle-moi le ${Number(dayStr)} ${
+      monthNames[Number(monthStr) - 1]
+    } ${yearStr} à ${args.hhmm.replace(":", "h")} de t'en occuper`;
+    return parseOneShotReminderRequest({
+      message: composed,
+      timezone: args.timezone,
+      nowIso: args.nowUtcIso,
+    })?.scheduledFor ??
+      parseScheduledForFromMessage({
+        message: composed,
+        timezone: args.timezone,
+        nowIso: args.nowUtcIso,
+      });
+  }
+  return null;
 }
 
 // P5-F (nina-global20 B01, alex-untested20 R1-B02): détection déterministe
@@ -926,8 +1141,18 @@ export function mergeMultiCreateDirectEffectResults(args: {
  * One-shot reminder route runtime.
  * Execute only explicit one-shot reminder direct effects; status/product-help
  * blockers live in route_guards.ts.
+ * P12-D2d: le résultat visible passe par la purge des placeholders de
+ * template avant de sortir de la lane (invariant: aucun « [heure] » rendu).
  */
-export async function maybeRunOneShotReminderDirectEffect(args: {
+export async function maybeRunOneShotReminderDirectEffect(
+  args: Parameters<typeof runOneShotReminderDirectEffectInner>[0],
+): Promise<OneShotReminderDirectEffectResult> {
+  return sanitizeOneShotReminderVisibleResult(
+    await runOneShotReminderDirectEffectInner(args),
+  );
+}
+
+async function runOneShotReminderDirectEffectInner(args: {
   supabase: SupabaseClient;
   userId: string;
   message: string;
@@ -968,7 +1193,86 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
       const otherEffects = (args.turnFrame?.direct_effects ?? []).filter(
         (effect) => effect.effect_type !== "create_one_shot_reminder",
       );
-      const bounded = nominalCreateEffects.slice(0, 3);
+      // P12-V (probe P12-1 passe 1): sur « jeudi et vendredi à 18h »,
+      // l'émission distribue parfois les JOURS sans l'heure commune
+      // (when_hint « jeudi » nu, UTC_time vide) → chaque volet dégénérait en
+      // clarify missing_time alors que le message porte UNE SEULE heure.
+      // Distribution déterministe bornée : exactement une heure distincte
+      // dans le message ET le volet sans heure ni UTC_time. Deux heures
+      // distinctes dans le message ⇒ jamais de devinette (chaque volet garde
+      // la sienne ou clarifie).
+      const soleMessageHour = (() => {
+        // Condition de désarmement (test P8-A « samedi, heure à voir »): si
+        // UN sibling porte déjà une heure dans son when_hint, l'heure unique
+        // du message lui APPARTIENT — la greffer aux autres serait une
+        // devinette (l'utilisateur a explicitement laissé l'autre créneau
+        // ouvert). Distribution seulement quand l'heure est orpheline de
+        // TOUS les volets.
+        const anySiblingCarriesHour = nominalCreateEffects.some((effect) =>
+          /\d/.test(String(payloadText(effect, "when_hint") ?? ""))
+        );
+        if (anySiblingCarriesHour) return null;
+        const normalizedMessage = args.message.normalize("NFD")
+          .replace(/\p{Diacritic}/gu, "").toLowerCase();
+        const hours = [
+          ...new Set(
+            [...normalizedMessage.matchAll(/\b(\d{1,2})\s?h\s?(\d{2})?\b/g)]
+              .map((m) => `${m[1]}h${m[2] ?? ""}`),
+          ),
+        ];
+        return hours.length === 1 ? hours[0] : null;
+      })();
+      let boundedTimezone = "Europe/Paris";
+      let boundedNowIso = (args.now && Number.isFinite(args.now.getTime())
+        ? args.now
+        : new Date()).toISOString();
+      if (soleMessageHour) {
+        try {
+          const tctxDistribute = await getUserTimeContext({
+            supabase: args.supabase,
+            userId: args.userId,
+            now: args.now && Number.isFinite(args.now.getTime())
+              ? args.now
+              : new Date(),
+          });
+          boundedTimezone = tctxDistribute.user_timezone || "Europe/Paris";
+          boundedNowIso = tctxDistribute.now_utc;
+        } catch (_error) {
+          // best-effort: la distribution parse en tz par défaut.
+        }
+      }
+      const bounded = nominalCreateEffects.slice(0, 3).map((effect) => {
+        if (!soleMessageHour) return effect;
+        const hint = String(payloadText(effect, "when_hint") ?? "");
+        const utc = String(payloadText(effect, "UTC_time") ?? "");
+        if (!hint.trim() || /\d/.test(hint) || isValidIsoDate(utc)) {
+          return effect;
+        }
+        const distributedWhen = `${hint} à ${soleMessageHour}`;
+        // L'UTC se résout ICI (le message du sibling ne porte pas d'acte de
+        // rappel: la complétion bornée du create nu ne s'armerait pas).
+        const distributedScheduledFor = parseScheduledForFromMessage({
+          message: distributedWhen,
+          timezone: boundedTimezone,
+          nowIso: boundedNowIso,
+        });
+        if (!distributedScheduledFor) return effect;
+        return {
+          ...effect,
+          payload_hint: {
+            ...((effect.payload_hint ?? {}) as Record<string, unknown>),
+            when_hint: distributedWhen,
+            UTC_time: distributedScheduledFor,
+            local_label: formatOneShotLocalLabel(
+              distributedScheduledFor,
+              boundedTimezone,
+            ),
+            raw_text: `${
+              String(payloadText(effect, "raw_text") ?? "")
+            } à ${soleMessageHour}`.trim(),
+          },
+        };
+      });
       const siblingResults: OneShotReminderDirectEffectResult[] = [];
       for (const effect of bounded) {
         siblingResults.push(
@@ -1117,6 +1421,114 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
     turnFrame: args.turnFrame,
     message: args.message,
   });
+  // P12-V (harness S2 T5): sur un tour de PURE CONFIRMATION (« Oui c'est
+  // bien ça, vas-y ») après une opération déjà exécutée, le dispatcher
+  // ré-émet parfois l'effet du tour précédent (raw_text agrégé) — le replace
+  // se RE-jouait avec une ancre recalculée (23h aujourd'hui déplacé à demain
+  // 23h, en silence). Règle 45 rendue structurelle: l'effet se rapporte au
+  // MESSAGE COURANT — une affirmation nue (zéro chiffre, zéro jeton de
+  // jour, zéro acte de rappel) ne porte aucune demande NOUVELLE. Conditions
+  // de désarmement: un clarify one-shot ARMÉ (le « vas-y » est la réponse —
+  // fusion D1) ou un différé safety en attente (re-serve P8-E) consomment
+  // légitimement l'affirmation.
+  {
+    const normalizedAffirmation = String(args.message ?? "")
+      .normalize("NFD").replace(/\p{Diacritic}/gu, "")
+      .replace(/[’']/g, " ").toLowerCase()
+      .replace(/[.,!?;:\-]/g, " ").replace(/\s+/g, " ").trim();
+    const affirmationLexicon = new Set([
+      "oui", "ouais", "yes", "ok", "okay", "d", "accord", "ca", "marche",
+      "parfait", "nickel", "super", "top", "c", "est", "bien", "exactement",
+      "vas", "y", "vasy", "go", "fais", "le", "confirme", "je", "allez",
+      "merci", "stp", "s", "il", "te", "plait", "carrement", "voila", "genial",
+    ]);
+    const affirmationTokens = normalizedAffirmation.split(" ").filter(Boolean);
+    const isBareAffirmation = affirmationTokens.length > 0 &&
+      affirmationTokens.length <= 8 &&
+      !/\d/.test(normalizedAffirmation) &&
+      affirmationTokens.every((token) => affirmationLexicon.has(token));
+    const clarifyArmed = Boolean(
+      pendingCreateClarificationKnownSlots(args.tempMemory) ||
+        pendingOneShotReminderClarificationState(args.tempMemory),
+    );
+    const deferredArmed = ((args.tempMemory as
+      | Record<string, unknown>
+      | null
+      | undefined)?.[SAFETY_DEFERRED_REMINDER_RUNTIME_KEY] as
+        | Record<string, unknown>
+        | undefined)?.mode === "deferred";
+    if (
+      createEffect && isBareAffirmation && !clarifyArmed && !deferredArmed
+    ) {
+      return {
+        ...baseDirectEffectResult({
+          detected: true,
+          intent: "create",
+          status: "blocked",
+          reason_code: "confirmation_reemission_noop",
+          reply:
+            "Rien de nouveau à changer — c'est déjà en place comme convenu.",
+        }),
+        requested_effects: [{
+          type: "create_one_shot_reminder",
+          reason_code: "create",
+        }],
+        blocked_effects: [{
+          type: "create_one_shot_reminder",
+          reason_code: "confirmation_reemission_noop",
+        }],
+      };
+    }
+  }
+  // P12-D (état partagé des fixes D1-D8): clarify one-shot en attente (tous
+  // intents), marqueur additif du tour, et flag allow-duplicate transmis à
+  // l'exécuteur (D2c/D3/D4).
+  const pendingClarifyState = pendingOneShotReminderClarificationState(
+    args.tempMemory,
+  );
+  const additiveMarker = hasAdditiveReminderMarker(
+    `${args.message} ${canonicalRawTextFromTurnFrame(args.turnFrame) ?? ""}`,
+  );
+  let allowDuplicateForTurn = additiveMarker;
+  // P12-D2a (alex-untested24 R1-B03c): rétractation sous clarify actif ⇒
+  // pending PURGÉ (le résultat ne porte AUCUN pending_clarification: le
+  // pipeline P2-3d supprime la clé), zéro question résiduelle, zéro write.
+  if (pendingClarifyState && isBareClarifyRetraction(args.message)) {
+    return {
+      ...baseDirectEffectResult({
+        detected: true,
+        intent: pendingClarifyState.intent === "replace"
+          ? "replace"
+          : "create",
+        status: "blocked",
+        reason_code: "clarify_dismissed",
+        reply: pendingClarifyState.intent === "replace"
+          ? "Ok, on laisse tomber — je n'ai rien changé, tes rappels existants restent tels quels."
+          : "Ok, on laisse tomber — je n'ai rien créé.",
+      }),
+      requested_effects: [{
+        type: "create_one_shot_reminder",
+        reason_code: pendingClarifyState.intent === "replace"
+          ? "replace"
+          : "create",
+      }],
+      blocked_effects: [{
+        type: "create_one_shot_reminder",
+        reason_code: "clarify_dismissed",
+      }],
+    };
+  }
+  // P12-D2b (alex-untested24 R1-B04, régression P4-B): une NOUVELLE demande
+  // composite explicite (« annule X et remets-le à Yh ») sous clarify actif
+  // DÉSARME le pending et se lit À NEUF — le chemin P4-B cancel→replace
+  // s'applique comme hors-clarify. Condition de désarmement de la fusion D1:
+  // c'est elle (une réponse partielle sans verbes composites reste fusionnée).
+  const pendingDisarmedByComposite = Boolean(pendingClarifyState) &&
+    /\b(annule|supprime|enleve|retire|vire)\b[^.!?]{0,80}\b(remets|remet|recree|reprogramme|replanifie|repose|mets)\b/
+      .test(
+        String(args.message ?? "").normalize("NFD")
+          .replace(/\p{Diacritic}/gu, "").toLowerCase(),
+      );
   // P6-V (probe P6-4 passe 2): sur le tour d'EXPOSITION du rappel différé de
   // crise, le dispatcher émet parfois un create alors que le user n'a RIEN
   // demandé (« on peut passer à autre chose, merci ») — l'offre devenait un
@@ -1259,7 +1671,7 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
   // texte d'origine, son when_hint « demain à 7 heures » re-résoudrait 07:00
   // via la couche P3-B et écraserait la fusion → gate plus bas).
   let meridiemFusionApplied = false;
-  if (pendingCreateSlots) {
+  if (pendingCreateSlots && !pendingDisarmedByComposite) {
     const storedInstruction = String(
       pendingCreateSlots.instruction_hint ?? "",
     ).trim();
@@ -1352,10 +1764,285 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
         // best-effort: le clarify past_time existant reste le filet.
       }
     }
+    // P12-D1 (alex-untested24 R1-B03): fusion GÉNÉRALISÉE du tour-réponse —
+    // avant ce fix, seuls hour_meridiem_ambiguous (P7-C) et past_time (P10-A)
+    // fusionnaient; tous les autres reason_codes re-classaient la réponse
+    // comme énoncé neuf (T8 re-clarify, T9 blocked missing_time avec
+    // when_hint="à 20h30" AU FRAME). Règle: slots du pending + slots du tour
+    // (le tour PRIME), exécution TENTÉE avant tout re-clarify. Le parseur ne
+    // consomme que le when_hint ISOLÉ du tour (« à 20h30… plus à 19h » ⇒
+    // 20:30), jamais le raw_text multi-jetons.
+    // Conditions de désarmement (doctrine P9): hour_meridiem_ambiguous garde
+    // sa résolution dédiée fail-closed (compléter ici committerait l'heure
+    // ambiguë) ; une heure encore ambiguë dans la réponse (1-9 nue) reste au
+    // clarify ; rétractation (D2a) et composite explicite (D2b) sont déjà
+    // sortis de ce chemin.
+    const generalizedFusionReason = pendingCreateClarificationReason(
+      args.tempMemory,
+    );
+    if (
+      !compiledPayload.scheduledFor &&
+      generalizedFusionReason !== "hour_meridiem_ambiguous"
+    ) {
+      try {
+        const tctxGeneral = await getUserTimeContext({
+          supabase: args.supabase,
+          userId: args.userId,
+          now,
+        });
+        const timezoneGeneral = tctxGeneral.user_timezone || "Europe/Paris";
+        const turnWhenHint = String(
+          canonicalWhenHintFromTurnFrame(args.turnFrame) ?? "",
+        ).trim();
+        if (
+          turnWhenHint &&
+          bareAmbiguousHour(turnWhenHint, { includeDigits: true }) === null
+        ) {
+          const parsedTurn = parseOneShotReminderRequest({
+            message: turnWhenHint,
+            timezone: timezoneGeneral,
+            nowIso: tctxGeneral.now_utc,
+          })?.scheduledFor ??
+            parseScheduledForFromMessage({
+              message: turnWhenHint,
+              timezone: timezoneGeneral,
+              nowIso: tctxGeneral.now_utc,
+            });
+          if (
+            parsedTurn &&
+            new Date(parsedTurn).getTime() > now.getTime() + 30_000
+          ) {
+            compiledPayload = {
+              ...compiledPayload,
+              scheduledFor: parsedTurn,
+              localLabel: formatOneShotLocalLabel(
+                parsedTurn,
+                timezoneGeneral,
+              ),
+            };
+          }
+        }
+        // Repli: l'heure déjà RÉSOLUE au tour initial (UTC_time des slots) —
+        // jamais un slot past_time (le gate past_time de l'exécuteur reste).
+        if (!compiledPayload.scheduledFor) {
+          const storedUtc = String(pendingCreateSlots.UTC_time ?? "").trim();
+          if (
+            isValidIsoDate(storedUtc) &&
+            new Date(storedUtc).getTime() > now.getTime() + 30_000
+          ) {
+            compiledPayload = {
+              ...compiledPayload,
+              scheduledFor: storedUtc,
+              localLabel: String(pendingCreateSlots.local_label ?? "")
+                .trim() ||
+                formatOneShotLocalLabel(storedUtc, timezoneGeneral),
+            };
+          }
+        }
+      } catch (_error) {
+        // best-effort: le clarify existant reste le filet.
+      }
+    }
+    // P12-D2c (nina-p10reval R1-B04): la réponse-option au gate
+    // same_instruction_pending est CONSOMMÉE — l'option AJOUTER devient un
+    // create assumé du doublon (allow_duplicate), l'option DÉPLACER se lit
+    // comme un replace de la cible au même contenu (l'unique pending qui
+    // porte cette instruction). Condition de désarmement: une réponse qui ne
+    // choisit aucune option ⇒ re-clarify inchangé (fail-closed).
+    if (generalizedFusionReason === "same_instruction_pending") {
+      const answerNormalized = String(args.message ?? "").normalize("NFD")
+        .replace(/\p{Diacritic}/gu, "").replace(/[’']/g, " ").toLowerCase();
+      const addAnswer =
+        /\b(ajoute|ajouter|rajoute|rajouter|deuxieme|second|les deux|en plus|garde les deux)\b/
+          .test(answerNormalized);
+      const moveAnswer = !addAnswer &&
+        /\b(deplace|deplacer|remets|remet|decale|repousse|change)\b/
+          .test(answerNormalized);
+      if (addAnswer) {
+        allowDuplicateForTurn = true;
+      } else if (moveAnswer) {
+        try {
+          const storedInstruction = String(
+            pendingCreateSlots.instruction_hint ?? "",
+          ).trim();
+          const pendingsForMove = await readPendingOneShotReminderRows({
+            supabase: args.supabase,
+            userId: args.userId,
+          });
+          const tctxMove = await getUserTimeContext({
+            supabase: args.supabase,
+            userId: args.userId,
+            now,
+          });
+          const sameContentRows = storedInstruction
+            ? pendingsForMove.filter((row) =>
+              instructionTokensOverlap(
+                storedInstruction,
+                String(
+                  (row?.message_payload as
+                    | Record<string, unknown>
+                    | undefined)?.reminder_instruction ?? "",
+                ),
+              )
+            )
+            : [];
+          if (sameContentRows.length === 1) {
+            const targetHHMMMove = localHHMMForScheduledFor(
+              String(sameContentRows[0]?.scheduled_for ?? ""),
+              tctxMove.user_timezone || "Europe/Paris",
+            );
+            if (targetHHMMMove) {
+              createEffect = {
+                ...createEffect!,
+                payload_hint: {
+                  ...((createEffect!.payload_hint ?? {}) as Record<
+                    string,
+                    unknown
+                  >),
+                  intent: "replace",
+                  replace_target_label: targetHHMMMove,
+                },
+              };
+            }
+          }
+        } catch (_error) {
+          // best-effort: le clarify same_instruction re-posé reste le filet.
+        }
+      }
+    }
   }
   const hasExplicitCreateDirectEffect =
     createEffect?.explicitness === "explicit" &&
     createEffect.confidence_band !== "low";
+  // P12-D1/D5 (alex-untested24 R1-B02/B03): tour-réponse à un clarify
+  // REPLACE (cible ambiguë / payload incomplet) — la réponse FUSIONNE avec
+  // les slots du pending (le tour prime) et l'exécution est tentée: l'intent
+  // est coercé en replace, la cible se résout par la réponse (contenu nommé
+  // d'abord, puis heure qui matche un pending existant ≠ nouvelle heure).
+  // Conditions de désarmement (doctrine P9): composite explicite (D2b) et
+  // rétractation (D2a) sont déjà sortis ; un message qui porte sa PROPRE
+  // demande complète de rappel (acte + objet propre sans rapport avec le
+  // pending) se lit à neuf — jamais coercé en replace.
+  if (
+    pendingClarifyState?.intent === "replace" &&
+    !pendingDisarmedByComposite &&
+    hasExplicitCreateDirectEffect &&
+    ["create", "reschedule", "replace"].includes(
+      String(payloadText(createEffect, "intent") ?? "create"),
+    )
+  ) {
+    const slots = pendingClarifyState.known_slots;
+    const freshInstruction = extractReminderInstruction(args.message);
+    const pendingInstructionHint = String(slots.instruction_hint ?? "").trim();
+    const freshUnrelatedRequest = Boolean(
+      /\b(rappelle[- ]?moi|mets[- ]?moi un rappel|nouveau rappel)\b/.test(
+        String(args.message ?? "").normalize("NFD")
+          .replace(/\p{Diacritic}/gu, "").replace(/[’']/g, " ")
+          .toLowerCase(),
+      ) &&
+        freshInstruction &&
+        !isDegenerateReminderInstruction(freshInstruction) &&
+        !isReminderInstructionInvarianceAnaphora(freshInstruction) &&
+        (!pendingInstructionHint ||
+          !instructionTokensOverlap(pendingInstructionHint, freshInstruction)),
+    );
+    if (!freshUnrelatedRequest) {
+      try {
+        const tctxReplaceFusion = await getUserTimeContext({
+          supabase: args.supabase,
+          userId: args.userId,
+          now,
+        });
+        const timezoneReplaceFusion = tctxReplaceFusion.user_timezone ||
+          "Europe/Paris";
+        // Heure du NOUVEAU rappel: le tour prime, les slots complètent.
+        if (!compiledPayload.scheduledFor) {
+          const storedUtc = String(slots.UTC_time ?? "").trim();
+          if (
+            isValidIsoDate(storedUtc) &&
+            new Date(storedUtc).getTime() > now.getTime() + 30_000
+          ) {
+            compiledPayload = {
+              ...compiledPayload,
+              scheduledFor: storedUtc,
+              localLabel: String(slots.local_label ?? "").trim() ||
+                formatOneShotLocalLabel(storedUtc, timezoneReplaceFusion),
+            };
+          }
+        }
+        if (!compiledPayload.instruction && pendingInstructionHint) {
+          compiledPayload = {
+            ...compiledPayload,
+            instruction: pendingInstructionHint,
+          };
+        }
+        // Cible: slot stocké, sinon résolution par la RÉPONSE.
+        let targetLabel =
+          String(slots.replace_target_label ?? "").trim() ||
+          payloadText(createEffect, "replace_target_label") ||
+          null;
+        if (!targetLabel) {
+          const pendingsForAnswer = await readPendingOneShotReminderRows({
+            supabase: args.supabase,
+            userId: args.userId,
+          });
+          // 1. Contenu nommé dans la réponse (« celui des étirements »).
+          const contentMatches = pendingsForAnswer
+            .map((row) => ({
+              row,
+              score: messageContentOverlapScore(
+                args.message,
+                String(
+                  (row?.message_payload as
+                    | Record<string, unknown>
+                    | undefined)?.reminder_instruction ?? "",
+                ),
+              ),
+            }))
+            .filter((entry) => entry.score > 0);
+          let targetRow = contentMatches.length === 1
+            ? contentMatches[0].row
+            : null;
+          // 2. Heure de DÉSIGNATION: elle doit matcher un pending existant
+          // et différer de la nouvelle heure (sinon c'est la nouvelle heure
+          // ré-énoncée).
+          if (!targetRow) {
+            const answerHHMM = extractTargetHHMMFromMessage(args.message);
+            const newHHMM = compiledPayload.scheduledFor
+              ? localHHMMForScheduledFor(
+                compiledPayload.scheduledFor,
+                timezoneReplaceFusion,
+              )
+              : null;
+            if (answerHHMM && answerHHMM !== newHHMM) {
+              targetRow = pendingsForAnswer.find((row) =>
+                localHHMMForScheduledFor(
+                  String(row?.scheduled_for ?? ""),
+                  timezoneReplaceFusion,
+                ) === answerHHMM
+              ) ?? null;
+            }
+          }
+          if (targetRow) {
+            targetLabel = localHHMMForScheduledFor(
+              String(targetRow.scheduled_for ?? ""),
+              timezoneReplaceFusion,
+            );
+          }
+        }
+        createEffect = {
+          ...createEffect!,
+          payload_hint: {
+            ...((createEffect!.payload_hint ?? {}) as Record<string, unknown>),
+            intent: "replace",
+            ...(targetLabel ? { replace_target_label: targetLabel } : {}),
+          },
+        };
+      } catch (_error) {
+        // best-effort: le clarify replace re-posé reste le filet.
+      }
+    }
+  }
   // P4-B (alex-global19 R1-B02): « annule X et remets-en un à Yh » émis en
   // UN SEUL effect intent="cancel" avec le when_hint de l'ANCIEN horaire —
   // seul le cancel partait et l'utilisateur restait sans aucun rappel.
@@ -1363,14 +2050,30 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
   // verbe de re-création suivi d'un horaire PARSEABLE différent de la cible
   // du cancel est un REPLACE. Le segment APRÈS le verbe isole le NOUVEL
   // horaire (leçon P3-B: ne jamais parser un texte à deux heures en entier).
+  // P12-D2b (alex-untested24 R1-B04): sous clarify actif, le composite
+  // explicite arrive souvent ré-émis en intent=create (avec le when_hint de
+  // l'ANCIEN horaire) — la même reclassification s'applique: le pending est
+  // désarmé, la phrase se lit à neuf comme un replace.
   if (
     hasExplicitCreateDirectEffect &&
-    payloadText(createEffect, "intent") === "cancel"
+    (payloadText(createEffect, "intent") === "cancel" ||
+      (pendingDisarmedByComposite &&
+        String(payloadText(createEffect, "intent") ?? "create") === "create"))
   ) {
-    const rawText = canonicalRawTextFromTurnFrame(args.turnFrame) ??
-      args.message;
+    // P12-D2b: sur le composite ré-énoncé sous clarify, le MESSAGE user est
+    // la source de vérité (le raw_text ré-émis peut agréger le tour initial).
+    const rawText = pendingDisarmedByComposite &&
+        String(args.message ?? "").trim()
+      ? args.message
+      : canonicalRawTextFromTurnFrame(args.turnFrame) ?? args.message;
+    // P12-V (harness S2 T4): « annule ce rappel, et METS-M'EN un nouveau à
+    // 23h » — la forme « mets-m'en / mets-moi un nouveau » manquait à la
+    // liste de re-création: le composite retombait sur le gate
+    // same_instruction au lieu du replace explicite (le consentement au
+    // cancel est DANS le message). Bornée au contexte cancel/composite de
+    // cette branche — « mets-moi un rappel » nu reste un create.
     const recreateMatch = rawText.match(
-      /\b(remets|remet|recr[ée]e|reprogramme|replanifie|repose)\b/i,
+      /\b(remets|remet|recr[ée]e|reprogramme|replanifie|repose|mets[-\s]?m['’]en|mets[-\s]?moi)\b/i,
     );
     if (recreateMatch && typeof recreateMatch.index === "number") {
       const segment = rawText.slice(recreateMatch.index);
@@ -1386,8 +2089,18 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
           timezone,
           nowIso: tctxReclass.now_utc,
         });
-        const newHHMM = parsedSegment?.scheduledFor
-          ? localHHMMForScheduledFor(parsedSegment.scheduledFor, timezone)
+        // P12-D2b: le segment elliptique (« remets-le à 20h30 ») ne porte
+        // pas d'instruction — parseOneShotReminderRequest y est muet par
+        // construction; le fallback scheduled_for-seul rend la
+        // reclassification opérante (même leçon que P12-A sur les hints).
+        const segmentScheduledFor = parsedSegment?.scheduledFor ??
+          parseScheduledForFromMessage({
+            message: segment,
+            timezone,
+            nowIso: tctxReclass.now_utc,
+          });
+        const newHHMM = segmentScheduledFor
+          ? localHHMMForScheduledFor(segmentScheduledFor, timezone)
           : null;
         const cancelTargetHHMM = extractTargetHHMMFromMessage(
           [
@@ -1414,9 +2127,9 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
           };
           compiledPayload = {
             ...compiledPayload,
-            scheduledFor: String(parsedSegment?.scheduledFor),
+            scheduledFor: String(segmentScheduledFor),
             localLabel: formatOneShotLocalLabel(
-              String(parsedSegment?.scheduledFor),
+              String(segmentScheduledFor),
               timezone,
             ),
             instruction: compiledPayload.instruction ??
@@ -1870,10 +2583,35 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
     // n'est pas un contenu — traitée comme instruction vide (l'héritage
     // P3-F prendra le texte de la cible), son créneau nominal sert à
     // résoudre la cible parmi plusieurs pendings.
+    // P12-V (probe P12-5 passe 6): la référence de créneau vit parfois dans
+    // le MESSAGE (« décale celui du soir à 21h ») pendant que l'émission
+    // INVENTE une instruction discriminante (« faire mes étirements »,
+    // absente du message) — le faux discriminant résolvait une cible AU
+    // HASARD parmi les candidats du créneau. Quand le message porte la
+    // référence nominale et que l'instruction émise n'y est PAS ancrée,
+    // l'instruction ne cible pas : le créneau nominal (D5) prend la main
+    // (1 candidat = cible, ≥2 = clarify nominative). Condition de
+    // désarmement : instruction ancrée dans le message = émission fidèle ⇒
+    // ciblage par contenu inchangé.
+    const messageDaypartReference = `${args.message}`.normalize("NFD")
+      .replace(/\p{Diacritic}/gu, "").toLowerCase()
+      .match(
+        /\b(celui|celle) (du (matin|midi|soir)|de la nuit|de l apres[- ]midi)\b/,
+      )?.[0] ?? null;
+    const emittedInstructionUnrootedOnDaypartMessage = Boolean(
+      messageDaypartReference && rawRequestedInstruction &&
+        !isReminderEntityReference(rawRequestedInstruction) &&
+        !instructionRootedInText(
+          rawRequestedInstruction,
+          `${args.message} ${canonicalRawTextFromTurnFrame(args.turnFrame) ?? ""}`,
+        ),
+    );
     const rescheduleEntityReference = isReminderEntityReference(
       rawRequestedInstruction,
     )
       ? rawRequestedInstruction
+      : emittedInstructionUnrootedOnDaypartMessage
+      ? messageDaypartReference
       : null;
     const requestedInstruction =
       looksLikeRescheduleCommandEcho || rescheduleEntityReference
@@ -1914,7 +2652,74 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
       requestedInstruction,
       `${args.message} ${canonicalRawTextFromTurnFrame(args.turnFrame) ?? ""}`,
     );
-    const nothingToRescheduleForThisReminder = pendingCount === 0 ||
+    // P12-D4 (nina-p10reval R1-B03a): condition P9-A étendue d'une dimension
+    // JOUR — « il manque celui de VENDREDI, remets-le » avec pendings
+    // jeudi-seulement: l'antécédent nommé (vendredi) n'existe pas en pending,
+    // l'anaphore ne peut PAS viser un pending d'un autre jour → dégradation
+    // en create, jamais un replace du jeudi lexicalement proche.
+    // Condition de désarmement: le jour nommé est celui de DESTINATION
+    // (« décale-le À vendredi », non capturé par l'ancre d'entité) ou un
+    // pending existe bien ce jour-là ⇒ ciblage historique inchangé; lecture
+    // timezone indisponible ⇒ fail-open historique.
+    const rescheduleEntityDayToken = entityAnchoredDayToken(
+      `${args.message} ${canonicalRawTextFromTurnFrame(args.turnFrame) ?? ""}`,
+    );
+    let entityDayHasPendingMatch = true;
+    if (rescheduleEntityDayToken && (pendingRows ?? []).length > 0) {
+      try {
+        const tctxEntityDay = await getUserTimeContext({
+          supabase: args.supabase,
+          userId: args.userId,
+          now,
+        });
+        const timezoneEntityDay = tctxEntityDay.user_timezone ||
+          "Europe/Paris";
+        const civilOf = (iso: string) => {
+          try {
+            return new Intl.DateTimeFormat("fr-CA", {
+              timeZone: timezoneEntityDay,
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+            }).format(new Date(iso));
+          } catch (_error) {
+            return "";
+          }
+        };
+        const dayTokenMatchesIso = (iso: string): boolean => {
+          if (!iso) return false;
+          if (
+            rescheduleEntityDayToken === "demain" ||
+            rescheduleEntityDayToken.startsWith("apres")
+          ) {
+            const offset = rescheduleEntityDayToken === "demain" ? 1 : 2;
+            return civilOf(iso) ===
+              civilOf(
+                new Date(
+                  new Date(tctxEntityDay.now_utc).getTime() +
+                    offset * 86_400_000,
+                ).toISOString(),
+              );
+          }
+          return localWeekdayName(iso, timezoneEntityDay) ===
+            rescheduleEntityDayToken;
+        };
+        entityDayHasPendingMatch = (pendingRows ?? []).some((row) =>
+          dayTokenMatchesIso(String(row?.scheduled_for ?? ""))
+        );
+      } catch (_error) {
+        entityDayHasPendingMatch = true;
+      }
+    }
+    const entityDayMismatch = Boolean(rescheduleEntityDayToken) &&
+      !entityDayHasPendingMatch;
+    // P12-D3 (nina-p10reval R1-B03b): marqueur additif explicite (« rajoute
+    // jeudi et tu gardes vendredi ») ⇒ le chemin reschedule/replace perd le
+    // droit de CANCEL — dégradation en create (doublon assumé), jamais un
+    // replace silencieux de la cible protégée.
+    const nothingToRescheduleForThisReminder = additiveMarker ||
+      entityDayMismatch ||
+      pendingCount === 0 ||
       (pendingCount !== null &&
         oneShotInstructionTokens(requestedInstruction).size > 0 &&
         !anyPendingMatchesInstruction &&
@@ -1925,12 +2730,188 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
         (!rescheduleCliticAnaphor || instructionRootedInMessage));
     if (nothingToRescheduleForThisReminder) {
       await completeMissingPayloadTime();
+      // P12-D3/D4: le doublon d'instruction est ASSUMÉ sur ces dégradations
+      // (l'objet existe déjà un autre jour et doit RESTER) — sans ça le gate
+      // same_instruction_pending re-bloquait le create légitime.
+      if (additiveMarker || entityDayMismatch) allowDuplicateForTurn = true;
+      // P10-E/P12-D4/D8a: une référence d'entité (« celui des poubelles »)
+      // ou une anaphore d'invariance n'est JAMAIS un contenu durable — sur
+      // la dégradation en create elle vaut instruction ABSENTE, l'héritage
+      // (sibling D4, cancelled D8a) ou le clarify prennent la suite.
+      if (
+        compiledPayload.instruction &&
+        (isReminderEntityReference(compiledPayload.instruction) ||
+          isReminderInstructionInvarianceAnaphora(compiledPayload.instruction))
+      ) {
+        compiledPayload = { ...compiledPayload, instruction: null };
+      }
+      // P12-D4 (nina R1-B03a): unique pending du même objet sur un AUTRE
+      // jour ⇒ create PUR du jour nommé — instruction héritée du sibling,
+      // heure héritée si le message n'en donne pas (la série « jeudi et
+      // vendredi à 18h » partage son heure).
+      if (entityDayMismatch && (pendingRows ?? []).length === 1) {
+        const sibling = (pendingRows ?? [])[0];
+        const siblingInstruction = String(
+          (sibling?.message_payload as Record<string, unknown> | undefined)
+            ?.reminder_instruction ?? "",
+        ).trim();
+        if (!compiledPayload.instruction && siblingInstruction) {
+          compiledPayload = {
+            ...compiledPayload,
+            instruction: siblingInstruction,
+          };
+        }
+        const messageHasExplicitHour = /\b\d{1,2}\s*h(?:\d{2})?\b/.test(
+          String(args.message ?? "").normalize("NFD")
+            .replace(/\p{Diacritic}/gu, "").toLowerCase(),
+        );
+        if (!compiledPayload.scheduledFor && !messageHasExplicitHour) {
+          try {
+            const tctxSibling = await getUserTimeContext({
+              supabase: args.supabase,
+              userId: args.userId,
+              now,
+            });
+            const timezoneSibling = tctxSibling.user_timezone ||
+              "Europe/Paris";
+            const siblingHHMM = localHHMMForScheduledFor(
+              String(sibling?.scheduled_for ?? ""),
+              timezoneSibling,
+            );
+            const composed = siblingHHMM
+              ? composeNamedDayWithHHMM({
+                dayToken: rescheduleEntityDayToken!,
+                hhmm: siblingHHMM,
+                timezone: timezoneSibling,
+                nowUtcIso: tctxSibling.now_utc,
+              })
+              : null;
+            if (composed) {
+              compiledPayload = {
+                ...compiledPayload,
+                scheduledFor: composed,
+                localLabel: formatOneShotLocalLabel(
+                  composed,
+                  timezoneSibling,
+                ),
+              };
+            }
+          } catch (_error) {
+            // best-effort: le clarify honnête reste le filet.
+          }
+        }
+      }
+      // P12-D8a (paul-p9reval R1-B03): héritage d'instruction étendu aux
+      // CANCELLED récents (fenêtre 24h) — « remets-moi celui des poubelles »
+      // après un cancel hérite le texte de la ligne annulée quand l'entité
+      // nommée est UNIQUE parmi les annulés; ≥2 candidats distincts ⇒
+      // clarify nominatif; aucun ⇒ comportement P0-4 inchangé. L'issue reste
+      // NON destructive (create pur, invariant P9-A: aucun pending touché).
+      if (!compiledPayload.instruction) {
+        try {
+          const sinceIso = new Date(now.getTime() - 24 * 3_600_000)
+            .toISOString();
+          const recentRows = await readRecentOneShotReminderRows({
+            supabase: args.supabase,
+            userId: args.userId,
+            sinceIso,
+          });
+          const cancelledScored = (recentRows as Array<
+            Record<string, unknown>
+          >)
+            .filter((row) => String(row?.status ?? "") === "cancelled")
+            .map((row) => ({
+              row,
+              instruction: String(
+                (row?.message_payload as Record<string, unknown> | undefined)
+                  ?.reminder_instruction ?? "",
+              ).trim(),
+            }))
+            .filter((entry) =>
+              entry.instruction &&
+              messageContentOverlapScore(
+                `${args.message} ${rawRequestedInstruction}`,
+                entry.instruction,
+              ) > 0
+            );
+          const distinctInstructions = [
+            ...new Set(
+              cancelledScored.map((entry) =>
+                entry.instruction.normalize("NFD")
+                  .replace(/\p{Diacritic}/gu, "").toLowerCase()
+              ),
+            ),
+          ];
+          if (cancelledScored.length > 0 && distinctInstructions.length === 1) {
+            compiledPayload = {
+              ...compiledPayload,
+              instruction: cancelledScored[0].instruction,
+            };
+          } else if (distinctInstructions.length >= 2) {
+            const tctxCancelled = await getUserTimeContext({
+              supabase: args.supabase,
+              userId: args.userId,
+              now,
+            });
+            const timezoneCancelled = tctxCancelled.user_timezone ||
+              "Europe/Paris";
+            const candidateLines = cancelledScored.map((entry) =>
+              `« ${entry.instruction} » (${
+                formatOneShotLocalLabel(
+                  String(entry.row?.scheduled_for ?? ""),
+                  timezoneCancelled,
+                )
+              })`
+            );
+            const cancelledClarifyReply =
+              `Tu as eu plusieurs rappels annulés qui pourraient correspondre : ${
+                candidateLines.join(" ; ")
+              }. Lequel je te remets ?`;
+            return {
+              ...baseDirectEffectResult({
+                detected: true,
+                intent: "create",
+                status: "needs_clarify",
+                reason_code: "cancelled_antecedent_ambiguous",
+                reply: cancelledClarifyReply,
+              }),
+              requested_effects: [{
+                type: effectType,
+                reason_code: "reschedule",
+              }],
+              blocked_effects: [{
+                type: effectType,
+                reason_code: "cancelled_antecedent_ambiguous",
+              }],
+              missing_slots: ["reminder_instruction"],
+              pending_clarification: {
+                intent: "create",
+                reason_code: "cancelled_antecedent_ambiguous",
+                clarify_question: cancelledClarifyReply,
+                known_slots: {
+                  UTC_time: compiledPayload.scheduledFor ?? null,
+                  local_label: compiledPayload.localLabel ?? null,
+                  instruction_hint: null,
+                  raw_text: compiledPayload.rawText ?? args.message,
+                  when_hint:
+                    canonicalWhenHintFromTurnFrame(args.turnFrame) ?? null,
+                },
+              },
+            };
+          }
+        } catch (_error) {
+          // Lecture best-effort: le clarify P0-4 historique reste le filet.
+        }
+      }
       if (!compiledPayload.scheduledFor || !compiledPayload.instruction) {
         // P9-A: le préambule dit la vérité de l'inventaire — « aucun rappel
         // en attente » seulement quand c'est le cas; des pendings SANS
         // RAPPORT existants ⇒ « aucun rappel qui corresponde » (jamais nier
-        // l'inventaire, jamais y toucher).
-        const noTargetPreamble = (pendingCount ?? 0) > 0
+        // l'inventaire, jamais y toucher). P12-D3: sur un ajout explicite,
+        // le préambule dit l'ajout (rien d'existant n'est en cause).
+        const noTargetPreamble = additiveMarker
+          ? "C'est bien un ajout — je ne touche à aucun rappel existant."
+          : (pendingCount ?? 0) > 0
           ? "Je ne vois pas de rappel en attente qui corresponde à celui-là — je n'ai touché à rien."
           : "Il n'y a aucun rappel en attente à déplacer.";
         return {
@@ -1982,16 +2963,43 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
         instructionRootedInMessage &&
         !anyPendingMatchesInstruction
       );
+      // P12-D7 (alex-untested24 R1-B06, principe P5-E): cible par ÉVIDENCE
+      // NOMMÉE — quand l'instruction émise est vide (écho de commande,
+      // référence d'entité), le contenu nommé dans le MESSAGE résout la
+      // cible: un recouvrement UNIQUE = cible, sans exiger son heure
+      // actuelle. Condition de désarmement: ≥2 candidats positifs = vraie
+      // ambiguïté (clarify nominatif), jamais une devinette.
+      const messageContentMatches = matchingRows.length === 1
+        ? []
+        : (pendingRows ?? [])
+          .map((row) => ({
+            row,
+            score: messageContentOverlapScore(
+              args.message,
+              String(
+                (row?.message_payload as Record<string, unknown> | undefined)
+                  ?.reminder_instruction ?? "",
+              ),
+            ),
+          }))
+          .filter((entry) => entry.score > 0);
       // P10-E: cible par CRÉNEAU NOMINAL — « celui du midi » avec plusieurs
       // pendings résout l'unique pending de la fenêtre (11-15h) ; 0 ou ≥2
       // candidats = pas de cible (jamais un choix au hasard).
+      // P12-D5 (alex-untested24 R1-B02/B10): les candidats de la fenêtre sont
+      // CAPTURÉS — ≥2 ⇒ clarify nominative qui les énumère; fenêtre VIDE ⇒
+      // constat honnête + inventaire réel, JAMAIS le repli « pending unique »
+      // hors fenêtre (la supposition observée).
       let daypartRescheduleTarget:
         | Awaited<ReturnType<typeof readPendingOneShotReminderRows>>[number]
+        | null = null;
+      let daypartCandidates:
+        | Awaited<ReturnType<typeof readPendingOneShotReminderRows>>
         | null = null;
       const rescheduleDaypart = rescheduleEntityReference
         ? daypartWindowFromReference(rescheduleEntityReference)
         : null;
-      if (rescheduleDaypart && (pendingRows ?? []).length > 1) {
+      if (rescheduleDaypart && (pendingRows ?? []).length > 0) {
         try {
           const tctxDaypart = await getUserTimeContext({
             supabase: args.supabase,
@@ -2009,19 +3017,95 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
               hour >= rescheduleDaypart.startHour &&
               hour < rescheduleDaypart.endHour;
           });
+          daypartCandidates = inWindow;
           if (inWindow.length === 1) daypartRescheduleTarget = inWindow[0];
         } catch (_error) {
           // best-effort: sans résolution, le blocage honnête reste.
+          daypartCandidates = null;
         }
       }
       const uniqueRescheduleTarget = matchingRows.length === 1
         ? matchingRows[0]
         : daypartRescheduleTarget
         ? daypartRescheduleTarget
+        : messageContentMatches.length === 1
+        ? messageContentMatches[0].row
         : (pendingRows ?? []).length === 1 &&
-            uniquePendingIsResolvableAntecedent
+            uniquePendingIsResolvableAntecedent &&
+            daypartCandidates === null
         ? (pendingRows ?? [])[0]
         : null;
+      // P12-D5: fenêtre nominale calculée mais cible non unique — la lane
+      // répond NOMINATIVEMENT (créneau + objet de chaque candidat, jamais
+      // « donne-moi l'intitulé exact » ni du vocabulaire système) et arme un
+      // pending replace pour que la réponse (contenu ou heure) résolve la
+      // cible via la fusion D1.
+      if (!uniqueRescheduleTarget && daypartCandidates !== null) {
+        try {
+          const tctxNominative = await getUserTimeContext({
+            supabase: args.supabase,
+            userId: args.userId,
+            now,
+          });
+          const timezoneNominative = tctxNominative.user_timezone ||
+            "Europe/Paris";
+          const nominativeLine = (
+            row: Awaited<
+              ReturnType<typeof readPendingOneShotReminderRows>
+            >[number],
+          ) => {
+            const rowInstruction = String(
+              (row?.message_payload as Record<string, unknown> | undefined)
+                ?.reminder_instruction ?? "",
+            ).trim() || "rappel ponctuel";
+            const rowHHMM = localHHMMForScheduledFor(
+              String(row?.scheduled_for ?? ""),
+              timezoneNominative,
+            );
+            return `« ${rowInstruction} » à ${rowHHMM ?? "?"}`;
+          };
+          const nominativeReply = daypartCandidates.length >= 2
+            ? `Tu as ${daypartCandidates.length} rappels sur ce créneau : ${
+              daypartCandidates.map(nominativeLine).join(", ")
+            } — lequel je déplace ? Rien n'a été changé pour l'instant.`
+            : `Je ne vois aucun rappel en attente sur ce créneau. Voilà ce que tu as : ${
+              (pendingRows ?? []).map(nominativeLine).join(" ; ") || "aucun"
+            }. Dis-moi lequel tu vises — rien n'a été changé.`;
+          const nominativeReason = daypartCandidates.length >= 2
+            ? "replace_target_ambiguous"
+            : "reschedule_no_target";
+          return {
+            ...baseDirectEffectResult({
+              detected: true,
+              intent: "create",
+              status: "needs_clarify",
+              reason_code: nominativeReason,
+              reply: nominativeReply,
+            }),
+            requested_effects: [{
+              type: effectType,
+              reason_code: "reschedule",
+            }],
+            blocked_effects: [{
+              type: effectType,
+              reason_code: nominativeReason,
+            }],
+            pending_clarification: {
+              intent: "replace",
+              reason_code: "replace_target_ambiguous",
+              clarify_question: nominativeReply,
+              known_slots: {
+                UTC_time: compiledPayload.scheduledFor ?? null,
+                local_label: compiledPayload.localLabel ?? null,
+                instruction_hint: null,
+                replace_target_label: null,
+              },
+            },
+          };
+        } catch (_error) {
+          // best-effort: le blocage honnête historique reste le filet.
+        }
+      }
       // P9-C (alex-hard24 R1-B01): « décale-le à jeudi, même heure » — le
       // créneau du nouveau rappel se compose du JOUR NOMMÉ du message et de
       // l'HEURE HÉRITÉE de la cible (invariance d'heure demandée
@@ -2251,20 +3335,71 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
         }
       }
       if (payloadText(createEffect, "intent") !== "replace") {
+        // P12-D6 (alex-untested24 R1-B06): le blocage honnête reste pour une
+        // cible NON résoluble — mais sa reply ne dicte plus la formule
+        // circulaire « annule-le et remets-le à [heure] » (guidance V1
+        // résiduelle qui tournait en rond): elle demande la CIBLE avec
+        // l'inventaire nominatif, et un pending replace s'arme pour que la
+        // réponse (contenu ou heure) exécute le déplacement via la fusion
+        // D1/D5. Condition de désarmement: cible résoluble + heure
+        // haute-confiance n'atteignent plus ce blocage (replace atomique
+        // P6-H exécuté en amont sur tous les chemins d'admission).
+        let inventoryLines: string[] = [];
+        try {
+          const tctxInventory = await getUserTimeContext({
+            supabase: args.supabase,
+            userId: args.userId,
+            now,
+          });
+          const timezoneInventory = tctxInventory.user_timezone ||
+            "Europe/Paris";
+          inventoryLines = (pendingRows ?? []).map((row) => {
+            const rowInstruction = String(
+              (row?.message_payload as Record<string, unknown> | undefined)
+                ?.reminder_instruction ?? "",
+            ).trim() || "rappel ponctuel";
+            return `« ${rowInstruction} » à ${
+              localHHMMForScheduledFor(
+                String(row?.scheduled_for ?? ""),
+                timezoneInventory,
+              ) ?? "?"
+            }`;
+          });
+        } catch (_error) {
+          // Lecture best-effort: sans inventaire, la question reste honnête.
+        }
+        const missingNewTime = !compiledPayload.scheduledFor;
+        const blockedReply = inventoryLines.length > 0
+          ? `Je ne suis pas sûre du rappel à déplacer. En attente : ${
+            inventoryLines.join(" ; ")
+          }. Dis-moi lequel (son contenu ou son heure)${
+            missingNewTime ? " et la nouvelle heure" : ""
+          } — rien n'a été changé pour l'instant.`
+          : "Je ne peux pas déplacer ce rappel tel quel — dis-moi quel rappel tu vises et la nouvelle heure. Rien n'a été changé pour l'instant.";
         return {
           ...baseDirectEffectResult({
             detected: true,
             intent: "create",
             status: "blocked",
             reason_code: "reschedule_not_supported",
-            reply:
-              "Je ne peux pas déplacer ce rappel tel quel (plusieurs rappels possibles ou heure manquante). Dis-moi « annule-le et remets-le à [heure] » en précisant lequel, ou modifie-le dans Dashboard > Initiatives (section rappels). Rien n'a été changé pour l'instant.",
+            reply: blockedReply,
           }),
           requested_effects: [{ type: effectType, reason_code: "reschedule" }],
           blocked_effects: [{
             type: effectType,
             reason_code: "reschedule_not_supported",
           }],
+          pending_clarification: {
+            intent: "replace",
+            reason_code: "replace_target_ambiguous",
+            clarify_question: blockedReply,
+            known_slots: {
+              UTC_time: compiledPayload.scheduledFor ?? null,
+              local_label: compiledPayload.localLabel ?? null,
+              instruction_hint: null,
+              replace_target_label: null,
+            },
+          },
         };
       }
     }
@@ -2434,6 +3569,10 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
     | OneShotReminderCommittedEffect[]
     | null = null;
   let replaceCancelledLabel: string | null = null;
+  // P12-D3/D4: le replace a perdu le droit de CANCEL ce tour (marqueur
+  // additif explicite, ou entité à jour nommé sans pending ce jour-là) —
+  // create assumé, rendu « c'est un ajout » au lieu de « rien trouvé ».
+  let replaceCancelForbidden = false;
   // Garde structurelle anti-variance (round6 S2): un intent='cancel' qui
   // porte un payload de creation COMPLET (UTC_time + local_label +
   // instruction) est contradictoire — le contrat dit qu'un cancel pur ne
@@ -2494,6 +3633,11 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
     const instructionIsEntityReference = isReminderEntityReference(
       compiledPayload.instruction,
     );
+    // P12-D7 (alex-untested24 R1-B07): candidats de MÊME contenu quand ≥2 —
+    // portés hors du try pour rendre la clarify nominative (avec les HEURES).
+    let replaceSameContentCandidates:
+      | Array<{ instruction: string; hhmm: string | null }>
+      | null = null;
     if (
       !compiledPayload.instruction ||
       isReminderInstructionInvarianceAnaphora(compiledPayload.instruction) ||
@@ -2530,6 +3674,27 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
               hour < daypart.endHour;
           })
           : [];
+        // P12-D7 (alex-untested24 R1-B07, principe P5-E): cible par ÉVIDENCE
+        // NOMMÉE — le contenu discriminant (référence d'entité « le rappel
+        // des courses » ou message) résout la cible SANS exiger son heure
+        // actuelle: un unique pending recouvert = cible. Condition de
+        // désarmement: ≥2 pendings de même contenu ⇒ clarify nominative avec
+        // leurs heures (jamais une consigne circulaire), jamais un choix.
+        const contentSource = `${compiledPayload.instruction ?? ""} ${
+          args.message
+        }`;
+        const contentMatches = pendings
+          .map((row) => ({
+            row,
+            score: messageContentOverlapScore(
+              contentSource,
+              String(
+                (row?.message_payload as Record<string, unknown> | undefined)
+                  ?.reminder_instruction ?? "",
+              ),
+            ),
+          }))
+          .filter((entry) => entry.score > 0);
         const targetRow = targetHHMM
           ? pendings.find((row) =>
             localHHMMForScheduledFor(
@@ -2539,9 +3704,63 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
           )
           : daypartRows.length === 1
           ? daypartRows[0]
+          : contentMatches.length === 1
+          ? contentMatches[0].row
           : pendings.length === 1
           ? pendings[0]
           : null;
+        if (!targetRow && contentMatches.length >= 2) {
+          replaceSameContentCandidates = contentMatches.map((entry) => ({
+            instruction: String(
+              (entry.row?.message_payload as
+                | Record<string, unknown>
+                | undefined)?.reminder_instruction ?? "",
+            ).trim() || "rappel ponctuel",
+            hhmm: localHHMMForScheduledFor(
+              String(entry.row?.scheduled_for ?? ""),
+              timezone,
+            ),
+          }));
+        }
+        // P12-D4 (nina-p10reval R1-B03a): l'entité porte un JOUR NOMMÉ qui
+        // ne matche PAS le jour de la cible résolue ⇒ l'instruction s'hérite
+        // (même série) mais le CANCEL est interdit — create pur, le pending
+        // de l'autre jour reste intact. Condition de désarmement: jour de la
+        // cible = jour nommé ⇒ replace historique.
+        const replaceEntityDay = entityAnchoredDayToken(
+          `${compiledPayload.instruction ?? ""} ${args.message}`,
+        );
+        let entityDayProtects = false;
+        if (replaceEntityDay && targetRow) {
+          const civilOf = (iso: string) => {
+            try {
+              return new Intl.DateTimeFormat("fr-CA", {
+                timeZone: timezone,
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+              }).format(new Date(iso));
+            } catch (_error) {
+              return "";
+            }
+          };
+          const targetIso = String(targetRow?.scheduled_for ?? "");
+          const dayMatches =
+            replaceEntityDay === "demain" ||
+              replaceEntityDay.startsWith("apres")
+              ? civilOf(targetIso) === civilOf(
+                new Date(
+                  new Date(tctxInherit.now_utc).getTime() +
+                    (replaceEntityDay === "demain" ? 1 : 2) * 86_400_000,
+                ).toISOString(),
+              )
+              : localWeekdayName(targetIso, timezone) === replaceEntityDay;
+          if (!dayMatches) {
+            entityDayProtects = true;
+            replaceCancelForbidden = true;
+            allowDuplicateForTurn = true;
+          }
+        }
         const inheritedInstruction = String(
           (targetRow?.message_payload as Record<string, unknown> | undefined)
             ?.reminder_instruction ?? "",
@@ -2554,7 +3773,8 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
           // P10-E: la cible résolue par créneau nominal devient l'ancre du
           // cancel du replace (sans elle, le cancel ne sait pas qui viser
           // et l'original survivrait à côté du nouveau — le doublon d'alex).
-          if (!targetHHMM && targetRow) {
+          // P12-D4: jamais d'ancre quand le jour nommé protège la cible.
+          if (!targetHHMM && targetRow && !entityDayProtects) {
             const resolvedHHMM = localHHMMForScheduledFor(
               String(targetRow?.scheduled_for ?? ""),
               timezone,
@@ -2584,6 +3804,85 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
         }
       } catch (_error) {
         // best-effort: le clarify replace_payload_incomplete reste le filet.
+      }
+    }
+    // P12-D7 (alex-untested24 R1-B07): deux pendings de MÊME contenu ⇒
+    // clarify nominative avec les HEURES des candidats — jamais la consigne
+    // circulaire « donne-moi son heure actuelle » sans les heures.
+    if (replaceSameContentCandidates) {
+      const candidateLine = replaceSameContentCandidates
+        .map((entry) => `celui de ${entry.hhmm ?? "?"}`)
+        .join(" ou ");
+      const sameContentReply = `Tu as ${replaceSameContentCandidates.length} rappels « ${
+        replaceSameContentCandidates[0].instruction
+      } » en attente : ${candidateLine} — lequel je remplace ? Rien n'a été changé.`;
+      return {
+        ...baseDirectEffectResult({
+          detected: true,
+          intent: "replace",
+          status: "needs_clarify",
+          reason_code: "replace_target_ambiguous",
+          reply: sameContentReply,
+        }),
+        requested_effects: [{ type: effectType, reason_code: "replace" }],
+        blocked_effects: [{
+          type: effectType,
+          reason_code: "replace_target_ambiguous",
+        }],
+        pending_clarification: {
+          intent: "replace",
+          reason_code: "replace_target_ambiguous",
+          clarify_question: sameContentReply,
+          known_slots: {
+            UTC_time: compiledPayload.scheduledFor ?? null,
+            local_label: compiledPayload.localLabel ?? null,
+            instruction_hint: compiledPayload.instruction ?? null,
+            replace_target_label: null,
+          },
+        },
+      };
+    }
+    // P12-D8a (paul-p9reval R1-B03): héritage étendu aux CANCELLED récents —
+    // un replace émis après un cancel (« remets-moi celui des poubelles »)
+    // hérite l'instruction de la ligne annulée quand l'entité est unique;
+    // AUCUNE ancre de cancel n'est posée (issue non destructive, P9-A).
+    if (!compiledPayload.instruction) {
+      try {
+        const sinceIso = new Date(now.getTime() - 24 * 3_600_000)
+          .toISOString();
+        const recentRows = await readRecentOneShotReminderRows({
+          supabase: args.supabase,
+          userId: args.userId,
+          sinceIso,
+        });
+        const cancelledMatches = (recentRows as Array<Record<string, unknown>>)
+          .filter((row) => String(row?.status ?? "") === "cancelled")
+          .map((row) =>
+            String(
+              (row?.message_payload as Record<string, unknown> | undefined)
+                ?.reminder_instruction ?? "",
+            ).trim()
+          )
+          .filter((instruction) =>
+            instruction &&
+            messageContentOverlapScore(args.message, instruction) > 0
+          );
+        const distinct = [
+          ...new Set(
+            cancelledMatches.map((instruction) =>
+              instruction.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+                .toLowerCase()
+            ),
+          ),
+        ];
+        if (cancelledMatches.length > 0 && distinct.length === 1) {
+          compiledPayload = {
+            ...compiledPayload,
+            instruction: cancelledMatches[0],
+          };
+        }
+      } catch (_error) {
+        // Lecture best-effort: le clarify replace_payload_incomplete reste.
       }
     }
     // TOUT-OU-RIEN (round12 S2): le payload du NOUVEAU rappel se valide AVANT
@@ -2796,8 +4095,18 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
         // best-effort: le chemin cancel historique reste le fallback.
       }
     }
+    // P12-D3 (nina-p10reval R1-B03b): marqueur additif explicite (« rajoute…
+    // et tu gardes celui de vendredi ») ⇒ le chemin replace perd le droit de
+    // CANCEL — la contrainte « garde Y » protège l'existant, le create part
+    // seul (doublon assumé). Condition de désarmement: pas de marqueur ⇒
+    // replace historique (« décale X à jeudi » cancel+create normalement).
+    if (additiveMarker) {
+      replaceCancelForbidden = true;
+      allowDuplicateForTurn = true;
+    }
     const cancelRunner = args.cancelReminder ?? maybeCancelOneShotReminder;
-    const cancelOutcome = replaceTargetsUnrelatedReminder
+    const cancelOutcome = replaceTargetsUnrelatedReminder ||
+        replaceCancelForbidden
       ? { detected: true, status: "no_reminder" as const, user_message: "" }
       : await cancelRunner({
         supabase: args.supabase,
@@ -2861,14 +4170,47 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
     } else if (
       cancelOutcome.detected && cancelOutcome.status === "ambiguous_target"
     ) {
+      // P12-D5/D7 (nina-p10reval R1-B06): clarify NOMINATIVE — chaque
+      // candidat cité (objet + heure), jamais « donne-moi son heure
+      // actuelle » sec ni « l'intitulé exact ».
+      let ambiguousInventory = "";
+      try {
+        const tctxAmbiguous = await getUserTimeContext({
+          supabase: args.supabase,
+          userId: args.userId,
+          now,
+        });
+        const timezoneAmbiguous = tctxAmbiguous.user_timezone ||
+          "Europe/Paris";
+        const ambiguousRows = await readPendingOneShotReminderRows({
+          supabase: args.supabase,
+          userId: args.userId,
+        });
+        ambiguousInventory = ambiguousRows.map((row) =>
+          `« ${
+            String(
+              (row?.message_payload as Record<string, unknown> | undefined)
+                ?.reminder_instruction ?? "",
+            ).trim() || "rappel ponctuel"
+          } » à ${
+            localHHMMForScheduledFor(
+              String(row?.scheduled_for ?? ""),
+              timezoneAmbiguous,
+            ) ?? "?"
+          }`
+        ).join(" ; ");
+      } catch (_error) {
+        // Lecture best-effort: la question reste posée sans inventaire.
+      }
       return {
         ...baseDirectEffectResult({
           detected: true,
           intent: "replace",
           status: "needs_clarify",
           reason_code: "replace_target_ambiguous",
-          reply:
-            `Tu as ${cancelOutcome.pending_count} rappels en attente — lequel je remplace ? Donne-moi son heure actuelle.`,
+          reply: ambiguousInventory
+            ? `Tu as ${cancelOutcome.pending_count} rappels en attente : ${ambiguousInventory} — lequel je remplace ?`
+            : `Tu as ${cancelOutcome.pending_count} rappels en attente — lequel je remplace ? Dis-moi son contenu ou son heure.`,
         }),
         requested_effects: [{ type: effectType, reason_code: "replace" }],
         blocked_effects: [{
@@ -3347,6 +4689,9 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
     now,
     timezone: args.userTimezone,
     locale: args.locale,
+    // P12-D2c/D3/D4: doublon d'instruction assumé (réponse AJOUTER consommée,
+    // marqueur additif, ou create pur d'un jour nommé sans pending).
+    allowDuplicateInstruction: allowDuplicateForTurn,
   });
   if (!outcome.detected) {
     return baseDirectEffectResult({
@@ -3401,6 +4746,11 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
       ? `C'est fait : l'ancien rappel${
         replaceCancelledLabel ? ` de ${replaceCancelledLabel}` : ""
       } est annulé, et le nouveau est posé. ${createReply}`
+      // P12-D3/D4: sur un ajout explicite (ou une entité d'un autre jour),
+      // le rendu dit l'AJOUT — « rien trouvé à annuler » mentirait sur
+      // l'intention (rien ne devait être annulé).
+      : replaceCancelForbidden
+      ? `C'est un ajout — je n'ai touché à aucun rappel existant. ${createReply}`
       : `Je n'ai trouvé aucun ancien rappel en attente à annuler — j'ai posé le nouveau. ${createReply}`;
     return {
       ...baseDirectEffectResult({
@@ -3452,8 +4802,12 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
       reply: outcome.status === "needs_clarify"
         ? (outcome.reason === "duplicate_pending"
           ? "Bonne nouvelle : ce rappel existe déjà et il est bien en attente pour ce moment — je n'en ai pas ajouté un deuxième."
+          // P12-D2c (nina-p10reval R1-B04): les deux options sont EXÉCUTABLES
+          // au tour suivant (déplacer ⇒ replace de la cible au même contenu,
+          // ajouter ⇒ create assumé du doublon) — plus de formule dictée avec
+          // placeholder « [heure] » qui fuyait au rendu.
           : outcome.reason === "same_instruction_pending"
-          ? "Tu as déjà un rappel en attente avec exactement ce contenu, à une autre heure. Tu veux le DÉPLACER à la nouvelle heure (dis « annule-le et remets-le à [heure] »), ou en AJOUTER un deuxième en plus ? Je n'ai rien changé pour l'instant."
+          ? "Tu as déjà un rappel en attente avec exactement ce contenu, à une autre heure. Tu veux que je le DÉPLACE à la nouvelle heure, ou que j'en AJOUTE un deuxième en plus ? Dis-moi « déplace-le » ou « ajoute-le » — je n'ai rien changé pour l'instant."
           : outcome.reason === "past_time"
           ? "Cette heure est déjà passée aujourd'hui, je n'ai rien programmé — tu veux un autre horaire, ou demain ?"
           : "Il me manque le moment exact pour programmer ce rappel.")
@@ -3484,6 +4838,30 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
             "Cette heure est déjà passée aujourd'hui — tu veux un autre horaire, ou demain ?",
           known_slots: {
             instruction_hint: compiledPayload.instruction ?? null,
+            raw_text: compiledPayload.rawText ?? args.message,
+            when_hint: canonicalWhenHintFromTurnFrame(args.turnFrame) ?? null,
+          },
+        },
+      }
+      : {}),
+    // P12-D2c (nina-p10reval R1-B04): le gate same_instruction_pending arme
+    // SON pending — sans lui, la réponse-option (« en ajouter un deuxième »)
+    // repassait par l'intake comme énoncé neuf et re-déclenchait le même
+    // blocage verbatim (cul-de-sac T11/T12). Les slots portent l'heure et le
+    // contenu du NOUVEAU rappel pour que l'option choisie s'exécute telle
+    // quelle au tour suivant.
+    ...(outcome.status === "needs_clarify" &&
+        outcome.reason === "same_instruction_pending"
+      ? {
+        pending_clarification: {
+          intent: "create" as const,
+          reason_code: "same_instruction_pending",
+          clarify_question:
+            "Tu veux que je DÉPLACE le rappel existant à la nouvelle heure, ou que j'en AJOUTE un deuxième en plus ?",
+          known_slots: {
+            instruction_hint: compiledPayload.instruction ?? null,
+            UTC_time: compiledPayload.scheduledFor ?? null,
+            local_label: compiledPayload.localLabel ?? null,
             raw_text: compiledPayload.rawText ?? args.message,
             when_hint: canonicalWhenHintFromTurnFrame(args.turnFrame) ?? null,
           },

@@ -1,18 +1,14 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 
-import { loadPotionBaseContext } from "./potion-base-context.ts";
 import {
-  buildPotionFollowUpFallbackSeries,
-  generatePotionFollowUpSeries,
   type PotionFollowUpSeriesInput,
   type PotionFollowUpSeriesItem,
 } from "./potion-follow-up-series.ts";
 import { computeScheduledForFromLocal } from "./scheduled_checkins.ts";
 import {
-  buildPotionInputText,
-  formatPotionRecentContextForPrompt,
-  loadPotionRecentContext,
-} from "./potion-recent-context.ts";
+  POTION_SUPPORT_SOURCE,
+  readPotionSupportContext,
+} from "./potion-support-context.ts";
 import type { PotionScopeSelection, UserPotionSessionRow } from "./v2-types.ts";
 
 export class PotionFollowUpSchedulingError extends Error {
@@ -199,89 +195,7 @@ export async function schedulePotionFollowUpForSession(args: {
   const rationale = proposal?.description ??
     session.follow_up_strategy?.rationale ?? null;
   const { potionScope, targetBinding } = readPotionScope(session);
-  const baseSeriesInput: PotionFollowUpSeriesInput = {
-    userId: args.userId,
-    potionType: session.potion_type,
-    durationDays: args.durationDays,
-    reminderInstruction: messageText,
-    rationale,
-    timezone,
-    sessionContent: session.content as unknown as Record<string, unknown>,
-    followUpStrategy: session.follow_up_strategy as unknown as Record<
-      string,
-      unknown
-    >,
-    questionnaireAnswers: session.questionnaire_answers,
-    potionScope,
-    rappelScope: potionScope,
-    targetBinding,
-  };
-
-  const series = await (async () => {
-    if (args.seriesGenerator) {
-      try {
-        return await args.seriesGenerator(baseSeriesInput);
-      } catch {
-        return buildPotionFollowUpFallbackSeries(baseSeriesInput);
-      }
-    }
-    try {
-      const baseContext = await loadPotionBaseContext({
-        admin: args.admin,
-        userId: args.userId,
-        potionType: session.potion_type,
-        scopeKind: potionScope?.scope_kind === "out_of_plan"
-          ? "out_of_plan"
-          : session.scope_kind,
-        transformationId: session.transformation_id,
-        relatedPlanItemId: potionScope?.scope_kind === "plan_linked" &&
-            potionScope.target_scope === "plan_item"
-          ? potionScope.target_plan_item_id ?? null
-          : null,
-      });
-      const recentContext = await loadPotionRecentContext({
-        admin: args.admin,
-        userId: args.userId,
-        inputText: buildPotionInputText(
-          (session.questionnaire_answers ?? {}) as Record<string, string>,
-          session.free_text ?? null,
-        ),
-      });
-      return await generatePotionFollowUpSeries({
-        ...baseSeriesInput,
-        baseContext,
-        recentContext: formatPotionRecentContextForPrompt(recentContext),
-      }, {
-        userId: args.userId,
-      });
-    } catch {
-      return buildPotionFollowUpFallbackSeries(baseSeriesInput);
-    }
-  })();
-
-  const fallbackSeries = buildPotionFollowUpFallbackSeries(baseSeriesInput);
-  const seenDrafts = new Set<string>();
-  const normalizedSeries = Array.from({ length: args.durationDays }).map((
-    _,
-    index,
-  ) => {
-    const item = series[index];
-    let draft = String(item?.draft_message ?? "").trim() ||
-      fallbackSeries[index]?.draft_message ||
-      messageText;
-    if (seenDrafts.has(draft.toLowerCase())) {
-      draft = fallbackSeries.find((candidate) =>
-        !seenDrafts.has(candidate.draft_message.toLowerCase())
-      )?.draft_message ?? `Jour ${index + 1}: ${messageText}`;
-    }
-    seenDrafts.add(draft.toLowerCase());
-    return {
-      day_index: index + 1,
-      theme: String(item?.theme ?? `jour ${index + 1}`).trim() ||
-        `jour ${index + 1}`,
-      draft_message: draft,
-    };
-  });
+  const supportContext = readPotionSupportContext(session.metadata);
 
   let recurringReminderId = String(
     session.follow_up_strategy?.linked_recurring_reminder_id ?? "",
@@ -326,6 +240,13 @@ export async function schedulePotionFollowUpForSession(args: {
       potion_scope: potionScope,
       rappel_scope: session.potion_type === "rappel" ? potionScope : null,
       target_binding: targetBinding,
+      potion_support_v1: {
+        version: 1,
+        status: "active",
+        terminal_reason: null,
+        terminal_at: null,
+        context_available: Boolean(supportContext),
+      },
     },
     target_kind: targetColumns.target_kind,
     target_plan_item_id: targetColumns.target_plan_item_id,
@@ -391,20 +312,32 @@ export async function schedulePotionFollowUpForSession(args: {
     recurring_reminder_id: recurringReminderId,
     origin: "rendez_vous",
     event_context: eventContext,
-    draft_message: normalizedSeries[index]?.draft_message ?? messageText,
+    draft_message: null,
+    message_mode: "dynamic",
     message_payload: {
-      source: "potion_follow_up_series",
+      source: POTION_SUPPORT_SOURCE,
       source_potion_session_id: session.id,
       potion_type: session.potion_type,
       reminder_instruction: messageText,
       rationale,
-      day_index: normalizedSeries[index]?.day_index ?? index + 1,
-      theme: normalizedSeries[index]?.theme ?? `jour ${index + 1}`,
-      potion_follow_up_series_item: normalizedSeries[index],
-      generated_at: nowIso,
+      day_index: index + 1,
+      generated_at: null,
+      instruction: messageText,
       potion_scope: potionScope,
       rappel_scope: session.potion_type === "rappel" ? potionScope : null,
       target_binding: targetBinding,
+      potion_support_v1: {
+        version: 1,
+        source_potion_session_id: session.id,
+        day_index: index + 1,
+        preparation_status: "pending",
+        decision_reason: null,
+        read_cutoff: null,
+        anchor_fact: null,
+        question_candidate: null,
+        generated_at: null,
+        presence_armed_at: null,
+      },
     },
     scheduled_for: computeScheduledForFromLocal({
       timezone,
@@ -433,10 +366,10 @@ export async function schedulePotionFollowUpForSession(args: {
     scheduled_local_time_hhmm: args.localTimeHHMM,
     scheduled_duration_days: args.durationDays,
     scheduled_message_count: args.durationDays,
-    scheduled_message_series: normalizedSeries,
-    generated_series: normalizedSeries,
-    series_generated_at: nowIso,
-    series_generator_version: "potion_follow_up_series_v1",
+    scheduled_message_series: null,
+    generated_series: null,
+    series_generated_at: null,
+    series_generator_version: "potion_support_dynamic_v1",
     scheduled_at: nowIso,
     linked_recurring_reminder_id: recurringReminderId,
     rationale,
@@ -470,8 +403,8 @@ export async function schedulePotionFollowUpForSession(args: {
     .from("user_recurring_reminders")
     .update({
       ends_at: endsAt,
-      last_drafted_at: nowIso,
-      last_draft_message: normalizedSeries[0]?.draft_message ?? messageText,
+      last_drafted_at: null,
+      last_draft_message: null,
       updated_at: nowIso,
     })
     .eq("id", recurringReminderId)

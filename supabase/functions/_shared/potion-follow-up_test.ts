@@ -303,7 +303,7 @@ function apaisementSession(
   };
 }
 
-Deno.test("schedule potion follow-up stores seven distinct draft messages", async () => {
+Deno.test("schedule potion follow-up stores seven dynamic slots without pre-generated drafts", async () => {
   const calls: FakeCalls = {
     reminderPayload: null,
     scheduledRows: [],
@@ -316,23 +316,12 @@ Deno.test("schedule potion follow-up stores seven distinct draft messages", asyn
     localTimeHHMM: "09:00",
     durationDays: 7,
     now: new Date("2026-06-03T08:00:00.000Z"),
-    seriesGenerator: async () =>
-      Array.from({ length: 7 }).map((_, index) => ({
-        day_index: index + 1,
-        theme: `angle ${index + 1}`,
-        draft_message: `Message ${
-          index + 1
-        }: relie ton plan a ton pourquoi profond.`,
-      })),
   });
 
   assertEquals(result.scheduledCount, 7);
   assertEquals(calls.scheduledRows.length, 7);
-  assertEquals(
-    new Set(calls.scheduledRows.map((row) => row.draft_message)).size,
-    7,
-  );
-  assert(calls.scheduledRows.every((row) => String(row.draft_message).trim()));
+  assert(calls.scheduledRows.every((row) => row.draft_message === null));
+  assert(calls.scheduledRows.every((row) => row.message_mode === "dynamic"));
   assertEquals(
     calls.reminderPayload?.message_instruction,
     "Rappelle-moi le lien entre mon plan et mon pourquoi profond.",
@@ -340,27 +329,26 @@ Deno.test("schedule potion follow-up stores seven distinct draft messages", asyn
   const strategy = calls.sessionUpdate?.follow_up_strategy as
     | Record<string, unknown>
     | undefined;
-  const storedSeries = strategy?.scheduled_message_series as unknown[];
-  assertEquals(storedSeries.length, 7);
-  const generatedSeries = strategy?.generated_series as unknown[];
-  assertEquals(generatedSeries.length, 7);
+  assertEquals(strategy?.scheduled_message_series, null);
+  assertEquals(strategy?.generated_series, null);
   assertEquals(
     strategy?.series_generator_version,
-    "potion_follow_up_series_v1",
+    "potion_support_dynamic_v1",
   );
-  assertEquals(typeof strategy?.series_generated_at, "string");
+  assertEquals(strategy?.series_generated_at, null);
   const firstPayload = calls.scheduledRows[0].message_payload as Record<
     string,
     unknown
   >;
+  assertEquals(firstPayload.source, "potion_support_opening_v1");
+  assertEquals((firstPayload.potion_support_v1 as any).day_index, 1);
   assertEquals(
-    (firstPayload.potion_follow_up_series_item as Record<string, unknown>)
-      .draft_message,
-    "Message 1: relie ton plan a ton pourquoi profond.",
+    (firstPayload.potion_support_v1 as any).preparation_status,
+    "pending",
   );
 });
 
-Deno.test("schedule potion follow-up falls back if series generation fails", async () => {
+Deno.test("schedule potion follow-up never invokes the legacy series generator", async () => {
   const calls: FakeCalls = {
     reminderPayload: null,
     scheduledRows: [],
@@ -374,21 +362,17 @@ Deno.test("schedule potion follow-up falls back if series generation fails", asy
     durationDays: 7,
     now: new Date("2026-06-03T08:00:00.000Z"),
     seriesGenerator: async () => {
-      throw new Error("ai_down");
+      throw new Error("legacy_generator_must_not_run");
     },
   });
 
   assertEquals(result.scheduledCount, 7);
   assertEquals(calls.scheduledRows.length, 7);
-  assertEquals(
-    new Set(calls.scheduledRows.map((row) => row.draft_message)).size,
-    7,
-  );
-  assert(calls.scheduledRows.every((row) => String(row.draft_message).trim()));
+  assert(calls.scheduledRows.every((row) => row.draft_message === null));
   const strategy = calls.sessionUpdate?.follow_up_strategy as
     | Record<string, unknown>
     | undefined;
-  assertEquals((strategy?.generated_series as unknown[]).length, 7);
+  assertEquals(strategy?.generated_series, null);
 });
 
 Deno.test("schedule rappel plan-linked follow-up preserves plan item target binding", async () => {
@@ -501,7 +485,7 @@ Deno.test("schedule rappel out-of-plan follow-up does not force plan target bind
   );
 });
 
-Deno.test("schedule guerison plan-linked follow-up preserves potion scope and generated drafts", async () => {
+Deno.test("schedule guerison plan-linked follow-up preserves potion scope on dynamic slots", async () => {
   const calls: FakeCalls = {
     reminderPayload: null,
     scheduledRows: [],
@@ -542,10 +526,7 @@ Deno.test("schedule guerison plan-linked follow-up preserves potion scope and ge
   });
 
   assertEquals(calls.scheduledRows.length, 7);
-  assertEquals(
-    new Set(calls.scheduledRows.map((row) => row.draft_message)).size,
-    7,
-  );
+  assert(calls.scheduledRows.every((row) => row.draft_message === null));
   assertEquals(calls.reminderPayload?.target_kind, "plan_item");
   assertEquals(
     calls.reminderPayload?.target_plan_item_id,

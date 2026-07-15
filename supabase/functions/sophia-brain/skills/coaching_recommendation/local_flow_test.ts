@@ -4848,6 +4848,98 @@ Deno.test("contrat coaching: convergence, consent+slot, carte libre, composite, 
   assertStringIncludes(prompt, "ADEQUATION AU PREMIER SIGNAL — potion vs carte");
 });
 
+// ── P12-G (rose-hard25 R1-B05, eva-hard25 R1-B06) ────────────────────────────
+
+Deno.test("contrat coaching: go-ahead potion livre au tour, consent consomme, persistance honnete (P12-G)", () => {
+  const prompt = coachingDispatcherPromptForTest(
+    {
+      user_id: "user-test",
+      request_id: "req-test",
+      user_message: "ok vas-y, fais-la moi",
+      recent_messages: [],
+      previous_state: null,
+      active_plan_items: [],
+      turn_frame: null,
+    } as any,
+  );
+  // rose B05: go explicite au stade recommend ⇒ contenu potion DANS la
+  // même réponse, extension du contrat go-ahead⇒livrable au lever
+  // state_potion.
+  assertStringIncludes(prompt, "GO-AHEAD POTION ⇒ LIVRABLE AU TOUR");
+  assertStringIncludes(
+    prompt,
+    "la MEME reponse LIVRE le contenu session de la potion",
+  );
+  assertStringIncludes(
+    prompt,
+    "jamais un re-pitch ni une redirection seche",
+  );
+  // Anti-faux-positif: question d'info ⇒ pas de livraison forcée.
+  assertStringIncludes(
+    prompt,
+    "une simple question d'info sur la potion ('c'est quoi cette potion ?', 'elle sert a quoi ?') ne force pas la livraison",
+  );
+  // eva B06 volet 1: le consent est un slot consommé du flow — un 2e
+  // « si tu veux, je te la fais » après un go explicite est interdit.
+  assertStringIncludes(prompt, "CONSENT POTION = SLOT CONSOMME");
+  assertStringIncludes(
+    prompt,
+    "le consentement est CONSOMME dans l'etat du flow",
+  );
+  assertStringIncludes(
+    prompt,
+    "elle ne re-propose jamais l'offre deja acceptee",
+  );
+  // eva B06 volet 2: demande de persistance ⇒ honnêteté au tour, invariants
+  // stockage/rappel intacts (gate P8-B).
+  assertStringIncludes(prompt, "DEMANDE DE PERSISTANCE POTION");
+  assertStringIncludes(
+    prompt,
+    "l'honnetete AU TOUR de la demande",
+  );
+  assertStringIncludes(
+    prompt,
+    "jamais de claim de stockage, jamais de rappel substitue a la place (gate artefact≠rappel P8-B)",
+  );
+});
+
+Deno.test("visible agent emotion_coaching porte la doctrine go-ahead potion + persistance (P12-G)", async () => {
+  const content = await Deno.readTextFile(
+    "supabase/functions/sophia-brain/skills/coaching_recommendation/visible_agents/emotion_coaching.ts",
+  );
+  // rose B05: livraison du contenu session au tour du go, renvoi de surface
+  // sans claim de persistance.
+  assertStringIncludes(content, "GO-AHEAD ⇒ LIVRABLE AU TOUR");
+  assertStringIncludes(
+    content,
+    "LIVRE le contenu session de la potion MAINTENANT",
+  );
+  assertStringIncludes(
+    content,
+    "tu peux en creer une dans Dashboard > Ressources > Potions",
+  );
+  // eva B06: consent consommé + honnêteté persistance in-turn.
+  assertStringIncludes(content, "CONSENT CONSOMME");
+  assertStringIncludes(
+    content,
+    "ne re-propose JAMAIS l'offre et ne re-demande jamais le consentement",
+  );
+  assertStringIncludes(content, "DEMANDE DE PERSISTANCE");
+  assertStringIncludes(
+    content,
+    "elle ne se garde pas automatiquement depuis le chat",
+  );
+  assertStringIncludes(
+    content,
+    "jamais un rappel propose a la place",
+  );
+  // Anti-faux-positif conservé côté agent visible.
+  assertStringIncludes(
+    content,
+    "une simple question d'info sur la potion n'entraine pas la livraison forcee",
+  );
+});
+
 // ── P7-E (nina-hard22 T7/T11) ────────────────────────────────────────────────
 
 Deno.test("contrat coaching: co-demande transactionnelle (track, mémoire, statut) sort vers le global (P7-E)", () => {

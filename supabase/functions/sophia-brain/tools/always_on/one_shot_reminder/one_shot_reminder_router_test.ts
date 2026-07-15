@@ -2,7 +2,11 @@ import {
   assert,
   assertEquals,
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { maybeRunOneShotReminderDirectEffect } from "./router.ts";
+import {
+  maybeRunOneShotReminderDirectEffect,
+  stripTemplatePlaceholders,
+} from "./router.ts";
+import { hasAdditiveReminderMarker } from "./instruction_parser.ts";
 
 function fakeSupabase(options?: {
   pending?: Array<{ id: string; scheduled_for: string }>;
@@ -3383,4 +3387,1208 @@ Deno.test("P12-C: mass-cancel → une entrée committed PAR rappel annulé au le
       String(result.reply ?? "").includes("12:15"),
     true,
   );
+});
+
+// ── P12-D (alex-untested24, nina-p10reval, paul-p9reval, eva-hard25):
+// machine clarify/replace des rappels one-shot — fusion généralisée du
+// tour-réponse, conditions de désarmement, cible par évidence nommée. ───────
+
+const P12_MISSING_TIME_PENDING = {
+  __one_shot_reminder_pending_clarification: {
+    mode: "needs_clarify",
+    intent: "create",
+    reason_code: "missing_time",
+    clarify_question:
+      "Il me manque le moment exact pour programmer ce rappel.",
+    known_slots: {
+      instruction_hint: "faire mes étirements",
+      raw_text: "mets-moi un rappel pour faire mes étirements",
+      when_hint: null,
+    },
+    source_message_id: "m-prev",
+    clarification_exposed_to_dispatcher: true,
+  },
+};
+
+Deno.test("P12-D1: réponse « à 20h30 » à un clarify missing_time → fusion slots + commit, jamais un re-clarify (alex-untested24 R1-B03)", async () => {
+  let upsertRow: any = null;
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeSupabase({ onUpsert: (row) => upsertRow = row }) as never,
+    userId: "user-1",
+    message: "à 20h30 stp",
+    now: new Date("2026-07-15T10:00:00.000Z"),
+    tempMemory: structuredClone(P12_MISSING_TIME_PENDING),
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      raw_text: "à 20h30 stp",
+      when_hint: "à 20h30",
+      UTC_time: "",
+      local_label: "",
+    }),
+  });
+  assertEquals(result.status, "success");
+  // 20h30 Paris aujourd'hui = 18:30Z.
+  assertEquals(upsertRow?.scheduled_for, "2026-07-15T18:30:00.000Z");
+  assertEquals(
+    String(upsertRow?.message_payload?.reminder_instruction ?? ""),
+    "faire mes étirements",
+  );
+});
+
+Deno.test("P12-D1 paraphrase: réponse multi-jetons (« à 20h30 … pas à 19h ») → le when_hint ISOLÉ gagne, jamais le raw_text entier (alex T9)", async () => {
+  let upsertRow: any = null;
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeSupabase({ onUpsert: (row) => upsertRow = row }) as never,
+    userId: "user-1",
+    message: "mets-le à 20h30 finalement, pas à 19h",
+    now: new Date("2026-07-15T10:00:00.000Z"),
+    tempMemory: structuredClone(P12_MISSING_TIME_PENDING),
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      raw_text: "mets-le à 20h30 finalement, pas à 19h",
+      when_hint: "à 20h30",
+      UTC_time: "",
+      local_label: "",
+    }),
+  });
+  assertEquals(result.status, "success");
+  assertEquals(upsertRow?.scheduled_for, "2026-07-15T18:30:00.000Z");
+  assertEquals(
+    String(upsertRow?.message_payload?.reminder_instruction ?? ""),
+    "faire mes étirements",
+  );
+});
+
+Deno.test("P12-D1 anti-faux-positif: réponse sans AUCUN créneau → clarify inchangé, zéro write (fail-closed)", async () => {
+  let upserts = 0;
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeSupabase({ onUpsert: () => upserts++ }) as never,
+    userId: "user-1",
+    message: "hmm attends je regarde mon agenda",
+    now: new Date("2026-07-15T10:00:00.000Z"),
+    tempMemory: structuredClone(P12_MISSING_TIME_PENDING),
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      raw_text: "hmm attends je regarde mon agenda",
+      when_hint: "",
+      UTC_time: "",
+      local_label: "",
+    }),
+  });
+  assertEquals(result.status, "needs_clarify");
+  assertEquals(upserts, 0);
+});
+
+Deno.test("P12-D2a: rétractation sous clarify actif → pending PURGÉ, zéro question résiduelle, zéro write (alex-untested24 R1-B03c)", async () => {
+  let upserts = 0;
+  const dismissed = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeSupabase({ onUpsert: () => upserts++ }) as never,
+    userId: "user-1",
+    message: "laisse tomber, c'est bon",
+    now: new Date("2026-07-15T10:00:00.000Z"),
+    tempMemory: structuredClone(P12_MISSING_TIME_PENDING),
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      raw_text: "laisse tomber, c'est bon",
+      when_hint: "",
+      UTC_time: "",
+    }),
+  });
+  assertEquals(dismissed.status, "blocked");
+  assertEquals(dismissed.debug.reason_code, "clarify_dismissed");
+  // AUCUN pending re-rendu: le pipeline P2-3d purge la clé.
+  assertEquals(dismissed.pending_clarification ?? null, null);
+  assertEquals(dismissed.committed_effects.length, 0);
+  assertEquals(upserts, 0);
+  // Paraphrase.
+  const dismissed2 = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeSupabase({ onUpsert: () => upserts++ }) as never,
+    userId: "user-1",
+    message: "oublie, on annule tout ça",
+    now: new Date("2026-07-15T10:00:00.000Z"),
+    tempMemory: structuredClone(P12_MISSING_TIME_PENDING),
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      raw_text: "oublie, on annule tout ça",
+      when_hint: "",
+      UTC_time: "",
+    }),
+  });
+  assertEquals(dismissed2.debug.reason_code, "clarify_dismissed");
+  assertEquals(upserts, 0);
+  // Prémisse fausse (doctrine P9): une NOUVELLE spec explicite n'est pas une
+  // rétractation — elle se lit à neuf et committe.
+  const fresh = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeSupabase({ onUpsert: () => upserts++ }) as never,
+    userId: "user-1",
+    message:
+      "laisse tomber le café — rappelle-moi demain à 9h10 de boire de l'eau",
+    now: new Date("2026-07-15T10:00:00.000Z"),
+    tempMemory: structuredClone(P12_MISSING_TIME_PENDING),
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      raw_text: "rappelle-moi demain à 9h10 de boire de l'eau",
+      when_hint: "demain à 9h10",
+      UTC_time: "2026-07-16T07:10:00.000Z",
+      local_label: "demain à 09:10",
+      instruction_hint: "boire de l'eau",
+    }),
+  });
+  assertEquals(fresh.status, "success");
+  assertEquals(upserts, 1);
+});
+
+Deno.test("P12-D2b: composite explicite sous clarify actif → pending désarmé, lu à neuf en replace atomique (alex-untested24 R1-B04, P4-B)", async () => {
+  let upsertRow: any = null;
+  const rows = [{
+    id: "diner-19h",
+    scheduled_for: "2026-07-15T17:00:00.000Z",
+    status: "pending",
+    event_context: "one_shot_reminder:preparer_le_diner",
+    message_payload: { reminder_instruction: "préparer le dîner" },
+  }];
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeCancelSupabase(rows, {
+      onUpsert: (row) => upsertRow = row,
+    }) as never,
+    userId: "user-1",
+    message: "en fait annule celui de 19h et remets-le à 20h30",
+    now: new Date("2026-07-15T10:00:00.000Z"),
+    tempMemory: structuredClone(P12_MISSING_TIME_PENDING),
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      // Émission observée (alex T10): UN create avec le when_hint de
+      // l'ANCIEN horaire.
+      intent: "create",
+      raw_text: "en fait annule celui de 19h et remets-le à 20h30",
+      when_hint: "à 19h00",
+      UTC_time: "2026-07-15T17:00:00.000Z",
+      local_label: "19:00",
+    }),
+  });
+  assertEquals(result.status, "success");
+  // Transaction complète: l'ancien annulé, le nouveau à 20h30 (18:30Z).
+  assertEquals(rows[0].status, "cancelled");
+  assertEquals(upsertRow?.scheduled_for, "2026-07-15T18:30:00.000Z");
+  assertEquals(
+    String(upsertRow?.message_payload?.reminder_instruction ?? ""),
+    "préparer le dîner",
+  );
+});
+
+Deno.test("P12-D2c: gate same_instruction_pending → pending armé, réponse AJOUTER exécutable, aucun placeholder (nina-p10reval R1-B04)", async () => {
+  // Tour 1: même contenu à une autre heure → gate + pending armé.
+  const rows = [{
+    id: "tisane-18h",
+    scheduled_for: "2026-07-15T16:00:00.000Z",
+    status: "pending",
+    event_context: "one_shot_reminder:preparer_ma_tisane",
+    message_payload: { reminder_instruction: "préparer ma tisane" },
+  }];
+  const gate = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeCancelSupabase(rows) as never,
+    userId: "user-1",
+    message: "mets-moi un rappel à 21h pour préparer ma tisane",
+    now: new Date("2026-07-15T10:00:00.000Z"),
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      raw_text: "mets-moi un rappel à 21h pour préparer ma tisane",
+      when_hint: "à 21h",
+      UTC_time: "2026-07-15T19:00:00.000Z",
+      local_label: "21:00",
+      instruction_hint: "préparer ma tisane",
+    }),
+  });
+  assertEquals(gate.status, "needs_clarify");
+  assertEquals(gate.debug.reason_code, "same_instruction_pending");
+  // D2d: aucun gabarit « [heure] » dans le texte visible.
+  assertEquals(String(gate.reply ?? "").includes("["), false);
+  assertEquals(
+    gate.pending_clarification?.reason_code,
+    "same_instruction_pending",
+  );
+  assertEquals(
+    gate.pending_clarification?.known_slots?.UTC_time,
+    "2026-07-15T19:00:00.000Z",
+  );
+  // Tour 2 (option AJOUTER): create assumé du doublon, l'existant intact.
+  let upsertRow: any = null;
+  const added = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeCancelSupabase(rows, {
+      onUpsert: (row) => upsertRow = row,
+    }) as never,
+    userId: "user-1",
+    message: "en ajoute un deuxième en plus stp",
+    now: new Date("2026-07-15T10:02:00.000Z"),
+    tempMemory: {
+      __one_shot_reminder_pending_clarification: {
+        mode: "needs_clarify",
+        intent: "create",
+        reason_code: "same_instruction_pending",
+        clarify_question: String(gate.pending_clarification?.clarify_question),
+        known_slots: gate.pending_clarification?.known_slots ?? {},
+        clarification_exposed_to_dispatcher: true,
+      },
+    },
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      raw_text: "en ajoute un deuxième en plus stp",
+      when_hint: "",
+      UTC_time: "",
+      local_label: "",
+    }),
+  });
+  assertEquals(added.status, "success");
+  assertEquals(upsertRow?.scheduled_for, "2026-07-15T19:00:00.000Z");
+  assertEquals(rows[0].status, "pending");
+});
+
+Deno.test("P12-D2c: réponse DÉPLACER au gate → replace de la cible au même contenu, jamais un doublon (nina R1-B04 anti-faux-positif)", async () => {
+  const rows = [{
+    id: "tisane-18h",
+    scheduled_for: "2026-07-15T16:00:00.000Z",
+    status: "pending",
+    event_context: "one_shot_reminder:preparer_ma_tisane",
+    message_payload: { reminder_instruction: "préparer ma tisane" },
+  }];
+  let upsertRow: any = null;
+  const moved = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeCancelSupabase(rows, {
+      onUpsert: (row) => upsertRow = row,
+    }) as never,
+    userId: "user-1",
+    message: "non, déplace-le plutôt",
+    now: new Date("2026-07-15T10:00:00.000Z"),
+    tempMemory: {
+      __one_shot_reminder_pending_clarification: {
+        mode: "needs_clarify",
+        intent: "create",
+        reason_code: "same_instruction_pending",
+        clarify_question: "Déplacer ou ajouter ?",
+        known_slots: {
+          instruction_hint: "préparer ma tisane",
+          UTC_time: "2026-07-15T19:00:00.000Z",
+          local_label: "21:00",
+          raw_text: "mets-moi un rappel à 21h pour préparer ma tisane",
+          when_hint: "à 21h",
+        },
+        clarification_exposed_to_dispatcher: true,
+      },
+    },
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      raw_text: "non, déplace-le plutôt",
+      when_hint: "",
+      UTC_time: "",
+      local_label: "",
+    }),
+  });
+  assertEquals(moved.status, "success");
+  // Replace atomique: l'ancien 18:00 annulé, le nouveau à 21h (19:00Z).
+  assertEquals(rows[0].status, "cancelled");
+  assertEquals(upsertRow?.scheduled_for, "2026-07-15T19:00:00.000Z");
+  assertEquals(
+    String(upsertRow?.message_payload?.reminder_instruction ?? ""),
+    "préparer ma tisane",
+  );
+});
+
+Deno.test("P12-D2d: purge des placeholders de template dans tout texte visible (nina-p10reval R1-B04 T12)", () => {
+  assertEquals(
+    stripTemplatePlaceholders("dis « annule-le et remets-le à [heure] »"),
+    "dis « annule-le et remets-le à la nouvelle heure »",
+  );
+  assertEquals(
+    stripTemplatePlaceholders("il me manque [objet] pour [heure]"),
+    "il me manque l'objet du rappel pour la nouvelle heure",
+  );
+  // Gabarit inconnu: strippé.
+  assertEquals(
+    stripTemplatePlaceholders("choisis [option] stp"),
+    "choisis stp",
+  );
+  // Prémisse fausse: texte sans gabarit inchangé.
+  assertEquals(
+    stripTemplatePlaceholders("rappel à 20h30 : sortir les poubelles"),
+    "rappel à 20h30 : sortir les poubelles",
+  );
+});
+
+Deno.test("P12-D3: marqueur additif ⇒ le filet anti-doublon perd le droit de CANCEL (nina-p10reval R1-B03b)", async () => {
+  const rows = [{
+    id: "laverie-vendredi",
+    scheduled_for: "2026-07-17T16:00:00.000Z",
+    status: "pending",
+    event_context: "one_shot_reminder:faire_une_machine_a_la_laverie",
+    message_payload: {
+      reminder_instruction: "faire une machine à la laverie",
+    },
+  }];
+  let upsertRow: any = null;
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeCancelSupabase(rows, {
+      onUpsert: (row) => upsertRow = row,
+    }) as never,
+    userId: "user-1",
+    message:
+      "rajoute-moi la laverie jeudi à 18h et tu gardes bien celui de vendredi",
+    now: new Date("2026-07-15T10:00:00.000Z"),
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      // Pire cas observé: le dispatcher émet un replace malgré l'ajout.
+      intent: "replace",
+      raw_text:
+        "rajoute-moi la laverie jeudi à 18h et tu gardes bien celui de vendredi",
+      when_hint: "jeudi à 18h",
+      UTC_time: "2026-07-16T16:00:00.000Z",
+      local_label: "jeudi à 18:00",
+      instruction_hint: "faire une machine à la laverie",
+    }),
+  });
+  assertEquals(result.status, "success");
+  // ZÉRO cancel: vendredi (protégé « tu gardes ») reste intact.
+  assertEquals(rows[0].status, "pending");
+  assertEquals(
+    result.committed_effects.filter((effect) =>
+      effect.type === "cancel_one_shot_reminder"
+    ).length,
+    0,
+  );
+  assertEquals(upsertRow?.scheduled_for, "2026-07-16T16:00:00.000Z");
+  assertEquals(String(result.reply ?? "").includes("ajout"), true);
+  // Détection du marqueur (positif + paraphrases + prémisse fausse).
+  assertEquals(hasAdditiveReminderMarker("c'est un ajout, n'annule rien"), true);
+  assertEquals(
+    hasAdditiveReminderMarker("mets-m'en un jeudi 18h en plus"),
+    true,
+  );
+  assertEquals(hasAdditiveReminderMarker("décale-le à jeudi 18h"), false);
+  assertEquals(hasAdditiveReminderMarker("garde ça en tête stp"), false);
+});
+
+Deno.test("P12-D3/D4 anti-faux-positif: « décale celui de vendredi à jeudi » SANS marqueur additif reste un replace (jour nommé matché)", async () => {
+  const rows = [{
+    id: "laverie-vendredi",
+    scheduled_for: "2026-07-17T16:00:00.000Z",
+    status: "pending",
+    event_context: "one_shot_reminder:faire_une_machine_a_la_laverie",
+    message_payload: {
+      reminder_instruction: "faire une machine à la laverie",
+    },
+  }];
+  let upsertRow: any = null;
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeCancelSupabase(rows, {
+      onUpsert: (row) => upsertRow = row,
+    }) as never,
+    userId: "user-1",
+    message: "décale celui de vendredi à jeudi 18h, même chose",
+    now: new Date("2026-07-15T10:00:00.000Z"),
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      intent: "replace",
+      raw_text: "décale celui de vendredi à jeudi 18h, même chose",
+      when_hint: "jeudi à 18h",
+      UTC_time: "2026-07-16T16:00:00.000Z",
+      local_label: "jeudi à 18:00",
+      instruction_hint: "celui de vendredi",
+    }),
+  });
+  assertEquals(result.status, "success");
+  // Le jour nommé de l'entité MATCHE un pending → replace historique.
+  assertEquals(rows[0].status, "cancelled");
+  assertEquals(upsertRow?.scheduled_for, "2026-07-16T16:00:00.000Z");
+  assertEquals(
+    String(upsertRow?.message_payload?.reminder_instruction ?? ""),
+    "faire une machine à la laverie",
+  );
+});
+
+Deno.test("P12-D4: antécédent à JOUR NOMMÉ sans pending ce jour-là → create PUR, jamais un replace du jour voisin (nina-p10reval R1-B03a)", async () => {
+  const rows = [{
+    id: "laverie-jeudi",
+    scheduled_for: "2026-07-16T16:00:00.000Z",
+    status: "pending",
+    event_context: "one_shot_reminder:faire_une_machine_a_la_laverie",
+    message_payload: {
+      reminder_instruction: "faire une machine à la laverie",
+    },
+  }];
+  let upsertRow: any = null;
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeCancelSupabase(rows, {
+      onUpsert: (row) => upsertRow = row,
+    }) as never,
+    userId: "user-1",
+    message: "il manque celui de vendredi, tu peux me le remettre ?",
+    now: new Date("2026-07-15T10:00:00.000Z"),
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      intent: "reschedule",
+      raw_text: "il manque celui de vendredi, tu peux me le remettre ?",
+      when_hint: "",
+      UTC_time: "",
+      local_label: "",
+      instruction_hint: "celui de vendredi",
+    }),
+  });
+  assertEquals(result.status, "success");
+  // Create B (vendredi 18h, heure héritée de la série) + A (jeudi) INTACT.
+  assertEquals(rows[0].status, "pending");
+  assertEquals(upsertRow?.scheduled_for, "2026-07-17T16:00:00.000Z");
+  assertEquals(
+    String(upsertRow?.message_payload?.reminder_instruction ?? ""),
+    "faire une machine à la laverie",
+  );
+  assertEquals(
+    result.committed_effects.filter((effect) =>
+      effect.type === "cancel_one_shot_reminder"
+    ).length,
+    0,
+  );
+  // Paraphrase: « et celui de samedi ? remets-le moi » → create samedi
+  // (18h héritée de la série), jeudi toujours intact.
+  const rows2 = [{
+    id: "laverie-jeudi",
+    scheduled_for: "2026-07-16T16:00:00.000Z",
+    status: "pending",
+    event_context: "one_shot_reminder:faire_une_machine_a_la_laverie",
+    message_payload: {
+      reminder_instruction: "faire une machine à la laverie",
+    },
+  }];
+  let upsertRow2: any = null;
+  const paraphrase = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeCancelSupabase(rows2, {
+      onUpsert: (row) => upsertRow2 = row,
+    }) as never,
+    userId: "user-1",
+    message: "et celui de samedi alors ? remets-le moi",
+    now: new Date("2026-07-15T10:00:00.000Z"),
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      intent: "reschedule",
+      raw_text: "et celui de samedi alors ? remets-le moi",
+      when_hint: "",
+      UTC_time: "",
+      local_label: "",
+      instruction_hint: "celui de samedi",
+    }),
+  });
+  assertEquals(paraphrase.status, "success");
+  assertEquals(rows2[0].status, "pending");
+  assertEquals(upsertRow2?.scheduled_for, "2026-07-18T16:00:00.000Z");
+});
+
+Deno.test("P12-D5: créneau nominal à 2 candidats → clarify NOMINATIVE qui les énumère, zéro write (alex-untested24 R1-B02, nina R1-B06)", async () => {
+  let upserts = 0;
+  const cancelledIds: string[] = [];
+  const rows = [{
+    id: "etirements-19h",
+    scheduled_for: "2026-07-15T17:00:00.000Z",
+    status: "pending",
+    event_context: "one_shot_reminder:faire_mes_etirements",
+    message_payload: { reminder_instruction: "faire mes étirements" },
+  }, {
+    id: "sac-22h",
+    scheduled_for: "2026-07-15T20:00:00.000Z",
+    status: "pending",
+    event_context: "one_shot_reminder:preparer_mon_sac_de_sport",
+    message_payload: { reminder_instruction: "préparer mon sac de sport" },
+  }];
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeCancelSupabase(rows, {
+      onUpsert: () => upserts++,
+    }) as never,
+    userId: "user-1",
+    message: "décale celui du soir à 20h30",
+    now: new Date("2026-07-15T10:00:00.000Z"),
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      intent: "reschedule",
+      raw_text: "décale celui du soir à 20h30",
+      when_hint: "à 20h30",
+      UTC_time: "2026-07-15T18:30:00.000Z",
+      local_label: "20:30",
+      instruction_hint: "celui du soir",
+    }),
+  });
+  assertEquals(result.status, "needs_clarify");
+  assertEquals(result.debug.reason_code, "replace_target_ambiguous");
+  const reply = String(result.reply ?? "");
+  // Nominative: chaque candidat cité (objet + créneau).
+  assertEquals(reply.includes("étirements"), true);
+  assertEquals(reply.includes("sac de sport"), true);
+  assertEquals(reply.includes("19:00"), true);
+  assertEquals(reply.includes("22:00"), true);
+  // Vocabulaire système BANNI du user-facing.
+  assertEquals(/intitul[eé] exact|contexte visible/i.test(reply), false);
+  // Invariant renderer: la question n'existe qu'en UN exemplaire (la reply
+  // EST la clarify_question — rien à concaténer en aval).
+  assertEquals(result.pending_clarification?.clarify_question, reply);
+  assertEquals(result.pending_clarification?.intent, "replace");
+  assertEquals(upserts, 0);
+  assertEquals(cancelledIds.length, 0);
+  assertEquals(rows[0].status, "pending");
+  assertEquals(rows[1].status, "pending");
+});
+
+Deno.test("P12-D5: réponse au clarify nominatif par CONTENU → replace de la bonne cible (réutilise la fusion D1)", async () => {
+  const rows = [{
+    id: "etirements-19h",
+    scheduled_for: "2026-07-15T17:00:00.000Z",
+    status: "pending",
+    event_context: "one_shot_reminder:faire_mes_etirements",
+    message_payload: { reminder_instruction: "faire mes étirements" },
+  }, {
+    id: "sac-22h",
+    scheduled_for: "2026-07-15T20:00:00.000Z",
+    status: "pending",
+    event_context: "one_shot_reminder:preparer_mon_sac_de_sport",
+    message_payload: { reminder_instruction: "préparer mon sac de sport" },
+  }];
+  let upsertRow: any = null;
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeCancelSupabase(rows, {
+      onUpsert: (row) => upsertRow = row,
+    }) as never,
+    userId: "user-1",
+    message: "celui des étirements stp",
+    now: new Date("2026-07-15T10:00:00.000Z"),
+    tempMemory: {
+      __one_shot_reminder_pending_clarification: {
+        mode: "needs_clarify",
+        intent: "replace",
+        reason_code: "replace_target_ambiguous",
+        clarify_question: "étirements à 19:00 ou sac de sport à 22:00 ?",
+        known_slots: {
+          UTC_time: "2026-07-15T18:30:00.000Z",
+          local_label: "ce soir à 20:30",
+          instruction_hint: null,
+          replace_target_label: null,
+        },
+        clarification_exposed_to_dispatcher: true,
+      },
+    },
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      raw_text: "celui des étirements stp",
+      when_hint: "",
+      UTC_time: "",
+      local_label: "",
+    }),
+  });
+  assertEquals(result.status, "success");
+  // La bonne cible: étirements déplacé à 20h30, le sac INTACT.
+  assertEquals(rows[0].status, "cancelled");
+  assertEquals(rows[1].status, "pending");
+  assertEquals(upsertRow?.scheduled_for, "2026-07-15T18:30:00.000Z");
+  assertEquals(
+    String(upsertRow?.message_payload?.reminder_instruction ?? ""),
+    "faire mes étirements",
+  );
+});
+
+Deno.test("P12-D5: fenêtre nominale VIDE → constat honnête + inventaire réel, jamais une supposition hors-fenêtre (alex-untested24 R1-B10)", async () => {
+  let upserts = 0;
+  const rows = [{
+    id: "vitamines-9h",
+    scheduled_for: "2026-07-16T07:00:00.000Z",
+    status: "pending",
+    event_context: "one_shot_reminder:prendre_mes_vitamines",
+    message_payload: { reminder_instruction: "prendre mes vitamines" },
+  }];
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeCancelSupabase(rows, {
+      onUpsert: () => upserts++,
+    }) as never,
+    userId: "user-1",
+    message: "décale celui de la nuit à 6h",
+    now: new Date("2026-07-15T10:00:00.000Z"),
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      intent: "reschedule",
+      raw_text: "décale celui de la nuit à 6h",
+      when_hint: "à 6h",
+      UTC_time: "2026-07-16T04:00:00.000Z",
+      local_label: "06:00",
+      instruction_hint: "celui de la nuit",
+    }),
+  });
+  assertEquals(result.status, "needs_clarify");
+  // Constat honnête + inventaire — le pending 09:00 n'est JAMAIS supposé
+  // être la cible.
+  assertEquals(String(result.reply ?? "").includes("aucun"), true);
+  assertEquals(String(result.reply ?? "").includes("vitamines"), true);
+  assertEquals(upserts, 0);
+  assertEquals(rows[0].status, "pending");
+});
+
+Deno.test("P12-D6: reschedule absolu à cible nommée par CONTENU → replace atomique, plus jamais reschedule_not_supported (alex-untested24 R1-B06)", async () => {
+  const rows = [{
+    id: "vitamines-8h",
+    scheduled_for: "2026-07-16T06:00:00.000Z",
+    status: "pending",
+    event_context: "one_shot_reminder:prendre_mes_vitamines",
+    message_payload: { reminder_instruction: "prendre mes vitamines" },
+  }, {
+    id: "courses-17h",
+    scheduled_for: "2026-07-15T15:00:00.000Z",
+    status: "pending",
+    event_context: "one_shot_reminder:faire_les_courses",
+    message_payload: { reminder_instruction: "faire les courses" },
+  }, {
+    id: "tel-22h",
+    scheduled_for: "2026-07-15T20:00:00.000Z",
+    status: "pending",
+    event_context: "one_shot_reminder:brancher_mon_telephone",
+    message_payload: { reminder_instruction: "brancher mon téléphone" },
+  }];
+  let upsertRow: any = null;
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeCancelSupabase(rows, {
+      onUpsert: (row) => upsertRow = row,
+    }) as never,
+    userId: "user-1",
+    message: "mets le rappel des courses à 16h au lieu de 17h",
+    now: new Date("2026-07-15T10:00:00.000Z"),
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      intent: "reschedule",
+      raw_text: "mets le rappel des courses à 16h au lieu de 17h",
+      when_hint: "à 16h",
+      UTC_time: "2026-07-15T14:00:00.000Z",
+      local_label: "16:00",
+      instruction_hint: "le rappel des courses",
+    }),
+  });
+  assertEquals(result.status, "success");
+  // La cible nommée (contenu unique) est déplacée; les 2 autres intacts.
+  assertEquals(rows[1].status, "cancelled");
+  assertEquals(rows[0].status, "pending");
+  assertEquals(rows[2].status, "pending");
+  assertEquals(upsertRow?.scheduled_for, "2026-07-15T14:00:00.000Z");
+  assertEquals(
+    String(upsertRow?.message_payload?.reminder_instruction ?? ""),
+    "faire les courses",
+  );
+});
+
+Deno.test("P12-D6: cible NON résoluble → blocage honnête avec inventaire nominatif, plus de consigne circulaire (alex R1-B06 volet reply)", async () => {
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeCancelSupabase([{
+      id: "kine-1",
+      scheduled_for: "2026-07-15T16:00:00.000Z",
+      status: "pending",
+      event_context: "one_shot_reminder:kine",
+      message_payload: { reminder_instruction: "appeler le kiné" },
+    }, {
+      id: "poubelle-1",
+      scheduled_for: "2026-07-15T18:30:00.000Z",
+      status: "pending",
+      event_context: "one_shot_reminder:poubelle",
+      message_payload: { reminder_instruction: "sortir la poubelle" },
+    }]) as never,
+    userId: "user-1",
+    message: "décale mon rappel à 20h stp",
+    now: new Date("2026-07-15T10:00:00.000Z"),
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      intent: "reschedule",
+      raw_text: "décale mon rappel à 20h stp",
+      when_hint: "aujourd'hui à 20:00",
+      UTC_time: "2026-07-15T18:00:00.000Z",
+      local_label: "20:00",
+    }),
+  });
+  assertEquals(result.status, "blocked");
+  assertEquals(result.debug.reason_code, "reschedule_not_supported");
+  const reply = String(result.reply ?? "");
+  // Inventaire nominatif, jamais la formule circulaire ni un gabarit.
+  assertEquals(reply.includes("kiné"), true);
+  assertEquals(reply.includes("poubelle"), true);
+  assertEquals(reply.includes("annule-le et remets-le"), false);
+  assertEquals(reply.includes("["), false);
+  // Un pending replace est armé: la réponse résoudra la cible (fusion D1).
+  assertEquals(result.pending_clarification?.intent, "replace");
+});
+
+Deno.test("P12-D7: replace à cible discriminée par le CONTENU → résolue sans ancre horaire (alex-untested24 R1-B07, principe P5-E)", async () => {
+  const rows = [{
+    id: "vitamines-8h",
+    scheduled_for: "2026-07-16T06:00:00.000Z",
+    status: "pending",
+    event_context: "one_shot_reminder:prendre_mes_vitamines",
+    message_payload: { reminder_instruction: "prendre mes vitamines" },
+  }, {
+    id: "courses-17h",
+    scheduled_for: "2026-07-15T15:00:00.000Z",
+    status: "pending",
+    event_context: "one_shot_reminder:faire_les_courses",
+    message_payload: { reminder_instruction: "faire les courses" },
+  }, {
+    id: "tel-22h",
+    scheduled_for: "2026-07-15T20:00:00.000Z",
+    status: "pending",
+    event_context: "one_shot_reminder:brancher_mon_telephone",
+    message_payload: { reminder_instruction: "brancher mon téléphone" },
+  }];
+  let upsertRow: any = null;
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeCancelSupabase(rows, {
+      onUpsert: (row) => upsertRow = row,
+    }) as never,
+    userId: "user-1",
+    message: "annule le rappel des courses et remets-le à 16h",
+    now: new Date("2026-07-15T10:00:00.000Z"),
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      intent: "replace",
+      raw_text: "annule le rappel des courses et remets-le à 16h",
+      when_hint: "à 16h",
+      UTC_time: "2026-07-15T14:00:00.000Z",
+      local_label: "16:00",
+      instruction_hint: "le rappel des courses",
+    }),
+  });
+  // Transaction SANS question: contenu unique ⇒ cible résolue.
+  assertEquals(result.status, "success");
+  assertEquals(rows[1].status, "cancelled");
+  assertEquals(rows[0].status, "pending");
+  assertEquals(rows[2].status, "pending");
+  assertEquals(upsertRow?.scheduled_for, "2026-07-15T14:00:00.000Z");
+  assertEquals(
+    String(upsertRow?.message_payload?.reminder_instruction ?? ""),
+    "faire les courses",
+  );
+});
+
+Deno.test("P12-D7: DEUX pendings de même contenu → clarify nominative avec les HEURES des candidats, zéro write (alex R1-B07 volet doublon)", async () => {
+  let upserts = 0;
+  const rows = [{
+    id: "courses-1046",
+    scheduled_for: "2026-07-15T08:46:00.000Z",
+    status: "pending",
+    event_context: "one_shot_reminder:faire_les_courses",
+    message_payload: { reminder_instruction: "faire les courses" },
+  }, {
+    id: "courses-17h",
+    scheduled_for: "2026-07-15T15:00:00.000Z",
+    status: "pending",
+    event_context: "one_shot_reminder:faire_les_courses",
+    message_payload: { reminder_instruction: "faire les courses" },
+  }];
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeCancelSupabase(rows, {
+      onUpsert: () => upserts++,
+    }) as never,
+    userId: "user-1",
+    message: "annule le rappel des courses et remets-le à 16h",
+    now: new Date("2026-07-15T07:00:00.000Z"),
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      intent: "replace",
+      raw_text: "annule le rappel des courses et remets-le à 16h",
+      when_hint: "à 16h",
+      UTC_time: "2026-07-15T14:00:00.000Z",
+      local_label: "16:00",
+      instruction_hint: "le rappel des courses",
+    }),
+  });
+  assertEquals(result.status, "needs_clarify");
+  assertEquals(result.debug.reason_code, "replace_target_ambiguous");
+  const reply = String(result.reply ?? "");
+  // Les HEURES des candidats sont nommées — jamais une consigne circulaire.
+  assertEquals(reply.includes("10:46"), true);
+  assertEquals(reply.includes("17:00"), true);
+  assertEquals(upserts, 0);
+  assertEquals(rows[0].status, "pending");
+  assertEquals(rows[1].status, "pending");
+});
+
+Deno.test("P12-D8a: « remets celui des X » après un cancel → instruction héritée du CANCELLED récent, zéro redemande (paul-p9reval R1-B03)", async () => {
+  const rows = [{
+    id: "poubelles-old",
+    scheduled_for: "2026-07-15T06:00:00.000Z",
+    status: "cancelled",
+    event_context: "one_shot_reminder:sortir_les_poubelles",
+    message_payload: { reminder_instruction: "sortir les poubelles" },
+  }];
+  let upsertRow: any = null;
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeCancelSupabase(rows, {
+      onUpsert: (row) => upsertRow = row,
+    }) as never,
+    userId: "user-1",
+    message: "remets-le moi celui des poubelles, jeudi matin à 8h",
+    now: new Date("2026-07-15T10:00:00.000Z"),
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      intent: "reschedule",
+      raw_text: "remets-le moi celui des poubelles, jeudi matin à 8h",
+      when_hint: "jeudi matin à 8h",
+      UTC_time: "2026-07-16T06:00:00.000Z",
+      local_label: "jeudi à 08:00",
+      instruction_hint: "celui des poubelles",
+    }),
+  });
+  assertEquals(result.status, "success");
+  assertEquals(upsertRow?.scheduled_for, "2026-07-16T06:00:00.000Z");
+  assertEquals(
+    String(upsertRow?.message_payload?.reminder_instruction ?? ""),
+    "sortir les poubelles",
+  );
+  // Issue non destructive (P9-A): aucun cancel committé.
+  assertEquals(
+    result.committed_effects.filter((effect) =>
+      effect.type === "cancel_one_shot_reminder"
+    ).length,
+    0,
+  );
+});
+
+Deno.test("P12-D8a: plusieurs annulés candidats → clarify nominatif; aucun antécédent → P0-4 inchangé (paul R1-B03 volets ambigu/anti-FP)", async () => {
+  // Ambiguïté: deux annulés distincts qui recouvrent l'entité nommée.
+  let upserts = 0;
+  const ambiguous = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeCancelSupabase([{
+      id: "poubelles-jaunes",
+      scheduled_for: "2026-07-15T06:00:00.000Z",
+      status: "cancelled",
+      event_context: "one_shot_reminder:sortir_les_poubelles_jaunes",
+      message_payload: {
+        reminder_instruction: "sortir les poubelles jaunes",
+      },
+    }, {
+      id: "poubelles-vertes",
+      scheduled_for: "2026-07-15T07:00:00.000Z",
+      status: "cancelled",
+      event_context: "one_shot_reminder:rentrer_les_poubelles_vertes",
+      message_payload: {
+        reminder_instruction: "rentrer les poubelles vertes",
+      },
+    }], { onUpsert: () => upserts++ }) as never,
+    userId: "user-1",
+    message: "remets-le moi celui des poubelles, jeudi matin à 8h",
+    now: new Date("2026-07-15T10:00:00.000Z"),
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      intent: "reschedule",
+      raw_text: "remets-le moi celui des poubelles, jeudi matin à 8h",
+      when_hint: "jeudi matin à 8h",
+      UTC_time: "2026-07-16T06:00:00.000Z",
+      local_label: "jeudi à 08:00",
+      instruction_hint: "celui des poubelles",
+    }),
+  });
+  assertEquals(ambiguous.status, "needs_clarify");
+  assertEquals(ambiguous.debug.reason_code, "cancelled_antecedent_ambiguous");
+  assertEquals(String(ambiguous.reply ?? "").includes("jaunes"), true);
+  assertEquals(String(ambiguous.reply ?? "").includes("vertes"), true);
+  assertEquals(upserts, 0);
+  // Anti-FP: aucun antécédent qui recouvre → clarify P0-4 historique.
+  const noAntecedent = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeCancelSupabase([{
+      id: "poubelles-old",
+      scheduled_for: "2026-07-15T06:00:00.000Z",
+      status: "cancelled",
+      event_context: "one_shot_reminder:sortir_les_poubelles",
+      message_payload: { reminder_instruction: "sortir les poubelles" },
+    }]) as never,
+    userId: "user-1",
+    message: "remets-le moi celui du pressing, jeudi matin à 8h",
+    now: new Date("2026-07-15T10:00:00.000Z"),
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      intent: "reschedule",
+      raw_text: "remets-le moi celui du pressing, jeudi matin à 8h",
+      when_hint: "jeudi matin à 8h",
+      UTC_time: "2026-07-16T06:00:00.000Z",
+      local_label: "jeudi à 08:00",
+      instruction_hint: "celui du pressing",
+    }),
+  });
+  assertEquals(noAntecedent.status, "needs_clarify");
+  assertEquals(noAntecedent.debug.reason_code, "reschedule_no_target");
+});
+
+Deno.test("P12-D8b: « oublie ce rappel » au tour suivant du create → cancel du rappel fraîchement créé (eva-hard25 R1-B04)", async () => {
+  const rows = [{
+    id: "resto-20h",
+    scheduled_for: "2026-07-15T18:00:00.000Z",
+    status: "pending",
+    event_context: "one_shot_reminder:appeler_pour_reserver",
+    message_payload: {
+      reminder_instruction: "appeler pour réserver une table",
+    },
+    created_at: "2026-07-15T09:58:00.000Z",
+  } as any, {
+    id: "vitamines-8h",
+    scheduled_for: "2026-07-16T06:00:00.000Z",
+    status: "pending",
+    event_context: "one_shot_reminder:prendre_mes_vitamines",
+    message_payload: { reminder_instruction: "prendre mes vitamines" },
+    created_at: "2026-07-15T06:00:00.000Z",
+  } as any, {
+    id: "tel-22h",
+    scheduled_for: "2026-07-15T20:00:00.000Z",
+    status: "pending",
+    event_context: "one_shot_reminder:brancher_mon_telephone",
+    message_payload: { reminder_instruction: "brancher mon téléphone" },
+    created_at: "2026-07-15T06:05:00.000Z",
+  } as any];
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeCancelSupabase(rows) as never,
+    userId: "user-1",
+    message: "ah non, oublie ce rappel — on ira une autre fois",
+    now: new Date("2026-07-15T10:00:00.000Z"),
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      intent: "cancel",
+      raw_text: "ah non, oublie ce rappel — on ira une autre fois",
+    }),
+  });
+  assertEquals(result.status, "success");
+  // Le démonstratif adjacent résout sur la création la plus récente (2 min).
+  assertEquals(rows[0].status, "cancelled");
+  assertEquals(rows[1].status, "pending");
+  assertEquals(rows[2].status, "pending");
+});
+
+Deno.test("P12-D8b anti-faux-positif: « oublie ce rappel » À FROID (aucune création récente) → clarify inchangé, zéro cancel", async () => {
+  const rows = [{
+    id: "resto-20h",
+    scheduled_for: "2026-07-15T18:00:00.000Z",
+    status: "pending",
+    event_context: "one_shot_reminder:appeler_pour_reserver",
+    message_payload: {
+      reminder_instruction: "appeler pour réserver une table",
+    },
+    created_at: "2026-07-15T06:10:00.000Z",
+  } as any, {
+    id: "vitamines-8h",
+    scheduled_for: "2026-07-16T06:00:00.000Z",
+    status: "pending",
+    event_context: "one_shot_reminder:prendre_mes_vitamines",
+    message_payload: { reminder_instruction: "prendre mes vitamines" },
+    created_at: "2026-07-15T06:00:00.000Z",
+  } as any, {
+    id: "tel-22h",
+    scheduled_for: "2026-07-15T20:00:00.000Z",
+    status: "pending",
+    event_context: "one_shot_reminder:brancher_mon_telephone",
+    message_payload: { reminder_instruction: "brancher mon téléphone" },
+    created_at: "2026-07-15T06:05:00.000Z",
+  } as any];
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeCancelSupabase(rows) as never,
+    userId: "user-1",
+    message: "oublie ce rappel",
+    now: new Date("2026-07-15T10:00:00.000Z"),
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      intent: "cancel",
+      raw_text: "oublie ce rappel",
+    }),
+  });
+  assertEquals(result.status, "needs_clarify");
+  assertEquals(result.debug.reason_code, "cancel_target_ambiguous");
+  assertEquals(rows[0].status, "pending");
+  assertEquals(rows[1].status, "pending");
+  assertEquals(rows[2].status, "pending");
+});
+
+Deno.test("P12-V: fan-out jours nus + UNE heure dans le message → distribution de l'heure commune, 2 commits (probe P12-1)", async () => {
+  const written: any[] = [];
+  const message =
+    "tu peux me rappeler de récupérer le colis jeudi et vendredi à 18h ?";
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeSupabase({ onUpsert: (row) => written.push(row) }),
+    userId: "user-1",
+    message,
+    // Mercredi 15/07.
+    now: new Date("2026-07-15T08:00:00.000Z"),
+    userTimezone: "Europe/Paris",
+    turnFrame: turnFrameWithTwoCreateEffects([
+      {
+        raw_text: "récupérer le colis jeudi",
+        when_hint: "jeudi",
+        instruction_hint: "récupérer le colis",
+      },
+      {
+        raw_text: "récupérer le colis vendredi",
+        when_hint: "vendredi",
+        instruction_hint: "récupérer le colis",
+      },
+    ]),
+  });
+  assertEquals(result.status, "success");
+  assertEquals(
+    result.committed_effects.filter((e) =>
+      e.type === "create_one_shot_reminder"
+    ).length,
+    2,
+  );
+  assertEquals(
+    [...new Set(written.map((row) => row.scheduled_for))].sort(),
+    ["2026-07-16T16:00:00.000Z", "2026-07-17T16:00:00.000Z"],
+  );
+});
+
+Deno.test("P12-V anti-faux-positif: DEUX heures distinctes dans le message → aucune distribution (jamais de devinette)", async () => {
+  const written: any[] = [];
+  const message =
+    "rappelle-moi le colis jeudi à 18h et le sport samedi à 10h";
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeSupabase({ onUpsert: (row) => written.push(row) }),
+    userId: "user-1",
+    message,
+    now: new Date("2026-07-15T08:00:00.000Z"),
+    userTimezone: "Europe/Paris",
+    turnFrame: turnFrameWithTwoCreateEffects([
+      {
+        raw_text: "le colis jeudi à 18h",
+        when_hint: "jeudi à 18h",
+        UTC_time: "2026-07-16T16:00:00.000Z",
+        instruction_hint: "récupérer le colis",
+      },
+      {
+        // Volet SANS heure: la distribution ne doit PAS lui greffer 18h ni
+        // 10h (deux heures distinctes dans le message).
+        raw_text: "le sport samedi",
+        when_hint: "samedi",
+        instruction_hint: "faire le sport",
+      },
+    ]),
+  });
+  // Le volet jeudi committe; le volet samedi sans heure ne reçoit JAMAIS une
+  // heure devinée — aucun commit samedi à 18h ou 10h par distribution.
+  const saturday = written.find((row) =>
+    String(row.scheduled_for).startsWith("2026-07-18")
+  );
+  assertEquals(saturday === undefined, true);
+  assertEquals(
+    result.committed_effects.filter((e) =>
+      e.type === "create_one_shot_reminder"
+    ).length,
+    1,
+  );
+});
+
+Deno.test("P12-V: référence de créneau au MESSAGE + instruction émise NON ancrée → jamais un ciblage au hasard, clarify nominative (probe P12-5 passe 6)", async () => {
+  const cancelledIds: string[] = [];
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeSupabase({
+      onCancelIds: (ids) => cancelledIds.push(...ids),
+      pending: [
+        {
+          id: "etirements-19h",
+          scheduled_for: "2026-07-15T17:00:00.000Z",
+          message_payload: { reminder_instruction: "faire mes étirements" },
+        } as any,
+        {
+          id: "sac-22h",
+          scheduled_for: "2026-07-15T20:00:00.000Z",
+          message_payload: { reminder_instruction: "préparer mon sac de sport" },
+        } as any,
+      ],
+    }),
+    userId: "user-1",
+    message: "en fait décale celui du soir à 21h",
+    now: new Date("2026-07-15T08:00:00.000Z"),
+    userTimezone: "Europe/Paris",
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      intent: "reschedule",
+      raw_text: "en fait décale celui du soir à 21h",
+      when_hint: "à 21h",
+      // L'émission INVENTE un discriminant absent du message (le hasard
+      // observé passe 6): il ne doit JAMAIS cibler.
+      instruction_hint: "faire mes étirements",
+    }),
+  });
+  assertEquals(cancelledIds, []);
+  assertEquals(
+    result.committed_effects.filter((e) =>
+      e.type === "create_one_shot_reminder"
+    ).length,
+    0,
+  );
+  const reply = String(result.reply ?? "").normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "").toLowerCase();
+  // Clarify nominative: les DEUX candidats du soir sont nommés.
+  assertEquals(/etirement/.test(reply), true);
+  assertEquals(/sac/.test(reply), true);
+
+  // Anti-FP: instruction ANCRÉE dans le message (émission fidèle) → le
+  // ciblage par contenu reste, replace committé sur la bonne cible.
+  const cancelledRooted: string[] = [];
+  let writtenRow: any = null;
+  const rooted = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeSupabase({
+      onUpsert: (row) => writtenRow = row,
+      onCancelIds: (ids) => cancelledRooted.push(...ids),
+      pending: [
+        {
+          id: "etirements-19h",
+          scheduled_for: "2026-07-15T17:00:00.000Z",
+          message_payload: { reminder_instruction: "faire mes étirements" },
+        } as any,
+        {
+          id: "sac-22h",
+          scheduled_for: "2026-07-15T20:00:00.000Z",
+          message_payload: { reminder_instruction: "préparer mon sac de sport" },
+        } as any,
+      ],
+    }),
+    userId: "user-1",
+    message: "en fait décale celui du soir à 21h, celui des étirements",
+    now: new Date("2026-07-15T08:00:00.000Z"),
+    userTimezone: "Europe/Paris",
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      intent: "reschedule",
+      raw_text: "en fait décale celui du soir à 21h, celui des étirements",
+      when_hint: "à 21h",
+      instruction_hint: "faire mes étirements",
+    }),
+  });
+  assertEquals(rooted.status, "success");
+  assertEquals(cancelledRooted, ["etirements-19h"]);
+  assertEquals(writtenRow?.scheduled_for, "2026-07-15T19:00:00.000Z");
+});
+
+Deno.test("P12-V: affirmation NUE + ré-émission d'effet sans clarify armé → blocked no-op, jamais une re-mutation (harness S2 T5)", async () => {
+  const written: any[] = [];
+  const cancelledIds: string[] = [];
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeSupabase({
+      onUpsert: (row) => written.push(row),
+      onCancelIds: (ids) => cancelledIds.push(...ids),
+      pending: [{
+        id: "tel-23h",
+        scheduled_for: "2026-07-15T21:00:00.000Z",
+        message_payload: {
+          reminder_instruction: "poser le téléphone hors de la chambre",
+        },
+      } as any],
+    }),
+    userId: "user-1",
+    message: "Oui c'est bien ça, vas-y.",
+    now: new Date("2026-07-15T13:00:00.000Z"),
+    userTimezone: "Europe/Paris",
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      intent: "replace",
+      // Ré-émission du tour précédent (raw_text agrégé, ancre recalculée).
+      raw_text: "annule ce rappel, et mets-m'en un nouveau à 23h",
+      when_hint: "à 23h",
+      instruction_hint: "poser le téléphone hors de la chambre",
+    }),
+  });
+  assertEquals(result.status, "blocked");
+  assertEquals(result.debug.reason_code, "confirmation_reemission_noop");
+  assertEquals(written.length, 0);
+  assertEquals(cancelledIds, []);
+
+  // Anti-FP: le même « vas-y » AVEC un clarify armé reste consommé par la
+  // fusion D1 (pas ce no-op) — vérifié par l'absence du reason no-op quand
+  // le pending est présent.
+  const armed = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeSupabase({ onUpsert: (row) => written.push(row) }),
+    userId: "user-1",
+    message: "Oui vas-y",
+    now: new Date("2026-07-15T13:00:00.000Z"),
+    userTimezone: "Europe/Paris",
+    tempMemory: {
+      __one_shot_reminder_pending_clarification: {
+        mode: "needs_clarify",
+        intent: "create",
+        reason_code: "missing_time",
+        clarify_question: "à quelle heure ?",
+        known_slots: {
+          instruction_hint: "boire de l'eau",
+          raw_text: "rappelle-moi de boire de l'eau",
+          UTC_time: "2026-07-15T18:00:00.000Z",
+          local_label: "à 20h",
+        },
+        clarification_exposed_to_dispatcher: false,
+      },
+    },
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      raw_text: "Oui vas-y",
+    }),
+  });
+  assertEquals(armed.debug.reason_code !== "confirmation_reemission_noop", true);
 });

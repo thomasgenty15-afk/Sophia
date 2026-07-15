@@ -29,6 +29,8 @@ import {
 } from "../context/recent_messages_policy.ts";
 import { getUserTimeContext } from "../../_shared/user_time_context.ts";
 import { logRuntimeGuardEvent } from "../../_shared/guard-log.ts";
+import { cancelPotionSupportCampaign } from "../../_shared/potion-support-cancellation.ts";
+import { retractedContentSegments } from "../../_shared/memory/memorizer/retraction_guard.ts";
 import { generateWithGemini, getGlobalAiModel } from "../../_shared/gemini.ts";
 import {
   type BrainTracePhase,
@@ -40,6 +42,7 @@ import {
   applyPresenceFlowState,
   commitPresenceResult,
   type PresenceApplyResult,
+  readActivePresenceState,
 } from "../skills/presence_conversation/apply.ts";
 import { stripToPresenceContext } from "../skills/presence_conversation/context.ts";
 import { buildPresenceSystemBlock } from "../skills/presence_conversation/prompt.ts";
@@ -980,6 +983,10 @@ function finalVisibleText(
   // n'existe pas au runtime (la garde P10-V était inatteignable en prod, la
   // probe passait sur un frame synthétique enrichi).
   userMessage?: string,
+  // P12-V (probe P12-3 passe 1): l'history du tour alimente la garde de
+  // MENTION RÉTRACTÉE — le verrou write-path et l'interdit de contexte ne
+  // suffisent pas quand le composeur lit le contenu dans l'historique brut.
+  history?: unknown,
 ) {
   // paul-r6 B01: sur un commit de CORRECTION track, la reply deterministe du
   // tool remplace la paraphrase du composeur — l'historique (refus du tour
@@ -995,11 +1002,89 @@ function finalVisibleText(
   out = stripUnfoundedReminderCapacityDenial(out, turnFrame ?? null);
   out = stripTrackClaimWithoutCommit(out, turnFrame ?? null);
   out = ensureCommittedRenderParity(out, turnFrame ?? null, userMessage);
+  out = stripRetractedSessionMention(out, history, userMessage, turnFrame);
   if (!isSafetyRoute(routeDecision)) {
     out = ensureVisibleSophiaEmoji(out);
     out = ensureClarifyQuestionVisible(out, turnFrame ?? null);
   }
   return out.trim();
+}
+
+/**
+ * P12-V (probe P12-3 passe 1) — GARDE DE MENTION RÉTRACTÉE, le filet
+ * STRUCTUREL de la famille rétractation : le verrou write-path (memorizer)
+ * et l'interdit de contexte (loader) ne suffisent pas quand le composeur
+ * restitue le contenu depuis l'HISTORIQUE brut de conversation (« Tu voulais
+ * te remettre à la natation » sur un recall générique, 4e occurrence réelle
+ * de la famille). Toute phrase du rendu qui porte un token significatif d'un
+ * segment rétracté en session est retirée — SAUF réouverture NOMINATIVE (le
+ * message user COURANT renomme lui-même ce contenu). Condition de
+ * suppression : composeur fiable sous l'interdit de contexte (0 strip sur
+ * 3 vagues).
+ */
+export function stripRetractedSessionMention(
+  text: string,
+  history: unknown,
+  userMessage?: string,
+  turnFrame?: TurnFrame | null,
+): string {
+  const source = String(text ?? "");
+  if (!source.trim() || !Array.isArray(history)) return source;
+  const normalize = (value: string) =>
+    String(value ?? "").normalize("NFD").replace(/\p{Diacritic}/gu, "")
+      .replace(/[’']/g, " ").toLowerCase();
+  let segments: string[] = [];
+  try {
+    segments = retractedContentSegments(
+      (history as Array<Record<string, unknown>>).map((entry) => ({
+        role: (String(entry?.role ?? "") === "user"
+          ? "user"
+          : "assistant") as "user" | "assistant",
+        content: String(entry?.content ?? ""),
+      })),
+    );
+  } catch (_error) {
+    return source; // fail-open: la garde n'invente jamais un strip.
+  }
+  if (segments.length === 0) return source;
+  const stopwords = new Set([
+    "avoir", "faire", "etre", "chose", "choses", "vraiment", "toujours",
+    "jamais", "encore", "cette", "cette", "comme", "quand", "aussi", "alors",
+    "depuis", "moment", "projet", "envie", "trotte",
+  ]);
+  const normalizedUser = normalize(String(userMessage ?? ""));
+  const forbiddenTokens = [
+    ...new Set(
+      segments.flatMap((segment) =>
+        normalize(segment).split(/[^a-z0-9]+/)
+          .filter((token) => token.length >= 5 && !stopwords.has(token))
+      ),
+    ),
+    // Réouverture nominative: un token renommé par le user COURANT redevient
+    // mentionnable.
+  ].filter((token) => !normalizedUser.includes(token));
+  if (forbiddenTokens.length === 0) return source;
+  const sentences = source.split(/(?<=[.!?\n])/);
+  const kept = sentences.filter((sentence) => {
+    const normalizedSentence = normalize(sentence);
+    return !forbiddenTokens.some((token) =>
+      normalizedSentence.includes(token)
+    );
+  });
+  if (kept.length === sentences.length) return source;
+  console.warn("[Router] retracted-session mention stripped (P12-V)");
+  logRuntimeGuardEvent({
+    guard: "retracted_mention_stripped",
+    userId: (turnFrame as { user_id?: string } | null | undefined)?.user_id ??
+      null,
+    detail: {
+      turn_id:
+        (turnFrame as { turn_id?: string } | null | undefined)?.turn_id ??
+          null,
+    },
+  });
+  return kept.join("").replace(/[ \t]{2,}/g, " ").trim() ||
+    "Rien que je doive te ressortir là-dessus — dis-moi ce qui t'aiderait maintenant.";
 }
 
 /**
@@ -1105,19 +1190,67 @@ export function ensureCommittedRenderParity(
     // horaire ou token d'instruction pour un create; un mot d'annulation
     // pour un cancel). Un commit non mappé est APPENDU depuis le ledger.
     const additions: string[] = [];
+    // P12-V (probe P12-1 passe 2): sur un fan-out MÊME objet / MÊME heure,
+    // l'heure et l'instruction ne discriminent plus les commits — le rendu
+    // « Vendredi n'est pas encore noté » passait le mapping via le « 18h »
+    // de la phrase jeudi. Quand un ancrage collisionne (partagé par ≥2
+    // commits), seule l'ancre de JOUR du label mappe ; et un DÉNI NOMINATIF
+    // d'un commit (« vendredi … n'est pas encore noté ») est retiré.
+    const createHHMMs = committedCreates.map((effect) =>
+      normalize(
+        String(effect?.local_label ?? "").match(
+          /\d{1,2}[:h]\d{2}|\d{1,2}\s?h/,
+        )?.[0] ?? "",
+      ).replace(":", "h")
+    );
+    const createInstructions = committedCreates.map((effect) =>
+      normalize(String(effect?.reminder_instruction ?? "").trim())
+    );
+    const dayAnchorsOf = (label: string): string[] => {
+      const normalizedLabel = normalize(label);
+      const weekday = normalizedLabel.match(
+        /\b(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche|demain|apres[- ]demain|aujourd hui)\b/,
+      )?.[1];
+      const dayNumber = normalizedLabel.match(/\b(\d{1,2}) (janvier|fevrier|mars|avril|mai|juin|juillet|aout|septembre|octobre|novembre|decembre)\b/)?.[1];
+      return [weekday, dayNumber].filter(Boolean) as string[];
+    };
+    const negativeClaimPattern =
+      /\bn ?.?(est|a) pas (encore )?(note|pose|cale|programme|pris|enregistre)\b/;
     for (const effect of committedCreates) {
       const label = String(effect?.local_label ?? "").trim();
+      const anchors = dayAnchorsOf(label);
+      const denialSentences = out.split(/(?<=[.!?\n])/).filter((sentence) => {
+        const normalizedSentence = normalize(sentence);
+        return negativeClaimPattern.test(normalizedSentence) &&
+          anchors.some((anchor) => normalizedSentence.includes(anchor));
+      });
+      if (denialSentences.length > 0) {
+        out = out.split(/(?<=[.!?\n])/).filter((sentence) =>
+          !denialSentences.includes(sentence)
+        ).join("").replace(/[ \t]{2,}/g, " ").trim();
+        guardFired = guardFired ?? "commit_omitted_in_render";
+      }
+    }
+    for (const [index, effect] of committedCreates.entries()) {
+      const label = String(effect?.local_label ?? "").trim();
       const instruction = String(effect?.reminder_instruction ?? "").trim();
-      const hhmm = label.match(/\d{1,2}[:h]\d{2}|\d{1,2}\s?h/)?.[0] ?? "";
+      const hhmm = createHHMMs[index];
       const normalizedOut = normalize(out);
-      const labelMapped = hhmm &&
-        normalizedOut.includes(normalize(hhmm).replace(":", "h")) ||
-        (label && normalizedOut.includes(normalize(label)));
+      const hhmmShared =
+        createHHMMs.filter((value) => value && value === hhmm).length > 1;
+      const instructionShared = createInstructions.filter((value) =>
+        value && value === createInstructions[index]
+      ).length > 1;
+      const anchors = dayAnchorsOf(label);
+      const dayMapped = anchors.length > 0 &&
+        anchors.some((anchor) => normalizedOut.includes(anchor));
+      const labelMapped = (!hhmmShared && hhmm &&
+        normalizedOut.includes(hhmm)) ||
+        (label && normalizedOut.includes(normalize(label))) || dayMapped;
       const instructionTokens = normalize(instruction).split(/[^a-z0-9]+/)
         .filter((token) => token.length >= 4);
-      const instructionMapped = instructionTokens.some((token) =>
-        normalizedOut.includes(token)
-      );
+      const instructionMapped = !instructionShared &&
+        instructionTokens.some((token) => normalizedOut.includes(token));
       if (!labelMapped && !instructionMapped) {
         additions.push(
           `⚠️ Pour être transparente : j'ai bien enregistré un rappel${
@@ -1205,8 +1338,12 @@ export function stripUnfoundedReminderCapacityDenial(
   const normalizeForDenial = (value: string) =>
     value.normalize("NFD").replace(/\p{Diacritic}/gu, "")
       .replace(/[’']/g, " ").toLowerCase();
+  // P12-V (probe P12-5 passe 4): la garde couvrait les verbes de CRÉATION —
+  // le même refus confabulé sur une MUTATION (« je ne peux pas décaler ça
+  // depuis ce chat », zéro effet émis) passait au travers alors que la
+  // capacité replace existe (P6-H) et que les tours voisins déplacent.
   const denialPattern =
-    /\bje ne (peux|pourrai s?) pas (te |le |la |te le |te la |l )*(creer|poser|programmer|mettre|caler|planifier)\b[^.!?\n]*\b(rappel|ici|d ici|depuis (le |la )?(chat|conversation))\b|\bje ne peux pas (le|la) (creer|poser|programmer|mettre|caler) ici\b/;
+    /\bje ne (peux|pourrai s?) pas (te |le |la |te le |te la |l |ca )*(creer|poser|programmer|mettre|caler|planifier|decaler|deplacer|avancer|repousser|modifier|changer)\b[^.!?\n]*\b(rappels?|ici|d ici|ca depuis|depuis (le |la |ce )?(chat|conversation))\b|\bje ne peux pas (le|la|ca) (creer|poser|programmer|mettre|caler|decaler|deplacer|avancer|modifier) (ici|depuis (le |ce )?chat)\b/;
   if (!denialPattern.test(normalizeForDenial(source))) return source;
   const context = buildDirectEffectConfirmationContext(turnFrame);
   const hasReminderOutcome = (context?.effects_outcome ?? []).some((outcome) =>
@@ -1229,7 +1366,7 @@ export function stripUnfoundedReminderCapacityDenial(
     detail: { turn_id: (turnFrame as { turn_id?: string }).turn_id ?? null },
   });
   const recovery =
-    "Pour le rappel, redonne-le moi tel quel (moment + quoi) et je te le pose direct.";
+    "Pour tes rappels, dis-moi exactement ce que tu veux (lequel, et le moment) et je le fais direct — c'est possible d'ici.";
   return cleaned ? `${cleaned} ${recovery}` : recovery;
 }
 
@@ -1476,6 +1613,11 @@ export function stripCommitClaimBeforeClarify(
   }
   // P9-C: un BLOCKED sans question contractuelle ne peut pas retomber sur le
   // texte fautif (le claim reviendrait) — repli déterministe honnête.
+  // P12-V (harness S2 T4): le hint de la lane (l'état RÉEL du blocage, ex.
+  // « il est déjà calé à 23h — rien à changer ») prime sur le repli
+  // générique : le strip est honnête mais un repli sans contexte laissait
+  // l'utilisateur sans l'état de son rappel.
+  if (laneHint) return laneHint;
   return "Je n'ai rien changé sur tes rappels pour l'instant — redis-moi exactement ce que tu veux et je le fais.";
 }
 
@@ -1618,6 +1760,15 @@ export function applyMemoryV2ActiveLoaderResult(
   }
 
   return { tempMemory: nextTempMemory, injected: false };
+}
+
+export function isExplicitPotionSupportStopMessage(value: unknown): boolean {
+  const text = String(value ?? "").normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "").replace(/[’']/g, " ").toLowerCase()
+    .replace(/\s+/g, " ").trim();
+  if (!text) return false;
+  return /\b(laisse[- ]?moi tranquille|j ai besoin d espace|arrete (de )?(m |me )?ecrire|ne m ecris plus|ne me relance plus|arrete (ces|les) messages|plus de messages? (pour|sur) (ca|cette potion))\b/
+    .test(text);
 }
 
 export async function processMessage(
@@ -2210,6 +2361,9 @@ export async function processMessage(
   let presenceExited = false;
   let presenceNowIso = "";
   if (routeDecision.response_owner === "presence_conversation") {
+    const presenceStateBeforeTurn = readActivePresenceState(
+      currentActiveSkillState,
+    );
     const presenceSignal = turnFrame.skill_signals.presence_conversation;
     // P7-E (rose-untested22 R1-B02): INVARIANT INTRA-FRAME — quand le
     // dispatcher classe lui-même le tour en LECTURE factuelle
@@ -2223,7 +2377,12 @@ export async function processMessage(
     const factualIntentOverridesPresence =
       responseIntentForPresence.includes("recap") ||
       responseIntentForPresence.includes("status");
-    const presenceKind = factualIntentOverridesPresence
+    const explicitPotionSupportStop =
+      presenceStateBeforeTurn?.entry_context?.source === "potion_support" &&
+      isExplicitPotionSupportStopMessage(userMessage);
+    const presenceKind = explicitPotionSupportStop
+      ? "closure"
+      : factualIntentOverridesPresence
       ? "topic_change"
       : presenceSignal?.context?.kind ?? "maintain";
     presenceNowIso = turnFrame.direct_effect_time_context?.now_utc ??
@@ -2249,6 +2408,25 @@ export async function processMessage(
         ` turns=${presenceApplyResult.flow_state?.turns_in_flow ?? 0}`,
     );
     if (presenceApplyResult.transition === "exit") {
+      if (
+        presenceStateBeforeTurn?.entry_context?.source === "potion_support" &&
+        isExplicitPotionSupportStopMessage(userMessage)
+      ) {
+        await cancelPotionSupportCampaign({
+          admin: serviceRoleLedgerReadClient() ?? supabase,
+          userId,
+          recurringReminderId:
+            presenceStateBeforeTurn.entry_context.recurring_reminder_id,
+          sourcePotionSessionId:
+            presenceStateBeforeTurn.entry_context.source_potion_session_id,
+          reason: "cancelled_user_boundary",
+        }).catch((error) => {
+          console.warn(
+            "[presence] potion support user-boundary cancellation failed",
+            error,
+          );
+        });
+      }
       // Poubelle immédiate + re-dispatch global du MÊME tour. L'entrée
       // présence est désactivée sur ce re-routage pour éviter la ré-entrée
       // instantanée sur le signal du tour de sortie.
@@ -2670,6 +2848,7 @@ export async function processMessage(
           routeDecision,
           turnFrame,
           userMessage,
+          history,
         );
         const effectLedger = effectLedgerForOperationRuntime(
           turnFrame.turn_id,
@@ -2857,6 +3036,7 @@ export async function processMessage(
         routeDecision,
         turnFrame,
         userMessage,
+        history,
       );
       const effectLedger = effectLedgerForOperationRuntime(
         turnFrame.turn_id,
@@ -3203,6 +3383,7 @@ export async function processMessage(
           routeDecision,
           turnFrame,
           userMessage,
+          history,
         );
         const effectLedger = effectLedgerForOperationRuntime(
           turnFrame.turn_id,
@@ -3674,6 +3855,7 @@ export async function processMessage(
     routeDecision,
     turnFrame,
     userMessage,
+    history,
   );
 
   const agentToolExecution = String(agentOut.toolExecution ?? "none") as
@@ -3760,6 +3942,19 @@ export async function processMessage(
     channel,
     scope,
   });
+
+  if (isSafetyRoute(routeDecision)) {
+    // A safety turn terminally cancels every active potion-support campaign.
+    // This never blocks the safety reply: the delivery-time safety gate is a
+    // second deterministic backstop if persistence is temporarily unavailable.
+    await cancelPotionSupportCampaign({
+      admin: serviceRoleLedgerReadClient() ?? supabase,
+      userId,
+      reason: "cancelled_safety",
+    }).catch((error) => {
+      console.warn("[Router] potion support safety cancellation failed", error);
+    });
+  }
 
   await updateUserState(supabase, userId, scope, {
     current_mode: agentOut.nextMode ?? "companion",

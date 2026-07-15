@@ -49,6 +49,24 @@ Deno.test("user identity visible doctrine forbids gendered agreements without a 
   assertEquals(lines.includes("prenom avec parcimonie"), true);
 });
 
+Deno.test("identity pack: Sophia s'accorde au feminin sur elle-meme (P12-G, rose-hard25 R1-B06)", () => {
+  const lines = userIdentityVisiblePromptLines().join("\n");
+  // « Content que ça t'ait aidée » observé en run réel: l'accord réflexif
+  // de Sophia est du féminin, indépendamment du genre du user.
+  assertEquals(
+    lines.includes("Sophia (toi) parle d'elle-meme au FEMININ"),
+    true,
+  );
+  assertEquals(
+    lines.includes("jamais 'content' en parlant de toi"),
+    true,
+  );
+  assertEquals(
+    lines.includes("quel que soit le genre du user"),
+    true,
+  );
+});
+
 Deno.test("visible history keeps both roles with the subskill limit", () => {
   const history = Array.from({ length: 12 }, (_, index) => ({
     role: index % 2 === 0 ? "user" : "assistant",

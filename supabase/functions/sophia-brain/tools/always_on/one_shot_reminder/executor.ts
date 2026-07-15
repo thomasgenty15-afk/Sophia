@@ -23,6 +23,7 @@ import type {
 import {
   compactText,
   errorText,
+  hasAdditiveReminderMarker,
   isDegenerateReminderInstruction,
   slugify,
 } from "./instruction_parser.ts";
@@ -381,6 +382,12 @@ export async function maybeCreateOneShotReminderFromStructuredEffect(params: {
   now?: Date;
   timezone?: string | null;
   locale?: string | null;
+  /** P12-D2c (nina-p10reval R1-B04): le doublon d'instruction est ASSUMÉ —
+   * réponse-option « en ajouter un deuxième » au gate, ou marqueur additif
+   * du tour initial. Ne désarme QUE le filet same_instruction_pending,
+   * jamais duplicate_pending (deux rappels au même instant n'ont pas de
+   * sens). */
+  allowDuplicateInstruction?: boolean;
 }): Promise<OneShotReminderToolOutcome> {
   const tctx = await getUserTimeContext({
     supabase: params.supabase,
@@ -473,7 +480,15 @@ export async function maybeCreateOneShotReminderFromStructuredEffect(params: {
     const normalizedNewInstruction = normalizeInstructionForGate(
       params.effect.reminder_instruction,
     );
-    if (normalizedNewInstruction) {
+    // P12-D2c/D3 (nina-p10reval R1-B04, doctrine P9): CONDITION DE
+    // DÉSARMEMENT du filet same-instruction — flag explicite du routeur
+    // (réponse-option AJOUTER consommée) ou marqueur additif dans le texte
+    // de la demande (« rajoute », « c'est un ajout », « garde X »). Le
+    // doublon est alors ASSUMÉ: create direct, jamais un cul-de-sac où
+    // l'option proposée re-déclenche le même blocage (T12 nina).
+    const duplicateAssumed = params.allowDuplicateInstruction === true ||
+      hasAdditiveReminderMarker(String(params.effect.request_text ?? ""));
+    if (normalizedNewInstruction && !duplicateAssumed) {
       const sameInstruction = pendingRows.find((row) => {
         const rowSourceMessageId = String(
           (row?.message_payload as Record<string, unknown> | null | undefined)
@@ -919,6 +934,33 @@ export async function maybeCancelOneShotReminder(params: {
       score: reminderInstructionOverlapScore(params.message, row),
     })).filter((entry) => entry.score > 0);
     if (scored.length === 1) targets = [scored[0].row];
+  }
+
+  // P12-D8b (eva-hard25 R1-B04): démonstratif ADJACENT au create — « oublie/
+  // annule ce rappel » juste après un create committé résout sur le pending
+  // créé LE PLUS RÉCEMMENT (fenêtre 10 min, proxy déterministe du « tour
+  // précédent » — même logique « confirmation vaut évidence » P2-4).
+  // Conditions de désarmement (doctrine P9): à froid (aucune création dans
+  // la fenêtre), plusieurs créations dans la fenêtre, ou created_at illisible
+  // ⇒ clarify ambigu inchangé (jamais une devinette destructive).
+  if (targets.length === 0 && pendingRows.length > 1 && !textTargetHHMM) {
+    const normalizedForDemonstrative = String(params.message ?? "")
+      .normalize("NFD").replace(/\p{Diacritic}/gu, "")
+      .replace(/[’']/g, " ").toLowerCase();
+    const demonstrativeCancel =
+      /\b(oublie|annule|supprime|enleve|retire|vire)\b[^.!?]{0,40}\bce rappel\b/
+        .test(normalizedForDemonstrative) ||
+      /\bce rappel\b[^.!?]{0,40}\b(oublie|annule|supprime|enleve|retire|vire)\b/
+        .test(normalizedForDemonstrative);
+    if (demonstrativeCancel) {
+      const nowMs = (params.now ?? new Date()).getTime();
+      const recentlyCreated = pendingRows.filter((row: any) => {
+        const createdMs = new Date(String(row?.created_at ?? "")).getTime();
+        return Number.isFinite(createdMs) && nowMs - createdMs >= 0 &&
+          nowMs - createdMs <= 10 * 60_000;
+      });
+      if (recentlyCreated.length === 1) targets = [recentlyCreated[0]];
+    }
   }
 
   // Ambiguite: plusieurs pending et aucune heure cible identifiable — on ne

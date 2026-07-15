@@ -1122,7 +1122,13 @@ export function formatRetractedInSessionBlock(history: unknown): string | null {
   return `=== RÉTRACTÉ EN SESSION (INTERDIT DE RESTITUTION ET DE MENTION SPONTANÉE) ===\n` +
     `L'utilisateur a explicitement demandé d'oublier ces éléments dans cette conversation. ` +
     `Ne JAMAIS les restituer, les reformuler, ni t'y référer (même « avec la nuance ») — ni comme objectif, ni comme fait, ni comme rappel de ce qui a été dit. ` +
-    `N'en mentionne même pas le SUJET spontanément (jamais de « je n'ai pas gardé l'info sur X ») — n'en parle que si l'utilisateur rouvre lui-même le sujet :\n${lines}\n\n`;
+    `N'en mentionne même pas le SUJET spontanément (jamais de « je n'ai pas gardé l'info sur X »). ` +
+    // P12-V (probe P12-3 passe 1): l'exception « si l'utilisateur rouvre le
+    // sujet » était trop lâche — une question de recall GÉNÉRIQUE (« tu te
+    // souviens de ce que je t'ai dit que je voulais faire ? ») se lisait
+    // comme une réouverture et l'objectif rétracté ressortait mot pour mot.
+    // La réouverture est NOMINATIVE ou n'est pas.
+    `SEULE exception : l'utilisateur RENOMME lui-même ce contenu par ses propres mots dans un message POSTÉRIEUR à la rétractation. Une question de recall générique (« tu te souviens de ce que je t'ai dit ? », « qu'est-ce que je voulais faire déjà ? ») ne rouvre RIEN : réponds depuis le reste, sans mentionner ces éléments :\n${lines}\n\n`;
 }
 
 /**

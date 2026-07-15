@@ -329,6 +329,52 @@ function cleanupInstructionCandidate(value: unknown): string {
 }
 
 /**
+ * P12-D3/D2c (nina-p10reval R1-B03b/B04): MARQUEUR ADDITIF explicite —
+ * « rajoute », « c'est un ajout », « en plus », « n'annule rien », « garde/
+ * conserve X », « en ajouter un deuxième ». Sous ce marqueur, le filet
+ * anti-doublon perd le droit de CANCEL (create ou clarify, jamais un replace
+ * silencieux) et le gate same_instruction_pending est pré-désarmé (le doublon
+ * est ASSUMÉ par l'utilisateur).
+ * Condition de désarmement (doctrine P9): aucun marqueur ⇒ comportement
+ * historique inchangé (« décale X à jeudi » reste un replace) ; « garde ça en
+ * tête » (intention mémoire) et « d'une heure en plus » (durée) sont exclus.
+ */
+export function hasAdditiveReminderMarker(
+  text: string | null | undefined,
+): boolean {
+  const normalized = normalizeLite(text);
+  if (!normalized) return false;
+  if (/\brajoutes?\b/.test(normalized)) return true;
+  if (/\bc est (bien )?un ajout\b/.test(normalized)) return true;
+  if (/\bn annule rien\b/.test(normalized)) return true;
+  if (/\bsans (annuler|toucher a?|supprimer) (l autre|le reste|rien)\b/.test(normalized)) {
+    return true;
+  }
+  // « en plus » — mais jamais la durée (« d'une heure en plus »).
+  if (/\ben plus\b/.test(normalized) && !/\b(heures?|minutes?) en plus\b/.test(normalized)) {
+    return true;
+  }
+  if (/\b(en )?ajouter (un |le )?(deuxieme|second|2e)\b/.test(normalized)) {
+    return true;
+  }
+  if (/\bun deuxieme\b/.test(normalized)) return true;
+  // « garde/conserve X » protège un rappel EXISTANT nommé — le verbe exige
+  // une référence d'entité ou un jour nommé (« garde celui de vendredi »,
+  // « tu gardes vendredi »). Exclusions: « garde ça en tête » (mémoire) et
+  // « garde-le demain » (clitique nu = contrainte sur le MÊME rappel déplacé,
+  // pas une protection d'un autre — alex-hard24 « garde le demain mais
+  // avance-le à 12h » est un reschedule).
+  if (
+    /\b(garde|gardes|conserve|conserves)\s+(bien\s+)?(celui|celle|le rappel|ce rappel|mon rappel|l autre|les autres|lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche|demain)\b/
+      .test(normalized) &&
+    !/\b(garde|gardes|conserve|conserves)\b[^.!?]{0,20}\ben tete\b/.test(normalized)
+  ) {
+    return true;
+  }
+  return false;
+}
+
+/**
  * P10-E (alex-hard24 R1-B02, nina-hard24 R1-B03): RÉFÉRENCE D'ENTITÉ rappel
  * — « celui du midi », « le rappel des en-cas », « le même » désignent un
  * rappel EXISTANT, jamais un contenu. Stockée comme instruction, elle

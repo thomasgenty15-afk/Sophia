@@ -2,6 +2,7 @@ import { assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import {
   formatMemoryV2PayloadForPrompt,
   isMemoryV2LoaderActiveForUser,
+  memoryStylePreferenceDirectiveLines,
   memoryV2RolloutBucket,
   runMemoryV2ActiveLoader,
 } from "./active_loader.ts";
@@ -204,4 +205,114 @@ Deno.test("prompt formatter hides ids and exposes usable memory", () => {
   });
   assertEquals(block.includes("item-secret"), false);
   assertEquals(block.includes("Le user aime les reponses courtes."), true);
+});
+
+// ── P12-G (rose-hard25 R1-B06): préférence de style durable = directive ─────
+
+const styleMetrics = {
+  load_ms: 1,
+  loaded_scope_counts: {
+    topic: 1,
+    event: 0,
+    global: 0,
+    action: 0,
+    level: 0,
+    entity: 0,
+  },
+  sensitive_excluded_count: 0,
+  invalid_injection_simulated_count: 0,
+  fallback_used: false,
+  cross_topic_cache_hit: false,
+};
+
+Deno.test("P12-G: une preference de style active est promue en directive en tete du bloc memoire", () => {
+  const styleItem = {
+    id: "item-style",
+    kind: "statement" as const,
+    content_text:
+      "L'utilisatrice veut parler plus cash, sans tournures douces ni emojis.",
+    status: "active",
+    sensitivity_level: "normal" as const,
+  };
+  const lines = memoryStylePreferenceDirectiveLines([styleItem]);
+  assertEquals(lines.length, 2);
+  assertEquals(
+    lines[0].startsWith("STYLE IMPOSE PAR PREFERENCE UTILISATEUR"),
+    true,
+  );
+  assertEquals(lines[0].includes("CHAQUE reponse"), true);
+  assertEquals(lines[1].includes("sans tournures douces ni emojis"), true);
+
+  // La directive survit en TETE du bloc formaté, avant les consignes et les
+  // souvenirs — jamais noyée en simple fait de contexte.
+  const block = formatMemoryV2PayloadForPrompt({
+    retrieval_mode: "topic_continuation",
+    hints: [],
+    topic_id: null,
+    items: [styleItem],
+    entities: [],
+    modules: {},
+    metrics: styleMetrics,
+  });
+  const directiveIndex = block.indexOf(
+    "STYLE IMPOSE PAR PREFERENCE UTILISATEUR",
+  );
+  assertEquals(directiveIndex >= 0, true);
+  assertEquals(directiveIndex < block.indexOf("Consignes:"), true);
+  assertEquals(directiveIndex < block.indexOf("Souvenirs:"), true);
+});
+
+Deno.test("P12-G anti-faux-positifs: pas de directive sans contrainte de style ou sans forme preference", () => {
+  // Préférence sans token de style: rien.
+  assertEquals(
+    memoryStylePreferenceDirectiveLines([{
+      id: "i1",
+      kind: "statement",
+      content_text: "Elle veut reprendre la course deux fois par semaine.",
+      status: "active",
+    }]),
+    [],
+  );
+  // Token de style sans marqueur de préférence (fait tiers): rien.
+  assertEquals(
+    memoryStylePreferenceDirectiveLines([{
+      id: "i2",
+      kind: "fact",
+      content_text: "Son manager est tres direct avec elle.",
+      status: "active",
+    }]),
+    [],
+  );
+  // Item non actif: jamais de directive.
+  assertEquals(
+    memoryStylePreferenceDirectiveLines([{
+      id: "i3",
+      kind: "statement",
+      content_text: "Veut parler cash, sans emojis.",
+      status: "candidate",
+    }]),
+    [],
+  );
+  // Event/observation d'action: hors périmètre même avec les mots.
+  assertEquals(
+    memoryStylePreferenceDirectiveLines([{
+      id: "i4",
+      kind: "event",
+      content_text: "Hier elle a demande un ton plus direct.",
+      status: "active",
+    }]),
+    [],
+  );
+});
+
+Deno.test("P12-G: metadata.statement_role=preference suffit comme marqueur de preference", () => {
+  const lines = memoryStylePreferenceDirectiveLines([{
+    id: "i5",
+    kind: "statement",
+    content_text: "Parler sans emojis, ton direct.",
+    status: "active",
+    metadata: { statement_role: "preference" },
+  }]);
+  assertEquals(lines.length, 2);
+  assertEquals(lines[1].includes("sans emojis, ton direct"), true);
 });

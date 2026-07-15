@@ -11,6 +11,7 @@ import { clearActiveConversationSkillState } from "../../router/active_flow_stat
 import { ACTIVE_CONVERSATION_SKILL_KEY } from "../_shared/active_skill_state.ts";
 import {
   enterPresenceFlow,
+  type PresenceEntryContext,
   type PresenceFlowState,
   stepPresenceFlow,
 } from "./state.ts";
@@ -62,6 +63,7 @@ export function applyPresenceFlowState(input: {
   localDate: string;
   topicHint?: string | null;
   entryReason?: string;
+  entryContext?: PresenceEntryContext | null;
 }): PresenceApplyResult {
   const existing = readActivePresenceState(input.activeSkillState);
 
@@ -71,6 +73,7 @@ export function applyPresenceFlowState(input: {
       localDate: input.localDate,
       topicHint: input.topicHint ?? null,
       entryReason: input.entryReason ?? "presence_conversation_entry",
+      entryContext: input.entryContext ?? null,
     });
     return {
       tempMemory: writePresenceState(input.tempMemory, flow, input.nowIso),
@@ -120,6 +123,42 @@ export function commitPresenceResult(
     return clearActiveConversationSkillState(tempMemory);
   }
   return writePresenceState(tempMemory, result.flow_state, nowIso);
+}
+
+/**
+ * Arms the existing Presence engine after a proactive potion opening was
+ * actually delivered. This is not a new flow and it is intentionally not
+ * reachable from the global dispatcher as a potion-specific route.
+ */
+export function armPotionSupportPresence(input: {
+  tempMemory: Record<string, unknown>;
+  nowIso: string;
+  localDate: string;
+  topicHint: string | null;
+  entryContext: PresenceEntryContext;
+}): Record<string, unknown> {
+  const flow = enterPresenceFlow({
+    nowIso: input.nowIso,
+    localDate: input.localDate,
+    topicHint: input.topicHint,
+    entryReason: "potion_support_door_opener",
+    entryContext: input.entryContext,
+  });
+  return writePresenceState(input.tempMemory, flow, input.nowIso);
+}
+
+/** Clears only Presence ownership that came from a potion door-opener. */
+export function clearPotionSupportPresence(
+  tempMemory: Record<string, unknown>,
+): Record<string, unknown> {
+  const existing = readActivePresenceState(
+    tempMemory[ACTIVE_CONVERSATION_SKILL_KEY] ??
+      tempMemory.__active_skill_state,
+  );
+  if (existing?.entry_context?.source !== "potion_support") {
+    return tempMemory;
+  }
+  return clearActiveConversationSkillState(tempMemory);
 }
 
 function writePresenceState(
