@@ -58,7 +58,12 @@ export type DailyReviewMissingSlot =
   | "reason"
   | "still_relevant"
   | "which_action"
-  | "completion_level";
+  | "completion_level"
+  // Le user a rapporte quelque chose, mais rien ne dit que c'est bien
+  // l'action DEFINIE — typiquement quand il demande lui-meme si ca compte.
+  // Seul slot qui survit a un outcome=completed: sans lui, le doute sur la
+  // preuve est inexprimable et la lane ne peut que valider.
+  | "evidence_validity";
 
 export type DailyReviewStopReason =
   | "all_required_slots_filled"

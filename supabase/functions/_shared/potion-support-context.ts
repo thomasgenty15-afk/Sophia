@@ -32,10 +32,20 @@ export type PotionSupportGroundedItem = {
   last_observed_at: string | null;
 };
 
+export type PotionSupportBoundaryTarget =
+  | "potion_campaign"
+  | "conversation_session"
+  | "other_feature"
+  | "unknown";
+
+export type PotionSupportUserBoundary = PotionSupportGroundedItem & {
+  target: PotionSupportBoundaryTarget;
+};
+
 export type PotionSupportLedger = {
   grounded_facts: PotionSupportGroundedItem[];
   open_threads: PotionSupportGroundedItem[];
-  user_boundaries: PotionSupportGroundedItem[];
+  user_boundaries: PotionSupportUserBoundary[];
   /** Advisory only: never eligible for verbatim surfacing. */
   advisory_summary: string | null;
 };
@@ -50,8 +60,14 @@ export type PotionSupportOpeningHistoryItem = {
   scheduled_checkin_id: string;
   sent_at: string | null;
   opening_text: string | null;
+  /** Full provenance of every fact supplied to the visible opening agent. */
+  opening_evidence_refs?: PotionSupportEvidenceRef[];
   anchor_evidence_refs: PotionSupportEvidenceRef[];
   question_evidence_refs: PotionSupportEvidenceRef[];
+  focus_kind?: "unresolved_thread" | "progress" | "baseline";
+  focus_freshness?: "fresh" | "carried";
+  focus_continuity?: "new_thread" | "evolved_thread" | "same_thread";
+  focus_evidence_refs?: PotionSupportEvidenceRef[];
   outcome: "sent" | "template_waiting" | "skipped" | "failed";
 };
 

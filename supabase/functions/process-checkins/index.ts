@@ -5303,6 +5303,10 @@ Deno.serve(async (req) => {
                 : "skipped",
               decision_reason: potionSupportPreparation.decision,
               read_cutoff: potionSupportPreparation.read_cutoff,
+              focus_decision: potionSupportPreparation.focus_decision,
+              progress_facts: potionSupportPreparation.progress_facts,
+              opening_evidence_refs:
+                potionSupportPreparation.opening_evidence_refs,
               anchor_fact: potionSupportPreparation.anchor_fact,
               question_candidate: potionSupportPreparation.question_candidate,
               generated_at: new Date().toISOString(),
@@ -5775,11 +5779,21 @@ Deno.serve(async (req) => {
                   scheduled_checkin_id: String(checkin.id),
                   sent_at: armedAt,
                   opening_text: renderedDraftMessage,
+                  opening_evidence_refs:
+                    potionSupportPreparation.opening_evidence_refs,
                   anchor_evidence_refs:
                     potionSupportPreparation.anchor_fact?.evidence_refs ?? [],
                   question_evidence_refs:
                     potionSupportPreparation.question_candidate
                       ?.evidence_refs ?? [],
+                  focus_kind: potionSupportPreparation.focus_decision?.kind,
+                  focus_freshness: potionSupportPreparation.focus_decision
+                    ?.freshness,
+                  focus_continuity: potionSupportPreparation.focus_decision
+                    ?.continuity,
+                  focus_evidence_refs:
+                    potionSupportPreparation.focus_decision?.evidence_refs ??
+                      [],
                   outcome: "sent" as const,
                 },
               ].slice(-7),

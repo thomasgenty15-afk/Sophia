@@ -32,9 +32,14 @@ import {
   shouldResumePlanFinalizationForWhatsAppPreferences,
 } from "./handlers_onboarding.ts";
 import {
-  computeOptInAndBilanContext,
+  computeInboundTemplateContext,
   handleOptInAndDailyBilanActions,
 } from "./handlers_optin_bilan.ts";
+import {
+  isCheckinLaterFallbackText,
+  isCheckinYesFallbackText,
+  isNaturalOptInAgreementText,
+} from "./template_reply_intent.ts";
 import { buildDefaultWhatsAppConversationContext } from "./normal_context.ts";
 import { handleWrongNumber } from "./handlers_wrong_number.ts";
 import { computeNextRetryAtIso } from "../_shared/whatsapp_outbound_tracking.ts";
@@ -637,7 +642,9 @@ Deno.serve(async (req) => {
         // Inbound messages for such accounts are ignored (no reply, no unlinked prompt).
         if ((profile as any)?.account_status === "deletion_pending") {
           console.log(
-            `[whatsapp-webhook] request_id=${requestId} inbound_ignored user_id=${(profile as any).id} reason=account_deletion_pending`,
+            `[whatsapp-webhook] request_id=${requestId} inbound_ignored user_id=${
+              (profile as any).id
+            } reason=account_deletion_pending`,
           );
           continue;
         }
@@ -725,26 +732,16 @@ Deno.serve(async (req) => {
           msg.text ?? "",
           msg.interactive_id ?? null,
         );
-        // Opt-in: strict yes token only. "c'est bien moi" is the winback
-        // template's positive quick-reply (sophia_optin_winback_v2) — same opt-in
-        // path as "Absolument !" from the initial opt-in template.
-        const isOptInYesText =
-          /^(oui|yes|absolument|c[’']?est bien moi)\s*!?$/i.test(textLower);
+        // Opt-in: short, self-contained agreement only. This intentionally
+        // stays anchored so an unrelated conversational "oui" is not enough.
+        const isOptInYesText = isNaturalOptInAgreementText(textLower);
         // Scheduled / recurring reminder template buttons:
         // - daily bilan: "Carrément!" / "On le fait demain!"
         // - generic check-in: "Oui !" / "Une prochaine fois !"
         // - morning nudge (morning_nudge_v1) + weekly bilan (sophia_bilan_weekly_v1): "Go !"
         // and recurring reminder consent: "Avec plaisir !" / "Not this time"
-        const isCheckinYes =
-          /^(oui\b|go+\b|let'?s\s*go\b|c[’']?est\s+parti\b|avec\s+plaisir\b|carr[ée]ment\b)/i
-            .test(
-              textLower,
-            );
-        const isCheckinLater =
-          /plus\s*tard|une\s+prochaine\s+fois|on\s+le\s+fait\s+demain|not\s+this\s+time|pas\s+maintenant|pas\s+pour\s+le\s+moment|pas\s+cette\s+semaine/i
-            .test(
-              textLower,
-            );
+        const isCheckinYesFallback = isCheckinYesFallbackText(textLower);
+        const isCheckinLaterFallback = isCheckinLaterFallbackText(textLower);
         if (isWrongNumber) {
           await handleWrongNumber({
             admin,
@@ -772,16 +769,27 @@ Deno.serve(async (req) => {
             `[WhatsApp] Cleared expired onboarding state for user ${profile.id}`,
           );
         }
-        const { isOptInYes, recentBilanPurpose } =
-          await computeOptInAndBilanContext({
-            admin,
-            userId: profile.id,
-            textLower,
-            actionId,
-            isOptInYesText,
-            whatsappOptedIn: Boolean(profile.whatsapp_opted_in),
-            whatsappState: profile.whatsapp_state ?? null,
-          });
+        const {
+          lastTemplate,
+          isOptInYes,
+          isCheckinYes,
+          isCheckinLater,
+          recentBilanPurpose,
+        } = await computeInboundTemplateContext({
+          admin,
+          userId: profile.id,
+          requestId: processId,
+          inboundText: msg.text ?? "",
+          replyToWaMessageId: msg.reply_to_wa_message_id ?? null,
+          textLower,
+          actionId,
+          isStop,
+          isOptInYesText,
+          isCheckinYesFallback,
+          isCheckinLaterFallback,
+          whatsappOptedIn: Boolean(profile.whatsapp_opted_in),
+          whatsappState: profile.whatsapp_state ?? null,
+        });
         const nowIso = new Date().toISOString();
         // Update inbound timestamps + opt-in/opt-out flags.
         // Important: do NOT auto-re-opt-in after a STOP unless the user explicitly opts in again (OPTIN_YES).
@@ -973,7 +981,8 @@ Deno.serve(async (req) => {
           actionId,
           inboundText: msg.text ?? "",
           inboundChatMessageId: insertedIn?.id ?? null,
-          replyToWaMessageId: msg.reply_to_wa_message_id ?? null,
+          replyToWaMessageId: lastTemplate?.wamid ??
+            msg.reply_to_wa_message_id ?? null,
         });
         logWebhookTrace({
           requestId,

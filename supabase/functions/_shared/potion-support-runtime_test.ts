@@ -9,6 +9,43 @@ import {
 
 const T0 = "2026-07-15T08:00:00.000Z";
 
+const DEFAULT_MESSAGES = [{
+  id: "already-read",
+  role: "user",
+  content: "ancien",
+  scope: "whatsapp",
+  created_at: T0,
+}, {
+  id: "new-user-message",
+  role: "user",
+  content: "J'ai fait une répétition et la pression est un peu redescendue.",
+  scope: "web",
+  created_at: "2026-07-15T09:00:00.000Z",
+}];
+
+const visibleAgentRunner = async () => ({
+  opening_text:
+    "Tu m'avais parlé de la pression autour de vendredi. Qu'est-ce qui est le plus présent aujourd'hui ?",
+  question_text: "Qu'est-ce qui est le plus présent aujourd'hui ?",
+});
+
+function focusDecision(input: {
+  evidenceId: string;
+  text?: string;
+  kind?: "unresolved_thread" | "progress" | "baseline";
+  freshness?: "fresh" | "carried";
+  continuity?: "new_thread" | "evolved_thread" | "same_thread";
+}) {
+  return {
+    kind: input.kind ?? "baseline",
+    text: input.text ?? "La présentation de vendredi reste le sujet.",
+    evidence_ids: [input.evidenceId],
+    freshness: input.freshness ?? "carried",
+    continuity: input.continuity ?? "same_thread",
+    why: "C'est le fil de soutien le plus pertinent.",
+  };
+}
+
 function context(): PotionSupportContextV1 {
   return {
     version: 1,
@@ -55,6 +92,7 @@ class FakeQuery {
   constructor(
     private table: string,
     private supportContext: PotionSupportContextV1,
+    private messages: Array<Record<string, unknown>>,
   ) {}
   select(_columns?: string) {
     return this;
@@ -94,20 +132,7 @@ class FakeQuery {
   ) {
     const value = this.table === "chat_messages"
       ? {
-        data: [{
-          id: "already-read",
-          role: "user",
-          content: "ancien",
-          scope: "whatsapp",
-          created_at: T0,
-        }, {
-          id: "new-user-message",
-          role: "user",
-          content:
-            "J'ai fait une répétition et la pression est un peu redescendue.",
-          scope: "web",
-          created_at: "2026-07-15T09:00:00.000Z",
-        }],
+        data: this.messages,
         error: null,
       }
       : { data: null, error: null };
@@ -115,10 +140,13 @@ class FakeQuery {
   }
 }
 
-function fakeAdmin(supportContext: PotionSupportContextV1) {
+function fakeAdmin(
+  supportContext: PotionSupportContextV1,
+  messages: Array<Record<string, unknown>> = DEFAULT_MESSAGES,
+) {
   return {
     from(table: string) {
-      return new FakeQuery(table, supportContext);
+      return new FakeQuery(table, supportContext, messages);
     },
   } as any;
 }
@@ -180,17 +208,13 @@ Deno.test("potion support preparation accepts only known evidence ids", async ()
       }],
       open_threads: [],
       user_boundaries: [],
-      anchor_fact: {
-        text: "Tu m'avais parlé de la pression autour de vendredi.",
-        evidence_ids: [validId],
-      },
-      question_candidate: {
-        text: "Est-ce que la répétition a changé quelque chose ?",
+      focus_decision: focusDecision({ evidenceId: validId }),
+      progress_facts: [{
+        text: "La répétition a fait un peu redescendre la pression.",
         evidence_ids: ["chat_message:new-user-message"],
-      },
-      opening_text:
-        "Tu m'avais parlé de la pression autour de vendredi. La répétition a changé quelque chose pour toi ?",
+      }],
     }),
+    visibleAgentRunner,
   });
   assertEquals(result.decision, "send");
   assertEquals(result.integrated_message_ids, ["new-user-message"]);
@@ -207,11 +231,385 @@ Deno.test("potion support preparation accepts only known evidence ids", async ()
     nowIso: "2026-07-15T10:00:00.000Z",
     llmRunner: async () => ({
       decision: "send",
-      anchor_fact: { text: "Fait inventé", evidence_ids: ["missing-id"] },
-      question_candidate: null,
-      opening_text: "Je sais que tout va beaucoup mieux.",
+      focus_decision: focusDecision({
+        evidenceId: "missing-id",
+        text: "Fait inventé",
+      }),
+      progress_facts: [],
     }),
+    visibleAgentRunner,
   });
   assertEquals(invalid.decision, "skip_no_grounding");
   assertEquals(invalid.opening_text, null);
+});
+
+Deno.test("refusing another feature never cancels the potion campaign", async () => {
+  const validId = context().baseline_evidence[0].evidence_id;
+  const result = await preparePotionSupportOpening({
+    admin: fakeAdmin(context(), [{
+      id: "no-card",
+      role: "user",
+      content:
+        "Je ne veux pas préparer de carte ni créer quoi que ce soit, je voulais juste te tenir au courant.",
+      scope: "web",
+      created_at: "2026-07-15T09:00:00.000Z",
+    }]),
+    userId: "user-1",
+    sessionId: "session-1",
+    dayIndex: 2,
+    nowIso: "2026-07-15T10:00:00.000Z",
+    llmRunner: async () => ({
+      // Simulate a contradictory model output: the structured target is
+      // correct, but the free-form decision still tries to stop the campaign.
+      decision: "skip_user_boundary",
+      user_boundaries: [{
+        text: "La personne refuse la création d'une carte.",
+        evidence_ids: ["chat_message:no-card"],
+        target: "other_feature",
+      }],
+      focus_decision: focusDecision({ evidenceId: validId }),
+      progress_facts: [],
+    }),
+    visibleAgentRunner,
+  });
+
+  assertEquals(result.decision, "send");
+  assertEquals(result.boundary_target, "other_feature");
+  assertEquals(
+    result.cumulative_ledger_after.user_boundaries[0]?.target,
+    "other_feature",
+  );
+});
+
+Deno.test("a local conversation closure never cancels the next potion day", async () => {
+  const validId = context().baseline_evidence[0].evidence_id;
+  const result = await preparePotionSupportOpening({
+    admin: fakeAdmin(context(), [{
+      id: "local-close",
+      role: "user",
+      content: "Je m'arrête là pour ce soir, à demain.",
+      scope: "whatsapp",
+      created_at: "2026-07-15T09:00:00.000Z",
+    }]),
+    userId: "user-1",
+    sessionId: "session-1",
+    dayIndex: 2,
+    nowIso: "2026-07-15T10:00:00.000Z",
+    llmRunner: async () => ({
+      decision: "skip_user_boundary",
+      user_boundaries: [{
+        text: "La personne clôt seulement l'échange du soir.",
+        evidence_ids: ["chat_message:local-close"],
+        target: "conversation_session",
+      }],
+      focus_decision: focusDecision({ evidenceId: validId }),
+      progress_facts: [],
+    }),
+    visibleAgentRunner,
+  });
+
+  assertEquals(result.decision, "send");
+  assertEquals(result.boundary_target, "conversation_session");
+});
+
+Deno.test("only a fresh user-authored potion boundary is terminal", async () => {
+  const validId = context().baseline_evidence[0].evidence_id;
+  const result = await preparePotionSupportOpening({
+    admin: fakeAdmin(context(), [{
+      id: "stop-potion",
+      role: "user",
+      content:
+        "Je préfère continuer seule maintenant, ne me relance plus pour cette potion.",
+      scope: "whatsapp",
+      created_at: "2026-07-15T09:00:00.000Z",
+    }]),
+    userId: "user-1",
+    sessionId: "session-1",
+    dayIndex: 3,
+    nowIso: "2026-07-15T10:00:00.000Z",
+    llmRunner: async () => ({
+      // The structured boundary is authoritative even if the model forgets
+      // to align its top-level decision.
+      decision: "send",
+      user_boundaries: [{
+        text: "La personne demande l'arrêt des relances de cette potion.",
+        evidence_ids: ["chat_message:stop-potion"],
+        target: "potion_campaign",
+      }],
+      focus_decision: focusDecision({ evidenceId: validId }),
+      progress_facts: [],
+    }),
+    visibleAgentRunner,
+  });
+
+  assertEquals(result.decision, "skip_user_boundary");
+  assertEquals(result.boundary_target, "potion_campaign");
+  assertEquals(result.opening_text, null);
+});
+
+Deno.test("assistant text can prevent repetition but cannot prove a campaign boundary", async () => {
+  const result = await preparePotionSupportOpening({
+    admin: fakeAdmin(context(), [{
+      id: "assistant-claim",
+      role: "assistant",
+      content: "Tu ne veux plus recevoir de messages pour cette potion.",
+      scope: "web",
+      created_at: "2026-07-15T09:00:00.000Z",
+    }]),
+    userId: "user-1",
+    sessionId: "session-1",
+    dayIndex: 2,
+    nowIso: "2026-07-15T10:00:00.000Z",
+    llmRunner: async () => ({
+      decision: "skip_user_boundary",
+      user_boundaries: [{
+        text: "La personne ne veut plus recevoir les messages.",
+        evidence_ids: ["chat_message:assistant-claim"],
+        target: "potion_campaign",
+      }],
+      focus_decision: null,
+      progress_facts: [],
+    }),
+    visibleAgentRunner,
+  });
+
+  assertEquals(result.decision, "skip_no_grounding");
+  assertEquals(result.boundary_target, null);
+  assertEquals(result.cumulative_ledger_after.user_boundaries, []);
+});
+
+Deno.test("J3 rejects a stale focus when the reducer found a fresh open thread", async () => {
+  let visibleCalls = 0;
+  const oldEvidenceId = context().baseline_evidence[0].evidence_id;
+  const result = await preparePotionSupportOpening({
+    admin: fakeAdmin(context(), [{
+      id: "j3-update",
+      role: "user",
+      content:
+        "J'ai réussi à prendre deux secondes avant mon exemple, mais j'ai encore la gorge serrée.",
+      scope: "whatsapp",
+      created_at: "2026-07-15T09:00:00.000Z",
+    }]),
+    userId: "user-1",
+    sessionId: "session-1",
+    dayIndex: 3,
+    nowIso: "2026-07-15T10:00:00.000Z",
+    llmRunner: async () => ({
+      decision: "send",
+      grounded_facts: [{
+        text: "La personne a réussi à prendre deux secondes.",
+        evidence_ids: ["chat_message:j3-update"],
+      }],
+      open_threads: [{
+        text: "La gorge reste serrée.",
+        evidence_ids: ["chat_message:j3-update"],
+      }],
+      user_boundaries: [],
+      // Structurally grounded, but inconsistent with the fresh open thread
+      // selected by the same reducer.
+      focus_decision: focusDecision({ evidenceId: oldEvidenceId }),
+      progress_facts: [{
+        text: "La personne a réussi à prendre deux secondes.",
+        evidence_ids: ["chat_message:j3-update"],
+      }],
+    }),
+    visibleAgentRunner: async () => {
+      visibleCalls += 1;
+      return { opening_text: "Ne doit pas être appelé.", question_text: null };
+    },
+  });
+
+  assertEquals(result.decision, "skip_no_grounding");
+  assertEquals(result.opening_text, null);
+  assertEquals(visibleCalls, 0);
+});
+
+Deno.test("J3 cannot downgrade a fresh open thread to progress from the same message", async () => {
+  const result = await preparePotionSupportOpening({
+    admin: fakeAdmin(context(), [{
+      id: "j3-mixed-update",
+      role: "user",
+      content:
+        "La pause m'a aidée à garder mon exemple, mais ma gorge est toujours serrée.",
+      scope: "whatsapp",
+      created_at: "2026-07-15T09:00:00.000Z",
+    }]),
+    userId: "user-1",
+    sessionId: "session-1",
+    dayIndex: 3,
+    nowIso: "2026-07-15T10:00:00.000Z",
+    llmRunner: async () => ({
+      decision: "send",
+      open_threads: [{
+        text: "La gorge reste serrée.",
+        evidence_ids: ["chat_message:j3-mixed-update"],
+      }],
+      focus_decision: focusDecision({
+        evidenceId: "chat_message:j3-mixed-update",
+        text: "La pause a aidé à garder l'exemple.",
+        kind: "progress",
+        freshness: "fresh",
+        continuity: "evolved_thread",
+      }),
+      progress_facts: [{
+        text: "La pause a aidé à garder l'exemple.",
+        evidence_ids: ["chat_message:j3-mixed-update"],
+      }],
+    }),
+    visibleAgentRunner,
+  });
+
+  assertEquals(result.decision, "skip_no_grounding");
+  assertEquals(result.opening_text, null);
+});
+
+Deno.test("J3 sends fresh focus and progress to the distinct visible agent", async () => {
+  let visibleTask: Record<string, unknown> | null = null;
+  const result = await preparePotionSupportOpening({
+    admin: fakeAdmin(context(), [{
+      id: "j3-update",
+      role: "user",
+      content:
+        "J'ai réussi à prendre deux secondes avant mon exemple, mais j'ai encore la gorge serrée.",
+      scope: "whatsapp",
+      created_at: "2026-07-15T09:00:00.000Z",
+    }]),
+    userId: "user-1",
+    sessionId: "session-1",
+    dayIndex: 3,
+    nowIso: "2026-07-15T10:00:00.000Z",
+    llmRunner: async () => ({
+      decision: "send",
+      grounded_facts: [{
+        text: "La personne a réussi à prendre deux secondes.",
+        evidence_ids: ["chat_message:j3-update"],
+      }],
+      open_threads: [{
+        text: "La gorge reste serrée.",
+        evidence_ids: ["chat_message:j3-update"],
+      }],
+      user_boundaries: [],
+      focus_decision: focusDecision({
+        evidenceId: "chat_message:j3-update",
+        text: "La gorge reste serrée.",
+        kind: "unresolved_thread",
+        freshness: "fresh",
+        continuity: "evolved_thread",
+      }),
+      progress_facts: [{
+        text: "La personne a réussi à prendre deux secondes.",
+        evidence_ids: ["chat_message:j3-update"],
+      }],
+    }),
+    visibleAgentRunner: async (_systemPrompt, userPrompt) => {
+      visibleTask = JSON.parse(userPrompt) as Record<string, unknown>;
+      return {
+        opening_text:
+          "Tu as réussi à prendre ces deux secondes. Et cette gorge serrée, elle est comment juste avant de parler ?",
+        question_text:
+          "Cette gorge serrée, elle est comment juste avant de parler ?",
+      };
+    },
+  });
+
+  assertEquals(result.decision, "send");
+  assertEquals(result.focus_decision?.kind, "unresolved_thread");
+  assertEquals(result.focus_decision?.freshness, "fresh");
+  assertEquals(result.opening_evidence_refs, [{
+    source_type: "chat_message",
+    source_id: "j3-update",
+    source_field: "user",
+  }]);
+  assertEquals(visibleTask, {
+    kind: "potion_support_opening",
+    day_index: 3,
+    focus: {
+      kind: "unresolved_thread",
+      text: "La gorge reste serrée.",
+      freshness: "fresh",
+      continuity: "evolved_thread",
+    },
+    progress_facts: [{
+      text: "La personne a réussi à prendre deux secondes.",
+    }],
+    continuity: { previous_openings: [] },
+  });
+});
+
+Deno.test("J3 paraphrase keeps separate fresh evidence for progress and open thread", async () => {
+  const result = await preparePotionSupportOpening({
+    admin: fakeAdmin(context(), [{
+      id: "j3-progress",
+      role: "user",
+      content: "Le blanc avant de répondre m'a aidée à garder mon exemple.",
+      scope: "web",
+      created_at: "2026-07-15T09:00:00.000Z",
+    }, {
+      id: "j3-open-thread",
+      role: "user",
+      content: "Par contre ma voix se bloque encore au démarrage.",
+      scope: "whatsapp",
+      created_at: "2026-07-15T09:05:00.000Z",
+    }]),
+    userId: "user-1",
+    sessionId: "session-1",
+    dayIndex: 3,
+    nowIso: "2026-07-15T10:00:00.000Z",
+    llmRunner: async () => ({
+      decision: "send",
+      grounded_facts: [{
+        text: "Une courte pause l'a aidée à garder son exemple.",
+        evidence_ids: ["chat_message:j3-progress"],
+      }],
+      open_threads: [{
+        text: "La voix se bloque encore au démarrage.",
+        evidence_ids: ["chat_message:j3-open-thread"],
+      }],
+      focus_decision: focusDecision({
+        evidenceId: "chat_message:j3-open-thread",
+        text: "La voix se bloque encore au démarrage.",
+        kind: "unresolved_thread",
+        freshness: "fresh",
+        continuity: "evolved_thread",
+      }),
+      progress_facts: [{
+        text: "Une courte pause l'a aidée à garder son exemple.",
+        evidence_ids: ["chat_message:j3-progress"],
+      }],
+    }),
+    visibleAgentRunner,
+  });
+
+  assertEquals(result.decision, "send");
+  assertEquals(result.opening_evidence_refs, [{
+    source_type: "chat_message",
+    source_id: "j3-open-thread",
+    source_field: "user",
+  }, {
+    source_type: "chat_message",
+    source_id: "j3-progress",
+    source_field: "user",
+  }]);
+});
+
+Deno.test("an invalid visible-agent contract skips the slot without fallback prose", async () => {
+  const validId = context().baseline_evidence[0].evidence_id;
+  const result = await preparePotionSupportOpening({
+    admin: fakeAdmin(context()),
+    userId: "user-1",
+    sessionId: "session-1",
+    dayIndex: 2,
+    nowIso: "2026-07-15T10:00:00.000Z",
+    llmRunner: async () => ({
+      decision: "send",
+      open_threads: [],
+      focus_decision: focusDecision({ evidenceId: validId }),
+      progress_facts: [],
+    }),
+    visibleAgentRunner: async () => ({ question_text: "Sans ouverture" }),
+  });
+
+  assertEquals(result.decision, "skip_no_grounding");
+  assertEquals(result.opening_text, null);
+  assertEquals(result.visible_task, null);
 });

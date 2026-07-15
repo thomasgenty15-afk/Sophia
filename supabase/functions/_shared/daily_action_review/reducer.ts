@@ -219,7 +219,11 @@ function repairItemForTarget<TTarget extends ReducerTarget>(
     evidence_text: stringOrNull(raw.evidence_text),
     matched_user_text: stringOrNull(raw.matched_user_text),
     confidence: validConfidence(raw.confidence),
-    missing_slots: [],
+    // Les slots declares sont conserves le temps du recalcul canonique:
+    // deriveCanonicalMissingSlots les relit pour savoir si un doute sur la
+    // preuve a ete emis. Les vider ici rendait ce doute invisible, donc
+    // ininvocable, et tout completed repartait avec zero slot.
+    missing_slots: declaredMissingSlots(raw),
   };
   repaired.missing_slots = deriveCanonicalMissingSlots(repaired);
   for (
@@ -341,6 +345,16 @@ function hasUsefulReason(item: Record<string, unknown>): boolean {
   return Boolean(category && category !== "none" && category !== "unclear");
 }
 
+function declaredMissingSlots(raw: Record<string, unknown>): string[] {
+  return Array.isArray(raw.missing_slots)
+    ? raw.missing_slots.map((slot) => cleanText(slot)).filter(Boolean)
+    : [];
+}
+
+function declaresEvidenceDoubt(item: Record<string, unknown>): boolean {
+  return declaredMissingSlots(item).includes("evidence_validity");
+}
+
 function deriveCanonicalMissingSlots(
   item: Record<string, unknown>,
 ): string[] {
@@ -348,6 +362,12 @@ function deriveCanonicalMissingSlots(
   if (!isAppliedOutcome(item.outcome)) {
     slots.push("outcome");
     return slots;
+  }
+  // Le doute sur la preuve doit survivre au recalcul canonique: sinon un
+  // completed repart toujours avec zero slot et le commit passe, quoi qu'ait
+  // dit le dispatcher.
+  if (declaresEvidenceDoubt(item)) {
+    slots.push("evidence_validity");
   }
   if (
     (item.outcome === "missed" || item.outcome === "partial") &&

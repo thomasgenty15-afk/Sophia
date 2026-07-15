@@ -1767,7 +1767,7 @@ export function isExplicitPotionSupportStopMessage(value: unknown): boolean {
     .replace(/\p{Diacritic}/gu, "").replace(/[’']/g, " ").toLowerCase()
     .replace(/\s+/g, " ").trim();
   if (!text) return false;
-  return /\b(laisse[- ]?moi tranquille|j ai besoin d espace|arrete (de )?(m |me )?ecrire|ne m ecris plus|ne me relance plus|arrete (ces|les) messages|plus de messages? (pour|sur) (ca|cette potion))\b/
+  return /\b(laisse[- ]?moi (?:tranquille|(?:un peu )?de l espace)|j ai besoin d espace|arrete (de )?(m |me )?ecrire|ne m ecris plus|ne me relances? plus|arrete (ces|les) messages|plus de messages? (pour|sur) (ca|cette potion))\b/
     .test(text);
 }
 

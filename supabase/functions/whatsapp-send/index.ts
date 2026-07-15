@@ -165,6 +165,17 @@ function getFallbackTemplate(
       injectBodyNameParam: true,
     };
   }
+  // Without this mapping a birthday falls back to global_reach_template
+  // ("J'ai une info pour toi") — the 2026-07-12 incident pattern.
+  if (p === "birthday_greeting") {
+    return {
+      name: (Deno.env.get("WHATSAPP_BIRTHDAY_TEMPLATE_NAME") ??
+        "sophia_birthday_v1").trim(),
+      language: (Deno.env.get("WHATSAPP_BIRTHDAY_TEMPLATE_LANG") ?? "fr")
+        .trim(),
+      injectBodyNameParam: true,
+    };
+  }
   if (p === "recurring_reminder") {
     return {
       name: (Deno.env.get("WHATSAPP_RECURRING_REMINDER_TEMPLATE_NAME") ??

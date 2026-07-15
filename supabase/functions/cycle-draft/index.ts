@@ -26,7 +26,10 @@ import {
   ClassifyPlanTypeV1Error,
   runPlanTypeClassificationLlm,
 } from "../classify-plan-type-v1/index.ts";
-import { generateQuestionnaireDraft } from "../generate-questionnaire-v2/index.ts";
+import {
+  generateQuestionnaireDraft,
+  GenerateQuestionnaireV2Error,
+} from "../generate-questionnaire-v2/index.ts";
 
 const DRAFT_STAGE_VALUES = [
   "capture",
@@ -449,21 +452,30 @@ async function handleGuestQuestionnaire(
   }
 
   const transformation = parsedBody.data.transformation;
-  const schema = await generateQuestionnaireDraft({
-    requestId: `${requestId}:guest-questionnaire`,
-    transformationId: transformation.id,
-    title: String(transformation.title ?? "").trim() || "Transformation",
-    internalSummary: transformation.internal_summary,
-    userSummary: transformation.user_summary,
-    questionnaireContext: transformation.questionnaire_context,
-    existingAnswers: transformation.questionnaire_answers ?? {},
-  });
+  try {
+    const schema = await generateQuestionnaireDraft({
+      requestId: `${requestId}:guest-questionnaire`,
+      transformationId: transformation.id,
+      title: String(transformation.title ?? "").trim() || "Transformation",
+      internalSummary: transformation.internal_summary,
+      userSummary: transformation.user_summary,
+      questionnaireContext: transformation.questionnaire_context,
+      existingAnswers: transformation.questionnaire_answers ?? {},
+    });
 
-  return cycleDraftResponse(req, {
-    request_id: requestId,
-    schema,
-    questions: schema.questions,
-  });
+    return cycleDraftResponse(req, {
+      request_id: requestId,
+      schema,
+      questions: schema.questions,
+    });
+  } catch (error) {
+    // Same mapping as handleGuestClassify: without it every failure — including
+    // legitimate 4xx — surfaced as an opaque 500 to the client.
+    if (error instanceof GenerateQuestionnaireV2Error && error.status < 500) {
+      throw new CycleDraftError(error.status, error.message, { cause: error });
+    }
+    throw error;
+  }
 }
 
 // Guest plan-type classification: stateless like /intake and /questionnaire.

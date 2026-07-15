@@ -35,6 +35,12 @@ Deno.test("potion support stop detector accepts explicit space requests only", (
     ),
     true,
   );
+  assertEquals(
+    isExplicitPotionSupportStopMessage(
+      "Je préfère que tu ne me relances plus pour cette potion, laisse-moi de l’espace.",
+    ),
+    true,
+  );
   assertEquals(isExplicitPotionSupportStopMessage("pas aujourd'hui"), false);
   assertEquals(isExplicitPotionSupportStopMessage("merci ça va mieux"), false);
 });

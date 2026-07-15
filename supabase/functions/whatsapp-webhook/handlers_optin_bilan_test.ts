@@ -1,5 +1,5 @@
 import { assert, assertEquals } from "jsr:@std/assert@1";
-import { computeOptInAndBilanContext } from "./handlers_optin_bilan.ts";
+import { computeInboundTemplateContext } from "./handlers_optin_bilan.ts";
 import { buildDefaultWhatsAppConversationContext } from "./normal_context.ts";
 
 type MessageRow = {
@@ -14,7 +14,33 @@ function createAdmin(messages: MessageRow[]) {
   return {
     from(table: string) {
       if (table !== "chat_messages") {
-        throw new Error(`unexpected table ${table}`);
+        const emptyBuilder = {
+          select(_cols: string) {
+            return emptyBuilder;
+          },
+          eq(_key: string, _value: unknown) {
+            return emptyBuilder;
+          },
+          in(_key: string, _values: unknown[]) {
+            return emptyBuilder;
+          },
+          gte(_key: string, _value: unknown) {
+            return emptyBuilder;
+          },
+          filter(_key: string, _op: string, _value: unknown) {
+            return emptyBuilder;
+          },
+          order(_key: string, _opts: { ascending?: boolean }) {
+            return emptyBuilder;
+          },
+          limit(_n: number) {
+            return emptyBuilder;
+          },
+          maybeSingle() {
+            return Promise.resolve({ data: null, error: null });
+          },
+        };
+        return emptyBuilder;
       }
       const state = {
         rows: [...messages],
@@ -77,7 +103,7 @@ function createAdmin(messages: MessageRow[]) {
   };
 }
 
-Deno.test("computeOptInAndBilanContext accepts text opt-in only after latest opt-in prompt", async () => {
+Deno.test("computeInboundTemplateContext accepts text opt-in only after latest opt-in prompt", async () => {
   const admin = createAdmin([
     {
       user_id: "u1",
@@ -87,7 +113,7 @@ Deno.test("computeOptInAndBilanContext accepts text opt-in only after latest opt
     },
   ]);
 
-  const result = await computeOptInAndBilanContext({
+  const result = await computeInboundTemplateContext({
     admin,
     userId: "u1",
     actionId: "",
@@ -99,7 +125,29 @@ Deno.test("computeOptInAndBilanContext accepts text opt-in only after latest opt
   assertEquals(result.isOptInYes, true);
 });
 
-Deno.test("computeOptInAndBilanContext rejects conversational yes after onboarding conversation started", async () => {
+Deno.test("computeInboundTemplateContext accepts text opt-in after winback prompt", async () => {
+  const admin = createAdmin([
+    {
+      user_id: "u1",
+      role: "assistant",
+      created_at: new Date().toISOString(),
+      metadata: { channel: "whatsapp", purpose: "optin_winback" },
+    },
+  ]);
+
+  const result = await computeInboundTemplateContext({
+    admin,
+    userId: "u1",
+    actionId: "",
+    isOptInYesText: true,
+    whatsappOptedIn: false,
+    whatsappState: null,
+  });
+
+  assertEquals(result.isOptInYes, true);
+});
+
+Deno.test("computeInboundTemplateContext rejects conversational yes after onboarding conversation started", async () => {
   const admin = createAdmin([
     {
       user_id: "u1",
@@ -118,7 +166,7 @@ Deno.test("computeOptInAndBilanContext rejects conversational yes after onboardi
     },
   ]);
 
-  const result = await computeOptInAndBilanContext({
+  const result = await computeInboundTemplateContext({
     admin,
     userId: "u1",
     actionId: "",
@@ -130,10 +178,10 @@ Deno.test("computeOptInAndBilanContext rejects conversational yes after onboardi
   assertEquals(result.isOptInYes, false);
 });
 
-Deno.test("computeOptInAndBilanContext keeps explicit OPTIN_YES button as strong opt-in", async () => {
+Deno.test("computeInboundTemplateContext keeps explicit OPTIN_YES button as strong opt-in", async () => {
   const admin = createAdmin([]);
 
-  const result = await computeOptInAndBilanContext({
+  const result = await computeInboundTemplateContext({
     admin,
     userId: "u1",
     actionId: "OPTIN_YES",

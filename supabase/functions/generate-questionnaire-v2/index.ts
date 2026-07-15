@@ -31,6 +31,25 @@ const REQUEST_SCHEMA = z.object({
   transformation_id: z.string().uuid(),
 });
 
+// The LLM regularly emits numeric hints as strings ("30", "30 min", "2 à 3"),
+// which hard-failed the whole questionnaire generation with a 500 — even though
+// every hint field below already accepts null as a legitimate value. Coerce
+// leniently instead: read the first number out of the string, and degrade to
+// null when there is none. A cosmetic hint must never cost an onboarding.
+function coerceLooseNumber(value: unknown): unknown {
+  if (typeof value === "number") return value;
+  if (typeof value === "string") {
+    const match = value.replace(",", ".").match(/-?\d+(?:\.\d+)?/);
+    return match ? Number(match[0]) : null;
+  }
+  return value ?? null;
+}
+
+// Generic so the inner schema's inferred type survives the preprocess wrapper.
+function looseNullableNumber<T extends z.ZodTypeAny>(inner: T) {
+  return z.preprocess(coerceLooseNumber, inner);
+}
+
 const QUESTIONNAIRE_SCHEMA = z.object({
   version: z.union([z.literal(1), z.number()]).transform(() => 1 as const),
   transformation_id: z.string().optional().default(""),
@@ -53,11 +72,19 @@ const QUESTIONNAIRE_SCHEMA = z.object({
     ).max(8).optional().default([]),
     allow_other: z.boolean().optional().default(false),
     placeholder: z.string().nullable().optional().default(null),
-    max_selections: z.number().int().min(1).nullable().optional().default(null),
+    max_selections: looseNullableNumber(
+      z.number().int().min(1).nullable().optional().default(null),
+    ),
     unit: z.string().nullable().optional().default(null),
-    suggested_value: z.number().finite().nullable().optional().default(null),
-    min_value: z.number().finite().nullable().optional().default(null),
-    max_value: z.number().finite().nullable().optional().default(null),
+    suggested_value: looseNullableNumber(
+      z.number().finite().nullable().optional().default(null),
+    ),
+    min_value: looseNullableNumber(
+      z.number().finite().nullable().optional().default(null),
+    ),
+    max_value: looseNullableNumber(
+      z.number().finite().nullable().optional().default(null),
+    ),
   })).length(12),
   metadata: z.object({
     design_principle: z.string().optional().default("court_adapte_utile_et_mesurable"),
@@ -69,9 +96,13 @@ const QUESTIONNAIRE_SCHEMA = z.object({
       measurement_mode: z.enum(["absolute_value", "count", "frequency", "duration", "score"]),
       baseline_prompt: z.string().min(1),
       target_prompt: z.string().min(1),
-      suggested_target_value: z.number().finite().nullable().optional().default(null),
+      suggested_target_value: looseNullableNumber(
+        z.number().finite().nullable().optional().default(null),
+      ),
       rationale: z.string().min(1),
-      confidence: z.number().min(0).max(1),
+      // Required with no null fallback: a stringified confidence would 500 the
+      // whole onboarding, so degrade to the same low value the fallback uses.
+      confidence: looseNullableNumber(z.number().min(0).max(1)).catch(0.3),
     }),
   }).passthrough().optional().default({
     design_principle: "court_adapte_utile_et_mesurable",
@@ -95,7 +126,7 @@ type QuestionnaireContext = {
   transformation: UserTransformationRow;
 };
 
-class GenerateQuestionnaireV2Error extends Error {
+export class GenerateQuestionnaireV2Error extends Error {
   status: number;
 
   constructor(status: number, message: string, options?: { cause?: unknown }) {
@@ -315,7 +346,7 @@ export async function generateQuestionnaireDraft(params: {
 }): Promise<QuestionnaireSchemaV2> {
   const rawSchema = await generateQuestionnaireWithLlm({
     requestId: params.requestId,
-    userId: params.userId ?? undefined,
+    userId: params.userId ?? null,
     transformation: {
       id: params.transformationId,
       title: params.title,

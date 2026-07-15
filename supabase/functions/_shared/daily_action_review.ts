@@ -71,7 +71,10 @@ export type DailyActionMissingSlot =
   | "reason"
   | "still_relevant"
   | "which_action"
-  | "completion_level";
+  | "completion_level"
+  // Doute sur la preuve: cf. DailyReviewMissingSlot dans
+  // daily_action_review/contract.ts — les deux enums doivent rester alignes.
+  | "evidence_validity";
 export type DailyActionStopReason =
   | "all_required_slots_filled"
   | "user_stopped"
@@ -263,7 +266,7 @@ function asMissingSlot(value: unknown): DailyActionMissingSlot | null {
   if (
     raw === "not_asked" || raw === "outcome" || raw === "reason" ||
     raw === "still_relevant" || raw === "which_action" ||
-    raw === "completion_level"
+    raw === "completion_level" || raw === "evidence_validity"
   ) return raw;
   return null;
 }

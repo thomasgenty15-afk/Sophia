@@ -162,8 +162,10 @@ async function sendWinbackTemplate(args: {
     user_id: args.userId,
     message: {
       type: "template" as const,
-      name: "sophia_optin_winback_v2",
-      language: "fr",
+      name: (Deno.env.get("WHATSAPP_OPTIN_WINBACK_TEMPLATE_NAME") ??
+        "sophia_optin_winback_v2").trim(),
+      language: (Deno.env.get("WHATSAPP_OPTIN_WINBACK_TEMPLATE_LANG") ?? "fr")
+        .trim(),
       components: [
         {
           type: "body",

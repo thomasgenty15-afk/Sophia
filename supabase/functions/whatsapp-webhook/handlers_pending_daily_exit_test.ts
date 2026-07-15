@@ -16,10 +16,10 @@ Deno.test("weekly auto-validation decline text matches the Non merci! button and
   assertEquals(isWeeklyAutoValidationDeclineText("non merci"), true);
   assertEquals(isWeeklyAutoValidationDeclineText("Non, merci !"), true);
   assertEquals(isWeeklyAutoValidationDeclineText("  NON MERCI  "), true);
-  // Must not swallow longer replies or other declines.
+  // A clear refusal may be followed by a free-form request.
   assertEquals(
     isWeeklyAutoValidationDeclineText("non merci mais explique moi un truc"),
-    false,
+    true,
   );
   assertEquals(isWeeklyAutoValidationDeclineText("pas maintenant"), false);
   assertEquals(isWeeklyAutoValidationDeclineText("oui"), false);

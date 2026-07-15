@@ -486,3 +486,10 @@
 - 2026-07-02T14:29:48Z reset persona=qa-skill connection=foexit_20260702rb user_id=d93db839-7302-41f9-8239-b90fefe3d672
 - 2026-07-02T14:30:55Z reset persona=qa-skill connection=foexit_20260702rb user_id=d93db839-7302-41f9-8239-b90fefe3d672
 - 2026-07-02T14:31:21Z reset persona=qa-skill connection=foexit_20260702rb user_id=d93db839-7302-41f9-8239-b90fefe3d672
+- 2026-07-15T21:34:34Z reset persona=qa-skill connection=all_skills_potion_support_presence_20260715_r1 user_id=0a1a239f-9341-4b29-9092-304eb873de0e
+- 2026-07-15T21:40:15Z reset persona=qa-skill connection=all_skills_potion_support_presence_20260715_r1 user_id=0a1a239f-9341-4b29-9092-304eb873de0e
+- 2026-07-15T21:53:58Z reset persona=qa-skill connection=all_skills_potion_support_j2_j3_intersession_20260715_r1 user_id=62d5d48e-59ce-4d84-abd5-0e2ebcf5ea61
+- 2026-07-15T22:01:48Z reset persona=qa-skill connection=all_skills_potion_support_j2_j3_intersession_20260715_r1 user_id=62d5d48e-59ce-4d84-abd5-0e2ebcf5ea61
+- 2026-07-15T22:02:08Z reset persona=qa-skill connection=all_skills_potion_support_j2_j3_intersession_20260715_r2 user_id=2353dbf5-72b9-447b-b091-a378fd694c75
+- 2026-07-15T22:16:34Z reset persona=qa-skill connection=all_skills_potion_support_j2_j3_intersession_20260715_r2 user_id=2353dbf5-72b9-447b-b091-a378fd694c75
+- 2026-07-15T23:13:38Z reset persona=qa-skill connection=all_skills_potion_support_postfix_adversarial_20260716_r1 user_id=fbfb8d1b-3b3d-4f87-88b3-f9fc9e6eea83

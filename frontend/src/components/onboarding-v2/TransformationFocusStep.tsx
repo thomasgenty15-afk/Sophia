@@ -291,7 +291,8 @@ export function TransformationFocusStep({
               Autres transformations identifiées
             </p>
             <p className="mt-1 text-sm text-gray-600">
-              Tu peux changer de focus en un tap.
+              Clique sur une transformation ci-dessous pour la faire passer en
+              priorité.
             </p>
           </div>
           {allowManualAdd ? (

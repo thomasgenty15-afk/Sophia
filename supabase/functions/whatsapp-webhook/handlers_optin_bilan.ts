@@ -1,6 +1,14 @@
 import { classifyWinbackReplyIntent } from "../_shared/whatsapp_winback.ts";
 import { getActiveTransformationRuntime } from "../_shared/v2-runtime.ts";
 import {
+  classifyTemplateReplyChoice,
+  findExactTemplateButton,
+  findTemplateButtonForFlag,
+  mapTemplateChoiceToFlags,
+  resolveLastTemplateContext,
+} from "./template_context.ts";
+import { isNaturalOptInAgreementText } from "./template_reply_intent.ts";
+import {
   loadOnboardingContext,
   setDeferredOnboardingSteps,
 } from "./onboarding_helpers.ts";
@@ -15,7 +23,7 @@ type AdaptiveFlowResult = {
   forceMode?: string;
 };
 
-export async function computeOptInAndBilanContext(params: any) {
+export async function computeInboundTemplateContext(params: any) {
   async function getLatestRecentAssistantPurpose(admin: any, userId: string) {
     const since = new Date(Date.now() - 30 * 60 * 60 * 1000).toISOString() // 30h window
     ;
@@ -28,18 +36,74 @@ export async function computeOptInAndBilanContext(params: any) {
     if (error) throw error;
     return String((data as any)?.metadata?.purpose ?? "").trim();
   }
-  const latestAssistantPurpose = await getLatestRecentAssistantPurpose(
-    params.admin,
-    params.userId,
-  );
   const alreadyOptedIn = params.whatsappOptedIn === true;
   const hasActiveWhatsappState = String(params.whatsappState ?? "").trim()
     .length > 0;
-  const textOptInYes = params.isOptInYesText === true &&
-    latestAssistantPurpose === "optin" &&
-    !alreadyOptedIn &&
-    !hasActiveWhatsappState;
-  const isOptInYes = params.actionId === "OPTIN_YES" || textOptInYes;
+  const canTextOptIn = !alreadyOptedIn && !hasActiveWhatsappState;
+  let lastTemplate = null;
+  try {
+    lastTemplate = await resolveLastTemplateContext({
+      admin: params.admin,
+      userId: params.userId,
+      replyToWamid: params.replyToWaMessageId,
+    });
+  } catch (error) {
+    console.warn("[WhatsApp] last template context resolution failed", error);
+  }
+
+  let isOptInYes = params.actionId === "OPTIN_YES";
+  let isCheckinYes = false;
+  let isCheckinLater = false;
+  if (lastTemplate) {
+    let exactChoice = findExactTemplateButton(
+      lastTemplate.buttons,
+      params.inboundText,
+    );
+    // Critical deterministic opt-in path: a short natural agreement remains
+    // sufficient when it is safely scoped to an actual opt-in template.
+    if (
+      !exactChoice && canTextOptIn &&
+      ["sophia_optin_v2", "sophia_optin_winback_v2"].includes(
+        lastTemplate.name,
+      ) && isNaturalOptInAgreementText(params.inboundText)
+    ) {
+      exactChoice = lastTemplate.buttons[0] ?? null;
+    }
+    if (!exactChoice && params.isCheckinYesFallback === true) {
+      exactChoice = findTemplateButtonForFlag(lastTemplate, "yes");
+    }
+    if (!exactChoice && params.isCheckinLaterFallback === true) {
+      exactChoice = findTemplateButtonForFlag(lastTemplate, "later");
+    }
+    let flags = mapTemplateChoiceToFlags(lastTemplate.name, exactChoice);
+    if (!exactChoice && params.isStop !== true) {
+      const classification = await classifyTemplateReplyChoice({
+        template: lastTemplate,
+        inboundText: params.inboundText,
+        requestId: params.requestId,
+        userId: params.userId,
+        llmRunner: params.llmRunner,
+      });
+      flags = mapTemplateChoiceToFlags(
+        lastTemplate.name,
+        classification.choice,
+      );
+    }
+    isOptInYes = isOptInYes || (canTextOptIn && flags.isOptInYes);
+    isCheckinYes = flags.isCheckinYes;
+    isCheckinLater = flags.isCheckinLater;
+  } else {
+    const latestAssistantPurpose = await getLatestRecentAssistantPurpose(
+      params.admin,
+      params.userId,
+    );
+    const textOptInYes = params.isOptInYesText === true &&
+      ["optin", "optin_winback"].includes(latestAssistantPurpose) &&
+      canTextOptIn;
+    isOptInYes = isOptInYes || textOptInYes;
+    isCheckinYes = params.isCheckinYesFallback === true;
+    isCheckinLater = params.isCheckinLaterFallback === true;
+  }
   async function getRecentBilanPromptPurpose(admin: any, userId: string) {
     const since = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString() // 6h window
     ;
@@ -67,7 +131,10 @@ export async function computeOptInAndBilanContext(params: any) {
     params.userId,
   );
   return {
+    lastTemplate,
     isOptInYes,
+    isCheckinYes,
+    isCheckinLater,
     recentBilanPurpose,
   };
 }

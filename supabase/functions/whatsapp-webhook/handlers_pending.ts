@@ -525,11 +525,11 @@ export function isWeeklyAutoValidationPending(pending: unknown): boolean {
 }
 
 // "Non merci!" quick reply on the auto_validation_v1 template. Also accepts
-// close typed variants ("non, merci", "non merci !").
+// a refusal followed by a free-form request ("non merci mais explique...").
 export function isWeeklyAutoValidationDeclineText(
   textValue: unknown,
 ): boolean {
-  return /^non\s*,?\s*merci\s*!?$/i.test(String(textValue ?? "").trim());
+  return /^non\s*,?\s*merci\b/i.test(String(textValue ?? "").trim());
 }
 
 export const WEEKLY_AUTO_VALIDATION_DECLINE_ACK =
@@ -678,15 +678,15 @@ async function fetchLatestCheckinPending(
   userId: string,
   replyToWaMessageId?: string | null,
 ) {
-  // Prefer the pending the button actually replied to (via wamid); only when
-  // that can't be resolved do we fall back to the most-recent pending.
+  // A wamid scopes the reply to one exact template. Never fall back to an
+  // unrelated recent pending when that explicit context cannot be linked.
   const targeted = await resolvePendingByReplyContext(
     admin,
     userId,
     "scheduled_checkin",
     replyToWaMessageId,
   );
-  if (targeted) return targeted;
+  if (String(replyToWaMessageId ?? "").trim()) return targeted;
   return await fetchLatestPending(admin, userId, "scheduled_checkin");
 }
 
@@ -901,7 +901,8 @@ function dailyVisibleKindForCurrentState(
       Array.isArray(item?.missing_slots) &&
       (item.missing_slots.includes("outcome") ||
         item.missing_slots.includes("which_action") ||
-        item.missing_slots.includes("completion_level"))
+        item.missing_slots.includes("completion_level") ||
+        item.missing_slots.includes("evidence_validity"))
     )
   ) return "clarify_outcome";
   if (
@@ -919,6 +920,22 @@ function dailyVisibleKindForCurrentState(
     )
   ) return "clarify_still_relevant";
   return "clarify_outcome";
+}
+
+/**
+ * Question a laquelle le user vient de repondre, pour le contexte visible.
+ * `next_question` est vide au premier tour (la question d'ouverture vit dans
+ * `draft_message` du check-in planifie) et remis a null par `completedState`
+ * sur le chemin du commit: sans ce repli, l'agent visible ignore a quoi il
+ * repond et ne peut que confirmer a sec.
+ */
+function dailyQuestionAskedForVisible(
+  state: { next_question?: unknown } | null | undefined,
+  payload: { draft_message?: unknown } | null | undefined,
+): string | null {
+  const fromState = String(state?.next_question ?? "").trim();
+  if (fromState) return fromState;
+  return String(payload?.draft_message ?? "").trim() || null;
 }
 
 async function requireDailyVisibleMessage(params: {
@@ -2070,7 +2087,10 @@ async function handleActionEveningReviewReply(params: {
         state: parsed.state,
         dispatcherOutput: clarificationLocalParsed?.dispatcherOutput ?? null,
         directEffectConfirmationContext,
-        currentDailyQuestion: parsed.state.next_question,
+        currentDailyQuestion: dailyQuestionAskedForVisible(
+          parsed.state,
+          payload,
+        ),
         recentMessages: recentUserMessages,
         requestId: params.requestId,
         userId: params.userId,
@@ -2439,6 +2459,7 @@ async function handleActionEveningReviewReply(params: {
     directEffectConfirmationContext,
     committedEffects: dailyEffectsResult.committed_effects,
     failedEffects: dailyEffectsResult.failed_effects,
+    currentDailyQuestion: dailyQuestionAskedForVisible(parsed.state, payload),
     recentMessages: recentUserMessages,
     requestId: params.requestId,
     userId: params.userId,
@@ -2575,7 +2596,11 @@ export async function handlePendingActions(params: {
     const reason = normalizeAccessEndedReason(
       accessPending?.payload?.ended_reason,
     );
-    const intent = classifyAccessEndedIntent(params.inboundText);
+    const intent = params.isCheckinLater
+      ? "decline"
+      : params.isCheckinYes
+      ? "accept"
+      : classifyAccessEndedIntent(params.inboundText);
     if (reason && intent === "accept") {
       await markPending(admin, accessPending.id, "done");
       const upgradePath = String(
@@ -3007,6 +3032,10 @@ export async function handlePendingActions(params: {
                 preparation_status: "prepared",
                 decision_reason: "send",
                 read_cutoff: potionSupportPreparation.read_cutoff,
+                focus_decision: potionSupportPreparation.focus_decision,
+                progress_facts: potionSupportPreparation.progress_facts,
+                opening_evidence_refs:
+                  potionSupportPreparation.opening_evidence_refs,
                 anchor_fact: potionSupportPreparation.anchor_fact,
                 question_candidate: potionSupportPreparation.question_candidate,
                 generated_at: armedAt,
@@ -3030,11 +3059,21 @@ export async function handlePendingActions(params: {
                   scheduled_checkin_id: scheduledId,
                   sent_at: armedAt,
                   opening_text: textToSend,
+                  opening_evidence_refs:
+                    potionSupportPreparation.opening_evidence_refs,
                   anchor_evidence_refs:
                     potionSupportPreparation.anchor_fact?.evidence_refs ?? [],
                   question_evidence_refs:
                     potionSupportPreparation.question_candidate
                       ?.evidence_refs ?? [],
+                  focus_kind: potionSupportPreparation.focus_decision?.kind,
+                  focus_freshness: potionSupportPreparation.focus_decision
+                    ?.freshness,
+                  focus_continuity: potionSupportPreparation.focus_decision
+                    ?.continuity,
+                  focus_evidence_refs:
+                    potionSupportPreparation.focus_decision?.evidence_refs ??
+                      [],
                   outcome: "sent" as const,
                 },
               ].slice(-7),
@@ -3251,7 +3290,7 @@ export async function resumeDailyActionReviewAfterDailyActionCoachingReturn(
     targets,
     state: reviewState,
     dispatcherOutput: null,
-    currentDailyQuestion: reviewState.next_question,
+    currentDailyQuestion: dailyQuestionAskedForVisible(reviewState, payload),
     recentMessages: recentUserMessages,
     requestId: `${params.requestId}:daily_parent_return_visible`,
     userId: params.userId,

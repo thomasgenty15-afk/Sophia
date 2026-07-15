@@ -409,17 +409,24 @@ function missingSlots(
     string
   ]["outcome"],
 ): DailyReviewMissingSlot[] {
-  if (normalizedOutcome === "completed") return [];
   const allowed = new Set([
     "outcome",
     "reason",
     "still_relevant",
     "which_action",
     "completion_level",
+    "evidence_validity",
   ]);
-  return stringArray(value).filter((slot) =>
+  const declared = stringArray(value).filter((slot) =>
     allowed.has(slot)
   ) as DailyReviewMissingSlot[];
+  // Un completed n'a aucun slot a collecter, sauf le doute sur la preuve:
+  // c'est le seul moyen pour le dispatcher de refuser de valider une
+  // evidence qui ne ressemble pas a l'action definie.
+  if (normalizedOutcome === "completed") {
+    return declared.filter((slot) => slot === "evidence_validity");
+  }
+  return declared;
 }
 
 function affectContext(
@@ -1124,6 +1131,7 @@ function recentCollectedUpdateForVisible(params: {
     outcome: update.outcome,
     reason_category: update.reason_category ?? null,
     reason_text: update.reason_text ?? null,
+    evidence_text: update.evidence_text ?? null,
     transition_hint: update.outcome === "missed"
       ? "acknowledge_briefly_then_continue_daily"
       : "continue_daily",
@@ -1463,7 +1471,8 @@ function preferredVisibleKindForState(
     items.some((item) =>
       item.missing_slots.includes("outcome") ||
       item.missing_slots.includes("which_action") ||
-      item.missing_slots.includes("completion_level")
+      item.missing_slots.includes("completion_level") ||
+      item.missing_slots.includes("evidence_validity")
     )
   ) return "clarify_outcome";
   if (
@@ -1582,6 +1591,10 @@ export function dispatcherSystemPrompt(): string {
     "- Si deux targets sont presentes et que le user dit seulement qu'il l'a fait, ne devine pas: clarify_which_action.",
     "- Si le user dit qu'il a fait les deux, mets a jour les deux targets.",
     "- Si le user indique qu'il a fait seulement une partie concrete d'une target, classe cette target en completed: le daily retient qu'il y a eu action.",
+    "- completed veut dire que l'action DEFINIE a eu lieu, pas seulement qu'il s'est passe quelque chose dans la journee. Compare toujours ce que le user rapporte au titre ET a la description de la target avant de conclure.",
+    "- Un cadre interrogatif ne suffit pas a refuser un completed: ce qui compte est CE QUE le user rapporte. S'il rapporte l'action definie et demande seulement confirmation (par exemple: j'ai fait ma respiration cinq minutes, ca compte ?), c'est une assertion: classe completed normalement, ne repose pas la question.",
+    "- En revanche, s'il rapporte une AUTRE activite que l'action definie et te demande si elle compte (par exemple: j'ai emmene ma soeur a la gare, ca compte ? alors que l'action est de se lever avec la lumiere), il te demande d'arbitrer une preuve hors sujet: ne tranche pas a sa place en completed. Ajoute evidence_validity dans item_updates.missing_slots et utilise flow_action=clarify_outcome avec visible_task.kind=clarify_outcome. Le daily ne commite pas ce tour et repose la question.",
+    "- evidence_validity est le seul missing_slot compatible avec outcome=completed: utilise-le quand une activite est bien rapportee mais que rien ne prouve que c'est l'action definie.",
     "- Si le user demande ce que veut dire une target daily, pourquoi elle est la, ou a quoi correspond une action ciblee, reste dans daily avec flow_action=explain_target et visible_task.kind=explain_target. Explique uniquement depuis les targets, le contexte filtre et l'intelligence d'action disponible; ne mute rien; repose ensuite la question faite ou pas faite.",
     "- Pour completed, omets reason_category, reason_text et still_relevant sauf si le user donne spontanement une information utile.",
     "- Pour missed, il faut une raison, une reason_category canonique et savoir si l'action reste pertinente.",
@@ -1950,6 +1963,96 @@ export async function runDailyActionReviewVisibleAgent(params: {
   return sanitizeDailyActionReviewVisibleText(raw);
 }
 
+function normalizeArbitrationText(value: unknown): string {
+  return ` ${
+    String(value ?? "")
+      .normalize("NFD")
+      .replace(/\p{Diacritic}/gu, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim()
+  } `;
+}
+
+/**
+ * Le user demande a Sophia d'arbitrer si ce qu'il a fait compte pour l'action
+ * (« ca compte ? », « ca peut compter ? », « on dit que ca compte ? »).
+ * Exige le cadre interrogatif: « ca compte double aujourd'hui » affirme, il
+ * n'arbitre pas.
+ */
+function asksWhetherItCounts(text: string): boolean {
+  if (!String(text ?? "").includes("?")) return false;
+  const normalized = normalizeArbitrationText(text);
+  return / ca (compte|comptera|comptait|vaut) /.test(normalized) ||
+    / ca (peut|pourrait) (compter|valoir) /.test(normalized) ||
+    / (est ce que|dis moi si) ca compte /.test(normalized);
+}
+
+function contentWordPrefixes(value: unknown): Set<string> {
+  const out = new Set<string>();
+  for (const word of normalizeArbitrationText(value).split(" ")) {
+    if (word.length < 4) continue;
+    out.add(word.slice(0, 4));
+  }
+  return out;
+}
+
+/**
+ * L'evidence partage-t-elle au moins un mot de contenu avec l'action definie
+ * (titre + description) ? Comparaison sur prefixes de 4 lettres pour tolerer
+ * les accords et conjugaisons (« je me suis leve » / « se lever »).
+ * C'est volontairement lexical et non semantique: en cas de doute le
+ * chevauchement est reconnu et la ceinture se desarme, donc le pire cas est
+ * le comportement actuel, jamais pire.
+ */
+function evidenceOverlapsTarget(
+  evidenceText: unknown,
+  target: DailyActionReviewTarget,
+): boolean {
+  const evidence = contentWordPrefixes(evidenceText);
+  if (!evidence.size) return false;
+  const action = contentWordPrefixes(
+    `${target.title ?? ""} ${target.description ?? ""}`,
+  );
+  for (const prefix of evidence) {
+    if (action.has(prefix)) return true;
+  }
+  return false;
+}
+
+/**
+ * Ceinture d'arbitrage de preuve (incident reel 2026-07-15, occurrence
+ * 30d785e0): le user demandait lui-meme « ca compte ahah ? » a propos d'un
+ * trajet a la gare, sans aucun mot commun avec « se lever au nouvel horaire
+ * avec la lumiere ». Le dispatcher a tranche a sa place en completed, et la
+ * lane a ecrit un done en base sur cette preuve hors sujet.
+ * Un arbitrage DEMANDE n'est pas une assertion de completion: on refuse le
+ * commit et on repose la question.
+ * Conditions de desarmement (le tour repart en commit normal):
+ * - pas de cadre interrogatif d'arbitrage;
+ * - l'evidence partage un mot avec l'action (« j'ai fait ma respiration, ca
+ *   compte ? » => on valide sans redemander);
+ * - le dispatcher n'a pas conclu completed (les autres chemins gerent deja).
+ */
+function applyEvidenceArbitrationBelt(params: {
+  text: string;
+  targets: DailyActionReviewTarget[];
+  output: DailyActionReviewLocalDispatcherOutput;
+}): string[] {
+  if (!asksWhetherItCounts(params.text)) return [];
+  const blocked: string[] = [];
+  for (const target of params.targets) {
+    const update = params.output.item_updates[target.occurrence_id];
+    if (!update || update.outcome !== "completed") continue;
+    if (evidenceOverlapsTarget(update.evidence_text, target)) continue;
+    update.missing_slots = [
+      ...new Set([...(update.missing_slots ?? []), "evidence_validity"]),
+    ] as DailyReviewMissingSlot[];
+    blocked.push(target.occurrence_id);
+  }
+  return blocked;
+}
+
 export async function runDailyActionReviewLocalFlow(params: {
   text: string;
   targets: DailyActionReviewTarget[];
@@ -1998,6 +2101,17 @@ export async function runDailyActionReviewLocalFlow(params: {
         "Ne dis pas que le rappel est programme si direct_effect_confirmation_context.has_committed_one_shot_reminder n'est pas true.",
       ]),
     ];
+  }
+  const arbitrationBlockedIds = applyEvidenceArbitrationBelt({
+    text: params.text,
+    targets: params.targets,
+    output: dispatcherOutput,
+  });
+  if (arbitrationBlockedIds.length) {
+    console.log(
+      `[${params.requestId ?? "-"}] daily_action_review evidence arbitration belt blocked commit`,
+      { occurrence_ids: arbitrationBlockedIds },
+    );
   }
   const decision = dailyReviewDecisionFromLocalDispatcher({
     output: dispatcherOutput,
