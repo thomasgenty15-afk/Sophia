@@ -15,6 +15,7 @@ import {
   buildTurnFrameForRuntime,
   effectLedgerTraceForTest,
   ensureClarifyQuestionVisible,
+  ensureCommittedRenderParity,
   isReminderReadoutQuestion,
   mergeVisibleTextForTest,
   stripCommitClaimBeforeClarify,
@@ -1446,34 +1447,52 @@ Deno.test("stripTrackClaimWithoutCommit: « les deux sont pris » sur ledger tra
   assertEquals(stripTrackClaimWithoutCommit(honest, committedFrame), honest);
 });
 
-Deno.test("stripCommitClaimBeforeClarify: mutation affirmée SANS aucun outcome rappel → strip (P10-V, probe P10-4 passe 1)", () => {
-  const noOutcomeFrame = frame({
-    user_message:
-      "et celui du midi, garde le demain mais avance le a 12h pile au lieu de 12h30",
-    direct_effects: [],
-  } as any);
+Deno.test("stripCommitClaimBeforeClarify: mutation affirmée SANS aucun outcome rappel → strip (P10-V, câblage contractuel P12-C, eva-hard25 R1-B03)", () => {
+  // P12-C: le frame est construit à la forme RUNTIME (AUCUN champ
+  // user_message — il n'existe pas dans le contrat) ; le message user passe
+  // par le PARAMÈTRE contractuel. L'ancien test enrichissait le frame d'un
+  // champ commode et masquait le fait que la branche P10-V était
+  // inatteignable en prod (leçon de la vague 25).
+  const noOutcomeFrame = frame({ direct_effects: [] } as any);
   const guarded = stripCommitClaimBeforeClarify(
     "C'est fait pour celui du midi : demain à 12h pile, à la place de 12h30.",
     noOutcomeFrame,
+    "et celui du midi, garde le demain mais avance le a 12h pile au lieu de 12h30",
   );
   assertEquals(/a la place de 12h30/.test(
     guarded.normalize("NFD").replace(/\p{Diacritic}/gu, "").replace(/[’']/g, " ").toLowerCase(),
   ), false);
   assertEquals(guarded.trim().length > 0, true);
 
+  // Régression eva-hard25 R1-B03 (verbatim du run réel): « avance le a
+  // 20h15 » sans AUCUN effet émis + « C'est avancé à 20h15 » → strip.
+  const evaFrame = frame({ direct_effects: [] } as any);
+  const evaGuarded = stripCommitClaimBeforeClarify(
+    "C'est avancé à 20h15 pour les poubelles.",
+    evaFrame,
+    "avance le a 20h15",
+  );
+  assertEquals(/avance/.test(
+    evaGuarded.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase()
+      .replace(/redis-moi lequel deplacer[\s\S]*/, ""),
+  ), false);
+
   // Anti-faux-positif 1: readout légitime sur un tour STATUS (le user parle
   // du rappel sans verbe de mutation) → intact.
-  const statusFrame = frame({
-    user_message: "mon rappel de demain est bien posé ?",
-    direct_effects: [],
-  } as any);
+  const statusFrame = frame({ direct_effects: [] } as any);
   const readout = "Oui, ton rappel est posé pour demain à 18h.";
-  assertEquals(stripCommitClaimBeforeClarify(readout, statusFrame), readout);
+  assertEquals(
+    stripCommitClaimBeforeClarify(
+      readout,
+      statusFrame,
+      "mon rappel de demain est bien posé ?",
+    ),
+    readout,
+  );
 
   // Anti-faux-positif 2: mutation demandée ET committée → intact (couvert
   // par reminderCommitted).
   const committedFrame = frame({
-    user_message: "avance le a 12h pile au lieu de 12h30",
     direct_effects: [{
       effect_type: "create_one_shot_reminder",
       explicitness: "explicit",
@@ -1497,5 +1516,270 @@ Deno.test("stripCommitClaimBeforeClarify: mutation affirmée SANS aucun outcome 
     },
   } as any);
   const honest = "C'est fait : le rappel de midi est avancé à 12h pile.";
-  assertEquals(stripCommitClaimBeforeClarify(honest, committedFrame), honest);
+  assertEquals(
+    stripCommitClaimBeforeClarify(
+      honest,
+      committedFrame,
+      "avance le a 12h pile au lieu de 12h30",
+    ),
+    honest,
+  );
+});
+
+// ── P12-C: parité INVERSE rendu=ledger (ensureCommittedRenderParity) ──────
+
+Deno.test("ensureCommittedRenderParity: 2 commits rendus « je n'ai rien changé » → déni retiré + commits accusés depuis le ledger (alex-untested24 R1-B05)", () => {
+  const silentCommitFrame = frame({
+    direct_effects: [{
+      effect_type: "create_one_shot_reminder",
+      explicitness: "explicit",
+      target_status: "identified",
+      confidence_band: "high",
+      payload_hint: { raw_text: "avance le rappel des courses d'une heure" },
+    }],
+    direct_effect_lane: {
+      requested_effects: [
+        { type: "cancel_one_shot_reminder", reason_code: "cancel" },
+        { type: "create_one_shot_reminder", reason_code: "create" },
+      ],
+      committed_effects: [
+        {
+          type: "cancel_one_shot_reminder",
+          id: "old",
+          ids: ["old"],
+          local_label: "aujourd'hui à 17:00",
+        },
+        {
+          type: "create_one_shot_reminder",
+          id: "new",
+          scheduled_for: "2026-07-15T14:00:00.000Z",
+          local_label: "aujourd'hui à 16:00",
+          reminder_instruction: "faire les courses",
+        },
+      ],
+      blocked_effects: [],
+    },
+  } as any);
+  const out = ensureCommittedRenderParity(
+    "Je n'ai rien changé sur tes rappels. Donne-moi l'heure cible exacte et je le fais ?",
+    silentCommitFrame,
+    "avance le rappel des courses d'une heure",
+  );
+  const normalized = out.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+    .toLowerCase();
+  // Le déni saute, le commit réel est accusé (label ou instruction), le
+  // cancel aussi.
+  assertEquals(/je n ?.?ai rien change/.test(normalized), false);
+  assertEquals(/16:00|courses/.test(normalized), true);
+  assertEquals(/annul/.test(normalized), true);
+});
+
+Deno.test("ensureCommittedRenderParity: « j'ai annulé » sans AUCUN commit cancel → strip + repli honnête (alex-untested24 R1-B08)", () => {
+  const createOnlyFrame = frame({
+    direct_effects: [{
+      effect_type: "create_one_shot_reminder",
+      explicitness: "explicit",
+      target_status: "identified",
+      confidence_band: "high",
+      payload_hint: { raw_text: "annule-le et remets-le à 16h" },
+    }],
+    direct_effect_lane: {
+      requested_effects: [{
+        type: "create_one_shot_reminder",
+        reason_code: "create",
+      }],
+      committed_effects: [{
+        type: "create_one_shot_reminder",
+        id: "new",
+        scheduled_for: "2026-07-15T14:00:00.000Z",
+        local_label: "aujourd'hui à 16:00",
+        reminder_instruction: "faire les courses",
+      }],
+      blocked_effects: [],
+    },
+  } as any);
+  const out = ensureCommittedRenderParity(
+    "C'est fait : j'ai annulé le rappel des courses de 17:00 et je l'ai remis à 16:00.",
+    createOnlyFrame,
+    "annule-le et remets-le à 16h",
+  );
+  const normalized = out.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+    .replace(/[’']/g, " ").toLowerCase();
+  assertEquals(/j ai (bien |deja )?annule/.test(normalized), false);
+  // Le create committé reste accusé (ré-appendu si la phrase a sauté).
+  assertEquals(/16:00|courses/.test(normalized), true);
+});
+
+Deno.test("ensureCommittedRenderParity: « vendredi reste tel quel » sur un cancel committé du tour → faux-intact retiré + cancel accusé (nina-p10reval R1-B03c)", () => {
+  const cancelledFridayFrame = frame({
+    direct_effects: [{
+      effect_type: "create_one_shot_reminder",
+      explicitness: "explicit",
+      target_status: "identified",
+      confidence_band: "high",
+      payload_hint: { raw_text: "rajoute jeudi et garde vendredi" },
+    }],
+    direct_effect_lane: {
+      requested_effects: [
+        { type: "cancel_one_shot_reminder", reason_code: "cancel" },
+        { type: "create_one_shot_reminder", reason_code: "create" },
+      ],
+      committed_effects: [
+        {
+          type: "cancel_one_shot_reminder",
+          id: "friday",
+          ids: ["friday"],
+          local_label: "vendredi 17 juillet à 18:00",
+        },
+        {
+          type: "create_one_shot_reminder",
+          id: "thursday",
+          scheduled_for: "2026-07-16T16:00:00.000Z",
+          local_label: "jeudi 16 juillet à 18:00",
+          reminder_instruction: "récupérer le colis",
+        },
+      ],
+      blocked_effects: [],
+    },
+  } as any);
+  const out = ensureCommittedRenderParity(
+    "C'est rajouté pour jeudi 16 juillet à 18:00 (récupérer le colis). Le rappel de vendredi reste tel quel.",
+    cancelledFridayFrame,
+    "rajoute jeudi et tu gardes vendredi hein",
+  );
+  const normalized = out.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+    .toLowerCase();
+  assertEquals(/reste tel quel/.test(normalized), false);
+  assertEquals(/annul/.test(normalized), true);
+});
+
+Deno.test("ensureCommittedRenderParity anti-faux-positifs: commit accusé nominal intact ; déni légitime sans commit intact", () => {
+  // Commit accusé correctement → aucun changement.
+  const nominalFrame = frame({
+    direct_effects: [{
+      effect_type: "create_one_shot_reminder",
+      explicitness: "explicit",
+      target_status: "identified",
+      confidence_band: "high",
+      payload_hint: { raw_text: "rappelle-moi demain à 9h de relire le plan" },
+    }],
+    direct_effect_lane: {
+      requested_effects: [{
+        type: "create_one_shot_reminder",
+        reason_code: "create",
+      }],
+      committed_effects: [{
+        type: "create_one_shot_reminder",
+        id: "r1",
+        scheduled_for: "2026-07-16T07:00:00.000Z",
+        local_label: "demain à 09:00",
+        reminder_instruction: "relire le plan",
+      }],
+      blocked_effects: [],
+    },
+  } as any);
+  const nominal = "C'est fait : demain à 09:00 pour relire le plan.";
+  assertEquals(
+    ensureCommittedRenderParity(
+      nominal,
+      nominalFrame,
+      "rappelle-moi demain à 9h de relire le plan",
+    ),
+    nominal,
+  );
+  // Zéro commit + déni honnête → intact (la garde ne s'arme que sur commit).
+  const emptyFrame = frame({ direct_effects: [] } as any);
+  const honestDenial =
+    "Je n'ai rien changé sur tes rappels — dis-moi lequel tu veux bouger.";
+  assertEquals(
+    ensureCommittedRenderParity(honestDenial, emptyFrame, "ok merci"),
+    honestDenial,
+  );
+});
+
+Deno.test("stripTrackClaimWithoutCommit: claim ADDITIF sur item non commis retiré même avec un commit coexistant (P12-C, eva-hard25 R1-B01)", () => {
+  const partialTrackFrame = frame({
+    direct_effects: [{
+      effect_type: "track_progress_plan_item",
+      explicitness: "explicit",
+      target_status: "identified",
+      confidence_band: "high",
+      payload_hint: { target_item_id: "item-1", status_hint: "completed" },
+    }],
+    direct_effect_lane: {
+      requested_effects: [{
+        type: "track_progress_plan_item",
+        reason_code: "track",
+      }],
+      committed_effects: [{
+        type: "track_progress_plan_item",
+        target_title: "Temps d'écran limité",
+        progress_status: "completed",
+      }],
+      blocked_effects: [],
+    },
+  } as any);
+  const out = stripTrackClaimWithoutCommit(
+    "C'est fait pour le temps d'écran limité. Et j'ai aussi noté ton activité de ce soir : aquarelle. ✅",
+    partialTrackFrame,
+  );
+  const normalized = out.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+    .replace(/[’']/g, " ").toLowerCase();
+  assertEquals(/aquarelle/.test(normalized), false);
+  assertEquals(/temps d ecran/.test(normalized), true);
+
+  // Anti-FP 1: le claim additif RECOUVRE le titre committé → intact.
+  const covered =
+    "C'est noté. Et j'ai aussi coché ton temps d'écran limité au passage.";
+  assertEquals(
+    stripTrackClaimWithoutCommit(covered, partialTrackFrame),
+    covered,
+  );
+  // Anti-FP 2: accusé mémoire (« je le garde en tête ») → intact.
+  const memory =
+    "C'est fait pour le temps d'écran limité. Et j'ai aussi noté ça, je le garde en tête.";
+  assertEquals(
+    stripTrackClaimWithoutCommit(memory, partialTrackFrame),
+    memory,
+  );
+});
+
+Deno.test("commitPostTurnRiskTrail: bande = MAX(runtime, frame) — snapshot runtime none n'écrase plus un frame medium (P12-F, rose-hard25 R1-B03)", async () => {
+  const { commitPostTurnRiskTrail } = await import("./run.ts");
+  // Positif: runtime stale « none » + frame medium ⇒ medium/6 committé.
+  const next = commitPostTurnRiskTrail(
+    { __conversation_risk_scores: [6] },
+    {
+      runtimeSafetyRiskBand: "none",
+      turnFrameRiskBand: "medium",
+      routeIsSafety: false,
+      sourceMessageId: "m1",
+    },
+  );
+  assertEquals(next.__last_turn_risk_band, "medium");
+  assertEquals(next.__conversation_risk_scores, [6, 6]);
+  // Symétrique: runtime medium + frame none ⇒ medium (le max, pas l'ordre).
+  const reversed = commitPostTurnRiskTrail(
+    {},
+    {
+      runtimeSafetyRiskBand: "medium",
+      turnFrameRiskBand: "none",
+      routeIsSafety: false,
+      sourceMessageId: "m2",
+    },
+  );
+  assertEquals(reversed.__last_turn_risk_band, "medium");
+  // Anti-FP désescalade (P7-A préservé): none des deux côtés ⇒ 0, la
+  // décroissance démarre.
+  const calm = commitPostTurnRiskTrail(
+    { __conversation_risk_scores: [6, 6] },
+    {
+      runtimeSafetyRiskBand: "none",
+      turnFrameRiskBand: "none",
+      routeIsSafety: false,
+      sourceMessageId: "m3",
+    },
+  );
+  assertEquals(calm.__last_turn_risk_band, "none");
+  assertEquals(calm.__conversation_risk_scores, [6, 6, 0]);
 });

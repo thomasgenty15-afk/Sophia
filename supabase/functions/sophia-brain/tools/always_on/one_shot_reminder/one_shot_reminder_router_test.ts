@@ -11,6 +11,12 @@ function fakeSupabase(options?: {
   onCancelIds?: (ids: string[]) => void;
 }) {
   const pending = options?.pending ?? [];
+  // P12-A: le fake modèle l'onConflict réel (user_id,event_context,
+  // scheduled_for) — deux upserts sur la MÊME clé rendent le MÊME id (le
+  // mécanisme du phantom nina-p10reval R1-B02), deux clés distinctes rendent
+  // des ids distincts. L'ancien id fixe « created-1 » faisait passer tout
+  // fan-out légitime pour un double commit du même id.
+  const upsertIdsByKey = new Map<string, string>();
   return {
     from(table: string) {
       if (table === "profiles") {
@@ -52,6 +58,15 @@ function fakeSupabase(options?: {
         },
         upsert(row: any) {
           options?.onUpsert?.(row);
+          const upsertKey =
+            `${row.user_id}|${row.event_context}|${row.scheduled_for}`;
+          if (!upsertIdsByKey.has(upsertKey)) {
+            upsertIdsByKey.set(
+              upsertKey,
+              `created-${upsertIdsByKey.size + 1}`,
+            );
+          }
+          const upsertId = upsertIdsByKey.get(upsertKey)!;
           return {
             select() {
               return {
@@ -60,7 +75,7 @@ function fakeSupabase(options?: {
                     ? ({ data: null, error: { message: "boom" } })
                     : ({
                       data: {
-                        id: "created-1",
+                        id: upsertId,
                         scheduled_for: row.scheduled_for,
                         event_context: row.event_context,
                       },
@@ -3005,6 +3020,367 @@ Deno.test("P10-E anti-faux-positif: une instruction avec objet PROPRE n'est pas 
   assertEquals(
     // deno-lint-ignore no-explicit-any
     (globalThis as any).__probe ?? true,
+    true,
+  );
+});
+
+// ── P12-A (vague 25) ─────────────────────────────────────────────────────
+// Temps par item : les jetons de date du CONTENU sont inertes, le jour nommé
+// se résout nativement par item, jamais 2 committed même id, le delta relatif
+// s'ancre sur la CIBLE.
+
+Deno.test("P12-A: date du CONTENU inerte — « ce soir à 21h … avant le passage de demain » committé aujourd'hui (eva-hard25 R1-B02)", async () => {
+  const message =
+    "rappelle-moi ce soir à 21h de sortir les poubelles avant le passage de demain";
+  let writtenRow: any = null;
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeSupabase({ onUpsert: (row) => writtenRow = row }),
+    userId: "user-1",
+    message,
+    now: new Date("2026-07-15T08:00:00.000Z"),
+    userTimezone: "Europe/Paris",
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      raw_text: message,
+      when_hint: "ce soir à 21h",
+      UTC_time: "2026-07-15T19:00:00.000Z",
+      local_label: "ce soir à 21h",
+      instruction_hint: "sortir les poubelles avant le passage de demain",
+    }),
+  });
+  assertEquals(result.status, "success");
+  // Le « demain » du contenu ne promeut PAS J+1 : commit aujourd'hui 21h.
+  assertEquals(writtenRow?.scheduled_for, "2026-07-15T19:00:00.000Z");
+});
+
+Deno.test("P12-A paraphrase: « à 22h ce soir » + contenu « pour demain » → aujourd'hui 22h (alex-untested24 R1-B01)", async () => {
+  const message =
+    "mets-moi un rappel à 22h ce soir pour préparer mon sac de sport pour demain";
+  let writtenRow: any = null;
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeSupabase({ onUpsert: (row) => writtenRow = row }),
+    userId: "user-1",
+    message,
+    now: new Date("2026-07-15T08:00:00.000Z"),
+    userTimezone: "Europe/Paris",
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      raw_text: message,
+      when_hint: "à 22h ce soir",
+      UTC_time: "2026-07-15T20:00:00.000Z",
+      local_label: "aujourd'hui à 22:00",
+      instruction_hint: "préparer mon sac de sport pour demain",
+    }),
+  });
+  assertEquals(result.status, "success");
+  assertEquals(writtenRow?.scheduled_for, "2026-07-15T20:00:00.000Z");
+});
+
+Deno.test("P12-A anti-faux-positif: « demain à 9h » HORS contenu garde la réparation J+1 (couche 1 intacte)", async () => {
+  const message = "rappelle-moi demain à 9h de préparer le sac pour ce soir";
+  let writtenRow: any = null;
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeSupabase({ onUpsert: (row) => writtenRow = row }),
+    userId: "user-1",
+    message,
+    now: new Date("2026-07-15T05:00:00.000Z"),
+    userTimezone: "Europe/Paris",
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      raw_text: message,
+      when_hint: "demain à 9h",
+      // UTC_time LLM FAUX (aujourd'hui) — la couche 1 doit réparer à J+1.
+      UTC_time: "2026-07-15T07:00:00.000Z",
+      local_label: "demain à 9h",
+      instruction_hint: "préparer le sac pour ce soir",
+    }),
+  });
+  assertEquals(result.status, "success");
+  assertEquals(writtenRow?.scheduled_for, "2026-07-16T07:00:00.000Z");
+});
+
+Deno.test("P12-A: fan-out même objet jeudi+vendredi — UTC LLM du 2e item FAUX réparé par item, 2 lignes distinctes (nina-p10reval R1-B02)", async () => {
+  const written: any[] = [];
+  const message =
+    "rappelle-moi de récupérer le colis jeudi à 18h et vendredi à 18h";
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeSupabase({ onUpsert: (row) => written.push(row) }),
+    userId: "user-1",
+    message,
+    // Mercredi 15/07.
+    now: new Date("2026-07-15T08:00:00.000Z"),
+    userTimezone: "Europe/Paris",
+    turnFrame: turnFrameWithTwoCreateEffects([
+      {
+        raw_text: "récupérer le colis jeudi à 18h",
+        when_hint: "jeudi à 18h",
+        UTC_time: "2026-07-16T16:00:00.000Z",
+        local_label: "jeudi à 18h",
+        instruction_hint: "récupérer le colis",
+      },
+      {
+        raw_text: "récupérer le colis vendredi à 18h",
+        when_hint: "vendredi à 18h",
+        // UTC_time LLM FAUX: compilé sur JEUDI (le phantom du run réel).
+        UTC_time: "2026-07-16T16:00:00.000Z",
+        local_label: "vendredi 17 juillet à 18:00",
+        instruction_hint: "récupérer le colis",
+      },
+    ]),
+  });
+  assertEquals(result.status, "success");
+  const committed = result.committed_effects.filter((e) =>
+    e.type === "create_one_shot_reminder"
+  );
+  assertEquals(committed.length, 2);
+  // 2 lignes DB à des instants DISTINCTS (vendredi réparé par le parseur).
+  assertEquals(
+    [...new Set(written.map((row) => row.scheduled_for))].sort(),
+    ["2026-07-16T16:00:00.000Z", "2026-07-17T16:00:00.000Z"],
+  );
+  // Jamais 2 committed même id.
+  const ids = committed.map((e: any) => String(e.id));
+  assertEquals(new Set(ids).size, ids.length);
+});
+
+Deno.test("P12-A: fan-out irréparable retombant sur la MÊME ligne → 1 committed + volet manquant annoncé, jamais 2 committed même id", async () => {
+  const written: any[] = [];
+  const message = "pose-moi deux fois le même rappel jeudi à 18h";
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeSupabase({ onUpsert: (row) => written.push(row) }),
+    userId: "user-1",
+    message,
+    now: new Date("2026-07-15T08:00:00.000Z"),
+    userTimezone: "Europe/Paris",
+    turnFrame: turnFrameWithTwoCreateEffects([
+      {
+        raw_text: "récupérer le colis jeudi à 18h",
+        when_hint: "jeudi à 18h",
+        UTC_time: "2026-07-16T16:00:00.000Z",
+        local_label: "jeudi à 18h",
+        instruction_hint: "récupérer le colis",
+      },
+      {
+        raw_text: "récupérer le colis jeudi à 18h",
+        when_hint: "jeudi à 18h",
+        UTC_time: "2026-07-16T16:00:00.000Z",
+        local_label: "jeudi à 18h",
+        instruction_hint: "récupérer le colis",
+      },
+    ]),
+  });
+  const committed = result.committed_effects.filter((e) =>
+    e.type === "create_one_shot_reminder"
+  );
+  assertEquals(committed.length, 1);
+  assertEquals(
+    result.blocked_effects.some((e) =>
+      e.reason_code === "fan_out_duplicate_commit"
+    ),
+    true,
+  );
+  // Le rendu annonce le volet manquant, jamais « c'est pris pour les deux ».
+  assertEquals(String(result.reply ?? "").includes("PAS"), true);
+});
+
+Deno.test("P12-A: « avance le rappel des courses d'une heure » → replace à CIBLE−1h, jamais now+1h (alex-untested24 R1-B05)", async () => {
+  let writtenRow: any = null;
+  const cancelledIds: string[] = [];
+  const message = "avance le rappel des courses d'une heure stp";
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeSupabase({
+      onUpsert: (row) => writtenRow = row,
+      onCancelIds: (ids) => cancelledIds.push(...ids),
+      pending: [{
+        id: "courses-17h",
+        // 17h Paris = 15:00Z.
+        scheduled_for: "2026-07-15T15:00:00.000Z",
+        message_payload: { reminder_instruction: "faire les courses" },
+      } as any],
+    }),
+    userId: "user-1",
+    message,
+    now: new Date("2026-07-15T07:46:00.000Z"),
+    userTimezone: "Europe/Paris",
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      intent: "reschedule",
+      raw_text: message,
+      // L'émission observée au run réel: le relatif mal lu en « dans une
+      // heure » (now+1h) — le delta ancré CIBLE doit primer.
+      when_hint: "dans une heure",
+      instruction_hint: "les courses",
+    }),
+  });
+  assertEquals(result.status, "success");
+  assertEquals(cancelledIds, ["courses-17h"]);
+  // CIBLE−1h = 16h Paris (14:00Z) — jamais 10h46.
+  assertEquals(writtenRow?.scheduled_for, "2026-07-15T14:00:00.000Z");
+});
+
+Deno.test("P12-A: « repousse le rappel des courses d'une heure » → CIBLE+1h (direction respectée)", async () => {
+  let writtenRow: any = null;
+  const cancelledIds: string[] = [];
+  const message = "repousse le rappel des courses d'une heure";
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeSupabase({
+      onUpsert: (row) => writtenRow = row,
+      onCancelIds: (ids) => cancelledIds.push(...ids),
+      pending: [{
+        id: "courses-17h",
+        scheduled_for: "2026-07-15T15:00:00.000Z",
+        message_payload: { reminder_instruction: "faire les courses" },
+      } as any],
+    }),
+    userId: "user-1",
+    message,
+    now: new Date("2026-07-15T07:46:00.000Z"),
+    userTimezone: "Europe/Paris",
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      intent: "reschedule",
+      raw_text: message,
+      when_hint: "dans une heure",
+      instruction_hint: "les courses",
+    }),
+  });
+  assertEquals(result.status, "success");
+  assertEquals(cancelledIds, ["courses-17h"]);
+  assertEquals(writtenRow?.scheduled_for, "2026-07-15T16:00:00.000Z");
+});
+
+Deno.test("P12-A anti-faux-positif: « rappelle-moi dans une heure » (create nominal) reste now+1h", async () => {
+  let writtenRow: any = null;
+  const message = "rappelle-moi dans une heure de boire de l'eau";
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeSupabase({ onUpsert: (row) => writtenRow = row }),
+    userId: "user-1",
+    message,
+    now: new Date("2026-07-15T08:00:00.000Z"),
+    userTimezone: "Europe/Paris",
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      raw_text: message,
+      when_hint: "dans une heure",
+      UTC_time: "2026-07-15T09:00:00.000Z",
+      local_label: "dans une heure",
+      instruction_hint: "boire de l'eau",
+    }),
+  });
+  assertEquals(result.status, "success");
+  assertEquals(writtenRow?.scheduled_for, "2026-07-15T09:00:00.000Z");
+});
+
+// ── P12-B (nina-p10reval R1-B01) ─────────────────────────────────────────
+// Jours nommés dénombrables sans marqueur d'habitude classés recurring par le
+// dispatcher → requalification déterministe en fan-out once×N.
+
+Deno.test("P12-B: cardinality=recurring sur « jeudi et vendredi à 18h » → requalifié fan-out once×2, 2 lignes distinctes", async () => {
+  const written: any[] = [];
+  const message =
+    "tu peux me rappeler de récupérer le colis jeudi et vendredi à 18h ?";
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeSupabase({ onUpsert: (row) => written.push(row) }),
+    userId: "user-1",
+    message,
+    // Mercredi 15/07.
+    now: new Date("2026-07-15T08:00:00.000Z"),
+    userTimezone: "Europe/Paris",
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      cardinality: "recurring",
+      raw_text: "récupérer le colis jeudi et vendredi à 18h",
+      when_hint: "jeudi et vendredi à 18h",
+      instruction_hint: "récupérer le colis",
+    }),
+  });
+  assertEquals(result.status, "success");
+  assertEquals(
+    result.committed_effects.filter((e) =>
+      e.type === "create_one_shot_reminder"
+    ).length,
+    2,
+  );
+  assertEquals(
+    [...new Set(written.map((row) => row.scheduled_for))].sort(),
+    ["2026-07-16T16:00:00.000Z", "2026-07-17T16:00:00.000Z"],
+  );
+});
+
+Deno.test("P12-B anti-faux-positif: « tous les jeudis et vendredis à 18h » (marqueur d'habitude) reste bloqué recurring", async () => {
+  const written: any[] = [];
+  const message = "rappelle-moi tous les jeudis et vendredis à 18h le linge";
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeSupabase({ onUpsert: (row) => written.push(row) }),
+    userId: "user-1",
+    message,
+    now: new Date("2026-07-15T08:00:00.000Z"),
+    userTimezone: "Europe/Paris",
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      cardinality: "recurring",
+      raw_text: message,
+      when_hint: "tous les jeudis et vendredis à 18h",
+      instruction_hint: "étendre le linge",
+    }),
+  });
+  assertEquals(result.status, "blocked");
+  assertEquals(result.debug.reason_code, "recurring_not_supported");
+  assertEquals(written.length, 0);
+});
+
+Deno.test("P12-B anti-faux-positif: heure ambiguë (« à 8h » nu) → pas de requalification, blocage recurring honnête", async () => {
+  const written: any[] = [];
+  const message = "rappelle-moi le sport jeudi et vendredi à 8h";
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeSupabase({ onUpsert: (row) => written.push(row) }),
+    userId: "user-1",
+    message,
+    now: new Date("2026-07-15T08:00:00.000Z"),
+    userTimezone: "Europe/Paris",
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      cardinality: "recurring",
+      raw_text: message,
+      when_hint: "jeudi et vendredi à 8h",
+      instruction_hint: "faire le sport",
+    }),
+  });
+  assertEquals(result.status, "blocked");
+  assertEquals(written.length, 0);
+});
+
+Deno.test("P12-C: mass-cancel → une entrée committed PAR rappel annulé au ledger, labels par item (paul-p9reval R1-B01)", async () => {
+  const result = await maybeRunOneShotReminderDirectEffect({
+    supabase: fakeSupabase({}),
+    userId: "user-1",
+    message: "annule tous les rappels que je t'ai mis aujourd'hui",
+    now: new Date("2026-07-15T08:00:00.000Z"),
+    userTimezone: "Europe/Paris",
+    turnFrame: turnFrameWithDirectEffect("create_one_shot_reminder", {
+      intent: "cancel",
+      raw_text: "annule tous les rappels que je t'ai mis aujourd'hui",
+    }),
+    cancelReminder: (async () => ({
+      detected: true,
+      status: "cancelled",
+      cancelled_count: 3,
+      cancelled_local_labels: [
+        "aujourd'hui à 07:45",
+        "aujourd'hui à 08:00",
+        "aujourd'hui à 12:15",
+      ],
+      cancelled_ids: ["a", "b", "c"],
+      user_message: "annule tous les rappels que je t'ai mis aujourd'hui",
+      mass_scope: true,
+    })) as any,
+  });
+  assertEquals(result.status, "success");
+  const committedCancels = result.committed_effects.filter((effect) =>
+    effect.type === "cancel_one_shot_reminder"
+  );
+  // Cardinalité ledger = cardinalité DB (P7-B étendu au cancel de masse).
+  assertEquals(committedCancels.length, 3);
+  assertEquals(
+    committedCancels.map((effect: any) => effect.local_label),
+    ["aujourd'hui à 07:45", "aujourd'hui à 08:00", "aujourd'hui à 12:15"],
+  );
+  assertEquals(result.requested_effects.length, 3);
+  // Le rendu déterministe énumère toujours les N annulés.
+  assertEquals(
+    String(result.reply ?? "").includes("07:45") &&
+      String(result.reply ?? "").includes("12:15"),
     true,
   );
 });

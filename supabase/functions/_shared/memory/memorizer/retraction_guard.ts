@@ -7,6 +7,16 @@
 // memory_item — ni son contenu, ni sa négation narrative. Déterministe,
 // indépendant de la sortie LLM.
 //
+// P12-E (rose-hard25 R1-B02 — 4e observation): le CIBLAGE lit maintenant le
+// complément APRÈS le marqueur (« oublie ce que je t'ai dit sur la
+// natation ») — l'ancienne heuristique ne considérait que l'avant-marqueur
+// et retombait sur le message user précédent entier, c'est-à-dire le MAUVAIS
+// contenu (segment interdit faux au loader, item natation non droppé au
+// memorizer). Résolution en 3 temps: complément post-marqueur → préfixe
+// avant-marqueur → message précédent; le contenu rétracté est de plus
+// recherché sur TOUS les messages user antérieurs du lot (il peut être à N
+// tours de distance, « tout à l'heure »).
+//
 // Anti-FP encadrés :
 // - un échec RACONTÉ sans instruction d'oubli (« j'ai arrêté au bout de deux
 //   jours ») ne porte aucun marqueur → rien n'est filtré ;
@@ -49,6 +59,56 @@ function significantTokens(text: string): Set<string> {
   );
 }
 
+// P12-E (rose-hard25 R1-B02): tokens qui n'identifient JAMAIS le contenu
+// rétracté dans le complément post-marqueur — méta-langage de la rétractation
+// elle-même (« oublie ce que je viens de DIRE ») et anaphores temporelles
+// (« tout à l'HEURE », « HIER ») qui datent la confidence sans la nommer.
+const RETRACTION_COMPLEMENT_META = new Set([
+  "oublie",
+  "oublies",
+  "oublier",
+  "retiens",
+  "retienne",
+  "retiennes",
+  "garde",
+  "gardes",
+  "gardez",
+  "note",
+  "notes",
+  "noter",
+  "efface",
+  "effaces",
+  "laisse",
+  "laisses",
+  "tomber",
+  "dire",
+  "dits",
+  "dites",
+  "viens",
+  "prefere",
+  "preferes",
+  "retenir",
+  "propos",
+  "heure",
+  "hier",
+  "matin",
+  "tantot",
+  // Politesse — ne nomme jamais le contenu (« s'il te plaît », « merci »).
+  "plait",
+  "merci",
+]);
+
+/** Tokens de CONTENU du complément post-marqueur (ordre conservé) — vide si
+ * le complément est purement anaphorique (« oublie ça », « tout ça »). */
+function complementContentTokens(text: string): string[] {
+  return normalizeRetraction(text)
+    .split(/[^a-z0-9]+/)
+    .filter((token) =>
+      token.length >= 4 && !RETRACTION_STOPWORDS.has(token) &&
+      !RETRACTION_COMPLEMENT_META.has(token)
+    );
+}
+
 function tokensOverlapCount(a: Set<string>, b: Set<string>): number {
   const morphMatch = (x: string, y: string) => {
     if (x === y) return true;
@@ -69,10 +129,15 @@ function tokensOverlapCount(a: Set<string>, b: Set<string>): number {
 }
 
 /**
- * Segments de contenu RÉTRACTÉ du lot : pour chaque message user portant un
- * marqueur d'oubli, le texte AVANT le marqueur dans le même message ; si le
- * marqueur ouvre le message (< 25 caractères avant lui), la cible est le
- * message user PRÉCÉDENT entier (« oublie ça » seul renvoie au tour d'avant).
+ * Segments de contenu RÉTRACTÉ du lot — résolution en 3 temps (P12-E,
+ * rose-hard25 R1-B02) :
+ * 1. le complément APRÈS le marqueur (« oublie ce que je t'ai dit sur la
+ *    natation ») nomme la cible quand il porte des tokens de contenu ; dans
+ *    ce cas, tout message user ANTÉRIEUR du lot qui recouvre le complément
+ *    est rétracté lui aussi (le contenu peut être à N tours de distance) ;
+ * 2. sinon, le texte AVANT le marqueur dans le même message (≥ 25 chars) ;
+ * 3. sinon (« oublie ça » seul, complément purement anaphorique), le message
+ *    user PRÉCÉDENT entier — comportement d'origine conservé.
  */
 export function retractedContentSegments(
   messages: Pick<MemorizerMessage, "role" | "content">[],
@@ -87,11 +152,56 @@ export function retractedContentSegments(
     );
     const match = RETRACTION_MARKERS.exec(normalized);
     if (!match || typeof match.index !== "number") continue;
+    // 1) Complément post-marqueur, borné à la même proposition et tronqué
+    //    avant un éventuel marqueur SUIVANT (« ..., oublie ce que je viens de
+    //    dire, je préfère pas... » est du méta-langage, pas un complément).
+    const afterRaw = normalized.slice(match.index + match[0].length);
+    let clause = String(afterRaw.split(/[.!?;\n]/)[0] ?? "");
+    const nextMarker = RETRACTION_MARKERS.exec(clause);
+    if (nextMarker && typeof nextMarker.index === "number") {
+      clause = clause.slice(0, nextMarker.index);
+    }
+    // Le complément est la PREMIÈRE sous-proposition (virgules) portant des
+    // tokens de contenu — la traîne de rationale (« sur la natation, c'est
+    // mort ce projet ») ne dilue pas la cible et ne relève pas le seuil de
+    // matching au point de rater l'item rétracté.
+    let complement: string[] = [];
+    for (const part of clause.split(",")) {
+      const tokens = complementContentTokens(part);
+      if (tokens.length > 0) {
+        complement = tokens;
+        break;
+      }
+    }
+    if (complement.length > 0) {
+      segments.push(complement.join(" "));
+      // Le contenu rétracté peut être à N tours de distance (« oublie ce que
+      // je t'ai dit tout à l'heure sur X ») : chaque message user antérieur
+      // du lot qui recouvre le complément est un segment rétracté entier.
+      const complementTokens = new Set(complement);
+      for (let prior = 0; prior < index; prior += 1) {
+        const priorNormalized = normalizeRetraction(
+          String(userMessages[prior]?.content ?? ""),
+        );
+        if (!priorNormalized) continue;
+        const overlap = tokensOverlapCount(
+          significantTokens(priorNormalized),
+          complementTokens,
+        );
+        if (overlap >= Math.min(2, complementTokens.size)) {
+          segments.push(priorNormalized);
+        }
+      }
+      continue;
+    }
+    // 2) Préfixe avant-marqueur (comportement d'origine).
     const before = normalized.slice(0, match.index).trim();
     if (before.length >= 25) {
       segments.push(before);
       continue;
     }
+    // 3) Fallback message précédent — uniquement quand le complément est vide
+    //    ou purement anaphorique (« oublie ça », « laisse tomber tout ça »).
     const previous = String(userMessages[index - 1]?.content ?? "").trim();
     if (previous) segments.push(normalizeRetraction(previous));
     if (before) segments.push(before);
@@ -111,7 +221,7 @@ export type RetractionFilterDecision<T> = {
  * contenu qu'il raconte, il tombe avec lui.
  */
 export function filterRetractedMemoryItems<
-  T extends { content?: unknown },
+  T extends { content?: unknown; content_text?: unknown },
 >(
   items: T[],
   messages: Pick<MemorizerMessage, "role" | "content">[],
@@ -124,7 +234,14 @@ export function filterRetractedMemoryItems<
   const kept: T[] = [];
   const dropped: Array<{ item: T; reason: "retracted_in_batch" }> = [];
   for (const item of items) {
-    const itemTokens = significantTokens(String(item?.content ?? ""));
+    // P12-E (rose-hard25 R1-B02): le write-path réel (memorizer_async,
+    // dry_run) passe des ValidatedMemoryItem qui portent `content_text`, pas
+    // `content` — la lecture de `content` seul rendait le verrou INERTE sur
+    // ce chemin (0 ligne guards `retraction_dropped` au run réel, seule la
+    // write_policy LLM rattrapait). Les deux formes sont acceptées.
+    const itemTokens = significantTokens(
+      String(item?.content_text ?? item?.content ?? ""),
+    );
     const retracted = segmentTokenSets.some((segmentTokens) => {
       const threshold = Math.min(2, segmentTokens.size);
       return tokensOverlapCount(itemTokens, segmentTokens) >= threshold;

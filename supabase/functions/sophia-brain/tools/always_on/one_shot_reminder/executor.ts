@@ -176,12 +176,18 @@ async function createReminderFromEffect(args: {
     const writeClient = await getReminderWriteClient(args.supabase);
     const sourceMessageId = String(args.sourceMessageId ?? "").trim();
     if (sourceMessageId) {
+      // P12-A (nina-p10reval R1-B02): l'idempotence de RETRY matche le même
+      // payload — donc AUSSI le même instant. Sans le .eq(scheduled_for), le
+      // sibling « vendredi » d'un fan-out même-instruction récupérait la
+      // ligne « jeudi » du même message source et le ledger portait 2
+      // committed du même id (phantom: 1 ligne DB, 2 accusés).
       const { data: existing, error: existingError } = await writeClient
         .from("scheduled_checkins")
         .select("id,scheduled_for,event_context")
         .eq("user_id", args.userId)
         .eq("event_context", eventContext)
         .eq("status", "pending")
+        .eq("scheduled_for", scheduledFor)
         .eq("message_payload->>source_message_id", sourceMessageId)
         .limit(1)
         .maybeSingle();

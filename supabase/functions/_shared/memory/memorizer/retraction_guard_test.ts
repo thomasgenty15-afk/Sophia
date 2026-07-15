@@ -107,3 +107,137 @@ Deno.test("P10-D: segments — marqueur en milieu de message découpe avant lui"
   assertEquals(segments.length, 1);
   assertEquals(segments[0].includes("semi"), true);
 });
+
+Deno.test("P12-E: complément post-marqueur → cible = le complément, item ET récit d'abandon droppés (rose-hard25 R1-B02)", () => {
+  const messages = [
+    {
+      role: "user",
+      content:
+        "un truc à savoir sur moi: je veux me remettre à la natation, ça me manque vraiment.",
+    },
+    { role: "assistant", content: "C'est une belle envie 🌊" },
+    {
+      role: "user",
+      content:
+        "au fait, demain je fais ma sortie cartographie à 21h comme prévu.",
+    },
+    { role: "assistant", content: "Noté pour la carto !" },
+    {
+      role: "user",
+      content:
+        "Ah et en fait, oublie ce que je t'ai dit tout à l'heure sur la natation...",
+    },
+  ];
+  const items = [
+    // Forme write-path réelle: ValidatedMemoryItem porte content_text.
+    { content_text: "Veut se remettre à la natation" },
+    // Récit d'abandon (l'habillage observé au run réel).
+    {
+      content_text:
+        "L'utilisatrice a renoncé à son envie de se remettre à la natation",
+    },
+    // Autre sujet du même lot: survit (le fallback historique aurait ciblé
+    // ce message carto/21h — précisément le bug).
+    { content_text: "Fait une sortie cartographie le soir vers 21h" },
+  ];
+  const result = filterRetractedMemoryItems(items, messages);
+  assertEquals(result.dropped.length, 2);
+  assertEquals(
+    result.dropped.every((d) =>
+      String(d.item.content_text).includes("natation")
+    ),
+    true,
+  );
+  assertEquals(result.kept.length, 1);
+  assertEquals(
+    String(result.kept[0].content_text).includes("cartographie"),
+    true,
+  );
+});
+
+Deno.test("P12-E: contenu rétracté à 3 messages de distance → droppé (matching sur tous les user antérieurs)", () => {
+  const messages = [
+    {
+      role: "user",
+      content: "je veux me remettre à la natation à la rentrée.",
+    },
+    { role: "user", content: "sinon la carto avance bien." },
+    { role: "user", content: "et je dors mieux ces temps-ci." },
+    {
+      role: "user",
+      content: "oublie ce que je t'ai dit sur la natation s'il te plaît.",
+    },
+  ];
+  const segments = retractedContentSegments(messages);
+  // Le complément (« natation ») ET le message d'origine à 3 tours de
+  // distance sont des segments rétractés.
+  assertEquals(segments.some((s) => s === "natation"), true);
+  assertEquals(
+    segments.some((s) => s.includes("remettre a la natation")),
+    true,
+  );
+  const items = [
+    { content_text: "Veut se remettre à la natation à la rentrée" },
+    { content_text: "Dort mieux ces derniers temps" },
+  ];
+  const result = filterRetractedMemoryItems(items, messages);
+  assertEquals(result.dropped.length, 1);
+  assertEquals(
+    String(result.dropped[0].item.content_text).includes("natation"),
+    true,
+  );
+  assertEquals(result.kept.length, 1);
+});
+
+Deno.test("P12-E: « oublie ça » seul → fallback message précédent conservé (comportement d'origine)", () => {
+  const messages = [
+    {
+      role: "user",
+      content: "je prépare toujours mes affaires le dimanche soir.",
+    },
+    { role: "user", content: "oublie ça." },
+  ];
+  const segments = retractedContentSegments(messages);
+  assertEquals(segments.length, 1);
+  assertEquals(segments[0].includes("dimanche"), true);
+});
+
+Deno.test("P12-E anti-faux-positif: échec raconté SANS marqueur (« j'ai raté ma séance ») → rien n'est droppé", () => {
+  const messages = [
+    {
+      role: "user",
+      content: "j'ai raté ma séance de natation, c'est dur en ce moment.",
+    },
+  ];
+  const items = [
+    { content_text: "A raté sa séance de natation cette semaine" },
+  ];
+  const result = filterRetractedMemoryItems(items, messages);
+  assertEquals(result.dropped.length, 0);
+  assertEquals(result.kept.length, 1);
+});
+
+Deno.test("P12-E anti-faux-positif: rétractation ciblée ne droppe pas un item d'un AUTRE sujet du même message", () => {
+  const messages = [
+    {
+      role: "user",
+      content:
+        "retiens que je fais de la poterie le jeudi. par contre oublie ce que je t'ai dit sur la natation, c'est mort ce projet.",
+    },
+  ];
+  const items = [
+    { content_text: "Fait de la poterie le jeudi" },
+    { content_text: "Veut se remettre à la natation" },
+  ];
+  const result = filterRetractedMemoryItems(items, messages);
+  assertEquals(result.dropped.length, 1);
+  assertEquals(
+    String(result.dropped[0].item.content_text).includes("natation"),
+    true,
+  );
+  assertEquals(result.kept.length, 1);
+  assertEquals(
+    String(result.kept[0].content_text).includes("poterie"),
+    true,
+  );
+});

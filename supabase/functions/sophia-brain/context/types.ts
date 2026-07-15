@@ -107,10 +107,20 @@ export interface LoadedContext {
   recentEffectsSummary?: string;
   /**
    * P10-D (alex-hard24 R1-B05): segments explicitement rétractés en session
-   * (« oublie ça »), nommés au composeur avec l'interdit de restitution.
-   * Injecté de façon déterministe, sans dépendance LLM ni règle de prompt.
+   * (« oublie ça »), nommés au composeur avec l'interdit de restitution —
+   * renforcé P12-E (eva-hard25 R1-B05) en interdit de MENTION spontanée du
+   * topic. Injecté de façon déterministe, sans dépendance LLM ni règle de
+   * prompt.
    */
   retractedInSession?: string;
+  /**
+   * P12-E (alex-untested24 R1-B11): intentions mémoire explicites de la
+   * session (« garde ça en tête »), pas encore consolidées par le batch
+   * memorizer — servies au composeur pour qu'un récap in-session ne nie
+   * jamais un fait confié quelques minutes plus tôt. Les intentions
+   * rétractées en session sont exclues (croisement retraction_guard).
+   */
+  sessionMemoryIntents?: string;
 }
 
 /**

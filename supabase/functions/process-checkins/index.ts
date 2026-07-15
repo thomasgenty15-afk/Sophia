@@ -437,6 +437,56 @@ async function callWhatsappSend(payload: unknown) {
   }
 }
 
+// Re-run today's proactive provisioning for a single user. Called right after a
+// weekly plan is applied (auto-validation), because the daily provisioning cron
+// runs ~00:05 UTC — before the 07:00-local auto-validation — so the validation
+// day's action check-ins (notably the evening `action_evening_review_v2`) were
+// never created: `loadTodayActionOccurrences` only counts items whose week plan
+// is confirmed/auto_applied, which only becomes true here. The scheduler already
+// accepts a `user_id` filter and all its slot times are deterministic
+// (userId:localDate:slot hash) with idempotent upserts on
+// (user_id,event_context,scheduled_for), so re-invoking is safe and duplicate-free.
+// Best-effort: a failure here must never fail the auto-validation delivery.
+async function reprovisionActionCheckinsForUser(
+  userId: string,
+  requestId: string,
+): Promise<void> {
+  const secret = internalSecret();
+  if (!secret) {
+    console.warn(
+      `[process-checkins] request_id=${requestId} reprovision_skipped_missing_secret user_id=${userId}`,
+    );
+    return;
+  }
+  const url =
+    `${functionsBaseUrl()}/functions/v1/schedule-whatsapp-v2-checkins`;
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Internal-Secret": secret,
+      },
+      body: JSON.stringify({ user_id: userId }),
+    });
+    if (!res.ok) {
+      const data = await res.text().catch(() => "");
+      console.warn(
+        `[process-checkins] request_id=${requestId} reprovision_action_checkins_failed user_id=${userId} status=${res.status} body=${data}`,
+      );
+      return;
+    }
+    console.log(
+      `[process-checkins] request_id=${requestId} reprovision_action_checkins_ok user_id=${userId}`,
+    );
+  } catch (error) {
+    console.warn(
+      `[process-checkins] request_id=${requestId} reprovision_action_checkins_error user_id=${userId}`,
+      error,
+    );
+  }
+}
+
 function shouldRetryScheduledCheckinDelivery(
   status: number | null | undefined,
 ): boolean {
@@ -4307,6 +4357,16 @@ Deno.serve(async (req) => {
             });
             continue;
           }
+
+          // The week plan is now applied (auto_applied) — today's actions finally
+          // count as confirmed. The daily provisioning cron ran hours earlier
+          // (before this 07:00-local validation), so today's action check-ins,
+          // incl. the evening `action_evening_review_v2`, were skipped. Re-run
+          // today's provisioning for this user now (best-effort, idempotent).
+          await reprovisionActionCheckinsForUser(
+            String(checkin.user_id),
+            requestId,
+          );
 
           const autoBody = buildWeeklyPlanningAutoValidationMessage({
             summaryLines: confirmation.planning.summary_lines.length > 0

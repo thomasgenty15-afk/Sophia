@@ -17,6 +17,11 @@ import {
   localOneShotDirectEffectPromptLines,
   normalizeLocalOneShotDirectEffectRequest,
 } from "../../router/one_shot_local_direct_effect.ts";
+import { noteReconciliationPromptLines } from "../_shared/note_reconciliation.ts";
+import {
+  flowEntryWindow,
+  RECENT_MESSAGE_LIMITS,
+} from "../../context/recent_messages_policy.ts";
 import type {
   FeatureOpportunityConversationContext,
   FeatureOpportunityFlowAction,
@@ -56,6 +61,8 @@ export type FeatureOpportunityLocalDispatcherInput = {
   previous_state: FeatureOpportunityLocalState | null;
   inbound_note_information?: NoteInformation | null;
   turn_frame?: unknown;
+  /** Vrai au tout premier tour possédé par ce flow (aucun état persisté). */
+  is_flow_entry?: boolean;
   dispatcher_signal_context: FeatureOpportunityLocalState[
     "dispatcher_signal_context"
   ];
@@ -458,8 +465,16 @@ export function reduceFeatureOpportunityLocalDispatcherOutput(args: {
 }
 
 export function dispatcherPrompt(input: FeatureOpportunityLocalDispatcherInput) {
+  const conversationWindow = flowEntryWindow({
+    recent_messages: input.recent_messages,
+    user_message: input.user_message,
+    is_cold_entry: input.is_flow_entry === true,
+    continuation_limit: RECENT_MESSAGE_LIMITS.subskillHistory,
+  });
   return [
     "Tu es le dispatcher local du skill feature_opportunity.",
+    ...conversationWindow.framing,
+    ...noteReconciliationPromptLines(),
     "Retourne uniquement le JSON demande. Ne reponds pas au user.",
     "Ce flow detecte une opportunite produit non-coaching: initiatives ou coach_preferences.",
     "Ce flow ne cree rien, ne modifie rien, ne programme rien, ne sauvegarde rien et n'appelle aucun executor.",
@@ -486,7 +501,7 @@ export function dispatcherPrompt(input: FeatureOpportunityLocalDispatcherInput) 
     'Example JSON direct_effect_request feature - rappel + formulation dans le meme tour: user="Oui, et rappelle-moi dans 31 minutes de noter cette idee dans Initiatives pendant que tu m aides a la formuler." => inclure obligatoirement {"flow_action":"answer_followup","direct_effect_request":{"requested":true,"effect_type":"create_one_shot_reminder","explicitness":"explicit","target_status":"identified","confidence_band":"high","payload_hint":{"raw_text":"rappelle-moi dans 31 minutes de noter cette idee dans Initiatives","when_hint":"dans 31 minutes","UTC_time":"instant ISO UTC calcule depuis platform_context.direct_effect_time_context","local_label":"dans 31 minutes","instruction_hint":"noter cette idee dans Initiatives"},"reason":"rappel ponctuel explicite avec delai exploitable"},"visible_task":{"kind":"answer_followup","instruction":"aider a formuler l opportunite restante, sans confirmer le rappel avant commit"}}.',
     JSON.stringify({
       current_user_message: input.user_message,
-      recent_messages: input.recent_messages.slice(-8),
+      recent_messages: conversationWindow.messages,
       previous_state: input.previous_state,
       dispatcher_signal_context: input.dispatcher_signal_context,
       inbound_note_information: input.inbound_note_information ?? null,

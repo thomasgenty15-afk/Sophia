@@ -73,6 +73,11 @@ export const WHATSAPP_TEMPLATE_CATALOG: Record<
       "C’est confirmé ✅\nTon abonnement Sophia est bien activé.\n\nJe suis contente de te retrouver ici.",
     buttons: [],
   },
+  plan_activated_v1: {
+    name: "plan_activated_v1",
+    body: "Ça y est {{1}}, ton plan est validé et lancé ! 🎉",
+    buttons: [],
+  },
   sophia_bilan_weekly_v1: {
     name: "sophia_bilan_weekly_v1",
     body:
@@ -140,6 +145,17 @@ export const WHATSAPP_TEMPLATE_CATALOG: Record<
     body:
       "Hello {{1}}, c’est Sophia.\nPrêt pour devenir la meilleure version de toi-même ? 👊",
     buttons: ["Absolument !", "Euh.. Mauvais numéro !"],
+  },
+  // Opt-in winback touch 2: sent to users who received the opt-in template but
+  // never crossed the WhatsApp threshold. {{1}} = first name. Provisional copy —
+  // the founder can adjust before Meta approval.
+  sophia_optin_winback_v2: {
+    name: "sophia_optin_winback_v2",
+    body:
+      "Hello {{1}} 👋 C’est Sophia. Je m’assure juste d’écrire au bon numéro avant de t’accompagner — c’est bien le tien ?",
+    // "C'est bien moi !" => recognized as opt-in-yes in the webhook (same path as
+    // "Absolument !"); "Mauvais numéro !" => handleWrongNumber (no opt-in).
+    buttons: ["C'est bien moi !", "Euh.. Mauvais numéro !"],
   },
 };
 

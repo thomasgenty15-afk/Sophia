@@ -1185,3 +1185,53 @@ Deno.test("dispatcher prompt: clause produit desambiguise « tout arreter / supp
     true,
   );
 });
+
+Deno.test("dispatcher prompt: jours nommes denombrables = fan-out once×N, jamais recurring (P12-B, nina-p10reval R1-B01)", () => {
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "DISTINCTION JOURS NOMMES (nina-p10reval R1-B01",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "UN create_one_shot_reminder PAR jour nomme",
+    ),
+    true,
+  );
+  // Anti-faux-positif ancre: le marqueur d'habitude garde la recurrence.
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "'TOUS les jeudis et vendredis a 18h' reste recurring",
+    ),
+    true,
+  );
+});
+
+Deno.test("dispatcher prompt: co-demande track N items — 2e exemple invalide eva-hard25 + test mecanique (P12-B)", () => {
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes("2e INVALIDE observe (eva-hard25 T2"),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "compte les items du plan que le message coche, emets exactement ce nombre d'entrees",
+    ),
+    true,
+  );
+});
+
+Deno.test("dispatcher prompt: mention incidente d'un rappel existant = aucun effet (P12-B, eva-hard25 R1-B07)", () => {
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "MENTION INCIDENTE D'UN RAPPEL EXISTANT (eva-hard25 R1-B07",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "jamais infere d'une mention",
+    ),
+    true,
+  );
+});

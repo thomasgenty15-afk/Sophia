@@ -69,7 +69,20 @@ export function isTrackProgressFutureIntent(message: string): boolean {
   const normalized = normalizeIntentText(message);
   if (!normalized) return false;
   if (containsAnyPhrase(normalized, completedProgressPhrases)) return false;
-  return containsAnyPhrase(normalized, futureProgressPhrases);
+  if (containsAnyPhrase(normalized, futureProgressPhrases)) return true;
+  // P12-F (rose-hard25 R1-B01): la liste verbatim ratait « je vais TESTER ce
+  // soir » (committé partial daté du jour, jamais annoncé) — leçon P10 : un
+  // motif strict rate ses variantes naturelles, on matche par STRUCTURE.
+  // Semi-auxiliaire de futur (je vais/compte/prévois/pense/dois/devrais)
+  // + clitiques optionnels + VERBE À L'INFINITIF (morphologie -er/-ir/-re/
+  // -oir) = intention non réalisée, jamais un report. Le passé composé
+  // (completedProgressPhrases ci-dessus) désarme — « j'ai fait » prime.
+  const structuralFuture =
+    / (je |j )(vais|compte|prevois|pense|dois|devrais)( bien| encore| juste)?( le| la| les| l| m y| y| en| me| m)* [a-z]{2,}(er|ir|re|oir) /
+      .test(normalized);
+  // « on verra si ça tient » / « on verra ce soir » = projection, pas un fait.
+  const onVerra = / on verra (si|ce|demain|ca) /.test(normalized);
+  return structuralFuture || onVerra;
 }
 
 function normalizeIntentText(value: string): string {

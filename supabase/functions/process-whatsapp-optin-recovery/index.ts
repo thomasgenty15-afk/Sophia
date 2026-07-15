@@ -3,11 +3,10 @@ import { createClient } from "jsr:@supabase/supabase-js@2.87.3"
 import { ensureInternalRequest } from "../_shared/internal-auth.ts"
 import { logEdgeFunctionError } from "../_shared/error-log.ts"
 import { sendResendEmail } from "../_shared/resend.ts"
+import { decideNextOptinWinbackTouch, type OptinWinbackTouch } from "./optin_winback.ts"
 
 const DEFAULT_LIMIT = 50
 const MAX_LIMIT = 500
-const FAIL_GRACE_MS = 3 * 60 * 1000
-const EMAIL_COOLDOWN_MS = 24 * 60 * 60 * 1000
 
 function clampInt(n: unknown, fallback: number, min: number, max: number): number {
   const v = Number(n)
@@ -19,6 +18,12 @@ function firstNameFromFullName(fullName: unknown): string {
   const s = String(fullName ?? "").trim()
   if (!s) return ""
   return s.split(/\s+/g)[0] ?? ""
+}
+
+function toMs(value: unknown): number | null {
+  if (!value) return null
+  const t = new Date(String(value)).getTime()
+  return Number.isFinite(t) ? t : null
 }
 
 async function getTargetEmail(admin: ReturnType<typeof createClient>, userId: string, profileEmail?: string | null): Promise<string> {
@@ -34,6 +39,20 @@ function htmlEscape(raw: string): string {
   )
 }
 
+// Internal service-to-service wiring (identical to the rest of the codebase).
+function internalFunctionSecret(): string {
+  return (Deno.env.get("INTERNAL_FUNCTION_SECRET")?.trim() ||
+    Deno.env.get("SECRET_KEY")?.trim() || "")
+}
+
+function functionsBaseUrl(): string {
+  const supabaseUrl = (Deno.env.get("SUPABASE_URL") ?? "").trim()
+  if (!supabaseUrl) return "http://kong:8000"
+  if (supabaseUrl.includes("http://kong:8000")) return "http://kong:8000"
+  return supabaseUrl.replace(/\/+$/, "")
+}
+
+// Touch 1 — first email. Gentle, deep-links straight into WhatsApp one-tap.
 function buildRecoveryEmail(opts: {
   firstName: string
   whatsappLink: string
@@ -78,6 +97,105 @@ function buildRecoveryEmail(opts: {
   return { subject, html }
 }
 
+// Touch 3 — final email. Soft, never guilt-tripping, and explicitly takes its
+// leave ("je te laisse tranquille après ça"). Same one-tap WhatsApp deep-link.
+function buildFinalRecoveryEmail(opts: {
+  firstName: string
+  whatsappLink: string
+  whatsappNumberE164: string
+  supportEmail: string
+}): { subject: string; html: string } {
+  const name = opts.firstName ? ` ${opts.firstName}` : ""
+  const subject = `Un dernier mot, et je te laisse tranquille 🙂`
+  const html = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; color:#0f172a; line-height:1.7; max-width:640px; margin:0 auto;">
+      <p style="margin:0 0 14px;">Hello${htmlEscape(name)},</p>
+
+      <p style="margin:0 0 14px;">
+        Tu t’es inscrit·e sur Sophia, et j’aurais adoré t’accompagner sur WhatsApp — mais je n’ai jamais reçu ton premier message, donc je n’ai pas pu t’écrire.
+      </p>
+
+      <p style="margin:0 0 14px;">
+        Aucun souci, chacun son rythme. C’est mon dernier message à ce sujet, <strong>je te laisse tranquille après ça</strong>. La porte reste grande ouverte quand tu veux.
+      </p>
+
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:14px 16px; margin:16px 0;">
+        <p style="margin:0;">
+          Si l’envie te reprend, il te suffit d’un petit message sur WhatsApp (n’importe lequel) et on démarre ensemble.
+        </p>
+      </div>
+
+      <p style="margin: 18px 0;">
+        <a href="${opts.whatsappLink}" style="display:inline-block; background:#111827; color:#ffffff; padding:12px 18px; border-radius:10px; text-decoration:none; font-weight:700;">
+          Ouvrir WhatsApp et m’écrire
+        </a>
+      </p>
+
+      <p style="margin:0 0 14px;">
+        Le numéro de Sophia : <strong>${htmlEscape(opts.whatsappNumberE164)}</strong>
+      </p>
+
+      <p style="margin:0 0 14px; color:#475569; font-size:13px;">
+        Une question ? Réponds simplement à cet email ou écris-nous à <strong>${htmlEscape(opts.supportEmail)}</strong>.
+      </p>
+
+      <p style="margin:18px 0 6px;">Prends soin de toi,</p>
+      <p style="margin:0;"><strong>Sophia</strong></p>
+    </div>
+  `
+  return { subject, html }
+}
+
+// Touch 2 — WhatsApp template. The user is NOT opted in, so require_opted_in is
+// false (same as the initial opt-in template): whatsapp-send is allowed to send
+// the very first template out-of-window. Best-effort: a failure is logged and
+// the caller does NOT advance the touch timestamp so it retries next cron pass.
+async function sendWinbackTemplate(args: {
+  userId: string
+  firstName: string
+}): Promise<{ ok: boolean; status: number; error?: string; skipped?: boolean }> {
+  const secret = internalFunctionSecret()
+  if (!secret) {
+    return { ok: false, status: 0, error: "missing_internal_secret" }
+  }
+  const payload = {
+    user_id: args.userId,
+    message: {
+      type: "template" as const,
+      name: "sophia_optin_winback_v2",
+      language: "fr",
+      components: [
+        {
+          type: "body",
+          parameters: [{ type: "text", text: args.firstName || "!" }],
+        },
+      ],
+    },
+    purpose: "optin_winback",
+    // The user has NOT opted in yet — bypass the opt-in requirement exactly like
+    // the initial opt-in template does.
+    require_opted_in: false,
+    metadata_extra: { kind: "optin_winback_touch2" },
+  }
+  try {
+    const res = await fetch(`${functionsBaseUrl()}/functions/v1/whatsapp-send`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Internal-Secret": secret,
+      },
+      body: JSON.stringify(payload),
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) {
+      return { ok: false, status: res.status, error: (data as any)?.error ?? "whatsapp_send_failed" }
+    }
+    return { ok: true, status: res.status, skipped: Boolean((data as any)?.skipped) }
+  } catch (error) {
+    return { ok: false, status: 0, error: (error as any)?.message ?? String(error) }
+  }
+}
+
 Deno.serve(async (req) => {
   const requestId = req.headers.get("x-request-id") ?? crypto.randomUUID()
   try {
@@ -87,8 +205,6 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}))
     const limit = clampInt(body?.limit, DEFAULT_LIMIT, 1, MAX_LIMIT)
     const forceUserIdRaw = String(body?.user_id ?? body?.userId ?? "").trim()
-    const force = Boolean(body?.force)
-    const isTargeted = Boolean(forceUserIdRaw)
 
     const url = Deno.env.get("SUPABASE_URL") ?? ""
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
@@ -104,38 +220,37 @@ Deno.serve(async (req) => {
     })
 
     const now = Date.now()
-    const olderThanIso = new Date(now - FAIL_GRACE_MS).toISOString()
 
-    // If user_id is provided, run in targeted mode (debug/manual send).
-    // Otherwise scan failed opt-in template sends older than grace window.
-    const byUser = new Map<string, any>()
+    // Targeting: "opt-in sent but never confirmed".
+    //   whatsapp_opted_in = false
+    //   whatsapp_optin_sent_at IS NOT NULL
+    //   whatsapp_opted_out_at IS NULL
+    //   phone_invalid = false
+    //   account_status != 'deletion_pending'
+    // In targeted mode (user_id provided), a single profile is processed for
+    // manual/debug runs; the same eligibility guards still apply per-row below.
+    const profiles: any[] = []
     if (forceUserIdRaw) {
-      byUser.set(forceUserIdRaw, {
-        id: null,
-        provider_message_id: null,
-        last_error_code: "manual",
-        last_error_message: "manual_trigger",
-      })
+      const { data: prof, error: profErr } = await admin
+        .from("profiles")
+        .select("id,full_name,email,phone_invalid,whatsapp_opted_in,whatsapp_opted_out_at,whatsapp_optin_sent_at,account_status")
+        .eq("id", forceUserIdRaw)
+        .maybeSingle()
+      if (profErr) throw profErr
+      if (prof) profiles.push(prof)
     } else {
-      const { data: failed, error: failedErr } = await admin
-        .from("whatsapp_outbound_messages")
-        .select("id,created_at,user_id,to_e164,provider_message_id,last_error_code,last_error_message,metadata")
-        .eq("status", "failed")
-        .not("user_id", "is", null)
-        .lte("created_at", olderThanIso)
-        .filter("metadata->>purpose", "eq", "optin")
-        .order("created_at", { ascending: false })
+      const { data: rows, error: scanErr } = await admin
+        .from("profiles")
+        .select("id,full_name,email,phone_invalid,whatsapp_opted_in,whatsapp_opted_out_at,whatsapp_optin_sent_at,account_status")
+        .eq("whatsapp_opted_in", false)
+        .eq("phone_invalid", false)
+        .not("whatsapp_optin_sent_at", "is", null)
+        .is("whatsapp_opted_out_at", null)
+        .neq("account_status", "deletion_pending")
+        .order("whatsapp_optin_sent_at", { ascending: true })
         .limit(limit)
-
-      if (failedErr) throw failedErr
-
-      const rows = Array.isArray(failed) ? failed : []
-      // De-dupe: pick latest per user.
-      for (const r of rows) {
-        const uid = String((r as any)?.user_id ?? "")
-        if (!uid) continue
-        if (!byUser.has(uid)) byUser.set(uid, r)
-      }
+      if (scanErr) throw scanErr
+      if (Array.isArray(rows)) profiles.push(...rows)
     }
 
     // Keep support email stable for UX (avoid accidental overrides via generic env vars).
@@ -146,125 +261,153 @@ Deno.serve(async (req) => {
     const waLink = `https://wa.me/${waNumberDigits}?text=${encodeURIComponent("ping")}`
 
     let considered = 0
-    let emailed = 0
+    let touched = 0
     let skipped = 0
+    let resolved = 0
+    let cancelled = 0
+    const touchCounts: Record<string, number> = { touch1: 0, touch2: 0, touch3: 0 }
 
-    for (const [userId, job] of byUser.entries()) {
+    for (const profile of profiles) {
       considered += 1
-
-      const { data: profile, error: profErr } = await admin
-        .from("profiles")
-        .select("id,full_name,email,phone_invalid,whatsapp_opted_in,whatsapp_opted_out_at,account_status")
-        .eq("id", userId)
-        .maybeSingle()
-      if (profErr) throw profErr
-      if (!profile) {
-        skipped += 1
-        continue
-      }
-      // RGPD: accounts pending deletion are excluded from all proactive processing.
-      if ((profile as any).account_status === "deletion_pending") {
-        console.log(`[process-whatsapp-optin-recovery] skip user ${userId}: account deletion_pending`)
-        skipped += 1
-        continue
-      }
-      if ((profile as any).phone_invalid) {
-        skipped += 1
-        continue
-      }
-      if (Boolean((profile as any).whatsapp_opted_in)) {
-        skipped += 1
-        continue
-      }
-      if ((profile as any).whatsapp_opted_out_at) {
+      const userId = String((profile as any)?.id ?? "")
+      if (!userId) {
         skipped += 1
         continue
       }
 
       const nowIso = new Date().toISOString()
-      // Targeted + force mode is used for manual/debug email sending.
-      // In that mode, avoid hard dependency on the `whatsapp_optin_recovery` table
-      // (useful when testing before DB migrations are applied).
-      let recoveryStatus = ""
-      let lastEmailSentAt = 0
-      if (!isTargeted || !force) {
-        // Read recovery state first (do NOT overwrite resolved/cancelled).
-        const { data: rec, error: recErr } = await admin
-          .from("whatsapp_optin_recovery")
-          .select("status,email_sent_at")
-          .eq("user_id", userId)
-          .maybeSingle()
-        if (recErr) throw recErr
 
-        recoveryStatus = String((rec as any)?.status ?? "")
-        if (!force && recoveryStatus && recoveryStatus !== "pending") {
-          skipped += 1
-          continue
-        }
+      // Stop conditions (guards mirror the scan, but stay authoritative here so
+      // targeted mode and races are handled).
+      const optedIn = Boolean((profile as any).whatsapp_opted_in)
+      const cancelReason =
+        (profile as any).account_status === "deletion_pending" ? "deletion_pending"
+          : (profile as any).phone_invalid ? "phone_invalid"
+          : (profile as any).whatsapp_opted_out_at ? "opted_out"
+          : ""
 
-        // Ensure recovery row exists / stays pending (do NOT resolve here).
-        if (!recoveryStatus) {
-          await admin.from("whatsapp_optin_recovery").insert({
+      // Read current recovery state (may not exist yet). PK is user_id.
+      const { data: rec, error: recErr } = await admin
+        .from("whatsapp_optin_recovery")
+        .select("status,first_detected_at,email_sent_at,touch1_email_sent_at,touch2_whatsapp_sent_at,touch3_email_sent_at")
+        .eq("user_id", userId)
+        .maybeSingle()
+      if (recErr) throw recErr
+
+      const recStatus = String((rec as any)?.status ?? "")
+
+      // Validated stop condition: opted in => resolved, no further touch.
+      if (optedIn) {
+        if (recStatus !== "resolved") {
+          await admin.from("whatsapp_optin_recovery").upsert({
             user_id: userId,
-            status: "pending",
-            provider_message_id: (job as any)?.provider_message_id ?? null,
-            error_code: (job as any)?.last_error_code ?? null,
-            error_message: (job as any)?.last_error_message ?? null,
-            first_detected_at: nowIso,
+            status: "resolved",
+            resolved_at: nowIso,
             updated_at: nowIso,
-          } as any)
-        } else if (recoveryStatus === "pending" || force) {
-          await admin.from("whatsapp_optin_recovery").update({
-            // Keep status as-is unless forcing.
-            ...(force ? { status: "pending" } : {}),
-            provider_message_id: (job as any)?.provider_message_id ?? null,
-            error_code: (job as any)?.last_error_code ?? null,
-            error_message: (job as any)?.last_error_message ?? null,
-            updated_at: nowIso,
-          } as any).eq("user_id", userId)
+          } as any, { onConflict: "user_id" })
         }
-
-        lastEmailSentAt = (rec as any)?.email_sent_at ? new Date((rec as any).email_sent_at).getTime() : 0
-        if (lastEmailSentAt && (now - lastEmailSentAt) < EMAIL_COOLDOWN_MS) {
-          skipped += 1
-          continue
-        }
+        resolved += 1
+        continue
       }
 
-      // Metrics: signal that opt-in template was not delivered.
-      const { count: alreadyFlag } = await admin
-        .from("communication_logs")
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", userId)
-        .eq("type", "whatsapp_optin_v2_delivery_failed")
-        .limit(1)
-      if ((alreadyFlag ?? 0) === 0) {
-        await admin.from("communication_logs").insert({
+      // opted_out / deletion_pending / phone invalid => cancelled.
+      if (cancelReason) {
+        if (recStatus !== "cancelled") {
+          await admin.from("whatsapp_optin_recovery").upsert({
+            user_id: userId,
+            status: "cancelled",
+            error_code: cancelReason,
+            updated_at: nowIso,
+          } as any, { onConflict: "user_id" })
+        }
+        cancelled += 1
+        continue
+      }
+
+      // A terminal row must not be reactivated.
+      if (recStatus === "resolved" || recStatus === "cancelled") {
+        skipped += 1
+        continue
+      }
+
+      // Ensure a pending row exists so touch timestamps have a home.
+      if (!recStatus) {
+        await admin.from("whatsapp_optin_recovery").insert({
           user_id: userId,
-          channel: "whatsapp",
-          type: "whatsapp_optin_v2_delivery_failed",
-          status: "failed",
-          metadata: {
-            outbound_id: (job as any)?.id ?? null,
-            provider_message_id: (job as any)?.provider_message_id ?? null,
-            error_code: (job as any)?.last_error_code ?? null,
-            error_message: (job as any)?.last_error_message ?? null,
-          },
+          status: "pending",
+          first_detected_at: nowIso,
+          updated_at: nowIso,
         } as any)
       }
 
+      // Anchor: profiles.whatsapp_optin_sent_at, else recovery.first_detected_at.
+      const anchorAt = toMs((profile as any).whatsapp_optin_sent_at) ??
+        toMs((rec as any)?.first_detected_at) ??
+        now
+
+      // touch1: prefer the new column, but treat the legacy email_sent_at as
+      // touch 1 too, so users who already got the old single email are not
+      // re-emailed after the migration.
+      const touch1SentAt = toMs((rec as any)?.touch1_email_sent_at) ??
+        toMs((rec as any)?.email_sent_at)
+      const touch2SentAt = toMs((rec as any)?.touch2_whatsapp_sent_at)
+      const touch3SentAt = toMs((rec as any)?.touch3_email_sent_at)
+
+      const decision: OptinWinbackTouch = decideNextOptinWinbackTouch({
+        anchorAt,
+        now,
+        touch1SentAt,
+        touch2SentAt,
+        touch3SentAt,
+        optedIn: false,
+      })
+
+      if (decision === "none" || decision === "resolved") {
+        skipped += 1
+        continue
+      }
+
+      const firstName = firstNameFromFullName((profile as any)?.full_name)
+
+      // ---- Touch 2 — WhatsApp template ------------------------------------
+      if (decision === "touch2") {
+        const out = await sendWinbackTemplate({ userId, firstName })
+        await admin.from("communication_logs").insert({
+          user_id: userId,
+          channel: "whatsapp",
+          type: "whatsapp_optin_winback_touch2",
+          status: out.ok ? "sent" : "failed",
+          metadata: out.ok
+            ? { skipped: Boolean(out.skipped) }
+            : { error: out.error ?? "unknown", http_status: out.status },
+        } as any)
+
+        if (!out.ok) {
+          // Best-effort: do NOT advance the timestamp, retry next pass.
+          console.error(`[process-whatsapp-optin-recovery] touch2 send failed user=${userId}: ${out.error}`)
+          skipped += 1
+          continue
+        }
+
+        await admin.from("whatsapp_optin_recovery").update({
+          touch2_whatsapp_sent_at: nowIso,
+          updated_at: nowIso,
+        } as any).eq("user_id", userId)
+        touched += 1
+        touchCounts.touch2 += 1
+        continue
+      }
+
+      // ---- Touch 1 / Touch 3 — email --------------------------------------
       const targetEmail = await getTargetEmail(admin, userId, (profile as any)?.email ?? null)
       if (!targetEmail) {
         skipped += 1
         continue
       }
 
-      const { subject, html } = buildRecoveryEmail({
-        firstName: firstNameFromFullName((profile as any)?.full_name),
-        whatsappLink: waLink,
-        whatsappNumberE164: waNumberE164,
-        supportEmail,
-      })
+      const { subject, html } = decision === "touch3"
+        ? buildFinalRecoveryEmail({ firstName, whatsappLink: waLink, whatsappNumberE164: waNumberE164, supportEmail })
+        : buildRecoveryEmail({ firstName, whatsappLink: waLink, whatsappNumberE164: waNumberE164, supportEmail })
 
       const out = await sendResendEmail({
         to: targetEmail,
@@ -274,11 +417,12 @@ Deno.serve(async (req) => {
         maxAttempts: 6,
       })
 
-      // Always write logs / state even if send is skipped in MEGA_TEST_MODE.
       await admin.from("communication_logs").insert({
         user_id: userId,
         channel: "email",
-        type: "whatsapp_optin_recovery_email",
+        type: decision === "touch3"
+          ? "whatsapp_optin_winback_touch3"
+          : "whatsapp_optin_winback_touch1",
         status: out.ok ? "sent" : "failed",
         metadata: out.ok
           ? { resend_id: (out as any).data?.id ?? null, skipped: Boolean((out as any).skipped) }
@@ -286,25 +430,38 @@ Deno.serve(async (req) => {
       } as any)
 
       if (!out.ok) {
+        // Best-effort: do NOT advance the timestamp, retry next pass.
         skipped += 1
         continue
       }
 
-      emailed += 1
-      if (!isTargeted || !force) {
+      if (decision === "touch3") {
         await admin.from("whatsapp_optin_recovery").update({
+          touch3_email_sent_at: nowIso,
+          updated_at: nowIso,
+        } as any).eq("user_id", userId)
+        touchCounts.touch3 += 1
+      } else {
+        // Keep the legacy email_sent_at column in sync for backward-compat.
+        await admin.from("whatsapp_optin_recovery").update({
+          touch1_email_sent_at: nowIso,
           email_sent_at: nowIso,
           updated_at: nowIso,
         } as any).eq("user_id", userId)
+        touchCounts.touch1 += 1
       }
+      touched += 1
     }
 
     return new Response(JSON.stringify({
       ok: true,
       considered,
-      emailed,
+      touched,
       skipped,
-      scanned: forceUserIdRaw ? 1 : byUser.size,
+      resolved,
+      cancelled,
+      touches: touchCounts,
+      scanned: profiles.length,
       request_id: requestId,
     }), { headers: { "Content-Type": "application/json" } })
   } catch (error) {
@@ -322,5 +479,3 @@ Deno.serve(async (req) => {
     })
   }
 })
-
-

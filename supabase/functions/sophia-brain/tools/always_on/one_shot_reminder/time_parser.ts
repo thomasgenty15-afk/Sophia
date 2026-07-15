@@ -496,6 +496,32 @@ function parseRelativeTime(message: string, now: Date): ParsedTime | null {
   };
 }
 
+/**
+ * P12-A: index getUTCDay (dimanche=0) de l'UNIQUE jour de semaine nommé du
+ * texte — null si zéro ou plusieurs jours (le fan-out multi-jours se résout
+ * PAR ITEM, jamais sur le texte combiné), ou si un marqueur d'habitude
+ * l'accompagne (« tous les vendredis » = récurrent, hors-scope).
+ */
+function singleNamedWeekday(normalizedText: string): number | null {
+  if (/\b(tous?|toutes?|chaque)\b/.test(normalizedText)) return null;
+  const indexByName: Record<string, number> = {
+    dimanche: 0,
+    lundi: 1,
+    mardi: 2,
+    mercredi: 3,
+    jeudi: 4,
+    vendredi: 5,
+    samedi: 6,
+  };
+  const matches = [
+    ...normalizedText.matchAll(
+      /\b(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)\b/g,
+    ),
+  ];
+  const distinct = [...new Set(matches.map((match) => match[1]))];
+  return distinct.length === 1 ? indexByName[distinct[0]] ?? null : null;
+}
+
 function parseAbsoluteOrLocalTime(args: {
   message: string;
   timezone: string;
@@ -548,6 +574,36 @@ function parseAbsoluteOrLocalTime(args: {
       ({ year, month, day } = civilDateAddDays(year, month, day, 1));
     } else if (/\baujourd hui|aujourd'hui\b/.test(text)) {
       dayOffset = 0;
+    } else if (singleNamedWeekday(text)) {
+      // P12-A (nina-p10reval R1-B02): un jour de semaine NOMMÉ nu
+      // (« vendredi à 18h ») se résout nativement à sa PROCHAINE occurrence
+      // civile — avant ce trou, le parseur ancrait aujourd'hui et restait
+      // muet sur les when_hint isolés du fan-out (l'UTC LLM faux d'un item
+      // survivait → phantom). Deux jours nommés ou un marqueur d'habitude
+      // restent hors-scope (hasRecurringCadenceHint filtre en amont).
+      const targetWeekday = singleNamedWeekday(text)!;
+      const currentWeekday =
+        new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+      let daysAhead = (targetWeekday - currentWeekday + 7) % 7;
+      if (daysAhead === 0) {
+        const [hhRaw, mmRaw] = hhmm.split(":").map(Number);
+        const sameDayIso = localCivilToUtcIso({
+          timezone: args.timezone,
+          year,
+          month,
+          day,
+          hour: hhRaw,
+          minute: mmRaw,
+        });
+        if (
+          !sameDayIso ||
+          new Date(sameDayIso).getTime() <= now.getTime() + 30_000
+        ) {
+          daysAhead = 7;
+        }
+      }
+      dayOffset = daysAhead;
+      ({ year, month, day } = civilDateAddDays(year, month, day, daysAhead));
     } else {
       const [hhRaw, mmRaw] = hhmm.split(":").map(Number);
       const todayIso = localCivilToUtcIso({

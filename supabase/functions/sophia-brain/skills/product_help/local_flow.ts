@@ -32,6 +32,11 @@ import {
   localOneShotDirectEffectPromptLines,
   normalizeLocalOneShotDirectEffectRequest,
 } from "../../router/one_shot_local_direct_effect.ts";
+import { noteReconciliationPromptLines } from "../_shared/note_reconciliation.ts";
+import {
+  flowEntryWindow,
+  RECENT_MESSAGE_LIMITS,
+} from "../../context/recent_messages_policy.ts";
 
 export const PRODUCT_HELP_EXIT_MEMO_KEY = "__last_product_help_exit_memo";
 
@@ -40,6 +45,8 @@ export type ProductHelpLocalDispatcherInput = {
   request_id?: string | null;
   user_message: string;
   recent_messages: Array<{ role: "user" | "assistant"; content: string }>;
+  /** Vrai au tout premier tour possédé par ce flow (aucun état persisté). */
+  is_flow_entry?: boolean;
   product_help_state: ProductHelpLocalFlowState | null;
   parent_flow_context: Record<string, unknown> | null;
   catalog_candidates: ProductHelpFeature[];
@@ -1419,9 +1426,13 @@ export function reduceProductHelpLocalDispatcherOutput(args: {
   };
 }
 
-function dispatcherSystemPrompt(): string {
+function dispatcherSystemPrompt(coldEntryFraming: string[] = []): string {
   return [
     "Tu es le dispatcher local structure du skill product_help.",
+    ...coldEntryFraming,
+    ...noteReconciliationPromptLines(
+      "corrige la cible dans target et conversation_context, ou quitte vers global avec note_information si le message courant sort du perimetre product_help",
+    ),
     "Tu ne reponds jamais directement au user. Tu retournes uniquement un JSON valide.",
     "product_help explique le produit Sophia: utilite, fonctionnement, navigation, limites, comparaison et destinations dans l'app.",
     "product_help ne cree, modifie, annule, programme, active, enregistre ou applique jamais rien.",
@@ -1492,11 +1503,18 @@ function compactFeature(feature: ProductHelpFeature): Record<string, unknown> {
 export async function runProductHelpLocalDispatcher(
   input: ProductHelpLocalDispatcherInput,
 ): Promise<ProductHelpLocalDispatcherOutput | null> {
+  const conversationWindow = flowEntryWindow({
+    recent_messages: input.recent_messages,
+    user_message: input.user_message,
+    is_cold_entry: input.is_flow_entry === true,
+    // product_help sert historiquement toolFlow (10) en continuation.
+    continuation_limit: RECENT_MESSAGE_LIMITS.toolFlow,
+  });
   const userPrompt = JSON.stringify({
     task: "dispatch_product_help_local_flow",
     current_user_message: input.user_message,
     mode: input.mode,
-    conversation_excerpt: input.recent_messages,
+    conversation_excerpt: conversationWindow.messages,
     product_help_state: input.product_help_state,
     parent_flow_context: input.parent_flow_context,
     active_flow_context: input.active_flow_context,
@@ -1531,7 +1549,7 @@ export async function runProductHelpLocalDispatcher(
   });
   try {
     const raw = await generateWithGemini(
-      dispatcherSystemPrompt(),
+      dispatcherSystemPrompt(conversationWindow.framing),
       userPrompt,
       0.1,
       true,

@@ -44,6 +44,88 @@ Deno.test("resolveTemporalReferences handles timezone offsets", () => {
   assertEquals(paris.resolved_start_at !== ny.resolved_start_at, true);
 });
 
+Deno.test("P12-E: bare month resolves to next occurrence, 1st of month, precision month (alex-untested24 R1-B11)", () => {
+  // NOW = 2026-05-01 (mai) — « septembre » ⇒ 2026-09-01 (Paris = UTC+2).
+  const out = resolveTemporalReferences(
+    "garde en tête : je prépare un déménagement à Lyon pour septembre",
+    { now: NOW, includeBareUnits: true },
+  );
+  const month = out.find((r) => r.precision === "month");
+  if (!month) throw new Error("expected a month-precision resolution");
+  assertEquals(month.resolved_start_at, "2026-08-31T22:00:00.000Z");
+  assertEquals(month.raw, "septembre");
+  // Mois déjà passé dans l'année ⇒ prochaine occurrence = année suivante.
+  const nextYear = resolveTemporalReferences("on en reparle en mars", {
+    now: NOW,
+    includeBareUnits: true,
+  }).find((r) => r.precision === "month");
+  if (!nextYear) throw new Error("expected a month-precision resolution");
+  assertEquals(nextYear.resolved_start_at.startsWith("2027-02-28T23"), true);
+  // Année explicite respectée.
+  const explicit = resolveTemporalReferences("septembre 2026", {
+    now: NOW,
+    includeBareUnits: true,
+  }).find((r) => r.precision === "month");
+  assertEquals(explicit?.resolved_start_at, "2026-08-31T22:00:00.000Z");
+});
+
+Deno.test("P12-E: bare weekday with passé composé resolves to most recent past occurrence (rose-hard25 R1-B04)", () => {
+  // NOW = 2026-05-01 = vendredi — « samedi » passé ⇒ 2026-04-25.
+  const out = resolveTemporalReferences(
+    "samedi à l'anniversaire j'ai craqué, j'ai fumé deux taffes",
+    { now: NOW, includeBareUnits: true },
+  );
+  const day = out.find((r) => r.raw === "samedi");
+  if (!day) throw new Error("expected a bare weekday resolution");
+  assertEquals(day.precision, "day");
+  assertEquals(day.resolved_start_at, "2026-04-24T22:00:00.000Z");
+});
+
+Deno.test("P12-E: bare weekday with future verbal context resolves to next occurrence", () => {
+  // NOW = 2026-05-01 = vendredi — « samedi » futur ⇒ 2026-05-02.
+  const out = resolveTemporalReferences(
+    "je vais chez le dentiste samedi",
+    { now: NOW, includeBareUnits: true },
+  );
+  const day = out.find((r) => r.raw === "samedi");
+  if (!day) throw new Error("expected a bare weekday resolution");
+  assertEquals(day.resolved_start_at, "2026-05-01T22:00:00.000Z");
+});
+
+Deno.test("P12-E anti-faux-positifs: bare units are opt-in, direction-gated, and never double a full date", () => {
+  // Opt-out (défaut) : aucune résolution nue — comportement historique des
+  // surfaces runtime préservé.
+  assertEquals(
+    resolveTemporalReferences("un déménagement pour septembre", { now: NOW })
+      .length,
+    0,
+  );
+  // Direction verbale indétectable ⇒ pas de résolution du jour nu.
+  assertEquals(
+    resolveTemporalReferences("samedi c'est l'anniversaire de ma mère", {
+      now: NOW,
+      includeBareUnits: true,
+    }).filter((r) => r.raw === "samedi").length,
+    0,
+  );
+  // Motif habituel (« chaque samedi ») ⇒ pas une occurrence datée.
+  assertEquals(
+    resolveTemporalReferences("chaque samedi j'ai nagé un peu", {
+      now: NOW,
+      includeBareUnits: true,
+    }).filter((r) => r.raw === "samedi").length,
+    0,
+  );
+  // Date complète : la précision jour absolue reste seule (pas de doublon
+  // month sur « le 18 septembre »).
+  const full = resolveTemporalReferences("le 18 septembre", {
+    now: NOW,
+    includeBareUnits: true,
+  });
+  assertEquals(full.some((r) => r.kind === "absolute_date"), true);
+  assertEquals(full.some((r) => r.precision === "month"), false);
+});
+
 Deno.test("resolveTemporalReferences covers 20+ utterance variants", () => {
   const phrases = [
     "hier j'ai craque",

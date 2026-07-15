@@ -4,6 +4,8 @@ import {
   formatDashboardCapabilitiesAddon,
   formatDashboardCapabilitiesLiteAddon,
   formatPlanItemIndicatorsBlock,
+  formatRetractedInSessionBlock,
+  formatSessionMemoryIntentsBlock,
   formatWeeklyRecapSnapshot,
 } from "./loader.ts";
 
@@ -306,4 +308,103 @@ Deno.test("buildContextString: current week plan context is injected before indi
   assert(weekIndex >= 0);
   assert(indicatorsIndex >= 0);
   assert(weekIndex < indicatorsIndex);
+});
+
+Deno.test("P12-E (alex-untested24 R1-B11): session memory intents block carries un-batched confided facts", () => {
+  const block = formatSessionMemoryIntentsBlock(
+    {
+      __session_memory_intents: [
+        {
+          text:
+            "garde ça en tête : je prépare un déménagement à Lyon pour septembre",
+        },
+        { text: "retiens que je fais de la poterie le jeudi" },
+      ],
+    },
+    [],
+  );
+  assert(block, "expected a session intents block");
+  assert(block!.includes("CONFIÉ EN SESSION (pas encore en mémoire longue)"));
+  assert(block!.includes("déménagement à Lyon"));
+  assert(block!.includes("poterie"));
+});
+
+Deno.test("P12-E anti-faux-positif: a confided-then-retracted intent is NEVER served by the session block", () => {
+  const block = formatSessionMemoryIntentsBlock(
+    {
+      __session_memory_intents: [
+        {
+          text:
+            "garde ça en tête : je prépare un déménagement à Lyon pour septembre",
+        },
+        { text: "retiens que je fais de la poterie le jeudi" },
+      ],
+    },
+    [
+      {
+        role: "user",
+        content:
+          "garde ça en tête : je prépare un déménagement à Lyon pour septembre",
+      },
+      { role: "assistant", content: "C'est noté !" },
+      {
+        role: "user",
+        content: "en fait oublie ce que je t'ai dit sur le déménagement",
+      },
+    ],
+  );
+  assert(block, "expected a block (poterie intent survives)");
+  assert(!block!.includes("déménagement"), "retracted intent must be excluded");
+  assert(block!.includes("poterie"));
+  // Toutes les intentions rétractées ⇒ aucun bloc du tout.
+  const empty = formatSessionMemoryIntentsBlock(
+    {
+      __session_memory_intents: [
+        {
+          text:
+            "garde ça en tête : je prépare un déménagement à Lyon pour septembre",
+        },
+      ],
+    },
+    [
+      {
+        role: "user",
+        content: "oublie ce que je t'ai dit sur le déménagement à Lyon",
+      },
+    ],
+  );
+  assert(empty === null);
+});
+
+Deno.test("P12-E (eva-hard25 R1-B05): retracted-in-session block forbids spontaneous MENTION of the topic, not only restitution", () => {
+  const block = formatRetractedInSessionBlock([
+    {
+      role: "user",
+      content:
+        "je me suis mise à la céramique, je voulais t'en parler. ah non, oublie ça en fait.",
+    },
+  ]);
+  assert(block, "expected a retracted block");
+  assert(
+    block!.includes("INTERDIT DE RESTITUTION ET DE MENTION SPONTANÉE"),
+    "reinforced header missing",
+  );
+  assert(
+    block!.includes("n'en parle que si l'utilisateur rouvre lui-même le sujet"),
+    "reopen-only clause missing",
+  );
+});
+
+Deno.test("P12-E: buildContextString places session intents before the retracted block, both present", () => {
+  const ctx = buildContextString({
+    sessionMemoryIntents:
+      "=== CONFIÉ EN SESSION (pas encore en mémoire longue) ===\nINTENTS\n\n",
+    retractedInSession:
+      "=== RÉTRACTÉ EN SESSION (INTERDIT DE RESTITUTION ET DE MENTION SPONTANÉE) ===\nRETRACTED\n\n",
+  });
+  const intentsIndex = ctx.indexOf("INTENTS");
+  const retractedIndex = ctx.indexOf("RETRACTED");
+  assert(intentsIndex >= 0);
+  assert(retractedIndex >= 0);
+  assert(intentsIndex < retractedIndex);
 });

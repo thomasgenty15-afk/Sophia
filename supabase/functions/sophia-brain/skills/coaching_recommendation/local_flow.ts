@@ -21,6 +21,11 @@ import {
   normalizeLocalOneShotDirectEffectRequest,
 } from "../../router/one_shot_local_direct_effect.ts";
 import { getProductHelpFeature } from "../product_help/retrieval.ts";
+import { noteReconciliationPromptLines } from "../_shared/note_reconciliation.ts";
+import {
+  flowEntryWindow,
+  RECENT_MESSAGE_LIMITS,
+} from "../../context/recent_messages_policy.ts";
 import type { CoachingRecommendationCategory } from "../../contracts/turn_frame.v1.ts";
 import type {
   CoachingCauseAnalysis,
@@ -132,6 +137,9 @@ export type CoachingRecommendationLocalDispatcherInput = {
   dispatcher_signal_context?: CoachingRecommendationLocalState[
     "dispatcher_signal_context"
   ];
+  /** Vrai au tout premier tour possédé par ce flow (aucun état persisté). Sert
+   * à servir la fenêtre de situation élargie + le cadrage d'entrée. */
+  is_flow_entry?: boolean;
 };
 
 export type CoachingRecommendationLocalDispatcher = (
@@ -3144,8 +3152,15 @@ export function coachingDispatcherPromptForTest(
 }
 
 function dispatcherPrompt(input: CoachingRecommendationLocalDispatcherInput) {
+  const conversationWindow = flowEntryWindow({
+    recent_messages: input.recent_messages,
+    user_message: input.user_message,
+    is_cold_entry: input.is_flow_entry === true,
+    continuation_limit: RECENT_MESSAGE_LIMITS.subskillHistory,
+  });
   return [
     "Tu es le dispatcher local du skill coaching_recommendation.",
+    ...conversationWindow.framing,
     "Retourne uniquement le JSON demande. Ne reponds pas au user.",
     "Ce flow aide le user a recevoir le bon type de coaching ou, quand c'est autorise par le type de coaching, le bon levier Sophia.",
     "Ce flow est une recommandation conversationnelle: il ne cree rien, ne modifie rien, ne programme rien et ne remplit aucun slot d'anciens tools.",
@@ -3154,6 +3169,9 @@ function dispatcherPrompt(input: CoachingRecommendationLocalDispatcherInput) {
     "Features interdites: opportunites produit, preferences, rappels, progression, platform. Ne les produis jamais.",
     "Le dispatcher global transmet seulement le type cible via dispatcher_signal_context.coaching_type: plan_action, no_plan_action, emotional ou ambiguous, avec confidence, reason et action_context minimal. Il ne choisit jamais la feature.",
     "Ce coaching_type est canonique pendant le flow local. Tu peux le contredire seulement si le dernier message user indique clairement un changement de cible; dans ce cas utilise target_switch explicite si la nouvelle cible est claire, sinon visible_task.kind=change_confirm_coaching_type.",
+    ...noteReconciliationPromptLines(
+      "corrige la cible via target_switch ou visible_task.kind=change_confirm_coaching_type",
+    ),
     "Visible agents autorises pour ce flow: change_confirm_coaching_type, emotion_coaching, no_plan_coaching, action_plan_coaching, answer_followup, close_recommendation, exit_ack.",
     "Les anciens step kinds ask_difficulty_clarification, explain_cause, recommend_feature, free_action_coaching et explain_platform_destination sont des alias legacy: ne les choisis pas en sortie active.",
     "Les agents visibles ne sortent que la reponse user-facing. Ils ne produisent pas de JSON, pas de signal d'exit, pas de decision de routing: c'est toi qui maintiens l'etat et decides loop/exit au tour suivant.",
@@ -3254,7 +3272,7 @@ function dispatcherPrompt(input: CoachingRecommendationLocalDispatcherInput) {
     'Example JSON direct_effect_request coaching - rappel + levier dans le meme tour: user="Je bloque surtout sur le premier email. Rappelle-moi dans 28 minutes d ouvrir ce premier email, et donne-moi juste le levier a utiliser." => inclure obligatoirement {"flow_action":"recommend_feature","direct_effect_request":{"requested":true,"effect_type":"create_one_shot_reminder","explicitness":"explicit","target_status":"identified","confidence_band":"high","payload_hint":{"raw_text":"Rappelle-moi dans 28 minutes d ouvrir ce premier email","when_hint":"dans 28 minutes","UTC_time":"instant ISO UTC calcule depuis platform_context.direct_effect_time_context","local_label":"dans 28 minutes","instruction_hint":"ouvrir ce premier email"},"reason":"rappel ponctuel explicite avec delai exploitable"},"visible_task":{"kind":"action_plan_coaching","instruction":"repondre seulement au besoin coaching restant, sans confirmer le rappel avant commit"}}.',
     JSON.stringify({
       current_user_message: input.user_message,
-      recent_messages: input.recent_messages.slice(-8),
+      recent_messages: conversationWindow.messages,
       previous_state: input.previous_state,
       dispatcher_signal_context: input.dispatcher_signal_context ?? null,
       active_plan_items: input.active_plan_items.slice(0, 8),

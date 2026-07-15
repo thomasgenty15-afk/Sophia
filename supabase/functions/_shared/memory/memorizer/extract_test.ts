@@ -291,6 +291,120 @@ Deno.test("extract event date falls back to evidence_quote when source message l
   assertEquals(out.memory_items[0].event_start_at, "2026-07-17T22:00:00.000Z");
 });
 
+Deno.test("P12-E: gate event resolves a bare FUTURE month before rejecting (alex-untested24 R1-B11)", async () => {
+  const out = await extractMemoryCandidates({
+    messages: [{
+      id: "m1",
+      user_id: "u",
+      role: "user",
+      content:
+        "garde en tête : je prépare un déménagement à Lyon pour septembre",
+      // « septembre » dit en juillet 2026 ⇒ 2026-09-01, précision month —
+      // ancré sur l'horloge du MESSAGE, pas celle du batch.
+      created_at: "2026-07-10T09:00:00.000Z",
+    }],
+    timezone: "Europe/Paris",
+  }, {
+    llm_provider: async () =>
+      JSON.stringify({
+        memory_items: [{
+          kind: "event",
+          content_text: "Prépare un déménagement à Lyon pour septembre 2026.",
+          domain_keys: ["logistique.demenagement"],
+          confidence: 0.85,
+          sensitivity_level: "normal",
+          source_message_ids: ["m1"],
+          evidence_quote: "je prépare un déménagement à Lyon pour septembre",
+        }],
+        entities: [],
+        corrections: [],
+        rejected_observations: [],
+      }),
+  });
+  assertEquals(out.memory_items[0].event_start_at, "2026-08-31T22:00:00.000Z");
+  assertEquals(out.memory_items[0].time_precision, "month");
+});
+
+Deno.test("P12-E: gate event resolves a bare PAST weekday from the message clock (rose-hard25 R1-B04)", async () => {
+  const out = await extractMemoryCandidates({
+    messages: [{
+      id: "m1",
+      user_id: "u",
+      role: "user",
+      content: "samedi à l'anniversaire j'ai craqué, j'ai fumé deux taffes",
+      // Dit un mercredi (2026-03-04) ⇒ le samedi PRÉCÉDENT = 2026-02-28
+      // (passé composé ⇒ occurrence passée la plus récente). L'ancre message
+      // est volontairement loin d'aujourd'hui : un Date.now() résiduel ferait
+      // échouer ce test.
+      created_at: "2026-03-04T10:00:00.000Z",
+    }],
+    timezone: "Europe/Paris",
+  }, {
+    llm_provider: async () =>
+      JSON.stringify({
+        memory_items: [{
+          kind: "event",
+          content_text:
+            "A craqué et fumé deux taffes samedi à un anniversaire.",
+          domain_keys: ["addictions.tabac"],
+          confidence: 0.85,
+          sensitivity_level: "sensitive",
+          sensitivity_categories: ["addiction"],
+          source_message_ids: ["m1"],
+          evidence_quote: "samedi à l'anniversaire j'ai craqué",
+        }],
+        entities: [],
+        corrections: [],
+        rejected_observations: [],
+      }),
+  });
+  assertEquals(out.memory_items[0].event_start_at, "2026-02-27T23:00:00.000Z");
+  assertEquals(out.memory_items[0].time_precision, "day");
+});
+
+Deno.test("P12-E anti-faux-positif: event without any resolvable temporal expression stays rejected event_missing_date", async () => {
+  const { validateExtractionPayload } = await import("./validate.ts");
+  const messages = [{
+    id: "m1",
+    user_id: "u",
+    role: "user" as const,
+    content: "j'ai craqué à l'anniversaire, c'était pas prévu du tout",
+    created_at: "2026-03-04T10:00:00.000Z",
+  }];
+  const out = await extractMemoryCandidates({
+    messages,
+    timezone: "Europe/Paris",
+  }, {
+    llm_provider: async () =>
+      JSON.stringify({
+        memory_items: [{
+          kind: "event",
+          content_text: "A craqué à un anniversaire.",
+          domain_keys: ["addictions.tabac"],
+          confidence: 0.85,
+          sensitivity_level: "sensitive",
+          sensitivity_categories: ["addiction"],
+          source_message_ids: ["m1"],
+          evidence_quote: "j'ai craqué à l'anniversaire",
+        }],
+        entities: [],
+        corrections: [],
+        rejected_observations: [],
+      }),
+  });
+  // Aucune expression temporelle résoluble (pas de jour nommé, pas de mois,
+  // direction seule ne suffit pas) ⇒ le gate ne date PAS au hasard.
+  assertEquals(out.memory_items[0].event_start_at ?? null, null);
+  const validation = validateExtractionPayload(out, messages);
+  assertEquals(validation.accepted_items.length, 0);
+  assertEquals(
+    validation.rejected_items[0]?.issues.some((issue) =>
+      issue.code === "event_missing_date"
+    ),
+    true,
+  );
+});
+
 Deno.test("extraction prompt keeps plan-state exclusion under explicit memory wording (paul-r7 B05)", () => {
   const prompt = buildExtractionPrompt({
     messages: [{

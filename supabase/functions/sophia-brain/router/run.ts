@@ -379,9 +379,27 @@ export function commitPostTurnRiskTrail(
   },
 ): Record<string, unknown> {
   ageLastTrackCommitMarker(tempMemory, args.sourceMessageId);
-  const effectiveBand = String(
-    args.runtimeSafetyRiskBand ?? args.turnFrameRiskBand ?? "none",
-  );
+  // P12-F (rose-hard25 R1-B03): la bande committée = le MAX des deux sources
+  // (runtime + frame du tour) — l'ancien `??` gardait un snapshot runtime
+  // `none` pris avant que le pipeline n'émette le frame medium, et la traîne
+  // s'écrivait à 0 sur un tour de détresse réelle. Invariant: la bande qui a
+  // produit les blocked_paths et la ligne P11 est celle du trail.
+  const bandRank = (band: unknown): number => {
+    const value = String(band ?? "none");
+    return value === "critical"
+      ? 4
+      : value === "high"
+      ? 3
+      : value === "medium"
+      ? 2
+      : value === "low"
+      ? 1
+      : 0;
+  };
+  const effectiveBand = bandRank(args.runtimeSafetyRiskBand) >=
+      bandRank(args.turnFrameRiskBand)
+    ? String(args.runtimeSafetyRiskBand ?? "none")
+    : String(args.turnFrameRiskBand ?? "none");
   const bandScore = effectiveBand === "critical"
     ? 10
     : effectiveBand === "high"
@@ -957,6 +975,11 @@ function finalVisibleText(
   text: unknown,
   routeDecision: RouteDecision | null,
   turnFrame?: TurnFrame | null,
+  // P12-C (eva-hard25 R1-B03): le message user arrive aux gardes PAR CONTRAT
+  // — l'ancienne lecture `turnFrame.user_message` visait un champ qui
+  // n'existe pas au runtime (la garde P10-V était inatteignable en prod, la
+  // probe passait sur un frame synthétique enrichi).
+  userMessage?: string,
 ) {
   // paul-r6 B01: sur un commit de CORRECTION track, la reply deterministe du
   // tool remplace la paraphrase du composeur — l'historique (refus du tour
@@ -968,14 +991,200 @@ function finalVisibleText(
   let out = stripHiddenHtmlComments(correctionOverride ?? text);
   out = stripDeprecatedProductVocabulary(out);
   out = stripForeignScriptTokens(out);
-  out = stripCommitClaimBeforeClarify(out, turnFrame ?? null);
+  out = stripCommitClaimBeforeClarify(out, turnFrame ?? null, userMessage);
   out = stripUnfoundedReminderCapacityDenial(out, turnFrame ?? null);
   out = stripTrackClaimWithoutCommit(out, turnFrame ?? null);
+  out = ensureCommittedRenderParity(out, turnFrame ?? null, userMessage);
   if (!isSafetyRoute(routeDecision)) {
     out = ensureVisibleSophiaEmoji(out);
     out = ensureClarifyQuestionVisible(out, turnFrame ?? null);
   }
   return out.trim();
+}
+
+/**
+ * P12-C (alex-untested24 R1-B05/B08/B12, nina-p10reval R1-B03c) — PARITÉ
+ * INVERSE rendu=ledger. P8-F/P10-V couvrent le claim-sans-commit; le miroir
+ * n'existait pas: (a) un tour à N commits rappel rendu « je n'ai rien
+ * fait » (2 commits committés en silence, découverts par hasard 7 tours
+ * plus tard puis requalifiés « erreur d'affichage »), (b) « j'ai annulé X »
+ * sans AUCUN commit cancel du tour, (c) « X reste tel quel » alors que son
+ * cancel est committé au même tour. Ces cas ne produisaient AUCUNE ligne
+ * guards (les gardes lisaient le rendu, pas le ledger).
+ * Politique: les DÉNIS et faux-intacts sont retirés, les commits non accusés
+ * sont APPENDUS depuis la vérité du ledger (labels/instructions committés) —
+ * jamais de texte inventé, jamais un commit silencieux.
+ */
+export function ensureCommittedRenderParity(
+  text: string,
+  turnFrame: TurnFrame | null,
+  userMessage?: string,
+): string {
+  const source = String(text ?? "");
+  if (!turnFrame || !source.trim()) return source;
+  const lane = (turnFrame as { direct_effect_lane?: unknown })
+    .direct_effect_lane as Record<string, unknown> | null | undefined;
+  const committed = Array.isArray(lane?.committed_effects)
+    ? lane?.committed_effects as Array<Record<string, unknown>>
+    : [];
+  const committedCreates = committed.filter((effect) =>
+    String(effect?.type ?? "") === "create_one_shot_reminder"
+  );
+  const committedCancels = committed.filter((effect) =>
+    String(effect?.type ?? "") === "cancel_one_shot_reminder"
+  );
+  // P12-F (rose-hard25 R1-B01 volet rendu): un track committé jamais annoncé
+  // — la demi-coche silencieuse n'était découverte que par audit DB. Même
+  // parité que les rappels : commit non mappé ⇒ appendu depuis le ledger.
+  const committedTracks = committed.filter((effect) =>
+    String(effect?.type ?? "") === "track_progress_plan_item"
+  );
+  const normalize = (value: string) =>
+    String(value ?? "").normalize("NFD").replace(/\p{Diacritic}/gu, "")
+      .replace(/[’']/g, " ").toLowerCase();
+  const normalizedSource = normalize(source);
+  const normalizedUser = normalize(String(userMessage ?? ""));
+  let out = source;
+  let guardFired: string | null = null;
+  // (b) Claim « annulé » sans AUCUN commit cancel du tour — borné aux tours
+  // où le user a demandé une annulation (mutation des deux côtés, doctrine
+  // P10-V) et où rien d'autre ne légitime le mot (un replace committé porte
+  // son cancel: exempt par construction, committedCancels > 0).
+  if (
+    committedCancels.length === 0 &&
+    /\bannul/.test(normalizedUser) &&
+    /\bj ?.?ai (bien |deja )?annule\b|\bc ?.?est (bien )?annule\b|\best (bien |deja )?annule\b/
+      .test(normalizedSource)
+  ) {
+    const sentences = out.split(/(?<=[.!?\n])/);
+    const kept = sentences.filter((sentence) =>
+      !/\bj ?.?ai (bien |deja )?annule\b|\bc ?.?est (bien )?annule\b|\best (bien |deja )?annule\b/
+        .test(normalize(sentence))
+    );
+    out = kept.join("").replace(/[ \t]{2,}/g, " ").trim() ||
+      "Je n'ai annulé aucun rappel sur ce tour — dis-moi lequel tu veux annuler (son heure ou son objet) et je le fais.";
+    guardFired = "cancel_claim_without_commit_stripped";
+  }
+  if (
+    committedCreates.length > 0 || committedCancels.length > 0 ||
+    committedTracks.length > 0
+  ) {
+    // (a) Un DÉNI global (« je n'ai rien changé/fait ») ne peut pas coexister
+    // avec un commit du tour — la phrase saute (les nuances « rien d'autre »
+    // restent).
+    const denialPattern =
+      /\bje n ?.?ai (rien|pas) (change|changé|fait|touche|touché|modifie|modifié|deplace|déplacé|decale|décalé|annule|annulé)\b|\brien n ?.?a (change|changé|bouge|bougé|ete modifie|été modifié)\b/;
+    const hasDenial = out.split(/(?<=[.!?\n])/).some((sentence) => {
+      const normalizedSentence = normalize(sentence);
+      return denialPattern.test(normalizedSentence) &&
+        !/\bd autre|de plus|du reste|a part\b/.test(normalizedSentence);
+    });
+    if (hasDenial) {
+      out = out.split(/(?<=[.!?\n])/).filter((sentence) => {
+        const normalizedSentence = normalize(sentence);
+        return !(denialPattern.test(normalizedSentence) &&
+          !/\bd autre|de plus|du reste|a part\b/.test(normalizedSentence));
+      }).join("").replace(/[ \t]{2,}/g, " ").trim();
+      guardFired = guardFired ?? "commit_omitted_in_render";
+    }
+    // (c) « reste tel quel / inchangé / toujours actif » sur un tour qui
+    // committe un cancel = faux-intact potentiel — la phrase saute, l'accusé
+    // de cancel appendu ci-dessous rétablit la vérité.
+    if (
+      committedCancels.length > 0 &&
+      /\breste(nt)? (tel(le)?s? quel(le)?s?|inchange|intact|actif|active|en place|comme prevu)\b/
+        .test(normalizedSource)
+    ) {
+      out = out.split(/(?<=[.!?\n])/).filter((sentence) =>
+        !/\breste(nt)? (tel(le)?s? quel(le)?s?|inchange|intact|actif|active|en place|comme prevu)\b/
+          .test(normalize(sentence))
+      ).join("").replace(/[ \t]{2,}/g, " ").trim();
+      guardFired = guardFired ?? "commit_omitted_in_render";
+    }
+    // Accusés manquants: chaque commit doit être mappé dans le rendu (label
+    // horaire ou token d'instruction pour un create; un mot d'annulation
+    // pour un cancel). Un commit non mappé est APPENDU depuis le ledger.
+    const additions: string[] = [];
+    for (const effect of committedCreates) {
+      const label = String(effect?.local_label ?? "").trim();
+      const instruction = String(effect?.reminder_instruction ?? "").trim();
+      const hhmm = label.match(/\d{1,2}[:h]\d{2}|\d{1,2}\s?h/)?.[0] ?? "";
+      const normalizedOut = normalize(out);
+      const labelMapped = hhmm &&
+        normalizedOut.includes(normalize(hhmm).replace(":", "h")) ||
+        (label && normalizedOut.includes(normalize(label)));
+      const instructionTokens = normalize(instruction).split(/[^a-z0-9]+/)
+        .filter((token) => token.length >= 4);
+      const instructionMapped = instructionTokens.some((token) =>
+        normalizedOut.includes(token)
+      );
+      if (!labelMapped && !instructionMapped) {
+        additions.push(
+          `⚠️ Pour être transparente : j'ai bien enregistré un rappel${
+            label ? ` pour ${label}` : ""
+          }${instruction ? ` — « ${instruction} »` : ""}. Dis-moi si tu veux l'annuler ou le déplacer.`,
+        );
+      }
+    }
+    for (const effect of committedTracks) {
+      const title = normalize(String(effect?.target_title ?? ""));
+      const titleTokens = title.split(/[^a-z0-9]+/).filter((token) =>
+        token.length >= 4
+      );
+      const normalizedOut = normalize(out);
+      const titleMapped = titleTokens.length === 0 ||
+        titleTokens.some((token) => normalizedOut.includes(token));
+      const genericAck =
+        /\b(note|coche|enregistre|marque|compte|pris en compte)\b/.test(
+          normalizedOut,
+        );
+      if (!titleMapped && !genericAck) {
+        additions.push(
+          `⚠️ Pour être transparente : j'ai bien noté ta progression sur « ${
+            String(effect?.target_title ?? "ton action")
+          } ». Dis-moi si c'est une erreur et je la corrige.`,
+        );
+      }
+    }
+    if (
+      committedCancels.length > 0 &&
+      !/\bannul/.test(normalize(out))
+    ) {
+      const cancelLabels = committedCancels.flatMap((effect) => {
+        const labels = Array.isArray(effect?.target_local_labels)
+          ? effect.target_local_labels as unknown[]
+          : [effect?.local_label];
+        return labels.map((value) => String(value ?? "").trim()).filter(
+          Boolean,
+        );
+      });
+      additions.push(
+        `⚠️ Et pour être exacte : le rappel${
+          cancelLabels.length > 1 ? "s" : ""
+        }${
+          cancelLabels.length ? ` de ${cancelLabels.join(" ; ")}` : " visé"
+        } a été annulé sur ce tour.`,
+      );
+    }
+    if (additions.length > 0) {
+      out = [out.trim(), ...additions].filter(Boolean).join("\n\n");
+      guardFired = guardFired ?? "commit_omitted_in_render";
+    }
+  }
+  if (guardFired) {
+    console.warn(`[Router] committed render parity guard fired (${guardFired})`);
+    logRuntimeGuardEvent({
+      guard: guardFired,
+      userId: (turnFrame as { user_id?: string }).user_id ?? null,
+      detail: {
+        turn_id: (turnFrame as { turn_id?: string }).turn_id ?? null,
+        committed_creates: committedCreates.length,
+        committed_cancels: committedCancels.length,
+        committed_tracks: committedTracks.length,
+      },
+    });
+  }
+  return out;
 }
 
 /**
@@ -1047,10 +1256,63 @@ export function stripTrackClaimWithoutCommit(
   const anyCommitted = outcomes.some((outcome) =>
     outcome.status === "committed"
   );
-  if (!trackNonCommitted || anyCommitted) return source;
   const normalizeForClaim = (value: string) =>
     value.normalize("NFD").replace(/\p{Diacritic}/gu, "")
       .replace(/[’']/g, " ").toLowerCase();
+  // P12-C (eva-hard25 R1-B01): PARITÉ PAR ITEM — un claim ADDITIF (« j'ai
+  // aussi noté ton activité : aquarelle ✅ ») nommant un item SANS commit de
+  // CET item est retiré MÊME quand un autre commit coexiste (le trou
+  // anyCommitted⇒no-strip de P10-C rendait la garde inopérante par
+  // construction sur la co-demande partielle). Borné au marqueur additif
+  // explicite dont la phrase ne recouvre AUCUN target_title committé ; les
+  // accusés mémoire (« je le garde en tête ») restent exempts.
+  {
+    const lane = (turnFrame as { direct_effect_lane?: unknown })
+      .direct_effect_lane as Record<string, unknown> | null | undefined;
+    const committedTrackTitles = (Array.isArray(lane?.committed_effects)
+      ? lane?.committed_effects as Array<Record<string, unknown>>
+      : [])
+      .filter((effect) =>
+        String(effect?.type ?? "") === "track_progress_plan_item"
+      )
+      .map((effect) => normalizeForClaim(String(effect?.target_title ?? "")))
+      .filter(Boolean);
+    const additiveClaimPattern =
+      /\bj ?.?ai aussi (note|coche|enregistre|marque)\b|\best aussi (note|coche|enregistre|marque)e?\b/;
+    const memoryExemption = /\b(en tete|memoire|preference|retien|retenu)\b/;
+    const hasTrackContext = outcomes.some((outcome) =>
+      outcome.effect_type === "track_progress_plan_item"
+    );
+    if (hasTrackContext) {
+      const sentences = source.split(/(?<=[.!?\n])/);
+      const kept = sentences.filter((sentence) => {
+        const normalizedSentence = normalizeForClaim(sentence);
+        if (!additiveClaimPattern.test(normalizedSentence)) return true;
+        if (memoryExemption.test(normalizedSentence)) return true;
+        const coveredByCommit = committedTrackTitles.some((title) =>
+          title.split(/[^a-z0-9]+/).filter((token) => token.length >= 4)
+            .some((token) => normalizedSentence.includes(token))
+        );
+        return coveredByCommit;
+      });
+      if (kept.length !== sentences.length) {
+        console.warn(
+          "[Router] additive track claim on uncommitted item stripped (P12-C)",
+        );
+        logRuntimeGuardEvent({
+          guard: "track_claim_without_commit_stripped",
+          userId: (turnFrame as { user_id?: string }).user_id ?? null,
+          detail: {
+            turn_id: (turnFrame as { turn_id?: string }).turn_id ?? null,
+            reason: "per_item_additive",
+          },
+        });
+        return kept.join("").replace(/[ \t]{2,}/g, " ").trim() ||
+          "Je n'ai noté qu'une partie de ce que tu m'as dit — redis-moi l'autre item et je le coche.";
+      }
+    }
+  }
+  if (!trackNonCommitted || anyCommitted) return source;
   const claimPattern =
     /\b(les deux|tous les deux|les trois|tout ca) (sont|est) (bien )?(pris|note|notes|enregistre|enregistres|coche|coches|compte|comptes|marque|marques)\b|\bc ?.?est (note|pris en compte|enregistre|coche|marque) pour (les deux|tous les deux|les trois)\b/;
   if (!claimPattern.test(normalizeForClaim(source))) return source;
@@ -1088,6 +1350,10 @@ export function stripTrackClaimWithoutCommit(
 export function stripCommitClaimBeforeClarify(
   text: string,
   turnFrame: TurnFrame | null,
+  // P12-C (eva-hard25 R1-B03): canal CONTRACTUEL du message user — l'ancien
+  // `turnFrame.user_message` n'existe pas au runtime et rendait la branche
+  // P10-V inatteignable en prod (la probe passait sur un frame synthétique).
+  userMessage?: string,
 ): string {
   const source = String(text ?? "");
   if (!turnFrame || !source.trim()) return source;
@@ -1123,12 +1389,14 @@ export function stripCommitClaimBeforeClarify(
   const normalizeForClaimEarly = (value: string) =>
     value.normalize("NFD").replace(/\p{Diacritic}/gu, "")
       .replace(/[’']/g, " ").toLowerCase();
-  const userMessageText =
-    (turnFrame as { user_message?: string }).user_message ?? "";
+  const userMessageText = String(
+    userMessage ??
+      (turnFrame as { user_message?: string }).user_message ?? "",
+  );
   const userAskedReminderMutation =
     /\b(decale|avance|repousse|replanifie|reprogramme|remets|mets)[- ]?(le|la|les)?\b/
       .test(normalizeForClaimEarly(String(userMessageText))) &&
-    /\b(\d{1,2}\s?h|au lieu de|a la place|plus tot|plus tard|demain|ce soir)\b/
+    /\b(\d{1,2}\s?h(\d{2})?|au lieu de|a la place|plus tot|plus tard|demain|ce soir)\b/
       .test(normalizeForClaimEarly(String(userMessageText)));
   const mutationClaimPattern =
     /\b(decale|deplace|avance|repousse|replanifie|reprogramme)e?s?\b|\bc ?.?est (fait|bon)\b[^.!?\n]{0,80}\b(a la place de|au lieu de)\b/;
@@ -1185,6 +1453,18 @@ export function stripCommitClaimBeforeClarify(
   });
   // Si tout le texte portait le claim, la question contractuelle de la lane
   // (clarify_question) reste la réponse — jamais un claim, jamais un vide.
+  // P12-G (nina-p10reval R1-B05): le strip emportait la RELANCE d'un blocked
+  // past_time (« un autre horaire, ou demain ? ») pourtant présente dans
+  // visible_confirmation_hint — invariant H3/O3 étendu au chemin strippé:
+  // si le texte restant a perdu toute question, la question de la lane est
+  // ré-appendue.
+  const laneHint = String(
+    ((turnFrame as { direct_effect_lane?: { visible_confirmation_hint?: unknown } })
+      .direct_effect_lane?.visible_confirmation_hint) ?? "",
+  ).trim();
+  if (cleaned && !cleaned.includes("?") && laneHint.includes("?")) {
+    return `${cleaned}\n\n${laneHint}`;
+  }
   if (cleaned) return cleaned;
   const clarify = outcomes.find((outcome) =>
     outcome.effect_type === "create_one_shot_reminder" &&
@@ -2166,7 +2446,7 @@ export async function processMessage(
     directEffectGateResult,
   );
 
-  const { riskBand: runtimeSafetyRiskBand } = runtimeSafetyContextForTurn({
+  let { riskBand: runtimeSafetyRiskBand } = runtimeSafetyContextForTurn({
     safetyContextOutput,
     routeDecision,
     turnFrame,
@@ -2200,6 +2480,19 @@ export async function processMessage(
   let operationRuntime = operationPipeline.operationRuntime;
   turnFrame = turnFrameWithDirectEffectRuntime(turnFrame, operationRuntime) ??
     (turnFrame ? withDirectEffectConfirmationContext(turnFrame) : turnFrame);
+  // P12-F (rose-hard25 R1-B03): UNE source de vérité de bande effective par
+  // tour — le pipeline peut REBÂTIR le frame (safety medium émise dedans),
+  // et le snapshot pré-pipeline écrivait `none` au trail/metadata pendant
+  // que la ligne P11 et les blocked_paths disaient medium: le tour suivant
+  // composait sans traîne (confirmation de rappel en 1re phrase après un
+  // message d'épuisement, ordre V5-1 inversé). Recalcul sur le frame FINAL.
+  ({ riskBand: runtimeSafetyRiskBand } = runtimeSafetyContextForTurn({
+    safetyContextOutput,
+    routeDecision,
+    turnFrame,
+    tempMemory,
+    userMessage,
+  }));
 
   let skillExitInjectedContext: string | undefined;
   let localFlowExitSkillRun: Record<string, unknown> | undefined;
@@ -2376,6 +2669,7 @@ export async function processMessage(
           weeklyRuntimeContent,
           routeDecision,
           turnFrame,
+          userMessage,
         );
         const effectLedger = effectLedgerForOperationRuntime(
           turnFrame.turn_id,
@@ -2562,6 +2856,7 @@ export async function processMessage(
         mergeVisibleTextForTest(operationRuntime, skillReply),
         routeDecision,
         turnFrame,
+        userMessage,
       );
       const effectLedger = effectLedgerForOperationRuntime(
         turnFrame.turn_id,
@@ -2907,6 +3202,7 @@ export async function processMessage(
           mergeVisibleTextForTest(operationRuntime, skillReply),
           routeDecision,
           turnFrame,
+          userMessage,
         );
         const effectLedger = effectLedgerForOperationRuntime(
           turnFrame.turn_id,
@@ -3377,6 +3673,7 @@ export async function processMessage(
     mergeVisibleTextForTest(operationRuntime, agentOut.responseContent),
     routeDecision,
     turnFrame,
+    userMessage,
   );
 
   const agentToolExecution = String(agentOut.toolExecution ?? "none") as

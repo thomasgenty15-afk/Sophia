@@ -84,6 +84,14 @@ export function buildExtractionPrompt(ctx: ExtractionContext): {
     : ctx.messages.flatMap((message) =>
       resolveTemporalReferences(message.content, {
         timezone: ctx.timezone ?? "Europe/Paris",
+        // P12-E (rose-hard25 R1-B04): l'ancre temporelle est l'horloge du
+        // MESSAGE — le batch memorizer tourne des heures après l'énoncé
+        // (« samedi » dit mercredi se résout depuis mercredi, jamais depuis
+        // l'horloge du batch).
+        now: message.created_at ?? undefined,
+        // P12-E (alex-untested24 R1-B11): mois nommé nu / jour de semaine nu
+        // résolus dans les hints fournis au LLM (mêmes règles que le gate).
+        includeBareUnits: true,
       })
     );
   return {
@@ -275,10 +283,34 @@ function enrichEventDatesFromSources(
     const hints = message
       ? resolveTemporalReferences(message.content, {
         timezone: ctx.timezone ?? "Europe/Paris",
+        // P12-E (rose-hard25 R1-B04 / alex-untested24 R1-B11): V3-2 étendu —
+        // l'ancre est l'horloge du MESSAGE source (jamais celle du batch), et
+        // les unités nues (mois nommé, jour de semaine + contexte verbal) se
+        // résolvent AVANT que validate ne rejette `event_missing_date`.
+        now: message.created_at ?? undefined,
+        includeBareUnits: true,
       })
       : [];
     hintsByMessage.set(id, hints);
     return hints;
+  };
+  // P12-E: ancre déterministe pour les textes d'item (evidence_quote /
+  // content_text) — l'horloge la plus récente des messages SOURCE de l'item,
+  // à défaut celle du lot ; jamais Date.now() quand une horloge explicite
+  // existe (le batch nocturne peut avoir changé de jour).
+  const batchAnchorMs = [...ctx.messages, ...(ctx.context_messages ?? [])]
+    .map((message) => Date.parse(String(message.created_at ?? "")))
+    .filter((ts) => Number.isFinite(ts))
+    .sort((a, b) => b - a)[0];
+  const anchorForSources = (ids: string[]): string | undefined => {
+    const stamps = ids
+      .map((id) => messagesById.get(id) ?? contextById.get(id))
+      .map((message) => Date.parse(String(message?.created_at ?? "")))
+      .filter((ts) => Number.isFinite(ts));
+    if (stamps.length > 0) return new Date(Math.max(...stamps)).toISOString();
+    return Number.isFinite(batchAnchorMs)
+      ? new Date(batchAnchorMs).toISOString()
+      : undefined;
   };
   const isCompletedTemporalObservation = (item: ExtractedMemoryItem): boolean =>
     item.kind === "action_observation" &&
@@ -321,6 +353,9 @@ function enrichEventDatesFromSources(
         .flatMap((t) =>
           resolveTemporalReferences(t, {
             timezone: ctx.timezone ?? "Europe/Paris",
+            // P12-E: même ancre et mêmes unités nues que les messages source.
+            now: anchorForSources(item.source_message_ids ?? []),
+            includeBareUnits: true,
           })
         );
       const allHints = [

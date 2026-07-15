@@ -23,9 +23,13 @@ export function logRuntimeGuardEvent(args: {
 }): void {
   try {
     if (!(Deno.env.get("SUPABASE_URL") ?? "").trim()) return;
+    // P12-C nit (paul-p9reval): marqueur d'audit nommé — `error_name:
+    // "Error"` sur un événement nominal était du bruit de logger.
+    const marker = new Error(args.guard);
+    marker.name = args.guard;
     void logEdgeFunctionError({
       functionName: "sophia-brain",
-      error: new Error(args.guard),
+      error: marker,
       severity: args.severity ?? "warn",
       title: `Garde · ${args.guard}`,
       source: "guards",
@@ -55,9 +59,11 @@ export function logSafetyBandEvent(args: {
     const band = String(args.riskBand ?? "").trim().toLowerCase();
     if (band !== "medium" && band !== "high") return;
     if (!(Deno.env.get("SUPABASE_URL") ?? "").trim()) return;
+    const marker = new Error(`safety_band_${band}`);
+    marker.name = `safety_band_${band}`;
     void logEdgeFunctionError({
       functionName: "sophia-brain",
-      error: new Error(`safety_band_${band}`),
+      error: marker,
       severity: band === "high" ? "error" : "warn",
       title: `Safety · band ${band}${
         (args.reasonCodes ?? []).length

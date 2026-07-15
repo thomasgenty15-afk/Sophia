@@ -675,6 +675,32 @@ function bareAmbiguousHour(
   return hour !== null && hour >= 1 && hour <= 9 ? hour : null;
 }
 
+/**
+ * P12-A (eva-hard25 R1-B02, alex-untested24 R1-B01): les jetons de date du
+ * CONTENU du rappel sont INERTES pour l'ancrage temporel — « sortir les
+ * poubelles avant le passage de DEMAIN » promouvait J+1 via la couche P3-B
+ * alors que le créneau demandé (« ce soir à 21h ») était correct. Le scope
+ * temporel = le texte MOINS le segment d'instruction (match insensible aux
+ * diacritiques). Introuvable ⇒ texte inchangé (fail-open, comportement
+ * historique).
+ */
+function temporalScopeText(
+  text: string,
+  instruction: string | null | undefined,
+): string {
+  const normalize = (value: string) =>
+    String(value ?? "").normalize("NFD").replace(/\p{Diacritic}/gu, "")
+      .toLowerCase();
+  const normalizedText = normalize(text);
+  const normalizedInstruction = normalize(String(instruction ?? "")).trim();
+  if (!normalizedInstruction) return normalizedText;
+  const index = normalizedText.indexOf(normalizedInstruction);
+  if (index < 0) return normalizedText;
+  return `${normalizedText.slice(0, index)} ${
+    normalizedText.slice(index + normalizedInstruction.length)
+  }`.trim();
+}
+
 function compileStructuredCreatePayload(args: {
   turnFrame?: TurnFrame | null;
   message: string;
@@ -683,7 +709,10 @@ function compileStructuredCreatePayload(args: {
   localLabel: string | null;
   instruction: string | null;
   rawText: string;
-  parseSource: "payload_utc_time" | "payload";
+  // P12-A: « local_parser » quand une couche P3-B a RÉPARÉ le temps — le
+  // parse_source de l'outcome dit la vraie source (alex-untested24 R1-B01:
+  // « payload_utc_time » mensonger sur une valeur réécrite par le parseur).
+  parseSource: "payload_utc_time" | "payload" | "local_parser";
 } {
   const whenHint = canonicalWhenHintFromTurnFrame(args.turnFrame);
   const utcTime = canonicalUtcTimeFromTurnFrame(args.turnFrame);
@@ -720,7 +749,48 @@ export function mergeMultiCreateDirectEffectResults(args: {
   results: OneShotReminderDirectEffectResult[];
   overflow?: number;
 }): OneShotReminderDirectEffectResult {
-  const results = args.results;
+  // P12-A (nina-p10reval R1-B02) — INVARIANT: deux entrées committed ne
+  // partagent JAMAIS un id. Quand l'exécuteur a résolu deux siblings sur la
+  // MÊME ligne DB (idempotence/upsert sur instant identique), le second
+  // n'est PAS un commit: il est rétrogradé en blocked
+  // fan_out_duplicate_commit et son volet est annoncé manquant
+  // nominativement (le rendu P8-A/P10-B fait le reste) — fin du « c'est
+  // pris pour les deux » avec une seule ligne.
+  const seenCommittedIds = new Set<string>();
+  const results = args.results.map((result) => {
+    const kept: typeof result.committed_effects = [];
+    const demoted: typeof result.committed_effects = [];
+    for (const effect of result.committed_effects) {
+      const id = effect.type === "create_one_shot_reminder"
+        ? String((effect as { id?: unknown }).id ?? "").trim()
+        : "";
+      if (id && seenCommittedIds.has(id)) {
+        demoted.push(effect);
+        continue;
+      }
+      if (id) seenCommittedIds.add(id);
+      kept.push(effect);
+    }
+    if (demoted.length === 0) return result;
+    const demotedLabel = String(
+      (demoted[0] as { local_label?: unknown }).local_label ?? "",
+    ).trim();
+    return {
+      ...result,
+      committed_effects: kept,
+      blocked_effects: [
+        ...result.blocked_effects,
+        ...demoted.map((effect) => ({
+          type: effect.type,
+          reason_code: "fan_out_duplicate_commit",
+        })),
+      ],
+      status: kept.length > 0 ? result.status : "blocked" as const,
+      reply: kept.length > 0 ? result.reply : `celui${
+        demotedLabel ? ` de ${demotedLabel}` : "-là"
+      } n'a PAS été posé séparément (il retombait sur le même rappel que l'autre volet). Redonne-moi son jour et son heure exacts si tu veux bien les deux.`,
+    };
+  });
   const overflow = Math.max(0, args.overflow ?? 0);
   const committed = results.flatMap((result) => result.committed_effects);
   const requested = [
@@ -916,6 +986,127 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
         results: siblingResults,
         overflow: nominalCreateEffects.length - bounded.length,
       });
+    }
+    // P12-B (nina-p10reval R1-B01): des jours calendaires NOMMÉS dénombrables
+    // SANS marqueur d'habitude (« jeudi et vendredi à 18h ») ne sont PAS un
+    // récurrent — c'est un fan-out once×N. Quand le dispatcher les classe
+    // cardinality=recurring, la ceinture requalifie en N effets once (un par
+    // jour, UTC résolu PAR item par le parseur) et délègue au chemin P8-A.
+    // Conditions de désarmement: marqueur d'habitude (« tous les », « chaque »,
+    // quotidien/hebdo) ⇒ blocage recurring honnête inchangé ; heure ambiguë
+    // (1-9 nue) ou instruction absente ⇒ pas de requalification (jamais une
+    // devinette committée). Les jours se lisent dans le SCOPE temporel
+    // (l'instruction est inerte, P12-A).
+    if (nominalCreateEffects.length === 0) {
+      const recurringCreateEffects = (args.turnFrame?.direct_effects ?? [])
+        .filter((effect) =>
+          effect.effect_type === "create_one_shot_reminder" &&
+          String(payloadText(effect, "intent") ?? "create") === "create" &&
+          String(payloadText(effect, "cardinality") ?? "once") === "recurring"
+        );
+      const recurringEffect = recurringCreateEffects.length === 1
+        ? recurringCreateEffects[0]
+        : null;
+      const recurringInstruction = recurringEffect
+        ? String(payloadText(recurringEffect, "instruction_hint") ?? "").trim()
+        : "";
+      if (recurringEffect && recurringInstruction) {
+        const combinedText = [
+          payloadText(recurringEffect, "when_hint") ?? "",
+          payloadText(recurringEffect, "raw_text") ?? "",
+          args.message,
+        ].filter(Boolean).join(" ");
+        const scopedText = temporalScopeText(
+          combinedText,
+          recurringInstruction,
+        );
+        const hasHabitMarker =
+          /\b(tous|toutes|chaque|quotidien(ne)?s?|hebdomadaires?|par jour|par semaine|a chaque fois)\b/
+            .test(scopedText);
+        const namedDayTokens = [
+          ...new Set(
+            [...scopedText.matchAll(
+              /\b(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche|apres[- ]demain|demain)\b/g,
+            )].map((match) => match[1]),
+          ),
+        ];
+        const hourMatch = scopedText.match(/\b(\d{1,2})\s*h\s*(\d{2})?\b/);
+        const hour = hourMatch ? Number(hourMatch[1]) : null;
+        const hourUnambiguous = hour !== null &&
+          (hour >= 10 || Boolean(hourMatch?.[2]) ||
+            /\b(matin|midi|soir)\b/.test(scopedText));
+        if (
+          !hasHabitMarker && namedDayTokens.length >= 2 &&
+          namedDayTokens.length <= 3 && hourUnambiguous
+        ) {
+          const hourLabel = `${hour}h${hourMatch?.[2] ?? ""}`;
+          const nowForFanOut = args.now &&
+              Number.isFinite(args.now.getTime())
+            ? args.now
+            : new Date();
+          try {
+            const tctxFanOut = await getUserTimeContext({
+              supabase: args.supabase,
+              userId: args.userId,
+              now: nowForFanOut,
+            });
+            const timezoneFanOut = tctxFanOut.user_timezone || "Europe/Paris";
+            const siblingEffects = namedDayTokens.map((dayToken) => {
+              const whenClause = `${dayToken} à ${hourLabel}`;
+              const scheduledFor = parseScheduledForFromMessage({
+                message: whenClause,
+                timezone: timezoneFanOut,
+                nowIso: tctxFanOut.now_utc,
+              });
+              return scheduledFor
+                ? {
+                  ...recurringEffect,
+                  payload_hint: {
+                    ...((recurringEffect.payload_hint ?? {}) as Record<
+                      string,
+                      unknown
+                    >),
+                    intent: "create",
+                    cardinality: "once",
+                    when_hint: whenClause,
+                    raw_text: `${recurringInstruction} ${whenClause}`,
+                    UTC_time: scheduledFor,
+                    local_label: formatOneShotLocalLabel(
+                      scheduledFor,
+                      timezoneFanOut,
+                    ),
+                    instruction_hint: recurringInstruction,
+                  },
+                }
+                : null;
+            });
+            if (siblingEffects.every(Boolean)) {
+              const otherEffects = (args.turnFrame?.direct_effects ?? [])
+                .filter((effect) =>
+                  effect.effect_type !== "create_one_shot_reminder"
+                );
+              const siblingResults: OneShotReminderDirectEffectResult[] = [];
+              for (const effect of siblingEffects) {
+                siblingResults.push(
+                  await maybeRunOneShotReminderDirectEffect({
+                    ...args,
+                    message: payloadText(effect!, "raw_text") ?? args.message,
+                    turnFrame: {
+                      ...(args.turnFrame as TurnFrame),
+                      direct_effects: [effect!, ...otherEffects],
+                    },
+                  }),
+                );
+              }
+              return mergeMultiCreateDirectEffectResults({
+                results: siblingResults,
+              });
+            }
+          } catch (_error) {
+            // best-effort: le blocage recurring honnête reste le filet.
+          }
+        }
+      }
     }
   }
   let createEffect = createEffectFromTurnFrame(args.turnFrame);
@@ -1435,16 +1626,23 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
       // même trap deux-heures sur le raw_text entier — le segment après le
       // verbe de re-création isole le nouvel horaire.
       const fullText = [payloadRawText, whenHint].filter(Boolean).join(" ");
+      // P12-A: les détections de JOUR (demain-famille, marqueur nocturne)
+      // lisent le scope temporel — jamais les jetons de date du contenu.
+      const temporalScope = temporalScopeText(
+        fullText,
+        canonicalInstructionHintFromTurnFrame(args.turnFrame) ??
+          compiledPayload.instruction,
+      );
       const effectIntent = String(payloadText(createEffect, "intent") ?? "");
       let parseText = whenHint.trim() ||
         (effectIntent === "replace" || effectIntent === "reschedule"
           ? isolateRecreateSegment(payloadRawText)
           : payloadRawText);
       if (
-        whenHint.trim() && hasExplicitFutureDayHint(fullText) &&
+        whenHint.trim() && hasExplicitFutureDayHint(temporalScope) &&
         !hasExplicitFutureDayHint(whenHint)
       ) {
-        const dayToken = /apr[eè]s[- ]demain/i.test(fullText)
+        const dayToken = /apr[eè]s[- ]demain/i.test(temporalScope)
           ? "après-demain"
           : "demain";
         parseText = `${dayToken} ${whenHint}`;
@@ -1456,11 +1654,24 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
           nowIso: tctxTime.now_utc,
         })
         : null;
+      // P12-A (nina-p10reval R1-B02): un when_hint isolé ne porte pas
+      // d'instruction — parseOneShotReminderRequest y était MUET par
+      // construction et aucune couche ne réparait l'UTC LLM faux d'un item
+      // de fan-out. Le fallback scheduled_for-seul rend les couches
+      // opérantes sur les hints isolés.
+      const parsedScheduledFor = parsed?.scheduledFor ??
+        (parseText.trim()
+          ? parseScheduledForFromMessage({
+            message: parseText,
+            timezone,
+            nowIso: tctxTime.now_utc,
+          })
+          : null);
       const llmMs = new Date(compiledPayload.scheduledFor).getTime();
-      const parsedMs = parsed?.scheduledFor
-        ? new Date(parsed.scheduledFor).getTime()
+      const parsedMs = parsedScheduledFor
+        ? new Date(parsedScheduledFor).getTime()
         : Number.NaN;
-      const explicitFutureDay = hasExplicitFutureDayHint(fullText);
+      const explicitFutureDay = hasExplicitFutureDayHint(temporalScope);
       const localDayUtc = (iso: string) =>
         Date.parse(
           `${
@@ -1477,7 +1688,8 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
         if (Math.abs(parsedMs - llmMs) > 60_000) {
           compiledPayload = {
             ...compiledPayload,
-            scheduledFor: String(parsed?.scheduledFor),
+            scheduledFor: String(parsedScheduledFor),
+            parseSource: "local_parser",
           };
         }
       } else if (explicitFutureDay && Number.isFinite(llmMs)) {
@@ -1493,25 +1705,41 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
           compiledPayload = {
             ...compiledPayload,
             scheduledFor: new Date(repairedMs).toISOString(),
+            parseSource: "local_parser",
           };
         }
       } else if (
         Number.isFinite(parsedMs) && Number.isFinite(llmMs) &&
         llmMs > now.getTime() + 30_000 &&
         parsedMs > now.getTime() + 30_000 &&
-        Math.abs(parsedMs - llmMs) > 60_000
+        Math.abs(parsedMs - llmMs) > 60_000 &&
+        // P12-A: la couche 3 exige que le parseur POSSÈDE son ancre — un jour
+        // explicite dans le texte parsé (jour nommé, demain, ce soir…), un
+        // relatif (« dans 2h »), ou une simple dérive d'HORAIRE (même jour
+        // civil des deux côtés). Sans possession, un when_hint nu (« à
+        // 18h ») résolu aujourd'hui n'écrase pas un jour LLM légitimement
+        // ancré ailleurs dans le message.
+        (hasAnyExplicitDayToken(parseText) ||
+          /\bdans\s+(une?|\d{1,3})\s*(h(eures?)?|minutes?|quart)\b/.test(
+            parseText.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+              .toLowerCase(),
+          ) ||
+          localDayUtc(new Date(parsedMs).toISOString()) ===
+            localDayUtc(new Date(llmMs).toISOString()))
       ) {
         // Couche 3: deux résolutions futures qui divergent (heure relative,
-        // dérive d'arithmétique) → le déterministe gagne.
+        // dérive d'arithmétique, jour nommé mal résolu par le LLM) → le
+        // déterministe gagne.
         compiledPayload = {
           ...compiledPayload,
-          scheduledFor: String(parsed?.scheduledFor),
+          scheduledFor: String(parsedScheduledFor),
+          parseSource: "local_parser",
         };
       } else if (
         Number.isFinite(parsedMs) && Number.isFinite(llmMs) &&
         llmMs <= now.getTime() + 30_000 &&
         parsedMs > now.getTime() + 30_000 &&
-        hasNocturnalOrMeridiemForwardMarker(fullText)
+        hasNocturnalOrMeridiemForwardMarker(temporalScope)
       ) {
         // Couche 4 — P10-A (nina-hard24 R1-B01, T4/T5): EXCEPTION bornée à
         // la décision V2-A (« LLM passé → on garde le passé »). Cette
@@ -1525,7 +1753,8 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
         // garde le clarify past_time (anti-FP V2-A intact).
         compiledPayload = {
           ...compiledPayload,
-          scheduledFor: String(parsed?.scheduledFor),
+          scheduledFor: String(parsedScheduledFor),
+          parseSource: "local_parser",
         };
       }
     } catch (_error) {
@@ -1923,6 +2152,70 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
           }
         } catch (_error) {
           // best-effort: blocage honnête historique si la composition échoue.
+        }
+      }
+      // P12-A (alex-untested24 R1-B05): décalage RELATIF « avance/recule/
+      // décale d'une heure » — le delta s'applique à l'heure de la CIBLE,
+      // jamais à maintenant (le when_hint « dans une heure » émis par le
+      // dispatcher re-résolvait now+1h, direction inversée en prime: rappel
+      // de 17h « avancé » à 10h46). « avance » = plus tôt ; « recule/
+      // repousse/décale de » = plus tard. Cette composition PRIME sur un
+      // scheduledFor de complétion (la source du now+1h). Un résultat passé
+      // n'est pas committable → scheduledFor annulé (clarify honnête).
+      if (uniqueRescheduleTarget) {
+        try {
+          const combinedDeltaText =
+            `${args.message} ${canonicalRawTextFromTurnFrame(args.turnFrame) ?? ""}`
+              .normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
+          const deltaMatch = combinedDeltaText.match(
+            /\b(avance|recule|repousse|decale)\b[^.!?]{0,60}?\bd(?:e\s+|['’]\s?)(une|deux|trois|\d{1,3})\s+(demi-?\s?heures?|heures?|minutes?)\b/,
+          );
+          if (deltaMatch) {
+            const numberWords: Record<string, number> = {
+              une: 1,
+              deux: 2,
+              trois: 3,
+            };
+            const amount = numberWords[deltaMatch[2]] ??
+              Number(deltaMatch[2]);
+            const unit = deltaMatch[3];
+            const deltaMinutes = /demi/.test(unit)
+              ? 30
+              : /minute/.test(unit)
+              ? amount
+              : amount * 60;
+            const direction = deltaMatch[1] === "avance" ? -1 : 1;
+            const targetMs = new Date(
+              String(uniqueRescheduleTarget.scheduled_for ?? ""),
+            ).getTime();
+            if (
+              Number.isFinite(targetMs) && Number.isFinite(deltaMinutes) &&
+              deltaMinutes > 0
+            ) {
+              const shiftedMs = targetMs + direction * deltaMinutes * 60_000;
+              if (shiftedMs > now.getTime() + 30_000) {
+                const tctxDelta = await getUserTimeContext({
+                  supabase: args.supabase,
+                  userId: args.userId,
+                  now,
+                });
+                const shiftedIso = new Date(shiftedMs).toISOString();
+                compiledPayload = {
+                  ...compiledPayload,
+                  scheduledFor: shiftedIso,
+                  localLabel: formatOneShotLocalLabel(
+                    shiftedIso,
+                    tctxDelta.user_timezone || "Europe/Paris",
+                  ),
+                  parseSource: "local_parser",
+                };
+              } else {
+                compiledPayload = { ...compiledPayload, scheduledFor: null };
+              }
+            }
+          }
+        } catch (_error) {
+          // best-effort: blocage honnête historique si le calcul échoue.
         }
       }
       if (uniqueRescheduleTarget && compiledPayload.scheduledFor) {
@@ -2675,19 +2968,34 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
             : "C'est annulé : ce rappel ne partira pas."),
         }),
         executed_tools: ["cancel_one_shot_reminder"],
-        requested_effects: [{
-          type: "cancel_one_shot_reminder",
-          reason_code: "cancel",
-        }],
-        allowed_effects: [{
-          type: "cancel_one_shot_reminder",
-          reason_code: "cancel",
-        }],
-        committed_effects: [{
-          type: "cancel_one_shot_reminder",
-          ids: cancelOutcome.cancelled_ids ?? [],
-          local_label: label || undefined,
-        }],
+        // P12-C (paul-p9reval R1-B01): cardinalité du ledger = cardinalité
+        // DB — une entrée requested/committed PAR rappel annulé (extension
+        // du contrat P7-B « N commits ⇒ N annoncés » au cancel de masse).
+        // L'entrée agrégée unique privait le composeur de la liste et le
+        // rendu sortait un pluriel vague.
+        requested_effects: (cancelOutcome.cancelled_ids ?? [label || "x"])
+          .map(() => ({
+            type: "cancel_one_shot_reminder" as const,
+            reason_code: "cancel",
+          })),
+        allowed_effects: (cancelOutcome.cancelled_ids ?? [label || "x"])
+          .map(() => ({
+            type: "cancel_one_shot_reminder" as const,
+            reason_code: "cancel",
+          })),
+        committed_effects: (cancelOutcome.cancelled_ids ?? []).length > 0
+          ? (cancelOutcome.cancelled_ids ?? []).map((cancelledId, index) => ({
+            type: "cancel_one_shot_reminder" as const,
+            id: cancelledId,
+            ids: [cancelledId],
+            local_label: cancelOutcome.cancelled_local_labels?.[index] ??
+              (index === 0 ? label || undefined : undefined),
+          }))
+          : [{
+            type: "cancel_one_shot_reminder" as const,
+            ids: [],
+            local_label: label || undefined,
+          }],
       };
     }
     if (cancelOutcome.detected && cancelOutcome.status === "ambiguous_target") {

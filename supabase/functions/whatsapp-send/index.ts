@@ -156,6 +156,15 @@ function getFallbackTemplate(
       injectBodyNameParam: false,
     };
   }
+  if (p === "plan_activated") {
+    return {
+      name: (Deno.env.get("WHATSAPP_PLAN_ACTIVATED_TEMPLATE_NAME") ??
+        "plan_activated_v1").trim(),
+      language: (Deno.env.get("WHATSAPP_PLAN_ACTIVATED_TEMPLATE_LANG") ?? "fr")
+        .trim(),
+      injectBodyNameParam: true,
+    };
+  }
   if (p === "recurring_reminder") {
     return {
       name: (Deno.env.get("WHATSAPP_RECURRING_REMINDER_TEMPLATE_NAME") ??
@@ -302,23 +311,94 @@ async function findSentProactiveTemplateToday(params: {
   return null;
 }
 
-async function countProactiveLast10h(
+const DAILY_PROACTIVE_CAP = 2;
+
+// Out-of-24h-window guarantees: the evening daily review and the weekly review
+// always go out even when other proactive messages would hit the daily cap.
+// They still COUNT toward the cap (they don't add on top): on a day that has
+// both (e.g. Sunday: evening review + weekly review) the two slots are taken by
+// the bilans and no other proactive nudge is allowed that day.
+const GUARANTEED_OUT_OF_WINDOW_PURPOSES = new Set([
+  "action_evening_review",
+  "action_evening_review_already_resolved",
+  "weekly_progress_review",
+]);
+const GUARANTEED_OUT_OF_WINDOW_EVENT_CONTEXTS = [
+  "action_evening_review_v2",
+  "weekly_progress_review_v2",
+];
+// Transactional confirmations that must never be throttled.
+const THROTTLE_EXEMPT_PURPOSES = new Set([
+  "subscription_confirmed",
+  "subscription_modified",
+  "plan_adjustment_confirmed",
+]);
+
+function localDayBoundsIso(
+  timezone: string,
+  now: Date,
+): { startIso: string; endIso: string } {
+  return {
+    startIso: computeScheduledForFromLocal({
+      timezone,
+      dayOffset: 0,
+      localTimeHHMM: "00:00",
+      now,
+    }),
+    endIso: computeScheduledForFromLocal({
+      timezone,
+      dayOffset: 1,
+      localTimeHHMM: "00:00",
+      now,
+    }),
+  };
+}
+
+// Proactive WhatsApp messages already sent to the user during the current local
+// calendar day. `purposes` (when provided) restricts the count to those purposes.
+async function countProactiveSentToday(
   admin: ReturnType<typeof createClient>,
   userId: string,
-) {
-  const since = new Date(Date.now() - 10 * 60 * 60 * 1000).toISOString();
-  const { count, error } = await admin
+  startIso: string,
+  endIso: string,
+  purposes?: string[],
+): Promise<number> {
+  let query = admin
     .from("chat_messages")
     .select("id", { count: "exact", head: true })
     .eq("user_id", userId)
     .eq("role", "assistant")
-    .gte("created_at", since)
+    .gte("created_at", startIso)
+    .lt("created_at", endIso)
     // best-effort filter on jsonb metadata
     .filter("metadata->>channel", "eq", "whatsapp")
     .filter("metadata->>is_proactive", "eq", "true");
-
+  if (purposes && purposes.length > 0) {
+    query = query.filter("metadata->>purpose", "in", `(${purposes.join(",")})`);
+  }
+  const { count, error } = await query;
   if (error) throw error;
   return count ?? 0;
+}
+
+// How many guaranteed bilans (evening review / weekly review) are scheduled for
+// the user today — used to reserve their slots inside the daily proactive cap.
+async function countGuaranteedExpectedToday(
+  admin: ReturnType<typeof createClient>,
+  userId: string,
+  startIso: string,
+  endIso: string,
+): Promise<number> {
+  const { count, error } = await admin
+    .from("scheduled_checkins")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .in("event_context", GUARANTEED_OUT_OF_WINDOW_EVENT_CONTEXTS)
+    .gte("scheduled_for", startIso)
+    .lt("scheduled_for", endIso)
+    .in("status", ["pending", "retrying", "awaiting_user", "sent"]);
+  if (error) throw error;
+  return Math.min(DAILY_PROACTIVE_CAP, count ?? 0);
 }
 
 Deno.serve(async (req) => {
@@ -476,31 +556,59 @@ Deno.serve(async (req) => {
     const isProactive = !isConversationRecent;
     const templatePolicyPriority = proactiveTemplatePriorityForPurpose(purpose);
 
-    // Throttle only when proactive (per spec)
-    if (
-      !webSimulationEnabled && isProactive &&
-      purpose !== "subscription_confirmed" &&
-      purpose !== "subscription_modified" &&
-      purpose !== "plan_adjustment_confirmed"
-    ) {
-      const sent = await countProactiveLast10h(admin, body.user_id);
-      if (sent >= 2) {
-        return await preflightErrorResponse({
-          req,
-          requestId,
-          userId: userIdForLog,
-          status: 429,
-          error: "Proactive throttle (2/10h)",
-          purpose,
-          metadataExtra,
-        });
-      }
-    }
-
-    // 24h window: if not in window, caller must send template (or force_template)
+    // 24h window: if not in window, caller must send a template (or force_template).
     const isIn24h = lastInbound != null &&
       now - lastInbound <= 24 * 60 * 60 * 1000;
     const mustUseTemplate = !isIn24h || Boolean(body.force_template);
+
+    // Proactive send policy:
+    //  - Inside the 24h conversation window: no limit.
+    //  - Outside the window: at most DAILY_PROACTIVE_CAP proactive messages per
+    //    local calendar day (00:00–00:00, user timezone). The evening review and
+    //    the weekly review are guaranteed (always sent) and RESERVE their slots
+    //    inside that cap, so other proactive nudges yield to them.
+    if (
+      !webSimulationEnabled && !isIn24h &&
+      !THROTTLE_EXEMPT_PURPOSES.has(purpose)
+    ) {
+      const timezone = String((profile as any)?.timezone ?? "").trim() ||
+        "Europe/Paris";
+      const { startIso, endIso } = localDayBoundsIso(timezone, new Date());
+      const isGuaranteed = GUARANTEED_OUT_OF_WINDOW_PURPOSES.has(purpose);
+      if (!isGuaranteed) {
+        const [totalToday, guaranteedSentToday, guaranteedExpectedToday] =
+          await Promise.all([
+            countProactiveSentToday(admin, body.user_id, startIso, endIso),
+            countProactiveSentToday(
+              admin,
+              body.user_id,
+              startIso,
+              endIso,
+              [...GUARANTEED_OUT_OF_WINDOW_PURPOSES],
+            ),
+            countGuaranteedExpectedToday(admin, body.user_id, startIso, endIso),
+          ]);
+        const nonBilanSentToday = Math.max(0, totalToday - guaranteedSentToday);
+        const nonBilanAllowance = Math.max(
+          0,
+          DAILY_PROACTIVE_CAP - guaranteedExpectedToday,
+        );
+        if (
+          totalToday >= DAILY_PROACTIVE_CAP ||
+          nonBilanSentToday >= nonBilanAllowance
+        ) {
+          return await preflightErrorResponse({
+            req,
+            requestId,
+            userId: userIdForLog,
+            status: 429,
+            error: "Proactive daily cap (2/day, bilans prioritized)",
+            purpose,
+            metadataExtra,
+          });
+        }
+      }
+    }
 
     if (body.message.type === "interactive_buttons" && mustUseTemplate) {
       return await preflightErrorResponse({

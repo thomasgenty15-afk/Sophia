@@ -725,8 +725,11 @@ Deno.serve(async (req) => {
           msg.text ?? "",
           msg.interactive_id ?? null,
         );
-        // Opt-in: strict yes token only.
-        const isOptInYesText = /^(oui|yes|absolument)\s*!?$/i.test(textLower);
+        // Opt-in: strict yes token only. "c'est bien moi" is the winback
+        // template's positive quick-reply (sophia_optin_winback_v2) — same opt-in
+        // path as "Absolument !" from the initial opt-in template.
+        const isOptInYesText =
+          /^(oui|yes|absolument|c[’']?est bien moi)\s*!?$/i.test(textLower);
         // Scheduled / recurring reminder template buttons:
         // - daily bilan: "Carrément!" / "On le fait demain!"
         // - generic check-in: "Oui !" / "Une prochaine fois !"

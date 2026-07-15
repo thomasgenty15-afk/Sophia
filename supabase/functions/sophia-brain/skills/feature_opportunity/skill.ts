@@ -39,12 +39,16 @@ function cleanMessage(value: unknown): string | null {
   return text ? text : null;
 }
 
-function visibleRuntimeContext(input: FeatureOpportunityRunSkillInput) {
+function visibleRuntimeContext(
+  input: FeatureOpportunityRunSkillInput,
+  isFlowEntry: boolean,
+) {
   return {
     style_rules: VISIBLE_OUTPUT_STYLE_RULES,
     recent_messages: visibleRecentMessages({
       recent_messages: input.context.recent_messages,
       user_message: input.user_message,
+      is_cold_entry: isFlowEntry,
     }),
     recent_effects_summary:
       input.context.runtime_context?.recent_effects_summary ?? null,
@@ -144,6 +148,11 @@ export async function runFeatureOpportunitySkill(
   input: FeatureOpportunityRunSkillInput,
 ) {
   const inboundNote = (input.context as any).note_information ?? null;
+  // Entrée à froid = aucun état persisté d'un tour précédent de CE flow
+  // (calculé avant le seed depuis le signal, qui n'est pas un signal fiable).
+  const isFlowEntry = readFeatureOpportunityState(
+    input.context.active_skill_working_state,
+  ) == null;
   const previous = readFeatureOpportunityState(
     input.context.active_skill_working_state,
   ) ?? initialStateFromDispatcherSignal(input);
@@ -158,6 +167,7 @@ export async function runFeatureOpportunitySkill(
     inbound_note_information: inboundNote,
     turn_frame: input.context.turn_frame,
     dispatcher_signal_context: dispatcherSignalContext(input),
+    is_flow_entry: isFlowEntry,
   }) ?? fallbackDecision(input);
   const reduced = reduceFeatureOpportunityLocalDispatcherOutput({
     previous,
@@ -215,7 +225,7 @@ export async function runFeatureOpportunitySkill(
     user_id: input.context.user_id,
     request_id: (input.context.turn_frame as any)?.source_message_id ?? null,
     stage: reduced.visible_task,
-    visible_runtime_context: visibleRuntimeContext(input),
+    visible_runtime_context: visibleRuntimeContext(input, isFlowEntry),
     conversation_context: {
       ...reduced.conversation_context,
       direct_effect_confirmation_context: directEffectContext,

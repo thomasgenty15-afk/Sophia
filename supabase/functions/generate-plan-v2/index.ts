@@ -2321,6 +2321,125 @@ function scheduleActivationEnrichment(args: {
   void task;
 }
 
+// --- Plan-activation WhatsApp confirmation (static, no AI) -------------------
+// Sent best-effort right after the very first draft/generated -> active
+// transition. A WhatsApp failure must never break plan activation.
+
+const PLAN_ACTIVATED_PURPOSE = "plan_activated";
+
+export function planActivatedFirstName(fullName: unknown): string {
+  const trimmed = String(fullName ?? "").trim();
+  if (!trimmed) return "";
+  return trimmed.split(/\s+/)[0] ?? "";
+}
+
+export function planActivatedConfirmationText(firstName: unknown): string {
+  const name = String(firstName ?? "").trim();
+  return name
+    ? `Ça y est ${name}, ton plan est validé et lancé ! 🎉`
+    : "Ça y est, ton plan est validé et lancé ! 🎉";
+}
+
+// Idempotence guard: only the first activation (draft/generated -> active) may
+// send the confirmation. A plan already active or paused (re-activation,
+// adjustment) must never re-send it.
+export function isFirstPlanActivation(previousStatus: unknown): boolean {
+  const status = String(previousStatus ?? "").trim();
+  return status !== "active" && status !== "paused";
+}
+
+export function buildPlanActivatedConfirmationPayload(args: {
+  previousStatus: unknown;
+  userId: string;
+  fullName: unknown;
+  planId: string;
+}): {
+  user_id: string;
+  message: { type: "text"; body: string };
+  purpose: string;
+  require_opted_in: true;
+  metadata_extra: { plan_id: string; kind: string };
+} | null {
+  if (!isFirstPlanActivation(args.previousStatus)) return null;
+  return {
+    user_id: args.userId,
+    message: {
+      type: "text",
+      body: planActivatedConfirmationText(planActivatedFirstName(args.fullName)),
+    },
+    purpose: PLAN_ACTIVATED_PURPOSE,
+    require_opted_in: true,
+    metadata_extra: {
+      plan_id: args.planId,
+      kind: "plan_activated_confirmation",
+    },
+  };
+}
+
+function internalFunctionSecret(): string {
+  return (Deno.env.get("INTERNAL_FUNCTION_SECRET")?.trim() ||
+    Deno.env.get("SECRET_KEY")?.trim() || "");
+}
+
+function functionsBaseUrl(): string {
+  const supabaseUrl = (Deno.env.get("SUPABASE_URL") ?? "").trim();
+  if (!supabaseUrl) return "http://kong:8000";
+  if (supabaseUrl.includes("http://kong:8000")) return "http://kong:8000";
+  return supabaseUrl.replace(/\/+$/, "");
+}
+
+async function sendPlanActivatedConfirmation(args: {
+  admin: SupabaseClient;
+  userId: string;
+  planRow: UserPlanV2Row;
+}): Promise<void> {
+  try {
+    if (!isFirstPlanActivation(args.planRow.status)) return;
+    const { data: confirmationProfile } = await args.admin
+      .from("profiles")
+      .select("full_name, whatsapp_opted_in")
+      .eq("id", args.userId)
+      .maybeSingle();
+    const payload = buildPlanActivatedConfirmationPayload({
+      previousStatus: args.planRow.status,
+      userId: args.userId,
+      fullName: (confirmationProfile as { full_name?: unknown } | null)
+        ?.full_name ?? null,
+      planId: args.planRow.id,
+    });
+    if (!payload) return;
+    const secret = internalFunctionSecret();
+    if (!secret) {
+      console.error(
+        "[generate-plan-v2] plan_activated confirmation skipped: missing INTERNAL_FUNCTION_SECRET",
+      );
+      return;
+    }
+    const res = await fetch(
+      `${functionsBaseUrl()}/functions/v1/whatsapp-send`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Internal-Secret": secret,
+        },
+        body: JSON.stringify(payload),
+      },
+    );
+    if (!res.ok) {
+      const detail = await res.text().catch(() => "");
+      console.error(
+        `[generate-plan-v2] plan_activated whatsapp-send failed (${res.status}): ${detail}`,
+      );
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(
+      `[generate-plan-v2] plan_activated confirmation error: ${message}`,
+    );
+  }
+}
+
 async function activatePersistedPlan(args: {
   admin: SupabaseClient;
   userId: string;
@@ -2475,6 +2594,14 @@ async function activatePersistedPlan(args: {
       cause: activateCycleError,
     });
   }
+
+  // Static WhatsApp confirmation on first activation only. Best-effort: never
+  // let a WhatsApp failure break plan activation (guarded internally).
+  await sendPlanActivatedConfirmation({
+    admin: args.admin,
+    userId: args.userId,
+    planRow: args.planRow,
+  });
 
   const eventWarnings = [...distribution.warnings];
 

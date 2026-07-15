@@ -48,10 +48,12 @@ function directEffectLane(turnFrame: TurnFrame | null) {
 
 function recentMessagesForVisible(
   input: CoachingRecommendationRunSkillInput,
+  isFlowEntry: boolean,
 ) {
   return visibleRecentMessages({
     recent_messages: input.context.recent_messages,
     user_message: input.user_message,
+    is_cold_entry: isFlowEntry,
   });
 }
 
@@ -406,6 +408,12 @@ export async function runCoachingRecommendationSkill(
   input: CoachingRecommendationRunSkillInput,
 ) {
   const inboundNote = (input.context as any).note_information ?? null;
+  // Entrée à froid = aucun état coaching persisté d'un tour précédent de CE
+  // flow. On le calcule AVANT le seed (bridge/signal) car `previous` peut être
+  // seedé et n'est donc pas un signal d'entrée fiable.
+  const isFlowEntry = readCoachingRecommendationState(
+    input.context.active_skill_working_state,
+  ) == null;
   const previous = readCoachingRecommendationState(
     input.context.active_skill_working_state,
   ) ?? initialCoachingRecommendationStateFromParentBridge(inboundNote) ??
@@ -422,6 +430,7 @@ export async function runCoachingRecommendationSkill(
     inbound_note_information: inboundNote,
     turn_frame: input.context.turn_frame,
     dispatcher_signal_context: dispatcherSignalContext(input),
+    is_flow_entry: isFlowEntry,
   }) ?? fallbackDecision(input.user_message);
   const reduced = reduceCoachingRecommendationLocalDispatcherOutput({
     previous,
@@ -479,7 +488,7 @@ export async function runCoachingRecommendationSkill(
       request_id: (input.context.turn_frame as any)?.source_message_id ??
         null,
       visible_runtime_context: {
-        recent_messages: recentMessagesForVisible(input),
+        recent_messages: recentMessagesForVisible(input, isFlowEntry),
         recent_effects_summary:
           input.context.runtime_context?.recent_effects_summary ?? null,
         user_identity: input.context.runtime_context?.user_identity ?? null,

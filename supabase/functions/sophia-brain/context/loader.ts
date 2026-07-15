@@ -11,7 +11,10 @@ declare const Deno: any;
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import { logMemoryObservabilityEvent } from "../../_shared/memory-observability.ts";
-import { retractedContentSegments } from "../../_shared/memory/memorizer/retraction_guard.ts";
+import {
+  filterRetractedMemoryItems,
+  retractedContentSegments,
+} from "../../_shared/memory/memorizer/retraction_guard.ts";
 
 let cachedServiceRoleLedgerClient: SupabaseClient | null | undefined = undefined;
 
@@ -795,26 +798,33 @@ export async function loadContextForMode(
     // composeur avec l'interdit de restitution. Zéro règle générique de
     // prompt (budget companion), zéro dépendance LLM.
     try {
-      const retractedSegments = retractedContentSegments(
-        (opts.history ?? []).map((m: any) => ({
-          role: (String(m?.role ?? "") === "user"
-            ? "user"
-            : String(m?.role ?? "") === "assistant"
-            ? "assistant"
-            : "system") as "user" | "assistant" | "system",
-          content: String(m?.content ?? ""),
-        })),
-      );
-      if (retractedSegments.length > 0) {
-        const lines = retractedSegments
-          .slice(0, 3)
-          .map((segment) => `- « ${segment.slice(0, 90)} »`)
-          .join("\n");
-        context.retractedInSession =
-          `=== RÉTRACTÉ EN SESSION (INTERDIT DE RESTITUTION) ===\n` +
-          `L'utilisateur a explicitement demandé d'oublier ces éléments dans cette conversation. ` +
-          `Ne JAMAIS les restituer, les reformuler, ni t'y référer (même « avec la nuance ») — ni comme objectif, ni comme fait, ni comme rappel de ce qui a été dit :\n${lines}\n\n`;
+      const retractedBlock = formatRetractedInSessionBlock(opts.history ?? []);
+      if (retractedBlock) {
+        context.retractedInSession = retractedBlock;
         elementsLoaded.push("retracted_in_session");
+      }
+    } catch (_error) {
+      // best-effort: l'absence du bloc ne casse jamais le chargement.
+    }
+  }
+
+  // 9b. P12-E (alex-untested24 R1-B11 volet 2): CONFIÉ EN SESSION — les
+  // intentions mémoire explicites (« garde ça en tête »), bufferisées par le
+  // router (P6-H, __session_memory_intents) mais jamais servies au récap
+  // in-session : un fait confié 80 minutes avant le batch nocturne était NIÉ
+  // (« pas d'autre projet explicitement chargé »). Un fait confié PUIS
+  // rétracté en session n'est jamais servi (croisement retraction_guard).
+  // Companion seulement : c'est le composeur du récap ; les autres modes
+  // gardent leur contexte minimal.
+  if (opts.mode === "companion") {
+    try {
+      const sessionIntentsBlock = formatSessionMemoryIntentsBlock(
+        opts.tempMemory,
+        opts.history ?? [],
+      );
+      if (sessionIntentsBlock) {
+        context.sessionMemoryIntents = sessionIntentsBlock;
+        elementsLoaded.push("session_memory_intents");
       }
     } catch (_error) {
       // best-effort: l'absence du bloc ne casse jamais le chargement.
@@ -1079,6 +1089,79 @@ export async function loadContextForMode(
   };
 }
 
+function historyAsMemorizerMessages(
+  history: unknown,
+): Array<{ role: "user" | "assistant" | "system"; content: string }> {
+  return (Array.isArray(history) ? history : []).map((m: any) => ({
+    role: (String(m?.role ?? "") === "user"
+      ? "user"
+      : String(m?.role ?? "") === "assistant"
+      ? "assistant"
+      : "system") as "user" | "assistant" | "system",
+    content: String(m?.content ?? ""),
+  }));
+}
+
+/**
+ * P10-D + P12-E (eva-hard25 R1-B05): bloc des segments rétractés en session.
+ * Le libellé porte l'interdit de RESTITUTION **et de MENTION spontanée** —
+ * au run réel le contenu ne fuyait plus mais le composeur nommait
+ * spontanément le topic rétracté au récap suivant (« je n'ai pas gardé
+ * l'info sur la céramique ») sans y être invité. Pure et exportée pour être
+ * testable ; pas de nouvelle règle générique au prompt companion (budget).
+ */
+export function formatRetractedInSessionBlock(history: unknown): string | null {
+  const retractedSegments = retractedContentSegments(
+    historyAsMemorizerMessages(history),
+  );
+  if (retractedSegments.length === 0) return null;
+  const lines = retractedSegments
+    .slice(0, 3)
+    .map((segment) => `- « ${segment.slice(0, 90)} »`)
+    .join("\n");
+  return `=== RÉTRACTÉ EN SESSION (INTERDIT DE RESTITUTION ET DE MENTION SPONTANÉE) ===\n` +
+    `L'utilisateur a explicitement demandé d'oublier ces éléments dans cette conversation. ` +
+    `Ne JAMAIS les restituer, les reformuler, ni t'y référer (même « avec la nuance ») — ni comme objectif, ni comme fait, ni comme rappel de ce qui a été dit. ` +
+    `N'en mentionne même pas le SUJET spontanément (jamais de « je n'ai pas gardé l'info sur X ») — n'en parle que si l'utilisateur rouvre lui-même le sujet :\n${lines}\n\n`;
+}
+
+/**
+ * P12-E (alex-untested24 R1-B11 volet 2): intentions mémoire explicites de
+ * la session (« garde ça en tête », buffer __session_memory_intents posé par
+ * le router P6-H au tour d'accusé), servies au composeur AVANT le batch
+ * memorizer nocturne — sinon un récap « ce que tu sais de moi / mes
+ * projets » nie un fait confié 80 minutes plus tôt. Bloc court (≤ 3
+ * entrées, tronquées) ; une intention rétractée en session est EXCLUE
+ * (croisement retraction_guard : confié puis « oublie ça » ⇒ jamais servi).
+ */
+export function formatSessionMemoryIntentsBlock(
+  tempMemory: unknown,
+  history: unknown,
+): string | null {
+  const rawIntents = Array.isArray(
+      (tempMemory as Record<string, unknown>)?.__session_memory_intents,
+    )
+    ? (tempMemory as Record<string, unknown>)
+      .__session_memory_intents as Array<Record<string, unknown>>
+    : [];
+  const intents = rawIntents
+    .map((entry) => String(entry?.text ?? "").trim())
+    .filter(Boolean);
+  if (intents.length === 0) return null;
+  const { kept } = filterRetractedMemoryItems(
+    intents.map((text) => ({ content: text })),
+    historyAsMemorizerMessages(history),
+  );
+  if (kept.length === 0) return null;
+  const lines = kept
+    .slice(-3)
+    .map((entry) => `- « ${String(entry.content).slice(0, 200)} »`)
+    .join("\n");
+  return `=== CONFIÉ EN SESSION (pas encore en mémoire longue) ===\n` +
+    `L'utilisateur a explicitement demandé de retenir ces éléments dans CETTE conversation ; la consolidation en mémoire durable se fait la nuit. ` +
+    `Dans un récap « ce que tu sais de moi / mes projets », inclus-les — ne les nie JAMAIS :\n${lines}\n\n`;
+}
+
 /**
  * Assemble le contexte final en string pour le prompt
  */
@@ -1102,6 +1185,10 @@ export function buildContextString(loaded: LoadedContext): string {
   // chargés pour ce tour ne doivent jamais être amputés au profit de
   // shortTerm/recentTurns, déjà largement portés par l'history du modèle.
   if (loaded.memoryV2Payload) ctx += loaded.memoryV2Payload;
+  // P12-E (alex-untested24 R1-B11): les faits confiés en session (pas encore
+  // batchés) survivent au budget AVANT les blocs volumineux, comme
+  // l'interdit de rétractation — un récap qui les nie est un désaveu.
+  if (loaded.sessionMemoryIntents) ctx += loaded.sessionMemoryIntents;
   // P10-D: l'interdit de restitution des faits rétractés en session survit
   // au budget AVANT les blocs volumineux — un interdit tronqué = un fait
   // rétracté restitué.
@@ -3043,15 +3130,22 @@ export async function loadDurableEffectsSummary(
       // visibles — sans eux, une verification post-annulation ('il est encore
       // actif ?') routee hors lane status se rabat sur une habitude du plan
       // au nom proche et repond 'encore actif' sur un rappel annule.
+      // P12-G (paul-p9reval R1-B02): fix C3 porté à la branche CANCELLED —
+      // le .limit(5) silencieux tronquait la 6e ligne et le composeur
+      // affirmait « exactement ces 5 et aucun autre » (récidive exacte du
+      // cap pending fixé le 03/07). Charge large + count exact: la troncature
+      // devient détectable et l'exhaustivité interdite sur liste tronquée.
       supabase
         .from("scheduled_checkins")
-        .select("id,scheduled_for,status,message_payload")
+        .select("id,scheduled_for,status,message_payload", {
+          count: "exact",
+        })
         .eq("user_id", userId)
         .eq("status", "cancelled")
         .like("event_context", "one_shot_reminder%")
         .gte("created_at", new Date(Date.now() - 24 * 3600 * 1000).toISOString())
         .order("scheduled_for", { ascending: true })
-        .limit(5),
+        .limit(50),
       // CHANTIER E6 (2026-05-28) — On récupère source_type pour distinguer les
       // préférences définies par l'utilisateur (explicit_user/ui/...) des
       // réglages par défaut système (system_default). Voir A11 T13 où les 9
@@ -3204,8 +3298,21 @@ export async function loadDurableEffectsSummary(
     // rappel annulé.
     const cancelled = (cancelledRes?.data ?? []) as any[];
     if (cancelled.length > 0) {
+      // P12-G (paul-p9reval R1-B02): count exact affiché — interdiction
+      // contractuelle d'affirmer l'exhaustivité quand la liste chargée est
+      // plus courte que le count (miroir du fix C3 pending).
+      const cancelledExactCount =
+        typeof (cancelledRes as { count?: number | null })?.count ===
+            "number" &&
+          (cancelledRes as { count?: number | null }).count !== null
+          ? Number((cancelledRes as { count?: number | null }).count)
+          : cancelled.length;
       lines.push(
-        "- Rappels ponctuels ANNULÉS (dernières 24h) — ils ne partiront PAS; à une question « il est encore actif ? » sur l'un d'eux, réponds qu'il est annulé; ne le confonds pas avec une action ou habitude du plan au nom proche:",
+        `- Rappels ponctuels ANNULÉS (dernières 24h, ${cancelledExactCount} au total${
+          cancelledExactCount > cancelled.length
+            ? `, ${cancelled.length} affichés — liste NON exhaustive, ne dis jamais « et aucun autre »`
+            : ""
+        }) — ils ne partiront PAS; à une question « il est encore actif ? » sur l'un d'eux, réponds qu'il est annulé; ne le confonds pas avec une action ou habitude du plan au nom proche:`,
       );
       for (const row of cancelled) {
         const instruction = extractReminderInstruction(row?.message_payload);

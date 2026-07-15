@@ -4929,3 +4929,89 @@ Deno.test("axe d'activation etat→potion: hypo ≠ apaisement, deux etats oppos
     true,
   );
 });
+
+// --- Contexte d'entree de flow + reconciliation de note ---------------------
+// Garde-fou du clarify reflexe a froid (incident #23: "Tu veux t'aider sur
+// quelle situation precise ?" alors que l'action 11h30 etait nommee juste
+// avant). A l'entree du flow, la fenetre s'elargit pour rapatrier le contexte
+// diagnostic sinon tronque par la fenetre roulante de 8 messages.
+
+function historyEndingWith11h30(): Array<
+  { role: "user" | "assistant"; content: string }
+> {
+  // 11h30 est nomme LOIN en arriere (>8 messages), pour verifier que seule la
+  // fenetre d'entree elargie le rapatrie dans le prompt.
+  const msgs: Array<{ role: "user" | "assistant"; content: string }> = [
+    { role: "user", content: "je me leve a 11h30 peu importe l'heure de couche" },
+    { role: "assistant", content: "ok, 11h30 comme ancre de reveil" },
+  ];
+  for (let i = 0; i < 8; i++) {
+    msgs.push({ role: "user", content: `question intermediaire ${i}` });
+    msgs.push({ role: "assistant", content: `reponse intermediaire ${i}` });
+  }
+  return msgs;
+}
+
+Deno.test("coaching cold entry: fenetre elargie + cadrage rapatrient le contexte tronque (anti-#23)", () => {
+  const recent = historyEndingWith11h30();
+  const coldPrompt = coachingDispatcherPromptForTest({
+    user_id: "user-test",
+    request_id: "req-test",
+    user_message: "oui je veux bien",
+    recent_messages: recent,
+    previous_state: null,
+    active_plan_items: [],
+    turn_frame: null,
+    is_flow_entry: true,
+  } as any);
+
+  // Le cadrage d'entree est present.
+  assertEquals(coldPrompt.includes("CONTEXTE D'ENTREE"), true);
+  // La fenetre elargie rapatrie l'ancre 11h30 (hors des 8 derniers messages).
+  assertEquals(coldPrompt.includes("je me leve a 11h30"), true);
+
+  // Sur un tour de continuation, pas de cadrage et l'ancre lointaine est
+  // tronquee par la fenetre roulante de 8 messages.
+  const warmPrompt = coachingDispatcherPromptForTest({
+    user_id: "user-test",
+    request_id: "req-test",
+    user_message: "oui je veux bien",
+    recent_messages: recent,
+    previous_state: null,
+    active_plan_items: [],
+    turn_frame: null,
+    is_flow_entry: false,
+  } as any);
+  assertEquals(warmPrompt.includes("CONTEXTE D'ENTREE"), false);
+  assertEquals(warmPrompt.includes("je me leve a 11h30"), false);
+});
+
+Deno.test("coaching local dispatcher prompt ancre la reconciliation de note globale (source unique de verite)", () => {
+  const prompt = coachingDispatcherPromptForTest({
+    user_id: "user-test",
+    request_id: "req-test",
+    user_message: "oui je veux bien",
+    recent_messages: [],
+    previous_state: null,
+    active_plan_items: [],
+    turn_frame: null,
+    is_flow_entry: true,
+  } as any);
+  assertEquals(
+    prompt.includes("Source unique de verite = la conversation reelle"),
+    true,
+  );
+  assertEquals(
+    prompt.includes("un BRIEFING a verifier, jamais une verite figee"),
+    true,
+  );
+  assertEquals(prompt.includes("CONFIRME"), true);
+  assertEquals(prompt.includes("ETOFFE"), true);
+  assertEquals(prompt.includes("INFIRME"), true);
+  assertEquals(prompt.includes("une seule cible tranchee par tour"), true);
+  // Mecanisme de correction specifique a coaching preserve.
+  assertEquals(
+    prompt.includes("target_switch ou visible_task.kind=change_confirm_coaching_type"),
+    true,
+  );
+});

@@ -17,6 +17,11 @@ import {
   localOneShotDirectEffectPromptLines,
   normalizeLocalOneShotDirectEffectRequest,
 } from "../../router/one_shot_local_direct_effect.ts";
+import { noteReconciliationPromptLines } from "../_shared/note_reconciliation.ts";
+import {
+  flowEntryWindow,
+  RECENT_MESSAGE_LIMITS,
+} from "../../context/recent_messages_policy.ts";
 import type {
   PlanRealignmentConversationContext,
   PlanRealignmentDriftType,
@@ -69,6 +74,8 @@ export type PlanRealignmentLocalDispatcherInput = {
   previous_state: PlanRealignmentLocalState | null;
   inbound_note_information?: NoteInformation | null;
   turn_frame?: unknown;
+  /** Vrai au tout premier tour possédé par ce flow (aucun état persisté). */
+  is_flow_entry?: boolean;
   dispatcher_signal_context: PlanRealignmentLocalState[
     "dispatcher_signal_context"
   ];
@@ -399,8 +406,16 @@ export function reducePlanRealignmentLocalDispatcherOutput(args: {
 }
 
 function dispatcherPrompt(input: PlanRealignmentLocalDispatcherInput) {
+  const conversationWindow = flowEntryWindow({
+    recent_messages: input.recent_messages,
+    user_message: input.user_message,
+    is_cold_entry: input.is_flow_entry === true,
+    continuation_limit: RECENT_MESSAGE_LIMITS.subskillHistory,
+  });
   return [
     "Tu es le dispatcher local du skill plan_realignment.",
+    ...conversationWindow.framing,
+    ...noteReconciliationPromptLines(),
     "Retourne uniquement le JSON demande. Ne reponds pas au user.",
     "Responsabilite du flow: le user s'est deconnecte du plan, a pris du retard, a perdu le rythme, trouve la semaine/le plan trop lourd ou dit que le contexte a change.",
     "Objectif: rassurer sans culpabiliser, expliquer que le bon mouvement Sophia est de realigner le plan, puis guider vers Dashboard > Plan > Ajuster mon plan.",
@@ -417,7 +432,7 @@ function dispatcherPrompt(input: PlanRealignmentLocalDispatcherInput) {
     "Regle create_one_shot_reminder pendant plan_realignment: si current_user_message contient une demande explicite de rappel ponctuel avec un delai ou moment exploitable, remplis direct_effect_request et continue le besoin plan_realignment restant. Le rappel ne doit jamais absorber le tour.",
     JSON.stringify({
       current_user_message: input.user_message,
-      recent_messages: input.recent_messages.slice(-8),
+      recent_messages: conversationWindow.messages,
       previous_state: input.previous_state,
       dispatcher_signal_context: input.dispatcher_signal_context,
       inbound_note_information: input.inbound_note_information ?? null,

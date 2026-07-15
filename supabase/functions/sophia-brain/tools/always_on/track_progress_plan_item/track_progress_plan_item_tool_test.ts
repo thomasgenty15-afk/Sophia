@@ -384,6 +384,26 @@ Deno.test("track_progress_plan_item direct effect router blocks unsafe or ambigu
       expectedReason: "future_intent",
     },
     {
+      // P12-F (rose-hard25 R1-B01): modalité future STRUCTURELLE — verbe
+      // hors liste verbatim (« tester ») committait un partial daté du jour
+      // sans annonce. Motif morphologique semi-auxiliaire + infinitif.
+      name:
+        "future intent structural verb blocks write (P12-F, rose-hard25 R1-B01)",
+      message: "je vais tester ce soir si ma marche tient la route",
+      turn_frame: frame(),
+      expectedStatus: "blocked",
+      expectedIntent: "future_intent",
+      expectedReason: "future_intent",
+    },
+    {
+      name: "future intent paraphrase « je compte m'y remettre » (P12-F)",
+      message: "je compte m'y remettre demain pour ma marche",
+      turn_frame: frame(),
+      expectedStatus: "blocked",
+      expectedIntent: "future_intent",
+      expectedReason: "future_intent",
+    },
+    {
       name: "target not in plan blocks",
       message: "j'ai fait ma marche",
       plan_snapshot: [{ id: "other", title: "autre" }],

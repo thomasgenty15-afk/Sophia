@@ -1,4 +1,4 @@
-export type TemporalPrecision = "part_of_day" | "day" | "week";
+export type TemporalPrecision = "part_of_day" | "day" | "week" | "month";
 
 export interface TemporalResolution {
   raw: string;
@@ -14,6 +14,18 @@ export interface TemporalResolution {
 export interface TemporalResolutionOptions {
   now?: Date | string;
   timezone?: string | null;
+  /**
+   * P12-E (alex-untested24 R1-B11, rose-hard25 R1-B04): résolution des unités
+   * NUES — mois nommé sans jour (« un déménagement pour septembre » ⇒ 1er du
+   * mois, précision month) et jour de semaine sans qualificatif (« samedi
+   * j'ai craqué » ⇒ occurrence passée/future selon le contexte VERBAL de
+   * l'énoncé). Opt-in : seul le gate event du memorizer le demande (V3-2 —
+   * résoudre la date absolue AVANT de rejeter `event_missing_date`) ; les
+   * surfaces runtime (active_loader) gardent le comportement historique.
+   * Condition de désarmement (registre P6-0) : extraction LLM résolvant
+   * elle-même ces formes (0 rejet event_missing_date résoluble sur 3 vagues).
+   */
+  includeBareUnits?: boolean;
 }
 
 const MONTHS: Record<string, number> = {
@@ -163,6 +175,22 @@ function previousWeekday(localWeekday: number, targetWeekday: number): number {
   const delta = (localWeekday - targetWeekday + 7) % 7;
   return delta === 0 ? 7 : delta;
 }
+
+function nextWeekdayDelta(localWeekday: number, targetWeekday: number): number {
+  const delta = (targetWeekday - localWeekday + 7) % 7;
+  return delta === 0 ? 7 : delta;
+}
+
+// P12-E (rose-hard25 R1-B04): contexte VERBAL pour orienter un jour de
+// semaine NU. Passé composé (auxiliaire + participe) ⇒ occurrence passée la
+// plus récente ; marqueur prospectif ⇒ prochaine occurrence. Évalués sur le
+// texte BRUT (avec accents) : la normalisation efface le « é » du participe.
+// Direction indétectable ou contradictoire ⇒ on ne résout PAS (fail-safe :
+// l'event reste rejeté `event_missing_date`, jamais daté au hasard).
+const PAST_VERBAL_CONTEXT_RE =
+  /\b(j'ai|j'y ai|je l'ai|j'avais|on a|nous avons|tu as|je suis|je me suis|il s'est|elle s'est|ça s'est|ca s'est)\s+(?:pas\s+|rien\s+|déjà\s+|deja\s+|encore\s+|un peu\s+)?\p{L}+(é|ée|és|ées|i|is|it|u|us)\b/u;
+const FUTURE_VERBAL_CONTEXT_RE =
+  /\b(je vais|on va|nous allons|j'aurai|j'irai|ce sera|ça sera|ca sera|prévu|prevu|prochain|prochaine)\b/;
 
 export function resolveTemporalReferences(
   input: string,
@@ -406,6 +434,58 @@ export function resolveTemporalReferences(
       push(
         localRange(timeZone, local, 18, 24, "part_of_day", `${day} soir`, 0.84),
       );
+    }
+  }
+
+  // P12-E (alex-untested24 R1-B11, rose-hard25 R1-B04): unités NUES, opt-in
+  // (gate event du memorizer V3-2). Confiance volontairement plus basse que
+  // les formes qualifiées : les hints datés explicites gagnent toujours.
+  if (opts.includeBareUnits) {
+    // Mois nommé NU (« pour septembre », « septembre 2026 ») ⇒ prochaine
+    // occurrence du mois, 1er du mois, précision month. Jamais quand un jour
+    // le précède (« le 18 juillet », « 1er juillet » restent portés par la
+    // date absolue ci-dessus).
+    const bareMonthRe = new RegExp(
+      `(?<![0-9] )(?<![0-9]er )\\b(${monthNames})\\b(?: (20[0-9]{2}))?`,
+      "g",
+    );
+    for (const match of text.matchAll(bareMonthRe)) {
+      const month = MONTHS[match[1]];
+      if (!month) continue;
+      const explicitYear = match[2] ? Number(match[2]) : null;
+      const year = explicitYear ??
+        (month < today.month ? today.year + 1 : today.year);
+      const endYear = month === 12 ? year + 1 : year;
+      const endMonth = month === 12 ? 1 : month + 1;
+      push({
+        raw: match[0].trim(),
+        resolved_start_at: zonedIso(timeZone, year, month, 1, 0),
+        resolved_end_at: zonedIso(timeZone, endYear, endMonth, 1, 0),
+        precision: "month",
+        confidence: explicitYear ? 0.85 : 0.72,
+        timezone: timeZone,
+      });
+    }
+
+    // Jour de semaine NU (« samedi à l'anniversaire j'ai craqué ») ⇒
+    // occurrence la plus proche dans la direction donnée par le contexte
+    // verbal. Exclusions : formes qualifiées (déjà résolues ci-dessus) et
+    // motifs habituels/récurrents (« le samedi », « chaque samedi »).
+    const rawLower = String(input ?? "").toLowerCase().replace(/[’]/g, "'");
+    const pastContext = PAST_VERBAL_CONTEXT_RE.test(rawLower);
+    const futureContext = FUTURE_VERBAL_CONTEXT_RE.test(rawLower);
+    if (pastContext !== futureContext) {
+      for (const [rawDay, weekday] of Object.entries(WEEKDAYS)) {
+        const day = normalize(rawDay);
+        const bareRe = new RegExp(
+          `(?<!\\ble )(?<!\\bles )(?<!\\bchaque )(?<!\\btous les )\\b${day}\\b(?! dernier| prochain| matin| apres| soir)`,
+        );
+        if (!bareRe.test(text)) continue;
+        const local = pastContext
+          ? addDaysLocal(today, -previousWeekday(localNow.weekday, weekday))
+          : addDaysLocal(today, nextWeekdayDelta(localNow.weekday, weekday));
+        push(localRange(timeZone, local, 0, 24, "day", day, 0.7));
+      }
     }
   }
 

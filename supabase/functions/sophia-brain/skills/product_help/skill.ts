@@ -18,10 +18,6 @@ import {
   runProductHelpVisibleAgent,
 } from "./visible_agent.ts";
 import {
-  RECENT_MESSAGE_LIMITS,
-  trimRecentChatMessages,
-} from "../../context/recent_messages_policy.ts";
-import {
   buildDirectEffectConfirmationContext,
   selectDirectEffectConfirmationContext,
 } from "../../router/direct_effect_local_context.ts";
@@ -32,13 +28,6 @@ export type ProductHelpRunSkillInput = RunSkillInput & {
   local_dispatcher?: ProductHelpLocalDispatcher;
   visible_agent?: ProductHelpVisibleAgent;
 };
-
-function recentMessagesFromContext(input: ProductHelpRunSkillInput) {
-  return trimRecentChatMessages(
-    input.context.recent_messages,
-    RECENT_MESSAGE_LIMITS.toolFlow,
-  );
-}
 
 function compactActiveFlowContext(
   activeState: unknown,
@@ -102,12 +91,16 @@ function recentCommittedEffects(turnFrame: unknown): unknown[] {
     : [];
 }
 
-function visibleRuntimeContext(input: ProductHelpRunSkillInput) {
+function visibleRuntimeContext(
+  input: ProductHelpRunSkillInput,
+  isFlowEntry: boolean,
+) {
   return {
     style_rules: VISIBLE_OUTPUT_STYLE_RULES,
     recent_messages: visibleRecentMessages({
-      recent_messages: recentMessagesFromContext(input),
+      recent_messages: input.context.recent_messages,
       user_message: input.user_message,
+      is_cold_entry: isFlowEntry,
     }),
     recent_effects_summary:
       input.context.runtime_context?.recent_effects_summary ?? null,
@@ -344,7 +337,11 @@ export async function runProductHelpSkill(input: ProductHelpRunSkillInput) {
     user_id: input.context.user_id,
     request_id: (input.context.turn_frame as any)?.source_message_id ?? null,
     user_message: input.user_message,
-    recent_messages: recentMessagesFromContext(input),
+    // On passe l'historique complet du contexte (non pré-tronqué à toolFlow) :
+    // la fenêtre d'entrée à froid du dispatcher local peut ainsi l'élargir,
+    // et la continuation retombe sur toolFlow via flowEntryWindow.
+    recent_messages: input.context.recent_messages,
+    is_flow_entry: !previous,
     product_help_state: previous,
     parent_flow_context: mode === "inline" ? activeFlow : null,
     catalog_candidates: candidates,
@@ -538,7 +535,7 @@ export async function runProductHelpSkill(input: ProductHelpRunSkillInput) {
     request_id: (input.context.turn_frame as any)?.source_message_id ?? null,
     stage: reduced.visible_task,
     conversation_context: reduced.conversation_context,
-    visible_runtime_context: visibleRuntimeContext(input),
+    visible_runtime_context: visibleRuntimeContext(input, !previous),
   });
   const reply = String(visible ?? "").trim();
   if (!reply) return fallbackSkillOutput("product_help_visible_agent_failed");
