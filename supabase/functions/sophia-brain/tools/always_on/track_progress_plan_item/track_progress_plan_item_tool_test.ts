@@ -6,12 +6,15 @@ import type { TurnFrame } from "../../../contracts/turn_frame.v1.ts";
 import {
   applyTrackProgressDirectEffectRuntimeState,
   pendingTrackProgressClarificationForDispatcher,
+  resolveExplicitTrackDayList,
   runTrackProgressPlanItemDirectEffect,
   runTrackProgressPlanItemFromWeeklyCorrection,
   TRACK_PROGRESS_PLAN_ITEM_RUNTIME_KEY,
+  trackMessageIsAdditive,
   trackTargetEvidenceVerified,
 } from "./router.ts";
 import { runTrackProgressPlanItemV2 } from "./track_progress_plan_item_tool.ts";
+import { isTrackProgressStatusQuestion } from "./intake.ts";
 import { binaryItemPartialClarifyQuestion } from "./db.ts";
 
 function frame(patch: Partial<TurnFrame> = {}): TurnFrame {
@@ -179,7 +182,10 @@ Deno.test("track_progress_plan_item v2 covers success, clarify and blocked cases
       expected: "blocked",
     },
     {
+      // P4-A: id hors plan ET rien qui nomme un item du plan → blocked (la
+      // résolution par nommage ne devine jamais sans recouvrement).
       name: "target-not-in-plan",
+      message: "j'ai fait un truc aujourd'hui",
       turn_frame: frame({
         direct_effects: [{
           effect_type: "track_progress_plan_item",
@@ -192,12 +198,33 @@ Deno.test("track_progress_plan_item v2 covers success, clarify and blocked cases
       expected: "blocked",
     },
     {
+      // P4-A (paul-p3verify R1-B01): id LLM corrompu mais action NOMMÉE →
+      // la cible se résout déterministiquement contre le plan et le commit
+      // passe (au lieu d'un blocked que le composeur maquillait en succès).
+      name: "target-id-corrompu-resolu-par-nommage",
+      turn_frame: frame({
+        direct_effects: [{
+          effect_type: "track_progress_plan_item",
+          explicitness: "explicit",
+          target_status: "identified",
+          confidence_band: "high",
+          payload_hint: {
+            target_item_id: "walj",
+            target_title: "walj",
+            status_hint: "completed",
+            target_evidence: "ma marche",
+          },
+        }],
+      }),
+      expected: "logged",
+    },
+    {
       name: "no-signal",
       turn_frame: frame({ direct_effects: [] }),
       expected: "none",
     },
   ];
-  assertEquals(cases.length, 14);
+  assertEquals(cases.length, 15);
   for (const testCase of cases) {
     const outcome = await runTrackProgressPlanItemV2({
       ...base,
@@ -434,6 +461,37 @@ Deno.test("track_progress_plan_item direct effect router blocks unsafe or ambigu
     {
       name: "status question does not write",
       message: "est ce que tu as note ma marche ?",
+      turn_frame: frame(),
+      expectedStatus: "ignored",
+      expectedIntent: "status_question",
+      expectedReason: "status_question",
+    },
+    {
+      // P5-B (paul-p4verify Y2): lecture de progression — zéro effet, zéro
+      // clarify parasite, même quand le dispatcher a émis un track.
+      name: "progress count question does not write (P5-B)",
+      message: "mes marches de la semaine, j'en suis à combien de faites ?",
+      turn_frame: frame(),
+      expectedStatus: "ignored",
+      expectedIntent: "status_question",
+      expectedReason: "status_question",
+    },
+    {
+      // P5-B (nina-global20 T14): vérification explicite — lecture DB, pas de
+      // ré-écriture ni de réaffirmation du narratif.
+      name: "explicit verification question does not write (P5-B)",
+      message: "t'es sûre que les 3 sont bien enregistrés ? vérifie stp",
+      turn_frame: frame(),
+      expectedStatus: "ignored",
+      expectedIntent: "status_question",
+      expectedReason: "status_question",
+    },
+    {
+      // P6-F (nina-untested21 R1-B05): vérification de compte avec report
+      // IMPLICITE embarqué → lecture, jamais un commit sans marqueur d'action.
+      name: "count verification with implicit report does not write (P6-F)",
+      message:
+        "attends du coup ça me fait bien 3 verres cette semaine avec celui que j'ai fait aussi aujourd'hui, c'est ça ?",
       turn_frame: frame(),
       expectedStatus: "ignored",
       expectedIntent: "status_question",
@@ -1231,6 +1289,53 @@ Deno.test("G1: la cible nommée par Sophia au tour précédent + confirmation us
   );
 });
 
+Deno.test("correction avec source NOMMÉE dans le message → retarget résolu et exécuté, pas de re-question (P4-A, alex-global19 R1-B04)", async () => {
+  const writes: Array<Record<string, unknown>> = [];
+  const correctionFrame = frame({
+    direct_effects: [{
+      effect_type: "track_progress_plan_item",
+      explicitness: "explicit",
+      target_status: "identified",
+      confidence_band: "high",
+      payload_hint: {
+        target_item_id: "screens",
+        target_title: "réduire les écrans",
+        status_hint: "completed",
+        target_evidence: "les écrans",
+        correction: true,
+        // retarget_from ABSENT: correction à moitié émise — mais « pas le
+        // carnet » nomme la cible d'origine dans le message.
+      },
+    }],
+  });
+  const result = await runTrackProgressPlanItemDirectEffect({
+    message: "c'était pas le carnet en fait, c'est les écrans que j'ai faits",
+    plan_snapshot: [
+      { id: "walk", title: "marche" },
+      { id: "screens", title: "réduire les écrans" },
+      { id: "carnet", title: "sortir le carnet" },
+    ],
+    turn_frame: correctionFrame,
+    same_day_evidence_check: async () => null,
+    write_progress: async (input) => {
+      writes.push(input as Record<string, unknown>);
+      return { logged_progress_id: "retarget-write", retarget_invalidated: true };
+    },
+  });
+  assertEquals(result.status, "logged");
+  assertEquals(writes.length, 1);
+  assertEquals(writes[0].retarget_from_item_id, "carnet");
+  assertEquals(writes[0].correction, true);
+  // P4-A (rose-hard16 R1-B01): le retrait est VISIBLE — committed + ledger.
+  assertEquals(result.committed_effects[0]?.retarget_invalidated, true);
+  assertEquals(
+    result.committed_effects[0]?.retarget_from_title,
+    "sortir le carnet",
+  );
+  assertEquals(result.superseded_effects?.length, 1);
+  assertEquals(String(result.reply ?? "").includes("retiré"), true);
+});
+
 Deno.test("correction sans cible d'origine résoluble → clarify, jamais d'append silencieux (P2-4a, alex-untested R1-B01)", async () => {
   const writes: unknown[] = [];
   const correctionFrame = frame({
@@ -1245,12 +1350,12 @@ Deno.test("correction sans cible d'origine résoluble → clarify, jamais d'appe
         status_hint: "completed",
         target_evidence: "les écrans",
         correction: true,
-        // retarget_from ABSENT: correction à moitié émise (le bug observé).
+        // retarget_from ABSENT et le message ne nomme AUCUN autre item.
       },
     }],
   });
   const result = await runTrackProgressPlanItemDirectEffect({
-    message: "c'était pas le carnet en fait, c'est les écrans que j'ai faits",
+    message: "en fait c'était pas ça, c'est les écrans que j'ai faits",
     plan_snapshot: [
       { id: "walk", title: "marche" },
       { id: "screens", title: "réduire les écrans" },
@@ -1269,6 +1374,544 @@ Deno.test("correction sans cible d'origine résoluble → clarify, jamais d'appe
   assertEquals(result.debug.reason_code, "correction_retarget_missing");
   assertEquals(writes.length, 0);
   assertEquals(String(result.reply ?? "").includes("?"), true);
+});
+
+Deno.test("marqueur ADDITIF → jamais de retarget ni de clarify de bascule, commit en plus (P4-A, nina-p3reval R1-B01/B02)", async () => {
+  // (a) « note aussi Y » avec retarget_from émis par le dispatcher (le
+  // parasite observé nina T4): le retarget TOMBE, la complétion précédente
+  // n'est jamais invalidée.
+  const writes: Array<Record<string, unknown>> = [];
+  const additiveFrame = frame({
+    direct_effects: [{
+      effect_type: "track_progress_plan_item",
+      explicitness: "explicit",
+      target_status: "identified",
+      confidence_band: "high",
+      payload_hint: {
+        target_item_id: "water",
+        target_title: "boire un grand verre d'eau",
+        status_hint: "completed",
+        target_evidence: "l'eau",
+        correction: true,
+        retarget_from: "breakfast",
+      },
+    }],
+  });
+  const result = await runTrackProgressPlanItemDirectEffect({
+    message:
+      "oui oui les deux, c'est bien en plus l'un de l'autre : note aussi l'eau en plus stp",
+    plan_snapshot: [
+      { id: "water", title: "boire un grand verre d'eau" },
+      { id: "breakfast", title: "prendre un petit-déjeuner posé" },
+    ],
+    turn_frame: additiveFrame,
+    // Le commit du tour précédent (petit-déj) est frais: sans le marqueur
+    // additif, la garde de bascule aurait clarifié / le retarget invalidé.
+    last_track_commit: {
+      target_item_id: "breakfast",
+      target_title: "prendre un petit-déjeuner posé",
+      progress_status: "completed",
+    },
+    same_day_evidence_check: async () => null,
+    write_progress: async (input) => {
+      writes.push(input as Record<string, unknown>);
+      return { logged_progress_id: "additive-write" };
+    },
+  });
+  assertEquals(result.status, "logged");
+  assertEquals(writes.length, 1);
+  assertEquals(writes[0].retarget_from_item_id, null);
+  assertEquals(writes[0].correction, false);
+
+  // (b) anti-faux-positif: le MÊME shape sans marqueur additif garde la
+  // garde de bascule (clarify « en plus ou à la place ? »).
+  const plainWrites: unknown[] = [];
+  const plainFrame = frame({
+    direct_effects: [{
+      effect_type: "track_progress_plan_item",
+      explicitness: "explicit",
+      target_status: "identified",
+      confidence_band: "high",
+      payload_hint: {
+        target_item_id: "water",
+        target_title: "boire un grand verre d'eau",
+        status_hint: "completed",
+        target_evidence: "l'eau",
+      },
+    }],
+  });
+  const plainResult = await runTrackProgressPlanItemDirectEffect({
+    message: "note l'eau, ça compte dans mon suivi",
+    plan_snapshot: [
+      { id: "water", title: "boire un grand verre d'eau" },
+      { id: "breakfast", title: "prendre un petit-déjeuner posé" },
+    ],
+    turn_frame: plainFrame,
+    last_track_commit: {
+      target_item_id: "breakfast",
+      target_title: "prendre un petit-déjeuner posé",
+      progress_status: "completed",
+    },
+    same_day_evidence_check: async () => null,
+    write_progress: async (input) => {
+      plainWrites.push(input);
+      return { logged_progress_id: "should-not-write" };
+    },
+  });
+  assertEquals(plainResult.status, "needs_clarify");
+  assertEquals(plainResult.debug.reason_code, "target_switch_ambiguous");
+  assertEquals(plainWrites.length, 0);
+
+  // (c) anti-faux-positif inverse: une SUBSTITUTION explicite (« à la
+  // place ») garde le retarget même si « en plus » n'apparaît pas.
+  const substitutionWrites: Array<Record<string, unknown>> = [];
+  const substitutionFrame = frame({
+    direct_effects: [{
+      effect_type: "track_progress_plan_item",
+      explicitness: "explicit",
+      target_status: "identified",
+      confidence_band: "high",
+      payload_hint: {
+        target_item_id: "water",
+        target_title: "boire un grand verre d'eau",
+        status_hint: "completed",
+        target_evidence: "l'eau",
+        correction: true,
+        retarget_from: "breakfast",
+      },
+    }],
+  });
+  const substitutionResult = await runTrackProgressPlanItemDirectEffect({
+    message: "mets l'eau à la place du petit-déjeuner, je me suis trompée",
+    plan_snapshot: [
+      { id: "water", title: "boire un grand verre d'eau" },
+      { id: "breakfast", title: "prendre un petit-déjeuner posé" },
+    ],
+    turn_frame: substitutionFrame,
+    same_day_evidence_check: async () => null,
+    write_progress: async (input) => {
+      substitutionWrites.push(input as Record<string, unknown>);
+      return {
+        logged_progress_id: "substitution-write",
+        retarget_invalidated: true,
+      };
+    },
+  });
+  assertEquals(substitutionResult.status, "logged");
+  assertEquals(substitutionWrites[0].retarget_from_item_id, "breakfast");
+});
+
+Deno.test("liste explicite de jours → une entrée PAR jour aux bonnes dates (P4-B, rose-hard16 R1-B02 / paul-p3verify R1-B02)", async () => {
+  const timeContext = {
+    now_utc: "2026-07-13T16:30:00.000Z",
+    user_timezone: "Europe/Paris",
+    user_locale: "fr-FR",
+    user_local_datetime: "2026-07-13T18:30",
+    user_local_human: "dimanche 13 juillet, 18:30",
+  };
+  const runDayList = async (message: string) => {
+    const writes: Array<Record<string, unknown>> = [];
+    const result = await runTrackProgressPlanItemDirectEffect({
+      message,
+      plan_snapshot: [{ id: "pause", title: "micro-pause active" }],
+      turn_frame: frame({
+        direct_effect_time_context: timeContext,
+        direct_effects: [{
+          effect_type: "track_progress_plan_item",
+          explicitness: "explicit",
+          target_status: "identified",
+          confidence_band: "high",
+          payload_hint: {
+            target_item_id: "pause",
+            target_title: "micro-pause active",
+            status_hint: "completed",
+            target_evidence: "micro-pause",
+            date_hint: "2026-07-11",
+          },
+        }],
+      } as Partial<TurnFrame>),
+      same_day_evidence_check: async () => null,
+      write_progress: async (input) => {
+        writes.push(input as Record<string, unknown>);
+        return { logged_progress_id: `entry-${writes.length}` };
+      },
+    });
+    return { writes, result };
+  };
+  // Positif: « ces deux derniers soirs » → 2 entrées, J-1 puis J-2.
+  const two = await runDayList(
+    "ces deux derniers soirs j'ai bien tenu ma micro-pause, note ça",
+  );
+  assertEquals(two.result.status, "logged");
+  assertEquals(two.writes.length, 2);
+  assertEquals(two.writes[0].date_hint, "2026-07-12");
+  assertEquals(two.writes[1].date_hint, "2026-07-11");
+  assertEquals(two.result.committed_effects.length, 2);
+  assertEquals(String(two.result.reply ?? "").includes("2 jours"), true);
+  // Paraphrase: « hier et avant-hier » → mêmes 2 jours.
+  const pair = await runDayList(
+    "ma micro-pause je l'ai faite hier et avant-hier aussi, note ces deux jours-là",
+  );
+  assertEquals(pair.writes.length, 2);
+  assertEquals(pair.writes[0].date_hint, "2026-07-12");
+  assertEquals(pair.writes[1].date_hint, "2026-07-11");
+  // Anti-faux-positif: « hier » seul → une seule entrée, confirmation
+  // singulière (jamais « 2 jours »).
+  const single = await runDayList(
+    "j'ai fait ma micro-pause hier, note-le",
+  );
+  assertEquals(single.writes.length, 1);
+  assertEquals(String(single.result.reply ?? "").includes("jours"), false);
+  // P5-C (alex-untested20 R1-B01, nina-global20 B02): jours de semaine
+  // NOMMÉS → une entrée par jour, résolus au plus récent passé (13/07 =
+  // lundi → ve 10, sa 11, di 12).
+  const weekdays = await runDayList(
+    "j'ai tenu ma micro-pause vendredi, samedi et dimanche, compte-moi les trois",
+  );
+  assertEquals(weekdays.result.status, "logged");
+  assertEquals(weekdays.writes.length, 3);
+  assertEquals(
+    weekdays.writes.map((write) => write.date_hint),
+    ["2026-07-10", "2026-07-11", "2026-07-12"],
+  );
+  assertEquals(String(weekdays.result.reply ?? "").includes("3 jours"), true);
+});
+
+Deno.test("correction ADDITIVE de jours → dépliage quand même ; substitution de jour → jamais (P5-C, rose-hard17 R1-B02)", async () => {
+  // Rose T11: « je l'ai pas fait qu'aujourd'hui, je l'ai aussi fait hier et
+  // avant-hier » émis avec correction=true — le gate is_correction avalait
+  // le dépliage (1 seule entrée + claim des deux jours).
+  const writes: Array<Record<string, unknown>> = [];
+  const result = await runTrackProgressPlanItemDirectEffect({
+    message:
+      "et en fait cartographier les envies je l'ai pas fait qu'aujourd'hui, je l'ai aussi fait hier et avant-hier. tu peux noter ces deux jours-là aussi stp ?",
+    plan_snapshot: [{ id: "carto", title: "cartographier les envies" }],
+    turn_frame: frame({
+      direct_effect_time_context: {
+        now_utc: "2026-07-13T20:00:00.000Z",
+        user_timezone: "Europe/Paris",
+        user_locale: "fr-FR",
+        user_local_datetime: "2026-07-13T22:00",
+        user_local_human: "lundi 13 juillet, 22:00",
+      },
+      direct_effects: [{
+        effect_type: "track_progress_plan_item",
+        explicitness: "explicit",
+        target_status: "identified",
+        confidence_band: "high",
+        payload_hint: {
+          target_item_id: "carto",
+          target_title: "cartographier les envies",
+          status_hint: "completed",
+          target_evidence: "je l'ai aussi fait hier",
+          date_hint: "2026-07-12",
+          correction: true,
+        },
+      }],
+    } as Partial<TurnFrame>),
+    same_day_evidence_check: async () => null,
+    write_progress: async (input) => {
+      writes.push(input as Record<string, unknown>);
+      return { logged_progress_id: `entry-${writes.length}` };
+    },
+  });
+  assertEquals(result.status, "logged");
+  assertEquals(writes.length, 2);
+  assertEquals(writes.map((write) => write.date_hint), [
+    "2026-07-12",
+    "2026-07-11",
+  ]);
+  // Substitution (« pas hier, plutôt avant-hier ») → le resolver exclut le
+  // jour nié : jamais de dépliage.
+  assertEquals(
+    resolveExplicitTrackDayList({
+      message: "en fait c'était avant-hier, pas hier",
+      user_local_date: "2026-07-13",
+    }),
+    null,
+  );
+  // Un seul jour de semaine nommé → chemin nominal (pas de liste).
+  assertEquals(
+    resolveExplicitTrackDayList({
+      message: "j'ai fait ma marche vendredi",
+      user_local_date: "2026-07-13",
+    }),
+    null,
+  );
+  // Jour de semaine nié exclu de la liste.
+  assertEquals(
+    resolveExplicitTrackDayList({
+      message: "j'ai fait ma marche vendredi et samedi, mais pas dimanche",
+      user_local_date: "2026-07-13",
+    }),
+    ["2026-07-10", "2026-07-11"],
+  );
+  // P6-D (eva-hard21 R1-B01): « hier soir ET ce soir, les deux » → J-1 + J0.
+  assertEquals(
+    resolveExplicitTrackDayList({
+      message:
+        "j'ai réussi à poser le téléphone en rentrant hier soir ET ce soir aussi, les deux soirs d'affilée. note-moi les deux",
+      user_local_date: "2026-07-13",
+    }),
+    ["2026-07-12", "2026-07-13"],
+  );
+  // Anti-faux-positif: « hier » report + « ce soir » INTENTION future (aucun
+  // marqueur d'affirmation double) → jamais de dépliage sur aujourd'hui.
+  assertEquals(
+    resolveExplicitTrackDayList({
+      message: "j'ai posé le téléphone hier, et ce soir je vais essayer de lire",
+      user_local_date: "2026-07-13",
+    }),
+    null,
+  );
+});
+
+// ── P6-C (paul-hard21 R1-B01, eva-hard21 R1-B07) ────────────────────────────
+
+Deno.test("cible track jamais résolue depuis le RAPPEL co-listé du même tour (P6-C, paul-hard21 R1-B01)", async () => {
+  const runMultiEffect = async (args: {
+    message: string;
+    target_item_id: string;
+    target_evidence: string;
+  }) => {
+    const writes: Array<Record<string, unknown>> = [];
+    const result = await runTrackProgressPlanItemDirectEffect({
+      message: args.message,
+      plan_snapshot: [
+        { id: "marche", title: "marcher 20 minutes" },
+        { id: "affaires", title: "préparer ses affaires de sport" },
+      ],
+      turn_frame: frame({
+        direct_effects: [{
+          effect_type: "track_progress_plan_item",
+          explicitness: "explicit",
+          target_status: "identified",
+          confidence_band: "high",
+          payload_hint: {
+            target_item_id: args.target_item_id,
+            status_hint: "completed",
+            target_evidence: args.target_evidence,
+          },
+        }, {
+          effect_type: "create_one_shot_reminder",
+          explicitness: "explicit",
+          target_status: "identified",
+          confidence_band: "high",
+          payload_hint: {
+            intent: "create",
+            raw_text: args.message,
+            when_hint: "ce soir à 20:00",
+            UTC_time: "2026-07-13T18:00:00.000Z",
+            local_label: "ce soir à 20:00",
+            instruction_hint: "préparer mon sac de sport",
+          },
+        }],
+      } as Partial<TurnFrame>),
+      same_day_evidence_check: async () => null,
+      write_progress: async (input) => {
+        writes.push(input as Record<string, unknown>);
+        return { logged_progress_id: "isolated-write" };
+      },
+    });
+    return { writes, result };
+  };
+  // paul T1: le dispatcher a ciblé « affaires » (pollué par le texte du
+  // rappel) alors que le report dit « j'ai marché 20 min ».
+  const polluted = await runMultiEffect({
+    message:
+      "je viens de marcher 20 minutes à midi, c'était propre. et rappelle-moi ce soir de préparer mon sac de sport stp",
+    target_item_id: "affaires",
+    target_evidence: "préparer mon sac de sport",
+  });
+  assertEquals(polluted.result.status, "logged");
+  assertEquals(polluted.writes.length, 1);
+  assertEquals(polluted.writes[0].target_item_id, "marche");
+  // Anti-faux-positif: la cible réellement rapportée (distincte du rappel)
+  // reste intouchée.
+  const clean = await runMultiEffect({
+    message:
+      "je viens de marcher 20 minutes à midi. et rappelle-moi ce soir de préparer mon sac de sport",
+    target_item_id: "marche",
+    target_evidence: "marcher 20 minutes",
+  });
+  assertEquals(clean.writes[0].target_item_id, "marche");
+  // Aucun report hors du segment rappel → clarify, jamais un commit pollué.
+  const unverifiable = await runMultiEffect({
+    message: "rappelle-moi ce soir de préparer mon sac de sport",
+    target_item_id: "affaires",
+    target_evidence: "préparer mon sac de sport",
+  });
+  assertEquals(unverifiable.result.status, "needs_clarify");
+  assertEquals(unverifiable.writes.length, 0);
+});
+
+Deno.test("additif accolé au verbe de report PRIME sur « au lieu de » descriptif (P6-C, eva-hard21 R1-B07)", () => {
+  // eva T10: « note aussi que j'ai choisi mon activité (j'ai lu au lieu de
+  // scroller) » — « au lieu de » décrit le CONTENU, pas une substitution de
+  // suivi ; l'additif doit tenir.
+  assertEquals(
+    trackMessageIsAdditive(
+      "note aussi que j'ai choisi mon activité de soirée ce soir (j'ai lu au lieu de scroller)",
+    ),
+    true,
+  );
+  assertEquals(
+    trackMessageIsAdditive("en plus j'ai aussi fait ma marche, garde les deux"),
+    true,
+  );
+  // Anti-faux-positif: une vraie substitution sans verbe de report additif
+  // reste une substitution.
+  assertEquals(
+    trackMessageIsAdditive(
+      "en fait c'était pas la marche, c'est la sortie à la place",
+    ),
+    false,
+  );
+});
+
+// ── P5-E (eva-p4verify R1-B03/B04, paul-p4verify Y1) ────────────────────────
+
+Deno.test("cible track : l'évidence nommée PRIME sur l'id LLM récent (P5-E, eva T10/T12)", async () => {
+  const runResolution = async (args: {
+    message: string;
+    target_item_id: string;
+    target_evidence: string;
+  }) => {
+    const writes: Array<Record<string, unknown>> = [];
+    const result = await runTrackProgressPlanItemDirectEffect({
+      message: args.message,
+      plan_snapshot: [
+        { id: "soiree", title: "faire une soirée sans réseaux" },
+        { id: "phone", title: "poser le téléphone en rentrant" },
+        { id: "activite", title: "choisir une activité de soirée" },
+      ],
+      turn_frame: frame({
+        direct_effects: [{
+          effect_type: "track_progress_plan_item",
+          explicitness: "explicit",
+          target_status: "identified",
+          confidence_band: "high",
+          payload_hint: {
+            target_item_id: args.target_item_id,
+            status_hint: "completed",
+            target_evidence: args.target_evidence,
+          },
+        }],
+      } as Partial<TurnFrame>),
+      same_day_evidence_check: async () => null,
+      write_progress: async (input) => {
+        writes.push(input as Record<string, unknown>);
+        return { logged_progress_id: "resolved-write" };
+      },
+    });
+    return { writes, result };
+  };
+  // eva T10: additif « garde les deux » — l'id LLM porte l'item du tour
+  // précédent (soiree), l'évidence nomme « posé le téléphone ».
+  const additive = await runResolution({
+    message:
+      "en plus j'ai aussi posé le téléphone en rentrant ce soir, garde bien les deux hein",
+    target_item_id: "soiree",
+    target_evidence: "posé le téléphone en rentrant",
+  });
+  assertEquals(additive.result.status, "logged");
+  assertEquals(additive.writes.length, 1);
+  assertEquals(additive.writes[0].target_item_id, "phone");
+  // eva T12: multi-intent — track émis sur le dernier item tracké (phone)
+  // alors que l'évidence nomme « choisi une activité ».
+  const multiIntent = await runResolution({
+    message:
+      "ce soir j'ai choisi une vraie activité de soirée au lieu de scroller, note-le et rappelle-moi demain 19h30 de préparer le sac",
+    target_item_id: "phone",
+    target_evidence: "choisi une vraie activité de soirée",
+  });
+  assertEquals(multiIntent.result.status, "logged");
+  assertEquals(multiIntent.writes[0].target_item_id, "activite");
+  // Anti-faux-positif: évidence vague → l'id LLM valide est conservé.
+  const vague = await runResolution({
+    message: "ça y est c'est fait, tu peux noter",
+    target_item_id: "phone",
+    target_evidence: "c'est fait",
+  });
+  assertEquals(vague.writes.length ? vague.writes[0].target_item_id : "phone", "phone");
+});
+
+Deno.test("additif avec évidence + cible haute-confiance COMMITTE (P5-E, paul-p4verify Y1)", async () => {
+  const writes: Array<Record<string, unknown>> = [];
+  const result = await runTrackProgressPlanItemDirectEffect({
+    message:
+      "ah et note AUSSI que j'ai préparé mes affaires de sport ce matin, sac prêt dans l'entrée. les deux aujourd'hui du coup, la sortie ET les affaires, c'est bien en plus l'un de l'autre hein.",
+    plan_snapshot: [
+      { id: "sortie", title: "sortie active plus longue" },
+      { id: "affaires", title: "préparer ses affaires de sport" },
+    ],
+    turn_frame: frame({
+      direct_effects: [{
+        effect_type: "track_progress_plan_item",
+        explicitness: "explicit",
+        target_status: "identified",
+        confidence_band: "high",
+        payload_hint: {
+          target_item_id: "affaires",
+          target_title: "préparer ses affaires de sport",
+          status_hint: "completed",
+          target_evidence: "j'ai préparé mes affaires de sport",
+        },
+      }],
+    } as Partial<TurnFrame>),
+    same_day_evidence_check: async () => null,
+    write_progress: async (input) => {
+      writes.push(input as Record<string, unknown>);
+      return { logged_progress_id: "affaires-write" };
+    },
+  });
+  // Avant P5-E: blocked target_not_evidenced (« préparé » ≠ « preparer »,
+  // « ses » diluait la couverture) → clarify parasite sur une action nommée
+  // mot pour mot. Attendu: commit direct, zéro clarify.
+  assertEquals(result.status, "logged");
+  assertEquals(writes.length, 1);
+  assertEquals(writes[0].target_item_id, "affaires");
+  // L'additif ne porte jamais correction/retarget (anti-destruction P4-A).
+  assertEquals(writes[0].retarget_from_item_id ?? null, null);
+});
+
+Deno.test("retarget émis avec cible = SOURCE → l'arrivée se résout par nommage (P5-E, rose-hard17 R1-B03)", async () => {
+  // « enlève-le du sas et mets-le sur cartographier » : le dispatcher fixait
+  // target_item_id = retarget_from = sas (la source) — l'arrivée n'était pas
+  // mappée et la clarify citait l'item à retirer.
+  const writes: Array<Record<string, unknown>> = [];
+  const result = await runTrackProgressPlanItemDirectEffect({
+    message:
+      "en fait enlève-le du sas de décompression et mets-le sur cartographier les envies stp",
+    plan_snapshot: [
+      { id: "sas", title: "faire un sas de décompression" },
+      { id: "carto", title: "cartographier les envies" },
+    ],
+    turn_frame: frame({
+      direct_effects: [{
+        effect_type: "track_progress_plan_item",
+        explicitness: "explicit",
+        target_status: "identified",
+        confidence_band: "high",
+        payload_hint: {
+          target_item_id: "sas",
+          status_hint: "completed",
+          correction: true,
+          retarget_from: "sas",
+          target_evidence: "mets-le sur cartographier les envies",
+        },
+      }],
+    } as Partial<TurnFrame>),
+    same_day_evidence_check: async () => null,
+    write_progress: async (input) => {
+      writes.push(input as Record<string, unknown>);
+      return { logged_progress_id: "carto-write", retarget_invalidated: true };
+    },
+  });
+  assertEquals(result.status, "logged");
+  assertEquals(writes.length, 1);
+  assertEquals(writes[0].target_item_id, "carto");
+  assertEquals(writes[0].retarget_from_item_id, "sas");
 });
 
 Deno.test("correction de STATUT même item (retarget légitimement absent) écrit toujours (P2-4a anti-FP)", async () => {
@@ -1391,4 +2034,129 @@ Deno.test("bascule de cible: date_hint = aujourd'hui ne contourne plus la garde 
   assertEquals(result.status, "needs_clarify");
   assertEquals(result.debug.reason_code, "target_switch_ambiguous");
   assertEquals(writes.length, 0);
+});
+
+// ── P8-A (eva-hard23 R1-B02): 3 soirs relatifs « hier, avant-hier et le soir
+// d'avant » → dépliage J-1/J-2/J-3 (la 3e date était perdue: 2 entrées
+// committées, rendu qui affirmait 3 dates dont une fantôme). ────────────────
+
+Deno.test("« hier soir, avant-hier soir et le soir d'avant » → 3 jours J-1/J-2/J-3 (P8-A, eva-hard23 R1-B02)", () => {
+  // Positif: la queue « d'avant » étend la combinaison hier+avant-hier à J-3.
+  assertEquals(
+    resolveExplicitTrackDayList({
+      message:
+        "j'ai bien fait ma routine hier soir, avant-hier soir et le soir d'avant, note les trois",
+      user_local_date: "2026-07-14",
+    }),
+    ["2026-07-13", "2026-07-12", "2026-07-11"],
+  );
+  // Paraphrase: « le jour d'avant » (variante jour/soir).
+  assertEquals(
+    resolveExplicitTrackDayList({
+      message: "hier, avant-hier et le jour d'avant aussi",
+      user_local_date: "2026-07-14",
+    }),
+    ["2026-07-13", "2026-07-12", "2026-07-11"],
+  );
+  // Anti-faux-positif: « d'avant » NIÉ → la liste reste J-1/J-2.
+  assertEquals(
+    resolveExplicitTrackDayList({
+      message: "hier et avant-hier, mais pas le soir d'avant",
+      user_local_date: "2026-07-14",
+    }),
+    ["2026-07-13", "2026-07-12"],
+  );
+  // Anti-faux-positif: « le soir d'avant » SEUL (sans hier+avant-hier
+  // affirmés) ne produit jamais de liste.
+  assertEquals(
+    resolveExplicitTrackDayList({
+      message: "j'avais fait ma routine le soir d'avant",
+      user_local_date: "2026-07-14",
+    }),
+    null,
+  );
+});
+
+// ── P8-D (nina-hard23 T15, probe P8-4 passe 6): interrogative de vérif en
+// 1re personne = LECTURE, jamais une écriture. ───────────────────────────────
+
+Deno.test("« j'ai bien coché mon eau aujourd'hui ? » → status_question, zéro write (P8-D, probe P8-4 passe 6)", async () => {
+  let writes = 0;
+  // Positif: la question de vérif ne committe jamais, même avec un effet
+  // armé par le dispatcher (variance de classification observée en live).
+  const result = await runTrackProgressPlanItemDirectEffect({
+    message: "et sinon j'ai bien coché mon eau aujourd'hui ?",
+    plan_snapshot: [{ id: "water", title: "boire un grand verre d'eau" }],
+    turn_frame: frame({
+      direct_effects: [{
+        effect_type: "track_progress_plan_item",
+        explicitness: "explicit",
+        target_status: "identified",
+        confidence_band: "high",
+        payload_hint: {
+          target_item_id: "water",
+          status_hint: "completed",
+          target_evidence: "mon eau",
+        },
+      }],
+    } as any),
+    write_progress: async () => {
+      writes++;
+      return { logged_progress_id: "never" };
+    },
+  });
+  assertEquals(writes, 0);
+  assertEquals(result.committed_effects, []);
+  assertEquals(result.debug.reason_code, "status_question");
+
+  // Paraphrase: cadre « c'est ça ? » sans point d'interrogation final direct.
+  const paraphrase = await runTrackProgressPlanItemDirectEffect({
+    message: "j'ai bien noté ma marche aujourd'hui, c'est ça",
+    plan_snapshot: [{ id: "walk", title: "marche" }],
+    turn_frame: frame(),
+    write_progress: async () => {
+      writes++;
+      return { logged_progress_id: "never" };
+    },
+  });
+  assertEquals(writes, 0);
+  assertEquals(paraphrase.committed_effects, []);
+
+  // Anti-faux-positif: le marqueur d'écriture IMPÉRATIF ré-ouvre l'écriture.
+  const imperative = await runTrackProgressPlanItemDirectEffect({
+    message: "j'ai bien coché mon eau ? sinon note-la moi stp",
+    plan_snapshot: [{ id: "water", title: "boire un grand verre d'eau" }],
+    turn_frame: frame(),
+    write_progress: async () => {
+      writes++;
+      return { logged_progress_id: "p-1" };
+    },
+  });
+  assertEquals(imperative.debug.reason_code !== "status_question", true);
+});
+
+Deno.test("P10-C: « ma cartographie, je L'ai bien cochée aujourd'hui ? il me semble » → status_question, zéro write (rose-p8reval T8)", () => {
+  // Clitique objet + accord féminin + doute exprimé (sans « ? » final strict).
+  const emptyFrame = { direct_effects: [] } as any;
+  const question = isTrackProgressStatusQuestion(
+    "dis-moi juste un truc: ma cartographie des envies, je l'ai bien cochée aujourd'hui? il me semble l'avoir faite ce matin mais je suis plus sûre.",
+    emptyFrame,
+  );
+  assertEquals(question, true);
+  // Paraphrase pluriel.
+  assertEquals(
+    isTrackProgressStatusQuestion(
+      "mes deux marches, je les ai bien notées cette semaine ?",
+      emptyFrame,
+    ),
+    true,
+  );
+  // Anti-faux-positif: l'impératif d'écriture ré-ouvre.
+  assertEquals(
+    isTrackProgressStatusQuestion(
+      "je l'ai bien cochée ? sinon note-la moi maintenant",
+      emptyFrame,
+    ),
+    false,
+  );
 });

@@ -90,12 +90,16 @@ import {
 import {
   addDaysYmd,
   autoApplyWeeklyPlanning,
+  buildWeeklyPlanningAutoValidationDetailMessage,
   buildWeeklyPlanningAutoValidationMessage,
   loadActiveWeeklyPlanning,
   WEEKLY_PLANNING_AUTO_VALIDATION_EVENT_CONTEXT,
   weeklyPlanningAutoValidationScheduledFor,
   weeklyPlanningPromptScheduledFor,
 } from "../_shared/weekly_planning_lifecycle.ts";
+import {
+  optimizePendingWeeklyPlanningWithAi,
+} from "../_shared/weekly_planning_ai.ts";
 import {
   autoConfirmOnboardingWeek1Planning,
   buildOnboardingWeek1AutoValidationMessage,
@@ -322,10 +326,11 @@ function publicSiteUrl(): string {
 }
 
 function weeklyPlanningTemplateMessage(dashboardUrl: string) {
+  // Hardcoded default: never degrade to global_reach_template because an env
+  // secret is missing (root cause of the 2026-07-12 duplicate-template incident).
   const name = cleanText(
     Deno.env.get("WHATSAPP_WEEKLY_PLANNING_TEMPLATE_NAME"),
-  );
-  if (!name) return null;
+  ) || "weekly_planning_validation_v1";
   return {
     type: "template" as const,
     name,
@@ -341,12 +346,15 @@ function weeklyPlanningTemplateMessage(dashboardUrl: string) {
   };
 }
 
-function weeklyProgressReviewTemplateMessage(dashboardUrl: string) {
+function weeklyProgressReviewTemplateMessage() {
+  // Hardcoded default: never degrade to global_reach_template because an env
+  // secret is missing. Meta-approved sophia_bilan_weekly_v1 has {{1}} = first
+  // name: leave components undefined so whatsapp-send injects the user's name
+  // (its default when the fallback purpose declares injectBodyNameParam).
   const name = cleanText(
     Deno.env.get("WHATSAPP_WEEKLY_PROGRESS_REVIEW_TEMPLATE_NAME") ??
       Deno.env.get("WHATSAPP_WEEKLY_BILAN_TEMPLATE_NAME"),
-  );
-  if (!name) return null;
+  ) || "sophia_bilan_weekly_v1";
   return {
     type: "template" as const,
     name,
@@ -354,12 +362,22 @@ function weeklyProgressReviewTemplateMessage(dashboardUrl: string) {
       Deno.env.get("WHATSAPP_WEEKLY_PROGRESS_REVIEW_TEMPLATE_LANG") ??
         Deno.env.get("WHATSAPP_WEEKLY_BILAN_TEMPLATE_LANG"),
     ) || "fr",
-    components: [
-      {
-        type: "body",
-        parameters: [{ type: "text", text: dashboardUrl }],
-      },
-    ],
+  };
+}
+
+function weeklyPlanningAutoValidationTemplateMessage() {
+  // Static door-opener (no placeholder): "ton planning a été auto-validé,
+  // tu veux le détail ?" with Oui!/Non merci! quick replies. The detail is
+  // stored on a whatsapp_pending_actions draft and sent on "Oui!".
+  const name = cleanText(
+    Deno.env.get("WHATSAPP_WEEKLY_AUTO_VALIDATION_TEMPLATE_NAME"),
+  ) || "auto_validation_v1";
+  return {
+    type: "template" as const,
+    name,
+    language: cleanText(
+      Deno.env.get("WHATSAPP_WEEKLY_AUTO_VALIDATION_TEMPLATE_LANG"),
+    ) || "fr",
   };
 }
 
@@ -4250,6 +4268,16 @@ Deno.serve(async (req) => {
           const alreadyAppliedByThisCheckin = Boolean(
             payload?.weekly_auto_validation_applied,
           );
+          const aiSchedule = alreadyAppliedByThisCheckin
+            ? null
+            : await optimizePendingWeeklyPlanningWithAi(
+              supabaseAdmin as any,
+              {
+                userId: String(checkin.user_id),
+                weekStartDate: targetWeekStartDate,
+                requestId,
+              },
+            );
           const confirmation = alreadyAppliedByThisCheckin
             ? {
               changed: true,
@@ -4298,15 +4326,18 @@ Deno.serve(async (req) => {
                   weekly_auto_validation_applied_at: new Date().toISOString(),
                   weekly_auto_validation_summary_lines:
                     confirmation.planning.summary_lines,
+                  weekly_ai_schedule: aiSchedule,
                 },
               } as any)
               .eq("id", checkin.id);
             if (appliedPayloadError) throw appliedPayloadError;
           }
+          // In-window: full auto-validation message directly. Out-of-window:
+          // static door-opener template; the detail is stored on a pending
+          // action and delivered when the user taps "Oui!".
           const message = in24hConversationWindow
             ? { type: "text" as const, body: autoBody }
-            : weeklyPlanningTemplateMessage(dashboardUrl) ??
-              { type: "text" as const, body: autoBody };
+            : weeklyPlanningAutoValidationTemplateMessage();
           const resp = await callWhatsappSend({
             user_id: checkin.user_id,
             message,
@@ -4338,6 +4369,35 @@ Deno.serve(async (req) => {
               requestId: String((resp as any)?.request_id ?? requestId),
             });
             continue;
+          }
+          if (!in24hConversationWindow) {
+            // Door-opener template sent: stash the plan detail so the webhook
+            // can deliver it on "Oui!" (and ack the "Non merci!" decline).
+            const autoDetailBody =
+              buildWeeklyPlanningAutoValidationDetailMessage({
+                summaryLines: confirmation.planning.summary_lines,
+              });
+            const { error: pendErr } = await supabaseAdmin
+              .from("whatsapp_pending_actions")
+              .insert({
+                user_id: checkin.user_id,
+                kind: "scheduled_checkin",
+                status: "pending",
+                scheduled_checkin_id: checkin.id,
+                payload: {
+                  draft_message: autoDetailBody,
+                  event_context: checkin.event_context,
+                  message_mode: "static",
+                },
+                expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000)
+                  .toISOString(),
+              });
+            if (pendErr) {
+              console.warn(
+                `[process-checkins] request_id=${requestId} weekly_planning_auto_validation_pending_insert_failed checkin_id=${checkin.id}`,
+                pendErr,
+              );
+            }
           }
           await markScheduledCheckinDeliveryState({
             supabaseAdmin,
@@ -4385,8 +4445,7 @@ Deno.serve(async (req) => {
           });
         const message = in24hConversationWindow
           ? { type: "text" as const, body: reviewBody }
-          : weeklyPlanningTemplateMessage(dashboardUrl) ??
-            { type: "text" as const, body: reviewBody };
+          : weeklyPlanningTemplateMessage(dashboardUrl);
 
         try {
           const resp = await callWhatsappSend({
@@ -4715,9 +4774,7 @@ Deno.serve(async (req) => {
         }
         if (!in24hConversationWindow) {
           const reviewBody = weeklyReviewIntro;
-          const templateMessage = weeklyProgressReviewTemplateMessage(
-            dashboardUrl,
-          ) ?? { type: "text" as const, body: reviewBody };
+          const templateMessage = weeklyProgressReviewTemplateMessage();
 
           try {
             const resp = await callWhatsappSend({

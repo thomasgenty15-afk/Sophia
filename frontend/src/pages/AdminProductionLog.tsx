@@ -57,8 +57,10 @@ const SOURCE_LABELS: Record<string, string> = {
   checkins: "Check-ins",
   edge: "Edge",
   email: "Email",
+  guards: "Gardes runtime",
   llm: "LLM",
   runtime: "Runtime",
+  safety: "Safety",
   stripe: "Stripe",
   web: "Web",
   whatsapp: "WhatsApp",
@@ -329,7 +331,7 @@ export default function AdminProductionLog() {
   }, [displayedRows]);
 
   const sourceOptions = useMemo(() => {
-    const base = ["checkins", "edge", "email", "llm", "runtime", "stripe", "web", "whatsapp"];
+    const base = ["checkins", "edge", "email", "guards", "llm", "runtime", "safety", "stripe", "web", "whatsapp"];
     const discovered = rows.map((row) => row.source).filter(Boolean);
     return Array.from(new Set([...base, ...discovered])).sort((a, b) => sourceLabel(a).localeCompare(sourceLabel(b)));
   }, [rows]);

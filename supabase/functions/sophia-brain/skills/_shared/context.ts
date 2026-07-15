@@ -40,6 +40,10 @@ export type SkillContext = {
     } | null;
   };
   precomputed_safety_crisis_local_dispatcher_output?: unknown;
+  /** P7-A (paul-p6reval R1-B06): co-demande de recall mémoire BÉNIGNE posée
+   * sur un tour possédé par safety — le visible agent la restitue en une
+   * ligne ou la diffère honnêtement, jamais un silence. */
+  benign_recall_request?: { asked: boolean; facts: string[] } | null;
 };
 
 export type LoadSkillContextInput = {

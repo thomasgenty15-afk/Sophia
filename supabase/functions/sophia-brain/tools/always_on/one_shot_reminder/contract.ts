@@ -137,7 +137,10 @@ export type OneShotReminderDirectEffectResult = {
    * replace au lieu d'être reclassée comme un énoncé neuf (boucle reschedule).
    */
   pending_clarification?: {
-    intent: "replace";
+    // P5-D (eva-p4verify R1-B01/B02): "create" = clarify de créneau (heure
+    // nue ambiguë / missing_time) — les slots déjà fournis au tour initial
+    // (instruction) doivent survivre au tour-réponse.
+    intent: "replace" | "create";
     reason_code: string;
     clarify_question: string;
     known_slots: Record<string, unknown>;
@@ -215,6 +218,12 @@ export type CancelOneShotReminderOutcome =
     cancelled_local_labels: string[];
     cancelled_ids?: string[];
     user_message: string;
+    /**
+     * P9-B (alex-hard24 R1-B03): true quand l'annulation vient d'une demande
+     * de MASSE explicite (« annule tous mes rappels ») — le rendu énumère
+     * alors l'inventaire annulé au lieu du singulier « le rappel de X ».
+     */
+    mass_scope?: boolean;
   }
   | {
     // Plusieurs pending et aucune heure cible identifiable: on ne devine

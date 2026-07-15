@@ -98,6 +98,167 @@ export function computeScheduledForFromLocal(params: {
   });
 }
 
+/**
+ * P7-C (paul-p6reval R1-B01): FUSION du tour-réponse à un clarify de
+ * méridiem — le clarify d'origine porte l'heure-base ambiguë et le jour
+ * (« demain à 7 heures »), la réponse porte le créneau (« du soir », « 19h »,
+ * « 19h le soir »). Sans fusion, le dispatcher ré-émettait le texte d'origine
+ * (UTC_time vide) et le rappel n'était JAMAIS créable (cul-de-sac observé,
+ * 2 tours de réponses explicites → re-clarify).
+ * Résolution déterministe, fail-closed : toute réponse qui ne lève pas
+ * l'ambiguïté (nouvelle heure basse sans méridiem, pas de créneau) → null,
+ * le clarify existant re-pose la question.
+ */
+export function resolveMeridiemClarifyAnswer(args: {
+  answerMessage: string;
+  /** when_hint/raw_text du tour d'ORIGINE — porte l'heure-base et le jour. */
+  baseWhenHint: string;
+  timezone: string;
+  nowIso: string;
+}): { scheduledFor: string; localTimeHHMM: string } | null {
+  const timezone = normalizeTimezone(args.timezone);
+  const now = new Date(args.nowIso);
+  if (!Number.isFinite(now.getTime())) return null;
+  const answer = normalizeText(args.answerMessage);
+  const base = normalizeText(args.baseWhenHint);
+  const dayOffset = /apres[- ]?demain/.test(base)
+    ? 2
+    : /\bdemain\b/.test(base)
+    ? 1
+    : 0;
+  const baseHourMatch = base.match(/\b(\d{1,2})\s*(?:h\b|h(\d{2})\b|heures?\b)/);
+  const baseHour = baseHourMatch ? Number(baseHourMatch[1]) : null;
+  const baseMinute = baseHourMatch?.[2] ? Number(baseHourMatch[2]) : 0;
+  const saysEvening = /\b(soir|soiree|ce soir|apres[- ]?midi)\b/.test(answer);
+  const saysMorning = /\b(matin|matinee)\b/.test(answer);
+  const answerHourMatch = answer.match(
+    /\b(\d{1,2})\s*h\s*(\d{2})?\b|\b(\d{1,2})\s+heures?\b/,
+  );
+  let hour: number | null = null;
+  let minute = 0;
+  if (answerHourMatch) {
+    hour = Number(answerHourMatch[1] ?? answerHourMatch[3]);
+    minute = answerHourMatch[2] ? Number(answerHourMatch[2]) : 0;
+    if (!Number.isFinite(hour)) return null;
+    if (hour >= 1 && hour <= 11) {
+      if (saysEvening) hour += 12;
+      else if (!saysMorning && hour !== baseHour) {
+        // Nouvelle heure basse sans méridiem ≠ heure-base : toujours ambigu.
+        return null;
+      }
+      // hour === baseHour sans méridiem : ambigu aussi (l'user répète l'heure).
+      else if (!saysMorning && hour === baseHour) return null;
+    }
+  } else if (baseHour !== null && (saysEvening || saysMorning)) {
+    hour = saysEvening && baseHour >= 1 && baseHour <= 11
+      ? baseHour + 12
+      : baseHour;
+    minute = baseMinute;
+  }
+  if (hour == null || !Number.isFinite(hour) || hour < 0 || hour > 23) {
+    return null;
+  }
+  const localTimeHHMM = `${String(hour).padStart(2, "0")}:${
+    String(minute).padStart(2, "0")
+  }`;
+  const scheduledFor = computeScheduledForFromLocal({
+    timezone,
+    nowIso: args.nowIso,
+    dayOffset,
+    localTimeHHMM,
+  });
+  return scheduledFor ? { scheduledFor, localTimeHHMM } : null;
+}
+
+/**
+ * P10-A (nina-hard24 R1-B01, T5): fusion du tour-réponse à un clarify
+ * PAST_TIME — symétrie exacte de resolveMeridiemClarifyAnswer (P7-C). Le
+ * clarify persiste l'heure d'origine (« cette nuit à 2h du matin ») ; la
+ * réponse qui apporte l'INDICE DE JOUR forward (« la nuit qui vient »,
+ * « demain », « dans 4h quoi ») doit se COMBINER avec cette heure — jamais
+ * retomber sur missing_time (le cul-de-sac auto-contradictoire : « on est
+ * après cette heure » + « il me manque le moment exact »). Fail-closed : ni
+ * indice de jour dans la réponse ni heure résoluble ⇒ null (clarify
+ * inchangé).
+ */
+export function resolvePastTimeClarifyAnswer(args: {
+  answerMessage: string;
+  /** when_hint/raw_text du tour d'ORIGINE — porte l'heure refusée. */
+  baseWhenHint: string;
+  timezone: string;
+  nowIso: string;
+}): { scheduledFor: string; localTimeHHMM: string } | null {
+  const timezone = normalizeTimezone(args.timezone);
+  const now = new Date(args.nowIso);
+  if (!Number.isFinite(now.getTime())) return null;
+  const answer = normalizeText(args.answerMessage);
+  const base = normalizeText(args.baseWhenHint);
+  // Indice de jour forward de la RÉPONSE. Le marqueur nocturne (« la nuit
+  // qui vient/arrive », « cette nuit ») vaut confirmation forward: le
+  // glissement au lendemain d'une heure passée devient légitime.
+  const answerDayOffset = /apres[- ]?demain/.test(answer)
+    ? 2
+    : /\bdemain\b/.test(answer)
+    ? 1
+    : /\b(cette nuit|la nuit (qui (vient|arrive)|prochaine)|dans \d+\s?h(eures?)?\b)/
+        .test(answer)
+    ? "forward" as const
+    : null;
+  if (answerDayOffset === null) return null;
+  // Heure: la réponse d'abord, l'heure-base stockée sinon. Le méridiem se
+  // lit dans la MÊME source que l'heure retenue.
+  const hourFrom = (text: string): { hour: number; minute: number } | null => {
+    const match = text.match(
+      /\b(\d{1,2})\s*h\s*(\d{2})?\b|\b(\d{1,2})\s+heures?\b/,
+    );
+    if (!match) return null;
+    let hour = Number(match[1] ?? match[3]);
+    const minute = match[2] ? Number(match[2]) : 0;
+    if (!Number.isFinite(hour) || hour < 0 || hour > 23) return null;
+    const saysEvening = /\b(soir|soiree|apres[- ]?midi)\b/.test(text);
+    const saysMorningOrNight = /\b(matin|matinee|mat|nuit)\b/.test(text);
+    if (hour >= 1 && hour <= 11) {
+      if (saysEvening) hour += 12;
+      // Heure basse sans AUCUN méridiem/contexte nocturne: ambigu —
+      // fail-closed (la ceinture méridiem reste le filet).
+      else if (!saysMorningOrNight) return null;
+    }
+    return { hour, minute };
+  };
+  const resolved = hourFrom(answer) ?? hourFrom(base);
+  if (!resolved) return null;
+  const localTimeHHMM = `${String(resolved.hour).padStart(2, "0")}:${
+    String(resolved.minute).padStart(2, "0")
+  }`;
+  // « forward » sans jour nommé: aujourd'hui si l'heure est encore à venir,
+  // sinon demain (le sens de « la nuit qui vient » à 22h pour 02:00).
+  let dayOffset: number;
+  if (answerDayOffset === "forward") {
+    const todayIso = computeScheduledForFromLocal({
+      timezone,
+      nowIso: args.nowIso,
+      dayOffset: 0,
+      localTimeHHMM,
+    });
+    dayOffset = todayIso && new Date(todayIso).getTime() > now.getTime() + 30_000
+      ? 0
+      : 1;
+  } else {
+    dayOffset = answerDayOffset;
+  }
+  const scheduledFor = computeScheduledForFromLocal({
+    timezone,
+    nowIso: args.nowIso,
+    dayOffset,
+    localTimeHHMM,
+  });
+  if (!scheduledFor) return null;
+  // Filet: jamais un résultat encore passé (réponse « aujourd'hui » à une
+  // heure déjà écoulée reste un clarify).
+  if (new Date(scheduledFor).getTime() <= now.getTime() + 30_000) return null;
+  return { scheduledFor, localTimeHHMM };
+}
+
 export function hasRecurringCadenceHint(message: string): boolean {
   const text = normalizeText(message);
   return /\b(tous?|toutes?|chaque)\s+(les?\s+)?(jours?|matins?|soirs?|semaines?|lundis?|mardis?|mercredis?|jeudis?|vendredis?|samedis?|dimanches?)\b/
@@ -224,6 +385,78 @@ export function localHHMMForScheduledFor(
 
 export function extractTargetHHMMFromMessage(message: string): string | null {
   return extractHHMM(selectCandidateText(message))?.hhmm ?? null;
+}
+
+/**
+ * P4-B: le texte porte-t-il un marqueur de JOUR explicite (demain, ce soir,
+ * un jour de semaine, une date) ? Sert à décider si une heure nue doit
+ * hériter du jour du rappel remplacé (aucun marqueur = héritage).
+ */
+export function hasAnyExplicitDayToken(text: string): boolean {
+  const normalized = String(text ?? "")
+    .normalize("NFD").replace(/\p{Diacritic}/gu, "")
+    .toLowerCase();
+  return /\b(demain|apres[- ]demain|aujourd|ce soir|ce matin|cet apres[- ]midi|cette nuit|ce midi|lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)\b/
+    .test(normalized) ||
+    /\ble \d{1,2}\b/.test(normalized) ||
+    /\b(janvier|fevrier|mars|avril|mai|juin|juillet|aout|septembre|octobre|novembre|decembre)\b/
+      .test(normalized);
+}
+
+/**
+ * P4-B (eva-global19 R1-B02): le label d'INTENTION (« ce soir a 20h ») ne
+ * peut confirmer un commit que si son jour implicite correspond au
+ * scheduled_for EFFECTIF — apres un glissement au lendemain, le label
+ * pre-glissement mentait (« ce soir » pour un rappel place demain).
+ */
+export function localLabelDayConsistent(args: {
+  label: string | null | undefined;
+  scheduledFor: string;
+  timezone?: string | null;
+  nowIso: string;
+}): boolean {
+  const label = String(args.label ?? "")
+    .normalize("NFD").replace(/\p{Diacritic}/gu, "")
+    .toLowerCase();
+  if (!label.trim()) return false;
+  const timezone = normalizeTimezone(args.timezone);
+  const localDay = (iso: string): string => {
+    const date = new Date(iso);
+    if (!Number.isFinite(date.getTime())) return "";
+    return new Intl.DateTimeFormat("en-CA", {
+      timeZone: timezone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(date);
+  };
+  const dayOffset = (day: string, offset: number): string => {
+    const parsed = Date.parse(`${day}T12:00:00Z`);
+    if (!Number.isFinite(parsed)) return "";
+    return new Date(parsed + offset * 86_400_000).toISOString().slice(0, 10);
+  };
+  const today = localDay(args.nowIso);
+  const scheduledDay = localDay(args.scheduledFor);
+  if (!today || !scheduledDay) return true;
+  const saysToday =
+    /\b(ce soir|ce matin|cet apres[- ]midi|cette nuit|ce midi|aujourd)\b/.test(
+      label,
+    );
+  const saysAfterTomorrow = /apres[- ]demain/.test(label);
+  const saysTomorrow = !saysAfterTomorrow && /\bdemain\b/.test(label);
+  if (saysToday && scheduledDay !== today) return false;
+  if (saysTomorrow && scheduledDay !== dayOffset(today, 1)) return false;
+  if (saysAfterTomorrow && scheduledDay !== dayOffset(today, 2)) return false;
+  // Date absolue dans le label (« lundi 13 juillet à 21:00 ») : le numéro de
+  // jour doit correspondre au jour local effectif.
+  const absoluteDay = label.match(
+    /\b(\d{1,2})\s+(janvier|fevrier|mars|avril|mai|juin|juillet|aout|septembre|octobre|novembre|decembre)\b/,
+  );
+  if (absoluteDay) {
+    const scheduledDayOfMonth = Number(scheduledDay.slice(8, 10));
+    if (Number(absoluteDay[1]) !== scheduledDayOfMonth) return false;
+  }
+  return true;
 }
 
 export function parseReminderFromMessageDeterministic(args: {

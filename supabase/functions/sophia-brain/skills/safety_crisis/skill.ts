@@ -102,6 +102,10 @@ export async function runSafetyCrisisSkill(
       reason: "safety_crisis_local_dispatcher_failed_no_legacy_fallback",
     };
   const safetySignals = emptySafetySignal(dispatcherResult.signals);
+  // P7-A (paul-p6reval R1-B06): co-demande de recall BÉNIGNE détectée par le
+  // runtime (déclencheur déterministe P5-G) — portée jusqu'au visible agent
+  // pour être restituée en une ligne ou différée honnêtement, jamais avalée.
+  const benignRecallRequest = input.context.benign_recall_request ?? null;
   const reduction = reduceSafetyCrisis({
     previousState: snapshot.previous_state,
     signals: safetySignals,
@@ -109,6 +113,7 @@ export async function runSafetyCrisisSkill(
     dispatcherOutput: localDispatcherOutput,
     currentUserMessage: input.user_message,
     noteInformationInbound: input.context.turn_frame.note_information ?? null,
+    benignRecallRequest,
   });
   console.info("safety_crisis.reducer_result", {
     source_risk_band: snapshot.source_risk_band,

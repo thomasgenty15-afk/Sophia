@@ -7,6 +7,7 @@ import {
   committedOneShotReminderKnown,
   directEffectContextCommittedThisTurn,
   directEffectContextHasCommittedOneShotReminder,
+  oneShotReminderCanonicalDispatcherPromptLines,
   oneShotReminderCanonicalVisiblePromptLines,
   oneShotReminderVisibleContextPresent,
   recentEffectsSummaryHasCommittedOneShotReminder,
@@ -131,11 +132,18 @@ Deno.test("committedThisTurn emits an active one-time confirmation directive", (
 });
 
 Deno.test("committedKnown injects the block even when the direct context is absent", () => {
+  // P8-B (probe P8-3 passe 3): hors-fenêtre, plus JAMAIS un retour vide —
+  // la ligne default-deny minimale reste servie (rappel confabulé « créé et
+  // exécuté dans cette session » avec 0 ligne DB observé sans elle).
   const suppressed = oneShotReminderCanonicalVisiblePromptLines(
     "flow_context.direct_effect_confirmation_context",
     { present: false },
   );
-  assertEquals(suppressed.length, 0);
+  assertEquals(suppressed.length, 1);
+  assertStringIncludes(
+    suppressed[0],
+    "ne dis JAMAIS qu'un rappel est programme, cree, enregistre, execute ou actif",
+  );
 
   const injected = oneShotReminderCanonicalVisiblePromptLines(
     "flow_context.direct_effect_confirmation_context",
@@ -369,4 +377,43 @@ Deno.test("committed track_progress reaches the confirmation channel and forbids
     lines,
     "ne propose jamais de 'le formuler pour le suivi'",
   );
+});
+
+Deno.test("contrat rappel: une demande de brouillon EMET l'effet, le runtime garantit le zero-write (P6-A, paul-hard21 R1-B04)", () => {
+  const prompt = oneShotReminderCanonicalDispatcherPromptLines().join("\n");
+  assertStringIncludes(prompt, "BROUILLON / VALIDATION PREALABLE");
+  assertStringIncludes(
+    prompt,
+    "EMET QUAND MEME direct_effects.create_one_shot_reminder",
+  );
+  assertStringIncludes(
+    prompt,
+    "Ne retiens JAMAIS l'emission a cause de 'montre-moi d'abord'",
+  );
+});
+
+// ── P8 (vague 23) ────────────────────────────────────────────────────────────
+
+Deno.test("contrat dispatcher: co-demande N rappels + conservation de potion ≠ rappel (P8-A/P8-B)", () => {
+  const prompt = oneShotReminderCanonicalDispatcherPromptLines().join("\n");
+  // P8-A: N rappels distincts = N entrees, jamais un effet agrege.
+  assertStringIncludes(prompt, "CO-DEMANDE DE N RAPPELS");
+  assertStringIncludes(
+    prompt,
+    "emets UNE entree direct_effects.create_one_shot_reminder PAR rappel",
+  );
+  // Anti-faux-positif du contrat: alternative = une entree, recurrence = zero.
+  assertStringIncludes(prompt, "reste UNE entree (clarify du choix)");
+  // P8-B (eva-hard23 T7): conserver un artefact coaching n'est pas un rappel.
+  assertStringIncludes(prompt, "garde-la moi bien au chaud");
+  assertStringIncludes(prompt, "direct_effects=[] — le user demande de stocker un objet coaching");
+});
+
+Deno.test("contrat visible: un rappel committe ne se presente jamais comme une potion gardee (P8-B, eva-hard23 T7)", () => {
+  const prompt = oneShotReminderCanonicalVisiblePromptLines(
+    "flow_context.direct_effect_confirmation_context",
+    { present: true, committedThisTurn: true, committedKnown: true },
+  ).join("\n");
+  assertStringIncludes(prompt, "jamais comme un autre artefact");
+  assertStringIncludes(prompt, "une potion ne se cree ni ne se garde depuis le chat");
 });

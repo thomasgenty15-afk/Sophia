@@ -3,6 +3,7 @@ import { assertEquals, assertStringIncludes } from "jsr:@std/assert@1";
 import {
   addDaysYmd,
   autoApplyWeeklyPlanning,
+  buildWeeklyPlanningAutoValidationDetailMessage,
   buildWeeklyPlanningAutoValidationMessage,
   loadActiveWeeklyPlanning,
   weeklyPlanningAutoValidationScheduledFor,
@@ -247,4 +248,23 @@ Deno.test("weekly auto-validation visible message states the planning is applied
 
   assertStringIncludes(message, "J'ai valide l'organisation proposee");
   assertStringIncludes(message, "- Sport : lundi");
+});
+
+Deno.test("weekly auto-validation detail answers the template question without generic opener", () => {
+  // Sent after "Oui!" on auto_validation_v1: the template already announced
+  // the auto-validation, so the detail must not repeat a generic opener.
+  const message = buildWeeklyPlanningAutoValidationDetailMessage({
+    summaryLines: ["- Sport : lundi", "- Lecture : mardi"],
+  });
+
+  assertStringIncludes(message, "Voici le detail de ton planning");
+  assertStringIncludes(message, "- Sport : lundi");
+  assertStringIncludes(message, "- Lecture : mardi");
+  assertEquals(message.includes("J'ai valide l'organisation proposee"), false);
+
+  // Empty summary still yields a valid message.
+  const fallback = buildWeeklyPlanningAutoValidationDetailMessage({
+    summaryLines: [],
+  });
+  assertStringIncludes(fallback, "- Planning de la semaine valide.");
 });

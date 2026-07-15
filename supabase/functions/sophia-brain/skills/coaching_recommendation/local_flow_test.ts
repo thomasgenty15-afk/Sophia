@@ -1,4 +1,6 @@
-import { assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
+import { assertEquals,
+  assertStringIncludes,
+} from "https://deno.land/std@0.208.0/assert/mod.ts";
 import {
   buildCoachingRecommendationBridgeNote,
   isCoachingRecommendationBridgeNote,
@@ -4798,6 +4800,131 @@ Deno.test("la demande tactique immédiate livre un geste, pas une re-reco d'outi
   assertEquals(
     prompt.includes(
       "une demande de METHODE ou d'OUTIL ('quel outil je devrais utiliser'",
+    ),
+    true,
+  );
+});
+
+// ── P6-G (rose-hard18 B01-B03, eva-hard21 B05/B06) ──────────────────────────
+
+Deno.test("contrat coaching: convergence, consent+slot, carte libre, composite, adequation 1er signal (P6-G)", () => {
+  const prompt = coachingDispatcherPromptForTest(
+    {
+      user_id: "user-test",
+      request_id: "req-test",
+      user_message: "prépare-moi une carte pour samedi soir",
+      recent_messages: [],
+      previous_state: null,
+      active_plan_items: [],
+      turn_frame: null,
+    } as any,
+  );
+  // rose B01: situation + moment nommés ⇒ proposition, plus de cadrage.
+  assertStringIncludes(prompt, "CRITERE DE CONVERGENCE");
+  assertStringIncludes(
+    prompt,
+    "la clarification est un outil d'entree, pas un mode de sejour",
+  );
+  // rose B02: consentement + slot in-turn consommés, jamais redemandés.
+  assertStringIncludes(prompt, "CONSENTEMENT + SLOT DANS LE MEME TOUR");
+  assertStringIncludes(
+    prompt,
+    "un slot fourni n'est jamais redemande, un consentement donne n'est jamais re-demande",
+  );
+  // rose B03: nature carte libre dite DANS le tour + operation_suggestion si
+  // provisionné.
+  assertStringIncludes(prompt, "CARTE LIBRE — durabilite annoncee DANS le tour");
+  assertStringIncludes(
+    prompt,
+    "emets l'operation_suggestion vers le tool durable",
+  );
+  // eva B05: composite « deux X » = séquence, jamais re-narrowing après refus.
+  assertStringIncludes(prompt, "DEMANDE COMPOSITE 'DEUX X'");
+  assertStringIncludes(
+    prompt,
+    "la meme question re-posee apres refus est une violation de progression",
+  );
+  // eva B06: adéquation potion↔carte au premier signal.
+  assertStringIncludes(prompt, "ADEQUATION AU PREMIER SIGNAL — potion vs carte");
+});
+
+// ── P7-E (nina-hard22 T7/T11) ────────────────────────────────────────────────
+
+Deno.test("contrat coaching: co-demande transactionnelle (track, mémoire, statut) sort vers le global (P7-E)", () => {
+  const prompt = coachingDispatcherPromptForTest(
+    {
+      user_id: "user-test",
+      request_id: "req-test",
+      user_message: "au fait j'ai réussi à boire mon verre d'eau ce matin",
+      recent_messages: [],
+      previous_state: null,
+      active_plan_items: [],
+      turn_frame: null,
+    } as any,
+  );
+  assertStringIncludes(prompt, "CO-DEMANDE TRANSACTIONNELLE");
+  // Les 3 intentions couvertes.
+  assertStringIncludes(prompt, "REPORT DE COMPLETION");
+  assertStringIncludes(prompt, "INTENTION MEMOIRE explicite");
+  assertStringIncludes(prompt, "demande de STATUT/RECAP factuel");
+  // Anti-faux-positif: le suivi de la technique en construction reste local.
+  assertStringIncludes(
+    prompt,
+    "un report d'ESSAI de la technique en construction",
+  );
+});
+
+// ── P8-G (alex-hard23 T7 / paul-untested22 T7) ───────────────────────────────
+
+Deno.test("fenetre de rupture explicite: le mot de bascule n'est jamais disqualifie comme fragile (P8-G, alex-hard23 T7)", () => {
+  const prompt = coachingDispatcherPromptForTest(
+    {
+      user_id: "user-test",
+      request_id: "req-test",
+      user_message:
+        "je veux juste UN mot, un declencheur ultra court pour la seconde exacte ou je craque et rallume — pas tout un plan B",
+      recent_messages: [],
+      previous_state: null,
+      active_plan_items: [],
+      turn_frame: null,
+    } as any,
+  );
+  // Positif: la disqualification est nommee interdite avec le verbatim.
+  assertEquals(prompt.includes("DISQUALIFICATION INTERDITE"), true);
+  assertEquals(
+    prompt.includes(
+      "sa pretendue fragilite n'est JAMAIS un motif de refus",
+    ),
+    true,
+  );
+  // Anti-faux-positif préservé: un simple blocage sans fenetre de rupture
+  // garde le micro-cadre (defense/potion), la regle (b) reste en place.
+  assertEquals(
+    prompt.includes("piege MECANIQUE RECURRENT"),
+    true,
+  );
+});
+
+Deno.test("axe d'activation etat→potion: hypo ≠ apaisement, deux etats opposes = deux potions (P8-G, paul-untested22 T7)", () => {
+  const prompt = coachingDispatcherPromptForTest(
+    {
+      user_id: "user-test",
+      request_id: "req-test",
+      user_message: "je suis tendu le jour et complement vide le soir, les deux",
+      recent_messages: [],
+      previous_state: null,
+      active_plan_items: [],
+      turn_frame: null,
+    } as any,
+  );
+  assertEquals(prompt.includes("AXE D'ACTIVATION etat → potion"), true);
+  assertEquals(
+    prompt.includes("HYPO-activation") && prompt.includes("amour"),
+    true,
+  );
+  assertEquals(
+    prompt.includes(
+      "replier le second etat sur la potion deja servie dans la journee est l'erreur observee",
     ),
     true,
   );

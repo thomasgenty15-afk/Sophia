@@ -19,6 +19,13 @@ export interface DetectedSignals {
   sensitive: SignalMatch;
   cross_topic_profile_query: SignalMatch;
   high_emotion: SignalMatch;
+  /**
+   * P4-D (rose-hard16 R1-B03): demande de conseil/aide contextuelle — le
+   * moment exact où un fait mémorisé (« vendredi soir = point fragile »)
+   * doit remonter. Sans ce signal, memory_mode=none coupait tout retrieval
+   * et le conseil restait générique malgré une mémoire pertinente.
+   */
+  advice_seeking: SignalMatch;
   retrieval_mode: RetrievalMode;
   retrieval_hints: RetrievalHint[];
 }
@@ -182,6 +189,13 @@ const PATTERNS: Record<
       "intensity",
       "\\b(tellement|vraiment|toujours|jamais)\\b.*\\b(mal|peur|honte|colere|triste)\\b",
       0.7,
+    ),
+  ],
+  advice_seeking: [
+    p(
+      "advice_request",
+      "\\b(un conseil|des conseils|une astuce|des astuces|aide[- ]moi a|m'aider a|comment (je fais|faire) pour|un truc pour (tenir|m'aider|eviter)|qu'est[- ]ce que je peux faire pour)\\b",
+      0.8,
     ),
   ],
 };

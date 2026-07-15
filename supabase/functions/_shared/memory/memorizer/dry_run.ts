@@ -3,6 +3,7 @@ import {
   selectMemorizerBatch,
 } from "./batch_selector.ts";
 import { dedupeMemoryItems } from "./dedupe.ts";
+import { filterRetractedMemoryItems } from "./retraction_guard.ts";
 import {
   type ExtractionLlmProvider,
   extractMemoryCandidates,
@@ -157,8 +158,13 @@ export async function runMemorizerDryRun(
       validation.accepted_entities,
       input.known_entities ?? [],
     );
-    const dedupe = dedupeMemoryItems(
+    // P10-D: verrou structurel de rétractation (parité avec memorizer_async).
+    const retractionFilter = filterRetractedMemoryItems(
       validation.accepted_items,
+      batch.primary_messages,
+    );
+    const dedupe = dedupeMemoryItems(
+      retractionFilter.kept,
       input.existing_memory_items ?? [],
     );
     const candidates = dedupe.map((decision): DryRunCandidate => {

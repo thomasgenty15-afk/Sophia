@@ -106,7 +106,26 @@ function normalizeToE164(input: string): string {
   return s;
 }
 
-function getFallbackTemplate(purpose: string | undefined) {
+function fallbackDashboardUrl(metadataExtra: Record<string, unknown>): string {
+  const fromMeta = String(
+    (metadataExtra as Record<string, unknown>)?.dashboard_url ?? "",
+  ).trim();
+  if (fromMeta) return fromMeta;
+  const base = (Deno.env.get("APP_BASE_URL") ?? Deno.env.get("SITE_URL") ??
+    Deno.env.get("PUBLIC_SITE_URL") ?? "https://app.sophia.app")
+    .trim().replace(/\/+$/, "");
+  return `${base}/dashboard`;
+}
+
+function getFallbackTemplate(
+  purpose: string | undefined,
+  opts?: { dashboardUrl?: string },
+): {
+  name: string;
+  language: string;
+  injectBodyNameParam: boolean;
+  bodyParams?: string[];
+} {
   const p = (purpose ?? "").trim();
   if (p === "end_trial") {
     return {
@@ -176,6 +195,44 @@ function getFallbackTemplate(purpose: string | undefined) {
       language: (Deno.env.get("WHATSAPP_DAILY_BILAN_TEMPLATE_LANG") ?? "fr")
         .trim(),
       injectBodyNameParam: true,
+    };
+  }
+  // Weekly lifecycle purposes: dedicated templates, never global_reach.
+  // (Root cause of the 2026-07-12 incident: these purposes were missing here,
+  // so an unset env var upstream degraded all three to global_reach_template.)
+  if (p === "weekly_progress_review") {
+    return {
+      name: (Deno.env.get("WHATSAPP_WEEKLY_PROGRESS_REVIEW_TEMPLATE_NAME") ??
+        Deno.env.get("WHATSAPP_WEEKLY_BILAN_TEMPLATE_NAME") ??
+        "sophia_bilan_weekly_v1").trim(),
+      language:
+        (Deno.env.get("WHATSAPP_WEEKLY_PROGRESS_REVIEW_TEMPLATE_LANG") ??
+          Deno.env.get("WHATSAPP_WEEKLY_BILAN_TEMPLATE_LANG") ?? "fr").trim(),
+      // Meta-approved sophia_bilan_weekly_v1 has {{1}} = first name.
+      injectBodyNameParam: true,
+    };
+  }
+  if (p === "weekly_planning_validation") {
+    return {
+      name: (Deno.env.get("WHATSAPP_WEEKLY_PLANNING_TEMPLATE_NAME") ??
+        "weekly_planning_validation_v1").trim(),
+      language: (Deno.env.get("WHATSAPP_WEEKLY_PLANNING_TEMPLATE_LANG") ?? "fr")
+        .trim(),
+      injectBodyNameParam: false,
+      // Meta-approved weekly_planning_validation_v1 has {{1}} = dashboard URL.
+      bodyParams: [String(opts?.dashboardUrl ?? "").trim() ||
+      "https://app.sophia.app/dashboard"],
+    };
+  }
+  if (p === "weekly_planning_auto_validation") {
+    return {
+      name: (Deno.env.get("WHATSAPP_WEEKLY_AUTO_VALIDATION_TEMPLATE_NAME") ??
+        "auto_validation_v1").trim(),
+      language:
+        (Deno.env.get("WHATSAPP_WEEKLY_AUTO_VALIDATION_TEMPLATE_LANG") ?? "fr")
+          .trim(),
+      // Meta-approved auto_validation_v1 has zero placeholders.
+      injectBodyNameParam: false,
     };
   }
   return {
@@ -535,15 +592,28 @@ Deno.serve(async (req) => {
         text: { body: body.message.body },
       };
     } else {
-      const fallback = getFallbackTemplate(body.purpose);
-      const fallbackComponents = fallback.injectBodyNameParam
-        ? [
-          {
-            type: "body",
-            parameters: [{ type: "text", text: profile.full_name || "!" }],
-          },
-        ]
-        : undefined;
+      const fallback = getFallbackTemplate(body.purpose, {
+        dashboardUrl: fallbackDashboardUrl(metadataExtra),
+      });
+      const fallbackComponents =
+        (fallback.bodyParams && fallback.bodyParams.length > 0)
+          ? [
+            {
+              type: "body",
+              parameters: fallback.bodyParams.map((text) => ({
+                type: "text",
+                text,
+              })),
+            },
+          ]
+          : fallback.injectBodyNameParam
+          ? [
+            {
+              type: "body",
+              parameters: [{ type: "text", text: profile.full_name || "!" }],
+            },
+          ]
+          : undefined;
       const tpl = body.message.type === "template" ? body.message : {
         type: "template" as const,
         // Caller should provide a real template; this is a safe fallback.

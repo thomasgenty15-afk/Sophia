@@ -114,5 +114,44 @@ export function dedupeMemoryItems(
   items: ValidatedMemoryItem[],
   existingItems: KnownMemoryItem[],
 ): DedupeDecision[] {
-  return items.map((item) => decideMemoryItemDedupe(item, existingItems));
+  // P8-G (nina-hard23 R1-B03, 3e observation): la dédup ne comparait chaque
+  // item qu'aux items DEJA en DB — deux faits quasi identiques extraits dans
+  // le MEME lot passaient tous les deux (doublon « sucré fin de garde »).
+  // Un item accepté du lot devient une référence de dédup pour les suivants:
+  // contenu normalisé égal ou similarité lexicale ≥ 0.92 (seuil merge) sur le
+  // même kind → reject intra_batch_duplicate. Les events ne se dédupent
+  // entre eux que sur la même fenêtre temporelle (deux occurrences datées
+  // distinctes restent deux events).
+  const decisions: DedupeDecision[] = [];
+  const acceptedSoFar: ValidatedMemoryItem[] = [];
+  for (const item of items) {
+    const decision = decideMemoryItemDedupe(item, existingItems);
+    if (decision.decision === "create_new") {
+      const twin = acceptedSoFar.find((prior) =>
+        prior.kind === item.kind &&
+        (item.kind !== "event" ||
+          String(prior.event_start_at ?? "") ===
+            String(item.event_start_at ?? "")) &&
+        (normalizeText(prior.content_text) ===
+            normalizeText(item.content_text) ||
+          lexicalSimilarity(
+              prior.normalized_summary || prior.content_text,
+              item.normalized_summary || item.content_text,
+            ) >= 0.92)
+      );
+      if (twin) {
+        decisions.push({
+          decision: "reject_duplicate",
+          item,
+          existing_item_id: null,
+          similarity: 1,
+          reason: "intra_batch_duplicate",
+        });
+        continue;
+      }
+      acceptedSoFar.push(item);
+    }
+    decisions.push(decision);
+  }
+  return decisions;
 }

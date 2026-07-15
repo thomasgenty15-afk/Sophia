@@ -33,6 +33,7 @@ import {
 import {
   addDaysYmd,
   loadActiveWeeklyPlanning,
+  WEEKLY_PLANNING_AUTO_VALIDATION_EVENT_CONTEXT,
   weeklyPlanningPromptScheduledFor,
 } from "../_shared/weekly_planning_lifecycle.ts";
 import {
@@ -503,6 +504,25 @@ export function shouldGenericCheckinYesHandlePending(
   ) return true;
   return true;
 }
+
+// Weekly planning auto-validation door-opener (auto_validation_v1 template):
+// the plan is already applied, the pending only gates the detail delivery.
+export function isWeeklyAutoValidationPending(pending: unknown): boolean {
+  const payload = recordOrEmpty(recordOrEmpty(pending).payload);
+  return cleanText(payload.event_context) ===
+    WEEKLY_PLANNING_AUTO_VALIDATION_EVENT_CONTEXT;
+}
+
+// "Non merci!" quick reply on the auto_validation_v1 template. Also accepts
+// close typed variants ("non, merci", "non merci !").
+export function isWeeklyAutoValidationDeclineText(
+  textValue: unknown,
+): boolean {
+  return /^non\s*,?\s*merci\s*!?$/i.test(String(textValue ?? "").trim());
+}
+
+export const WEEKLY_AUTO_VALIDATION_DECLINE_ACK =
+  "Ça marche, tu pourras retrouver les détails dans ton onglet plan quand tu le souhaiteras 😉";
 
 export function isExplicitDailyActionReviewResumeText(
   textValue: unknown,
@@ -2469,6 +2489,45 @@ export async function maybeCompletePendingRendezVous(params: {
   }
 }
 
+async function ackWeeklyAutoValidationDecline(params: {
+  admin: any;
+  userId: string;
+  fromE164: string;
+  requestId: string;
+  pendingId: string;
+}) {
+  const { admin, userId, fromE164, requestId } = params;
+  await markPending(admin, params.pendingId, "done");
+  const txt = WEEKLY_AUTO_VALIDATION_DECLINE_ACK;
+  const sendResp = await sendWhatsAppTextTracked({
+    admin,
+    requestId,
+    userId,
+    toE164: fromE164,
+    body: txt,
+    purpose: "weekly_planning_auto_validation",
+    isProactive: false,
+  });
+  const outId = sendResp?.messages?.[0]?.id ?? null;
+  const outboundTrackingId = sendResp?.outbound_tracking_id ?? null;
+  await admin.from("chat_messages").insert({
+    user_id: userId,
+    scope: "whatsapp",
+    role: "assistant",
+    content: txt,
+    agent_used: "companion",
+    metadata: {
+      channel: "whatsapp",
+      wa_outbound_message_id: outId,
+      outbound_tracking_id: outboundTrackingId,
+      is_proactive: false,
+      source: "scheduled_checkin",
+      purpose: "weekly_planning_auto_validation",
+      event_context: WEEKLY_PLANNING_AUTO_VALIDATION_EVENT_CONTEXT,
+    },
+  });
+}
+
 export async function handlePendingActions(params: {
   admin: any;
   userId: string;
@@ -2826,6 +2885,27 @@ export async function handlePendingActions(params: {
     await markPending(admin, pending.id, "done");
     return true;
   }
+  // "Non merci!" on the weekly auto-validation door-opener: the plan is
+  // already applied, so just ack and close the pending. No reschedule.
+  if (
+    isWeeklyAutoValidationDeclineText(params.inboundText) && !params.isOptInYes
+  ) {
+    const pending = await fetchLatestCheckinPending(
+      admin,
+      userId,
+      params.replyToWaMessageId,
+    );
+    if (pending && isWeeklyAutoValidationPending(pending)) {
+      await ackWeeklyAutoValidationDecline({
+        admin,
+        userId,
+        fromE164,
+        requestId,
+        pendingId: pending.id,
+      });
+      return true;
+    }
+  }
   // If user says later for check-in, cancel and reschedule in 10 minutes.
   if (params.isCheckinLater && !params.isOptInYes) {
     const pending = await fetchLatestCheckinPending(
@@ -2835,6 +2915,19 @@ export async function handlePendingActions(params: {
     );
     // Don't swallow generic "plus tard" messages if there is no pending scheduled_checkin.
     if (!pending) return false;
+    // Auto-validation door-opener: "plus tard" must not reschedule the
+    // checkin (it already ran and applied the plan; rescheduling would
+    // re-send the template). Treat it like a decline.
+    if (isWeeklyAutoValidationPending(pending)) {
+      await ackWeeklyAutoValidationDecline({
+        admin,
+        userId,
+        fromE164,
+        requestId,
+        pendingId: pending.id,
+      });
+      return true;
+    }
     if (pending?.scheduled_checkin_id) {
       await admin.from("scheduled_checkins").update({
         status: "pending",

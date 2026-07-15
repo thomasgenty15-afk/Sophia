@@ -105,6 +105,12 @@ export interface LoadedContext {
    * par les tables métier.
    */
   recentEffectsSummary?: string;
+  /**
+   * P10-D (alex-hard24 R1-B05): segments explicitement rétractés en session
+   * (« oublie ça »), nommés au composeur avec l'interdit de restitution.
+   * Injecté de façon déterministe, sans dépendance LLM ni règle de prompt.
+   */
+  retractedInSession?: string;
 }
 
 /**

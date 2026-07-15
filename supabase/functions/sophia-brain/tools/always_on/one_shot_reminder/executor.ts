@@ -3,6 +3,7 @@ import {
   type SupabaseClient,
 } from "jsr:@supabase/supabase-js@2.87.3";
 import { getUserTimeContext } from "../../../../_shared/user_time_context.ts";
+import { logRuntimeGuardEvent } from "../../../../_shared/guard-log.ts";
 import type { TurnFrame } from "../../../contracts/turn_frame.v1.ts";
 import {
   type DirectEffectGateInput,
@@ -34,6 +35,7 @@ import {
   extractTargetHHMMFromMessage,
   formatLocalReminderLabel,
   localHHMMForScheduledFor,
+  localLabelDayConsistent,
 } from "./time_parser.ts";
 let reminderWriteClient: SupabaseClient | null = null;
 
@@ -453,11 +455,18 @@ export async function maybeCreateOneShotReminderFromStructuredEffect(params: {
     // (deplacer ou ajouter ?), zero write, re-arm au tour suivant (3g).
     // Comparaison de deux champs STRUCTURES (instruction payload vs
     // reminder_instruction DB), jamais le texte du message (cmd 0).
-    const normalizedNewInstruction = String(
-      params.effect.reminder_instruction ?? "",
-    )
-      .normalize("NFD").replace(/\p{Diacritic}/gu, "")
-      .toLowerCase().replace(/\s+/g, " ").trim();
+    // P8-V (harness r5g-s2 T3): la ponctuation entre dans l'égalité et un
+    // point final suffisait à rater le match (« ...chambre. » ≠
+    // « ...chambre ») — le doublon passait. Normalisation ponctuation
+    // incluse, des deux côtés.
+    const normalizeInstructionForGate = (value: unknown): string =>
+      String(value ?? "")
+        .normalize("NFD").replace(/\p{Diacritic}/gu, "")
+        .toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, " ")
+        .replace(/\s+/g, " ").trim();
+    const normalizedNewInstruction = normalizeInstructionForGate(
+      params.effect.reminder_instruction,
+    );
     if (normalizedNewInstruction) {
       const sameInstruction = pendingRows.find((row) => {
         const rowSourceMessageId = String(
@@ -469,12 +478,10 @@ export async function maybeCreateOneShotReminderFromStructuredEffect(params: {
         ) {
           return false;
         }
-        const rowInstruction = String(
+        const rowInstruction = normalizeInstructionForGate(
           (row?.message_payload as Record<string, unknown> | null | undefined)
-            ?.reminder_instruction ?? "",
-        )
-          .normalize("NFD").replace(/\p{Diacritic}/gu, "")
-          .toLowerCase().replace(/\s+/g, " ").trim();
+            ?.reminder_instruction,
+        );
         const rowMs = new Date(String(row?.scheduled_for ?? "")).getTime();
         return rowInstruction === normalizedNewInstruction &&
           Number.isFinite(rowMs) && rowMs !== scheduledMs;
@@ -492,11 +499,22 @@ export async function maybeCreateOneShotReminderFromStructuredEffect(params: {
     // Lecture non bloquante: en cas d'echec on laisse la creation suivre
     // son cours plutot que de bloquer un rappel legitime.
   }
+  // P4-B (eva-global19 R1-B02): le label d'intention (« ce soir à 20h ») ne
+  // survit au commit QUE si son jour implicite correspond au scheduled_for
+  // effectif — après un glissement au lendemain, le label recalculé depuis
+  // la valeur committée fait foi (le rendu ne dit plus « ce soir » pour un
+  // rappel placé demain).
+  const hintLabelConsistent = localLabelDayConsistent({
+    label: params.effect.local_label ?? null,
+    scheduledFor,
+    timezone,
+    nowIso: tctx.now_utc,
+  });
   const committed = await createReminderFromEffect({
     effect: {
       ...params.effect,
       scheduled_for: scheduledFor,
-      local_label: params.effect.local_label ??
+      local_label: (hintLabelConsistent ? params.effect.local_label : null) ??
         formatLocalReminderLabel({
           scheduledFor,
           timezone,
@@ -600,6 +618,46 @@ function reminderMatchTokens(text: string): Set<string> {
   );
 }
 
+/**
+ * P9-B (alex-hard24 R1-B03): détection déterministe d'une demande de cancel
+ * DE MASSE (« annule tous mes rappels [que je t'ai mis aujourd'hui] »). Sans
+ * elle, le scope pluriel était aplati par la résolution de cible unitaire —
+ * un token accidentel (« faire autrement » ↔ « faire une pause déjeuner »)
+ * annulait UN rappel au hasard et le rendu refusait le reste. Le marqueur de
+ * masse est explicite (tous/toutes/tout) : il exempte du garde précision-cible
+ * et cible l'inventaire réel. Anti-FP : « annule le rappel » (singulier) et
+ * « annule tout ça » sans contexte rappel ne matchent pas cette lane (le
+ * pluriel « rappels » ou le tout-nu adossé au verbe d'annulation est requis).
+ */
+export function detectMassCancelScope(message: string): {
+  mass: boolean;
+  createdTodayOnly: boolean;
+} {
+  const normalized = String(message ?? "")
+    .normalize("NFD").replace(/\p{Diacritic}/gu, "")
+    .replace(/[’']/g, " ").toLowerCase();
+  const mass =
+    // « tous mes/les rappels » — adjacence stricte (jamais « rappels … tous »
+    // à distance, qui matcherait « mes rappels sont tous ok, annule celui de
+    // 8h » et annulerait la flotte sur une demande unitaire).
+    /\b(tous|toutes)\s+(mes|les|ces)\s+rappels\b/.test(normalized) ||
+    /\bmes\s+rappels\s*,?\s+tous\b/.test(normalized) ||
+    // « annule-les tous » / « supprime les tous » (clitique pluriel + tous).
+    /\b(annule|supprime|enleve|retire|vire)[a-z]*[- ]les\s+tous\b/
+      .test(normalized) ||
+    // « annule tout » adossé au verbe, avec un contexte rappel dans le
+    // message (« annule tout ça » exclu: trop générique).
+    (/\b(annule|supprime|enleve|retire|vire)[a-z]*(\s+moi)?\s+tout\b(?!\s+ca\b)/
+        .test(normalized) &&
+      /\brappels?\b/.test(normalized));
+  // « que je t'ai mis/créés/posés aujourd'hui » = scope par date de CRÉATION
+  // (les rappels posés ce jour), pas par date de livraison.
+  const createdTodayOnly = mass &&
+    /\b(mis|crees?|poses?|ajoutes?|demandes?|donnes?)\b[^.!?]*\baujourd\s?hui\b/
+      .test(normalized);
+  return { mass, createdTodayOnly };
+}
+
 function reminderInstructionOverlapScore(
   message: string,
   row: unknown,
@@ -691,6 +749,92 @@ export async function maybeCancelOneShotReminder(params: {
     };
   }
 
+  // P9-B (alex-hard24 R1-B03): une demande de masse EXPLICITE (« annule tous
+  // mes rappels ») est exemptée du garde précision-cible — la cible est
+  // l'inventaire réel du scope, jamais une résolution unitaire (qui tombait
+  // sur un pending au hasard via un token accidentel et refusait le reste).
+  const massScope = detectMassCancelScope(params.message);
+  if (massScope.mass) {
+    let massTargets = pendingRows;
+    if (massScope.createdTodayOnly) {
+      const localDayOf = (iso: string) => {
+        try {
+          return new Intl.DateTimeFormat("fr-CA", {
+            timeZone: tctx.user_timezone || "Europe/Paris",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+          }).format(new Date(iso));
+        } catch (_error) {
+          return "";
+        }
+      };
+      const today = localDayOf((params.now ?? new Date()).toISOString());
+      // Fail-open par ligne: sans created_at lisible, la ligne reste dans le
+      // scope (le user a dit « tous » — exclure en silence serait pire).
+      massTargets = pendingRows.filter((row: any) => {
+        const created = String(row?.created_at ?? "").trim();
+        if (!created) return true;
+        return localDayOf(created) === today;
+      });
+    }
+    if (massTargets.length === 0) {
+      return {
+        detected: true,
+        status: "no_reminder",
+        user_message: compactText(params.message, 500),
+        absence_reason: "never_existed",
+      };
+    }
+    const massIds = massTargets
+      .map((row: any) => String(row?.id ?? ""))
+      .filter(Boolean);
+    const massLabels = massTargets
+      .map((row: any) =>
+        row?.scheduled_for
+          ? formatLocalReminderLabel({
+            scheduledFor: String(row.scheduled_for),
+            timezone: tctx.user_timezone,
+            locale: tctx.user_locale,
+          })
+          : null
+      )
+      .filter((label): label is string => Boolean(label));
+    const massCancelled = await cancelReminderFromEffect({
+      effect: {
+        type: "cancel_one_shot_reminder",
+        target_reminder_ids: massIds,
+        target_local_labels: massLabels,
+      },
+      supabase: params.supabase,
+      requestId: params.requestId,
+    });
+    if ("reason_code" in massCancelled) {
+      return {
+        detected: true,
+        status: "failed",
+        reason: massCancelled.reason_code,
+        user_message: compactText(params.message, 500),
+        error_message: massCancelled.error_message ?? massCancelled.reason_code,
+      };
+    }
+    logRuntimeGuardEvent({
+      guard: "mass_cancel_executed",
+      userId: params.userId,
+      severity: "info",
+      detail: { cancelled_count: massIds.length },
+    });
+    return {
+      detected: true,
+      status: "cancelled",
+      cancelled_count: massIds.length,
+      cancelled_local_labels: massLabels,
+      cancelled_ids: massIds,
+      user_message: compactText(params.message, 500),
+      mass_scope: true,
+    };
+  }
+
   const textTargetHHMM = extractTargetHHMMFromMessage(params.message);
   let targets = textTargetHHMM
     ? pendingRows.filter((row: any) =>
@@ -702,6 +846,60 @@ export async function maybeCancelOneShotReminder(params: {
     : pendingRows.length === 1
     ? pendingRows
     : [];
+
+  // P5-B (rose-hard17 T14): le repli « pending unique » exige la
+  // CORRESPONDANCE quand le message NOMME un autre rappel — « le rappel de
+  // l'eau » (déjà annulé) avec un seul pending (la sœur) annulait la sœur.
+  // Si le message ne recouvre pas l'instruction du pending unique MAIS
+  // recouvre un rappel récent NON-pending, la cible réelle est ce dernier :
+  // no-op honnête (déjà annulé / déjà envoyé), on ne mute JAMAIS le pending.
+  // « Annule-le » générique (zéro token de contenu) reste servi tel quel.
+  if (
+    !textTargetHHMM && pendingRows.length === 1 && targets.length === 1 &&
+    reminderInstructionOverlapScore(params.message, targets[0]) === 0
+  ) {
+    try {
+      const sinceIso = new Date(
+        (params.now ?? new Date()).getTime() - 48 * 3_600_000,
+      ).toISOString();
+      const recentRows = await readRecentOneShotReminderRows({
+        supabase: params.supabase,
+        userId: params.userId,
+        sinceIso,
+      });
+      const singleId = String((targets[0] as any)?.id ?? "");
+      const namedNonPending = (recentRows as any[])
+        .filter((row) =>
+          String(row?.id ?? "") !== singleId &&
+          String(row?.status ?? "") !== "pending"
+        )
+        .map((row) => ({
+          row,
+          score: reminderInstructionOverlapScore(params.message, row),
+        }))
+        .filter((entry) => entry.score > 0)
+        .sort((a, b) => b.score - a.score);
+      if (namedNonPending.length > 0) {
+        const named = namedNonPending[0].row;
+        const namedStatus = String(named?.status ?? "");
+        return {
+          detected: true,
+          status: "no_reminder",
+          user_message: compactText(params.message, 500),
+          absence_reason: namedStatus === "cancelled"
+            ? "already_cancelled"
+            : "already_delivered",
+          non_pending_local_label: localHHMMForScheduledFor(
+            String(named?.scheduled_for ?? ""),
+            tctx.user_timezone,
+          ) || null,
+        };
+      }
+    } catch (_error) {
+      // Lecture best-effort: sans projection récente, le repli historique
+      // reste (générique « annule-le » sur pending unique).
+    }
+  }
 
   // P2-3c (rose-lifecycle R1-B02): résolution par CONTENU D'INSTRUCTION —
   // « celui de la carto demain matin » nommait la cible de façon unique mais

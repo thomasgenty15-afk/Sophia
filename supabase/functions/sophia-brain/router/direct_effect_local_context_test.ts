@@ -680,3 +680,166 @@ Deno.test("committed guidance forbids every denial variant, whatever the handler
     false,
   );
 });
+
+// ── P7-B (alex-untested22 R1-B01, paul-p6reval R1-B02): PARITÉ N-COMMITS ─────
+
+Deno.test("fan-out multi-dates: l'outcome agrège les N commits avec leurs dates, jamais le seul premier (P7-B)", () => {
+  const context = buildDirectEffectConfirmationContext({
+    direct_effects: [{
+      effect_type: "track_progress_plan_item",
+      explicitness: "explicit",
+      target_status: "identified",
+      confidence_band: "high",
+      payload_hint: { target_item_id: "item-1", status_hint: "completed" },
+    }],
+    direct_effect_lane: {
+      committed_effects: [
+        {
+          type: "track_progress_plan_item",
+          target_item_id: "item-1",
+          target_title: "Couper les écrans",
+          progress_status: "completed",
+          date_hint: "2026-07-12",
+        },
+        {
+          type: "track_progress_plan_item",
+          target_item_id: "item-1",
+          target_title: "Couper les écrans",
+          progress_status: "completed",
+          date_hint: "2026-07-13",
+        },
+        {
+          type: "track_progress_plan_item",
+          target_item_id: "item-1",
+          target_title: "Couper les écrans",
+          progress_status: "completed",
+          date_hint: "2026-07-14",
+        },
+      ],
+      requested_effects: [{ type: "track_progress_plan_item" }],
+      blocked_effects: [],
+    },
+  });
+  const outcome = (context?.effects_outcome ?? []).find((entry) =>
+    entry.effect_type === "track_progress_plan_item"
+  );
+  assertEquals(outcome?.status, "committed");
+  const target = String(outcome?.target ?? "");
+  // Les 3 commits sont énumérés — le composeur ne peut plus nier les 2 autres.
+  assertEquals(target.includes("3 enregistrements committes"), true);
+  assertEquals(target.includes("2026-07-12"), true);
+  assertEquals(target.includes("2026-07-13"), true);
+  assertEquals(target.includes("2026-07-14"), true);
+  // La guidance interdit le sous-report en toutes lettres.
+  assertEquals(
+    String(outcome?.guidance ?? "").includes("SOUS-REPORT INTERDIT"),
+    true,
+  );
+});
+
+Deno.test("commit unique: cible et date inchangées (P7-B anti-régression nina-r3 B01)", () => {
+  const context = buildDirectEffectConfirmationContext({
+    direct_effects: [{
+      effect_type: "track_progress_plan_item",
+      explicitness: "explicit",
+      target_status: "identified",
+      confidence_band: "high",
+      payload_hint: { target_item_id: "item-1", status_hint: "completed" },
+    }],
+    direct_effect_lane: {
+      committed_effects: [{
+        type: "track_progress_plan_item",
+        target_item_id: "item-1",
+        target_title: "Couper les écrans",
+        progress_status: "completed",
+        date_hint: "2026-07-12",
+      }],
+      requested_effects: [{ type: "track_progress_plan_item" }],
+      blocked_effects: [],
+    },
+  });
+  const outcome = (context?.effects_outcome ?? []).find((entry) =>
+    entry.effect_type === "track_progress_plan_item"
+  );
+  assertEquals(outcome?.status, "committed");
+  const target = String(outcome?.target ?? "");
+  assertEquals(target.includes("enregistrements committes"), false);
+  assertEquals(target.includes("2026-07-12"), true);
+});
+
+// ── P8-A (rose-p7verify R1 T14): CO-DEMANDE PARTIELLEMENT COMMITTEE ──────────
+
+Deno.test("co-demande partielle: le volet bloqué du même type remonte dans l'outcome committed (P8-A, rose-p7verify T14)", () => {
+  const context = buildDirectEffectConfirmationContext({
+    direct_effects: [{
+      effect_type: "create_one_shot_reminder",
+      explicitness: "explicit",
+      target_status: "identified",
+      confidence_band: "high",
+      payload_hint: { raw_text: "deux rappels" },
+    }],
+    direct_effect_lane: {
+      committed_effects: [{
+        type: "create_one_shot_reminder",
+        id: "r-1",
+        scheduled_for: "2026-07-16T16:00:00.000Z",
+        local_label: "jeudi à 18h",
+        reminder_instruction: "appeler le médecin",
+      }],
+      requested_effects: [
+        { type: "create_one_shot_reminder", reason_code: "create" },
+        { type: "create_one_shot_reminder", reason_code: "create" },
+      ],
+      blocked_effects: [{
+        type: "create_one_shot_reminder",
+        reason_code: "missing_time",
+      }],
+    },
+  });
+  const outcome = (context?.effects_outcome ?? []).find((entry) =>
+    entry.effect_type === "create_one_shot_reminder"
+  );
+  assertEquals(outcome?.status, "committed");
+  const guidance = String(outcome?.guidance ?? "");
+  // Le volet non committé est une DONNÉE de l'outcome, plus un silence.
+  assertEquals(guidance.includes("CO-DEMANDE PARTIELLE"), true);
+  assertEquals(guidance.includes("missing_time"), true);
+  // Le clarify du volet manquant voyage avec l'outcome committed.
+  assertEquals(typeof outcome?.clarify_question, "string");
+  assertEquals((outcome?.clarify_question ?? "").length > 0, true);
+});
+
+Deno.test("commit intégral: aucune mention de co-demande partielle (P8-A anti-faux-positif)", () => {
+  const context = buildDirectEffectConfirmationContext({
+    direct_effects: [{
+      effect_type: "create_one_shot_reminder",
+      explicitness: "explicit",
+      target_status: "identified",
+      confidence_band: "high",
+      payload_hint: { raw_text: "un rappel" },
+    }],
+    direct_effect_lane: {
+      committed_effects: [{
+        type: "create_one_shot_reminder",
+        id: "r-1",
+        scheduled_for: "2026-07-16T16:00:00.000Z",
+        local_label: "jeudi à 18h",
+        reminder_instruction: "appeler le médecin",
+      }],
+      requested_effects: [{
+        type: "create_one_shot_reminder",
+        reason_code: "create",
+      }],
+      blocked_effects: [],
+    },
+  });
+  const outcome = (context?.effects_outcome ?? []).find((entry) =>
+    entry.effect_type === "create_one_shot_reminder"
+  );
+  assertEquals(outcome?.status, "committed");
+  assertEquals(
+    String(outcome?.guidance ?? "").includes("CO-DEMANDE PARTIELLE"),
+    false,
+  );
+  assertEquals(outcome?.clarify_question, null);
+});

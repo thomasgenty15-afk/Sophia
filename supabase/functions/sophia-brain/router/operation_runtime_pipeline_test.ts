@@ -163,11 +163,19 @@ Deno.test("operation_runtime_pipeline safety route blocks direct runtime", async
   assertEquals(result.operationRuntime, null);
 });
 
-Deno.test("operation_runtime_pipeline safety route allows one-shot reminder", async () => {
+// P5-A (paul-p4verify T12) — recalibrage volontaire : l'ancien test « safety
+// route allows one-shot reminder » codifiait le carve-out V5-1 à band HIGH.
+// Doctrine P3-A/P5-A : V5-1 ne vaut que pour la détresse medium NON-crise ;
+// à high/critical le rappel explicite est DIFFÉRÉ honnêtement (zéro write,
+// payload persisté dans __safety_deferred_reminder pour re-serve post-crise).
+Deno.test("operation_runtime_pipeline safety high defers one-shot reminder (P5-A)", async () => {
   const message = "Rappelle-moi dans 40 minutes de respirer et d'appeler Sam.";
+  let upserts = 0;
+  const tempMemory: Record<string, unknown> = {};
   const result = await runOperationRuntimePipeline(basePipelineInput({
-    supabase: fakeOneShotSupabase(),
+    supabase: fakeOneShotSupabase({ onUpsert: () => upserts++ }),
     userMessage: message,
+    tempMemory,
     turnFrame: baseTurnFrame({
       safety: { risk_band: "high", reason_codes: [], evidence: [] },
       direct_effects: [{
@@ -193,7 +201,113 @@ Deno.test("operation_runtime_pipeline safety route allows one-shot reminder", as
     clientNow: new Date("2026-06-13T08:00:00.000Z"),
   }));
 
-  assertEquals(result.operationRuntime?.toolExecution, "success");
+  assertEquals(upserts, 0);
+  assertEquals(result.operationRuntime?.executedTools ?? [], []);
+  const run = result.operationRuntime?.toolSkillRun as any;
+  assertEquals(String(run?.reason ?? ""), "safety_crisis_deferred");
+  const deferred = (result.tempMemory as any)?.__safety_deferred_reminder;
+  assertEquals(deferred?.mode, "deferred");
+  assertEquals(
+    deferred?.known_slots?.instruction_hint,
+    "respirer et appeler Sam",
+  );
+});
+
+// P5-A — le shape exact de paul-p4verify T12 : flow local actif, dispatcher
+// global sauté, la lane tourne avec une route SYNTHÉTIQUE sans blocage crise
+// (direct_effects_to_run porte le create). Le verrou turn-level (codes
+// d'idéation du pregate/frame) doit différer sans écrire — plus jamais de
+// blocked+committed en parallèle au ledger.
+Deno.test("direct_effect_lane defers on ideation codes even without crisis-blocked route (P5-A, paul T12)", async () => {
+  const message =
+    "des fois je me dis que tout le monde serait mieux sans moi. mets-moi quand même un rappel demain d'acheter des pâtes";
+  let upserts = 0;
+  const tempMemory: Record<string, unknown> = {};
+  const result = await runDirectEffectLane({
+    ...basePipelineInput({
+      supabase: fakeOneShotSupabase({ onUpsert: () => upserts++ }),
+      userMessage: message,
+      tempMemory,
+      turnFrame: baseTurnFrame({
+        safety: {
+          risk_band: "medium",
+          reason_codes: ["suicidal_ideation_passive"],
+          evidence: ["tout le monde serait mieux sans moi"],
+        },
+        direct_effects: [{
+          effect_type: "create_one_shot_reminder",
+          explicitness: "explicit",
+          target_status: "identified",
+          confidence_band: "high",
+          payload_hint: {
+            raw_text: message,
+            when_hint: "demain",
+            UTC_time: "2026-06-14T08:00:00.000Z",
+            local_label: "demain matin",
+            instruction_hint: "acheter des pâtes",
+          },
+        }],
+      }),
+      // Route synthétique de flow local actif : AUCUN blocked_path crise.
+      routeDecision: baseRouteDecision({
+        response_owner: "coaching_recommendation",
+        reason_code: "active_coaching_recommendation_with_local_direct_effects",
+        direct_effects_to_run: ["create_one_shot_reminder"],
+      }),
+      safetyContextOutput: { risk_band: "medium", reason_codes: [] },
+      clientNow: new Date("2026-06-13T20:00:00.000Z"),
+    }),
+  } as any);
+
+  assertEquals(upserts, 0);
+  const run = result.operationRuntime?.toolSkillRun as any;
+  assertEquals(String(run?.reason ?? ""), "safety_crisis_deferred");
+  const deferred = (result.tempMemory as any)?.__safety_deferred_reminder;
+  assertEquals(deferred?.mode, "deferred");
+  assertEquals(deferred?.known_slots?.instruction_hint, "acheter des pâtes");
+});
+
+// P5-A anti-faux-positif — V5-1 préservé : détresse medium NON-crise
+// (worthlessness, route distress_support), le rappel bénin explicite est
+// SERVI (rose-hard15 T10 / hard17 T4 verts à protéger).
+Deno.test("direct_effect_lane still commits reminder on medium non-crisis distress (V5-1 preserved)", async () => {
+  const message = "je me sens nulle ce soir... rappelle-moi demain de boire de l'eau";
+  let upserts = 0;
+  const result = await runDirectEffectLane({
+    ...basePipelineInput({
+      supabase: fakeOneShotSupabase({ onUpsert: () => upserts++ }),
+      userMessage: message,
+      turnFrame: baseTurnFrame({
+        safety: {
+          risk_band: "medium",
+          reason_codes: ["worthlessness_thoughts"],
+          evidence: ["je me sens nulle"],
+        },
+        direct_effects: [{
+          effect_type: "create_one_shot_reminder",
+          explicitness: "explicit",
+          target_status: "identified",
+          confidence_band: "high",
+          payload_hint: {
+            raw_text: message,
+            when_hint: "demain",
+            UTC_time: "2026-06-14T08:00:00.000Z",
+            local_label: "demain matin",
+            instruction_hint: "boire de l'eau",
+          },
+        }],
+      }),
+      routeDecision: baseRouteDecision({
+        response_owner: "normal_reply",
+        reason_code: "distress_support_priority",
+        direct_effects_to_run: ["create_one_shot_reminder"],
+      }),
+      safetyContextOutput: { risk_band: "medium", reason_codes: [] },
+      clientNow: new Date("2026-06-13T20:00:00.000Z"),
+    }),
+  } as any);
+
+  assertEquals(upserts, 1);
   assertEquals(result.operationRuntime?.executedTools, [
     "create_one_shot_reminder",
   ]);
@@ -520,4 +634,137 @@ Deno.test("dedupe committed → statut terminal superseded_by_dedup, comptabilit
   assertEquals(committed.length, 1);
   assertEquals(superseded.length, 1);
   assertEquals(superseded[0].reason_code, "superseded_by_dedup");
+});
+
+// ── P8-E (paul-untested22 R1 T15): re-serve du différé sur go EXPLICITE ──────
+
+Deno.test("direct_effect_lane commits the deferred reminder on explicit re-serve during safety flow tail (P8-E, paul-untested22 T15)", async () => {
+  let upserts = 0;
+  const tempMemory: Record<string, unknown> = {
+    __active_skill_state: {
+      skill_id: "safety_crisis",
+      status: "active",
+      updated_at: new Date("2026-06-13T19:58:00.000Z").toISOString(),
+      working_state: { phase: "stabilizing" },
+    },
+    __safety_deferred_reminder: {
+      mode: "deferred",
+      exposed_to_dispatcher: true,
+      known_slots: {
+        raw_text: "rappelle-moi demain d'appeler ma soeur",
+        when_hint: "demain matin",
+        UTC_time: "2026-06-14T08:00:00.000Z",
+        local_label: "demain matin",
+        instruction_hint: "appeler ma soeur",
+      },
+    },
+  };
+  const result = await runDirectEffectLane({
+    ...basePipelineInput({
+      supabase: fakeOneShotSupabase({ onUpsert: () => upserts++ }),
+      userMessage: "ça va mieux là, merci. du coup remets-le maintenant stp",
+      tempMemory,
+      // Sous flow safety actif, le dispatcher global est sauté: AUCUN effet
+      // au frame — c'était le premier trou (la lane ne tournait même pas).
+      turnFrame: baseTurnFrame({
+        safety: { risk_band: "none", reason_codes: [], evidence: [] },
+        direct_effects: [],
+      }),
+      routeDecision: baseRouteDecision({
+        response_owner: "safety",
+        reason_code: "active_safety_conversation_skill",
+        direct_effects_to_run: [],
+      }),
+      safetyContextOutput: { risk_band: "none", reason_codes: [] },
+      clientNow: new Date("2026-06-13T20:00:00.000Z"),
+    }),
+  } as any);
+
+  // Le différé se solde AU MÊME TOUR: commit réel + promesse tenue.
+  assertEquals(upserts, 1);
+  const run = result.operationRuntime?.toolSkillRun as any;
+  assertEquals(
+    (run?.committed_effects ?? []).some((e: any) =>
+      e?.type === "create_one_shot_reminder"
+    ),
+    true,
+  );
+  // Idempotence: le différé est nettoyé après commit.
+  assertEquals(
+    (result.tempMemory as any)?.__safety_deferred_reminder,
+    undefined,
+  );
+});
+
+Deno.test("le carve-out re-serve ne lève JAMAIS le verrou sur bande medium+ ou sans go explicite (P8-E anti-faux-positif)", async () => {
+  const deferredState = () => ({
+    __active_skill_state: {
+      skill_id: "safety_crisis",
+      status: "active",
+      updated_at: new Date("2026-06-13T19:58:00.000Z").toISOString(),
+      working_state: { phase: "immediate_risk_check" },
+    },
+    __safety_deferred_reminder: {
+      mode: "deferred",
+      exposed_to_dispatcher: false,
+      known_slots: {
+        raw_text: "rappelle-moi demain d'appeler ma soeur",
+        when_hint: "demain matin",
+        UTC_time: "2026-06-14T08:00:00.000Z",
+        local_label: "demain matin",
+        instruction_hint: "appeler ma soeur",
+      },
+    },
+  });
+  // Bande HIGH: même un go explicite reste différé.
+  let upserts = 0;
+  const high = await runDirectEffectLane({
+    ...basePipelineInput({
+      supabase: fakeOneShotSupabase({ onUpsert: () => upserts++ }),
+      userMessage: "remets-le maintenant",
+      tempMemory: deferredState(),
+      turnFrame: baseTurnFrame({
+        safety: {
+          risk_band: "high",
+          reason_codes: ["suicidal_ideation_passive"],
+          evidence: ["x"],
+        },
+        direct_effects: [],
+      }),
+      routeDecision: baseRouteDecision({
+        response_owner: "safety",
+        reason_code: "active_safety_conversation_skill",
+        direct_effects_to_run: [],
+      }),
+      safetyContextOutput: {
+        risk_band: "high",
+        reason_codes: ["suicidal_ideation_passive"],
+      },
+      clientNow: new Date("2026-06-13T20:00:00.000Z"),
+    }),
+  } as any);
+  assertEquals(upserts, 0);
+  assertEquals(high.operationRuntime?.executedTools ?? [], []);
+
+  // Sans go explicite (« oui » seul), la lane ne tourne pas: zéro write.
+  const vague = await runDirectEffectLane({
+    ...basePipelineInput({
+      supabase: fakeOneShotSupabase({ onUpsert: () => upserts++ }),
+      userMessage: "oui",
+      tempMemory: deferredState(),
+      turnFrame: baseTurnFrame({
+        safety: { risk_band: "none", reason_codes: [], evidence: [] },
+        direct_effects: [],
+      }),
+      routeDecision: baseRouteDecision({
+        response_owner: "safety",
+        reason_code: "active_safety_conversation_skill",
+        direct_effects_to_run: [],
+      }),
+      safetyContextOutput: { risk_band: "none", reason_codes: [] },
+      clientNow: new Date("2026-06-13T20:00:00.000Z"),
+    }),
+  } as any);
+  assertEquals(upserts, 0);
+  assertEquals(vague.operationRuntime, null);
 });

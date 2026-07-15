@@ -39,7 +39,11 @@ export function extractQuotedReminderInstruction(message: string): string {
     return cleanupInstructionCandidate(colonSingleQuoted[1]);
   }
   const genericMatch = text.match(/["“”]([^"“”]{3,})["“”]/);
-  return genericMatch?.[1] ? cleanupInstructionCandidate(genericMatch[1]) : "";
+  if (genericMatch?.[1]) return cleanupInstructionCandidate(genericMatch[1]);
+  // P6-A: guillemets français — « appeler le dentiste » est la forme la plus
+  // courante d'un libellé dicté en toutes lettres.
+  const frenchQuoted = text.match(/«\s*([^«»]{3,}?)\s*»/);
+  return frenchQuoted?.[1] ? cleanupInstructionCandidate(frenchQuoted[1]) : "";
 }
 
 export function detectsReminderAnaphora(message: string): boolean {
@@ -77,6 +81,20 @@ export function isDegenerateReminderInstruction(
     return true;
   }
   if (/^(?:aujourd hui|demain|a|ou|h|\d|\s)+$/.test(text)) return true;
+  // P8-B (eva-hard23 T7, probe P8-3): instruction CLITIQUE-SEULE — « la
+  // retrouver », « le prendre », « y penser » : un pronom objet ANAPHORIQUE
+  // + un verbe à l'infinitif sans AUCUN objet propre. Committer ça écrit une
+  // anaphore en texte durable (le référent — ici une potion jamais créée —
+  // n'existe que dans la conversation). Même famille que les leçons
+  // clitiques P6-A. Les RÉFLEXIFS (me/te/se/nous/vous) restent légitimes:
+  // « me peser », « m'étirer » se réfèrent au user, pas à un antécédent
+  // conversationnel.
+  if (
+    /^(?:(?:la|le|les|l|y|en|lui|leur)\s+)+[a-z]+(?:er|re|ir|oir)$/
+      .test(text)
+  ) {
+    return true;
+  }
   return /^(?:a\s+)?\d{1,2}\s*h?\s*(?:\d{2})?(?:\s+ou\s+\d{1,2}\s*h?\s*(?:\d{2})?)*$/
     .test(
       text,
@@ -168,6 +186,82 @@ export async function loadLastReminderInstructionForUser(
   return null;
 }
 
+// P6-A (nina-untested21 R1-B01): ANAPHORE D'INVARIANCE de contenu sur un
+// replace/reschedule — « même chose », « pareil », « idem » ne sont jamais
+// un texte de rappel : ils désignent l'instruction du rappel remplacé, qui
+// doit être HÉRITÉE (généralise P3-F qui ne couvrait que « même texte »).
+const INVARIANCE_ANAPHORA = new Set([
+  "meme chose",
+  "la meme chose",
+  "pareil",
+  "idem",
+  "le meme",
+  "la meme",
+  "comme avant",
+  "meme texte",
+  "le meme texte",
+  "meme rappel",
+  "le meme rappel",
+  "meme message",
+  "le meme message",
+]);
+
+export function isReminderInstructionInvarianceAnaphora(
+  instruction: string | null | undefined,
+): boolean {
+  // P6-V (probe P6-1 passe 1): les particules de politesse finales (« même
+  // chose STP ») faisaient rater le match exact — elles se retirent avant.
+  // P6-V (probe P6-1 passe 6): l'émission colle parfois l'expression
+  // TEMPORELLE dans l'objet (« même chose stp demain à 20h ») — la queue
+  // temporelle est le QUAND, pas le QUOI: elle se retire aussi. Un vrai
+  // texte reste non-anaphore après strip (« appeler le médecin à 9h » →
+  // « appeler le médecin » ∉ ensemble).
+  const TAIL_WORDS = new Set([
+    "stp",
+    "svp",
+    "merci",
+    "hein",
+    "please",
+    "demain",
+    "apres",
+    "aujourd",
+    "hui",
+    "ce",
+    "cet",
+    "cette",
+    "soir",
+    "matin",
+    "midi",
+    "minuit",
+    "apres-midi",
+    "a",
+    "vers",
+    "pour",
+    "du",
+    "de",
+    "heure",
+    "heures",
+    "lundi",
+    "mardi",
+    "mercredi",
+    "jeudi",
+    "vendredi",
+    "samedi",
+    "dimanche",
+  ]);
+  const isHourWord = (word: string) => /^\d{1,2}(h\d{0,2})?$/.test(word);
+  const words = normalizeLite(instruction).split(" ").filter(Boolean);
+  while (
+    words.length > 1 &&
+    (TAIL_WORDS.has(words[words.length - 1]) ||
+      isHourWord(words[words.length - 1]))
+  ) {
+    words.pop();
+  }
+  const text = words.join(" ");
+  return text.length > 0 && INVARIANCE_ANAPHORA.has(text);
+}
+
 function normalizeLite(value: unknown): string {
   return String(value ?? "")
     .normalize("NFD")
@@ -232,4 +326,46 @@ function cleanupInstructionCandidate(value: unknown): string {
     .replace(/[.?!。]+$/g, "")
     .trim();
   return text;
+}
+
+/**
+ * P10-E (alex-hard24 R1-B02, nina-hard24 R1-B03): RÉFÉRENCE D'ENTITÉ rappel
+ * — « celui du midi », « le rappel des en-cas », « le même » désignent un
+ * rappel EXISTANT, jamais un contenu. Stockée comme instruction, elle
+ * produisait un rappel dont le texte est le pronom (« à propos de: celui du
+ * midi ») ou l'expression de commande (« le rappel des en-cas »). Sur un
+ * replace/reschedule, une référence d'entité vaut instruction ABSENTE:
+ * l'héritage P3-F/P6-A résout depuis le pending ciblé.
+ */
+export function isReminderEntityReference(
+  instruction: string | null | undefined,
+): boolean {
+  const text = String(instruction ?? "")
+    .normalize("NFD").replace(/\p{Diacritic}/gu, "")
+    .replace(/[’']/g, " ").toLowerCase().replace(/\s+/g, " ").trim();
+  if (!text) return false;
+  return /^(le |mon |ce |ton )?rappel (du|de la|de l |de|des|d )/.test(text) ||
+    /^(celui|celle) (du|de la|de l |de|des|d )/.test(text) ||
+    /^(le|la) meme( rappel| chose)?$/.test(text);
+}
+
+/**
+ * P10-E (alex-hard24 R1-B02): fenêtre horaire d'un CRÉNEAU NOMINAL porté par
+ * une référence d'entité (« celui du midi » → 11:00-14:59) — sert à résoudre
+ * la CIBLE d'un replace/reschedule quand plusieurs pendings existent et
+ * qu'aucune heure chiffrée n'est donnée. Null si aucun créneau nommé.
+ */
+export function daypartWindowFromReference(
+  reference: string | null | undefined,
+): { startHour: number; endHour: number } | null {
+  const text = String(reference ?? "")
+    .normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
+  if (/\bmidi\b/.test(text) && !/apres[- ]midi/.test(text)) {
+    return { startHour: 11, endHour: 15 };
+  }
+  if (/\bmatin\b/.test(text)) return { startHour: 5, endHour: 12 };
+  if (/apres[- ]midi\b/.test(text)) return { startHour: 12, endHour: 18 };
+  if (/\bsoir\b/.test(text)) return { startHour: 17, endHour: 24 };
+  if (/\bnuit\b/.test(text)) return { startHour: 0, endHour: 5 };
+  return null;
 }

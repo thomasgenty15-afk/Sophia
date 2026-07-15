@@ -746,3 +746,159 @@ Deno.test("le sanitizer conserve deux effets de TYPES distincts dans un tour (P3
     ["create_one_shot_reminder", "track_progress_plan_item"],
   );
 });
+
+Deno.test("le sanitizer conserve N creates de rappel a payloads DISTINCTS (P8-A, rose-p7verify T13/T14)", async () => {
+  const reminderEffect = (payload: Record<string, unknown>) => ({
+    effect_type: "create_one_shot_reminder",
+    explicitness: "explicit",
+    target_status: "identified",
+    confidence_band: "high",
+    payload_hint: payload,
+  });
+  // Positif: co-demande de 2 rappels → les 2 entrées survivent au frame.
+  const frame = await dispatch(
+    "Pose-moi deux rappels d'un coup : jeudi 18h pour le médecin et samedi 10h pour les courses.",
+    {
+      direct_effects: [
+        reminderEffect({
+          raw_text: "jeudi 18h pour le médecin",
+          when_hint: "jeudi à 18h",
+          UTC_time: "2026-07-16T16:00:00.000Z",
+          local_label: "jeudi à 18h",
+          instruction_hint: "appeler le médecin",
+        }),
+        reminderEffect({
+          raw_text: "samedi 10h pour les courses",
+          when_hint: "samedi à 10h",
+          UTC_time: "2026-07-18T08:00:00.000Z",
+          local_label: "samedi à 10h",
+          instruction_hint: "faire les courses",
+        }),
+      ],
+    },
+  );
+  assertEquals(frame.direct_effects.length, 2);
+  assertEquals(
+    frame.direct_effects.map((effect) =>
+      String((effect.payload_hint as Record<string, unknown>).local_label)
+    ),
+    ["jeudi à 18h", "samedi à 10h"],
+  );
+
+  // Anti-faux-positif: un payload strictement IDENTIQUE reste dédupé.
+  const duplicated = await dispatch("Rappelle-moi jeudi 18h le médecin", {
+    direct_effects: [
+      reminderEffect({
+        raw_text: "jeudi 18h le médecin",
+        UTC_time: "2026-07-16T16:00:00.000Z",
+        local_label: "jeudi à 18h",
+        instruction_hint: "appeler le médecin",
+      }),
+      reminderEffect({
+        raw_text: "jeudi 18h le médecin",
+        UTC_time: "2026-07-16T16:00:00.000Z",
+        local_label: "jeudi à 18h",
+        instruction_hint: "appeler le médecin",
+      }),
+    ],
+  });
+  assertEquals(duplicated.direct_effects.length, 1);
+
+  // Invariant: borne fan-out — 4 payloads distincts → 3 max au frame; et le
+  // type track reste mono-entrée (cap inchangé hors rappels).
+  const overflow = await dispatch("Pose-moi quatre rappels", {
+    direct_effects: [1, 2, 3, 4].map((n) =>
+      reminderEffect({
+        raw_text: `rappel ${n}`,
+        UTC_time: `2026-07-2${n}T08:00:00.000Z`,
+        local_label: `jour ${n}`,
+        instruction_hint: `tâche ${n}`,
+      })
+    ),
+  });
+  assertEquals(overflow.direct_effects.length, 3);
+});
+
+Deno.test("un tour de VERIFY ne porte jamais une requête track nue (P8-D, nina-hard23 R1-B02)", async () => {
+  // Positif: question de vérif de coche → le track nu est droppé au frame.
+  const frame = await dispatch(
+    "j'ai bien coché mon eau aujourd'hui ?",
+    {
+      direct_effects: [{
+        effect_type: "track_progress_plan_item",
+        explicitness: "explicit",
+        target_status: "identified",
+        confidence_band: "high",
+        payload_hint: {
+          target_item_id: "water",
+          status_hint: "completed",
+          target_evidence: "mon eau",
+        },
+      }],
+      memory_plan: {
+        response_intent: "verify_tracking_status",
+        context_need: "targeted",
+        memory_mode: "light",
+        context_budget_tier: "small",
+        targets: [],
+        retrieval_policy: "taxonomy_first",
+      },
+    },
+  );
+  assertEquals(frame.direct_effects, []);
+
+  // Anti-faux-positif: une CORRECTION explicite du même tour survit (P3-C).
+  const correction = await dispatch(
+    "vérifie — en fait c'était pas l'eau mais la marche, corrige",
+    {
+      direct_effects: [{
+        effect_type: "track_progress_plan_item",
+        explicitness: "explicit",
+        target_status: "identified",
+        confidence_band: "high",
+        payload_hint: {
+          target_item_id: "walk",
+          status_hint: "completed",
+          correction: true,
+          target_evidence: "la marche",
+        },
+      }],
+      memory_plan: {
+        response_intent: "verify_tracking_status",
+        context_need: "targeted",
+        memory_mode: "light",
+        context_budget_tier: "small",
+        targets: [],
+        retrieval_policy: "taxonomy_first",
+      },
+    },
+  );
+  assertEquals(correction.direct_effects.length, 1);
+
+  // Anti-faux-positif: un vrai report de complétion (intent non-verify) passe.
+  const report = await dispatch(
+    "j'ai fait mon eau aujourd'hui",
+    {
+      direct_effects: [{
+        effect_type: "track_progress_plan_item",
+        explicitness: "explicit",
+        target_status: "identified",
+        confidence_band: "high",
+        payload_hint: {
+          target_item_id: "water",
+          status_hint: "completed",
+          target_evidence: "mon eau",
+        },
+      }],
+      memory_plan: {
+        response_intent: "confirm_progress_logged",
+        context_need: "targeted",
+        memory_mode: "light",
+        context_budget_tier: "small",
+        targets: [],
+        retrieval_policy: "taxonomy_first",
+      },
+    },
+  );
+  assertEquals(report.direct_effects.length, 1);
+});

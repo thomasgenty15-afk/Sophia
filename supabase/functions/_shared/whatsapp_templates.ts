@@ -21,6 +21,14 @@ export const WHATSAPP_TEMPLATE_CATALOG: Record<
       'Ton planning de la semaine prochaine est prêt à valider.\n\nTu peux le vérifier ici : "{{1}}"',
     buttons: [],
   },
+  // Weekly planning auto-validation door-opener: static body, the plan detail
+  // is delivered on "Oui!" via the whatsapp_pending_actions draft.
+  auto_validation_v1: {
+    name: "auto_validation_v1",
+    body:
+      "Hello, ton planning de la semaine a été auto-validé.\nEst-ce que tu veux connaître le détail ?",
+    buttons: ["Oui!", "Non merci!"],
+  },
   sophia_winback_step1_soft: {
     name: "sophia_winback_step1_soft",
     body:

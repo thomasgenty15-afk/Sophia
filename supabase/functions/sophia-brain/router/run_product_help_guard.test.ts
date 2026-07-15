@@ -74,7 +74,17 @@ Deno.test("safety stays above product_help and direct effects", () => {
 
   assertEquals(decision.response_owner, "safety");
   assertEquals(decision.selected_handler, "safety_crisis");
-  assertEquals(decision.direct_effects_to_run, ["create_one_shot_reminder"]);
+  // P5-A (paul-p4verify T12) — recalibrage volontaire : à high/critical le
+  // rappel n'est plus servi (carve-out V5-1 fermé), il est BLOQUÉ à la route
+  // et différé honnêtement par la lane (safety_crisis_deferred).
+  assertEquals(decision.direct_effects_to_run, []);
+  assertEquals(
+    decision.blocked_paths.some((path) =>
+      path.path === "direct_effects.create_one_shot_reminder" &&
+      path.reason_code === "safety_priority"
+    ),
+    true,
+  );
 });
 
 Deno.test("direct effects remain limited to reminder and plan progress", () => {

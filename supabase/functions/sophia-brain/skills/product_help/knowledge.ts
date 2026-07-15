@@ -604,6 +604,11 @@ export const PRODUCT_HELP_FEATURES: ProductHelpFeature[] = [
     ],
     sophia_must_not_claim: [
       "Ne pas dire qu'une potion est activee sans succes outil ou flow.",
+      // P8-B (rose-p7verify T12): a 0 session active, l'article defini
+      // impliquant une instance stockee est un over-claim.
+      "Ne pas employer l'article defini ('ta potion', 'la retrouver', 'la reactiver') pour un user sans potion active: decrire la FEATURE ('une potion se choisit et s'active dans Ressources'), jamais une instance qui n'existe pas. 'Reactiver' ne se dit que d'une potion deja activee auparavant.",
+      "Ne jamais dire qu'une potion peut etre activee, gardee ou sauvegardee depuis le chat: l'activation se fait dans l'app (Dashboard > Ressources).",
+      "Sur une co-demande 'active-moi une potion' + question mecanique ('je la retrouve ou ?'), repondre aux DEUX volets: l'honnetete d'activation (pas activable depuis le chat, chemin app) d'abord, puis la mecanique — ne jamais dropper le volet activation.",
     ],
     feature_guidance: {
       feature_id: "state_potion",
@@ -817,6 +822,48 @@ export const PRODUCT_HELP_FEATURES: ProductHelpFeature[] = [
       "Ne jamais inventer la liste des fonctionnalites incluses dans une formule: renvoyer a la page Upgrade qui les affiche.",
       "Ne jamais promettre qu'un changement prend effet immediatement ou a l'echeance: le portail l'affiche au moment du changement.",
       "Ne pas dire qu'un changement d'abonnement a ete fait depuis le chat.",
+    ],
+  },
+  {
+    // P7-F (rose-untested22 R1-B04): la suppression de compte etait confondue
+    // avec le portail d'abonnement Stripe — surface DISTINCTE, entree dediee.
+    id: "account.deletion",
+    label: "Suppression de compte",
+    aliases: [
+      "supprimer mon compte",
+      "suppression de compte",
+      "effacer mon compte",
+      "fermer mon compte",
+      "supprimer mes donnees",
+      "droit a l'effacement",
+      "clore mon compte",
+    ],
+    explain:
+      "La suppression de compte est definitive: elle passe par une UI de suppression dediee dans les parametres du Compte (distincte du portail d'abonnement Stripe). Elle declenche l'annulation immediate de l'abonnement (sans remboursement au prorata) et la purge des donnees apres un delai de grace; un export des donnees est propose avant.",
+    how_to:
+      "Ouvre la page Compte et cherche la section de suppression de compte (UI de suppression dediee). L'UI affiche les consequences exactes (abonnement, delai de purge, export) avant confirmation: c'est elle qui fait foi. Le portail « Gerer mon abonnement » (Stripe) sert a la facturation/resiliation d'abonnement, PAS a supprimer le compte.",
+    benefits: [
+      "Suppression en autonomie avec les consequences affichees avant confirmation.",
+      "Export des donnees propose avant la purge.",
+    ],
+    locations: [
+      {
+        surface: "Compte > section suppression de compte (UI dediee)",
+        when_visible: "Toujours, dans les parametres du compte.",
+        user_can_do: [
+          "exporter ses donnees",
+          "supprimer definitivement son compte",
+        ],
+      },
+    ],
+    limits: [
+      "Rien ne se supprime depuis le chat.",
+      "Sophia ne connait pas la position exacte du bouton ni le libelle precis de l'ecran: l'UI de suppression fait foi.",
+    ],
+    sophia_must_not_claim: [
+      "Ne jamais renvoyer la suppression de compte vers « Gerer mon abonnement » / le portail Stripe: c'est la surface d'abonnement, pas celle de suppression.",
+      "Ne jamais inventer le chemin exact, le delai de purge chiffre ou le contenu de l'export: l'UI de suppression les affiche.",
+      "Ne pas dire qu'une suppression ou un export a ete lance depuis le chat.",
     ],
   },
   {

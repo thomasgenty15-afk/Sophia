@@ -17,7 +17,7 @@ type ActivePlanRow = {
   transformation_id?: string | null;
 };
 
-type WeekPlanRow = {
+export type WeekPlanRow = {
   id: string;
   user_id: string;
   cycle_id: string;
@@ -27,23 +27,29 @@ type WeekPlanRow = {
   week_start_date: string;
   status: string;
   confirmed_at?: string | null;
-  user_plan_items?: UserPlanItemRow | UserPlanItemRow[] | null;
+  user_plan_items?: WeeklyPlanningItemRow | WeeklyPlanningItemRow[] | null;
 };
 
-type UserPlanItemRow = {
+export type WeeklyPlanningItemRow = {
   id?: string | null;
   title?: string | null;
   kind?: string | null;
   dimension?: string | null;
+  description?: string | null;
+  target_reps?: number | null;
+  scheduled_days?: string[] | null;
+  time_of_day?: string | null;
+  activation_condition?: Record<string, unknown> | null;
 };
 
-type OccurrenceRow = {
+export type WeeklyPlanningOccurrenceRow = {
   id: string;
   plan_id: string;
   plan_item_id: string;
   planned_day: DayCode | string;
   ordinal?: number | null;
   status: string;
+  source?: string | null;
 };
 
 export type WeeklyPlanningSnapshot = {
@@ -53,6 +59,7 @@ export type WeeklyPlanningSnapshot = {
   plans: WeekPlanRow[];
   pending_plans: WeekPlanRow[];
   confirmed_plans: WeekPlanRow[];
+  occurrences: WeeklyPlanningOccurrenceRow[];
   summary_lines: string[];
   has_planning: boolean;
   has_pending: boolean;
@@ -155,7 +162,7 @@ export async function loadActiveWeeklyPlanning(
   const { data: planRows, error: planError } = await admin
     .from("user_habit_week_plans")
     .select(
-      "id,user_id,cycle_id,transformation_id,plan_id,plan_item_id,week_start_date,status,confirmed_at,user_plan_items(id,title,kind,dimension)",
+      "id,user_id,cycle_id,transformation_id,plan_id,plan_item_id,week_start_date,status,confirmed_at,user_plan_items(id,title,kind,dimension,description,target_reps,scheduled_days,time_of_day,activation_condition)",
     )
     .eq("user_id", params.userId)
     .eq("week_start_date", weekStartDate)
@@ -170,7 +177,7 @@ export async function loadActiveWeeklyPlanning(
   const planItemIds = [...new Set(plans.map((row) => row.plan_item_id))];
   const { data: occurrenceRows, error: occurrenceError } = await admin
     .from("user_habit_week_occurrences")
-    .select("id,plan_id,plan_item_id,planned_day,ordinal,status")
+    .select("id,plan_id,plan_item_id,planned_day,ordinal,status,source")
     .eq("user_id", params.userId)
     .eq("week_start_date", weekStartDate)
     .in("plan_id", activePlanIds)
@@ -182,9 +189,9 @@ export async function loadActiveWeeklyPlanning(
     );
   if (occurrenceError) throw occurrenceError;
 
-  const occurrences = ((occurrenceRows ?? []) as OccurrenceRow[])
+  const occurrences = ((occurrenceRows ?? []) as WeeklyPlanningOccurrenceRow[])
     .filter((row) => cleanText(row.status) !== "rescheduled");
-  const occurrencesByItem = new Map<string, OccurrenceRow[]>();
+  const occurrencesByItem = new Map<string, WeeklyPlanningOccurrenceRow[]>();
   for (const occurrence of occurrences) {
     const list = occurrencesByItem.get(occurrence.plan_item_id) ?? [];
     list.push(occurrence);
@@ -212,6 +219,7 @@ export async function loadActiveWeeklyPlanning(
     plans,
     pending_plans: pendingPlans,
     confirmed_plans: confirmedPlans,
+    occurrences,
     summary_lines: summaryLines,
     has_planning: plans.length > 0,
     has_pending: pendingPlans.length > 0,
@@ -278,6 +286,24 @@ export function buildWeeklyPlanningAutoValidationMessage(params: {
   ].join("\n");
 }
 
+// Detail sent after the user taps "Oui!" on the auto_validation_v1 template.
+// The template already announced the auto-validation, so no generic opener:
+// we answer the "tu veux connaître le détail ?" question directly.
+export function buildWeeklyPlanningAutoValidationDetailMessage(params: {
+  summaryLines: string[];
+}): string {
+  const summary = params.summaryLines.length > 0
+    ? params.summaryLines.join("\n")
+    : "- Planning de la semaine valide.";
+  return [
+    "Voici le detail de ton planning de la semaine 👇",
+    "",
+    summary,
+    "",
+    "Tu peux toujours l'ajuster dans ton espace si besoin.",
+  ].join("\n");
+}
+
 function emptySnapshot(
   weekStartDate: string,
   activePlanIds: string[] = [],
@@ -292,6 +318,7 @@ function emptySnapshot(
     plans: [],
     pending_plans: [],
     confirmed_plans: [],
+    occurrences: [],
     summary_lines: [],
     has_planning: false,
     has_pending: false,

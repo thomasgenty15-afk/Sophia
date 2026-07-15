@@ -7,6 +7,7 @@ import {
   extractMemoryCandidates,
   parseExtractionJson,
 } from "./extract.ts";
+import { MEMORY_EXTRACTION_PROMPT_VERSION } from "./types.ts";
 
 Deno.test("extract parser accepts strict JSON payload", () => {
   const parsed = parseExtractionJson(JSON.stringify({
@@ -387,6 +388,121 @@ Deno.test("extraction prompt anchors single-utterance preference anti-fossilisat
   );
   assertEquals(
     prompt.system_prompt.includes("ne sur-corrige pas"),
+    true,
+  );
+});
+
+Deno.test("extraction prompt anchors non-assertive modality guard (P7-D, alex-untested22 T2)", () => {
+  const prompt = buildExtractionPrompt({
+    messages: [{
+      id: "m1",
+      user_id: "u",
+      role: "user",
+      content:
+        "tu te souviens quel jour je vois mon frère ? j'arrive plus à savoir si c'est mardi ou mercredi",
+    }],
+  });
+  assertEquals(
+    prompt.system_prompt.includes("MODALITE NON-ASSERTIVE"),
+    true,
+  );
+  // Jamais choisir une option d'une alternative incertaine.
+  assertEquals(
+    prompt.system_prompt.includes("CONFABULATION durable"),
+    true,
+  );
+  // Anti-faux-positif ancré: l'assertion positive reste memorisable.
+  assertEquals(
+    prompt.system_prompt.includes(
+      'une question rhetorique qui AFFIRME',
+    ),
+    true,
+  );
+});
+
+Deno.test("extraction prompt forbids plan-report items under ANY status, candidate included (P7-D, nina-hard22 batch)", () => {
+  const prompt = buildExtractionPrompt({
+    messages: [{
+      id: "m1",
+      user_id: "u",
+      role: "user",
+      content: "j'ai réussi à prendre un petit-déjeuner posé",
+    }],
+  });
+  assertEquals(
+    prompt.system_prompt.includes(
+      "NI aucun autre item, quel que soit le statut vise",
+    ),
+    true,
+  );
+});
+
+Deno.test("extraction prompt: retractation vaut pour toute categorie, version nuancee interdite (P8-C, paul-untested22 T10 / eva-hard23 T11)", () => {
+  const prompt = buildExtractionPrompt({
+    messages: [{
+      id: "m1",
+      user_id: "u",
+      role: "user",
+      content:
+        "en fait oublie ca completement, le retiens surtout pas comme un objectif",
+    }],
+  });
+  // Positif: la catégorie objectif/intention future est couverte en toutes
+  // lettres — plus de trou "habitude only".
+  assertEquals(
+    prompt.system_prompt.includes(
+      "TOUTE CATEGORIE sans exception — fait, habitude, preference, projet, OBJECTIF, INTENTION FUTURE, anecdote",
+    ),
+    true,
+  );
+  // Positif: la persistance « avec la nuance » est nommée comme la même faute.
+  assertEquals(
+    prompt.system_prompt.includes('persister "AVEC LA NUANCE" est la MEME faute') ||
+      prompt.system_prompt.includes('"AVEC LA NUANCE" est la MEME faute'),
+    true,
+  );
+  assertEquals(
+    prompt.system_prompt.includes("NI le recit de l'abandon"),
+    true,
+  );
+  // Anti-faux-positif: l'échec raconté sans instruction d'oubli reste
+  // memorisable, et « je change d'avis sur Y » ne retracte que Y.
+  assertEquals(
+    prompt.system_prompt.includes("SANS instruction d'oubli"),
+    true,
+  );
+  assertEquals(
+    prompt.system_prompt.includes("ne retracte que Y"),
+    true,
+  );
+});
+
+Deno.test("extraction prompt version bumped for retraction-all-categories (P8-C)", () => {
+  assertEquals(
+    MEMORY_EXTRACTION_PROMPT_VERSION.includes("v7_retraction_all_categories"),
+    true,
+  );
+});
+
+Deno.test("extraction prompt: la generalisation d'un report d'action reste exclue + demande d'ajustement = 0 item (P8-G, nina-hard23 B03)", () => {
+  const prompt = buildExtractionPrompt({
+    messages: [{
+      id: "m1",
+      user_id: "u",
+      role: "user",
+      content: "j'ai bu mon grand verre d'eau avant de grignoter, note-le",
+    }],
+  });
+  assertEquals(
+    prompt.system_prompt.includes("la GENERALISATION d'un report reste un report"),
+    true,
+  );
+  assertEquals(
+    prompt.system_prompt.includes("le critere est LA SOURCE"),
+    true,
+  );
+  assertEquals(
+    prompt.system_prompt.includes("DEMANDE D'AJUSTEMENT du plan"),
     true,
   );
 });

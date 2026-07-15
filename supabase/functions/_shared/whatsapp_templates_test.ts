@@ -50,6 +50,22 @@ Deno.test("scheduled checkin template has zero placeholders (Meta-approved)", ()
   assertEquals(rendered.buttons, ["Oui !", "Une prochaine fois !"]);
 });
 
+Deno.test("weekly auto-validation template renders zero-placeholder door-opener", () => {
+  // Meta-approved auto_validation_v1 has zero placeholders: a name param must
+  // be ignored, and the detail is only delivered after the "Oui!" button.
+  const rendered = renderWhatsAppTemplate({
+    name: "auto_validation_v1",
+    fallbackParams: ["Thomas"],
+  });
+
+  assertEquals(rendered.known, true);
+  assertEquals(
+    rendered.content,
+    "Hello, ton planning de la semaine a été auto-validé.\nEst-ce que tu veux connaître le détail ?",
+  );
+  assertEquals(rendered.buttons, ["Oui!", "Non merci!"]);
+});
+
 Deno.test("morning nudge template renders zero-placeholder morning prompt", () => {
   const rendered = renderWhatsAppTemplate({
     name: "morning_nudge_v1",

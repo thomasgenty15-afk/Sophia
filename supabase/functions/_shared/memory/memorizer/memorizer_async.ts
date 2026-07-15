@@ -8,6 +8,8 @@ import {
 } from "./controls.ts";
 import { buildStructuredActionObservationItems } from "./action_observations.ts";
 import { dedupeMemoryItems } from "./dedupe.ts";
+import { filterRetractedMemoryItems } from "./retraction_guard.ts";
+import { logRuntimeGuardEvent } from "../../guard-log.ts";
 import {
   type ExtractionLlmProvider,
   extractMemoryCandidates,
@@ -283,8 +285,28 @@ export async function runMemorizerAsync(
       validation.accepted_entities,
       input.known_entities ?? [],
     );
-    const dedupe = dedupeMemoryItems(
+    // P10-D: verrou structurel de rétractation — un contenu explicitement
+    // rétracté dans le lot ne produit jamais un item (ni son récit
+    // d'abandon), quelle que soit la sortie LLM (la doctrine prompt v7
+    // seule a régressé 3 fois en run réel).
+    const retractionFilter = filterRetractedMemoryItems(
       validation.accepted_items,
+      batch.primary_messages,
+    );
+    if (retractionFilter.dropped.length > 0) {
+      console.warn(JSON.stringify({
+        tag: "memorizer_retraction_guard_dropped",
+        user_id: input.user_id,
+        dropped: retractionFilter.dropped.length,
+      }));
+      logRuntimeGuardEvent({
+        guard: "memorizer_retraction_dropped",
+        userId: input.user_id,
+        detail: { dropped_count: retractionFilter.dropped.length },
+      });
+    }
+    const dedupe = dedupeMemoryItems(
+      retractionFilter.kept,
       input.existing_memory_items ?? [],
     );
     const candidates = dedupe.map((decision): DryRunCandidate => {

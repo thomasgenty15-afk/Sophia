@@ -141,6 +141,11 @@ export type SafetyCrisisConversationContext = {
     deferred_product_or_tool_request: string | null;
     current_step: string | null;
     inbound_note_summary: string | null;
+    /** P7-A (paul-p6reval R1-B06): question de recall mémoire BÉNIGNE posée
+     * pendant le flow — restituée en une ligne ou différée honnêtement,
+     * jamais avalée en silence. `facts` = intentions mémoire verbatim de la
+     * session (buffer P6-H + historique). */
+    benign_recall_request?: { asked: boolean; facts: string[] } | null;
   };
   next_focus: string;
   safety_resources: {

@@ -60,9 +60,13 @@ function hasNewRiskSignal(signals: SafetySignal): boolean {
 function nextConsecutiveDeescalatedTurns(args: {
   previous: SafetyCrisisWorkingState;
   signals: SafetySignal;
+  /** P7-A: bande pregate none/low sans nouveau signal = désescalade attestée
+   * même quand le dispatcher local oublie deescalation_evidence (tour bénin
+   * « et mon rappel ? » — paul-p6reval T15/T16, rose-hard19 T13/T14). */
+  bandDeescalation: boolean;
 }): number {
   if (hasNewRiskSignal(args.signals)) return 0;
-  if (!args.signals.deescalation_evidence) return 0;
+  if (!args.signals.deescalation_evidence && !args.bandDeescalation) return 0;
   return Number(args.previous.consecutive_deescalated_turns ?? 0) + 1;
 }
 
@@ -407,6 +411,7 @@ function buildConversationContext(args: {
   noteInformationInbound?: NoteInformation | null;
   mustIncludeEmergencyNumbers: boolean;
   emergencyNumbersAlreadyDelivered: boolean;
+  benignRecallRequest?: { asked: boolean; facts: string[] } | null;
 }): SafetyCrisisConversationContext {
   const currentStep = typeof args.previousState.last_assistant_safety_step ===
       "string"
@@ -460,6 +465,7 @@ function buildConversationContext(args: {
       deferred_product_or_tool_request: deferredProductOrToolRequest,
       current_step: currentStep,
       inbound_note_summary: summarizeInboundNote(args.noteInformationInbound),
+      benign_recall_request: args.benignRecallRequest ?? null,
     },
     next_focus: nextFocusFor(args.kind),
     safety_resources: {
@@ -477,6 +483,14 @@ function buildConversationContext(args: {
       "do not claim a product action was launched, created, scheduled, saved, or activated",
       "do not say the crisis is resolved unless the stage is resolved_exit",
       "do not present Sophia as human support",
+      // P6-B (paul-hard21 T14): registre proportionné — aucune consigne sur
+      // des MOYENS (« éloigne-toi de », « mets hors de portée ») quand aucun
+      // moyen n'a été évoqué dans la conversation.
+      ...(args.statePatch.has_means_nearby == null
+        ? [
+          "do not give instructions about means (moving away from objects, putting things out of reach) when no means were ever mentioned in this conversation",
+        ]
+        : []),
     ],
     context_summary: args.dispatcherOutput?.user_state_summary
       .what_changed_since_previous_turn ??
@@ -498,6 +512,16 @@ function visibleTaskKindFor(args: {
   exitRefusalReason?: string | null;
 }): { kind: SafetyCrisisVisibleTaskKind; reasonCode: string } {
   const output = args.dispatcherOutput;
+  // P7-A: la résolution PRIME sur le boundary produit — sur le tour où la
+  // crise se résout ET où le user demande un effet bénin, le flow sort et le
+  // redispatch sert la demande ; annoncer un énième « je diffère » sur ce
+  // tour contredirait la sortie (rose-hard19 T14: 3e différé sans mécanisme).
+  if (args.phase === "resolved") {
+    return {
+      kind: "resolved_exit",
+      reasonCode: "safety_crisis.resolved_exit",
+    };
+  }
   if (
     output?.flow_action === "product_or_tool_attempt" ||
     output?.product_tool_boundary.attempted === true
@@ -511,12 +535,6 @@ function visibleTaskKindFor(args: {
     return {
       kind: "repeat_current_step",
       reasonCode: "safety_crisis.repeat_current_step",
-    };
-  }
-  if (args.phase === "resolved") {
-    return {
-      kind: "resolved_exit",
-      reasonCode: "safety_crisis.resolved_exit",
     };
   }
   if (
@@ -563,6 +581,7 @@ function buildVisibleTask(args: {
   noteInformationInbound?: NoteInformation | null;
   mustIncludeEmergencyNumbers: boolean;
   emergencyNumbersAlreadyDelivered: boolean;
+  benignRecallRequest?: { asked: boolean; facts: string[] } | null;
 }): SafetyCrisisVisibleTask {
   const responseContract = safetyResponseContract({
     phase: args.phase,
@@ -583,6 +602,7 @@ function buildVisibleTask(args: {
       noteInformationInbound: args.noteInformationInbound,
       mustIncludeEmergencyNumbers: args.mustIncludeEmergencyNumbers,
       emergencyNumbersAlreadyDelivered: args.emergencyNumbersAlreadyDelivered,
+      benignRecallRequest: args.benignRecallRequest,
     }),
   };
 }
@@ -594,6 +614,7 @@ export function reduceSafetyCrisis(args: {
   dispatcherOutput?: SafetyCrisisLocalDispatcherOutput | null;
   currentUserMessage?: string | null;
   noteInformationInbound?: NoteInformation | null;
+  benignRecallRequest?: { asked: boolean; facts: string[] } | null;
 }): SafetyCrisisReduction {
   const previous = args.previousState;
   const previousPhase = normalizeSafetyPhase(previous.phase);
@@ -618,9 +639,50 @@ export function reduceSafetyCrisis(args: {
     args.signals.emergency_help_contacted === true ||
     previous.human_support_mentioned === true ||
     userNotAlone;
-  const noCurrentImmediateDanger = args.signals.immediate_danger === false ||
-    (args.signals.clarified_non_immediate && !meansNearby);
   const currentRiskSignal = hasNewRiskSignal(args.signals);
+  // P7-A (paul-p6reval R1-B03, rose-hard19 R1-B03): la sortie exigeait que
+  // les signaux du TOUR COURANT re-confirment des faits déjà établis — quand
+  // le user est passé à autre chose (« et mon rappel kiné ? »), le dispatcher
+  // local n'émet plus ces signaux et la machine ne pouvait JAMAIS résoudre.
+  // Les faits PERSISTÉS comptent : un immediate_danger=false acquis reste
+  // acquis tant que le tour courant ne le contredit pas. Pour une idéation
+  // passive où le danger n'a jamais été affirmé ni nié (null des deux côtés),
+  // 2 tours consécutifs de désescalade attestée valent absence de danger —
+  // même logique que meansNeverInPlay (P6-B).
+  // Une lecture INCERTAINE du dispatcher local n'atteste rien: uncertainty
+  // high bloque le crédit de désescalade par bande (le plancher tient).
+  const bandDeescalation =
+    (args.sourceRiskBand === "none" || args.sourceRiskBand === "low") &&
+    !currentRiskSignal &&
+    args.signals.uncertainty !== "high";
+  const consecutiveDeescalatedTurns = nextConsecutiveDeescalatedTurns({
+    previous,
+    signals: args.signals,
+    bandDeescalation,
+  });
+  const dangerNeverAsserted = previous.immediate_danger == null &&
+    args.signals.immediate_danger == null;
+  const noCurrentImmediateDanger = args.signals.immediate_danger === false ||
+    (previous.immediate_danger === false &&
+      args.signals.immediate_danger !== true) ||
+    (args.signals.clarified_non_immediate && !meansNearby) ||
+    (dangerNeverAsserted && consecutiveDeescalatedTurns >= 2 &&
+      !currentRiskSignal);
+  // P6-B (paul-hard21 R1-B02): les MOYENS jamais évoqués de toute la crise
+  // (aucun signal, aucun fait antérieur) ne bloquent pas la sortie d'une
+  // idéation NON-imminente confirmée — exiger que le user parle de moyens
+  // pour sortir du flow était le sentry infini observé (refus
+  // means_safe_missing sur « je me sens en sécurité, aucune envie de me
+  // faire du mal » + tiers présent). Dès qu'un moyen a été évoqué une fois,
+  // l'exigence stricte reste entière.
+  const meansNeverInPlay = previous.has_means_nearby == null &&
+    args.signals.has_means_nearby == null &&
+    args.signals.means_moved_away !== true;
+  // P7-A: l'absence de danger se lit depuis le fait ÉTABLI (persisté ou
+  // jamais-affirmé sur 2 tours désescaladés), plus seulement le signal du
+  // tour courant — même relaxation que noCurrentImmediateDanger.
+  const meansSafeForExit = meansSafe ||
+    (meansNeverInPlay && noCurrentImmediateDanger && !currentRiskSignal);
   const explicitCorrectionRelease =
     args.signals.clarified_non_immediate === true &&
     args.sourceRiskBand === "none" &&
@@ -634,7 +696,7 @@ export function reduceSafetyCrisis(args: {
       args.sourceRiskBand !== "high" &&
       previousDeescalations >= 1 &&
       noCurrentImmediateDanger &&
-      meansSafe &&
+      meansSafeForExit &&
       humanSupportAvailable &&
       args.signals.user_currently_alone !== true &&
       !currentRiskSignal);
@@ -647,7 +709,7 @@ export function reduceSafetyCrisis(args: {
       previousPhase,
       previousDeescalations,
       noCurrentImmediateDanger,
-      meansSafe,
+      meansSafe: meansSafeForExit,
       humanSupportAvailable,
       userCurrentlyAlone: args.signals.user_currently_alone === true,
       currentRiskSignal,
@@ -670,7 +732,23 @@ export function reduceSafetyCrisis(args: {
   } else if (meansSafe && !humanSupportAvailable) {
     phase = "support_contact";
   } else if (
-    args.signals.clarified_non_immediate && humanSupportAvailable && meansSafe
+    args.signals.clarified_non_immediate && humanSupportAvailable &&
+    meansSafeForExit
+  ) {
+    phase = "exit_check";
+  } else if (
+    // P7-A (paul-p6reval R1-B03, rose-hard19 R1-B03): PROMOTION STABILISÉE —
+    // les faits de sortie sont tous établis (danger absent — persisté ou
+    // jamais affirmé sur 2 tours —, moyens sûrs, soutien humain) et la bande
+    // du tour est none/low : la machine avance vers exit_check au lieu de
+    // camper en stabilizing. Sans cette branche, l'état collait tant que le
+    // dispatcher local n'émettait pas clarified_non_immediate sur un tour où
+    // le user parle d'autre chose. Anti-FP : moyens évoqués non sécurisés,
+    // nouveau signal ou bande ≥ medium bloquent la promotion.
+    (previousPhase === "stabilizing" || previousPhase === "support_contact" ||
+      previousPhase === "exit_check") &&
+    bandDeescalation && consecutiveDeescalatedTurns >= 1 &&
+    noCurrentImmediateDanger && meansSafeForExit && humanSupportAvailable
   ) {
     phase = "exit_check";
   } else if (humanSupportAvailable && !currentRiskSignal) {
@@ -708,7 +786,9 @@ export function reduceSafetyCrisis(args: {
 
   // En desescalade attestee sans nouveau signal de risque, le band precedent
   // ne sert plus de plancher: sans ca le working_state reste fige a high.
-  const deescalating = args.signals.deescalation_evidence === true &&
+  // P7-A: la bande pregate none/low compte comme désescalade attestée.
+  const deescalating = (args.signals.deescalation_evidence === true ||
+    bandDeescalation) &&
     !currentRiskSignal;
   const riskBand = phase === "resolved" ? "low" : deescalating
     ? maxRisk(args.sourceRiskBand, minimumRiskForPhase(phase))
@@ -717,10 +797,6 @@ export function reduceSafetyCrisis(args: {
       previousRiskBand,
       minimumRiskForPhase(phase),
     );
-  const consecutiveDeescalatedTurns = nextConsecutiveDeescalatedTurns({
-    previous,
-    signals: args.signals,
-  });
   const immediateDanger = args.signals.immediate_danger ??
     previous.immediate_danger ?? null;
   const hasMeansNearby = args.signals.means_moved_away === true
@@ -850,6 +926,7 @@ export function reduceSafetyCrisis(args: {
     noteInformationInbound: args.noteInformationInbound,
     mustIncludeEmergencyNumbers: mustDeliverNumbersThisTurn,
     emergencyNumbersAlreadyDelivered,
+    benignRecallRequest: args.benignRecallRequest,
   });
 
   return {

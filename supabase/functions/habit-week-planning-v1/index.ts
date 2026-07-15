@@ -12,6 +12,7 @@ import {
   z,
 } from "../_shared/http.ts";
 import { getRequestContext } from "../_shared/request_context.ts";
+import { spreadWeekDays } from "../_shared/week_day_distribution.ts";
 import {
   buildWeeklyPlanningConfirmationMessage,
   buildWeeklyPlanningConfirmationPayload,
@@ -486,14 +487,11 @@ function buildDefaultDays(args: {
   }
 
   const alignedPlanDays = availableDays.filter((day) => fromPlan.includes(day));
-  const completed = alignedPlanDays.length > 0 ? [...alignedPlanDays] : [];
-
-  for (const day of availableDays) {
-    if (completed.length >= target) break;
-    if (!completed.includes(day)) completed.push(day);
-  }
-
-  return completed.slice(0, target);
+  return spreadWeekDays({
+    availableDays,
+    target,
+    preferredDays: alignedPlanDays,
+  });
 }
 
 function compareDayCode(left: DayCode, right: DayCode): number {

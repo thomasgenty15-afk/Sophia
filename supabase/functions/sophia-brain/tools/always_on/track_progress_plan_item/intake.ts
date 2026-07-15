@@ -156,6 +156,30 @@ const statusQuestionPhrases = [
   "c est enregistre",
   "tu as pris en compte",
   "tu l as pris en compte",
+  // P5-B (paul-p4verify Y2): question de LECTURE de progression — « j'en
+  // suis à combien ? » émettait un track fantôme (blocked
+  // target_not_evidenced → clarify parasite) alors que le statut était servi.
+  "j en suis a combien",
+  "j en suis ou",
+  "ou j en suis",
+  "combien j en ai",
+  "combien il m en reste",
+  // P5-B (nina-global20 T14): question de VERIFICATION explicite — la
+  // réponse vient de la projection DB, jamais d'une ré-écriture ni du
+  // narratif de conversation.
+  "t es sur",
+  "t es sure",
+  "tu es sur que",
+  "tu es sure que",
+  "verifie que",
+  "verifie stp",
+  "tu peux verifier",
+  "sont bien enregistre",
+  "sont bien enregistres",
+  "sont bien compte",
+  "sont bien comptes",
+  "est bien enregistre",
+  "est bien compte",
 ];
 
 export function isTrackProgressStatusQuestion(
@@ -164,10 +188,45 @@ export function isTrackProgressStatusQuestion(
 ): boolean {
   const payload = payloadFromTurnFrame(turnFrame);
   if (payload.intent_hint === "status_question") return true;
-  return containsAnyPhrase(
-    normalizeIntentText(message),
-    statusQuestionPhrases,
-  );
+  const normalized = normalizeIntentText(message);
+  if (containsAnyPhrase(normalized, statusQuestionPhrases)) return true;
+  // P6-F (nina-untested21 R1-B05): acte dominant VERIFICATION DE COMPTE avec
+  // report implicite embarqué (« ça me fait bien 3 avec celui que j'ai fait
+  // aussi, c'est ça ? ») — écrire exige un MARQUEUR D'ACTION explicite
+  // (« note aussi », « compte celui d'aujourd'hui ») ; sans lui, le tour est
+  // une lecture: compte DB + offre, jamais un commit.
+  const verificationDominant =
+    / c est (bien )?ca /.test(normalized) ||
+    / ca (me |nous )?fait (bien )?\d/.test(normalized) ||
+    / on est (bien )?d accord /.test(normalized);
+  const explicitWriteMarker =
+    / (note|compte|ajoute|marque|enregistre)[sz]? /.test(normalized) ||
+    / tu peux (noter|compter|ajouter|marquer|enregistrer) /.test(normalized);
+  if (verificationDominant && !explicitWriteMarker) return true;
+  // P8-D (nina-hard23 T15, probe P8-4 passe 6): l'INTERROGATIVE de
+  // vérification en 1re PERSONNE (« j'ai bien coché mon eau aujourd'hui ? »)
+  // n'était couverte par aucune forme — le dispatcher la classe parfois hors
+  // verify et le track COMMITTAIT une entrée sur une question (double-track
+  // non consenti quand l'item n'était pas encore coché). C'est une LECTURE:
+  // « j'ai bien coché/noté X » + cadre interrogatif. Seul un marqueur
+  // d'écriture IMPÉRATIF adressé à Sophia (« note aussi », « tu peux
+  // noter ») ré-ouvre l'écriture — le participe (« noté ») ne compte pas.
+  // P10-C (rose-p8reval T8): le clitique objet (« je L'ai bien cochée ») et
+  // les accords en genre/nombre échappaient au motif strict « j ai bien
+  // coché » — la question écrivait quand même une entrée (reps gonflés,
+  // confirmation auto-réalisatrice). Le doute exprimé (« il me semble »,
+  // « je suis plus sûre ») vaut cadre interrogatif.
+  const firstPersonVerification =
+    / j(?: |e (?:l |les |en )?)ai bien (coche|note|enregistre|valide|compte|marque)e?s? /
+      .test(normalized) &&
+    (String(message ?? "").includes("?") ||
+      / (c est ca|hein|non|n est ce pas|il me semble|je (ne )?suis plus (tres )?sure?)/
+        .test(normalized));
+  const imperativeWriteMarker =
+    / (note|compte|ajoute|marque|enregistre)[sz]?[- ](aussi|moi|le|la|les|ca|celui|celle)\b/
+      .test(normalized) ||
+    / tu peux (noter|compter|ajouter|marquer|enregistrer) /.test(normalized);
+  return firstPersonVerification && !imperativeWriteMarker;
 }
 
 export function runTrackProgressIntake(args: {

@@ -310,6 +310,8 @@ const CLARIFY_REASON_CODES = new Set([
   "correction_retarget_missing",
   "target_switch_ambiguous",
   "reschedule_no_target",
+  "hour_meridiem_ambiguous",
+  "draft_pending_confirmation",
   "missing_time",
   "missing_instruction",
   "missing_payload",
@@ -334,10 +336,10 @@ function outcomeGuidance(
   reasonCode: string | null,
 ): string {
   if (status === "committed") {
-    return "Confirme sobrement, une seule fois, comme venant d'etre fait. Pour une ANNULATION committee, le mot 'annule' apparait explicitement — un 'c'est fait' seul est ambigu (peut se lire 'le rappel est parti'). Un effet committe ne reste JAMAIS silencieux: meme si le tour porte un autre sujet principal (recherche, question), la reponse le mentionne en une ligne. Ne DEMENS jamais cet effet: 'pas compte / pas enregistre tant que pas coche dans l'app', 'je ne peux pas te dire/confirmer que c'est coche' et 'je peux t'aider a le formuler pour le suivi' sont INTERDITS sur un committed (ces disclaimers sont reserves aux outcomes blocked/needs_clarify), quel que soit le libelle de statut du handler (success, logged...). Si la cible porte une date ('enregistre pour le ...'), enonce ce jour dans la confirmation. Si ta derniere reponse etait du soutien face a un creux emotionnel, la confirmation garde une vraie phrase de pont qui reconnait ce tour (un emoji seul ne suffit pas).";
+    return "Confirme sobrement, une seule fois, comme venant d'etre fait. Pour une ANNULATION committee, le mot 'annule' apparait explicitement — un 'c'est fait' seul est ambigu (peut se lire 'le rappel est parti'). Un effet committe ne reste JAMAIS silencieux: meme si le tour porte un autre sujet principal (recherche, question), la reponse le mentionne en une ligne. Ne DEMENS jamais cet effet: 'pas compte / pas enregistre tant que pas coche dans l'app', 'je ne peux pas te dire/confirmer que c'est coche' et 'je peux t'aider a le formuler pour le suivi' sont INTERDITS sur un committed (ces disclaimers sont reserves aux outcomes blocked/needs_clarify), quel que soit le libelle de statut du handler (success, logged...). Si la cible porte une date ('enregistre pour le ...'), enonce ce jour dans la confirmation. INVARIANT RENDU=COMMITS (eva-hard21 T9): si le message user annoncait PLUSIEURS jours/occurrences (« les deux soirs », « les trois jours ») et que l'outcome ne porte qu'UN commit date, n'affirme JAMAIS l'ensemble — confirme le SEUL jour reellement enregistre et dis explicitement que l'autre n'est pas encore note (propose de le compter). Celebrer « deux soirs d'affilee » sur un seul commit est le mensonge exact observe. La MEME parite vaut pour une co-demande de N RAPPELS (rose-p7verify T14): l'accuse ne nomme QUE les creneaux presents dans target — un creneau demande par le user mais absent de target n'est PAS pose, dis-le explicitement au lieu de le reciter depuis son message (« c'est pris pour jeudi ET samedi » avec un seul commit jeudi est le commit fantome observe). SOUS-REPORT INTERDIT (P7-B, alex-untested22 T10, paul-p6reval T10): la parite vaut dans les DEUX sens — si target annonce N enregistrements committes, ta reponse confirme exactement les N (chaque date citee); dire « un seul jour est note » ou « les autres ne sont pas encore notes » alors que target en liste plusieurs est un FAUX NEGATIF d'etat durable, aussi grave que le sur-report. Si ta derniere reponse etait du soutien face a un creux emotionnel, la confirmation garde une vraie phrase de pont qui reconnait ce tour (un emoji seul ne suffit pas).";
   }
   if (status === "needs_clarify") {
-    return "Pose la question de clarification au user — une VRAIE question (reformulable, mais la reponse se termine par cette interrogation), jamais un simple constat ('ca reste en cours') qui laisse le user sans porte de sortie. N'accuse aucune ecriture: rien n'a ete enregistre.";
+    return "Pose la question de clarification au user — une VRAIE question (reformulable, mais la reponse se termine par cette interrogation), jamais un simple constat ('ca reste en cours') qui laisse le user sans porte de sortie. N'accuse aucune ecriture: rien n'a ete enregistre. Sur un tour MULTI-EFFETS ou un AUTRE effet est committe: confirme SEULEMENT l'effet committe ; pour l'effet en clarify, AUCUNE formule de validation ('ca compte', 'c'est bien note', 'bien vu c'est acte') avant la question — la question vient SANS accuse (eva-hard21 T10: 'ca compte clairement' puis 'EN PLUS ou A LA PLACE ?' = claim-puis-question auto-contradictoire).";
   }
   if (status === "failed") {
     return "L'ecriture a echoue techniquement: dis-le simplement, rien n'est enregistre; propose de reessayer ou la plateforme.";
@@ -346,8 +348,13 @@ function outcomeGuidance(
     case "safety_active":
     case "safety_high":
       return "Ecriture differee: un moment sensible est en cours, aucun claim d'enregistrement. Reste present d'abord et dis le differe EXPLICITEMENT (« je te le note pas maintenant, on y revient quand ca ira mieux ») — INTERDIT toute formulation qui laisse croire a un enregistrement (« ca compte », « c'est pris en compte », « c'est bon ») : le user croirait l'action notee alors que rien n'est ecrit (alex-safety T3).";
+    case "safety_deferred_offer_only":
+      return "Un rappel mis de cote pendant le moment difficile est toujours en attente, mais le user n'a RIEN demande ce tour: RIEN n'a ete pose. Propose en UNE ligne douce de le poser maintenant (« tu veux que je le pose ? ») — n'affirme JAMAIS qu'il est cree/pose/remis.";
     case "safety_crisis_deferred":
       return "Effet DIFFERE pendant une crise: RIEN n'est cree, programme ni enregistre — et rien ne le sera ce tour. Dis le differe explicitement en une ligne sobre (« je le garde pour apres, la on reste sur toi ») APRES le soutien, jamais en premiere phrase. INTERDIT: « c'est programme », « c'est pose », « ca compte », toute confirmation. L'effet pourra etre repose quand la crise sera passee.";
+    case "status_only":
+    case "status_question":
+      return "Tour de LECTURE de progression: reponds le statut/compte depuis la projection DB (snapshot, coches), RIEN n'etait a ecrire. Ne pose JAMAIS de question de notation en queue de reponse ('quelle action veux-tu noter ?', 'tu veux que je la compte ?' n'est propose QUE si le user a affirme une completion non enregistree) — un readout propre ne se termine pas par un clarify d'ecriture (eva-hard21 T12). Si le compte DB contredit ce que le user croit, corrige explicitement avec le compte reel et OFFRE de logger ce qui manque.";
     case "already_tracked_today":
       return "Ce progres est deja enregistre aujourd'hui pour cette cible: confirme l'existant, rien n'a ete ecrit deux fois; vraie deuxieme occurrence → dashboard.";
     case "duplicate_pending":
@@ -356,6 +363,12 @@ function outcomeGuidance(
       return "Rien n'a ete cree: l'heure demandee est deja passee aujourd'hui. Propose un autre horaire ou demain. Si le message du user etait une simple REFERENCE a un rappel deja confirme (pas une nouvelle demande), ne dis JAMAIS 'il est passe / il faut le remettre': le rappel existant reste tel quel — parle de son etat reel.";
     case "recurring_not_supported":
       return "Rien n'a ete cree en ponctuel: un rappel recurrent se configure dans les Initiatives.";
+    case "coaching_artifact_not_reminder":
+      return "RIEN n'a ete cree: la demande porte un artefact coaching (potion/carte), pas une notification — une potion se formule ici en conversation et s'ACTIVE dans l'app (Dashboard > Ressources); rien ne se « garde » ou ne se « sauvegarde » depuis le chat. INTERDIT: « c'est garde », « je te l'ai mise de cote », « tu la retrouveras a Xh ». Sers la demande coaching (formule la potion si demandee) et propose un rappel a heure fixe SEULEMENT si le user en veut un explicitement.";
+    case "hour_meridiem_ambiguous":
+      return "L'heure demandee est ambigue (matin ou soir ?): RIEN n'a ete programme. Pose la question du creneau (ex: 8h du matin ou 20h ?) — n'affirme aucune creation (eva-global19 T3: « a huit heures » committe a 08:00 pour une action du soir).";
+    case "draft_pending_confirmation":
+      return "Le user a demande un BROUILLON / une validation prealable: RIEN n'a ete cree (aucune ligne pending). Presente le brouillon (heure + texte du rappel) et demande la validation explicite — INTERDIT: « c'est cree », « c'est pose », « c'est programme ». Au tour suivant, « ok cree-le » committera tel quel (nina-global20 B01: le brouillon demande etait deja cree en base).";
     case "reschedule_no_target":
       return "Aucun rappel ponctuel n'est en attente: il n'y a rien a deplacer. RIEN n'a ete ecrit. Ne propose PAS « annule-le et remets-le » (pas de cible): demande l'element manquant (heure exacte ou contenu) pour (re)creer le rappel directement.";
     case "reschedule_not_supported":
@@ -378,6 +391,8 @@ function outcomeGuidance(
       return "L'heure demandee pour le NOUVEAU rappel est deja passee aujourd'hui: RIEN n'a ete annule ni cree (l'ancien rappel est intact). Demande le jour vise — n'affirme aucune annulation.";
     case "replace_cancel_failed":
       return "L'annulation de l'ancien rappel a echoue, donc RIEN n'a ete recree (anti-doublon). Dis-le simplement et propose de reessayer ou l'app.";
+    case "target_not_in_plan":
+      return "La cible demandee n'existe pas dans le plan actif: RIEN n'a ete ecrit, invalide ni corrige. N'affirme JAMAIS que la correction est faite ('c'est corrige', 'X n'est plus compte', 'X reste a part') — demande quelle action exacte du plan est visee (paul-p3verify T4: le composeur confirmait une correction bloquee).";
     case "contradicts_same_day_evidence":
       return "Un etat oppose est deja enregistre aujourd'hui pour cette action: rien n'a ete change et ca ne peut PAS se corriger depuis le chat. Ne propose JAMAIS de confirmer une bascule ici; indique que la correction se fait depuis l'action dans Dashboard > Plan.";
     case "no_mutation_requested":
@@ -472,33 +487,74 @@ function deriveEffectsOutcome(args: {
         clarify_question: null,
         target: outcomeTargetFromEffect(committedEffect),
         guidance:
-          "C'est une LECTURE d'etat (pas une ecriture): target porte la liste exacte des rappels ponctuels en attente (heures locales). Reponds DIRECTEMENT depuis cette liste: un rappel listé EXISTE (a une question de verification, reponds OUI avec son heure); un rappel ABSENT de la liste n'est plus actif (a une question 'il est bien annule ?', reponds OUI, il est annule — jamais 'encore actif'); liste vide/`Aucun` = aucun rappel ponctuel en attente, dis-le simplement. Ne FUSIONNE jamais deux rappels distincts: chaque rappel se cite avec SA consigne et SON heure exactes — ne reattribue pas la consigne d'un rappel annule a un autre rappel d'une heure proche. Le JOUR DE SEMAINE et la date se RECOPIENT exactement tels que fournis dans la liste (ils sont calcules deterministiquement): ne recalcule JAMAIS le jour toi-meme — 'dimanche 13 juillet' enonce pour un lundi 13 juillet est l'erreur observee (alex-untested T8). La question porte sur un RAPPEL: ne reponds JAMAIS depuis une action ou habitude du plan au nom proche ('Couper les ecrans 30 min avant le lit' est une habitude du plan, pas le rappel de 22h) — une habitude active ne rend pas 'actif' un rappel annule. INTERDIT: 'je ne peux pas verifier', 'je n'ai pas acces', ou nier un rappel present dans target. Cette liste PRIME sur tout ce que la conversation a pu dire avant. Et cette lecture ne repond QU'A une demande: ne greffe JAMAIS une re-confirmation de statut de rappel NON demandee en fin d'un tour coaching/soutien (nina-global18 T14 — mention spontanee du rappel eau sur un tour coaching).",
+          "C'est une LECTURE d'etat (pas une ecriture): target porte la liste exacte des rappels ponctuels en attente (heures locales). Reponds DIRECTEMENT depuis cette liste: un rappel listé EXISTE (a une question de verification, reponds OUI avec son heure); un rappel ABSENT de la liste n'est plus actif (a une question 'il est bien annule ?', reponds OUI, il est annule — jamais 'encore actif'); liste vide/`Aucun` = aucun rappel ponctuel en attente, dis-le simplement. Ne FUSIONNE jamais deux rappels distincts: chaque rappel se cite avec SA consigne et SON heure exactes — ne reattribue pas la consigne d'un rappel annule a un autre rappel d'une heure proche. Le JOUR DE SEMAINE et la date se RECOPIENT exactement tels que fournis dans la liste (ils sont calcules deterministiquement): ne recalcule JAMAIS le jour toi-meme — 'dimanche 13 juillet' enonce pour un lundi 13 juillet est l'erreur observee (alex-untested T8). La question porte sur un RAPPEL: ne reponds JAMAIS depuis une action ou habitude du plan au nom proche ('Couper les ecrans 30 min avant le lit' est une habitude du plan, pas le rappel de 22h) — une habitude active ne rend pas 'actif' un rappel annule. Et un rappel de cette liste est un RAPPEL, jamais un autre artefact (P8-B, eva-hard23 T15): si le user demande si sa POTION (ou carte) de Xh est « bien sauvegardee » et que la liste ne contient qu'un rappel a cette heure, NIE explicitement la potion (« aucune potion n'est sauvegardee — les potions s'activent dans l'app; ce qui existe a 22h, c'est un rappel ») au lieu d'adopter son cadre — confirmer « ta potion de 22h est bien gardee » sur une ligne de rappel est le mensonge observe. INTERDIT: 'je ne peux pas verifier', 'je n'ai pas acces', ou nier un rappel present dans target. Cette liste PRIME sur tout ce que la conversation a pu dire avant. AJOUT NARRATIF INTERDIT (P8-A, rose-p7verify T15): le recap est EXCLUSIVEMENT cette liste — n'y AJOUTE jamais un rappel issu de la conversation ('et il y a aussi celui de samedi, deja pose') absent de target: un rappel accuse 'pris' a un tour precedent mais absent de cette liste N'A PAS ETE cree; si le user le mentionne ou l'attend, corrige explicitement ('celui de samedi n'est PAS pose — tu veux que je le cree ?') au lieu de le reciter. Et cette lecture ne repond QU'A une demande: ne greffe JAMAIS une re-confirmation de statut de rappel NON demandee en fin d'un tour coaching/soutien (nina-global18 T14 — mention spontanee du rappel eau sur un tour coaching).",
       };
     }
     if (committedEffect) {
+      // P7-B (alex-untested22 R1-B01, paul-p6reval R1-B02): le contrat
+      // d'outcome AGRÈGE tous les commits du type — un fan-out de N entrées
+      // (multi-dates) était écrasé au premier commit, le composeur ne voyait
+      // qu'un jour et NIAIT les autres pourtant écrits (« pas encore noté »
+      // sur un committed = le mensonge inverse du sur-report P6-D).
+      const committedOfType = committed.filter((candidate) =>
+        isRecord(candidate) && stringValue(candidate.type) === effectType
+      ) as Record<string, unknown>[];
       // Echo de date (nina-r3 B01): un report date commite sans que la date
       // retenue soit enoncee laisse l'user decouvrir un mauvais jour plus
       // tard. La date voyage dans la cible — le composeur l'enonce.
       const datedSource = findByType(requested, effectType) ??
         findByType(allowed, effectType);
-      const dateHint = stringValue(committedEffect.date_hint) ||
-        stringValue(datedSource?.date_hint);
-      const baseTarget = outcomeTargetFromEffect(committedEffect);
+      const describeCommit = (effect: Record<string, unknown>) => {
+        const base = outcomeTargetFromEffect(effect);
+        const date = stringValue(effect.date_hint) ||
+          (committedOfType.length === 1
+            ? stringValue(datedSource?.date_hint)
+            : "");
+        return date && base ? `${base} (enregistre pour le ${date})` : base;
+      };
+      const target = committedOfType.length > 1
+        ? `${committedOfType.length} enregistrements committes ce tour: ${
+          committedOfType.map(describeCommit).filter(Boolean).join(" ; ")
+        }`
+        : describeCommit(committedEffect);
       // paul-r8 B01 (cmd 15): coche committee mais patch compteur/statut
       // rejete — la posture voyage en DONNEE sur l'outcome, pas en regle.
-      const patchFailed = committedEffect.item_patch_applied === false;
+      const patchFailed = committedOfType.some((effect) =>
+        effect.item_patch_applied === false
+      );
+      // P8-A (rose-p7verify R1 T14): CO-DEMANDE PARTIELLEMENT COMMITTEE — le
+      // contrat retournait UN outcome par type et la branche committed
+      // absorbait les volets bloques/en clarification du MEME type: le
+      // composeur ne voyait que le commit et accusait toute la co-demande
+      // (« pris pour les deux » avec committed 1). Les volets non committes
+      // remontent ici en donnee, avec le default-deny par creneau.
+      const blockedOfType = blocked.filter((candidate) =>
+        isRecord(candidate) && stringValue(candidate.type) === effectType
+      ) as Record<string, unknown>[];
+      const clarifySibling = blockedOfType.find((candidate) =>
+        CLARIFY_REASON_CODES.has(stringValue(candidate.reason_code))
+      );
+      const partialCoDemandGuidance = blockedOfType.length > 0
+        ? ` ATTENTION CO-DEMANDE PARTIELLE (P8-A, rose-p7verify T14): ${blockedOfType.length} volet(s) de la meme demande N'ONT PAS ete committes ce tour (raison: ${
+          blockedOfType.map((effect) => stringValue(effect.reason_code))
+            .filter(Boolean).join(", ") || "bloque"
+        }). Ne confirme QUE les creneaux/dates listes dans target — chaque creneau demande mais ABSENT de target est annonce explicitement comme NON pose (« l'autre n'est pas pose »), jamais absorbe dans un « c'est fait pour les deux ». Si un volet attend une clarification, pose sa question APRES la confirmation du commit, sans formule de validation pour ce volet.`
+        : "";
       return {
         effect_type: effectType,
         status: "committed",
         reason_code: null,
-        clarify_question: null,
-        target: dateHint && baseTarget
-          ? `${baseTarget} (enregistre pour le ${dateHint})`
-          : baseTarget,
-        guidance: patchFailed
+        clarify_question: clarifySibling
+          ? fallbackClarifyQuestion(
+            effectType,
+            stringValue(clarifySibling.reason_code) || "blocked",
+          )
+          : null,
+        target,
+        guidance: (patchFailed
           ? outcomeGuidance("committed", null) +
             " ATTENTION: la coche est bien enregistree mais la mise a jour du compteur/statut de l'action a echoue ce tour — ne confirme NI le compteur, NI un changement de statut, NI un deblocage; invite a verifier le dashboard."
-          : outcomeGuidance("committed", null),
+          : outcomeGuidance("committed", null)) + partialCoDemandGuidance,
       };
     }
     const blockedEffect = findByType(blocked, effectType);
@@ -793,6 +849,12 @@ export function activePlanSnapshotPromptBlock(
     'Les sections ci-dessus font foi: "mes habitudes" = la section HABITUDES uniquement, meme si le titre d\'un framework decrit un comportement.',
     'Un point ou recap "reste a faire" couvre TOUS les items non completes de cette liste (statuts active ET pending, toutes dimensions confondues): le total cite = le total de la liste, aucun item pending omis.',
     'Une completion revendiquee en CONVERSATION qui n\'apparait pas dans les coches ci-dessus n\'est PAS enregistree: dans un recap ou un point, presente-la comme "a faire" (ou "annonce, pas encore enregistre"), jamais comme faite — meme si un message assistant precedent l\'a affirmee.',
+    // P5-B (nina-global20 T14): la verification explicite ne se "rassure"
+    // jamais depuis le fil — elle COMPTE les coches et corrige l'ecart.
+    'Une question de VERIFICATION ("t\'es sure ?", "verifie que c\'est enregistre", "les N sont bien comptes ?") se repond UNIQUEMENT en comptant les coches ci-dessus: cite le compte reel et les dates. Si la conversation annoncait plus que ce que la liste montre, corrige explicitement ("en fait M sur N sont enregistrees — je corrige"), ne reaffirme JAMAIS le narratif.',
+    // P7-F (nina-hard22 T15): la verification est FRAME-AGNOSTIQUE — le
+    // CADRE de la question du user ne fait jamais foi, seule la liste.
+    'La verification n\'ADOPTE jamais le cadre du user: s\'il demande "mes 2 cartes sont bien enregistrees ?" et qu\'aucune carte n\'existe dans les donnees ci-dessus, la reponse NIE explicitement ("aucune carte n\'a ete creee ou sauvegardee") avant d\'enumerer ce qui existe reellement (suivis, coches). Ouvrir en validant le faux compte du user ("oui, tes 2 cartes...") puis nuancer apres est le mensonge observe. Les mots "enregistre/sauvegarde/cree" ne s\'emploient QUE pour un objet present dans ces donnees ou porte par un outcome committed.',
   );
   return lines.join("\n");
 }

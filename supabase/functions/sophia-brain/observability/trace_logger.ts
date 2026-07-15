@@ -5,6 +5,7 @@ import type {
 } from "../contracts/route_decision.v1.ts";
 import type { TurnFrame } from "../contracts/turn_frame.v1.ts";
 import type { DispatcherMemoryPlan } from "../contracts/turn_frame.v1.ts";
+import { logSafetyBandEvent } from "../../_shared/guard-log.ts";
 
 declare const Deno: any;
 
@@ -124,6 +125,31 @@ export async function logConversationTurn(
   trace: ConversationTurnTrace,
   opts: { supabase?: unknown } = {},
 ): Promise<void> {
+  // P11 (observabilité bêta): un tour safety medium+ devient une ligne du
+  // production log admin (source='safety', high=error) — la table
+  // conversation_turn_traces n'est pas une source du RPC et les crises
+  // restaient invisibles dans le fil. Fire-and-forget, jamais bloquant,
+  // no-op en tests (sink actif ou SUPABASE_URL absent).
+  try {
+    if (!traceSinkForTest) {
+      const safety = (trace.turn_frame as {
+        safety?: { risk_band?: string; reason_codes?: string[] };
+      } | null | undefined)?.safety;
+      if (safety?.risk_band) {
+        logSafetyBandEvent({
+          riskBand: String(safety.risk_band),
+          reasonCodes: Array.isArray(safety.reason_codes)
+            ? safety.reason_codes.map(String)
+            : [],
+          userId: trace.user_id ?? null,
+          turnId: trace.turn_id ?? null,
+          responseOwner: trace.response_owner ?? null,
+        });
+      }
+    }
+  } catch (_error) {
+    // fail-open.
+  }
   // P1-4 (paul-triflow r2 B02): un insert de trace raté était avalé par un
   // console.warn côté appelant — des tours entiers disparaissaient de l'audit
   // (12/15 lignes persistées). Retry borné ici; l'échec final remonte.

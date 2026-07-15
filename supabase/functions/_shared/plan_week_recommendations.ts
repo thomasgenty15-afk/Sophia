@@ -1,5 +1,10 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3";
 
+import {
+  daysAfterPlannedPrerequisites,
+  spreadWeekDays,
+} from "./week_day_distribution.ts";
+
 export const PLAN_WEEK_DAY_CODES = [
   "mon",
   "tue",
@@ -19,6 +24,7 @@ export type PlanWeekRecommendationItem = {
   dimension?: string | null;
   target_reps?: number | null;
   scheduled_days?: string[] | null;
+  activation_condition?: Record<string, unknown> | null;
   payload?: Record<string, unknown> | null;
 };
 
@@ -182,12 +188,11 @@ function itemDays(args: {
   const alignedScheduledDays = availableDays.filter((day) =>
     scheduledDays.includes(day)
   );
-  const days = alignedScheduledDays.length > 0 ? [...alignedScheduledDays] : [];
-  for (const day of availableDays) {
-    if (days.length >= target) break;
-    if (!days.includes(day)) days.push(day);
-  }
-  return days.slice(0, target);
+  return spreadWeekDays({
+    availableDays,
+    target,
+    preferredDays: alignedScheduledDays,
+  });
 }
 
 export function recommendedWeekPlanningFromPlanContent(args: {
@@ -247,10 +252,21 @@ export function recommendedWeekPlanningFromPlanContent(args: {
     const oneShotItems = weekItems.filter((entry) =>
       cleanText(entry.item.dimension) !== "habits"
     );
+    const plannedDayByOneShotItemId = new Map<string, PlanWeekDayCode>();
+    oneShotItems.forEach((entry, index) => {
+      const mappedDay = missionDays[index];
+      if (mappedDay && visibleDays.includes(mappedDay)) {
+        plannedDayByOneShotItemId.set(entry.item.id, mappedDay);
+      }
+    });
 
     for (const entry of weekItems) {
       const preferredDays = cleanText(entry.item.dimension) === "habits"
-        ? visibleDays
+        ? daysAfterPlannedPrerequisites({
+          availableDays: visibleDays,
+          activationCondition: entry.item.activation_condition,
+          plannedDayByItemId: plannedDayByOneShotItemId,
+        })
         : (() => {
           const oneShotIndex = oneShotItems.findIndex((candidate) =>
             candidate.item.id === entry.item.id
@@ -296,7 +312,9 @@ export async function loadRecommendedWeekPlanning(args: {
 
   const { data: itemRows, error: itemError } = await args.admin
     .from("user_plan_items")
-    .select("id,plan_id,dimension,target_reps,scheduled_days,payload")
+    .select(
+      "id,plan_id,dimension,target_reps,scheduled_days,activation_condition,payload",
+    )
     .eq("plan_id", args.planId);
   if (itemError) throw itemError;
 

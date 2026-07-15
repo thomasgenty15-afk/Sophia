@@ -28,6 +28,7 @@ import {
   recentChatMessagesFromHistory,
 } from "../context/recent_messages_policy.ts";
 import { getUserTimeContext } from "../../_shared/user_time_context.ts";
+import { logRuntimeGuardEvent } from "../../_shared/guard-log.ts";
 import { generateWithGemini, getGlobalAiModel } from "../../_shared/gemini.ts";
 import {
   type BrainTracePhase,
@@ -90,12 +91,20 @@ import {
 } from "./one_shot_local_direct_effect.ts";
 import {
   ageLastTrackCommitMarker,
+  freshLastTrackCommit,
   lastTrackCommitForDispatcher,
   pendingTrackProgressClarificationForDispatcher,
+  resolvePlanItemByNaming,
+  trackMessageIsAdditive,
 } from "../tools/always_on/track_progress_plan_item/router.ts";
 import {
+  classifyOneShotReminderDirectIntent,
   pendingOneShotReminderClarificationForDispatcher,
+  pendingSafetyDeferredReminderForDispatcher,
+  SAFETY_DEFERRED_REMINDER_RUNTIME_KEY,
+  storeSafetyDeferredReminder,
 } from "../tools/always_on/one_shot_reminder/router.ts";
+import { readPendingOneShotReminderRows } from "../tools/always_on/one_shot_reminder/persistence.ts";
 import {
   activePlanSnapshotPromptBlock,
   buildDirectEffectConfirmationContext,
@@ -215,7 +224,10 @@ function buildDispatcherLlmRunner(meta?: {
       const raw = await generateWithGemini(
         input.system_prompt,
         input.user_prompt,
-        0.1,
+        // P7-A (rose-hard19 R1-B02): température 0 — le dispatcher est un
+        // CLASSIFIEUR (bande safety comprise); un flip none↔medium observé
+        // sur message identique change le routing d'un tour entier.
+        0,
         input.json_mode,
         [],
         "auto",
@@ -237,6 +249,167 @@ function buildDispatcherLlmRunner(meta?: {
       });
       return {};
     }
+  };
+}
+
+/**
+ * P4-C (paul-p3verify R1-W02): commit de la traîne conversation_risk +
+ * vieillissement du marqueur last_track_commit — sur TOUS les chemins de
+ * retour du tour (leçon P3: un gate posé sur un seul chemin est un gate
+ * troué). Le chemin nominal était le seul à committer: les tours OWNÉS par
+ * safety ou par un skill sortaient avant, et une crise DIRECTE (sans tour
+ * medium préalable) laissait la traîne à [0,0,0,0,0].
+ */
+// P5-G/P6-H: intention mémoire explicite du user — SOURCE UNIQUE du pattern
+// (capture au tour d'accusé → buffer de session, ET scan d'historique au
+// recall). Conjugaisons couvertes: « que tu retiennes » échappait à la
+// forme de base (paul-p4verify T15).
+export const SESSION_MEMORY_INTENT_PATTERN =
+  /(retien(s|nes?|dras)|souviens[- ]toi|garde (bien )?(ca |ça )?en tete|garde (bien )?(ca |ça )?en tête|a retenir|à retenir|garde le en tete|garde-le en tete|note (bien )?pour la suite|faut que (tu saches|je te dise)|que tu le saches|truc a garder|truc à garder|memorise|mémorise)/i;
+
+/** P5-G/P7-A: question de RECALL détectée sur le message — source unique du
+ * déclencheur (injection companion ET co-demande bénigne sous safety). */
+export function isMemoryRecallQuestion(message: string): boolean {
+  return /(ce que je t.{0,3}avais? demande de retenir|tu te (rappelles?|souviens)|redis[- ]moi ce que|qu est ce que je t avais dit de retenir)/i
+    .test(
+      message.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+        .replace(/[’']/g, " "),
+    );
+}
+
+/** P8-E (paul-untested22 R1 T14): readout READ-ONLY des rappels demandé
+ * pendant le flow safety — « redis-moi mes rappels de demain », « j'ai quoi
+ * comme rappels ? ». Lecture pure exigée: le nom « rappel(s) » présent, un
+ * verbe de restitution/inventaire, et AUCUN verbe de mutation. Même famille
+ * de détecteur que isMemoryRecallQuestion (co-demande bénigne sous safety). */
+export function isReminderReadoutQuestion(message: string): boolean {
+  const text = String(message ?? "")
+    .normalize("NFD").replace(/\p{Diacritic}/gu, "")
+    .replace(/[’']/g, " ")
+    .toLowerCase();
+  if (!/\brappels?\b/.test(text)) return false;
+  // Formes d'ACTE uniquement — « mes rappels posés là » (participe passé
+  // d'inventaire) reste un readout, « pose-moi un rappel » n'en est pas un.
+  if (
+    /\b(cree|creer|ajoute|annule|supprime|decale|remets|repousse|programme|modifie|change)\b|\bpose[- ]?(moi|nous|un|le|la)\b/
+      .test(text)
+  ) {
+    return false;
+  }
+  return /\b(redis|redonne|liste|montre|rappelle|donne)[- ]?moi\b|\bdis[- ]?moi (mes|les|quels?)\b|\bquels? rappels?\b|\bj ai quoi comme rappels?\b|\bc est quoi mes rappels?\b/
+    .test(text);
+}
+
+/** P6-H/P7-A: intentions mémoire explicites de la session — union du buffer
+ * (capturé au tour d'accusé) et de l'historique, dédupliquée, 4 max. */
+export function collectSessionMemoryIntents(
+  tempMemory: unknown,
+  history: unknown,
+): string[] {
+  const fromHistory = (Array.isArray(history) ? history : [])
+    .filter((entry: any) =>
+      entry?.role === "user" && typeof entry?.content === "string" &&
+      SESSION_MEMORY_INTENT_PATTERN.test(String(entry.content))
+    )
+    .map((entry: any) => String(entry.content).slice(0, 240));
+  const fromBuffer = (Array.isArray(
+      (tempMemory as Record<string, unknown>)?.__session_memory_intents,
+    )
+    ? (tempMemory as Record<string, unknown>)
+      .__session_memory_intents as Array<Record<string, unknown>>
+    : [])
+    .map((entry) => String(entry?.text ?? "").trim())
+    .filter(Boolean);
+  return [...new Set([...fromBuffer, ...fromHistory])].slice(-4);
+}
+
+/** P8-E (paul-untested22 R1 T14): facts DB-groundés pour un readout de
+ * rappels demandé sous safety — liste courte des pending (label local +
+ * consigne), lecture PURE (aucun side effect), fail-open (erreur → [] et le
+ * visible agent différera nommément au lieu d'inventer). */
+export async function pendingReminderReadoutFacts(args: {
+  supabase: any;
+  userId: string;
+  timezone?: string | null;
+}): Promise<string[]> {
+  try {
+    const rows = await readPendingOneShotReminderRows({
+      supabase: args.supabase,
+      userId: args.userId,
+      limit: 5,
+    });
+    const timezone = args.timezone || "Europe/Paris";
+    return rows.map((row: any) => {
+      const date = new Date(String(row?.scheduled_for ?? ""));
+      let label = String(row?.scheduled_for ?? "");
+      if (Number.isFinite(date.getTime())) {
+        try {
+          label = new Intl.DateTimeFormat("fr-FR", {
+            timeZone: timezone,
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+            hour: "2-digit",
+            minute: "2-digit",
+          }).format(date);
+        } catch (_error) {
+          // label ISO en dernier recours — jamais un throw.
+        }
+      }
+      const instruction = String(
+        (row?.message_payload as Record<string, unknown> | null | undefined)
+          ?.reminder_instruction ?? "",
+      ).trim();
+      return instruction
+        ? `Rappel en attente ${label} — ${instruction}`
+        : `Rappel en attente ${label}`;
+    });
+  } catch (_error) {
+    return [];
+  }
+}
+
+export function commitPostTurnRiskTrail(
+  tempMemory: Record<string, unknown>,
+  args: {
+    runtimeSafetyRiskBand: unknown;
+    turnFrameRiskBand: unknown;
+    routeIsSafety: boolean;
+    sourceMessageId: string | null;
+  },
+): Record<string, unknown> {
+  ageLastTrackCommitMarker(tempMemory, args.sourceMessageId);
+  const effectiveBand = String(
+    args.runtimeSafetyRiskBand ?? args.turnFrameRiskBand ?? "none",
+  );
+  const bandScore = effectiveBand === "critical"
+    ? 10
+    : effectiveBand === "high"
+    ? 9
+    : effectiveBand === "medium"
+    ? 6
+    : effectiveBand === "low"
+    ? 2
+    : 0;
+  // P7-A (rose-hard19 R1-B03, rose-untested22 R1-B01): la traîne est
+  // BIDIRECTIONNELLE — elle reflète la bande EFFECTIVE du tour, jamais le
+  // seul fait que safety possède le tour. L'ancien `routeIsSafety → 10`
+  // ré-épinglait la traîne à 10 sur chaque tour du flow, y compris en bande
+  // none stabilisée: la décroissance (-4/tour) ne pouvait jamais commencer
+  // et le faux positif d'entrée verrouillait tout (rappels bénins bloqués
+  // 3 tours, escalade humaine sur band none). Le boost à 10 ne subsiste que
+  // pour les tours réellement aigus (high/critical) — l'intention P4-C
+  // (crise directe = traîne pleine) est préservée; un tour safety en bande
+  // medium score 6, en bande none il score 0 et la vigilance s'effondre
+  // avec la désescalade (le maintien du flow reste au reducer).
+  const turnScore = args.routeIsSafety && bandScore >= 9 ? 10 : bandScore;
+  const previousTrail = Array.isArray(tempMemory.__conversation_risk_scores)
+    ? tempMemory.__conversation_risk_scores as number[]
+    : [];
+  return {
+    ...tempMemory,
+    __last_turn_risk_band: effectiveBand,
+    __conversation_risk_scores: [...previousTrail, turnScore].slice(-5),
   };
 }
 
@@ -794,11 +967,270 @@ function finalVisibleText(
   );
   let out = stripHiddenHtmlComments(correctionOverride ?? text);
   out = stripDeprecatedProductVocabulary(out);
+  out = stripForeignScriptTokens(out);
+  out = stripCommitClaimBeforeClarify(out, turnFrame ?? null);
+  out = stripUnfoundedReminderCapacityDenial(out, turnFrame ?? null);
+  out = stripTrackClaimWithoutCommit(out, turnFrame ?? null);
   if (!isSafetyRoute(routeDecision)) {
     out = ensureVisibleSophiaEmoji(out);
     out = ensureClarifyQuestionVisible(out, turnFrame ?? null);
   }
   return out.trim();
+}
+
+/**
+ * P10-C (eva-hard24 R1-B01): GARDE ANTI-REFUS-CONFABULÉ — sur un tour
+ * multi-intent où le planner a perdu l'effet rappel, le composeur inventait
+ * « je ne peux pas le créer ici » (faux: la capacité existe, les tours
+ * voisins créent). Un refus de capacité RAPPEL n'est légitime que si un
+ * outcome create_one_shot_reminder existe sur le tour (blocked/clarify — la
+ * raison contractuelle du refus). Sans aucun outcome de ce type, la phrase
+ * de refus est retirée et remplacée par une récupération honnête.
+ */
+export function stripUnfoundedReminderCapacityDenial(
+  text: string,
+  turnFrame: TurnFrame | null,
+): string {
+  const source = String(text ?? "");
+  if (!turnFrame || !source.trim()) return source;
+  const normalizeForDenial = (value: string) =>
+    value.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+      .replace(/[’']/g, " ").toLowerCase();
+  const denialPattern =
+    /\bje ne (peux|pourrai s?) pas (te |le |la |te le |te la |l )*(creer|poser|programmer|mettre|caler|planifier)\b[^.!?\n]*\b(rappel|ici|d ici|depuis (le |la )?(chat|conversation))\b|\bje ne peux pas (le|la) (creer|poser|programmer|mettre|caler) ici\b/;
+  if (!denialPattern.test(normalizeForDenial(source))) return source;
+  const context = buildDirectEffectConfirmationContext(turnFrame);
+  const hasReminderOutcome = (context?.effects_outcome ?? []).some((outcome) =>
+    outcome.effect_type === "create_one_shot_reminder"
+  );
+  // Un outcome rappel existe (blocked artefact, récurrent, safety…) → le
+  // refus est la vérité contractuelle, intact.
+  if (hasReminderOutcome) return source;
+  const sentences = source.split(/(?<=[.!?\n])/);
+  const kept = sentences.filter((sentence) =>
+    !denialPattern.test(normalizeForDenial(sentence))
+  );
+  const cleaned = kept.join("").replace(/[ \t]{2,}/g, " ").trim();
+  console.warn(
+    "[Router] unfounded reminder-capacity denial stripped (P10-C)",
+  );
+  logRuntimeGuardEvent({
+    guard: "reminder_capacity_denial_stripped",
+    userId: (turnFrame as { user_id?: string }).user_id ?? null,
+    detail: { turn_id: (turnFrame as { turn_id?: string }).turn_id ?? null },
+  });
+  const recovery =
+    "Pour le rappel, redonne-le moi tel quel (moment + quoi) et je te le pose direct.";
+  return cleaned ? `${cleaned} ${recovery}` : recovery;
+}
+
+/**
+ * P10-C (alex-hard24 R1-B04): GARDE CLAIM-TRACK-SANS-COMMIT — « Les deux
+ * sont pris en compte ✅ » sur un ledger track blocked (committed 0). Armée
+ * UNIQUEMENT quand le tour porte un outcome track non-committé et AUCUN
+ * commit d'aucun type (un commit coexistant rend un claim légitime possible
+ * — co-demande partielle, on ne strippe pas). Le repli est la guidance
+ * contractuelle du blocage (« déjà noté aujourd'hui »), jamais le mensonge.
+ */
+export function stripTrackClaimWithoutCommit(
+  text: string,
+  turnFrame: TurnFrame | null,
+): string {
+  const source = String(text ?? "");
+  if (!turnFrame || !source.trim()) return source;
+  const context = buildDirectEffectConfirmationContext(turnFrame);
+  const outcomes = context?.effects_outcome ?? [];
+  const trackNonCommitted = outcomes.some((outcome) =>
+    outcome.effect_type === "track_progress_plan_item" &&
+    (outcome.status === "blocked" || outcome.status === "needs_clarify")
+  );
+  const anyCommitted = outcomes.some((outcome) =>
+    outcome.status === "committed"
+  );
+  if (!trackNonCommitted || anyCommitted) return source;
+  const normalizeForClaim = (value: string) =>
+    value.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+      .replace(/[’']/g, " ").toLowerCase();
+  const claimPattern =
+    /\b(les deux|tous les deux|les trois|tout ca) (sont|est) (bien )?(pris|note|notes|enregistre|enregistres|coche|coches|compte|comptes|marque|marques)\b|\bc ?.?est (note|pris en compte|enregistre|coche|marque) pour (les deux|tous les deux|les trois)\b/;
+  if (!claimPattern.test(normalizeForClaim(source))) return source;
+  const sentences = source.split(/(?<=[.!?\n])/);
+  const kept = sentences.filter((sentence) =>
+    !claimPattern.test(normalizeForClaim(sentence))
+  );
+  const cleaned = kept.join("").replace(/[ \t]{2,}/g, " ").trim();
+  console.warn("[Router] track claim without commit stripped (P10-C)");
+  logRuntimeGuardEvent({
+    guard: "track_claim_without_commit_stripped",
+    userId: (turnFrame as { user_id?: string }).user_id ?? null,
+    detail: { turn_id: (turnFrame as { turn_id?: string }).turn_id ?? null },
+  });
+  const blockedGuidance = outcomes.find((outcome) =>
+    outcome.effect_type === "track_progress_plan_item" &&
+    (outcome.status === "blocked" || outcome.status === "needs_clarify")
+  );
+  const fallback = String(blockedGuidance?.guidance ?? "").trim() ||
+    "Je n'ai rien coché de nouveau sur ce tour — redis-moi exactement quoi noter et je le fais.";
+  return cleaned ? cleaned : fallback;
+}
+
+/**
+ * P8-F (eva-hard23 R1-B04 — résiduel P7 revenu en run réel, décision actée):
+ * GARDE DE RENDU claim-avant-clarify. Quand le tour porte un needs_clarify
+ * de rappel (pending armé, ZÉRO commit du type), aucune phrase du rendu ne
+ * peut affirmer la pose (« Je te le mets pour demain à 07:00 » puis la
+ * question du créneau = assertion d'un rappel jamais écrit). Les phrases
+ * fautives sont retirées; si tout saute, la question contractuelle de la
+ * lane reste (ensureClarifyQuestionVisible la ré-injecte). Jamais activée
+ * quand un commit du même type existe (co-demande partielle P8-A: « c'est
+ * fait pour jeudi » est VRAI).
+ */
+export function stripCommitClaimBeforeClarify(
+  text: string,
+  turnFrame: TurnFrame | null,
+): string {
+  const source = String(text ?? "");
+  if (!turnFrame || !source.trim()) return source;
+  const context = buildDirectEffectConfirmationContext(turnFrame);
+  const outcomes = context?.effects_outcome ?? [];
+  const reminderClarify = outcomes.some((outcome) =>
+    outcome.effect_type === "create_one_shot_reminder" &&
+    outcome.status === "needs_clarify"
+  );
+  // P9-C (alex-hard24 R1-B01): la garde couvre aussi le BLOCKED — un
+  // reschedule mal classé bloqué duplicate_pending sortait « le rappel de
+  // 22h est bien décalé à jeudi » avec un ledger à zéro commit. Le différé
+  // safety est exempté: son « je le garde pour après » est la vérité
+  // contractuelle du blocage, pas un claim de pose.
+  const reminderBlockedNonDeferred = outcomes.some((outcome) =>
+    outcome.effect_type === "create_one_shot_reminder" &&
+    outcome.status === "blocked" &&
+    !/safety|defer/i.test(String(outcome.reason_code ?? ""))
+  );
+  const reminderCommitted = outcomes.some((outcome) =>
+    outcome.effect_type === "create_one_shot_reminder" &&
+    outcome.status === "committed"
+  );
+  // P10-V (probe P10-4 passe 1): ZÉRO outcome rappel + le user a demandé un
+  // DÉPLACEMENT (« avance le a 12h ») + le rendu affirme la mutation
+  // (« c'est fait… à la place de 12h30 ») — le dispatcher n'avait rien émis,
+  // aucune lane n'a tourné, le claim est faux par construction. Borné aux
+  // verbes de MUTATION des deux côtés: les readouts légitimes (« ton rappel
+  // est posé pour demain ») restent intacts.
+  const noReminderOutcome = !outcomes.some((outcome) =>
+    outcome.effect_type === "create_one_shot_reminder"
+  );
+  const normalizeForClaimEarly = (value: string) =>
+    value.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+      .replace(/[’']/g, " ").toLowerCase();
+  const userMessageText =
+    (turnFrame as { user_message?: string }).user_message ?? "";
+  const userAskedReminderMutation =
+    /\b(decale|avance|repousse|replanifie|reprogramme|remets|mets)[- ]?(le|la|les)?\b/
+      .test(normalizeForClaimEarly(String(userMessageText))) &&
+    /\b(\d{1,2}\s?h|au lieu de|a la place|plus tot|plus tard|demain|ce soir)\b/
+      .test(normalizeForClaimEarly(String(userMessageText)));
+  const mutationClaimPattern =
+    /\b(decale|deplace|avance|repousse|replanifie|reprogramme)e?s?\b|\bc ?.?est (fait|bon)\b[^.!?\n]{0,80}\b(a la place de|au lieu de)\b/;
+  const unfoundedMutationClaim = noReminderOutcome &&
+    userAskedReminderMutation &&
+    mutationClaimPattern.test(normalizeForClaimEarly(source));
+  if (
+    (!reminderClarify && !reminderBlockedNonDeferred &&
+      !unfoundedMutationClaim) || reminderCommitted
+  ) {
+    return source;
+  }
+  if (unfoundedMutationClaim && !reminderClarify && !reminderBlockedNonDeferred) {
+    const sentencesEarly = source.split(/(?<=[.!?\n])/);
+    const keptEarly = sentencesEarly.filter((sentence) =>
+      !mutationClaimPattern.test(normalizeForClaimEarly(sentence))
+    );
+    const cleanedEarly = keptEarly.join("").replace(/[ \t]{2,}/g, " ").trim();
+    console.warn(
+      "[Router] reminder mutation claim without any outcome stripped (P10-V)",
+    );
+    logRuntimeGuardEvent({
+      guard: "mutation_claim_without_outcome_stripped",
+      userId: (turnFrame as { user_id?: string }).user_id ?? null,
+      detail: { turn_id: (turnFrame as { turn_id?: string }).turn_id ?? null },
+    });
+    return cleanedEarly ||
+      "Je n'ai rien changé sur tes rappels pour l'instant — redis-moi lequel déplacer et vers quel créneau, et je le fais.";
+  }
+  // P9-C: participes de mutation ajoutés (décalé/déplacé/avancé/repoussé/
+  // replanifié/reprogrammé/calé) + mots intercalés tolérés (« le rappel DE
+  // 22H est BIEN décalé ») — le motif exact ratait toute variante.
+  const claimPattern =
+    /\bje (te |le |la |te le |te la |l )?(mets|pose|programme|cale|note|garde|decale|deplace|avance|repousse|replanifie|reprogramme)\b|\bc ?.?est (bien |deja |desormais |donc )?(fait|pose|posé|programme|programmé|cale|calé|note|noté|pris|enregistre|enregistré|garde|gardé|decale|décalé|deplace|déplacé|avance|avancé|repousse|repoussé|replanifie|replanifié|reprogramme|reprogrammé)\b|\bje l ?.?ai (bien |deja )?(pose|posé|programme|programmé|cree|créé|mis|note|noté|garde|gardé|gardée|decale|décalé|deplace|déplacé|avance|avancé|repousse|repoussé|replanifie|replanifié|reprogramme|reprogrammé)\b|\b(rappel|il|elle)(?: [a-z0-9:]{1,12}){0,4} est (bien |deja |desormais |maintenant )?(pose|posé|programme|programmé|cree|créé|enregistre|enregistré|garde|gardé|gardée|cale|calé|decale|décalé|deplace|déplacé|avance|avancé|repousse|repoussé|replanifie|replanifié|reprogramme|reprogrammé)\b/;
+  const normalizeForClaim = (value: string) =>
+    value.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+      .replace(/[’']/g, " ").toLowerCase();
+  if (!claimPattern.test(normalizeForClaim(source))) return source;
+  const sentences = source.split(/(?<=[.!?\n])/);
+  const kept = sentences.filter((sentence) =>
+    !claimPattern.test(normalizeForClaim(sentence))
+  );
+  const cleaned = kept.join("").replace(/[ \t]{2,}/g, " ").trim();
+  console.warn(
+    "[Router] commit-claim stripped on a needs_clarify reminder turn (P8-F)",
+  );
+  logRuntimeGuardEvent({
+    guard: "commit_claim_stripped",
+    userId: (turnFrame as { user_id?: string }).user_id ?? null,
+    detail: {
+      turn_id: (turnFrame as { turn_id?: string }).turn_id ?? null,
+      reason: reminderClarify ? "needs_clarify" : "blocked",
+    },
+  });
+  // Si tout le texte portait le claim, la question contractuelle de la lane
+  // (clarify_question) reste la réponse — jamais un claim, jamais un vide.
+  if (cleaned) return cleaned;
+  const clarify = outcomes.find((outcome) =>
+    outcome.effect_type === "create_one_shot_reminder" &&
+    outcome.status === "needs_clarify" &&
+    String(outcome.clarify_question ?? "").trim()
+  );
+  if (String(clarify?.clarify_question ?? "").trim()) {
+    return String(clarify?.clarify_question ?? "").trim();
+  }
+  // P9-C: un BLOCKED sans question contractuelle ne peut pas retomber sur le
+  // texte fautif (le claim reviendrait) — repli déterministe honnête.
+  return "Je n'ai rien changé sur tes rappels pour l'instant — redis-moi exactement ce que tu veux et je le fais.";
+}
+
+/**
+ * P7-F (rose-untested22 R1-B05): GARDE DE COHÉRENCE DE SCRIPT — un artefact
+ * de génération peut injecter un token d'un alphabet étranger en pleine
+ * phrase française (« je n'ai pas de पुष्टि ici », devanagari). Garde
+ * d'intégrité du renderer, non sémantique: les mots portés par un script
+ * hors latin/grec/emoji sont retirés (le résidu reste plus lisible que le
+ * charabia). Fail-open: si le strip vide la réponse, on rend l'original.
+ */
+export function stripForeignScriptTokens(text: string): string {
+  const source = String(text ?? "");
+  // Lettres hors scripts attendus (latin + signes communs). Les emoji,
+  // symboles, ponctuation et chiffres ne sont pas des \p{L}: intacts.
+  const foreignLetter = /[\p{L}]/u;
+  const allowedLetter = /[\p{Script=Latin}\p{Script=Greek}]/u;
+  const hasForeign = [...source].some((char) =>
+    foreignLetter.test(char) && !allowedLetter.test(char)
+  );
+  if (!hasForeign) return source;
+  const cleaned = source
+    .split(/(\s+)/)
+    .filter((token) =>
+      !(
+        [...token].some((char) =>
+          foreignLetter.test(char) && !allowedLetter.test(char)
+        )
+      )
+    )
+    .join("")
+    .replace(/[ \t]{2,}/g, " ");
+  if (!cleaned.trim()) return source;
+  console.warn("[Router] foreign-script tokens stripped from visible text");
+  return cleaned;
 }
 
 /**
@@ -1090,9 +1522,19 @@ export async function processMessage(
       const presenceActive = String(
         (activeFlowState.activeSkillState as any)?.skill_id ?? "",
       ) === "presence_conversation";
+      // P4-C (paul-p3verify R1-B03): rappel différé pendant une crise —
+      // exposé UNE fois au dispatcher dès que le flow safety n'est plus
+      // actif, pour que « je te le remets sur la table » soit exécutable
+      // (le user qui le redemande, ou confirme l'offre, obtient un create).
+      const safetyFlowActive = String(
+        (activeFlowState.activeSkillState as any)?.skill_id ?? "",
+      ) === "safety_crisis";
+      const safetyDeferredReminder = !safetyFlowActive
+        ? pendingSafetyDeferredReminderForDispatcher(tempMemory)
+        : null;
       if (
         !lastLocalFlowExitContext && !pendingClarification && !presenceActive &&
-        !lastTrackCommit
+        !lastTrackCommit && !safetyDeferredReminder
       ) return null;
       return {
         ...(lastLocalFlowExitContext
@@ -1103,6 +1545,9 @@ export async function processMessage(
           : {}),
         ...(presenceActive ? { presence_conversation_active: true } : {}),
         ...(lastTrackCommit ? { last_track_commit: lastTrackCommit } : {}),
+        ...(safetyDeferredReminder
+          ? { pending_safety_deferred_reminder: safetyDeferredReminder }
+          : {}),
       };
     })(),
     direct_effect_time_context: userTime
@@ -1232,6 +1677,239 @@ export async function processMessage(
       };
     }
   }
+  // P4-A (alex-global19 R1-B01): ré-arm du retarget BI-PARTIE. La réponse à
+  // « c'était à la place de quelle action ? » nomme la SOURCE — le
+  // dispatcher la modélise souvent en mutation unilatérale de cette source
+  // (« carnet raté ») et l'effet d'origine (créditer Y) est perdu : la
+  // correction s'exécutait à moitié. Quand la clarification pendante porte
+  // des slots complets et que l'effet ré-émis vise une AUTRE cible que
+  // celle des slots, on reconstruit la transaction : cible = known_slots,
+  // retarget_from = l'item que la réponse vient de nommer.
+  if (
+    pendingClarificationForTurn?.effect_type === "track_progress_plan_item" &&
+    String(pendingClarificationForTurn.reason_code ?? "") ===
+      "correction_retarget_missing"
+  ) {
+    const slots = (pendingClarificationForTurn.known_slots ?? {}) as Record<
+      string,
+      unknown
+    >;
+    const pendingTargetId = String(slots.target_item_id ?? "").trim();
+    const pendingStatus = String(slots.progress_status ?? "").trim();
+    const reEmitted = turnFrame.direct_effects.find((effect) =>
+      effect.effect_type === "track_progress_plan_item"
+    );
+    const reEmittedTarget = String(
+      ((reEmitted?.payload_hint ?? {}) as Record<string, unknown>)
+        .target_item_id ?? "",
+    ).trim();
+    if (
+      pendingTargetId && pendingStatus && reEmitted && reEmittedTarget &&
+      reEmittedTarget !== pendingTargetId
+    ) {
+      turnFrame = {
+        ...turnFrame,
+        direct_effects: turnFrame.direct_effects.map((effect) => {
+          if (effect !== reEmitted) return effect;
+          return {
+            ...effect,
+            payload_hint: {
+              target_item_id: pendingTargetId,
+              status_hint: pendingStatus,
+              ...(String(slots.date_hint ?? "").trim()
+                ? { date_hint: String(slots.date_hint) }
+                : {}),
+              target_evidence: String(slots.target_title ?? ""),
+              correction: true,
+              retarget_from: reEmittedTarget,
+            },
+          };
+        }),
+      };
+    }
+  }
+  // P4-A (rose-hard16 R1-B01, probes P4-2 ×2): BACKSTOP déterministe de la
+  // correction de cible — le dispatcher rate encore ~1 émission sur 2 sur
+  // « c'était pas X, c'est Y que j'ai fait » malgré 3h-bis et le
+  // last_track_commit structuré. Quand le tour précédent a committé un
+  // track, que le message porte un marqueur de SUBSTITUTION (jamais
+  // additif), nomme la cible du commit ET une seule autre action du plan,
+  // l'effet retarget se synthétise — toutes les gardes aval (évidence,
+  // idempotence, same-day) restent entières.
+  if (
+    !turnFrame.direct_effects.some((effect) =>
+      effect.effect_type === "track_progress_plan_item"
+    )
+  ) {
+    const lastCommit = freshLastTrackCommit(tempMemory);
+    const normalizedMsg = userMessage.normalize("NFD")
+      .replace(/\p{Diacritic}/gu, "").replace(/[’']/g, "'").toLowerCase();
+    const substitution =
+      /(c ?'?etait pas|corrige|je me suis trompe|je me suis emmele|a la place|en fait c ?'?est)/
+        .test(normalizedMsg);
+    if (lastCommit && substitution && !trackMessageIsAdditive(userMessage)) {
+      const titleTokens = (title: string) =>
+        title.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase()
+          .split(/[^a-z0-9]+/).filter((token) => token.length >= 4);
+      const namesLastTarget = titleTokens(lastCommit.target_title)
+        .some((token) => normalizedMsg.includes(token));
+      const itemsForNaming = (planItemSnapshot ?? []).map((item: any) => ({
+        id: String(item?.id ?? item?.plan_item_id ?? ""),
+        title: String(item?.title ?? ""),
+        aliases: [] as string[],
+      })).filter((item) => item.id && item.title);
+      const named = resolvePlanItemByNaming({
+        items: itemsForNaming,
+        reference_texts: [userMessage],
+        exclude_item_id: lastCommit.target_item_id,
+      });
+      if (namesLastTarget && named && "item" in named) {
+        const statusHint =
+          /(rate|zappe|pas faite?\b|manque)/.test(normalizedMsg)
+            ? "missed"
+            : "completed";
+        const evidenceToken = titleTokens(named.item.title)
+          .find((token) => normalizedMsg.includes(token));
+        turnFrame = {
+          ...turnFrame,
+          direct_effects: [...turnFrame.direct_effects, {
+            effect_type: "track_progress_plan_item",
+            explicitness: "explicit",
+            target_status: "identified",
+            confidence_band: "high",
+            payload_hint: {
+              target_item_id: named.item.id,
+              status_hint: statusHint,
+              correction: true,
+              retarget_from: lastCommit.target_item_id,
+              target_evidence: evidenceToken ?? named.item.title,
+            },
+          }],
+        };
+      }
+    }
+  }
+  // P6-H (paul-hard21 R1-B05): les intentions mémoire ACCUSÉES (« je note »)
+  // survivent à la fenêtre d'historique — buffer de session borné (mutation
+  // in-place, leçon P1-2), injecté aux tours de recall. Le memorizer
+  // nocturne reste la persistance durable ; ce buffer évite le désaveu sec
+  // (« je n'ai pas ce fait chargé ») d'un fait accusé 12 tours plus tôt.
+  if (SESSION_MEMORY_INTENT_PATTERN.test(userMessage)) {
+    const tm = tempMemory as Record<string, unknown>;
+    const existing = Array.isArray(tm.__session_memory_intents)
+      ? tm.__session_memory_intents as Array<Record<string, unknown>>
+      : [];
+    const text = userMessage.slice(0, 240);
+    if (!existing.some((entry) => String(entry?.text ?? "") === text)) {
+      existing.push({ text });
+      tm.__session_memory_intents = existing.slice(-5);
+    }
+  }
+  // P5-D/P5-F (probe P5-4 passe 5): BACKSTOP déterministe du TOUR-RÉPONSE à
+  // un clarify CREATE — le dispatcher rate parfois l'émission sur la réponse
+  // au créneau (« le soir, 20h ») ou sur la confirmation d'un brouillon
+  // (« ok crée-le »), et le composeur claimait sans commit. Quand un clarify
+  // create est en attente et que le message courant le résout, l'effet se
+  // synthétise depuis les slots persistés — toutes les gardes aval (belt,
+  // idempotence, past_time) restent entières.
+  // Une émission replace/reschedule sur ce tour est un MIS-MAP de la
+  // complétion (pattern P2-3d recopié) : il n'existe RIEN à remplacer, le
+  // pending est un CREATE en attente de créneau (probe P5-4 passe 9 :
+  // blocked replace_payload_incomplete + claim). Elle se substitue. Un
+  // intent=cancel émis (« laisse tomber ») n'est JAMAIS coercé.
+  const reminderEffectsInFrame = turnFrame.direct_effects.filter((effect) =>
+    effect.effect_type === "create_one_shot_reminder"
+  );
+  const frameReminderIntent = reminderEffectsInFrame.length > 0
+    ? String(
+      (reminderEffectsInFrame[0].payload_hint as
+        | Record<string, unknown>
+        | undefined)?.intent ?? "create",
+    )
+    : null;
+  if (
+    frameReminderIntent === null ||
+    frameReminderIntent === "replace" ||
+    frameReminderIntent === "reschedule"
+  ) {
+    // Borné au TOUR où le clarify vient d'être exposé au dispatcher
+    // (pendingClarificationForTurn) — jamais sur un tour ultérieur où une
+    // heure anodine (« j'ai rdv à 15h ») synthétiserait un faux create.
+    const exposedCreateClarify = pendingClarificationForTurn &&
+        (pendingClarificationForTurn as Record<string, unknown>)
+            .effect_type === "create_one_shot_reminder" &&
+        (pendingClarificationForTurn as Record<string, unknown>).intent ===
+          "create"
+      ? pendingClarificationForTurn as unknown as {
+        known_slots: Record<string, unknown> | null;
+      }
+      : null;
+    const pendingCreateSlots = exposedCreateClarify?.known_slots ?? null;
+    if (pendingCreateSlots) {
+      const normalizedAnswer = userMessage.normalize("NFD")
+        .replace(/\p{Diacritic}/gu, "").replace(/[’']/g, " ").toLowerCase();
+      const hourMatch = normalizedAnswer.match(/\b(\d{1,2})\s*h\s*(\d{2})?\b/);
+      const saysEvening = /\b(soir|soiree|aprem|apres midi)\b/.test(
+        normalizedAnswer,
+      );
+      const confirmsDraft = String(pendingCreateSlots.UTC_time ?? "").trim() &&
+        /\b(ok|oui|vas ?y|valide|parfait|c est bon|cree ?le|cree ?la|go)\b/
+          .test(normalizedAnswer);
+      const storedInstruction = String(
+        pendingCreateSlots.instruction_hint ?? "",
+      ).trim();
+      let synthesizedWhenHint: string | null = null;
+      if (hourMatch) {
+        let hour = Number(hourMatch[1]);
+        const minutes = hourMatch[2] ?? "00";
+        if (saysEvening && hour < 12) hour += 12;
+        const storedWhen = `${pendingCreateSlots.when_hint ?? ""} ${
+          pendingCreateSlots.raw_text ?? ""
+        }`.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
+        const dayToken = /apres[- ]demain/.test(storedWhen)
+          ? "après-demain"
+          : /demain/.test(storedWhen)
+          ? "demain"
+          : "";
+        synthesizedWhenHint = `${dayToken} à ${hour}h${minutes}`.trim();
+      }
+      if (synthesizedWhenHint || confirmsDraft) {
+        turnFrame = {
+          ...turnFrame,
+          // L'effet mal émis (replace/reschedule) est SUBSTITUÉ, jamais
+          // cumulé — un seul effet rappel sur ce tour.
+          direct_effects: [
+            ...turnFrame.direct_effects.filter((effect) =>
+              effect.effect_type !== "create_one_shot_reminder"
+            ),
+            {
+              effect_type: "create_one_shot_reminder",
+              explicitness: "explicit",
+              target_status: "identified",
+              confidence_band: "high",
+              payload_hint: {
+                intent: "create",
+                raw_text: userMessage,
+                ...(synthesizedWhenHint
+                  ? { when_hint: synthesizedWhenHint }
+                  : {
+                    when_hint: String(pendingCreateSlots.when_hint ?? "") ||
+                      undefined,
+                    UTC_time: String(pendingCreateSlots.UTC_time ?? "") ||
+                      undefined,
+                    local_label: String(pendingCreateSlots.local_label ?? "") ||
+                      undefined,
+                  }),
+                ...(storedInstruction
+                  ? { instruction_hint: storedInstruction }
+                  : {}),
+              },
+            },
+          ],
+        };
+      }
+    }
+  }
   const dispatcherLatencyMs = Date.now() - dispatcherStart;
 
   let currentActiveSkillState = activeFlowState.activeSkillState;
@@ -1253,7 +1931,21 @@ export async function processMessage(
   let presenceNowIso = "";
   if (routeDecision.response_owner === "presence_conversation") {
     const presenceSignal = turnFrame.skill_signals.presence_conversation;
-    const presenceKind = presenceSignal?.context?.kind ?? "maintain";
+    // P7-E (rose-untested22 R1-B02): INVARIANT INTRA-FRAME — quand le
+    // dispatcher classe lui-même le tour en LECTURE factuelle
+    // (memory_plan.response_intent recap/statut), un kind=maintain co-émis
+    // est incohérent: la présence cède (topic_change → poubelle + re-dispatch
+    // global du même tour, cmd 17), seule la réponse normale possède la
+    // projection DB. Champ structuré du frame, pas une lecture du message.
+    const responseIntentForPresence = String(
+      turnFrame.memory_plan?.response_intent ?? "",
+    ).toLowerCase();
+    const factualIntentOverridesPresence =
+      responseIntentForPresence.includes("recap") ||
+      responseIntentForPresence.includes("status");
+    const presenceKind = factualIntentOverridesPresence
+      ? "topic_change"
+      : presenceSignal?.context?.kind ?? "maintain";
     presenceNowIso = turnFrame.direct_effect_time_context?.now_utc ??
       new Date().toISOString();
     const presenceLocalDate =
@@ -1419,6 +2111,50 @@ export async function processMessage(
         };
       }
     }
+    // P4-C (nina-p3reval R1-B03): BACKSTOP DÉTERMINISTE du différé honnête —
+    // en stabilizing, une demande de rappel explicite passait parfois sous
+    // les radars des DEUX LLM (dispatcher global ET local): zéro effet émis
+    // = différé AVALÉ en silence (« je le garde pour après » jamais dit,
+    // contrairement au tour d'idéation). L'intake déterministe re-détecte la
+    // demande sur le message et force le stage product_tool_boundary + la
+    // conservation du différé.
+    if (
+      precomputedSafetyCrisisLocalDispatcherOutput &&
+      !safetyDirectEffectDecision.deferred_reason &&
+      !localOneShotDirectEffect &&
+      !turnFrame.direct_effects.some((effect) =>
+        effect.effect_type === "create_one_shot_reminder"
+      )
+    ) {
+      const deterministicIntake = classifyOneShotReminderDirectIntent(
+        userMessage,
+      );
+      if (
+        deterministicIntake.detected &&
+        // P7-A: « reschedule » n'existe pas dans l'union de l'intake — la
+        // comparaison était morte (TS2367) et un « décale-le » en
+        // stabilizing échappait au backstop du différé; l'intent réel d'un
+        // déplacement est `modify_request`.
+        (deterministicIntake.intent === "create" ||
+          deterministicIntake.intent === "modify_request")
+      ) {
+        precomputedSafetyCrisisLocalDispatcherOutput = {
+          ...precomputedSafetyCrisisLocalDispatcherOutput,
+          product_tool_boundary: {
+            attempted: true,
+            attempt_kind: "tool_creation",
+            defer_reason: "safety_active",
+          },
+        };
+        storeSafetyDeferredReminder({
+          temp_memory: tempMemory as Record<string, unknown>,
+          known_slots: {
+            raw_text: userMessage,
+            when_hint: deterministicIntake.time_expression ?? null,
+          },
+        });
+      }
+    }
   }
 
   const directEffectGateResult = await runEffectGateOrchestrator({
@@ -1470,6 +2206,15 @@ export async function processMessage(
   let localFlowExitRedispatchCount = 0;
   let reminderDirectEffectReexecuted = false;
   let trackProgressReexecuted = false;
+  // P5-A (paul-p4verify T12): mémoire de commit du TOUR, indépendante du
+  // turnFrame — un redispatch de sortie de flow RECONSTRUIT le frame et perd
+  // le runtime committed, donc turnFrameHasCommittedOneShotReminder seul
+  // laissait la lane se ré-exécuter (et produire un blocked contredisant le
+  // committed du même ledger). Un commit de rappel dans ce tour = plus
+  // jamais de ré-exécution de la lane, quel que soit l'état du frame.
+  let oneShotReminderCommittedThisTurn = turnFrameHasCommittedOneShotReminder(
+    turnFrame,
+  );
 
   visibleOwnerDispatch: while (true) {
     // Direct-effect execution is a turn-level concern, not tied to whichever flow
@@ -1484,7 +2229,8 @@ export async function processMessage(
       localFlowExitRedispatchCount > 0 &&
       !reminderDirectEffectReexecuted &&
       turnFrameHasRunnableDirectEffect(turnFrame, "create_one_shot_reminder") &&
-      !turnFrameHasCommittedOneShotReminder(turnFrame)
+      !turnFrameHasCommittedOneShotReminder(turnFrame) &&
+      !oneShotReminderCommittedThisTurn
     ) {
       reminderDirectEffectReexecuted = true;
       const reexecReminderLane = await runDirectEffectLane({
@@ -1520,6 +2266,8 @@ export async function processMessage(
         directRuntime: reexecReminderLane.operationRuntime,
         visibleRuntime: operationRuntime,
       });
+      oneShotReminderCommittedThisTurn = oneShotReminderCommittedThisTurn ||
+        turnFrameHasCommittedOneShotReminder(turnFrame);
     }
     // Meme logique pour track_progress: sous flow local actif, le dispatcher
     // global est saute, donc un report d'action qui provoque l'exit du flow
@@ -1685,6 +2433,18 @@ export async function processMessage(
           channel,
           scope,
         });
+        // P4-C (paul-p3verify R1-W02): traîne conversation_risk committée
+        // aussi sur ce chemin de retour anticipé (leçon P3: tous les
+        // chemins, pas seulement le nominal).
+        tempMemory = commitPostTurnRiskTrail(
+          tempMemory as Record<string, unknown>,
+          {
+            runtimeSafetyRiskBand,
+            turnFrameRiskBand: turnFrame.safety?.risk_band,
+            routeIsSafety: false,
+            sourceMessageId: turnFrame.source_message_id ?? null,
+          },
+        );
         await updateUserState(supabase, userId, scope, {
           current_mode: "companion",
           temp_memory: tempMemory,
@@ -1763,6 +2523,32 @@ export async function processMessage(
           exclusions: [],
           precomputed_safety_crisis_local_dispatcher_output:
             precomputedSafetyCrisisLocalDispatcherOutput,
+          // P7-A (paul-p6reval R1-B06): une question de recall bénigne posée
+          // PENDANT le flow safety reçoit au minimum un accusé — le silence
+          // total (2 tours de suite observés) est un déni de la demande.
+          // P8-E (paul-untested22 R1 T14): le canal couvre AUSSI le readout
+          // READ-ONLY des rappels (« redis-moi mes rappels de demain ») —
+          // classé deferred_product_or_tool_request, il restait avalé sous le
+          // bucket produit/outil; les facts viennent de la DB (lecture pure).
+          benign_recall_request: isMemoryRecallQuestion(userMessage) ||
+              isReminderReadoutQuestion(userMessage)
+            ? {
+              asked: true,
+              facts: [
+                ...(isMemoryRecallQuestion(userMessage)
+                  ? collectSessionMemoryIntents(tempMemory, history)
+                  : []),
+                ...(isReminderReadoutQuestion(userMessage)
+                  ? await pendingReminderReadoutFacts({
+                    supabase,
+                    userId,
+                    timezone: userTime?.timezone ?? meta?.clientTimezone ??
+                      null,
+                  })
+                  : []),
+              ],
+            }
+            : null,
         },
       });
       const skillLatencyMs = Date.now() - skillStart;
@@ -1849,6 +2635,18 @@ export async function processMessage(
         channel,
         scope,
       });
+      // P4-C (paul-p3verify R1-W02): la traîne conversation_risk se commit
+      // AUSSI sur le chemin de retour safety — une crise directe (sans tour
+      // medium préalable) laissait le pregate à zéro pour toute la session.
+      tempMemory = commitPostTurnRiskTrail(
+        tempMemory as Record<string, unknown>,
+        {
+          runtimeSafetyRiskBand,
+          turnFrameRiskBand: turnFrame.safety?.risk_band,
+          routeIsSafety: true,
+          sourceMessageId: turnFrame.source_message_id ?? null,
+        },
+      );
       await updateUserState(supabase, userId, scope, {
         current_mode: "sentry",
         temp_memory: tempMemory,
@@ -2009,6 +2807,8 @@ export async function processMessage(
           directRuntime: directEffectLane.operationRuntime,
           visibleRuntime: operationRuntime,
         });
+        oneShotReminderCommittedThisTurn = oneShotReminderCommittedThisTurn ||
+          turnFrameHasCommittedOneShotReminder(turnFrame);
         return { turn_frame: turnFrame };
       };
       const skillOutput = skillId === "product_help"
@@ -2177,6 +2977,18 @@ export async function processMessage(
           channel,
           scope,
         });
+        // P4-C (paul-p3verify R1-W02): traîne conversation_risk committée
+        // aussi sur ce chemin de retour anticipé (leçon P3: tous les
+        // chemins, pas seulement le nominal).
+        tempMemory = commitPostTurnRiskTrail(
+          tempMemory as Record<string, unknown>,
+          {
+            runtimeSafetyRiskBand,
+            turnFrameRiskBand: turnFrame.safety?.risk_band,
+            routeIsSafety: false,
+            sourceMessageId: turnFrame.source_message_id ?? null,
+          },
+        );
         await updateUserState(supabase, userId, scope, {
           current_mode: "companion",
           temp_memory: tempMemory,
@@ -2267,12 +3079,43 @@ export async function processMessage(
     // mémoire durable potentiellement vide — la réponse restitue depuis
     // l'HISTORIQUE de cette conversation, jamais une liste de techniques
     // substituée. Directive de tour, déclenchée par le plan du frame.
-    String(turnFrame.memory_plan?.response_intent ?? "").toLowerCase()
-        .includes("recall")
+    // P4-C (paul-p3verify R1-B03): le fallback historique saisissait le pic
+    // ÉMOTIONNEL (contenu de crise) et l'attribuait à la demande de
+    // mémorisation — les messages où le user a EXPLICITEMENT demandé de
+    // retenir quelque chose sont maintenant injectés verbatim.
+    // P5-G (paul-p4verify R1 T15): le déclencheur ne dépend plus du SEUL
+    // response_intent LLM (un tour multi-intent le classait ailleurs et le
+    // bloc entier sautait) — une question de recall détectée sur le MESSAGE
+    // arme aussi la directive.
+    (String(turnFrame.memory_plan?.response_intent ?? "").toLowerCase()
+        .includes("recall") ||
+        isMemoryRecallQuestion(userMessage))
       ? [
         "=== RECALL (restitution demandée) ===",
         "Si la mémoire durable ne porte pas le fait demandé, cherche-le dans l'historique de CETTE conversation (le user l'a peut-être confié il y a quelques tours) et restitue-le exactement.",
+        "Le fait demandé est celui que le user a EXPLICITEMENT confié (« retiens que… », « garde en tête… », « faut que tu saches… »). N'attribue JAMAIS un contenu de crise ou de détresse (idées noires, idéation, effondrement) à une demande de mémorisation: ce que le user a traversé n'est pas ce qu'il a demandé de retenir.",
         "Introuvable des deux côtés → dis-le honnêtement en une phrase. Ne substitue JAMAIS une liste d'outils, de techniques ou un récap générique à la place du fait demandé.",
+        ...(() => {
+          // P5-G: conjugaisons couvertes — « que tu retiennes » (paul T1)
+          // échappait au pattern, l'injection verbatim restait VIDE et la
+          // saillance émotionnelle gagnait (contenu de crise restitué).
+          // P6-H (paul-hard21 R1-B05): union avec le BUFFER DE SESSION des
+          // intentions accusées — un fait confié au T1 tombé hors de la
+          // fenêtre d'historique n'est plus désavoué à froid.
+          const explicitIntents = collectSessionMemoryIntents(
+            tempMemory,
+            history,
+          ).map((text) => `- « ${text} »`);
+          return explicitIntents.length > 0
+            ? [
+              "Messages où le user a demandé de retenir quelque chose (verbatim, SOURCE UNIQUE de la restitution):",
+              ...explicitIntents,
+              "Ta restitution COMMENCE par le fait énoncé dans ces messages, reformulé fidèlement. Tout autre souvenir de la conversation (y compris émotionnel) est HORS SUJET pour « ce que tu m'as demandé de retenir ».",
+            ]
+            : [
+              "Aucune intention mémoire explicite trouvée dans la session et la mémoire durable ne porte peut-être pas encore ce fait: dis alors qu'il n'est pas encore consolidé (la consolidation se fait la nuit) — JAMAIS un désaveu sec (« je n'ai pas ce fait chargé ») d'un fait que tu as accusé plus tôt.",
+            ];
+        })(),
       ].join("\n")
       : null,
     // P2-7a (eva-global17 R1-B01): TRAINE COURTE post-détresse — le pregate
@@ -2291,6 +3134,41 @@ export async function processMessage(
       return [
         "=== TRAINE POST-DETRESSE (le tour precedent etait charge) ===",
         "Le message precedent portait une detresse reelle. Meme si ce tour execute un effet legitime (rappel, coche), la composition reste SOUTIEN D'ABORD: ouvre par la presence a ce que la personne traverse; la confirmation de l'effet vient EN FIN, en une ligne sobre. Ne commence JAMAIS par 'C'est pose/note/cale pour...'.",
+      ].join("\n");
+    })(),
+    // P4-C (paul-p3verify R1-B03): rappel différé pendant une crise — au
+    // premier tour non-safety, la promesse « je te le remets sur la table »
+    // se TIENT: offre sobre de le poser (ou confirmation si la lane vient de
+    // le committer sur une re-demande).
+    (() => {
+      const deferred = (tempMemory as Record<string, unknown>)
+        ?.[SAFETY_DEFERRED_REMINDER_RUNTIME_KEY] as
+          | Record<string, unknown>
+          | undefined;
+      if (!deferred || deferred.mode !== "deferred") return null;
+      const slots = (deferred.known_slots ?? {}) as Record<string, unknown>;
+      const hint = [slots.instruction_hint, slots.when_hint]
+        .filter(Boolean).join(" — ") ||
+        String(slots.raw_text ?? "").slice(0, 160);
+      // P6-B (paul-hard21 R1-B02): pendant que le flow safety est ENCORE
+      // actif, le différé est ACCUSÉ (jamais le silence total) — si le user
+      // le redemande, la réponse dit honnêtement qu'il est gardé de côté,
+      // sans le créer ni l'ignorer. La promesse ne devient exécutable qu'à
+      // la sortie du flow.
+      if (routeDecision.response_owner === "safety") {
+        return [
+          "=== RAPPEL GARDE DE COTE (moment difficile en cours) ===",
+          `Un rappel demandé est gardé de côté : ${hint}.`,
+          "Si le user le redemande ou s'en inquiète ce tour: dis en UNE ligne sobre que tu le gardes toujours pour après (« je l'ai de côté, on le pose dès que ça va mieux ») — ne l'ignore JAMAIS en silence, ne le crée pas, ne dis jamais qu'il est posé.",
+        ].join("\n");
+      }
+      return [
+        "=== RAPPEL DIFFERE PENDANT LE MOMENT DIFFICILE ===",
+        `Un rappel demandé pendant le moment difficile a été mis de côté (« je le garde pour après ») : ${hint}.`,
+        "Si l'outcome de ce tour montre qu'il vient d'être posé, confirme sobrement. Sinon, propose en UNE ligne douce de le poser maintenant que ça va mieux — sans insister si le user décline. Ne le présente JAMAIS comme déjà créé.",
+        // P7-A (paul-p6reval R1-B03, probe P7-1 passe 7): le moment difficile
+        // est PASSÉ — re-différer ici relance la boucle observée.
+        "INTERDIT de re-différer sur ce tour (« je le garde pour après », « on verra plus tard », « là on reste sur toi ») : la promesse se SOLDE maintenant — propose de le poser (« on le pose maintenant ? ») ou confirme s'il vient d'être posé.",
       ].join("\n");
     })(),
   ].filter(Boolean).join("\n\n") || undefined;
@@ -2373,6 +3251,13 @@ export async function processMessage(
       // contrainte de style session — la presence promettait « je retiens »
       // puis répondait en pavé. L'engagement PRIME aussi en mode ami.
       sessionStyleCommitmentsPromptBlock(tempMemory) ?? "",
+      // P7-B (rose-hard19 R1-B01): le contrat d'outcome des effets du tour
+      // ENTRE dans la prose du flow — un rappel COMMITTÉ pendant la présence
+      // était nié par le template d'honnêteté-durabilité (« je ne peux pas
+      // te programmer ça depuis le chat ») faute de voir l'issue. Le strip
+      // produit reste entier pour tout le reste; la règle (5) du contrat
+      // fait primer un committed sur toute note de scope du flow.
+      directEffectConfirmationContextPrompt(turnFrame) ?? "",
       buildContextString(stripToPresenceContext(contextLoadResult.context)),
       thread.block,
     ].filter((part) => part && part.trim().length > 0).join("\n\n");
@@ -2458,42 +3343,18 @@ export async function processMessage(
       sessionStyleCommitmentHintForTurn,
     );
   }
-  // P2-4a: vieillissement du marqueur de dernier commit track (mutation
-  // in-place — la garde de bascule de cible ne regarde que le tour N-1).
-  ageLastTrackCommitMarker(tempMemory, turnFrame.source_message_id ?? null);
-  // P2-7a: mémoire d'un tour du band effectif — alimente la TRAINE
-  // POST-DETRESSE du tour suivant (commit post-génération, zone sûre).
-  // P3-A: + historique de scores pour la traîne du pregate
-  // (conversation_risk) — band → score (medium 6, high 9, critical 10),
-  // majoré à 10 si le tour était une crise (owner safety).
-  {
-    const effectiveBand = String(
-      runtimeSafetyRiskBand ?? turnFrame.safety?.risk_band ?? "none",
-    );
-    const bandScore = effectiveBand === "critical"
-      ? 10
-      : effectiveBand === "high"
-      ? 9
-      : effectiveBand === "medium"
-      ? 6
-      : effectiveBand === "low"
-      ? 2
-      : 0;
-    const turnScore = isSafetyRoute(routeDecision)
-      ? Math.max(bandScore, 10)
-      : bandScore;
-    const previousTrail = Array.isArray(
-        (tempMemory as Record<string, unknown>).__conversation_risk_scores,
-      )
-      ? (tempMemory as Record<string, unknown>)
-        .__conversation_risk_scores as number[]
-      : [];
-    tempMemory = {
-      ...(tempMemory as Record<string, unknown>),
-      __last_turn_risk_band: effectiveBand,
-      __conversation_risk_scores: [...previousTrail, turnScore].slice(-5),
-    };
-  }
+  // P2-4a + P2-7a + P3-A + P4-C: vieillissement du marqueur track + traîne
+  // conversation_risk — helper partagé avec les chemins de retour safety et
+  // skill-owner (paul-p3verify R1-W02: seule cette zone committait).
+  tempMemory = commitPostTurnRiskTrail(
+    tempMemory as Record<string, unknown>,
+    {
+      runtimeSafetyRiskBand,
+      turnFrameRiskBand: turnFrame.safety?.risk_band,
+      routeIsSafety: isSafetyRoute(routeDecision),
+      sourceMessageId: turnFrame.source_message_id ?? null,
+    },
+  );
   // Commit de l'état présence sur la tempMemory finale (post-génération) pour
   // ne pas se faire écraser par le générateur: enter/maintain → persiste le
   // flow (collant), exit → efface (poubelle + re-dispatch global au prochain

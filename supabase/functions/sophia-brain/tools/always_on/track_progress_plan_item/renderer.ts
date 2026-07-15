@@ -7,13 +7,21 @@ export function renderTrackProgressLoggedReply(
   effect: TrackProgressCommittedEffect | null | undefined,
 ): string | null {
   if (!effect?.logged_progress_id) return null;
+  // P4-A (rose-hard16 R1-B01): une correction de cible executee enonce les
+  // DEUX moities — le commit ET le retrait sur l'ancienne cible. Le retrait
+  // silencieux laissait le user croire que l'entree erronee comptait encore.
+  const retargetSuffix = effect.retarget_invalidated
+    ? effect.retarget_from_title
+      ? ` — et je l'ai retiré de « ${effect.retarget_from_title} ».`
+      : " — et j'ai retiré l'entrée erronée de l'autre action."
+    : ".";
   if (effect.progress_status === "missed") {
-    return `C'est noté : ${effect.target_title} est marqué comme raté.`;
+    return `C'est noté : ${effect.target_title} est marqué comme raté${retargetSuffix}`;
   }
   if (effect.progress_status === "partial") {
-    return `C'est noté : ${effect.target_title} est marqué comme partiel.`;
+    return `C'est noté : ${effect.target_title} est marqué comme partiel${retargetSuffix}`;
   }
-  return `C'est noté : ${effect.target_title} est marqué comme fait.`;
+  return `C'est noté : ${effect.target_title} est marqué comme fait${retargetSuffix}`;
 }
 
 export function renderTrackProgressClarification(reasonCode: string): string {

@@ -18,7 +18,9 @@ function safetyBlocksGlobalRoute(riskBand: RiskBand): boolean {
 // Le vocabulaire est canonique (contrat dispatcher regle 1d): le prompt
 // decide du code, la route agit sur le fait. Les codes pregate equivalents
 // sont inclus pour couvrir la frame neutre des flows locaux.
-const DISTRESS_IDEATION_REASON_CODES = new Set([
+// P5-A: exporté — la lane direct-effect (operation_runtime_pipeline) consomme
+// le même vocabulaire pour son verrou turn-level (source de vérité unique).
+export const DISTRESS_IDEATION_REASON_CODES = new Set([
   "suicidal_ideation_passive",
   "suicidal_ideation",
   "explicit_suicidal_thoughts",
@@ -218,18 +220,21 @@ export function runConversationRouters(input: {
     safetyBlocksGlobalRoute(riskBand) ||
     safetyBlocksGlobalRoute(input.safety_context_risk_band)
   ) {
-    const safetyAllowedDirectEffects = directEffectsToRun.filter((effect) =>
-      effect === "create_one_shot_reminder"
-    );
+    // P5-A (paul-p4verify T12): plus AUCUN carve-out rappel à high/critical.
+    // L'exception V5-1 (rappel bénin explicite servi) ne vit QUE sur la
+    // branche distress_support (medium non-crise) plus bas. Ici, le rappel
+    // demandé est DIFFÉRÉ honnêtement par la lane (safety_crisis_deferred +
+    // persistance __safety_deferred_reminder pour re-serve post-crise),
+    // jamais committé — parité avec les branches active_safety_crisis et
+    // distress_ideation (P3-A).
     return buildRouteDecision({
       response_owner: "safety",
       selected_handler: "safety_crisis",
-      direct_effects_to_run: safetyAllowedDirectEffects,
+      direct_effects_to_run: [],
       reason_code: "safety_high_critical_priority",
       blocked_paths: [
         ...blockedPaths,
         ...directEffectsToRun
-          .filter((effect) => effect !== "create_one_shot_reminder")
           .map((effect) => ({
             path: `direct_effects.${effect}`,
             reason_code: "safety_priority",

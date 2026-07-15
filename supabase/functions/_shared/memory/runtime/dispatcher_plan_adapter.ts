@@ -228,6 +228,11 @@ function runtimeOverrideForMemoryNone(args: {
     scopes.push("topic");
     if (!args.signals.action_related.detected) scopes.push("event");
   }
+  // P4-D (rose-hard16 R1-B03): une demande de conseil est LE tour où un fait
+  // mémorisé pertinent doit remonter (« vendredi soir = point fragile » sur
+  // un tour vendredi-soir) — memory_mode=none coupait tout retrieval et le
+  // conseil restait générique. Recall topic léger, routé sémantiquement.
+  if (args.signals.advice_seeking?.detected) scopes.push("topic");
   const requestedScopes = uniqScopes(scopes);
   if (requestedScopes.length === 0) return null;
   const budget = crossTopic || args.signals.high_emotion.detected ||

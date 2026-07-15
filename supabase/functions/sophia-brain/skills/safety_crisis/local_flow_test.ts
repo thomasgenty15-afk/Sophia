@@ -1713,3 +1713,208 @@ Deno.test("safety_crisis reducer consumes triage answers: danger denied + alone 
   });
   assertEquals(danger.phase, "acute_grounding");
 });
+
+// ── P6-B (paul-hard21 R1-B02, T14) ──────────────────────────────────────────
+
+Deno.test("safety_crisis reducer: moyens JAMAIS évoqués ⇒ confirmation explicite atteint exit_check puis resolved (P6-B, paul-hard21 R1-B02)", () => {
+  // T15 paul : « je me sens en sécurité, aucune envie de me faire du mal »,
+  // copine présente, AUCUN moyen évoqué de toute la crise. Avant le fix :
+  // means_safe_missing → sentry infini, différé orphelin.
+  const step1 = reduceSafetyCrisis({
+    previousState: {
+      phase: "stabilizing",
+      consecutive_deescalated_turns: 1,
+      // has_means_nearby jamais posé (null) — moyens hors du jeu.
+    },
+    sourceRiskBand: "medium",
+    signals: emptySafetySignal({
+      immediate_danger: false,
+      user_currently_alone: false,
+      human_support_available: true,
+      clarified_non_immediate: true,
+      deescalation_evidence: true,
+      uncertainty: "low",
+    }),
+    dispatcherOutput: dispatcherOutput({
+      flow_action: "provide_deescalation_evidence",
+    }),
+  });
+  assertEquals(step1.phase, "exit_check");
+  const step2 = reduceSafetyCrisis({
+    previousState: {
+      phase: "exit_check",
+      consecutive_deescalated_turns: 2,
+    },
+    sourceRiskBand: "medium",
+    signals: emptySafetySignal({
+      immediate_danger: false,
+      user_currently_alone: false,
+      human_support_available: true,
+      clarified_non_immediate: true,
+      deescalation_evidence: true,
+      uncertainty: "low",
+    }),
+    dispatcherOutput: dispatcherOutput({
+      flow_action: "wants_to_exit",
+      exit_request: {
+        requested: true,
+        why_user_thinks_safe:
+          "je me sens en sécurité, aucune envie de me faire du mal, ma copine est là",
+        missing_resolution_facts: [],
+      },
+    }),
+  });
+  assertEquals(step2.phase, "resolved");
+  assertEquals(step2.visibleTask.kind, "resolved_exit");
+});
+
+Deno.test("safety_crisis reducer: tours bénins band none SANS signaux locaux ⇒ promotion stabilizing→exit_check→resolved (P7-A, paul-p6reval R1-B03)", () => {
+  // T15-T16 paul : la crise est stabilisée (copine présente, « je ferais
+  // rien »), le user parle de son rappel kiné et de son recall — le
+  // dispatcher local n'émet PLUS aucun signal safety (tout à null). Avant le
+  // fix : la sortie exigeait que le tour courant re-confirme les faits →
+  // stabilizing infini, différé jamais re-servi.
+  const step1 = reduceSafetyCrisis({
+    previousState: {
+      phase: "stabilizing",
+      consecutive_deescalated_turns: 1,
+      human_support_mentioned: true,
+      // immediate_danger / has_means_nearby jamais posés (idéation passive).
+    },
+    sourceRiskBand: "none",
+    signals: emptySafetySignal({ uncertainty: "low" }),
+    dispatcherOutput: dispatcherOutput({
+      flow_action: "provide_support_status",
+    }),
+  });
+  assertEquals(step1.phase, "exit_check");
+  const step2 = reduceSafetyCrisis({
+    previousState: {
+      phase: "exit_check",
+      consecutive_deescalated_turns: 2,
+      human_support_mentioned: true,
+    },
+    sourceRiskBand: "none",
+    signals: emptySafetySignal({ uncertainty: "low" }),
+    dispatcherOutput: dispatcherOutput({
+      flow_action: "wants_to_exit",
+      exit_request: {
+        requested: true,
+        why_user_thinks_safe: "ça va vraiment mieux, c'était un coup de fatigue",
+        missing_resolution_facts: [],
+      },
+    }),
+  });
+  assertEquals(step2.phase, "resolved");
+});
+
+Deno.test("safety_crisis reducer: déni explicite persisté + bande none ⇒ sortie sans re-confirmation par-tour (P7-A, rose-hard19 R1-B03 paraphrase)", () => {
+  // T13 rose : « aucune envie de me faire du mal, zéro » (immediate_danger
+  // false PERSISTÉ), T14 : demande du rappel bénin, bande none, signaux
+  // locaux muets — la sortie consomme le fait établi.
+  const reduced = reduceSafetyCrisis({
+    previousState: {
+      phase: "exit_check",
+      consecutive_deescalated_turns: 1,
+      immediate_danger: false,
+      user_not_alone: true,
+      human_support_mentioned: true,
+    },
+    sourceRiskBand: "none",
+    signals: emptySafetySignal({ uncertainty: "low" }),
+    dispatcherOutput: dispatcherOutput({
+      flow_action: "wants_to_exit",
+      exit_request: {
+        requested: true,
+        why_user_thinks_safe: "je te l'ai dit, aucune envie de me faire du mal",
+        missing_resolution_facts: [],
+      },
+    }),
+  });
+  assertEquals(reduced.phase, "resolved");
+});
+
+Deno.test("safety_crisis reducer: idéation RÉ-EXPRIMÉE ou bande medium ⇒ aucune promotion, l'état colle (P7-A anti-FP)", () => {
+  // Nouveau signal de risque : le compteur retombe, pas de exit_check.
+  const reExpressed = reduceSafetyCrisis({
+    previousState: {
+      phase: "stabilizing",
+      consecutive_deescalated_turns: 2,
+      human_support_mentioned: true,
+    },
+    sourceRiskBand: "none",
+    signals: emptySafetySignal({
+      suicidal_ideation: true,
+      uncertainty: "low",
+    }),
+    dispatcherOutput: dispatcherOutput({
+      flow_action: "answer_safety_check",
+    }),
+  });
+  assert(reExpressed.phase !== "exit_check");
+  assert(reExpressed.phase !== "resolved");
+  // Bande encore medium : pas de crédit de désescalade par bande.
+  const stillMedium = reduceSafetyCrisis({
+    previousState: {
+      phase: "stabilizing",
+      consecutive_deescalated_turns: 1,
+      human_support_mentioned: true,
+    },
+    sourceRiskBand: "medium",
+    signals: emptySafetySignal({ uncertainty: "low" }),
+    dispatcherOutput: dispatcherOutput({
+      flow_action: "provide_support_status",
+    }),
+  });
+  assertEquals(stillMedium.phase, "stabilizing");
+});
+
+Deno.test("safety_crisis reducer: moyens ÉVOQUÉS ⇒ l'exigence stricte means_safe reste entière (P6-B anti-FP)", () => {
+  const blocked = reduceSafetyCrisis({
+    previousState: {
+      phase: "exit_check",
+      consecutive_deescalated_turns: 2,
+      has_means_nearby: true,
+    },
+    sourceRiskBand: "medium",
+    signals: emptySafetySignal({
+      immediate_danger: false,
+      user_currently_alone: false,
+      human_support_available: true,
+      clarified_non_immediate: true,
+      deescalation_evidence: true,
+      uncertainty: "low",
+    }),
+    dispatcherOutput: dispatcherOutput({
+      flow_action: "wants_to_exit",
+      exit_request: {
+        requested: true,
+        why_user_thinks_safe: "ça va mieux",
+        missing_resolution_facts: [],
+      },
+    }),
+  });
+  assert(blocked.phase !== "resolved");
+});
+
+Deno.test("safety_crisis reducer: aucune consigne moyens quand aucun moyen évoqué (P6-B, paul-hard21 T14)", () => {
+  const reduced = reduceSafetyCrisis({
+    previousState: { phase: "support_contact" },
+    sourceRiskBand: "medium",
+    signals: emptySafetySignal({
+      immediate_danger: false,
+      user_currently_alone: false,
+      clarified_non_immediate: false,
+      uncertainty: "medium",
+    }),
+    dispatcherOutput: dispatcherOutput({
+      flow_action: "provide_deescalation_evidence",
+    }),
+  });
+  assertEquals(
+    reduced.visibleTask.conversation_context.do_not_say.some((line) =>
+      line.includes("no means were ever mentioned")
+    ),
+    true,
+  );
+});

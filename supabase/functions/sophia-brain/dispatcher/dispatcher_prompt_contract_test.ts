@@ -733,6 +733,47 @@ Deno.test("dispatcher prompt carries night-time anchoring and cardinality contra
   );
 });
 
+Deno.test("dispatcher prompt: demande explicite de potion = coaching_recommendation, jamais un rappel substitue (P8-B, eva-hard23 T6/T7)", () => {
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes("DEMANDE EXPLICITE DE POTION"),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "n'emets JAMAIS create_one_shot_reminder comme substitut d'une potion",
+    ),
+    true,
+  );
+  // Anti-faux-positif: la vraie co-demande de rappel reste servie.
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "'et rappelle-moi a 22h de la faire') garde son create normal",
+    ),
+    true,
+  );
+});
+
+Deno.test("dispatcher prompt: co-demande de N rappels = N entrees direct_effects (P8-A, rose-p7verify T13/T14)", () => {
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes("CO-DEMANDE DE N RAPPELS"),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "emets UNE entree direct_effects.create_one_shot_reminder PAR rappel",
+    ),
+    true,
+  );
+  // Anti-faux-positif dans le contrat: alternative « jeudi ou samedi » = UNE
+  // entree; recurrence = zero entree.
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "reste UNE entree (clarify du choix)",
+    ),
+    true,
+  );
+});
+
 Deno.test("dispatcher prompt keeps presence-first altitude on emotional lows (eva-r1 T1)", () => {
   // Charge emotionnelle basse sans demande de levier => reponse normale
   // d'accueil, pas de signal coaching par reflexe (generalisation de la
@@ -975,6 +1016,172 @@ Deno.test("dispatcher prompt captures session style constraints at the turn fram
   // Session-only: jamais une préférence durable (BF-PREF-01).
   assertEquals(
     DISPATCHER_V2_SYSTEM_PROMPT.includes("Ce hint est session-only"),
+    true,
+  );
+});
+
+// ── P5-H (vague 13/07 soir bis) ─────────────────────────────────────────────
+
+Deno.test("dispatcher prompt: mise en doute factuelle sante ⇒ needs_research (P5-H, nina-global20 T2)", () => {
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "Une MISE EN DOUTE explicite d'une affirmation factuelle en domaine sante/nutrition/science",
+    ),
+    true,
+  );
+  // Anti-faux-positif conservé: question personnelle/coaching → false.
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "ou de coaching sans besoin d'infos externes → value=false",
+    ),
+    true,
+  );
+});
+
+Deno.test("dispatcher prompt: depot reflexif sans pull ⇒ rester, jamais proposer (P5-H, alex-untested20 T8)", () => {
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "Un depot reflexif auto-derisoire",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "le doute bascule vers rester (presence/accueil), jamais vers proposer",
+    ),
+    true,
+  );
+  // Anti-faux-positif conservé: pull explicite → coaching.
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      'un pull explicite ("je suis preneuse", "tu ferais quoi ?", "aide-moi") route coaching_recommendation normalement',
+    ),
+    true,
+  );
+});
+
+Deno.test("dispatcher prompt: capacite produit inexistante ⇒ feature_opportunity, zero speculation (P5-H, alex-untested20 T6)", () => {
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "Une demande de CAPACITE produit qui n'existe pas",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "JAMAIS une reponse normale qui specule sur des integrations",
+    ),
+    true,
+  );
+});
+
+Deno.test("dispatcher prompt: devalorisation implicite ⇒ accueil d'abord, pas de pitch (P5-H, rose-hard17 T1)", () => {
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "La devalorisation IMPLICITE compte aussi",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "aucun pitch de dispositif dans la meme reponse",
+    ),
+    true,
+  );
+});
+
+// ── P6-E (vague 21) ─────────────────────────────────────────────────────────
+
+Deno.test("dispatcher prompt: recap read-only jamais plan_realignment, mutation exigee (P6-E, alex-untested21 R1-B01)", () => {
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "plan_realignment exige une intention de MUTATION du plan",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "l'expression d'un FLOU n'en est pas une",
+    ),
+    true,
+  );
+  // Anti-faux-positif conservé.
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      '"allege mon plan, c\'est devenu trop lourd" reste plan_realignment',
+    ),
+    true,
+  );
+});
+
+Deno.test("dispatcher prompt: retractation d'un fait confie = accuse d'oubli, jamais plan_realignment (P6-E, eva-hard21 R1-B02)", () => {
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "Une RETRACTATION d'un fait confie",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "JAMAIS plan_realignment quand le fait retire n'est pas un item du plan actif",
+    ),
+    true,
+  );
+});
+
+Deno.test("dispatcher prompt: capacite produit explicite preempte presence pour le FAIT (P6-E, paul-hard21 R1-B03)", () => {
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "question de CAPACITE PRODUIT explicite",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "La detresse PURE sans question produit reste presence",
+    ),
+    true,
+  );
+});
+
+// ── P7-A (vague 22) ─────────────────────────────────────────────────────────
+
+Deno.test("dispatcher prompt: risque de rechute en plan de sevrage jamais classe ideation (P7-A, rose-hard19 R1-B02)", () => {
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes("RISQUE DE RECHUTE ≠ IDEATION"),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "designent la SUBSTANCE, pas la vie",
+    ),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "JAMAIS suicidal_ideation_passive",
+    ),
+    true,
+  );
+});
+
+Deno.test("dispatcher prompt: clause produit desambiguise « tout arreter / supprimer mon compte » (P7-A, rose-untested22 R1-B01)", () => {
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes("CLAUSE PRODUIT DESAMBIGUISANTE"),
+    true,
+  );
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "l'ideation exige un referent VIE/soi, pas un artefact produit",
+    ),
+    true,
+  );
+  // Anti-faux-positif ancre: « tout arreter » sans referent produit garde le
+  // traitement detresse normal.
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "SEUL, sans referent produit",
+    ),
     true,
   );
 });

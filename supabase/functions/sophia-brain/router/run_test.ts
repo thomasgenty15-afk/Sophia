@@ -15,7 +15,11 @@ import {
   buildTurnFrameForRuntime,
   effectLedgerTraceForTest,
   ensureClarifyQuestionVisible,
+  isReminderReadoutQuestion,
   mergeVisibleTextForTest,
+  stripCommitClaimBeforeClarify,
+  stripTrackClaimWithoutCommit,
+  stripUnfoundedReminderCapacityDenial,
 } from "./run.ts";
 
 function frame(patch: Partial<TurnFrame> = {}): TurnFrame {
@@ -112,7 +116,12 @@ const RETAINED_LOCAL_FLOW_IDS: ActiveLocalConversationFlowSkillId[] = [
   "safety_crisis",
 ];
 
-Deno.test("global router gives safety high critical priority while preserving one-shot reminder", () => {
+// P5-A (paul-p4verify T12) — recalibrage volontaire : l'ancien test préservait
+// le carve-out V5-1 à high/critical. Doctrine P3-A/P5-A : en crise, le rappel
+// explicite est BLOQUÉ à la route (reason safety_priority) et la lane le
+// diffère honnêtement (safety_crisis_deferred + __safety_deferred_reminder),
+// jamais committé. V5-1 ne vit que sur distress_support (medium non-crise).
+Deno.test("global router gives safety high critical priority and blocks one-shot reminder for honest deferral", () => {
   const decision = route(frame({
     safety: {
       risk_band: "critical",
@@ -133,7 +142,14 @@ Deno.test("global router gives safety high critical priority while preserving on
 
   assertEquals(decision.response_owner, "safety");
   assertEquals(decision.selected_handler, "safety_crisis");
-  assertEquals(decision.direct_effects_to_run, ["create_one_shot_reminder"]);
+  assertEquals(decision.direct_effects_to_run, []);
+  assertEquals(
+    decision.blocked_paths.some((path) =>
+      path.path === "direct_effects.create_one_shot_reminder" &&
+      path.reason_code === "safety_priority"
+    ),
+    true,
+  );
 });
 
 Deno.test("runtime turn frame builder does not call global dispatcher LLM during active local flow", async () => {
@@ -1045,4 +1061,441 @@ Deno.test("ensureClarifyQuestionVisible re-injects a suppressed clarify question
     ensureClarifyQuestionVisible(withoutQuestion, plainFrame),
     withoutQuestion,
   );
+});
+
+// ── P7-A (rose-hard19 R1-B03, rose-untested22 R1-B01): traîne conversation_risk
+// BIDIRECTIONNELLE — un tour safety en bande basse n'épingle plus 10. ────────
+Deno.test("commitPostTurnRiskTrail: tour safety bande none ⇒ score 0, la décroissance démarre (P7-A)", async () => {
+  const { commitPostTurnRiskTrail } = await import("./run.ts");
+  const next = commitPostTurnRiskTrail(
+    { __conversation_risk_scores: [10, 10] },
+    {
+      runtimeSafetyRiskBand: "none",
+      turnFrameRiskBand: "none",
+      routeIsSafety: true,
+      sourceMessageId: "m1",
+    },
+  );
+  assertEquals(next.__conversation_risk_scores, [10, 10, 0]);
+});
+
+Deno.test("commitPostTurnRiskTrail: tour safety AIGU (high/critical) garde la traîne pleine (P7-A anti-FP, intention P4-C préservée)", async () => {
+  const { commitPostTurnRiskTrail } = await import("./run.ts");
+  const acute = commitPostTurnRiskTrail(
+    {},
+    {
+      runtimeSafetyRiskBand: "high",
+      turnFrameRiskBand: "high",
+      routeIsSafety: true,
+      sourceMessageId: "m1",
+    },
+  );
+  assertEquals(acute.__conversation_risk_scores, [10]);
+  // Medium safety = 6 (vigilance réelle, plus jamais un pin à 10).
+  const medium = commitPostTurnRiskTrail(
+    {},
+    {
+      runtimeSafetyRiskBand: "medium",
+      turnFrameRiskBand: "medium",
+      routeIsSafety: true,
+      sourceMessageId: "m1",
+    },
+  );
+  assertEquals(medium.__conversation_risk_scores, [6]);
+  // Hors safety, la bande fait foi (inchangé).
+  const plain = commitPostTurnRiskTrail(
+    {},
+    {
+      runtimeSafetyRiskBand: "medium",
+      turnFrameRiskBand: "medium",
+      routeIsSafety: false,
+      sourceMessageId: "m1",
+    },
+  );
+  assertEquals(plain.__conversation_risk_scores, [6]);
+});
+
+// ── P7-F (rose-untested22 R1-B05): garde de cohérence de script en sortie ────
+Deno.test("stripForeignScriptTokens: retire un token devanagari, préserve emoji et accents (P7-F)", async () => {
+  const { stripForeignScriptTokens } = await import("./run.ts");
+  assertEquals(
+    stripForeignScriptTokens("je n'ai pas de पुष्टि ici pour un export 🙂"),
+    "je n'ai pas de ici pour un export 🙂",
+  );
+  // Anti-faux-positif: français accenté + emoji + chiffres intacts.
+  const clean = "C'est calé pour demain à 19h — bravo 💛 (2e jour d'affilée) !";
+  assertEquals(stripForeignScriptTokens(clean), clean);
+  // Fail-open: une réponse entièrement hors-script rend l'original.
+  assertEquals(stripForeignScriptTokens("პასუხი"), "პასუხი");
+});
+
+
+// ── P8-E (paul-untested22 R1 T14): readout READ-ONLY des rappels sous safety ─
+
+Deno.test("isReminderReadoutQuestion: readout servi, mutation et create jamais captés (P8-E)", () => {
+  // Positifs: restitution/inventaire.
+  assertEquals(
+    isReminderReadoutQuestion("redis-moi mes rappels de demain"),
+    true,
+  );
+  assertEquals(
+    isReminderReadoutQuestion("j'ai quoi comme rappels posés là ?"),
+    true,
+  );
+  assertEquals(
+    isReminderReadoutQuestion("dis-moi quels rappels il me reste"),
+    true,
+  );
+  // Anti-faux-positifs: un acte de création n'est pas un readout.
+  assertEquals(
+    isReminderReadoutQuestion("rappelle-moi demain d'appeler le kiné"),
+    false,
+  );
+  // Anti-faux-positifs: une mutation n'est pas un readout.
+  assertEquals(
+    isReminderReadoutQuestion("annule mon rappel de 22h"),
+    false,
+  );
+  assertEquals(
+    isReminderReadoutQuestion("décale mes rappels à demain"),
+    false,
+  );
+  // Anti-faux-positif: aucun nom « rappel » → jamais capté.
+  assertEquals(
+    isReminderReadoutQuestion("redis-moi ce que je t'avais dit de retenir"),
+    false,
+  );
+});
+
+
+// ── P8-F (eva-hard23 R1-B04): garde de rendu claim-avant-clarify ─────────────
+
+Deno.test("stripCommitClaimBeforeClarify: aucun verbe de commit ne survit sur un clarify de rappel sans commit (P8-F)", () => {
+  const clarifyFrame = frame({
+    direct_effects: [{
+      effect_type: "create_one_shot_reminder",
+      explicitness: "explicit",
+      target_status: "identified",
+      confidence_band: "high",
+      payload_hint: { raw_text: "rappel demain a 7" },
+    }],
+    direct_effect_lane: {
+      requested_effects: [{
+        type: "create_one_shot_reminder",
+        reason_code: "create",
+      }],
+      committed_effects: [],
+      blocked_effects: [{
+        type: "create_one_shot_reminder",
+        reason_code: "hour_meridiem_ambiguous",
+      }],
+      visible_confirmation_hint:
+        "Juste pour être sûre du créneau : 7h du matin, ou 19h ?",
+    },
+  } as any);
+  // Positif: la phrase de claim saute, la question reste.
+  const guarded = stripCommitClaimBeforeClarify(
+    "Je te le mets pour demain à 07:00. Juste pour être sûre du créneau : 7h du matin, ou 19h ?",
+    clarifyFrame,
+  );
+  assertEquals(/je te le mets/i.test(guarded), false);
+  assertEquals(guarded.includes("7h du matin, ou 19h ?"), true);
+  // Positif: texte 100% claim → la question contractuelle remplace tout.
+  const replaced = stripCommitClaimBeforeClarify(
+    "C'est fait, je te le pose pour demain à 07:00 ✅",
+    clarifyFrame,
+  );
+  assertEquals(/c'est fait|je te le pose/i.test(replaced), false);
+  assertEquals(replaced.length > 0, true);
+
+  // Anti-faux-positif: un COMMIT du même type existe (co-demande partielle
+  // P8-A) → « c'est fait pour jeudi » est vrai, rien n'est retiré.
+  const partialFrame = frame({
+    direct_effects: [{
+      effect_type: "create_one_shot_reminder",
+      explicitness: "explicit",
+      target_status: "identified",
+      confidence_band: "high",
+      payload_hint: { raw_text: "deux rappels" },
+    }],
+    direct_effect_lane: {
+      requested_effects: [
+        { type: "create_one_shot_reminder", reason_code: "create" },
+        { type: "create_one_shot_reminder", reason_code: "create" },
+      ],
+      committed_effects: [{
+        type: "create_one_shot_reminder",
+        id: "r-1",
+        scheduled_for: "2026-07-16T16:00:00.000Z",
+        local_label: "jeudi à 18h",
+        reminder_instruction: "appeler le médecin",
+      }],
+      blocked_effects: [{
+        type: "create_one_shot_reminder",
+        reason_code: "missing_time",
+      }],
+    },
+  } as any);
+  const untouched =
+    "C'est fait pour jeudi à 18h. Par contre, l'autre n'est pas posé — il me manque le créneau, tu veux quelle heure ?";
+  assertEquals(
+    stripCommitClaimBeforeClarify(untouched, partialFrame),
+    untouched,
+  );
+
+  // Anti-faux-positif: aucun outcome rappel → texte intact.
+  assertEquals(
+    stripCommitClaimBeforeClarify("C'est fait, bien joué !", frame()),
+    "C'est fait, bien joué !",
+  );
+});
+
+Deno.test("stripCommitClaimBeforeClarify: « bien décalé à jeudi » sur un ledger BLOQUÉ sans commit → strip, repli honnête (P9-C, alex-hard24 R1-B01)", () => {
+  const blockedFrame = frame({
+    direct_effects: [{
+      effect_type: "create_one_shot_reminder",
+      explicitness: "explicit",
+      target_status: "identified",
+      confidence_band: "high",
+      payload_hint: { raw_text: "decale le a jeudi soir meme heure" },
+    }],
+    direct_effect_lane: {
+      requested_effects: [{
+        type: "create_one_shot_reminder",
+        reason_code: "create",
+      }],
+      committed_effects: [],
+      blocked_effects: [{
+        type: "create_one_shot_reminder",
+        reason_code: "duplicate_pending",
+      }],
+    },
+  } as any);
+  // Le claim exact du run réel: participes de mutation + mots intercalés
+  // (« le rappel DE 22H est BIEN décalé ») — le motif P8-F d'origine le
+  // laissait passer.
+  const guarded = stripCommitClaimBeforeClarify(
+    "Le rappel de 22h est bien décalé à jeudi soir, même heure : brancher mon téléphone loin du lit.",
+    blockedFrame,
+  );
+  assertEquals(/d[ée]cal[ée]/i.test(guarded), false);
+  assertEquals(guarded.trim().length > 0, true);
+
+  // Paraphrase: « je l'ai déplacé » saute aussi.
+  const paraphrase = stripCommitClaimBeforeClarify(
+    "C'est bon, je l'ai déplacé à jeudi.",
+    blockedFrame,
+  );
+  assertEquals(/d[ée]plac[ée]/i.test(paraphrase), false);
+
+  // Anti-faux-positif: le DIFFÉRÉ SAFETY bloqué garde son accusé honnête
+  // (« je le garde pour après » est la vérité contractuelle du blocage).
+  const deferredFrame = frame({
+    direct_effects: [{
+      effect_type: "create_one_shot_reminder",
+      explicitness: "explicit",
+      target_status: "identified",
+      confidence_band: "high",
+      payload_hint: { raw_text: "rappel demain midi boire de l'eau" },
+    }],
+    direct_effect_lane: {
+      requested_effects: [{
+        type: "create_one_shot_reminder",
+        reason_code: "create",
+      }],
+      committed_effects: [],
+      blocked_effects: [{
+        type: "create_one_shot_reminder",
+        reason_code: "safety_deferred",
+      }],
+    },
+  } as any);
+  const deferredText =
+    "Pour le rappel de midi, je le garde pour après — là, on reste sur toi.";
+  assertEquals(
+    stripCommitClaimBeforeClarify(deferredText, deferredFrame),
+    deferredText,
+  );
+});
+
+Deno.test("stripUnfoundedReminderCapacityDenial: refus de capacité confabulé sans AUCUN outcome rappel → strip + récupération honnête (P10-C, eva-hard24 R1-B01)", () => {
+  // Tour multi-intent où le planner a perdu l'effet rappel: seul un track
+  // committé vit au frame — le refus « je ne peux pas le créer ici » est
+  // inventé (la capacité existe).
+  const trackOnlyFrame = frame({
+    direct_effects: [{
+      effect_type: "track_progress_plan_item",
+      explicitness: "explicit",
+      target_status: "identified",
+      confidence_band: "high",
+      payload_hint: { target_item_id: "puzzle", status_hint: "completed" },
+    }],
+    direct_effect_lane: {
+      requested_effects: [{
+        type: "track_progress_plan_item",
+        reason_code: "track",
+      }],
+      committed_effects: [{
+        type: "track_progress_plan_item",
+        target_title: "puzzle",
+        progress_status: "completed",
+      }],
+      blocked_effects: [],
+    },
+  } as any);
+  const guarded = stripUnfoundedReminderCapacityDenial(
+    "C'est noté pour le puzzle. Pour le rappel de demain à 19h, je ne peux pas le créer ici.",
+    trackOnlyFrame,
+  );
+  assertEquals(/je ne peux pas le creer/i.test(
+    guarded.normalize("NFD").replace(/\p{Diacritic}/gu, ""),
+  ), false);
+  assertEquals(guarded.includes("C'est noté pour le puzzle."), true);
+  assertEquals(/redonne-le moi/.test(guarded), true);
+
+  // Anti-faux-positif: un outcome rappel BLOQUÉ existe (raison contractuelle)
+  // → le refus est la vérité, intact.
+  const blockedReminderFrame = frame({
+    direct_effects: [{
+      effect_type: "create_one_shot_reminder",
+      explicitness: "explicit",
+      target_status: "identified",
+      confidence_band: "high",
+      payload_hint: { raw_text: "rappelle-moi chaque soir" },
+    }],
+    direct_effect_lane: {
+      requested_effects: [{
+        type: "create_one_shot_reminder",
+        reason_code: "create",
+      }],
+      committed_effects: [],
+      blocked_effects: [{
+        type: "create_one_shot_reminder",
+        reason_code: "recurring_not_supported",
+      }],
+    },
+  } as any);
+  const legit =
+    "Je ne peux pas le créer ici : un rappel qui revient chaque soir se pose dans les initiatives.";
+  assertEquals(
+    stripUnfoundedReminderCapacityDenial(legit, blockedReminderFrame),
+    legit,
+  );
+});
+
+Deno.test("stripTrackClaimWithoutCommit: « les deux sont pris » sur ledger track bloqué 0-commit → strip (P10-C, alex-hard24 R1-B04)", () => {
+  const blockedTrackFrame = frame({
+    direct_effects: [{
+      effect_type: "track_progress_plan_item",
+      explicitness: "explicit",
+      target_status: "identified",
+      confidence_band: "high",
+      payload_hint: { target_item_id: "carnet", status_hint: "completed" },
+    }],
+    direct_effect_lane: {
+      requested_effects: [{
+        type: "track_progress_plan_item",
+        reason_code: "track",
+      }],
+      committed_effects: [],
+      blocked_effects: [{
+        type: "track_progress_plan_item",
+        reason_code: "already_tracked_today",
+      }],
+    },
+  } as any);
+  const guarded = stripTrackClaimWithoutCommit(
+    "Les deux sont pris en compte : carnet ET couper les écrans ✅",
+    blockedTrackFrame,
+  );
+  assertEquals(/les deux sont (bien )?pris/i.test(
+    guarded.normalize("NFD").replace(/\p{Diacritic}/gu, ""),
+  ), false);
+  assertEquals(guarded.trim().length > 0, true);
+
+  // Anti-faux-positif: un commit existe sur le tour → claim possible, intact.
+  const committedFrame = frame({
+    direct_effects: [{
+      effect_type: "track_progress_plan_item",
+      explicitness: "explicit",
+      target_status: "identified",
+      confidence_band: "high",
+      payload_hint: { target_item_id: "carnet", status_hint: "completed" },
+    }],
+    direct_effect_lane: {
+      requested_effects: [
+        { type: "track_progress_plan_item", reason_code: "track" },
+        { type: "track_progress_plan_item", reason_code: "track" },
+      ],
+      committed_effects: [
+        {
+          type: "track_progress_plan_item",
+          target_title: "carnet",
+          progress_status: "completed",
+        },
+        {
+          type: "track_progress_plan_item",
+          target_title: "écrans",
+          progress_status: "completed",
+        },
+      ],
+      blocked_effects: [],
+    },
+  } as any);
+  const honest = "Les deux sont pris en compte : carnet ET écrans ✅";
+  assertEquals(stripTrackClaimWithoutCommit(honest, committedFrame), honest);
+});
+
+Deno.test("stripCommitClaimBeforeClarify: mutation affirmée SANS aucun outcome rappel → strip (P10-V, probe P10-4 passe 1)", () => {
+  const noOutcomeFrame = frame({
+    user_message:
+      "et celui du midi, garde le demain mais avance le a 12h pile au lieu de 12h30",
+    direct_effects: [],
+  } as any);
+  const guarded = stripCommitClaimBeforeClarify(
+    "C'est fait pour celui du midi : demain à 12h pile, à la place de 12h30.",
+    noOutcomeFrame,
+  );
+  assertEquals(/a la place de 12h30/.test(
+    guarded.normalize("NFD").replace(/\p{Diacritic}/gu, "").replace(/[’']/g, " ").toLowerCase(),
+  ), false);
+  assertEquals(guarded.trim().length > 0, true);
+
+  // Anti-faux-positif 1: readout légitime sur un tour STATUS (le user parle
+  // du rappel sans verbe de mutation) → intact.
+  const statusFrame = frame({
+    user_message: "mon rappel de demain est bien posé ?",
+    direct_effects: [],
+  } as any);
+  const readout = "Oui, ton rappel est posé pour demain à 18h.";
+  assertEquals(stripCommitClaimBeforeClarify(readout, statusFrame), readout);
+
+  // Anti-faux-positif 2: mutation demandée ET committée → intact (couvert
+  // par reminderCommitted).
+  const committedFrame = frame({
+    user_message: "avance le a 12h pile au lieu de 12h30",
+    direct_effects: [{
+      effect_type: "create_one_shot_reminder",
+      explicitness: "explicit",
+      target_status: "identified",
+      confidence_band: "high",
+      payload_hint: { raw_text: "avance le a 12h" },
+    }],
+    direct_effect_lane: {
+      requested_effects: [{
+        type: "create_one_shot_reminder",
+        reason_code: "create",
+      }],
+      committed_effects: [{
+        type: "create_one_shot_reminder",
+        id: "r1",
+        scheduled_for: "2026-07-16T10:00:00.000Z",
+        local_label: "demain à 12:00",
+        reminder_instruction: "pause déjeuner",
+      }],
+      blocked_effects: [],
+    },
+  } as any);
+  const honest = "C'est fait : le rappel de midi est avancé à 12h pile.";
+  assertEquals(stripCommitClaimBeforeClarify(honest, committedFrame), honest);
 });

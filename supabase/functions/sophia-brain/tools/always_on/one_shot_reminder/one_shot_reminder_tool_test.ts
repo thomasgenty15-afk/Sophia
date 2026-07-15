@@ -10,6 +10,7 @@ import {
   loadLastReminderInstructionForUser,
 } from "./instruction_parser.ts";
 import {
+  detectMassCancelScope,
   maybeCancelOneShotReminder,
   maybeCreateOneShotReminder,
   runCreateOneShotReminderV2,
@@ -1087,6 +1088,9 @@ function makeFakeSupabaseForCreate(opts: {
     message_payload?: Record<string, unknown>;
   }>;
 }) {
+  // P8-V: état PARTAGÉ entre les appels from() — un cancel (update) rend les
+  // anciens pendings invisibles aux lectures suivantes, comme la vraie DB.
+  const shared = { cancelled: false };
   return {
     from(table: string) {
       if (table === "profiles") {
@@ -1104,7 +1108,10 @@ function makeFakeSupabaseForCreate(opts: {
         return chain;
       }
       if (table === "scheduled_checkins") {
-        const state: { row: any } = { row: null };
+        const state: { row: any; isUpdateChain: boolean } = {
+          row: null,
+          isUpdateChain: false,
+        };
         const filters: Array<{ col: string; val: unknown }> = [];
         const chain: any = {
           upsert(row: any) {
@@ -1119,6 +1126,18 @@ function makeFakeSupabaseForCreate(opts: {
             filters.push({ col, val });
             return chain;
           },
+          // P8-V: le REPLACE ATOMIQUE (cancel+create) annule l'ancien pending
+          // via update(...).in(...).eq(...).select() awaité — la chaîne
+          // d'update retourne les lignes annulées (RETURNING), les lectures
+          // suivantes ne voient plus les anciens pendings.
+          update() {
+            state.isUpdateChain = true;
+            shared.cancelled = true;
+            return chain;
+          },
+          in() {
+            return chain;
+          },
           like() {
             return chain;
           },
@@ -1130,10 +1149,14 @@ function makeFakeSupabaseForCreate(opts: {
           },
           // Awaité directement par readPendingOneShotReminderRows.
           then(resolve: any, reject: any) {
-            return Promise.resolve({
-              data: opts.pendingRows ?? [],
-              error: null,
-            }).then(resolve, reject);
+            // Chaîne d'update: RETURNING = les lignes annulées. Lecture après
+            // cancel: les anciens pendings sortent (status='cancelled' exclu).
+            const data = state.isUpdateChain
+              ? opts.pendingRows ?? []
+              : shared.cancelled
+              ? []
+              : opts.pendingRows ?? [];
+            return Promise.resolve({ data, error: null }).then(resolve, reject);
           },
           // Chemin idempotent de createReminderFromEffect: lookup par
           // message_payload->>source_message_id.
@@ -2180,13 +2203,28 @@ Deno.test("executor: create nu avec instruction identique a un pending a une aut
       instruction_hint: "poser le téléphone hors de la chambre",
     }),
   });
-  assertEquals(moved.status, "needs_clarify");
-  assertEquals((moved as any).debug?.reason_code, "same_instruction_pending");
-  assertEquals(moved.committed_effects, []);
-  assertEquals(upserts.length, 0);
-  assertEquals(moved.reply?.includes("DÉPLACER"), true);
+  // P8-V (harness r5g-s2 T3): le clitique « mets-le » coerce en RESCHEDULE →
+  // pending unique = REPLACE ATOMIQUE P6-H (cancel+create, contenu hérité) —
+  // strictement meilleur que l'ancien clarify « déplacer ou ajouter ? »
+  // (l'utilisateur a déjà dit déplacer). Jamais deux pendings.
+  assertEquals(moved.status, "success");
+  assertEquals(
+    moved.committed_effects.filter((e) => e.type === "create_one_shot_reminder")
+      .length,
+    1,
+  );
+  assertEquals(
+    moved.committed_effects.filter((e) => e.type === "cancel_one_shot_reminder")
+      .length,
+    1,
+  );
+  // Le fake ne résout pas le lookup idempotent (maybeSingle → null): le
+  // write-through peut ré-upserter la même ligne — l'invariant produit est
+  // porté par les committed_effects (1 create + 1 cancel), pas ce compteur.
+  assertEquals(upserts.length >= 1, true);
 
   // Anti-faux-positif: instruction differente a une autre heure → cree.
+  upserts.length = 0; // P8-V: la partie 1 (replace atomique) écrit désormais.
   const distinct = await maybeRunOneShotReminderDirectEffect({
     supabase: makeFakeSupabaseForCreate({
       profile: { timezone: "Europe/Paris", locale: "fr-FR" },
@@ -2354,8 +2392,10 @@ Deno.test("router: reschedule sans AUCUN pending → dégrade en create (P0-4, n
   assertEquals((noTime as any).debug?.reason_code, "reschedule_no_target");
   assertEquals(noTime.reply?.includes("annule-le et remets-le"), false);
 
-  // Anti-faux-positif (non-régression eva-r5 B01): un pending EXISTE → le
-  // reschedule implicite reste bloqué honnête, zéro write.
+  // Anti-faux-positif (P6-H recalibré, décision actée 13/07: le reschedule
+  // HAUTE CONFIANCE s'exécute désormais en replace atomique — le blocage
+  // honnête ne subsiste que sur la vraie AMBIGUÏTÉ): 2 pendings, aucune
+  // correspondance d'instruction → bloqué, zéro write.
   const blocked = await maybeRunOneShotReminderDirectEffect({
     supabase: makeFakeSupabaseForCreate({
       profile: { timezone: "Europe/Paris", locale: "fr-FR" },
@@ -2366,18 +2406,25 @@ Deno.test("router: reschedule sans AUCUN pending → dégrade en create (P0-4, n
         id: "p1",
         scheduled_for: "2026-05-29T20:30:00.000Z",
         message_payload: { reminder_instruction: "poser le téléphone" },
+      }, {
+        id: "p2",
+        scheduled_for: "2026-05-29T19:00:00.000Z",
+        message_payload: { reminder_instruction: "appeler le kiné" },
       }],
     }) as any,
     userId: "u1",
-    message: "Mets-le plutôt à 23h.",
+    message: "Décale mon rappel à 23h.",
     now: new Date("2026-05-29T18:00:00.000Z"),
     turnFrame: frameWithStructuredCreate({
       intent: "reschedule",
-      raw_text: "Mets-le plutôt à 23h.",
+      raw_text: "Décale mon rappel à 23h.",
       when_hint: "à 23h",
       UTC_time: "2026-05-29T21:00:00.000Z",
       local_label: "23:00",
-      instruction_hint: "poser le téléphone",
+      // Pas d'instruction: la cible est réellement ambiguë entre 2 pendings
+      // (le helper injecte « relire X » par défaut, ce qui dégraderait en
+      // create P0-4 au lieu d'exercer le blocage d'ambiguïté).
+      instruction_hint: null,
     }),
   });
   assertEquals(blocked.status, "blocked");
@@ -2443,4 +2490,182 @@ Deno.test("router: UTC_time passé mais payload explicitement 'demain' → répa
   assertEquals(stillPast.status, "needs_clarify");
   assertEquals((stillPast as any).debug?.reason_code, "past_time");
   assertEquals(stillPast.committed_effects, []);
+});
+
+Deno.test("P9-B: detectMassCancelScope — positifs, scope création-du-jour, anti-faux-positifs", () => {
+  // Positifs.
+  assertEquals(
+    detectMassCancelScope("annule moi tous les rappels que je t ai mis aujourd hui"),
+    { mass: true, createdTodayOnly: true },
+  );
+  assertEquals(
+    detectMassCancelScope("annule tous mes rappels stp").mass,
+    true,
+  );
+  assertEquals(
+    detectMassCancelScope("supprime-les tous, j'en veux plus").mass,
+    true,
+  );
+  assertEquals(
+    detectMassCancelScope("annule tout, je veux plus de rappels").mass,
+    true,
+  );
+  // Anti-faux-positifs: unitaire, « tous » hors adjacence, « tout ça ».
+  assertEquals(detectMassCancelScope("annule le rappel de 16h10").mass, false);
+  assertEquals(
+    detectMassCancelScope("mes rappels sont tous ok, annule juste celui de 8h")
+      .mass,
+    false,
+  );
+  assertEquals(
+    detectMassCancelScope("laisse tomber, annule tout ça pour ce soir").mass,
+    false,
+  );
+});
+
+Deno.test("P9-B: « annule tous les rappels que je t'ai mis aujourd'hui » → TOUS les pending du jour annulés, jamais une cible au hasard (alex-hard24 R1-B03)", async () => {
+  let updatedIds: string[] = [];
+  const supabase = makeFakeSupabaseForCancel({
+    profile: { timezone: "Europe/Paris", locale: "fr-FR" },
+    pending: [
+      {
+        id: "vitamines-8h",
+        scheduled_for: "2026-07-15T06:00:00.000Z",
+        status: "pending",
+        event_context: "one_shot_reminder:vitamines",
+        message_payload: { reminder_instruction: "prendre mes vitamines" },
+        created_at: "2026-07-14T18:05:00.000Z",
+      },
+      {
+        id: "junk-midi",
+        scheduled_for: "2026-07-15T10:00:00.000Z",
+        status: "pending",
+        event_context: "one_shot_reminder:celui_du_midi",
+        message_payload: { reminder_instruction: "celui du midi" },
+        created_at: "2026-07-14T18:10:00.000Z",
+      },
+      {
+        id: "dejeuner-1230",
+        scheduled_for: "2026-07-15T10:30:00.000Z",
+        status: "pending",
+        event_context: "one_shot_reminder:pause_dejeuner",
+        message_payload: {
+          // Le piège du run réel: « faire » recouvre « je vais faire
+          // autrement » — la résolution unitaire tombait sur cette cible.
+          reminder_instruction: "faire une vraie pause déjeuner sans écran",
+        },
+        created_at: "2026-07-14T18:12:00.000Z",
+      },
+      {
+        id: "tel-22h",
+        scheduled_for: "2026-07-15T20:00:00.000Z",
+        status: "pending",
+        event_context: "one_shot_reminder:telephone",
+        message_payload: {
+          reminder_instruction: "brancher mon téléphone loin du lit",
+        },
+        created_at: "2026-07-14T18:15:00.000Z",
+      },
+    ],
+    onUpdate: ({ ids }) => {
+      updatedIds = ids;
+    },
+  });
+  const outcome = await maybeCancelOneShotReminder({
+    supabase,
+    userId: "u1",
+    message:
+      "pfff finalement laisse tomber tout ca, annule moi tous les rappels que je t ai mis aujourd hui, je vais faire autrement",
+    now: new Date("2026-07-14T18:30:00.000Z"),
+  });
+  if (!outcome.detected || outcome.status !== "cancelled") {
+    throw new Error(`expected cancelled, got ${JSON.stringify(outcome)}`);
+  }
+  assertEquals(outcome.cancelled_count, 4);
+  assertEquals(outcome.mass_scope, true);
+  assertEquals(
+    [...(outcome.cancelled_ids ?? [])].sort(),
+    ["dejeuner-1230", "junk-midi", "tel-22h", "vitamines-8h"],
+  );
+  assertEquals(
+    [...updatedIds].sort(),
+    ["dejeuner-1230", "junk-midi", "tel-22h", "vitamines-8h"],
+  );
+});
+
+Deno.test("P9-B: scope « mis aujourd'hui » exclut un pending créé un autre jour", async () => {
+  let updatedIds: string[] = [];
+  const supabase = makeFakeSupabaseForCancel({
+    profile: { timezone: "Europe/Paris", locale: "fr-FR" },
+    pending: [
+      {
+        id: "vieux",
+        scheduled_for: "2026-07-16T06:00:00.000Z",
+        status: "pending",
+        event_context: "one_shot_reminder:vieux",
+        message_payload: { reminder_instruction: "arroser les plantes" },
+        created_at: "2026-07-10T09:00:00.000Z",
+      },
+      {
+        id: "du-jour",
+        scheduled_for: "2026-07-15T06:00:00.000Z",
+        status: "pending",
+        event_context: "one_shot_reminder:du_jour",
+        message_payload: { reminder_instruction: "prendre mes vitamines" },
+        created_at: "2026-07-14T18:05:00.000Z",
+      },
+    ],
+    onUpdate: ({ ids }) => {
+      updatedIds = ids;
+    },
+  });
+  const outcome = await maybeCancelOneShotReminder({
+    supabase,
+    userId: "u1",
+    message: "annule tous les rappels que je t'ai mis aujourd'hui",
+    now: new Date("2026-07-14T18:30:00.000Z"),
+  });
+  if (!outcome.detected || outcome.status !== "cancelled") {
+    throw new Error(`expected cancelled, got ${JSON.stringify(outcome)}`);
+  }
+  // Le rappel posé le 10/07 SURVIT — seul celui créé aujourd'hui part.
+  assertEquals(outcome.cancelled_ids, ["du-jour"]);
+  assertEquals(updatedIds, ["du-jour"]);
+});
+
+Deno.test("P9-B anti-faux-positif: cancel unitaire au milieu de « tous » non adjacent → garde précision-cible inchangé", async () => {
+  let updatedIds: string[] = [];
+  const supabase = makeFakeSupabaseForCancel({
+    profile: { timezone: "Europe/Paris", locale: "fr-FR" },
+    pending: [
+      {
+        id: "huit",
+        scheduled_for: "2026-07-15T06:00:00.000Z", // 8h Paris
+        status: "pending",
+        event_context: "one_shot_reminder:huit",
+        message_payload: { reminder_instruction: "prendre mes vitamines" },
+      },
+      {
+        id: "vingt-deux",
+        scheduled_for: "2026-07-15T20:00:00.000Z",
+        status: "pending",
+        event_context: "one_shot_reminder:vingtdeux",
+        message_payload: { reminder_instruction: "brancher mon téléphone" },
+      },
+    ],
+    onUpdate: ({ ids }) => {
+      updatedIds = ids;
+    },
+  });
+  const outcome = await maybeCancelOneShotReminder({
+    supabase,
+    userId: "u1",
+    message: "mes rappels sont tous ok, annule juste celui de 8h",
+    now: new Date("2026-07-14T18:30:00.000Z"),
+  });
+  if (!outcome.detected || outcome.status !== "cancelled") {
+    throw new Error(`expected cancelled, got ${JSON.stringify(outcome)}`);
+  }
+  assertEquals(outcome.cancelled_ids, ["huit"]);
+  assertEquals(updatedIds, ["huit"]);
 });

@@ -84,7 +84,7 @@ Deno.test("recommended week planning does not invent monday for a one-shot item 
   assertEquals(recommendations, []);
 });
 
-Deno.test("recommended week planning keeps habit cadence on visible days", () => {
+Deno.test("recommended week planning smooths habit cadence over visible days", () => {
   const recommendations = recommendedWeekPlanningFromPlanContent({
     planContent,
     planItems: items,
@@ -94,6 +94,6 @@ Deno.test("recommended week planning keeps habit cadence on visible days", () =>
   assertEquals(
     recommendations.find((entry) => entry.plan_item_id === "habit-db-1")
       ?.recommended_days,
-    ["mon", "tue"],
+    ["tue", "sat"],
   );
 });

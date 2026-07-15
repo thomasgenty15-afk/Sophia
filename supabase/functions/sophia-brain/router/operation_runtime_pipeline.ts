@@ -10,8 +10,10 @@ import {
   isLocalChildFlowHandoff,
   turnFrameWithChildFlowHandoff,
 } from "../../_shared/local_child_flow_handoff.ts";
-import { blocksDirectEffects } from "../safety/safety_thresholds.ts";
+import { blocksDirectEffects, isAtLeast } from "../safety/safety_thresholds.ts";
+import { DISTRESS_IDEATION_REASON_CODES } from "../routers/routers.ts";
 import {
+  isActiveSafetyCrisisSkillState,
   isSafetyRoute,
   runtimeSafetyContextForTurn,
 } from "./safety_crisis_runtime.ts";
@@ -30,9 +32,13 @@ import {
 } from "../skills/weekly_review/runtime.ts";
 import {
   applyOneShotReminderPendingClarification,
+  clearSafetyDeferredReminderOnCommit,
+  explicitDeferredReServeAsk,
   maybeRunOneShotReminderDirectEffect,
   recurringNotSupportedDirectEffectResult,
+  SAFETY_DEFERRED_REMINDER_RUNTIME_KEY,
   safetyCrisisDeferredDirectEffectResult,
+  storeSafetyDeferredReminder,
 } from "../tools/always_on/one_shot_reminder/router.ts";
 import { withDirectEffectConfirmationContext } from "./direct_effect_local_context.ts";
 import {
@@ -106,6 +112,8 @@ export function operationRuntimeFromTrackProgress(args: {
       allowed_effects: args.result.allowed_effects,
       committed_effects: args.result.committed_effects,
       blocked_effects: args.result.blocked_effects,
+      // P4-A (rose-hard16 R1-B01): l'invalidation retarget compte au ledger.
+      superseded_effects: args.result.superseded_effects ?? [],
     },
   };
 }
@@ -218,6 +226,13 @@ function oneShotReminderOperationRuntimeFromDirectEffect(args: {
   applyOneShotReminderPendingClarification({
     temp_memory: args.tempMemory as Record<string, unknown>,
     pending_clarification: args.result.pending_clarification ?? null,
+  });
+  // P4-C: un create committé solde le différé de crise (promesse tenue).
+  clearSafetyDeferredReminderOnCommit({
+    temp_memory: args.tempMemory as Record<string, unknown>,
+    committed_effects: args.result.committed_effects as Array<
+      { type?: string }
+    >,
   });
   return {
     content: args.result.reply,
@@ -532,7 +547,35 @@ export async function runDirectEffectLane(
     "create_one_shot_reminder",
   );
 
-  if (!shouldRunOneShotReminderDirectEffect) {
+  // P8-E (paul-untested22 R1 T15): go EXPLICITE de re-serve du différé de
+  // crise pendant la traîne du flow safety. Deux trous fermaient la porte au
+  // même tour: (1) sous flow actif le dispatcher global est sauté — aucun
+  // effet create au frame, la lane ne tournait même pas; (2) le verrou
+  // turn-level (flow safety actif) re-différait quand elle tournait. Le
+  // carve-out est CUMULATIF, jamais un « oui » isolé: différé complet stocké
+  // + demande explicite de pose (« remets-le maintenant ») + bande runtime
+  // ≤ low (stabilisation attestée ce tour) + AUCUN code d'idéation ce tour.
+  // Le différé se solde au même tour (clearSafetyDeferredReminderOnCommit);
+  // si la bande remonte, le verrou de crise reprend la main tel quel.
+  const deferredRuntimeForReServe = (args.tempMemory as
+    | Record<string, unknown>
+    | null
+    | undefined)?.[SAFETY_DEFERRED_REMINDER_RUNTIME_KEY] as
+      | Record<string, unknown>
+      | undefined;
+  const reServeCrisisCodesPresent = [
+    ...((turnFrame?.safety?.reason_codes ?? []) as unknown[]),
+    ...((args.safetyContextOutput?.reason_codes ?? []) as unknown[]),
+  ].map(String).some((code) => DISTRESS_IDEATION_REASON_CODES.has(code));
+  const deferredReServeCarveOut = Boolean(
+    turnFrame &&
+      deferredRuntimeForReServe?.mode === "deferred" &&
+      explicitDeferredReServeAsk(args.userMessage) &&
+      !isAtLeast(runtimeSafetyRiskBand, "medium") &&
+      !reServeCrisisCodesPresent,
+  );
+
+  if (!shouldRunOneShotReminderDirectEffect && !deferredReServeCarveOut) {
     return {
       operationRuntime: null,
       routeDecision,
@@ -540,6 +583,32 @@ export async function runDirectEffectLane(
       tempMemory: args.tempMemory,
       routeOrFrameChanged,
     };
+  }
+  if (!shouldRunOneShotReminderDirectEffect && deferredReServeCarveOut) {
+    const slots = (deferredRuntimeForReServe?.known_slots ?? {}) as Record<
+      string,
+      unknown
+    >;
+    turnFrame = {
+      ...(turnFrame as TurnFrame),
+      direct_effects: [
+        ...(turnFrame?.direct_effects ?? []),
+        {
+          effect_type: "create_one_shot_reminder",
+          explicitness: "explicit",
+          target_status: "identified",
+          confidence_band: "high",
+          payload_hint: {
+            raw_text: slots.raw_text ?? null,
+            when_hint: slots.when_hint ?? null,
+            UTC_time: slots.UTC_time ?? null,
+            local_label: slots.local_label ?? null,
+            instruction_hint: slots.instruction_hint ?? null,
+          },
+        },
+      ],
+    } as TurnFrame;
+    routeOrFrameChanged = true;
   }
 
   // Cadence a l'intake (alex-r1 B02): une demande RECURRENTE (cardinality
@@ -589,6 +658,8 @@ export async function runDirectEffectLane(
   const crisisBlockReasons = new Set([
     "active_safety_priority",
     "distress_ideation_safety_priority",
+    // P5-A: branche high/critical des routers (le carve-out V5-1 y est fermé).
+    "safety_priority",
   ]);
   const routeBlocksReminderForCrisis = Boolean(
     routeDecision?.blocked_paths.some((blocked) =>
@@ -596,7 +667,55 @@ export async function runDirectEffectLane(
       crisisBlockReasons.has(String(blocked.reason_code ?? ""))
     ),
   );
-  if (routeBlocksReminderForCrisis) {
+  // P5-A (paul-p4verify T12): verrou TURN-LEVEL indépendant de la routeDecision.
+  // Sous flow local actif, le dispatcher global est sauté et la lane tourne
+  // avec une route synthétique SANS blocage crise — un rappel greffé sur un
+  // message d'idéation fuyait jusqu'au commit (blocked + committed en
+  // parallèle au ledger). Sources de vérité du verrou : band runtime ≥ high
+  // (pregate/frame), codes d'idéation du tour, ou flow safety_crisis déjà
+  // actif. V5-1 (rappel bénin servi) ne vaut que pour la détresse medium
+  // NON-crise — jamais atteinte quand ce verrou est armé.
+  const turnCrisisReasonCodes = [
+    ...((turnFrame?.safety?.reason_codes ?? []) as unknown[]),
+    ...((args.safetyContextOutput?.reason_codes ?? []) as unknown[]),
+  ].map(String);
+  const turnLevelCrisisLock = isAtLeast(runtimeSafetyRiskBand, "high") ||
+    isActiveSafetyCrisisSkillState(
+      (args.tempMemory as any)?.__active_skill_state ??
+        (args.tempMemory as any)?.active_skill_state,
+    ) ||
+    turnCrisisReasonCodes.some((code) =>
+      DISTRESS_IDEATION_REASON_CODES.has(code)
+    );
+  // P8-E: le carve-out re-serve (conditions cumulées vérifiées plus haut,
+  // bande ≤ low + zéro code d'idéation) lève UNIQUEMENT le verrou de flow —
+  // un blocage de route explicite (crise détectée par le routeur) tient.
+  if (
+    routeBlocksReminderForCrisis ||
+    (turnLevelCrisisLock && !deferredReServeCarveOut)
+  ) {
+    // P4-C (paul-p3verify R1-B03): le payload différé se CONSERVE — il
+    // s'exposera au dispatcher au premier tour post-crise pour que la
+    // promesse « je te le remets sur la table » soit tenable.
+    const deferredEffect = (turnFrame?.direct_effects ?? []).find((effect) =>
+      effect.effect_type === "create_one_shot_reminder"
+    );
+    if (deferredEffect) {
+      const payload = (deferredEffect.payload_hint ?? {}) as Record<
+        string,
+        unknown
+      >;
+      storeSafetyDeferredReminder({
+        temp_memory: args.tempMemory as Record<string, unknown>,
+        known_slots: {
+          instruction_hint: payload.instruction_hint ?? null,
+          when_hint: payload.when_hint ?? null,
+          UTC_time: payload.UTC_time ?? null,
+          local_label: payload.local_label ?? null,
+          raw_text: payload.raw_text ?? null,
+        },
+      });
+    }
     const operationRuntime = oneShotReminderOperationRuntimeFromDirectEffect({
       tempMemory: args.tempMemory,
       result: safetyCrisisDeferredDirectEffectResult(),
@@ -636,6 +755,8 @@ export async function runDirectEffectLane(
         message: args.userMessage,
         sourceMessageId: args.sourceMessageId,
         requestId: args.requestId ?? undefined,
+        // P5-D: carry-over des slots d'un clarify CREATE en attente.
+        tempMemory: args.tempMemory,
         now: args.clientNow && Number.isFinite(args.clientNow.getTime())
           ? args.clientNow
           : undefined,

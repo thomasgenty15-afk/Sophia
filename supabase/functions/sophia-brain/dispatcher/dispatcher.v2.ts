@@ -627,12 +627,28 @@ function sanitizeDirectEffect(
 
 function sanitizeDirectEffects(raw: unknown): TurnFrame["direct_effects"] {
   if (!Array.isArray(raw)) return [];
-  const seen = new Set<string>();
+  // P8-A (rose-p7verify R1 T13/T14, BF-LEDGER-02): la dédup par TYPE seul
+  // écrasait la cardinalité d'une co-demande — « pose-moi deux rappels d'un
+  // coup » émis en 2 effets par le planner arrivait au frame réduit à 1, le
+  // composeur accusait quand même les 2 créneaux depuis le texte user (commit
+  // fantôme) et la parité P7-B n'avait rien à comparer. Un
+  // create_one_shot_reminder admet désormais jusqu'à 3 entrées à payloads
+  // DISTINCTS (borne fan-out, doctrine P4) ; un payload identique reste
+  // dédupé, et les autres types restent mono-entrée.
+  const seenContent = new Set<string>();
+  const perTypeCount = new Map<string, number>();
   const effects: TurnFrame["direct_effects"] = [];
   for (const item of raw) {
     const effect = sanitizeDirectEffect(item);
-    if (!effect || seen.has(effect.effect_type)) continue;
-    seen.add(effect.effect_type);
+    if (!effect) continue;
+    const contentSignature = `${effect.effect_type}:${
+      JSON.stringify(effect.payload_hint ?? {})
+    }`;
+    const cap = effect.effect_type === "create_one_shot_reminder" ? 3 : 1;
+    const count = perTypeCount.get(effect.effect_type) ?? 0;
+    if (seenContent.has(contentSignature) || count >= cap) continue;
+    seenContent.add(contentSignature);
+    perTypeCount.set(effect.effect_type, count + 1);
     effects.push(effect);
   }
   return effects;
@@ -852,17 +868,45 @@ function sanitizeLlmTurnFrame(
   // (multi-intention rose T14 : « annule-le et dis-moi ce qui reste »).
   const responseIntentNormalized = String(memoryPlan.response_intent ?? "")
     .trim().toLowerCase();
+  // P8-D (nina-hard23 R1-B02): l'invariant s'étend à toute intention de
+  // VERIFICATION (verify_*), plus seulement verify_reminder — une question de
+  // vérif de coche (« j'ai bien coché l'eau ? ») émettait une requête track
+  // que seul le gate d'idempotence already_tracked_today arrêtait.
+  // P10-C (rose-p8reval T8): l'intent LLM est un texte LIBRE — le run réel a
+  // émis `answer_status_check_on_plan_item` (statut !) et le préfixe strict
+  // le ratait: le track passait et « c'est bien coché » devenait une
+  // assertion auto-réalisatrice. Match par INCLUSION des radicaux de
+  // statut/vérification, plus seulement par préfixe.
   const statusCheckIntent = responseIntentNormalized.startsWith(
     "status_check",
-  ) || responseIntentNormalized.startsWith("verify_reminder");
+  ) || responseIntentNormalized.startsWith("verify") ||
+    responseIntentNormalized.startsWith("status_") ||
+    responseIntentNormalized.includes("status_check") ||
+    responseIntentNormalized.includes("status_question") ||
+    responseIntentNormalized.includes("verification") ||
+    responseIntentNormalized.includes("_verify");
   let guardedDirectEffects = statusCheckIntent
     ? directEffects.filter((effect) => {
-      if (effect.effect_type !== "create_one_shot_reminder") return true;
-      const payloadIntent = String(
-        (effect.payload_hint as Record<string, unknown> | undefined)?.intent ??
-          "create",
-      ).trim().toLowerCase();
-      return payloadIntent !== "create" && payloadIntent !== "";
+      if (effect.effect_type === "create_one_shot_reminder") {
+        const payloadIntent = String(
+          (effect.payload_hint as Record<string, unknown> | undefined)
+            ?.intent ??
+            "create",
+        ).trim().toLowerCase();
+        return payloadIntent !== "create" && payloadIntent !== "";
+      }
+      // P8-D (nina-hard23 R1-B02): un tour de verify ne génère AUCUNE requête
+      // d'écriture track — la barrière ne repose plus sur l'idempotence
+      // journalière (qui n'aurait rien bloqué sur un item non encore coché).
+      // Une CORRECTION explicite du même tour survit (P3-C: le user corrige
+      // une coche en la vérifiant).
+      if (effect.effect_type === "track_progress_plan_item") {
+        const payload = effect.payload_hint as
+          | Record<string, unknown>
+          | undefined;
+        return payload?.correction === true;
+      }
+      return true;
     })
     : directEffects;
   // P3-C (paul-untested16 R1-B01): même invariant intra-frame que P2-1, côté

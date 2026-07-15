@@ -22,6 +22,8 @@ export type V2TrackingResult = {
    * confirmer la coche SANS pretendre que le compteur/statut a bouge.
    */
   item_patch_applied?: boolean;
+  /** P4-A: true = entry du jour invalidee sur l'item source du retarget. */
+  retarget_invalidated?: boolean;
 };
 
 async function resolveActiveTransformationRuntime(args: {
@@ -137,19 +139,24 @@ export async function invalidateChatEntryForRetarget(args: {
   supabase: SupabaseClient;
   userId: string;
   planItemId: string;
-  outcome: "completed" | "missed" | "partial";
+  // P4-A (rose-hard16 R1-B01): null = n'importe quel outcome. Le retarget
+  // invalidait seulement l'entry au MEME outcome que la nouvelle ecriture —
+  // une source `partial` corrigee vers une cible `completed` survivait en
+  // silence. La correction de STATUT same-day (meme item) garde le filtre.
+  outcome: "completed" | "missed" | "partial" | null;
   effectiveDay: string;
 }): Promise<{ invalidated: boolean }> {
-  const { data, error } = await args.supabase
+  let query = args.supabase
     .from("user_plan_item_entries")
     .select("id,metadata")
     .eq("user_id", args.userId)
     .eq("plan_item_id", args.planItemId)
-    .eq("outcome", args.outcome)
     .gte("effective_at", `${args.effectiveDay}T00:00:00.000Z`)
     .lt("effective_at", `${args.effectiveDay}T23:59:59.999Z`)
     .order("created_at", { ascending: false })
     .limit(5);
+  if (args.outcome) query = query.eq("outcome", args.outcome);
+  const { data, error } = await query;
   if (error) throw error;
   const row = (data ?? []).find((candidate: any) =>
     String(
@@ -329,15 +336,20 @@ export async function logPlanItemProgressV2(args: {
 
   // Correction de cible (3h-bis): invalider d'abord l'ecriture erronee du
   // jour sur l'item source, puis committer normalement sur la bonne cible.
+  // P4-A (rose-hard16 R1-B01): outcome=null — l'entry source du jour
+  // s'invalide QUEL QUE SOIT son outcome (partial corrige vers completed
+  // survivait), et le resultat remonte au committed (retrait visible).
+  let retargetInvalidated = false;
   if (retargetFromItemId && retargetFromItemId !== planItemId) {
     try {
-      await invalidateChatEntryForRetarget({
+      const invalidation = await invalidateChatEntryForRetarget({
         supabase,
         userId,
         planItemId: retargetFromItemId,
-        outcome: status,
+        outcome: null,
         effectiveDay,
       });
+      retargetInvalidated = invalidation.invalidated;
     } catch (error) {
       console.warn(
         "[TrackProgress] retarget invalidation failed (non-blocking):",
@@ -404,6 +416,7 @@ export async function logPlanItemProgressV2(args: {
         target: title,
         status,
         logged_progress_id: String(ownWrite.id),
+        retarget_invalidated: retargetInvalidated,
       };
     }
     if (sameDayRows.length > 0) {
@@ -518,6 +531,7 @@ export async function logPlanItemProgressV2(args: {
     status,
     logged_progress_id: entryId,
     item_patch_applied: itemPatchApplied,
+    retarget_invalidated: retargetInvalidated,
   };
 }
 
@@ -611,6 +625,7 @@ export function createTrackProgressPlanItemWrite(args: {
     return {
       logged_progress_id: written.logged_progress_id,
       item_patch_applied: written.item_patch_applied,
+      retarget_invalidated: written.retarget_invalidated,
     };
   };
 }

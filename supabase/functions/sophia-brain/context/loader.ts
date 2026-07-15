@@ -11,6 +11,7 @@ declare const Deno: any;
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import { logMemoryObservabilityEvent } from "../../_shared/memory-observability.ts";
+import { retractedContentSegments } from "../../_shared/memory/memorizer/retraction_guard.ts";
 
 let cachedServiceRoleLedgerClient: SupabaseClient | null | undefined = undefined;
 
@@ -785,6 +786,39 @@ export async function loadContextForMode(
       } DERNIERS MESSAGES) ===\n${recentTurns}\n\n`;
       elementsLoaded.push("recent_turns");
     }
+    // P10-D (alex-hard24 R1-B05): RÉTRACTATION EN SESSION — un fait
+    // explicitement rétracté dans le fil (« oublie ça, garde surtout pas
+    // ça ») était restitué 4 tours plus tard par le composeur qui lit
+    // l'historique (« ton nouvel objectif te motive… ») alors que le
+    // memorizer durable l'honorait. Injection DÉTERMINISTE (mêmes marqueurs
+    // que le verrou memorizer P10-D) : les segments rétractés sont nommés au
+    // composeur avec l'interdit de restitution. Zéro règle générique de
+    // prompt (budget companion), zéro dépendance LLM.
+    try {
+      const retractedSegments = retractedContentSegments(
+        (opts.history ?? []).map((m: any) => ({
+          role: (String(m?.role ?? "") === "user"
+            ? "user"
+            : String(m?.role ?? "") === "assistant"
+            ? "assistant"
+            : "system") as "user" | "assistant" | "system",
+          content: String(m?.content ?? ""),
+        })),
+      );
+      if (retractedSegments.length > 0) {
+        const lines = retractedSegments
+          .slice(0, 3)
+          .map((segment) => `- « ${segment.slice(0, 90)} »`)
+          .join("\n");
+        context.retractedInSession =
+          `=== RÉTRACTÉ EN SESSION (INTERDIT DE RESTITUTION) ===\n` +
+          `L'utilisateur a explicitement demandé d'oublier ces éléments dans cette conversation. ` +
+          `Ne JAMAIS les restituer, les reformuler, ni t'y référer (même « avec la nuance ») — ni comme objectif, ni comme fait, ni comme rappel de ce qui a été dit :\n${lines}\n\n`;
+        elementsLoaded.push("retracted_in_session");
+      }
+    } catch (_error) {
+      // best-effort: l'absence du bloc ne casse jamais le chargement.
+    }
   }
 
   // 10. Injected context (from UI modules)
@@ -1068,6 +1102,10 @@ export function buildContextString(loaded: LoadedContext): string {
   // chargés pour ce tour ne doivent jamais être amputés au profit de
   // shortTerm/recentTurns, déjà largement portés par l'history du modèle.
   if (loaded.memoryV2Payload) ctx += loaded.memoryV2Payload;
+  // P10-D: l'interdit de restitution des faits rétractés en session survit
+  // au budget AVANT les blocs volumineux — un interdit tronqué = un fait
+  // rétracté restitué.
+  if (loaded.retractedInSession) ctx += loaded.retractedInSession;
   if (loaded.whatsappFilRouge) ctx += loaded.whatsappFilRouge;
   if (loaded.shortTerm) ctx += loaded.shortTerm;
   if (loaded.recentTurns) ctx += loaded.recentTurns;
@@ -2338,8 +2376,15 @@ function shouldInjectRendezVousSummary(
   const normalized = String(message ?? "").trim();
   if (!normalized) return false;
   const lower = normalized.toLowerCase();
+  // P8-G (alex-hard23 R1-B02): un recap « redis-moi ce qu'il me reste de
+  // programmé » juste après un cancel n'emploie pas le mot « rappel » — le
+  // bloc récurrents n'était pas injecté et le recap dérivait sur les items
+  // de plan en OMETTANT le récurrent 09:00 encore actif (inventaire faux).
+  // Les formes d'inventaire « programmé/prévu/relance » injectent le bloc.
   return lower.includes("rappel") || lower.includes("rendez-vous") ||
-    lower.includes("rendez vous");
+    lower.includes("rendez vous") || lower.includes("programm") ||
+    lower.includes("de prevu") || lower.includes("de prévu") ||
+    lower.includes("relance");
 }
 
 async function loadRendezVousSummary(
@@ -3073,6 +3118,9 @@ export async function loadDurableEffectsSummary(
     );
     lines.push(
       "Question d'inventaire ('j'ai quoi comme rappels ?'): la réponse couvre les DEUX sections — rappels PONCTUELS en attente ET rappels récurrents actifs. Ne dis JAMAIS 'pas d'autre rappel' si l'une des deux sections liste encore une entrée non mentionnée.",
+    );
+    lines.push(
+      "Recap POST-ANNULATION (P8-G, alex-hard23 T15): « redis-moi ce qu'il me reste de programmé/prévu » juste après un cancel de rappel répond D'ABORD depuis l'inventaire des rappels et check-ins encore actifs (ponctuels en attente + récurrents actifs), avant tout glissement vers les items du plan — omettre un récurrent encore actif laisse croire que tout est éteint.",
     );
 
     if (attack) {

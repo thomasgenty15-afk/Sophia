@@ -60,6 +60,11 @@ export async function executeTrackProgressWrite(args: {
         progress_status: args.requested_effect.progress_status,
         value: args.requested_effect.value,
         item_patch_applied: written.item_patch_applied,
+        // P4-A: la moitie « retrait » du retarget voyage avec le commit —
+        // le rendu et le ledger l'enoncent au lieu de la taire.
+        retarget_from_item_id: args.requested_effect.retarget_from_item_id ??
+          null,
+        retarget_invalidated: written.retarget_invalidated === true,
       },
     };
   } catch (_error) {

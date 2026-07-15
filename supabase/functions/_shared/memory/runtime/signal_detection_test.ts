@@ -104,3 +104,22 @@ Deno.test("detectMemorySignals derives retrieval mode and hints", () => {
     ["correction"],
   );
 });
+
+Deno.test("advice_seeking: demande de conseil détectée, message neutre non (P4-D, rose-hard16 R1-B03)", () => {
+  const positive = detectMemorySignals(
+    "coucou. bon là c'est vendredi et je rentre du boulot, t'aurais un conseil pour m'aider à bien la passer ?",
+  );
+  if (!positive.advice_seeking.detected) {
+    throw new Error("advice_seeking attendu détecté sur une demande de conseil");
+  }
+  const paraphrase = detectMemorySignals(
+    "comment je fais pour tenir ce soir sans craquer ?",
+  );
+  if (!paraphrase.advice_seeking.detected) {
+    throw new Error("advice_seeking attendu détecté sur la paraphrase");
+  }
+  const negative = detectMemorySignals("ok merci, bonne soirée à toi aussi");
+  if (negative.advice_seeking.detected) {
+    throw new Error("advice_seeking ne doit pas se déclencher sur un ack");
+  }
+});

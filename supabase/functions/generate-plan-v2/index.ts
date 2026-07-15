@@ -35,6 +35,10 @@ import type {
 import { generateWithGemini } from "../_shared/gemini.ts";
 import { logV2Event, V2_EVENT_TYPES } from "../_shared/v2-events.ts";
 import { archivePendingWeekPlansForPlans } from "../_shared/week_plan_lifecycle.ts";
+import {
+  daysAfterPlannedPrerequisites,
+  spreadWeekDays,
+} from "../_shared/week_day_distribution.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
 import {
   badRequest,
@@ -312,14 +316,11 @@ function buildDefaultDays(args: {
   }
 
   const alignedPlanDays = availableDays.filter((day) => fromPlan.includes(day));
-  const completed = alignedPlanDays.length > 0 ? [...alignedPlanDays] : [];
-
-  for (const day of availableDays) {
-    if (completed.length >= target) break;
-    if (!completed.includes(day)) completed.push(day);
-  }
-
-  return completed.slice(0, target);
+  return spreadWeekDays({
+    availableDays,
+    target,
+    preferredDays: alignedPlanDays,
+  });
 }
 
 function getVisibleWeekDays(
@@ -505,7 +506,29 @@ export async function materializeCurrentLevelWeekPlanning(args: {
       args.anchor.is_partial_anchor_week &&
       args.anchor.anchor_display_start === todayLocalDate;
 
-    for (const [index, entry] of weekItems.entries()) {
+    const plannedDayByOneShotItemId = new Map<string, DayCode>();
+    oneShotItems.forEach((oneShotEntry, oneShotIndex) => {
+      const dropToday = partialWeekStartsToday &&
+        visibleDays.length > 0 &&
+        isMomentPassed(oneShotEntry.item.time_of_day, nowLocalMinutes);
+      const oneShotVisibleDays = dropToday ? visibleDays.slice(1) : visibleDays;
+      const mappedDay = missionDays[oneShotIndex];
+      const preferredDays = mappedDay && oneShotVisibleDays.includes(mappedDay)
+        ? [mappedDay]
+        : oneShotVisibleDays;
+      const plannedDay = oneShotVisibleDays.length > 0
+        ? buildDefaultDays({
+          item: oneShotEntry.item,
+          preferredDays,
+          targetRepsOverride: 1,
+        })[0]
+        : null;
+      if (plannedDay) {
+        plannedDayByOneShotItemId.set(oneShotEntry.item.id, plannedDay);
+      }
+    });
+
+    for (const entry of weekItems) {
       // Si le moment de la journée de l'action est déjà passé et que la semaine partielle
       // démarre aujourd'hui, on retire aujourd'hui (1er jour visible) des jours candidats
       // de CET item : l'occurrence glisse au prochain jour disponible.
@@ -514,8 +537,15 @@ export async function materializeCurrentLevelWeekPlanning(args: {
         isMomentPassed(entry.item.time_of_day, nowLocalMinutes);
       const itemVisibleDays = dropToday ? visibleDays.slice(1) : visibleDays;
 
+      const schedulingDays = entry.item.dimension === "habits"
+        ? daysAfterPlannedPrerequisites({
+          availableDays: itemVisibleDays,
+          activationCondition: entry.item.activation_condition,
+          plannedDayByItemId: plannedDayByOneShotItemId,
+        })
+        : itemVisibleDays;
       const preferredDays = entry.item.dimension === "habits"
-        ? itemVisibleDays
+        ? schedulingDays
         : (() => {
           const oneShotIndex = oneShotItems.findIndex((candidate) =>
             candidate.item.id === entry.item.id
@@ -527,19 +557,17 @@ export async function materializeCurrentLevelWeekPlanning(args: {
 
       const targetRepsOverride = entry.item.dimension === "habits"
         ? Math.min(
-          itemVisibleDays.length,
+          schedulingDays.length,
           effectiveWeeklyTarget(entry.item, entry.weeklyReps ?? undefined),
         )
         : 1;
       // itemVisibleDays vide (aujourd'hui était le seul jour restant de la semaine
       // partielle) → pas d'occurrence cette semaine, sans retomber sur les 7 jours.
-      const defaultDays = itemVisibleDays.length === 0
-        ? []
-        : buildDefaultDays({
-          item: entry.item,
-          preferredDays,
-          targetRepsOverride,
-        });
+      const defaultDays = schedulingDays.length === 0 ? [] : buildDefaultDays({
+        item: entry.item,
+        preferredDays,
+        targetRepsOverride,
+      });
 
       const { data: existingPlanData, error: existingPlanError } = await args
         .admin

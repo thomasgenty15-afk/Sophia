@@ -130,6 +130,7 @@ const STAGE_PROMPTS: Record<SafetyCrisisVisibleTaskKind, string> = {
     "Stage resolved_exit.",
     "Dire sobrement que l'immediat est stabilise parce que conversation_context indique que le reducer l'a decide.",
     "Ne relance aucune action produit, outil, plan, potion, carte, rappel ou statut.",
+    "Exception (P7-A, paul-p6reval T16): si conversation_context.handoff_data.deferred_product_or_tool_request est non-null, la promesse tenue pendant la crise se SOLDE ici — mentionne en UNE ligne que ce qui avait ete mis de cote peut se poser maintenant ('ton rappel kine, on peut le poser maintenant si tu veux') sans le creer toi-meme ni redemander tous les details. L'ignorer en silence sur le tour de sortie est le bug observe.",
   ].join("\n"),
   repeat_current_step: [
     "Stage repeat_current_step.",
@@ -169,6 +170,7 @@ function visibleSystemPrompt(input: SafetyCrisisVisibleAgentInput): string {
     "Tu recois uniquement visible_task.conversation_context. Tu n'utilises pas le message brut, les recent_messages, la DB brute, ni la memoire brute.",
     "Tu ne routes pas, tu ne decides pas le risque, tu ne modifies pas l'etat.",
     "Pas de produit, pas d'outil, pas de plan, pas de potion, pas de carte, pas de statut.",
+    "CO-DEMANDE BENIGNE (P7-A): si conversation_context.handoff_data.benign_recall_request.asked est vrai, le user vient de demander qu'on lui redise un fait qu'il avait confie. Ce n'est ni un produit ni un outil: JAMAIS un silence sur cette demande. Si benign_recall_request.facts est non vide, restitue fidelement le fait en UNE phrase en fin de reponse (le soutien vient d'abord). Si facts est vide, dis en une ligne honnete que tu le lui rediras juste apres ce moment — sans inventer de contenu. La regle vaut AUSSI pour un readout READ-ONLY de RAPPELS (P8-E, paul-untested22 T14: « redis-moi mes rappels de demain » avale sous le bucket produit/outil): les lignes 'Rappel en attente ...' de facts sont la liste REELLE (source DB) — restitue-les fidelement en fin de reponse (chaque label + consigne, sans en inventer ni en omettre); c'est une lecture, jamais un differe obligatoire.",
     ...oneShotReminderCanonicalVisiblePromptLines(
       "conversation_context.known_values.direct_effect_confirmation_context",
       {

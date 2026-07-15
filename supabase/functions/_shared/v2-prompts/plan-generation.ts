@@ -1994,6 +1994,9 @@ Rappels importants :
 - préflight obligatoire avant envoi : vérifie dans \`current_level_runtime.weeks\` que S1, S2, S3... ne contiennent jamais une habitude seule ; si une semaine est trop légère, ajoute une mission courte de consolidation/setup ou une clarification brève
 - exemples de dosage utiles pour une habitude quasi quotidienne : sur 2 semaines, pense souvent \`3 -> 6\` ; sur 3 semaines, pense souvent \`3 -> 5 -> 6\` ; si la semaine 1 est partielle, allège encore le premier palier
 - si une mission réduit directement la friction de l'habitude principale du niveau (preparer l'environnement, retirer une tentation, preparer le materiel, poser un repere concret, nettoyer le terrain), cette mission doit apparaitre en semaine 1, avant ou au plus tard en meme temps que la premiere clarification
+- à l'intérieur d'une semaine, ne tasse pas toutes les répétitions d'habitude au début : le produit les répartit sur toute la fenêtre disponible
+- quand une mission prépare concrètement une habitude de la même semaine, relie l'habitude à cette mission avec \`activation_condition.type = "after_item_completion"\` et place la mission dans \`mission_days\` avant les premières répétitions ; la mission sert alors d'essai/setup avant la mise en pratique répétée
+- n'impose pas cet ordre à une mission de bilan ou de consolidation : elle peut légitimement venir après plusieurs répétitions d'habitude
 - si le chemin d'action est deja connu, ne fais pas passer une clarification avant cette mission de setup
 - n'utilise une clarification en semaine 1 avant la mission de setup que si cette clarification conditionne reellement le choix de l'action concrete
 - interdit : S1 = habitude + clarification, puis S2 = mission de setup evidente qui aurait du rendre l'habitude faisable des le debut

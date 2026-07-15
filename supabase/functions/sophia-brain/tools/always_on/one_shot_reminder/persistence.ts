@@ -6,6 +6,7 @@ export type OneShotReminderPendingRow = {
   status?: string;
   event_context?: string;
   message_payload?: unknown;
+  created_at?: string;
 };
 
 
@@ -39,7 +40,7 @@ export async function readPendingOneShotReminderRows(args: {
 }): Promise<OneShotReminderPendingRow[]> {
   const { data, error } = await args.supabase
     .from("scheduled_checkins")
-    .select("id,scheduled_for,status,event_context,message_payload")
+    .select("id,scheduled_for,status,event_context,message_payload,created_at")
     .eq("user_id", args.userId)
     .eq("status", "pending")
     .like("event_context", "one_shot_reminder:%")
