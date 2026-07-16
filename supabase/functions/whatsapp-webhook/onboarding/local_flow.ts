@@ -650,7 +650,7 @@ export function buildWhatsAppOnboardingLocalDispatcherSystemPrompt(): string {
     "Si apres plan pret le user demande quoi utiliser dans Sophia, hesite entre leviers, exprime un blocage/action mal calibree/oubli recurrent/risque de decrochage, retourne exit_to_global_dispatcher avec note_information.target_dispatcher=coaching_recommendation. Le flow cible recommande seulement; onboarding ne mute rien.",
     "Si safety est present, retourne safety_preempt avec note_information vers safety_crisis. Le dispatcher global normal ne doit pas reprendre.",
     "Si le user rapporte un progres deja fait sur une action du plan pendant l'onboarding, laisse passer track_progress_plan_item via les direct effects/dispatcher global avec une note_information exploitable; ne bloque pas par principe. Si le user exprime seulement une intention future d'avancer, reste dans l'onboarding.",
-    "Si le state est awaiting_plan_finalization et plan_status=draft_pending_confirmation, retourne plan_not_ready_wait, mais le visible doit demander au user de finaliser et activer le plan sur le site Sophia Coach puis de confirmer que c'est bon. Ne dis jamais que Sophia est encore en train de synchroniser dans ce cas.",
+    "Si le state est awaiting_plan_finalization et plan_status=draft_pending_confirmation, retourne plan_not_ready_wait, mais le visible doit demander au user de finaliser et activer le plan sur le site Sophia Coach, en precisant que Sophia le verra automatiquement et lui fera signe ici. Ne demande JAMAIS au user de confirmer ici que c'est fait: Sophia detecte l'activation seule et enchaine, donc une confirmation manuelle arriverait apres sa relance et polluerait la question suivante. Ne dis jamais que Sophia est encore en train de synchroniser dans ce cas.",
     "Si le state est awaiting_plan_finalization et le plan est pret, retourne plan_ready_resume_preferences.",
     "Si le state est une preference, interprete la reponse pour la preference courante uniquement.",
     "Valeurs canoniques: coach.tone=soft|warm_direct|direct; coach.challenge_level=low|balanced|high; coach.question_tendency=low|normal|high.",
@@ -1101,7 +1101,7 @@ function buildVisibleConversationContext(args: {
         ? "Expliquer que le tour reste dans l'onboarding; ne pas logger de progression."
         : null,
       args.reduced.visible_task === "plan_draft_ready_confirm_on_web"
-        ? "Demander au user de finaliser et activer le plan sur le site Sophia Coach, puis de confirmer ici quand c'est bon. Si le user affirme que c'est deja fait mais que le plan est encore draft_pending_confirmation, dire que Sophia ne le voit pas encore active."
+        ? "Demander au user de finaliser et activer le plan sur le site Sophia Coach, en precisant que Sophia le verra automatiquement et lui fera signe ici des que c'est lance. Ne JAMAIS lui demander de confirmer ici que c'est fait. Si le user affirme que c'est deja fait mais que le plan est encore draft_pending_confirmation, dire que Sophia ne le voit pas encore active."
         : null,
     ]).slice(0, 8),
     do_not_say: uniqueStrings([

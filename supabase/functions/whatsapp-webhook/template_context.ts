@@ -152,6 +152,24 @@ export async function resolveLastTemplateContext(params: {
       .maybeSingle();
     if (error) throw error;
     row = data ?? null;
+
+    // A template is only what the user is answering while it is still the last
+    // thing Sophia said. Without this, any template sent in the past 24h stayed
+    // "live": a "oui" answering a free-text question hours later would be
+    // classified against a stale template. Sophia speaking again closes it —
+    // which also lets a burst of user messages ("attends" / "ah oui c'est moi")
+    // all be classified against it, as ADHD users routinely write that way.
+    if (row) {
+      const { data: newerAssistant } = await params.admin
+        .from("whatsapp_outbound_messages")
+        .select("created_at")
+        .eq("user_id", params.userId)
+        .gt("created_at", cleanText((row as OutboundRow).created_at))
+        .in("status", [...DELIVERED_TEMPLATE_STATUSES])
+        .limit(1)
+        .maybeSingle();
+      if (newerAssistant) row = null;
+    }
   }
 
   const provisional = materializeTemplateContext({ row, nowMs });

@@ -2327,6 +2327,73 @@ function scheduleActivationEnrichment(args: {
 
 const PLAN_ACTIVATED_PURPOSE = "plan_activated";
 
+// Second message, sent right after the celebration: the activation itself is the
+// event, so the user has nothing to confirm — the onboarding just carries on.
+// Kept static on purpose: the flow's own question is rendered by an LLM inside
+// whatsapp-webhook, and reaching it from here would drag the whole conversational
+// engine into plan generation. The existing pref handler parses a free-text answer
+// into coach.tone (soft / direct / warm_direct), so the wording stays open.
+const PLAN_ACTIVATED_TONE_QUESTION =
+  "Avant qu'on démarre : tu préfères que je sois plutôt douce, plutôt cash, ou un peu des deux (bienveillante mais ferme) ?";
+
+async function postToWhatsappSend(
+  secret: string,
+  payload: unknown,
+): Promise<{ delivered: boolean }> {
+  try {
+    const res = await fetch(
+      `${functionsBaseUrl()}/functions/v1/whatsapp-send`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Internal-Secret": secret,
+        },
+        body: JSON.stringify(payload),
+      },
+    );
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      console.error(
+        `[generate-plan-v2] whatsapp-send failed (${res.status}): ${
+          JSON.stringify(data)
+        }`,
+      );
+      return { delivered: false };
+    }
+    // whatsapp-send answers 200 with skipped:true when it declines (not opted in,
+    // throttled, paywalled…). That is not a delivery.
+    return { delivered: !(data as { skipped?: unknown }).skipped };
+  } catch (error) {
+    console.error("[generate-plan-v2] whatsapp-send request failed", error);
+    return { delivered: false };
+  }
+}
+
+// Guard on the answer we are about to ask for, not on "did they finish the
+// onboarding". Someone can answer the tone, drop off, and have the flow expire
+// (WHATSAPP_ONBOARDING_MAX_AGE_MS = 12h) without ever being marked complete:
+// keying off completion would re-ask a tone we already know on their next plan,
+// i.e. Sophia visibly forgetting them — the one thing this product cannot do.
+// Preferences are upserted into user_profile_facts by the onboarding local flow
+// (scope "global", key "coach.tone").
+async function knowsWhatsAppTonePreference(
+  admin: SupabaseClient,
+  userId: string,
+): Promise<boolean> {
+  const { data } = await admin
+    .from("user_profile_facts")
+    .select("value")
+    .eq("user_id", userId)
+    .eq("scope", "global")
+    .eq("key", "coach.tone")
+    .maybeSingle();
+  const value = (data as { value?: unknown } | null)?.value;
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  return String((value as Record<string, unknown>).value ?? "").trim().length >
+    0;
+}
+
 export function planActivatedFirstName(fullName: unknown): string {
   const trimmed = String(fullName ?? "").trim();
   if (!trimmed) return "";
@@ -2415,21 +2482,42 @@ async function sendPlanActivatedConfirmation(args: {
       );
       return;
     }
-    const res = await fetch(
-      `${functionsBaseUrl()}/functions/v1/whatsapp-send`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Internal-Secret": secret,
-        },
-        body: JSON.stringify(payload),
+
+    // 1) The celebration. If it did not actually reach WhatsApp (not opted in →
+    //    whatsapp-send skips it), stop here: never hand the onboarding to someone
+    //    who is not on the channel yet.
+    const confirmation = await postToWhatsappSend(secret, payload);
+    if (!confirmation.delivered) return;
+
+    // 2) Never ask a question we already have the answer to: an established user
+    //    activating a new transformation must not be re-asked their tone.
+    if (await knowsWhatsAppTonePreference(args.admin, args.userId)) return;
+
+    // 3) The onboarding continues on its own, so the user has nothing to confirm.
+    const toneQuestion = await postToWhatsappSend(secret, {
+      user_id: args.userId,
+      message: { type: "text", body: PLAN_ACTIVATED_TONE_QUESTION },
+      purpose: "onboarding_pref_tone_prompt",
+      require_opted_in: true,
+      metadata_extra: {
+        plan_id: args.planRow.id,
+        kind: "plan_activated_pref_tone_prompt",
       },
-    );
-    if (!res.ok) {
-      const detail = await res.text().catch(() => "");
+    });
+    if (!toneQuestion.delivered) return;
+
+    // 4) Only now advance the state: the question is out, so the next inbound is
+    //    genuinely a tone answer for the existing preference handler.
+    const { error: stateError } = await args.admin
+      .from("profiles")
+      .update({
+        whatsapp_state: "onboarding_pref_tone",
+        whatsapp_state_updated_at: new Date().toISOString(),
+      })
+      .eq("id", args.userId);
+    if (stateError) {
       console.error(
-        `[generate-plan-v2] plan_activated whatsapp-send failed (${res.status}): ${detail}`,
+        `[generate-plan-v2] plan_activated state advance failed: ${stateError.message}`,
       );
     }
   } catch (error) {

@@ -62,7 +62,7 @@ export async function computeInboundTemplateContext(params: any) {
     // Critical deterministic opt-in path: a short natural agreement remains
     // sufficient when it is safely scoped to an actual opt-in template.
     if (
-      !exactChoice && canTextOptIn &&
+      !exactChoice &&
       ["sophia_optin_v2", "sophia_optin_winback_v2"].includes(
         lastTemplate.name,
       ) && isNaturalOptInAgreementText(params.inboundText)
@@ -89,7 +89,11 @@ export async function computeInboundTemplateContext(params: any) {
         classification.choice,
       );
     }
-    isOptInYes = isOptInYes || (canTextOptIn && flags.isOptInYes);
+    // No canTextOptIn veto here: resolveLastTemplateContext only returns a
+    // template while it is still the last thing Sophia said, so a classified
+    // choice IS an answer to that template. Gating it on "no active whatsapp
+    // state" strangled the very mechanism meant to read natural replies.
+    isOptInYes = isOptInYes || flags.isOptInYes;
     isCheckinYes = flags.isCheckinYes;
     isCheckinLater = flags.isCheckinLater;
   } else {
