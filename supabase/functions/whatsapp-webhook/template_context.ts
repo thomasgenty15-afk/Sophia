@@ -43,6 +43,10 @@ function cleanText(value: unknown): string {
 
 const DELIVERED_TEMPLATE_STATUSES = new Set(["sent", "delivered", "read"]);
 const TEMPLATE_CONTEXT_WINDOW_MS = 24 * 60 * 60 * 1000;
+// How many inbound messages a template stays armed for. Bursts are the norm on
+// this audience ("Attend" … "C'est tout à fait moi"), so one shot is not enough;
+// three bounds how long a stale question can keep capturing replies.
+const TEMPLATE_CONTEXT_MAX_TURNS = 3;
 
 export function materializeTemplateContext(args: {
   row: OutboundRow | null | undefined;
@@ -153,22 +157,40 @@ export async function resolveLastTemplateContext(params: {
     if (error) throw error;
     row = data ?? null;
 
-    // A template is only what the user is answering while it is still the last
-    // thing Sophia said. Without this, any template sent in the past 24h stayed
-    // "live": a "oui" answering a free-text question hours later would be
-    // classified against a stale template. Sophia speaking again closes it —
-    // which also lets a burst of user messages ("attends" / "ah oui c'est moi")
-    // all be classified against it, as ADHD users routinely write that way.
+    // A template stays armed until it is answered, capped at TEMPLATE_CONTEXT_MAX_TURNS
+    // inbound messages. Two rules that did NOT work, for the record:
+    //  - "closed once Sophia speaks again": she answers every inbound, so it was
+    //    always true → the template died on the user's first word ("Attend" →
+    //    Sophia replies → "C'est tout à fait moi" hit a dead template).
+    //  - "any template within 24h": too loose → a stale template captured a "oui"
+    //    that was answering something else entirely.
+    // The turn cap keeps bursts working (ADHD users write in several messages)
+    // while bounding staleness. A newer template always supersedes this one.
     if (row) {
-      const { data: newerAssistant } = await params.admin
+      const sentAtIso = cleanText((row as OutboundRow).created_at);
+      const { data: newerTemplate } = await params.admin
         .from("whatsapp_outbound_messages")
         .select("created_at")
         .eq("user_id", params.userId)
-        .gt("created_at", cleanText((row as OutboundRow).created_at))
+        .eq("message_type", "template")
+        .gt("created_at", sentAtIso)
         .in("status", [...DELIVERED_TEMPLATE_STATUSES])
         .limit(1)
         .maybeSingle();
-      if (newerAssistant) row = null;
+      if (newerTemplate) {
+        row = null;
+      } else {
+        // The current inbound is not logged yet when this runs, so previous
+        // replies + this one must stay within the cap.
+        const { count } = await params.admin
+          .from("chat_messages")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", params.userId)
+          .eq("role", "user")
+          .filter("metadata->>channel", "eq", "whatsapp")
+          .gt("created_at", sentAtIso);
+        if ((count ?? 0) >= TEMPLATE_CONTEXT_MAX_TURNS) row = null;
+      }
     }
   }
 
