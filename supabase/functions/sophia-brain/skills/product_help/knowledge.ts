@@ -564,6 +564,11 @@ export const PRODUCT_HELP_FEATURES: ProductHelpFeature[] = [
       "etat interieur",
       "suivi 7 jours",
       "suivi de 7 jours",
+      "message quotidien",
+      "question quotidienne",
+      "conversation de soutien",
+      "relance potion",
+      "comment marche le suivi",
       "reset",
       "reguler",
       "apaiser",
@@ -572,13 +577,15 @@ export const PRODUCT_HELP_FEATURES: ProductHelpFeature[] = [
       "peur",
     ],
     explain:
-      "Une potion est un support court et durable pour traverser un etat interieur quand il prend trop de place. Elle intervient comme appui de suivi, souvent sur 7 jours, pas comme remplacement d'une conversation de reparation immediate. Types: anti-decrochage quand le user sait quoi proteger mais laisse filer, courage quand la peur ou l'evitement bloquent, guerison apres un episode qui a fait mal, clarte quand le plan perd son lien avec le pourquoi profond, amour quand il manque de douceur envers lui-meme, apaisement quand la pression monte.",
+      "Une potion aide a traverser un etat interieur quand il prend trop de place. Elle a deux temps: une reponse immediate personnalisee au moment de l'activation, puis un soutien conversationnel pouvant durer jusqu'a 7 jours. Sophia ne pousse pas une serie de phrases generiques preparees d'avance: chaque nouvelle ouverture s'appuie sur le contexte donne a l'activation et sur ce qui a evolue depuis, puis peut poser une question et ouvrir une vraie conversation de soutien si le user repond. Types: anti-decrochage quand le user sait quoi proteger mais laisse filer, courage quand la peur ou l'evitement bloquent, guerison apres un episode qui a fait mal, clarte quand le plan perd son lien avec le pourquoi profond, amour quand il manque de douceur envers lui-meme, apaisement quand la pression monte.",
     how_to:
-      "Ouvre Ressources, choisis une potion disponible, puis active-la ou reactive-la selon son etat. L'activation cree aussi le suivi de 7 jours.",
+      "Dans Dashboard > Ressources > Potions, choisis la potion qui correspond a l'etat du moment, reponds aux quelques questions de contexte, puis active-la. L'activation affiche d'abord un appui personnalise et ouvre un suivi pouvant aller jusqu'a 7 jours. Au maximum une ouverture de soutien est preparee par jour, au moment utile, depuis le contexte initial et les echanges intervenus depuis la precedente ouverture. Si le user repond, Sophia poursuit naturellement la conversation; elle peut rester tres courte ou durer davantage selon ce dont il a besoin.",
     benefits: [
       "Aide a redescendre ou se recentrer rapidement.",
       "Repond a un etat du moment sans refaire tout le plan.",
-      "Cree un suivi de 7 jours via une initiative automatique.",
+      "Capitalise sur le contexte recueilli a l'activation au lieu de demander au user de tout repeter.",
+      "Fait evoluer le soutien d'un jour a l'autre a partir des reponses et des echanges intermediaires.",
+      "Permet une vraie conversation de soutien, pas seulement la reception d'une phrase quotidienne.",
       "Sert quand l'etat interieur global prend trop de place, sans etre d'abord rattache a une action concrete.",
       "Aide a choisir la potion selon l'etat: decrochage, peur, honte/blessure, perte de sens du plan, durete envers soi, ou stress.",
     ],
@@ -589,7 +596,7 @@ export const PRODUCT_HELP_FEATURES: ProductHelpFeature[] = [
         "activer",
         "reactiver",
         "consulter l'usage",
-        "programmer ou recevoir le suivi si disponible",
+        "recevoir le soutien contextualise associe a l'activation",
       ],
     }],
     limits: [
@@ -600,7 +607,11 @@ export const PRODUCT_HELP_FEATURES: ProductHelpFeature[] = [
       "La potion de clarte ne remplace pas les cartes d'action pour trouver un premier pas, prioriser une tache ou decouper une action.",
       "Ne remplace pas les cartes d'attaque ou de defense quand l'emotion est liee a une action concrete.",
       "Ne remplace pas l'ajustement du plan si le probleme est structurel.",
-      "Le suivi cree est une initiative de soutien sur 7 jours, pas une modification du plan.",
+      "Le suivi peut aller jusqu'a 7 jours, mais ne garantit pas 7 messages: Sophia respecte les conversations deja en cours et les autres rendez-vous Daily ou Weekly prioritaires.",
+      "Sophia attend une periode sans echange avant une ouverture proactive; elle ne coupe pas une conversation en cours pour envoyer la potion.",
+      "Hors de la fenetre WhatsApp de 24 h, un template demande d'abord si le user veut recevoir le message du jour; le contenu personnalise vient seulement apres sa reponse.",
+      "Mettre fin a une conversation du jour ne supprime pas automatiquement les jours suivants. Pour arreter toute la campagne, le user doit demander explicitement de ne plus etre relance pour cette potion.",
+      "Le suivi de la potion reste hors plan: il ne modifie aucune mission, habitude ou structure du Plan.",
     ],
     sophia_must_not_claim: [
       "Ne pas dire qu'une potion est activee sans succes outil ou flow.",
@@ -608,6 +619,8 @@ export const PRODUCT_HELP_FEATURES: ProductHelpFeature[] = [
       // impliquant une instance stockee est un over-claim.
       "Ne pas employer l'article defini ('ta potion', 'la retrouver', 'la reactiver') pour un user sans potion active: decrire la FEATURE ('une potion se choisit et s'active dans Ressources'), jamais une instance qui n'existe pas. 'Reactiver' ne se dit que d'une potion deja activee auparavant.",
       "Ne jamais dire qu'une potion peut etre activee, gardee ou sauvegardee depuis le chat: l'activation se fait dans l'app (Dashboard > Ressources).",
+      "Ne pas presenter un exercice ou un contenu de potion donne dans le chat comme une activation du suivi de 7 jours. Seule l'activation confirmee dans Dashboard > Ressources > Potions ouvre la campagne durable.",
+      "Ne pas promettre exactement 7 messages, une heure fixe quotidienne ou des textes prepares d'avance. Parler d'un soutien contextualise pouvant aller jusqu'a 7 jours.",
       "Sur une co-demande 'active-moi une potion' + question mecanique ('je la retrouve ou ?'), repondre aux DEUX volets: l'honnetete d'activation (pas activable depuis le chat, chemin app) d'abord, puis la mecanique — ne jamais dropper le volet activation.",
     ],
     feature_guidance: {

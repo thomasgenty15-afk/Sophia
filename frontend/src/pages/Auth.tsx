@@ -21,6 +21,13 @@ import {
   Gift
 } from 'lucide-react';
 
+// Email-verification polling cadence. Each unconfirmed attempt is a 400 against
+// the auth token endpoint, so we start slow, grow, and eventually stop rather
+// than poll forever.
+const POLL_INITIAL_MS = 5000;
+const POLL_MAX_MS = 30000;
+const POLL_GIVE_UP_MS = 10 * 60 * 1000;
+
 function getErrorMessage(err: unknown, fallback: string) {
   if (err instanceof Error && err.message) return err.message;
   if (typeof err === "string" && err) return err;
@@ -214,12 +221,23 @@ const Auth = () => {
 
     let cancelled = false;
     let pollTimer: ReturnType<typeof setTimeout> | null = null;
+    // An unconfirmed email answers 400, which supabase-js returns as {error}
+    // rather than throwing: without a back-off the poll hammered the token
+    // endpoint every 5 s forever, risking an auth rate-limit that would then
+    // block the legitimate sign-in once the email IS confirmed.
+    let delayMs = POLL_INITIAL_MS;
+    let windowStartedAt = Date.now();
 
     const attemptSignIn = async () => {
       if (cancelled) return;
+      // Give up after a while: the user still has the resend button, and coming
+      // back to the tab restarts a fresh polling window.
+      if (Date.now() - windowStartedAt > POLL_GIVE_UP_MS) {
+        setVerificationStatus('idle');
+        return;
+      }
       setVerificationStatus('checking');
       try {
-        console.log('[Auth] Polling: attempting signInWithPassword...');
         const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password,
@@ -239,16 +257,17 @@ const Auth = () => {
           return;
         }
 
-        // Pas encore vérifié → on replanifie
-        console.log('[Auth] Email not yet verified, retrying in 5s...', signInError?.message);
+        // Pas encore vérifié → on replanifie, de plus en plus espacé
         setVerificationStatus('idle');
-        if (!cancelled) pollTimer = setTimeout(attemptSignIn, 5000);
+        delayMs = Math.min(Math.round(delayMs * 1.5), POLL_MAX_MS);
+        if (!cancelled) pollTimer = setTimeout(attemptSignIn, delayMs);
       } catch (err) {
-        // Erreur réseau ou rate-limit → back-off
-        console.warn('[Auth] Polling error, backing off to 10s:', err);
+        // Erreur réseau ou rate-limit → back-off maximal
+        console.warn('[Auth] Polling error, backing off:', err);
         if (!cancelled) {
           setVerificationStatus('idle');
-          pollTimer = setTimeout(attemptSignIn, 10000);
+          delayMs = POLL_MAX_MS;
+          pollTimer = setTimeout(attemptSignIn, delayMs);
         }
       }
     };
@@ -256,10 +275,14 @@ const Auth = () => {
     // Premier essai après 3 s (laisse le temps à l'user de voir l'écran)
     pollTimer = setTimeout(attemptSignIn, 3000);
 
-    // Quand l'user revient sur cet onglet (mobile), on vérifie immédiatement
+    // Quand l'user revient sur cet onglet (mobile), on vérifie immédiatement :
+    // il vient probablement de cliquer le lien, donc on repart d'une fenêtre
+    // et d'un délai neufs.
     const handleVisibility = () => {
       if (document.visibilityState === 'visible' && !cancelled) {
         if (pollTimer) clearTimeout(pollTimer);
+        delayMs = POLL_INITIAL_MS;
+        windowStartedAt = Date.now();
         attemptSignIn();
       }
     };

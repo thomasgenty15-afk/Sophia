@@ -948,6 +948,17 @@ Deno.serve(async (req) => {
         to: toE164,
         request_id: requestId,
         outbound_tracking_id: outboundId,
+        // The offered buttons used to be persisted only in web simulation, so in
+        // production no agent ever knew which options a template proposed — and
+        // the reply classifier had nothing to classify against.
+        whatsapp_template: renderedTemplate
+          ? {
+            name: renderedTemplate.name,
+            known: renderedTemplate.known,
+            buttons: renderedTemplate.buttons,
+            params: renderedTemplate.params,
+          }
+          : null,
         ...(body.metadata_extra && typeof body.metadata_extra === "object"
           ? body.metadata_extra
           : {}),

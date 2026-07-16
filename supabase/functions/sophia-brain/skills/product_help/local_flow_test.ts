@@ -103,6 +103,48 @@ Deno.test("product help attack card plan guidance does not make plan preparation
   );
 });
 
+Deno.test("product help potion explains contextual conversation support instead of generic reminders", () => {
+  const potion = getProductHelpFeature("resources.potions");
+
+  assertEquals(potion?.explain.includes("deux temps"), true);
+  assertEquals(
+    potion?.explain.includes(
+      "soutien conversationnel pouvant durer jusqu'a 7 jours",
+    ),
+    true,
+  );
+  assertEquals(
+    potion?.explain.includes("serie de phrases generiques preparees d'avance"),
+    true,
+  );
+  assertEquals(
+    potion?.how_to.includes(
+      "Au maximum une ouverture de soutien est preparee par jour",
+    ),
+    true,
+  );
+  assertEquals(
+    potion?.benefits.includes(
+      "Permet une vraie conversation de soutien, pas seulement la reception d'une phrase quotidienne.",
+    ),
+    true,
+  );
+  assertEquals(
+    potion?.limits.some((limit) =>
+      limit.includes("ne garantit pas 7 messages") &&
+      limit.includes("Daily ou Weekly")
+    ),
+    true,
+  );
+  assertEquals(
+    potion?.sophia_must_not_claim.some((claim) =>
+      claim.includes("contenu de potion donne dans le chat") &&
+      claim.includes("activation du suivi de 7 jours")
+    ),
+    true,
+  );
+});
+
 function removedLocalDispatcherAction(): string {
   return ["handoff", "to", "local", "dispatcher"].join("_");
 }

@@ -4868,7 +4868,7 @@ Deno.test("contrat coaching: go-ahead potion livre au tour, consent consomme, pe
   assertStringIncludes(prompt, "GO-AHEAD POTION ⇒ LIVRABLE AU TOUR");
   assertStringIncludes(
     prompt,
-    "la MEME reponse LIVRE le contenu session de la potion",
+    "la MEME reponse LIVRE un appui conversationnel concret",
   );
   assertStringIncludes(
     prompt,
@@ -4899,7 +4899,20 @@ Deno.test("contrat coaching: go-ahead potion livre au tour, consent consomme, pe
   );
   assertStringIncludes(
     prompt,
-    "jamais de claim de stockage, jamais de rappel substitue a la place (gate artefact≠rappel P8-B)",
+    "jamais de claim de stockage, jamais de rappel generique substitue a la place (gate artefact≠rappel P8-B)",
+  );
+  assertStringIncludes(prompt, "POTION — explication canonique du produit");
+  assertStringIncludes(
+    prompt,
+    "un soutien conversationnel contextualise pouvant aller jusqu'a 7 jours",
+  );
+  assertStringIncludes(
+    prompt,
+    "Ce n'est JAMAIS une serie de phrases generiques pre-redigees",
+  );
+  assertStringIncludes(
+    prompt,
+    "jamais de 7 messages garantis ni d'une heure fixe",
   );
 });
 
@@ -4912,7 +4925,7 @@ Deno.test("visible agent emotion_coaching porte la doctrine go-ahead potion + pe
   assertStringIncludes(content, "GO-AHEAD ⇒ LIVRABLE AU TOUR");
   assertStringIncludes(
     content,
-    "LIVRE le contenu session de la potion MAINTENANT",
+    "LIVRE un appui conversationnel concret adapte a son etat MAINTENANT",
   );
   assertStringIncludes(
     content,
@@ -4927,12 +4940,23 @@ Deno.test("visible agent emotion_coaching porte la doctrine go-ahead potion + pe
   assertStringIncludes(content, "DEMANDE DE PERSISTANCE");
   assertStringIncludes(
     content,
-    "elle ne se garde pas automatiquement depuis le chat",
+    "elle ne s'active ni ne se garde automatiquement depuis le chat",
   );
   assertStringIncludes(
     content,
-    "jamais un rappel propose a la place",
+    "jamais un rappel generique propose a la place",
   );
+  assertStringIncludes(content, "EXPLICATION CANONIQUE DU SUIVI");
+  assertStringIncludes(
+    content,
+    "un soutien conversationnel contextualise pouvant aller jusqu'a 7 jours",
+  );
+  assertStringIncludes(
+    content,
+    "Ce n'est pas une serie de phrases generiques preparees d'avance",
+  );
+  assertStringIncludes(content, "RYTHME DU SUIVI");
+  assertStringIncludes(content, "CONTROLE USER");
   // Anti-faux-positif conservé côté agent visible.
   assertStringIncludes(
     content,
