@@ -2383,15 +2383,31 @@ async function knowsWhatsAppTonePreference(
 ): Promise<boolean> {
   const { data } = await admin
     .from("user_profile_facts")
-    .select("value")
+    .select("value, last_confirmed_at")
     .eq("user_id", userId)
     .eq("scope", "global")
     .eq("key", "coach.tone")
     .maybeSingle();
-  const value = (data as { value?: unknown } | null)?.value;
+  const row = data as
+    | { value?: unknown; last_confirmed_at?: unknown }
+    | null;
+  // Accounts are seeded at creation with default coach preferences
+  // ("Default coach preferences (v4 canonical)", source_type system_default),
+  // so a coach.tone row exists for EVERYONE from birth — checking mere
+  // existence made this guard always true and the tone question never sent.
+  // A preference only counts as "known" once the user actually chose it: the
+  // onboarding flow stamps last_confirmed_at when persisting a real answer,
+  // while the seeded default leaves it null.
+  if (!row || !cleanTimestamp(row.last_confirmed_at)) return false;
+  const value = row.value;
   if (!value || typeof value !== "object" || Array.isArray(value)) return false;
   return String((value as Record<string, unknown>).value ?? "").trim().length >
     0;
+}
+
+function cleanTimestamp(value: unknown): string {
+  const text = String(value ?? "").trim();
+  return Number.isFinite(Date.parse(text)) ? text : "";
 }
 
 export function planActivatedFirstName(fullName: unknown): string {

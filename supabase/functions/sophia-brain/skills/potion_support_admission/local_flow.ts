@@ -72,7 +72,13 @@ const SYSTEM_PROMPT = [
   "Une amelioration partielle n'est jamais une resolution. 'Je m'arrete pour ce soir' n'annule jamais la campagne.",
   "En cas de doute entre continuer et sortir, continue_support si le message reste sur le sujet; sinon exit_to_global_dispatcher. N'annule jamais dans le doute.",
   "Pour cancel_campaign, terminal_reason vaut cancelled_user_boundary, cancelled_context_obsolete ou completed_resolved. Sinon terminal_reason=null.",
-  "Reponds uniquement en JSON: {action,confidence,relation,reason,terminal_reason}.",
+  "Reponds uniquement en JSON avec EXACTEMENT ces champs et ces valeurs litterales:",
+  '{"action":"continue_support"|"close_session"|"cancel_campaign"|"exit_to_global_dispatcher"|"safety_exit",',
+  '"confidence":"low"|"medium"|"high" (une de ces trois chaines, jamais un nombre),',
+  '"relation":"related"|"session_boundary"|"campaign_boundary"|"other",',
+  '"reason":"<phrase courte en francais>",',
+  '"terminal_reason":"cancelled_user_boundary"|"cancelled_context_obsolete"|"completed_resolved"|null}',
+  "cancel_campaign exige relation=campaign_boundary et confidence=high.",
 ].join("\n");
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -122,6 +128,15 @@ function noteForExit(input: {
       exit_reason: input.reason,
       campaign_status: input.terminalReason ? "terminal_requested" : "active",
       terminal_reason: input.terminalReason,
+      // PSA-B02: parite claim/ledger. Tant que la campagne n'est pas
+      // terminalisee (campaign_status != terminal_committed), le tour visible
+      // ne peut pas promettre l'arret du suivi — c'est le meme invariant que
+      // les gardes rendu=ledger des rappels.
+      ...(input.terminalReason ? {} : {
+        render_constraints: [
+          "campaign_active_no_stop_claim: la campagne potion et ses prochains messages restent ACTIFS; ne jamais dire que le suivi est arrete, note, ou que les messages cessent.",
+        ],
+      }),
       source_potion_session_id: input.context.source_potion_session_id,
       recurring_reminder_id: input.context.recurring_reminder_id,
       scheduled_checkin_id: input.context.scheduled_checkin_id,
@@ -162,20 +177,49 @@ function normalizeDecision(input: {
   let action = ACTIONS.has(cleanText(parsed.action) as PotionSupportLocalAction)
     ? cleanText(parsed.action) as PotionSupportLocalAction
     : "exit_to_global_dispatcher";
-  const confidence = parsed.confidence === "high" ||
-      parsed.confidence === "medium" || parsed.confidence === "low"
-    ? parsed.confidence
+  // PSA-B01: coercition deterministe des sorties structurellement fiables.
+  // Capture reelle (QA 17/07): le modele repond confidence:1.0 (nombre) et
+  // relation en prose libre alors que action+terminal_reason sont exacts. Un
+  // nombre dans [0,1] est une confiance exploitable, pas une sortie
+  // incoherente; on la mappe au lieu de l'ecraser en "low".
+  const rawConfidence: unknown = parsed.confidence;
+  const numericConfidence = typeof rawConfidence === "number"
+    ? rawConfidence
+    : /^[0-9.]+$/.test(cleanText(rawConfidence, 10))
+    ? Number(cleanText(rawConfidence, 10))
+    : NaN;
+  const confidence = rawConfidence === "high" || rawConfidence === "medium" ||
+      rawConfidence === "low"
+    ? rawConfidence
+    : Number.isFinite(numericConfidence) && numericConfidence >= 0 &&
+        numericConfidence <= 1
+    ? (numericConfidence >= 0.75
+      ? "high"
+      : numericConfidence >= 0.4
+      ? "medium"
+      : "low")
     : "low";
-  const relation = parsed.relation === "related" ||
+  let relation: PotionSupportLocalDecision["relation"] =
+    parsed.relation === "related" ||
       parsed.relation === "session_boundary" ||
       parsed.relation === "campaign_boundary" || parsed.relation === "other"
-    ? parsed.relation
-    : "other";
+      ? parsed.relation
+      : "other";
   let terminalReason = TERMINAL_REASONS.has(
       cleanText(parsed.terminal_reason) as PotionSupportTerminalReason,
     )
     ? cleanText(parsed.terminal_reason) as PotionSupportTerminalReason
     : null;
+  // La structure prouve la frontiere: un cancel explicite portant un
+  // terminal_reason valide est une campaign_boundary meme si le champ
+  // relation est venu en prose (ecrase en "other" ci-dessus). L'echo lexical
+  // du champ n'est pas la preuve; le couple action+terminal_reason l'est.
+  if (
+    action === "cancel_campaign" && terminalReason && relation === "other" &&
+    !(parsed.relation === "related" || parsed.relation === "session_boundary")
+  ) {
+    relation = "campaign_boundary";
+  }
   const reason = cleanText(parsed.reason) || "potion_support_local_decision";
 
   // Terminality is default-deny. A low-confidence or structurally

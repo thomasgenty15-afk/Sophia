@@ -149,6 +149,127 @@ Deno.test("device pull exits only to the global dispatcher", async () => {
   );
 });
 
+Deno.test("real capture: numeric confidence + prose relation still cancels (PSA-B01)", async () => {
+  // Sortie modele reellement observee en QA 17/07 (replay Gemini): action et
+  // terminal_reason exacts, mais confidence numerique et relation en prose.
+  const decision = await runPotionSupportLocalDispatcher({
+    userId: "user-1",
+    userMessage:
+      "Ne me renvoie plus de messages de cette potion, tu peux arreter ce suivi.",
+    recentMessages: [],
+    phase: "presence_continuation",
+    context,
+    runner: async () => ({
+      action: "cancel_campaign",
+      confidence: 1.0,
+      relation: "The user explicitly requests to stop the current follow-up.",
+      reason: "Explicit request to stop the specific support campaign.",
+      terminal_reason: "cancelled_user_boundary",
+    }),
+  });
+  assertEquals(decision.action, "cancel_campaign");
+  assertEquals(decision.confidence, "high");
+  assertEquals(decision.relation, "campaign_boundary");
+  assertEquals(decision.terminal_reason, "cancelled_user_boundary");
+});
+
+Deno.test("low numeric confidence cancel is still downgraded (PSA-B01 default-deny)", async () => {
+  const decision = await runPotionSupportLocalDispatcher({
+    userId: "user-1",
+    userMessage: "Ca va un peu mieux je crois.",
+    recentMessages: [],
+    phase: "first_reply",
+    context,
+    runner: async () => ({
+      action: "cancel_campaign",
+      confidence: 0.3,
+      relation: "possible resolution",
+      reason: "Amelioration partielle.",
+      terminal_reason: "completed_resolved",
+    }),
+  });
+  assertEquals(decision.action, "exit_to_global_dispatcher");
+  assertEquals(decision.terminal_reason, null);
+});
+
+Deno.test("session_boundary echo is never coerced into campaign boundary (PSA-B01)", async () => {
+  const decision = await runPotionSupportLocalDispatcher({
+    userId: "user-1",
+    userMessage: "Je m'arrete la pour ce soir.",
+    recentMessages: [],
+    phase: "first_reply",
+    context,
+    runner: async () => ({
+      action: "cancel_campaign",
+      confidence: 0.95,
+      relation: "session_boundary",
+      reason: "Le user ferme la conversation du soir.",
+      terminal_reason: "cancelled_user_boundary",
+    }),
+  });
+  assertEquals(decision.action, "exit_to_global_dispatcher");
+  assertEquals(decision.terminal_reason, null);
+});
+
+Deno.test("non-terminal exit note forbids stop claims (PSA-B02)", async () => {
+  const decision = await runPotionSupportLocalDispatcher({
+    userId: "user-1",
+    userMessage: "Fais-moi une carte de defense pour ca.",
+    recentMessages: [],
+    phase: "presence_continuation",
+    context,
+    runner: async () => ({
+      action: "exit_to_global_dispatcher",
+      confidence: "high",
+      relation: "other",
+      reason: "Demande de dispositif.",
+      terminal_reason: null,
+    }),
+  });
+  const structured = decision.note_information?.structured_context as Record<
+    string,
+    unknown
+  >;
+  assertEquals(structured.campaign_status, "active");
+  assertStringIncludes(
+    JSON.stringify(structured.render_constraints),
+    "campaign_active_no_stop_claim",
+  );
+});
+
+Deno.test("terminal cancel note carries no active-campaign render constraint (PSA-B02)", async () => {
+  const decision = await runPotionSupportLocalDispatcher({
+    userId: "user-1",
+    userMessage: "L'entretien est annule, arrete ce suivi.",
+    recentMessages: [],
+    phase: "first_reply",
+    context,
+    runner: async () => ({
+      action: "cancel_campaign",
+      confidence: "high",
+      relation: "campaign_boundary",
+      reason: "Contexte disparu.",
+      terminal_reason: "cancelled_context_obsolete",
+    }),
+  });
+  const structured = decision.note_information?.structured_context as Record<
+    string,
+    unknown
+  >;
+  assertEquals(structured.render_constraints, undefined);
+});
+
+Deno.test("dispatcher prompt enumerates the legal output values (PSA-B01)", () => {
+  assertStringIncludes(
+    POTION_SUPPORT_LOCAL_DISPATCHER_SYSTEM_PROMPT,
+    '"confidence":"low"|"medium"|"high"',
+  );
+  assertStringIncludes(
+    POTION_SUPPORT_LOCAL_DISPATCHER_SYSTEM_PROMPT,
+    '"relation":"related"|"session_boundary"|"campaign_boundary"|"other"',
+  );
+});
+
 Deno.test("dispatcher prompt separates session closure and campaign boundary", () => {
   assertStringIncludes(
     POTION_SUPPORT_LOCAL_DISPATCHER_SYSTEM_PROMPT,

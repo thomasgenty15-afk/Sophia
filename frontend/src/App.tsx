@@ -60,11 +60,18 @@ function App() {
                 <Route
                   path="/dev/plan-saved-modal"
                   element={
-                    <PlanSavedModal
-                      open
-                      whatsappOptedIn={false}
-                      onClose={() => {}}
-                    />
+                    /* sophia-action-skin mirrors the dashboard wrapper that
+                       defines --action-green; without it the Ok button renders
+                       white-on-white. ?opted=1 previews the opted-in variant. */
+                    <div className="sophia-action-skin">
+                      <PlanSavedModal
+                        open
+                        whatsappOptedIn={new URLSearchParams(
+                          window.location.search,
+                        ).get("opted") === "1"}
+                        onClose={() => {}}
+                      />
+                    </div>
                   }
                 />
               ) : null}
