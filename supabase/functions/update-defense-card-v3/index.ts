@@ -203,11 +203,11 @@ async function resolveScopeForNewCard(
     throw new DefenseCardActionError(400, "transformation_id is required");
   }
 
+  // user_transformations has no user_id column — ownership goes through user_cycles.
   const { data, error } = await admin
     .from("user_transformations")
     .select("id, cycle_id")
     .eq("id", transformationId)
-    .eq("user_id", userId)
     .maybeSingle();
 
   if (error) throw new DefenseCardActionError(500, `DB error: ${error.message}`);
@@ -215,6 +215,16 @@ async function resolveScopeForNewCard(
   if (String((data as any).cycle_id) !== args.cycleId) {
     throw new DefenseCardActionError(400, "Transformation does not belong to the provided cycle");
   }
+
+  const { data: cycle, error: cycleError } = await admin
+    .from("user_cycles")
+    .select("id")
+    .eq("id", (data as any).cycle_id)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (cycleError) throw new DefenseCardActionError(500, `DB error: ${cycleError.message}`);
+  if (!cycle) throw new DefenseCardActionError(403, "Cycle not found or not owned by user");
 
   return {
     cycleId: String((data as any).cycle_id),

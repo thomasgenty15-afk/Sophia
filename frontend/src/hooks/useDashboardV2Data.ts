@@ -41,6 +41,7 @@ export type DashboardV2PlanItemRuntime = UserPlanItemRow & {
 
 type DashboardV2Profile = {
   firstName: string;
+  whatsappOptedIn: boolean;
 };
 
 function isMissingLevelToolRecommendationsStorage(error: unknown) {
@@ -147,7 +148,7 @@ export function useDashboardV2Data(selectedTransformationId: string | null) {
     try {
       const { data: profileRow, error: profileError } = await supabase
         .from("profiles")
-        .select("onboarding_completed, full_name")
+        .select("onboarding_completed, full_name, whatsapp_opted_in")
         .eq("id", userId)
         .maybeSingle();
 
@@ -155,6 +156,7 @@ export function useDashboardV2Data(selectedTransformationId: string | null) {
 
       setProfile({
         firstName: getFirstName(profileRow?.full_name ?? null, userEmail),
+        whatsappOptedIn: Boolean(profileRow?.whatsapp_opted_in),
       });
 
       const { data: activeCycleRow, error: cycleError } = await supabase

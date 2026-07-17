@@ -11,8 +11,10 @@ import { clearActiveConversationSkillState } from "../../router/active_flow_stat
 import { ACTIVE_CONVERSATION_SKILL_KEY } from "../_shared/active_skill_state.ts";
 import {
   enterPresenceFlow,
+  type AttackKeywordSupportPresenceEntryContext,
   type PresenceEntryContext,
   type PresenceFlowState,
+  type PotionSupportPresenceEntryContext,
   stepPresenceFlow,
 } from "./state.ts";
 import type { PresenceConversationKind } from "../../contracts/turn_frame.v1.ts";
@@ -135,13 +137,31 @@ export function armPotionSupportPresence(input: {
   nowIso: string;
   localDate: string;
   topicHint: string | null;
-  entryContext: PresenceEntryContext;
+  entryContext: PotionSupportPresenceEntryContext;
 }): Record<string, unknown> {
   const flow = enterPresenceFlow({
     nowIso: input.nowIso,
     localDate: input.localDate,
     topicHint: input.topicHint,
     entryReason: "potion_support_door_opener",
+    entryContext: input.entryContext,
+  });
+  return writePresenceState(input.tempMemory, flow, input.nowIso);
+}
+
+/** Opens Presence after an inbound attack keyword received its first reply. */
+export function armAttackKeywordSupportPresence(input: {
+  tempMemory: Record<string, unknown>;
+  nowIso: string;
+  localDate: string;
+  topicHint: string | null;
+  entryContext: AttackKeywordSupportPresenceEntryContext;
+}): Record<string, unknown> {
+  const flow = enterPresenceFlow({
+    nowIso: input.nowIso,
+    localDate: input.localDate,
+    topicHint: input.topicHint,
+    entryReason: "attack_keyword_support_door_opener",
     entryContext: input.entryContext,
   });
   return writePresenceState(input.tempMemory, flow, input.nowIso);

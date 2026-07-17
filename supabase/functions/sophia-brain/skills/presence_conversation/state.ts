@@ -19,7 +19,7 @@ import type { PresenceConversationKind } from "../../contracts/turn_frame.v1.ts"
 // de jour local.
 export const PRESENCE_INACTIVITY_EXPIRY_MS = 6 * 60 * 60 * 1000;
 
-export type PresenceEntryContext = {
+export type PotionSupportPresenceEntryContext = {
   source: "potion_support";
   source_potion_session_id: string;
   recurring_reminder_id: string;
@@ -29,8 +29,23 @@ export type PresenceEntryContext = {
     source_id: string;
     source_field: string | null;
   }>;
+  day_index?: number;
+  topic_hint?: string | null;
+  opening_focus?: string | null;
   awaiting_first_reply: boolean;
 };
+
+export type AttackKeywordSupportPresenceEntryContext = {
+  source: "attack_keyword_support";
+  attack_card_id: string;
+  technique_key: "pre_engagement";
+  activation_keyword_normalized: string;
+  awaiting_first_reply: boolean;
+};
+
+export type PresenceEntryContext =
+  | PotionSupportPresenceEntryContext
+  | AttackKeywordSupportPresenceEntryContext;
 
 export type PresenceFlowState = {
   version: 1;
@@ -107,7 +122,8 @@ export function isPresenceExpired(input: {
   // reply. It must not lose ownership merely because the reply came 6h later;
   // topic_change/tool_pull/closure still exit through the global classifier.
   if (
-    input.state.entry_context?.source === "potion_support" &&
+    (input.state.entry_context?.source === "potion_support" ||
+      input.state.entry_context?.source === "attack_keyword_support") &&
     input.state.entry_context.awaiting_first_reply
   ) return false;
   if (
@@ -165,7 +181,9 @@ export function stepPresenceFlow(input: {
     turns_in_flow: input.state.turns_in_flow + 1,
     last_activity_at: input.nowIso,
     local_date: input.localDate,
-    entry_context: input.state.entry_context?.source === "potion_support"
+    entry_context: input.state.entry_context &&
+        (input.state.entry_context.source === "potion_support" ||
+          input.state.entry_context.source === "attack_keyword_support")
       ? { ...input.state.entry_context, awaiting_first_reply: false }
       : input.state.entry_context,
   };

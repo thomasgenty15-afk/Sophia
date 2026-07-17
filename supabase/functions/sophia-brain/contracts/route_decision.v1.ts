@@ -7,6 +7,7 @@ export type ResponseOwner =
   | "feature_opportunity"
   | "weekly_adaptive_review_v1"
   | "presence_conversation"
+  | "attack_keyword_support"
   | "direct_effect"
   | "normal_reply";
 

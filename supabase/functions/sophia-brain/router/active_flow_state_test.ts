@@ -22,6 +22,7 @@ const RETAINED_LOCAL_FLOW_IDS: ActiveLocalConversationFlowSkillId[] = [
   "coaching_recommendation",
   "plan_realignment",
   "feature_opportunity",
+  "potion_support_admission_v1",
   "safety_crisis",
 ];
 
@@ -274,6 +275,30 @@ Deno.test("active_flow_state releases local flows stale for more than 4 hours", 
       skill_id: "product_help",
       status: "active",
       started_at: fiveHoursAgo,
+    }),
+    true,
+  );
+});
+
+Deno.test("potion admission keeps exactly the semantic first reply beyond four hours", () => {
+  const staleAt = new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString();
+  const state = {
+    skill_id: "potion_support_admission_v1",
+    status: "active",
+    started_at: staleAt,
+    updated_at: staleAt,
+    working_state: {
+      potion_support_admission: { awaiting_first_reply: true },
+    },
+  };
+  const active = readActiveFlowState({ __active_skill_state: state });
+  assertEquals(
+    (active.activeSkillState as any)?.skill_id,
+    "potion_support_admission_v1",
+  );
+  assertEquals(
+    shouldSkipGlobalDispatcherForActiveLocalFlow({
+      activeSkillState: active.activeSkillState,
     }),
     true,
   );

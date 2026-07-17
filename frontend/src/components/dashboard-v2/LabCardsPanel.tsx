@@ -1299,16 +1299,18 @@ function PotionCard({
   const potionName = latestSession?.content.potion_name?.trim() ||
     definition.title;
   const remainingDays = getPotionRemainingDays(latestSession);
-  const remainingLabel = remainingDays == null
-    ? "Inactive"
-    : remainingDays > 0
-    ? `${remainingDays} jour${remainingDays > 1 ? "s" : ""}`
-    : "Terminee";
   // A potion type can hold several sessions at once; surface every one that is
   // still running so the user sees (and can manage) all of them.
   const activeSessions = sessions.filter((session) =>
     (getPotionRemainingDays(session) ?? 0) > 0
   );
+  const remainingLabel = activeSessions.length > 1
+    ? `${activeSessions.length} actives`
+    : activeSessions.length === 1
+    ? "Active"
+    : remainingDays == null
+    ? "Inactive"
+    : "Terminee";
   const hasSessions = sessions.length > 0;
   const scheduledSummary = isSeriesScheduled
     ? `${
@@ -1467,6 +1469,39 @@ function PotionCard({
             </p>
           </div>
         </div>
+
+        {!isOpen && activeSessions.length > 0
+          ? (
+            <div className="mt-4 space-y-3">
+              {activeSessions.map((session) => {
+                const rd = getPotionRemainingDays(session) ?? 0;
+                const name = session.content.potion_name?.trim() ||
+                  definition.title;
+                return (
+                  <div
+                    key={session.id}
+                    className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex min-w-0 items-center gap-2">
+                        <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-500" />
+                        <p className="truncate text-sm font-semibold text-emerald-950">
+                          {name}
+                        </p>
+                      </div>
+                      <span className="shrink-0 rounded-full bg-white px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-emerald-700">
+                        {rd} jour{rd > 1 ? "s" : ""} restant{rd > 1 ? "s" : ""}
+                      </span>
+                    </div>
+                    <p className="mt-2 line-clamp-3 text-sm leading-6 text-emerald-950">
+                      {session.content.instant_response}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          )
+          : null}
 
         {isOpen
           ? (

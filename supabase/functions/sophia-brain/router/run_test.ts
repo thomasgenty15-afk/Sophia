@@ -16,34 +16,12 @@ import {
   effectLedgerTraceForTest,
   ensureClarifyQuestionVisible,
   ensureCommittedRenderParity,
-  isExplicitPotionSupportStopMessage,
   isReminderReadoutQuestion,
   mergeVisibleTextForTest,
   stripCommitClaimBeforeClarify,
   stripTrackClaimWithoutCommit,
   stripUnfoundedReminderCapacityDenial,
 } from "./run.ts";
-
-Deno.test("potion support stop detector accepts explicit space requests only", () => {
-  assertEquals(
-    isExplicitPotionSupportStopMessage("Laisse-moi tranquille"),
-    true,
-  );
-  assertEquals(
-    isExplicitPotionSupportStopMessage(
-      "J'ai besoin d'espace, ne me relance plus",
-    ),
-    true,
-  );
-  assertEquals(
-    isExplicitPotionSupportStopMessage(
-      "Je préfère que tu ne me relances plus pour cette potion, laisse-moi de l’espace.",
-    ),
-    true,
-  );
-  assertEquals(isExplicitPotionSupportStopMessage("pas aujourd'hui"), false);
-  assertEquals(isExplicitPotionSupportStopMessage("merci ça va mieux"), false);
-});
 
 function frame(patch: Partial<TurnFrame> = {}): TurnFrame {
   return {

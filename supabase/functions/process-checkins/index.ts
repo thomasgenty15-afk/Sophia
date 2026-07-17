@@ -148,9 +148,9 @@ import {
 } from "../sophia-brain/repair_mode_engine.ts";
 import { transitionRendezVous } from "../_shared/v2-rendez-vous.ts";
 import {
-  armPotionSupportPresence,
   clearPotionSupportPresence,
 } from "../sophia-brain/skills/presence_conversation/apply.ts";
+import { armPotionSupportAdmission } from "../sophia-brain/skills/potion_support_admission/state.ts";
 import { registerRendezVousRefusal } from "../sophia-brain/rendez_vous_decision.ts";
 
 console.log("Process Checkins: Function initialized");
@@ -1437,6 +1437,21 @@ async function fetchWhatsappTempMemory(
     : {};
 }
 
+async function hasActiveSafetyAcrossScopes(params: {
+  supabaseAdmin: ReturnType<typeof createClient>;
+  userId: string;
+}): Promise<boolean> {
+  const { data, error } = await params.supabaseAdmin
+    .from("user_chat_states")
+    .select("scope,temp_memory")
+    .eq("user_id", params.userId);
+  if (error) throw error;
+  return (data ?? []).some((row: Record<string, unknown>) =>
+    activeConversationSkillId(objectRecord(row.temp_memory)) ===
+      "safety_crisis"
+  );
+}
+
 async function persistWhatsappTempMemory(params: {
   supabaseAdmin: ReturnType<typeof createClient>;
   userId: string;
@@ -1513,15 +1528,16 @@ async function hasPendingPotionPriorityPrompt(params: {
   });
 }
 
-async function armDeliveredPotionSupportPresence(params: {
+async function armDeliveredPotionSupportAdmission(params: {
   supabaseAdmin: ReturnType<typeof createClient>;
   userId: string;
-  timezone: string;
   nowIso: string;
   sourcePotionSessionId: string;
   recurringReminderId: string;
   scheduledCheckinId: string;
   topicHint: string | null;
+  openingFocus: string | null;
+  dayIndex: number;
   anchorEvidenceRefs: Array<{
     source_type: string;
     source_id: string;
@@ -1532,18 +1548,17 @@ async function armDeliveredPotionSupportPresence(params: {
     params.supabaseAdmin,
     params.userId,
   ).catch(() => ({}));
-  const next = armPotionSupportPresence({
+  const next = armPotionSupportAdmission({
     tempMemory,
     nowIso: params.nowIso,
-    localDate: localDateYmdInTimezone(params.timezone, new Date(params.nowIso)),
-    topicHint: params.topicHint,
-    entryContext: {
-      source: "potion_support",
+    context: {
       source_potion_session_id: params.sourcePotionSessionId,
       recurring_reminder_id: params.recurringReminderId,
       scheduled_checkin_id: params.scheduledCheckinId,
+      day_index: params.dayIndex,
+      topic_hint: params.topicHint,
+      opening_focus: params.openingFocus,
       anchor_evidence_refs: params.anchorEvidenceRefs,
-      awaiting_first_reply: true,
     },
   });
   await persistWhatsappTempMemory({
@@ -3329,7 +3344,13 @@ Deno.serve(async (req) => {
             String(checkin.user_id),
           ).catch(() => ({}));
           const activeSkillId = activeConversationSkillId(potionTempMemory);
-          if (activeSkillId === "safety_crisis") {
+          if (
+            activeSkillId === "safety_crisis" ||
+            await hasActiveSafetyAcrossScopes({
+              supabaseAdmin,
+              userId: String(checkin.user_id),
+            })
+          ) {
             await cancelPotionSupportCampaign({
               admin: supabaseAdmin as any,
               userId: String(checkin.user_id),
@@ -5371,7 +5392,13 @@ Deno.serve(async (req) => {
           const latestActiveSkill = activeConversationSkillId(
             latestTempMemory,
           );
-          if (latestActiveSkill === "safety_crisis") {
+          if (
+            latestActiveSkill === "safety_crisis" ||
+            await hasActiveSafetyAcrossScopes({
+              supabaseAdmin,
+              userId: String(checkin.user_id),
+            })
+          ) {
             await cancelPotionSupportCampaign({
               admin: supabaseAdmin as any,
               userId: String(checkin.user_id),
@@ -5742,10 +5769,9 @@ Deno.serve(async (req) => {
             payload?.source_potion_session_id,
           );
           try {
-            await armDeliveredPotionSupportPresence({
+            await armDeliveredPotionSupportAdmission({
               supabaseAdmin,
               userId: String(checkin.user_id),
-              timezone: userTimezone,
               // Start just before generation so Presence's verbatim thread
               // includes the proactive opener logged by whatsapp-send.
               nowIso: potionSupportPreparation.read_cutoff,
@@ -5753,6 +5779,9 @@ Deno.serve(async (req) => {
               recurringReminderId: cleanText(recurringReminderId),
               scheduledCheckinId: String(checkin.id),
               topicHint: potionSupportPreparation.anchor_fact?.text ?? null,
+              openingFocus: potionSupportPreparation.focus_decision?.text ??
+                null,
+              dayIndex: Math.max(1, Number(payload?.day_index ?? 1) || 1),
               anchorEvidenceRefs:
                 potionSupportPreparation.anchor_fact?.evidence_refs ?? [],
             });
@@ -5761,7 +5790,7 @@ Deno.serve(async (req) => {
               ...payload,
               potion_support_v1: {
                 ...supportPayload,
-                presence_armed_at: armedAt,
+                admission_armed_at: armedAt,
               },
             };
             await supabaseAdmin.from("scheduled_checkins").update({

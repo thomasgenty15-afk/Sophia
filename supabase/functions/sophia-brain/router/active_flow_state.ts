@@ -13,6 +13,7 @@ export type ActiveLocalConversationFlowSkillId =
   | "coaching_recommendation"
   | "plan_realignment"
   | "feature_opportunity"
+  | "potion_support_admission_v1"
   | "presence_conversation"
   | "safety_crisis";
 
@@ -25,6 +26,7 @@ const ACTIVE_LOCAL_CONVERSATION_FLOW_SKILL_IDS = new Set<
   "coaching_recommendation",
   "plan_realignment",
   "feature_opportunity",
+  "potion_support_admission_v1",
   "presence_conversation",
   "safety_crisis",
 ]);
@@ -114,6 +116,13 @@ export function isStaleActiveLocalFlowState(
   if (!record || typeof record !== "object" || Array.isArray(record)) {
     return false;
   }
+  // The proactive opening, not elapsed wall time, owns exactly one semantic
+  // reply. Daily/Weekly can overwrite this state; an arbitrary 4h timer may
+  // not expose the reply to the global dispatcher before local admission.
+  if (
+    String(record.skill_id ?? "") === "potion_support_admission_v1" &&
+    record.working_state?.potion_support_admission?.awaiting_first_reply === true
+  ) return false;
   const touchedAt = Date.parse(
     String(record.updated_at ?? record.started_at ?? ""),
   );
@@ -261,6 +270,10 @@ export function buildLastLocalFlowExitContext(
       memo: temp.__last_product_help_exit_memo,
     },
     {
+      operation_type: "potion_support_admission_v1",
+      memo: temp.__last_potion_support_admission_exit_memo,
+    },
+    {
       operation_type: "coaching_recommendation",
       memo: temp.__last_coaching_recommendation_exit_memo,
     },
@@ -311,6 +324,7 @@ export function clearLastLocalFlowExitContext<
   delete next.__last_weekly_adaptive_review_exit_memo;
   delete next.__last_weekly_adaptive_review_child_flow_handoff;
   delete next.__last_product_help_exit_memo;
+  delete next.__last_potion_support_admission_exit_memo;
   delete next.__last_coaching_recommendation_exit_memo;
   delete next.__last_feature_opportunity_exit_memo;
   delete next.__last_safety_crisis_exit_memo;

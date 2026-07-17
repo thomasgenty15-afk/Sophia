@@ -95,9 +95,9 @@ import {
   buildUserTimeContextFromValues,
 } from "../_shared/user_time_context.ts";
 import {
-  armPotionSupportPresence,
   clearPotionSupportPresence,
 } from "../sophia-brain/skills/presence_conversation/apply.ts";
+import { armPotionSupportAdmission } from "../sophia-brain/skills/potion_support_admission/state.ts";
 
 type DailyOccurrenceOutcomeApplyResult = {
   status: string;
@@ -2984,33 +2984,25 @@ export async function handlePendingActions(params: {
       if (potionSupportPreparation && scheduledId) {
         const armedAt = new Date().toISOString();
         try {
-          const { data: profile } = await admin.from("profiles")
-            .select("timezone")
-            .eq("id", userId)
-            .maybeSingle();
-          const timezone = cleanText(profile?.timezone) || "Europe/Paris";
-          const localDate = new Intl.DateTimeFormat("en-CA", {
-            timeZone: timezone,
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-          }).format(new Date(potionSupportPreparation.read_cutoff));
           const state = await getUserState(admin, userId, "whatsapp");
           const tempMemory = recordOrEmpty(state.temp_memory);
-          const nextTempMemory = armPotionSupportPresence({
+          const nextTempMemory = armPotionSupportAdmission({
             tempMemory,
-            // Include the accepted opener in Presence's verbatim thread.
             nowIso: potionSupportPreparation.read_cutoff,
-            localDate,
-            topicHint: potionSupportPreparation.anchor_fact?.text ?? null,
-            entryContext: {
-              source: "potion_support",
+            context: {
               source_potion_session_id: potionSupportSessionId,
               recurring_reminder_id: potionSupportReminderId,
               scheduled_checkin_id: scheduledId,
+              day_index: Math.max(
+                1,
+                Number(recordOrEmpty(resolvedScheduledRow?.message_payload)
+                  .day_index ?? 1) || 1,
+              ),
+              topic_hint: potionSupportPreparation.anchor_fact?.text ?? null,
+              opening_focus: potionSupportPreparation.focus_decision?.text ??
+                null,
               anchor_evidence_refs:
                 potionSupportPreparation.anchor_fact?.evidence_refs ?? [],
-              awaiting_first_reply: true,
             },
           });
           await updateUserState(admin, userId, "whatsapp", {

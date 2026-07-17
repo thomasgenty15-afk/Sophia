@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { ToastProvider } from "./components/ui/Toast";
 import { AuthProvider } from "./context/AuthProvider";
 import LandingPage from "./pages/LandingPage";
+import PlanSavedModal from "./components/dashboard-v2/PlanSavedModal";
 import LandingTDAH from "./pages/LandingTDAH";
 import DashboardV2 from "./pages/DashboardV2";
 import AddTransformationPage from "./pages/AddTransformationPage";
@@ -52,6 +53,21 @@ function App() {
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/tdah" element={<LandingTDAH />} />
+              {import.meta.env.DEV ? (
+                // Dev-only visual preview of the plan-saved modal (excluded
+                // from production builds): lets us see both variants without
+                // completing a full onboarding behind auth.
+                <Route
+                  path="/dev/plan-saved-modal"
+                  element={
+                    <PlanSavedModal
+                      open
+                      whatsappOptedIn={false}
+                      onClose={() => {}}
+                    />
+                  }
+                />
+              ) : null}
               <Route
                 path="/chat"
                 element={

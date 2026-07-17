@@ -19,17 +19,35 @@ export type PotionSupportEvidenceRef = {
   source_field: string | null;
 };
 
+/**
+ * Relative provenance for one preparation pass. The server assigns it from
+ * the durable source and the message cursor; model output can never promote a
+ * carried or assistant statement to current user evidence.
+ */
+export type PotionSupportEvidenceProvenance =
+  | "activation_baseline"
+  | "current_user_segment"
+  | "carried_user_evidence"
+  | "assistant_context_only";
+
 export type PotionSupportEvidence = {
   evidence_id: string;
   text: string;
   source: PotionSupportEvidenceRef;
   observed_at: string | null;
+  /** Optional for backward compatibility with already persisted v1 contexts. */
+  provenance?: PotionSupportEvidenceProvenance;
 };
 
 export type PotionSupportGroundedItem = {
   text: string;
   evidence_refs: PotionSupportEvidenceRef[];
   last_observed_at: string | null;
+  /** Optional for backward compatibility with already persisted v1 ledgers. */
+  provenance?: Exclude<
+    PotionSupportEvidenceProvenance,
+    "assistant_context_only"
+  >;
 };
 
 export type PotionSupportBoundaryTarget =
@@ -136,6 +154,7 @@ function pushEvidence(
     text,
     source: input.source,
     observed_at: input.observedAt ?? null,
+    provenance: "activation_baseline",
   });
 }
 

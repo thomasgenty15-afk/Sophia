@@ -40,10 +40,27 @@ import { debounceAndBurstMerge } from "./debounce.ts";
 import { runAgentAndVerify } from "./agent_exec.ts";
 import {
   applyPresenceFlowState,
+  armAttackKeywordSupportPresence,
+  armPotionSupportPresence,
   commitPresenceResult,
   type PresenceApplyResult,
   readActivePresenceState,
 } from "../skills/presence_conversation/apply.ts";
+import {
+  potionSupportLocalFailureDecision,
+  runPotionSupportLocalDispatcher,
+} from "../skills/potion_support_admission/local_flow.ts";
+import {
+  type PotionSupportAdmissionContext,
+  readPotionSupportAdmissionState,
+} from "../skills/potion_support_admission/state.ts";
+import {
+  type AttackKeywordSupportContextV1,
+  isAllowedAttackKeyword,
+  loadAttackKeywordSupportMatch,
+  renderAttackKeywordSupportReply,
+} from "../../_shared/attack-keyword-support.ts";
+import { applyAttackKeywordSupportRoute } from "./attack_keyword_support_route.ts";
 import { stripToPresenceContext } from "../skills/presence_conversation/context.ts";
 import { buildPresenceSystemBlock } from "../skills/presence_conversation/prompt.ts";
 import { buildPresenceThreadContext } from "../skills/presence_conversation/thread.ts";
@@ -1762,15 +1779,6 @@ export function applyMemoryV2ActiveLoaderResult(
   return { tempMemory: nextTempMemory, injected: false };
 }
 
-export function isExplicitPotionSupportStopMessage(value: unknown): boolean {
-  const text = String(value ?? "").normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "").replace(/[’']/g, " ").toLowerCase()
-    .replace(/\s+/g, " ").trim();
-  if (!text) return false;
-  return /\b(laisse[- ]?moi (?:tranquille|(?:un peu )?de l espace)|j ai besoin d espace|arrete (de )?(m |me )?ecrire|ne m ecris plus|ne me relances? plus|arrete (ces|les) messages|plus de messages? (pour|sur) (ca|cette potion))\b/
-    .test(text);
-}
-
 export async function processMessage(
   supabase: SupabaseClient,
   userId: string,
@@ -1877,9 +1885,9 @@ export async function processMessage(
 
   let state = await getUserState(supabase, userId, scope);
   let tempMemory = cleanupLegacyRuntimeState((state as any)?.temp_memory ?? {});
-  const activeFlowState = readActiveFlowState(tempMemory);
-  const lastLocalFlowExitContext = buildLastLocalFlowExitContext(tempMemory);
-  const inboundDailyCoachingBridgeNote = localParentNoteTargetsCoaching(
+  let activeFlowState = readActiveFlowState(tempMemory);
+  let lastLocalFlowExitContext = buildLastLocalFlowExitContext(tempMemory);
+  let inboundDailyCoachingBridgeNote = localParentNoteTargetsCoaching(
     lastLocalFlowExitContext,
   );
   if (tempMemory !== (state as any)?.temp_memory) {
@@ -1918,6 +1926,189 @@ export async function processMessage(
       ? [{ role: "user" as const, content: userMessage.trim() }]
       : []),
   ];
+
+  // Potion support owns the semantic reply before the global dispatcher.
+  // The first accepted reply promotes the lightweight admission state into
+  // the existing Presence engine. During Potion-derived Presence, the same
+  // local owner still arbitrates boundaries and exits; it never names a
+  // downstream skill, only the global dispatcher.
+  // Audit invariant: any turn that started under Potion ownership and ends
+  // with a global owner must carry the local decision in its persisted
+  // skill_run — otherwise a coaching_recommendation capture is
+  // indistinguishable from a bypass of the local dispatcher.
+  let potionSupportLocalDispatchTrace: Record<string, unknown> | null = null;
+  const withPotionLocalDispatchTrace = (skillRun: unknown): unknown =>
+    potionSupportLocalDispatchTrace
+      ? {
+        ...(skillRun && typeof skillRun === "object"
+          ? skillRun as Record<string, unknown>
+          : {}),
+        potion_support_local_dispatch: potionSupportLocalDispatchTrace,
+      }
+      : skillRun;
+  const admissionState = readPotionSupportAdmissionState(
+    activeFlowState.activeSkillState,
+  );
+  const potionPresenceState = readActivePresenceState(
+    activeFlowState.activeSkillState,
+  );
+  const potionPresenceEntry =
+    potionPresenceState?.entry_context?.source === "potion_support"
+      ? potionPresenceState.entry_context
+      : null;
+  const potionLocalContext: PotionSupportAdmissionContext | null =
+    admissionState?.working_state.potion_support_admission ??
+      (potionPresenceEntry
+        ? {
+          source: "potion_support",
+          source_potion_session_id:
+            potionPresenceEntry.source_potion_session_id,
+          recurring_reminder_id: potionPresenceEntry.recurring_reminder_id,
+          scheduled_checkin_id: potionPresenceEntry.scheduled_checkin_id,
+          day_index: Math.max(1, Number(potionPresenceEntry.day_index ?? 1)),
+          topic_hint: potionPresenceEntry.topic_hint ??
+            potionPresenceState?.topic_hint ?? null,
+          opening_focus: potionPresenceEntry.opening_focus ??
+            potionPresenceState?.topic_hint ?? null,
+          anchor_evidence_refs: potionPresenceEntry.anchor_evidence_refs,
+          awaiting_first_reply: true,
+        }
+        : null);
+  if (potionLocalContext) {
+    const phase = admissionState ? "first_reply" : "presence_continuation";
+    let localDecision;
+    try {
+      localDecision = await runPotionSupportLocalDispatcher({
+        userId,
+        requestId,
+        userMessage,
+        recentMessages: recentMessagesForTurnFrame,
+        phase,
+        context: potionLocalContext,
+      });
+    } catch (error) {
+      console.warn("[potion-support] local dispatcher failed", error);
+      localDecision = potionSupportLocalFailureDecision({
+        userMessage,
+        phase,
+        context: potionLocalContext,
+      });
+    }
+    potionSupportLocalDispatchTrace = {
+      phase,
+      action: localDecision.action,
+      confidence: localDecision.confidence,
+      relation: localDecision.relation,
+      reason: localDecision.reason,
+      terminal_reason: localDecision.terminal_reason,
+      source_potion_session_id: potionLocalContext.source_potion_session_id,
+      recurring_reminder_id: potionLocalContext.recurring_reminder_id,
+      scheduled_checkin_id: potionLocalContext.scheduled_checkin_id,
+      day_index: potionLocalContext.day_index,
+      campaign_status: "active",
+    };
+
+    if (localDecision.action === "continue_support") {
+      if (admissionState) {
+        const nowIso = userTime?.now_utc ?? new Date().toISOString();
+        const localDate = String(userTime?.user_local_datetime ?? "")
+          .slice(0, 10) || nowIso.slice(0, 10);
+        tempMemory = armPotionSupportPresence({
+          tempMemory: clearActiveConversationSkillState(tempMemory),
+          nowIso,
+          localDate,
+          topicHint: potionLocalContext.topic_hint ??
+            potionLocalContext.opening_focus,
+          entryContext: {
+            source: "potion_support",
+            source_potion_session_id:
+              potionLocalContext.source_potion_session_id,
+            recurring_reminder_id: potionLocalContext.recurring_reminder_id,
+            scheduled_checkin_id: potionLocalContext.scheduled_checkin_id,
+            anchor_evidence_refs: potionLocalContext.anchor_evidence_refs,
+            day_index: potionLocalContext.day_index,
+            topic_hint: potionLocalContext.topic_hint,
+            opening_focus: potionLocalContext.opening_focus,
+            awaiting_first_reply: false,
+          },
+        });
+        potionSupportLocalDispatchTrace = {
+          ...potionSupportLocalDispatchTrace,
+          admission_promoted_to_presence: true,
+        };
+      }
+    } else {
+      let noteInformation = localDecision.note_information;
+      if (
+        localDecision.action === "cancel_campaign" &&
+        localDecision.terminal_reason
+      ) {
+        try {
+          const admin = serviceRoleLedgerReadClient();
+          if (!admin) throw new Error("potion_support_admin_client_missing");
+          const outcome = await cancelPotionSupportCampaign({
+            admin,
+            userId,
+            recurringReminderId: potionLocalContext.recurring_reminder_id,
+            sourcePotionSessionId:
+              potionLocalContext.source_potion_session_id,
+            reason: localDecision.terminal_reason,
+          });
+          if (noteInformation) {
+            noteInformation = {
+              ...noteInformation,
+              structured_context: {
+                ...noteInformation.structured_context,
+                campaign_status: "terminal_committed",
+                cancellation_outcome: outcome,
+              },
+            };
+          }
+          potionSupportLocalDispatchTrace = {
+            ...potionSupportLocalDispatchTrace,
+            campaign_status: "terminal_committed",
+            cancellation_outcome: outcome,
+          };
+        } catch (error) {
+          console.error("[potion-support] campaign cancellation failed", error);
+          if (noteInformation) {
+            noteInformation = {
+              ...noteInformation,
+              structured_context: {
+                ...noteInformation.structured_context,
+                campaign_status: "terminal_failed",
+                effects_outcome: {
+                  status: "failed",
+                  reason: "potion_support_campaign_cancellation_failed",
+                  guidance:
+                    "Ne pas confirmer l'annulation durable; dire que l'arrêt n'a pas pu être vérifié.",
+                },
+              },
+            };
+          }
+          potionSupportLocalDispatchTrace = {
+            ...potionSupportLocalDispatchTrace,
+            campaign_status: "terminal_failed",
+          };
+        }
+      }
+      tempMemory = clearActiveConversationSkillState(tempMemory);
+      tempMemory.__last_potion_support_admission_exit_memo = {
+        reason: localDecision.reason,
+        user_message_summary: userMessage,
+        flow_summary: potionLocalContext.opening_focus ??
+          potionLocalContext.topic_hint,
+        note_information: noteInformation,
+        at: new Date().toISOString(),
+      };
+    }
+    activeFlowState = readActiveFlowState(tempMemory);
+    lastLocalFlowExitContext = buildLastLocalFlowExitContext(tempMemory);
+    inboundDailyCoachingBridgeNote = localParentNoteTargetsCoaching(
+      lastLocalFlowExitContext,
+    );
+    state = { ...(state as any), temp_memory: tempMemory };
+  }
 
   const dispatcherV2Stats: DispatcherRunStats[] = [];
   const dispatcherStart = Date.now();
@@ -2352,6 +2543,38 @@ export async function processMessage(
     presence_flow_enabled: presenceFlowEnabled,
   });
 
+  // ── Mot de bascule (carte d'attaque): détection déterministe ─────────────
+  // Le mot est DYNAMIQUE (keyword_trigger.activation_keyword de chaque carte
+  // active), jamais codé en dur. Pré-gate sans DB: seul un message qui se
+  // réduit à UN mot autorisé peut être un mot de bascule — les tours normaux
+  // ne paient aucune lecture. La safety garde la priorité absolue: une route
+  // safety reste intacte (applyAttackKeywordSupportRoute est un no-op dessus)
+  // et le lookup n'est même pas tenté.
+  let attackKeywordSupportContext: AttackKeywordSupportContextV1 | null = null;
+  if (!isSafetyRoute(routeDecision) && isAllowedAttackKeyword(userMessage)) {
+    try {
+      attackKeywordSupportContext = await loadAttackKeywordSupportMatch({
+        admin: serviceRoleLedgerReadClient() ?? supabase,
+        userId,
+        userMessage,
+      });
+    } catch (error) {
+      // Panne de lecture = tour normal, jamais un tour cassé.
+      console.warn("[attack-keyword] match lookup failed", error);
+    }
+    if (attackKeywordSupportContext) {
+      routeDecision = applyAttackKeywordSupportRoute({
+        routeDecision,
+        activeSkillState: currentActiveSkillState,
+      });
+      console.log(
+        `[attack-keyword] request_id=${requestId} matched` +
+          ` card=${attackKeywordSupportContext.attack_card_id}` +
+          ` keyword=${attackKeywordSupportContext.trigger.activation_keyword_normalized}`,
+      );
+    }
+  }
+
   // ── Flow présence: transition calculée AVANT tout runtime ────────────────
   // Sur une SORTIE (tool_pull / topic_change / closure / expired), le tour
   // est re-dispatché globalement immédiatement (charte cmd 17): le user qui
@@ -2377,12 +2600,7 @@ export async function processMessage(
     const factualIntentOverridesPresence =
       responseIntentForPresence.includes("recap") ||
       responseIntentForPresence.includes("status");
-    const explicitPotionSupportStop =
-      presenceStateBeforeTurn?.entry_context?.source === "potion_support" &&
-      isExplicitPotionSupportStopMessage(userMessage);
-    const presenceKind = explicitPotionSupportStop
-      ? "closure"
-      : factualIntentOverridesPresence
+    const presenceKind = factualIntentOverridesPresence
       ? "topic_change"
       : presenceSignal?.context?.kind ?? "maintain";
     presenceNowIso = turnFrame.direct_effect_time_context?.now_utc ??
@@ -2408,25 +2626,6 @@ export async function processMessage(
         ` turns=${presenceApplyResult.flow_state?.turns_in_flow ?? 0}`,
     );
     if (presenceApplyResult.transition === "exit") {
-      if (
-        presenceStateBeforeTurn?.entry_context?.source === "potion_support" &&
-        isExplicitPotionSupportStopMessage(userMessage)
-      ) {
-        await cancelPotionSupportCampaign({
-          admin: serviceRoleLedgerReadClient() ?? supabase,
-          userId,
-          recurringReminderId:
-            presenceStateBeforeTurn.entry_context.recurring_reminder_id,
-          sourcePotionSessionId:
-            presenceStateBeforeTurn.entry_context.source_potion_session_id,
-          reason: "cancelled_user_boundary",
-        }).catch((error) => {
-          console.warn(
-            "[presence] potion support user-boundary cancellation failed",
-            error,
-          );
-        });
-      }
       // Poubelle immédiate + re-dispatch global du MÊME tour. L'entrée
       // présence est désactivée sur ce re-routage pour éviter la ré-entrée
       // instantanée sur le signal du tour de sortie.
@@ -2631,6 +2830,174 @@ export async function processMessage(
     tempMemory,
     userMessage,
   });
+
+  // ── Mot de bascule: tour de soutien dédié ────────────────────────────────
+  // Le contexte enregistré à la CRÉATION de la carte (situation à risque,
+  // ancrage, intention, consigne) alimente un prompt spécialisé — jamais le
+  // composeur générique. Aucun effet durable ne tourne sur ce tour (la route
+  // les a bloqués), et la Présence est armée pour que la suite reste une
+  // conversation de soutien collante, pas un retour sec à la machinerie.
+  if (
+    routeDecision.response_owner === "attack_keyword_support" &&
+    attackKeywordSupportContext
+  ) {
+    const skillStart = Date.now();
+    // PAUL-BASC-B01: le prompt spécialisé reçoit les derniers messages user
+    // VERBATIM (données réelles de session, fraîcheur déjà filtrée en amont)
+    // pour ne pas re-prescrire un geste déjà déclaré fait sur un re-trigger.
+    // Aucune surface produit, aucun résumé intermédiaire — la sanitation
+    // (troncature, écho du mot exclu) vit dans le module du domaine.
+    const support = await renderAttackKeywordSupportReply({
+      context: attackKeywordSupportContext,
+      userId,
+      requestId,
+      recentUserMessages: (history ?? [])
+        .filter((entry: any) => String(entry?.role ?? "") === "user")
+        .map((entry: any) => String(entry?.content ?? "")),
+    });
+    const skillLatencyMs = Date.now() - skillStart;
+    const responseContent = finalVisibleText(
+      support.support_text,
+      routeDecision,
+      turnFrame,
+      userMessage,
+      history,
+    );
+    const nowIso = turnFrame.direct_effect_time_context?.now_utc ??
+      new Date().toISOString();
+    const localDate =
+      (turnFrame.direct_effect_time_context?.user_local_datetime ?? "")
+        .slice(0, 10) || nowIso.slice(0, 10);
+    // Préemption: le flow local actif (coaching, présence potion…) est mis à
+    // la poubelle, puis la Présence est ré-armée avec l'origine mot de
+    // bascule. awaiting_first_reply garde la propriété jusqu'à la réponse du
+    // user, même des heures plus tard.
+    tempMemory = clearActiveConversationSkillState(
+      tempMemory as Record<string, unknown>,
+    );
+    tempMemory = armAttackKeywordSupportPresence({
+      tempMemory: tempMemory as Record<string, unknown>,
+      nowIso,
+      localDate,
+      topicHint: attackKeywordSupportContext.trigger.risk_situation || null,
+      entryContext: {
+        source: "attack_keyword_support",
+        attack_card_id: attackKeywordSupportContext.attack_card_id,
+        technique_key: "pre_engagement",
+        activation_keyword_normalized:
+          attackKeywordSupportContext.trigger.activation_keyword_normalized,
+        awaiting_first_reply: true,
+      },
+    });
+    tempMemory = commitPostTurnRiskTrail(
+      tempMemory as Record<string, unknown>,
+      {
+        runtimeSafetyRiskBand,
+        turnFrameRiskBand: turnFrame.safety?.risk_band,
+        routeIsSafety: false,
+        sourceMessageId: turnFrame.source_message_id ?? null,
+      },
+    );
+    const effectLedger = effectLedgerForOperationRuntime(
+      turnFrame.turn_id,
+      null,
+    );
+    const conversationTurnTrace = {
+      turn_frame: turnFrame,
+      route_decision: routeDecision,
+      effect_ledger: summarizeEffectLedgerForTrace(effectLedger),
+      response_owner: routeDecision.response_owner,
+      skill_run: {
+        selected_skill_id: "attack_keyword_support",
+        reason_code: routeDecision.reason_code,
+        status: support.used_fallback ? "fallback" : "generated",
+        latency_ms: skillLatencyMs,
+        attack_card_id: attackKeywordSupportContext.attack_card_id,
+      },
+    };
+    try {
+      const dispatcherStat = dispatcherV2Stats[0];
+      await logConversationTurn({
+        turn_id: turnFrame.turn_id,
+        user_id: userId,
+        source_message_id: turnFrame.source_message_id,
+        ts: new Date().toISOString(),
+        dispatcher_run: {
+          latency_ms: dispatcherStat?.latency_ms ?? dispatcherLatencyMs,
+          tokens_in: dispatcherStat?.tokens_in ?? 0,
+          tokens_out: dispatcherStat?.tokens_out ?? 0,
+          prompt_version: skipGlobalDispatcherForActiveLocalFlow
+            ? "dispatcher_skipped_active_local_flow_v1"
+            : dispatcherStat?.prompt_version ??
+              "dispatcher_v2_prompt_2026_05_s12",
+          model_used: dispatcherStat?.model_name ?? null,
+          memory_plan: turnFrame.memory_plan ?? DEFAULT_DISPATCHER_MEMORY_PLAN,
+        },
+        turn_frame: conversationTurnTrace.turn_frame,
+        route_decision: routeDecision,
+        direct_effects: directEffectTrace(null),
+        effect_ledger: summarizeEffectLedgerForTrace(effectLedger),
+        skill_run: withPotionLocalDispatchTrace(conversationTurnTrace.skill_run),
+        confirmation_token_outcomes: [],
+        memory_write_candidates_emitted: 0,
+        response_owner: routeDecision.response_owner,
+        total_latency_ms: Date.now() - turnStartMs,
+      }, { supabase });
+    } catch (error) {
+      console.error(
+        "[Router] logConversationTurn failed after retries",
+        { turn_id: turnFrame.turn_id, error: String(error) },
+      );
+    }
+    await persistEffectLedgerForRuntimeTurn({
+      supabase,
+      effectLedger,
+      userId,
+      sourceMessageId: turnFrame.source_message_id,
+      requestId,
+      channel,
+      scope,
+    });
+    await updateUserState(supabase, userId, scope, {
+      current_mode: "companion",
+      temp_memory: tempMemory,
+      last_processed_at: new Date().toISOString(),
+      last_interaction_at: new Date().toISOString(),
+    } as any);
+    if (logMessages && responseContent) {
+      await logMessage(
+        supabase,
+        userId,
+        scope,
+        "assistant",
+        responseContent,
+        "companion",
+        {
+          request_id: requestId,
+          route_owner: routeDecision.response_owner,
+          selected_handler: routeDecision.selected_handler ?? null,
+          runtime_safety_risk_band: runtimeSafetyRiskBand,
+          dispatcher_latency_ms: dispatcherLatencyMs,
+          context_latency_ms: 0,
+          agent_latency_ms: skillLatencyMs,
+        },
+      );
+    }
+    await trace("brain:turn_complete", "io", {
+      response_owner: routeDecision.response_owner,
+      selected_handler: routeDecision.selected_handler ?? null,
+      executed_tools: [],
+      tool_execution: "none",
+    }, "debug");
+    return {
+      content: responseContent,
+      mode: "companion" as AgentMode,
+      delivery: null,
+      tool_execution: "none",
+      executed_tools: [],
+      conversation_turn_trace: conversationTurnTrace,
+    };
+  }
 
   const operationPipeline = await runOperationRuntimePipeline({
     supabase,
@@ -2884,6 +3251,7 @@ export async function processMessage(
             route_decision: routeDecision,
             direct_effects: directEffectTrace(operationRuntime),
             effect_ledger: summarizeEffectLedgerForTrace(effectLedger),
+            skill_run: withPotionLocalDispatchTrace(undefined),
             tool_skill_run: operationRuntime?.toolSkillRun ?? undefined,
             confirmation_token_outcomes: [],
             memory_write_candidates_emitted: 0,
@@ -3042,6 +3410,29 @@ export async function processMessage(
         turnFrame.turn_id,
         operationRuntime,
       );
+      let potionSupportSafetyCancellation: Record<string, unknown>;
+      try {
+        const admin = serviceRoleLedgerReadClient();
+        if (!admin) throw new Error("potion_support_admin_client_missing");
+        const outcome = await cancelPotionSupportCampaign({
+          admin,
+          userId,
+          reason: "cancelled_safety",
+        });
+        potionSupportSafetyCancellation = {
+          status: "committed",
+          outcome,
+        };
+      } catch (error) {
+        console.error(
+          "[Router] potion support safety cancellation failed",
+          error,
+        );
+        potionSupportSafetyCancellation = {
+          status: "failed",
+          reason: "potion_support_safety_cancellation_failed",
+        };
+      }
       const conversationTurnTrace = {
         turn_frame: turnFrame,
         route_decision: routeDecision,
@@ -3053,6 +3444,8 @@ export async function processMessage(
           status: skillOutput.status,
           latency_ms: skillLatencyMs,
           diagnosis: skillOutput.diagnosis ?? null,
+          potion_support_campaign_cancellation:
+            potionSupportSafetyCancellation,
           ...(skillOutput.status === "exit"
             ? {
               exit_note_information:
@@ -3086,7 +3479,7 @@ export async function processMessage(
           route_decision: routeDecision,
           direct_effects: directEffectTrace(operationRuntime),
           effect_ledger: summarizeEffectLedgerForTrace(effectLedger),
-          skill_run: conversationTurnTrace.skill_run,
+          skill_run: withPotionLocalDispatchTrace(conversationTurnTrace.skill_run),
           tool_skill_run: operationRuntime?.toolSkillRun ?? undefined,
           confirmation_token_outcomes: [],
           memory_write_candidates_emitted: 0,
@@ -3431,7 +3824,7 @@ export async function processMessage(
             route_decision: routeDecision,
             direct_effects: directEffectTrace(operationRuntime),
             effect_ledger: summarizeEffectLedgerForTrace(effectLedger),
-            skill_run: conversationTurnTrace.skill_run,
+            skill_run: withPotionLocalDispatchTrace(conversationTurnTrace.skill_run),
             tool_skill_run: operationRuntime?.toolSkillRun ?? undefined,
             confirmation_token_outcomes: [],
             memory_write_candidates_emitted: 0,
@@ -3913,14 +4306,16 @@ export async function processMessage(
       route_decision: routeDecision,
       direct_effects: directEffectTrace(operationRuntime),
       effect_ledger: summarizeEffectLedgerForTrace(effectLedger),
-      skill_run: localFlowExitSkillRun ??
-        (routeDecision.response_owner === "product_help" ||
-            isSafetyRoute(routeDecision)
-          ? {
-            selected_skill_id: routeDecision.selected_handler ?? null,
-            reason_code: routeDecision.reason_code,
-          }
-          : undefined),
+      skill_run: withPotionLocalDispatchTrace(
+        localFlowExitSkillRun ??
+          (routeDecision.response_owner === "product_help" ||
+              isSafetyRoute(routeDecision)
+            ? {
+              selected_skill_id: routeDecision.selected_handler ?? null,
+              reason_code: routeDecision.reason_code,
+            }
+            : undefined),
+      ),
       tool_skill_run: operationRuntime?.toolSkillRun ?? undefined,
       confirmation_token_outcomes: [],
       memory_write_candidates_emitted: 0,
@@ -3947,13 +4342,21 @@ export async function processMessage(
     // A safety turn terminally cancels every active potion-support campaign.
     // This never blocks the safety reply: the delivery-time safety gate is a
     // second deterministic backstop if persistence is temporarily unavailable.
-    await cancelPotionSupportCampaign({
-      admin: serviceRoleLedgerReadClient() ?? supabase,
-      userId,
-      reason: "cancelled_safety",
-    }).catch((error) => {
-      console.warn("[Router] potion support safety cancellation failed", error);
-    });
+    const admin = serviceRoleLedgerReadClient();
+    if (admin) {
+      await cancelPotionSupportCampaign({
+        admin,
+        userId,
+        reason: "cancelled_safety",
+      }).catch((error) => {
+        console.error(
+          "[Router] potion support safety cancellation failed",
+          error,
+        );
+      });
+    } else {
+      console.error("[Router] potion support admin client missing on safety");
+    }
   }
 
   await updateUserState(supabase, userId, scope, {

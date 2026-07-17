@@ -190,7 +190,97 @@ Deno.test("potion support cursor keeps every id at the timestamp boundary", () =
   assertEquals(next.ids_at_boundary, ["a", "b"]);
 });
 
-Deno.test("potion support preparation accepts only known evidence ids", async () => {
+Deno.test("J1 sends from a grounded activation baseline without chat messages", async () => {
+  const result = await preparePotionSupportOpening({
+    admin: fakeAdmin(context(), []),
+    userId: "user-1",
+    sessionId: "session-1",
+    dayIndex: 1,
+    nowIso: "2026-07-15T10:00:00.000Z",
+    llmRunner: async () => ({
+      grounded_facts: [],
+      open_threads: [],
+      user_boundaries: [],
+      progress_facts: [],
+      resolution_candidates: [],
+    }),
+    visibleAgentRunner,
+  });
+  assertEquals(result.decision, "send");
+  assertEquals(result.focus_decision?.kind, "baseline");
+  assertEquals(result.focus_decision?.provenance, "activation_baseline");
+});
+
+Deno.test("skip_resolved is default-deny while a carried thread remains open", async () => {
+  const supportContext = context();
+  supportContext.cumulative_ledger.open_threads = [{
+    text: "La gorge reste serree avant de parler.",
+    evidence_refs: [supportContext.baseline_evidence[0].source],
+    last_observed_at: T0,
+  }];
+  const result = await preparePotionSupportOpening({
+    admin: fakeAdmin(supportContext, [{
+      id: "partial-better",
+      role: "user",
+      content: "Ca va un peu mieux aujourd'hui.",
+      scope: "web",
+      created_at: "2026-07-15T09:00:00.000Z",
+    }]),
+    userId: "user-1",
+    sessionId: "session-1",
+    dayIndex: 2,
+    nowIso: "2026-07-15T10:00:00.000Z",
+    llmRunner: async () => ({
+      open_threads: [],
+      progress_facts: [{
+        text: "La personne va un peu mieux.",
+        evidence_ids: ["chat_message:partial-better"],
+      }],
+      resolution_candidates: [],
+      user_boundaries: [],
+    }),
+    visibleAgentRunner,
+  });
+  assertEquals(result.decision, "send");
+  assertEquals(result.cumulative_ledger_after.open_threads.length, 1);
+});
+
+Deno.test("an explicit fresh resolution can close the matching carried thread", async () => {
+  const supportContext = context();
+  const baselineId = supportContext.baseline_evidence[0].evidence_id;
+  supportContext.cumulative_ledger.open_threads = [{
+    text: "La presentation reste une source de pression.",
+    evidence_refs: [supportContext.baseline_evidence[0].source],
+    last_observed_at: T0,
+  }];
+  const result = await preparePotionSupportOpening({
+    admin: fakeAdmin(supportContext, [{
+      id: "resolved",
+      role: "user",
+      content: "L'entretien est passe et ce sujet est completement regle.",
+      scope: "web",
+      created_at: "2026-07-15T09:00:00.000Z",
+    }]),
+    userId: "user-1",
+    sessionId: "session-1",
+    dayIndex: 2,
+    nowIso: "2026-07-15T10:00:00.000Z",
+    llmRunner: async () => ({
+      open_threads: [],
+      progress_facts: [],
+      resolution_candidates: [{
+        text: "Le sujet de la presentation est completement regle.",
+        evidence_ids: ["chat_message:resolved", baselineId],
+      }],
+      user_boundaries: [],
+    }),
+    visibleAgentRunner,
+  });
+  assertEquals(result.decision, "skip_resolved");
+  assertEquals(result.cumulative_ledger_after.open_threads, []);
+});
+
+Deno.test("potion support preparation accepts only known evidence ids and falls back to server baseline", async () => {
   const validId = context().baseline_evidence[0].evidence_id;
   const result = await preparePotionSupportOpening({
     admin: fakeAdmin(context()),
@@ -239,8 +329,9 @@ Deno.test("potion support preparation accepts only known evidence ids", async ()
     }),
     visibleAgentRunner,
   });
-  assertEquals(invalid.decision, "skip_no_grounding");
-  assertEquals(invalid.opening_text, null);
+  assertEquals(invalid.decision, "send");
+  assertEquals(invalid.focus_decision?.kind, "baseline");
+  assertEquals(invalid.focus_decision?.provenance, "activation_baseline");
 });
 
 Deno.test("refusing another feature never cancels the potion campaign", async () => {
@@ -373,12 +464,12 @@ Deno.test("assistant text can prevent repetition but cannot prove a campaign bou
     visibleAgentRunner,
   });
 
-  assertEquals(result.decision, "skip_no_grounding");
+  assertEquals(result.decision, "send");
   assertEquals(result.boundary_target, null);
   assertEquals(result.cumulative_ledger_after.user_boundaries, []);
 });
 
-Deno.test("J3 rejects a stale focus when the reducer found a fresh open thread", async () => {
+Deno.test("J3 server replaces a stale model focus with the fresh open thread", async () => {
   let visibleCalls = 0;
   const oldEvidenceId = context().baseline_evidence[0].evidence_id;
   const result = await preparePotionSupportOpening({
@@ -415,16 +506,17 @@ Deno.test("J3 rejects a stale focus when the reducer found a fresh open thread",
     }),
     visibleAgentRunner: async () => {
       visibleCalls += 1;
-      return { opening_text: "Ne doit pas être appelé.", question_text: null };
+      return { opening_text: "La gorge reste serree ?", question_text: null };
     },
   });
 
-  assertEquals(result.decision, "skip_no_grounding");
-  assertEquals(result.opening_text, null);
-  assertEquals(visibleCalls, 0);
+  assertEquals(result.decision, "send");
+  assertEquals(result.focus_decision?.kind, "unresolved_thread");
+  assertEquals(result.focus_decision?.text, "La gorge reste serrée.");
+  assertEquals(visibleCalls, 1);
 });
 
-Deno.test("J3 cannot downgrade a fresh open thread to progress from the same message", async () => {
+Deno.test("J3 server prevents downgrade of a fresh open thread to progress", async () => {
   const result = await preparePotionSupportOpening({
     admin: fakeAdmin(context(), [{
       id: "j3-mixed-update",
@@ -459,8 +551,8 @@ Deno.test("J3 cannot downgrade a fresh open thread to progress from the same mes
     visibleAgentRunner,
   });
 
-  assertEquals(result.decision, "skip_no_grounding");
-  assertEquals(result.opening_text, null);
+  assertEquals(result.decision, "send");
+  assertEquals(result.focus_decision?.kind, "unresolved_thread");
 });
 
 Deno.test("J3 sends fresh focus and progress to the distinct visible agent", async () => {

@@ -6,6 +6,7 @@ import {
   type PotionSupportBoundaryTarget,
   type PotionSupportContextV1,
   type PotionSupportEvidence,
+  type PotionSupportEvidenceProvenance,
   type PotionSupportEvidenceRef,
   type PotionSupportGroundedItem,
   type PotionSupportLedger,
@@ -36,6 +37,10 @@ type ChatRow = {
 export type PotionSupportSelectedEvidence = {
   text: string;
   evidence_refs: PotionSupportEvidenceRef[];
+  provenance: Exclude<
+    PotionSupportEvidenceProvenance,
+    "assistant_context_only"
+  >;
 };
 
 export type PotionSupportFocusDecision = PotionSupportSelectedEvidence & {
@@ -74,13 +79,12 @@ type ModelGroundedItem = {
 };
 
 type ModelPreparation = {
-  decision?: unknown;
   advisory_summary?: unknown;
   grounded_facts?: unknown;
   open_threads?: unknown;
   user_boundaries?: unknown;
-  focus_decision?: unknown;
   progress_facts?: unknown;
+  resolution_candidates?: unknown;
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -142,6 +146,31 @@ function evidenceKey(ref: PotionSupportEvidenceRef): string {
   return `${ref.source_type}:${ref.source_id}:${ref.source_field ?? ""}`;
 }
 
+type EligiblePotionSupportProvenance = Exclude<
+  PotionSupportEvidenceProvenance,
+  "assistant_context_only"
+>;
+
+function evidenceWithProvenance(
+  evidence: PotionSupportEvidence,
+  provenance: PotionSupportEvidenceProvenance,
+): PotionSupportEvidence {
+  return { ...evidence, provenance };
+}
+
+function carriedEvidenceProvenance(
+  evidence: PotionSupportEvidence,
+): PotionSupportEvidenceProvenance {
+  if (
+    evidence.source.source_type === "chat_message" &&
+    evidence.source.source_field === "assistant"
+  ) return "assistant_context_only";
+  if (evidence.source.source_type === "chat_message") {
+    return "carried_user_evidence";
+  }
+  return "activation_baseline";
+}
+
 function exactMessageEvidence(row: ChatRow): PotionSupportEvidence {
   const ref: PotionSupportEvidenceRef = {
     source_type: "chat_message",
@@ -153,6 +182,9 @@ function exactMessageEvidence(row: ChatRow): PotionSupportEvidence {
     text: cleanText(row.content, 900),
     source: ref,
     observed_at: row.created_at,
+    provenance: row.role === "user"
+      ? "current_user_segment"
+      : "assistant_context_only",
   };
 }
 
@@ -226,6 +258,40 @@ function refsForIds(
   );
 }
 
+function evidenceForRefs(
+  refs: PotionSupportEvidenceRef[],
+  evidenceById: Map<string, PotionSupportEvidence>,
+): PotionSupportEvidence[] {
+  const byRef = new Map(
+    [...evidenceById.values()].map((item) => [
+      evidenceKey(item.source),
+      item,
+    ] as const),
+  );
+  return refs.flatMap((ref) => {
+    const evidence = byRef.get(evidenceKey(ref));
+    return evidence ? [evidence] : [];
+  });
+}
+
+function provenanceForRefs(
+  refs: PotionSupportEvidenceRef[],
+  evidenceById: Map<string, PotionSupportEvidence>,
+): EligiblePotionSupportProvenance | null {
+  const evidence = evidenceForRefs(refs, evidenceById);
+  if (evidence.length !== refs.length) return null;
+  if (evidence.some((item) => item.provenance === "current_user_segment")) {
+    return "current_user_segment";
+  }
+  if (evidence.some((item) => item.provenance === "carried_user_evidence")) {
+    return "carried_user_evidence";
+  }
+  if (evidence.every((item) => item.provenance === "activation_baseline")) {
+    return "activation_baseline";
+  }
+  return null;
+}
+
 function parseGroundedItem(
   raw: unknown,
   evidenceById: Map<string, PotionSupportEvidence>,
@@ -241,13 +307,20 @@ function parseGroundedItem(
       ref.source_type !== "chat_message" || ref.source_field === "user"
     )
   ) return null;
+  const provenance = provenanceForRefs(refs, evidenceById);
+  if (!provenance) return null;
   const observed = refs.flatMap((ref) =>
     [...evidenceById.values()]
       .filter((item) => evidenceKey(item.source) === evidenceKey(ref))
       .map((item) => item.observed_at)
       .filter((value): value is string => Boolean(value))
   ).sort().at(-1) ?? null;
-  return { text, evidence_refs: refs, last_observed_at: observed };
+  return {
+    text,
+    evidence_refs: refs,
+    last_observed_at: observed,
+    provenance,
+  };
 }
 
 function parseBoundaryTarget(value: unknown): PotionSupportBoundaryTarget {
@@ -319,7 +392,10 @@ function parseSelectedEvidence(
   const hasEligibleSource = refs.every((ref) =>
     ref.source_type !== "chat_message" || ref.source_field === "user"
   );
-  return hasEligibleSource ? { text, evidence_refs: refs } : null;
+  const provenance = provenanceForRefs(refs, evidenceById);
+  return hasEligibleSource && provenance
+    ? { text, evidence_refs: refs, provenance }
+    : null;
 }
 
 function parseSelectedEvidenceItems(
@@ -334,50 +410,6 @@ function parseSelectedEvidenceItems(
   });
 }
 
-function parseFocusKind(value: unknown): PotionSupportFocusKind | null {
-  const kind = cleanText(value);
-  return kind === "unresolved_thread" || kind === "progress" ||
-      kind === "baseline"
-    ? kind
-    : null;
-}
-
-function parseFocusFreshness(
-  value: unknown,
-): PotionSupportFocusFreshness | null {
-  const freshness = cleanText(value);
-  return freshness === "fresh" || freshness === "carried" ? freshness : null;
-}
-
-function parseFocusContinuity(
-  value: unknown,
-): PotionSupportFocusContinuity | null {
-  const continuity = cleanText(value);
-  return continuity === "new_thread" || continuity === "evolved_thread" ||
-      continuity === "same_thread"
-    ? continuity
-    : null;
-}
-
-function parseFocusDecision(
-  raw: unknown,
-  evidenceById: Map<string, PotionSupportEvidence>,
-): PotionSupportFocusDecision | null {
-  if (!isRecord(raw)) return null;
-  const selected = parseSelectedEvidence(raw, evidenceById);
-  const kind = parseFocusKind(raw.kind);
-  const freshness = parseFocusFreshness(raw.freshness);
-  const continuity = parseFocusContinuity(raw.continuity);
-  if (!selected || !kind || !freshness || !continuity) return null;
-  return {
-    ...selected,
-    kind,
-    freshness,
-    continuity,
-    why: cleanText(raw.why, 360) || null,
-  };
-}
-
 function itemReferencesFreshUserMessage(
   item: PotionSupportSelectedEvidence | PotionSupportGroundedItem,
   freshUserMessageIds: Set<string>,
@@ -386,6 +418,121 @@ function itemReferencesFreshUserMessage(
     ref.source_type === "chat_message" && ref.source_field === "user" &&
     freshUserMessageIds.has(ref.source_id)
   );
+}
+
+function selectedFromGrounded(
+  item: PotionSupportGroundedItem,
+): PotionSupportSelectedEvidence | null {
+  if (!item.provenance) return null;
+  return {
+    text: item.text,
+    evidence_refs: item.evidence_refs,
+    provenance: item.provenance,
+  };
+}
+
+function normalizeCarriedLedgerItems(
+  items: PotionSupportGroundedItem[],
+  evidenceById: Map<string, PotionSupportEvidence>,
+): PotionSupportGroundedItem[] {
+  return items.flatMap((item) => {
+    const provenance = provenanceForRefs(item.evidence_refs, evidenceById);
+    if (!provenance) return [];
+    return [{ ...item, provenance }];
+  });
+}
+
+function uniqueGroundedItems(
+  items: PotionSupportGroundedItem[],
+): PotionSupportGroundedItem[] {
+  return items.filter((item, index, all) =>
+    all.findIndex((candidate) =>
+      candidate.text.toLowerCase() === item.text.toLowerCase() ||
+      sharesEvidence(candidate, item)
+    ) === index
+  );
+}
+
+function baselineCandidates(
+  evidence: PotionSupportEvidence[],
+): PotionSupportSelectedEvidence[] {
+  const preferred = evidence.filter((item) =>
+    item.source.source_type === "potion_answer" ||
+    item.source.source_type === "potion_free_text"
+  );
+  return [...preferred, ...evidence.filter((item) => !preferred.includes(item))]
+    .flatMap((item) =>
+      item.source.source_type === "chat_message" &&
+          item.source.source_field !== "user"
+        ? []
+        : [{
+          text: item.text,
+          evidence_refs: [item.source],
+          provenance: "activation_baseline" as const,
+        }]
+    );
+}
+
+function selectFocus(input: {
+  freshOpenThreads: PotionSupportGroundedItem[];
+  progressFacts: PotionSupportSelectedEvidence[];
+  carriedOpenThreads: PotionSupportGroundedItem[];
+  baseline: PotionSupportSelectedEvidence[];
+  hadPreviousOpenThread: boolean;
+  isLaterDay: boolean;
+}): PotionSupportFocusDecision | null {
+  const freshThread = input.freshOpenThreads[0];
+  if (freshThread) {
+    const selected = selectedFromGrounded(freshThread);
+    if (selected) {
+      return {
+        ...selected,
+        kind: "unresolved_thread",
+        freshness: "fresh",
+        continuity: input.hadPreviousOpenThread || input.isLaterDay
+          ? "evolved_thread"
+          : "new_thread",
+        why: "Fil utilisateur frais encore ouvert.",
+      };
+    }
+  }
+  const freshProgress = input.progressFacts.find((item) =>
+    item.provenance === "current_user_segment"
+  );
+  if (freshProgress) {
+    return {
+      ...freshProgress,
+      kind: "progress",
+      freshness: "fresh",
+      continuity: input.hadPreviousOpenThread || input.isLaterDay
+        ? "evolved_thread"
+        : "new_thread",
+      why: "Progres utilisateur frais sans fil frais concurrent.",
+    };
+  }
+  const carriedThread = input.carriedOpenThreads[0];
+  if (carriedThread) {
+    const selected = selectedFromGrounded(carriedThread);
+    if (selected) {
+      return {
+        ...selected,
+        kind: "unresolved_thread",
+        freshness: "carried",
+        continuity: "same_thread",
+        why: "Fil utilisateur porte et toujours ouvert.",
+      };
+    }
+  }
+  const baseline = input.baseline[0];
+  return baseline
+    ? {
+      ...baseline,
+      kind: "baseline",
+      freshness: "carried",
+      continuity: "same_thread",
+      why: "Baseline d'activation la plus specifique disponible.",
+    }
+    : null;
 }
 
 function sharesEvidence(
@@ -431,6 +578,7 @@ function modelPrompt(input: {
     text: item.text,
     source: item.source,
     observed_at: item.observed_at,
+    provenance: item.provenance,
     eligible_visible_anchor: item.source.source_type !== "chat_message" ||
       item.source.source_field === "user",
   }));
@@ -453,25 +601,21 @@ function modelPrompt(input: {
 
 const SYSTEM_PROMPT = [
   "Tu es le reducer sémantique d'une ouverture proactive de soutien émotionnel de Sophia.",
-  "Tu sélectionnes et sources le prochain focus; tu ne rédiges jamais le message visible.",
+  "Tu extrais des unités sourcées; le serveur sélectionne ensuite le prochain focus. Tu ne rédiges jamais le message visible.",
   "Le résumé et l'objectif sont ADVISORY: ils aident à choisir un angle mais ne constituent jamais une preuve surfacable.",
   "Tout focus ou progrès transmis au rédacteur doit reposer sur des evidence_id fournis.",
   "Les messages assistant servent seulement à éviter les répétitions; ils ne prouvent jamais l'état du user.",
   "N'invente aucune évolution, émotion actuelle, événement, intention ou résultat.",
-  "Ordre de priorité du focus: 1) fil utilisateur frais encore ouvert, 2) progrès frais, 3) fil ouvert porté des jours précédents, 4) baseline.",
-  "Si open_threads contient un fil prouvé par un message user du nouveau segment, focus_decision doit sélectionner un de ces fils frais et partager sa preuve.",
+  "Extrais tous les fils utilisateur encore ouverts et tous les progrès utiles; n'en choisis pas un toi-meme.",
   "Un ancien angle ne peut être présenté comme évolué que si une preuve user fraîche montre réellement cette évolution.",
-  "focus_decision contient {kind,text,evidence_ids,freshness,continuity,why}; kind=unresolved_thread|progress|baseline, freshness=fresh|carried, continuity=new_thread|evolved_thread|same_thread.",
   "progress_facts contient uniquement des progrès utiles sous forme {text,evidence_ids}.",
-  "Si rien de précis et utile n'est solidement ancré pour focus_decision, decision=skip_no_grounding.",
-  "Si l'échange montre explicitement que le sujet est résolu, decision=skip_resolved.",
+  "resolution_candidates contient uniquement une resolution COMPLETE et explicite du sujet, sous forme {text,evidence_ids}. Cite le message user frais de resolution et, pour fermer un fil porte, la preuve historique de ce fil. Une amelioration partielle n'est jamais une resolution.",
   "Une boundary doit toujours être ciblée: target=potion_campaign seulement si le user demande explicitement d'arrêter les futurs messages/check-ins de CETTE potion; target=conversation_session s'il clôt seulement l'échange courant; target=other_feature s'il refuse une carte, un rappel, un plan, une création ou un autre dispositif; sinon target=unknown.",
-  "Utilise decision=skip_user_boundary uniquement avec une boundary target=potion_campaign prouvée par un message user de ce nouveau segment.",
   "Un refus de carte/création/conseil, 'pas aujourd'hui', 'je m'arrête là pour ce soir' ou 'je voulais juste te tenir au courant' n'annule jamais la campagne potion.",
-  "Sinon decision=send. N'utilise que des ids présents et eligible_visible_anchor=true.",
+  "N'utilise que des ids présents et eligible_visible_anchor=true.",
   "advisory_summary peut résumer l'évolution mais ne sera jamais affiché verbatim.",
   "grounded_facts/open_threads sont des listes de {text,evidence_ids}. user_boundaries est une liste de {text,evidence_ids,target}; omets ce qui n'est pas sourcé.",
-  "Réponds uniquement en JSON avec: decision, advisory_summary, grounded_facts, open_threads, user_boundaries, focus_decision, progress_facts.",
+  "Réponds uniquement en JSON avec: advisory_summary, grounded_facts, open_threads, user_boundaries, progress_facts, resolution_candidates.",
 ].join("\n");
 
 export async function preparePotionSupportOpening(input: {
@@ -506,15 +650,24 @@ export async function preparePotionSupportOpening(input: {
     cursor: context.message_cursor,
     cutoffIso,
   });
+  const baselineEvidence = context.baseline_evidence.map((item) =>
+    evidenceWithProvenance(item, "activation_baseline")
+  );
+  const carriedEvidence = (context.rolling_evidence ?? []).map((item) =>
+    evidenceWithProvenance(item, carriedEvidenceProvenance(item))
+  );
   const messageEvidence = messages.map(exactMessageEvidence);
-  const rollingEvidence = [
-    ...(context.rolling_evidence ?? []),
+  const rollingEvidenceForPass = [
+    ...carriedEvidence,
     ...messageEvidence,
   ].filter((item, index, all) =>
     all.findIndex((candidate) => candidate.evidence_id === item.evidence_id) ===
       index
   ).slice(-ROLLING_EVIDENCE_LIMIT);
-  const allEvidence = [...context.baseline_evidence, ...rollingEvidence];
+  const rollingEvidenceForPersistence = rollingEvidenceForPass.map((item) =>
+    evidenceWithProvenance(item, carriedEvidenceProvenance(item))
+  );
+  const allEvidence = [...baselineEvidence, ...rollingEvidenceForPass];
   const evidenceById = new Map(
     allEvidence.map((item) => [item.evidence_id, item] as const),
   );
@@ -551,18 +704,6 @@ export async function preparePotionSupportOpening(input: {
       },
     );
   const parsed = parseModelJson(raw);
-  const decisionRaw = cleanText(parsed?.decision);
-  const allowedDecisions = new Set<PotionSupportPreparationDecision>([
-    "send",
-    "skip_no_grounding",
-    "skip_resolved",
-    "skip_user_boundary",
-  ]);
-  let decision =
-    allowedDecisions.has(decisionRaw as PotionSupportPreparationDecision)
-      ? decisionRaw as PotionSupportPreparationDecision
-      : "skip_no_grounding";
-  const focus = parseFocusDecision(parsed?.focus_decision, evidenceById);
   const progressFacts = parseSelectedEvidenceItems(
     parsed?.progress_facts,
     evidenceById,
@@ -578,10 +719,17 @@ export async function preparePotionSupportOpening(input: {
     evidenceById,
     20,
   );
-  const openThreads = parseGroundedItems(
+  const extractedOpenThreads = parseGroundedItems(
     parsed?.open_threads,
     evidenceById,
     12,
+  );
+  const resolutionCandidates = parseSelectedEvidenceItems(
+    parsed?.resolution_candidates,
+    evidenceById,
+    4,
+  ).filter((candidate) =>
+    candidate.provenance === "current_user_segment"
   );
   const campaignBoundary = freshCampaignBoundary({
     boundaries: userBoundaries,
@@ -592,35 +740,63 @@ export async function preparePotionSupportOpening(input: {
       message.id
     ),
   );
-  const freshOpenThreads = openThreads.filter((thread) =>
+  const freshOpenThreads = extractedOpenThreads.filter((thread) =>
     itemReferencesFreshUserMessage(thread, freshUserMessageIds)
   );
-  const focusFreshnessConsistent = !focus || focus.freshness !== "fresh" ||
-    itemReferencesFreshUserMessage(focus, freshUserMessageIds);
-  const focusCoversFreshOpenThread = !focus || freshOpenThreads.length === 0 ||
-    (focus.kind === "unresolved_thread" && focus.freshness === "fresh" &&
-      freshOpenThreads.some((thread) => sharesEvidence(focus, thread)));
-
-  // A structured, freshly user-authored campaign boundary is authoritative.
-  // Conversely, a free-form skip_user_boundary without that target can never
-  // terminate seven days of support. If the reducer supplied a valid focus,
-  // preserve the day's support; otherwise skip only this slot.
-  if (campaignBoundary) {
-    decision = "skip_user_boundary";
-  } else if (decision === "skip_user_boundary") {
-    decision = focus ? "send" : "skip_no_grounding";
-  }
-  if (
-    decision === "send" &&
-    (!focus || !focusFreshnessConsistent || !focusCoversFreshOpenThread)
-  ) {
-    decision = "skip_no_grounding";
-  }
+  const previousOpenThreads = normalizeCarriedLedgerItems(
+    context.cumulative_ledger.open_threads ?? [],
+    evidenceById,
+  );
+  const resolvedPreviousThreads = new Set(
+    previousOpenThreads.filter((thread) =>
+      resolutionCandidates.some((resolution) =>
+        sharesEvidence(thread, resolution)
+      )
+    ).map((thread) => thread.text.toLowerCase()),
+  );
+  const carriedOpenThreads = previousOpenThreads.filter((thread) =>
+    !resolvedPreviousThreads.has(thread.text.toLowerCase())
+  );
+  const openThreads = uniqueGroundedItems([
+    ...freshOpenThreads,
+    ...extractedOpenThreads.filter((thread) =>
+      !itemReferencesFreshUserMessage(thread, freshUserMessageIds)
+    ),
+    ...carriedOpenThreads,
+  ]);
+  const focus = selectFocus({
+    freshOpenThreads,
+    progressFacts,
+    carriedOpenThreads: openThreads.filter((thread) =>
+      !itemReferencesFreshUserMessage(thread, freshUserMessageIds)
+    ),
+    baseline: baselineCandidates(baselineEvidence),
+    hadPreviousOpenThread: previousOpenThreads.length > 0,
+    isLaterDay: input.dayIndex > 1,
+  });
+  const validResolution = resolutionCandidates.length > 0 &&
+    openThreads.length === 0;
+  let decision: PotionSupportPreparationDecision = campaignBoundary
+    ? "skip_user_boundary"
+    : validResolution
+    ? "skip_resolved"
+    : focus
+    ? "send"
+    : "skip_no_grounding";
 
   const ledgerAfter: PotionSupportLedger = {
-    grounded_facts: groundedFacts,
+    grounded_facts: uniqueGroundedItems([
+      ...normalizeCarriedLedgerItems(
+        context.cumulative_ledger.grounded_facts ?? [],
+        evidenceById,
+      ),
+      ...groundedFacts,
+    ]),
     open_threads: openThreads,
-    user_boundaries: userBoundaries,
+    user_boundaries: [
+      ...(context.cumulative_ledger.user_boundaries ?? []),
+      ...userBoundaries,
+    ].slice(-12),
     advisory_summary: cleanText(parsed?.advisory_summary, 1_200) || null,
   };
   const nextCursor = advancePotionSupportCursor({
@@ -629,7 +805,7 @@ export async function preparePotionSupportOpening(input: {
   });
   const contextAfter: PotionSupportContextV1 = {
     ...context,
-    rolling_evidence: rollingEvidence,
+    rolling_evidence: rollingEvidenceForPersistence,
     cumulative_ledger: ledgerAfter,
     message_cursor: nextCursor,
   };
@@ -675,6 +851,7 @@ export async function preparePotionSupportOpening(input: {
         ? {
           text: visible.question_text,
           evidence_refs: openingEvidenceRefs,
+          provenance: focus.provenance,
         }
         : null;
     }

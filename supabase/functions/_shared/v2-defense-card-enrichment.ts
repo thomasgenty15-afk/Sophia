@@ -257,7 +257,33 @@ function normalizeEnrichedContent(
   original: DefenseCardContent,
   enriched: z.infer<typeof EnrichmentSchema> | null,
 ): DefenseCardContent {
-  const sourceImpulses = enriched?.impulses ?? original.impulses;
+  // La relecture ne peut ni inventer ni supprimer d'impulses/triggers, quoi
+  // que renvoie le LLM : on réaligne sa sortie sur la structure d'origine
+  // (par id, sinon par index), et on retombe sur l'original si un élément
+  // d'origine n'a pas de contrepartie.
+  const enrichedImpulses = enriched?.impulses ?? null;
+  const alignedImpulses = enrichedImpulses === null
+    ? null
+    : original.impulses.map((originalImpulse, impulseIndex) => {
+      const candidate = enrichedImpulses.find((impulse) =>
+        String(impulse.impulse_id).trim() === originalImpulse.impulse_id
+      ) ?? enrichedImpulses[impulseIndex];
+      if (!candidate) return null;
+      const alignedTriggers = originalImpulse.triggers.map(
+        (originalTrigger, triggerIndex) =>
+          candidate.triggers.find((trigger) =>
+            String(trigger.trigger_id).trim() === originalTrigger.trigger_id
+          ) ?? candidate.triggers[triggerIndex] ?? null,
+      );
+      if (!alignedTriggers.every(Boolean)) return null;
+      return {
+        ...candidate,
+        triggers: alignedTriggers as typeof candidate.triggers,
+      };
+    });
+  const sourceImpulses = alignedImpulses && alignedImpulses.every(Boolean)
+    ? alignedImpulses as NonNullable<typeof enrichedImpulses>
+    : original.impulses;
 
   return {
     impulses: sourceImpulses.map((impulse, impulseIndex) => ({

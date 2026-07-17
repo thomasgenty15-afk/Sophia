@@ -6,6 +6,7 @@ import {
   findTemplateButtonForFlag,
   mapTemplateChoiceToFlags,
   resolveLastTemplateContext,
+  TEMPLATE_CONTEXT_MAX_TURNS,
 } from "./template_context.ts";
 import { isNaturalOptInAgreementText } from "./template_reply_intent.ts";
 import {
@@ -89,11 +90,26 @@ export async function computeInboundTemplateContext(params: any) {
         classification.choice,
       );
     }
-    // No canTextOptIn veto here: resolveLastTemplateContext only returns a
-    // template while it is still the last thing Sophia said, so a classified
-    // choice IS an answer to that template. Gating it on "no active whatsapp
-    // state" strangled the very mechanism meant to read natural replies.
+    // No canTextOptIn veto here: the template is only resolved while it is still
+    // armed, so a classified choice IS an answer to that template. Gating it on
+    // "no active whatsapp state" strangled the very mechanism meant to read
+    // natural replies.
     isOptInYes = isOptInYes || flags.isOptInYes;
+
+    // Last-armed-turn safety net, opt-in only. The question an opt-in template
+    // asks is "is this really you?" — and someone who has been talking to Sophia
+    // for three turns without ever saying "mauvais numéro" or "stop" (both caught
+    // upstream, before this runs) has already answered it by the mere fact of
+    // replying. So we stop depending on a classifier reading an unusual wording:
+    // no one stays stuck out of the funnel because of how they phrased their yes.
+    if (
+      !isOptInYes && !alreadyOptedIn &&
+      ["sophia_optin_v2", "sophia_optin_winback_v2"].includes(lastTemplate.name)
+    ) {
+      const isLastArmedTurn =
+        lastTemplate.inbound_turns_before + 1 >= TEMPLATE_CONTEXT_MAX_TURNS;
+      if (isLastArmedTurn) isOptInYes = true;
+    }
     isCheckinYes = flags.isCheckinYes;
     isCheckinLater = flags.isCheckinLater;
   } else {

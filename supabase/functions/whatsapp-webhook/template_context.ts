@@ -3,12 +3,20 @@ import { renderWhatsAppTemplate } from "../_shared/whatsapp_templates.ts";
 
 export type LastTemplateContext = {
   name: string;
+  // The rendered question. It was computed and thrown away, so the classifier
+  // had to decide whether a reply matched a floating button label without ever
+  // seeing what had been asked — the same blindness that made the onboarding
+  // flow answer nonsense to "[TEMPLATE:x]".
+  content: string;
   purpose: string | null;
   buttons: string[];
   event_context: string | null;
   original_checkin_id: string | null;
   wamid: string | null;
   sent_at: string;
+  // Inbound messages received since the template, excluding the current one.
+  // Lets callers know they are on the last armed turn.
+  inbound_turns_before: number;
 };
 
 export type TemplateReplyClassification = {
@@ -46,12 +54,13 @@ const TEMPLATE_CONTEXT_WINDOW_MS = 24 * 60 * 60 * 1000;
 // How many inbound messages a template stays armed for. Bursts are the norm on
 // this audience ("Attend" … "C'est tout à fait moi"), so one shot is not enough;
 // three bounds how long a stale question can keep capturing replies.
-const TEMPLATE_CONTEXT_MAX_TURNS = 3;
+export const TEMPLATE_CONTEXT_MAX_TURNS = 3;
 
 export function materializeTemplateContext(args: {
   row: OutboundRow | null | undefined;
   nowMs?: number;
   pendingExpiresAt?: unknown;
+  inboundTurnsBefore?: number;
 }): LastTemplateContext | null {
   const row = args.row;
   if (!row) return null;
@@ -83,12 +92,16 @@ export function materializeTemplateContext(args: {
 
   return {
     name,
+    content: rendered.content,
     purpose: cleanText(metadata.purpose) || null,
     buttons: [...rendered.buttons],
     event_context: cleanText(metadata.event_context) || null,
     original_checkin_id: cleanText(metadata.original_checkin_id) || null,
     wamid: cleanText(row.provider_message_id) || null,
     sent_at: sentAt,
+    inbound_turns_before: Number.isFinite(args.inboundTurnsBefore)
+      ? Number(args.inboundTurnsBefore)
+      : 0,
   };
 }
 
@@ -129,6 +142,7 @@ export async function resolveLastTemplateContext(params: {
     "provider_message_id,message_type,status,metadata,graph_payload,created_at";
   const replyWamid = cleanText(params.replyToWamid);
   let row: OutboundRow | null = null;
+  let inboundTurnsBefore = 0;
 
   if (replyWamid) {
     const { data, error } = await params.admin
@@ -189,19 +203,29 @@ export async function resolveLastTemplateContext(params: {
           .eq("role", "user")
           .filter("metadata->>channel", "eq", "whatsapp")
           .gt("created_at", sentAtIso);
-        if ((count ?? 0) >= TEMPLATE_CONTEXT_MAX_TURNS) row = null;
+        inboundTurnsBefore = count ?? 0;
+        if (inboundTurnsBefore >= TEMPLATE_CONTEXT_MAX_TURNS) row = null;
       }
     }
   }
 
-  const provisional = materializeTemplateContext({ row, nowMs });
+  const provisional = materializeTemplateContext({
+    row,
+    nowMs,
+    inboundTurnsBefore,
+  });
   if (!provisional) return null;
   const pendingExpiresAt = await loadPendingExpiry(
     params.admin,
     params.userId,
     provisional,
   );
-  return materializeTemplateContext({ row, nowMs, pendingExpiresAt });
+  return materializeTemplateContext({
+    row,
+    nowMs,
+    pendingExpiresAt,
+    inboundTurnsBefore,
+  });
 }
 
 function normalizedButtonText(value: unknown): string {
@@ -352,14 +376,17 @@ export async function classifyTemplateReplyChoice(params: {
   }
 
   const systemPrompt =
-    "Tu classes une réponse WhatsApp libre contre les boutons d'un seul template. " +
-    "Ne force jamais un choix. Si la réponse est ambiguë, nuancée, hors sujet ou contient une réserve, réponds unrelated. " +
-    'Réponds uniquement en JSON: {"choice": <libellé exact|"unrelated"|"unknown">, "confidence": <0..1>}.';
+    "Sophia a posé la question ci-dessous sur WhatsApp, avec des boutons de réponse. " +
+    "L'utilisateur a répondu librement, avec ses mots. Dis à quel bouton sa réponse correspond. " +
+    "Un accord clair reste un accord même s'il est long, familier, mal orthographié ou reformulé " +
+    "(ex. \"oui c'est tout à fait ça\", \"t'es à la bonne adresse\", \"carrément\"). " +
+    "Réponds unrelated seulement si la réponse ne répond pas à la question, " +
+    "ou si elle contient une vraie réserve ou un refus. " +
+    'Réponds uniquement en JSON: {"choice": <libellé exact d\'un bouton|"unrelated"|"unknown">, "confidence": <0..1>}.';
   const userPrompt = JSON.stringify({
-    template_name: params.template.name,
-    template_purpose: params.template.purpose,
-    allowed_buttons: safeButtons,
-    inbound_text: params.inboundText,
+    question_posee: params.template.content,
+    boutons_possibles: safeButtons,
+    reponse_utilisateur: params.inboundText,
   });
 
   try {
@@ -388,10 +415,16 @@ export async function classifyTemplateReplyChoice(params: {
     if (parsed.choice === "unknown" || parsed.choice === "unrelated") {
       return parsed;
     }
-    if (parsed.confidence < 0.8 || !safeButtons.includes(parsed.choice)) {
+    // Match on the normalized label, not on a strict string compare: the model
+    // answering "Absolument!" instead of "Absolument !" used to silently become
+    // unrelated. Return the canonical button so callers map it reliably.
+    const matched = safeButtons.find((button) =>
+      normalizedButtonText(button) === normalizedButtonText(parsed.choice)
+    );
+    if (parsed.confidence < 0.8 || !matched) {
       return { choice: "unrelated", confidence: parsed.confidence };
     }
-    return parsed;
+    return { choice: matched, confidence: parsed.confidence };
   } catch (error) {
     console.warn("[WhatsApp] template reply classifier failed", error);
     return { choice: "unknown", confidence: 0 };

@@ -5,7 +5,6 @@ import {
   Book,
   ChevronDown,
   ChevronUp,
-  CheckCircle2,
   Compass,
   Hammer,
   Layout,
@@ -29,6 +28,7 @@ import { useAuth } from "../context/AuthContext";
 import { useOnboardingAmbientAudio } from "../hooks/useOnboardingAmbientAudio";
 import { hasArchitecteAccess } from "../lib/entitlements";
 
+import PlanSavedModal from "../components/dashboard-v2/PlanSavedModal";
 import { PlanActionCardsByLevel } from "../components/dashboard-v2/ActionCardsResourcePanel";
 import { AtelierInspirations } from "../components/dashboard-v2/AtelierInspirations";
 import { BaseDeVieSection } from "../components/dashboard-v2/BaseDeVieSection";
@@ -3958,38 +3958,11 @@ export default function DashboardV2() {
         initialTab={profileInitialTab}
       />
 
-      {isPlanSavedModalOpen ? (
-        <div className="fixed inset-0 z-[96] flex items-center justify-center bg-stone-950/45 px-4 backdrop-blur-sm">
-          <div className="w-full max-w-lg rounded-[28px] border border-emerald-200 bg-white p-6 shadow-[0_28px_90px_-36px_rgba(15,23,42,0.5)]">
-            <div className="flex items-start gap-4">
-              <div className="mt-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-[var(--action-green)]">
-                <CheckCircle2 className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--action-green)]">
-                  Plan enregistré
-                </p>
-                <h2 className="mt-3 text-2xl font-semibold text-stone-950">
-                  Ton plan est prêt
-                </h2>
-                <p className="mt-3 text-sm leading-6 text-stone-600">
-                  Le plan est enregistré. Sophia va t'accompagner pour le réaliser.
-                  Passe à la prochaine transformation lorsque celle-ci est terminée.
-                </p>
-              </div>
-            </div>
-            <div className="mt-6 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setIsPlanSavedModalOpen(false)}
-                className="inline-flex items-center rounded-xl bg-[var(--action-green)] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#014232]"
-              >
-                Ok
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      <PlanSavedModal
+        open={isPlanSavedModalOpen}
+        whatsappOptedIn={profile ? profile.whatsappOptedIn : true}
+        onClose={() => setIsPlanSavedModalOpen(false)}
+      />
 
       {isTransformationLimitModalOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/45 px-4">
