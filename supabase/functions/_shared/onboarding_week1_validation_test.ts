@@ -3,34 +3,9 @@ import { assertEquals, assertStringIncludes } from "jsr:@std/assert@1";
 import {
   buildOnboardingWeek1AutoValidationMessage,
   buildOnboardingWeek1ValidationPromptMessage,
-  isOnboardingCompleteForWeek1Validation,
   nextAllowedAfterRecentWhatsappInteraction,
   onboardingWeek1AutoValidationScheduledFor,
 } from "./onboarding_week1_validation.ts";
-
-Deno.test("onboarding week1 validation requires completed onboarding", () => {
-  assertEquals(
-    isOnboardingCompleteForWeek1Validation({
-      onboarding_completed: true,
-      whatsapp_state: "active",
-    }),
-    true,
-  );
-  assertEquals(
-    isOnboardingCompleteForWeek1Validation({
-      onboarding_completed: true,
-      whatsapp_state: "onboarding_preferences",
-    }),
-    false,
-  );
-  assertEquals(
-    isOnboardingCompleteForWeek1Validation({
-      onboarding_completed: false,
-      whatsapp_state: "active",
-    }),
-    false,
-  );
-});
 
 Deno.test("onboarding week1 validation waits after recent WhatsApp activity", () => {
   assertEquals(

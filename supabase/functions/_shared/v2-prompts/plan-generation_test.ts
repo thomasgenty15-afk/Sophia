@@ -173,11 +173,10 @@ Deno.test("validatePlanV3Output accepts phases with more than five items", () =>
   );
 });
 
-Deno.test("validatePlanV3Output never emits phantom depends_on errors when other checks fail", () => {
-  // phase-1 exceeds the old 5-item cap AND references three deps: one valid
-  // in-phase, one genuinely unknown, one genuinely cross-phase. The pre-pass
-  // must resolve the valid in-phase dep regardless, while still catching the
-  // two real violations.
+Deno.test("validatePlanV3Output ignores legacy activation conditions entirely (week-based unlock)", () => {
+  // Les conditions résiduelles — y compris invalides (temp_id fantôme,
+  // cross-phase) — ne produisent plus aucune issue: elles sont ignorées à la
+  // matérialisation.
   const phase1 = makePhase(1, "phase-1", [
     makeItem("gen-p1-habits-001", "habits", "habit"),
     makeItem("gen-p1-missions-002", "missions", "task"),
@@ -202,35 +201,10 @@ Deno.test("validatePlanV3Output never emits phantom depends_on errors when other
 
   const { issues } = validatePlanV3Output(plan);
 
-  // No phantom errors for the valid same-phase dependency.
   assert(
     !issues.some((issue) =>
-      issue.includes("gen-p1-missions-006 depends_on unknown temp_id")
+      issue.includes("depends_on") || issue.includes("activation_condition")
     ),
-    `Phantom unknown-temp_id error: ${issues.join(" | ")}`,
-  );
-  assert(
-    !issues.some((issue) =>
-      issue.includes('gen-p1-missions-006 depends_on "gen-p1-habits-001"')
-    ),
-    `Phantom cross-phase error: ${issues.join(" | ")}`,
-  );
-
-  // Real violations are still reported.
-  assert(
-    issues.some((issue) =>
-      issue.includes(
-        "gen-p1-missions-004 depends_on unknown temp_id: gen-p1-ghost-999",
-      )
-    ),
-    `Missing genuine unknown-temp_id error: ${issues.join(" | ")}`,
-  );
-  assert(
-    issues.some((issue) =>
-      issue.includes(
-        'gen-p1-missions-005 depends_on "gen-p2-habits-001" is in a different phase',
-      )
-    ),
-    `Missing genuine cross-phase error: ${issues.join(" | ")}`,
+    `Unexpected activation-related issue: ${issues.join(" | ")}`,
   );
 });

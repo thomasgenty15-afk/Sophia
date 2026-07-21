@@ -161,7 +161,7 @@ Items qui aident, soutiennent, éclairent. Chaque item de support a :
 - un \`support_mode\` obligatoire :
   - "always_available" : outil toujours accessible, pas mis en avant
   - "recommended_now" : outil actuellement au premier plan
-  - "unlockable" : accessible après une condition
+  - "unlockable" : arrive plus tard dans le plan (activé automatiquement par le calendrier des semaines)
 - un \`support_function\` obligatoire :
   - "practice" : à pratiquer régulièrement
   - "rescue" : à mobiliser dans les moments critiques
@@ -170,7 +170,7 @@ Items qui aident, soutiennent, éclairent. Chaque item de support a :
 ### 2. Missions — Actions concrètes d'avancée
 Items qui font avancer concrètement. Chaque item a :
 - un \`kind\` : "task" (action one-shot) ou "milestone" (jalon vérifiable)
-- les missions sont le moteur de progression — chaque completion débloque la suite
+- les missions sont le moteur de progression concrète du plan
 
 ### 3. Habits — Habitudes à installer
 Items répétitifs à ancrer. Chaque item a :
@@ -180,31 +180,24 @@ Items répétitifs à ancrer. Chaque item a :
 - un \`time_of_day\` — OBLIGATOIRE (non null) dès que l'habitude a un ancrage horaire : "wake_up" (au réveil même : se lever, lumière dès le lever, réveil sans snooze) | "morning" (dans la matinée) | "afternoon" | "evening" (le soir) | "night" (tard le soir : se coucher, écrans off, rituel de nuit) ; sinon "anytime". Attention : "se lever" → "wake_up" (PAS "morning") ; "se coucher" → "night" (PAS "evening")
 - des \`scheduled_days\` si pertinent (ex: ["lundi", "mercredi", "vendredi"])
 
-## Débloquage conditionnel
+## Déblocage par semaine — AUCUNE condition entre items
 
-Les items ne se débloquent PAS parce qu'on est "en semaine 2". Ils se débloquent quand des préconditions sont atteintes.
+Le système n'utilise PLUS de conditions de déblocage entre items. Un item ne dépend jamais de la complétion d'un autre item pour devenir accessible : c'est le calendrier des semaines du plan qui décide, et le système active automatiquement les items quand leur semaine commence.
 
-Chaque item a un champ \`activation_condition\` qui peut être :
-- \`null\` → actif dès le départ
-- \`{ "type": "immediate" }\` → actif dès le départ (explicite)
-- \`{ "type": "after_item_completion", "depends_on": ["gen-xxx-001"] }\` → actif après complétion d'un autre item
-- \`{ "type": "after_habit_traction", "depends_on": ["gen-habits-001"], "min_completions": 3 }\` → actif après 3 réussites d'une habitude
-- \`{ "type": "after_milestone", "depends_on": ["gen-missions-002"] }\` → actif après un milestone
+Règles STRICTES :
+- \`activation_condition\` doit TOUJOURS être \`null\` pour tous les items, sans exception.
+- N'émets jamais \`after_item_completion\`, \`after_habit_traction\`, \`after_milestone\` ni \`depends_on\` : ces mécanismes sont supprimés.
+- Le champ \`activation_order\` (entier >= 1) reste utilisé, uniquement comme ordre d'affichage/narration des items.
 
-\`depends_on\` est toujours un tableau de temp_id (même s'il n'y en a qu'un).
+## Charge de départ
 
-Le champ \`activation_order\` (entier >= 1) donne l'ordre global prévu d'activation.
-
-## Caps de charge active au départ
-
-Le plan doit respecter ces limites pour les items actifs **dès le départ** (activation_condition = null ou immediate) :
-- **1 mission principale** active maximum (la plus impactante ou accessible)
+Pour éviter la surcharge, limite la charge simultanée en construisant un plan resserré :
+- **1 mission principale** mise en avant au départ (la plus impactante ou accessible)
 - **1 mission secondaire** optionnelle si la charge est légère
 - **1 à 2 supports** en mode "recommended_now"
 - **Maximum 2 habitudes** en construction simultanée
-- Tous les autres items doivent avoir une \`activation_condition\` non-nulle
 
-Ces caps existent pour éviter la surcharge et favoriser la traction réelle.
+La progressivité vient du séquençage temporel du plan (les items arrivent au fil des semaines), jamais de conditions entre items.
 
 ## Règles de génération
 
@@ -215,16 +208,15 @@ Ces caps existent pour éviter la surcharge et favoriser la traction réelle.
 - Les descriptions doivent expliquer concrètement quoi faire, pas juste énoncer un objectif
 
 ### Densité selon la durée
-La durée (1, 2 ou 3 mois) modifie la densité et la vitesse de déblocage, PAS la structure :
-- **1 mois** : plan intense, moins d'items au total, déblocages rapides, focus resserré
+La durée (1, 2 ou 3 mois) modifie la densité et le rythme d'arrivée des items, PAS la structure :
+- **1 mois** : plan intense, moins d'items au total, montée en charge rapide, focus resserré
 - **2 mois** : plan progressif, rythme modéré, ouverture graduelle
-- **3 mois** : plan très progressif, plus d'items au total, déblocages espacés, construction lente
+- **3 mois** : plan très progressif, plus d'items au total, arrivées espacées, construction lente
 
 ### Habitudes
 - Les habitudes suivent une logique de "preuves d'ancrage" (3 réussites sur 5 opportunités) — PAS de streak pur
-- La prochaine habitude se débloque quand la précédente a une traction suffisante
-- Débloquer la suivante ne veut pas dire abandonner la précédente
-- Utilise \`after_habit_traction\` comme activation_condition entre habitudes
+- Introduis les habitudes progressivement dans le temps (une nouvelle habitude arrive plus tard dans le plan), sans jamais conditionner son arrivée à la réussite d'une autre
+- Introduire la suivante ne veut pas dire abandonner la précédente
 
 ### Supports
 - Au moins 1 support "always_available" de type "rescue" (outil de secours toujours dispo)
@@ -243,7 +235,7 @@ Chaque item doit avoir un \`temp_id\` unique au format :
 - \`"gen-missions-001"\`, \`"gen-missions-002"\`...
 - \`"gen-habits-001"\`, \`"gen-habits-002"\`...
 
-Ces IDs sont utilisés dans les \`activation_condition.depends_on\` pour référencer les dépendances.
+Ces IDs doivent être uniques dans tout le plan.
 
 ## Format de sortie
 
@@ -346,22 +338,15 @@ Tu dois retourner UNIQUEMENT un JSON valide conforme au schéma suivant :
 - \`support_mode\` : "always_available" | "recommended_now" | "unlockable" (obligatoire si dimension = "support", null sinon)
 - \`support_function\` : "practice" | "rescue" | "understanding" (obligatoire si dimension = "support", null sinon)
 - \`time_of_day\` : "wake_up" | "morning" | "afternoon" | "evening" | "night" | "anytime" | null. Règle : mets une valeur explicite dès qu'une action (habit OU mission) a un ancrage horaire clair ; ne laisse jamais \`null\` dans ce cas. "anytime"/null uniquement si le moment n'a pas d'importance. Sémantique : "wake_up" = au réveil même (se lever, lumière dès le lever, réveil sans snooze — PAS "morning") ; "morning" = dans la matinée après le lever ; "evening" = le soir ; "night" = tard le soir / rituel de coucher (se coucher, écrans off — PAS "evening").
-- \`activation_condition.type\` : "immediate" | "after_item_completion" | "after_habit_traction" | "after_milestone"
+- \`activation_condition\` : toujours \`null\` (les conditions de déblocage n'existent plus)
 
 ### Contraintes quantitatives
 
 - Items support : 3 à 8
 - Items missions : 3 à 10
 - Items habits : 2 à 5
-- Au départ (activation_condition null/immediate) : max 1-2 missions, 1-2 supports recommended_now, max 2 habits
+- Charge de départ resserrée : max 1-2 missions mises en avant, 1-2 supports recommended_now, max 2 habits
 - Chaque dimension doit avoir au moins 1 item
-
-### Cohérence de la chaîne de déblocage
-
-- Les \`depends_on\` doivent référencer des \`temp_id\` existants dans le plan
-- Pas de dépendance circulaire
-- Au moins 1 item par dimension doit être actif dès le départ
-- L'activation_order doit être cohérent avec les dépendances
 
 Ne retourne RIEN d'autre que le JSON. Pas de texte avant, pas de texte après, pas de markdown.`;
 
@@ -673,12 +658,6 @@ const KINDS_BY_DIMENSION: Record<PlanDimension, ReadonlySet<PlanItemKind>> = {
   habits: new Set(["habit"]),
 };
 
-const VALID_ACTIVATION_TYPES: ReadonlySet<string> = new Set([
-  "immediate",
-  "after_item_completion",
-  "after_habit_traction",
-  "after_milestone",
-]);
 const VALID_V3_DIMENSIONS: ReadonlySet<PlanDimension> = new Set([
   "clarifications",
   "missions",
@@ -691,17 +670,6 @@ export type PlanValidationResult = {
   valid: boolean;
   issues: string[];
 };
-
-/** Normalize depends_on to a string array (accepts string or string[]). */
-function normalizeDependsOn(
-  value: unknown,
-): { deps: string[]; ok: boolean } {
-  if (typeof value === "string") return { deps: [value], ok: true };
-  if (Array.isArray(value) && value.every((v) => typeof v === "string")) {
-    return { deps: value as string[], ok: true };
-  }
-  return { deps: [], ok: false };
-}
 
 /** Light structural validation of LLM-produced plan JSON. */
 export function validatePlanOutput(
@@ -812,50 +780,9 @@ export function validatePlanOutput(
         }
       }
 
-      // Validate activation_condition structure
-      const cond = item.activation_condition as
-        | Record<
-          string,
-          unknown
-        >
-        | null;
-      if (cond && typeof cond === "object") {
-        const condType = cond.type as string;
-        if (!condType || !VALID_ACTIVATION_TYPES.has(condType)) {
-          issues.push(
-            `item ${tempId} invalid activation_condition.type: "${condType}"`,
-          );
-        }
-      }
-    }
-  }
-
-  // Validate activation_condition.depends_on references
-  for (const dim of dims as Array<Record<string, unknown>>) {
-    const items = (dim.items ?? []) as Array<Record<string, unknown>>;
-    for (const item of items) {
-      const cond = item.activation_condition as
-        | Record<
-          string,
-          unknown
-        >
-        | null;
-      if (cond && typeof cond === "object" && cond.depends_on != null) {
-        const { deps, ok } = normalizeDependsOn(cond.depends_on);
-        if (!ok) {
-          issues.push(
-            `item ${item.temp_id} depends_on must be a string or string[]`,
-          );
-        } else {
-          for (const dep of deps) {
-            if (!seenTempIds.has(dep)) {
-              issues.push(
-                `item ${item.temp_id} depends_on unknown temp_id: ${dep}`,
-              );
-            }
-          }
-        }
-      }
+      // Déblocage par semaine: les activation_condition ne sont plus un
+      // mécanisme runtime. On tolère un objet résiduel émis par le modèle
+      // (il sera ignoré à la matérialisation) — aucune validation de forme.
     }
   }
 
@@ -1023,16 +950,15 @@ Kinds autorisés : \`task\` ou \`milestone\`
 Utilité : installer une répétition qui ancre la transformation.
 Kinds autorisés : \`habit\`
 
-### Déblocage conditionnel (intra-phase)
+### Déblocage par semaine — AUCUNE condition entre items
 
-Les items d'une même phase peuvent avoir des \`activation_condition\` entre eux :
-- \`null\` → actif dès le début de la phase
-- \`{ "type": "immediate" }\` → actif dès le début de la phase (explicite)
-- \`{ "type": "after_item_completion", "depends_on": ["gen-p1-missions-001"] }\`
-- \`{ "type": "after_habit_traction", "depends_on": ["gen-p1-habits-001"], "min_completions": 3 }\`
-- \`{ "type": "after_milestone", "depends_on": ["gen-p1-missions-002"] }\`
+Le système n'utilise PLUS de conditions de déblocage entre items. Ce qui décide du moment où un item devient accessible, c'est la semaine du niveau à laquelle il est assigné (\`weeks[].item_assignments\`) : au début de chaque semaine, le système active automatiquement tous les items assignés à cette semaine.
 
-**IMPORTANT :** les \`depends_on\` d'un item doivent référencer des \`temp_id\` de la **même phase uniquement**. Pas de dépendances cross-phase.
+Règles STRICTES :
+- \`activation_condition\` doit TOUJOURS être \`null\` pour tous les items, sans exception.
+- N'émets jamais \`after_item_completion\`, \`after_habit_traction\`, \`after_milestone\` ni \`depends_on\` : ces mécanismes sont supprimés.
+- La progressivité se construit par le placement des items dans les semaines (\`item_assignments\`), jamais par des dépendances entre items.
+- Chaque semaine du niveau doit avoir des items assignés et donc actifs : aucune semaine ne doit dépendre d'une réussite préalable pour "s'ouvrir".
 
 ### temp_id
 
@@ -1136,11 +1062,11 @@ Calibration obligatoire de la semaine 1 :
 
 ## Caps de charge par phase
 
-Au sein d'une phase, les items actifs dès le début doivent respecter :
+Au sein d'une phase, les items assignés à une même semaine doivent respecter :
 - **Max 1-2 missions** actives
 - **Max 1-2 clarifications** actives si elles sont réellement utiles
 - **Max 2 habitudes** en construction simultanée
-- Les autres items de la phase doivent avoir une \`activation_condition\`
+- Les autres items de la phase doivent être assignés à des semaines ultérieures via \`item_assignments\`
 
 ## Inspiration narrative
 
@@ -1225,8 +1151,7 @@ Contraintes :
 
 ### Habitudes
 - Logique de "preuves d'ancrage" (3 réussites sur 5 opportunités) — PAS de streak pur
-- La prochaine habitude se débloque quand la précédente a une traction suffisante
-- Utilise \`after_habit_traction\` entre habitudes d'une même phase
+- Introduis la prochaine habitude sur une semaine ultérieure via \`item_assignments\`, jamais via une condition de déblocage
 
 ### Clarifications
 - N'en génère pas par réflexe
@@ -1323,7 +1248,7 @@ Priorité des champs hebdo :
 - \`support_mode\` : toujours \`null\`
 - \`support_function\` : toujours \`null\`
 - \`time_of_day\` : "wake_up" | "morning" | "afternoon" | "evening" | "night" | "anytime" | null. Règle : mets une valeur explicite dès qu'une action (habit OU mission) a un ancrage horaire clair ; ne laisse jamais \`null\` dans ce cas. "anytime"/null uniquement si le moment n'a pas d'importance. Sémantique : "wake_up" = au réveil même (se lever, lumière dès le lever, réveil sans snooze — PAS "morning") ; "morning" = dans la matinée après le lever ; "evening" = le soir ; "night" = tard le soir / rituel de coucher (se coucher, écrans off — PAS "evening").
-- \`activation_condition.type\` : "immediate" | "after_item_completion" | "after_habit_traction" | "after_milestone"
+- \`activation_condition\` : toujours \`null\` (les conditions de déblocage n'existent plus)
 - \`heartbeat.tracking_mode\` : "manual" | "inferred"
 - \`primary_metric.measurement_mode\` : "absolute_value" | "count" | "frequency" | "duration" | "score" | "milestone" | "qualitative"
 
@@ -1646,10 +1571,9 @@ Tu dois retourner UNIQUEMENT un JSON valide conforme au schéma suivant :
 
 ### Cohérence
 
-- Les \`depends_on\` doivent référencer des \`temp_id\` de la **même phase**
-- Pas de dépendance circulaire
-- Au moins 1 item par phase doit être actif dès le début de la phase
-- L'activation_order doit être cohérent avec les dépendances (au sein de la phase)
+- \`activation_condition\` est \`null\` sur tous les items — aucune dépendance entre items
+- Chaque item doit être assigné à au moins une semaine du niveau via \`item_assignments\` (les items de la semaine 1 sont actifs dès le début de la phase)
+- L'activation_order reflète l'ordre narratif des items (semaine d'arrivée croissante)
 - Les phase_order doivent être séquentiels (1, 2, 3...)
 - Les phase_id doivent être uniques
 - \`phase_objective\` doit décrire un niveau de plan, pas une simple consigne
@@ -1810,7 +1734,7 @@ ${validationFeedback.map((issue) => `- ${issue}`).join("\n")}
 Rappels :
 - \`primary_metric.measurement_mode\` doit rester un type de mesure valide, jamais une direction
 - si la métrique est un poids, un montant, une durée cible chiffrée ou une autre valeur numérique continue, utilise \`absolute_value\` ou \`duration\` selon le cas
-- vérifie les \`temp_id\`, les \`depends_on\`, les champs obligatoires et les chaînes de texte tronquées avant de répondre
+- vérifie les \`temp_id\`, les \`item_assignments\`, les champs obligatoires et les chaînes de texte tronquées avant de répondre ; \`activation_condition\` reste \`null\` partout
 - \`plan_blueprint.estimated_levels_count\` doit etre exactement égal au nombre réel d'entrées dans \`plan_blueprint.levels\``
     : "";
 
@@ -1995,7 +1919,7 @@ Rappels importants :
 - exemples de dosage utiles pour une habitude quasi quotidienne : sur 2 semaines, pense souvent \`3 -> 6\` ; sur 3 semaines, pense souvent \`3 -> 5 -> 6\` ; si la semaine 1 est partielle, allège encore le premier palier
 - si une mission réduit directement la friction de l'habitude principale du niveau (preparer l'environnement, retirer une tentation, preparer le materiel, poser un repere concret, nettoyer le terrain), cette mission doit apparaitre en semaine 1, avant ou au plus tard en meme temps que la premiere clarification
 - à l'intérieur d'une semaine, ne tasse pas toutes les répétitions d'habitude au début : le produit les répartit sur toute la fenêtre disponible
-- quand une mission prépare concrètement une habitude de la même semaine, relie l'habitude à cette mission avec \`activation_condition.type = "after_item_completion"\` et place la mission dans \`mission_days\` avant les premières répétitions ; la mission sert alors d'essai/setup avant la mise en pratique répétée
+- quand une mission prépare concrètement une habitude de la même semaine, place la mission dans \`mission_days\` avant les premières répétitions ; la mission sert alors d'essai/setup avant la mise en pratique répétée (jamais de condition de déblocage entre les deux : \`activation_condition\` reste \`null\`)
 - n'impose pas cet ordre à une mission de bilan ou de consolidation : elle peut légitimement venir après plusieurs répétitions d'habitude
 - si le chemin d'action est deja connu, ne fais pas passer une clarification avant cette mission de setup
 - n'utilise une clarification en semaine 1 avant la mission de setup que si cette clarification conditionne reellement le choix de l'action concrete
@@ -3327,50 +3251,10 @@ export function validatePlanV3Output(
 
       if (item.kind === "habit") hasHabit = true;
 
-      // activation_condition
-      const cond = item.activation_condition as
-        | Record<string, unknown>
-        | null;
-      if (cond === null || cond === undefined) {
-        hasActiveItem = true;
-      } else if (!isPlainObject(cond)) {
-        issues.push(
-          `item ${tempId} activation_condition must be an object or null`,
-        );
-      } else if (cond.type === "immediate") {
-        hasActiveItem = true;
-      }
-      if (isPlainObject(cond) && cond.type) {
-        const condType = cond.type as string;
-        if (!VALID_ACTIVATION_TYPES.has(condType)) {
-          issues.push(
-            `item ${tempId} invalid activation_condition.type: "${condType}"`,
-          );
-        }
-        if (
-          condType === "after_item_completion" ||
-          condType === "after_habit_traction" ||
-          condType === "after_milestone"
-        ) {
-          const { deps, ok } = normalizeDependsOn(cond.depends_on);
-          if (!ok || deps.length === 0) {
-            issues.push(
-              `item ${tempId} activation_condition.depends_on must be a non-empty string or string[]`,
-            );
-          }
-        }
-        if (condType === "after_habit_traction") {
-          if (
-            typeof cond.min_completions !== "number" ||
-            !Number.isInteger(cond.min_completions) ||
-            cond.min_completions < 1
-          ) {
-            issues.push(
-              `item ${tempId} after_habit_traction requires min_completions >= 1`,
-            );
-          }
-        }
-      }
+      // Déblocage par semaine: les activation_condition ne sont plus un
+      // mécanisme runtime (ignorées à la matérialisation). On tolère un objet
+      // résiduel émis par le modèle — aucune validation de forme.
+      hasActiveItem = true;
     }
 
     if (!hasHabit) {
@@ -3411,47 +3295,8 @@ export function validatePlanV3Output(
     }
   }
 
-  // Cross-reference: depends_on must be within the same phase. Both the
-  // in-phase set (tempIdsByPhase) and the global universe (knownTempIds) come
-  // from the pre-pass, so these checks stay accurate regardless of any earlier
-  // validation failure — no phantom "unknown temp_id"/"cross-phase" errors.
-  for (let i = 0; i < phases.length; i++) {
-    const phase = phases[i];
-    if (!isPlainObject(phase)) continue;
-    const phaseTempIds = tempIdsByPhase.get(phaseKeyAt(phase, i)) ??
-      new Set<string>();
-    const items = Array.isArray(phase.items)
-      ? phase.items as Array<Record<string, unknown>>
-      : [];
-
-    for (const item of items) {
-      const cond = item.activation_condition as
-        | Record<string, unknown>
-        | null;
-      if (cond && typeof cond === "object" && cond.depends_on != null) {
-        const { deps, ok } = normalizeDependsOn(cond.depends_on);
-        if (!ok) {
-          issues.push(
-            `item ${item.temp_id} depends_on must be a string or string[]`,
-          );
-        } else {
-          for (const dep of deps) {
-            if (!phaseTempIds.has(dep)) {
-              if (knownTempIds.has(dep)) {
-                issues.push(
-                  `item ${item.temp_id} depends_on "${dep}" is in a different phase (cross-phase deps not allowed)`,
-                );
-              } else {
-                issues.push(
-                  `item ${item.temp_id} depends_on unknown temp_id: ${dep}`,
-                );
-              }
-            }
-          }
-        }
-      }
-    }
-  }
+  // Déblocage par semaine: plus aucune validation des depends_on — les
+  // conditions résiduelles sont ignorées à la matérialisation.
 
   const currentLevelRuntime = isPlainObject(plan.current_level_runtime)
     ? plan.current_level_runtime

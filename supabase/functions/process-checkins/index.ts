@@ -12,8 +12,29 @@ import {
 } from "../_shared/proactive_template_queue.ts";
 import {
   evaluateWhatsAppWinback,
+  WINBACK_STEP_MIN_INACTIVITY_DAYS,
   type WinbackStep,
 } from "../_shared/whatsapp_winback.ts";
+import {
+  closeReengagementEpisode,
+  decideReengagementEpisodeSweep,
+  openOrTouchReengagementEpisode,
+} from "../_shared/reengagement_episodes.ts";
+import {
+  buildReengagementExtractionPrompt,
+  formatReengagementTranscript,
+  parseReengagementExtractionOutput,
+  type ReengagementTranscriptTurn,
+} from "../_shared/reengagement_extraction.ts";
+import {
+  generateWithGemini,
+  getGlobalAiModel,
+} from "../_shared/gemini.ts";
+import {
+  armWinbackReengagementForUser,
+  disarmWinbackReengagementForUser,
+  isWinbackReengagementFlowEnabled,
+} from "../sophia-brain/skills/winback_reengagement/context.ts";
 import { computeNextRetryAtIso } from "../_shared/whatsapp_outbound_tracking.ts";
 import {
   pickMorningLightVariant,
@@ -113,7 +134,6 @@ import {
   autoConfirmOnboardingWeek1Planning,
   buildOnboardingWeek1AutoValidationMessage,
   buildOnboardingWeek1ValidationPromptMessage,
-  isOnboardingCompleteForWeek1Validation,
   loadOnboardingWeek1Planning,
   nextAllowedAfterRecentWhatsappInteraction,
   ONBOARDING_WEEK1_AUTO_VALIDATION_EVENT_CONTEXT,
@@ -1810,7 +1830,8 @@ async function processDueDailyBilanWinbacks(params: {
 }): Promise<number> {
   const now = new Date();
   const winbackStep1CutoffIso = new Date(
-    now.getTime() - 2 * 24 * 60 * 60 * 1000,
+    now.getTime() -
+      WINBACK_STEP_MIN_INACTIVITY_DAYS[1] * 24 * 60 * 60 * 1000,
   ).toISOString();
   const platformActivityCutoffIso = new Date(
     now.getTime() -
@@ -1864,6 +1885,20 @@ async function processDueDailyBilanWinbacks(params: {
     }
 
     const localDay = localYmdInTimezone(profile.timezone, now);
+    const reengagementEpisodeId = await openOrTouchReengagementEpisode({
+      admin: params.supabaseAdmin,
+      userId,
+      step: decision.step,
+      inactivityDays: decision.inactivity_days,
+      nowIso: now.toISOString(),
+      requestId: params.requestId,
+    });
+    // NB : le flow n'est PAS armé ici (à l'enqueue) mais à la LIVRAISON réelle
+    // du template (processPendingProactiveTemplateCandidates) — un template
+    // enqueué mais jamais délivré (cap, échec d'envoi, accès révoqué) ne doit
+    // pas laisser un flow armé sans que l'utilisateur ait reçu le message
+    // (moule armDeliveredPotionSupportAdmission). L'épisode, lui, reste ouvert
+    // ici : c'est le registre de tracking/dedup.
     await enqueueProactiveTemplateCandidate(params.supabaseAdmin as any, {
       userId,
       purpose: "daily_bilan_winback",
@@ -1879,6 +1914,7 @@ async function processDueDailyBilanWinbacks(params: {
         winback_step: decision.step,
         winback_reason: decision.reason,
         inactivity_days: decision.inactivity_days,
+        reengagement_episode_id: reengagementEpisodeId,
         platform_activity_window_hours:
           DAILY_BILAN_WINBACK_PLATFORM_ACTIVE_WINDOW_HOURS,
       },
@@ -1898,6 +1934,401 @@ async function processDueDailyBilanWinbacks(params: {
     enqueued++;
   }
   return enqueued;
+}
+
+// Chantier réengagement (19/07) : clôt les épisodes ouverts dont l'issue est
+// connue sans conversation — réponse WhatsApp ratée par le webhook (ceinture),
+// retour plateforme, silence terminal 7 jours après le step 3. Best-effort :
+// ne fait jamais échouer le cron.
+async function sweepReengagementEpisodes(params: {
+  supabaseAdmin: ReturnType<typeof createClient>;
+  requestId: string;
+}): Promise<number> {
+  const now = new Date();
+  const nowIso = now.toISOString();
+  const platformActivityCutoffIso = new Date(
+    now.getTime() -
+      DAILY_BILAN_WINBACK_PLATFORM_ACTIVE_WINDOW_HOURS * 60 * 60 * 1000,
+  ).toISOString();
+
+  const { data: episodes, error } = await params.supabaseAdmin
+    .from("reengagement_episodes")
+    .select(
+      "id,user_id,opened_at,last_touch_step,touch1_sent_at,touch2_sent_at,touch3_sent_at,first_reply_at",
+    )
+    .is("closed_at", null)
+    .limit(100);
+  if (error) throw error;
+  if (!episodes || episodes.length === 0) return 0;
+
+  const userIds = Array.from(
+    new Set(
+      (episodes as Array<Record<string, unknown>>)
+        .map((row) => cleanText(row.user_id))
+        .filter(Boolean),
+    ),
+  );
+  const { data: profiles, error: profilesError } = await params.supabaseAdmin
+    .from("profiles")
+    .select("id,whatsapp_last_inbound_at")
+    .in("id", userIds);
+  if (profilesError) throw profilesError;
+  const lastInboundByUserId = new Map<string, number | null>();
+  for (const profile of (profiles ?? []) as Array<Record<string, unknown>>) {
+    lastInboundByUserId.set(
+      cleanText(profile.id),
+      parseIsoMs(cleanText(profile.whatsapp_last_inbound_at)),
+    );
+  }
+
+  let closed = 0;
+  for (const episode of episodes as Array<Record<string, unknown>>) {
+    const userId = cleanText(episode.user_id);
+    if (!userId) continue;
+    try {
+      const platformActivity = await loadRecentPlatformActivity({
+        supabaseAdmin: params.supabaseAdmin,
+        userId,
+        sinceIso: platformActivityCutoffIso,
+      });
+      const decision = decideReengagementEpisodeSweep({
+        episode: {
+          last_touch_step: Number(episode.last_touch_step ?? 1),
+          opened_at: cleanText(episode.opened_at) || null,
+          touch1_sent_at: cleanText(episode.touch1_sent_at) || null,
+          touch2_sent_at: cleanText(episode.touch2_sent_at) || null,
+          touch3_sent_at: cleanText(episode.touch3_sent_at) || null,
+          first_reply_at: cleanText(episode.first_reply_at) || null,
+        },
+        lastInboundAtMs: lastInboundByUserId.get(userId) ?? null,
+        platformActivityRecent: platformActivity.recent,
+        nowMs: now.getTime(),
+      });
+      if (decision.action !== "close") continue;
+      await closeReengagementEpisode({
+        admin: params.supabaseAdmin,
+        episodeId: String(episode.id),
+        decision,
+        nowIso,
+      });
+      // Le state conversationnel armé (awaiting_first_reply) échappe au
+      // staleness 4h : si le sweep clôt l'épisode sans qu'aucun tour ne l'ait
+      // consommé, il faut désarmer explicitement — sinon le flow reste armé
+      // pour toujours et capterait une réponse sans épisode ouvert.
+      await disarmWinbackReengagementForUser({
+        admin: params.supabaseAdmin,
+        userId,
+        requestId: params.requestId,
+      });
+      closed++;
+      console.log(
+        `[process-checkins] request_id=${params.requestId} reengagement_episode_swept episode_id=${episode.id} user_id=${userId} exit_status=${decision.exit_status}`,
+      );
+    } catch (sweepError) {
+      console.warn(
+        `[process-checkins] request_id=${params.requestId} reengagement_episode_sweep_failed episode_id=${episode.id} user_id=${userId}`,
+        sweepError,
+      );
+    }
+  }
+  return closed;
+}
+
+// Chantier réengagement phase 3 (19/07) : extraction post-clôture de la
+// raison du décrochage. Un prompt dédié relit le transcript complet de
+// l'épisode À FROID — jamais le dispatcher live (« comprendre ≠ labelliser »).
+// Passe cron rejouable : un échec LLM laisse l'épisode pending (fenêtre de
+// retry 14 jours), un parse dégradé retombe en other/low sans lever.
+const REENGAGEMENT_EXTRACTION_RETRY_WINDOW_DAYS = 14;
+// Passe séquentielle (un appel LLM par épisode) : batch modéré + budget mur
+// pour ne jamais risquer le timeout du cron ; le reliquat reste pending et
+// est repris au tour suivant (passe idempotente, ordonnée par ancienneté).
+const REENGAGEMENT_EXTRACTION_BATCH = 8;
+const REENGAGEMENT_EXTRACTION_BUDGET_MS = 90_000;
+
+async function processPendingReengagementExtractions(params: {
+  supabaseAdmin: ReturnType<typeof createClient>;
+  requestId: string;
+}): Promise<number> {
+  const now = new Date();
+  const nowIso = now.toISOString();
+  const retryCutoffIso = new Date(
+    now.getTime() -
+      REENGAGEMENT_EXTRACTION_RETRY_WINDOW_DAYS * 24 * 60 * 60 * 1000,
+  ).toISOString();
+
+  // Hors fenêtre de retry : plus de tentative automatique (rejouable à la
+  // main en repassant le statut à pending).
+  const { error: agedError } = await params.supabaseAdmin
+    .from("reengagement_episodes")
+    .update({ extraction_status: "failed", updated_at: nowIso })
+    .eq("extraction_status", "pending")
+    .not("closed_at", "is", null)
+    .lt("closed_at", retryCutoffIso);
+  if (agedError) throw agedError;
+
+  const { data: episodes, error } = await params.supabaseAdmin
+    .from("reengagement_episodes")
+    .select(
+      "id,user_id,closed_at,first_reply_at,days_inactive_at_open,replied_at_step,exit_status,solution_offered",
+    )
+    .eq("extraction_status", "pending")
+    .not("closed_at", "is", null)
+    .gte("closed_at", retryCutoffIso)
+    .order("closed_at", { ascending: true })
+    .limit(REENGAGEMENT_EXTRACTION_BATCH);
+  if (error) throw error;
+  if (!episodes || episodes.length === 0) return 0;
+
+  // Budget mur : chaque extraction est un appel LLM séquentiel (jusqu'à 30s).
+  // On s'arrête avant de risquer le timeout du cron ; le reste reste pending
+  // et sera repris au tour suivant (passe idempotente).
+  const extractionDeadlineMs = now.getTime() +
+    REENGAGEMENT_EXTRACTION_BUDGET_MS;
+
+  let extracted = 0;
+  for (const episode of episodes as Array<Record<string, unknown>>) {
+    if (Date.now() >= extractionDeadlineMs) {
+      console.log(
+        `[process-checkins] request_id=${params.requestId} reengagement_extraction_budget_reached extracted=${extracted}`,
+      );
+      break;
+    }
+    const episodeId = cleanText(episode.id);
+    const userId = cleanText(episode.user_id);
+    const firstReplyIso = cleanText(episode.first_reply_at);
+    const closedIso = cleanText(episode.closed_at);
+    if (!episodeId || !userId || !closedIso) continue;
+    try {
+      if (!firstReplyIso) {
+        const { error: updateError } = await params.supabaseAdmin
+          .from("reengagement_episodes")
+          .update({
+            extraction_status: "nothing_to_extract",
+            updated_at: nowIso,
+          })
+          .eq("id", episodeId);
+        if (updateError) throw updateError;
+        continue;
+      }
+      const sinceIso = new Date(Date.parse(firstReplyIso) - 10 * 60 * 1000)
+        .toISOString();
+      const untilIso = new Date(Date.parse(closedIso) + 5 * 60 * 1000)
+        .toISOString();
+      const { data: messages, error: messagesError } = await params
+        .supabaseAdmin
+        .from("chat_messages")
+        .select("role,content,created_at")
+        .eq("user_id", userId)
+        .eq("scope", "whatsapp")
+        .in("role", ["user", "assistant"])
+        .gte("created_at", sinceIso)
+        .lte("created_at", untilIso)
+        .order("created_at", { ascending: true })
+        .limit(60);
+      if (messagesError) throw messagesError;
+      const turns: ReengagementTranscriptTurn[] =
+        ((messages ?? []) as Array<Record<string, unknown>>)
+          .map((row) => ({
+            role: cleanText(row.role) === "user"
+              ? "user" as const
+              : "assistant" as const,
+            content: String(row.content ?? ""),
+            created_at: cleanText(row.created_at),
+          }))
+          .filter((turn) => turn.content.trim().length > 0);
+      const { system, user } = buildReengagementExtractionPrompt({
+        transcript: formatReengagementTranscript(turns),
+        facts: {
+          days_inactive_at_open:
+            Number(episode.days_inactive_at_open ?? 0) || 0,
+          replied_at_step: Number(episode.replied_at_step) || null,
+          exit_status: cleanText(episode.exit_status) || null,
+          solution_offered: cleanText(episode.solution_offered) || null,
+        },
+      });
+      const raw = await generateWithGemini(system, user, 0.1, true, [], "auto", {
+        requestId: params.requestId,
+        userId,
+        source: "winback_reengagement_extractor_v1",
+        model: getGlobalAiModel(),
+        maxRetries: 1,
+        httpTimeoutMs: 30_000,
+        reasoningEffort: "none",
+      });
+      const rawText = typeof raw === "string" ? raw : JSON.stringify(raw ?? "");
+      if (rawText.includes("MEGA_TEST_STUB")) {
+        // Stub local QA : JSON valide mais hors schéma — on garde pending
+        // plutôt que d'écrire du bruit.
+        throw new Error("reengagement_extraction_stub_output");
+      }
+      const parsed = parseReengagementExtractionOutput(rawText);
+      const { error: doneError } = await params.supabaseAdmin
+        .from("reengagement_episodes")
+        .update({
+          extraction_status: "done",
+          reason_category: parsed.reason_category,
+          reason_confidence: parsed.reason_confidence,
+          reason_user_words: parsed.reason_user_words,
+          episode_summary: parsed.episode_summary,
+          solution_accepted: parsed.solution_accepted,
+          updated_at: nowIso,
+        })
+        .eq("id", episodeId);
+      if (doneError) throw doneError;
+      extracted++;
+      console.log(
+        `[process-checkins] request_id=${params.requestId} reengagement_extraction_done episode_id=${episodeId} reason=${parsed.reason_category} confidence=${parsed.reason_confidence}`,
+      );
+    } catch (extractionError) {
+      console.warn(
+        `[process-checkins] request_id=${params.requestId} reengagement_extraction_failed episode_id=${episodeId}`,
+        extractionError,
+      );
+    }
+  }
+  return extracted;
+}
+
+// Les trois passes de maintenance réengagement (sweep, extraction, outcome)
+// doivent tourner à CHAQUE cron, y compris sur le chemin « aucun checkin dû »
+// (QA S1 20/07 : les passes n'étaient câblées que sur le chemin plein → une
+// extraction pouvait attendre indéfiniment un checkin sans rapport). Best-
+// effort : aucune passe ne fait échouer le cron ni les autres passes.
+async function runReengagementMaintenancePasses(params: {
+  supabaseAdmin: ReturnType<typeof createClient>;
+  requestId: string;
+}): Promise<{ swept: number; extracted: number; outcomes: number }> {
+  const result = { swept: 0, extracted: 0, outcomes: 0 };
+  try {
+    result.swept = await sweepReengagementEpisodes(params);
+  } catch (error) {
+    console.warn(
+      `[process-checkins] request_id=${params.requestId} reengagement_episode_sweep_pass_failed`,
+      error,
+    );
+  }
+  try {
+    result.extracted = await processPendingReengagementExtractions(params);
+  } catch (error) {
+    console.warn(
+      `[process-checkins] request_id=${params.requestId} reengagement_extraction_pass_failed`,
+      error,
+    );
+  }
+  try {
+    result.outcomes = await processDueReengagementOutcomes(params);
+  } catch (error) {
+    console.warn(
+      `[process-checkins] request_id=${params.requestId} reengagement_outcome_pass_failed`,
+      error,
+    );
+  }
+  return result;
+}
+
+// Chantier réengagement phase 3 (19/07) : outcome J+7. Une seule évaluation
+// par épisode, 7 jours après la clôture — la fenêtre de signal est bornée à
+// [closed_at, closed_at + 7j] pour que « réactivé dans les 7 jours » soit
+// exactement ce que la colonne affirme.
+async function processDueReengagementOutcomes(params: {
+  supabaseAdmin: ReturnType<typeof createClient>;
+  requestId: string;
+}): Promise<number> {
+  const now = new Date();
+  const nowIso = now.toISOString();
+  const dueCutoffIso = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+    .toISOString();
+  const { data: episodes, error } = await params.supabaseAdmin
+    .from("reengagement_episodes")
+    .select("id,user_id,closed_at")
+    .eq("outcome_status", "pending")
+    .not("closed_at", "is", null)
+    .lte("closed_at", dueCutoffIso)
+    .limit(50);
+  if (error) throw error;
+  if (!episodes || episodes.length === 0) return 0;
+
+  let processed = 0;
+  for (const episode of episodes as Array<Record<string, unknown>>) {
+    const episodeId = cleanText(episode.id);
+    const userId = cleanText(episode.user_id);
+    const closedIso = cleanText(episode.closed_at);
+    if (!episodeId || !userId || !closedIso) continue;
+    const windowEndIso = new Date(
+      Date.parse(closedIso) + 7 * 24 * 60 * 60 * 1000,
+    ).toISOString();
+    try {
+      const [waResult, platformMsgResult, platformStateResult, entryResult] =
+        await Promise.all([
+          params.supabaseAdmin
+            .from("chat_messages")
+            .select("id")
+            .eq("user_id", userId)
+            .eq("role", "user")
+            .eq("scope", "whatsapp")
+            .gt("created_at", closedIso)
+            .lte("created_at", windowEndIso)
+            .limit(1)
+            .maybeSingle(),
+          params.supabaseAdmin
+            .from("chat_messages")
+            .select("id")
+            .eq("user_id", userId)
+            .eq("role", "user")
+            .neq("scope", "whatsapp")
+            .gt("created_at", closedIso)
+            .lte("created_at", windowEndIso)
+            .limit(1)
+            .maybeSingle(),
+          params.supabaseAdmin
+            .from("user_chat_states")
+            .select("user_id")
+            .eq("user_id", userId)
+            .neq("scope", "whatsapp")
+            .gt("updated_at", closedIso)
+            .lte("updated_at", windowEndIso)
+            .limit(1)
+            .maybeSingle(),
+          params.supabaseAdmin
+            .from("user_plan_item_entries")
+            .select("id")
+            .eq("user_id", userId)
+            .gt("created_at", closedIso)
+            .lte("created_at", windowEndIso)
+            .limit(1)
+            .maybeSingle(),
+        ]);
+      if (waResult.error) throw waResult.error;
+      if (platformMsgResult.error) throw platformMsgResult.error;
+      if (platformStateResult.error) throw platformStateResult.error;
+      if (entryResult.error) throw entryResult.error;
+      const signal = waResult.data
+        ? "whatsapp_inbound"
+        : platformMsgResult.data || platformStateResult.data
+        ? "platform_activity"
+        : entryResult.data
+        ? "plan_entry"
+        : null;
+      const { error: updateError } = await params.supabaseAdmin
+        .from("reengagement_episodes")
+        .update({
+          outcome_status: "done",
+          reactivated_within_7d: Boolean(signal),
+          reactivation_signal: signal,
+          updated_at: nowIso,
+        })
+        .eq("id", episodeId);
+      if (updateError) throw updateError;
+      processed++;
+    } catch (outcomeError) {
+      console.warn(
+        `[process-checkins] request_id=${params.requestId} reengagement_outcome_failed episode_id=${episodeId}`,
+        outcomeError,
+      );
+    }
+  }
+  return processed;
 }
 
 async function consumeMonthlyWhatsappQuota(params: {
@@ -2106,6 +2537,35 @@ async function processPendingProactiveTemplateCandidates(params: {
           })
           .eq("id", payload.scheduled_checkin_id)
           .in("status", ["pending", "awaiting_user"] as any);
+      }
+    }
+
+    if (!skipped && purpose === "daily_bilan_winback") {
+      // Chantier réengagement (19/07) : armer le flow conversationnel À LA
+      // LIVRAISON réelle de la touche (pas à l'enqueue), pour qu'un template
+      // non délivré ne laisse jamais un flow armé sans message reçu.
+      const winbackMeta = (payload.metadata_extra &&
+          typeof payload.metadata_extra === "object")
+        ? payload.metadata_extra as Record<string, unknown>
+        : {};
+      const winbackEpisodeId = cleanText(winbackMeta.reengagement_episode_id);
+      const winbackStep = Math.max(
+        1,
+        Math.min(3, Number(winbackMeta.winback_step) || 1),
+      ) as WinbackStep;
+      if (winbackEpisodeId && isWinbackReengagementFlowEnabled()) {
+        await armWinbackReengagementForUser({
+          admin: params.supabaseAdmin,
+          userId,
+          episodeId: winbackEpisodeId,
+          winbackStep,
+          daysInactiveAtSend: Math.max(
+            0,
+            Number(winbackMeta.inactivity_days) || 0,
+          ),
+          nowIso: new Date().toISOString(),
+          requestId: params.requestId,
+        });
       }
     }
 
@@ -2893,6 +3353,10 @@ Deno.serve(async (req) => {
           supabaseAdmin,
           requestId,
         });
+      const reengagementPassesEmpty = await runReengagementMaintenancePasses({
+        supabaseAdmin,
+        requestId,
+      });
       return jsonResponse(
         req,
         {
@@ -2902,6 +3366,9 @@ Deno.serve(async (req) => {
           processed_access_notifications: processedAccessBefore +
             processedAccessAfter,
           enqueued_daily_bilan_winbacks: enqueuedDailyBilanWinbacksBefore,
+          swept_reengagement_episodes: reengagementPassesEmpty.swept,
+          extracted_reengagement_episodes: reengagementPassesEmpty.extracted,
+          processed_reengagement_outcomes: reengagementPassesEmpty.outcomes,
           processed_proactive_candidates: processedQueuedBefore +
             processedQueuedAfter,
           request_id: requestId,
@@ -3515,23 +3982,6 @@ Deno.serve(async (req) => {
             errorMessage: "onboarding_week1_plan_id_missing",
             requestId,
           });
-          continue;
-        }
-
-        if (!isOnboardingCompleteForWeek1Validation(profile)) {
-          const nextIso = new Date(Date.now() + 60 * 60 * 1000).toISOString();
-          await markScheduledCheckinDeliveryState({
-            supabaseAdmin,
-            checkinId: checkin.id,
-            status: "retrying",
-            attemptCount,
-            scheduledFor: nextIso,
-            errorMessage: "onboarding_week1_onboarding_not_completed",
-            requestId,
-          });
-          console.log(
-            `[process-checkins] request_id=${requestId} onboarding_week1_deferred_onboarding_active checkin_id=${checkin.id} next=${nextIso}`,
-          );
           continue;
         }
 
@@ -6284,6 +6734,10 @@ Deno.serve(async (req) => {
       supabaseAdmin,
       requestId,
     });
+    const reengagementPasses = await runReengagementMaintenancePasses({
+      supabaseAdmin,
+      requestId,
+    });
     const processedQueuedAfter =
       await processPendingProactiveTemplateCandidates({
         supabaseAdmin,
@@ -6301,6 +6755,9 @@ Deno.serve(async (req) => {
           processedAccessAfter,
         enqueued_daily_bilan_winbacks: enqueuedDailyBilanWinbacksBefore +
           enqueuedDailyBilanWinbacksAfter,
+        swept_reengagement_episodes: reengagementPasses.swept,
+        extracted_reengagement_episodes: reengagementPasses.extracted,
+        processed_reengagement_outcomes: reengagementPasses.outcomes,
         processed_proactive_candidates: processedQueuedBefore +
           processedQueuedAfter,
         request_id: requestId,

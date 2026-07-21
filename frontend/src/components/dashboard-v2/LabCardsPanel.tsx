@@ -54,6 +54,7 @@ type LabCardsPanelProps = {
     techniqueKey: AttackTechniqueKey,
     answers: string[],
     options?: {
+      questions?: string[];
       adjustmentContext?: {
         currentTechniqueKey: AttackTechniqueKey;
         failureReasonKey: AttackTechniqueAdjustmentReasonKey;
@@ -400,16 +401,19 @@ export function AttackTechniqueFlowModal({
   isOpen,
   techniques,
   generatingTechniqueKey,
+  contextLabel,
   onClose,
   onSubmit,
 }: {
   isOpen: boolean;
   techniques: AttackTechniqueView[];
   generatingTechniqueKey: AttackTechniqueKey | null;
+  contextLabel?: string | null;
   onClose: () => void;
   onSubmit: (
     techniqueKey: AttackTechniqueKey,
     answers: string[],
+    options?: { questions?: string[] },
   ) => Promise<AttackTechniqueGeneratedResult | null>;
 }) {
   const [step, setStep] = useState<"choose" | "questions" | "result">("choose");
@@ -473,6 +477,13 @@ export function AttackTechniqueFlowModal({
                 ? "Reponds aux questions pour personnaliser la carte."
                 : "Tu peux fermer. La carte se retrouve maintenant dans ton espace."}
             </p>
+            {contextLabel
+              ? (
+                <p className="mt-1 text-sm font-medium text-amber-800">
+                  {contextLabel}
+                </p>
+              )
+              : null}
           </div>
           <button
             type="button"
@@ -681,6 +692,7 @@ export function AttackTechniqueFlowModal({
     const generated = await onSubmit(
       selectedTechnique.technique_key,
       answers.map((answer) => answer.trim()),
+      { questions },
     );
 
     if (!generated) {

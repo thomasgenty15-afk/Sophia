@@ -30,6 +30,7 @@ import {
   distributeMissingPlanPhaseItemsV3,
   PlanDistributionError,
 } from "../_shared/v2-plan-distribution.ts";
+import { activateDueWeekItems } from "../_shared/v2-week-activation.ts";
 import {
   buildBlueprintFromNextLevelPatch,
   buildPhaseFromNextLevelPatch,
@@ -1257,6 +1258,19 @@ export async function completeLevelV1(args: {
         },
       );
     }
+  }
+
+  // Déblocage par semaine: filet déterministe au passage de niveau — active
+  // les items du nouveau niveau dont la semaine est commencée (couvre les
+  // items matérialisés pending lors d'une génération antérieure ou d'un retry).
+  if (resultingPlanContent.current_level_runtime) {
+    await activateDueWeekItems({
+      supabase: args.admin,
+      userId: args.userId,
+      planId: plan.id,
+      planContent: resultingPlanContent,
+      now: new Date(now),
+    });
   }
 
   const { error: generationInsertError } = await args.admin

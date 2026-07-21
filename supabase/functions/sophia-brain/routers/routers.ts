@@ -192,6 +192,7 @@ function isActiveConversationSkill(
     | "daily_action_coaching_recommendation_v1"
     | "feature_opportunity"
     | "weekly_adaptive_review_v1"
+    | "winback_reengagement_v1"
     | "presence_conversation",
 ): boolean {
   const record = activeSkillState && typeof activeSkillState === "object" &&
@@ -397,6 +398,30 @@ export function runConversationRouters(input: {
       reason_code: directEffectsToRun.length > 0
         ? "active_product_help_with_direct_effects"
         : "active_product_help",
+    });
+  }
+
+  // Flow réengagement winback actif (armé à l'envoi d'une touche winback,
+  // collant après la première réponse). Pas d'entrée fraîche par signal :
+  // seul l'armement hors conversation ouvre ce flow ; ses sorties passent par
+  // exit_to_global_dispatcher (re-dispatch le même tour).
+  if (
+    isActiveConversationSkill(
+      input.active_skill_state,
+      "winback_reengagement_v1",
+    )
+  ) {
+    return buildRouteDecision({
+      response_owner: "winback_reengagement_v1",
+      selected_handler: "winback_reengagement_v1",
+      direct_effects_to_run: directEffectsToRun,
+      blocked_paths: blockedPaths,
+      active_owner: "winback_reengagement_v1",
+      arbitration_decision: "continue_active",
+      resume_policy: "resume_active",
+      reason_code: directEffectsToRun.length > 0
+        ? "active_winback_reengagement_with_direct_effects"
+        : "active_winback_reengagement",
     });
   }
 

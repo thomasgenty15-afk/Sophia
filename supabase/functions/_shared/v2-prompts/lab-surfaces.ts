@@ -42,6 +42,8 @@ export type AttackTechniqueGenerationInput = LabSurfaceGenerationInput & {
   technique_objet_genere: string;
   technique_mode_emploi: string;
   user_answers: string[];
+  /** Questions affichees a l'utilisateur, alignees sur user_answers. */
+  user_questions?: string[] | null;
   adjustment_context?: {
     current_technique_key: AttackTechniqueGenerationInput["technique_key"];
     current_technique_title: string;
@@ -307,7 +309,12 @@ export function buildAttackTechniqueUserPrompt(
 ): string {
   const base = buildLabSurfaceUserPrompt(input);
   const answers = input.user_answers
-    .map((answer, index) => `- Reponse ${index + 1}: ${answer}`)
+    .map((answer, index) => {
+      const question = input.user_questions?.[index];
+      return question
+        ? `- Question ${index + 1}: ${question}\n  Reponse ${index + 1}: ${answer}`
+        : `- Reponse ${index + 1}: ${answer}`;
+    })
     .join("\n");
 
   const adjustmentBlock = input.adjustment_context
@@ -366,6 +373,15 @@ ${
 - Le mot-cle doit etre cool, court, memorisable, facile a taper.
 - Le texte final doit dire a l'utilisateur d'envoyer seulement ce mot quand il sent qu'il va craquer ou perdre le controle.
 - Le JSON final doit absolument remplir \`keyword_trigger\`.`
+      : ""
+  }${
+    input.technique_key === "visualisation_matinale"
+      ? `## Guidance speciale pour cette technique
+
+- C'est TOI qui decides du meilleur moment pour faire ces 5 minutes: l'utilisateur ne le choisit pas.
+- Regle de choix: si l'action visee a un ancrage horaire (time_of_day dans le contexte d'action: wake_up/morning → au reveil, avant de toucher le telephone; afternoon/evening/night → 5 minutes juste avant le moment de l'action), aligne le moment dessus; sinon, par defaut au reveil.
+- Le moment choisi doit etre ENONCE clairement et concretement dans \`mode_emploi\` (ex: "Fais-la juste apres avoir coupe ton reveil, assis au bord du lit, avant de toucher ton telephone."), avec un declencheur physique simple pour ne pas avoir a y penser.
+- La visualisation elle-meme doit partir de ce qui bloque l'utilisateur (sa reponse) et le faire se voir TRAVERSER ce blocage calmement, pas juste "se voir reussir".`
       : ""
   }
 

@@ -164,6 +164,16 @@ import {
   stripHiddenHtmlComments,
 } from "./response_visibility_formatting.ts";
 import { runProductHelpSkill } from "../skills/product_help/skill.ts";
+import {
+  runWinbackReengagementSkill,
+  WINBACK_PAUSE_COMMIT_FAILED_REPLY,
+} from "../skills/winback_reengagement/skill.ts";
+import {
+  closeOpenReengagementEpisodeForSafety,
+  closeReengagementEpisodeFromFlow,
+  markReengagementEpisodeEntered,
+} from "../../_shared/reengagement_episodes.ts";
+import { disarmWinbackReengagement } from "../skills/winback_reengagement/state.ts";
 import { runCoachingRecommendationSkill } from "../skills/coaching_recommendation/skill.ts";
 import { runDailyActionCoachingRecommendationSkill } from "../skills/daily_action_coaching_recommendation/skill.ts";
 import { runFeatureOpportunitySkill } from "../skills/feature_opportunity/skill.ts";
@@ -484,7 +494,8 @@ type RuntimeConversationSkillId =
   | "coaching_recommendation"
   | "daily_action_coaching_recommendation_v1"
   | "feature_opportunity"
-  | "plan_realignment";
+  | "plan_realignment"
+  | "winback_reengagement_v1";
 
 function buildConversationSkillContext(args: {
   skillId: RuntimeConversationSkillId;
@@ -538,6 +549,8 @@ function localStateFromSkillOutput(
     ? patch.plan_realignment_local_state
     : skillId === "daily_action_coaching_recommendation_v1"
     ? patch.daily_action_coaching_recommendation_state
+    : skillId === "winback_reengagement_v1"
+    ? patch.winback_reengagement_local_state
     : patch.coaching_recommendation_local_state;
 }
 
@@ -633,6 +646,8 @@ export function applyConversationSkillState(args: {
           ? local?.turn_count
           : args.skillId === "daily_action_coaching_recommendation_v1"
           ? local?.turn_count
+          : args.skillId === "winback_reengagement_v1"
+          ? local?.turn_count
           : local?.turn_count,
       ) || Number(previous.turn_count ?? 0) + 1,
       started_at: String(previous.started_at ?? "") || now,
@@ -647,6 +662,8 @@ export function applyConversationSkillState(args: {
             ? "plan_realignment_local_state"
             : args.skillId === "daily_action_coaching_recommendation_v1"
             ? "daily_action_coaching_recommendation_state"
+            : args.skillId === "winback_reengagement_v1"
+            ? "winback_reengagement_local_state"
             : "coaching_recommendation_local_state"
         ]: localState,
       },
@@ -660,6 +677,11 @@ export function applyConversationSkillState(args: {
   if (args.skillId === "product_help" && args.output.state_patch) {
     const memo = args.output.state_patch.product_help_exit_memo;
     if (memo) next.__last_product_help_exit_memo = memo;
+  }
+  if (args.skillId === "winback_reengagement_v1" && args.output.state_patch) {
+    const memo = (args.output.state_patch as Record<string, unknown>)
+      .winback_reengagement_exit_memo;
+    if (memo) next.__last_winback_reengagement_exit_memo = memo;
   }
   // eva-r7 B01: un engagement de STYLE pris en session (flow feature_
   // opportunity, decide par le dispatcher local) survit au flow — il est
@@ -755,6 +777,7 @@ function skillOutputNoteInformation(
     patch.daily_action_coaching_recommendation_note_information ??
     patch.feature_opportunity_note_information ??
     patch.plan_realignment_note_information ??
+    (patch as Record<string, unknown>).winback_reengagement_note_information ??
     (output.diagnosis as any)?.note_information) ?? null;
 }
 
@@ -3562,7 +3585,8 @@ export async function processMessage(
       routeDecision.response_owner ===
         "daily_action_coaching_recommendation_v1" ||
       routeDecision.response_owner === "feature_opportunity" ||
-      routeDecision.response_owner === "plan_realignment"
+      routeDecision.response_owner === "plan_realignment" ||
+      routeDecision.response_owner === "winback_reengagement_v1"
     ) {
       const skillId = routeDecision.response_owner;
       const skillStart = Date.now();
@@ -3679,7 +3703,7 @@ export async function processMessage(
           turnFrameHasCommittedOneShotReminder(turnFrame);
         return { turn_frame: turnFrame };
       };
-      const skillOutput = skillId === "product_help"
+      let skillOutput = skillId === "product_help"
         ? await runProductHelpSkill({
           user_message: userMessage,
           context,
@@ -3701,12 +3725,120 @@ export async function processMessage(
           user_message: userMessage,
           context,
         })
+        : skillId === "winback_reengagement_v1"
+        ? await runWinbackReengagementSkill({
+          user_message: userMessage,
+          context,
+        })
         : await runCoachingRecommendationSkill({
           user_message: userMessage,
           context,
           direct_effect_executor: localOneShotDirectEffectExecutor,
         });
       const skillLatencyMs = Date.now() - skillStart;
+      if (skillId === "winback_reengagement_v1") {
+        // Effets durables du flow réengagement — committés AVANT le tour
+        // visible. L'épisode DB est la source de vérité du décrochage :
+        // entrée idempotente à chaque tour possédé, clôture/pause selon la
+        // décision. Parité claim/ledger : une pause non vérifiée en DB
+        // dégrade la réponse en formulation non engageante.
+        const episodeAdmin = serviceRoleLedgerReadClient() ?? supabase;
+        const winbackPatch = (skillOutput.state_patch ?? {}) as Record<
+          string,
+          unknown
+        >;
+        const episodeEffect = winbackPatch.winback_reengagement_episode_effect;
+        await markReengagementEpisodeEntered({
+          admin: episodeAdmin,
+          userId,
+          nowIso: new Date().toISOString(),
+          requestId,
+        });
+        if (
+          episodeEffect && typeof episodeEffect === "object" &&
+          !Array.isArray(episodeEffect)
+        ) {
+          const effect = episodeEffect as Record<string, unknown>;
+          const effectKind = String(effect.kind ?? "");
+          if (effectKind === "pause_and_close") {
+            const pauseDays = Math.max(
+              1,
+              Math.min(60, Number(effect.pause_days ?? 3) || 3),
+            );
+            const pausedUntilIso = new Date(
+              Date.now() + pauseDays * 24 * 60 * 60 * 1000,
+            ).toISOString();
+            let pauseCommitted = false;
+            try {
+              const { data: pauseRow, error: pauseError } = await episodeAdmin
+                .from("profiles")
+                .update({ whatsapp_bilan_paused_until: pausedUntilIso })
+                .eq("id", userId)
+                .select("whatsapp_bilan_paused_until")
+                .maybeSingle();
+              const returnedMs = Date.parse(
+                String(
+                  (pauseRow as Record<string, unknown> | null)
+                    ?.whatsapp_bilan_paused_until ?? "",
+                ),
+              );
+              pauseCommitted = !pauseError && Number.isFinite(returnedMs) &&
+                Math.abs(returnedMs - Date.parse(pausedUntilIso)) < 5_000;
+            } catch (error) {
+              console.warn(
+                "[winback-reengagement] pause commit failed",
+                error,
+              );
+            }
+            // Charte cmd 15 : la garde n'est jamais muette — l'outcome du
+            // commit est tracé et la copy dégradée appartient au skill.
+            skillOutput = {
+              ...skillOutput,
+              ...(pauseCommitted ? {} : {
+                reply: WINBACK_PAUSE_COMMIT_FAILED_REPLY,
+              }),
+              diagnosis: {
+                ...((skillOutput.diagnosis && typeof skillOutput.diagnosis ===
+                    "object"
+                  ? skillOutput.diagnosis
+                  : {}) as Record<string, unknown>),
+                winback_pause_commit: pauseCommitted ? "committed" : "failed",
+              },
+            };
+            await closeReengagementEpisodeFromFlow({
+              admin: episodeAdmin,
+              userId,
+              episodeId: String(effect.episode_id ?? ""),
+              // Le ledger reflète la vérité : si la pause n'a pas été
+              // committée en DB, l'épisode n'est pas clos 'paused' (review
+              // 19/07 #3/#32). La réponse est déjà dégradée honnêtement.
+              exitStatus: pauseCommitted ? "paused" : "stopped",
+              solutionOffered: pauseCommitted ? "pause" : "none",
+              redirectTarget: null,
+              nowIso: new Date().toISOString(),
+              requestId,
+            });
+          } else if (effectKind === "close") {
+            const rawExit = String(effect.exit_status ?? "");
+            await closeReengagementEpisodeFromFlow({
+              admin: episodeAdmin,
+              userId,
+              episodeId: String(effect.episode_id ?? ""),
+              exitStatus: rawExit === "reengaged" || rawExit === "safety"
+                ? rawExit
+                : "stopped",
+              solutionOffered: typeof effect.solution_offered === "string"
+                ? effect.solution_offered
+                : null,
+              redirectTarget: typeof effect.redirect_target === "string"
+                ? effect.redirect_target
+                : null,
+              nowIso: new Date().toISOString(),
+              requestId,
+            });
+          }
+        }
+      }
       const skillExitNoteInformation = skillOutputNoteInformation(skillOutput);
       const baseTempMemoryForSkillState = inboundDailyCoachingBridgeNote
         ? clearLastLocalFlowExitContext(tempMemory as Record<string, unknown>)
@@ -3792,6 +3924,16 @@ export async function processMessage(
             reason_code: routeDecision.reason_code,
             status: skillOutput.status,
             latency_ms: skillLatencyMs,
+            // Observabilité (QA S1 20/07) : la décision du dispatcher local
+            // winback voyage dans la trace persistée, comme le sas potion.
+            ...((skillOutput.diagnosis as Record<string, unknown> | undefined)
+                ?.winback_reengagement_local_dispatch
+              ? {
+                winback_reengagement_local_dispatch:
+                  (skillOutput.diagnosis as Record<string, unknown>)
+                    .winback_reengagement_local_dispatch,
+              }
+              : {}),
             ...(skillOutput.status === "exit"
               ? {
                 exit_target: target || null,
@@ -4357,6 +4499,22 @@ export async function processMessage(
     } else {
       console.error("[Router] potion support admin client missing on safety");
     }
+    // Backstop réengagement (review adversariale 19/07) : un tour de crise
+    // peut préempter AVANT que le flow winback ne soit consulté (le dispatcher
+    // local n'est jamais appelé). L'épisode resterait ouvert et son state
+    // armé — ré-armé/repris après la crise. On ferme l'épisode 'safety'
+    // (jamais d'extraction) et on désarme le flow EN MÉMOIRE, avant la
+    // persistance finale de temp_memory (un write séparé serait clobbé).
+    const safetyAdmin = admin ?? supabase;
+    await closeOpenReengagementEpisodeForSafety({
+      admin: safetyAdmin,
+      userId,
+      nowIso: new Date().toISOString(),
+      requestId,
+    });
+    tempMemory = disarmWinbackReengagement(
+      tempMemory as Record<string, unknown>,
+    );
   }
 
   await updateUserState(supabase, userId, scope, {

@@ -170,6 +170,7 @@ Contraintes absolues:
 - Assigne un item non-habit différent par semaine: semaine 1 -> non-habit A, semaine 2 -> non-habit B, semaine 3 -> non-habit C, etc.
 - Les habitudes peuvent être répétées sur plusieurs semaines; les missions/clarifications/supports ne peuvent pas l'être.
 - time_of_day doit être null, "anytime", "wake_up", "morning", "afternoon", "evening" ou "night"; n'utilise jamais "all_day". Mets une valeur explicite pour toute action à ancrage horaire; ne laisse pas null dans ce cas. Sémantique: "wake_up" = au réveil même (se lever, lumière dès le lever, réveil sans snooze — PAS "morning"); "morning" = dans la matinée après le lever; "evening" = le soir; "night" = tard le soir / rituel de coucher (se coucher, écrans off — PAS "evening").
+- activation_condition doit TOUJOURS être null pour tous les items. Les conditions de déblocage entre items n'existent plus: c'est l'assignation d'un item à une semaine qui décide de son moment d'activation, et le système active automatiquement les items au début de leur semaine.
 - Les future_blueprint_levels doivent contenir uniquement les niveaux strictement après le niveau ${expectedNextOrder}, dans l'ordre contigu.
 - Ne génère pas de cartes d'attaque/défense ici.
 

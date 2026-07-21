@@ -20,6 +20,10 @@ import { getEffectiveTierForUser } from "../_shared/billing-tier.ts";
 import { handleUnlinkedInbound } from "./handlers_unlinked.ts";
 import { handleStopOptOut } from "./handlers_optout.ts";
 import {
+  ensureWinbackReengagementArmedForReply,
+  isWinbackReengagementFlowEnabled,
+} from "../sophia-brain/skills/winback_reengagement/context.ts";
+import {
   handlePendingActions,
   maybeCompletePendingRendezVous,
   resumeDailyActionReviewAfterDailyActionCoachingReturn,
@@ -589,12 +593,12 @@ Deno.serve(async (req) => {
         const simUserId = loopback ? String(msg.sim_user_id ?? "").trim() : "";
         const { data: candidates, error: profErr } = simUserId
           ? await admin.from("profiles").select(
-            "id, full_name, email, phone_invalid, whatsapp_opted_in, whatsapp_opted_out_at, whatsapp_optout_confirmed_at, whatsapp_state, whatsapp_state_updated_at, whatsapp_onboarding_started_at, phone_verified_at, trial_end, onboarding_completed, account_status",
+            "id, full_name, email, phone_invalid, whatsapp_opted_in, whatsapp_opted_out_at, whatsapp_optout_confirmed_at, whatsapp_state, whatsapp_state_updated_at, whatsapp_onboarding_started_at, whatsapp_bilan_winback_step, whatsapp_bilan_paused_until, phone_verified_at, trial_end, onboarding_completed, account_status",
           ).eq("id", simUserId).limit(1)
           : await admin.from(
             "profiles",
           ).select(
-            "id, full_name, email, phone_invalid, whatsapp_opted_in, whatsapp_opted_out_at, whatsapp_optout_confirmed_at, whatsapp_state, whatsapp_state_updated_at, whatsapp_onboarding_started_at, phone_verified_at, trial_end, onboarding_completed, account_status",
+            "id, full_name, email, phone_invalid, whatsapp_opted_in, whatsapp_opted_out_at, whatsapp_optout_confirmed_at, whatsapp_state, whatsapp_state_updated_at, whatsapp_onboarding_started_at, whatsapp_bilan_winback_step, whatsapp_bilan_paused_until, phone_verified_at, trial_end, onboarding_completed, account_status",
           ) // NOTE: users may have stored phone_number as "+33..." OR "33..." OR "06..." from manual input.
             // We try a small set of safe variants to avoid false "unknown number" prompts.
             .in(
@@ -811,12 +815,25 @@ Deno.serve(async (req) => {
             whatsapp_optout_confirmed_at: null,
           }
           : {};
+        // Une pause est une décision explicite de l'utilisateur : un inbound
+        // arbitraire ultérieur ne doit pas la lever (sinon la pause « une
+        // semaine » committée par le flow réengagement serait effacée par un
+        // simple « merci » la minute d'après — chantier réengagement 19/07,
+        // review adversariale). On ne clear qu'une pause DÉJÀ EXPIRÉE ; une
+        // pause future survit jusqu'à son terme ou une reprise explicite.
+        const existingPauseMs = Date.parse(
+          String((profile as Record<string, unknown>)
+            .whatsapp_bilan_paused_until ?? ""),
+        );
+        const pauseStillActive = Number.isFinite(existingPauseMs) &&
+          existingPauseMs > Date.now();
         await admin.from("profiles").update({
           whatsapp_last_inbound_at: nowIso,
           whatsapp_opted_in: nextOptedIn,
           ...isStop ? {} : {
-            // Any inbound reply reactivates bilan mechanics unless user explicitly STOPs.
-            whatsapp_bilan_paused_until: null,
+            // Any inbound reply reactivates bilan mechanics unless user
+            // explicitly STOPs — except an active (future) pause, preserved.
+            ...(pauseStillActive ? {} : { whatsapp_bilan_paused_until: null }),
             whatsapp_bilan_missed_streak: 0,
             whatsapp_bilan_winback_step: 0,
           },
@@ -1206,6 +1223,20 @@ Deno.serve(async (req) => {
           phase: "before_reply_with_brain",
           startedAtMs: processStartedAtMs,
         });
+        // Chantier réengagement (19/07) — ceinture : une escalade winback en
+        // cours (step pré-reset > 0) avec temp memory clobbée est ré-armée
+        // depuis l'épisode DB avant que sophia-brain ne traite le message.
+        if (
+          isWinbackReengagementFlowEnabled() &&
+          Number((profile as Record<string, unknown>)
+            .whatsapp_bilan_winback_step ?? 0) > 0
+        ) {
+          await ensureWinbackReengagementArmedForReply({
+            admin,
+            userId: profile.id,
+            requestId: processId,
+          });
+        }
         await enqueueWhatsAppBrainRetryWatchdog({
           admin,
           requestId,

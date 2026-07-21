@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3";
 
 import { computeScheduledForFromLocal } from "./scheduled_checkins.ts";
+import { activateDueWeekItemsForUser } from "./v2-week-activation.ts";
 
 export const WEEKLY_PLANNING_AUTO_VALIDATION_EVENT_CONTEXT =
   "weekly_planning_auto_validation_v2";
@@ -238,6 +239,17 @@ export async function autoApplyWeeklyPlanning(
 ): Promise<{ changed: boolean; planning: WeeklyPlanningSnapshot }> {
   const nowIso = params.nowIso ?? new Date().toISOString();
   const before = await loadActiveWeeklyPlanning(admin, params);
+
+  // Déblocage par semaine: au rollover hebdomadaire, tous les items pending
+  // dont la semaine assignée est commencée passent actifs. Toujours exécuté,
+  // même sans planning pending — c'est le filet qui rattrape aussi les items
+  // restés verrouillés sur des semaines passées.
+  await activateDueWeekItemsForUser({
+    supabase: admin,
+    userId: params.userId,
+    now: new Date(nowIso),
+  });
+
   if (!before.has_planning || !before.has_pending) {
     return { changed: false, planning: before };
   }

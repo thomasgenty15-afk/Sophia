@@ -112,7 +112,7 @@ function makeIdFactory(ids: string[]): () => string {
   };
 }
 
-Deno.test("preparePlanDistribution maps temp_ids, resolves depends_on and normalizes plan items", () => {
+Deno.test("preparePlanDistribution maps temp_ids and normalizes plan items", () => {
   const prepared = preparePlanDistribution({
     userId: "user-1",
     planId: "plan-1",
@@ -136,12 +136,6 @@ Deno.test("preparePlanDistribution maps temp_ids, resolves depends_on and normal
   assertEquals(support.payload._generation, { temp_id: "gen-support-001" });
 
   const mission = prepared.items[1];
-  assertEquals(mission.status, "pending");
-  assertEquals(mission.activation_condition, {
-    type: "after_item_completion",
-    depends_on: ["item-1"],
-  });
-  assertEquals(mission.start_after_item_id, "item-1");
   assertEquals(mission.time_of_day, "anytime");
 
   const habit = prepared.items[2];
@@ -149,37 +143,39 @@ Deno.test("preparePlanDistribution maps temp_ids, resolves depends_on and normal
   assertEquals(habit.current_habit_state, "active_building");
   assertEquals(habit.current_reps, 0);
   assertEquals(habit.scheduled_days, ["mon", "wed", "fri"]);
-
 });
 
-Deno.test("preparePlanDistribution rejects unknown dependency temp_ids", () => {
+Deno.test("preparePlanDistribution ignores legacy activation conditions (week-based unlock)", () => {
   const plan = makePlanFixture();
+  // Condition héritée avec temp_id inconnu: ne doit ni bloquer ni être stockée.
   plan.dimensions[1].items[0].activation_condition = {
     type: "after_item_completion",
     depends_on: ["gen-support-999"],
   };
 
-  assertThrows(() =>
-    preparePlanDistribution({
-      userId: "user-1",
-      planId: "plan-1",
-      plan,
-      idFactory: makeIdFactory(["item-1", "item-2", "item-3"]),
-    })
-  );
+  const prepared = preparePlanDistribution({
+    userId: "user-1",
+    planId: "plan-1",
+    plan,
+    now: "2026-03-23T10:00:00.000Z",
+    idFactory: makeIdFactory(["item-1", "item-2", "item-3"]),
+  });
+
+  const mission = prepared.items[1];
+  assertEquals(mission.status, "active", "conditions are no longer a gate");
+  assertEquals(mission.activation_condition, null);
+  assertEquals(mission.start_after_item_id, null);
+  assertEquals(mission.activated_at, "2026-03-23T10:00:00.000Z");
 });
 
-Deno.test("activeAtStart uses activation_condition, not activation_order", () => {
+Deno.test("preparePlanDistribution activates every item regardless of condition or order", () => {
   const plan = makePlanFixture();
 
-  // activation_order=1 but non-immediate condition → must be pending
   plan.dimensions[0].items[0].activation_order = 1;
   plan.dimensions[0].items[0].activation_condition = {
     type: "after_milestone",
     depends_on: ["gen-missions-001"],
   };
-
-  // activation_order=3 but null condition → must be active
   plan.dimensions[1].items[0].activation_order = 3;
   plan.dimensions[1].items[0].activation_condition = null;
 
@@ -191,25 +187,12 @@ Deno.test("activeAtStart uses activation_condition, not activation_order", () =>
     idFactory: makeIdFactory(["item-1", "item-2", "item-3"]),
   });
 
-  const support = prepared.items[0];
-  assertEquals(
-    support.status,
-    "pending",
-    "activation_order=1 with condition should be pending",
-  );
-  assertEquals(support.activated_at, null);
-
-  const mission = prepared.items[1];
-  assertEquals(
-    mission.status,
-    "active",
-    "activation_order=3 with null condition should be active",
-  );
-  assertEquals(mission.activated_at, "2026-03-23T10:00:00.000Z");
-
-  const habit = prepared.items[2];
-  assertEquals(habit.status, "active", "immediate condition should be active");
-  assertEquals(habit.current_habit_state, "active_building");
+  for (const item of prepared.items) {
+    assertEquals(item.status, "active");
+    assertEquals(item.activation_condition, null);
+    assertEquals(item.activated_at, "2026-03-23T10:00:00.000Z");
+  }
+  assertEquals(prepared.items[2].current_habit_state, "active_building");
 });
 
 // ---------------------------------------------------------------------------
@@ -354,7 +337,7 @@ Deno.test("preparePlanDistributionV3 assigns phase_id and phase_order", () => {
   }
 });
 
-Deno.test("preparePlanDistributionV3 sets phase 1 items active and phase 2+ items pending", () => {
+Deno.test("preparePlanDistributionV3 activates active-phase items (fail-open sans weeks) and forces phase 2+ pending", () => {
   const prepared = preparePlanDistributionV3({
     userId: "user-v3",
     planId: "plan-v3",
@@ -363,33 +346,96 @@ Deno.test("preparePlanDistributionV3 sets phase 1 items active and phase 2+ item
     idFactory: makeIdFactory(["i-1", "i-2", "i-3"]),
   });
 
-  const habit1 = prepared.items.find((i) => i.title === "Remplacer pause clope par marche")!;
-  assertEquals(habit1.status, "active", "Phase 1 immediate item should be active");
+  const habit1 = prepared.items.find((i) =>
+    i.title === "Remplacer pause clope par marche"
+  )!;
+  assertEquals(habit1.status, "active");
   assertEquals(habit1.activated_at, "2026-03-28T10:00:00.000Z");
 
-  const mission1 = prepared.items.find((i) => i.title === "Jeter les briquets déco")!;
-  assertEquals(mission1.status, "pending", "Phase 1 item with condition should be pending");
+  // Sans assignation hebdo, un item de la phase active démarre actif — la
+  // condition héritée est ignorée et nulle en base.
+  const mission1 = prepared.items.find((i) =>
+    i.title === "Jeter les briquets déco"
+  )!;
+  assertEquals(mission1.status, "active");
+  assertEquals(mission1.activation_condition, null);
+  assertEquals(mission1.start_after_item_id, null);
 
-  const habit2 = prepared.items.find((i) => i.title === "Respiration anti-craving")!;
-  assertEquals(habit2.status, "pending", "Phase 2 item should be forced pending even with immediate condition");
-  assertEquals(habit2.activated_at, null, "Phase 2 item should not have activated_at");
+  const habit2 = prepared.items.find((i) =>
+    i.title === "Respiration anti-craving"
+  )!;
+  assertEquals(
+    habit2.status,
+    "pending",
+    "Phase 2 item should be forced pending",
+  );
+  assertEquals(habit2.activated_at, null);
 });
 
-Deno.test("preparePlanDistributionV3 resolves intra-phase depends_on", () => {
+Deno.test("preparePlanDistributionV3 gates initial status by first assigned week", () => {
+  const content = makeV3Fixture();
+  content.current_level_runtime = {
+    phase_id: "phase-1",
+    level_order: 1,
+    title: "Réduction",
+    phase_objective: "Créer une première baisse crédible de l'exposition.",
+    rationale: "Réduire progressivement.",
+    duration_weeks: 2,
+    maintained_foundation: [],
+    heartbeat: {
+      title: "Cigarettes/jour",
+      unit: "cig",
+      target: 5,
+      current: 10,
+      tracking_mode: "manual",
+    },
+    weeks: [
+      {
+        week_order: 1,
+        title: "Semaine 1",
+        reps_summary: null,
+        mission_days: [],
+        success_signal: null,
+        item_assignments: [{ temp_id: "gen-p1-habits-001" }],
+      },
+      {
+        week_order: 2,
+        title: "Semaine 2",
+        reps_summary: null,
+        mission_days: [],
+        success_signal: null,
+        item_assignments: [
+          { temp_id: "gen-p1-habits-001" },
+          { temp_id: "gen-p1-missions-001" },
+        ],
+      },
+    ],
+    review_focus: [],
+  };
+
   const prepared = preparePlanDistributionV3({
     userId: "user-v3",
     planId: "plan-v3",
-    content: makeV3Fixture(),
+    content,
     now: "2026-03-28T10:00:00.000Z",
     idFactory: makeIdFactory(["i-1", "i-2", "i-3"]),
   });
 
-  const mission = prepared.items.find((i) => i.title === "Jeter les briquets déco")!;
+  const habit1 = prepared.items.find((i) =>
+    i.title === "Remplacer pause clope par marche"
+  )!;
+  assertEquals(habit1.status, "active", "première semaine assignée = 1");
+
+  const mission1 = prepared.items.find((i) =>
+    i.title === "Jeter les briquets déco"
+  )!;
   assertEquals(
-    (mission.activation_condition as Record<string, unknown>)?.depends_on,
-    ["i-1"],
-    "depends_on should be resolved from temp_id to real id",
+    mission1.status,
+    "pending",
+    "première semaine assignée = 2 → pending jusqu'au début de sa semaine",
   );
+  assertEquals(mission1.activation_condition, null);
+  assertEquals(mission1.activated_at, null);
 });
 
 Deno.test("preparePlanDistributionV3 maps temp_ids correctly", () => {

@@ -136,6 +136,7 @@ function dispatcherSystemPrompt() {
     "Ta sortie normale est recommend_and_return: choisir un levier parmi attack_card, defense_card ou adjust_plan, puis retourner au parent daily via note structuree runtime.",
     "Choisis attack_card si le probleme principal est le demarrage, l'oubli, le manque de declencheur, la friction mentale ou le premier geste.",
     "Choisis defense_card si le probleme principal est un moment de risque, une envie, un risque de craquage, un decrochage pendant l'action ou une reaction automatique.",
+    "REFLEXION CADRE (obligatoire avant de trancher): si le probleme decrit est une question de CADRE — manque de structure quand rien d'externe ne pousse, discipline a tenir seul, besoin de se rappeler pourquoi l'action compte ('quand j'ai pas d'obligation ca glisse', 'il me faut un cadre') — choisis attack_card (mantra de force ou texte magique), PAS defense_card: une carte de defense protege un moment de piege precis, elle ne construit pas un cadre. Cette qualification t'appartient en tant que coach, meme si le user ne la formule pas.",
     "Choisis adjust_plan si l'action est trop lourde, mal calibree, desalignee, impossible au rythme actuel ou a redimensionner.",
     "Si l'action_context est absent ou contradictoire, utilise clarify_help_need. Si safety est present, safety_preempt. Si sujet hors daily/coaching clair, exit_to_global_dispatcher.",
     "Ne confirme aucune mutation daily. Ne dis jamais que l'action est note, loggee ou enregistree.",

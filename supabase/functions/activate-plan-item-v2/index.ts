@@ -5,9 +5,12 @@ import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 
 import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
 import {
-  evaluateActivationReadiness,
-  normalizeDependsOn,
-} from "../_shared/v2-plan-item-activation.ts";
+  computeCurrentWeekOrder,
+  firstAssignedWeekForTempId,
+  firstAssignedWeekOrderByTempId,
+  isWeekUnlocked,
+  readGeneratedTempId,
+} from "../_shared/v2-week-activation.ts";
 import {
   isItemInActivatablePhase,
   resolveCurrentPhaseRuntimeContext,
@@ -55,26 +58,6 @@ function getSupabaseEnv() {
   return { url, anonKey, serviceRoleKey };
 }
 
-async function countPositiveEntries(
-  admin: SupabaseClient,
-  dependencyIds: string[],
-): Promise<Map<string, number>> {
-  const counts = new Map<string, number>();
-  if (dependencyIds.length === 0) return counts;
-
-  for (const dependencyId of dependencyIds) {
-    const { count, error } = await admin
-      .from("user_plan_item_entries")
-      .select("id", { count: "exact", head: true })
-      .eq("plan_item_id", dependencyId)
-      .in("entry_kind", ["checkin", "progress", "partial"]);
-    if (error) throw error;
-    counts.set(dependencyId, Number(count ?? 0) || 0);
-  }
-
-  return counts;
-}
-
 export async function activatePlanItemV2(args: {
   admin: SupabaseClient;
   userId: string;
@@ -105,24 +88,29 @@ export async function activatePlanItemV2(args: {
     );
   }
 
+  const { data: planRow, error: planError } = await args.admin
+    .from("user_plans_v2")
+    .select("content")
+    .eq("id", item.plan_id)
+    .maybeSingle();
+  if (planError) {
+    throw new ActivatePlanItemV2Error(500, "Failed to load plan content", undefined, {
+      cause: planError,
+    });
+  }
+  const planContent = planRow?.content ?? null;
+
   // P0-6: Reject activation of items in future phases
-  if (item.phase_id) {
-    const [planRow, siblingResult] = await Promise.all([
-      args.admin
-        .from("user_plans_v2")
-        .select("content")
-        .eq("id", item.plan_id)
-        .maybeSingle(),
-      args.admin
-        .from("user_plan_items")
-        .select("id, phase_id, dimension, status, current_habit_state")
-        .eq("plan_id", item.plan_id)
-        .eq("user_id", args.userId),
-    ]);
-    if (!planRow.error && planRow.data?.content && !siblingResult.error && siblingResult.data) {
+  if (item.phase_id && planContent) {
+    const { data: siblings, error: siblingsError } = await args.admin
+      .from("user_plan_items")
+      .select("id, phase_id, dimension, status, current_habit_state")
+      .eq("plan_id", item.plan_id)
+      .eq("user_id", args.userId);
+    if (!siblingsError && siblings) {
       const phaseCtx = resolveCurrentPhaseRuntimeContext(
-        planRow.data as { content: Record<string, unknown> },
-        siblingResult.data as UserPlanItemRow[],
+        { content: planContent as Record<string, unknown> },
+        siblings as UserPlanItemRow[],
       );
       if (phaseCtx && !isItemInActivatablePhase(item, phaseCtx)) {
         throw new ActivatePlanItemV2Error(
@@ -134,24 +122,21 @@ export async function activatePlanItemV2(args: {
     }
   }
 
-  const dependencyIds = normalizeDependsOn(item.activation_condition?.depends_on);
-  const dependencies: UserPlanItemRow[] = dependencyIds.length > 0
-    ? await loadDependencies(args.admin, item, dependencyIds)
-    : [];
-  const positiveCounts = await countPositiveEntries(args.admin, dependencyIds);
-  const readiness = evaluateActivationReadiness({
-    condition: item.activation_condition,
-    dependencies,
-    positiveCountByDependencyId: positiveCounts,
-  });
-
-  if (!readiness.isReady) {
+  // Déblocage par semaine: un item devient activable dès que sa première
+  // semaine assignée est commencée. Aucune condition inter-items n'est
+  // évaluée; les activation_condition héritées sont ignorées.
+  const currentWeekOrder = computeCurrentWeekOrder(planContent);
+  const firstAssignedWeekOrder = firstAssignedWeekForTempId(
+    readGeneratedTempId(item),
+    firstAssignedWeekOrderByTempId(planContent, item.phase_id ?? null),
+  );
+  if (!isWeekUnlocked({ firstAssignedWeekOrder, currentWeekOrder })) {
     throw new ActivatePlanItemV2Error(
       409,
-      readiness.reason,
+      `Cette action arrive en semaine ${firstAssignedWeekOrder} du niveau. Elle se débloquera automatiquement au début de sa semaine.`,
       {
-        remaining_count: readiness.remainingCount,
-        dependency_ids: readiness.dependencyIds,
+        first_assigned_week_order: firstAssignedWeekOrder,
+        current_week_order: currentWeekOrder,
       },
     );
   }
@@ -180,25 +165,6 @@ export async function activatePlanItemV2(args: {
   }
 
   return updated as UserPlanItemRow;
-}
-
-async function loadDependencies(
-  admin: SupabaseClient,
-  item: UserPlanItemRow,
-  dependencyIds: string[],
-): Promise<UserPlanItemRow[]> {
-  const { data, error } = await admin
-    .from("user_plan_items")
-    .select("*")
-    .eq("user_id", item.user_id)
-    .eq("plan_id", item.plan_id)
-    .in("id", dependencyIds);
-  if (error) {
-    throw new ActivatePlanItemV2Error(500, "Failed to load activation prerequisites", undefined, {
-      cause: error,
-    });
-  }
-  return (data as UserPlanItemRow[] | null) ?? [];
 }
 
 async function handleRequest(req: Request): Promise<Response> {

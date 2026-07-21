@@ -2,9 +2,12 @@ import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3";
 
 import { computeActiveLoad } from "./v2-active-load.ts";
 import {
-  evaluateActivationReadiness,
-  normalizeDependsOn,
-} from "./v2-plan-item-activation.ts";
+  computeCurrentWeekOrder,
+  firstAssignedWeekForTempId,
+  firstAssignedWeekOrderByTempId,
+  isWeekUnlocked,
+  readGeneratedTempId,
+} from "./v2-week-activation.ts";
 import { logV2Event, V2_EVENT_TYPES } from "./v2-events.ts";
 
 import type {
@@ -630,20 +633,25 @@ export async function tryAdvancePhaseItems(
   const now = new Date().toISOString();
   let activatedCount = 0;
 
-  for (const item of pendingInCurrentPhase) {
-    const dependencyIds = normalizeDependsOn(
-      item.activation_condition?.depends_on,
-    );
-    const dependencies = dependencyIds.length > 0
-      ? items.filter((i) => dependencyIds.includes(i.id))
-      : [];
+  // Déblocage par semaine: un item pending de la phase courante s'active dès
+  // que sa première semaine assignée est commencée. Les activation_condition
+  // héritées ne sont plus évaluées.
+  const currentWeekOrder = computeCurrentWeekOrder(plan.content);
+  const firstWeekByTempId = firstAssignedWeekOrderByTempId(
+    plan.content,
+    phaseContext.current_phase_id,
+  );
 
-    const readiness = evaluateActivationReadiness({
-      condition: item.activation_condition,
-      dependencies,
+  for (const item of pendingInCurrentPhase) {
+    const weekUnlocked = isWeekUnlocked({
+      firstAssignedWeekOrder: firstAssignedWeekForTempId(
+        readGeneratedTempId(item),
+        firstWeekByTempId,
+      ),
+      currentWeekOrder,
     });
 
-    if (readiness.isReady) {
+    if (weekUnlocked) {
       const { error: updateError } = await supabase
         .from("user_plan_items")
         .update({

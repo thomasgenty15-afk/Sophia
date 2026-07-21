@@ -8,7 +8,8 @@ export type SkillId =
   | "coaching_recommendation"
   | "daily_action_coaching_recommendation_v1"
   | "feature_opportunity"
-  | "plan_realignment";
+  | "plan_realignment"
+  | "winback_reengagement_v1";
 
 export type SkillMemoryItem = {
   id: string;

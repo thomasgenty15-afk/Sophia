@@ -533,3 +533,201 @@ Deno.test("weekly_projection_done_partial_missed_unanswered_rescheduled", () => 
   assertEquals(review.transformations[0].summary.unanswered_count, 1);
   assertEquals(review.transformations[0].summary.rescheduled_count, 1);
 });
+
+// ---------------------------------------------------------------------------
+// Complétions hors-planning (21/07): une action réellement faite compte au
+// bilan hebdo même sans occurrence absorbante.
+// ---------------------------------------------------------------------------
+
+function makeOffPlanFixtureBase() {
+  return {
+    userId: "user-1",
+    timezone: "Europe/Paris",
+    weekStartDate: "2026-04-27",
+    generatedAt: "2026-05-03T18:00:00.000Z",
+    transformations: [{ id: "transformation-1", title: "Sport" }],
+    plans: [{
+      id: "plan-1",
+      cycle_id: "cycle-1",
+      transformation_id: "transformation-1",
+      title: "Plan sport",
+    }],
+    planItems: [
+      {
+        id: "item-1",
+        cycle_id: "cycle-1",
+        transformation_id: "transformation-1",
+        plan_id: "plan-1",
+        title: "Marche",
+        dimension: "habits",
+        kind: "habit",
+        status: "active",
+      },
+      {
+        id: "item-2",
+        cycle_id: "cycle-1",
+        transformation_id: "transformation-1",
+        plan_id: "plan-1",
+        title: "Etirements",
+        dimension: "habits",
+        kind: "habit",
+        status: "active",
+      },
+    ],
+    weekPlans: [
+      { plan_item_id: "item-1", status: "confirmed" as const },
+      { plan_item_id: "item-2", status: "confirmed" as const },
+    ],
+  };
+}
+
+Deno.test("weekly_off_plan_completion_counted_when_item_has_no_occurrence", () => {
+  const review = buildWeeklyProgressReviewFromRows({
+    ...makeOffPlanFixtureBase(),
+    occurrences: [
+      {
+        id: "occ-1",
+        cycle_id: "cycle-1",
+        transformation_id: "transformation-1",
+        plan_id: "plan-1",
+        plan_item_id: "item-1",
+        week_start_date: "2026-04-27",
+        ordinal: 1,
+        planned_day: "mon",
+        status: "done",
+        source: "weekly_confirmed",
+      },
+    ],
+    entries: [
+      {
+        id: "entry-1",
+        cycle_id: "cycle-1",
+        transformation_id: "transformation-1",
+        plan_id: "plan-1",
+        plan_item_id: "item-1",
+        entry_kind: "checkin",
+        outcome: "completed",
+        effective_at: "2026-04-27T12:00:00.000Z",
+        created_at: "2026-04-27T18:00:00.000Z",
+      },
+      // item-2 fait mercredi alors qu'il n'a AUCUNE occurrence cette semaine.
+      {
+        id: "entry-2",
+        cycle_id: "cycle-1",
+        transformation_id: "transformation-1",
+        plan_id: "plan-1",
+        plan_item_id: "item-2",
+        entry_kind: "checkin",
+        outcome: "completed",
+        effective_at: "2026-04-29T12:00:00.000Z",
+        created_at: "2026-04-29T18:00:00.000Z",
+        metadata: { source: "router_parallel_tracking_v2" },
+      },
+    ],
+  });
+
+  const block = review.transformations[0];
+  assertEquals(block.summary.off_plan_completed_count, 1);
+  assertEquals(block.off_plan_completions.length, 1);
+  assertEquals(block.off_plan_completions[0].plan_item_id, "item-2");
+  assertEquals(block.off_plan_completions[0].effective_date, "2026-04-29");
+  assertEquals(block.off_plan_completions[0].source, "router_parallel_tracking_v2");
+  assertStringIncludes(
+    review.global_synthesis.short_observation,
+    "hors planning",
+  );
+});
+
+Deno.test("weekly_off_plan_extra_completion_counted_when_occurrences_saturated", () => {
+  const review = buildWeeklyProgressReviewFromRows({
+    ...makeOffPlanFixtureBase(),
+    occurrences: [
+      {
+        id: "occ-1",
+        cycle_id: "cycle-1",
+        transformation_id: "transformation-1",
+        plan_id: "plan-1",
+        plan_item_id: "item-1",
+        week_start_date: "2026-04-27",
+        ordinal: 1,
+        planned_day: "mon",
+        status: "done",
+        source: "weekly_confirmed",
+      },
+    ],
+    entries: [
+      // Entrée exacte lundi → consommée par la Pass 1.
+      {
+        id: "entry-1",
+        cycle_id: "cycle-1",
+        transformation_id: "transformation-1",
+        plan_id: "plan-1",
+        plan_item_id: "item-1",
+        entry_kind: "checkin",
+        outcome: "completed",
+        effective_at: "2026-04-27T12:00:00.000Z",
+        created_at: "2026-04-27T18:00:00.000Z",
+      },
+      // Complétion supplémentaire jeudi: aucune occurrence ouverte restante.
+      {
+        id: "entry-2",
+        cycle_id: "cycle-1",
+        transformation_id: "transformation-1",
+        plan_id: "plan-1",
+        plan_item_id: "item-1",
+        entry_kind: "checkin",
+        outcome: "completed",
+        effective_at: "2026-04-30T12:00:00.000Z",
+        created_at: "2026-04-30T18:00:00.000Z",
+      },
+    ],
+  });
+
+  const block = review.transformations[0];
+  assertEquals(block.summary.done_count, 1);
+  assertEquals(block.summary.off_plan_completed_count, 1);
+  assertEquals(block.off_plan_completions[0].effective_date, "2026-04-30");
+});
+
+Deno.test("weekly_off_plan_only_block_exists_without_any_occurrence", () => {
+  const review = buildWeeklyProgressReviewFromRows({
+    ...makeOffPlanFixtureBase(),
+    occurrences: [],
+    entries: [
+      {
+        id: "entry-1",
+        cycle_id: "cycle-1",
+        transformation_id: "transformation-1",
+        plan_id: "plan-1",
+        plan_item_id: "item-2",
+        entry_kind: "checkin",
+        outcome: "completed",
+        effective_at: "2026-04-29T12:00:00.000Z",
+        created_at: "2026-04-29T18:00:00.000Z",
+      },
+      // Dédupe: 2e entry même item même jour → une seule complétion listée.
+      {
+        id: "entry-2",
+        cycle_id: "cycle-1",
+        transformation_id: "transformation-1",
+        plan_id: "plan-1",
+        plan_item_id: "item-2",
+        entry_kind: "checkin",
+        outcome: "completed",
+        effective_at: "2026-04-29T14:00:00.000Z",
+        created_at: "2026-04-29T19:00:00.000Z",
+      },
+    ],
+  });
+
+  assertEquals(review.transformations.length, 1);
+  const block = review.transformations[0];
+  assertEquals(block.summary.planned_count, 0);
+  assertEquals(block.summary.off_plan_completed_count, 1);
+  assertEquals(block.actions.length, 0);
+  assertEquals(review.global_synthesis.message_intent, "celebrate");
+  assertStringIncludes(
+    review.global_synthesis.whatsapp_message,
+    "quand meme fait 1 action",
+  );
+});

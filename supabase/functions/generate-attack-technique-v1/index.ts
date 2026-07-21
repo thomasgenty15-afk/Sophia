@@ -35,6 +35,10 @@ const REQUEST_SCHEMA = z.object({
     "pre_engagement",
   ]),
   answers: z.array(z.string().min(1).max(500)).min(1).max(5),
+  // Questions telles qu'affichees a l'utilisateur, dans le meme ordre que
+  // answers: permet au prompt d'apparier question/reponse au lieu de
+  // numeroter des reponses aveugles.
+  questions: z.array(z.string().min(1).max(300)).max(5).optional(),
   adjustment_context: z.object({
     current_technique_key: z.enum([
       "texte_recadrage",
@@ -117,6 +121,7 @@ export async function generateAttackTechnique(args: {
   attackCardId: string;
   techniqueKey: NonNullable<AttackCardContent["techniques"][number]["technique_key"]>;
   answers: string[];
+  questions?: string[] | null;
   adjustmentContext?: {
     currentTechniqueKey: NonNullable<AttackCardContent["techniques"][number]["technique_key"]>;
     failureReasonKey: string;
@@ -193,6 +198,7 @@ export async function generateAttackTechnique(args: {
       technique_objet_genere: technique.objet_genere,
       technique_mode_emploi: technique.mode_emploi,
       user_answers: args.answers,
+      user_questions: args.questions ?? null,
       adjustment_context: args.adjustmentContext && currentTechnique?.generated_result
         ? {
           current_technique_key: currentTechnique.technique_key,
@@ -366,6 +372,7 @@ async function handleRequest(req: Request): Promise<Response> {
       attackCardId: parsed.data.attack_card_id,
       techniqueKey: parsed.data.technique_key,
       answers: parsed.data.answers,
+      questions: parsed.data.questions ?? null,
       adjustmentContext: parsed.data.adjustment_context
         ? {
           currentTechniqueKey: parsed.data.adjustment_context.current_technique_key,

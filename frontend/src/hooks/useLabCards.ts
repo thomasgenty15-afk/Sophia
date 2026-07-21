@@ -35,6 +35,7 @@ export type UseLabCardsResult = {
     techniqueKey: AttackTechniqueKey,
     answers: string[],
     options?: {
+      questions?: string[];
       adjustmentContext?: {
         currentTechniqueKey: AttackTechniqueKey;
         failureReasonKey: AttackTechniqueAdjustmentReasonKey;
@@ -159,6 +160,7 @@ export function useLabCards(
     techniqueKey: AttackTechniqueKey,
     answers: string[],
     options?: {
+      questions?: string[];
       adjustmentContext?: {
         currentTechniqueKey: AttackTechniqueKey;
         failureReasonKey: AttackTechniqueAdjustmentReasonKey;
@@ -194,6 +196,9 @@ export function useLabCards(
           attack_card_id: currentCard.id,
           technique_key: techniqueKey,
           answers,
+          ...(options?.questions?.length
+            ? { questions: options.questions }
+            : {}),
           adjustment_context: options?.adjustmentContext
             ? {
               current_technique_key: options.adjustmentContext.currentTechniqueKey,

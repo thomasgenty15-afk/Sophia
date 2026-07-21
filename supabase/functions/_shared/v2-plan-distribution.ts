@@ -2,6 +2,9 @@ import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3";
 
 import { logV2Event, V2_EVENT_TYPES } from "./v2-events.ts";
 import { normalizeTimeOfDay } from "./time_of_day.ts";
+import {
+  firstAssignedWeekOrderByTempId,
+} from "./v2-week-activation.ts";
 import type {
   HabitState,
   PlanContentItem,
@@ -33,8 +36,6 @@ const SCHEDULED_DAY_ALIASES: Record<string, string> = {
   sunday: "sun",
   dimanche: "sun",
 };
-
-type ActivationCondition = Record<string, unknown> | null;
 
 export type PreparePlanDistributionParams = {
   userId: string;
@@ -110,7 +111,6 @@ export function preparePlanDistribution(
       transformationId: plan.transformation_id,
       planItem: item,
       itemId: tempIdMap[item.temp_id],
-      tempIdMap,
       now,
     })
   );
@@ -220,10 +220,13 @@ export function preparePlanDistributionV3(
       throw new Error(`Invalid phase_order for phase ${phase.phase_id}`);
     }
 
-    const phaseTempIdMap = Object.fromEntries(
-      phase.items.map((item) => [item.temp_id, tempIdMap[item.temp_id]]),
-    );
     const phaseStartsActive = phase.phase_order === activePhaseOrder;
+    // Déblocage par semaine: la première semaine d'assignation de chaque item
+    // (weeks[].item_assignments) décide de son statut initial dans la phase
+    // active. Sans assignation hebdo, l'item démarre actif (fail-open).
+    const firstWeekByTempId = phaseStartsActive
+      ? firstAssignedWeekOrderByTempId(content, phase.phase_id)
+      : new Map<string, number>();
 
     return phase.items.map((item) =>
       buildUserPlanItemRow({
@@ -233,11 +236,11 @@ export function preparePlanDistributionV3(
         transformationId: content.transformation_id,
         planItem: item,
         itemId: tempIdMap[item.temp_id],
-        tempIdMap: phaseTempIdMap,
         now,
         phaseId: phase.phase_id,
         phaseOrder: phase.phase_order,
         forcePending: !phaseStartsActive,
+        firstAssignedWeekOrder: firstWeekByTempId.get(item.temp_id) ?? null,
       })
     );
   });
@@ -432,20 +435,21 @@ function buildUserPlanItemRow(params: {
   transformationId: string;
   planItem: PlanContentItem;
   itemId: string;
-  tempIdMap: Record<string, string>;
   now: string;
   phaseId?: string | null;
   phaseOrder?: number | null;
   forcePending?: boolean;
+  firstAssignedWeekOrder?: number | null;
 }): UserPlanItemRow {
-  const { planItem, tempIdMap } = params;
-  const activationCondition = resolveActivationCondition(
-    planItem.activation_condition,
-    tempIdMap,
-  );
+  const { planItem } = params;
   const cardsRequired = planItem.dimension === "missions" || planItem.dimension === "habits";
+  // Déblocage par semaine uniquement: les activation_condition émises par le
+  // générateur sont ignorées et ne sont plus persistées. Un item de la phase
+  // active démarre actif sauf si sa première semaine assignée est ultérieure
+  // à la semaine 1 (il sera activé quand sa semaine commencera).
+  const firstWeek = params.firstAssignedWeekOrder ?? null;
   const activeAtStart = !params.forcePending &&
-    isActiveAtStart(planItem.activation_condition);
+    (firstWeek == null || firstWeek <= 1);
 
   return {
     id: params.itemId,
@@ -460,7 +464,7 @@ function buildUserPlanItemRow(params: {
     description: planItem.description ?? null,
     tracking_type: planItem.tracking_type,
     activation_order: planItem.activation_order ?? null,
-    activation_condition: activationCondition,
+    activation_condition: null,
     current_habit_state: getInitialHabitState(planItem, activeAtStart),
     support_mode: planItem.support_mode ?? null,
     support_function: planItem.support_function ?? null,
@@ -469,7 +473,7 @@ function buildUserPlanItemRow(params: {
     cadence_label: planItem.cadence_label ?? null,
     scheduled_days: normalizeScheduledDays(planItem.scheduled_days),
     time_of_day: normalizeTimeOfDay(planItem.time_of_day),
-    start_after_item_id: getStartAfterItemId(activationCondition),
+    start_after_item_id: null,
     phase_id: params.phaseId ?? null,
     phase_order: params.phaseOrder ?? null,
     defense_card_id: null,
@@ -498,45 +502,6 @@ async function loadExistingPlanItems(
   return ((data ?? []) as UserPlanItemRow[]);
 }
 
-function isActiveAtStart(cond: ActivationCondition): boolean {
-  if (!cond) return true;
-  return typeof cond === "object" && cond.type === "immediate";
-}
-
-function resolveActivationCondition(
-  raw: ActivationCondition,
-  tempIdMap: Record<string, string>,
-): ActivationCondition {
-  if (!raw) return null;
-
-  const resolved = { ...raw };
-  const dependsOn = raw.depends_on;
-  if (dependsOn == null) return resolved;
-
-  const tempIds = normalizeDependsOn(dependsOn);
-  resolved.depends_on = tempIds.map((tempId) => {
-    const resolvedId = tempIdMap[tempId];
-    if (!resolvedId) {
-      throw new Error(`Unknown activation dependency temp_id: ${tempId}`);
-    }
-    return resolvedId;
-  });
-
-  return resolved;
-}
-
-function normalizeDependsOn(value: unknown): string[] {
-  if (typeof value === "string") return [value];
-  if (
-    Array.isArray(value) && value.every((entry) => typeof entry === "string")
-  ) {
-    return value as string[];
-  }
-  throw new Error(
-    "activation_condition.depends_on must be a string or string[]",
-  );
-}
-
 function normalizeScheduledDays(days: string[] | null): string[] | null {
   if (!days) return null;
 
@@ -559,25 +524,6 @@ function getInitialHabitState(
 
 function shouldInitializeReps(item: PlanContentItem): boolean {
   return item.target_reps != null || item.dimension === "habits";
-}
-
-function getStartAfterItemId(
-  activationCondition: ActivationCondition,
-): string | null {
-  if (!activationCondition) return null;
-
-  const type = activationCondition.type;
-  if (
-    type !== "after_item_completion" &&
-    type !== "after_milestone" &&
-    type !== "after_habit_traction"
-  ) {
-    return null;
-  }
-
-  const dependsOn = activationCondition.depends_on;
-  if (!Array.isArray(dependsOn) || dependsOn.length !== 1) return null;
-  return typeof dependsOn[0] === "string" ? dependsOn[0] : null;
 }
 
 function withGenerationMetadata(

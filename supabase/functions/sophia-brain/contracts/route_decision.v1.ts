@@ -8,6 +8,7 @@ export type ResponseOwner =
   | "weekly_adaptive_review_v1"
   | "presence_conversation"
   | "attack_keyword_support"
+  | "winback_reengagement_v1"
   | "direct_effect"
   | "normal_reply";
 

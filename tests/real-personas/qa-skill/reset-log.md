@@ -500,3 +500,6 @@
 - 2026-07-17T16:30:40Z reset persona=qa-skill connection=all_skills_potadm20260717e user_id=4c2a95ef-cdd4-426e-88a5-afc14b088701
 - 2026-07-17T16:42:34Z reset persona=qa-skill connection=all_skills_potadm20260717a2 user_id=2d39e632-75a2-43e7-90c4-1b43c674ee9d
 - 2026-07-17T16:42:36Z reset persona=qa-skill connection=all_skills_potadm20260717c2 user_id=82e15084-db24-4194-b936-2a8a8ebd2c2f
+- 2026-07-17T17:07:16Z reset persona=qa-skill connection=all_skills_potadm7d20260717 user_id=f383dbc9-78fe-4194-ae73-7c932d9d38e6
+2026-07-19T23:15:43Z reset persona=qa-skill connection=winback_reeng_20260720_r1 user_id=9b0ca924-4718-43be-83bd-19344328f439
+2026-07-20T02:25:20Z reset persona=qa-skill connection=winback_reeng_20260720_r2 user_id=39aed6aa-7556-4216-a11b-e95f070ef396

@@ -128,6 +128,7 @@ export type WeeklyProgressReviewV2 = {
       unanswered_count: number;
       rescheduled_count: number;
       adherence_rate: number;
+      off_plan_completed_count: number;
     };
     actions: Array<{
       occurrence_id: string;
@@ -141,6 +142,15 @@ export type WeeklyProgressReviewV2 = {
       entry_outcome: "completed" | "partial" | "missed" | null;
       deviation: WeeklyProgressActionDeviation;
       daily_evidence?: WeeklyProgressDailyEvidence | null;
+    }>;
+    /** Complétions réelles de la semaine sans occurrence planifiée absorbante
+     * (action faite un jour non prévu, item saturé ou non planifié): elles
+     * comptent dans le bilan au lieu de disparaître. */
+    off_plan_completions: Array<{
+      plan_item_id: string;
+      title: string;
+      effective_date: string;
+      source: string | null;
     }>;
     observation: {
       what_worked: string[];
@@ -291,7 +301,10 @@ function isEntryOutcome(value: unknown): value is EntryOutcome {
 function buildEntryOutcomeByOccurrenceId(
   unsortedOccurrences: OccurrenceRow[],
   entries: EntryRow[],
-): Map<string, EntryOutcome> {
+): {
+  outcomeByOccurrenceId: Map<string, EntryOutcome>;
+  usedEntryIds: Set<string>;
+} {
   const occurrences = unsortedOccurrences.slice().sort((left, right) =>
     dayOffset(left.actual_day ?? left.planned_day) -
         dayOffset(right.actual_day ?? right.planned_day) ||
@@ -341,7 +354,7 @@ function buildEntryOutcomeByOccurrenceId(
     }
   }
 
-  return outcomeByOccurrenceId;
+  return { outcomeByOccurrenceId, usedEntryIds };
 }
 
 function asEntryMetadata(entry: EntryRow): Record<string, unknown> {
@@ -539,17 +552,58 @@ export function buildWeeklyProgressReviewFromRows(params: {
     grouped.set(key, list);
   }
 
-  const entryOutcomeByOccurrenceId = buildEntryOutcomeByOccurrenceId(
-    [...grouped.values()].flat(),
-    params.entries,
-  );
+  const { outcomeByOccurrenceId: entryOutcomeByOccurrenceId, usedEntryIds } =
+    buildEntryOutcomeByOccurrenceId(
+      [...grouped.values()].flat(),
+      params.entries,
+    );
 
-  const transformations = [...grouped.entries()].flatMap(
-    ([key, occurrences]) => {
+  // Complétions hors-planning: entries completed de la semaine qu'aucune
+  // occurrence n'a pu absorber (item sans occurrence cette semaine, ou toutes
+  // déjà consommées). L'utilisateur a réellement fait l'action — elle doit
+  // apparaître dans le bilan hebdomadaire au lieu de disparaître.
+  const offPlanByKey = new Map<
+    string,
+    Array<{
+      plan_item_id: string;
+      title: string;
+      effective_date: string;
+      source: string | null;
+    }>
+  >();
+  const offPlanSeen = new Set<string>();
+  for (const entry of params.entries) {
+    if (entry.outcome !== "completed") continue;
+    if (usedEntryIds.has(entry.id)) continue;
+    const item = itemById.get(entry.plan_item_id);
+    if (!item) continue;
+    const effectiveDate = entryLocalDate(entry);
+    const dedupeKey = `${entry.plan_item_id}:${effectiveDate}`;
+    if (offPlanSeen.has(dedupeKey)) continue;
+    offPlanSeen.add(dedupeKey);
+    const key = `${entry.transformation_id}:${entry.plan_id}`;
+    const list = offPlanByKey.get(key) ?? [];
+    list.push({
+      plan_item_id: entry.plan_item_id,
+      title: cleanText(item.title, "Action"),
+      effective_date: effectiveDate,
+      source: cleanText(asEntryMetadata(entry).source) || null,
+    });
+    offPlanByKey.set(key, list);
+  }
+
+  const blockKeys = [
+    ...new Set([...grouped.keys(), ...offPlanByKey.keys()]),
+  ];
+
+  const transformations = blockKeys.flatMap(
+    (key) => {
+      const occurrences = grouped.get(key) ?? [];
       const [transformationId, planId] = key.split(":");
       const transformation = transformationById.get(transformationId);
       const plan = planById.get(planId);
       if (!transformation || !plan) return [];
+      const offPlanCompletions = offPlanByKey.get(key) ?? [];
 
       const actions = occurrences
         .slice()
@@ -598,7 +652,12 @@ export function buildWeeklyProgressReviewFromRows(params: {
           100
         : 0;
       const observation = buildObservation({
-        titlesDone: done.map((action) => action.title),
+        titlesDone: [
+          ...done.map((action) => action.title),
+          ...offPlanCompletions.map((completion) =>
+            `${completion.title} (hors planning)`
+          ),
+        ],
         titlesPartial: partial.map((action) => action.title),
         titlesMissed: missed.map((action) => action.title),
         unanswered: unanswered.length,
@@ -623,8 +682,10 @@ export function buildWeeklyProgressReviewFromRows(params: {
           unanswered_count: unanswered.length,
           rescheduled_count: rescheduled.length,
           adherence_rate: adherenceRate,
+          off_plan_completed_count: offPlanCompletions.length,
         },
         actions,
+        off_plan_completions: offPlanCompletions,
         observation,
         dashboard_recommendations: recommendations,
       }];
@@ -638,20 +699,26 @@ export function buildWeeklyProgressReviewFromRows(params: {
       acc.partial += transformation.summary.partial_count;
       acc.missed += transformation.summary.missed_count;
       acc.unanswered += transformation.summary.unanswered_count;
+      acc.offPlan += transformation.summary.off_plan_completed_count;
       return acc;
     },
-    { planned: 0, done: 0, partial: 0, missed: 0, unanswered: 0 },
+    { planned: 0, done: 0, partial: 0, missed: 0, unanswered: 0, offPlan: 0 },
   );
   const messageIntent = totals.planned === 0
-    ? "encourage"
-    : totals.missed > totals.done
+    ? (totals.offPlan > 0 ? "celebrate" : "encourage")
+    : totals.missed > totals.done + totals.offPlan
     ? "repair"
-    : totals.done > 0 && totals.missed === 0
+    : (totals.done > 0 || totals.offPlan > 0) && totals.missed === 0
     ? "celebrate"
     : "redirect";
+  const offPlanSuffix = totals.offPlan > 0
+    ? ` ${totals.offPlan} action(s) faite(s) en plus hors planning.`
+    : "";
   const shortObservation = totals.planned === 0
-    ? "Aucune action confirmee n'est disponible pour cette semaine."
-    : `${totals.done}/${totals.planned} action(s) faites, ${totals.partial} partielle(s), ${totals.missed} non faite(s).`;
+    ? (totals.offPlan > 0
+      ? `Aucune action planifiee, mais ${totals.offPlan} action(s) faite(s) hors planning.`
+      : "Aucune action confirmee n'est disponible pour cette semaine.")
+    : `${totals.done}/${totals.planned} action(s) faites, ${totals.partial} partielle(s), ${totals.missed} non faite(s).${offPlanSuffix}`;
   const dashboardUrl = cleanText(params.dashboardUrl);
 
   return {
@@ -670,6 +737,7 @@ export function buildWeeklyProgressReviewFromRows(params: {
         partial: totals.partial,
         missed: totals.missed,
         planned: totals.planned,
+        offPlan: totals.offPlan,
       }),
       ...(dashboardUrl
         ? { dashboard_cta: { label: "Voir le dashboard", url: dashboardUrl } }
@@ -864,14 +932,22 @@ export function buildWeeklyProgressReviewFallbackMessage(args: {
   partial: number;
   missed: number;
   planned: number;
+  offPlan?: number;
 }): string {
+  const offPlan = args.offPlan ?? 0;
+  const offPlanSuffix = offPlan > 0
+    ? ` Et ${offPlan} action(s) faite(s) en plus hors planning — ca compte aussi.`
+    : "";
   if (args.planned === 0) {
+    if (offPlan > 0) {
+      return `Petit point de fin de semaine: rien n'etait planifie, mais tu as quand meme fait ${offPlan} action(s). On cale la semaine qui vient ?`;
+    }
     return "Petit point de fin de semaine: aucune action n'a ete suivie cette semaine. On fait le point ensemble et on cale la semaine qui vient ?";
   }
   if (args.missed === 0 && args.partial === 0) {
-    return `Petit point de fin de semaine: ${args.done}/${args.planned} action(s) faites. C'est propre, on garde ce qui marche.`;
+    return `Petit point de fin de semaine: ${args.done}/${args.planned} action(s) faites.${offPlanSuffix} C'est propre, on garde ce qui marche.`;
   }
-  return `Petit point de fin de semaine: ${args.done}/${args.planned} action(s) faites, ${args.partial} partielle(s), ${args.missed} non faite(s). On ajuste la suite sans dramatiser.`;
+  return `Petit point de fin de semaine: ${args.done}/${args.planned} action(s) faites, ${args.partial} partielle(s), ${args.missed} non faite(s).${offPlanSuffix} On ajuste la suite sans dramatiser.`;
 }
 
 export function buildWeeklyProgressReviewInstruction(

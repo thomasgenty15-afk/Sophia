@@ -501,6 +501,25 @@ function isPlanGenerationTimeout(error: unknown): boolean {
     message.includes("timeout");
 }
 
+// A failed generate-plan-v2 call does not mean the plan was not generated:
+// the server may have persisted the draft while the response was lost in
+// transit (backgrounded mobile tab, network drop, proxy cutting a long
+// request). Decide how long to poll for a landed draft before surfacing the
+// error — or null when the server genuinely rejected the request (4xx) and
+// no draft can be expected.
+function planPreviewRecoveryWaitMs(error: unknown): number | null {
+  if (isPlanGenerationTimeout(error)) return 90_000;
+
+  const status = getErrorStatus(error);
+  // No HTTP status → the request itself was cut; the server may still be
+  // generating, so poll as long as the timeout path does.
+  if (status == null) return 90_000;
+  // Server-side failure → a draft may have been persisted before the crash,
+  // but nothing new will land: short poll only.
+  if (status >= 500) return 15_000;
+  return null;
+}
+
 function isPlanContentV3Candidate(value: unknown): value is PlanContentV3 {
   if (!value || typeof value !== "object") return false;
 
@@ -889,7 +908,7 @@ export default function OnboardingV2() {
       }, { sync: false });
     });
   }, []);
-  const recoverPlanPreviewAfterTimeout = useCallback(async (args: {
+  const recoverPlanPreviewAfterFailure = useCallback(async (args: {
     actionToken: number;
     transformationId: string;
     requestStartedAt: string;
@@ -1242,7 +1261,38 @@ export default function OnboardingV2() {
         stage = "profile";
       }
 
+      // A generated draft may already be waiting (e.g. the generation
+      // succeeded but its response never reached the previous session).
+      // Surface it for review instead of sending the user back to the
+      // profile step, where resubmitting would delete and regenerate it.
+      let recoveredPlanReview: PlanReviewDraft | null = null;
+      if (cycleData.status === "ready_for_plan" && activeTransformation) {
+        try {
+          const existingDraftPreview = await loadLatestDraftPlanPreview({
+            transformationId: activeTransformation.id,
+            cycleId: cycleData.id,
+          });
+          if (cancelled) return;
+          if (existingDraftPreview) {
+            console.info("[onboarding][hydrate][existing_draft_adopted]", {
+              cycle_id: cycleData.id,
+              transformation_id: activeTransformation.id,
+              plan_id: existingDraftPreview.planId,
+            });
+            stage = "plan_review";
+            recoveredPlanReview = {
+              plan_id: existingDraftPreview.planId,
+              plan_preview: existingDraftPreview.plan,
+              feedback: "",
+            };
+          }
+        } catch {
+          // Best-effort — fall back to the profile step.
+        }
+      }
+
       persistDraft(setDraft, {
+        ...(recoveredPlanReview ? { plan_review: recoveredPlanReview } : {}),
         raw_intake_text: cycleData.raw_intake_text,
         cycle_id: cycleData.id,
         cycle_status: cycleData.status,
@@ -2644,11 +2694,13 @@ export default function OnboardingV2() {
         });
       } catch (submitError) {
         if (!isOnboardingActionCurrent(actionToken)) return;
-        if (isPlanGenerationTimeout(submitError)) {
-          const recoveredPreview = await recoverPlanPreviewAfterTimeout({
+        const recoveryWaitMs = planPreviewRecoveryWaitMs(submitError);
+        if (recoveryWaitMs != null) {
+          const recoveredPreview = await recoverPlanPreviewAfterFailure({
             actionToken,
             transformationId: currentTransformation.id,
             requestStartedAt,
+            maxWaitMs: recoveryWaitMs,
           });
           if (recoveredPreview && isOnboardingActionCurrent(actionToken)) {
             persistDraft(setDraft, {
@@ -2834,6 +2886,52 @@ export default function OnboardingV2() {
     });
     const requestStartedAt = new Date().toISOString();
     try {
+      // A draft may already exist for these exact inputs — typically when a
+      // previous generation succeeded server-side but its response never
+      // reached the browser. Adopt it instead of deleting and regenerating
+      // it. Changed inputs (pace, birth date, gender) fall through to the
+      // destructive reset below, which keeps back-navigation semantics.
+      try {
+        const [{ data: cycleSnapshot }, existingDraftPreview] = await Promise.all([
+          supabase
+            .from("user_cycles")
+            .select("birth_date_snapshot,gender_snapshot,requested_pace")
+            .eq("id", draft.cycle_id)
+            .maybeSingle(),
+          loadLatestDraftPlanPreview({
+            transformationId: currentTransformation.id,
+            cycleId: draft.cycle_id,
+          }),
+        ]);
+        if (!isOnboardingActionCurrent(actionToken)) return;
+
+        const sameGenerationInputs = Boolean(cycleSnapshot) &&
+          (cycleSnapshot?.birth_date_snapshot ?? null) === (resolvedBirthDate ?? null) &&
+          (cycleSnapshot?.gender_snapshot ?? null) === (resolvedGender ?? null) &&
+          (cycleSnapshot?.requested_pace ?? null) === (draft.profile.pace || null);
+
+        if (existingDraftPreview && sameGenerationInputs) {
+          console.info("[onboarding][profile_submit][existing_draft_adopted]", {
+            cycle_id: draft.cycle_id,
+            transformation_id: currentTransformation.id,
+            plan_id: existingDraftPreview.planId,
+            updated_at: existingDraftPreview.updatedAt,
+          });
+          persistDraft(setDraft, {
+            cycle_status: "ready_for_plan",
+            stage: "plan_review",
+            plan_review: {
+              plan_id: existingDraftPreview.planId,
+              plan_preview: existingDraftPreview.plan,
+              feedback: "",
+            },
+          });
+          return;
+        }
+      } catch {
+        // Best-effort — fall through to the normal generation path.
+      }
+
       const now = new Date().toISOString();
       await clearServerDownstreamState({
         targetStage: "profile",
@@ -2901,11 +2999,13 @@ export default function OnboardingV2() {
       });
     } catch (submitError) {
       if (!isOnboardingActionCurrent(actionToken)) return;
-      if (isPlanGenerationTimeout(submitError)) {
-        const recoveredPreview = await recoverPlanPreviewAfterTimeout({
+      const recoveryWaitMs = planPreviewRecoveryWaitMs(submitError);
+      if (recoveryWaitMs != null) {
+        const recoveredPreview = await recoverPlanPreviewAfterFailure({
           actionToken,
           transformationId: currentTransformation.id,
           requestStartedAt,
+          maxWaitMs: recoveryWaitMs,
         });
         if (recoveredPreview && isOnboardingActionCurrent(actionToken)) {
           persistDraft(setDraft, {
@@ -3039,11 +3139,13 @@ export default function OnboardingV2() {
       });
     } catch (submitError) {
       if (!isOnboardingActionCurrent(actionToken)) return;
-      if (isPlanGenerationTimeout(submitError)) {
-        const recoveredPreview = await recoverPlanPreviewAfterTimeout({
+      const recoveryWaitMs = planPreviewRecoveryWaitMs(submitError);
+      if (recoveryWaitMs != null) {
+        const recoveredPreview = await recoverPlanPreviewAfterFailure({
           actionToken,
           transformationId: currentTransformation.id,
           requestStartedAt,
+          maxWaitMs: recoveryWaitMs,
         });
         if (recoveredPreview && isOnboardingActionCurrent(actionToken)) {
           persistDraft(setDraft, {
@@ -3122,28 +3224,40 @@ export default function OnboardingV2() {
         error_message: getErrorMessage(submitError, "plan_confirm_failed"),
         raw_error: submitError,
       });
-      if (isPlanGenerationTimeout(submitError)) {
+      if (planPreviewRecoveryWaitMs(submitError) != null) {
         try {
-          const [{ data: cycleCheck }, { data: existingPlan }] = await Promise.all([
-            supabase
-              .from("user_cycles")
-              .select("status,active_transformation_id")
-              .eq("id", draft.cycle_id)
-              .maybeSingle(),
-            supabase
-              .from("user_plans_v2")
-              .select("id,status")
-              .eq("transformation_id", currentTransformation.id)
-              .in("status", ["generated", "active", "paused"])
-              .order("updated_at", { ascending: false })
-              .limit(1)
-              .maybeSingle(),
-          ]);
+          // The confirm may have landed server-side even though the response
+          // was lost. Activation is DB-only (no LLM), so a short poll is
+          // enough to observe it.
+          let shouldRedirect = false;
+          const confirmRecoveryDeadline = Date.now() + 15_000;
+          while (!shouldRedirect) {
+            const [{ data: cycleCheck }, { data: existingPlan }] = await Promise.all([
+              supabase
+                .from("user_cycles")
+                .select("status,active_transformation_id")
+                .eq("id", draft.cycle_id)
+                .maybeSingle(),
+              supabase
+                .from("user_plans_v2")
+                .select("id,status")
+                .eq("transformation_id", currentTransformation.id)
+                .in("status", ["generated", "active", "paused"])
+                .order("updated_at", { ascending: false })
+                .limit(1)
+                .maybeSingle(),
+            ]);
+            if (!isOnboardingActionCurrent(actionToken)) return;
 
-          const shouldRedirect =
-            cycleCheck?.status === "active" ||
-            existingPlan?.status === "active" ||
-            existingPlan?.status === "paused";
+            shouldRedirect = cycleCheck?.status === "active" ||
+              existingPlan?.status === "active" ||
+              existingPlan?.status === "paused";
+
+            if (shouldRedirect || Date.now() + 3_000 > confirmRecoveryDeadline) {
+              break;
+            }
+            await wait(3_000);
+          }
 
           if (shouldRedirect) {
             try {

@@ -14,6 +14,7 @@ export type ActiveLocalConversationFlowSkillId =
   | "plan_realignment"
   | "feature_opportunity"
   | "potion_support_admission_v1"
+  | "winback_reengagement_v1"
   | "presence_conversation"
   | "safety_crisis";
 
@@ -27,6 +28,7 @@ const ACTIVE_LOCAL_CONVERSATION_FLOW_SKILL_IDS = new Set<
   "plan_realignment",
   "feature_opportunity",
   "potion_support_admission_v1",
+  "winback_reengagement_v1",
   "presence_conversation",
   "safety_crisis",
 ]);
@@ -122,6 +124,14 @@ export function isStaleActiveLocalFlowState(
   if (
     String(record.skill_id ?? "") === "potion_support_admission_v1" &&
     record.working_state?.potion_support_admission?.awaiting_first_reply === true
+  ) return false;
+  // Même carve-out pour le réengagement winback : l'utilisateur peut répondre
+  // à la relance plusieurs jours après l'armement — l'ouverture proactive
+  // possède exactement une réponse sémantique, pas un timer de 4h.
+  if (
+    String(record.skill_id ?? "") === "winback_reengagement_v1" &&
+    record.working_state?.winback_reengagement_local_state
+        ?.awaiting_first_reply === true
   ) return false;
   const touchedAt = Date.parse(
     String(record.updated_at ?? record.started_at ?? ""),
@@ -274,6 +284,10 @@ export function buildLastLocalFlowExitContext(
       memo: temp.__last_potion_support_admission_exit_memo,
     },
     {
+      operation_type: "winback_reengagement_v1",
+      memo: temp.__last_winback_reengagement_exit_memo,
+    },
+    {
       operation_type: "coaching_recommendation",
       memo: temp.__last_coaching_recommendation_exit_memo,
     },
@@ -325,6 +339,7 @@ export function clearLastLocalFlowExitContext<
   delete next.__last_weekly_adaptive_review_child_flow_handoff;
   delete next.__last_product_help_exit_memo;
   delete next.__last_potion_support_admission_exit_memo;
+  delete next.__last_winback_reengagement_exit_memo;
   delete next.__last_coaching_recommendation_exit_memo;
   delete next.__last_feature_opportunity_exit_memo;
   delete next.__last_safety_crisis_exit_memo;

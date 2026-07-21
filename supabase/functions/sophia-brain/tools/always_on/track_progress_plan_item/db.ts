@@ -4,6 +4,9 @@ import {
   getActiveTransformationRuntime,
 } from "../../../../_shared/v2-runtime.ts";
 import { logV2Event, V2_EVENT_TYPES } from "../../../../_shared/v2-events.ts";
+import {
+  creditCompletedEntryToWeekOccurrence,
+} from "../../../../_shared/off_schedule_credit.ts";
 import type {
   UserPlanItemEntryRow,
   UserPlanItemRow,
@@ -520,6 +523,24 @@ export async function logPlanItemProgressV2(args: {
           }),
         );
       }
+    }
+
+    // Crédit hors-planning: une complétion dite en chat marque aussi
+    // l'occurrence réelle de la semaine (jour exact sinon première ouverte,
+    // actual_day = jour effectivement fait) — le bilan hebdo la compte alors
+    // par occurrence, et le bilan du soir ne la redemande pas. Non-bloquant.
+    const credit = await creditCompletedEntryToWeekOccurrence({
+      supabase,
+      userId,
+      planItemId: item.id,
+      effectiveLocalDate: effectiveDay,
+      nowIso,
+    });
+    if (credit.warning) {
+      console.error(
+        "[TrackProgress] off_schedule_credit_failed (entry committed, occurrence NOT updated)",
+        JSON.stringify({ plan_item_id: item.id, warning: credit.warning }),
+      );
     }
   }
 

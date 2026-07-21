@@ -11,7 +11,10 @@ import { supabase } from "../../lib/supabase";
 import {
   AttackTechniqueFlowModal,
 } from "./LabCardsPanel";
-import { ATTACK_TECHNIQUE_PREVIEWS } from "./attackTechniquePreviews";
+import {
+  ATTACK_TECHNIQUE_ACTION_QUESTION_INDEX,
+  ATTACK_TECHNIQUE_PREVIEWS,
+} from "./attackTechniquePreviews";
 import type {
   DefenseDraftPreview,
   DefenseDraftQuestionnaire,
@@ -32,23 +35,29 @@ export function PlanItemResourceActions({
   const [attackOpen, setAttackOpen] = useState(false);
   const [generatingAttackTechniqueKey, setGeneratingAttackTechniqueKey] =
     useState<AttackTechniqueKey | null>(null);
+  // Carte liee a une action du plan: la question "quelle action ?" n'a aucun
+  // sens ici (le backend recoit deja l'action via action_context) — elle est
+  // retiree du parcours au lieu d'etre prefixee artificiellement.
   const attackTechniques = useMemo(
     () =>
-      ATTACK_TECHNIQUE_PREVIEWS.map((technique) => ({
-        ...technique,
-        questions: (technique.questions ?? []).map((question, index) => {
-          if (index === 0) {
-            return `Pour l'action "${item.title}", ${question.charAt(0).toLowerCase()}${question.slice(1)}`;
-          }
-          return question;
-        }),
-      })),
-    [item.title],
+      ATTACK_TECHNIQUE_PREVIEWS.map((technique) => {
+        const anchorIndex =
+          ATTACK_TECHNIQUE_ACTION_QUESTION_INDEX[technique.technique_key] ??
+            null;
+        return {
+          ...technique,
+          questions: (technique.questions ?? []).filter(
+            (_, index) => index !== anchorIndex,
+          ),
+        };
+      }),
+    [],
   );
 
   const handleGenerateAttackTechnique = async (
     techniqueKey: AttackTechniqueKey,
     answers: string[],
+    options?: { questions?: string[] },
   ): Promise<AttackTechniqueGeneratedResult | null> => {
     setGeneratingAttackTechniqueKey(techniqueKey);
     try {
@@ -76,6 +85,9 @@ export function PlanItemResourceActions({
             attack_card_id: attackCardId,
             technique_key: techniqueKey,
             answers,
+            ...(options?.questions?.length
+              ? { questions: options.questions }
+              : {}),
           },
         },
       );
@@ -145,6 +157,7 @@ export function PlanItemResourceActions({
         isOpen={attackOpen}
         techniques={attackTechniques}
         generatingTechniqueKey={generatingAttackTechniqueKey}
+        contextLabel={`Pour l'action « ${item.title} »`}
         onClose={() => setAttackOpen(false)}
         onSubmit={handleGenerateAttackTechnique}
       />

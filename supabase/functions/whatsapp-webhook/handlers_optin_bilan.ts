@@ -1,4 +1,6 @@
 import { classifyWinbackReplyIntent } from "../_shared/whatsapp_winback.ts";
+import { closeReengagementEpisodeOnWinbackReply } from "../_shared/reengagement_episodes.ts";
+import { isWinbackReengagementFlowEnabled } from "../sophia-brain/skills/winback_reengagement/context.ts";
 import { getActiveTransformationRuntime } from "../_shared/v2-runtime.ts";
 import {
   classifyTemplateReplyChoice,
@@ -188,6 +190,23 @@ export async function handleOptInAndDailyBilanActions(params: any) {
       text: params.inboundText,
     });
     const nowIso = new Date().toISOString();
+    // Chantier réengagement (19/07) : flag actif, TOUTE réponse au winback
+    // (texte libre comme libellé de bouton — les boutons des templates
+    // arrivent en libellé, pas en actionId dédié) entre dans le flow
+    // conversationnel winback_reengagement_v1 (armé à l'envoi, capté par
+    // sophia-brain sur le chemin par défaut). Le flow classe l'intention par
+    // le CONTENU et possède la clôture de l'épisode + la pose de pause —
+    // charte cmd 0/14 : pas de fast-path déterministe qui court-circuite la
+    // lecture d'intention. On ne touche au profil que le minimum non
+    // destructif (surtout : on ne reset PAS le winback_step ici, la ceinture
+    // d'armement en a besoin sur le chemin par défaut).
+    if (isWinbackReengagementFlowEnabled()) {
+      await params.admin.from("profiles").update({
+        whatsapp_bilan_opted_in: true,
+        whatsapp_bilan_last_winback_at: nowIso,
+      }).eq("id", params.userId);
+      return false;
+    }
     const patchBase: Record<string, any> = {
       whatsapp_bilan_opted_in: true,
       whatsapp_bilan_missed_streak: 0,
@@ -214,6 +233,16 @@ export async function handleOptInAndDailyBilanActions(params: any) {
       "id",
       params.userId,
     );
+    // Chantier réengagement (19/07) : la réponse au winback clôt l'épisode
+    // de décrochage avec les faits précis (touche atteinte, intent). Interne
+    // best-effort — ne peut pas bloquer la réponse à l'utilisateur.
+    await closeReengagementEpisodeOnWinbackReply({
+      admin: params.admin,
+      userId: params.userId,
+      intent: winbackIntent,
+      nowIso,
+      requestId: String(params.requestId ?? ""),
+    });
     if (winbackIntent === "pause_short") {
       await params.replyWithBrain({
         admin: params.admin,

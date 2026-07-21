@@ -17,13 +17,17 @@ export interface WhatsAppWinbackEvaluation {
   current_step: number;
 }
 
-const WINBACK_STEP_MIN_INACTIVITY_DAYS: Record<WinbackStep, number> = {
-  1: 2,
-  2: 5,
-  3: 9,
+// Seuils d'inactivité par touche (chantier réengagement 19/07 : 3/6/10,
+// anciennement 2/5/9). À 2 jours on relançait encore dans la variance d'un
+// rythme normal ; à 3 jours le décrochage est un vrai signal. Exportés parce
+// que process-checkins doit précouper sa requête SQL sur le seuil du step 1.
+export const WINBACK_STEP_MIN_INACTIVITY_DAYS: Record<WinbackStep, number> = {
+  1: 3,
+  2: 6,
+  3: 10,
 };
 
-const WINBACK_STEP_MIN_GAP_DAYS: Record<WinbackStep, number> = {
+export const WINBACK_STEP_MIN_GAP_DAYS: Record<WinbackStep, number> = {
   1: 0,
   2: 3,
   3: 4,

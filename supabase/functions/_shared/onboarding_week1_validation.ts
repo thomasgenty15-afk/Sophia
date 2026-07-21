@@ -109,20 +109,6 @@ function firstPlanItem(
   return value ?? null;
 }
 
-export function isOnboardingCompleteForWeek1Validation(profile: {
-  onboarding_completed?: unknown;
-  whatsapp_state?: unknown;
-}): boolean {
-  if (profile.onboarding_completed !== true) return false;
-  const state = cleanText(profile.whatsapp_state);
-  if (!state) return true;
-  return !state.startsWith("onboarding_") &&
-    !state.startsWith("awaiting_plan_finalization") &&
-    !state.startsWith("awaiting_onboarding_") &&
-    !state.startsWith("awaiting_plan_motivation") &&
-    state !== "awaiting_personal_fact";
-}
-
 export function nextAllowedAfterRecentWhatsappInteraction(profile: {
   whatsapp_last_inbound_at?: unknown;
   whatsapp_last_outbound_at?: unknown;

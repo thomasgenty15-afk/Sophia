@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { supabase } from "../lib/supabase";
+import {
+  getPlanWeekCalendar,
+  parsePlanScheduleAnchor,
+} from "../lib/planSchedule";
 import type {
   CurrentLevelRuntime,
   HeartbeatMetric,
@@ -20,8 +24,6 @@ import type {
 import type { DashboardV2PlanItemRuntime } from "./useDashboardV2Data";
 
 type EntryKind = UserPlanItemEntryRow["entry_kind"];
-
-type ActivationCondition = Record<string, unknown> | null;
 
 export type DashboardV2UnlockState = {
   itemId: string;
@@ -95,33 +97,70 @@ function canonicalPlanDimension(dimension: PlanDimension): PlanDimension {
   return dimension === "support" ? "clarifications" : dimension;
 }
 
-function normalizeDependsOn(value: unknown): string[] {
-  if (typeof value === "string") return [value];
-  if (Array.isArray(value)) {
-    return value.filter((entry): entry is string => typeof entry === "string");
+function isRecordValue(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === "object" && !Array.isArray(value);
+}
+
+function getGeneratedTempId(item: DashboardV2PlanItemRuntime): string | null {
+  const generation = isRecordValue(item.payload?._generation)
+    ? item.payload._generation
+    : null;
+  return generation && typeof generation.temp_id === "string"
+    ? generation.temp_id
+    : null;
+}
+
+// Déblocage par semaine: plus aucune condition entre items. Un item pending
+// est prêt dès que sa première semaine assignée est commencée (ou qu'aucune
+// information de semaine n'existe — fail-open, jamais de friction).
+export type WeekUnlockContext = {
+  activePhaseId: string | null;
+  currentWeekOrder: number | null;
+  firstWeekByTempId: Map<string, number>;
+};
+
+function buildWeekUnlockContext(
+  planContentV3: PlanContentV3 | null | undefined,
+): WeekUnlockContext {
+  const runtime = planContentV3?.current_level_runtime ?? null;
+  const weeks = runtime?.weeks ?? [];
+  const anchor = parsePlanScheduleAnchor(
+    planContentV3?.metadata?.schedule_anchor,
+  );
+
+  const firstWeekByTempId = new Map<string, number>();
+  for (const week of [...weeks].sort((a, b) => a.week_order - b.week_order)) {
+    for (const assignment of week.item_assignments ?? []) {
+      const tempId = assignment?.temp_id?.trim();
+      if (!tempId || firstWeekByTempId.has(tempId)) continue;
+      firstWeekByTempId.set(tempId, week.week_order);
+    }
   }
-  return [];
-}
 
-function getMinCompletions(condition: ActivationCondition) {
-  if (!condition) return null;
-  const raw = condition.min_completions;
-  return typeof raw === "number" && Number.isFinite(raw) ? raw : null;
-}
+  let currentWeekOrder: number | null = null;
+  if (anchor && weeks.length > 0) {
+    let maxCompleted = 0;
+    let current: number | null = null;
+    let allUpcoming = true;
+    for (const week of weeks) {
+      const calendar = getPlanWeekCalendar(anchor, week.week_order);
+      if (!calendar) continue;
+      if (calendar.status === "current") current = week.week_order;
+      if (calendar.status === "completed") {
+        maxCompleted = Math.max(maxCompleted, week.week_order);
+      }
+      if (calendar.status !== "upcoming") allUpcoming = false;
+    }
+    if (current != null) currentWeekOrder = current;
+    else if (!allUpcoming) currentWeekOrder = maxCompleted + 1;
+    else currentWeekOrder = 0;
+  }
 
-function getPositiveEntryCount(item: DashboardV2PlanItemRuntime) {
-  const fromEntries = item.recent_entries.filter((entry) =>
-    entry.entry_kind === "checkin" ||
-    entry.entry_kind === "progress" ||
-    entry.entry_kind === "partial"
-  ).length;
-
-  return Math.max(item.current_reps ?? 0, fromEntries);
-}
-
-function getConditionType(condition: ActivationCondition) {
-  if (!condition) return null;
-  return typeof condition.type === "string" ? condition.type : null;
+  return {
+    activePhaseId: runtime?.phase_id ?? null,
+    currentWeekOrder,
+    firstWeekByTempId,
+  };
 }
 
 function sortItems(items: DashboardV2PlanItemRuntime[]) {
@@ -171,12 +210,31 @@ function buildPreviewPhaseStub(level: PlanBlueprintLevel): PlanPhase {
 
 function evaluateUnlockState(
   item: DashboardV2PlanItemRuntime,
-  itemsById: Map<string, DashboardV2PlanItemRuntime>,
+  context: WeekUnlockContext,
 ): DashboardV2UnlockState {
-  const condition = item.activation_condition;
-  const type = getConditionType(condition);
+  if (
+    context.activePhaseId && item.phase_id &&
+    item.phase_id !== context.activePhaseId
+  ) {
+    return {
+      itemId: item.id,
+      isReady: false,
+      reason: "Cet élément arrive dans un niveau de plan ultérieur.",
+      remainingCount: null,
+      dependsOnItems: [],
+    };
+  }
 
-  if (!condition || type === "immediate") {
+  const tempId = getGeneratedTempId(item);
+  const firstWeek = tempId
+    ? context.firstWeekByTempId.get(tempId) ?? null
+    : null;
+
+  if (
+    firstWeek == null ||
+    context.currentWeekOrder == null ||
+    firstWeek <= Math.max(1, context.currentWeekOrder)
+  ) {
     return {
       itemId: item.id,
       isReady: true,
@@ -186,73 +244,12 @@ function evaluateUnlockState(
     };
   }
 
-  const dependsOnIds = normalizeDependsOn(condition.depends_on);
-  const dependsOnItems = dependsOnIds
-    .map((id) => itemsById.get(id))
-    .filter((value): value is DashboardV2PlanItemRuntime => Boolean(value));
-
-  if (type === "after_item_completion" || type === "after_milestone") {
-    const incompleteDependencies = dependsOnItems.filter((dependency) =>
-      dependency.status !== "completed" && !isMaintenanceItem(dependency)
-    );
-
-    if (incompleteDependencies.length === 0) {
-      return {
-        itemId: item.id,
-        isReady: true,
-        reason: "Les prérequis sont validés.",
-        remainingCount: 0,
-        dependsOnItems,
-      };
-    }
-
-    const lead = incompleteDependencies[0];
-    return {
-      itemId: item.id,
-      isReady: false,
-      reason:
-        incompleteDependencies.length === 1
-          ? `Terminer "${lead.title}" pour débloquer cet élément.`
-          : `Valider ${incompleteDependencies.length} prérequis avant de débloquer cet élément.`,
-      remainingCount: incompleteDependencies.length,
-      dependsOnItems,
-    };
-  }
-
-  if (type === "after_habit_traction") {
-    const habit = dependsOnItems[0];
-    const minCompletions = getMinCompletions(condition) ?? 3;
-
-    if (!habit) {
-      return {
-        itemId: item.id,
-        isReady: false,
-        reason: "Une dépendance d'habitude est introuvable.",
-        remainingCount: minCompletions,
-        dependsOnItems: [],
-      };
-    }
-
-    const completions = getPositiveEntryCount(habit);
-    const remaining = Math.max(minCompletions - completions, 0);
-
-    return {
-      itemId: item.id,
-      isReady: remaining === 0,
-      reason: remaining === 0
-        ? `"${habit.title}" a atteint la traction requise.`
-        : `Plus que ${remaining} validation${remaining > 1 ? "s" : ""} sur "${habit.title}".`,
-      remainingCount: remaining,
-      dependsOnItems: [habit],
-    };
-  }
-
   return {
     itemId: item.id,
     isReady: false,
-    reason: "Condition de déblocage non reconnue.",
+    reason: `Arrive en semaine ${firstWeek} — activation automatique au début de sa semaine.`,
     remainingCount: null,
-    dependsOnItems,
+    dependsOnItems: [],
   };
 }
 
@@ -507,14 +504,19 @@ export function useDashboardV2Logic({
     );
   }, [planContentV3, planItems]);
 
+  const weekUnlockContext = useMemo(
+    () => buildWeekUnlockContext(planContentV3),
+    [planContentV3],
+  );
+
   const unlockStateByItemId = useMemo(() => {
     const map = new Map<string, DashboardV2UnlockState>();
     for (const item of planItems) {
       if (item.status !== "pending") continue;
-      map.set(item.id, evaluateUnlockState(item, itemsById));
+      map.set(item.id, evaluateUnlockState(item, weekUnlockContext));
     }
     return map;
-  }, [itemsById, planItems]);
+  }, [planItems, weekUnlockContext]);
 
   const nextUnlock = useMemo<DashboardV2UnlockPreview | null>(() => {
     if (planContentV3) return null;

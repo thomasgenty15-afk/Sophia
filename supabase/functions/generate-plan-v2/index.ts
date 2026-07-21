@@ -10,6 +10,7 @@ import { classifyPlanTypeForTransformation } from "../classify-plan-type-v1/inde
 import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
 import { enforceRateLimit, RATE_PRESETS } from "../_shared/rate-limit.ts";
 import { distributePlanItemsV3 } from "../_shared/v2-plan-distribution.ts";
+import { activateDueWeekItems } from "../_shared/v2-week-activation.ts";
 import {
   buildPhase1Context,
   mergePhase1Payload,
@@ -2628,6 +2629,17 @@ async function activatePersistedPlan(args: {
       cause: activatePlanError,
     });
   }
+
+  // Déblocage par semaine: sweep idempotent après matérialisation — couvre
+  // les redistributions où les items existaient déjà (insert skipped) et
+  // garantit que les items de la semaine courante sont actifs.
+  await activateDueWeekItems({
+    supabase: args.admin,
+    userId: args.userId,
+    planId: args.planRow.id,
+    planContent: plan,
+    now: new Date(args.now),
+  });
 
   const scopedSuccessDefinition =
     typeof plan.strategy?.success_definition === "string" &&

@@ -72,6 +72,9 @@ import {
   runDailyActionCoachingRecommendationSkill,
 } from "../sophia-brain/skills/daily_action_coaching_recommendation/skill.ts";
 import {
+  planItemPatchForCompletedEntry,
+} from "../sophia-brain/tools/always_on/track_progress_plan_item/db.ts";
+import {
   dailyReviewEffectsFullyCommitted,
   executeDailyReviewEffectPlan,
 } from "../_shared/daily_action_review/executor.ts";
@@ -2302,6 +2305,49 @@ async function handleActionEveningReviewReply(params: {
         .insert([entry]);
       if (insertErr) throw insertErr;
       existingEntryIdByPlanItemId.set(effect.plan_item_id, entry.id);
+      // Miroir du contrat d'écriture dashboard/chat (planItemPatchForCompletedEntry):
+      // sans ce deuxième write, une validation faite au bilan du soir laisse la
+      // carte à 0/target alors que l'entry est committée. Non-bloquant: l'entry
+      // reste la source de vérité, le compteur est recalculable.
+      if (outcome === "completed") {
+        const { data: itemRow, error: itemErr } = await params.admin
+          .from("user_plan_items")
+          .select(
+            "id,dimension,tracking_type,status,current_habit_state,target_reps,current_reps,activated_at,completed_at",
+          )
+          .eq("id", entry.plan_item_id)
+          .eq("user_id", params.userId)
+          .maybeSingle();
+        if (itemErr || !itemRow) {
+          console.error(
+            "[handlers_pending] daily_review item_patch_load_failed (entry committed, counter NOT updated)",
+            JSON.stringify({
+              plan_item_id: entry.plan_item_id,
+              error: itemErr?.message ?? "item_not_found",
+            }),
+          );
+        } else {
+          const patch = planItemPatchForCompletedEntry(itemRow as any, nowIso);
+          if (patch) {
+            const patchResult = await params.admin
+              .from("user_plan_items")
+              .update({ ...patch, updated_at: nowIso })
+              .eq("id", entry.plan_item_id)
+              .eq("user_id", params.userId);
+            if (patchResult.error) {
+              console.error(
+                "[handlers_pending] daily_review item_patch_failed (entry committed, counter/status NOT updated)",
+                JSON.stringify({
+                  plan_item_id: entry.plan_item_id,
+                  patch,
+                  error: patchResult.error?.message ??
+                    String(patchResult.error),
+                }),
+              );
+            }
+          }
+        }
+      }
       await logV2Event(params.admin, V2_EVENT_TYPES.PLAN_ITEM_ENTRY_LOGGED, {
         user_id: params.userId,
         cycle_id: entry.cycle_id,
