@@ -801,3 +801,35 @@ interdite des trois), et le max-tours ferme au suivant.
 **Reste sur P1.4** : le câblage du reducer dans `handlers_meal_photo.ts` (persistance de l'état de
 flow dans `user_chat_states.temp_memory` + le classifieur d'intention local). Le reducer est prêt
 et testé ; le branchement runtime ne l'est pas.
+
+---
+
+## 13:20 — Legacy : audit + le seul prérequis sûr (route 404)
+
+### Audit de ce qui reste (chiffres relevés en base et dans le repo, pas de mémoire)
+| Groupe | Reste | Verdict du plan |
+|---|---|---|
+| Tables SANS FK spine (architect ×4, modules/week_states ×3, core_identity ×2, referral ×3, weekly_bilan ×1) | **13 tables** | §6.3 « supprimables immédiatement » ⚠️ sauf referral (réécrire `handle_new_user()` d'abord) |
+| Tables SPINE B2C | **14 tables** | §6.3 « **PAS cette nuit** — après validation réelle du produit » |
+| Edge functions SUPPRIMER-APRÈS-CUTOVER | **18 / 18** | ANNEXE C.4 : après cutover |
+| Pages frontend à supprimer | 6 (~6 900 l. dont `OnboardingV2` 3 697 et `DashboardV2` 1 716) | ANNEXE A.1 |
+| Les 5 fonctions DÉBRANCHER | crons **coupés** ✅, mais 4/5 ont encore un appelant frontend | ANNEXE C.3 |
+
+### Pourquoi je ne supprime RIEN de plus ce soir
+`docs/keel/BUILD_PLAN.md` arbitrage n°1, verbatim : « Les tables legacy restent en base, vides pour
+les utilisateurs KEEL, **vivantes pour la branche FR**. » Dropper ces tables n'est donc pas une
+tâche de nettoyage, c'est **décider que la branche FR n'a plus d'utilisateurs** — un arbitrage
+produit qui appartient à Thomas, et une action irréversible sur des données réelles au `db push`.
+S'y ajoute la doctrine du dépôt (`verify-before-delete`) : vérification adversariale indépendante
+avant toute suppression legacy.
+
+### Ce que j'ai fait, parce que c'est sûr, additif, et déjà un défaut
+**La route 404 catch-all** (`keel/pages/NotFoundPage.tsx` + `App.tsx`), ANNEXE A.6 point 1.
+Le routeur n'en avait **aucune** : n'importe quelle URL inconnue — faute de frappe, vieux lien
+d'email, bookmark — rendait un **écran blanc**. C'est déjà un bug aujourd'hui, avant tout
+démontage, et c'est le **prérequis** du démontage : le jour où `/dashboard` ou `/onboarding-v2`
+disparaissent, chaque lien encore en circulation (emails de rétention, historique, messages
+WhatsApp déjà envoyés) tombe ici au lieu de tomber dans le vide.
+Placée **en dernier** dans `<Routes>` : React Router prend la première route qui matche, un `"*"`
+plus haut avalerait tout ce qui suit.
+Vérifié dans le navigateur : `/dashboard-qui-nexiste-pas` → la 404 ; `/coach` → inchangé.

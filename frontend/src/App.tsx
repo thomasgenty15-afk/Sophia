@@ -39,6 +39,7 @@ import StudentMealPlanPage from "./keel/pages/mealPlan/StudentMealPlanPage";
 import { KeelStudentRoute } from "./keel/components/KeelStudentRoute";
 import CoachHomePage from "./keel/pages/CoachHomePage";
 import CoachDoctrinePage from "./keel/pages/CoachDoctrinePage";
+import NotFoundPage from "./keel/pages/NotFoundPage";
 import CoachBillingPage from "./keel/pages/CoachBillingPage";
 import TemplatesPage from "./keel/pages/TemplatesPage";
 import { CoachRoute } from "./keel/components/CoachRoute";
@@ -289,6 +290,15 @@ function App() {
                   </RequireAdmin>
                 }
               />
+              {/* PIVOT / ANNEXE A.6 point 1 — LE CATCH-ALL, et il doit rester
+                  EN DERNIER: React Router prend la première route qui matche,
+                  donc un "*" placé plus haut avalerait tout ce qui suit.
+                  Avant lui, une URL inconnue rendait un écran blanc — déjà un
+                  défaut aujourd'hui, et le prérequis du démontage legacy: le
+                  jour où /dashboard ou /onboarding-v2 disparaissent, tous les
+                  liens encore en circulation tombent ici plutôt que dans le
+                  vide. */}
+              <Route path="*" element={<NotFoundPage />} />
             </Routes>
             </ErrorBoundary>
           </div>
