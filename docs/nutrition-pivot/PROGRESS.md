@@ -572,3 +572,49 @@ To catch up:
 - Julie: is logging, but has no published plan lines to log against - publish their plan and this becomes measurable.
 ```
 Ligne écrite en base avec `delivered_at: null`, `metrics` et `flagged_students` complets.
+
+---
+
+## 09:30 — P1.6 : VERT ET CÂBLÉ — la relance tourne sur la VRAIE base
+
+- `_shared/keel/reengagement_io.ts` (neuf, 5 tests) : sélection + armement.
+  **Un seul seuil** : la requête importe `REENGAGE_AFTER_HOURS` du décideur (un test relit le
+  source pour interdire une seconde constante). Une requête qui précoupe à 48h quand le décideur
+  exige 72h balaie pour rien ; à 96h elle ne présenterait jamais les bons candidats.
+- `functions/keel-reengage-v1/` (neuf) : job horaire, `dry_run` par défaut possible. **Il ne rédige
+  pas le message** — la génération passe par le composeur (qui porte la doctrine et la ceinture de
+  sortie) et l'envoi par le moteur outbound. Un job proactif qui rédigerait son propre texte
+  contournerait les deux, et c'est exactement là que la voix du coach se perd.
+- Colonnes de `reengagement_episodes` **vérifiées en base avant écriture** : la table porte
+  `opened_at`/`closed_at`/`last_touch_step`, pas `resolved_at`/`trigger_reason` comme je l'avais
+  supposé. Corrigé avant la première écriture.
+
+**L'ordre ouvrir-puis-envoyer est un choix, pas un détail** : si l'envoi échoue après l'ouverture,
+on perd une relance ; dans l'ordre inverse, un crash entre les deux produit un message envoyé et un
+épisode non marqué — donc une **seconde** relance au tick suivant sur quelqu'un qui vient d'en
+recevoir une. Entre « une de moins » et « deux d'affilée », le produit choisit la première.
+
+**Fail-closed sur le spam** : si la lecture d'épisode échoue, le candidat est considéré **déjà
+touché**. C'est l'asymétrie inverse de celle des contraintes de sécurité, et c'est voulu : ici le
+risque est d'écrire deux fois, pas de rater une vérification.
+
+### Vérifié sur la VRAIE base (pas des fakes)
+```
+CANDIDATES: [{u:0012, last:2026-07-01, plan:true, ep:false, h:12}]   ← Julie (parlé hier) exclue
+DECISIONS:  [{u:0012, decision:"send", tone:"gentle", hoursSilent:793}]
+EPISODE OPENED: {opened:true, id:f269814d-…}
+SECOND PASS:    [{decision:"skip", reason:"already_nudged_this_episode"}]
+EPISODE ROW:    last_touch_step=1 | inactive=33 | closed=null
+```
+**L'invariant « UNE seule relance par épisode » est prouvé sur des lignes réelles**, pas sur un
+mock : deuxième passe immédiatement après l'ouverture → `already_nudged_this_episode`.
+
+### Crons (`20260803090000_pivot_nutrition_crons.sql`)
+`keel-coach-synthesis` lundi 06:00 UTC (après le rollover et le balayage de dimanche : la semaine
+doit être **évaluée** avant d'être racontée) et `keel-reengage` toutes les heures à :25 (la décision
+dépend de l'heure LOCALE, donc un job quotidien ne servirait qu'un fuseau).
+Helper repris à l'identique de W7.5 — les secrets sont résolus **à l'exécution**, jamais interpolés
+(sinon le job poste dans le vide et `cron.job_run_details` affiche quand même `succeeded`).
+Les assertions vont plus loin que « le job existe » : elles vérifient que la commande **nomme la
+bonne fonction** et **résout son secret**, parce que « le job existe » est exactement la
+vérification qui avait laissé passer le défaut W7.5.
