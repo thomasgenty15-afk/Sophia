@@ -88,6 +88,17 @@ export const INTERVIEW_QUESTIONS: ReadonlyArray<
       "What advice must your agent NEVER give a student of yours? List the things you would be embarrassed to see it say.",
   },
   {
+    // C2 : sans cette question, chaque interdit produit un refus sec.
+    //
+    // Un élève de masterclasse n'a AUCUN canal un-à-un vers son coach: quand
+    // l'agent bloque, il ne peut pas dire « demande-lui ». Ce que le coach
+    // écrit ici est littéralement ce que l'élève reçoit à la place — c'est la
+    // seule façon de répondre à sa place sans inventer sa position.
+    section: "forbidden",
+    question:
+      "For each of those, what do you tell a student to do INSTEAD? Answer word for word — this is exactly what your students will read when your agent has to hold the line for you.",
+  },
+  {
     section: "vocabulary",
     question:
       "Which words do you use with your students that are yours - and what do they mean exactly?",
@@ -124,7 +135,7 @@ Output a single JSON object, nothing else.
 
 {
   "beliefs":     [{ "claim": "...", "rationale": "..."|null }],
-  "forbidden":   [{ "token": "snake_case_ascii", "surface_forms": ["..."], "reason": "..."|null }],
+  "forbidden":   [{ "token": "snake_case_ascii", "surface_forms": ["..."], "reason": "..."|null, "instead": "..."|null }],
   "vocabulary":  [{ "term": "...", "meaning": "..."|null }],
   "arbitrations":[{ "situation": "...", "coach_answer": "..." }],
   "voice":       { "address": "tu"|"vous"|null, "length": "short"|"medium"|null, "emojis": "none"|"light"|null, "language": "BCP-47"|null }
@@ -134,6 +145,7 @@ RULES PER FIELD:
 
 - forbidden.token: ASCII snake_case, derived from the meaning ("six small meals" -> six_small_meals). Code branches on this token, so it is never translated and never contains spaces or accents.
 - forbidden.surface_forms: the ACTUAL phrasings a model would write, in the coach's language AND in English. This is what a deterministic filter matches on; a token alone catches nothing in real prose. Give 2-4 per interdiction.
+- forbidden.instead: what the coach said to do INSTEAD, as close to verbatim as you can. This is not a summary and not a paraphrase — this exact text is shown to students when the agent has to hold the coach's line, so it must sound like him and must stand on its own as a complete answer. If he did not say what he does instead, null. NEVER write one yourself: an invented replacement is the agent putting words in the coach's mouth at the precise moment it claims to be protecting his method.
 - arbitrations.coach_answer: the coach's words, kept as close to verbatim as possible. Do NOT smooth them, do NOT make them more professional. Their value is that they sound like him.
 - voice: only fill a field the coach actually indicated. Guessing "tu" because the interview was in French is exactly the kind of invention this prompt forbids.
 

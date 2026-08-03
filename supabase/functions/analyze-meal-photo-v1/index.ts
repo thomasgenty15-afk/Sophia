@@ -103,6 +103,9 @@ const EVENT_COLUMNS = [
   "portion_band",
   "recognized",
   "recognition_confidence",
+  // Lu pour rendre l'accusé dans la langue de la ligne, plutôt que dans une
+  // constante en dur au point d'appel.
+  "content_locale",
 ].join(", ");
 
 const MEAL_PHOTO_BUCKET = "meal-photos";
@@ -122,6 +125,7 @@ type EventRow = {
   portion_band: string | null;
   recognized: Record<string, unknown> | null;
   recognition_confidence: number | null;
+  content_locale: string | null;
 };
 
 function adminClient(): SupabaseClient {
@@ -496,7 +500,9 @@ Deno.serve(async (req) => {
         binding,
         credit,
         commitmentTitles: titles,
-        locale: "en",
+        // Le token de la ligne, plus une constante en dur: c'est la donnée qui
+        // décide, et `renderMealPhotoAck` accepte désormais la famille `en`.
+        locale: String(readBack.content_locale ?? "en-GB"),
       }),
       request_id: requestId,
     }, { includeCors: false });

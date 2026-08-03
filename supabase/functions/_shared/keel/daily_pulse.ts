@@ -59,16 +59,24 @@ export function pulseAxisButtonId(axis: PulseAxis): string {
   return `${PULSE_AXIS_PREFIX}${axis.toUpperCase()}`;
 }
 
-/** 20 caractères max par titre — limite Meta, tronquée par `whatsapp-send`. */
-const LEVEL_LABELS_FR: Record<PulseLevel, string> = {
-  good: "Ça roule",
-  mixed: "Moyen",
-  hard: "Dur",
+/**
+ * 20 caractères max par titre — limite Meta, tronquée par `whatsapp-send`.
+ *
+ * R3 : le produit est en anglais. Ces libellés partent tels quels dans le
+ * payload du bouton et doivent aussi correspondre EXACTEMENT aux boutons du
+ * template Meta approuvé (voir `docs/nutrition-pivot/META-TEMPLATES.md`) : hors
+ * fenêtre 24h, c'est le template qui rend le message, et un libellé qui diverge
+ * ici produit deux expériences différentes selon l'heure d'envoi.
+ */
+const LEVEL_LABELS_EN: Record<PulseLevel, string> = {
+  good: "All good",
+  mixed: "So-so",
+  hard: "Rough",
 };
-const AXIS_LABELS_FR: Record<PulseAxis, string> = {
-  energy: "Énergie",
-  hunger: "Faim",
-  sleep: "Sommeil",
+const AXIS_LABELS_EN: Record<PulseAxis, string> = {
+  energy: "Energy",
+  hunger: "Hunger",
+  sleep: "Sleep",
 };
 
 export interface PulseButton {
@@ -79,19 +87,19 @@ export interface PulseButton {
 export function pulseLevelButtons(): PulseButton[] {
   return PULSE_LEVELS.map((level) => ({
     id: pulseLevelButtonId(level),
-    title: LEVEL_LABELS_FR[level],
+    title: LEVEL_LABELS_EN[level],
   }));
 }
 
 export function pulseAxisButtons(): PulseButton[] {
   return PULSE_AXES.map((axis) => ({
     id: pulseAxisButtonId(axis),
-    title: AXIS_LABELS_FR[axis],
+    title: AXIS_LABELS_EN[axis],
   }));
 }
 
-export const PULSE_QUESTION_FR = "Ta journée ?";
-export const PULSE_AXIS_QUESTION_FR = "Qu'est-ce qui a coincé ?";
+export const PULSE_QUESTION_EN = "How was today?";
+export const PULSE_AXIS_QUESTION_EN = "What was hard?";
 
 // ---------------------------------------------------------------------------
 // Lire la réponse
@@ -228,11 +236,11 @@ export interface PulseMessage {
 }
 
 export function renderPulseQuestion(): PulseMessage {
-  return { body: PULSE_QUESTION_FR, buttons: pulseLevelButtons() };
+  return { body: PULSE_QUESTION_EN, buttons: pulseLevelButtons() };
 }
 
 export function renderPulseAxisQuestion(): PulseMessage {
-  return { body: PULSE_AXIS_QUESTION_FR, buttons: pulseAxisButtons() };
+  return { body: PULSE_AXIS_QUESTION_EN, buttons: pulseAxisButtons() };
 }
 
 /**
@@ -244,7 +252,7 @@ export function renderPulseAxisQuestion(): PulseMessage {
  * devient insupportable en une semaine. On accuse réception, on se tait.
  */
 export function renderPulseAck(level: PulseLevel, axis: PulseAxis | null): string {
-  if (level === "good") return "Noté 👌";
-  if (axis === null) return "Noté.";
-  return "Noté, merci.";
+  if (level === "good") return "Got it 👌";
+  if (axis === null) return "Got it.";
+  return "Got it, thanks.";
 }

@@ -57,7 +57,26 @@ import {
 // The doctrine, as stored in `coach_doctrines`
 // ---------------------------------------------------------------------------
 
+/**
+ * ONE conviction of the coach's method.
+ *
+ * `key` is ASCII snake_case (R1) and it carries far more weight than it looks:
+ * it is THE anchor a student's week plan is traced to. A nutrition line in
+ * `student_week_plans` names the belief it applies, and the database refuses
+ * the line if the key is absent (CHECK `..._doctrine_traceable_check`).
+ *
+ * WHY A KEY AND NOT THE CLAIM TEXT: the claim is prose the coach re-words
+ * between versions. A plan generated in March must still be able to say which
+ * conviction it came from in June, and matching on prose would break the first
+ * time a comma moved.
+ *
+ * STABILITY: a doctrine version is an immutable snapshot, so deriving the key
+ * from that version's claim is deterministic and stable. `parseCoachDoctrine`
+ * therefore honours a stored `key` when present and derives one when it is not
+ * -- an older row with no key resolves to the same key it would be given today.
+ */
 export interface DoctrineBelief {
+  key: string;
   claim: string;
   rationale?: string | null;
 }
@@ -76,6 +95,21 @@ export interface DoctrineForbidden {
   token: string;
   surfaceForms?: readonly string[];
   reason?: string | null;
+  /**
+   * WHAT THE COACH DOES INSTEAD, in the coach's own words.
+   *
+   * This is the difference between a gag and an answer. A student in a
+   * masterclass has NO one-to-one channel back to the coach: telling them "ask
+   * your coach" points at a door that does not exist, and it is the opposite of
+   * what a coach buys us for -- they want their position stated in their
+   * absence, not a referral back to them.
+   *
+   * So when lock 2 catches a reply endorsing this interdit, the replacement is
+   * THIS text. Answering in the coach's place is legitimate precisely because
+   * the coach wrote the replacement. When it is missing the lock degrades to a
+   * neutral refusal that still never invents a channel.
+   */
+  instead?: string | null;
 }
 
 export interface DoctrineVocabularyEntry {
@@ -124,6 +158,31 @@ function str(value: unknown): string {
 }
 
 /**
+ * Derive an ASCII snake_case key from a claim (R1).
+ *
+ * Diacritics are folded rather than dropped: "équilibre" must not become
+ * "quilibre". Capped at six words because the key is read by humans on the
+ * coach's screen and in violation reports, and a forty-character key is a key
+ * nobody checks.
+ */
+export function deriveBeliefKey(claim: string): string {
+  const words = claim
+    .normalize("NFD")
+    // Escaped, never literal: a combining-mark range typed into the source is
+    // invisible in a diff and one careless editor pass silently empties it.
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  // A claim of pure punctuation or non-Latin script leaves nothing to derive
+  // from. `belief` is a deliberate, visible placeholder: the caller's dedup
+  // turns a second one into `belief_2`, so it degrades without ever colliding.
+  return words.slice(0, 6).join("_") || "belief";
+}
+
+/**
  * Build a `CoachDoctrine` from a `coach_doctrines` row.
  *
  * Malformed entries are DROPPED and counted, never guessed at: a belief with no
@@ -137,6 +196,7 @@ export function parseCoachDoctrine(
   const issues: string[] = [];
 
   const beliefs: DoctrineBelief[] = [];
+  const beliefKeys = new Set<string>();
   for (const [i, raw] of asArray(row.beliefs).entries()) {
     const b = (raw ?? {}) as Record<string, unknown>;
     const claim = str(b.claim);
@@ -144,7 +204,19 @@ export function parseCoachDoctrine(
       issues.push(`beliefs[${i}]: empty claim, dropped`);
       continue;
     }
-    beliefs.push({ claim, rationale: str(b.rationale) || null });
+    // Honour a stored key; derive one when the row predates keys. Either way
+    // the result must be UNIQUE within the doctrine, because a week plan
+    // resolves its lines by this key -- two beliefs sharing one key would make
+    // a plan line point at an ambiguous origin, which is worse than no origin.
+    let key = str(b.key) || deriveBeliefKey(claim);
+    if (beliefKeys.has(key)) {
+      let n = 2;
+      while (beliefKeys.has(`${key}_${n}`)) n++;
+      issues.push(`beliefs[${i}]: key ${JSON.stringify(key)} already used, stored as ${key}_${n}`);
+      key = `${key}_${n}`;
+    }
+    beliefKeys.add(key);
+    beliefs.push({ key, claim, rationale: str(b.rationale) || null });
   }
 
   const forbidden: DoctrineForbidden[] = [];
@@ -162,6 +234,7 @@ export function parseCoachDoctrine(
       token,
       surfaceForms,
       reason: str(f.reason) || null,
+      instead: str(f.instead) || null,
     });
   }
 

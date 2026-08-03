@@ -104,19 +104,72 @@ export interface OutputLockResult {
  *
  * Il ne s'excuse pas et n'explique pas ce qui a été retiré: dire « je ne peux
  * pas te parler de cacahuètes » NOMME l'allergène et rend l'incident visible à
- * l'élève, ce qui est à la fois anxiogène et inutile. Il défère, simplement.
+ * l'élève, ce qui est à la fois anxiogène et inutile.
+ *
+ * ── POURQUOI IL NE RENVOIE PLUS AU COACH ────────────────────────────────
+ * Il disait « let me check with your coach ». Deux défauts, et le second est
+ * un défaut de sécurité:
+ *   1. Le produit est une MASTERCLASSE. Il n'existe aucun canal un-à-un vers le
+ *      coach: la phrase désignait une porte qui n'existe pas.
+ *   2. Un coach n'est pas la bonne adresse pour une question médicale. Router
+ *      une allergie ou une classe de médicament vers un coach sportif est une
+ *      mauvaise orientation, quand bien même le canal existerait.
  */
 export const MEDICAL_BLOCK_FALLBACK_EN =
-  "I would rather not answer that one from memory - let me check with your coach before I say anything.";
+  "I would rather not answer that one from memory - it touches something medical, and that is not mine to guess at. That is one to put to a doctor.";
 
 /**
- * Le rendu de repli quand l'agent allait contredire le coach.
+ * Le repli de doctrine quand le coach n'a pas dit ce qu'il fait À LA PLACE.
  *
- * Il renvoie explicitement au coach: c'est la règle d'autorité §1.5 rendue
- * visible au moment exact où elle a failli être enfreinte.
+ * ── POURQUOI IL NE DIT PLUS « DEMANDE À TON COACH » ─────────────────────
+ * Parce que c'est exactement l'inverse de ce que le coach achète. Il nous paie
+ * pour être présent en son absence — répondre À SA PLACE, dans sa méthode. Une
+ * déférence systématique lui renvoie ses élèves dans un canal qui n'existe pas
+ * et ne règle rien.
+ *
+ * Ce texte-ci est donc le DERNIER recours: il pose le cadre sans inventer de
+ * porte de sortie. Le vrai repli est `instead`, écrit par le coach.
  */
 export const DOCTRINE_BLOCK_FALLBACK_EN =
-  "That is your coach's call, not mine - I do not want to send you in a direction they would not. Ask them and I will follow it.";
+  "That one sits outside how your coach works, so I would rather not point you down that road.";
+
+/**
+ * Choisit le texte de remplacement quand un interdit a mordu.
+ *
+ * ── LE PIÈGE QUE CETTE FONCTION FERME ───────────────────────────────────
+ * Le texte de substitution est écrit par le COACH et il n'a jamais été soumis
+ * aux verrous — il est injecté APRÈS eux. Un `instead` du type « trois vrais
+ * repas, avec du beurre de cacahuète au petit-déjeuner » servi à un élève
+ * allergique à l'arachide contournerait le verrou médical par la sortie de
+ * secours du verrou de doctrine.
+ *
+ * Le remplacement est donc RE-VÉRIFIÉ contre les contraintes dures de cet
+ * élève. S'il mord, on retombe sur le texte générique — jamais sur le texte du
+ * coach.
+ *
+ * Exportée pour être testée seule: c'est un chemin qu'un test d'ensemble ne
+ * visite qu'avec le bon élève, la bonne doctrine et la bonne allergie à la fois.
+ */
+export function resolveDoctrineReplacement(
+  violationTokens: readonly string[],
+  forbidden: readonly CoachDoctrine["forbidden"][number][],
+  constraints: readonly StudentSafetyConstraint[],
+): { text: string; usedCoachWords: boolean } {
+  for (const token of violationTokens) {
+    const entry = forbidden.find((f) => f.token === token);
+    const instead = String(entry?.instead ?? "").trim();
+    if (!instead) continue;
+    if (findMedicalConstraintViolations(instead, constraints).length > 0) {
+      console.error("keel.output_lock.instead_unsafe", {
+        token,
+        detail: "Coach's replacement names a hard constraint; fell back to generic.",
+      });
+      continue;
+    }
+    return { text: instead, usedCoachWords: true };
+  }
+  return { text: DOCTRINE_BLOCK_FALLBACK_EN, usedCoachWords: false };
+}
 
 /**
  * Applique les deux verrous. L'ordre est le contrat: le MÉDICAL d'abord, parce
@@ -156,15 +209,19 @@ export function applyKeelOutputLocks(input: OutputLockInput): OutputLockResult {
   if (forbidden.length > 0) {
     const doctrineViolations = findDoctrineViolations(text, { forbidden });
     if (doctrineViolations.length > 0) {
+      const tokens = [...new Set(doctrineViolations.map((v) => v.token))];
+      // On répond À LA PLACE du coach avec SES mots quand il les a donnés.
+      const replacement = resolveDoctrineReplacement(tokens, forbidden, constraints);
       console.error("keel.output_lock.doctrine", {
         violation_count: doctrineViolations.length,
-        tokens: [...new Set(doctrineViolations.map((v) => v.token))].join(","),
+        tokens: tokens.join(","),
+        used_coach_words: replacement.usedCoachWords,
         detail: "Visible text replaced before delivery.",
       });
       return {
-        text: DOCTRINE_BLOCK_FALLBACK_EN,
+        text: replacement.text,
         reason: "blocked_coach_interdit",
-        tokens: [...new Set(doctrineViolations.map((v) => v.token))],
+        tokens,
       };
     }
   }

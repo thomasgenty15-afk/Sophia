@@ -63,7 +63,21 @@ interface VersionRow {
 
 interface DoctrineDraft {
   beliefs?: Array<{ claim?: string; rationale?: string | null }>;
-  forbidden?: Array<{ token?: string; surface_forms?: string[]; reason?: string | null }>;
+  forbidden?: Array<{
+    token?: string;
+    surface_forms?: string[];
+    reason?: string | null;
+    /**
+     * What you do INSTEAD, in your own words.
+     *
+     * This is not decoration. When your agent is about to say something you
+     * forbid, this text is what the student receives in its place. Students in
+     * a masterclass have no one-to-one channel back to you — "ask your coach"
+     * points at a door that does not exist — so an interdit without an
+     * `instead` gets a flat refusal, and an interdit with one gets YOUR answer.
+     */
+    instead?: string | null;
+  }>;
   vocabulary?: Array<{ term?: string; meaning?: string | null }>;
   arbitrations?: Array<{ situation?: string; coach_answer?: string }>;
   voice?: Record<string, unknown>;
@@ -380,11 +394,19 @@ function DraftPreview({ draft }: { draft: DoctrineDraft }) {
     ["What you believe", (draft.beliefs ?? []).map((b) => String(b.claim ?? ""))],
     [
       "What your agent must never say",
-      (draft.forbidden ?? []).map((f) =>
-        [String(f.token ?? ""), (f.surface_forms ?? []).join(" / ")]
+      (draft.forbidden ?? []).map((f) => {
+        const head = [String(f.token ?? ""), (f.surface_forms ?? []).join(" / ")]
           .filter(Boolean)
-          .join(" — ")
-      ),
+          .join(" — ");
+        // Shown, and shown as MISSING when it is: an interdit with no
+        // replacement is the one case where a student gets a flat refusal
+        // instead of your answer, and you should be able to see that at a
+        // glance rather than discover it from a student.
+        const instead = String(f.instead ?? "").trim();
+        return instead
+          ? `${head}  ·  instead: “${instead}”`
+          : `${head}  ·  no replacement set — students get a flat refusal here`;
+      }),
     ],
     [
       "Your words",

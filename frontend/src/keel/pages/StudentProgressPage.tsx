@@ -61,9 +61,9 @@ type LoadState =
   | { kind: "ready" };
 
 const AXIS_LABELS: Record<string, string> = {
-  energy: "l'énergie",
-  hunger: "la faim",
-  sleep: "le sommeil",
+  energy: "energy",
+  hunger: "hunger",
+  sleep: "sleep",
 };
 
 function daysBack(range: Range): number {
@@ -171,16 +171,16 @@ export default function StudentProgressPage() {
 
   if (state.kind === "loading") {
     return (
-      <KeelAppShell variant="student" title="Mon avancée">
-        <p className="text-sm text-gray-500">Chargement…</p>
+      <KeelAppShell variant="student" title="My progress">
+        <p className="text-sm text-gray-500">Loading…</p>
       </KeelAppShell>
     );
   }
   if (state.kind === "error") {
     return (
-      <KeelAppShell variant="student" title="Mon avancée">
+      <KeelAppShell variant="student" title="My progress">
         <Card tone="warning">
-          <p className="text-sm text-gray-900">On n'a pas pu lire tes données.</p>
+          <p className="text-sm text-gray-900">We could not load your data.</p>
           <p className="mt-1 text-xs text-gray-600">{state.message}</p>
         </Card>
       </KeelAppShell>
@@ -191,11 +191,11 @@ export default function StudentProgressPage() {
     // est levé. On ne dit pas pourquoi: nommer le drapeau ici serait un
     // diagnostic posé par une machine.
     return (
-      <KeelAppShell variant="student" title="Mon avancée">
+      <KeelAppShell variant="student" title="My progress">
         <Card>
           <p className="text-sm leading-6 text-gray-800">
-            On met les chiffres de côté pour le moment. Ce qui compte cette
-            semaine, c'est comment tu te sens — et ton coach est au courant.
+            We are setting the numbers aside for now. What matters this week
+            is how you feel — and your coach knows.
           </p>
         </Card>
       </KeelAppShell>
@@ -203,7 +203,7 @@ export default function StudentProgressPage() {
   }
 
   return (
-    <KeelAppShell variant="student" title="Mon avancée">
+    <KeelAppShell variant="student" title="My progress">
       <div className="space-y-6">
         <div className="flex gap-2">
           {(["week", "month"] as Range[]).map((r) => (
@@ -217,40 +217,40 @@ export default function StudentProgressPage() {
                   : "bg-white text-gray-700 ring-1 ring-gray-200"
               }`}
             >
-              {r === "week" ? "7 jours" : "30 jours"}
+              {r === "week" ? "7 days" : "30 days"}
             </button>
           ))}
         </div>
 
         {/* 1. LA RÉGULARITÉ — la seule métrique dont on a la preuve qu'elle prédit. */}
         <Card>
-          <SectionLabel>Ta régularité</SectionLabel>
+          <SectionLabel>Your consistency</SectionLabel>
           <p className="mt-2 text-3xl font-semibold text-gray-900">
-            {loggedDays}<span className="text-lg text-gray-400"> / {total} jours</span>
+            {loggedDays}<span className="text-lg text-gray-400"> / {total} days</span>
           </p>
           <p className="mt-2 text-xs leading-5 text-gray-500">
-            C'est la chose qui compte le plus, et de loin. Pas la perfection des
-            journées — le fait qu'elles soient notées.
+            This is the thing that matters most, by a distance. Not how perfect
+            the days were — the fact that they got logged at all.
           </p>
         </Card>
 
         {/* 2. LA VIVABILITÉ */}
         <Card>
-          <SectionLabel>Comment ça s'est passé</SectionLabel>
+          <SectionLabel>How it went</SectionLabel>
           {taps === 0 ? (
             <p className="mt-2 text-sm text-gray-600">
-              Pas encore de retour du soir sur cette période.
+              No evening check-ins in this period yet.
             </p>
           ) : (
             <>
               <div className="mt-3 flex flex-wrap gap-2">
-                <Badge tone={"positive" as BadgeTone}>{good} ça roule</Badge>
-                <Badge tone={"caution" as BadgeTone}>{mixed} moyen</Badge>
-                <Badge tone={"critical" as BadgeTone}>{hard} dur</Badge>
+                <Badge tone={"positive" as BadgeTone}>{good} all good</Badge>
+                <Badge tone={"caution" as BadgeTone}>{mixed} so-so</Badge>
+                <Badge tone={"critical" as BadgeTone}>{hard} rough</Badge>
               </div>
               {dominantAxis && (mixed + hard) > 0 ? (
                 <p className="mt-3 text-sm text-gray-700">
-                  Quand ça coince, c'est le plus souvent{" "}
+                  When it is hard, it is most often{" "}
                   <span className="font-medium">{AXIS_LABELS[dominantAxis] ?? dominantAxis}</span>.
                 </p>
               ) : null}
@@ -260,27 +260,27 @@ export default function StudentProgressPage() {
 
         {/* 3. LES PORTIONS — la réponse à "beaucoup ou peu", sans un kcal. */}
         <Card>
-          <SectionLabel>Tes assiettes</SectionLabel>
+          <SectionLabel>Your plates</SectionLabel>
           {bands.length === 0 ? (
-            <p className="mt-2 text-sm text-gray-600">Aucune photo lue sur cette période.</p>
+            <p className="mt-2 text-sm text-gray-600">No photos read in this period.</p>
           ) : (
             <p className="mt-3 text-sm text-gray-800">
-              {bands.length} assiette{bands.length > 1 ? "s" : ""} :{" "}
-              {bandCount("small")} petite{bandCount("small") > 1 ? "s" : ""},{" "}
-              {bandCount("moderate")} normale{bandCount("moderate") > 1 ? "s" : ""},{" "}
-              {bandCount("large")} grande{bandCount("large") > 1 ? "s" : ""}
-              {bandCount("unclear") > 0 ? `, ${bandCount("unclear")} indéterminée` : ""}.
+              {bands.length} plate{bands.length > 1 ? "s" : ""}:{" "}
+              {bandCount("small")} small,{" "}
+              {bandCount("moderate")} regular,{" "}
+              {bandCount("large")} large
+              {bandCount("unclear") > 0 ? `, ${bandCount("unclear")} unclear` : ""}.
             </p>
           )}
         </Card>
 
         {/* 4. LE POIDS, en dernier. Moyenne 7 jours, jamais une pesée isolée. */}
         <Card>
-          <SectionLabel>Ton poids</SectionLabel>
+          <SectionLabel>Your weight</SectionLabel>
           {lastWeight === null ? (
             <p className="mt-2 text-sm text-gray-600">
-              Pas encore de poids sur cette période. Tu le renseignes au point du
-              dimanche.
+              No weight in this period yet. You enter it in the Sunday
+              check-in.
             </p>
           ) : (
             <>
@@ -290,13 +290,12 @@ export default function StudentProgressPage() {
               {firstWeight !== null && weights.length > 1 ? (
                 <p className="mt-1 text-sm text-gray-700">
                   {(lastWeight - firstWeight >= 0 ? "+" : "")}
-                  {(lastWeight - firstWeight).toFixed(1)} kg sur la période
+                  {(lastWeight - firstWeight).toFixed(1)} kg over the period
                 </p>
               ) : null}
               <p className="mt-2 text-xs leading-5 text-gray-500">
-                Moyenne sur 7 jours, jamais une pesée isolée : d'un jour à
-                l'autre, l'eau fait bouger la balance plus que la semaine
-                entière.
+                A 7-day average, never a single weigh-in: day to day, water
+                moves the scale more than a whole week of eating does.
               </p>
             </>
           )}

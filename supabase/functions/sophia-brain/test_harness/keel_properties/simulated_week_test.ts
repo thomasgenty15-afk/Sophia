@@ -136,7 +136,7 @@ async function seed(client: SupabaseClient): Promise<void> {
     coach_id: COACH,
     version: 1,
     content_locale: "fr-FR",
-    beliefs: [{ claim: "Le jeûne intermittent est la colonne vertébrale" }],
+    beliefs: [{ key: "le_jeune_intermittent_est_la_colonne", claim: "Le jeûne intermittent est la colonne vertébrale" }],
     forbidden: [{
       token: "six_small_meals",
       surface_forms: ["6 petits repas", "six petits repas", "grignoter toute la journée"],

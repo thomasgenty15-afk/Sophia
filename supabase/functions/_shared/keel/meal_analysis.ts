@@ -1575,7 +1575,13 @@ function quotedList(titles: readonly string[]): string {
  * exactly this string, so the constraint lives in one place for both surfaces.
  */
 export function renderMealPhotoAck(args: MealPhotoAckArgs): string {
-  if (args.locale !== "en") {
+  // R7 : on échoue fort sur une langue qu'on ne sait pas rendre, mais `en-GB`
+  // n'est pas une langue inconnue — c'est le token que ce dépôt stocke le plus
+  // souvent (59 occurrences contre 27 pour `en`). Le garde exact rendait cette
+  // fonction impossible à appeler avec le `content_locale` d'une ligne, et le
+  // seul appelant le contournait en passant "en" en dur. La famille est donc
+  // acceptée, tout le reste échoue toujours bruyamment.
+  if (String(args.locale ?? "").slice(0, 2).toLowerCase() !== "en") {
     throw new Error(`R7: unsupported render locale "${args.locale}"`);
   }
   if (!args.binding) {

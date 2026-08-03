@@ -141,11 +141,20 @@ Deno.test("the axis is asked ONLY when something went wrong", () => {
 
 Deno.test("the two questions render with their buttons", () => {
   const q = renderPulseQuestion();
-  assertEquals(q.body, "Ta journée ?");
-  assertEquals(q.buttons.length, 3);
+  assertEquals(q.body, "How was today?");
+  assertEquals(q.buttons.map((b) => b.title), ["All good", "So-so", "Rough"]);
   const a = renderPulseAxisQuestion();
-  assert(a.body.includes("coincé"));
-  assertEquals(a.buttons.map((b) => b.title), ["Énergie", "Faim", "Sommeil"]);
+  assertEquals(a.body, "What was hard?");
+  assertEquals(a.buttons.map((b) => b.title), ["Energy", "Hunger", "Sleep"]);
+});
+
+Deno.test("every button title fits Meta's 20-character ceiling", () => {
+  // `whatsapp-send` tronque silencieusement au-delà. Un libellé tronqué serait
+  // à la fois moche et DIFFÉRENT de celui du template Meta approuvé, donc deux
+  // expériences selon qu'on est dans la fenêtre 24h ou non.
+  for (const b of [...pulseLevelButtons(), ...pulseAxisButtons()]) {
+    assert(b.title.length <= 20, `${b.title} is ${b.title.length} chars`);
+  }
 });
 
 Deno.test("the ack never comments, consoles or bounces back", () => {

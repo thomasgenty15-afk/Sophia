@@ -49,7 +49,7 @@ function fakeDb(byTable: Record<string, Outcome>) {
 const DOCTRINE_ROW = {
   coach_id: "coach-1",
   version: 3,
-  beliefs: [{ claim: "Intermittent fasting is the backbone" }],
+  beliefs: [{ key: "intermittent_fasting_is_the_backbone", claim: "Intermittent fasting is the backbone" }],
   forbidden: [{ token: "six_small_meals", surface_forms: ["6 petits repas"] }],
   vocabulary: [],
   arbitrations: [],

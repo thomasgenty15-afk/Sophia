@@ -15,6 +15,7 @@ import {
   applyKeelOutputLocks,
   DOCTRINE_BLOCK_FALLBACK_EN,
   MEDICAL_BLOCK_FALLBACK_EN,
+  resolveDoctrineReplacement,
 } from "./keel_output_locks.ts";
 import type { StudentSafetyConstraint } from "../../../_shared/keel/safety_constraints.ts";
 
@@ -88,11 +89,81 @@ Deno.test("the fallback does NOT name the allergen back to the student", () => {
 // The doctrine lock, and the precedence between the two
 // ---------------------------------------------------------------------------
 
-Deno.test("an endorsed coach interdit is replaced by a deferral to the coach", () => {
+Deno.test("an endorsed coach interdit is replaced, and never sends the student away", () => {
   const result = run("Try 6 petits repas spread through the day.");
   assertEquals(result.reason, "blocked_coach_interdit");
   assertEquals(result.text, DOCTRINE_BLOCK_FALLBACK_EN);
   assertEquals(result.tokens, ["six_small_meals"]);
+  // Le produit est une MASTERCLASSE: il n'y a pas de canal un-à-un vers le
+  // coach. Renvoyer l'élève « demander à son coach » désigne une porte qui
+  // n'existe pas, et c'est l'inverse de ce que le coach achète.
+  assert(!/ask (them|your coach)/i.test(result.text));
+});
+
+// ---------------------------------------------------------------------------
+// C2 — LE COACH RÉPOND À TRAVERS NOUS
+// ---------------------------------------------------------------------------
+
+const DOCTRINE_WITH_INSTEAD = {
+  forbidden: [
+    {
+      token: "six_small_meals",
+      surfaceForms: ["6 petits repas", "six small meals"],
+      reason: "it breaks the fasting window",
+      instead: "Three meals you actually finish. Grazing hides how much you eat.",
+    },
+  ],
+};
+
+Deno.test("when the coach said what he does INSTEAD, those are the words the student gets", () => {
+  const result = run("Try 6 petits repas spread through the day.", {
+    doctrine: DOCTRINE_WITH_INSTEAD,
+  });
+  assertEquals(result.reason, "blocked_coach_interdit");
+  assertEquals(result.text, "Three meals you actually finish. Grazing hides how much you eat.");
+});
+
+Deno.test("a coach replacement that names a hard constraint is NOT served", () => {
+  // LE PIÈGE: le texte du coach est injecté APRÈS les verrous. Sans
+  // re-vérification, un `instead` malheureux contourne le verrou médical par
+  // la sortie de secours du verrou de doctrine.
+  const unsafe = resolveDoctrineReplacement(
+    ["six_small_meals"],
+    [{
+      token: "six_small_meals",
+      surfaceForms: [],
+      reason: null,
+      instead: "Three real meals, with peanut butter at breakfast.",
+    }],
+    [constraint()],
+  );
+  assertEquals(unsafe.usedCoachWords, false);
+  assertEquals(unsafe.text, DOCTRINE_BLOCK_FALLBACK_EN);
+  assert(!/peanut/i.test(unsafe.text));
+});
+
+Deno.test("the same replacement IS served to a student without that constraint", () => {
+  // Contre-épreuve: sans elle, le test précédent passerait même si la fonction
+  // refusait tous les `instead` du monde.
+  const ok = resolveDoctrineReplacement(
+    ["six_small_meals"],
+    [{
+      token: "six_small_meals",
+      surfaceForms: [],
+      reason: null,
+      instead: "Three real meals, with peanut butter at breakfast.",
+    }],
+    [],
+  );
+  assertEquals(ok.usedCoachWords, true);
+  assert(/peanut/i.test(ok.text));
+});
+
+Deno.test("the medical fallback points at a doctor, never at the coach", () => {
+  // Un coach sportif n'est pas la bonne adresse pour une allergie, et le canal
+  // n'existe de toute façon pas.
+  assert(!/coach/i.test(MEDICAL_BLOCK_FALLBACK_EN));
+  assert(/doctor/i.test(MEDICAL_BLOCK_FALLBACK_EN));
 });
 
 Deno.test("medical outranks doctrine when a text violates both", () => {

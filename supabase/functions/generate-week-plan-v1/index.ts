@@ -10,7 +10,7 @@ import { doctrineBlockFor, loadPublishedDoctrine } from "../_shared/keel/doctrin
 import { loadStudentSafetyConstraints } from "../_shared/keel/safety_constraints.ts";
 import {
   buildWeekPlanPrompt,
-  type CoachRecommendation,
+  type CoachPrinciple,
   focusFor,
   parseWeekPlan,
   type StudentGoal,
@@ -116,54 +116,43 @@ Deno.serve(async (req) => {
       return jsonResponse(req, { error: "no_coach", request_id: requestId }, { status: 409 });
     }
 
-    // Le programme actif du coach. On lit `plan_templates` — ce que le coach
-    // ÉDITE — et pas `plan_commitments`, qui n'existe pas dans le modèle 1:N.
-    const tplRes = await admin
-      .from("plan_templates")
-      .select("id, version, commitments")
-      .eq("coach_id", coachId)
-      .eq("status", "active")
-      .order("updated_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    if (tplRes.error) throw tplRes.error;
-    const tpl = (tplRes.data ?? null) as Record<string, unknown> | null;
-    const rawCommitments = Array.isArray(tpl?.commitments) ? tpl!.commitments as unknown[] : [];
-    if (rawCommitments.length === 0) {
-      return jsonResponse(req, {
-        error: "coach_has_no_program",
-        request_id: requestId,
-      }, { status: 409 });
-    }
-
-    const recommendations: CoachRecommendation[] = [];
-    for (const raw of rawCommitments) {
-      const c = (raw ?? {}) as Record<string, unknown>;
-      const key = String(c.template_commitment_key ?? "").trim();
-      // Une recommandation SANS clé est inutilisable: on ne pourrait pas
-      // tracer la ligne générée jusqu'à elle, donc le CHECK de la base la
-      // refuserait à l'écriture. Mieux vaut l'écarter ici, nommément.
-      if (!key) continue;
-      recommendations.push({
-        template_commitment_key: key,
-        title: String(c.title ?? ""),
-        student_instruction: c.student_instruction ? String(c.student_instruction) : null,
-        activity_class: String(c.activity_class ?? "other"),
-        polarity: String(c.polarity ?? "do"),
-        slot_key: c.slot_key ? String(c.slot_key) : null,
-        scheduled_days: Array.isArray(c.scheduled_days) ? c.scheduled_days as string[] : null,
-        priority: String(c.priority ?? "core"),
-      });
-    }
-    if (recommendations.length === 0) {
-      return jsonResponse(req, {
-        error: "program_has_no_traceable_lines",
-        request_id: requestId,
-      }, { status: 409 });
-    }
-
-    // --- doctrine + contraintes dures : les deux verrous -------------------
+    // --- LA MÉTHODE DU COACH, qui est une DOCTRINE et pas un programme -----
+    //
+    // Cette fonction lisait `plan_templates.commitments`, c'est-à-dire un
+    // programme ligne à ligne. Un coach de masterclass n'en a pas: il a des
+    // convictions. La lecture précédente renvoyait donc `coach_has_no_program`
+    // à tous les coups — la génération était morte à l'allumage pour le seul
+    // modèle que le produit vend.
+    //
+    // L'ancre est désormais `coach_doctrines.beliefs`, et la clé de traçabilité
+    // est la clé de conviction.
     const doctrine = await loadPublishedDoctrine(admin, userId);
+
+    const principles: CoachPrinciple[] = (doctrine.doctrine?.beliefs ?? [])
+      // Une conviction SANS clé serait intraçable: le CHECK de la base
+      // refuserait toute ligne qui s'en réclame. `parseCoachDoctrine` en
+      // dérive une systématiquement, donc ce filtre ne devrait jamais mordre —
+      // il est là pour que l'invariant soit vrai par construction et pas par
+      // confiance dans un appelant.
+      .filter((b) => String(b.key ?? "").trim().length > 0)
+      .map((b) => ({
+        belief_key: b.key,
+        claim: b.claim,
+        rationale: b.rationale ?? null,
+      }));
+
+    if (principles.length === 0) {
+      // Distinct de `no_coach`: l'élève A un coach, ce coach n'a simplement
+      // pas encore publié sa méthode. Les deux appellent des gestes très
+      // différents côté produit, donc deux codes.
+      return jsonResponse(req, {
+        error: "coach_has_no_doctrine",
+        detail: "The coach has not published any convictions yet.",
+        request_id: requestId,
+      }, { status: 409 });
+    }
+
+    // --- contraintes dures de l'élève : le second verrou --------------------
     let constraints = null;
     try {
       constraints = await loadStudentSafetyConstraints(admin as never, userId);
@@ -175,7 +164,7 @@ Deno.serve(async (req) => {
 
     const goal = String(goalRow.goal ?? "health") as StudentGoal;
     const { systemPrompt, userMessage, allowedKeys } = buildWeekPlanPrompt({
-      recommendations,
+      principles,
       situation: {
         goal,
         situation: goalRow.situation ? String(goalRow.situation) : null,
@@ -197,7 +186,7 @@ Deno.serve(async (req) => {
 
     let plan;
     try {
-      plan = parseWeekPlan(result, allowedKeys, {
+      plan = parseWeekPlan(result, principles, {
         doctrine: doctrine.doctrine,
         safetyConstraints: constraints,
         maxNutrition: focusFor(goal).maxNutrition,
@@ -219,6 +208,7 @@ Deno.serve(async (req) => {
         lock: plan.lock.reason,
         rejected_keys: plan.rejected_keys,
         rejected_actions: plan.rejected_actions,
+        rejected_numeric: plan.rejected_numeric,
         issues: plan.issues,
         request_id: requestId,
       }, { status: 422 });
@@ -231,10 +221,13 @@ Deno.serve(async (req) => {
         week_start: weekStart,
         items: weekPlanItemsPayload(plan),
         generated_from: {
-          template_id: tpl?.id ?? null,
-          template_version: tpl?.version ?? null,
+          coach_id: coachId,
           doctrine_version: doctrine.doctrine?.version ?? null,
           doctrine_reason: doctrine.reason,
+          // Les clés effectivement offertes au modèle. Sans elles, on ne peut
+          // pas relire un vieux plan et dire de quelle conviction il partait
+          // quand le coach a depuis réécrit sa doctrine.
+          belief_keys: principles.map((p) => p.belief_key),
           goal,
           prompt_version: WEEK_PLAN_PROMPT_VERSION,
         },
@@ -253,6 +246,7 @@ Deno.serve(async (req) => {
       // du modèle que l'app doit pouvoir remonter, pas un silence.
       rejected_keys: plan.rejected_keys,
       rejected_actions: plan.rejected_actions,
+      rejected_numeric: plan.rejected_numeric,
       issues: plan.issues,
       request_id: requestId,
     });
