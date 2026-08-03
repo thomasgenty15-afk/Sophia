@@ -195,6 +195,72 @@ Deno.test("the agent may still EXPLAIN what the coach forbids", () => {
   assertEquals(result.reason, "clean");
 });
 
+Deno.test("the agent may EXPLAIN in ENGLISH — the language the product ships in", () => {
+  // Le test ci-dessus existait seul, en français, et il passait pour une raison
+  // qui ne s'exporte pas: la négation française est PRÉ-nominale (« pas DE 6
+  // petits repas ») et tombe contre l'objet. L'anglaise est PRÉ-verbale
+  // (« doesn't DO six small meals ») et ne l'atteignait jamais.
+  //
+  // L'élève qui demandait « pourquoi pas 6 petits repas ? » recevait donc, à la
+  // place de la réponse, le `instead` du coach — un non-sequitur. Une ceinture
+  // qui casse la conversation quand elle FONCTIONNE est une ceinture qu'on
+  // débranche, exactement comme celle qui rejette le plan du cœliaque.
+  for (
+    const explanation of [
+      "Your coach doesn't do six small meals - here is why.",
+      "Your coach does not do six small meals.",
+      "We don't do six small meals here.",
+      "Your coach won't put you on six small meals.",
+      "Rather than six small meals, he keeps three.",
+    ]
+  ) {
+    assertEquals(run(explanation).reason, "clean", explanation);
+  }
+});
+
+Deno.test("an endorsement spread over TWO sentences is still an endorsement", () => {
+  // Le verrou ne raisonne pas par phrase: il scanne le texte entier. Une
+  // suggestion posée en deux temps — l'adhésion d'abord, l'interdit ensuite —
+  // ne doit pas passer entre les deux.
+  const result = run(
+    "Some people thrive on grazing. You could try six small meals through the day.",
+  );
+  assertEquals(result.reason, "blocked_coach_interdit");
+  assertEquals(result.tokens, ["six_small_meals"]);
+});
+
+Deno.test("a negation aimed at something ELSE never blanches the sentence", () => {
+  // La condition de désarmement de la négation porte SA condition: elle ne
+  // s'applique que si la négation court jusqu'au token. Sinon toute réponse
+  // contenant un « don't » quelque part deviendrait une passe libre.
+  const doctrineDodge = run("Don't skip breakfast, have six small meals.");
+  assertEquals(doctrineDodge.reason, "blocked_coach_interdit");
+
+  const medicalDodge = run(
+    "No peanuts at breakfast, but peanut butter at lunch is fine.",
+  );
+  assertEquals(medicalDodge.reason, "blocked_medical_constraint");
+  assertEquals(medicalDodge.text, MEDICAL_BLOCK_FALLBACK_EN);
+});
+
+Deno.test("a protective negation about the allergen reaches the student intact", () => {
+  // Symétrique du cas doctrine: dire « évite les cacahuètes » est le verrou qui
+  // FONCTIONNE. Le remplacer par « pose la question à un médecin » retire à
+  // l'élève l'avertissement qu'il avait déjà.
+  for (
+    const protective of [
+      "Avoid peanuts, they're dangerous for you.",
+      "Avoid the peanuts in that sauce.",
+      "You can't have peanuts.",
+      "Look for a peanut-free label.",
+    ]
+  ) {
+    const result = run(protective);
+    assertEquals(result.reason, "clean", protective);
+    assertEquals(result.text, protective);
+  }
+});
+
 Deno.test("disarmed outside a KEEL student turn", () => {
   const result = run("Add a spoon of peanut butter.", { isKeelStudent: false });
   assertEquals(result.reason, "disarmed_not_keel_student");

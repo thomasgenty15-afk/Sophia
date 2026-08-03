@@ -103,6 +103,151 @@ export function tokenPattern(token: string): RegExp {
  * EN + FR because the legacy branch still generates French, and a coach may
  * write his doctrine in either.
  */
+/**
+ * LES MOTS QUI NIENT.
+ *
+ * NOTE SUR LES CONTRACTIONS, et c'est le trou le plus cher qu'ait eu ce module.
+ * `not` ne couvre PAS « doesn't »: il n'y a pas de « not » dans « doesn't », il
+ * y a « n't ». Tant que la liste s'arrêtait aux formes pleines, la phrase que
+ * `doctrine.ts` désigne nommément comme celle qui DOIT survivre —
+ *
+ *     "your coach doesn't do six small meals"
+ *
+ * — était rejetée, et le message entier de l'agent remplacé par le `instead` du
+ * coach. L'élève qui demande « pourquoi pas 6 petits repas ? » recevait donc un
+ * non-sequitur. Le test qui épinglait cette garantie n'existait qu'en FRANÇAIS
+ * (« Marc ne fait pas de 6 petits repas ») — où la négation est PRÉ-nominale et
+ * tombait juste par accident. Le produit, lui, a basculé en anglais.
+ *
+ * Côté médical le même trou donnait « you can't have peanuts » remplacé par
+ * « pose la question à un médecin ».
+ */
+const NEGATION_WORD = [
+  // EN — formes pleines
+  "no",
+  "not",
+  "cannot",
+  "without",
+  "avoid",
+  "avoids",
+  "avoiding",
+  "skip",
+  "skips",
+  "exclude",
+  "excludes",
+  "excluding",
+  "never",
+  "stop",
+  "stops",
+  "stopped",
+  "stopping",
+  "reject",
+  "rejects",
+  "rejected",
+  "instead\\s+of",
+  "rather\\s+than",
+  "moved\\s+away\\s+from",
+  "free\\s+(?:from|of)",
+  "allergic\\s+to",
+  "allergy\\s+to",
+  "intolerant\\s+to",
+  // EN — CONTRACTIONS. L'apostrophe typographique (U+2019) est acceptée au même
+  // titre que l'ASCII: `normalizeForMatch` ne fait que retirer les diacritiques
+  // et minusculiser, elle ne normalise pas les apostrophes, et un générateur en
+  // produit constamment.
+  "do(?:es)?\\s*n['’]t",
+  "did\\s*n['’]t",
+  "wo\\s*n['’]t",
+  "ca\\s*n['’]t",
+  "is\\s*n['’]t",
+  "are\\s*n['’]t",
+  "was\\s*n['’]t",
+  "were\\s*n['’]t",
+  "has\\s*n['’]t",
+  "have\\s*n['’]t",
+  "had\\s*n['’]t",
+  "would\\s*n['’]t",
+  "should\\s*n['’]t",
+  "could\\s*n['’]t",
+  // FR
+  "sans",
+  "pas",
+  "aucun",
+  "aucune",
+  "eviter",
+  "evite",
+  "evitez",
+  "evitons",
+  "supprime",
+  "supprimer",
+  "supprimez",
+  "jamais",
+  "remplace",
+  "remplacer",
+  "remplacez",
+  "a\\s+la\\s+place",
+].join("|");
+
+/**
+ * LE VERBE qui peut s'intercaler entre la négation et la chose niée. Liste
+ * FERMÉE, et UN SEUL verbe.
+ *
+ * Pourquoi ce créneau existe: en anglais la négation est PRÉ-verbale, donc elle
+ * n'est presque jamais collée à l'objet. « doesn't DO six small meals »,
+ * « can't HAVE peanuts », « won't PUT YOU ON six small meals ». Sans le créneau,
+ * reconnaître « doesn't » ne sert à rien — le mot nié reste hors de portée. Le
+ * français n'en a pas besoin (« ne fait PAS DE 6 petits repas » place déjà la
+ * négation contre l'objet), et la liste reste donc anglaise à dessein.
+ *
+ * CE QUI REND L'ÉLARGISSEMENT SÛR n'est pas la liste, c'est l'ancre `$` du motif
+ * complet: négation + verbe + déterminants doivent courir JUSQU'AU token. Une
+ * négation qui porte sur autre chose ne blanchit rien —
+ * « don't skip breakfast, have six small meals » mord toujours, parce que
+ * « breakfast, » sépare la négation du token. C'est cette propriété qui est
+ * testée, pas chaque mot de la liste.
+ */
+const NEGATED_VERB = [
+  "do",
+  "does",
+  "doing",
+  "use",
+  "uses",
+  "using",
+  "have",
+  "has",
+  "had",
+  "eat",
+  "eats",
+  "eating",
+  "touch",
+  "touches",
+  "take",
+  "takes",
+  "taking",
+  "recommend",
+  "recommends",
+  "recommending",
+  "advise",
+  "advises",
+  "advising",
+  "teach",
+  "teaches",
+  "teaching",
+  "build",
+  "builds",
+  "building",
+  "run",
+  "runs",
+  "running",
+  "like",
+  "likes",
+  "want",
+  "wants",
+  "put\\s+you\\s+on",
+  "go\\s+for",
+  "goes\\s+for",
+].join("|");
+
 // NOTE ON THE ARTICLE LIST. It used to stop at `de`/`du`/`des`/`de la`/`d'`,
 // which silently excluded the most common French determiners: "évite LES 6
 // petits repas", "supprime LE pain", "on ne fait pas LA collation". Every one
@@ -110,8 +255,37 @@ export function tokenPattern(token: string): RegExp {
 // locks, since the same list guards the medical validator. Found by
 // `doctrine_test.ts` ("the agent may EXPLAIN an interdit"), and fixed here
 // rather than in one caller, which is the entire reason this module exists.
-const NEGATION_BEFORE =
-  /(?:\b(?:no|not|without|avoid|avoids|avoiding|skip|skips|exclude|excludes|excluding|never|instead\s+of|free\s+(?:from|of)|allergic\s+to|allergy\s+to|intolerant\s+to|sans|pas|aucun|aucune|eviter|evite|evitez|evitons|supprime|supprimer|supprimez|jamais|remplace|remplacer|remplacez|a\s+la\s+place)\s+(?:any\s+|all\s+|the\s+|some\s+|du\s+|de\s+la\s+|de\s+l'\s*|des\s+|de\s+|d'\s*|le\s+|la\s+|les\s+|l'\s*|un\s+|une\s+|au\s+|aux\s+|ce\s+|cette\s+|ces\s+|ton\s+|ta\s+|tes\s+|your\s+)*)$/;
+const NEGATION_ARTICLE = [
+  "any\\s+",
+  "all\\s+",
+  "the\\s+",
+  "some\\s+",
+  "du\\s+",
+  "de\\s+la\\s+",
+  "de\\s+l'\\s*",
+  "des\\s+",
+  "de\\s+",
+  "d'\\s*",
+  "le\\s+",
+  "la\\s+",
+  "les\\s+",
+  "l'\\s*",
+  "un\\s+",
+  "une\\s+",
+  "au\\s+",
+  "aux\\s+",
+  "ce\\s+",
+  "cette\\s+",
+  "ces\\s+",
+  "ton\\s+",
+  "ta\\s+",
+  "tes\\s+",
+  "your\\s+",
+].join("|");
+
+const NEGATION_BEFORE = new RegExp(
+  `(?:\\b(?:${NEGATION_WORD})\\s+(?:(?:${NEGATED_VERB})\\s+)?(?:${NEGATION_ARTICLE})*)$`,
+);
 
 const NEGATION_AFTER =
   /^(?:\s*[-\s]?free\b|\s*[-\s]?sans\b|\s+allerg(?:y|ies|ic|ie|ique|ies)\b|\s+intoleran(?:ce|t)\b)/;

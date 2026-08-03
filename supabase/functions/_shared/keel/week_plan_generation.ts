@@ -200,23 +200,65 @@ export function focusFor(goal: StudentGoal): { maxNutrition: number; emphasis: s
  *
  * Chaque motif est nommé pour qu'un rejet dise LEQUEL a mordu (R7).
  */
+/**
+ * LES MACROS, ÉCRITES UNE FOIS.
+ *
+ * Elles l'étaient TROIS fois, à la main, et les trois listes avaient déjà
+ * divergé: `fibre|fiber` étaient dans les deux motifs de masse et ABSENTES du
+ * motif de pourcentage. « fibre 20% » traversait donc le filtre — pendant que
+ * « protein 30% » était rejeté. C'est, à l'échelle d'une alternance de regex,
+ * exactement le défaut décrit en tête de `forbidden_matcher.ts`: deux copies
+ * d'une même liste, dont une seule reçoit l'ajout.
+ */
+const MACRO_WORDS = "protein|carb|carbohydrate|fat|sugar|fibre|fiber";
+
+/**
+ * Les unités de MASSE, et seulement elles.
+ *
+ * `ml|cl|l` en sont sortis. Un volume est une PORTION, pas une cible de macro:
+ * une cible s'écrit en grammes ou en pourcents, jamais en litres. Les garder
+ * faisait mordre `macro_quantity_reversed` sur « Swap the sugary drink for 1 l
+ * of water » — une ligne qui applique une conviction (couper le sucre liquide),
+ * rejetée par le filtre censé protéger les lignes. Un faux positif ici est
+ * silencieux: la ligne disparaît du plan sans que personne la voie manquer.
+ */
+const MASS_UNITS = "g|gr|grams?|kg|oz";
+
 const NUMERIC_TARGET_PATTERNS: ReadonlyArray<{ name: string; re: RegExp }> = [
   // Une unité d'énergie est toujours une cible, quel que soit le contexte.
-  { name: "energy_unit", re: /\d[\d.,]*\s*(kcal|kj|cal(?:orie)?s?)\b/i },
-  // Une masse ou un volume COLLÉ à un macro. L'ordre des deux sens compte:
+  //
+  // `kcal` n'avait pas de pluriel et `cal(?:orie)?` ne rattrape pas un préfixe
+  // `kilo`: « 1800 Kcals », « 1800 kilocalories » et « 2000 kilojoules »
+  // traversaient tous les trois, avec l'autorité d'un chiffre que personne n'a
+  // mesuré.
+  {
+    name: "energy_unit",
+    re: /\d[\d.,]*\s*(?:k(?:ilo)?cal(?:orie)?s?|k(?:ilo)?j(?:oule)?s?|cal(?:orie)?s?)\b/i,
+  },
+  // Une masse COLLÉE à un macro. L'ordre des deux sens compte:
   // "30 g of protein" et "protein: 30 g" s'écrivent tous les deux.
   {
     name: "macro_quantity",
-    re: /\d[\d.,]*\s*(g|gr|grams?|kg|oz|ml|cl|l)\b[^.\n]{0,20}\b(protein|carb|carbohydrate|fat|sugar|fibre|fiber)/i,
+    re: new RegExp(
+      `\\d[\\d.,]*\\s*(?:${MASS_UNITS})\\b[^.\\n]{0,20}\\b(?:${MACRO_WORDS})`,
+      "i",
+    ),
   },
   {
     name: "macro_quantity_reversed",
-    re: /\b(protein|carb|carbohydrate|fat|sugar|fibre|fiber)\w*\b[^.\n]{0,20}\d[\d.,]*\s*(g|gr|grams?|kg|oz|ml|cl|l)\b/i,
+    re: new RegExp(
+      `\\b(?:${MACRO_WORDS})\\w*\\b[^.\\n]{0,20}\\d[\\d.,]*\\s*(?:${MASS_UNITS})\\b`,
+      "i",
+    ),
   },
   // Un pourcentage accolé à un macro est une répartition, donc une cible.
   {
     name: "macro_percentage",
-    re: /(\d[\d.,]*\s*%[^.\n]{0,20}\b(protein|carb|carbohydrate|fat|sugar)|\b(protein|carb|carbohydrate|fat|sugar)\w*\b[^.\n]{0,20}\d[\d.,]*\s*%)/i,
+    re: new RegExp(
+      `\\d[\\d.,]*\\s*%[^.\\n]{0,20}\\b(?:${MACRO_WORDS})` +
+        `|\\b(?:${MACRO_WORDS})\\w*\\b[^.\\n]{0,20}\\d[\\d.,]*\\s*%`,
+      "i",
+    ),
   },
 ];
 

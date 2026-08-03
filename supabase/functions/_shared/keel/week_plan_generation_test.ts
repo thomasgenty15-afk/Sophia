@@ -188,6 +188,51 @@ Deno.test("numeric guard — macro_percentage bites on its own", () => {
   assertEquals(findNumericTarget("protein around 30 %"), "macro_percentage");
 });
 
+Deno.test("numeric guard — energy_unit: the plural and the spelled-out prefix", () => {
+  // Ces trois-là traversaient. `kcal` n'avait pas de `s?` (l'alternance
+  // matchait « Kcal » puis butait sur le `\b` devant le « s »), et
+  // `cal(?:orie)?` ne rattrape pas un préfixe `kilo`. Un chiffre que personne
+  // n'a mesuré arrivait à l'élève avec l'autorité du coach.
+  assertEquals(findNumericTarget("roughly 1800 Kcals"), "energy_unit");
+  assertEquals(findNumericTarget("1800 kilocalories a day"), "energy_unit");
+  assertEquals(findNumericTarget("2000 kilojoules"), "energy_unit");
+  // Et le contre-test: une masse corporelle en kilos n'est pas une énergie.
+  assertEquals(findNumericTarget("2 kilos of vegetables for the week"), null);
+  assertEquals(findNumericTarget("Take 10 calm minutes before dinner"), null);
+});
+
+Deno.test("numeric guard — macro_percentage knows the SAME macros as its siblings", () => {
+  // `fibre|fiber` étaient dans les deux motifs de masse et absentes de celui-ci:
+  // « protein 30% » était rejeté, « fibre 20% » passait. Trois listes écrites à
+  // la main, dont une seule avait reçu l'ajout.
+  assertEquals(findNumericTarget("fibre 20%"), "macro_percentage");
+  assertEquals(findNumericTarget("fiber 30%"), "macro_percentage");
+  assertEquals(findNumericTarget("fibre at 25 %"), "macro_percentage");
+});
+
+Deno.test("numeric guard — a VOLUME is a portion, never a macro target", () => {
+  // FAUX POSITIF mesuré: `l` (litre) figurait parmi les unités de macro, et
+  // `macro_quantity_reversed` mordait sur une ligne d'hydratation parfaitement
+  // légitime dès qu'un mot de macro traînait dans les 20 caractères. Une cible
+  // de macro s'écrit en grammes ou en pourcents; jamais en litres.
+  //
+  // Ce faux positif est le pire des deux: la ligne est retirée du plan en
+  // silence, et personne ne voit manquer une ligne qui n'a jamais existé.
+  for (
+    const ok of [
+      "Swap the sugary drink for 1 l of water",
+      "Cut the sugar, and drink 2 l of water",
+      "Less sugar, more water: 2 l a day",
+      "Trade the fat-heavy sauce for 1 l of broth",
+    ]
+  ) {
+    assertEquals(findNumericTarget(ok), null, ok);
+  }
+  // Le côté faux négatif du même resserrement: les masses mordent toujours.
+  assertEquals(findNumericTarget("40 g of sugar a day"), "macro_quantity");
+  assertEquals(findNumericTarget("sugar under 40 g"), "macro_quantity_reversed");
+});
+
 Deno.test("numeric guard — a CADENCE is not a target and must survive", () => {
   // Si ces phrases mordaient, le générateur serait incapable d'écrire une
   // ligne utile: il ne resterait que des consignes sans forme.
