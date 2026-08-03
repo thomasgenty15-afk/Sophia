@@ -760,3 +760,44 @@ deno test --allow-all supabase/functions/_shared/keel/ supabase/functions/sophia
 Les jours photo de §7.4 (J1 midi, J2 reconnaissance récurrente, J3 soir plat aux noix) assertent
 la ceinture et les faits, **pas la lecture d'image**. Le contrat photo v3 reste non exercé contre
 un vrai modèle.
+
+---
+
+## 12:55 — P1.4 : flow local `meal_photo` (la partie manquante du dispatcher)
+
+Constat d'inventaire avant d'écrire : le **dispatcher global existe déjà** (`dispatcher.v2.ts`,
+classification LLM avec `plan_question`, `eating_out`, `meal_shifted`…) et le **handler photo
+existe déjà** (`handlers_meal_photo.ts`). Ce qui manquait vraiment au §3.2, c'est le **flow local
+avec son escape hatch**.
+
+`_shared/keel/meal_photo_flow.ts` (neuf, 13 tests).
+
+**Le cas qui justifie le flow (§7.4 J1 soir)** : « Photo + "avec de l'huile du coup ?" → mise à
+jour de l'entrée, **pas de double log** ». Sans flow, ce message est un tour indépendant : le
+dispatcher y voit une information alimentaire et écrit un **second** `protocol_events`. L'élève a
+mangé une fois, le protocole en compte deux — et la couverture, qui est la métrique la plus
+prédictive du résultat (PHOTO_QUANTIFICATION §5, Peterson 2014), devient fausse **à la hausse**.
+
+**L'escape hatch est vérifié depuis TOUS les états, inconditionnellement**, et **avant** le
+timeout et le max-tours. L'ordre compte : si le timeout passait d'abord, un flow expiré
+rapporterait `timeout` pour un élève qui a simplement changé de sujet — un mauvais motif dans la
+trace, et un premier pas vers « vérifier autre chose d'abord ». Le dépôt a payé ce défaut deux fois
+(`blocked_exit_before_plan_ready`, `safety-crisis-flow-no-exit-on-denial` : trois tours de piège
+malgré un déni).
+
+**Le module ne lit JAMAIS le texte du message** : il reçoit une intention déjà classée par le
+dispatcher local. Un test relit le source pour l'interdire — un module qui ne peut pas voir le
+texte ne peut pas faire pousser une regex de sens (§3.1). C'est aussi ce qui le rend testable
+exhaustivement (5 intentions × 3 états).
+
+Bornes : 2 tours max, fenêtre de 30 min (« avec de l'huile ? » deux heures plus tard est un
+nouveau sujet, et amender un fait vieux de deux heures sur un message ambigu écrase une donnée
+réelle par une supposition), nouvelle photo → l'ancien flow se ferme au lieu de capturer la
+nouvelle, crise → fermeture immédiate.
+
+Sur `unknown`, le flow **ne devine pas** : il attend un tour (§3.3bis — deviner est l'option
+interdite des trois), et le max-tours ferme au suivant.
+
+**Reste sur P1.4** : le câblage du reducer dans `handlers_meal_photo.ts` (persistance de l'état de
+flow dans `user_chat_states.temp_memory` + le classifieur d'intention local). Le reducer est prêt
+et testé ; le branchement runtime ne l'est pas.
