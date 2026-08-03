@@ -489,9 +489,10 @@ export async function ingestArchitectMemorySource(params: {
   }
 
   const ingestionResult = {
-    processed: true,
-    skipped: false,
-    reason: "ok",
+    // W2.D-2: `processed` / `skipped` / `reason` used to be listed here as defaults, but
+    // `result` always carries all three (TS2785 proves the spread is total), so the three
+    // literals were dead — the spread overwrote them unconditionally. Removed; zero runtime
+    // change, and the type-check no longer reports three overwritten properties.
     ...result,
     identityUpdated,
     identityReason,

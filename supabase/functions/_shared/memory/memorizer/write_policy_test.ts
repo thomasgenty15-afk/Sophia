@@ -22,7 +22,9 @@ function candidate(contentText: string, summary = ""): DryRunCandidate {
       canonical_key: "key-1",
       event_start_at: "2026-07-13T06:00:00.000Z",
     } as DryRunCandidate["item"],
-    dedupe: { decision: "accept" } as DryRunCandidate["dedupe"],
+    // Only `decision` matters to the write policy; the rest of DedupeDecision is irrelevant
+    // here, hence the double assertion rather than a full fake row.
+    dedupe: { decision: "accept" } as unknown as DryRunCandidate["dedupe"],
     topic_link: { confidence: 0.9 } as DryRunCandidate["topic_link"],
     status: "accepted_dry_run",
   };

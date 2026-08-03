@@ -82,18 +82,6 @@ function templateForEvent(event: SimEvent, body: Body, fallbackName: string) {
       },
     };
   }
-  if (event === "weekly_planning_validation") {
-    return {
-      purpose: "weekly_planning_validation",
-      require_opted_in: false,
-      message: {
-        type: "template",
-        name: "weekly_planning_validation_v1",
-        language: "fr",
-        components: [bodyParam(body.dashboard_url || "https://sophia-coach.ai/")],
-      },
-    };
-  }
   if (event === "recurring_reminder") {
     return {
       purpose: "recurring_reminder",

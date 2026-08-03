@@ -6,11 +6,14 @@ import type {
   CoachingRecommendationSignalContext,
 } from "../../contracts/turn_frame.v1.ts";
 
+// W2.A: `state_potion` retiré du contrat — la potion n'est plus une feature
+// recommandable par le flow coaching. C'est un changement de TYPE: les
+// `Exclude<CoachingFeatureSuggestion, "state_potion">` d'origine sont devenus
+// l'union entière.
 export type CoachingFeatureSuggestion =
   | "adjust_plan"
   | "attack_card"
-  | "defense_card"
-  | "state_potion";
+  | "defense_card";
 
 export type CoachingType =
   | "plan_action"
@@ -246,7 +249,8 @@ export type EmotionCoachingStepContext = {
   objective: string;
   state_hint: string | null;
   intensity: "low" | "medium" | "high" | null;
-  selected_feature: "state_potion" | null;
+  // W2.A: plus aucune feature produit sélectionnable en coaching émotionnel.
+  selected_feature: null;
   why_selected: string | null;
   product_guidance: CoachingFeatureProductGuidance | null;
 };
@@ -277,15 +281,12 @@ export type ActionPlanCoachingStepContext = {
   objective: string;
   plan_item_id: string;
   action_title: string | null;
-  selected_feature: Exclude<CoachingFeatureSuggestion, "state_potion"> | null;
-  secondary_feature: Exclude<CoachingFeatureSuggestion, "state_potion"> | null;
+  selected_feature: CoachingFeatureSuggestion | null;
+  secondary_feature: CoachingFeatureSuggestion | null;
   why_selected: string | null;
   platform_destination: CoachingRecommendationDecision["platform_destination"];
   product_guidance: Partial<
-    Record<
-      Exclude<CoachingFeatureSuggestion, "state_potion">,
-      CoachingFeatureProductGuidance
-    >
+    Record<CoachingFeatureSuggestion, CoachingFeatureProductGuidance>
   >;
 };
 

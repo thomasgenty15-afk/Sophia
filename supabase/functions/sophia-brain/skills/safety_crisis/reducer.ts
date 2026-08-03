@@ -5,6 +5,11 @@ import {
   noteInformationSummary,
 } from "../../contracts/note_information.v1.ts";
 import {
+  crisisCountryFromLocale,
+  LEGACY_FRENCH_BRANCH_COUNTRY,
+  resolveSafetyResourceNumbers,
+} from "../../../_shared/keel/crisis_resources.ts";
+import {
   normalizeSafetyPhase,
   normalizeSafetyRiskBand,
   type SafetyCrisisConversationContext,
@@ -399,6 +404,30 @@ function summarizeInboundNote(
   ).join(" | ").slice(0, 700) || null;
 }
 
+/**
+ * W3.3 — emergency contacts resolved BY COUNTRY (`_shared/keel/crisis_resources.ts`).
+ *
+ * Priority: explicit country > region subtag of the turn locale > the branch's
+ * declared default. A locale that resolves to no seeded country (say 'de-DE')
+ * deliberately does NOT fall back to France: it lands on the loud
+ * international set, because handing 3114 to a German user is the bug this
+ * whole lot exists to remove.
+ *
+ * The conjunction is French because these sentences are French (R3: the
+ * language of the sentence is the caller's business, not the resolver's).
+ */
+function safetyResourceNumbersFor(args: {
+  userCountry?: string | null;
+  userLocale?: string | null;
+}) {
+  const country = args.userCountry
+    ? args.userCountry
+    : args.userLocale
+    ? crisisCountryFromLocale(args.userLocale)
+    : LEGACY_FRENCH_BRANCH_COUNTRY;
+  return resolveSafetyResourceNumbers(country, { conjunction: "ou" });
+}
+
 function buildConversationContext(args: {
   kind: SafetyCrisisVisibleTaskKind;
   phase: SafetyCrisisPhase;
@@ -412,7 +441,10 @@ function buildConversationContext(args: {
   mustIncludeEmergencyNumbers: boolean;
   emergencyNumbersAlreadyDelivered: boolean;
   benignRecallRequest?: { asked: boolean; facts: string[] } | null;
+  userCountry?: string | null;
+  userLocale?: string | null;
 }): SafetyCrisisConversationContext {
+  const safetyResourceNumbers = safetyResourceNumbersFor(args);
   const currentStep = typeof args.previousState.last_assistant_safety_step ===
       "string"
     ? args.previousState.last_assistant_safety_step
@@ -468,9 +500,12 @@ function buildConversationContext(args: {
       benign_recall_request: args.benignRecallRequest ?? null,
     },
     next_focus: nextFocusFor(args.kind),
+    // W3.3: resolved by country, never hardcoded. A US student in crisis was
+    // being told to call 3114, which does not exist in the US.
     safety_resources: {
-      emergency_numbers: "15 ou 112",
-      suicide_prevention_number: "3114",
+      emergency_numbers: safetyResourceNumbers.emergency_numbers,
+      suicide_prevention_number:
+        safetyResourceNumbers.suicide_prevention_number,
       must_include_emergency_numbers: args.mustIncludeEmergencyNumbers,
       must_prioritize_human_support:
         args.responseContract.must_prioritize_human_support ||
@@ -582,6 +617,8 @@ function buildVisibleTask(args: {
   mustIncludeEmergencyNumbers: boolean;
   emergencyNumbersAlreadyDelivered: boolean;
   benignRecallRequest?: { asked: boolean; facts: string[] } | null;
+  userCountry?: string | null;
+  userLocale?: string | null;
 }): SafetyCrisisVisibleTask {
   const responseContract = safetyResponseContract({
     phase: args.phase,
@@ -603,6 +640,8 @@ function buildVisibleTask(args: {
       mustIncludeEmergencyNumbers: args.mustIncludeEmergencyNumbers,
       emergencyNumbersAlreadyDelivered: args.emergencyNumbersAlreadyDelivered,
       benignRecallRequest: args.benignRecallRequest,
+      userCountry: args.userCountry,
+      userLocale: args.userLocale,
     }),
   };
 }
@@ -615,6 +654,10 @@ export function reduceSafetyCrisis(args: {
   currentUserMessage?: string | null;
   noteInformationInbound?: NoteInformation | null;
   benignRecallRequest?: { asked: boolean; facts: string[] } | null;
+  /** W3.3: ISO 3166-1 alpha-2 of the student, when the turn carries one. */
+  userCountry?: string | null;
+  /** W3.3: BCP-47 locale of the turn; its region subtag names the country. */
+  userLocale?: string | null;
 }): SafetyCrisisReduction {
   const previous = args.previousState;
   const previousPhase = normalizeSafetyPhase(previous.phase);
@@ -927,6 +970,8 @@ export function reduceSafetyCrisis(args: {
     mustIncludeEmergencyNumbers: mustDeliverNumbersThisTurn,
     emergencyNumbersAlreadyDelivered,
     benignRecallRequest: args.benignRecallRequest,
+    userCountry: args.userCountry,
+    userLocale: args.userLocale,
   });
 
   return {

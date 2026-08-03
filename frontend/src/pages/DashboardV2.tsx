@@ -7,11 +7,7 @@ import {
   ChevronUp,
   Compass,
   Hammer,
-  Layout,
-  Lightbulb,
   Loader2,
-  Lock,
-  Quote,
   RefreshCcw,
   Repeat,
   Settings,
@@ -20,47 +16,24 @@ import {
   Map as MapIcon,
   Menu,
   Plus,
-  Zap,
 } from "lucide-react";
-import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../context/AuthContext";
 import { useOnboardingAmbientAudio } from "../hooks/useOnboardingAmbientAudio";
-import { hasArchitecteAccess } from "../lib/entitlements";
 
 import PlanSavedModal from "../components/dashboard-v2/PlanSavedModal";
 import { PlanActionCardsByLevel } from "../components/dashboard-v2/ActionCardsResourcePanel";
-import { AtelierInspirations } from "../components/dashboard-v2/AtelierInspirations";
-import { BaseDeVieSection } from "../components/dashboard-v2/BaseDeVieSection";
 import { DefenseCard, DefenseCardSkeleton } from "../components/dashboard-v2/DefenseCard";
 import { DimensionSection } from "../components/dashboard-v2/DimensionSection";
-import { LabCardsPanel } from "../components/dashboard-v2/LabCardsPanel";
-import { LevelCompletionModal } from "../components/dashboard-v2/LevelCompletionModal";
-import { LevelTransitionScreen } from "../components/dashboard-v2/LevelTransitionScreen";
-import { MultiPartTransitionGateModal } from "../components/dashboard-v2/MultiPartTransitionGateModal";
-import { MultiPartTransitionQuestionnaireModal } from "../components/dashboard-v2/MultiPartTransitionQuestionnaireModal";
-import { Phase1FoundationCard } from "../components/dashboard-v2/Phase1FoundationCard";
 import { PhaseProgression } from "../components/dashboard-v2/PhaseProgression";
-import { ProfessionalSupportTrackerCard } from "../components/dashboard-v2/ProfessionalSupportTrackerCard";
-import {
-  PlanRevisionPanel,
-  type PlanRevisionConversationMode,
-  type PlanReviewSessionStatus,
-  type PlanRevisionProposal,
-  type PlanRevisionPanelAction,
-  type PlanRevisionThreadEntry,
-} from "../components/dashboard-v2/PlanRevisionPanel";
 import { PreferencesSection } from "../components/dashboard-v2/PreferencesSection";
-import { RemindersSection } from "../components/dashboard-v2/RemindersSection";
 import { StrategyHeader } from "../components/dashboard-v2/StrategyHeader";
-import { TransformationClosureModal } from "../components/dashboard-v2/TransformationClosureModal";
-import { UnlockPreview } from "../components/dashboard-v2/UnlockPreview";
 
-import { WeekCard } from "../components/dashboard/WeekCard";
-import { WishlistTab } from "../components/architect/WishlistTab";
-import { StoriesTab } from "../components/architect/StoriesTab";
-import { ReflectionsTab } from "../components/architect/ReflectionsTab";
-import { QuotesTab } from "../components/architect/QuotesTab";
+// W2.B — les cartes d'attaque sont extraites vers `keel/components` (anglais, R1).
+// `RemindersSection` reste dans l'arbre legacy tant que sa copie est française (voir son en-tête).
+import { RemindersSection } from "../components/dashboard-v2/RemindersSection";
+import { AttackCards } from "../keel/components/AttackCards";
 
 import { useDashboardV2Data, type DashboardV2PlanItemRuntime } from "../hooks/useDashboardV2Data";
 import {
@@ -69,37 +42,11 @@ import {
 } from "../hooks/useDashboardV2Logic";
 import { useDefenseCard } from "../hooks/useDefenseCard";
 import { useLabCards } from "../hooks/useLabCards";
-import { useModules } from "../hooks/useModules";
-import { usePhase1 } from "../hooks/usePhase1";
-import { usePotions } from "../hooks/usePotions";
 import { isVisibleTransformationStatus } from "../lib/dashboardTransformations";
 import { exportDefenseCardAsPdf } from "../lib/exportDefenseCard";
-import { getPhase1MandatoryProgress } from "../lib/phase1";
-import {
-  buildBaseDeVieDraft,
-  getBaseDeViePayload,
-  isPlanReadyForClosure,
-} from "../lib/baseDeVie";
 import type { LabScopeInput } from "../lib/labScope";
-import { buildLevelReviewQuestions } from "../lib/levelCompletion";
-import {
-  createEmptyOnboardingV2Draft,
-  persistOnboardingV2DraftLocally,
-  type QuestionnaireSchemaV2,
-  toTransformationPreview,
-} from "../lib/onboardingV2";
-import { newRequestId, requestHeaders } from "../lib/requestId";
-import { detectBrowserTimezone } from "../lib/localization";
-import {
-  buildMultiPartTransitionQuestionnaireSchema,
-  buildSimpleTransitionQuestionnaireSchema,
-} from "../lib/multiPartTransitionQuestionnaire";
-import { extractProfessionalSupport } from "../lib/professionalSupport";
-import { getDisplayPhaseOrder } from "../lib/planPhases";
-import { isPlanLevelReviewWindowOpen, parsePlanScheduleAnchor } from "../lib/planSchedule";
+import { parsePlanScheduleAnchor } from "../lib/planSchedule";
 import { supabase } from "../lib/supabase";
-import { extractLevelToolRecommendationState } from "../lib/toolRecommendations";
-import type { PlanContentV3 } from "../types/v2";
 import UserProfile from "../components/UserProfile";
 
 const EMPTY_DIMENSION_GROUP: DashboardV2DimensionGroup = {
@@ -109,89 +56,6 @@ const EMPTY_DIMENSION_GROUP: DashboardV2DimensionGroup = {
   maintenance: [],
   completed: [],
 };
-
-const LEVEL_COMPLETION_PENDING_KEY = "sophia.dashboard.levelCompletion.pending.v1";
-const LEVEL_COMPLETION_PENDING_TTL_MS = 10 * 60 * 1000;
-
-type LevelCompletionPendingEntry = {
-  user_id: string;
-  transformation_id: string;
-  plan_id: string;
-  phase_id: string;
-  level_order: number;
-  request_id: string;
-  started_at_ms: number;
-};
-
-type LevelCompletionPendingScope = Omit<
-  LevelCompletionPendingEntry,
-  "request_id" | "started_at_ms"
->;
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return !!value && typeof value === "object" && !Array.isArray(value);
-}
-
-function readLevelCompletionPending(): LevelCompletionPendingEntry | null {
-  try {
-    const raw = window.localStorage.getItem(LEVEL_COMPLETION_PENDING_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (!isRecord(parsed)) return null;
-    const entry = parsed as Partial<LevelCompletionPendingEntry>;
-    if (
-      typeof entry.user_id !== "string" ||
-      typeof entry.transformation_id !== "string" ||
-      typeof entry.plan_id !== "string" ||
-      typeof entry.phase_id !== "string" ||
-      typeof entry.level_order !== "number" ||
-      typeof entry.request_id !== "string" ||
-      typeof entry.started_at_ms !== "number"
-    ) {
-      return null;
-    }
-    return entry as LevelCompletionPendingEntry;
-  } catch {
-    return null;
-  }
-}
-
-function sameLevelCompletionScope(
-  entry: LevelCompletionPendingEntry,
-  scope: LevelCompletionPendingScope,
-): boolean {
-  return entry.user_id === scope.user_id &&
-    entry.transformation_id === scope.transformation_id &&
-    entry.plan_id === scope.plan_id &&
-    entry.phase_id === scope.phase_id &&
-    entry.level_order === scope.level_order;
-}
-
-function readActiveLevelCompletionPending(
-  scope: LevelCompletionPendingScope | null,
-): LevelCompletionPendingEntry | null {
-  if (!scope) return null;
-  const entry = readLevelCompletionPending();
-  if (!entry) return null;
-  const expired = Date.now() - entry.started_at_ms > LEVEL_COMPLETION_PENDING_TTL_MS;
-  if (expired || !sameLevelCompletionScope(entry, scope)) {
-    window.localStorage.removeItem(LEVEL_COMPLETION_PENDING_KEY);
-    return null;
-  }
-  return entry;
-}
-
-function writeLevelCompletionPending(entry: LevelCompletionPendingEntry): void {
-  window.localStorage.setItem(LEVEL_COMPLETION_PENDING_KEY, JSON.stringify(entry));
-}
-
-function clearLevelCompletionPending(scope: LevelCompletionPendingScope | null): void {
-  const entry = readLevelCompletionPending();
-  if (!entry) return;
-  if (!scope || sameLevelCompletionScope(entry, scope)) {
-    window.localStorage.removeItem(LEVEL_COMPLETION_PENDING_KEY);
-  }
-}
 
 function toPositiveIntegerOrNull(value: unknown): number | null {
   if (typeof value === "number" && Number.isFinite(value) && value > 0) {
@@ -204,111 +68,6 @@ function toPositiveIntegerOrNull(value: unknown): number | null {
     }
   }
   return null;
-}
-
-async function invokeFunctionWithTimeout<T>(
-  name: string,
-  body: Record<string, unknown>,
-  timeoutMs = 180_000,
-): Promise<T> {
-  const requestId = newRequestId();
-  const requestBody = name === "generate-plan-v2" || name === "adjust-plan-v1"
-    ? { ...body, ...buildClientTimePayload() }
-    : body;
-  const invokePromise = supabase.functions.invoke<T>(name, {
-    body: requestBody,
-    headers: requestHeaders(requestId),
-  });
-
-  const result = await Promise.race([
-    invokePromise,
-    new Promise<never>((_, reject) => {
-      window.setTimeout(() => {
-        const timeoutError = new Error(
-          `La requête ${name} a dépassé ${Math.round(timeoutMs / 1000)} secondes.`,
-        ) as Error & { status?: number };
-        timeoutError.name = "FunctionInvokeTimeoutError";
-        timeoutError.status = 408;
-        reject(timeoutError);
-      }, timeoutMs);
-    }),
-  ]);
-
-  const { data, error } = result;
-  if (error) throw error;
-  return data as T;
-}
-
-const PLAN_RECOVERY_POLL_INTERVAL_MS = 5_000;
-const PLAN_RECOVERY_POLL_TIMEOUT_MS = 90_000;
-const PLAN_RECOVERY_CLOCK_SKEW_MS = 60_000;
-
-function isRecoverableFunctionError(error: unknown): boolean {
-  const status = Number(
-    (error as { context?: { status?: number } })?.context?.status ??
-      (error as { status?: number })?.status,
-  );
-  // Recover on gateway/server failures (5xx) and timeouts (408): the edge
-  // function keeps running after the gateway cuts the connection, so its
-  // result usually lands in the database anyway. A 4xx means the request
-  // itself was rejected and no draft will ever appear.
-  if (!Number.isFinite(status)) return true;
-  return status >= 500 || status === 408;
-}
-
-function waitMs(ms: number): Promise<void> {
-  return new Promise((resolve) => window.setTimeout(resolve, ms));
-}
-
-async function recoverDraftPlanAfterInvokeError(args: {
-  transformationId: string;
-  requestStartedAt: number;
-}): Promise<{ planId: string; planPreview: PlanContentV3 } | null> {
-  const createdAfterIso = new Date(
-    args.requestStartedAt - PLAN_RECOVERY_CLOCK_SKEW_MS,
-  ).toISOString();
-  const deadline = Date.now() + PLAN_RECOVERY_POLL_TIMEOUT_MS;
-  while (Date.now() < deadline) {
-    await waitMs(PLAN_RECOVERY_POLL_INTERVAL_MS);
-    const { data, error } = await supabase
-      .from("user_plans_v2")
-      .select("id, content")
-      .eq("transformation_id", args.transformationId)
-      .eq("status", "draft")
-      .gte("created_at", createdAfterIso)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    if (error || !data) continue;
-    const content = data.content as PlanContentV3 | null;
-    if (content?.version === 3 && Array.isArray(content.phases)) {
-      return { planId: data.id as string, planPreview: content };
-    }
-  }
-  return null;
-}
-
-async function waitForPlanActivationAfterInvokeError(
-  planId: string,
-): Promise<boolean> {
-  const deadline = Date.now() + PLAN_RECOVERY_POLL_TIMEOUT_MS;
-  while (Date.now() < deadline) {
-    await waitMs(PLAN_RECOVERY_POLL_INTERVAL_MS);
-    const { data, error } = await supabase
-      .from("user_plans_v2")
-      .select("id, status")
-      .eq("id", planId)
-      .maybeSingle();
-    if (!error && data?.status === "active") return true;
-  }
-  return false;
-}
-
-function buildClientTimePayload(): Record<string, unknown> {
-  return {
-    client_now_iso: new Date().toISOString(),
-    client_timezone: detectBrowserTimezone(),
-  };
 }
 
 function extractTransformationJourneyMetadata(
@@ -423,73 +182,9 @@ function extractSplitTransformationGoal(
 }
 
 type DashboardTab = "plan" | "lab" | "inspiration" | "reminders" | "preferences";
-type ArchitectTab = "atelier" | "wishlist" | "stories" | "reflections" | "quotes";
 type DashboardScopeId = string | "out_of_plan";
-type Phase1InspirationFocusTarget = "deep_why" | "story";
 type DashboardLocationState = {
   planSavedConfirmation?: boolean;
-};
-
-type ReviewPlanResponse = {
-  request_id: string;
-  review_id: string;
-  review_kind: PlanRevisionProposal["review_kind"];
-  adjustment_scope: PlanRevisionProposal["adjustment_scope"];
-  decision: PlanRevisionProposal["decision"];
-  understanding: string;
-  impact: string;
-  user_change_summary: string;
-  proposed_changes: string[];
-  control_mode: PlanRevisionProposal["control_mode"];
-  resistance_note: string | null;
-  principle_reminder: string | null;
-  offer_complete_level: boolean;
-  regeneration_feedback: string | null;
-  clarification_question: string | null;
-  assistant_summary: string;
-  assistant_message: string;
-  conversation_mode: PlanRevisionConversationMode;
-  conversation_thread: PlanRevisionThreadEntry[];
-  precision_count: number;
-  message_count: number;
-  session_status: PlanReviewSessionStatus;
-  session_expires_at: string | null;
-};
-
-type GeneratePlanPreviewResponse = {
-  request_id: string;
-  plan_id: string;
-  plan_preview: PlanContentV3 | null;
-  plan_status: "draft" | "generated" | "active" | "paused" | "completed" | "archived";
-};
-
-type CompleteLevelResponse = {
-  request_id: string;
-  review_id: string;
-  generation_event_id: string;
-  decision: "keep" | "shorten" | "extend" | "lighten";
-  decision_reason: string;
-  summary: string;
-  next_level: {
-    phase_id: string;
-    level_order: number;
-    title: string;
-    duration_weeks: number;
-  } | null;
-};
-
-type GeneratePlanResponse = {
-  request_id: string;
-  transformation_id: string;
-  cycle_id: string;
-  plan_id: string;
-  plan_version: number;
-  generation_attempts: number;
-  distributed_items_count: number;
-  event_warnings: string[];
-  plan_preview?: PlanContentV3;
-  plan_status?: string;
-  roadmap_changed?: boolean;
 };
 
 const REACTIVATABLE_PLAN_STATUS_PRIORITY = {
@@ -514,13 +209,6 @@ type PlanAdjustmentRevision = {
   assistant_message?: string | null;
 };
 
-function getBrowserLocalYmd(now = new Date()): string {
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
 function formatCompletedTransformationDate(value: string | null | undefined): string | null {
   if (!value) return null;
   const parsed = new Date(value);
@@ -529,32 +217,6 @@ function formatCompletedTransformationDate(value: string | null | undefined): st
     day: "numeric",
     month: "short",
   }).format(parsed);
-}
-
-function buildPlanAdjustmentFeedback(args: {
-  proposal: PlanRevisionProposal;
-  initialComment: string;
-  precisionComment: string | null;
-}): string {
-  return [
-    args.proposal.regeneration_feedback?.trim() || null,
-    args.proposal.user_change_summary?.trim()
-      ? `Résumé pour le user de ce qui change: ${args.proposal.user_change_summary.trim()}`
-      : null,
-    `Commentaire initial du user: ${args.initialComment.trim()}`,
-    args.precisionComment?.trim()
-      ? `Précision ajoutée ensuite par le user: ${args.precisionComment.trim()}`
-      : null,
-    args.proposal.assistant_summary?.trim()
-      ? `Lecture actuelle de Sophia: ${args.proposal.assistant_summary.trim()}`
-      : null,
-  ].filter((entry): entry is string => Boolean(entry && entry.trim().length > 0)).join("\n\n");
-}
-
-function getPreviewScope(mode: PlanRevisionConversationMode): "level" | "plan" | null {
-  if (mode === "level_adjustment") return "level";
-  if (mode === "plan_adjustment") return "plan";
-  return null;
 }
 
 function parsePlanAdjustmentRevision(value: unknown): PlanAdjustmentRevision | null {
@@ -584,42 +246,11 @@ function parsePlanAdjustmentRevision(value: unknown): PlanAdjustmentRevision | n
   };
 }
 
-function mergeTransitionDebriefIntoHandoffPayload(args: {
-  handoffPayload: Record<string, unknown> | null;
-  answers: Record<string, string | string[]>;
-  questionnaireSchema: QuestionnaireSchemaV2;
-  previousTransformationId: string | null;
-  source: string;
-}): Record<string, unknown> {
-  const current = args.handoffPayload && typeof args.handoffPayload === "object" &&
-      !Array.isArray(args.handoffPayload)
-    ? { ...args.handoffPayload }
-    : {};
-  const onboardingV2 = current.onboarding_v2 && typeof current.onboarding_v2 === "object" &&
-      !Array.isArray(current.onboarding_v2)
-    ? { ...(current.onboarding_v2 as Record<string, unknown>) }
-    : {};
-
-  return {
-    ...current,
-    onboarding_v2: {
-      ...onboardingV2,
-      transition_debrief: {
-        source: args.source,
-        previous_transformation_id: args.previousTransformationId,
-        answered_at: new Date().toISOString(),
-        questionnaire_schema: args.questionnaireSchema,
-        answers: args.answers,
-      },
-    },
-  };
-}
-
 export default function DashboardV2() {
   const navigate = useNavigate();
   const location = useLocation();
   const { startSession } = useOnboardingAmbientAudio();
-  const { subscription, accessTier } = useAuth();
+  const { accessTier } = useAuth();
   const [selectedScopeId, setSelectedScopeId] = useState<DashboardScopeId | null>(null);
 
   const {
@@ -635,9 +266,7 @@ export default function DashboardV2() {
     planContent,
     planContentV3,
     planItems,
-    professionalSupportRecommendations,
     levelToolRecommendations,
-    levelToolRecommendationsAvailable,
     nextTransformation,
     hasIncompleteCycle,
     refetch,
@@ -665,12 +294,6 @@ export default function DashboardV2() {
 
   const defense = useDefenseCard(labScope);
   const labCards = useLabCards(labScope);
-  const potions = usePotions(labScope);
-  const phase1 = usePhase1(isV3 ? transformation : null, refetch);
-  const { phase1: phase1State } = phase1;
-  const phase1Progress = getPhase1MandatoryProgress(phase1State);
-  const phase1Completed = phase1Progress.completed >= phase1Progress.total;
-
   const logic = useDashboardV2Logic({
     cycle,
     transformation,
@@ -679,34 +302,6 @@ export default function DashboardV2() {
     planContentV3,
     refetch,
   });
-  const currentLevel = logic.phases.find((phase) => phase.state === "active") ?? null;
-  const levelCompletionPendingScope = useMemo<LevelCompletionPendingScope | null>(() => {
-    if (
-      !user?.id ||
-      !transformation?.id ||
-      !plan?.id ||
-      !currentLevel?.phase_id
-    ) {
-      return null;
-    }
-    return {
-      user_id: user.id,
-      transformation_id: transformation.id,
-      plan_id: plan.id,
-      phase_id: currentLevel.phase_id,
-      level_order: currentLevel.phase_order,
-    };
-  }, [
-    currentLevel?.phase_id,
-    currentLevel?.phase_order,
-    plan?.id,
-    transformation?.id,
-    user?.id,
-  ]);
-  const levelToolState = useMemo(
-    () => extractLevelToolRecommendationState(transformation?.handoff_payload ?? null),
-    [transformation?.handoff_payload],
-  );
   const currentPlanLevelToolRecommendations = useMemo(
     () =>
       plan
@@ -714,82 +309,35 @@ export default function DashboardV2() {
         : [],
     [levelToolRecommendations, plan],
   );
-  const hasCurrentPlanLevelToolRecommendations =
-    currentPlanLevelToolRecommendations.length > 0;
-  const levelToolStateCoversCurrentLevel = Boolean(
-    !currentLevel ||
-      currentLevel.phase_order < 2 ||
-      levelToolState?.levels.some((entry) =>
-        entry.target_level_id === currentLevel.phase_id &&
-        entry.target_level_order === currentLevel.phase_order
-      ),
-  );
+  // W2.B : `levelToolState` / `hasCurrentPlanLevelToolRecommendations` /
+  // `levelToolStateCoversCurrentLevel` ne servaient qu'à décider s'il fallait
+  // (re)lancer `classify-level-tools-v1`. La classification est supprimée,
+  // ces dérivés aussi. Les recommandations DÉJÀ en base restent affichées.
   const scheduleAnchor = useMemo(
     () => parsePlanScheduleAnchor(planContentV3?.metadata?.schedule_anchor),
     [planContentV3],
   );
 
-  const { modules } = useModules();
-
-  const [searchParams] = useSearchParams();
-  const [mode, setMode] = useState<"action" | "architecte">(
-    searchParams.get("mode") === "architecte" ? "architecte" : "action"
-  );
+  // W2.B : le mode « architecte » (37 modules d'identité, Forge, ateliers) est supprimé.
+  // Le mode reste dans la signature pour `UserProfile`, mais il vaut toujours "action".
+  const mode = "action" as const;
   const [isLabUsageOpen, setIsLabUsageOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<DashboardTab>("plan");
-  const [architectTab, setArchitectTab] = useState<ArchitectTab>("atelier");
-  const [isAtelierUsageOpen, setIsAtelierUsageOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [profileInitialTab, setProfileInitialTab] = useState<
     "general" | "subscription" | "settings"
   >("general");
   const [dashboardActionError, setDashboardActionError] = useState<string | null>(null);
-  const [professionalSupportBootstrapId, setProfessionalSupportBootstrapId] =
-    useState<string | null>(null);
-  const [levelToolBootstrapId, setLevelToolBootstrapId] =
-    useState<string | null>(null);
-  const [planReviewInput, setPlanReviewInput] = useState("");
-  const [planReviewThread, setPlanReviewThread] = useState<PlanRevisionThreadEntry[]>([]);
-  const [planReviewProposal, setPlanReviewProposal] = useState<PlanRevisionProposal | null>(null);
-  const [planReviewBusy, setPlanReviewBusy] = useState(false);
-  const [planReviewBusyAction, setPlanReviewBusyAction] = useState<
-    "submit" | "preview" | "confirm" | null
-  >(null);
-  const [, setPlanReviewSessionStatus] =
-    useState<PlanReviewSessionStatus | null>(null);
-  const [planReviewSessionExpiresAt, setPlanReviewSessionExpiresAt] = useState<string | null>(null);
-  const [planReviewPreview, setPlanReviewPreview] = useState<PlanContentV3 | null>(null);
-  const [planReviewPreviewPlanId, setPlanReviewPreviewPlanId] = useState<string | null>(null);
-  const [planReviewComposerMode, setPlanReviewComposerMode] = useState<
-    "initial" | "precision" | "chat" | "hidden"
-  >("initial");
-  const [planReviewInitialComment, setPlanReviewInitialComment] = useState<string | null>(null);
-  const [planReviewPrecisionComment, setPlanReviewPrecisionComment] = useState<string | null>(null);
-  const [isLevelCompletionModalOpen, setIsLevelCompletionModalOpen] = useState(false);
-  const [levelCompletionBusy, setLevelCompletionBusy] = useState(false);
-  const [levelCompletionError, setLevelCompletionError] = useState<string | null>(null);
-  const [levelCompletionSummary, setLevelCompletionSummary] = useState<string | null>(null);
   const [resourceFocusTarget, setResourceFocusTarget] = useState<ResourceFocusTarget | null>(null);
   const [isTransformationLimitModalOpen, setIsTransformationLimitModalOpen] = useState(false);
-  const [isClosureModalOpen, setIsClosureModalOpen] = useState(false);
-  const [closureModalDismissedForId, setClosureModalDismissedForId] = useState<string | null>(null);
-  const [completingTransformation, setCompletingTransformation] = useState(false);
-  const [isMultiPartTransitionModalOpen, setIsMultiPartTransitionModalOpen] = useState(false);
-  const [multiPartTransitionBusy, setMultiPartTransitionBusy] = useState(false);
-  const [isTransitionQuestionnaireModalOpen, setIsTransitionQuestionnaireModalOpen] = useState(false);
-  const [transitionQuestionnaireBusy, setTransitionQuestionnaireBusy] = useState(false);
-  const [transitionQuestionnaireError, setTransitionQuestionnaireError] = useState<string | null>(null);
   const [reactivatingTransformationId, setReactivatingTransformationId] = useState<string | null>(null);
   const [reactivationError, setReactivationError] = useState<string | null>(null);
-  const [phase1InspirationFocus, setPhase1InspirationFocus] =
-    useState<Phase1InspirationFocusTarget | null>(null);
   const [isPlanSavedModalOpen, setIsPlanSavedModalOpen] = useState(false);
 
   useEffect(() => {
     const locationState = location.state as DashboardLocationState | null;
     if (!locationState?.planSavedConfirmation) return;
 
-    setMode("action");
     setActiveTab("plan");
     setIsPlanSavedModalOpen(true);
     navigate(
@@ -819,21 +367,6 @@ export default function DashboardV2() {
   );
   const recommendedAdditionalTransformation = nextTransformation ?? remainingTransformations[0] ?? null;
   const canAddTransformation = activeTransformations.length < 2;
-  const currentBaseDeViePayload = useMemo(
-    () => getBaseDeViePayload(transformation?.base_de_vie_payload ?? null),
-    [transformation?.base_de_vie_payload],
-  );
-
-  const openPhase1DeepWhy = () => {
-    setPhase1InspirationFocus("deep_why");
-    setActiveTab("inspiration");
-  };
-
-  const openPhase1Story = () => {
-    setPhase1InspirationFocus("story");
-    setActiveTab("inspiration");
-  };
-
   const openPlanDefenseResourceEditor = (item: DashboardV2PlanItemRuntime) => {
     const impulse = item.linked_defense_card?.content.impulses.find((entry) =>
       Array.isArray(entry.triggers) && entry.triggers.length > 0,
@@ -848,216 +381,6 @@ export default function DashboardV2() {
     setActiveTab("lab");
   };
 
-  const clearPlanReviewSessionState = () => {
-    setPlanReviewThread([]);
-    setPlanReviewProposal(null);
-    setPlanReviewSessionStatus(null);
-    setPlanReviewSessionExpiresAt(null);
-    setPlanReviewPreview(null);
-    setPlanReviewPreviewPlanId(null);
-    setPlanReviewComposerMode("initial");
-    setPlanReviewInitialComment(null);
-    setPlanReviewPrecisionComment(null);
-    setPlanReviewInput("");
-  };
-
-  const reviewSessionTransformationId = transformation?.id ?? null;
-  useEffect(() => {
-    if (!reviewSessionTransformationId) {
-      clearPlanReviewSessionState();
-      return;
-    }
-
-    let cancelled = false;
-
-    void (async () => {
-      const { data, error: sessionError } = await supabase
-        .from("user_plan_review_requests")
-        .select("*")
-        .eq("transformation_id", reviewSessionTransformationId)
-        .order("updated_at", { ascending: false })
-        .limit(5);
-
-      if (cancelled) return;
-      if (sessionError) {
-        console.error("[DashboardV2] load active plan review session failed", sessionError);
-        clearPlanReviewSessionState();
-        return;
-      }
-
-      const activeSession = (data ?? []).find((entry) =>
-        entry?.session_status === "active" || entry?.session_status === "preview_ready"
-      ) ?? null;
-
-      if (!activeSession) {
-        clearPlanReviewSessionState();
-        return;
-      }
-
-      const thread = Array.isArray(activeSession.conversation_thread)
-        ? activeSession.conversation_thread.filter((entry: unknown): entry is PlanRevisionThreadEntry =>
-          Boolean(
-            entry &&
-              typeof entry === "object" &&
-              !Array.isArray(entry) &&
-              ((entry as { role?: unknown }).role === "user" ||
-                (entry as { role?: unknown }).role === "assistant") &&
-              typeof (entry as { content?: unknown }).content === "string" &&
-              typeof (entry as { created_at?: unknown }).created_at === "string",
-          )
-        )
-        : [];
-
-      const userMessages = thread.filter((entry: PlanRevisionThreadEntry) => entry.role === "user");
-
-      setPlanReviewThread(thread);
-      setPlanReviewProposal({
-        review_id: activeSession.id,
-        review_kind: activeSession.review_kind,
-        adjustment_scope: activeSession.adjustment_scope,
-        decision: activeSession.decision,
-        understanding: activeSession.understanding,
-        impact: activeSession.impact,
-        user_change_summary: typeof activeSession.user_change_summary === "string" &&
-            activeSession.user_change_summary.trim().length > 0
-          ? activeSession.user_change_summary.trim()
-          : typeof activeSession.impact === "string"
-          ? activeSession.impact
-          : "",
-        proposed_changes: Array.isArray(activeSession.proposed_changes)
-          ? activeSession.proposed_changes.filter((item: unknown): item is string => typeof item === "string")
-          : [],
-        control_mode: activeSession.control_mode,
-        resistance_note: activeSession.resistance_note,
-        principle_reminder: activeSession.principle_reminder,
-        offer_complete_level: Boolean(activeSession.offer_complete_level),
-        regeneration_feedback: activeSession.regeneration_feedback,
-        clarification_question: activeSession.clarification_question,
-        assistant_summary: typeof activeSession.assistant_message === "string"
-          ? activeSession.assistant_message
-          : typeof activeSession.assistant_summary === "string"
-            ? activeSession.assistant_summary
-            : "",
-        conversation_mode: activeSession.conversation_mode,
-        precision_count: typeof activeSession.precision_count === "number" ? activeSession.precision_count : Math.max(0, userMessages.length - 1),
-        message_count: typeof activeSession.message_count === "number" ? activeSession.message_count : thread.length,
-        session_status: activeSession.session_status,
-        session_expires_at: typeof activeSession.session_expires_at === "string" ? activeSession.session_expires_at : null,
-      });
-      setPlanReviewSessionStatus(activeSession.session_status);
-      setPlanReviewSessionExpiresAt(typeof activeSession.session_expires_at === "string" ? activeSession.session_expires_at : null);
-      setPlanReviewInitialComment(userMessages[0]?.content ?? null);
-      setPlanReviewPrecisionComment(userMessages[1]?.content ?? null);
-      setPlanReviewComposerMode(activeSession.conversation_mode === "explanation_chat" || activeSession.conversation_mode === "guardrail_chat"
-        ? "chat"
-        : "hidden");
-      setPlanReviewInput("");
-
-      if (typeof activeSession.preview_plan_id === "string" && activeSession.preview_plan_id.length > 0) {
-        const { data: previewRow, error: previewError } = await supabase
-          .from("user_plans_v2")
-          .select("id,content")
-          .eq("id", activeSession.preview_plan_id)
-          .maybeSingle();
-
-        if (previewError) {
-          console.error("[DashboardV2] load plan adjustment preview failed", previewError);
-          setPlanReviewPreview(null);
-          setPlanReviewPreviewPlanId(null);
-          return;
-        }
-
-        const previewContent = previewRow?.content as Record<string, unknown> | null;
-        if (previewContent?.version === 3 && Array.isArray(previewContent.phases)) {
-          setPlanReviewPreview(previewContent as PlanContentV3);
-          setPlanReviewPreviewPlanId(previewRow?.id ?? null);
-        } else {
-          setPlanReviewPreview(null);
-          setPlanReviewPreviewPlanId(null);
-        }
-      } else {
-        setPlanReviewPreview(null);
-        setPlanReviewPreviewPlanId(null);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [reviewSessionTransformationId]);
-
-  useEffect(() => {
-    if (!planReviewProposal?.review_id || !planReviewSessionExpiresAt) return;
-
-    const intervalId = window.setInterval(() => {
-      if (new Date(planReviewSessionExpiresAt).getTime() > Date.now()) return;
-
-      const reviewId = planReviewProposal.review_id;
-      const previewPlanId = planReviewPreviewPlanId;
-      clearPlanReviewSessionState();
-      if (previewPlanId) {
-        void supabase
-          .from("user_plans_v2")
-          .update({
-            status: "archived",
-            archived_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", previewPlanId);
-      }
-      void supabase
-        .from("user_plan_review_requests")
-        .update({
-          session_status: "expired",
-          completed_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", reviewId);
-    }, 30_000);
-
-    return () => window.clearInterval(intervalId);
-  }, [planReviewPreviewPlanId, planReviewProposal?.review_id, planReviewSessionExpiresAt]);
-
-  const completedPlanItemTitles = useMemo(
-    () =>
-      planItems
-        .filter((item) => item.status === "completed" || item.status === "in_maintenance")
-        .map((item) => item.title),
-    [planItems],
-  );
-  const closureDraft = useMemo(
-    () =>
-      transformation
-        ? buildBaseDeVieDraft({
-            transformation,
-            activePlanContent,
-            completedItemTitles: completedPlanItemTitles,
-          })
-        : null,
-    [activePlanContent, completedPlanItemTitles, transformation],
-  );
-  const currentLevelReviewQuestions = useMemo(
-    () =>
-      currentLevel
-        ? buildLevelReviewQuestions({
-            title: currentLevel.title,
-            durationWeeks: currentLevel.duration_weeks,
-            weeks: currentLevel.weeks,
-            reviewFocus: currentLevel.review_focus,
-            dimensions: [...new Set(currentLevel.items.map((item) => item.dimension))],
-            primaryMetricLabel: planContentV3?.primary_metric?.label ?? null,
-          })
-        : [],
-    [currentLevel, planContentV3?.primary_metric?.label],
-  );
-  const isCurrentLevelReviewUnlocked = Boolean(
-    currentLevel &&
-      (currentLevel.transition_ready ||
-        isPlanLevelReviewWindowOpen({
-          anchor: scheduleAnchor,
-          durationWeeks: currentLevel.duration_weeks ?? (currentLevel.weeks.length || 1),
-        })),
-  );
   const levelToolRecommendationsByPhaseId = useMemo(() => {
     const grouped = new globalThis.Map<
       string,
@@ -1074,14 +397,6 @@ export default function DashboardV2() {
 
     return grouped;
   }, [currentPlanLevelToolRecommendations]);
-  const isTransformationReadyForClosure = Boolean(
-    transformation &&
-      plan &&
-      !isOutOfPlanScope &&
-      transformation.status === "active" &&
-      isPlanReadyForClosure(planItems.map((item) => item.status)) &&
-      !currentBaseDeViePayload?.validated_at,
-  );
   const allPhasesCompleted =
     logic.phases.length > 0 && logic.phases.every((phase) => phase.state === "completed");
   const transformationJourneyMetadata = useMemo(
@@ -1147,13 +462,7 @@ export default function DashboardV2() {
       recommendedAdditionalTransformation,
   );
   const currentTransformationCompletionReached = Boolean(
-    allPhasesCompleted ||
-      transformation?.status === "completed" ||
-      isTransformationReadyForClosure,
-  );
-  const transitionCheckpointReached = Boolean(
-    hasSequencedNextTransformation &&
-      currentTransformationCompletionReached,
+    allPhasesCompleted || transformation?.status === "completed",
   );
   const hasSimpleNextTransformation = Boolean(
     !hasSequencedNextTransformation &&
@@ -1181,13 +490,6 @@ export default function DashboardV2() {
     (nextSequencedTransformation
       ? `Transformation ${nextSequencedTransformation.priority_order}`
       : null);
-  const nextRecommendedTransformationTitle =
-    recommendedAdditionalTransformation?.title ||
-    (recommendedAdditionalTransformation
-      ? `Transformation ${recommendedAdditionalTransformation.priority_order}`
-      : null);
-  const transitionTargetLabel = planContentV3?.primary_metric?.label ?? null;
-  const transitionTargetValue = planContentV3?.primary_metric?.success_target ?? null;
   const nextSequencedTransformationObjective = useMemo(
     () =>
       nextSequencedTransformation?.success_definition?.trim() ||
@@ -1213,34 +515,6 @@ export default function DashboardV2() {
       nextSequencedTransformation.user_summary.trim() !==
         (transitionGlobalObjective?.trim() ?? null),
   );
-  const transitionQuestionnaireSchema = useMemo(
-    () =>
-      nextSequencedTransformation
-        ? buildMultiPartTransitionQuestionnaireSchema({
-          transformationId: nextSequencedTransformation.id,
-          currentTransformationTitle: transformation?.title ?? activePlanContent?.title ?? null,
-          nextTransformationTitle: nextSequencedTransformation.title,
-          previousTransformationId:
-            transformation?.id ?? activePlanContent?.transformation_id ?? null,
-        })
-        : hasSimpleNextTransformation && transformation?.id
-          ? buildSimpleTransitionQuestionnaireSchema({
-            transformationId: transformation.id,
-            currentTransformationTitle: transformation.title ?? activePlanContent?.title ?? null,
-            nextTransformationTitle: nextRecommendedTransformationTitle,
-          })
-        : null,
-    [
-      activePlanContent?.title,
-      activePlanContent?.transformation_id,
-      hasSimpleNextTransformation,
-      nextRecommendedTransformationTitle,
-      nextSequencedTransformation,
-      transformation?.id,
-      transformation?.title,
-    ],
-  );
-
   useEffect(() => {
     if (selectedScopeId === "out_of_plan") return;
     if (transformation?.id && selectedScopeId !== transformation.id) {
@@ -1262,159 +536,22 @@ export default function DashboardV2() {
   ]);
 
   useEffect(() => {
-    if (
-      isTransitionQuestionnaireModalOpen &&
-      !hasSequencedNextTransformation &&
-      !hasSimpleNextTransformation
-    ) {
-      setIsTransitionQuestionnaireModalOpen(false);
-      setTransitionQuestionnaireError(null);
-    }
-  }, [
-    hasSequencedNextTransformation,
-    hasSimpleNextTransformation,
-    isTransitionQuestionnaireModalOpen,
-  ]);
-
-  useEffect(() => {
     if (isOutOfPlanScope && activeTab !== "lab") {
       setActiveTab("lab");
     }
   }, [activeTab, isOutOfPlanScope]);
 
-  useEffect(() => {
-    if (
-      isTransformationReadyForClosure &&
-      transformation &&
-      closureModalDismissedForId !== transformation.id
-    ) {
-      setIsClosureModalOpen(true);
-    }
-  }, [
-    closureModalDismissedForId,
-    isTransformationReadyForClosure,
-    transformation,
-  ]);
+  // W2.B : les deux amorçages automatiques qui appelaient
+  // `classify-professional-support-v2` et `classify-level-tools-v1` sont
+  // RETIRÉS — les deux edge functions sont supprimées avec le lot edge
+  // functions (couture n°1, déjà neutralisée côté `generate-plan-v2`).
+  // Ils partaient tout seuls au montage du dashboard V3 : les garder aurait
+  // produit un 404 silencieux à chaque chargement, plus un `refetch()` inutile.
+  // Ce qui est DÉJÀ en base (`professionalSupportRecommendations`,
+  // `levelToolRecommendationsByPhaseId`) reste lu et affiché : on arrête d'en
+  // fabriquer de nouveaux, on n'efface pas l'existant.
 
-  useEffect(() => {
-    if (!transformation || closureModalDismissedForId == null) return;
-    if (closureModalDismissedForId !== transformation.id) {
-      setClosureModalDismissedForId(null);
-    }
-  }, [closureModalDismissedForId, transformation]);
-
-  useEffect(() => {
-    if (!transformation || !plan || !isV3) return;
-    if (professionalSupportBootstrapId === transformation.id) return;
-
-    const supportPayload = extractProfessionalSupport(transformation.handoff_payload);
-    const supportAlreadyStructured = Boolean(
-      supportPayload && (
-        supportPayload.should_recommend === false ||
-        supportPayload.recommendations.every((item) =>
-          typeof item.priority_rank === "number" &&
-          typeof item.timing_kind === "string" &&
-          typeof item.timing_reason === "string"
-        )
-      ),
-    );
-
-    if (
-      professionalSupportRecommendations.length > 0 ||
-      supportAlreadyStructured
-    ) {
-      return;
-    }
-
-    setProfessionalSupportBootstrapId(transformation.id);
-    void supabase.functions
-      .invoke("classify-professional-support-v2", {
-        body: { transformation_id: transformation.id },
-      })
-      .then(async ({ error: invokeError }) => {
-        if (invokeError) throw invokeError;
-        await refetch();
-      })
-      .catch((invokeError) => {
-        console.error("[DashboardV2] professional support bootstrap failed", invokeError);
-      });
-  }, [
-    isV3,
-    plan,
-    professionalSupportBootstrapId,
-    professionalSupportRecommendations.length,
-    refetch,
-    transformation,
-  ]);
-
-  useEffect(() => {
-    if (!transformation || !plan || !isV3) return;
-    if (levelToolRecommendationsAvailable !== true) return;
-    if (hasCurrentPlanLevelToolRecommendations) return;
-
-    const stateMatchesCurrentPlan = Boolean(
-      levelToolState &&
-        levelToolState.plan_id === plan.id &&
-        levelToolState.plan_version === plan.version &&
-        levelToolState.plan_updated_at === plan.updated_at,
-    );
-    if (stateMatchesCurrentPlan && levelToolStateCoversCurrentLevel) return;
-
-    const bootstrapKey = `${transformation.id}:${plan.id}:${plan.updated_at}`;
-    if (levelToolBootstrapId === bootstrapKey) return;
-
-    setLevelToolBootstrapId(bootstrapKey);
-    void supabase.functions
-      .invoke("classify-level-tools-v1", {
-        body: { transformation_id: transformation.id },
-      })
-      .then(async ({ error: invokeError }) => {
-        if (invokeError) throw invokeError;
-        await refetch();
-      })
-      .catch((invokeError) => {
-        console.error("[DashboardV2] level tool bootstrap failed", invokeError);
-      });
-  }, [
-    isV3,
-    hasCurrentPlanLevelToolRecommendations,
-    levelToolBootstrapId,
-    levelToolRecommendationsAvailable,
-    levelToolStateCoversCurrentLevel,
-    plan,
-    refetch,
-    levelToolState,
-    transformation,
-  ]);
-
-  useEffect(() => {
-    setPlanReviewInput("");
-    setPlanReviewThread([]);
-    setPlanReviewProposal(null);
-    setPlanReviewBusy(false);
-    setIsLevelCompletionModalOpen(false);
-    setLevelCompletionBusy(Boolean(readActiveLevelCompletionPending(levelCompletionPendingScope)));
-    setLevelCompletionError(null);
-    setLevelCompletionSummary(null);
-  }, [levelCompletionPendingScope, plan?.id, transformation?.id]);
-
-  useEffect(() => {
-    const syncPendingLevelCompletion = () => {
-      setLevelCompletionBusy(Boolean(readActiveLevelCompletionPending(levelCompletionPendingScope)));
-    };
-
-    syncPendingLevelCompletion();
-    window.addEventListener("storage", syncPendingLevelCompletion);
-    window.addEventListener("focus", syncPendingLevelCompletion);
-    document.addEventListener("visibilitychange", syncPendingLevelCompletion);
-    return () => {
-      window.removeEventListener("storage", syncPendingLevelCompletion);
-      window.removeEventListener("focus", syncPendingLevelCompletion);
-      document.removeEventListener("visibilitychange", syncPendingLevelCompletion);
-    };
-  }, [levelCompletionPendingScope]);
-
-  const isArchitectMode = mode === "architecte";
+  const isArchitectMode = false;
   const canAccessWhatsappFeatures =
     accessTier === "alliance" || accessTier === "architecte" || accessTier === "trial";
   const userInitials = (
@@ -1475,32 +612,6 @@ export default function DashboardV2() {
         },
       ];
 
-  const architectWeeks = Object.values(modules)
-    .filter((m) => m.type === "week")
-    .sort((a, b) => {
-      const numA = parseInt(a.id.replace("week_", ""));
-      const numB = parseInt(b.id.replace("week_", ""));
-      return numA - numB;
-    })
-    .map((m) => {
-      const weekNum = m.id.replace("week_", "");
-      const cleanTitle = m.title.replace(/^Semaine \d+ : /, "");
-      let status = "locked";
-      const nextModuleIds = m.nextModuleIds ?? [];
-      const isNextModuleStartedOrCompleted = nextModuleIds.some((nextId: string) => {
-        const nextModule = modules[nextId];
-        return !!nextModule?.state?.first_updated_at || nextModule?.state?.status === "completed";
-      });
-
-      if (m.state?.status === "completed") {
-        status = isNextModuleStartedOrCompleted ? "completed" : "active";
-      } else if (!m.isLocked && m.isAvailableNow) {
-        if (m.id === "week_1" && isNextModuleStartedOrCompleted) status = "completed";
-        else status = "active";
-      }
-
-      return { id: weekNum, title: cleanTitle, status };
-    });
 
   if (authLoading || loading) {
     return (
@@ -1579,615 +690,6 @@ export default function DashboardV2() {
     );
   }
 
-  const handlePlanReviewSubmit = async (overrideComment?: string) => {
-    const rawComment = typeof overrideComment === "string"
-      ? overrideComment
-      : planReviewInput;
-    const userComment = rawComment.trim();
-    if (!userComment) return;
-
-    if (!transformation || !plan || !planContentV3) {
-      setDashboardActionError("Le plan actif n'est pas encore prêt pour une analyse de demande.");
-      return;
-    }
-
-    setPlanReviewBusy(true);
-    setPlanReviewBusyAction("submit");
-    setDashboardActionError(null);
-
-    try {
-      const data = await invokeFunctionWithTimeout<ReviewPlanResponse>(
-        "review-plan-v1",
-        {
-          review_id: planReviewProposal?.review_id ?? undefined,
-          transformation_id: transformation.id,
-          plan_id: plan.id,
-          scope: "active_plan",
-          user_comment: userComment,
-          prior_thread: planReviewThread.map((entry) => ({
-            role: entry.role,
-            content: entry.content,
-          })),
-          current_level_context: currentLevel
-            ? {
-                phase_id: currentLevel.phase_id,
-                phase_order: currentLevel.phase_order,
-                title: currentLevel.title,
-                objective: currentLevel.phase_objective,
-              }
-            : null,
-          plan_content: planContentV3,
-        },
-        120_000,
-      );
-      if (!data) throw new Error("La proposition de révision est vide.");
-
-      setPlanReviewThread(data.conversation_thread);
-      setPlanReviewProposal({
-        review_id: data.review_id,
-        review_kind: data.review_kind,
-        adjustment_scope: data.adjustment_scope,
-        decision: data.decision,
-        understanding: data.understanding,
-        impact: data.impact,
-        user_change_summary: data.user_change_summary,
-        proposed_changes: data.proposed_changes,
-        control_mode: data.control_mode,
-        resistance_note: data.resistance_note,
-        principle_reminder: data.principle_reminder,
-        offer_complete_level: data.offer_complete_level,
-        regeneration_feedback: data.regeneration_feedback,
-        clarification_question: data.clarification_question,
-        assistant_summary: data.assistant_summary,
-        conversation_mode: data.conversation_mode,
-        precision_count: data.precision_count,
-        message_count: data.message_count,
-        session_status: data.session_status,
-        session_expires_at: data.session_expires_at,
-      });
-      setPlanReviewSessionStatus(data.session_status);
-      setPlanReviewSessionExpiresAt(data.session_expires_at);
-      if (!planReviewInitialComment) {
-        setPlanReviewInitialComment(userComment);
-      } else if (planReviewComposerMode === "precision") {
-        setPlanReviewPrecisionComment(userComment);
-      }
-      setPlanReviewComposerMode(
-        data.conversation_mode === "explanation_chat" || data.conversation_mode === "guardrail_chat"
-          ? "chat"
-          : "hidden",
-      );
-      setPlanReviewPreview(null);
-      setPlanReviewPreviewPlanId(null);
-      setPlanReviewInput("");
-    } catch (reviewError) {
-      console.error("[DashboardV2] active plan review failed", reviewError);
-      setDashboardActionError(
-        reviewError instanceof Error
-          ? reviewError.message
-          : "Impossible d'analyser cette demande de révision pour le moment.",
-      );
-    } finally {
-      setPlanReviewBusy(false);
-      setPlanReviewBusyAction(null);
-    }
-  };
-
-  const handlePlanReviewRequestPrecision = () => {
-    setDashboardActionError(null);
-    setPlanReviewInput("");
-    setPlanReviewComposerMode("precision");
-  };
-
-  const handlePlanReviewGeneratePreview = async () => {
-    if (!transformation || !plan || !planReviewProposal || !planReviewInitialComment) return;
-
-    const previewScope = getPreviewScope(planReviewProposal.conversation_mode);
-    if (!previewScope) return;
-
-    const effectiveStartDate = getBrowserLocalYmd();
-    const feedback = buildPlanAdjustmentFeedback({
-      proposal: planReviewProposal,
-      initialComment: planReviewInitialComment,
-      precisionComment: planReviewPrecisionComment,
-    });
-
-    setPlanReviewBusy(true);
-    setPlanReviewBusyAction("preview");
-    setDashboardActionError(null);
-
-    try {
-      const requestStartedAt = Date.now();
-      let data: GeneratePlanPreviewResponse;
-      try {
-        data = await invokeFunctionWithTimeout<GeneratePlanPreviewResponse>(
-          "adjust-plan-v1",
-          {
-            transformation_id: transformation.id,
-            mode: "preview",
-            feedback,
-            force_regenerate: true,
-            adjustment_context: {
-              review_id: planReviewProposal.review_id,
-              scope: previewScope,
-              effective_start_date: effectiveStartDate,
-              reason: planReviewProposal.understanding.slice(0, 280),
-              user_change_summary: planReviewProposal.user_change_summary,
-              assistant_message: planReviewProposal.assistant_summary,
-            },
-          },
-        );
-      } catch (invokeError) {
-        if (!isRecoverableFunctionError(invokeError)) throw invokeError;
-        console.warn(
-          "[DashboardV2] plan preview invoke failed, polling for draft",
-          invokeError,
-        );
-        const recovered = await recoverDraftPlanAfterInvokeError({
-          transformationId: transformation.id,
-          requestStartedAt,
-        });
-        if (!recovered) throw invokeError;
-        data = {
-          request_id: "recovered-after-invoke-error",
-          plan_id: recovered.planId,
-          plan_preview: recovered.planPreview,
-          plan_status: "draft",
-        };
-      }
-      if (!data?.plan_preview) throw new Error("Le preview du plan ajusté est vide.");
-
-      const now = new Date().toISOString();
-      const nextExpiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
-
-      const { error: updateError } = await supabase
-        .from("user_plan_review_requests")
-        .update({
-          session_status: "preview_ready",
-          preview_plan_id: data.plan_id,
-          effective_start_date: effectiveStartDate,
-          session_expires_at: nextExpiresAt,
-          updated_at: now,
-        })
-        .eq("id", planReviewProposal.review_id);
-      if (updateError) throw updateError;
-
-      setPlanReviewPreview(data.plan_preview);
-      setPlanReviewPreviewPlanId(data.plan_id);
-      setPlanReviewSessionStatus("preview_ready");
-      setPlanReviewSessionExpiresAt(nextExpiresAt);
-      setPlanReviewProposal((current) => current
-        ? {
-          ...current,
-          session_status: "preview_ready",
-          session_expires_at: nextExpiresAt,
-        }
-        : current);
-    } catch (previewError) {
-      console.error("[DashboardV2] plan review preview failed", previewError);
-      setDashboardActionError(
-        previewError instanceof Error
-          ? previewError.message
-          : "Impossible de préparer le plan ajusté pour le moment.",
-      );
-    } finally {
-      setPlanReviewBusy(false);
-      setPlanReviewBusyAction(null);
-    }
-  };
-
-  const handlePlanReviewConfirmPreview = async () => {
-    if (!transformation || !plan || !planReviewProposal || !planReviewPreview) return;
-
-    const previewScope = getPreviewScope(planReviewProposal.conversation_mode);
-    if (!previewScope) return;
-
-    setPlanReviewBusy(true);
-    setPlanReviewBusyAction("confirm");
-    setDashboardActionError(null);
-
-    try {
-      const effectiveStartDate =
-        planReviewPreviewRevision?.effective_start_date ??
-        getBrowserLocalYmd();
-      let finalizedPlanId: string | null = null;
-      try {
-        const data = await invokeFunctionWithTimeout<GeneratePlanPreviewResponse>(
-          "adjust-plan-v1",
-          {
-            transformation_id: transformation.id,
-            mode: "confirm",
-            adjustment_context: {
-              review_id: planReviewProposal.review_id,
-              scope: previewScope,
-              effective_start_date: effectiveStartDate,
-              reason: planReviewProposal.understanding.slice(0, 280),
-              user_change_summary: planReviewProposal.user_change_summary,
-              assistant_message: planReviewProposal.assistant_summary,
-            },
-          },
-        );
-        finalizedPlanId = data?.plan_id ?? null;
-      } catch (invokeError) {
-        const previewPlanId = planReviewPreviewPlanId;
-        if (!isRecoverableFunctionError(invokeError) || !previewPlanId) {
-          throw invokeError;
-        }
-        console.warn(
-          "[DashboardV2] plan confirm invoke failed, polling for activation",
-          invokeError,
-        );
-        const activated = await waitForPlanActivationAfterInvokeError(
-          previewPlanId,
-        );
-        if (!activated) throw invokeError;
-        finalizedPlanId = previewPlanId;
-      }
-
-      const now = new Date().toISOString();
-      const { error: updateError } = await supabase
-        .from("user_plan_review_requests")
-        .update({
-          session_status: "completed",
-          completed_at: now,
-          finalized_plan_id: finalizedPlanId,
-          updated_at: now,
-        })
-        .eq("id", planReviewProposal.review_id);
-      if (updateError) throw updateError;
-
-      clearPlanReviewSessionState();
-      await refetch();
-    } catch (confirmError) {
-      console.error("[DashboardV2] plan review confirm failed", confirmError);
-      setDashboardActionError(
-        confirmError instanceof Error
-          ? confirmError.message
-          : "Impossible d'appliquer le plan ajusté pour le moment.",
-      );
-    } finally {
-      setPlanReviewBusy(false);
-      setPlanReviewBusyAction(null);
-    }
-  };
-
-  const handlePlanReviewRestart = async () => {
-    if (!planReviewProposal) return;
-
-    const reviewId = planReviewProposal.review_id;
-    const previewPlanId = planReviewPreviewPlanId;
-    clearPlanReviewSessionState();
-
-    if (previewPlanId) {
-      await supabase
-        .from("user_plans_v2")
-        .update({
-          status: "archived",
-          archived_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", previewPlanId);
-    }
-
-    const { error: updateError } = await supabase
-      .from("user_plan_review_requests")
-      .update({
-        session_status: "restarted",
-        completed_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", reviewId);
-
-    if (updateError) {
-      console.error("[DashboardV2] restart active plan review failed", updateError);
-    }
-  };
-
-  const handlePlanReviewComplete = async () => {
-    if (!planReviewProposal) {
-      clearPlanReviewSessionState();
-      return;
-    }
-
-    const reviewId = planReviewProposal.review_id;
-    const previewPlanId = planReviewPreviewPlanId;
-    clearPlanReviewSessionState();
-
-    if (previewPlanId) {
-      await supabase
-        .from("user_plans_v2")
-        .update({
-          status: "archived",
-          archived_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", previewPlanId);
-    }
-
-    const { error: updateError } = await supabase
-      .from("user_plan_review_requests")
-      .update({
-        session_status: "completed",
-        completed_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", reviewId);
-
-    if (updateError) {
-      console.error("[DashboardV2] complete active plan review failed", updateError);
-    }
-  };
-
-  const planReviewPreviewRevision = parsePlanAdjustmentRevision(
-    planReviewPreview?.metadata?.plan_adjustment_revision,
-  );
-  const planReviewShowComposer =
-    !planReviewProposal ||
-    planReviewComposerMode === "precision" ||
-    (planReviewComposerMode === "chat" && planReviewThread.length < 10);
-  const planReviewSubmitLabel = planReviewComposerMode === "precision"
-    ? "Envoyer la précision"
-    : planReviewComposerMode === "chat"
-      ? "Envoyer"
-      : "Analyser la demande";
-  const planReviewHelperText = planReviewComposerMode === "precision"
-    ? "Tu peux ajouter une seule précision avant de prévisualiser le plan ajusté."
-    : planReviewComposerMode === "chat"
-      ? "Tu peux poursuivre cet échange brièvement. La conversation se ferme automatiquement après 30 minutes d'inactivité."
-      : null;
-  const planReviewActions: PlanRevisionPanelAction[] = (() => {
-    if (!planReviewProposal) return [];
-
-    const actions: PlanRevisionPanelAction[] = [];
-    const previewScope = getPreviewScope(planReviewProposal.conversation_mode);
-    const canAddPrecision = previewScope !== null &&
-      planReviewProposal.precision_count === 0 &&
-      !planReviewPreview;
-
-    if (canAddPrecision) {
-      actions.push({
-        key: "precision",
-        label: "Ajouter une précision",
-        onClick: handlePlanReviewRequestPrecision,
-        disabled: planReviewBusy,
-        variant: "secondary",
-      });
-    }
-
-    if (previewScope && !planReviewPreview) {
-      actions.push({
-        key: "preview",
-        label: previewScope === "level" ? "Voir le niveau ajusté" : "Voir le plan ajusté",
-        onClick: () => void handlePlanReviewGeneratePreview(),
-        disabled: planReviewBusy,
-        variant: "primary",
-        isLoading: planReviewBusyAction === "preview",
-        loadingLabel: previewScope === "level"
-          ? "Sophia prépare le niveau ajusté…"
-          : "Sophia prépare le plan ajusté…",
-      });
-    }
-
-    if (planReviewProposal.offer_complete_level) {
-      actions.push({
-        key: "complete-level",
-        label: "Valider le prochain niveau",
-        onClick: () => {
-          setLevelCompletionError(null);
-          setIsLevelCompletionModalOpen(true);
-        },
-        disabled: planReviewBusy,
-        variant: "secondary",
-      });
-    }
-
-    if (planReviewPreview) {
-      actions.unshift({
-        key: "confirm-preview",
-        label: "Valider le plan ajusté",
-        onClick: () => void handlePlanReviewConfirmPreview(),
-        disabled: planReviewBusy,
-        variant: "primary",
-        isLoading: planReviewBusyAction === "confirm",
-        loadingLabel: "Validation en cours…",
-      });
-    }
-
-    actions.push({
-      key: "restart",
-      label: "Recommencer",
-      onClick: () => void handlePlanReviewRestart(),
-      disabled: planReviewBusy,
-      variant: "ghost",
-    });
-    actions.push({
-      key: "complete",
-      label: "Annuler",
-      onClick: () => void handlePlanReviewComplete(),
-      disabled: planReviewBusy,
-      variant: "danger",
-    });
-
-    return actions;
-  })();
-  const planReviewChangeSummary =
-    planReviewPreviewRevision?.user_change_summary?.trim() ||
-    planReviewProposal?.user_change_summary?.trim() ||
-    null;
-  const planReviewPreviewNode = planReviewPreview ? (
-    <div className="rounded-3xl border border-blue-100 bg-blue-50/50 p-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-blue-700">
-            Prévisualisation
-          </p>
-          <h4 className="mt-2 text-lg font-semibold text-stone-950">
-            {planReviewProposal?.conversation_mode === "level_adjustment"
-              ? "Voici le niveau ajusté"
-              : "Voici le plan ajusté"}
-          </h4>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-stone-700">
-            {planReviewPreviewRevision
-              ? `La modification s'applique à partir du ${planReviewPreviewRevision.effective_start_date}. Tout ce qui précède reste figé.`
-              : "La modification s'applique à partir d'aujourd'hui. Tout ce qui précède reste figé."}
-          </p>
-        </div>
-        {planReviewPreviewRevision ? (
-          <div className="rounded-full border border-blue-200 bg-white px-3 py-1 text-xs font-semibold text-blue-800">
-            {planReviewPreviewRevision.scope === "level" ? "Niveau ajusté" : "Plan ajusté"}
-          </div>
-        ) : null}
-      </div>
-
-      <div className="mt-4 rounded-2xl border border-stone-200 bg-white px-4 py-4">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-500">
-          Cap actuel
-        </p>
-        <p className="mt-2 text-base font-semibold text-stone-950">
-          {planReviewPreview.current_level_runtime?.title ?? planReviewPreview.title}
-        </p>
-        <p className="mt-2 text-sm leading-6 text-stone-700">
-          {planReviewPreview.current_level_runtime?.phase_objective ?? planReviewPreview.progression_logic}
-        </p>
-      </div>
-
-      <div className="mt-4 rounded-2xl border border-dashed border-blue-200 bg-white px-4 py-4">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-blue-700">
-          Ce qui a été ajusté
-        </p>
-        <p className="mt-2 text-sm leading-6 text-stone-700">
-          {planReviewChangeSummary ?? planReviewPreviewRevision?.reason ?? planReviewProposal?.understanding}
-        </p>
-      </div>
-
-      {Array.isArray(planReviewPreview.plan_blueprint?.levels) &&
-      planReviewPreview.plan_blueprint.levels.length > 0 ? (
-        <div className="mt-4 rounded-2xl border border-stone-200 bg-white px-4 py-4">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-500">
-            Suite visible
-          </p>
-          <div className="mt-3 space-y-2">
-            {planReviewPreview.plan_blueprint.levels.slice(0, 4).map((level) => (
-              <div key={level.phase_id} className="text-sm text-stone-700">
-                Niveau {getDisplayPhaseOrder(level.level_order)} · {level.title}
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : null}
-    </div>
-  ) : null;
-
-  const handleLevelCompletionSubmit = async (answers: Record<string, string>) => {
-    if (!transformation || !plan || !currentLevel || !levelCompletionPendingScope) return;
-
-    const requestId = newRequestId();
-    writeLevelCompletionPending({
-      ...levelCompletionPendingScope,
-      request_id: requestId,
-      started_at_ms: Date.now(),
-    });
-    setLevelCompletionBusy(true);
-    setLevelCompletionError(null);
-    setDashboardActionError(null);
-    // La génération du niveau suivant prend plusieurs secondes : on ferme le
-    // questionnaire et on laisse LevelTransitionScreen porter l'attente.
-    setIsLevelCompletionModalOpen(false);
-
-    try {
-      const { data, error: fnError } = await supabase.functions.invoke<CompleteLevelResponse>(
-        "complete-level-v1",
-        {
-          headers: requestHeaders(requestId),
-          body: {
-            transformation_id: transformation.id,
-            plan_id: plan.id,
-            answers,
-          },
-        },
-      );
-
-      if (fnError) throw fnError;
-      if (!data) throw new Error("La transition de niveau est vide.");
-
-      setLevelCompletionSummary(data.summary);
-      clearLevelCompletionPending(levelCompletionPendingScope);
-      await refetch();
-    } catch (actionError) {
-      clearLevelCompletionPending(levelCompletionPendingScope);
-      console.error("[DashboardV2] level completion failed", actionError);
-      setLevelCompletionError(
-        actionError instanceof Error
-          ? actionError.message
-          : "Impossible de valider ce niveau pour le moment.",
-      );
-      // Rouvrir le bilan pour afficher l'erreur (les réponses sont conservées
-      // tant que la liste de questions ne change pas).
-      setIsLevelCompletionModalOpen(true);
-    } finally {
-      const pending = readActiveLevelCompletionPending(levelCompletionPendingScope);
-      setLevelCompletionBusy(Boolean(pending));
-    }
-  };
-
-  const handleCloseClosureModal = () => {
-    if (!transformation) {
-      setIsClosureModalOpen(false);
-      return;
-    }
-    setClosureModalDismissedForId(transformation.id);
-    setIsClosureModalOpen(false);
-  };
-
-  const handleCompleteTransformation = async (payload: {
-    lineGreenEntry: { action: string; why: string };
-    lineRedEntry: { action: string; why: string };
-    lineGreenEntries: Array<{ action: string; why: string }>;
-    lineRedEntries: Array<{ action: string; why: string }>;
-    feedback: {
-      helpfulness_rating: number;
-      improvement_reasons: string[];
-      improvement_detail: string | null;
-      most_helpful_area: string;
-    };
-  }) => {
-    if (!transformation || !closureDraft) return;
-
-    setCompletingTransformation(true);
-    setDashboardActionError(null);
-
-    try {
-      const { error } = await supabase.functions.invoke("complete-transformation-v1", {
-        body: {
-          transformation_id: transformation.id,
-          line_green_entry: payload.lineGreenEntry,
-          line_red_entry: payload.lineRedEntry,
-          line_green_entries: payload.lineGreenEntries,
-          line_red_entry_details: payload.lineRedEntries,
-          feedback: payload.feedback,
-          declics_draft: closureDraft,
-          declics_user: closureDraft,
-        },
-      });
-      if (error) throw error;
-
-      setIsClosureModalOpen(false);
-      setClosureModalDismissedForId(null);
-      await refetch();
-      setSelectedScopeId("out_of_plan");
-      setActiveTab("lab");
-    } catch (actionError) {
-      console.error("[DashboardV2] transformation completion failed", actionError);
-      setDashboardActionError(
-        actionError instanceof Error
-          ? actionError.message
-          : "Impossible de clôturer cette transformation pour le moment.",
-      );
-    } finally {
-      setCompletingTransformation(false);
-    }
-  };
-
   const handleOpenAdditionalPlanFlow = () => {
     if (!cycle) return;
     setDashboardActionError(null);
@@ -2195,19 +697,6 @@ export default function DashboardV2() {
       setIsTransformationLimitModalOpen(true);
       return;
     }
-    startSession();
-    navigate("/transformations/new");
-  };
-
-  const handleOpenMultiPartTransitionGate = () => {
-    if (!hasSequencedNextTransformation && !hasSimpleNextTransformation && !hasCycleRelaunchAction) {
-      return;
-    }
-    setDashboardActionError(null);
-    setIsMultiPartTransitionModalOpen(true);
-  };
-
-  const handoffToNextTransformationSelection = () => {
     startSession();
     navigate("/transformations/new");
   };
@@ -2313,17 +802,11 @@ export default function DashboardV2() {
   const handleEndSimpleTransformation = async () => {
     if (!transformation || !cycle) return;
 
-    if (isTransformationReadyForClosure) {
-      setIsClosureModalOpen(true);
-      return;
-    }
-
     const confirmed = window.confirm(
       "Mettre fin à cette transformation maintenant ? Le plan en cours sera arrêté et cette transformation sortira du parcours actif.",
     );
     if (!confirmed) return;
 
-    setMultiPartTransitionBusy(true);
     setDashboardActionError(null);
 
     try {
@@ -2338,230 +821,6 @@ export default function DashboardV2() {
         actionError instanceof Error
           ? actionError.message
           : "Impossible de mettre fin à cette transformation pour le moment.",
-      );
-    } finally {
-      setMultiPartTransitionBusy(false);
-    }
-  };
-
-  const handleAdjustCurrentPlanForTransition = async (reason: string | null) => {
-    if (!planContentV3) return;
-
-    const targetSummary = transitionTargetLabel && transitionTargetValue
-      ? `${transitionTargetLabel}: ${transitionTargetValue}`
-      : transitionTargetValue || transitionTargetLabel || "l'objectif de cette 1ère transformation";
-
-    const transitionComment = hasSequencedNextTransformation
-      ? transitionCheckpointReached
-        ? [
-            `Je suis à la fin de cette 1ère transformation mais je n'ai pas encore atteint ${targetSummary}.`,
-            reason ? `Pourquoi je voulais quand même passer à la suite : ${reason}` : null,
-            "Aide-moi à ajuster la fin du plan pour atteindre ce cap avant de débloquer la 2ème transformation.",
-          ].filter(Boolean).join("\n\n")
-        : [
-            "Je ne suis pas encore au point de passage vers la 2ème transformation.",
-            `Cap à atteindre avant la suite : ${targetSummary}.`,
-            "Aide-moi à ajuster le plan actuel pour rendre cette 1ère transformation atteignable et réaliste avant de débloquer la suite.",
-          ].join("\n\n")
-      : [
-          `Je n'ai pas encore atteint l'objectif global de cette transformation : ${targetSummary}.`,
-          reason ? `Ce qui me fait envisager la suite maintenant : ${reason}` : null,
-          "Aide-moi à ajuster le plan actuel avant de passer à la prochaine transformation.",
-        ].filter(Boolean).join("\n\n");
-
-    setActiveTab("plan");
-    setIsMultiPartTransitionModalOpen(false);
-    setPlanReviewInput(transitionComment);
-    await handlePlanReviewSubmit(transitionComment);
-  };
-
-  const handleContinueToNextPart = async () => {
-    if (!cycle || !nextSequencedTransformation || !transitionQuestionnaireSchema) return;
-
-    setTransitionQuestionnaireError(null);
-    setDashboardActionError(null);
-
-    try {
-      setIsMultiPartTransitionModalOpen(false);
-      window.setTimeout(() => {
-        setIsTransitionQuestionnaireModalOpen(true);
-      }, 0);
-    } catch (actionError) {
-      console.error("[DashboardV2] next part transition failed", actionError);
-      setDashboardActionError(
-        actionError instanceof Error
-          ? actionError.message
-          : "Impossible de préparer la 2ème transformation pour le moment.",
-      );
-    }
-  };
-
-  const handleCloseTransitionQuestionnaire = () => {
-    if (transitionQuestionnaireBusy) return;
-    setTransitionQuestionnaireError(null);
-    setIsTransitionQuestionnaireModalOpen(false);
-  };
-
-  const handleSubmitTransitionQuestionnaire = async (
-    answers: Record<string, string | string[]>,
-  ) => {
-    if (!cycle || !transformation || !transitionQuestionnaireSchema) {
-      return;
-    }
-
-    setTransitionQuestionnaireBusy(true);
-    setTransitionQuestionnaireError(null);
-    setDashboardActionError(null);
-
-    try {
-      if (hasSimpleNextTransformation) {
-        const { data: transformationRow, error: transformationLoadError } = await supabase
-          .from("user_transformations")
-          .select("handoff_payload")
-          .eq("id", transformation.id)
-          .maybeSingle();
-        if (transformationLoadError) throw transformationLoadError;
-
-        const handoffPayload = mergeTransitionDebriefIntoHandoffPayload({
-          handoffPayload:
-            (transformationRow as { handoff_payload?: Record<string, unknown> | null } | null)
-              ?.handoff_payload ?? null,
-          answers,
-          questionnaireSchema: transitionQuestionnaireSchema,
-          previousTransformationId: null,
-          source: "simple_transition_debrief",
-        });
-
-        const now = new Date().toISOString();
-        const { error: updateError } = await supabase
-          .from("user_transformations")
-          .update({
-            handoff_payload: handoffPayload,
-            updated_at: now,
-          })
-          .eq("id", transformation.id);
-        if (updateError) throw updateError;
-
-        await releaseCurrentTransformationForNextStep("completed");
-        setIsTransitionQuestionnaireModalOpen(false);
-        await refetch();
-        handoffToNextTransformationSelection();
-        return;
-      }
-
-      if (!nextSequencedTransformation) {
-        throw new Error("La transformation suivante est introuvable.");
-      }
-
-      const { data: transformationRow, error: transformationLoadError } = await supabase
-        .from("user_transformations")
-        .select("handoff_payload")
-        .eq("id", nextSequencedTransformation.id)
-        .maybeSingle();
-      if (transformationLoadError) throw transformationLoadError;
-
-      const handoffPayload = mergeTransitionDebriefIntoHandoffPayload({
-        handoffPayload:
-          (transformationRow as { handoff_payload?: Record<string, unknown> | null } | null)
-            ?.handoff_payload ?? null,
-        answers,
-        questionnaireSchema: transitionQuestionnaireSchema,
-        previousTransformationId: transformation.id,
-        source: "multi_part_transition_debrief",
-      });
-
-      const now = new Date().toISOString();
-      const { error: updateError } = await supabase
-        .from("user_transformations")
-        .update({
-          questionnaire_schema: transitionQuestionnaireSchema,
-          questionnaire_answers: answers,
-          handoff_payload: handoffPayload,
-          updated_at: now,
-        })
-        .eq("id", nextSequencedTransformation.id);
-      if (updateError) throw updateError;
-
-      const { data, error } = await supabase.functions.invoke("generate-plan-v2", {
-        body: {
-          transformation_id: nextSequencedTransformation.id,
-          mode: "preview",
-          pace: cycle.requested_pace ?? undefined,
-          ...buildClientTimePayload(),
-        },
-      });
-      if (error) throw error;
-
-      const response = data as GeneratePlanResponse | null;
-      if (!response?.plan_preview) {
-        throw new Error("Le preview du plan est manquant.");
-      }
-
-      await releaseCurrentTransformationForNextStep("completed");
-
-      const baseDraft = createEmptyOnboardingV2Draft();
-      const visibleTransformationPreviews = visibleTransformations.map((item) =>
-        item.id === nextSequencedTransformation.id
-          ? toTransformationPreview({
-            ...item,
-            questionnaire_schema: transitionQuestionnaireSchema,
-            questionnaire_answers: answers,
-          })
-          : toTransformationPreview(item)
-      );
-
-      persistOnboardingV2DraftLocally({
-        ...baseDraft,
-        entry_mode: "add_transformation",
-        preserved_active_transformation_id: transformation.id,
-        cycle_id: cycle.id,
-        cycle_status: "ready_for_plan",
-        stage: "plan_review",
-        raw_intake_text: cycle.raw_intake_text,
-        transformations: visibleTransformationPreviews,
-        active_transformation_id: nextSequencedTransformation.id,
-        questionnaire_schema: transitionQuestionnaireSchema,
-        questionnaire_answers: answers,
-        plan_review: {
-          plan_id: response.plan_id,
-          plan_preview: response.plan_preview,
-          feedback: "",
-        },
-        roadmap_transition: null,
-      });
-
-      setIsTransitionQuestionnaireModalOpen(false);
-      startSession();
-      navigate("/onboarding-v2");
-    } catch (actionError) {
-      console.error("[DashboardV2] transition questionnaire submit failed", actionError);
-      setTransitionQuestionnaireError(
-        actionError instanceof Error
-          ? actionError.message
-          : "Impossible de préparer la 2ème transformation pour le moment.",
-      );
-    } finally {
-      setTransitionQuestionnaireBusy(false);
-    }
-  };
-
-  const handleContinueToNextSimpleTransformation = async () => {
-    if (!hasSimpleNextTransformation || !transitionQuestionnaireSchema) return;
-
-    setDashboardActionError(null);
-    setTransitionQuestionnaireError(null);
-
-    try {
-      setIsMultiPartTransitionModalOpen(false);
-      window.setTimeout(() => {
-        setIsTransitionQuestionnaireModalOpen(true);
-      }, 0);
-    } catch (actionError) {
-      console.error("[DashboardV2] simple transformation handoff failed", actionError);
-      setDashboardActionError(
-        actionError instanceof Error
-          ? actionError.message
-          : "Impossible de passer à la prochaine transformation pour le moment.",
       );
     }
   };
@@ -2664,104 +923,6 @@ export default function DashboardV2() {
     }
   };
 
-  const handleContinueToNewCycle = async () => {
-    if (!transformation || !cycle) return;
-
-    setMultiPartTransitionBusy(true);
-    setDashboardActionError(null);
-
-    try {
-      await releaseCurrentTransformationForNextStep("completed");
-
-      const now = new Date().toISOString();
-      const { error: cycleError } = await supabase
-        .from("user_cycles")
-        .update({
-          status: "completed",
-          updated_at: now,
-        })
-        .eq("id", cycle.id);
-      if (cycleError) throw cycleError;
-
-      setIsMultiPartTransitionModalOpen(false);
-      handleStartOnboarding();
-    } catch (actionError) {
-      console.error("[DashboardV2] new cycle launch after completion failed", actionError);
-      setDashboardActionError(
-        actionError instanceof Error
-          ? actionError.message
-          : "Impossible de lancer un nouveau parcours pour le moment.",
-      );
-    } finally {
-      setMultiPartTransitionBusy(false);
-    }
-  };
-
-  const handleLetGoAndContinueToNextTransformation = async (reason: string) => {
-    if (!hasSimpleNextTransformation) return;
-
-    setMultiPartTransitionBusy(true);
-    setDashboardActionError(null);
-
-    try {
-      console.info("[DashboardV2] simple transformation abandoned before next handoff", {
-        transformation_id: transformation?.id ?? null,
-        reason,
-      });
-      await releaseCurrentTransformationForNextStep("abandoned");
-      setIsMultiPartTransitionModalOpen(false);
-      await refetch();
-      handoffToNextTransformationSelection();
-    } catch (actionError) {
-      console.error("[DashboardV2] let go and continue failed", actionError);
-      setDashboardActionError(
-        actionError instanceof Error
-          ? actionError.message
-          : "Impossible d'abandonner cette transformation pour le moment.",
-      );
-    } finally {
-      setMultiPartTransitionBusy(false);
-    }
-  };
-
-  const handleLetGoAndStartNewCycle = async (reason: string) => {
-    if (!transformation || !cycle) return;
-
-    setMultiPartTransitionBusy(true);
-    setDashboardActionError(null);
-
-    try {
-      console.info("[DashboardV2] cycle abandoned before restart", {
-        transformation_id: transformation.id,
-        reason,
-      });
-
-      await releaseCurrentTransformationForNextStep("abandoned");
-
-      const now = new Date().toISOString();
-      const { error: cycleError } = await supabase
-        .from("user_cycles")
-        .update({
-          status: "abandoned",
-          updated_at: now,
-        })
-        .eq("id", cycle.id);
-      if (cycleError) throw cycleError;
-
-      setIsMultiPartTransitionModalOpen(false);
-      handleStartOnboarding();
-    } catch (actionError) {
-      console.error("[DashboardV2] cycle restart after let-go failed", actionError);
-      setDashboardActionError(
-        actionError instanceof Error
-          ? actionError.message
-          : "Impossible de relancer un nouveau parcours pour le moment.",
-      );
-    } finally {
-      setMultiPartTransitionBusy(false);
-    }
-  };
-
   function handleStartOnboarding() {
     startSession();
     navigate("/onboarding-v2");
@@ -2796,38 +957,6 @@ export default function DashboardV2() {
                 />
               </div>
 
-              <div
-                className={`flex flex-row p-1 rounded-full gap-0 shrink-0 ${
-                  isArchitectMode
-                    ? "bg-gray-100/10 border border-gray-200/20"
-                    : "bg-[#eef7f1] border border-[#b8d8cc]"
-                }`}
-              >
-                <button
-                  type="button"
-                  onClick={() => setMode("action")}
-                  className={`px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-bold uppercase tracking-wide transition-all flex items-center justify-center gap-1 sm:gap-2 ${
-                    !isArchitectMode
-                      ? "bg-[#002d21] text-white shadow-lg shadow-[#002d21]/25"
-                      : "text-emerald-300 hover:text-white"
-                  }`}
-                >
-                  <Zap className="w-3 h-3" />
-                  <span className="hidden min-[360px]:inline">Action</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMode("architecte")}
-                  className={`px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-bold uppercase tracking-wide transition-all flex items-center justify-center gap-1 sm:gap-2 ${
-                    isArchitectMode
-                      ? "bg-emerald-600 text-white shadow-lg shadow-emerald-900/50"
-                      : "text-[#52635b] hover:text-[var(--action-green)]"
-                  }`}
-                >
-                  <Compass className="w-3 h-3" />
-                  <span className="hidden min-[360px]:inline">Architecte</span>
-                </button>
-              </div>
             </div>
 
             <div
@@ -2869,219 +998,7 @@ export default function DashboardV2() {
           </div>
         ) : null}
 
-        {isArchitectMode ? (
-          /* ══════════════════════════════════════════════════════════════
-             MODE ARCHITECTE
-             ══════════════════════════════════════════════════════════════ */
-          <div className="animate-fade-in flex-1 flex flex-col">
-            {/* Architect sub-tabs */}
-            <div className="mb-8 overflow-x-auto pb-2 scrollbar-hide">
-              <div className="flex w-max min-w-full justify-center px-1">
-                <div className="flex bg-emerald-950/50 p-1.5 rounded-xl border border-emerald-800/50 shadow-lg min-w-max">
-                  {(
-                    [
-                      { key: "atelier", icon: Sparkles, label: "Identité" },
-                      { key: "wishlist", icon: MapIcon, label: "Envies" },
-                      { key: "stories", icon: Book, label: "Histoires" },
-                      { key: "reflections", icon: Lightbulb, label: "Réflexions" },
-                      { key: "quotes", icon: Quote, label: "Citations" },
-                    ] as const
-                  ).map((tab) => {
-                    const Icon = tab.icon;
-                    return (
-                      <button
-                        key={tab.key}
-                        type="button"
-                        onClick={() => setArchitectTab(tab.key)}
-                        className={`flex items-center gap-2 px-4 md:px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 ${
-                          architectTab === tab.key
-                            ? "bg-emerald-600 text-white shadow-md scale-105"
-                            : "text-emerald-500/70 hover:text-emerald-400 hover:bg-emerald-900/30"
-                        }`}
-                      >
-                        <Icon className="w-4 h-4 shrink-0" />
-                        <span className="whitespace-nowrap">{tab.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-
-            {/* Architect tab content */}
-            {architectTab === "atelier" && (
-              <div className="flex-1 bg-emerald-950/20 rounded-3xl border border-emerald-800/30 overflow-hidden flex flex-col min-h-[600px] p-6 md:p-12">
-                <div className="max-w-4xl mx-auto w-full">
-                  <div className="text-center mb-12">
-                    <h1 className="text-3xl md:text-5xl font-serif font-bold text-white mb-4">
-                      Identité
-                    </h1>
-                    <p className="text-sm md:text-base text-emerald-400 max-w-2xl mx-auto italic mb-6">
-                      "On ne s'élève pas au niveau de ses objectifs. On tombe au niveau de ses systèmes."
-                    </p>
-
-                    <button
-                      type="button"
-                      onClick={() => setIsAtelierUsageOpen((value) => !value)}
-                      className="text-xs font-bold uppercase tracking-widest text-emerald-500 hover:text-emerald-400 flex items-center justify-center gap-2 mx-auto transition-colors"
-                    >
-                      {isAtelierUsageOpen
-                        ? "Masquer les explications"
-                        : "Comment utiliser cet espace"}
-                      {isAtelierUsageOpen
-                        ? <ChevronUp className="w-4 h-4" />
-                        : <ChevronDown className="w-4 h-4" />}
-                    </button>
-
-                    {isAtelierUsageOpen ? (
-                      <div className="mt-6 p-6 bg-emerald-900/20 border border-emerald-800/50 rounded-2xl text-left text-emerald-100/80 text-sm leading-relaxed max-w-2xl mx-auto animate-fade-in">
-                        <p className="mb-3">
-                          Cet espace, c&apos;est l&apos;endroit où tu reviens à toi. Pas à ce que tu dois
-                          produire, pas à l&apos;image qu&apos;il faut tenir, mais à ce qui te construit en
-                          profondeur. Pendant 3 mois, tu traverses 37 modules d&apos;identité pour mieux
-                          comprendre qui tu es, ce que tu portes, ce que tu veux vraiment incarner,
-                          et la façon dont tu veux avancer dans ta vie.
-                        </p>
-                        <p>
-                          Ici, on touche à ton rapport à toi, à ta vision, à tes blessures, à tes
-                          élans, à tes standards, à ta solidité intérieure. Ce que ça change, ce
-                          n&apos;est pas juste de la clarté sur le papier: c&apos;est une sensation plus
-                          nette d&apos;alignement, plus de stabilité, plus de confiance, et des choix qui
-                          commencent enfin à te ressembler. Et quand ce socle est posé, la Forge
-                          s&apos;ouvre avec 148 modules pour aller encore plus loin, affiner ton
-                          identité, renforcer ta structure et donner plus de puissance à la personne
-                          que tu deviens.
-                        </p>
-                      </div>
-                    ) : null}
-                  </div>
-
-                  <div className="flex items-center justify-center gap-3 mb-8">
-                    <div className="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-400">
-                      <Hammer className="w-4 h-4" />
-                    </div>
-                    <h2 className="text-xs sm:text-sm md:text-lg font-bold text-emerald-400 uppercase tracking-widest text-center">
-                      Phase 1 : La construction du temple
-                    </h2>
-                  </div>
-
-                  <div className="relative h-[600px] rounded-3xl bg-gradient-to-b from-emerald-950/30 via-emerald-900/05 to-emerald-950/30 shadow-inner overflow-hidden">
-                    <div className="absolute top-0 left-0 right-0 h-4 bg-gradient-to-b from-emerald-950 via-emerald-950/80 to-transparent z-10 pointer-events-none" />
-                    <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-t from-emerald-950 via-emerald-950/80 to-transparent z-10 pointer-events-none" />
-                    <div className="h-full overflow-y-auto snap-y snap-mandatory scroll-smooth scrollbar-hide p-4 relative z-0">
-                      <div className="space-y-4 py-20">
-                        {architectWeeks.map((week) => (
-                          <WeekCard key={week.id} week={week} />
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-8 md:mt-12 pt-8 md:pt-12 border-t border-white/10 pb-20">
-                    <div className="flex items-center gap-3 mb-8 justify-center">
-                      <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-400">
-                        <Sparkles className="w-4 h-4 md:w-5 md:h-5" />
-                      </div>
-                      <h2 className="text-xs sm:text-sm md:text-lg font-bold text-[#d1ded4] uppercase tracking-widest text-center">
-                        Phase 2 : Amélioration du Temple
-                      </h2>
-                    </div>
-
-                    {(() => {
-                      const forgeModule = modules["forge_access"];
-                      const now = new Date();
-
-                      const isForgeUnlocked =
-                        forgeModule?.state &&
-                        (!forgeModule.state.available_at ||
-                          new Date(forgeModule.state.available_at) <= now);
-
-                      const getUnlockText = (
-                        mod: typeof forgeModule | undefined,
-                      ) => {
-                        if (!mod?.state) return "Débloqué après Semaine 12";
-                        if (mod.state.available_at) {
-                          const unlockDate = new Date(mod.state.available_at);
-                          if (unlockDate > now) {
-                            const diffDays = Math.ceil(
-                              Math.abs(unlockDate.getTime() - now.getTime()) /
-                                (1000 * 60 * 60 * 24),
-                            );
-                            return `Disponible dans ${diffDays} jour${diffDays > 1 ? "s" : ""}`;
-                          }
-                        }
-                        return "Débloqué après Semaine 12";
-                      };
-
-                      return (
-                        <div className="grid gap-6">
-                          <div
-                            onClick={() => {
-                              if (!isForgeUnlocked) return;
-                              if (!hasArchitecteAccess(subscription))
-                                return navigate("/upgrade");
-                              navigate("/architecte/evolution");
-                            }}
-                            className={`bg-gradient-to-br from-emerald-900 to-emerald-950 border border-emerald-800 p-6 md:p-8 rounded-2xl relative overflow-hidden transition-transform group ${
-                              isForgeUnlocked
-                                ? "cursor-pointer hover:scale-[1.02]"
-                                : "cursor-not-allowed opacity-70"
-                            }`}
-                          >
-                            <div className="hidden min-[350px]:block absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                              <Layout className="w-12 h-12 md:w-24 md:h-24" />
-                            </div>
-                            <h3 className="text-white font-bold text-lg md:text-xl mb-2">
-                              La Forge
-                            </h3>
-                            <p className="text-emerald-400 text-xs md:text-sm mb-6">
-                              Patch Notes · v2.1, v2.2...
-                            </p>
-
-                            {isForgeUnlocked ? (
-                              <div className="flex items-center gap-2 text-[10px] md:text-xs font-bold text-emerald-950 bg-amber-400 py-2 px-4 rounded-lg w-fit shadow-lg shadow-amber-900/50">
-                                <Hammer className="w-3 h-3" /> Accès Ouvert
-                              </div>
-                            ) : (
-                              <div className="flex items-center gap-2 text-[10px] md:text-xs font-bold text-emerald-200 bg-emerald-950/50 py-2 px-4 rounded-lg w-fit border border-emerald-800">
-                                <Lock className="w-3 h-3" />{" "}
-                                {getUnlockText(forgeModule)}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })()}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {architectTab === "wishlist" && (
-              <div className="flex-1 bg-emerald-950/20 rounded-3xl border border-emerald-800/30 overflow-hidden flex flex-col min-h-[600px]">
-                <WishlistTab />
-              </div>
-            )}
-
-            {architectTab === "stories" && (
-              <div className="flex-1 bg-emerald-950/20 rounded-3xl border border-emerald-800/30 overflow-hidden flex flex-col min-h-[600px]">
-                <StoriesTab />
-              </div>
-            )}
-
-            {architectTab === "reflections" && (
-              <div className="flex-1 bg-emerald-950/20 rounded-3xl border border-emerald-800/30 overflow-hidden flex flex-col min-h-[600px]">
-                <ReflectionsTab />
-              </div>
-            )}
-
-            {architectTab === "quotes" && (
-              <div className="flex-1 bg-emerald-950/20 rounded-3xl border border-emerald-800/30 overflow-hidden flex flex-col min-h-[600px]">
-                <QuotesTab />
-              </div>
-            )}
-          </div>
-        ) : (
+        {isArchitectMode ? null : (
           /* ══════════════════════════════════════════════════════════════
             MODE ACTION
              ══════════════════════════════════════════════════════════════ */
@@ -3354,45 +1271,6 @@ export default function DashboardV2() {
                       </section>
                     ) : (
                       <>
-                        {isTransformationReadyForClosure && transformation && closureDraft ? (
-                          <section className="rounded-[30px] border border-emerald-200 bg-[linear-gradient(180deg,rgba(236,253,245,1),rgba(255,255,255,1))] px-5 py-5 shadow-sm">
-                            <div className="flex flex-wrap items-start justify-between gap-4">
-                              <div>
-                                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--action-green)]">
-                                  Rituel de passage
-                                </p>
-                                <h3 className="mt-3 text-2xl font-semibold text-stone-950">
-                                  Cette transformation est prête à être clôturée
-                                </h3>
-                                <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-700">
-                                  Tous les éléments du plan sont terminés. Il ne reste plus qu'à
-                                  valider ta Ligne Rouge et tes Déclics avant de faire entrer cette
-                                  transformation dans ta Base de vie.
-                                </p>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => setIsClosureModalOpen(true)}
-                                className="inline-flex items-center gap-2 rounded-full bg-[var(--action-green)] px-5 py-3 text-sm font-semibold text-emerald-50 transition hover:bg-[var(--action-green)]"
-                              >
-                                Clôturer la transformation
-                                <ArrowRight className="h-4 w-4" />
-                              </button>
-                            </div>
-                          </section>
-                        ) : null}
-
-                        {levelCompletionSummary ? (
-                          <section className="rounded-[30px] border border-blue-100 bg-[linear-gradient(180deg,rgba(239,246,255,1),rgba(255,255,255,1))] px-5 py-5 shadow-sm">
-                            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-blue-700">
-                              Suite du parcours
-                            </p>
-                            <p className="mt-3 text-sm leading-6 text-stone-700">
-                              {levelCompletionSummary}
-                            </p>
-                          </section>
-                        ) : null}
-
                         <StrategyHeader
                           title={
                             activePlanContent.title ||
@@ -3415,48 +1293,11 @@ export default function DashboardV2() {
                           professionalSupport={null}
                         />
 
-                        <ProfessionalSupportTrackerCard
-                          recommendations={professionalSupportRecommendations}
-                          currentLevelOrder={currentLevel?.phase_order ?? null}
-                          phase1Completed={phase1Completed}
-                          onChanged={refetch}
-                        />
-
                         {isV3 ? (
                           <>
                             <PhaseProgression
                               phases={logic.phases}
                               scheduleAnchor={scheduleAnchor}
-                              phase1Node={
-                                <Phase1FoundationCard
-                                  phase1={phase1.phase1}
-                                  onOpenDeepWhy={openPhase1DeepWhy}
-                                  onOpenStory={openPhase1Story}
-                                />
-                              }
-                              activePhaseFooterNode={
-                                <>
-                                  <PlanRevisionPanel
-                                    value={planReviewInput}
-                                    thread={planReviewThread}
-                                    isBusy={planReviewBusy}
-                                    errorMessage={dashboardActionError}
-                                    currentLevelOrder={currentLevel?.phase_order ?? null}
-                                    currentLevelTitle={currentLevel?.title ?? null}
-                                    showComposer={planReviewShowComposer}
-                                    submitLabel={planReviewSubmitLabel}
-                                    helperText={planReviewHelperText}
-                                    changeSummary={planReviewProposal?.user_change_summary ?? null}
-                                    proposedChanges={planReviewProposal?.decision === "no_change"
-                                      ? []
-                                      : planReviewProposal?.proposed_changes ?? []}
-                                    previewNode={planReviewPreviewNode}
-                                    actions={planReviewActions}
-                                    onChange={setPlanReviewInput}
-                                    onSubmit={handlePlanReviewSubmit}
-                                  />
-                                </>
-                              }
                               levelToolRecommendationsByPhaseId={levelToolRecommendationsByPhaseId}
                               onLevelToolRecommendationChanged={refetch}
                               primaryMetricLabel={planContentV3?.primary_metric?.label ?? null}
@@ -3472,46 +1313,19 @@ export default function DashboardV2() {
                                   },
                                 })
                               }
-                              onCompleteLevel={() => {
-                                setLevelCompletionError(null);
-                                setIsLevelCompletionModalOpen(true);
-                              }}
-                              completeLevelBusy={levelCompletionBusy}
                               onCompletionAction={
-                                hasSequencedNextTransformation
-                                  ? handleOpenMultiPartTransitionGate
-                                  : hasSimpleNextTransformation
-                                    ? handleOpenMultiPartTransitionGate
-                                  : hasCycleRelaunchAction
-                                    ? handleOpenMultiPartTransitionGate
-                                  : canShowTransformationEndAction
-                                    ? handleEndSimpleTransformation
+                                canShowTransformationEndAction
+                                  ? handleEndSimpleTransformation
                                   : undefined
                               }
                               completionActionLabel={
-                                hasSequencedNextTransformation
-                                  ? "Passer à la 2ème transformation"
-                                  : hasSimpleNextTransformation
-                                    ? "Passer à la prochaine transformation"
-                                  : hasCycleRelaunchAction
-                                    ? "Passer à la prochaine transformation"
-                                  : canShowTransformationEndAction
-                                    ? "Mettre fin à la transformation"
+                                canShowTransformationEndAction
+                                  ? "Mettre fin à la transformation"
                                   : null
                               }
                               completionActionHint={
-                                hasSequencedNextTransformation
-                                  ? transitionCheckpointReached
-                                    ? "Avant d'ouvrir la suite, confirme que l'objectif de cette 1ère transformation est réellement atteint."
-                                    : "La 2ème transformation restera verrouillée tant que cette 1ère transformation n'est pas vraiment bouclée."
-                                  : hasSimpleNextTransformation
-                                    ? "Avant d'ouvrir la transformation suivante, confirme que l'objectif global de ta transformation actuelle est vraiment atteint."
-                                  : hasCycleRelaunchAction
-                                    ? "Avant de relancer un nouveau parcours, confirme que l'objectif global de cette transformation est vraiment atteint."
-                                  : canShowTransformationEndAction
-                                    ? isTransformationReadyForClosure
-                                      ? "La transformation est terminée. Il ne reste plus qu'à valider la clôture pour la faire entrer dans ta Base de vie."
-                                      : "Si tu veux arrêter ce chantier ici, tu peux mettre fin à cette transformation depuis ce bloc."
+                                canShowTransformationEndAction
+                                  ? "Si tu veux arrêter ce chantier ici, tu peux mettre fin à cette transformation depuis ce bloc."
                                   : null
                               }
                               journeyContext={activePlanContent.journey_context}
@@ -3519,27 +1333,6 @@ export default function DashboardV2() {
                                 planContentV3?.metadata?.plan_adjustment_revision,
                               )}
                             />
-                            {allPhasesCompleted ? (
-                              <PlanRevisionPanel
-                                value={planReviewInput}
-                                thread={planReviewThread}
-                                isBusy={planReviewBusy}
-                                errorMessage={dashboardActionError}
-                                currentLevelOrder={null}
-                                currentLevelTitle={null}
-                                showComposer={planReviewShowComposer}
-                                submitLabel={planReviewSubmitLabel}
-                                helperText={planReviewHelperText}
-                                changeSummary={planReviewProposal?.user_change_summary ?? null}
-                                proposedChanges={planReviewProposal?.decision === "no_change"
-                                  ? []
-                                  : planReviewProposal?.proposed_changes ?? []}
-                                previewNode={planReviewPreviewNode}
-                                actions={planReviewActions}
-                                onChange={setPlanReviewInput}
-                                onSubmit={handlePlanReviewSubmit}
-                              />
-                            ) : null}
                           </>
                         ) : (
                           <>
@@ -3589,10 +1382,6 @@ export default function DashboardV2() {
                               onComplete={logic.completeItem}
                               onCardsChanged={refetch}
                               onOpenDefenseResourceEditor={openPlanDefenseResourceEditor}
-                            />
-
-                            <UnlockPreview
-                              preview={logic.nextUnlock}
                             />
                           </>
                         )}
@@ -3695,31 +1484,6 @@ export default function DashboardV2() {
                           ) : null}
 
                           <div className="mt-5 flex flex-wrap gap-3">
-                            {hasSequencedNextTransformation ? (
-                              <button
-                                type="button"
-                                onClick={handleOpenMultiPartTransitionGate}
-                                className={`inline-flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-white shadow-md transition ${
-                                  shouldWarnBeforeNextTransformation
-                                    ? "bg-rose-700 shadow-rose-200 hover:bg-rose-800"
-                                    : "bg-blue-600 shadow-blue-200 hover:bg-blue-700"
-                                }`}
-                              >
-                                Passer à la 2ème transformation
-                              </button>
-                            ) : hasSimpleNextTransformation || hasCycleRelaunchAction ? (
-                              <button
-                                type="button"
-                                onClick={handleOpenMultiPartTransitionGate}
-                                className={`inline-flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-white shadow-md transition ${
-                                  shouldWarnBeforeNextTransformation
-                                    ? "bg-rose-700 shadow-rose-200 hover:bg-rose-800"
-                                    : "bg-blue-600 shadow-blue-200 hover:bg-blue-700"
-                                }`}
-                              >
-                                Passer à la prochaine transformation
-                              </button>
-                            ) : null}
                             {canShowTransformationEndAction ? (
                               <button
                                 type="button"
@@ -3741,10 +1505,10 @@ export default function DashboardV2() {
                 ) : activeTab === "lab" ? (
                   <div className="animate-fade-in">
                     {isOutOfPlanScope ? (
-                      <BaseDeVieSection
-                        cycleId={cycle.id}
+                      <RemindersSection
                         userId={user.id}
-                        transformations={transformations}
+                        cycleId={cycle.id}
+                        scopeKind="out_of_plan"
                         isLocked={!canAccessWhatsappFeatures}
                         onUnlockRequest={() => navigate("/upgrade")}
                       />
@@ -3830,31 +1594,16 @@ export default function DashboardV2() {
                           />
                         )}
 
-                        <LabCardsPanel
+                        <AttackCards
                           loading={labCards.loading}
                           generatingAttack={labCards.generatingAttack}
                           generatingTechniqueKey={labCards.generatingTechniqueKey}
                           analyzingTechniqueKey={labCards.analyzingTechniqueKey}
                           attackCard={labCards.attackCard?.content ?? null}
-                          onGenerateAttack={() => void labCards.generateAttack()}
-                          onRegenerateAttack={() => void labCards.regenerateAttack()}
                           onGenerateTechnique={(techniqueKey, answers, options) =>
                             labCards.generateTechnique(techniqueKey, answers, options)}
                           onAnalyzeTechniqueAdjustment={(techniqueKey, reasonKey, notes) =>
                             labCards.analyzeTechniqueAdjustment(techniqueKey, reasonKey, notes)}
-                          potionsLoading={potions.loading}
-                          potionDefinitions={potions.definitions}
-                          potionLatestSessions={potions.latestSessionByType}
-                          potionSessionsByType={potions.sessionsByType}
-                          potionUsageCount={potions.usageCountByType}
-                          activatingPotionType={potions.activatingPotionType}
-                          schedulingPotionSessionId={potions.schedulingSessionId}
-                          deletingPotionSessionId={potions.deletingSessionId}
-                          onActivatePotion={potions.activatePotion}
-                          onDeletePotion={potions.deletePotion}
-                          onReactivatePotion={potions.reactivatePotion}
-                          onSchedulePotionFollowUp={potions.schedulePotionFollowUp}
-                          planItems={planItems}
                           planAttackCardsNode={
                             <PlanActionCardsByLevel
                               kind="attack"
@@ -3878,39 +1627,12 @@ export default function DashboardV2() {
                 ) : activeTab === "inspiration" ? (
                   <div className="animate-fade-in">
                     {isOutOfPlanScope ? (
-                      <BaseDeVieSection
-                        cycleId={cycle.id}
+                      <RemindersSection
                         userId={user.id}
-                        transformations={transformations}
+                        cycleId={cycle.id}
+                        scopeKind="out_of_plan"
                         isLocked={!canAccessWhatsappFeatures}
                         onUnlockRequest={() => navigate("/upgrade")}
-                      />
-                    ) : isV3 && planContentV3 && transformation ? (
-                      <AtelierInspirations
-                        key={transformation.id}
-                        inspirationNarrative={
-                          planContentV3.inspiration_narrative
-                        }
-                        transformationTitle={
-                          planContentV3.title || transformation.title
-                        }
-                        phase1Story={phase1.phase1?.story ?? null}
-                        phase1DeepWhy={phase1.phase1?.deep_why ?? null}
-                        focusTarget={phase1InspirationFocus}
-                        storyPreparing={phase1.preparingStory}
-                        deepWhyPreparing={phase1.preparingDeepWhy}
-                        savingDeepWhy={phase1.savingDeepWhy}
-                        onFocusConsumed={() => setPhase1InspirationFocus(null)}
-                        onPrepareStory={(detailsAnswer) => void phase1.prepareStory(detailsAnswer)}
-                        onPrepareDeepWhy={() => void phase1.prepareDeepWhy()}
-                        onRevealStory={() => void phase1.markStoryViewed()}
-                        onSaveDeepWhyAnswers={(answers) =>
-                          void phase1.saveDeepWhyAnswers(answers)}
-                        unlockedPrinciples={
-                          transformation.unlocked_principles ?? {
-                            kaizen: true,
-                          }
-                        }
                       />
                     ) : (
                       <section className="rounded-[30px] border border-stone-200 bg-white px-5 py-8 text-center shadow-sm">
@@ -3989,125 +1711,6 @@ export default function DashboardV2() {
           </div>
         </div>
       ) : null}
-
-      <MultiPartTransitionGateModal
-        key={`${isMultiPartTransitionModalOpen ? "open" : "closed"}:${transitionCheckpointReached ? "checkpoint" : "locked"}`}
-        mode={hasSequencedNextTransformation ? "multi_part" : "simple"}
-        isOpen={Boolean(
-          isMultiPartTransitionModalOpen &&
-            (hasSequencedNextTransformation || hasSimpleNextTransformation || hasCycleRelaunchAction),
-        )}
-        canEvaluateTarget={hasSequencedNextTransformation ? transitionCheckpointReached : true}
-        busy={multiPartTransitionBusy || planReviewBusy}
-        currentTransformationTitle={
-          transformation?.title ??
-          (transformation ? `Transformation ${transformation.priority_order}` : "Transformation active")
-        }
-        nextTransformationTitle={
-          hasSequencedNextTransformation
-            ? nextSequencedTransformationTitle
-            : nextRecommendedTransformationTitle
-        }
-        targetLabel={transitionTargetLabel}
-        targetValue={transitionTargetValue}
-        globalObjective={transitionGlobalObjective}
-        onClose={() => {
-          if (multiPartTransitionBusy || planReviewBusy) return;
-          setIsMultiPartTransitionModalOpen(false);
-        }}
-        onConfirmReached={
-          hasSequencedNextTransformation
-            ? handleContinueToNextPart
-            : hasSimpleNextTransformation
-              ? handleContinueToNextSimpleTransformation
-              : handleContinueToNewCycle
-        }
-        onAdjustPlan={handleAdjustCurrentPlanForTransition}
-        onLetGoAndContinue={
-          hasSimpleNextTransformation
-            ? handleLetGoAndContinueToNextTransformation
-            : hasCycleRelaunchAction
-              ? handleLetGoAndStartNewCycle
-              : undefined
-        }
-      />
-
-      <MultiPartTransitionQuestionnaireModal
-        isOpen={Boolean(
-          isTransitionQuestionnaireModalOpen &&
-            transformation &&
-            transitionQuestionnaireSchema,
-        )}
-        currentTransformationTitle={
-          transformation?.title ??
-          (transformation ? `Transformation ${transformation.priority_order}` : "Transformation active")
-        }
-        nextTransformationTitle={
-          hasSequencedNextTransformation
-            ? nextSequencedTransformationTitle
-            : nextRecommendedTransformationTitle
-        }
-        schema={transitionQuestionnaireSchema}
-        initialAnswers={
-          hasSequencedNextTransformation
-            ? nextSequencedTransformation?.questionnaire_answers ?? null
-            : null
-        }
-        busy={transitionQuestionnaireBusy}
-        error={transitionQuestionnaireError}
-        onBackToPlan={handleCloseTransitionQuestionnaire}
-        onClose={handleCloseTransitionQuestionnaire}
-        onSubmit={handleSubmitTransitionQuestionnaire}
-      />
-
-      <TransformationClosureModal
-        isOpen={Boolean(
-          isClosureModalOpen &&
-            transformation &&
-            closureDraft &&
-            isTransformationReadyForClosure,
-        )}
-        mode="create"
-        transformationTitle={
-          transformation?.title ??
-          (transformation ? `Transformation ${transformation.priority_order}` : "")
-        }
-        initialLineGreenEntry={currentBaseDeViePayload?.line_green_entry ?? null}
-        initialLineRedEntry={currentBaseDeViePayload?.line_red_entry ?? null}
-        initialLineGreenEntries={currentBaseDeViePayload?.line_green_entries ?? null}
-        initialLineRedEntries={currentBaseDeViePayload?.line_red_entry_details ?? null}
-        initialFeedback={currentBaseDeViePayload?.closure_feedback ?? null}
-        busy={completingTransformation}
-        onClose={handleCloseClosureModal}
-        onSubmit={handleCompleteTransformation}
-      />
-
-      <LevelCompletionModal
-        isOpen={Boolean(
-          isLevelCompletionModalOpen &&
-            currentLevel &&
-            isCurrentLevelReviewUnlocked,
-        )}
-        levelOrder={currentLevel?.phase_order ?? null}
-        levelTitle={currentLevel?.title ?? ""}
-        questions={currentLevelReviewQuestions}
-        busy={levelCompletionBusy}
-        error={levelCompletionError}
-        onClose={() => {
-          if (levelCompletionBusy) return;
-          setIsLevelCompletionModalOpen(false);
-        }}
-        onSubmit={handleLevelCompletionSubmit}
-      />
-
-      <LevelTransitionScreen
-        isOpen={Boolean(levelCompletionBusy && !isLevelCompletionModalOpen)}
-        levelOrder={currentLevel?.phase_order ?? null}
-        levelTitle={currentLevel?.title ?? ""}
-        levelKey={plan && currentLevel
-          ? `${plan.id}:${currentLevel.phase_order}`
-          : null}
-      />
     </div>
   );
 }

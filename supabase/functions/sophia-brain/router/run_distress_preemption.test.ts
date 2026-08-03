@@ -66,7 +66,8 @@ Deno.test("worthlessness medium blocks recommendation lanes even under active co
     const lane of [
       "coaching_recommendation",
       "product_help",
-      "feature_opportunity",
+      // W2.A: la lane "feature_opportunity" n'existe plus, elle a disparu des
+      // blocked_paths de la préemption détresse.
       "plan_realignment",
     ]
   ) {

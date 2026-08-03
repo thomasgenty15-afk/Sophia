@@ -15,20 +15,9 @@ export const WHATSAPP_TEMPLATE_CATALOG: Record<
     body: "J'ai une info pour toi, je peux te la donner ? 😊",
     buttons: ["Oui!", "Plus tard!"],
   },
-  weekly_planning_validation_v1: {
-    name: "weekly_planning_validation_v1",
-    body:
-      'Ton planning de la semaine prochaine est prêt à valider.\n\nTu peux le vérifier ici : "{{1}}"',
-    buttons: [],
-  },
-  // Weekly planning auto-validation door-opener: static body, the plan detail
-  // is delivered on "Oui!" via the whatsapp_pending_actions draft.
-  auto_validation_v1: {
-    name: "auto_validation_v1",
-    body:
-      "Hello, ton planning de la semaine a été auto-validé.\nEst-ce que tu veux connaître le détail ?",
-    buttons: ["Oui!", "Non merci!"],
-  },
+  // W2.B: `weekly_planning_validation_v1` et `auto_validation_v1` ont été
+  // retirés du catalogue avec la machine de validation hebdo. Les templates
+  // restent approuvés côté Meta mais ce dépôt n'en émet plus aucun.
   sophia_winback_step1_soft: {
     name: "sophia_winback_step1_soft",
     body:

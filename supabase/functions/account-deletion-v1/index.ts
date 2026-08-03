@@ -6,8 +6,9 @@
 //     ConfirmationToken (10 min TTL) bound to a pending-confirmation row.
 //   * action="confirm": requires the token + the typed word "SUPPRIMER".
 //     Executes T0: profile flagged deletion_pending (purge at J+7), Stripe
-//     cancelled immediately (no proration refund), WhatsApp shut down after a
-//     last sober confirmation message, all sessions revoked.
+//     cancelled immediately (no proration refund), coaching links ended if the
+//     user is a coach, WhatsApp shut down after a last sober confirmation
+//     message, all sessions revoked.
 //
 // Restoration before J+7 is handled by account-restore-v1; the hard purge by
 // the purge-deleted-accounts cron.
@@ -17,6 +18,7 @@ import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
 import { getRequestId, jsonResponse, serverError } from "../_shared/http.ts";
 import { enforceRateLimit } from "../_shared/rate-limit.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
+import { sendResendEmail } from "../_shared/resend.ts";
 import { stripeRequest } from "../_shared/stripe.ts";
 import {
   createConfirmationToken,
@@ -135,6 +137,205 @@ async function shutDownWhatsApp(
       whatsapp_optout_reason: "account_deletion",
     })
     .eq("id", userId);
+}
+
+// KEEL W1.2 — a COACH deletes their account.
+//
+// The student's data is the STUDENT's property: nothing of theirs is touched
+// here. What must end is the LINK, and it must end now rather than at J+7:
+// `coach_clients.status='active'` is the billable seat (W10) and the access
+// grant read by `coached_student_ids()`, and the partial unique index
+// `one_live_coach_per_student` blocks a new coach from picking the student up
+// while a live link sits there.
+//
+// The link would disappear anyway at J+7 (coach_clients.coach_id -> coaches.id
+// ON DELETE CASCADE, and coaches.user_id -> auth.users ON DELETE CASCADE), but
+// that is seven days of a coach who is leaving still holding a seat and a read
+// grant. Marking it 'ended' closes both immediately.
+//
+// Not reversed by account-restore-v1, on purpose: consent to be coached is not
+// something a restore should resurrect. A coach who comes back re-invites, and
+// the student consents again (`consent_granted_at`).
+type EndedCoachLinks = {
+  /** -1 = the tenancy tables were unreachable. Never a fake 0. */
+  ended: number;
+  coachId: string | null;
+  studentUserIds: string[];
+};
+
+async function endCoachClientLinks(
+  admin: ReturnType<typeof createClient>,
+  userId: string,
+  nowIso: string,
+): Promise<EndedCoachLinks> {
+  try {
+    const { data: coach, error: coachErr } = await admin
+      .from("coaches")
+      .select("id")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (coachErr) throw coachErr;
+    if (!coach?.id) return { ended: 0, coachId: null, studentUserIds: [] };
+
+    const { data: ended, error: endErr } = await admin
+      .from("coach_clients")
+      .update({ status: "ended", ended_at: nowIso, updated_at: nowIso })
+      .eq("coach_id", coach.id)
+      .neq("status", "ended")
+      // student_user_id is null on an invitation never accepted: nobody to warn.
+      .select("id,student_user_id");
+    if (endErr) throw endErr;
+
+    const studentUserIds = [
+      ...new Set(
+        (ended ?? [])
+          .map((row: any) => String(row?.student_user_id ?? "").trim())
+          .filter(Boolean),
+      ),
+    ];
+    return {
+      ended: ended?.length ?? 0,
+      coachId: String(coach.id),
+      studentUserIds,
+    };
+  } catch (err) {
+    // The tenancy tables (W1.1) are not on every stack yet, and a function
+    // deploy is a separate gate from a migration. A missing table must not
+    // wedge a deletion the user has already confirmed — but it is logged, and
+    // the count comes back through the response as null, never as a fake 0.
+    console.warn("[account-deletion-v1] coach link teardown skipped", err);
+    return { ended: -1, coachId: null, studentUserIds: [] };
+  }
+}
+
+// KEEL W1.4 R4 — the student must be TOLD.
+//
+// `endCoachClientLinks` closes the seat and the read grant, but until now it
+// warned nobody: a student simply stopped having a coach, with no event, no
+// message, and an app that would keep showing a protocol authored by an account
+// that no longer exists. BUILD_PLAN W1.2 requires the notice.
+//
+// Three properties, in order of importance:
+//   1. It NEVER blocks the deletion. The user already confirmed; an email
+//      provider having a bad day is not a reason to keep their account open.
+//      Every failure is caught, per student and globally.
+//   2. It is idempotent. `communication_logs` is keyed on
+//      (user_id, type, metadata->>coach_id) so a retried confirm — or a second
+//      coach leaving later — does not double-send, and does not suppress a
+//      legitimate second notice either.
+//   3. It states what is true: the student's plan and data are THEIRS, and stay.
+const COACH_DEPARTURE_NOTICE_TYPE = "coach_departure_notice";
+// A pilot coach holds a handful of seats (W10). A four-figure fan-out here
+// would be a data anomaly, not a use case: it is truncated and SAID.
+const COACH_DEPARTURE_MAX_STUDENTS = 200;
+
+function coachDepartureEmailHtml(firstName: string): string {
+  const hello = firstName ? `Hi ${firstName},` : "Hi,";
+  return `
+    <div style="font-family: sans-serif; color: #333; line-height: 1.6;">
+      <p>${hello}</p>
+      <p>Your coach has closed their Sophia account, so your coaching link has ended.</p>
+      <p><strong>Your plan and your data belong to you.</strong> They stay in your
+      account and remain accessible exactly as before &mdash; nothing has been
+      deleted, and you can export everything at any time.</p>
+      <p>Your coach no longer has access to your space. If you work with another
+      coach later on, they can invite you and you will be asked to consent
+      again.</p>
+      <p>Sophia</p>
+    </div>
+  `;
+}
+
+async function notifyStudentsOfCoachDeparture(
+  admin: ReturnType<typeof createClient>,
+  links: EndedCoachLinks,
+  requestId: string,
+): Promise<{ notified: number; failed: number; truncated: boolean }> {
+  const outcome = { notified: 0, failed: 0, truncated: false };
+  if (!links.coachId || links.studentUserIds.length === 0) return outcome;
+
+  const senderEmail = (Deno.env.get("SENDER_EMAIL") ?? "").trim() ||
+    "Sophia <sophia@sophia-coach.ai>";
+  let studentIds = links.studentUserIds;
+  if (studentIds.length > COACH_DEPARTURE_MAX_STUDENTS) {
+    outcome.truncated = true;
+    studentIds = studentIds.slice(0, COACH_DEPARTURE_MAX_STUDENTS);
+  }
+
+  const { data: students, error: studentsErr } = await admin
+    .from("profiles")
+    .select("id,email,full_name")
+    .in("id", studentIds);
+  if (studentsErr) throw studentsErr;
+
+  for (const student of students ?? []) {
+    const studentId = String((student as any)?.id ?? "").trim();
+    if (!studentId) continue;
+    try {
+      const { data: already } = await admin
+        .from("communication_logs")
+        .select("id")
+        .eq("user_id", studentId)
+        .eq("type", COACH_DEPARTURE_NOTICE_TYPE)
+        .eq("metadata->>coach_id", links.coachId)
+        .limit(1);
+      if (already && already.length > 0) continue;
+
+      let email = String((student as any)?.email ?? "").trim();
+      if (!email) {
+        const { data: authUser } = await admin.auth.admin.getUserById(studentId);
+        email = String(authUser?.user?.email ?? "").trim();
+      }
+      if (!email) {
+        // No address is not a silent success: it is a failure we can count.
+        console.warn(
+          `[account-deletion-v1] request_id=${requestId} coach_departure_no_email user_id=${studentId}`,
+        );
+        outcome.failed++;
+        continue;
+      }
+      // Ephemeral QA users: same rule as send-welcome-email.
+      if (email.toLowerCase().endsWith("@example.com")) continue;
+
+      const firstName = String((student as any)?.full_name ?? "").trim()
+        .split(" ")[0] ?? "";
+      const sent = await sendResendEmail({
+        to: email,
+        subject: "Your coach has closed their Sophia account",
+        html: coachDepartureEmailHtml(firstName),
+        from: senderEmail,
+        maxAttempts: 3,
+      });
+      if (!(sent as any).ok) {
+        outcome.failed++;
+        console.warn(
+          `[account-deletion-v1] request_id=${requestId} coach_departure_email_failed user_id=${studentId}`,
+          (sent as any).error,
+        );
+        continue;
+      }
+
+      await admin.from("communication_logs").insert({
+        user_id: studentId,
+        channel: "email",
+        type: COACH_DEPARTURE_NOTICE_TYPE,
+        status: "sent",
+        metadata: {
+          coach_id: links.coachId,
+          resend_id: (sent as any).data?.id ?? null,
+          skipped: Boolean((sent as any).skipped),
+        },
+      });
+      outcome.notified++;
+    } catch (err) {
+      outcome.failed++;
+      console.warn(
+        `[account-deletion-v1] request_id=${requestId} coach_departure_notice_error user_id=${studentId}`,
+        err,
+      );
+    }
+  }
+  return outcome;
 }
 
 Deno.serve(async (req) => {
@@ -355,7 +556,38 @@ Deno.serve(async (req) => {
         );
       }
 
-      // 3) Last sober WhatsApp confirmation, then full silence.
+      // 3) Coach case: end every coaching link. Placed after the Stripe step so
+      //    it is never undone by the rollback above — past this point the
+      //    deletion is committed.
+      const endedCoachLinks = await endCoachClientLinks(admin, user.id, nowIso);
+
+      // 3-bis) W1.4 R4: tell each student their coach is gone and that their
+      //        plan and data stay theirs. BEST-EFFORT, always: this whole block
+      //        cannot throw, and cannot stop a deletion the user confirmed.
+      let studentNotice = { notified: 0, failed: 0, truncated: false };
+      try {
+        studentNotice = await notifyStudentsOfCoachDeparture(
+          admin,
+          endedCoachLinks,
+          requestId,
+        );
+      } catch (err) {
+        console.warn(
+          `[account-deletion-v1] request_id=${requestId} coach_departure_notice_pass_failed`,
+          err,
+        );
+        await logEdgeFunctionError({
+          functionName: "account-deletion-v1",
+          error: err,
+          severity: "warn",
+          title: "coach_departure_notice_failed",
+          requestId,
+          userId: user.id,
+          source: "email",
+        });
+      }
+
+      // 4) Last sober WhatsApp confirmation, then full silence.
       let whatsappNotified = false;
       if (wasOptedIn) {
         const purgeDateFr = formatFrenchDate(purgeAtIso, profile.timezone);
@@ -370,10 +602,10 @@ Deno.serve(async (req) => {
         });
       }
 
-      // 4) WhatsApp shutdown: opt-out + cancel everything scheduled.
+      // 5) WhatsApp shutdown: opt-out + cancel everything scheduled.
       await shutDownWhatsApp(admin, user.id);
 
-      // 5) Revoke every session (the current one included). The server-side
+      // 6) Revoke every session (the current one included). The server-side
       //    user client has no stored session, so revoke through the admin API
       //    with the caller's raw JWT.
       try {
@@ -387,6 +619,14 @@ Deno.serve(async (req) => {
         ok: true,
         purge_at: purgeAtIso,
         cancelled_subscriptions: cancelOutcome.cancelled.length,
+        // null = the tenancy tables were unreachable, not "zero students".
+        ended_coach_links: endedCoachLinks.ended < 0 ? null : endedCoachLinks.ended,
+        // W1.4 R4, execution truth: what was actually delivered, not what was
+        // attempted. `students_notify_failed > 0` means students were left in
+        // the dark — the deletion still went through, on purpose.
+        students_notified: studentNotice.notified,
+        students_notify_failed: studentNotice.failed,
+        students_notify_truncated: studentNotice.truncated,
         whatsapp_notified: whatsappNotified,
         request_id: requestId,
       });

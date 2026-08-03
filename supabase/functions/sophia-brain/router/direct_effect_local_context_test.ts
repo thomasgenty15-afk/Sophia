@@ -199,6 +199,10 @@ Deno.test("local one-shot direct effect requires dispatcher UTC_time and local_l
     explicitness: "explicit",
     target_status: "identified",
     confidence_band: "high",
+    // W2.D-2 — `content_risk` was added to LocalOneShotDirectEffectRequest after these cases
+    // were written. `null` is the neutral value (only "flagged" blocks), which is exactly the
+    // pre-existing semantics they were exercising.
+    content_risk: null,
     payload_hint: {
       raw_text: "rappelle-moi dans 30 minutes de verifier le calme",
       when_hint: "dans 30 minutes",
@@ -224,6 +228,7 @@ Deno.test("local one-shot direct effect is ignored when global already flagged i
     explicitness: "explicit" as const,
     target_status: "identified" as const,
     confidence_band: "high" as const,
+    content_risk: null,
     payload_hint: {
       raw_text: "rappelle-moi dans 30 minutes de verifier le calme",
       when_hint: "dans 30 minutes",

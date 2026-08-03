@@ -394,17 +394,20 @@ memory_v2_alerts_enabled = "env(memory_v2_alerts_enabled)"
 
 # Edge Functions invoked by DB triggers/cron/internal jobs do NOT have a JWT.
 # They are protected by `X-Internal-Secret` instead, so JWT verification must be disabled locally.
-[functions.create-module-memory]
-verify_jwt = false
-[functions.update-core-identity]
-verify_jwt = false
 [functions.process-checkins]
 verify_jwt = false
-[functions.schedule-onboarding-week1-validation]
+[functions.keel-week-rollover-v1]
+verify_jwt = false
+# W10 — the monthly seat reconciliation. Cron-invoked, so no JWT; the guard is
+# `X-Internal-Secret` (ensureInternalRequest), like every other internal job.
+[functions.stripe-reconcile-seats]
+verify_jwt = false
+# W10 — Stripe sends a signed webhook, never a Supabase JWT. This function has
+# always carried a per-folder config.toml, which the CLI does NOT read (see the
+# comment in scripts/ci/wiring-check.mjs): the declaration has to be here.
+[functions.stripe-webhook]
 verify_jwt = false
 [functions.trigger-watcher-batch]
-verify_jwt = false
-[functions.trigger-level-review-transitions-v1]
 verify_jwt = false
 
 [functions.send-welcome-email]
@@ -446,6 +449,72 @@ verify_jwt = false
 [functions.account-restore-v1]
 verify_jwt = false
 [functions.account-export-v1]
+verify_jwt = false
+# KEEL — parse-only plan import (P0 demo). Auth in-function once coach accounts
+# exist (P3); gateway JWT check off for the same ES256-on-local reason as above.
+[functions.plan-import-v1]
+verify_jwt = false
+
+# KEEL W6.1/W6.2 — the coach path. Both authenticate the CALLER in-function via
+# auth.getUser() and then check tenancy themselves:
+#   coach-signup-v1  -> creates the `coaches` row (the table has no INSERT policy)
+#   plan-publish-v1  -> requires the student to be in coached_student_ids(),
+#                       evaluated under the coach's own JWT
+# Gateway verify_jwt stays off for the same ES256-on-local reason as the
+# account-* functions above: Kong rejects the local ES256 user token before the
+# function ever sees it. NOTE (verified 27/07): a per-function
+# supabase/functions/<name>/config.toml is NOT read by the CLI — this file is
+# the only place a function's gateway setting takes effect.
+[functions.coach-signup-v1]
+verify_jwt = false
+[functions.plan-publish-v1]
+verify_jwt = false
+# KEEL W6.4 — template CRUD. The gateway check is off for the same
+# ES256-on-local reason: GoTrue signs user tokens with an asymmetric key the
+# gateway cannot verify, so a real coach JWT would be rejected before reaching
+# the function. Auth happens IN-FUNCTION (auth.getUser() -> coaches.user_id,
+# status='active'); `coach_id` is never read from the request body.
+[functions.plan-template-v1]
+verify_jwt = false
+
+# KEEL W5 — meal photos.
+# `meal-photo-upload-v1` authenticates the student in-function via
+# auth.getUser() (same ES256-on-local reason as the account-* functions);
+# `analyze-meal-photo-v1` is internal-only (X-Internal-Secret).
+[functions.meal-photo-upload-v1]
+verify_jwt = false
+[functions.analyze-meal-photo-v1]
+verify_jwt = false
+
+# KEEL W6.3 — student invitation. Same posture as its three sibling coach
+# functions above, and for the same verified reason: Kong rejects the local
+# ES256 user token before it reaches the function, so a real coach JWT would
+# 401 at the gateway. Auth is NOT weakened — it moves in-function:
+# auth.getUser() -> coaches.user_id with status='active', and the coach_id is
+# never taken from the request body.
+[functions.coach-invite-student-v1]
+verify_jwt = false
+
+# KEEL W4 — internal cron surfaces (called with X-Internal-Secret, never by a
+# browser). Listed so their gateway setting is explicit rather than defaulted.
+[functions.provision-day-v1]
+verify_jwt = false
+[functions.evaluate-adherence-v1]
+verify_jwt = false
+# KEEL W8 — cards. Two doors in one function: the student's JWT for the four
+# user actions, and X-Internal-Secret for the hourly arming sweep. verify_jwt is
+# off for the same reason as its siblings (GoTrue local signs ES256, the gateway
+# cannot verify it) — the JWT is checked INSIDE the function, on every user
+# action, and the two internal actions have no JWT path at all.
+[functions.keel-cards-v1]
+verify_jwt = false
+
+# The coach composes the student's week of meals. Same door as its siblings:
+# verify_jwt is off because GoTrue signs ES256 locally and the gateway cannot
+# verify it, so the JWT is checked INSIDE the function — and here every single
+# action is coach-gated (auth.getUser -> coaches, status='active'), with no
+# internal-secret path and no anonymous surface at all.
+[functions.keel-meal-plan-v1]
 verify_jwt = false
 
 [analytics]

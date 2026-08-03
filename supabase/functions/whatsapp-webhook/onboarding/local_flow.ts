@@ -1312,18 +1312,12 @@ export function buildWhatsAppOnboardingConversationTrace(params: {
     user_id: params.userId,
     source_message_id: sourceMessageId,
     ts: new Date().toISOString(),
-    safety_context: {
-      detected: params.reduced.risk_assessment.safety_preempt,
-      risk_band: riskBand,
-      reason_codes: riskReasonCodes,
-      evidence,
-      layer_contributions: {
-        active_flow_caution: params.reduced.risk_assessment.safety_preempt,
-        dispatcher_llm: false,
-      },
-      allow_side_effects: !params.reduced.risk_assessment.safety_preempt,
-      channel: "whatsapp",
-    },
+    // W2.D-2: a `safety_context` block used to be built here. It is not a field of
+    // `ConversationTurnTrace` (observability/trace_logger.ts:12-43) and `logConversationTurn`
+    // never forwards it — `trace_logger.test.ts:114` asserts `"safety_context" in insert ===
+    // false`, i.e. the column is gone. The block was dead payload that only broke the type
+    // check. The same facts are already carried by `turn_frame.safety` just above
+    // (risk_band / reason_codes / evidence), which IS persisted.
     dispatcher_run: {
       latency_ms: Math.max(0, Math.round(params.dispatcherLatencyMs)),
       tokens_in: 0,

@@ -11,8 +11,8 @@ Deno.test("coaching_intervention_tracking: proposal creates pending state and hi
   const next = recordCoachingInterventionProposal({
     tempMemory: {},
     addon: {
+      intervention_id: "coach_test_1",
       eligible: true,
-      gate: "allow",
       decision: "propose",
       reason: "fit",
       blocker_type: "urge",
@@ -25,10 +25,8 @@ Deno.test("coaching_intervention_tracking: proposal creates pending state and hi
       follow_up_needed: true,
       follow_up_window_hours: 18,
       trigger_kind: "explicit_craving",
-      explicit_help_request: true,
       target_action_title: "Arret cigarette",
       selector_source: "fallback",
-      decided_at: new Date().toISOString(),
     },
   });
 
@@ -39,12 +37,31 @@ Deno.test("coaching_intervention_tracking: proposal creates pending state and hi
   assertEquals(memory.history[0]?.status, "pending");
 });
 
-Deno.test("coaching_intervention_tracking: user follow-up resolves pending as helpful", async () => {
+// ── LLM gate ─────────────────────────────────────────────────────────────────────────────
+// `reconcileCoachingInterventionStateFromUserTurn` resolves a pending intervention by calling
+// `classifyCoachingInterventionFollowUp`, which is a real `generateWithGemini` round trip
+// (`coaching_intervention_tracking.ts:186-262`). Its catch branch returns `{decision:
+// "ignore"}` on any failure, so without a model key the pending state simply never resolves
+// and the case fails for an environment reason, not a code reason. It is therefore SKIPPED
+// when no model key is present. See docs/keel/TESTING.md.
+const LLM_KEYS = ["GEMINI_API_KEY", "OPENAI_API_KEY"] as const;
+const HAS_LLM = LLM_KEYS.some((k) => (Deno.env.get(k) ?? "").trim().length > 0);
+if (!HAS_LLM) {
+  console.log(
+    `[skip] coaching_intervention_tracking follow-up classifier: needs a model key (${
+      LLM_KEYS.join(" or ")
+    })`,
+  );
+}
+
+Deno.test("coaching_intervention_tracking: user follow-up resolves pending as helpful", {
+  ignore: !HAS_LLM,
+}, async () => {
   const withProposal = recordCoachingInterventionProposal({
     tempMemory: {},
     addon: {
+      intervention_id: "coach_test_2",
       eligible: true,
-      gate: "allow",
       decision: "propose",
       reason: "fit",
       blocker_type: "start_friction",
@@ -57,10 +74,8 @@ Deno.test("coaching_intervention_tracking: user follow-up resolves pending as he
       follow_up_needed: true,
       follow_up_window_hours: 18,
       trigger_kind: "explicit_blocker",
-      explicit_help_request: false,
       target_action_title: "Sport",
       selector_source: "fallback",
-      decided_at: new Date().toISOString(),
     },
   });
 
@@ -81,8 +96,8 @@ Deno.test("coaching_intervention_tracking: selector history includes pending as 
   const withProposal = recordCoachingInterventionProposal({
     tempMemory: {},
     addon: {
+      intervention_id: "coach_test_3",
       eligible: true,
-      gate: "allow",
       decision: "propose",
       reason: "fit",
       blocker_type: "environment_mismatch",
@@ -95,10 +110,8 @@ Deno.test("coaching_intervention_tracking: selector history includes pending as 
       follow_up_needed: true,
       follow_up_window_hours: 24,
       trigger_kind: "coach_request",
-      explicit_help_request: true,
       target_action_title: "Routine du soir",
       selector_source: "fallback",
-      decided_at: new Date().toISOString(),
     },
   });
 

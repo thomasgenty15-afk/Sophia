@@ -1,8 +1,8 @@
 import { describe, expect, it, beforeEach, afterEach } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { createAuthedTestUser, createServiceRoleClient } from "../test/supabaseTestUtils";
+import { HAS_SUPABASE_TEST_ENV, createAuthedTestUser, createServiceRoleClient } from "../test/supabaseTestUtils";
 
-describe("edge functions: client-facing (stubbed by default)", () => {
+describe.skipIf(!HAS_SUPABASE_TEST_ENV)("edge functions: client-facing (stubbed by default)", () => {
   let userId: string;
   let client: SupabaseClient;
   let admin: SupabaseClient;

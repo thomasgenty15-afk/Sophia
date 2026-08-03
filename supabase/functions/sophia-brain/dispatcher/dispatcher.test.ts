@@ -287,7 +287,12 @@ Deno.test("dispatcher preserves plan realignment signal context without executio
   assertNoLegacyRouteFields(frame);
 });
 
-Deno.test("dispatcher preserves feature opportunity signal context", async () => {
+// W2.B will delete this: la lane est désactivée en W2.A.
+Deno.test({
+  name:
+    "dispatcher preserves feature opportunity signal context",
+  ignore: true,
+}, async () => {
   const frame = await dispatch(
     "Avant chaque diner j'ai du mal a ne pas fumer",
     {
@@ -309,7 +314,9 @@ Deno.test("dispatcher preserves feature opportunity signal context", async () =>
     },
   );
 
-  const context = frame.skill_signals.feature_opportunity?.context;
+  // W2.A: le champ a quitté le contrat; lecture castée (test ignoré).
+  const context =
+    (frame.skill_signals as Record<string, any>).feature_opportunity?.context;
   assertEquals(context?.feature, "initiatives");
   assertEquals(context?.opportunity_kind, "recurring_context");
   assertEquals(context?.trigger_context, "avant chaque diner");
@@ -327,7 +334,10 @@ Deno.test("dispatcher keeps initiative product question as product_help", async 
   });
 
   assertEquals(frame.skill_signals.product_help?.detected, true);
-  assertEquals(frame.skill_signals.feature_opportunity, undefined);
+  assertEquals(
+    (frame.skill_signals as Record<string, unknown>).feature_opportunity,
+    undefined,
+  );
 });
 
 Deno.test("dispatcher normalizes legacy entry coaching signal", async () => {
@@ -580,7 +590,10 @@ Deno.test("dispatcher keeps session style hint at root even without a detected s
   );
   // Anti-effet-de-bord: le signal non-detected reste droppé — la contrainte
   // de style ne force aucun routing feature_opportunity.
-  assertEquals(frame.skill_signals.feature_opportunity, undefined);
+  assertEquals(
+    (frame.skill_signals as Record<string, unknown>).feature_opportunity,
+    undefined,
+  );
 });
 
 Deno.test("dispatcher leaves session style hint empty when no constraint is expressed (P1-2 anti-FP)", async () => {

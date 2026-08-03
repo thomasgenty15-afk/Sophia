@@ -9,13 +9,23 @@ import {
 
 Deno.test("companion normal reply prompt stays conversation-first and product-thin", () => {
   const prompt = buildCompanionSystemPrompt({
+    responseLocale: "fr-FR",
     isWhatsApp: false,
     lastAssistantMessage: "Je te suis.",
     context: "",
     userState: { risk_level: 0, temp_memory: {} },
   });
 
-  assert(prompt.length < 13000);
+  // W9: le bloc RESPONSE_LANGUAGE (~220 caractères) est désormais ajouté en
+  // queue de TOUS les prompts composés. La ceinture de budget porte sur le
+  // corps composé — c'est lui qui grossit à chaque nouvelle règle — et non sur
+  // ce bloc de langue de taille fixe. Seuil inchangé: 13000.
+  const bodyWithoutLanguageBlock = prompt.slice(
+    0,
+    prompt.indexOf("RESPONSE_LANGUAGE:"),
+  );
+  assert(prompt.includes("RESPONSE_LANGUAGE:"));
+  assert(bodyWithoutLanguageBlock.length < 13000);
   assert(prompt.includes("CORE_COMPANION"));
   assert(prompt.includes("OUTPUT_STYLE"));
   assert(prompt.includes("NORMAL_REPLY_POLICY"));
@@ -150,6 +160,7 @@ Deno.test("companion normal reply prompt stays conversation-first and product-th
 
 Deno.test("companion normal reply keeps social register after a closed flow", () => {
   const prompt = buildCompanionSystemPrompt({
+    responseLocale: "fr-FR",
     isWhatsApp: false,
     lastAssistantMessage: "Le bilan de la semaine est clos.",
     context: "",
@@ -169,6 +180,7 @@ Deno.test("companion normal reply keeps social register after a closed flow", ()
 
 Deno.test("companion normal reply receives recent visible history for loop recovery", () => {
   const prompt = buildCompanionSystemPrompt({
+    responseLocale: "fr-FR",
     isWhatsApp: true,
     lastAssistantMessage: "Parfait, on continue ?",
     history: [
@@ -198,6 +210,7 @@ Deno.test("companion normal reply receives recent visible history for loop recov
 
 Deno.test("companion normal reply explains active action and platform context usage", () => {
   const prompt = buildCompanionSystemPrompt({
+    responseLocale: "fr-FR",
     isWhatsApp: false,
     lastAssistantMessage: "Je te suis.",
     context: [
@@ -226,6 +239,7 @@ Deno.test("companion normal reply explains active action and platform context us
 
 Deno.test("companion normal reply requires platform fallback for non-injected Sophia objects", () => {
   const prompt = buildCompanionSystemPrompt({
+    responseLocale: "fr-FR",
     isWhatsApp: false,
     lastAssistantMessage: "Je te suis.",
     context: "",
@@ -243,6 +257,7 @@ Deno.test("companion normal reply requires platform fallback for non-injected So
 
 Deno.test("companion visible-answer guard names all forbidden internals", () => {
   const prompt = buildCompanionSystemPrompt({
+    responseLocale: "fr-FR",
     isWhatsApp: false,
     lastAssistantMessage: "Je te suis.",
     context: "",
@@ -294,6 +309,7 @@ Deno.test("companion delivery directive parser strips unsupported reaction emoji
 
 Deno.test("companion prompt removes empty module context blocks", () => {
   const prompt = buildCompanionSystemPrompt({
+    responseLocale: "fr-FR",
     isWhatsApp: true,
     lastAssistantMessage: "Je te suis.",
     context: [
@@ -311,6 +327,7 @@ Deno.test("companion prompt removes empty module context blocks", () => {
 
 Deno.test("companion prompt compacts user model facts to useful style preferences", () => {
   const prompt = buildCompanionSystemPrompt({
+    responseLocale: "fr-FR",
     isWhatsApp: true,
     lastAssistantMessage: "Je te suis.",
     context: [
@@ -338,6 +355,7 @@ Deno.test("companion prompt compacts user model facts to useful style preference
 
 Deno.test("companion question rhythm reads coach question tendency from runtime preferences", () => {
   const prompt = buildCompanionSystemPrompt({
+    responseLocale: "fr-FR",
     isWhatsApp: false,
     lastAssistantMessage: "Je te suis.",
     context: [
@@ -364,6 +382,7 @@ Deno.test("companion question rhythm reads coach question tendency from runtime 
 
 Deno.test("companion question rhythm reads coach question tendency from user facts", () => {
   const prompt = buildCompanionSystemPrompt({
+    responseLocale: "fr-FR",
     isWhatsApp: false,
     lastAssistantMessage: "Je te suis.",
     context: [
@@ -381,6 +400,7 @@ Deno.test("companion question rhythm reads coach question tendency from user fac
 
 Deno.test("companion question rhythm does not infer question tendency from other coach preferences", () => {
   const prompt = buildCompanionSystemPrompt({
+    responseLocale: "fr-FR",
     isWhatsApp: false,
     lastAssistantMessage: "Je te suis.",
     context: [
@@ -406,6 +426,7 @@ Deno.test("companion question rhythm does not infer question tendency from other
 
 Deno.test("companion normal reply acknowledges explicit memorization requests", () => {
   const prompt = buildCompanionSystemPrompt({
+    responseLocale: "fr-FR",
     isWhatsApp: false,
     lastAssistantMessage: "Je te suis.",
     context: "",
@@ -434,6 +455,7 @@ Deno.test("companion normal reply acknowledges explicit memorization requests", 
 
 Deno.test("companion normal reply clarifies ambiguous follow-ups instead of guessing", () => {
   const prompt = buildCompanionSystemPrompt({
+    responseLocale: "fr-FR",
     isWhatsApp: false,
     lastAssistantMessage: "Je te suis.",
     context: "",
@@ -442,4 +464,120 @@ Deno.test("companion normal reply clarifies ambiguous follow-ups instead of gues
   assert(prompt.includes("Follow-up ambigu"));
   assert(prompt.includes("clarifie en une phrase au lieu de choisir"));
   assert(prompt.includes("sinon réponds direct"));
+});
+
+// ---------------------------------------------------------------------------
+// W9 — pack ANGLAIS + bloc RESPONSE_LANGUAGE (CONTRACT R3)
+//
+// Les ceintures FR ci-dessus restent armées: elles passent désormais
+// `responseLocale: "fr-FR"`, qui rend le pack français GELÉ, byte-identique.
+// Les ceintures ci-dessous prouvent que le pack anglais porte les MÊMES
+// invariants métier, redérivés en anglais — jamais des regex françaises
+// traduites (doctrine SURFACE_FORM / BUSINESS_INVARIANT de BELT_AUDIT.md).
+// ---------------------------------------------------------------------------
+
+const EN_STATE = { risk_level: 0, temp_memory: {} };
+
+Deno.test("W9 — en-US composer emits the English voice pack, zero French persona", () => {
+  const prompt = buildCompanionSystemPrompt({
+    responseLocale: "en-US",
+    isWhatsApp: false,
+    lastAssistantMessage: "Got it.",
+    context: "",
+    userState: EN_STATE,
+  });
+
+  // Le persona est RÉÉCRIT: KEEL exécute le protocole du coach, il ne l'écrit
+  // pas. C'est le défaut D5 visible en démo: un coach anglophone recevait
+  // « Tu es Sophia, partenaire conversationnelle ».
+  assert(prompt.includes("You are the conversational runtime of KEEL"));
+  assert(prompt.includes("execute it faithfully, not to rewrite it"));
+  assert(prompt.includes("never write the plan"));
+  assertEquals(prompt.includes("Tu es Sophia"), false);
+  assertEquals(prompt.includes("partenaire conversationnelle"), false);
+  assertEquals(prompt.includes("amie intelligente"), false);
+
+  // Les sections structurantes survivent au changement de langue: ce sont des
+  // en-têtes machine, pas de la prose (R1).
+  for (
+    const section of [
+      "CORE_COMPANION",
+      "OUTPUT_STYLE",
+      "NORMAL_REPLY_POLICY",
+      "LOOP_RECOVERY",
+      "CONTEXT_RULES",
+      "TASK_OVERLAYS",
+      "SILENCE_AND_REACTIONS",
+      "VISIBLE_OUTPUT_STYLE_RULES",
+      "VISIBLE_CONVERSATION_FLOW_RULES",
+    ]
+  ) {
+    assert(prompt.includes(section), `section absente du pack EN: ${section}`);
+  }
+
+  // Jetons machine: identiques dans les deux langues, sinon le parseur de
+  // delivery ne reconnaît plus la directive et le message part en clair.
+  assert(prompt.includes("sophia_delivery:reaction_only"));
+  assert(prompt.includes("sophia_delivery:no_response"));
+  assert(prompt.includes("DIRECT_EFFECT_CONFIRMATION_CONTEXT is the ONLY truth"));
+});
+
+Deno.test("W9 — the RESPONSE_LANGUAGE block is the LAST instruction", () => {
+  const prompt = buildCompanionSystemPrompt({
+    responseLocale: "en-US",
+    isWhatsApp: false,
+    lastAssistantMessage: "Got it.",
+    context: "=== USER MODEL (FACTS) ===\ncoach.tone=direct src=explicit_user",
+    userState: EN_STATE,
+  });
+
+  assert(prompt.includes("RESPONSE_LANGUAGE:"));
+  assert(prompt.includes("You MUST write your entire visible reply in English"));
+  // La POSITION est le mécanisme: la récence gagne chez les LLM.
+  assert(
+    prompt.trimEnd().endsWith(
+      "slot keys, day tokens, units, or any machine-read identifier (R1).",
+    ),
+    "RESPONSE_LANGUAGE n'est pas la dernière instruction",
+  );
+});
+
+Deno.test("W9 — the language block survives the prompt budget (tail truncation)", () => {
+  // Le composeur tronque par la QUEUE. Un bloc ajouté AVANT la troncature
+  // disparaît précisément sur les tours à contexte riche, sans aucune erreur.
+  const hugeContext = `=== CONTEXTE OPERATIONNEL PLAN ACTIF ===\n${
+    "- magnesium glycinate 400 mg at bedtime, evidence self_report\n".repeat(
+      2000,
+    )
+  }`;
+  const prompt = buildCompanionSystemPrompt({
+    responseLocale: "en-US",
+    isWhatsApp: false,
+    lastAssistantMessage: "Got it.",
+    context: hugeContext,
+    userState: EN_STATE,
+  });
+
+  assert(prompt.length > 30000, "le contexte n'a pas déclenché la troncature");
+  assert(prompt.includes("RESPONSE_LANGUAGE:"));
+  assert(
+    prompt.trimEnd().endsWith(
+      "slot keys, day tokens, units, or any machine-read identifier (R1).",
+    ),
+  );
+});
+
+Deno.test("W9 — a fr-FR thread still gets a French RESPONSE_LANGUAGE block", () => {
+  // La ceinture anti-oscillation vaut dans les DEUX sens: le pack français
+  // gelé nomme lui aussi sa langue, sinon un prompt FR peut dériver en EN.
+  const prompt = buildCompanionSystemPrompt({
+    responseLocale: "fr-FR",
+    isWhatsApp: false,
+    lastAssistantMessage: "Je te suis.",
+    context: "",
+    userState: EN_STATE,
+  });
+  assert(prompt.includes("Tu es Sophia, partenaire conversationnelle"));
+  assert(prompt.includes("You MUST write your entire visible reply in French"));
+  assertEquals(prompt.includes("You are the conversational runtime of KEEL"), false);
 });

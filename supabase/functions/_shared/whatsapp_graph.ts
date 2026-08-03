@@ -148,3 +148,210 @@ export async function sendWhatsAppGraph(payload: unknown): Promise<WhatsAppGraph
 
 
 
+
+// ===========================================================================
+// INBOUND MEDIA — KEEL W5.1
+//
+// THE ONE THING THAT MATTERS: BOTH GETS HAPPEN IN THE SAME INVOKE.
+// Meta's media flow is two hops. Hop 1 (`GET /<media_id>`) returns metadata
+// containing a `url` on `lookaside.fbsbx.com`. That url is SHORT-LIVED and
+// bound to the requesting app; hop 2 (`GET <url>` WITH the same Bearer, which
+// people forget because the host is no longer graph.facebook.com) must follow
+// immediately. Anything that defers hop 2 — a queue row, a retry cron, a
+// "download later" job — collects 404/403 instead of bytes. So this function
+// returns BYTES, never a url, and no caller can accidentally persist a handle
+// that will be dead by the time it is used.
+//
+// TEST/LOCAL TRANSPORTS, same three doors as `sendWhatsAppGraph`:
+// delivery-disabled, `__SOPHIA_WA_LOOPBACK`, `isMegaTestMode()`. Without them a
+// local QA run would hit Meta for real on every inbound photo — the exact
+// failure the send path already guards against.
+// ===========================================================================
+
+/** Refuse anything larger than this. WhatsApp caps images at 5 MB; the margin
+ * covers documents while keeping a hostile payload out of edge memory. */
+export const WHATSAPP_MEDIA_MAX_BYTES = 8 * 1024 * 1024
+
+/** Deterministic 1x1 PNG returned by the non-network transports. Real bytes, so
+ * callers exercise the full upload/insert path in local QA. */
+const STUB_PNG_BASE64 =
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
+
+function stubMediaBytes(): Uint8Array {
+  const binary = atob(STUB_PNG_BASE64)
+  const bytes = new Uint8Array(binary.length)
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+  return bytes
+}
+
+export type WhatsAppMediaTransport = "graph" | "loopback" | "mega_test" | "disabled"
+
+export type WhatsAppMediaFetchOk = {
+  ok: true
+  media_id: string
+  /** The payload itself. There is deliberately no `url` field (see header). */
+  bytes: Uint8Array
+  mime_type: string
+  sha256: string | null
+  /** Size Meta declared in the metadata hop, when it declared one. */
+  declared_size: number | null
+  byte_length: number
+  transport: WhatsAppMediaTransport
+}
+
+export type WhatsAppMediaFetchErr = {
+  ok: false
+  media_id: string
+  /** Which hop failed — a metadata failure and a binary failure are different bugs. */
+  stage: "config" | "metadata" | "binary" | "too_large"
+  http_status: number | null
+  error: any
+  retryable: boolean
+  transport: WhatsAppMediaTransport
+}
+
+export type WhatsAppMediaFetchResult = WhatsAppMediaFetchOk | WhatsAppMediaFetchErr
+
+function mediaMetadataUrl(mediaId: string): string {
+  return `https://graph.facebook.com/v20.0/${encodeURIComponent(mediaId)}`
+}
+
+function retryableHttp(status: number | null): boolean {
+  if (status === 429) return true
+  return status != null && status >= 500
+}
+
+/**
+ * Download an inbound WhatsApp media object, metadata + binary, in one call.
+ *
+ * @param mediaId `message.<type>.id` as preserved by `wa_parse.ts`.
+ * @param opts.expectedMimePrefix e.g. `"image/"` — a document/video that lies
+ *        about its type is rejected at `metadata` rather than handed to a
+ *        vision model. Omit to accept any type.
+ */
+export async function fetchWhatsAppMedia(
+  mediaId: string,
+  opts?: { expectedMimePrefix?: string; maxBytes?: number },
+): Promise<WhatsAppMediaFetchResult> {
+  const id = String(mediaId ?? "").trim()
+  const maxBytes = Math.max(1, Number(opts?.maxBytes ?? WHATSAPP_MEDIA_MAX_BYTES))
+
+  if (!id) {
+    return {
+      ok: false, media_id: "", stage: "config", http_status: null,
+      error: { message: "empty media id" }, retryable: false, transport: "graph",
+    }
+  }
+
+  const stub = (transport: WhatsAppMediaTransport): WhatsAppMediaFetchOk => {
+    const bytes = stubMediaBytes()
+    return {
+      ok: true, media_id: id, bytes, mime_type: "image/png", sha256: null,
+      declared_size: bytes.byteLength, byte_length: bytes.byteLength, transport,
+    }
+  }
+
+  // Same precedence as the send path, so one env flips both directions.
+  if (!isWhatsAppDeliveryEnabled()) return stub("disabled")
+  if (Boolean((globalThis as any).__SOPHIA_WA_LOOPBACK)) return stub("loopback")
+  if (isMegaTestMode()) return stub("mega_test")
+
+  const token = (denoEnv("WHATSAPP_ACCESS_TOKEN") ?? "").trim()
+  if (!token) {
+    return {
+      ok: false, media_id: id, stage: "config", http_status: null,
+      error: { message: "Missing WHATSAPP_ACCESS_TOKEN" }, retryable: false, transport: "graph",
+    }
+  }
+  const authHeaders = { Authorization: `Bearer ${token}` }
+
+  // --- Hop 1: metadata -----------------------------------------------------
+  let meta: any
+  try {
+    const res = await fetch(mediaMetadataUrl(id), { method: "GET", headers: authHeaders })
+    meta = await res.json().catch(() => ({}))
+    if (!res.ok) {
+      return {
+        ok: false, media_id: id, stage: "metadata", http_status: res.status,
+        error: meta, retryable: retryableHttp(res.status), transport: "graph",
+      }
+    }
+  } catch (e) {
+    return {
+      ok: false, media_id: id, stage: "metadata", http_status: null,
+      error: { message: (e as any)?.message ?? String(e) }, retryable: true, transport: "graph",
+    }
+  }
+
+  const downloadUrl = String(meta?.url ?? "").trim()
+  const mimeType = String(meta?.mime_type ?? "").trim()
+  const declaredSizeRaw = Number(meta?.file_size)
+  const declaredSize = Number.isFinite(declaredSizeRaw) ? declaredSizeRaw : null
+
+  if (!downloadUrl) {
+    return {
+      ok: false, media_id: id, stage: "metadata", http_status: null,
+      // NOTE: `meta` is echoed WITHOUT the url on purpose — a signed lookaside
+      // url in a log line is a credential in a log line.
+      error: { message: "metadata carried no url", mime_type: mimeType },
+      retryable: false, transport: "graph",
+    }
+  }
+  const prefix = String(opts?.expectedMimePrefix ?? "")
+  if (prefix && !mimeType.toLowerCase().startsWith(prefix.toLowerCase())) {
+    return {
+      ok: false, media_id: id, stage: "metadata", http_status: null,
+      error: { message: `unexpected mime_type ${JSON.stringify(mimeType)}`, expected_prefix: prefix },
+      retryable: false, transport: "graph",
+    }
+  }
+  if (declaredSize != null && declaredSize > maxBytes) {
+    return {
+      ok: false, media_id: id, stage: "too_large", http_status: null,
+      error: { message: "declared size over cap", declared_size: declaredSize, max_bytes: maxBytes },
+      retryable: false, transport: "graph",
+    }
+  }
+
+  // --- Hop 2: the binary, immediately, with the SAME Bearer ----------------
+  try {
+    const res = await fetch(downloadUrl, { method: "GET", headers: authHeaders })
+    if (!res.ok) {
+      return {
+        ok: false, media_id: id, stage: "binary", http_status: res.status,
+        error: { message: `binary fetch failed with ${res.status}` },
+        retryable: retryableHttp(res.status), transport: "graph",
+      }
+    }
+    const buffer = await res.arrayBuffer()
+    const bytes = new Uint8Array(buffer)
+    if (bytes.byteLength === 0) {
+      return {
+        ok: false, media_id: id, stage: "binary", http_status: res.status,
+        error: { message: "empty media body" }, retryable: true, transport: "graph",
+      }
+    }
+    if (bytes.byteLength > maxBytes) {
+      return {
+        ok: false, media_id: id, stage: "too_large", http_status: res.status,
+        error: { message: "body over cap", byte_length: bytes.byteLength, max_bytes: maxBytes },
+        retryable: false, transport: "graph",
+      }
+    }
+    return {
+      ok: true, media_id: id, bytes,
+      // Meta's metadata mime wins; the response header is a fallback only.
+      mime_type: mimeType || String(res.headers.get("content-type") ?? "").split(";")[0].trim() ||
+        "application/octet-stream",
+      sha256: (() => { const s = String(meta?.sha256 ?? "").trim(); return s === "" ? null : s })(),
+      declared_size: declaredSize,
+      byte_length: bytes.byteLength,
+      transport: "graph",
+    }
+  } catch (e) {
+    return {
+      ok: false, media_id: id, stage: "binary", http_status: null,
+      error: { message: (e as any)?.message ?? String(e) }, retryable: true, transport: "graph",
+    }
+  }
+}

@@ -319,9 +319,10 @@ Deno.test("coaching local dispatcher prompt makes global exit mutually exclusive
     ),
     true,
   );
+  // W2.A: state_potion a quitté l'énumération des features recommandables.
   assertEquals(
     source.includes(
-      "Si recommendation.primary_feature est attack_card, defense_card, adjust_plan ou state_potion",
+      "Si recommendation.primary_feature est attack_card, defense_card ou adjust_plan",
     ),
     true,
   );
@@ -546,10 +547,13 @@ Deno.test("coaching visible global rules prioritize latest visible user intent",
 });
 
 Deno.test("coaching specialized visible agents carry novice explanation rule", () => {
+  // W2.B: `emotion_coaching` ne recommande plus AUCUN levier produit (la
+  // branche potion est supprimee) — la regle « explique le mot Sophia au
+  // novice » et la comparaison de leviers n'ont plus d'objet chez lui. Elle
+  // reste due par les deux agents d'action, qui recommandent encore des cartes.
   const sources = [
     String(runActionPlanCoachingVisibleAgent),
     String(runNoPlanCoachingVisibleAgent),
-    String(runEmotionCoachingVisibleAgent),
   ];
   for (const source of sources) {
     assertEquals(source.includes("Si le user est novice"), true);
@@ -557,6 +561,16 @@ Deno.test("coaching specialized visible agents carry novice explanation rule", (
     assertEquals(source.includes("difference entre"), true);
     assertEquals(source.includes("demande seulement a comprendre"), true);
   }
+  assertEquals(
+    String(runEmotionCoachingVisibleAgent).includes(
+      "demande seulement a comprendre",
+    ),
+    true,
+  );
+  assertEquals(
+    String(runEmotionCoachingVisibleAgent).includes("explique d'abord"),
+    true,
+  );
   assertEquals(
     String(runNoPlanCoachingVisibleAgent).includes(
       "visible_decision.lever=coaching_only",
@@ -590,9 +604,11 @@ Deno.test("coaching specialized visible agents can render generic coaching", () 
     ),
     true,
   );
+  // W2.B: le perimetre visible de `emotion_coaching` est desormais
+  // `coaching_only` seul — `state_potion` n'est plus un levier servable.
   assertEquals(
     String(runEmotionCoachingVisibleAgent).includes(
-      "state_potion ou coaching_only",
+      "visible_decision.lever doit valoir coaching_only",
     ),
     true,
   );
@@ -1101,7 +1117,13 @@ Deno.test("coaching asks to confirm type when plan relation is ambiguous", () =>
   );
 });
 
-Deno.test("coaching routes emotional signal to emotion coaching only", () => {
+// W2.B will delete this: la branche potion du coaching (state_potion) est
+// retirée du contrat en W2.A; le visible agent emotion_coaching part en W2.B.
+Deno.test({
+  name:
+    "coaching routes emotional signal to emotion coaching only",
+  ignore: true,
+}, () => {
   const reduced = reduceCoachingRecommendationLocalDispatcherOutput({
     previous: {
       stage: "understand_need",
@@ -1243,13 +1265,21 @@ Deno.test("coaching keeps action-linked emotional friction in action coaching", 
   assertEquals(reduced.flow_context.recommendation.primary_feature, null);
   assertEquals(
     reduced.local_state?.candidate_features.some((candidate) =>
-      candidate.feature === "state_potion"
+      // W2.A: la garde reste RUNTIME — le type ne contient plus state_potion,
+      // mais un dispatcher LLM peut encore l'émettre.
+      (candidate.feature as string) === "state_potion"
     ),
     false,
   );
 });
 
-Deno.test("coaching blocks exit when plan action user compares potion with active action card", () => {
+// W2.B will delete this: la branche potion du coaching (state_potion) est
+// retirée du contrat en W2.A; le visible agent emotion_coaching part en W2.B.
+Deno.test({
+  name:
+    "coaching blocks exit when plan action user compares potion with active action card",
+  ignore: true,
+}, () => {
   const previous = {
     stage: "followup" as const,
     user_need_summary: "Plan action coaching in progress.",
@@ -1380,7 +1410,9 @@ Deno.test("coaching blocks exit when plan action user compares potion with activ
   assertEquals(reduced.note_information, null);
   assertEquals(
     reduced.local_state?.candidate_features.some((candidate) =>
-      candidate.feature === "state_potion"
+      // W2.A: la garde reste RUNTIME — le type ne contient plus state_potion,
+      // mais un dispatcher LLM peut encore l'émettre.
+      (candidate.feature as string) === "state_potion"
     ),
     false,
   );
@@ -2369,7 +2401,13 @@ Deno.test("coaching active exit is blocked when local dispatcher forgets target 
   assertEquals(reduced.local_state?.coaching_type, "plan_action");
 });
 
-Deno.test("coaching switches from no-plan action to clear emotional coaching", () => {
+// W2.B will delete this: la branche potion du coaching (state_potion) est
+// retirée du contrat en W2.A; le visible agent emotion_coaching part en W2.B.
+Deno.test({
+  name:
+    "coaching switches from no-plan action to clear emotional coaching",
+  ignore: true,
+}, () => {
   const reduced = reduceCoachingRecommendationLocalDispatcherOutput({
     previous: {
       stage: "recommend",
@@ -3748,24 +3786,32 @@ Deno.test("coaching product visible decision keeps ownership active when reducer
 });
 
 Deno.test("coaching UI grounding is data-like, not visible message templates", async () => {
+  // Resolved from import.meta.url, never from the cwd: a guard that silently turns into a
+  // NotFound depending on where the suite is launched is not a guard.
   const files = [
-    "supabase/functions/sophia-brain/skills/coaching_recommendation/visible_agents/no_plan_coaching.ts",
-    "supabase/functions/sophia-brain/skills/coaching_recommendation/visible_agents/action_plan_coaching.ts",
-    "supabase/functions/sophia-brain/skills/coaching_recommendation/visible_agents/emotion_coaching.ts",
-    "supabase/functions/sophia-brain/skills/coaching_recommendation/skill.ts",
-    "supabase/functions/sophia-brain/skills/coaching_recommendation/local_flow.ts",
+    "./visible_agents/no_plan_coaching.ts",
+    "./visible_agents/action_plan_coaching.ts",
+    "./visible_agents/emotion_coaching.ts",
+    "./skill.ts",
+    "./local_flow.ts",
   ];
   const contents = await Promise.all(
-    files.map((file) => Deno.readTextFile(file)),
+    files.map((file) => Deno.readTextFile(new URL(file, import.meta.url))),
   );
   const joined = contents.join("\n");
 
   assertEquals(joined.includes("Elements UI carte d'attaque libre"), true);
   assertEquals(joined.includes("Elements UI carte liee au Plan"), true);
-  assertEquals(joined.includes("Elements UI potion"), true);
   assertEquals(joined.includes("surface=Dashboard > Ressources"), true);
   assertEquals(joined.includes("object_type=carte d'attaque libre"), true);
-  assertEquals(joined.includes("section=Potions"), true);
+  // W2.B: « Elements UI potion » etait porte par la branche potion de
+  // emotion_coaching, supprimee — le garde-fou s'inverse sur CE fichier.
+  // `skill.ts` porte encore une destination potion (residu `state_potion` du
+  // contrat, hors perimetre W2.B-3): l'assertion reste donc file-scoped.
+  const emotionAgent =
+    contents[files.indexOf("./visible_agents/emotion_coaching.ts")];
+  assertEquals(emotionAgent.includes("Elements UI potion"), false);
+  assertEquals(emotionAgent.includes("section=Potions"), false);
 
   const badFreeAttack = ["comme", "carte d'attaque libre"].join(" ");
   const badFreeDefense = ["comme", "carte de defense libre"].join(" ");
@@ -4230,17 +4276,19 @@ Deno.test("coaching reducer preserves a clean discursive-deposit exit despite a 
     previous: {
       stage: "recommend" as const,
       user_need_summary: "Se sent a cote de sa vie, procrastine le soir.",
+      // W2.A: fixture re-basée sur une feature encore au contrat — ce test
+      // porte sur la préservation d'une sortie propre, pas sur la potion.
       candidate_features: [{
-        feature: "state_potion" as const,
+        feature: "defense_card" as const,
         fit: "high" as const,
         why: "Etat emotionnel global.",
-        destination_hint: "Potions",
+        destination_hint: "Ressources",
       }],
       current_recommendation: {
-        feature: "state_potion" as const,
+        feature: "defense_card" as const,
         fit: "high" as const,
-        why: "Potion clarte pour retrouver le sens.",
-        destination_hint: "Potions",
+        why: "Carte de defense pour retrouver le sens.",
+        destination_hint: "Ressources",
       },
       secondary_recommendation: null,
       unresolved_question: null,
@@ -4916,52 +4964,41 @@ Deno.test("contrat coaching: go-ahead potion livre au tour, consent consomme, pe
   );
 });
 
-Deno.test("visible agent emotion_coaching porte la doctrine go-ahead potion + persistance (P12-G)", async () => {
+// W2.B: la doctrine go-ahead / consentement-consomme / persistance potion est
+// supprimee de cet agent avec la branche potion. Le garde-fou s'inverse: la
+// preuve utile est desormais qu'AUCUNE phrase potion n'y subsiste, et que le
+// perimetre visible se limite a `coaching_only`.
+Deno.test("visible agent emotion_coaching ne porte plus aucune branche potion (W2.B)", async () => {
+  // Chemin résolu depuis CE module, pas depuis le cwd: `deno test` se lance
+  // tantôt depuis la racine du dépôt, tantôt depuis `supabase/functions`.
   const content = await Deno.readTextFile(
-    "supabase/functions/sophia-brain/skills/coaching_recommendation/visible_agents/emotion_coaching.ts",
+    new URL("./visible_agents/emotion_coaching.ts", import.meta.url),
   );
-  // rose B05: livraison du contenu session au tour du go, renvoi de surface
-  // sans claim de persistance.
-  assertStringIncludes(content, "GO-AHEAD ⇒ LIVRABLE AU TOUR");
-  assertStringIncludes(
-    content,
-    "LIVRE un appui conversationnel concret adapte a son etat MAINTENANT",
-  );
-  assertStringIncludes(
-    content,
-    "tu peux en creer une dans Dashboard > Ressources > Potions",
-  );
-  // eva B06: consent consommé + honnêteté persistance in-turn.
-  assertStringIncludes(content, "CONSENT CONSOMME");
-  assertStringIncludes(
-    content,
-    "ne re-propose JAMAIS l'offre et ne re-demande jamais le consentement",
-  );
-  assertStringIncludes(content, "DEMANDE DE PERSISTANCE");
-  assertStringIncludes(
-    content,
-    "elle ne s'active ni ne se garde automatiquement depuis le chat",
-  );
-  assertStringIncludes(
-    content,
-    "jamais un rappel generique propose a la place",
-  );
-  assertStringIncludes(content, "EXPLICATION CANONIQUE DU SUIVI");
-  assertStringIncludes(
-    content,
-    "un soutien conversationnel contextualise pouvant aller jusqu'a 7 jours",
-  );
-  assertStringIncludes(
-    content,
-    "Ce n'est pas une serie de phrases generiques preparees d'avance",
-  );
-  assertStringIncludes(content, "RYTHME DU SUIVI");
-  assertStringIncludes(content, "CONTROLE USER");
-  // Anti-faux-positif conservé côté agent visible.
-  assertStringIncludes(
-    content,
-    "une simple question d'info sur la potion n'entraine pas la livraison forcee",
-  );
+  // Le corps de l'agent (hors commentaire d'archeologie en tete) ne cite plus
+  // aucune surface, doctrine ou catalogue potion.
+  const body = content.slice(content.indexOf("export function"));
+  for (
+    const banned of [
+      "GO-AHEAD",
+      "CONSENT CONSOMME",
+      "DEMANDE DE PERSISTANCE",
+      "EXPLICATION CANONIQUE DU SUIVI",
+      "RYTHME DU SUIVI",
+      "Dashboard > Ressources > Potions",
+      "Elements UI potion",
+      "Les 6 potions",
+      "anti-decrochage",
+      "jusqu'a 7 jours",
+      "state_potion",
+    ]
+  ) {
+    assertEquals(body.includes(banned), false);
+  }
+  // Ce qui reste: un perimetre coaching_only explicite et le refus honnete de
+  // servir un levier produit.
+  assertStringIncludes(content, "visible_decision.lever doit valoir coaching_only");
+  assertStringIncludes(content, "Aucun levier produit n'est recommandable");
+  assertStringIncludes(content, "Tu ne proposes AUCUN dispositif");
 });
 
 // ── P7-E (nina-hard22 T7/T11) ────────────────────────────────────────────────

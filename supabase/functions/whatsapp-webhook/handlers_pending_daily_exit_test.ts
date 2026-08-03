@@ -5,42 +5,9 @@ import {
   dailyActionReviewCoachingReturnNoteFromTempMemory,
   dailyDispatcherOutputWithDirectEffectConfirmationContextForVisible,
   isExplicitDailyActionReviewResumeText,
-  isWeeklyAutoValidationDeclineText,
-  isWeeklyAutoValidationPending,
   sanitizeDailyActionReviewExitMemoForPending,
   shouldGenericCheckinYesHandlePending,
 } from "./handlers_pending.ts";
-
-Deno.test("weekly auto-validation decline text matches the Non merci! button and variants", () => {
-  assertEquals(isWeeklyAutoValidationDeclineText("Non merci!"), true);
-  assertEquals(isWeeklyAutoValidationDeclineText("non merci"), true);
-  assertEquals(isWeeklyAutoValidationDeclineText("Non, merci !"), true);
-  assertEquals(isWeeklyAutoValidationDeclineText("  NON MERCI  "), true);
-  // A clear refusal may be followed by a free-form request.
-  assertEquals(
-    isWeeklyAutoValidationDeclineText("non merci mais explique moi un truc"),
-    true,
-  );
-  assertEquals(isWeeklyAutoValidationDeclineText("pas maintenant"), false);
-  assertEquals(isWeeklyAutoValidationDeclineText("oui"), false);
-  assertEquals(isWeeklyAutoValidationDeclineText(""), false);
-});
-
-Deno.test("weekly auto-validation pending is detected by event_context", () => {
-  assertEquals(
-    isWeeklyAutoValidationPending({
-      payload: { event_context: "weekly_planning_auto_validation_v2" },
-    }),
-    true,
-  );
-  assertEquals(
-    isWeeklyAutoValidationPending({
-      payload: { event_context: "weekly_progress_review_v2" },
-    }),
-    false,
-  );
-  assertEquals(isWeeklyAutoValidationPending(null), false);
-});
 
 function memo(target: string) {
   return {

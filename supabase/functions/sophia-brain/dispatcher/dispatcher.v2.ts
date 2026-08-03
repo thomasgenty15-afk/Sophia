@@ -6,13 +6,14 @@ import type {
   ConversationChannel,
   ConversationRisk,
   DirectEffectTimeContext,
+  DirectEffectType,
   DispatcherMemoryPlan,
   DispatcherMemoryRetrievalPolicy,
   DispatcherMemoryTargetType,
   DispatcherResearchSignal,
   Explicitness,
-  FeatureOpportunityKind,
-  FeatureOpportunitySignalContext,
+  PlanQuestionKind,
+  PlanQuestionSignalContext,
   PlanRealignmentDriftType,
   PlanRealignmentScope,
   PlanRealignmentSignalContext,
@@ -60,6 +61,16 @@ export type RunDispatcherInput = {
   flow_state_context?: unknown;
   direct_effect_time_context?: DirectEffectTimeContext | null;
   plan_snapshot: unknown;
+  /**
+   * W4.7 — bloc KEEL (`context/keel_plan_context.ts`), non null UNIQUEMENT pour
+   * un `profiles.keel_role='student'`. Sa presence est la BRANCHE de projection
+   * du plan: le payload porte alors le plan KEEL et RIEN du legacy
+   * (`buildDispatcherPrompt` annule `plan_snapshot` et
+   * `active_action_candidates_for_direct_effects`). Elle est aussi la condition
+   * d'existence des deux effets durables KEEL et du signal `plan_question`
+   * (regles 3k et 6-bis du prompt).
+   */
+  keel_plan_context?: string | null;
   safety_context_output: SafetySignalContext;
   conversation_risk_history?: number[];
   source_message_id?: string;
@@ -477,35 +488,8 @@ function sanitizeCoachingRecommendationSignalContext(
   };
 }
 
-function sanitizeFeatureOpportunitySignalContext(
-  raw: unknown,
-): FeatureOpportunitySignalContext | undefined {
-  const root = objectRecord(raw);
-  if (!root) return undefined;
-  const feature = enumString<FeatureOpportunityKind>(
-    root.feature,
-    ["initiatives", "coach_preferences"],
-    "initiatives",
-  );
-  return {
-    feature,
-    opportunity_kind: enumString(
-      root.opportunity_kind,
-      [
-        "recurring_context",
-        "ritual_or_initiative",
-        "coach_style_feedback",
-        "coach_interaction_preference",
-      ],
-      feature === "coach_preferences"
-        ? "coach_interaction_preference"
-        : "recurring_context",
-    ),
-    trigger_context: optionalText(root.trigger_context, 200),
-    user_problem_summary: optionalText(root.user_problem_summary, 240) ?? "",
-    priority_reason: optionalText(root.priority_reason, 240) ?? "",
-  };
-}
+// W2.A: `sanitizeFeatureOpportunitySignalContext` supprimé — le signal
+// feature_opportunity ne fait plus partie du contrat de sortie du dispatcher.
 
 function sanitizePlanRealignmentSignalContext(
   raw: unknown,
@@ -553,6 +537,28 @@ function sanitizePresenceConversationSignalContext(
   };
 }
 
+// W4.4 — KEEL. Les deux slugs `food_groups` sont recopiés BRUTS: le sanitizer
+// ne parse ni ne corrige un slug (ce serait deviner). `swap_resolver.ts` les
+// résout fail-loud et dégrade un token inconnu en escalade nommée
+// `unresolved_food_group` — jamais en groupe voisin.
+function sanitizePlanQuestionSignalContext(
+  raw: unknown,
+): PlanQuestionSignalContext | undefined {
+  const root = objectRecord(raw);
+  if (!root) return undefined;
+  return {
+    kind: enumString<PlanQuestionKind>(
+      root.kind,
+      ["food_swap", "eating_out", "meal_shifted", "other"],
+      "other",
+    ),
+    requested_food_group: optionalText(root.requested_food_group, 64),
+    prescribed_food_group: optionalText(root.prescribed_food_group, 64),
+    slot_hint: optionalText(root.slot_hint, 32),
+    reason: optionalText(root.reason, 240) ?? "",
+  };
+}
+
 function sanitizeResearchSignal(
   raw: unknown,
   fallback: DispatcherResearchSignal,
@@ -585,16 +591,58 @@ function sanitizeResearchSignal(
   };
 }
 
+/**
+ * W4.7 — vocabulaire d'effets que le sanitizer laisse passer. Miroir de
+ * `KNOWN_DIRECT_EFFECT_TYPES` (routers/direct_effect_gate.ts) et de
+ * `DirectEffectType` (contracts/turn_frame.v1.ts).
+ */
+const SANITIZED_DIRECT_EFFECT_TYPES: ReadonlySet<DirectEffectType> = new Set<
+  DirectEffectType
+>([
+  "create_one_shot_reminder",
+  "track_progress_plan_item",
+  "log_protocol_event",
+  "declare_deviation",
+]);
+
+function sanitizedDirectEffectType(value: string): DirectEffectType | null {
+  return SANITIZED_DIRECT_EFFECT_TYPES.has(value as DirectEffectType)
+    ? value as DirectEffectType
+    : null;
+}
+
+/**
+ * Cardinalite MAXIMALE par type d'effet dans un frame.
+ *
+ * `create_one_shot_reminder` accepte 3 payloads distincts (fan-out borne,
+ * doctrine P4/P8-A). Tous les autres restent MONO-ENTREE, et pour les deux
+ * effets KEEL ce n'est pas un choix de prudence, c'est le schema:
+ *  - `protocol_events` porte un index unique partiel (user_id,
+ *    source_message_id) — une 2e ligne pour le meme message est impossible,
+ *    l'insert repartirait en `already_logged` sur la premiere;
+ *  - `declare_deviation` n'a qu'un executeur mono-effet (son intake lit le
+ *    PREMIER effet du frame). Accepter N entrees produirait exactement la
+ *    classe `fanout-reminder-phantom-commit`: N demandes annoncees, 1 ecrite.
+ * La borne fait tomber le surplus AU BORD, la ou il est visible, plutot que
+ * trois couches plus bas dans un accuse de reception faux.
+ */
+const DIRECT_EFFECT_CARDINALITY_CAP: Readonly<Record<string, number>> = {
+  create_one_shot_reminder: 3,
+};
+
 function sanitizeDirectEffect(
   raw: unknown,
 ): TurnFrame["direct_effects"][number] | null {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
   const effect = raw as Record<string, unknown>;
-  const effectType = String(effect.effect_type ?? "").trim();
-  if (
-    effectType !== "create_one_shot_reminder" &&
-    effectType !== "track_progress_plan_item"
-  ) return null;
+  // W4.7 — le vocabulaire du sanitizer s'ouvre aux deux effets KEEL. Avant ce
+  // lot il etait la DERNIERE porte fermee de la chaine: le gate les connaissait
+  // (W3.3), le contrat les declarait (W4.3), les executeurs existaient — mais un
+  // `log_protocol_event` emis par le modele etait droppe ici, sans trace.
+  const effectType = sanitizedDirectEffectType(
+    String(effect.effect_type ?? "").trim(),
+  );
+  if (!effectType) return null;
   const explicitnessRaw = String(effect.explicitness ?? "").trim();
   const explicitness: Explicitness = explicitnessRaw === "explicit" ||
       explicitnessRaw === "implied" || explicitnessRaw === "weak"
@@ -644,7 +692,7 @@ function sanitizeDirectEffects(raw: unknown): TurnFrame["direct_effects"] {
     const contentSignature = `${effect.effect_type}:${
       JSON.stringify(effect.payload_hint ?? {})
     }`;
-    const cap = effect.effect_type === "create_one_shot_reminder" ? 3 : 1;
+    const cap = DIRECT_EFFECT_CARDINALITY_CAP[effect.effect_type] ?? 1;
     const count = perTypeCount.get(effect.effect_type) ?? 0;
     if (seenContent.has(contentSignature) || count >= cap) continue;
     seenContent.add(contentSignature);
@@ -658,8 +706,8 @@ function sanitizeSkillSignal(
   raw: unknown,
   kind?:
     | "coaching_recommendation"
-    | "feature_opportunity"
     | "plan_realignment"
+    | "plan_question"
     | "presence_conversation"
     | "product_help",
 ): {
@@ -669,8 +717,8 @@ function sanitizeSkillSignal(
   reason?: string;
   context?:
     | CoachingRecommendationSignalContext
-    | FeatureOpportunitySignalContext
     | PlanRealignmentSignalContext
+    | PlanQuestionSignalContext
     | PresenceConversationSignalContext;
 } | null {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
@@ -685,10 +733,10 @@ function sanitizeSkillSignal(
   const reason = String(signal.reason ?? "").trim();
   const context = kind === "coaching_recommendation"
     ? sanitizeCoachingRecommendationSignalContext(signal.context)
-    : kind === "feature_opportunity"
-    ? sanitizeFeatureOpportunitySignalContext(signal.context)
     : kind === "plan_realignment"
     ? sanitizePlanRealignmentSignalContext(signal.context)
+    : kind === "plan_question"
+    ? sanitizePlanQuestionSignalContext(signal.context)
     : kind === "presence_conversation"
     ? sanitizePresenceConversationSignalContext(signal.context)
     : undefined;
@@ -715,13 +763,13 @@ function sanitizeSkillSignals(
     root.coaching_recommendation,
     "coaching_recommendation",
   );
-  const directFeatureOpportunity = sanitizeSkillSignal(
-    root.feature_opportunity,
-    "feature_opportunity",
-  );
   const directPlanRealignment = sanitizeSkillSignal(
     root.plan_realignment,
     "plan_realignment",
+  );
+  const directPlanQuestion = sanitizeSkillSignal(
+    root.plan_question,
+    "plan_question",
   );
   const directPresenceConversation = sanitizeSkillSignal(
     root.presence_conversation,
@@ -739,13 +787,13 @@ function sanitizeSkillSignals(
     entryRoot.coaching_recommendation,
     "coaching_recommendation",
   );
-  const entryFeatureOpportunity = sanitizeSkillSignal(
-    entryRoot.feature_opportunity,
-    "feature_opportunity",
-  );
   const entryPlanRealignment = sanitizeSkillSignal(
     entryRoot.plan_realignment,
     "plan_realignment",
+  );
+  const entryPlanQuestion = sanitizeSkillSignal(
+    entryRoot.plan_question,
+    "plan_question",
   );
   const entryPresenceConversation = sanitizeSkillSignal(
     entryRoot.presence_conversation,
@@ -754,9 +802,8 @@ function sanitizeSkillSignals(
   const productHelp = directProductHelp ?? entryProductHelp;
   const coachingRecommendation = directCoachingRecommendation ??
     entryCoachingRecommendation;
-  const featureOpportunity = directFeatureOpportunity ??
-    entryFeatureOpportunity;
   const planRealignment = directPlanRealignment ?? entryPlanRealignment;
+  const planQuestion = directPlanQuestion ?? entryPlanQuestion;
   const presenceConversation = directPresenceConversation ??
     entryPresenceConversation;
   const signals: NonNullable<TurnFrame["skill_signals"]> = {};
@@ -769,9 +816,11 @@ function sanitizeSkillSignals(
   if (planRealignment?.detected === true) {
     signals.plan_realignment = planRealignment as any;
   }
-  if (featureOpportunity?.detected === true) {
-    signals.feature_opportunity = featureOpportunity as any;
+  if (planQuestion?.detected === true) {
+    signals.plan_question = planQuestion as any;
   }
+  // W2.A: un signal `feature_opportunity` émis par le LLM est désormais DROPPÉ
+  // ici (le sanitizer ne le lit plus) — la lane n'existe plus.
   if (presenceConversation?.detected === true) {
     signals.presence_conversation = presenceConversation as any;
   }
@@ -906,6 +955,18 @@ function sanitizeLlmTurnFrame(
           | undefined;
         return payload?.correction === true;
       }
+      // W4.7 — meme invariant intra-frame pour les deux effets KEEL, SANS le
+      // carve-out correction: `protocol_events` et `planned_deviations` sont
+      // APPEND-ONLY, il n'existe aucune semantique de correction a preserver.
+      // « j'ai bien pris mon magnesium ce matin ? » est une question; l'ecrire
+      // en fait rend l'assertion auto-realisatrice (P8-D/P10-C, cote track) et
+      // ici la ligne fausse ne se retire pas depuis le chat.
+      if (
+        effect.effect_type === "log_protocol_event" ||
+        effect.effect_type === "declare_deviation"
+      ) {
+        return false;
+      }
       return true;
     })
     : directEffects;
@@ -985,8 +1046,7 @@ function hasAllOriginalDirectEffects(
 function hasEntrySkillSignal(frame: TurnFrame): boolean {
   return frame.skill_signals?.product_help?.detected === true ||
     frame.skill_signals?.coaching_recommendation?.detected === true ||
-    frame.skill_signals?.plan_realignment?.detected === true ||
-    frame.skill_signals?.feature_opportunity?.detected === true;
+    frame.skill_signals?.plan_realignment?.detected === true;
 }
 
 function hasAdditionalStructuredSignal(
@@ -1061,7 +1121,13 @@ function buildCompositeIntentRepairPrompt(args: {
     covered_texts: coveredTexts,
     uncovered_after_direct_effect: uncoveredAfterDirectEffect,
     recent_messages: args.input.recent_messages.slice(-4),
-    plan_snapshot: args.input.plan_snapshot ?? null,
+    // W4.7 — meme branche que le prompt principal: la passe de reparation ne
+    // doit pas etre le seul endroit ou un eleve KEEL revoit `user_plan_items`
+    // (et son compteur `current_reps` que KEEL a supprime).
+    plan_snapshot: args.input.keel_plan_context
+      ? null
+      : args.input.plan_snapshot ?? null,
+    keel_plan_context: args.input.keel_plan_context ?? null,
     previous_turn_frame: args.previous,
   });
 }
@@ -1110,6 +1176,8 @@ export async function runDispatcher(
     flow_state_context: input.flow_state_context,
     direct_effect_time_context: input.direct_effect_time_context ?? null,
     plan_snapshot: input.plan_snapshot,
+    // W4.7 — la branche de projection du plan. Non null => payload KEEL pur.
+    keel_plan_context: input.keel_plan_context ?? null,
   });
   const modelName = input.model_name ?? getGlobalAiModel();
   let usedLlm = false;

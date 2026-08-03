@@ -2,6 +2,13 @@ import {
   generateWithGemini,
   getGlobalAiModel,
 } from "../../../_shared/gemini.ts";
+// W9/R3 — la langue de la reponse VISIBLE est resolue par le point unique
+// `resolveResponseLocale`, et le bloc RESPONSE_LANGUAGE part en DERNIERE
+// instruction du prompt (la position est le mecanisme: la recence gagne).
+import {
+  appendResponseLanguageBlock,
+  resolveResponseLocale,
+} from "../../../_shared/keel/locale.ts";
 import {
   committedOneShotReminderKnown,
   directEffectContextCommittedThisTurn,
@@ -16,6 +23,7 @@ import type {
   SafetyCrisisVisibleTask,
   SafetyCrisisVisibleTaskKind,
 } from "./contract.ts";
+import { resolveSafetyResourceNumbers } from "../../../_shared/keel/crisis_resources.ts";
 
 export type SafetyCrisisVisibleAgentInput = {
   user_id: string;
@@ -67,8 +75,19 @@ export function safetyCrisisDeterministicVisibleMessage(
     suicide_prevention_number: string;
   },
 ): string {
-  const emergency = safetyResources.emergency_numbers || "15 ou 112";
-  const suicide = safetyResources.suicide_prevention_number || "3114";
+  // W3.3: no hardcoded country. If the reducer handed us empty strings, the
+  // resource resolution upstream failed — degrade onto the documented
+  // international set, LOUDLY (resolveSafetyResourceNumbers logs the
+  // fallback), never onto a French number the caller may not be able to dial.
+  const needsFallback = !safetyResources.emergency_numbers ||
+    !safetyResources.suicide_prevention_number;
+  const resolved = needsFallback
+    ? resolveSafetyResourceNumbers(null, { conjunction: "ou" })
+    : null;
+  const emergency = safetyResources.emergency_numbers ||
+    resolved?.emergency_numbers || "";
+  const suicide = safetyResources.suicide_prevention_number ||
+    resolved?.suicide_prevention_number || "";
   const messages: Record<SafetyCrisisVisibleTaskKind, string> = {
     immediate_risk_check:
       "Une chose d'abord : est-ce que tu es en danger immédiat, là, maintenant ?",
@@ -306,7 +325,10 @@ export async function runSafetyCrisisVisibleAgentResult(
       conversation_context_only: true,
     });
     const raw = await generateWithGemini(
-      visibleSystemPrompt(input),
+      appendResponseLanguageBlock(
+        visibleSystemPrompt(input),
+        resolveResponseLocale({}),
+      ),
       userPrompt,
       0.35,
       true,

@@ -140,8 +140,6 @@ Deno.test("template button mapping produces only the expected existing flags", (
     ["sophia_optin_winback_v2", "C'est bien moi !", [true, false, false]],
     ["global_reach_template", "Oui!", [false, true, false]],
     ["global_reach_template", "Plus tard!", [false, false, true]],
-    ["auto_validation_v1", "Oui!", [false, true, false]],
-    ["auto_validation_v1", "Non merci!", [false, false, true]],
     ["sophia_reminder_consent_v1_", "Avec plaisir !", [false, true, false]],
     ["sophia_reminder_consent_v1_", "Pas maintenant", [false, false, true]],
     ["end_subscription_v1", "Avec plaisir!", [false, true, false]],
@@ -185,6 +183,11 @@ Deno.test("template button mapping produces only the expected existing flags", (
   });
   const reminderContext: LastTemplateContext = {
     name: "sophia_reminder_consent_v1_",
+    // W2.D-2 — `content` (the rendered question) and `inbound_turns_before` became required
+    // on LastTemplateContext (template_context.ts:4-20) after this case was written. Neither
+    // is read by `findTemplateButtonForFlag`; they carry their neutral value here.
+    content: "Tu veux que je te le rappelle ?",
+    inbound_turns_before: 0,
     purpose: "recurring_reminder",
     buttons: ["Avec plaisir !", "Pas maintenant"],
     event_context: "recurring_reminder:r1",
@@ -200,6 +203,8 @@ Deno.test("template button mapping produces only the expected existing flags", (
 
 const CHECKIN_CONTEXT: LastTemplateContext = {
   name: "sophia_checkin_v2",
+  content: "Hello 🙂 on fait le point ?",
+  inbound_turns_before: 0,
   purpose: "scheduled_checkin",
   buttons: ["Oui !", "Une prochaine fois !"],
   event_context: "daily_checkin",

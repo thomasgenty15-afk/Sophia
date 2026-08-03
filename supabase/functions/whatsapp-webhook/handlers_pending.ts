@@ -15,13 +15,6 @@ import {
   applyWhatsappProactiveOpeningPolicy,
   generateDynamicWhatsAppCheckinMessage,
 } from "../_shared/scheduled_checkins.ts";
-import {
-  isPotionSupportPayload,
-  persistPotionSupportContext,
-  type PotionSupportPreparation,
-  preparePotionSupportOpening,
-} from "../_shared/potion-support-runtime.ts";
-import { cancelPotionSupportCampaign } from "../_shared/potion-support-cancellation.ts";
 import type { RendezVousKind } from "../_shared/v2-types.ts";
 import { transitionRendezVous } from "../_shared/v2-rendez-vous.ts";
 import { registerRendezVousRefusal } from "../sophia-brain/rendez_vous_decision.ts";
@@ -32,17 +25,6 @@ import {
 import {
   ACTION_EVENING_REVIEW_EVENT_CONTEXT,
 } from "../_shared/action_occurrences.ts";
-import {
-  buildWeeklyPlanningValidationMessage,
-  WEEKLY_PLANNING_VALIDATION_PROMPT_EVENT_CONTEXT,
-  weeklyPlanningDashboardUrl,
-} from "../_shared/weekly_progress_review.ts";
-import {
-  addDaysYmd,
-  loadActiveWeeklyPlanning,
-  WEEKLY_PLANNING_AUTO_VALIDATION_EVENT_CONTEXT,
-  weeklyPlanningPromptScheduledFor,
-} from "../_shared/weekly_planning_lifecycle.ts";
 import {
   loadMomentumSnapshotV2,
   persistMomentumSnapshotV2,
@@ -100,7 +82,6 @@ import {
 import {
   clearPotionSupportPresence,
 } from "../sophia-brain/skills/presence_conversation/apply.ts";
-import { armPotionSupportAdmission } from "../sophia-brain/skills/potion_support_admission/state.ts";
 
 type DailyOccurrenceOutcomeApplyResult = {
   status: string;
@@ -519,24 +500,9 @@ export function shouldGenericCheckinYesHandlePending(
   return true;
 }
 
-// Weekly planning auto-validation door-opener (auto_validation_v1 template):
-// the plan is already applied, the pending only gates the detail delivery.
-export function isWeeklyAutoValidationPending(pending: unknown): boolean {
-  const payload = recordOrEmpty(recordOrEmpty(pending).payload);
-  return cleanText(payload.event_context) ===
-    WEEKLY_PLANNING_AUTO_VALIDATION_EVENT_CONTEXT;
-}
-
-// "Non merci!" quick reply on the auto_validation_v1 template. Also accepts
-// a refusal followed by a free-form request ("non merci mais explique...").
-export function isWeeklyAutoValidationDeclineText(
-  textValue: unknown,
-): boolean {
-  return /^non\s*,?\s*merci\b/i.test(String(textValue ?? "").trim());
-}
-
-export const WEEKLY_AUTO_VALIDATION_DECLINE_ACK =
-  "Ça marche, tu pourras retrouver les détails dans ton onglet plan quand tu le souhaiteras 😉";
+// W2.B: le door-opener d'auto-validation hebdo (template auto_validation_v1)
+// est supprimé avec la machine de validation. Plus aucun pending ne porte
+// `weekly_planning_auto_validation_v2`, donc plus de branche de refus à gérer.
 
 export function isExplicitDailyActionReviewResumeText(
   textValue: unknown,
@@ -588,92 +554,6 @@ async function activateWeeklyAdaptiveReviewState(params: {
       },
     },
   });
-}
-
-async function hasActiveWeeklyPlanningPromptForWeek(params: {
-  admin: any;
-  userId: string;
-  targetWeekStartDate: string;
-}) {
-  const { data, error } = await params.admin
-    .from("scheduled_checkins")
-    .select("id,message_payload")
-    .eq("user_id", params.userId)
-    .eq("event_context", WEEKLY_PLANNING_VALIDATION_PROMPT_EVENT_CONTEXT)
-    .in("status", ["pending", "retrying", "awaiting_user", "sent"])
-    .limit(50);
-  if (error) throw error;
-  return ((data ?? []) as Array<Record<string, unknown>>).some((row) => {
-    const payload = recordOrEmpty((row as any)?.message_payload);
-    return cleanText(payload.target_week_start_date) ===
-        params.targetWeekStartDate ||
-      cleanText(payload.next_week_start_date) === params.targetWeekStartDate ||
-      cleanText(payload.week_start_date) === params.targetWeekStartDate;
-  });
-}
-
-async function createWeeklyPlanningPromptAfterWeeklyDelivered(params: {
-  admin: any;
-  userId: string;
-  payload: Record<string, unknown>;
-  scheduledCheckinId?: unknown;
-  sentAtIso: string;
-}) {
-  const progressReview = recordOrEmpty(params.payload.weekly_progress_review);
-  const completedWeekStartDate = cleanText(progressReview.week_start_date) ||
-    cleanText(params.payload.week_start_date);
-  if (!completedWeekStartDate) return;
-  const targetWeekStartDate = addDaysYmd(completedWeekStartDate, 7);
-  const planning = await loadActiveWeeklyPlanning(params.admin, {
-    userId: params.userId,
-    weekStartDate: targetWeekStartDate,
-  });
-  if (!planning.has_pending) return;
-  if (
-    await hasActiveWeeklyPlanningPromptForWeek({
-      admin: params.admin,
-      userId: params.userId,
-      targetWeekStartDate,
-    })
-  ) return;
-
-  const dashboardUrl = cleanText(params.payload.dashboard_url) ||
-    weeklyPlanningDashboardUrl(publicSiteUrl());
-  const timezone = cleanText(params.payload.timezone) || "Europe/Paris";
-  const draftMessage = buildWeeklyPlanningValidationMessage({
-    nextWeekStartDate: targetWeekStartDate,
-    dashboardUrl,
-  });
-  const { error } = await params.admin
-    .from("scheduled_checkins")
-    .insert({
-      user_id: params.userId,
-      origin: "weekly_planning",
-      event_context: WEEKLY_PLANNING_VALIDATION_PROMPT_EVENT_CONTEXT,
-      draft_message: draftMessage,
-      message_mode: "static",
-      message_payload: {
-        source: "whatsapp_pending_weekly_review_delivered",
-        version: 1,
-        timezone,
-        dashboard_url: dashboardUrl,
-        week_start_date: planning.week_start_date,
-        week_end_date: planning.week_end_date,
-        target_week_start_date: targetWeekStartDate,
-        next_week_start_date: targetWeekStartDate,
-        previous_week_start_date: completedWeekStartDate,
-        previous_week_end_date: cleanText(progressReview.week_end_date) ||
-          cleanText(params.payload.week_end_date),
-        weekly_checkin_id: cleanText(params.scheduledCheckinId),
-        weekly_sent_at: params.sentAtIso,
-        summary_lines: planning.summary_lines,
-        created_from: "weekly_progress_review_delivered",
-        generated_at: new Date().toISOString(),
-      },
-      scheduled_for: weeklyPlanningPromptScheduledFor(params.sentAtIso),
-      status: "pending",
-    });
-  if (error) throw error;
 }
 
 async function fetchLatestCheckinPending(
@@ -2568,45 +2448,6 @@ export async function maybeCompletePendingRendezVous(params: {
   }
 }
 
-async function ackWeeklyAutoValidationDecline(params: {
-  admin: any;
-  userId: string;
-  fromE164: string;
-  requestId: string;
-  pendingId: string;
-}) {
-  const { admin, userId, fromE164, requestId } = params;
-  await markPending(admin, params.pendingId, "done");
-  const txt = WEEKLY_AUTO_VALIDATION_DECLINE_ACK;
-  const sendResp = await sendWhatsAppTextTracked({
-    admin,
-    requestId,
-    userId,
-    toE164: fromE164,
-    body: txt,
-    purpose: "weekly_planning_auto_validation",
-    isProactive: false,
-  });
-  const outId = sendResp?.messages?.[0]?.id ?? null;
-  const outboundTrackingId = sendResp?.outbound_tracking_id ?? null;
-  await admin.from("chat_messages").insert({
-    user_id: userId,
-    scope: "whatsapp",
-    role: "assistant",
-    content: txt,
-    agent_used: "companion",
-    metadata: {
-      channel: "whatsapp",
-      wa_outbound_message_id: outId,
-      outbound_tracking_id: outboundTrackingId,
-      is_proactive: false,
-      source: "scheduled_checkin",
-      purpose: "weekly_planning_auto_validation",
-      event_context: WEEKLY_PLANNING_AUTO_VALIDATION_EVENT_CONTEXT,
-    },
-  });
-}
-
 export async function handlePendingActions(params: {
   admin: any;
   userId: string;
@@ -2824,16 +2665,15 @@ export async function handlePendingActions(params: {
     const outboundPurpose = "scheduled_checkin";
     const draft = payload?.draft_message;
     let textToSend = typeof draft === "string" ? draft.trim() : "";
-    let potionSupportPreparation: PotionSupportPreparation | null = null;
-    let potionSupportSessionId = "";
-    let potionSupportReminderId = "";
-    let resolvedScheduledRow: Record<string, unknown> | null = null;
+    // W2.B: la branche de livraison « potion support » (préparation LLM de
+    // l'ouverture, annulation de campagne, armement du sas d'admission) est
+    // supprimée avec les potions. Ne restent que les check-ins dynamiques
+    // ordinaires.
     if (scheduledId && mode === "dynamic") {
       try {
         const { data: row } = await admin.from("scheduled_checkins").select(
           "event_context,message_payload,draft_message,scheduled_for,recurring_reminder_id",
         ).eq("id", scheduledId).maybeSingle();
-        resolvedScheduledRow = row as Record<string, unknown> | null;
         const p2 = row?.message_payload ?? {};
         resolvedMessagePayload = p2 && typeof p2 === "object"
           ? p2 as Record<string, unknown>
@@ -2842,100 +2682,12 @@ export async function handlePendingActions(params: {
           row?.event_context ?? payloadEventContext,
         );
         outboundEventContext = rowEventContext || payloadEventContext;
-        if (isPotionSupportPayload(p2)) {
-          potionSupportSessionId = cleanText(
-            p2?.source_potion_session_id,
-          );
-          potionSupportReminderId = cleanText(row?.recurring_reminder_id) ||
-            (rowEventContext.startsWith("recurring_reminder:")
-              ? rowEventContext.slice("recurring_reminder:".length).trim()
-              : "");
-          const userState = await getUserState(admin, userId, "whatsapp");
-          const tempMemory = recordOrEmpty(userState.temp_memory);
-          if (
-            activeConversationSkillIdFromTempMemory(tempMemory) ===
-              "safety_crisis"
-          ) {
-            await cancelPotionSupportCampaign({
-              admin,
-              userId,
-              recurringReminderId: potionSupportReminderId,
-              sourcePotionSessionId: potionSupportSessionId,
-              reason: "cancelled_safety",
-            });
-            await markPending(admin, pending.id, "cancelled");
-            return false;
-          }
-          const activeSkillId = activeConversationSkillIdFromTempMemory(
-            tempMemory,
-          );
-          if (
-            activeSkillId === "weekly_adaptive_review_v1" ||
-            activeSkillId === "daily_action_review_v1" ||
-            activeSkillId === "daily_action_coaching_recommendation_v1"
-          ) {
-            await markPending(admin, pending.id, "cancelled");
-            if (scheduledId) {
-              await admin.from("scheduled_checkins").update({
-                status: "cancelled",
-                processed_at: new Date().toISOString(),
-                delivery_last_error:
-                  `potion_support_preempted_by:${activeSkillId}`,
-                delivery_last_error_at: new Date().toISOString(),
-              }).eq("id", scheduledId);
-            }
-            return false;
-          }
-          potionSupportPreparation = await preparePotionSupportOpening({
-            admin,
-            userId,
-            sessionId: potionSupportSessionId,
-            dayIndex: Math.max(1, Number(p2?.day_index ?? 1) || 1),
-            nowIso: new Date().toISOString(),
-            requestId,
-          });
-          await persistPotionSupportContext({
-            admin,
-            userId,
-            sessionId: potionSupportSessionId,
-            context: potionSupportPreparation.context_after,
-            nowIso: new Date().toISOString(),
-          });
-          if (potionSupportPreparation.decision !== "send") {
-            if (
-              potionSupportPreparation.decision === "skip_user_boundary" ||
-              potionSupportPreparation.decision === "skip_resolved"
-            ) {
-              await cancelPotionSupportCampaign({
-                admin,
-                userId,
-                recurringReminderId: potionSupportReminderId,
-                sourcePotionSessionId: potionSupportSessionId,
-                reason: potionSupportPreparation.decision ===
-                    "skip_user_boundary"
-                  ? "cancelled_user_boundary"
-                  : "completed_resolved",
-              });
-            }
-            await markPending(admin, pending.id, "cancelled");
-            if (scheduledId) {
-              await admin.from("scheduled_checkins").update({
-                status: "cancelled",
-                processed_at: new Date().toISOString(),
-                delivery_last_error: potionSupportPreparation.decision,
-                delivery_last_error_at: new Date().toISOString(),
-              }).eq("id", scheduledId);
-            }
-            return true;
-          }
-          textToSend = potionSupportPreparation.opening_text ?? "";
-        }
         const persistedDraft = typeof row?.draft_message === "string"
           ? row.draft_message.trim()
           : "";
-        if (!potionSupportPreparation && persistedDraft) {
+        if (persistedDraft) {
           textToSend = persistedDraft;
-        } else if (!potionSupportPreparation) {
+        } else {
           textToSend = await generateDynamicWhatsAppCheckinMessage({
             admin,
             userId,
@@ -2953,28 +2705,12 @@ export async function handlePendingActions(params: {
             ),
           });
         }
-      } catch (error) {
+      } catch (_error) {
         // best-effort fallback
-        if (potionSupportSessionId) {
-          console.warn(
-            `[handlers_pending] potion_support_generation_failed scheduled_checkin_id=${scheduledId}`,
-            error,
-          );
-          await markPending(admin, pending.id, "cancelled");
-          if (scheduledId) {
-            await admin.from("scheduled_checkins").update({
-              status: "cancelled",
-              processed_at: new Date().toISOString(),
-              delivery_last_error: "potion_support_generation_failed",
-              delivery_last_error_at: new Date().toISOString(),
-            }).eq("id", scheduledId);
-          }
-          return true;
-        }
         textToSend = textToSend || "Comment ça va depuis tout à l’heure ?";
       }
     }
-    if (!textToSend.trim() && !potionSupportSessionId) {
+    if (!textToSend.trim()) {
       textToSend = "Comment ça va depuis tout à l'heure ?";
     }
     textToSend = applyWhatsappProactiveOpeningPolicy({
@@ -3027,104 +2763,6 @@ export async function handlePendingActions(params: {
           );
         }
       }
-      if (potionSupportPreparation && scheduledId) {
-        const armedAt = new Date().toISOString();
-        try {
-          const state = await getUserState(admin, userId, "whatsapp");
-          const tempMemory = recordOrEmpty(state.temp_memory);
-          const nextTempMemory = armPotionSupportAdmission({
-            tempMemory,
-            nowIso: potionSupportPreparation.read_cutoff,
-            context: {
-              source_potion_session_id: potionSupportSessionId,
-              recurring_reminder_id: potionSupportReminderId,
-              scheduled_checkin_id: scheduledId,
-              day_index: Math.max(
-                1,
-                Number(recordOrEmpty(resolvedScheduledRow?.message_payload)
-                  .day_index ?? 1) || 1,
-              ),
-              topic_hint: potionSupportPreparation.anchor_fact?.text ?? null,
-              opening_focus: potionSupportPreparation.focus_decision?.text ??
-                null,
-              anchor_evidence_refs:
-                potionSupportPreparation.anchor_fact?.evidence_refs ?? [],
-            },
-          });
-          await updateUserState(admin, userId, "whatsapp", {
-            temp_memory: nextTempMemory,
-          });
-          const sourcePayload = recordOrEmpty(
-            resolvedScheduledRow?.message_payload,
-          );
-          const supportPayload = recordOrEmpty(
-            sourcePayload.potion_support_v1,
-          );
-          await admin.from("scheduled_checkins").update({
-            draft_message: textToSend,
-            message_payload: {
-              ...sourcePayload,
-              generated_at: armedAt,
-              potion_support_v1: {
-                ...supportPayload,
-                preparation_status: "prepared",
-                decision_reason: "send",
-                read_cutoff: potionSupportPreparation.read_cutoff,
-                focus_decision: potionSupportPreparation.focus_decision,
-                progress_facts: potionSupportPreparation.progress_facts,
-                opening_evidence_refs:
-                  potionSupportPreparation.opening_evidence_refs,
-                anchor_fact: potionSupportPreparation.anchor_fact,
-                question_candidate: potionSupportPreparation.question_candidate,
-                generated_at: armedAt,
-                presence_armed_at: armedAt,
-              },
-            },
-          }).eq("id", scheduledId);
-          await persistPotionSupportContext({
-            admin,
-            userId,
-            sessionId: potionSupportSessionId,
-            context: {
-              ...potionSupportPreparation.context_after,
-              opening_history: [
-                ...potionSupportPreparation.context_after.opening_history,
-                {
-                  day_index: Math.max(
-                    1,
-                    Number(sourcePayload.day_index ?? 1) || 1,
-                  ),
-                  scheduled_checkin_id: scheduledId,
-                  sent_at: armedAt,
-                  opening_text: textToSend,
-                  opening_evidence_refs:
-                    potionSupportPreparation.opening_evidence_refs,
-                  anchor_evidence_refs:
-                    potionSupportPreparation.anchor_fact?.evidence_refs ?? [],
-                  question_evidence_refs:
-                    potionSupportPreparation.question_candidate
-                      ?.evidence_refs ?? [],
-                  focus_kind: potionSupportPreparation.focus_decision?.kind,
-                  focus_freshness: potionSupportPreparation.focus_decision
-                    ?.freshness,
-                  focus_continuity: potionSupportPreparation.focus_decision
-                    ?.continuity,
-                  focus_evidence_refs:
-                    potionSupportPreparation.focus_decision?.evidence_refs ??
-                      [],
-                  outcome: "sent" as const,
-                },
-              ].slice(-7),
-            },
-            nowIso: armedAt,
-          });
-        } catch (error) {
-          console.warn(
-            `[handlers_pending] potion_support_presence_arm_failed scheduled_checkin_id=${scheduledId}`,
-            error,
-          );
-        }
-      }
       if (outboundEventContext === "weekly_progress_review_v2") {
         await activateWeeklyAdaptiveReviewState({
           admin,
@@ -3137,18 +2775,9 @@ export async function handlePendingActions(params: {
             error,
           );
         });
-        await createWeeklyPlanningPromptAfterWeeklyDelivered({
-          admin,
-          userId,
-          payload: resolvedMessagePayload,
-          scheduledCheckinId: scheduledId,
-          sentAtIso: new Date().toISOString(),
-        }).catch((error) => {
-          console.warn(
-            `[handlers_pending] weekly_planning_prompt_enqueue_failed scheduled_checkin_id=${scheduledId}`,
-            error,
-          );
-        });
+        // W2.B: la livraison du bilan hebdo n'enfile plus de prompt de
+        // validation du planning de la semaine suivante — l'élève ne valide
+        // plus son propre planning.
       }
     }
     // mark scheduled_checkin as sent
@@ -3192,27 +2821,6 @@ export async function handlePendingActions(params: {
     await markPending(admin, pending.id, "done");
     return true;
   }
-  // "Non merci!" on the weekly auto-validation door-opener: the plan is
-  // already applied, so just ack and close the pending. No reschedule.
-  if (
-    isWeeklyAutoValidationDeclineText(params.inboundText) && !params.isOptInYes
-  ) {
-    const pending = await fetchLatestCheckinPending(
-      admin,
-      userId,
-      params.replyToWaMessageId,
-    );
-    if (pending && isWeeklyAutoValidationPending(pending)) {
-      await ackWeeklyAutoValidationDecline({
-        admin,
-        userId,
-        fromE164,
-        requestId,
-        pendingId: pending.id,
-      });
-      return true;
-    }
-  }
   // If user says later for check-in, cancel and reschedule in 10 minutes.
   if (params.isCheckinLater && !params.isOptInYes) {
     const pending = await fetchLatestCheckinPending(
@@ -3222,19 +2830,6 @@ export async function handlePendingActions(params: {
     );
     // Don't swallow generic "plus tard" messages if there is no pending scheduled_checkin.
     if (!pending) return false;
-    // Auto-validation door-opener: "plus tard" must not reschedule the
-    // checkin (it already ran and applied the plan; rescheduling would
-    // re-send the template). Treat it like a decline.
-    if (isWeeklyAutoValidationPending(pending)) {
-      await ackWeeklyAutoValidationDecline({
-        admin,
-        userId,
-        fromE164,
-        requestId,
-        pendingId: pending.id,
-      });
-      return true;
-    }
     if (pending?.scheduled_checkin_id) {
       await admin.from("scheduled_checkins").update({
         status: "pending",

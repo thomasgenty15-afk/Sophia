@@ -2,6 +2,13 @@ import {
   generateWithGemini,
   getGlobalAiModel,
 } from "../../../_shared/gemini.ts";
+// W9/R3 — la langue de la reponse VISIBLE est resolue par le point unique
+// `resolveResponseLocale`, et le bloc RESPONSE_LANGUAGE part en DERNIERE
+// instruction du prompt (la position est le mecanisme: la recence gagne).
+import {
+  appendResponseLanguageBlock,
+  resolveResponseLocale,
+} from "../../../_shared/keel/locale.ts";
 import {
   committedOneShotReminderKnown,
   directEffectContextCommittedThisTurn,
@@ -160,7 +167,10 @@ export async function runProductHelpVisibleAgent(
   });
   try {
     const raw = await generateWithGemini(
-      visibleSystemPrompt(input),
+      appendResponseLanguageBlock(
+        visibleSystemPrompt(input),
+        resolveResponseLocale({}),
+      ),
       userPrompt,
       0.35,
       true,

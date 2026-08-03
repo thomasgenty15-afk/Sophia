@@ -22,7 +22,6 @@ import type {
   CoachingPotionType,
   CoachingRecommendationLocalState,
 } from "../skills/coaching_recommendation/contract.ts";
-import type { FeatureOpportunityLocalState } from "../skills/feature_opportunity/contract.ts";
 import type { PlanRealignmentLocalState } from "../skills/plan_realignment/contract.ts";
 
 export type SessionDecisionStatus = "retained" | "dropped";
@@ -106,31 +105,12 @@ export function sessionDecisionFromCoachingState(
   };
 }
 
-/** Hand-off feature_opportunity (paul-r9 B02, nina-r7 B04): une initiative /
- * preference discutee dans le flow est un « reste a faire de ton cote » — la
- * capture lit le contrat du flow (feature + resume du besoin), jamais le
- * texte du message. */
-export function sessionDecisionFromFeatureOpportunityState(
-  localState: unknown,
-): SessionDecision | null {
-  const state = localState as
-    | Partial<FeatureOpportunityLocalState>
-    | null
-    | undefined;
-  if (!state || typeof state !== "object") return null;
-  const feature = text(state.feature);
-  if (!feature) return null;
-  const summary = text(state.user_problem_summary);
-  return {
-    source: "feature_opportunity",
-    feature,
-    lever: null,
-    technique: null,
-    potion_type: null,
-    handoff: summary ? `${feature}: ${summary}` : feature,
-    status: "retained",
-  };
-}
+// W2.B: le producteur `sessionDecisionFromFeatureOpportunityState` est parti
+// avec le skill `feature_opportunity`. La valeur `"feature_opportunity"` reste
+// dans l'union `SessionDecision["source"]` et dans `normalizeDecision`: c'est
+// une valeur PERSISTEE dans `temp_memory.__session_decisions` de sessions
+// anterieures — la retirer ferait silencieusement re-etiqueter ces entrees en
+// `coaching_recommendation`.
 
 /** Hand-off plan_realignment (nina-r7 B04): un ajustement discute mais non
  * execute (jamais de patch depuis le chat) reste un fait de session que le

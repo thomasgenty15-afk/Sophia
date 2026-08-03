@@ -526,12 +526,15 @@ Deno.test("no_tool_blocks_create", async () => {
 });
 
 Deno.test("legacy_tool_not_used_by_prod_runtime", async () => {
+  // Resolved from import.meta.url, never from the cwd: a guard that silently turns into a
+  // NotFound depending on where the suite is launched is not a guard.
   const files = [
-    "supabase/functions/sophia-brain/router/run.ts",
-    "supabase/functions/sophia-brain/agents/companion.ts",
+    "../../../router/run.ts",
+    "../../../agents/companion.ts",
   ];
   for (const file of files) {
-    const text = await Deno.readTextFile(file);
+    const url = new URL(file, import.meta.url);
+    const text = await Deno.readTextFile(url);
     assert(!text.includes("one_shot_reminder_tool.ts"), file);
   }
 });

@@ -6,6 +6,23 @@ import {
   handleCorsOptions,
 } from "../_shared/cors.ts";
 import { enforceRateLimit, RATE_PRESETS } from "../_shared/rate-limit.ts";
+import { ensureInternalRequest } from "../_shared/internal-auth.ts";
+import {
+  advanceReseedCursor,
+  decideReseedChain,
+  eligibleReseedUserIds,
+  hasReseedBudgetLeft,
+  parseReseedCursor,
+  RESEED_SELECT_COLUMNS,
+  reseedCursorToBody,
+  reseedHorizon,
+  resolveChainDepth,
+  resolveReseedBatchSize,
+  resolveReseedLimit,
+  selectReseedTargets,
+  type ReseedCursor,
+  type ReseedProfileRow,
+} from "./reseed_selection.ts";
 import { generateWithGemini, getGlobalAiModel } from "../_shared/gemini.ts";
 import { buildActionFamilyKey } from "../_shared/memory/action_family.ts";
 import { computeScheduledForFromLocal } from "../_shared/scheduled_checkins.ts";
@@ -54,7 +71,10 @@ function clampText(v: string, maxChars: number): string {
 
 function isWhatsappSchedulingTierEligible(accessTierRaw: unknown): boolean {
   const tier = str(accessTierRaw).toLowerCase();
-  return tier === "trial" || tier === "alliance" || tier === "architecte";
+  // W10 (MEGA_REVIEW B6): 'coach' and 'student' are the KEEL tiers. A student
+  // whose seat their coach pays has no subscription of their own.
+  return tier === "trial" || tier === "alliance" || tier === "architecte" ||
+    tier === "coach" || tier === "student";
 }
 
 function normalizeDraftMessage(v: unknown): string {
@@ -425,11 +445,17 @@ async function seedReminderUntilNextSunday(params: {
   if (scheduledDays.length === 0) return 0;
 
   const untilSunday = daysUntilNextSunday(timezone);
-  const maxOffset = Math.max(0, untilSunday - 1); // stop before next Sunday cron window
+  // KEEL W1.3 bug 4 — the horizon INCLUDES the next Sunday (see reseedHorizon:
+  // the weekly cron fires Sunday 18:00 UTC, which is already Monday from UTC+6
+  // eastwards, and the old `untilSunday - 1` horizon never seeded Sunday
+  // there). The one-day overlap between two passes is absorbed by the cancel
+  // window below plus the upsert on (user_id, event_context, scheduled_for).
+  const horizon = reseedHorizon(untilSunday);
+  const maxOffset = horizon.maxOffset;
   const nowIso = new Date().toISOString();
   const horizonEndIso = computeScheduledForFromLocal({
     timezone,
-    dayOffset: untilSunday,
+    dayOffset: horizon.cancelUntilDayOffset,
     localTimeHHMM: "00:00",
   });
 
@@ -821,6 +847,243 @@ Rendez-vous:
   };
 }
 
+// KEEL W1.3 bug 4 — recurring reminders died after one week.
+//
+// `seedReminderUntilNextSunday()` only seeds `scheduled_checkins` up to the
+// NEXT Sunday, and its only caller was the frontend (RemindersSection.tsx).
+// No cron ever re-seeded, so every recurring reminder went silent the Sunday
+// after it was created and stayed silent until the user re-opened and re-saved
+// it. This internal action re-seeds the whole fleet weekly.
+//
+// Reachable ONLY through `ensureInternalRequest` (X-Internal-Secret), never
+// from a browser session: it walks every user's reminders.
+// The selection rules (RGPD, tier, potion follow-ups, level) are pure and
+// live in ./reseed_selection.ts so they are tested without IO.
+//
+// W1.4 R1 — SCALE. Each reminder costs one Gemini generation (~3 s), so the
+// original single-shot pass (limit 500, sequential, no cursor) needed ~25 min
+// of wall clock in one invoke. It could only ever time out, and because it had
+// no cursor every retry replayed the SAME first N rows: the tail of the fleet
+// was never seeded, week after week, silently. The pass now walks a keyset
+// cursor page by page, stops at a wall-clock budget, and hands the remainder to
+// a fresh invocation of itself. Idempotence across the seam is carried by the
+// existing upsert on (user_id, event_context, scheduled_for).
+function functionsBaseUrl(): string {
+  const supabaseUrl = str(Deno.env.get("SUPABASE_URL"));
+  if (!supabaseUrl) return "http://kong:8000";
+  if (supabaseUrl.includes("http://kong:8000")) return "http://kong:8000";
+  return supabaseUrl.replace(/\/+$/, "");
+}
+
+function internalSecret(): string {
+  return str(Deno.env.get("INTERNAL_FUNCTION_SECRET")) ||
+    str(Deno.env.get("SECRET_KEY"));
+}
+
+/**
+ * Self-invocation with the cursor. Fire-and-forget ON PURPOSE: awaiting the
+ * next link would nest the whole chain inside this invocation's wall clock and
+ * re-create the timeout the cursor exists to avoid. `EdgeRuntime.waitUntil`
+ * keeps the isolate alive past the response so the request is really sent.
+ */
+function scheduleReseedChain(params: {
+  cursor: ReseedCursor;
+  chainDepth: number;
+  limit: number;
+  batchSize: number;
+}): boolean {
+  const secret = internalSecret();
+  if (!secret) {
+    console.error(
+      "[classify-recurring-reminder] reseed_chain_skipped_missing_secret",
+    );
+    return false;
+  }
+  const url = `${functionsBaseUrl()}/functions/v1/classify-recurring-reminder`;
+  const pending = fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Internal-Secret": secret,
+    },
+    body: JSON.stringify({
+      action: "reseed_all",
+      limit: params.limit,
+      batch_size: params.batchSize,
+      chain_depth: params.chainDepth + 1,
+      ...reseedCursorToBody(params.cursor),
+    }),
+  })
+    .then((res) => {
+      if (!res.ok) {
+        console.error(
+          "[classify-recurring-reminder] reseed_chain_failed",
+          res.status,
+        );
+      }
+    })
+    .catch((error) => {
+      console.error("[classify-recurring-reminder] reseed_chain_error", error);
+    });
+
+  const runtime = (globalThis as Record<string, unknown>).EdgeRuntime as
+    | { waitUntil?: (p: Promise<unknown>) => void }
+    | undefined;
+  if (typeof runtime?.waitUntil === "function") {
+    runtime.waitUntil(pending);
+  }
+  return true;
+}
+
+async function reseedAllActiveReminders(params: {
+  admin: SupabaseAdminClient;
+  limit: number;
+  batchSize: number;
+  cursor: ReseedCursor | null;
+  chainDepth: number;
+  startedAtMs?: number;
+}): Promise<Record<string, unknown>> {
+  const startedAtMs = params.startedAtMs ?? Date.now();
+  const startCursor = params.cursor;
+  let cursor = params.cursor;
+
+  let scanned = 0;
+  let seededCheckins = 0;
+  let reseeded = 0;
+  let skippedIneligible = 0;
+  let skippedPotionFollowUp = 0;
+  let pages = 0;
+  const failures: Array<{ reminder_id: string; error: string }> = [];
+
+  while (
+    hasReseedBudgetLeft({
+      elapsedMs: Date.now() - startedAtMs,
+      scanned,
+      limit: params.limit,
+    })
+  ) {
+    const nowIso = new Date().toISOString();
+    let query = params.admin
+      .from("user_recurring_reminders")
+      .select(RESEED_SELECT_COLUMNS)
+      .eq("status", "active")
+      .is("archived_at", null)
+      .or(`ends_at.is.null,ends_at.gt.${nowIso}`);
+    if (cursor) {
+      // Keyset on the primary key: strictly past the last row of the previous
+      // page. See reseed_selection.ts for why the key is `id` and not
+      // `created_at`.
+      query = query.gt("id", cursor.afterId);
+    }
+    const { data: reminders, error: remindersErr } = await query
+      .order("id", { ascending: true })
+      .limit(params.batchSize);
+    if (remindersErr) throw remindersErr;
+
+    const rows = (reminders ?? []) as Array<Record<string, unknown>>;
+    pages++;
+    scanned += rows.length;
+    const nextCursor = advanceReseedCursor(rows, params.batchSize);
+
+    if (rows.length > 0) {
+      // Batch the eligibility read: one profiles query per page, not one per
+      // reminder.
+      const userIds = [
+        ...new Set(rows.map((row) => str(row.user_id)).filter(Boolean)),
+      ];
+      let eligibleUserIds = new Set<string>();
+      if (userIds.length > 0) {
+        const { data: profiles, error: profilesErr } = await params.admin
+          .from("profiles")
+          .select("id,access_tier,account_status")
+          .in("id", userIds);
+        if (profilesErr) throw profilesErr;
+        eligibleUserIds = eligibleReseedUserIds(
+          (profiles ?? []) as ReseedProfileRow[],
+        );
+      }
+
+      const selection = selectReseedTargets({
+        reminders: rows,
+        eligibleUserIds,
+        heuristic: heuristicLevel,
+      });
+      skippedIneligible += selection.skippedIneligible;
+      skippedPotionFollowUp += selection.skippedPotionFollowUp;
+
+      for (const target of selection.targets) {
+        const reminderId = str(target.row.id);
+        try {
+          seededCheckins += await seedReminderUntilNextSunday({
+            admin: params.admin,
+            reminder: target.row as unknown as RecurringReminderRow,
+            level: target.level,
+          });
+          reseeded++;
+        } catch (error) {
+          // Fail-soft PER REMINDER, loud in aggregate: one broken reminder must
+          // not silence the fleet, but the run reports what it could not do.
+          console.error(
+            "[classify-recurring-reminder] reseed_all_failed",
+            reminderId,
+            error,
+          );
+          failures.push({
+            reminder_id: reminderId,
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
+      }
+    }
+
+    cursor = nextCursor;
+    if (!cursor) break;
+  }
+
+  const decision = decideReseedChain({
+    nextCursor: cursor,
+    chainDepth: params.chainDepth,
+    elapsedMs: Date.now() - startedAtMs,
+  });
+  let chained = false;
+  if (decision.chain && cursor) {
+    chained = scheduleReseedChain({
+      cursor,
+      chainDepth: params.chainDepth,
+      limit: params.limit,
+      batchSize: params.batchSize,
+    });
+  } else if (decision.reason === "max_chain_depth_reached") {
+    // Loud: the fleet outgrew the chain budget. Silence here would be a week of
+    // unseeded reminders that nothing reports.
+    console.error(
+      "[classify-recurring-reminder] reseed_chain_depth_exceeded",
+      params.chainDepth,
+    );
+  }
+
+  return {
+    success: failures.length === 0,
+    action: "reseed_all",
+    pages,
+    considered: scanned,
+    reseeded,
+    seeded_checkins: seededCheckins,
+    skipped_ineligible: skippedIneligible,
+    skipped_potion_follow_up: skippedPotionFollowUp,
+    failed: failures.length,
+    failures: failures.slice(0, 20),
+    chain_depth: params.chainDepth,
+    started_cursor: startCursor ? reseedCursorToBody(startCursor) : null,
+    // Execution truth: what is left, whether a successor was really dispatched,
+    // and why not when it was not.
+    next_cursor: cursor ? reseedCursorToBody(cursor) : null,
+    chain_reason: decision.reason,
+    chained,
+    truncated: Boolean(cursor),
+  };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return handleCorsOptions(req);
   const corsErr = enforceCors(req);
@@ -838,6 +1101,54 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({} as any));
     const reminderId = str((body as any)?.reminder_id);
     const fullReset = Boolean((body as any)?.full_reset);
+
+    // W1.3 bug 4: weekly fleet re-seed, cron-only. Guarded BEFORE anything
+    // reads a reminder id or a user session (this path has no user scope).
+    if (str((body as any)?.action) === "reseed_all") {
+      const internalAuthResp = ensureInternalRequest(req);
+      if (internalAuthResp) return internalAuthResp;
+
+      const reseedUrl = str(Deno.env.get("SUPABASE_URL"));
+      const reseedServiceKey = str(Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"));
+      if (!reseedUrl || !reseedServiceKey) {
+        return new Response(JSON.stringify({ error: "Server misconfigured" }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // R7: a malformed cursor throws rather than restarting at the head of the
+      // fleet. 400 (the caller sent it), not 500.
+      let reseedCursor: ReseedCursor | null;
+      try {
+        reseedCursor = parseReseedCursor(body);
+      } catch (cursorError) {
+        return new Response(
+          JSON.stringify({
+            error: "invalid_cursor",
+            detail: cursorError instanceof Error
+              ? cursorError.message
+              : String(cursorError),
+          }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
+      }
+
+      const result = await reseedAllActiveReminders({
+        admin: createClient(reseedUrl, reseedServiceKey),
+        limit: resolveReseedLimit((body as any)?.limit),
+        batchSize: resolveReseedBatchSize((body as any)?.batch_size),
+        cursor: reseedCursor,
+        chainDepth: resolveChainDepth((body as any)?.chain_depth),
+      });
+      return new Response(JSON.stringify(result), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     if (!reminderId) {
       return new Response(JSON.stringify({ error: "Missing reminder_id" }), {
         status: 400,

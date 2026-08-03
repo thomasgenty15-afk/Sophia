@@ -1,6 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  CalendarDays,
   CheckCircle2,
   ChevronDown,
   Lock,
@@ -16,15 +15,12 @@ import type {
 import {
   formatPlanDateRange,
   getPlanWeekCalendar,
-  isPlanLevelReviewWindowOpen,
   type PlanScheduleAnchor,
 } from "../../lib/planSchedule";
 import { getDisplayPhaseOrder } from "../../lib/planPhases";
-import { supabase } from "../../lib/supabase";
 import type { UserLevelToolRecommendationRow } from "../../types/v2";
 import { LevelToolRecommendationsCard } from "./LevelToolRecommendationsCard";
 import { PlanItemCard } from "./PlanItemCard";
-import { WeekPlanningModal } from "./WeekPlanningModal";
 type JourneyContext = {
   is_multi_part: boolean;
   part_number: number | null;
@@ -35,11 +31,6 @@ type WeekItemAssignment = NonNullable<
   PhaseRuntimeData["weeks"][number]["item_assignments"]
 >[number];
 
-type WeekPlanningStatus = "pending_confirmation" | "confirmed";
-type DayCode = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
-
-const DAY_CODES: DayCode[] = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
-
 type PhaseProgressionProps = {
   phases: PhaseRuntimeData[];
   scheduleAnchor?: PlanScheduleAnchor | null;
@@ -49,7 +40,6 @@ type PhaseProgressionProps = {
     scope: "level" | "plan";
     assistant_message?: string | null;
   } | null;
-  phase1Node?: React.ReactNode;
   activePhaseFooterNode?: React.ReactNode;
   renderPhaseFooterNode?: (phase: PhaseRuntimeData) => React.ReactNode;
   /**
@@ -69,8 +59,6 @@ type PhaseProgressionProps = {
   onCardsChanged: () => Promise<void> | void;
   onOpenDefenseResourceEditor: (item: DashboardV2PlanItemRuntime) => void;
   onLogHeartbeat?: () => void;
-  onCompleteLevel?: () => void;
-  completeLevelBusy?: boolean;
   onCompletionAction?: () => void;
   completionActionLabel?: string | null;
   completionActionHint?: string | null;
@@ -161,96 +149,6 @@ function normalizeWeekdays(days: string[] | null | undefined): string[] {
     .filter((day, index, array) =>
       day.length > 0 && array.indexOf(day) === index
     );
-}
-
-function normalizeDayCodes(days: string[] | null | undefined): DayCode[] {
-  return normalizeWeekdays(days).filter((day): day is DayCode =>
-    DAY_CODES.includes(day as DayCode)
-  );
-}
-
-function dateFromYmdUtc(ymd: string): Date {
-  const [year, month, day] = ymd.split("-").map(Number);
-  return new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
-}
-
-function addDay(date: Date, days: number): Date {
-  const copy = new Date(date.getTime());
-  copy.setUTCDate(copy.getUTCDate() + days);
-  return copy;
-}
-
-function formatYmdUtc(date: Date): string {
-  return date.toISOString().slice(0, 10);
-}
-
-function dayCodeFromUtc(date: Date): DayCode {
-  const day = date.getUTCDay();
-  if (day === 0) return "sun";
-  return DAY_CODES[day - 1];
-}
-
-function getAllowedDaysForWeek(startDate: string, endDate: string): DayCode[] {
-  const days: DayCode[] = [];
-  let cursor = dateFromYmdUtc(startDate);
-  const end = dateFromYmdUtc(endDate);
-  while (cursor.getTime() <= end.getTime()) {
-    days.push(dayCodeFromUtc(cursor));
-    cursor = addDay(cursor, 1);
-  }
-  return days;
-}
-
-function getLocalDateTimePartsInTimezone(
-  timezone: string,
-  now = new Date(),
-): { ymd: string; minutes: number } | null {
-  try {
-    const parts = new Intl.DateTimeFormat("en-CA", {
-      timeZone: timezone,
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      hourCycle: "h23",
-    }).formatToParts(now);
-    const value = (type: string) =>
-      parts.find((part) => part.type === type)?.value ?? "";
-    const hour = Number(value("hour"));
-    const minute = Number(value("minute"));
-    return {
-      ymd: `${value("year")}-${value("month")}-${value("day")}`,
-      minutes: Math.max(0, hour) * 60 + Math.max(0, minute),
-    };
-  } catch {
-    return null;
-  }
-}
-
-function isNextWeekPlanningUnlocked(
-  weekCalendar: NonNullable<ReturnType<typeof getPlanWeekCalendar>>,
-  timezone: string,
-): boolean {
-  const unlockLocalDate = formatYmdUtc(
-    addDay(dateFromYmdUtc(weekCalendar.anchorWeekStart), -1),
-  );
-  const localNow = getLocalDateTimePartsInTimezone(timezone);
-  if (!localNow) return false;
-  const weeklyReviewMinutes = 18 * 60 + 30;
-  return localNow.ymd > unlockLocalDate ||
-    (localNow.ymd === unlockLocalDate &&
-      localNow.minutes >= weeklyReviewMinutes);
-}
-
-function weeklyTargetForItem(
-  item: DashboardV2PlanItemRuntime,
-  allowedDayCount: number,
-): number {
-  if (item.dimension === "habits") {
-    return Math.max(0, Math.min(allowedDayCount, item.target_reps ?? 0));
-  }
-  return 1;
 }
 
 function isOneShotWeekItem(item: DashboardV2PlanItemRuntime) {
@@ -472,8 +370,6 @@ function ActivePhase({
   onComplete,
   onCardsChanged,
   onOpenDefenseResourceEditor,
-  onCompleteLevel,
-  completeLevelBusy = false,
   levelToolRecommendations,
   onLevelToolRecommendationChanged,
 }: {
@@ -492,24 +388,11 @@ function ActivePhase({
   onCardsChanged: () => Promise<void> | void;
   onOpenDefenseResourceEditor: (item: DashboardV2PlanItemRuntime) => void;
   onLogHeartbeat?: () => void;
-  onCompleteLevel?: () => void;
-  completeLevelBusy?: boolean;
   levelToolRecommendations: UserLevelToolRecommendationRow[];
   onLevelToolRecommendationChanged: () => Promise<void>;
 }) {
   const sections = buildSections(phase.items);
-  const levelReviewUnlocked = phase.transition_ready ||
-    isPlanLevelReviewWindowOpen({
-      anchor: scheduleAnchor ?? null,
-      durationWeeks: phase.duration_weeks ?? (phase.weeks.length || 1),
-    });
   const [showLevelDetails, setShowLevelDetails] = useState(false);
-  const [weekPlanningStatusByKey, setWeekPlanningStatusByKey] = useState<
-    Record<string, WeekPlanningStatus>
-  >({});
-  const [planningModalWeekKey, setPlanningModalWeekKey] = useState<
-    string | null
-  >(null);
   const weekEntries = useMemo(() =>
     phase.weeks.map((week) => {
       const weekCalendar = scheduleAnchor
@@ -537,97 +420,6 @@ function ActivePhase({
     weekEntries.find((entry) => entry.status === "current")?.weekCalendar ??
       weekEntries[0]?.weekCalendar ??
       null;
-  const planningModalEntry =
-    weekEntries.find((entry) =>
-      entry.weekCalendar?.anchorWeekStart === planningModalWeekKey
-    ) ?? null;
-  const currentWeekOrder =
-    weekEntries.find((entry) => entry.status === "current")
-      ?.week.week_order ?? null;
-  const canPlanWeek = useCallback((entry: (typeof weekEntries)[number]) =>
-    entry.status === "current" ||
-    (entry.status === "upcoming" &&
-      currentWeekOrder != null &&
-      entry.week.week_order === currentWeekOrder + 1 &&
-      entry.weekCalendar != null &&
-      scheduleAnchor != null &&
-      isNextWeekPlanningUnlocked(entry.weekCalendar, scheduleAnchor.timezone)),
-    [currentWeekOrder, scheduleAnchor],
-  );
-
-  useEffect(() => {
-    const planningEntries = weekEntries.filter((entry) =>
-      canPlanWeek(entry) &&
-      entry.weekCalendar &&
-      entry.weekItems.length > 0
-    );
-
-    if (planningEntries.length === 0) return;
-
-    let cancelled = false;
-
-    void (async () => {
-      const nextStatuses: Record<string, WeekPlanningStatus> = {};
-
-      await Promise.all(planningEntries.map(async (entry) => {
-        const weekCalendar = entry.weekCalendar;
-        if (!weekCalendar) return;
-
-        const allowedDays = getAllowedDaysForWeek(
-          weekCalendar.startDate,
-          weekCalendar.endDate,
-        );
-
-        const items = entry.weekItems.map((item) => {
-          const preferred = item.dimension === "habits"
-            ? allowedDays
-            : normalizeDayCodes(
-              entry.weekMissionTiming.recommendedDaysByItemId.get(item.id),
-            );
-          return {
-            plan_item_id: item.id,
-            preferred_days: preferred.length > 0 ? preferred : allowedDays,
-            target_reps_override: weeklyTargetForItem(item, allowedDays.length),
-          };
-        });
-
-        try {
-          const { data, error } = await supabase.functions.invoke(
-            "habit-week-planning-v1",
-            {
-              body: {
-                action: "get_bundle_state",
-                week_start_date: weekCalendar.anchorWeekStart,
-                items,
-              },
-            },
-          );
-          if (error) throw error;
-          const bundle = data as { bundle_status?: WeekPlanningStatus };
-          nextStatuses[weekCalendar.anchorWeekStart] =
-            bundle.bundle_status === "confirmed"
-              ? "confirmed"
-              : "pending_confirmation";
-        } catch (error) {
-          console.error(
-            "[PhaseProgression] week planning hydration failed",
-            error,
-          );
-        }
-      }));
-
-      if (cancelled || Object.keys(nextStatuses).length === 0) return;
-
-      setWeekPlanningStatusByKey((current) => ({
-        ...current,
-        ...nextStatuses,
-      }));
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [weekEntries, canPlanWeek]);
 
   return (
     <div className="relative min-w-0 max-w-full overflow-hidden rounded-3xl border border-stone-200 bg-white p-4 shadow-[0_24px_80px_-52px_rgba(15,23,42,0.32)] sm:p-6 md:p-8">
@@ -812,16 +604,8 @@ function ActivePhase({
                   status,
                   weekTarget,
                   weekSections,
-                  weekItems,
                   weekMissionTiming,
                 } = entry;
-                const planningWeekKey = weekCalendar?.anchorWeekStart ??
-                  `${phase.phase_id}:${week.week_order}`;
-                const planningStatus = weekCalendar
-                  ? (weekPlanningStatusByKey[planningWeekKey] ??
-                    "pending_confirmation")
-                  : "pending_confirmation";
-                const planningLoading = false;
                 const borderClass = status === "completed"
                   ? "border-emerald-200 bg-emerald-50/60"
                   : status === "current"
@@ -911,47 +695,6 @@ function ActivePhase({
                             )
                             : null}
                         </div>
-
-                        {canPlanWeek(entry) && weekCalendar &&
-                            weekItems.length > 0
-                          ? (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setPlanningModalWeekKey(
-                                  weekCalendar.anchorWeekStart,
-                                )}
-                              disabled={planningLoading}
-                              className={`relative inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-sm font-medium transition-all disabled:opacity-60 ${
-                                planningStatus === "confirmed"
-                                  ? "border-stone-200 bg-white text-stone-600 shadow-sm hover:border-stone-300 hover:bg-stone-50"
-                                  : "border-amber-200/80 bg-amber-50/70 text-amber-900/80 hover:bg-amber-100/80 hover:border-amber-300/80 active:scale-[0.98]"
-                              }`}
-                            >
-                              <CalendarDays
-                                className={`h-4 w-4 ${
-                                  planningStatus === "confirmed"
-                                    ? "text-stone-500"
-                                    : "text-amber-900/60"
-                                }`}
-                              />
-                              <span
-                                className={planningStatus !== "confirmed" &&
-                                    !planningLoading
-                                  ? "animate-pulse"
-                                  : ""}
-                              >
-                                {planningLoading
-                                  ? "Chargement..."
-                                  : planningStatus === "confirmed"
-                                  ? "Modifier le planning"
-                                  : status === "upcoming"
-                                  ? "Préparer le planning"
-                                  : "Valider le planning"}
-                              </span>
-                            </button>
-                          )
-                          : null}
                       </div>
 
                       {weekSections.length > 0
@@ -968,13 +711,6 @@ function ActivePhase({
                                   recommendedDays={weekMissionTiming
                                     .recommendedDaysByItemId.get(item.id) ??
                                     null}
-                                  onOpenWeekPlanning={canPlanWeek(entry) &&
-                                      weekCalendar
-                                    ? () =>
-                                      setPlanningModalWeekKey(
-                                        weekCalendar.anchorWeekStart,
-                                      )
-                                    : null}
                                   unlockState={unlockStateByItemId.get(
                                     item.id,
                                   ) ?? null}
@@ -997,60 +733,6 @@ function ActivePhase({
         )
         : null}
 
-      {planningModalEntry?.weekCalendar
-        ? (
-          <WeekPlanningModal
-            isOpen={planningModalWeekKey ===
-              planningModalEntry.weekCalendar.anchorWeekStart}
-            weekTitle={`Semaine ${planningModalEntry.week.week_order}`}
-            weekCalendar={planningModalEntry.weekCalendar}
-            items={planningModalEntry.weekItems}
-            preferredDaysByItemId={planningModalEntry.weekMissionTiming
-              .recommendedDaysByItemId}
-            onClose={() => setPlanningModalWeekKey(null)}
-            onSaved={(status) => {
-              setWeekPlanningStatusByKey((current) => ({
-                ...current,
-                [planningModalEntry.weekCalendar!.anchorWeekStart]: status,
-              }));
-            }}
-          />
-        )
-        : null}
-
-      {levelReviewUnlocked
-        ? (
-          <div className="mb-10 rounded-2xl border border-emerald-200 bg-emerald-50/70 p-5">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div className="max-w-2xl">
-                <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-emerald-700">
-                  Validation du prochain niveau
-                </p>
-                <p className="mt-2 text-sm leading-6 text-stone-700">
-                  {phase.transition_ready
-                    ? "Tu as bouclé les actions de ce niveau. Prends 2 minutes pour calibrer le prochain niveau avant de lancer la suite."
-                    : "La validation du prochain niveau est disponible deux jours avant la fin. Sophia utilisera tes réponses pour préparer la suite et l'ajuster si nécessaire."}
-                </p>
-              </div>
-              {onCompleteLevel
-                ? (
-                  <button
-                    type="button"
-                    onClick={onCompleteLevel}
-                    disabled={completeLevelBusy}
-                    className="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {completeLevelBusy
-                      ? "Préparation..."
-                      : "Valider le prochain niveau"}
-                  </button>
-                )
-                : null}
-            </div>
-          </div>
-        )
-        : null}
-
       {/* Sections (Fallbacks if no weeks are defined) */}
       {phase.weeks.length === 0 && sections.length > 0
         ? (
@@ -1064,7 +746,6 @@ function ActivePhase({
                   weekStatus={null}
                   weekOrder={null}
                   recommendedDays={null}
-                  onOpenWeekPlanning={null}
                   unlockState={unlockStateByItemId.get(item.id) ?? null}
                   isBusy={busyItemId === item.id}
                   onComplete={onComplete}
@@ -1238,7 +919,6 @@ export function PhaseProgression({
   phases,
   scheduleAnchor,
   planAdjustmentRevision,
-  phase1Node,
   activePhaseFooterNode,
   renderPhaseFooterNode,
   levelToolRecommendationsByPhaseId,
@@ -1250,8 +930,6 @@ export function PhaseProgression({
   onCardsChanged,
   onOpenDefenseResourceEditor,
   onLogHeartbeat,
-  onCompleteLevel,
-  completeLevelBusy,
   onCompletionAction,
   completionActionLabel,
   completionActionHint,
@@ -1261,7 +939,7 @@ export function PhaseProgression({
   const recosFor = (phaseId: string) =>
     levelToolRecommendationsByPhaseId?.get(phaseId) ?? [];
   const handleRecoChanged = onLevelToolRecommendationChanged ?? noopRefetch;
-  const showTimeline = phases.length > 1 || (phases.length > 0 && !!phase1Node);
+  const showTimeline = phases.length > 1;
   const allCompleted = phases.length > 0 &&
     phases.every((p) => p.state === "completed");
   const isMultiPart = journeyContext?.is_multi_part === true;
@@ -1317,21 +995,6 @@ export function PhaseProgression({
           : null}
 
         <div className="grid min-w-0 gap-3 lg:pl-0 sm:pl-10">
-          {phase1Node
-            ? (
-              <div className="relative min-w-0 max-w-full transition-all duration-500 mb-2">
-                {showTimeline
-                  ? (
-                    <div className="absolute -left-10 lg:-left-[43px] top-10 z-10 hidden sm:grid h-6 w-6 place-items-center rounded-full border-[1.5px] border-emerald-400 bg-white text-emerald-500 scale-100">
-                      <CheckCircle2 className="h-3.5 w-3.5" />
-                    </div>
-                  )
-                  : null}
-                {phase1Node}
-              </div>
-            )
-            : null}
-
           {phases.map((phase) => (
             <div
               key={phase.phase_id}
@@ -1387,8 +1050,6 @@ export function PhaseProgression({
                       onCardsChanged={onCardsChanged}
                       onOpenDefenseResourceEditor={onOpenDefenseResourceEditor}
                       onLogHeartbeat={onLogHeartbeat}
-                      onCompleteLevel={onCompleteLevel}
-                      completeLevelBusy={completeLevelBusy}
                       levelToolRecommendations={recosFor(phase.phase_id)}
                       onLevelToolRecommendationChanged={handleRecoChanged}
                     />

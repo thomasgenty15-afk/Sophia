@@ -66,8 +66,8 @@ Deno.test("coaching_intervention_observability: finds deprioritized ineffective 
 Deno.test("coaching_intervention_observability: detects rendered coaching signal", () => {
   const result = detectCoachingInterventionRender({
     addon: {
+      intervention_id: "coach_test_1",
       eligible: true,
-      gate: "allow",
       decision: "propose",
       reason: "test",
       blocker_type: "start_friction",
@@ -80,16 +80,54 @@ Deno.test("coaching_intervention_observability: detects rendered coaching signal
       follow_up_needed: true,
       follow_up_window_hours: 18,
       trigger_kind: "explicit_blocker",
-      explicit_help_request: true,
       target_action_title: "Rapport",
       selector_source: "fallback",
-      decided_at: "2026-03-22T10:00:00.000Z",
     },
-    responseContent: "Fais juste un sprint de 10 minutes maintenant, puis tu reevalues.",
+    // The detector now matches ONLY the technique label verbatim — see the pinned case below.
+    responseContent:
+      "Fais juste un Sprint 10 minutes maintenant, puis tu reevalues.",
   });
 
   assertEquals(result.rendered, true);
+  assertEquals(result.render_signal, "technique_label_detected");
   assertEquals(result.technique_signal_detected, true);
+});
+
+// ── Pinned regression ────────────────────────────────────────────────────────────────────
+// W2.D-2 — this case used to pass with the paraphrase "sprint de 10 minutes". Commit
+// 52e012ad (2026-06-10) deleted the `techniqueSignalPattern` keyword branch from
+// `detectCoachingInterventionRender`, leaving only an exact, case-insensitive match on
+// `technique.label`. Since Sophia writes in natural French and almost never quotes a label
+// verbatim, `technique_signal_detected` is now false for most genuinely rendered techniques:
+// the observability signal under-reports rather than over-reports.
+//
+// Pinned so the loss is visible. Restoring keyword detection makes this RED.
+Deno.test("PINNED REGRESSION: a paraphrased technique is no longer detected as rendered", () => {
+  const result = detectCoachingInterventionRender({
+    addon: {
+      intervention_id: "coach_test_2",
+      eligible: true,
+      decision: "propose",
+      reason: "test",
+      blocker_type: "start_friction",
+      confidence: 0.6,
+      need_clarification: false,
+      recommended_technique: "ten_minute_sprint",
+      technique_candidates: ["ten_minute_sprint"],
+      message_angle: "gentle_experiment",
+      intensity: "standard",
+      follow_up_needed: true,
+      follow_up_window_hours: 18,
+      trigger_kind: "explicit_blocker",
+      target_action_title: "Rapport",
+      selector_source: "fallback",
+    },
+    responseContent:
+      "Fais juste un sprint de 10 minutes maintenant, puis tu reevalues.",
+  });
+
+  assertEquals(result.technique_signal_detected, false);
+  assertEquals(result.render_signal, "generic_response_after_addon");
 });
 
 Deno.test("coaching_intervention_observability: derives follow-up audit from pending resolution", () => {

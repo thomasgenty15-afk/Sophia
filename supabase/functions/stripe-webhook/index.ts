@@ -6,7 +6,8 @@ import { verifyStripeWebhookSignature } from "../_shared/stripe.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
 import {
   intervalFromStripePriceId,
-  tierFromStripePriceId,
+  isKeelPlatformPriceId,
+  tierFromStripePriceIds,
 } from "../_shared/billing-tier.ts";
 import {
   decideSubscriptionNotification,
@@ -326,12 +327,29 @@ Deno.serve(async (req) => {
       const currentPeriodStart = unixToIso(sub?.current_period_start);
       const currentPeriodEnd = unixToIso(sub?.current_period_end);
 
+      // W10 — a KEEL coach subscription carries TWO items (the flat platform
+      // line and the per-active-student seat line) and Stripe makes no promise
+      // about their order. Reading `items.data[0]` alone was a coin flip: half
+      // the events would have resolved the seat line, returned null, blanked
+      // `subscriptions.tier`, and — through the roster trigger — dropped every
+      // student of that coach to access_tier='none'. Read every item.
+      const allPriceIds: Array<string | null> = [
+        ...((sub?.items?.data ?? []) as Array<any>).map(
+          (it) => (it?.price?.id as string | undefined) ?? null,
+        ),
+        (sub?.plan?.id as string | undefined) ?? null,
+      ];
+      // The stored `stripe_price_id` stays single-valued (one column). For a
+      // KEEL coach it is the PLATFORM line: the seat line's quantity moves
+      // every month, so it is the unstable one and a poor identity.
       const stripePriceId =
-        (sub?.items?.data?.[0]?.price?.id as string | undefined) ??
-          (sub?.plan?.id as string | undefined) ??
+        allPriceIds.find((id) => isKeelPlatformPriceId(id)) ??
+          allPriceIds.find((id) => Boolean(id)) ??
           null;
-      const tier = tierFromStripePriceId(stripePriceId);
-      const interval = intervalFromStripePriceId(stripePriceId);
+      const tier = tierFromStripePriceIds(allPriceIds);
+      const interval = allPriceIds
+        .map((id) => intervalFromStripePriceId(id))
+        .find((v) => v !== null) ?? null;
 
       const stripeCustomerId = typeof sub?.customer === "string"
         ? (sub.customer as string)
@@ -438,16 +456,24 @@ Deno.serve(async (req) => {
             currentPeriodEnd: prevRow.current_period_end ?? null,
           }
           : null;
-        const notifKind: NotificationKind = decideSubscriptionNotification(
-          prevSnapshot,
-          {
-            status,
-            tier: tier as SubTier,
-            interval: interval as SubInterval,
-            currentPeriodEnd,
-          },
-          Date.now(),
-        );
+        // W10 — the legacy B2C confirmation is French, WhatsApp-only, and its
+        // copy names tiers ("Alliance", "Architecte") that a KEEL coach never
+        // bought. A coach subscription is deliberately excluded from it rather
+        // than mapped onto a label that would be a lie. The subscription mirror
+        // above is unaffected: what is skipped is a message, not a write.
+        const isCoachSubscription = tier === "coach";
+        const notifKind: NotificationKind = isCoachSubscription
+          ? null
+          : decideSubscriptionNotification(
+            prevSnapshot,
+            {
+              status,
+              tier: tier as SubTier,
+              interval: interval as SubInterval,
+              currentPeriodEnd,
+            },
+            Date.now(),
+          );
 
         // RGPD: accounts pending deletion are excluded from all proactive processing.
         // The subscriptions mirror above stays exact; only the confirmation message is suppressed.

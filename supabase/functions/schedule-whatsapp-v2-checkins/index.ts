@@ -28,6 +28,7 @@ import {
   type TodayActionOccurrenceSchedule,
 } from "../_shared/action_occurrences.ts";
 import { computeScheduledForFromLocal } from "../_shared/scheduled_checkins.ts";
+import { classifyProvisioningTimezones } from "./timezone_gate.ts";
 import {
   isEveningActionTimeOfDay,
   isLateActionTimeOfDay,
@@ -41,6 +42,8 @@ import {
   randomMorningEncouragementLocalTime,
   randomNightPrepLocalTime,
 } from "../_shared/proactive_checkin_timing.ts";
+import { provisionKeelDayForUser } from "../_shared/keel/provision_day.ts";
+import { tierGrantsProtocolExecution } from "../_shared/billing-tier.ts";
 import {
   BIRTHDAY_GREETING_EVENING_LOCAL_TIME,
   BIRTHDAY_GREETING_MORNING_LOCAL_TIME,
@@ -53,12 +56,10 @@ import {
   listMorningNudgeEventContexts,
 } from "../sophia-brain/momentum_morning_nudge.ts";
 import {
-  buildWeeklyPlanningValidationMessage,
   buildWeeklyProgressReviewFallbackMessage,
   buildWeeklyProgressReviewGrounding,
   buildWeeklyProgressReviewInstruction,
   currentWeekStartForTimezone,
-  hasPlanifiableWeekStart,
   loadWeeklyProgressReview,
   localWeekdayForTimezone,
   WEEKLY_PLANNING_VALIDATION_PROMPT_EVENT_CONTEXT,
@@ -67,7 +68,6 @@ import {
 } from "../_shared/weekly_progress_review.ts";
 
 const MORNING_ENCOURAGEMENT_START_LOCAL_TIME = "08:00";
-const WEEKLY_PLANNING_PROMPT_LOCAL_TIME = "10:30";
 const WEEKLY_PROGRESS_REVIEW_LOCAL_TIME = "18:30";
 const MORNING_PENDING_STATUSES = ["pending", "retrying", "awaiting_user"];
 const LEGACY_ACTION_MORNING_FOLLOWUP_EVENT_CONTEXT =
@@ -154,11 +154,19 @@ function errorToMessage(error: unknown): string {
   }
 }
 
+// Imported for the KEEL provisioning gate below (W10). Kept as a named import
+// rather than re-implemented here: the tier vocabulary has four hard-coded
+// sites already and this file is not going to be a fifth.
 function isWhatsappSchedulingTierEligible(
   accessTierRaw: unknown,
   trialEndRaw?: unknown,
 ): boolean {
   const tier = cleanText(accessTierRaw).toLowerCase();
+  // W10 (MEGA_REVIEW B6): 'coach' and 'student' are KEEL tiers. The student
+  // never subscribes — their coach pays the seat — so a predicate that only
+  // knew the legacy B2C tiers answered "not eligible" for every KEEL student
+  // on the platform and cancelled their pending check-ins every hour.
+  if (tier === "coach" || tier === "student") return true;
   if (tier === "alliance" || tier === "architecte") return true;
   if (tier !== "trial") return false;
 
@@ -193,29 +201,6 @@ async function hasActiveBirthdayGreetingForEvent(params: {
     .limit(1);
   if (error) throw error;
   return (data ?? []).length > 0;
-}
-
-async function hasActiveWeeklyPlanningPromptForWeek(params: {
-  supabaseAdmin: ReturnType<typeof createClient>;
-  userId: string;
-  targetWeekStartDate: string;
-}): Promise<boolean> {
-  const { data, error } = await params.supabaseAdmin
-    .from("scheduled_checkins")
-    .select("id,message_payload")
-    .eq("user_id", params.userId)
-    .eq("event_context", WEEKLY_PLANNING_VALIDATION_PROMPT_EVENT_CONTEXT)
-    .in("status", ["pending", "retrying", "awaiting_user", "sent"])
-    .limit(50);
-  if (error) throw error;
-
-  return ((data ?? []) as Array<Record<string, unknown>>).some((row) => {
-    const payload = (row as any)?.message_payload ?? {};
-    return cleanText(payload?.target_week_start_date) ===
-        params.targetWeekStartDate ||
-      cleanText(payload?.next_week_start_date) === params.targetWeekStartDate ||
-      cleanText(payload?.week_start_date) === params.targetWeekStartDate;
-  });
 }
 
 async function cancelFutureMorningCheckins(params: {
@@ -278,6 +263,8 @@ async function cancelFutureWeeklyCheckins(params: {
     .delete()
     .eq("user_id", params.userId)
     .in("event_context", [
+      // Legacy (W2.B): plus produit, mais des lignes existent encore en base —
+      // on continue à les annuler quand le user coupe les envois hebdo.
       WEEKLY_PLANNING_VALIDATION_PROMPT_EVENT_CONTEXT,
       WEEKLY_PROGRESS_REVIEW_EVENT_CONTEXT,
     ])
@@ -361,17 +348,47 @@ Deno.serve(async (req) => {
     const { data: profiles, error: profilesErr } = await profilesQuery;
     if (profilesErr) throw profilesErr;
 
+    // KEEL W1.3 bug 3: the daily 00:05 UTC pass provisioned New York on its
+    // PREVIOUS local day, so the morning slot was already past and no US user
+    // ever got a morning nudge. The cron is now hourly and each timezone is
+    // provisioned once, when its own local day opens ([00:00, 01:00)).
+    // Idempotence on a double pass is carried by the unique index
+    // scheduled_checkins_user_event_time_unique. Targeted refreshes
+    // (user_id / full_reset) are event-driven and bypass the gate.
+    const timezoneGateEnabled = !userIdFilter && !fullReset &&
+      body.ignore_timezone_gate !== true;
+
+    // W1.4 R2: classified ALWAYS, gate or no gate. `profiles.timezone` has no
+    // CHECK, and every downstream helper (localDateYmdInTimezone, the slot
+    // computations…) goes through Intl too — so a single corrupted row used to
+    // throw out of the user loop and 500 the entire pass, gate enabled or not.
+    // Each parse is now isolated: the bad row's user is skipped, named and
+    // counted; the rest of the fleet is provisioned.
+    const timezoneClassification = classifyProvisioningTimezones(
+      ((profiles ?? []) as Array<Record<string, unknown>>).map((profile) =>
+        cleanText(profile.timezone, "Europe/Paris")
+      ),
+      new Date(),
+    );
+    const provisioningTimezones = timezoneGateEnabled
+      ? timezoneClassification.eligible
+      : null;
+
     let scheduled = 0;
+    let timezoneGateSkipped = 0;
+    let skippedInvalidTimezone = 0;
     let actionMorningScheduled = 0;
     let actionMorningFollowupScheduled = 0;
     let lightGreetingScheduled = 0;
     let actionEveningReviewScheduled = 0;
     let actionLateAfternoonScheduled = 0;
     let actionNightPrepScheduled = 0;
-    let weeklyPlanningPromptScheduled = 0;
     let weeklyProgressReviewScheduled = 0;
     let weeklyProgressReviewSkippedNewUser = 0;
     let birthdayGreetingScheduled = 0;
+    let keelSlotRemindersScheduled = 0;
+    let keelRestrictionFlagged = 0;
+    let keelProvisioningFailed = 0;
     let skipped = 0;
     let candidates = 0;
 
@@ -382,12 +399,77 @@ Deno.serve(async (req) => {
       const now = new Date();
       const nowIso = now.toISOString();
       const timezone = cleanText(profile.timezone, "Europe/Paris");
+      // W1.4 R2: this ONE row carries a timezone Intl cannot resolve. It is
+      // skipped loudly and alone — it used to take the whole fleet's pass down
+      // with it.
+      if (timezoneClassification.invalid.has(timezone)) {
+        console.warn(
+          "[schedule-whatsapp-v2-checkins] skipped_invalid_timezone",
+          { user_id: userId, timezone },
+        );
+        skippedInvalidTimezone++;
+        continue;
+      }
+      // W1.3 bug 3: this user's local day has not just started — another
+      // hourly tick owns them. Not a skip of the user, a skip of the tick.
+      if (provisioningTimezones && !provisioningTimezones.has(timezone)) {
+        timezoneGateSkipped++;
+        continue;
+      }
       const localDate = localDateYmdInTimezone(timezone, now);
       const trialStartIso = cleanText(profile.trial_start);
       const isAccountCreatedToday = trialStartIso
         ? localDateYmdInTimezone(timezone, new Date(trialStartIso)) ===
           localDate
         : false;
+
+      // ---------------------------------------------------------------------
+      // KEEL W4.6 + W10 — slot reminders, Sunday digest, AND the proactive
+      // restriction floor.
+      //
+      // MOVED HERE IN W10, ABOVE THE TWO GATES BELOW (MEGA_REVIEW B6).
+      // It used to sit ~90 lines further down, behind `whatsapp_opted_in` and
+      // behind `isWhatsappSchedulingTierEligible`. A student invited by their
+      // coach, using the web app, cleared neither: their `access_tier` is
+      // 'student' (paid by the coach, not by them) and they may never have
+      // opted into WhatsApp at all. The consequence was not only "no
+      // reminders" — the restriction floor is the ONLY path that both
+      // suspends the nudges and writes the `contract_change_requests`
+      // escalation to the coach, and it was never evaluated for them. The
+      // safety half of this call is not a WhatsApp feature and must not be
+      // gated on a WhatsApp opt-in (BUILD_PLAN arbitrage n3).
+      //
+      // `remindersEnabled` carries the opt-in: the floor and the escalation
+      // always run; the `scheduled_checkins` writes only happen for a student
+      // who can actually receive them.
+      //
+      // Its own try/catch, as before: a KEEL failure never takes down the
+      // fleet's habit provisioning.
+      const keelRemindersEnabled = Boolean(profile.whatsapp_opted_in) &&
+        tierGrantsProtocolExecution(profile.access_tier);
+      try {
+        const keelResult = await provisionKeelDayForUser(supabaseAdmin as any, {
+          userId,
+          timezone,
+          localDate,
+          fullName: profile.full_name,
+          now,
+          remindersEnabled: keelRemindersEnabled,
+        });
+        if (keelResult.reason !== "no_published_plan") {
+          keelSlotRemindersScheduled += keelResult.provisioned;
+          if (keelResult.restrictionFlag) keelRestrictionFlagged++;
+          console.log(
+            `[schedule-whatsapp-v2-checkins] request_id=${requestId} keel_day_provisioned user_id=${userId} reason=${keelResult.reason} reminders_enabled=${keelRemindersEnabled} provisioned=${keelResult.provisioned} skipped_past=${keelResult.skippedPastTime} restriction_flag=${keelResult.restrictionFlag} restriction_escalated=${keelResult.restrictionEscalated} cancelled=${keelResult.cancelledByRestriction}`,
+          );
+        }
+      } catch (error) {
+        keelProvisioningFailed++;
+        console.error(
+          `[schedule-whatsapp-v2-checkins] request_id=${requestId} keel_provisioning_failed user_id=${userId}`,
+          error,
+        );
+      }
 
       if (!Boolean(profile.whatsapp_opted_in)) {
         await cancelPendingWhatsappCoachingCheckins({
@@ -468,6 +550,9 @@ Deno.serve(async (req) => {
         skipped++;
         continue;
       }
+
+      // (The KEEL provisioning used to sit here. It now runs ~90 lines above,
+      // before the WhatsApp opt-in and tier gates — see the block there.)
 
       const allowsMorning = true;
       const allowsEvening = true;
@@ -581,11 +666,9 @@ Deno.serve(async (req) => {
       const localWeekday = localWeekdayForTimezone(timezone, now);
       const siteUrl = getSiteUrl();
       const dashboardUrl = weeklyPlanningDashboardUrl(siteUrl);
-      // Planning validation must happen after the Sunday weekly review window.
-      // Monday morning is the fallback when the user did not resolve it during
-      // the weekly conversation.
-      const shouldTryWeeklyPlanningPrompt = allowsMorning &&
-        localWeekday === "mon";
+      // W2.B: le prompt de validation du planning hebdo (lundi matin) est
+      // supprimé — l'élève ne note plus sa propre copie. Les jours épinglés du
+      // plan SONT la prescription.
       const shouldTryWeeklyProgressReview = allowsEvening &&
         localWeekday === "sun";
       const birthdayMatch = birthdayMatchesLocalDate({
@@ -600,7 +683,6 @@ Deno.serve(async (req) => {
         (allowsEvening &&
           (hasActionsToday || hasOpenActionsFromYesterday ||
             hasTomorrowWakeUpActions)) ||
-        shouldTryWeeklyPlanningPrompt ||
         shouldTryWeeklyProgressReview ||
         shouldTryBirthdayGreeting;
 
@@ -1030,93 +1112,6 @@ Deno.serve(async (req) => {
         }
       }
 
-      if (shouldTryWeeklyPlanningPrompt) {
-        const localDate = todaySchedule.local_date;
-        const targetWeekStartDate = currentWeekStartForTimezone(timezone, now);
-        const targetWeekReview = await loadWeeklyProgressReview(
-          supabaseAdmin as any,
-          {
-            userId,
-            timezone,
-            weekStartDate: targetWeekStartDate,
-            now,
-            dashboardUrl,
-          },
-        );
-        const targetWeekConfirmedPlanCount = targetWeekReview.transformations
-          .reduce(
-            (sum, transformation) =>
-              sum +
-              transformation.summary.planned_count,
-            0,
-          );
-        if (targetWeekConfirmedPlanCount > 0) {
-          continue;
-        }
-        const hasTargetPlanifiableWeek = await hasPlanifiableWeekStart(
-          supabaseAdmin as any,
-          {
-            userId,
-            weekStartDate: targetWeekStartDate,
-          },
-        );
-        if (!hasTargetPlanifiableWeek) {
-          continue;
-        }
-        const hasExistingPlanningPrompt =
-          await hasActiveWeeklyPlanningPromptForWeek({
-            supabaseAdmin,
-            userId,
-            targetWeekStartDate,
-          });
-        if (hasExistingPlanningPrompt) {
-          continue;
-        }
-        const scheduledFor = computeScheduledForFromLocal({
-          timezone,
-          dayOffset: 0,
-          localTimeHHMM: WEEKLY_PLANNING_PROMPT_LOCAL_TIME,
-          now,
-        });
-        const draftMessage = buildWeeklyPlanningValidationMessage({
-          nextWeekStartDate: targetWeekStartDate,
-          dashboardUrl,
-        });
-        const { error: weeklyPlanningErr } = await supabaseAdmin
-          .from("scheduled_checkins")
-          .upsert(
-            {
-              user_id: userId,
-              origin: "weekly_planning",
-              event_context: WEEKLY_PLANNING_VALIDATION_PROMPT_EVENT_CONTEXT,
-              draft_message: draftMessage,
-              message_mode: "static",
-              message_payload: {
-                source: "schedule_weekly_planning_validation_prompt_v2",
-                version: 1,
-                timezone,
-                local_date: localDate,
-                next_week_start_date: targetWeekStartDate,
-                unlocked_after_weekly_review: true,
-                dashboard_url: dashboardUrl,
-                generated_at: nowIso,
-              },
-              scheduled_for: scheduledFor,
-              status: "pending",
-            } as any,
-            { onConflict: "user_id,event_context,scheduled_for" },
-          );
-        if (weeklyPlanningErr) {
-          console.error(
-            `[schedule-whatsapp-v2-checkins] request_id=${requestId} weekly_planning_upsert_failed user_id=${userId}`,
-            weeklyPlanningErr,
-          );
-        } else {
-          scheduled++;
-          weeklyPlanningPromptScheduled++;
-        }
-      }
-
       if (shouldTryWeeklyProgressReview) {
         if (isAccountCreatedToday) {
           weeklyProgressReviewSkippedNewUser++;
@@ -1197,13 +1192,27 @@ Deno.serve(async (req) => {
         action_evening_review_scheduled: actionEveningReviewScheduled,
         action_late_afternoon_scheduled: actionLateAfternoonScheduled,
         action_night_prep_scheduled: actionNightPrepScheduled,
-        weekly_planning_prompt_scheduled: weeklyPlanningPromptScheduled,
         weekly_progress_review_scheduled: weeklyProgressReviewScheduled,
         weekly_progress_review_skipped_new_user:
           weeklyProgressReviewSkippedNewUser,
         birthday_greeting_scheduled: birthdayGreetingScheduled,
+        keel_slot_reminders_scheduled: keelSlotRemindersScheduled,
+        keel_restriction_flagged: keelRestrictionFlagged,
+        keel_provisioning_failed: keelProvisioningFailed,
         skipped,
         candidates,
+        // W1.3 bug 3 observability: how many users this hourly tick handed to
+        // another tick, and which timezones it did own.
+        timezone_gate_enabled: timezoneGateEnabled,
+        timezone_gate_skipped: timezoneGateSkipped,
+        provisioned_timezones: provisioningTimezones
+          ? [...provisioningTimezones].sort()
+          : null,
+        // W1.4 R2: users excluded because THEIR timezone is unusable. A
+        // non-zero count is a data-quality alert on profiles.timezone, not a
+        // scheduler failure — and the pass now completes instead of 500-ing.
+        skipped_invalid_timezone: skippedInvalidTimezone,
+        invalid_timezones: [...timezoneClassification.invalid].sort(),
         request_id: requestId,
         user_id: userIdFilter || null,
         event_context: ACTION_MORNING_EVENT_CONTEXT,

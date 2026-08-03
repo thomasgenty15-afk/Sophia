@@ -112,7 +112,11 @@ Deno.test("trace logger does not persist duplicated safety column", async () => 
 
   assertEquals(inserts.length, 1);
   assertEquals("safety_context" in inserts[0], false);
-  assertEquals("safety_pregate" in inserts[0], false);
+  // W3.1: `safety_pregate` is written again (deterministic pregate is no longer
+  // a stub). Absent on the trace object => explicit null, never a dropped key:
+  // a missing key would make the trigger-rate denominator unknowable.
+  assertEquals("safety_pregate" in inserts[0], true);
+  assertEquals(inserts[0].safety_pregate, null);
   assertEquals("effect_ledger" in inserts[0], true);
   assertEquals(inserts[0].tool_skill_run, { selected_handler: "product_help" });
   assertEquals((inserts[0].turn_frame as Record<string, unknown>).safety, {

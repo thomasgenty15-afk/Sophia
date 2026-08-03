@@ -7,7 +7,10 @@ import type {
   DirectEffectType,
   TurnFrame,
 } from "../contracts/turn_frame.v1.ts";
-import { runDirectEffectGate } from "./direct_effect_gate.ts";
+import {
+  isKnownDirectEffectType,
+  runDirectEffectGate,
+} from "./direct_effect_gate.ts";
 
 export type EffectGateOrchestratorInput = {
   turn_frame: TurnFrame;
@@ -35,10 +38,10 @@ type Clarification = EffectGateOrchestratorResult["clarifications"][number];
 const DEFAULT_RECENT_WRITES = { source_message_ids: [] as string[] };
 const DEFAULT_DB_CHECK = async (_key: string): Promise<boolean> => false;
 
-function isKnownEffectType(value: string): value is DirectEffectType {
-  return value === "create_one_shot_reminder" ||
-    value === "track_progress_plan_item";
-}
+// W4.3: la liste vit dans `direct_effect_gate.ts` (source unique). Une copie
+// locale avait déjà pour effet de rejeter en `unknown_effect_type` tout effet
+// ajouté à `DirectEffectType` sans double édition — panne silencieuse.
+const isKnownEffectType = isKnownDirectEffectType;
 
 function unknownEffectOutcome(effectType: string): DirectEffectGateOutcome {
   return {

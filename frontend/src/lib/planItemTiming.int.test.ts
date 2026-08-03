@@ -73,6 +73,88 @@ describe("buildPlanItemMetaLabel", () => {
     );
   });
 
+  // KEEL W1.3 bug 2: `scheduled_days` comes out of the DB as canonical
+  // `mon..sun`. Before the fix this label silently lost its date.
+  it("dates a recommendation from canonical mon..sun scheduled_days", () => {
+    expect(buildPlanItemMetaLabel({
+      kindLabel: "Mission",
+      weekCalendar: PARTIAL_WEEK,
+      preferredDays: null,
+      item: {
+        dimension: "missions",
+        kind: "task",
+        time_of_day: "anytime",
+        scheduled_days: ["thu"],
+      },
+    })).toBe("Mission • recommande le jeudi 16 avril");
+  });
+
+  it("treats a canonical token and its French alias as the same day", () => {
+    const canonical = buildPlanItemMetaLabel({
+      kindLabel: "Habitude",
+      weekCalendar: PARTIAL_WEEK,
+      preferredDays: ["thu", "jeudi"],
+      item: {
+        dimension: "habits",
+        kind: "habit",
+        time_of_day: "anytime",
+        scheduled_days: null,
+      },
+    });
+    expect(canonical).toBe("Habitude • a demarrer le jeudi 16 avril");
+  });
+
+  // KEEL W1.3 bug 2, guard rail. `preferredDays` is fed from
+  // `week.mission_days`, the jsonb CONTRACT R5 names as unreachable by any
+  // CHECK. A malformed day label there must cost the date hint, not the
+  // dashboard: the fail-loud parser stays fail-loud for the CHECK-protected
+  // `scheduled_days`, and unknown mission_days tokens are dropped explicitly.
+  it("drops unknown mission_days tokens instead of crashing the render", () => {
+    expect(buildPlanItemMetaLabel({
+      kindLabel: "Mission",
+      weekCalendar: PARTIAL_WEEK,
+      preferredDays: ["dim.", "jeudi"],
+      item: {
+        dimension: "missions",
+        kind: "task",
+        time_of_day: "anytime",
+        scheduled_days: null,
+      },
+    })).toBe("Mission • recommande le jeudi 16 avril");
+
+    expect(buildPlanItemMetaLabel({
+      kindLabel: "Mission",
+      weekCalendar: PARTIAL_WEEK,
+      preferredDays: ["mercredi soir", "n importe quoi"],
+      item: {
+        dimension: "missions",
+        kind: "task",
+        time_of_day: "anytime",
+        scheduled_days: null,
+      },
+      // All tokens rejected: the label degrades to the week window, exactly as
+      // it does when mission_days is empty. No date is invented.
+    })).toBe("Mission • a faire du 16 au 19 avril");
+  });
+
+  // The trusted source keeps R7 semantics: a token that violates the CHECK is
+  // a real defect and must surface rather than be swallowed.
+  it("still throws on an unknown token in CHECK-protected scheduled_days", () => {
+    expect(() =>
+      buildPlanItemMetaLabel({
+        kindLabel: "Mission",
+        weekCalendar: PARTIAL_WEEK,
+        preferredDays: null,
+        item: {
+          dimension: "missions",
+          kind: "task",
+          time_of_day: "anytime",
+          scheduled_days: ["funday"],
+        },
+      })
+    ).toThrow();
+  });
+
   it("keeps preview meta intentionally simple", () => {
     const plan = {
       metadata: {},

@@ -765,10 +765,15 @@ Deno.test("safety_crisis does not repeat emergency numbers once delivered while 
   const context = reduced.visibleTask.conversation_context;
   // Numeros deja donnes + pas de re-escalade -> on ne re-recite pas la hotline.
   assertEquals(context.safety_resources.must_include_emergency_numbers, false);
-  assertEquals(
-    context.known_values.emergency_numbers_already_delivered,
-    true,
-  );
+  // W2.D-2 — CONTRACT GAP: `reducer.ts:483` emits `emergency_numbers_already_delivered` in
+  // `known_values`, but `SafetyCrisisConversationContext.known_values`
+  // (skills/safety_crisis/contract.ts:127-137) does not declare it. The runtime value is real
+  // (this assertion passes); only the type is behind. `visible_agent.ts:190` works around the
+  // same gap with its own cast. Widening the contract type is the durable fix.
+  const knownValues = context.known_values as typeof context.known_values & {
+    emergency_numbers_already_delivered?: boolean;
+  };
+  assertEquals(knownValues.emergency_numbers_already_delivered, true);
   // Le flag reste vrai tant que le risque est eleve.
   assertEquals(reduced.statePatch.emergency_numbers_delivered, true);
 });
@@ -1104,6 +1109,11 @@ Deno.test("safety_crisis merge audit rejects server-owned mutation declarations 
       last_assistant_safety_step: "safety_step=support_contact",
       trigger_summary: null,
       exit_memo: null,
+      // W2.D-2 — `emergency_numbers_delivered` became required on SafetyCrisisStatePatch
+      // (reducer.ts:913) after this case was written. This case is about the mutation-audit
+      // rejecting server-owned declarations, not about hotline delivery: `false` is the
+      // neutral value and leaves the assertions below unchanged.
+      emergency_numbers_delivered: false,
       summary: "Safety support active.",
     },
     now: "2026-06-15T00:00:00.000Z",

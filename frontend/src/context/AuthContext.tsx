@@ -1,7 +1,13 @@
 import { createContext, useContext } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 
-export type AccessTier = "none" | "trial" | "system" | "alliance" | "architecte";
+// KEEL W10 — the tier vocabulary is defined once, in lib/entitlements.ts, and
+// re-exported here so every existing `AccessTier` consumer picks up 'coach' and
+// 'student' without a second list to keep in sync. A local union here was how
+// the DB could return 'student' and the app still collapse it to 'none'.
+import type { AccessTierValue, EffectiveTier } from '../lib/entitlements';
+
+export type AccessTier = AccessTierValue;
 
 export type AuthSubscription = {
   status: string | null;
@@ -9,7 +15,7 @@ export type AuthSubscription = {
   cancel_at_period_end: boolean | null;
   stripe_price_id: string | null;
   interval?: "monthly" | "yearly" | null;
-  effective_tier?: "system" | "alliance" | "architecte" | "none" | null;
+  effective_tier?: EffectiveTier | null;
 };
 
 export type AccountStatus = "active" | "deletion_pending";

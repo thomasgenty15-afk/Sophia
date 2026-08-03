@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import type { AuthChangeEvent, Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { isPrelaunchLockdownEnabled } from '../security/prelaunch';
+import { normalizeAccessTierValue } from '../lib/entitlements';
 import {
   AuthContext,
   type AccessTier,
@@ -48,18 +49,11 @@ function isLikelyNetworkError(err: unknown) {
   );
 }
 
-function normalizeAccessTier(value: unknown): AccessTier {
-  const raw = String(value ?? "none").trim().toLowerCase();
-  if (
-    raw === "trial" ||
-    raw === "system" ||
-    raw === "alliance" ||
-    raw === "architecte"
-  ) {
-    return raw;
-  }
-  return "none";
-}
+// KEEL W10 — one normalizer, in lib/entitlements.ts. The local copy that used
+// to live here did not know 'coach' or 'student', so a KEEL student whose
+// profile said 'student' arrived in the app as 'none' — MEGA_REVIEW B6, on the
+// client side.
+const normalizeAccessTier = normalizeAccessTierValue;
 
 function normalizeSubscription(
   row: SubscriptionRow | null,

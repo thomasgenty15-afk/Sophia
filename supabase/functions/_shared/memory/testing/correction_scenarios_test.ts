@@ -1,3 +1,4 @@
+import { fromFileUrl } from "https://deno.land/std@0.208.0/path/mod.ts";
 import { assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import {
   deleteMemoryItem,
@@ -9,8 +10,13 @@ import { InMemoryCorrectionRepository } from "../correction/test_repo.ts";
 import { purgeMemoryPayloadItems } from "../runtime/payload_state.ts";
 import { loadScenarios } from "./scenario_loader.ts";
 
+// Scenario fixtures live next to this file. Resolving from import.meta.url keeps the
+// suite runnable from any cwd (repo root, supabase/functions, or an IDE runner).
+const SCENARIOS_DIR = fromFileUrl(new URL("./scenarios", import.meta.url));
+
+
 Deno.test("scenario 09 correction supersedes wrong Tania sister memory", async () => {
-  const scenario = (await loadScenarios()).find((s) =>
+  const scenario = (await loadScenarios(SCENARIOS_DIR)).find((s) =>
     s.id === "09_correction_wrong_memory"
   )!;
   const seed = scenario.initial_state!.memory_items![0];
@@ -42,7 +48,7 @@ Deno.test("scenario 09 correction supersedes wrong Tania sister memory", async (
 });
 
 Deno.test("scenario 10 forget redacts item, sources, topic text and payload", async () => {
-  const scenario = (await loadScenarios()).find((s) =>
+  const scenario = (await loadScenarios(SCENARIOS_DIR)).find((s) =>
     s.id === "10_forget_sensitive_item"
   )!;
   const seed = scenario.initial_state!.memory_items![0];

@@ -1,7 +1,6 @@
 import { assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import {
   sessionDecisionFromCoachingState,
-  sessionDecisionFromFeatureOpportunityState,
   sessionDecisionFromPlanRealignmentState,
   sessionDecisionsFromTempMemory,
   sessionDecisionsPromptBlock,
@@ -35,6 +34,8 @@ Deno.test("session decisions block carries the canonical potion catalogue and gr
     lever: "state_potion",
     technique: null,
     potion_type: "amour",
+    handoff: null,
+    status: "retained" as const,
   });
   const block = sessionDecisionsPromptBlock(tempMemory);
   assertEquals(block?.includes("DECISIONS DE SESSION"), true);
@@ -55,6 +56,8 @@ Deno.test("session decisions block carries the canonical potion catalogue and gr
     lever: "state_potion",
     technique: null,
     potion_type: "amour",
+    handoff: null,
+    status: "retained" as const,
   });
   tempMemory = withSessionDecision(tempMemory, {
     source: "coaching_recommendation",
@@ -62,6 +65,8 @@ Deno.test("session decisions block carries the canonical potion catalogue and gr
     lever: "attack_card",
     technique: "mot_de_bascule",
     potion_type: null,
+    handoff: null,
+    status: "retained" as const,
   });
   const decisions = tempMemory.__session_decisions as unknown[];
   assertEquals(decisions.length, 2);
@@ -130,19 +135,10 @@ Deno.test("une nouvelle decision sur le meme levier supersede l'ancienne en 'eca
   );
 });
 
-Deno.test("les hand-offs feature_opportunity et plan_realignment sont captures comme decisions de session (paul-r9 B02, nina-r7 B04)", () => {
-  const initiative = sessionDecisionFromFeatureOpportunityState({
-    feature: "initiatives",
-    user_problem_summary: "message de motivation chaque matin a 7h30",
-    turn_count: 2,
-    max_turns: 6,
-  });
-  assertEquals(initiative?.source, "feature_opportunity");
-  assertEquals(
-    initiative?.handoff?.includes("7h30"),
-    true,
-  );
-
+// W2.B: le volet `feature_opportunity` de ce test est parti avec le skill.
+// La retro-compatibilite d'ETAT reste couverte plus bas: une entree persistee
+// portant `source: "feature_opportunity"` doit encore etre relue telle quelle.
+Deno.test("le hand-off plan_realignment est capture comme decision de session (nina-r7 B04)", () => {
   const realignment = sessionDecisionFromPlanRealignmentState({
     drift_type: "plan_too_light",
     scope: "week",
@@ -150,8 +146,7 @@ Deno.test("les hand-offs feature_opportunity et plan_realignment sont captures c
   assertEquals(realignment?.source, "plan_realignment");
   assertEquals(realignment?.handoff?.includes("plan_too_light"), true);
 
-  // Anti-faux-positifs: pas de feature → rien; drift ambigu → rien.
-  assertEquals(sessionDecisionFromFeatureOpportunityState({ feature: null }), null);
+  // Anti-faux-positif: drift ambigu → rien.
   assertEquals(
     sessionDecisionFromPlanRealignmentState({ drift_type: "ambiguous" }),
     null,
@@ -159,10 +154,27 @@ Deno.test("les hand-offs feature_opportunity et plan_realignment sont captures c
 
   // Le bloc liste le reste-a-faire.
   let tempMemory: Record<string, unknown> = {};
-  tempMemory = withSessionDecision(tempMemory, initiative);
+  tempMemory = withSessionDecision(tempMemory, realignment);
   const block = sessionDecisionsPromptBlock(tempMemory);
-  assertEquals(block?.includes("initiatives"), true);
+  assertEquals(block?.includes("plan_too_light"), true);
   assertEquals(block?.includes("reste a faire de ton cote"), true);
+});
+
+// W2.B: garde-fou de retro-compatibilite d'ETAT — une decision persistee par
+// l'ancien skill `feature_opportunity` doit rester lue avec sa source, jamais
+// re-etiquetee en `coaching_recommendation`.
+Deno.test("une decision persistee source=feature_opportunity reste relue telle quelle (retro-compatibilite W2.B)", () => {
+  const decisions = sessionDecisionsFromTempMemory({
+    __session_decisions: [{
+      source: "feature_opportunity",
+      feature: "initiatives",
+      handoff: "initiatives: message de motivation chaque matin a 7h30",
+      status: "retained",
+    }],
+  });
+  assertEquals(decisions.length, 1);
+  assertEquals(decisions[0].source, "feature_opportunity");
+  assertEquals(decisions[0].handoff?.includes("7h30"), true);
 });
 
 Deno.test("les entrees pre-V5 sans statut restent lues comme retenues (retro-compatibilite d'etat)", () => {

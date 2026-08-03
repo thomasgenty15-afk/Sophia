@@ -120,9 +120,17 @@ Deno.test("expiration on local day change", () => {
   );
 });
 
-Deno.test("potion door-opener waits for semantic first-reply classification beyond 6h", () => {
+// W2.B will delete this: le door-opener potion (PotionSupportPresenceEntryContext)
+// est supprimé en W2.A; la Présence n'est plus armée que par attack_keyword.
+Deno.test({
+  name:
+    "potion door-opener waits for semantic first-reply classification beyond 6h",
+  ignore: true,
+}, () => {
   const state = baseState({
     entry_reason: "potion_support_door_opener",
+    // W2.A: PotionSupportPresenceEntryContext n'existe plus (cast conservé
+    // pour garder le corps lisible; le test est ignoré, W2.B le supprime).
     entry_context: {
       source: "potion_support",
       source_potion_session_id: "session-1",
@@ -130,7 +138,7 @@ Deno.test("potion door-opener waits for semantic first-reply classification beyo
       scheduled_checkin_id: "checkin-1",
       anchor_evidence_refs: [],
       awaiting_first_reply: true,
-    },
+    } as any,
   });
   const related = stepPresenceFlow({
     state,

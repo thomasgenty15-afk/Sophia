@@ -8,7 +8,8 @@
 //
 // Per-user order:
 //   1. upsert the anonymised proof into deletion_records (hashes only)
-//   2. delete storage objects (gdpr-exports/<user_id>/…)
+//   2. delete storage objects under <user_id>/ in every bucket (gdpr-exports,
+//      plan-documents, meal-photos) — paginated, storage.list() caps at 100
 //   3. explicit deletes for tables whose FK is ON DELETE SET NULL but whose rows
 //      still carry personal data (message contents, phone numbers, error payloads)
 //   4. auth.admin.deleteUser → cascades profiles + the ~80 ON DELETE CASCADE tables;
@@ -28,6 +29,17 @@ import {
 
 const BATCH_SIZE = 25;
 const EXPORT_BUCKET = "gdpr-exports";
+// Every bucket whose objects are keyed `<user_id>/…` (KEEL convention, see
+// 20260727130000_keel_storage.sql). Missing a bucket here means personal files
+// survive a "hard" purge.
+const PURGE_BUCKETS = [EXPORT_BUCKET, "plan-documents", "meal-photos"];
+// storage.list() returns at most 100 objects by default and gives NO truncation
+// signal — a single call purges the first 100 photos and silently leaves the
+// rest. Hence the explicit paginated walk below.
+const STORAGE_LIST_PAGE = 100;
+const STORAGE_REMOVE_BATCH = 100;
+const STORAGE_MAX_PAGES = 2000;
+const STORAGE_MAX_DEPTH = 4;
 
 function requireEnv(name: string): string {
   const v = (Deno.env.get(name) ?? "").trim();
@@ -41,20 +53,80 @@ function chunk<T>(items: T[], size: number): T[][] {
   return out;
 }
 
-async function deleteUserExports(
+// Enumerates every object under `prefix`, walking nested prefixes, WITHOUT
+// deleting during the walk: offset pagination shifts under concurrent deletes,
+// which is how a paginated purge skips objects. Collect first, remove after.
+async function listPrefixObjects(
+  admin: ReturnType<typeof createClient>,
+  bucket: string,
+  prefix: string,
+  depth: number,
+): Promise<string[]> {
+  // R7: a depth overrun is NOT a reason to return an empty list — that would
+  // report a completed purge while leaving personal files in the bucket. The
+  // walk fails loudly and the user is retried on the next cron pass.
+  if (depth > STORAGE_MAX_DEPTH) {
+    throw new Error(`storage_walk_too_deep:${bucket}/${prefix}`);
+  }
+  const paths: string[] = [];
+  const nested: string[] = [];
+  for (let page = 0; page < STORAGE_MAX_PAGES; page++) {
+    const { data, error } = await admin.storage.from(bucket).list(prefix, {
+      limit: STORAGE_LIST_PAGE,
+      offset: page * STORAGE_LIST_PAGE,
+      sortBy: { column: "name", order: "asc" },
+    });
+    if (error) {
+      // A bucket that does not exist on this stack is not a purge blocker; a
+      // bucket that starts answering and then fails mid-walk is (R7: never
+      // report a purge that did not happen).
+      if (page === 0 && depth === 0) {
+        console.warn(`[purge-deleted-accounts] storage list failed for ${bucket}/${prefix}`, error);
+        return [];
+      }
+      throw error;
+    }
+    const entries = data ?? [];
+    for (const entry of entries) {
+      const name = String(entry?.name ?? "");
+      if (!name) continue;
+      const path = `${prefix}/${name}`;
+      // A nested prefix ("folder") has a null id; a real object has one.
+      if (entry?.id == null) nested.push(path);
+      else paths.push(path);
+    }
+    if (entries.length < STORAGE_LIST_PAGE) break;
+    if (page === STORAGE_MAX_PAGES - 1) {
+      throw new Error(`storage_walk_exhausted:${bucket}/${prefix}`);
+    }
+  }
+  for (const sub of nested) {
+    paths.push(...await listPrefixObjects(admin, bucket, sub, depth + 1));
+  }
+  return paths;
+}
+
+// Deletes everything under `<prefix>/` in one bucket. Idempotent: a re-run on an
+// already-empty prefix removes nothing and succeeds.
+async function purgeBucketPrefix(
+  admin: ReturnType<typeof createClient>,
+  bucket: string,
+  prefix: string,
+): Promise<number> {
+  const paths = await listPrefixObjects(admin, bucket, prefix, 0);
+  for (const batch of chunk(paths, STORAGE_REMOVE_BATCH)) {
+    const { error: rmErr } = await admin.storage.from(bucket).remove(batch);
+    if (rmErr) throw rmErr;
+  }
+  return paths.length;
+}
+
+async function deleteUserStorage(
   admin: ReturnType<typeof createClient>,
   userId: string,
 ): Promise<void> {
-  const { data: objects, error } = await admin.storage.from(EXPORT_BUCKET).list(userId);
-  if (error) {
-    // Bucket missing locally is not a purge blocker.
-    console.warn(`[purge-deleted-accounts] storage list failed for ${userId}`, error);
-    return;
-  }
-  const paths = (objects ?? []).map((o) => `${userId}/${o.name}`);
-  if (paths.length > 0) {
-    const { error: rmErr } = await admin.storage.from(EXPORT_BUCKET).remove(paths);
-    if (rmErr) throw rmErr;
+  for (const bucket of PURGE_BUCKETS) {
+    await purgeBucketPrefix(admin, bucket, userId);
   }
 }
 
@@ -140,8 +212,8 @@ async function purgeOneUser(
     .upsert(record, { onConflict: "user_id_hash", ignoreDuplicates: true });
   if (recErr) throw recErr;
 
-  // 2) Stored exports.
-  await deleteUserExports(admin, userId);
+  // 2) Stored files: RGPD exports, plan documents, meal photos.
+  await deleteUserStorage(admin, userId);
 
   // 3) Personal data in SET-NULL / FK-less tables.
   const phoneDigits = String(profile.phone_number ?? "").replace(/\D/g, "");

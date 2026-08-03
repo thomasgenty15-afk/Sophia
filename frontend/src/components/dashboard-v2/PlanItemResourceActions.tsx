@@ -8,9 +8,7 @@ import type {
   AttackTechniqueKey,
 } from "../../hooks/useLabCards";
 import { supabase } from "../../lib/supabase";
-import {
-  AttackTechniqueFlowModal,
-} from "./LabCardsPanel";
+import { AttackTechniqueFlowModal } from "../../keel/components/AttackCards";
 import {
   ATTACK_TECHNIQUE_ACTION_QUESTION_INDEX,
   ATTACK_TECHNIQUE_PREVIEWS,

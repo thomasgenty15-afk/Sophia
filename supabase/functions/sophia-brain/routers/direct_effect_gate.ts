@@ -5,6 +5,78 @@ import type {
 } from "../contracts/turn_frame.v1.ts";
 import { blocksDirectEffects } from "../safety/safety_thresholds.ts";
 
+/**
+ * W3.3 — vocabulaire d'effets KEEL, préparé AVANT que W4 ne l'ouvre.
+ *
+ * W4.3 ajoutera `log_protocol_event` et `declare_deviation` à
+ * `DirectEffectType` (contracts/turn_frame.v1.ts). Ces deux effets écrivent
+ * des FAITS (`protocol_events`, `planned_deviations`) : ils sont exactement du
+ * même genre que `track_progress_plan_item`, donc la safety doit les bloquer
+ * en bande >= medium comme les deux effets existants — pas « aussi », mais
+ * PAR DÉFAUT : la règle ci-dessous est une liste d'EXEMPTIONS fermée, si bien
+ * qu'un effet neuf est bloqué tant que personne ne l'exempte explicitement.
+ * L'inverse (liste de blocages) laisserait passer en silence tout effet ajouté
+ * plus tard sans y penser.
+ *
+ * Le test `direct_effect_gate_keel_test.ts` fige les deux propriétés et
+ * échouera (ignore levé) le jour où W4 étend l'union de types.
+ */
+export const KEEL_DIRECT_EFFECT_TYPES = [
+  "log_protocol_event",
+  "declare_deviation",
+] as const;
+
+/**
+ * W4.3 — vocabulaire COMPLET des effets durables reconnus par le runtime.
+ *
+ * Source unique : le gate le déclare, l'orchestrateur le consomme. Avant W4.3,
+ * `effect_gate_orchestrator.ts` recopiait la liste dans un prédicat local ;
+ * l'union de `DirectEffectType` et la liste de l'orchestrateur pouvaient donc
+ * diverger en silence — un effet ajouté au contrat était rejeté en
+ * `unknown_effect_type` sans que rien ne le dise. Un seul tableau, désormais.
+ *
+ * L'ordre n'a pas de sens ; l'appartenance, si.
+ */
+export const KNOWN_DIRECT_EFFECT_TYPES = [
+  "create_one_shot_reminder",
+  "track_progress_plan_item",
+  ...KEEL_DIRECT_EFFECT_TYPES,
+] as const;
+
+const KNOWN_DIRECT_EFFECT_TYPE_SET: ReadonlySet<string> = new Set(
+  KNOWN_DIRECT_EFFECT_TYPES,
+);
+
+export function isKnownDirectEffectType(
+  value: string,
+): value is DirectEffectType {
+  return KNOWN_DIRECT_EFFECT_TYPE_SET.has(value);
+}
+
+/**
+ * Liste FERMÉE des effets qui survivent à une bande safety >= medium.
+ *
+ * `create_one_shot_reminder` y figure parce que le rappel est un acte de soin
+ * demandé explicitement par l'utilisateur en crise (arbitrage V5 « safety +
+ * rappel explicit only »), pas parce qu'il est inoffensif. Rien d'autre n'y
+ * entre sans une décision produit écrite.
+ */
+const SAFETY_BLOCK_EXEMPT_EFFECT_TYPES: ReadonlySet<string> = new Set([
+  "create_one_shot_reminder",
+]);
+
+/**
+ * Un effet durable est-il bloqué par la bande safety de ce tour ?
+ * Défaut-deny : tout ce qui n'est pas explicitement exempté est bloqué.
+ */
+export function safetyBandBlocksEffect(
+  effectType: string,
+  riskBand: TurnFrame["safety"]["risk_band"],
+): boolean {
+  if (!blocksDirectEffects(riskBand)) return false;
+  return !SAFETY_BLOCK_EXEMPT_EFFECT_TYPES.has(effectType);
+}
+
 export type DirectEffectGateInput = {
   effect_type: DirectEffectType;
   turn_frame: TurnFrame;
@@ -86,14 +158,12 @@ export async function runDirectEffectGate(
       "Recurring reminder requests are never armed as one-shot effects.",
     );
   }
-  if (blocksDirectEffects(input.turn_frame.safety.risk_band)) {
-    if (toolId !== "create_one_shot_reminder") {
-      return blocked(
-        toolId,
-        "safety_high",
-        "Safety risk blocks direct effects.",
-      );
-    }
+  if (safetyBandBlocksEffect(toolId, input.turn_frame.safety.risk_band)) {
+    return blocked(
+      toolId,
+      "safety_high",
+      "Safety risk blocks direct effects.",
+    );
   }
   if (effect.explicitness !== "explicit") {
     return needsClarify(

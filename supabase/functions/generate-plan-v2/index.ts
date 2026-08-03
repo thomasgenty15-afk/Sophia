@@ -15,8 +15,6 @@ import {
   buildPhase1Context,
   mergePhase1Payload,
 } from "../_shared/v2-phase1.ts";
-import { classifyAndPersistProfessionalSupport } from "../_shared/professional-support-v2.ts";
-import { classifyAndPersistLevelToolRecommendations } from "../_shared/level-tool-recommendations-v1.ts";
 import {
   buildPlanGenerationV3UserPrompt,
   PLAN_GENERATION_V3_SYSTEM_PROMPT,
@@ -2227,100 +2225,9 @@ async function archiveLockedPlansForTransformation(args: {
   });
 }
 
-function scheduleActivationEnrichment(args: {
-  admin: SupabaseClient;
-  requestId: string;
-  userId: string;
-  cycle: UserCycleRow;
-  transformation: UserTransformationRow;
-  planRow: UserPlanV2Row;
-  plan: PlanContentV3;
-}): void {
-  const task = (async () => {
-    console.info("[generate-plan-v2][activation_enrichment][start]", {
-      request_id: args.requestId,
-      user_id: args.userId,
-      transformation_id: args.transformation.id,
-      plan_id: args.planRow.id,
-    });
-
-    const [supportResult, toolsResult] = await Promise.allSettled([
-      classifyAndPersistProfessionalSupport({
-        admin: args.admin,
-        requestId: `generate-plan-v2:${args.planRow.id}`,
-        userId: args.userId,
-        cycle: args.cycle,
-        transformation: args.transformation,
-        planRow: args.planRow,
-        plan: args.plan,
-      }),
-      classifyAndPersistLevelToolRecommendations({
-        admin: args.admin,
-        requestId: `generate-plan-v2:${args.planRow.id}`,
-        userId: args.userId,
-        cycle: args.cycle,
-        transformation: args.transformation,
-        planRow: args.planRow,
-        plan: args.plan,
-      }),
-    ]);
-
-    if (supportResult.status === "rejected") {
-      console.warn(
-        "[generate-plan-v2][activation_enrichment][support_failed]",
-        {
-          request_id: args.requestId,
-          user_id: args.userId,
-          transformation_id: args.transformation.id,
-          plan_id: args.planRow.id,
-          error: supportResult.reason instanceof Error
-            ? supportResult.reason.message
-            : String(supportResult.reason),
-        },
-      );
-    }
-    if (toolsResult.status === "rejected") {
-      console.warn("[generate-plan-v2][activation_enrichment][tools_failed]", {
-        request_id: args.requestId,
-        user_id: args.userId,
-        transformation_id: args.transformation.id,
-        plan_id: args.planRow.id,
-        error: toolsResult.reason instanceof Error
-          ? toolsResult.reason.message
-          : String(toolsResult.reason),
-      });
-    }
-    console.info("[generate-plan-v2][activation_enrichment][done]", {
-      request_id: args.requestId,
-      user_id: args.userId,
-      transformation_id: args.transformation.id,
-      plan_id: args.planRow.id,
-      support_status: supportResult.status,
-      tools_status: toolsResult.status,
-    });
-  })().catch((error) => {
-    console.warn("[generate-plan-v2][activation_enrichment][failed]", {
-      request_id: args.requestId,
-      user_id: args.userId,
-      transformation_id: args.transformation.id,
-      plan_id: args.planRow.id,
-      error: error instanceof Error ? error.message : String(error),
-    });
-  });
-
-  const edgeRuntime = (
-    globalThis as typeof globalThis & {
-      EdgeRuntime?: { waitUntil?: (promise: Promise<unknown>) => void };
-    }
-  ).EdgeRuntime;
-
-  if (typeof edgeRuntime?.waitUntil === "function") {
-    edgeRuntime.waitUntil(task);
-    return;
-  }
-
-  void task;
-}
+// W2.B: `scheduleActivationEnrichment` supprimé — les deux coutures vers
+// `professional-support-v2` et `level-tool-recommendations-v1` sont parties
+// avec ces modules. Aucun enrichissement d'activation ne subsiste.
 
 // --- Plan-activation WhatsApp confirmation (static, no AI) -------------------
 // Sent best-effort right after the very first draft/generated -> active
@@ -2760,22 +2667,6 @@ async function activatePersistedPlan(args: {
       eventWarnings.push(`Failed to initialize phase 1: ${message}`);
     }
   }
-
-  scheduleActivationEnrichment({
-    admin: args.admin,
-    requestId: args.planRow.id,
-    userId: args.userId,
-    cycle: args.context.cycle,
-    transformation: {
-      ...args.context.transformation,
-      ...transformationPatch,
-    },
-    planRow: {
-      ...args.planRow,
-      ...planPatch,
-    },
-    plan,
-  });
 
   for (
     const [eventType, reason] of [

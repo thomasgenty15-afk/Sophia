@@ -19,21 +19,10 @@ import type { PresenceConversationKind } from "../../contracts/turn_frame.v1.ts"
 // de jour local.
 export const PRESENCE_INACTIVITY_EXPIRY_MS = 6 * 60 * 60 * 1000;
 
-export type PotionSupportPresenceEntryContext = {
-  source: "potion_support";
-  source_potion_session_id: string;
-  recurring_reminder_id: string;
-  scheduled_checkin_id: string;
-  anchor_evidence_refs: Array<{
-    source_type: string;
-    source_id: string;
-    source_field: string | null;
-  }>;
-  day_index?: number;
-  topic_hint?: string | null;
-  opening_focus?: string | null;
-  awaiting_first_reply: boolean;
-};
+// W2.A: `PotionSupportPresenceEntryContext` supprimé — plus aucun door-opener
+// potion ne peut armer la Présence. Des états déjà écrits en base peuvent encore
+// porter `entry_context.source === "potion_support"`; ils sont purgés par
+// `clearPotionSupportPresence` (apply.ts), qui lit ce champ défensivement.
 
 export type AttackKeywordSupportPresenceEntryContext = {
   source: "attack_keyword_support";
@@ -43,9 +32,7 @@ export type AttackKeywordSupportPresenceEntryContext = {
   awaiting_first_reply: boolean;
 };
 
-export type PresenceEntryContext =
-  | PotionSupportPresenceEntryContext
-  | AttackKeywordSupportPresenceEntryContext;
+export type PresenceEntryContext = AttackKeywordSupportPresenceEntryContext;
 
 export type PresenceFlowState = {
   version: 1;
@@ -118,12 +105,12 @@ export function isPresenceExpired(input: {
   nowIso: string;
   localDate: string;
 }): boolean {
-  // A proactive potion door-opener waits for semantic admission on the first
-  // reply. It must not lose ownership merely because the reply came 6h later;
+  // A proactive door-opener waits for semantic admission on the first reply.
+  // It must not lose ownership merely because the reply came 6h later;
   // topic_change/tool_pull/closure still exit through the global classifier.
+  // (W2.A: la variante potion a disparu, il ne reste que attack_keyword.)
   if (
-    (input.state.entry_context?.source === "potion_support" ||
-      input.state.entry_context?.source === "attack_keyword_support") &&
+    input.state.entry_context?.source === "attack_keyword_support" &&
     input.state.entry_context.awaiting_first_reply
   ) return false;
   if (
@@ -182,8 +169,7 @@ export function stepPresenceFlow(input: {
     last_activity_at: input.nowIso,
     local_date: input.localDate,
     entry_context: input.state.entry_context &&
-        (input.state.entry_context.source === "potion_support" ||
-          input.state.entry_context.source === "attack_keyword_support")
+        input.state.entry_context.source === "attack_keyword_support"
       ? { ...input.state.entry_context, awaiting_first_reply: false }
       : input.state.entry_context,
   };

@@ -236,7 +236,7 @@ function featureFromVisibleDecision(
     return "defense_card";
   }
   if (decision.lever === "adjust_plan") return "adjust_plan";
-  if (decision.lever === "state_potion") return "state_potion";
+  // W2.A: le lever state_potion ne mappe plus vers aucune feature.
   return null;
 }
 

@@ -2157,7 +2157,26 @@ Deno.test("daily action review can hand off to daily action coaching child flow"
   assertEquals(decision.effect_plan.allowed, false);
 });
 
-Deno.test("daily action review repair ambiguous coaching child flow when target is missing", () => {
+// ── Pinned defect ────────────────────────────────────────────────────────────────────────
+// W2.D-2 — this case used to assert an explicit ambiguity repair: when the dispatcher could
+// not resolve which action the user meant, the handoff context came back as
+// `coaching_type: "ambiguous"` + `needs_type_confirmation: true`, i.e. the flow ASKED before
+// coaching. Neither field exists any more: `DailyActionCoachingHandoffContext`
+// (`skills/daily_action_coaching_recommendation/contract.ts:28`) was redesigned around a
+// resolved target, and `targetForDailyCoachingBridge`
+// (`daily_action_review/local_flow.ts:609-628`) ends on
+//
+//     return selected ?? targets[0] ?? null;
+//
+// so an unresolvable reference now silently selects the FIRST target and hands off as if it
+// were certain. Input below: `resolved_occurrence_ids: []`, `ambiguous: true`, two candidate
+// actions, evidence "celle que je rate toujours" — output: a confident handoff on "a1".
+//
+// That is a fail-silent target resolution, the exact failure mode R7 forbids and the one this
+// repo has already paid for (verify-turn destructive cancel, track target pollution). It is
+// pinned here — asserting the current behaviour — so the net is green while the defect stays
+// named and visible. Restoring an ambiguity signal makes this test RED.
+Deno.test("PINNED DEFECT: ambiguous coaching handoff silently picks the first target instead of asking", () => {
   const output = sanitizeDailyActionReviewLocalDispatcherOutput({
     targets: [
       target("a1", "Marcher 10 min"),
@@ -2198,13 +2217,15 @@ Deno.test("daily action review repair ambiguous coaching child flow when target 
   });
 
   assertEquals(output.flow_action, "handoff_to_child_flow");
-  assertEquals(output.child_flow_context?.coaching_type, "ambiguous");
-  assertEquals(output.child_flow_context?.needs_type_confirmation, true);
-  assertEquals(output.child_flow_context?.action_context, {
-    source: "ambiguous",
-    plan_item_id: null,
-    action_title: null,
-  });
+  // No ambiguity signal survives anywhere in the handoff…
+  assertEquals(
+    JSON.stringify(output.child_flow_context ?? {}).includes("ambiguous"),
+    false,
+  );
+  // …and the first of the two candidate targets is handed off as if it were resolved.
+  assertEquals(output.child_flow_context?.action_context.occurrence_id, "a1");
+  assertEquals(output.child_flow_context?.action_context.plan_item_id, "item-a1");
+  assertEquals(output.child_flow_context?.action_context.title, "Marcher 10 min");
 });
 
 Deno.test("daily action review missed reason alone does not hand off to coaching", () => {

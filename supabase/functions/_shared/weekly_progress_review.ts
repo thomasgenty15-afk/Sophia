@@ -7,9 +7,12 @@ import {
 } from "./action_occurrences.ts";
 import { DAILY_ACTION_REVIEW_SOURCE } from "./daily_action_review.ts";
 import { computeScheduledForFromLocal } from "./scheduled_checkins.ts";
-import { loadActiveWeeklyPlanning } from "./weekly_planning_lifecycle.ts";
 
 export const WEEKLY_PROGRESS_REVIEW_EVENT_CONTEXT = "weekly_progress_review_v2";
+// LEGACY (W2.B): la machine de validation hebdo est supprimée — plus rien ne
+// PRODUIT de check-in avec ce contexte. La constante survit uniquement pour
+// annuler/purger les lignes `scheduled_checkins` déjà en base. À supprimer une
+// fois process-checkins purgé et les lignes résiduelles balayées.
 export const WEEKLY_PLANNING_VALIDATION_PROMPT_EVENT_CONTEXT =
   "weekly_planning_validation_prompt";
 
@@ -799,27 +802,11 @@ async function loadActivePlansForWeeklyReview(
   };
 }
 
-export async function hasPlanifiableWeekStart(
-  supabase: SupabaseClient,
-  params: {
-    userId: string;
-    weekStartDate: string;
-  },
-): Promise<boolean> {
-  const planning = await loadActiveWeeklyPlanning(supabase, {
-    userId: params.userId,
-    weekStartDate: params.weekStartDate,
-  });
-  if (planning.has_pending) return true;
-
-  const { plans } = await loadActivePlansForWeeklyReview(
-    supabase,
-    params.userId,
-  );
-  return plans.some((plan) =>
-    planContentHasPlanifiableWeekStart(plan.content, params.weekStartDate)
-  );
-}
+// `hasPlanifiableWeekStart` a été supprimée en W2.B: son seul appelant était le
+// gate du prompt de validation hebdo dans schedule-whatsapp-v2-checkins, et sa
+// première condition lisait `user_habit_week_plans` via
+// `loadActiveWeeklyPlanning` (fichier supprimé). Le prédicat pur
+// `planContentHasPlanifiableWeekStart` reste exporté et testé.
 
 export async function loadWeeklyProgressReview(
   supabase: SupabaseClient,
@@ -969,6 +956,8 @@ export function buildWeeklyProgressReviewGrounding(
   return JSON.stringify(review);
 }
 
+// LEGACY (W2.B): plus aucun producteur dans ce dépôt. Conservé le temps que
+// process-checkins (autre lot) retire ses imports; à supprimer ensuite.
 export function buildWeeklyPlanningValidationMessage(args: {
   nextWeekStartDate: string;
   dashboardUrl: string;

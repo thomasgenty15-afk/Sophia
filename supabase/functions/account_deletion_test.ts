@@ -13,6 +13,22 @@ function getEnv(name: string): string {
   return v.trim();
 }
 
+// ── Integration gate ──────────────────────────────────────────────────────────────────────
+// These cases drive a REAL Supabase stack (auth, edge functions, DB). Without that stack the
+// suite must SKIP them, not fail them: a permanently red net is a net nobody reads. Run them
+// with `npm run test:mega`, or export the env below against a local stack — see
+// docs/keel/TESTING.md.
+const REQUIRED_ENV = ["SUPABASE_URL", "VITE_SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY"] as const;
+const MISSING_ENV = REQUIRED_ENV.filter((name) =>
+  (Deno.env.get(name) ?? "").trim().length === 0
+);
+const SKIP_INTEGRATION = MISSING_ENV.length > 0;
+if (SKIP_INTEGRATION) {
+  console.log(
+    `[skip] account_deletion_test.ts: needs a live Supabase stack — missing env: ${MISSING_ENV.join(", ")}`,
+  );
+}
+
 function makeNonce(): string {
   const rand = (globalThis.crypto as any)?.randomUUID?.() ??
     `${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -116,7 +132,7 @@ async function deleteAccount(
   return confirm.json;
 }
 
-Deno.test("account deletion: T0 flags the profile, cancels Stripe/WhatsApp, revokes sessions", async () => {
+Deno.test("account deletion: T0 flags the profile, cancels Stripe/WhatsApp, revokes sessions", { ignore: SKIP_INTEGRATION }, async () => {
   Deno.env.set("MEGA_TEST_MODE", "1");
   const { supabaseUrl, anonKey, anon, admin } = clients();
   const { userId, accessToken } = await createTestUser(anon);
@@ -211,7 +227,7 @@ Deno.test("account deletion: T0 flags the profile, cancels Stripe/WhatsApp, revo
     `replay should be rejected, got ${replay.status}`);
 });
 
-Deno.test("account deletion: outbound WhatsApp is refused for deletion_pending accounts", async () => {
+Deno.test("account deletion: outbound WhatsApp is refused for deletion_pending accounts", { ignore: SKIP_INTEGRATION }, async () => {
   Deno.env.set("MEGA_TEST_MODE", "1");
   const { supabaseUrl, anonKey, anon, admin } = clients();
   const { userId, accessToken } = await createTestUser(anon);
@@ -231,7 +247,7 @@ Deno.test("account deletion: outbound WhatsApp is refused for deletion_pending a
   assertEquals(send.status, 409, JSON.stringify(send.json));
 });
 
-Deno.test("account deletion: process-checkins does not deliver for deletion_pending accounts", async () => {
+Deno.test("account deletion: process-checkins does not deliver for deletion_pending accounts", { ignore: SKIP_INTEGRATION }, async () => {
   Deno.env.set("MEGA_TEST_MODE", "1");
   const { supabaseUrl, anonKey, anon, admin } = clients();
   const { userId, accessToken } = await createTestUser(anon);
@@ -269,7 +285,7 @@ Deno.test("account deletion: process-checkins does not deliver for deletion_pend
   assertEquals((outbound ?? []).length, beforeCount, "the cron run must not send anything");
 });
 
-Deno.test("account restore: one click brings the account back (subscription stays cancelled)", async () => {
+Deno.test("account restore: one click brings the account back (subscription stays cancelled)", { ignore: SKIP_INTEGRATION }, async () => {
   Deno.env.set("MEGA_TEST_MODE", "1");
   const { supabaseUrl, anonKey, anon, admin } = clients();
   const { userId, accessToken, email } = await createTestUser(anon);
@@ -321,7 +337,7 @@ Deno.test("account restore: one click brings the account back (subscription stay
   assertEquals(again.json?.already_active, true);
 });
 
-Deno.test("purge: hard-deletes everything, anonymises llm_usage_events, is idempotent and crash-resumable", async () => {
+Deno.test("purge: hard-deletes everything, anonymises llm_usage_events, is idempotent and crash-resumable", { ignore: SKIP_INTEGRATION }, async () => {
   Deno.env.set("MEGA_TEST_MODE", "1");
   const { supabaseUrl, anonKey, anon, admin } = clients();
   const { userId, accessToken } = await createTestUser(anon);
@@ -411,7 +427,7 @@ Deno.test("purge: hard-deletes everything, anonymises llm_usage_events, is idemp
   assertEquals((records ?? []).length, 1, "no duplicate deletion record");
 });
 
-Deno.test("deletion_records: RLS is sealed for anon and authenticated roles", async () => {
+Deno.test("deletion_records: RLS is sealed for anon and authenticated roles", { ignore: SKIP_INTEGRATION }, async () => {
   Deno.env.set("MEGA_TEST_MODE", "1");
   const { anon } = clients();
 

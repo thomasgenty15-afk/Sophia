@@ -42,11 +42,33 @@ export function logRuntimeGuardEvent(args: {
   }
 }
 
+// KEEL W1.3 bug 1 — the band allowlist stopped at `high`, so `critical`
+// (the only band that always blocks every side effect, see
+// sophia-brain/safety/safety_thresholds.ts) was the single band NEVER
+// surfaced in the admin production log: the worst turn was the invisible
+// one. Bands live here as data, not as a chain of `!==` comparisons, so
+// adding a band to RiskBand fails visibly at review time.
+const OBSERVED_SAFETY_BANDS = new Set(["medium", "high", "critical"]);
+
+/** Exporte la decision de filtrage pour qu'un test l'observe sans sink. */
+export function isObservedSafetyBand(riskBand: unknown): boolean {
+  return OBSERVED_SAFETY_BANDS.has(
+    String(riskBand ?? "").trim().toLowerCase(),
+  );
+}
+
+/** medium = warn, high/critical = error. */
+export function safetyBandSeverity(riskBand: unknown): "warn" | "error" {
+  return String(riskBand ?? "").trim().toLowerCase() === "medium"
+    ? "warn"
+    : "error";
+}
+
 /**
  * Tour safety medium+ visible dans le fil admin (la table
  * conversation_turn_traces n'est pas une source du production log) —
- * medium = warn, high = error (le filtre « erreurs seulement » remonte
- * les tours de crise en premier).
+ * medium = warn, high/critical = error (le filtre « erreurs seulement »
+ * remonte les tours de crise en premier).
  */
 export function logSafetyBandEvent(args: {
   riskBand: string;
@@ -57,14 +79,14 @@ export function logSafetyBandEvent(args: {
 }): void {
   try {
     const band = String(args.riskBand ?? "").trim().toLowerCase();
-    if (band !== "medium" && band !== "high") return;
+    if (!isObservedSafetyBand(band)) return;
     if (!(Deno.env.get("SUPABASE_URL") ?? "").trim()) return;
     const marker = new Error(`safety_band_${band}`);
     marker.name = `safety_band_${band}`;
     void logEdgeFunctionError({
       functionName: "sophia-brain",
       error: marker,
-      severity: band === "high" ? "error" : "warn",
+      severity: safetyBandSeverity(band),
       title: `Safety · band ${band}${
         (args.reasonCodes ?? []).length
           ? ` · ${(args.reasonCodes ?? []).join(",")}`

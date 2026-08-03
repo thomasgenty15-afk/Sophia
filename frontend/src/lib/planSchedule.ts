@@ -24,15 +24,86 @@ export type PlanWeekCalendar = {
   daysRemaining: number | null;
 };
 
-const FRENCH_WEEKDAY_INDEX: Record<string, number> = {
-  lundi: 0,
-  mardi: 1,
-  mercredi: 2,
-  jeudi: 3,
-  vendredi: 4,
-  samedi: 5,
-  dimanche: 6,
-};
+// KEEL W1.3 bug 2 — weekday tokens.
+//
+// The database stores CANONICAL tokens `mon..sun` (CHECK on
+// `user_plan_items.scheduled_days` + normaliser SCHEDULED_DAY_ALIASES in
+// supabase/functions/_shared/v2-plan-distribution.ts). This module used to
+// look those canonical tokens up in a French-only map and return `[]`, so a
+// perfectly valid plan silently lost every date recommendation. The French
+// aliases stay accepted (legacy rows and LLM output still carry them on the
+// FR branch); the canonical tokens are now the primary key set.
+//
+// Monday-indexed (0 = Monday) because `week_starts_on` is always "monday".
+// A Map, not an object literal: an object lookup on "constructor" or
+// "toString" returns a prototype member instead of undefined.
+const WEEKDAY_INDEX: ReadonlyMap<string, number> = new Map([
+  ["mon", 0], ["monday", 0], ["lundi", 0],
+  ["tue", 1], ["tuesday", 1], ["mardi", 1],
+  ["wed", 2], ["wednesday", 2], ["mercredi", 2],
+  ["thu", 3], ["thursday", 3], ["jeudi", 3],
+  ["fri", 4], ["friday", 4], ["vendredi", 4],
+  ["sat", 5], ["saturday", 5], ["samedi", 5],
+  ["sun", 6], ["sunday", 6], ["dimanche", 6],
+]);
+
+/** Canonical `mon..sun` token per Monday-based index. */
+const CANONICAL_WEEKDAY_TOKENS = [
+  "mon",
+  "tue",
+  "wed",
+  "thu",
+  "fri",
+  "sat",
+  "sun",
+] as const;
+
+export class UnknownWeekdayTokenError extends Error {
+  readonly token: string;
+
+  constructor(token: string) {
+    super(
+      `planSchedule: unknown weekday token "${token}" ` +
+        `(expected one of ${CANONICAL_WEEKDAY_TOKENS.join(", ")})`,
+    );
+    this.name = "UnknownWeekdayTokenError";
+    this.token = token;
+  }
+}
+
+/**
+ * R7 (fail-loud): a token mapping THROWS on unknown input. It never returns
+ * `undefined`, `[]`, or a silent fallback — two normalisations that disagree
+ * plus one silent drop equals a bug with no error.
+ */
+export function parseWeekdayToken(token: unknown): number {
+  const normalised = String(token ?? "").trim().toLowerCase();
+  const index = WEEKDAY_INDEX.get(normalised);
+  if (index === undefined) throw new UnknownWeekdayTokenError(String(token ?? ""));
+  return index;
+}
+
+/**
+ * Normalises a list of weekday tokens (canonical or FR alias) to canonical
+ * `mon..sun`, de-duplicated by DAY, so that ["mon", "lundi"] is one day and
+ * not two. Empty/whitespace entries are dropped; any other unknown token
+ * throws (R7).
+ */
+export function normalizeWeekdayTokens(
+  values: readonly (string | null | undefined)[] | null | undefined,
+): string[] {
+  const seen = new Set<number>();
+  const result: string[] = [];
+  for (const value of values ?? []) {
+    const raw = String(value ?? "").trim();
+    if (!raw) continue;
+    const index = parseWeekdayToken(raw);
+    if (seen.has(index)) continue;
+    seen.add(index);
+    result.push(CANONICAL_WEEKDAY_TOKENS[index]);
+  }
+  return result;
+}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object" && !Array.isArray(value);
@@ -272,22 +343,27 @@ export function formatPlanDateRange(
   })}`;
 }
 
+/**
+ * Resolves weekday tokens (canonical `mon..sun` or FR alias) to the dates
+ * they fall on inside `week`. Days outside the week window (partial first
+ * week) are dropped — that is a calendar fact, not a token failure.
+ *
+ * Throws `UnknownWeekdayTokenError` on an unknown token (R7). Historic name
+ * kept: the FR branch imports it from several call sites.
+ */
 export function resolveFrenchWeekdayDates(
   week: Pick<PlanWeekCalendar, "startDate" | "endDate">,
   weekdays: string[],
 ): string[] {
-  const uniqueWeekdays = weekdays
-    .map((entry) => entry.trim().toLowerCase())
-    .filter((entry, index, array) => entry.length > 0 && array.indexOf(entry) === index);
-  if (uniqueWeekdays.length === 0) return [];
+  const canonicalWeekdays = normalizeWeekdayTokens(weekdays);
+  if (canonicalWeekdays.length === 0) return [];
 
   const weekStart = dateFromYmdUtc(week.startDate);
   const weekEnd = dateFromYmdUtc(week.endDate);
   if (!weekStart || !weekEnd) return [];
 
-  return uniqueWeekdays.flatMap((weekday) => {
-    const index = FRENCH_WEEKDAY_INDEX[weekday];
-    if (index == null) return [];
+  return canonicalWeekdays.flatMap((weekday) => {
+    const index = parseWeekdayToken(weekday);
     const monday = dateFromYmdUtc(week.startDate);
     if (!monday) return [];
     const mondayDay = monday.getUTCDay() === 0 ? 6 : monday.getUTCDay() - 1;

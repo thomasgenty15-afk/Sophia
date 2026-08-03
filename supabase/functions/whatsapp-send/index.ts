@@ -217,9 +217,29 @@ function getFallbackTemplate(
       injectBodyNameParam: true,
     };
   }
-  // Weekly lifecycle purposes: dedicated templates, never global_reach.
-  // (Root cause of the 2026-07-12 incident: these purposes were missing here,
-  // so an unset env var upstream degraded all three to global_reach_template.)
+  // KEEL W4.6 (slot reminders + Sunday digest). Present here for ONE reason:
+  // without a mapping these two purposes fall through to global_reach_template
+  // ("J'ai une info pour toi") — the exact 2026-07-12 incident, where a missing
+  // mapping plus an unset secret sent the generic re-engagement copy three times
+  // in place of the weekly review. Defaults point at the Meta-approved check-in
+  // template (zero placeholders) so an out-of-window reminder re-opens the window
+  // and the real body is delivered from the stored draft; dedicated env vars let
+  // ops repoint them at a KEEL-specific template once Meta approves one.
+  if (p === "keel_slot_reminder" || p === "keel_sunday_digest") {
+    return {
+      name: (Deno.env.get("WHATSAPP_KEEL_REMINDER_TEMPLATE_NAME") ??
+        Deno.env.get("WHATSAPP_CHECKIN_TEMPLATE_NAME") ?? "sophia_checkin_v1")
+        .trim(),
+      language: (Deno.env.get("WHATSAPP_KEEL_REMINDER_TEMPLATE_LANG") ??
+        Deno.env.get("WHATSAPP_CHECKIN_TEMPLATE_LANG") ?? "fr").trim(),
+      injectBodyNameParam: false,
+    };
+  }
+  // Weekly lifecycle purpose: dedicated template, never global_reach.
+  // (Root cause of the 2026-07-12 incident: the weekly purposes were missing
+  // here, so an unset env var upstream degraded them to global_reach_template.
+  // W2.B a supprimé les deux purposes de validation de planning; il ne reste
+  // que le bilan.)
   if (p === "weekly_progress_review") {
     return {
       name: (Deno.env.get("WHATSAPP_WEEKLY_PROGRESS_REVIEW_TEMPLATE_NAME") ??
@@ -230,29 +250,6 @@ function getFallbackTemplate(
           Deno.env.get("WHATSAPP_WEEKLY_BILAN_TEMPLATE_LANG") ?? "fr").trim(),
       // Meta-approved sophia_bilan_weekly_v1 has {{1}} = first name.
       injectBodyNameParam: true,
-    };
-  }
-  if (p === "weekly_planning_validation") {
-    return {
-      name: (Deno.env.get("WHATSAPP_WEEKLY_PLANNING_TEMPLATE_NAME") ??
-        "weekly_planning_validation_v1").trim(),
-      language: (Deno.env.get("WHATSAPP_WEEKLY_PLANNING_TEMPLATE_LANG") ?? "fr")
-        .trim(),
-      injectBodyNameParam: false,
-      // Meta-approved weekly_planning_validation_v1 has {{1}} = dashboard URL.
-      bodyParams: [String(opts?.dashboardUrl ?? "").trim() ||
-      "https://app.sophia.app/dashboard"],
-    };
-  }
-  if (p === "weekly_planning_auto_validation") {
-    return {
-      name: (Deno.env.get("WHATSAPP_WEEKLY_AUTO_VALIDATION_TEMPLATE_NAME") ??
-        "auto_validation_v1").trim(),
-      language:
-        (Deno.env.get("WHATSAPP_WEEKLY_AUTO_VALIDATION_TEMPLATE_LANG") ?? "fr")
-          .trim(),
-      // Meta-approved auto_validation_v1 has zero placeholders.
-      injectBodyNameParam: false,
     };
   }
   return {
@@ -342,8 +339,32 @@ const GUARANTEED_OUT_OF_WINDOW_EVENT_CONTEXTS = [
 const THROTTLE_EXEMPT_PURPOSES = new Set([
   "subscription_confirmed",
   "subscription_modified",
-  "plan_adjustment_confirmed",
 ]);
+
+// KEEL W4.6 — OPT-IN SCHEDULED SENDS, a third category.
+//
+// DAILY_PROACTIVE_CAP governs UNSOLICITED nudges: messages the user never asked
+// for, which is why two a day is generous and why the guaranteed bilans already
+// reserve both slots. A KEEL slot reminder is not that message. The student has a
+// published plan from their coach and accepted it; the reminder is the thing they
+// signed up for, arriving at the hour it is about. Running it through the nudge
+// cap means it is dead on arrival every single day — the two slots are already
+// spoken for before the first breakfast reminder is even considered.
+//
+// So they are separated, but NOT made unlimited: outside the 24h window every
+// send is a paid Meta template, and "unbounded because opt-in" is how a runtime
+// starts spraying eight templates at someone whose plan has eight slots. They get
+// their OWN allowance, counted only among themselves.
+//   - they never consume the unsolicited-nudge cap;
+//   - the unsolicited-nudge cap never blocks them;
+//   - inside the 24h conversation window nothing here applies at all (as before).
+const KEEL_OPT_IN_PURPOSES = new Set([
+  "keel_slot_reminder",
+  "keel_sunday_digest",
+]);
+// One per meal-ish slot on a dense plan (breakfast, lunch, dinner, one snack),
+// plus the Sunday digest on the day it lands.
+const DAILY_KEEL_OPT_IN_CAP = 5;
 
 function localDayBoundsIso(
   timezone: string,
@@ -366,13 +387,20 @@ function localDayBoundsIso(
 }
 
 // Proactive WhatsApp messages already sent to the user during the current local
-// calendar day. `purposes` (when provided) restricts the count to those purposes.
+// calendar day. `purposes` (when provided) restricts the count to those purposes;
+// `excludePurposes` removes them from the count.
+//
+// The exclusion is written as "purpose IS NULL OR purpose NOT IN (...)" and not as
+// a bare NOT IN: in SQL, `NULL NOT IN ('a')` is NULL, not true, so a bare negation
+// would silently stop counting every legacy proactive message that carries no
+// purpose at all — i.e. it would LOOSEN the cap while looking like it tightened it.
 async function countProactiveSentToday(
   admin: ReturnType<typeof createClient>,
   userId: string,
   startIso: string,
   endIso: string,
   purposes?: string[],
+  excludePurposes?: string[],
 ): Promise<number> {
   let query = admin
     .from("chat_messages")
@@ -386,6 +414,13 @@ async function countProactiveSentToday(
     .filter("metadata->>is_proactive", "eq", "true");
   if (purposes && purposes.length > 0) {
     query = query.filter("metadata->>purpose", "in", `(${purposes.join(",")})`);
+  }
+  if (excludePurposes && excludePurposes.length > 0) {
+    query = query.or(
+      `metadata->>purpose.is.null,metadata->>purpose.not.in.(${
+        excludePurposes.join(",")
+      })`,
+    );
   }
   const { count, error } = await query;
   if (error) throw error;
@@ -574,10 +609,14 @@ Deno.serve(async (req) => {
 
     // Proactive send policy:
     //  - Inside the 24h conversation window: no limit.
-    //  - Outside the window: at most DAILY_PROACTIVE_CAP proactive messages per
-    //    local calendar day (00:00–00:00, user timezone). The evening review and
-    //    the weekly review are guaranteed (always sent) and RESERVE their slots
-    //    inside that cap, so other proactive nudges yield to them.
+    //  - Outside the window: at most DAILY_PROACTIVE_CAP UNSOLICITED proactive
+    //    messages per local calendar day (00:00–00:00, user timezone). The evening
+    //    review and the weekly review are guaranteed (always sent) and RESERVE
+    //    their slots inside that cap, so other proactive nudges yield to them.
+    //  - KEEL opt-in scheduled sends (slot reminders, Sunday digest) are a
+    //    SEPARATE category with a separate allowance: they neither consume nor
+    //    are blocked by the unsolicited cap. See KEEL_OPT_IN_PURPOSES.
+    const isKeelOptIn = KEEL_OPT_IN_PURPOSES.has(purpose);
     if (
       !webSimulationEnabled && !isIn24h &&
       !THROTTLE_EXEMPT_PURPOSES.has(purpose)
@@ -586,10 +625,40 @@ Deno.serve(async (req) => {
         "Europe/Paris";
       const { startIso, endIso } = localDayBoundsIso(timezone, new Date());
       const isGuaranteed = GUARANTEED_OUT_OF_WINDOW_PURPOSES.has(purpose);
-      if (!isGuaranteed) {
+      if (isKeelOptIn) {
+        const keelSentToday = await countProactiveSentToday(
+          admin,
+          body.user_id,
+          startIso,
+          endIso,
+          [...KEEL_OPT_IN_PURPOSES],
+        );
+        if (keelSentToday >= DAILY_KEEL_OPT_IN_CAP) {
+          return await preflightErrorResponse({
+            req,
+            requestId,
+            userId: userIdForLog,
+            status: 429,
+            error:
+              `KEEL opt-in daily cap (${DAILY_KEEL_OPT_IN_CAP}/day, plan reminders)`,
+            purpose,
+            metadataExtra,
+          });
+        }
+      } else if (!isGuaranteed) {
         const [totalToday, guaranteedSentToday, guaranteedExpectedToday] =
           await Promise.all([
-            countProactiveSentToday(admin, body.user_id, startIso, endIso),
+            // KEEL opt-in sends are excluded from the unsolicited total: a student
+            // with four slot reminders would otherwise be at the cap before the
+            // first real nudge of the day is even considered.
+            countProactiveSentToday(
+              admin,
+              body.user_id,
+              startIso,
+              endIso,
+              undefined,
+              [...KEEL_OPT_IN_PURPOSES],
+            ),
             countProactiveSentToday(
               admin,
               body.user_id,

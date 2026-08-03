@@ -114,6 +114,12 @@ export async function runSafetyCrisisSkill(
     currentUserMessage: input.user_message,
     noteInformationInbound: input.context.turn_frame.note_information ?? null,
     benignRecallRequest,
+    // W3.3: le seul signal porteur de pays sur un tour aujourd'hui
+    // (`profiles` a `locale`, pas `country`). Absent => le reducer applique
+    // le défaut DÉCLARÉ de la branche; présent mais non semé => jeu
+    // international, bruyamment. Jamais de numéro en dur.
+    userLocale: input.context.turn_frame.direct_effect_time_context
+      ?.user_locale ?? null,
   });
   console.info("safety_crisis.reducer_result", {
     source_risk_band: snapshot.source_risk_band,

@@ -2,6 +2,13 @@ import {
   generateWithGemini,
   getGlobalAiModel,
 } from "../../../_shared/gemini.ts";
+// W9/R3 — la langue de la reponse VISIBLE est resolue par le point unique
+// `resolveResponseLocale`, et le bloc RESPONSE_LANGUAGE part en DERNIERE
+// instruction du prompt (la position est le mecanisme: la recence gagne).
+import {
+  appendResponseLanguageBlock,
+  resolveResponseLocale,
+} from "../../../_shared/keel/locale.ts";
 import { VISIBLE_OUTPUT_STYLE_RULES } from "../../router/response_style_policy.ts";
 import {
   committedOneShotReminderKnown,
@@ -9,9 +16,10 @@ import {
   oneShotReminderVisibleContextPresent,
 } from "../../router/one_shot_reminder_prompt_contract.ts";
 import type { DirectEffectConfirmationContext } from "../../router/direct_effect_local_context.ts";
-import type {
-  WeeklyReviewConversationContext,
-  WeeklyReviewVisibleTaskKind,
+import {
+  WEEKLY_COACH_DESTINATION,
+  type WeeklyReviewConversationContext,
+  type WeeklyReviewVisibleTaskKind,
 } from "./local_flow.ts";
 import {
   weeklyReviewVisibleAgentSpec,
@@ -65,13 +73,22 @@ function recentUserMessagesForVisible(
     .slice(-5);
 }
 
+/**
+ * W4.4 — sortie UNIQUE: la synthese vers le coach.
+ *
+ * Les deux phrases precedentes renvoyaient vers « Ajuster mon plan » et vers
+ * « Validation du niveau », deux surfaces supprimees en W2. Le weekly a donc
+ * passe la periode a proposer chaque dimanche des portes fermees. Le mode du
+ * `weekly_planning_context` ne choisit plus la destination: il n'y en a qu'une.
+ *
+ * Formulation deliberement non-promettante (verite d'execution): « je fais
+ * remonter » decrit ce que le tour fait, pas une ecriture confirmee. Le cablage
+ * vers `contract_change_requests` + la boite coach est W7.
+ */
 function adjustDestinationInstruction(
-  context: WeeklyReviewConversationContext,
+  _context: WeeklyReviewConversationContext,
 ): string {
-  if (context.weekly_planning_context.mode === "next_week_configured") {
-    return "Tu peux porter cette intention dans Ajuster mon plan, dans la partie Plan de la plateforme.";
-  }
-  return "Tu peux renseigner cette intention dans la Validation du niveau, au moment de valider le niveau.";
+  return "Je fais remonter ce point a ton coach avec le bilan: c'est lui qui decide de ce qui bouge dans le plan.";
 }
 
 // Une fois la recommandation d'ajustement surfacee dans le weekly, elle ne doit
@@ -152,10 +169,24 @@ function visibleSafeConversationContext(
       ...context.known_values,
       adjust_recommendation: adjustRecommendation,
     },
+    // W4.4 — la destination est ECRASEE en entier (mode + label + instruction),
+    // pas seulement l'instruction. Un flow weekly ouvert avant ce lot porte en
+    // base `{mode:'adjust_plan_platform', label:'Ajuster mon plan'}`; un spread
+    // qui ne remplacait que l'instruction laissait ce label remonter au prompt,
+    // et le modele renvoyait l'eleve vers l'ecran supprime. Le desarmement doit
+    // survivre a l'etat persiste, sinon il ne desarme rien.
     weekly_planning_context: {
       ...context.weekly_planning_context,
+      // `validation_input_destination` designait « Validation du niveau »,
+      // supprimee elle aussi: elle est recouverte au meme titre.
+      next_level: context.weekly_planning_context.next_level
+        ? {
+          ...context.weekly_planning_context.next_level,
+          validation_input_destination: WEEKLY_COACH_DESTINATION.label,
+        }
+        : context.weekly_planning_context.next_level,
       adjustment_destination: {
-        ...context.weekly_planning_context.adjustment_destination,
+        ...WEEKLY_COACH_DESTINATION,
         instruction: destinationMessage,
       },
     },
@@ -170,6 +201,7 @@ function visibleSafeConversationContext(
             string,
             unknown
           >),
+          ...WEEKLY_COACH_DESTINATION,
           instruction: destinationMessage,
         }
         : context.handoff_data.adjustment_destination,
@@ -204,7 +236,7 @@ export async function runWeeklyReviewVisibleAgent(
   const userPrompt = buildWeeklyReviewVisibleAgentUserPrompt(input);
   try {
     const raw = await generateWithGemini(
-      systemPrompt,
+      appendResponseLanguageBlock(systemPrompt, resolveResponseLocale({})),
       userPrompt,
       0.35,
       true,

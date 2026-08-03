@@ -29,7 +29,6 @@ import {
 } from "../context/recent_messages_policy.ts";
 import { getUserTimeContext } from "../../_shared/user_time_context.ts";
 import { logRuntimeGuardEvent } from "../../_shared/guard-log.ts";
-import { cancelPotionSupportCampaign } from "../../_shared/potion-support-cancellation.ts";
 import { retractedContentSegments } from "../../_shared/memory/memorizer/retraction_guard.ts";
 import { generateWithGemini, getGlobalAiModel } from "../../_shared/gemini.ts";
 import {
@@ -41,19 +40,12 @@ import { runAgentAndVerify } from "./agent_exec.ts";
 import {
   applyPresenceFlowState,
   armAttackKeywordSupportPresence,
-  armPotionSupportPresence,
   commitPresenceResult,
   type PresenceApplyResult,
   readActivePresenceState,
 } from "../skills/presence_conversation/apply.ts";
-import {
-  potionSupportLocalFailureDecision,
-  runPotionSupportLocalDispatcher,
-} from "../skills/potion_support_admission/local_flow.ts";
-import {
-  type PotionSupportAdmissionContext,
-  readPotionSupportAdmissionState,
-} from "../skills/potion_support_admission/state.ts";
+// W2.A: le dispatcher local du sas potion et son état ne sont plus importés —
+// le sas est débranché (le dossier du skill est supprimé en W2.B).
 import {
   type AttackKeywordSupportContextV1,
   isAllowedAttackKeyword,
@@ -61,6 +53,20 @@ import {
   renderAttackKeywordSupportReply,
 } from "../../_shared/attack-keyword-support.ts";
 import { applyAttackKeywordSupportRoute } from "./attack_keyword_support_route.ts";
+// W2.A: mécanisme TRANSVERSE (companion + présence + safety), extrait du
+// voisinage de `feature_opportunity` avant sa désactivation.
+import {
+  installSessionStyleCommitment,
+  sessionStyleCommitmentsPromptBlock,
+} from "../skills/_shared/session_style_commitment.ts";
+// W8 — CEINTURE ACCUSÉ FANTÔME SANS EFFET. Le détecteur est PUR et vit dans
+// son module; run.ts n'apporte que la vérité du tour (rôle KEEL, nombre de
+// commits relus) et l'observabilité.
+import {
+  guardKeelAckWithoutCommittedEffect,
+  KEEL_ACK_GUARD_NAME,
+  recordKeelAckGuardTrigger,
+} from "../skills/_shared/keel_ack_without_effect_guard.ts";
 import { stripToPresenceContext } from "../skills/presence_conversation/context.ts";
 import { buildPresenceSystemBlock } from "../skills/presence_conversation/prompt.ts";
 import { buildPresenceThreadContext } from "../skills/presence_conversation/thread.ts";
@@ -74,7 +80,11 @@ import {
 import type { DispatcherSignals } from "./dispatcher.ts";
 import type { RouteDecision } from "../contracts/route_decision.v1.ts";
 import type { TurnFrame } from "../contracts/turn_frame.v1.ts";
-import { initialSafetyContext } from "../safety/safety_context.ts";
+import {
+  initialSafetyContext,
+  safetyPregateTraceForTurn,
+} from "../safety/safety_context.ts";
+import { applySafetyFloorToTurnFrame } from "../safety/safety_floor.ts";
 import { runConversationRouters } from "../routers/routers.ts";
 import {
   type EffectGateOrchestratorResult,
@@ -135,7 +145,6 @@ import {
 import { runResearchGroundingLane } from "./research_grounding.ts";
 import {
   sessionDecisionFromCoachingState,
-  sessionDecisionFromFeatureOpportunityState,
   sessionDecisionFromPlanRealignmentState,
   sessionDecisionsPromptBlock,
   withSessionDecision,
@@ -176,7 +185,8 @@ import {
 import { disarmWinbackReengagement } from "../skills/winback_reengagement/state.ts";
 import { runCoachingRecommendationSkill } from "../skills/coaching_recommendation/skill.ts";
 import { runDailyActionCoachingRecommendationSkill } from "../skills/daily_action_coaching_recommendation/skill.ts";
-import { runFeatureOpportunitySkill } from "../skills/feature_opportunity/skill.ts";
+// W2.A: `runFeatureOpportunitySkill` n'est plus importé — la lane est
+// débranchée du routage (le dossier du skill est supprimé en W2.B).
 import { runPlanRealignmentSkill } from "../skills/plan_realignment/skill.ts";
 import { runSafetyCrisisSkill } from "../skills/safety_crisis/skill.ts";
 import {
@@ -190,6 +200,75 @@ import {
   type MemoryV2ActiveLoaderResult,
   runMemoryV2ActiveLoader,
 } from "../../_shared/memory/runtime/active_loader.ts";
+// ─────────────────────────────────────────────────────────────────────────────
+// W4.7 — CÂBLAGE DE LA BOUCLE CONVERSATIONNELLE KEEL
+//
+// Tout ce qui suit existait déjà, écrit et testé, avec ZÉRO appelant hors de
+// ses propres tests: `buildKeelPlanContext`, les deux effets durables et leurs
+// exécuteurs write-through, le plancher TCA et son runtime, le skill
+// `plan_question`. Un module que rien n'appelle n'est pas une fonctionnalité,
+// c'est un document — et le défaut GRAVE de W4 était exactement là: un élève
+// KEEL qui écrivait « j'ai pris mon magnésium » produisait zéro effet durable.
+// Ce lot ne réécrit aucun de ces modules; il branche les quatre maillons.
+// ─────────────────────────────────────────────────────────────────────────────
+import {
+  buildKeelPlanContext,
+  type KeelPlanContext,
+  type KeelRole,
+  loadKeelPlanContextSnapshot,
+  selectDispatcherPlanContext,
+} from "../context/keel_plan_context.ts";
+import { dayTokenForLocalDate } from "../../_shared/keel/slot_reminders.ts";
+import {
+  isFrenchLocale,
+  resolveResponseLocale,
+} from "../../_shared/keel/locale.ts";
+import { createProtocolEventWrite } from "../tools/always_on/log_protocol_event/db.ts";
+import { runLogProtocolEventDirectEffect } from "../tools/always_on/log_protocol_event/router.ts";
+import { createPlannedDeviationWrite } from "../tools/always_on/declare_deviation/db.ts";
+import { runDeclareDeviationDirectEffect } from "../tools/always_on/declare_deviation/router.ts";
+import type { DayResolution } from "../tools/always_on/declare_deviation/contract.ts";
+import {
+  escalateRestrictionSignal,
+  evaluateRestrictionForStudent,
+} from "../../_shared/keel/restriction_runtime.ts";
+import type { RestrictionGuardResult } from "../../_shared/keel/restriction_guard.ts";
+import { classifyStudentTurn } from "../skills/disordered_eating_guard/reducer.ts";
+// Détecteur d'intention future déjà écrit et testé pour `track_progress`
+// (P12-F). Une seconde implémentation, c'est deux lexiques qui divergent.
+import { isTrackProgressFutureIntent } from "../tools/always_on/track_progress_plan_item/intake.ts";
+import {
+  type DisorderedEatingWorkingState,
+} from "../skills/disordered_eating_guard/contract.ts";
+import {
+  type DisorderedEatingSkillRuntime,
+  runDisorderedEatingGuardSkill,
+} from "../skills/disordered_eating_guard/skill.ts";
+import {
+  type PlanQuestionSkillRuntime,
+  runPlanQuestionSkill,
+} from "../skills/plan_question/skill.ts";
+import type {
+  PlanQuestionChangeRequest,
+  PlanQuestionCommitment,
+} from "../skills/plan_question/contract.ts";
+// R5 frontier: `swap_policy` vit dans `plan_commitments.content` jsonb et n'est
+// extrait QUE par cette fonction (evaluate-adherence-v1). Tier 0 et
+// l'évaluateur lisent donc la MÊME politique — la parité « oui aujourd'hui /
+// met ce soir » que `plan_question/contract.ts` pose en invariant ne peut pas
+// dériver par deux copies de l'extracteur.
+import { extractSwapPolicy } from "../../evaluate-adherence-v1/snapshot.ts";
+import {
+  loadStudentSafetyConstraints,
+  type StudentSafetyConstraint,
+} from "../../_shared/keel/safety_constraints.ts";
+import {
+  recordAllowedEffect,
+  recordBlockedEffect,
+  recordCommittedEffect,
+  recordFailedEffect,
+  recordRequestedEffect,
+} from "./effect_ledger.ts";
 
 function envFlagEnabled(name: string): boolean {
   const raw = String(Deno.env.get(name) ?? "").trim().toLowerCase();
@@ -201,13 +280,22 @@ export async function buildTurnFrameForRuntime(args: {
   skipGlobalDispatcherForActiveLocalFlow: boolean;
   llmRunner?: DispatcherLlmRunner;
 }): Promise<TurnFrame> {
-  if (args.skipGlobalDispatcherForActiveLocalFlow) {
-    return buildNeutralTurnFrame(args.dispatcherInput);
-  }
-  return await runDispatcher({
-    ...args.dispatcherInput,
-    llm_runner: args.llmRunner,
-  });
+  const frame = args.skipGlobalDispatcherForActiveLocalFlow
+    ? buildNeutralTurnFrame(args.dispatcherInput)
+    : await runDispatcher({
+      ...args.dispatcherInput,
+      llm_runner: args.llmRunner,
+    });
+  // W3.1 — THE FLOOR. Single choke point for every frame the runtime uses
+  // (LLM frame, repair pass, neutral frame for an active local flow): the
+  // deterministic pregate band is re-imposed here. The LLM may raise the band,
+  // never lower it. Idempotent.
+  const safetyContext = args.dispatcherInput.safety_context_output;
+  return applySafetyFloorToTurnFrame(
+    frame,
+    safetyContext?.pregate ?? null,
+    safetyContext?.floor_observations,
+  );
 }
 
 function parseJsonish(raw: unknown): unknown {
@@ -493,7 +581,6 @@ type RuntimeConversationSkillId =
   | "product_help"
   | "coaching_recommendation"
   | "daily_action_coaching_recommendation_v1"
-  | "feature_opportunity"
   | "plan_realignment"
   | "winback_reengagement_v1";
 
@@ -543,8 +630,6 @@ function localStateFromSkillOutput(
   const patch = output.state_patch ?? {};
   return skillId === "product_help"
     ? patch.product_help_local_state
-    : skillId === "feature_opportunity"
-    ? patch.feature_opportunity_local_state
     : skillId === "plan_realignment"
     ? patch.plan_realignment_local_state
     : skillId === "daily_action_coaching_recommendation_v1"
@@ -640,8 +725,6 @@ export function applyConversationSkillState(args: {
       turn_count: Number(
         args.skillId === "product_help"
           ? local?.product_help_state?.turn_count
-          : args.skillId === "feature_opportunity"
-          ? local?.turn_count
           : args.skillId === "plan_realignment"
           ? local?.turn_count
           : args.skillId === "daily_action_coaching_recommendation_v1"
@@ -656,8 +739,6 @@ export function applyConversationSkillState(args: {
         [
           args.skillId === "product_help"
             ? "product_help_local_state"
-            : args.skillId === "feature_opportunity"
-            ? "feature_opportunity_local_state"
             : args.skillId === "plan_realignment"
             ? "plan_realignment_local_state"
             : args.skillId === "daily_action_coaching_recommendation_v1"
@@ -683,21 +764,11 @@ export function applyConversationSkillState(args: {
       .winback_reengagement_exit_memo;
     if (memo) next.__last_winback_reengagement_exit_memo = memo;
   }
-  // eva-r7 B01: un engagement de STYLE pris en session (flow feature_
-  // opportunity, decide par le dispatcher local) survit au flow — il est
-  // porte en cle de session et re-injecte au composeur a CHAQUE tour.
-  if (args.skillId === "feature_opportunity" && args.output.state_patch) {
-    const commitment = String(
-      (args.output.state_patch as Record<string, unknown>)
-        .session_style_commitment ?? "",
-    ).trim();
-    if (commitment) {
-      next = installSessionStyleCommitment(
-        next as Record<string, unknown>,
-        commitment,
-      ) as typeof next;
-    }
-  }
+  // W2.A: le producteur d'engagement de style porté par le state_patch du flow
+  // local feature_opportunity (eva-r7 B01) est retiré avec la lane. Le second
+  // producteur — `TurnFrame.session_style_commitment_hint`, émis par le
+  // dispatcher GLOBAL quel que soit l'owner — reste seul et couvre tous les
+  // composeurs (voir skills/_shared/session_style_commitment.ts).
   if (args.skillId === "coaching_recommendation" && args.output.state_patch) {
     const note =
       args.output.state_patch.coaching_recommendation_note_information;
@@ -730,24 +801,6 @@ export function applyConversationSkillState(args: {
       };
     }
   }
-  if (args.skillId === "feature_opportunity" && args.output.state_patch) {
-    const note = args.output.state_patch.feature_opportunity_note_information;
-    if (note) {
-      next.__last_feature_opportunity_exit_memo = {
-        note_information: note,
-        at: new Date().toISOString(),
-      };
-    }
-    // paul-r9 B02 / nina-r7 B04: le hand-off (initiative a creer, preference
-    // a regler) est une decision de session — capture structuree, meme
-    // mecanique que coaching.
-    next = withSessionDecision(
-      next,
-      sessionDecisionFromFeatureOpportunityState(
-        args.output.state_patch.feature_opportunity_local_state,
-      ),
-    );
-  }
   if (args.skillId === "plan_realignment" && args.output.state_patch) {
     const note = args.output.state_patch.plan_realignment_note_information;
     if (note) {
@@ -775,7 +828,6 @@ function skillOutputNoteInformation(
   return (patch.product_help_note_information ??
     patch.coaching_recommendation_note_information ??
     patch.daily_action_coaching_recommendation_note_information ??
-    patch.feature_opportunity_note_information ??
     patch.plan_realignment_note_information ??
     (patch as Record<string, unknown>).winback_reengagement_note_information ??
     (output.diagnosis as any)?.note_information) ?? null;
@@ -862,18 +914,8 @@ function turnFrameWithLocalExitNoteRoutingHints(args: {
       confidence_band: confidenceBand,
       reason: "local_flow_exit_note",
     } as any;
-  } else if (
-    focus === "feature_opportunity" &&
-    !skillSignals.feature_opportunity?.detected
-  ) {
-    const structured = structuredContextFromNote(note);
-    skillSignals.feature_opportunity = {
-      detected: true,
-      confidence_band: confidenceBand,
-      reason: "local_flow_exit_note",
-      context: recordOrNull(structured.dispatcher_signal_context) ??
-        undefined,
-    } as any;
+    // W2.A: `focus === "feature_opportunity"` ne ré-injecte plus de signal —
+    // la lane n'existe plus; un mémo résiduel retombe en réponse normale.
   } else if (
     focus === "plan_realignment" &&
     !skillSignals.plan_realignment?.detected
@@ -969,6 +1011,104 @@ function turnFrameHasCommittedOneShotReminder(
   );
 }
 
+// ===========================================================================
+// W4.7 — KEEL: le ledger des deux effets durables
+//
+// `effect_ledger_adapter.ts` mappe les effets par table fermée
+// (`OPERATION_TYPE_BY_EFFECT_TYPE`) et `continue` en silence sur un type
+// inconnu: un `log_protocol_event` committé y serait donc INVISIBLE du ledger
+// — un commit réel sans ligne de comptabilité, exactement le trou que la
+// doctrine « execution truth » interdit. Le mapping KEEL vit ici, à côté du
+// seul point qui construit le ledger du tour, et il est ADDITIF: les deux
+// recorders ne peuvent pas se marcher dessus puisque l'adaptateur legacy
+// ignore ces deux types.
+// ===========================================================================
+
+const KEEL_LEDGER_EFFECT_TYPES: Readonly<
+  Record<string, { effect_type: string; table: string; id_field: string }>
+> = {
+  log_protocol_event: {
+    effect_type: "protocol_event.log",
+    table: "protocol_events",
+    id_field: "protocol_event_id",
+  },
+  declare_deviation: {
+    effect_type: "planned_deviation.declare",
+    table: "planned_deviations",
+    id_field: "planned_deviation_id",
+  },
+};
+
+function keelLedgerPayloadSummary(
+  effect: Record<string, unknown>,
+): Record<string, unknown> {
+  // Uniquement des valeurs RELUES ou des tokens: aucune prose de l'élève ne
+  // transite par le ledger (le `student_note` reste dans `protocol_events`).
+  return {
+    local_date: effect.local_date ?? undefined,
+    slot_key: effect.slot_key ?? undefined,
+    source: effect.source ?? undefined,
+    kind: effect.kind ?? undefined,
+    already_logged: effect.already_logged ?? undefined,
+    already_declared: effect.already_declared ?? undefined,
+    coach_authorized_backdate: effect.coach_authorized_backdate ?? undefined,
+    consumed_flex: effect.consumed_flex ?? undefined,
+  };
+}
+
+export function recordKeelDirectEffectsInLedger(args: {
+  ledger: EffectLedger;
+  toolSkillRun: Record<string, unknown> | null | undefined;
+}): void {
+  const run = args.toolSkillRun;
+  if (!run || typeof run !== "object" || Array.isArray(run)) return;
+  const status = String(run.status ?? "").trim() || null;
+  const lists: Array<
+    [
+      string,
+      (
+        ledger: EffectLedger,
+        entry: Parameters<typeof recordRequestedEffect>[1],
+      ) => unknown,
+      "router" | "executor",
+    ]
+  > = [
+    ["requested_effects", recordRequestedEffect, "router"],
+    ["allowed_effects", recordAllowedEffect, "router"],
+    ["committed_effects", recordCommittedEffect, "executor"],
+    ["failed_effects", recordFailedEffect, "executor"],
+    ["blocked_effects", recordBlockedEffect, "executor"],
+  ];
+  for (const [key, record, source] of lists) {
+    const effects = Array.isArray(run[key]) ? run[key] as unknown[] : [];
+    for (const [index, raw] of effects.entries()) {
+      if (!raw || typeof raw !== "object" || Array.isArray(raw)) continue;
+      const effect = raw as Record<string, unknown>;
+      const operationType = String(effect.type ?? "").trim();
+      const mapping = KEEL_LEDGER_EFFECT_TYPES[operationType];
+      if (!mapping) continue;
+      const committedId = key === "committed_effects"
+        ? String(effect[mapping.id_field] ?? "").trim() || null
+        : null;
+      record(args.ledger, {
+        effect_id:
+          `${args.ledger.turn_id}:${key}:${mapping.effect_type}:${index}`,
+        effect_type: mapping.effect_type,
+        operation_type: operationType,
+        operation_id: null,
+        committed_id: committedId,
+        tool_id: operationType,
+        source,
+        reason_code: String(effect.reason_code ?? status ?? "") || null,
+        payload_summary: keelLedgerPayloadSummary(effect),
+        db_ref: committedId
+          ? { table: mapping.table, id: committedId }
+          : null,
+      });
+    }
+  }
+}
+
 function effectLedgerForOperationRuntime(
   turnId: string,
   operationRuntime: OperationRuntimeResult | null | undefined,
@@ -978,6 +1118,10 @@ function effectLedgerForOperationRuntime(
     ledger: effectLedger,
     toolSkillRun: operationRuntime?.toolSkillRun,
     toolExecution: operationRuntime?.toolExecution ?? "none",
+  });
+  recordKeelDirectEffectsInLedger({
+    ledger: effectLedger,
+    toolSkillRun: operationRuntime?.toolSkillRun,
   });
   return effectLedger;
 }
@@ -1014,6 +1158,730 @@ export function effectLedgerTraceForTest(args: {
   );
 }
 
+// ===========================================================================
+// W4.7 — MAILLON 1: le CONTEXTE de tour d'un élève KEEL
+// ===========================================================================
+
+export type KeelTurnContext = {
+  role: KeelRole;
+  is_student: boolean;
+  /** ISO-3166 alpha-2, résolveur de ressources cliniques (W3.3 + W4.6). */
+  country: string | null;
+  /**
+   * R2/R3 — BCP-47 PERSISTÉ du profil. Les deux écritures durables refusent
+   * de committer sans lui plutôt que de deviner la langue d'une prose stockée
+   * (`missing_content_locale`). On ne fabrique donc jamais de valeur ici.
+   */
+  content_locale: string | null;
+  /** YYYY-MM-DD résolu dans le fuseau de l'élève par le runtime, pas ici. */
+  local_date: string | null;
+  plan_context: KeelPlanContext | null;
+  plan_version_id: string | null;
+  /** Le bloc à injecter (dispatcher ET composeur). Null = rien à dire. */
+  plan_block: string | null;
+  plan_context_reason_code: string;
+  /**
+   * Plancher TCA du tour. `null` ⇒ NON ARMÉ — et c'est un état distinct de
+   * `restriction_flag:false` (voir `restriction_unavailable_reason`).
+   */
+  restriction: RestrictionGuardResult | null;
+  restriction_unavailable_reason: string | null;
+};
+
+export const LEGACY_KEEL_TURN_CONTEXT: KeelTurnContext = {
+  role: null,
+  is_student: false,
+  country: null,
+  content_locale: null,
+  local_date: null,
+  plan_context: null,
+  plan_version_id: null,
+  plan_block: null,
+  plan_context_reason_code: "legacy_plan_snapshot",
+  restriction: null,
+  restriction_unavailable_reason: null,
+};
+
+const ISO_LOCAL_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+function keelLocalDateFrom(userLocalDatetime: unknown): string | null {
+  const head = String(userLocalDatetime ?? "").trim().slice(0, 10);
+  return ISO_LOCAL_DATE.test(head) ? head : null;
+}
+
+function normalizeKeelRole(value: unknown): KeelRole {
+  const raw = String(value ?? "").trim();
+  return raw === "student" || raw === "coach" ? raw : null;
+}
+
+/**
+ * Charge tout ce dont le tour a besoin côté KEEL, en une passe.
+ *
+ * FAIL-OPEN NOMMÉ, et l'arbitrage est explicite: une panne de lecture ne doit
+ * PAS ouvrir le flow clinique. Un faux négatif ici = un tour normal pour un
+ * élève en restriction (le plancher reste armé côté proactif depuis W4.6, où
+ * il est fail-CLOSED); un faux positif = tous les élèves enfermés dans un flow
+ * TCA pendant une panne de base. L'asymétrie tranche, et l'incident est
+ * bruyant (`restriction_unavailable_reason` + log).
+ *
+ * Le contexte plan, lui, ne retombe JAMAIS sur `user_plan_items`
+ * (`selectDispatcherPlanContext` porte cette règle): un élève KEEL dont le
+ * plan n'a pas pu être lu n'a pas de bloc plan du tout.
+ */
+export async function loadKeelTurnContext(args: {
+  supabase: SupabaseClient;
+  userId: string;
+  userMessage: string;
+  userLocalDatetime: string | null;
+  legacyPlanSnapshot: unknown;
+}): Promise<KeelTurnContext> {
+  let profileRow: Record<string, unknown> | null = null;
+  try {
+    const { data, error } = await args.supabase
+      .from("profiles")
+      .select("keel_role, country, locale")
+      .eq("id", args.userId)
+      .maybeSingle();
+    if (error) throw error;
+    profileRow = (data ?? null) as Record<string, unknown> | null;
+  } catch (error) {
+    // Sans rôle lisible, le tour reste LEGACY: on n'ouvre pas une surface
+    // KEEL sur une lecture ratée.
+    console.warn("[keel] profile role load failed", error);
+    return LEGACY_KEEL_TURN_CONTEXT;
+  }
+
+  const role = normalizeKeelRole(profileRow?.keel_role);
+  if (role !== "student") {
+    return { ...LEGACY_KEEL_TURN_CONTEXT, role };
+  }
+
+  const country = String(profileRow?.country ?? "").trim() || null;
+  const contentLocale = String(profileRow?.locale ?? "").trim() || null;
+  const localDate = keelLocalDateFrom(args.userLocalDatetime);
+
+  let planContext: KeelPlanContext | null = null;
+  if (localDate) {
+    try {
+      planContext = buildKeelPlanContext(
+        await loadKeelPlanContextSnapshot(args.supabase as never, {
+          user_id: args.userId,
+          local_date: localDate,
+          day: dayTokenForLocalDate(localDate),
+        }),
+      );
+    } catch (error) {
+      console.warn("[keel] plan context load failed", error);
+      planContext = null;
+    }
+  }
+
+  const selection = selectDispatcherPlanContext({
+    keel_role: role,
+    keel_context: planContext,
+    legacy_plan_snapshot: args.legacyPlanSnapshot,
+    legacy_block: null,
+  });
+
+  let restriction: RestrictionGuardResult | null = null;
+  let restrictionUnavailableReason: string | null = null;
+  if (localDate) {
+    try {
+      restriction = await evaluateRestrictionForStudent(
+        args.supabase as never,
+        {
+          userId: args.userId,
+          asOfLocalDate: localDate,
+          turnMessage: args.userMessage,
+          turnLocale: contentLocale,
+        },
+      );
+    } catch (error) {
+      restrictionUnavailableReason = error instanceof Error
+        ? error.message
+        : String(error);
+      console.warn(
+        "[keel] restriction guard unavailable for this turn (conversational floor NOT armed)",
+        restrictionUnavailableReason,
+      );
+    }
+  } else {
+    restrictionUnavailableReason = "missing_local_date";
+  }
+
+  return {
+    role,
+    is_student: true,
+    country,
+    content_locale: contentLocale,
+    local_date: localDate,
+    plan_context: planContext,
+    plan_version_id: planContext?.plan_version_id ?? null,
+    plan_block: selection.block,
+    plan_context_reason_code: selection.reason_code,
+    restriction,
+    restriction_unavailable_reason: restrictionUnavailableReason,
+  };
+}
+
+// ===========================================================================
+// W4.7 — MAILLON 5: le plancher TCA, côté CONVERSATION
+//
+// `active_flow_state.ts` (hors périmètre de ce lot) ne reconnaît PAS
+// `disordered_eating_guard` comme flow local: `readActiveFlowState` renverrait
+// donc null et la branche de continuation de `routers.ts` est inatteignable.
+// La continuité de l'épisode est donc portée ici, par une clé de temp_memory
+// dédiée: le reducer reçoit son état précédent et avance normalement
+// (entry → supported/holding → closed), et l'entrée du routeur se réarme à
+// chaque tour tant que le plancher est levé.
+//
+// CONDITION DE DÉSARMEMENT (doctrine P9, et elle est obligatoire ici): un flow
+// qu'on ne peut pas quitter est un piège — c'est la cicatrice
+// `safety-crisis-flow-no-exit-on-denial`. Une fois l'épisode CLOS (le reducer
+// a dit exit: demande de passer à autre chose, deuxième refus, plafond de
+// 6 tours), le flow ne se rouvre plus pour LE MÊME jeu de déclencheurs. Il se
+// rouvre si les déclencheurs changent, ou si le tour courant rapporte un
+// symptôme médical aigu — ces deux-là sont nommés, pas implicites.
+// ===========================================================================
+
+export const KEEL_DISORDERED_EATING_STATE_KEY =
+  "__keel_disordered_eating_guard_state";
+
+export type KeelDisorderedEatingEpisodeState = {
+  episode_key: string;
+  closed: boolean;
+  working_state: DisorderedEatingWorkingState;
+  updated_at: string;
+};
+
+function restrictionEpisodeKey(result: RestrictionGuardResult): string {
+  return [...result.triggers.map((trigger) => trigger.code)].sort().join("+");
+}
+
+function readDisorderedEatingEpisode(
+  tempMemory: unknown,
+): KeelDisorderedEatingEpisodeState | null {
+  const raw = (tempMemory as Record<string, unknown> | null | undefined)
+    ?.[KEEL_DISORDERED_EATING_STATE_KEY];
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const record = raw as Record<string, unknown>;
+  return {
+    episode_key: String(record.episode_key ?? ""),
+    closed: record.closed === true,
+    working_state:
+      record.working_state && typeof record.working_state === "object" &&
+        !Array.isArray(record.working_state)
+        ? record.working_state as DisorderedEatingWorkingState
+        : {},
+    updated_at: String(record.updated_at ?? ""),
+  };
+}
+
+/**
+ * Le plancher, tel qu'il est présenté à `runConversationRouters`.
+ * `null` ⇒ lane non armée. Aucune valeur inventée: ce qui sort d'ici est soit
+ * le verdict du guard, soit rien.
+ */
+export function conversationalRestrictionGuardForRouters(args: {
+  restriction: RestrictionGuardResult | null;
+  tempMemory: unknown;
+  userMessage: string;
+}): { restriction_flag: boolean; trigger_codes?: string[] } | null {
+  const result = args.restriction;
+  if (!result || result.restriction_flag !== true) return null;
+  const episode = readDisorderedEatingEpisode(args.tempMemory);
+  const sameEpisode = episode !== null &&
+    episode.episode_key === restrictionEpisodeKey(result);
+  const acuteMedicalThisTurn =
+    classifyStudentTurn(args.userMessage) === "reports_acute_medical";
+  if (episode?.closed === true && sameEpisode && !acuteMedicalThisTurn) {
+    return null;
+  }
+  return {
+    restriction_flag: true,
+    trigger_codes: result.triggers.map((trigger) => trigger.code),
+  };
+}
+
+export function applyDisorderedEatingEpisodeState(args: {
+  tempMemory: Record<string, unknown>;
+  restriction: RestrictionGuardResult;
+  statePatch: DisorderedEatingWorkingState;
+  closed: boolean;
+}): Record<string, unknown> {
+  return {
+    ...args.tempMemory,
+    [KEEL_DISORDERED_EATING_STATE_KEY]: {
+      episode_key: restrictionEpisodeKey(args.restriction),
+      closed: args.closed,
+      working_state: args.statePatch,
+      updated_at: new Date().toISOString(),
+    } satisfies KeelDisorderedEatingEpisodeState,
+  };
+}
+
+export function disorderedEatingWorkingStateForTurn(
+  tempMemory: unknown,
+  restriction: RestrictionGuardResult,
+): DisorderedEatingWorkingState {
+  const episode = readDisorderedEatingEpisode(tempMemory);
+  if (!episode) return {};
+  // Un épisode qui change de déclencheurs repart à zéro: reprendre le compteur
+  // de tours d'un épisode précédent ferait expirer le nouveau au premier tour.
+  return episode.episode_key === restrictionEpisodeKey(restriction)
+    ? episode.working_state
+    : {};
+}
+
+// ===========================================================================
+// W4.7 — MAILLON 3: la lane d'EXÉCUTION des deux effets durables KEEL
+//
+// Même passage que `track_progress_plan_item`: la ROUTE décide (la liste
+// `direct_effects_to_run` sort de `routers.ts` puis du gate orchestrateur,
+// default-deny), l'exécuteur write-through écrit et RELIT, le ledger compte,
+// le renderer n'accuse que ce qui est committé. Rien n'est court-circuité ici:
+// les routers de `log_protocol_event` / `declare_deviation` repassent eux-mêmes
+// par `runDirectEffectGate` — deux portes du même verrou, toutes deux
+// default-deny, jamais une seule qui contredirait l'autre.
+// ===========================================================================
+
+function keelToolExecutionFor(
+  status: string,
+): OperationRuntimeResult["toolExecution"] {
+  if (status === "logged" || status === "declared") return "success";
+  if (status === "failed") return "failed";
+  if (status === "ignored") return "none";
+  return "blocked";
+}
+
+/**
+ * Titre de cible du ledger et du contrat de confirmation, construit
+ * EXCLUSIVEMENT depuis la ligne RELUE. Les échos de la requête portés par
+ * l'effet committé (`substance_ref`, `quantity`) sont volontairement exclus:
+ * ils n'ont pas traversé la base, et un accusé de réception ne cite que ce
+ * que la base a rendu.
+ */
+/**
+ * Les `commitment_id` qu'une liaison explicite peut légitimement citer ce tour.
+ *
+ * INVARIANT: c'est le MÊME ensemble que celui rendu par
+ * `keelPlanContextPromptBlock` — `today` + `week`. Le bloc est la seule chose
+ * que le modèle voit; accepter moins que ce qu'on montre transforme une
+ * recopie fidèle en `needs_clarify`, accepter plus rouvre la porte aux id
+ * devinés que `resolveCommitmentId` existe pour fermer.
+ *
+ * Les lignes `week` en font partie: elles apparaissent dans le bloc sous
+ * « WEEK GRAIN », et un élève peut parfaitement rapporter aujourd'hui un fait
+ * qui s'y rattache.
+ */
+export function keelBindableCommitmentIds(
+  context: KeelPlanContext | null,
+): string[] {
+  if (!context) return [];
+  const ids = [
+    ...context.today.map((line) => line.commitment_id),
+    ...context.week.map((line) => line.commitment_id),
+  ].filter((id) => typeof id === "string" && id.trim() !== "");
+  return [...new Set(ids)];
+}
+
+function keelCommittedTargetTitle(
+  type: string,
+  effect: Record<string, unknown>,
+): string {
+  const localDate = String(effect.local_date ?? "").trim();
+  const slot = String(effect.slot_key ?? "").trim();
+  const scope = slot ? `${localDate} (${slot})` : localDate;
+  if (type === "declare_deviation") {
+    const kind = String(effect.kind ?? "").trim();
+    return `planned_deviations ${scope}${kind ? ` — ${kind}` : ""}`;
+  }
+  return `protocol_events ${scope}`;
+}
+
+export type KeelDirectEffectLaneInput = {
+  supabase: SupabaseClient;
+  userId: string;
+  userMessage: string;
+  channel: "web" | "whatsapp";
+  turnFrame: TurnFrame;
+  routeDecision: RouteDecision;
+  tempMemory: unknown;
+  keel: KeelTurnContext;
+};
+
+export async function runKeelDirectEffectLane(
+  input: KeelDirectEffectLaneInput,
+): Promise<OperationRuntimeResult | null> {
+  if (!input.keel.is_student) return null;
+  const toRun = new Set(input.routeDecision.direct_effects_to_run);
+  const runLog = toRun.has("log_protocol_event");
+  const runDeviation = toRun.has("declare_deviation");
+  if (!runLog && !runDeviation) return null;
+
+  const handlers: string[] = [];
+  const replies: string[] = [];
+  const requested: unknown[] = [];
+  const allowed: unknown[] = [];
+  const committed: unknown[] = [];
+  const blocked: unknown[] = [];
+  const executedTools: string[] = [];
+  const statuses: string[] = [];
+  const reasons: string[] = [];
+
+  const absorb = (
+    handler: string,
+    result: {
+      detected: boolean;
+      status: string;
+      reply: string | null;
+      executed_tools: readonly string[];
+      requested_effects: readonly unknown[];
+      allowed_effects: readonly unknown[];
+      committed_effects: readonly unknown[];
+      blocked_effects: readonly unknown[];
+      debug: { reason_code: string };
+    },
+  ) => {
+    if (!result.detected) return;
+    handlers.push(handler);
+    statuses.push(result.status);
+    reasons.push(result.debug.reason_code);
+    if (result.reply) replies.push(result.reply);
+    requested.push(...result.requested_effects);
+    allowed.push(...result.allowed_effects);
+    committed.push(
+      ...result.committed_effects.map((effect) => ({
+        ...(effect as Record<string, unknown>),
+        target_title: keelCommittedTargetTitle(
+          handler,
+          effect as Record<string, unknown>,
+        ),
+      })),
+    );
+    blocked.push(...result.blocked_effects);
+    // Parité stricte: un outil n'est « exécuté » que s'il a produit une ligne.
+    if (result.committed_effects.length > 0) {
+      executedTools.push(...result.executed_tools);
+    }
+  };
+
+  // CEINTURE INTENTION FUTURE — déterministe, sur le MESSAGE, pas sur le frame.
+  //
+  // La règle 3k-a(1) du prompt dit « jamais sur une intention future », mais un
+  // prompt est une intention, pas une garantie: `rose-hard25` a déjà payé une
+  // demi-coche committée en silence sur « je vais tester ce soir » côté
+  // track_progress, et `p8-revalidation-rose-reds` a montré que les correctifs
+  // prompt-only régressent en run réel. Ici l'enjeu est pire: `protocol_events`
+  // est APPEND-ONLY — une ligne écrite sur une intention ne se retire pas
+  // depuis le chat, et elle nourrira l'évaluateur ce soir.
+  //
+  // CONDITION DE DÉSARMEMENT (P9), et elle est essentielle: la ceinture ne vaut
+  // QUE pour `log_protocol_event`, qui écrit un FAIT. Elle ne touche jamais
+  // `declare_deviation`, dont l'objet même est le futur — l'y appliquer
+  // rendrait la fonctionnalité impossible à utiliser.
+  const futureIntentTurn = isTrackProgressFutureIntent(input.userMessage);
+  if (runLog && futureIntentTurn) {
+    handlers.push("log_protocol_event");
+    statuses.push("blocked");
+    reasons.push("future_intent");
+    blocked.push({ type: "log_protocol_event", reason_code: "future_intent" });
+  }
+
+  if (runLog && !futureIntentTurn) {
+    absorb(
+      "log_protocol_event",
+      await runLogProtocolEventDirectEffect({
+        turn_frame: input.turnFrame,
+        content_locale: input.keel.content_locale,
+        // Le tour de chat EST la source: ni photo ni tap. `evidence_weight`
+        // en découle (0.8), il n'est jamais choisi à la main.
+        default_source: "chat",
+        // L'ALLOWLIST DES LIAISONS EXPLICITES, et elle n'était pas passée.
+        //
+        // `resolveCommitmentId` (intake.ts) refuse tout `commitment_id` quand
+        // la liste est vide — c'est la bonne posture R7 (« une liaison
+        // invérifiable est refusée, jamais supposée »). Mais le seul appelant de
+        // production ne la fournissait pas: la liste était TOUJOURS vide, donc
+        // TOUT `commitment_id` était refusé en `needs_clarify`, donc toute ligne
+        // sans `substance_ref` ni `food_group_ref` (mouvement, lumière,
+        // sommeil, respiration, écrans, mesure) était INECRIVABLE depuis le
+        // chat. Mesuré: « j'ai fait ma marche de 30 minutes » →
+        // `status=needs_clarify committed=0 blocked=1`, la ligne mouvement
+        // clôturait la journée en `missed`, et la réponse disait « c'est pris
+        // en compte ».
+        //
+        // La liste est EXACTEMENT l'ensemble des lignes que le bloc a montrées
+        // au modèle (`today` + `week`, cf. `keelPlanContextPromptBlock`). Toute
+        // divergence entre ce qu'on affiche et ce qu'on accepte reproduit le
+        // même défaut à l'envers: le modèle recopie fidèlement un id qu'on lui
+        // a montré et le runtime le rejette.
+        allowed_commitment_ids: keelBindableCommitmentIds(input.keel.plan_context),
+        write_protocol_event: createProtocolEventWrite({
+          supabase: input.supabase,
+        }),
+      }),
+    );
+  }
+
+  if (runDeviation) {
+    absorb(
+      "declare_deviation",
+      await runDeclareDeviationDirectEffect({
+        turn_frame: input.turnFrame,
+        plan_version_id: input.keel.plan_version_id,
+        content_locale: input.keel.content_locale,
+        declared_via: "chat",
+        read_day_resolution: (localDate: string) =>
+          readKeelDayResolution({
+            supabase: input.supabase,
+            userId: input.userId,
+            localDate,
+          }),
+        // Jamais lu depuis la conversation (contract.ts): une autorisation
+        // qu'une couche probabiliste peut affirmer n'est pas une autorisation.
+        // Le canal coach n'existe pas encore → aucune dérogation possible.
+        coach_backdate_grant: null,
+        write_planned_deviation: createPlannedDeviationWrite({
+          supabase: input.supabase,
+        }),
+      }),
+    );
+  }
+
+  if (handlers.length === 0) return null;
+
+  const selectedHandler = handlers.length === 1
+    ? handlers[0]
+    : "keel_direct_effects";
+  const toolExecution = statuses.some((status) =>
+      keelToolExecutionFor(status) === "success"
+    )
+    ? "success" as const
+    : keelToolExecutionFor(statuses[0] ?? "ignored");
+
+  return {
+    content: replies.join("\n").trim(),
+    nextTempMemory: input.tempMemory,
+    toolExecution,
+    executedTools: [...new Set(executedTools)],
+    toolSkillRun: {
+      selected_handler: selectedHandler,
+      status: statuses.join("+"),
+      reason: reasons.join("+"),
+      requested_effects: requested,
+      allowed_effects: allowed,
+      committed_effects: committed,
+      blocked_effects: blocked,
+    },
+  };
+}
+
+// ===========================================================================
+// W4.7 — MAILLON 4: le runtime de `plan_question`
+//
+// Le skill REFUSE de tourner sans ce canal (`runtimeOf` throw): une permission
+// accordée sur une prescription non lue est pire que pas de lane du tout — un
+// « oui » que l'évaluateur note `missed` à 23:59 punit un élève qui a suivi la
+// réponse de Sophia. Tout ce qui décide (commitment, `swap_policy`,
+// contraintes de sécurité) est donc lu EN BASE ici, jamais dans le turn_frame
+// écrit par le LLM du dispatcher.
+// ===========================================================================
+
+const PLAN_QUESTION_COMMITMENT_COLUMNS =
+  "id, title, slot_key, food_group_ref, autonomy, content, plan_version_id";
+
+/**
+ * Quelle ligne du plan la question vise ? Déterministe, et par ordre de
+ * PREUVE décroissante. Aucune étape ne devine: si rien ne tranche, on rend
+ * null et le résolveur escalade en `commitment_not_identified` — escalader
+ * vers le coach est un résultat correct, deviner ne l'est pas.
+ */
+export function resolvePlanQuestionCommitmentId(args: {
+  planContext: KeelPlanContext | null;
+  prescribedFoodGroup: string | null;
+  slotHint: string | null;
+}): string | null {
+  const lines = [
+    ...(args.planContext?.today ?? []),
+    ...(args.planContext?.week ?? []),
+  ];
+  if (lines.length === 0) return null;
+  const prescribed = String(args.prescribedFoodGroup ?? "").trim();
+  if (prescribed) {
+    const byGroup = lines.filter((line) => line.food_group_ref === prescribed);
+    if (byGroup.length === 1) return byGroup[0].commitment_id;
+  }
+  const slot = String(args.slotHint ?? "").trim();
+  if (slot) {
+    const bySlot = lines.filter((line) =>
+      String(line.bucket) === slot && line.food_group_ref !== null
+    );
+    if (bySlot.length === 1) return bySlot[0].commitment_id;
+  }
+  const withFoodGroup = lines.filter((line) => line.food_group_ref !== null);
+  return withFoodGroup.length === 1 ? withFoodGroup[0].commitment_id : null;
+}
+
+async function loadPlanQuestionRuntime(args: {
+  supabase: SupabaseClient;
+  userId: string;
+  keel: KeelTurnContext;
+  prescribedFoodGroup: string | null;
+  slotHint: string | null;
+}): Promise<PlanQuestionSkillRuntime> {
+  const commitmentId = resolvePlanQuestionCommitmentId({
+    planContext: args.keel.plan_context,
+    prescribedFoodGroup: args.prescribedFoodGroup,
+    slotHint: args.slotHint,
+  });
+
+  let commitment: PlanQuestionCommitment | null = null;
+  if (commitmentId) {
+    const { data, error } = await args.supabase
+      .from("plan_commitments")
+      .select(PLAN_QUESTION_COMMITMENT_COLUMNS)
+      .eq("user_id", args.userId)
+      .eq("id", commitmentId)
+      .maybeSingle();
+    if (error) throw error;
+    const row = (data ?? null) as Record<string, unknown> | null;
+    if (row) {
+      commitment = {
+        id: String(row.id ?? ""),
+        title: String(row.title ?? ""),
+        slot_key: row.slot_key === null || row.slot_key === undefined
+          ? null
+          : String(row.slot_key),
+        food_group_ref:
+          row.food_group_ref === null || row.food_group_ref === undefined
+            ? null
+            : String(row.food_group_ref),
+        autonomy: String(row.autonomy ?? "strict") as
+          PlanQuestionCommitment["autonomy"],
+        swap_policy: extractSwapPolicy(row.content),
+        plan_version_id:
+          row.plan_version_id === null || row.plan_version_id === undefined
+            ? null
+            : String(row.plan_version_id),
+      };
+    }
+  }
+
+  const groups = await args.supabase.from("food_groups").select("slug, class");
+  if (groups.error) throw groups.error;
+  const foodGroupClasses: Record<string, string> = {};
+  for (const raw of (groups.data ?? []) as Array<Record<string, unknown>>) {
+    const slug = String(raw.slug ?? "").trim();
+    const klass = String(raw.class ?? "").trim();
+    if (slug && klass) foodGroupClasses[slug] = klass;
+  }
+
+  // Chargées à CHAQUE tour, hors du chemin mémoire (W3.3). Ce loader THROW sur
+  // erreur, volontairement: une allergie ne peut pas être une lecture ratée.
+  const safetyConstraints: StudentSafetyConstraint[] =
+    await loadStudentSafetyConstraints(
+      args.supabase as never,
+      args.userId,
+    );
+
+  return {
+    commitment,
+    food_group_classes: foodGroupClasses,
+    safety_constraints: safetyConstraints,
+    // R2: la ligne `contract_change_requests` porte la prose de l'élève; sans
+    // locale persistée on refuse d'écrire plutôt que de deviner la langue.
+    content_locale: args.keel.content_locale ?? "",
+  };
+}
+
+/**
+ * Écrit la demande d'arbitrage du coach, WRITE-THROUGH (insert + relecture de
+ * l'id). `bypasses_digest` est DÉRIVÉ, pas une colonne — l'envoyer ferait
+ * 400 PostgREST et perdrait l'alerte entière; `urgency='immediate'` EST le
+ * contournement du digest.
+ */
+async function writePlanQuestionChangeRequest(args: {
+  supabase: SupabaseClient;
+  changeRequest: PlanQuestionChangeRequest;
+}): Promise<{ written: boolean; id: string | null; reason_code: string }> {
+  const { bypasses_digest: _bypassesDigest, ...row } = args.changeRequest;
+  try {
+    const { data, error } = await args.supabase
+      .from("contract_change_requests")
+      .insert(row)
+      .select("id")
+      .single();
+    if (error) throw error;
+    const id = String((data as Record<string, unknown> | null)?.id ?? "")
+      .trim();
+    return id
+      ? { written: true, id, reason_code: "raised" }
+      : { written: false, id: null, reason_code: "missing_readback_row" };
+  } catch (error) {
+    console.error("[plan_question] change request write failed", error);
+    return {
+      written: false,
+      id: null,
+      reason_code: "change_request_write_failed",
+    };
+  }
+}
+
+/**
+ * L'état de résolution d'un jour, lu depuis les FAITS persistés — la règle
+ * « le flex se déclare à l'avance » se cale sur la même source de vérité que
+ * la note qu'elle protège (`commitment_evaluations`), pas sur une horloge.
+ *
+ * Aucune ligne ⇒ NON résolu (D2 du `advance_rule`): un jour jamais évalué
+ * n'est pas un jour noté, et refuser là punirait un cron en retard.
+ * Lecture en échec ⇒ non résolu également, et c'est le bon sens du fail-open
+ * pour CE prédicat: il n'ouvre rien, il autorise une déclaration de flex.
+ */
+async function readKeelDayResolution(args: {
+  supabase: SupabaseClient;
+  userId: string;
+  localDate: string;
+}): Promise<DayResolution | null> {
+  try {
+    const { data, error } = await args.supabase
+      .from("commitment_evaluations")
+      .select("status")
+      .eq("user_id", args.userId)
+      .eq("local_date", args.localDate);
+    if (error) throw error;
+    const rows = (data ?? []) as Array<{ status?: unknown }>;
+    if (rows.length === 0) {
+      return { local_date: args.localDate, resolved: false };
+    }
+    const resolved = rows.every((row) => String(row.status ?? "") !== "unknown");
+    return {
+      local_date: args.localDate,
+      resolved,
+      resolved_by: resolved ? "commitment_evaluations" : null,
+    };
+  } catch (error) {
+    console.warn("[keel] day resolution read failed", error);
+    return null;
+  }
+}
+
+/**
+ * W12-V — texte d'AVARIE (le modèle a échoué), dans la langue de réponse.
+ *
+ * Exporté pour être mesurable : c'est le seul texte visible d'un tour raté, et
+ * un tour raté est exactement celui qu'on ne rejoue pas pour vérifier.
+ * `resolveResponseLocale` est l'unique décideur de langue (R3) ; ici on ne fait
+ * que choisir la copie. La phrase dit ce qui est VRAI et rien d'autre : aucune
+ * ligne n'a été écrite — même contrat que la ceinture accusé-fantôme.
+ */
+export function keelOutageTemplate(locale?: string | null): string {
+  const tag = locale ?? resolveResponseLocale({});
+  return isFrenchLocale(tag)
+    ? "J'ai un souci technique sur ce tour. Je n'ai rien execute de plus."
+    : "I hit a technical problem on this turn. Nothing was logged.";
+}
+
 function finalVisibleText(
   text: unknown,
   routeDecision: RouteDecision | null,
@@ -1027,6 +1895,11 @@ function finalVisibleText(
   // MENTION RÉTRACTÉE — le verrou write-path et l'interdit de contexte ne
   // suffisent pas quand le composeur lit le contenu dans l'historique brut.
   history?: unknown,
+  // W8: le rôle KEEL du tour. Seule information que les gardes de rendu ne
+  // pouvaient PAS déduire du frame — et la ceinture accusé-fantôme est
+  // indexée dessus (hors élève KEEL, il n'y a pas de ligne de protocole à
+  // accuser, donc rien à réconcilier).
+  isKeelStudent?: boolean,
 ) {
   // paul-r6 B01: sur un commit de CORRECTION track, la reply deterministe du
   // tool remplace la paraphrase du composeur — l'historique (refus du tour
@@ -1046,8 +1919,85 @@ function finalVisibleText(
   if (!isSafetyRoute(routeDecision)) {
     out = ensureVisibleSophiaEmoji(out);
     out = ensureClarifyQuestionVisible(out, turnFrame ?? null);
+    // W8 — DERNIÈRE ceinture du rendu, à dessein: elle doit voir le texte
+    // FINAL (y compris ce que `ensureClarifyQuestionVisible` vient de
+    // réinjecter), sinon un accusé rajouté après elle sortirait intact.
+    out = stripKeelAckWithoutCommittedEffect(
+      out,
+      turnFrame ?? null,
+      userMessage,
+      isKeelStudent === true,
+      routeDecision?.response_owner === "disordered_eating_guard",
+    );
   }
   return out.trim();
+}
+
+/**
+ * W8 — CEINTURE ACCUSÉ FANTÔME SANS EFFET (adaptateur runtime).
+ *
+ * Le raisonnement complet, le détecteur et la condition de désarmement vivent
+ * dans `skills/_shared/keel_ack_without_effect_guard.ts` (fonctions pures).
+ * Ici on ne fait que deux choses, et ce sont les deux que le module ne peut
+ * pas faire seul:
+ *
+ *  1. LIRE LA VÉRITÉ D'EXÉCUTION DU TOUR. `committedEffectCount` est la
+ *     longueur de `direct_effect_lane.committed_effects` — des lignes RELUES
+ *     par les exécuteurs, jamais des demandes. C'est le même champ que lisent
+ *     `stripTrackClaimWithoutCommit` et `ensureCommittedRenderParity`: une
+ *     seule source de vérité de commit par tour.
+ *     NOTE, et c'est tout l'intérêt de cette ceinture: quand le dispatcher
+ *     n'émet RIEN, la lane est absente et le compte vaut 0 — c'est
+ *     précisément le chemin où toutes les gardes ledger-first sont muettes.
+ *  2. COMPTER ET TRACER. Le compteur d'isolat sert au log de tour; la ligne
+ *     `guards` de `system_error_logs` est le canal durable qui donne le TAUX
+ *     RÉEL dans le fil admin.
+ */
+export function stripKeelAckWithoutCommittedEffect(
+  text: string,
+  turnFrame: TurnFrame | null,
+  userMessage: string | undefined,
+  isKeelStudent: boolean,
+  isRestrictionFloorTurn = false,
+): string {
+  const source = String(text ?? "");
+  if (!isKeelStudent || !source.trim()) return source;
+  const lane = (turnFrame as { direct_effect_lane?: unknown } | null)
+    ?.direct_effect_lane as Record<string, unknown> | null | undefined;
+  const committed = Array.isArray(lane?.committed_effects)
+    ? (lane?.committed_effects as unknown[])
+    : [];
+  const result = guardKeelAckWithoutCommittedEffect({
+    text: source,
+    userMessage: String(userMessage ?? ""),
+    isKeelStudent: true,
+    committedEffectCount: committed.length,
+    // La route safety a déjà été écartée par l'appelant
+    // (`if (!isSafetyRoute(routeDecision))`); on reste explicite pour que la
+    // condition de désarmement n°2 soit lisible à cet endroit aussi.
+    isSafetyTurn: false,
+    isRestrictionFloorTurn,
+  });
+  if (!result.triggered) return source;
+  const count = recordKeelAckGuardTrigger();
+  console.warn(
+    `[keel] ack_guard triggered count=${count}` +
+      ` stripped=${result.stripped_sentences}` +
+      ` locale=${result.detection.locale}` +
+      ` object=${result.detection.reported_object ? "yes" : "none"}`,
+  );
+  logRuntimeGuardEvent({
+    guard: KEEL_ACK_GUARD_NAME,
+    userId: (turnFrame as { user_id?: string } | null)?.user_id ?? null,
+    detail: {
+      turn_id: (turnFrame as { turn_id?: string } | null)?.turn_id ?? null,
+      reason_code: result.reason_code,
+      stripped_sentences: result.stripped_sentences,
+      detected_locale: result.detection.locale,
+      isolate_trigger_count: count,
+    },
+  });
+  return result.text;
 }
 
 /**
@@ -1717,47 +2667,6 @@ export function ensureClarifyQuestionVisible(
   return `${text.trim()}\n\n${String(clarify.clarify_question).trim()}`;
 }
 
-/**
- * Installe un engagement de style SESSION dans temp_memory (dédup + fenêtre
- * de 3). Deux producteurs: le dispatcher local feature_opportunity
- * (state_patch, eva-r7 B01) et le dispatcher GLOBAL via le champ racine
- * `session_style_commitment_hint` du TurnFrame (P1-2, ALEX-CPR-B04 — capture
- * quel que soit l'owner du tour, même sans signal feature_opportunity).
- */
-function installSessionStyleCommitment(
-  tempMemory: Record<string, unknown>,
-  commitment: string,
-): Record<string, unknown> {
-  const clean = String(commitment ?? "").trim();
-  if (!clean) return tempMemory;
-  const previous = Array.isArray(tempMemory.__session_style_commitments)
-    ? (tempMemory.__session_style_commitments as unknown[]).map(String)
-    : [];
-  return {
-    ...tempMemory,
-    __session_style_commitments: [
-      ...previous.filter((c) => c !== clean),
-      clean,
-    ].slice(-3),
-  };
-}
-
-function sessionStyleCommitmentsPromptBlock(
-  tempMemory: Record<string, unknown> | null | undefined,
-): string | null {
-  const raw = (tempMemory as Record<string, unknown> | null | undefined)
-    ?.__session_style_commitments;
-  const commitments = Array.isArray(raw)
-    ? raw.map((c) => String(c ?? "").trim()).filter(Boolean)
-    : [];
-  if (commitments.length === 0) return null;
-  return [
-    "=== CONTRAINTE DE STYLE SESSION (engagement pris) ===",
-    ...commitments.map((c) => `- ${c}`),
-    "Cet engagement, pris avec le user sur cette conversation, PRIME sur tout reflexe de style par defaut (emoji de warmth compris), y compris en mode soutien. Si la contrainte dit sans emojis: ZERO emoji.",
-  ].join("\n");
-}
-
 function allowedDirectEffectsFromGate(
   routeDecision: RouteDecision,
   gate: EffectGateOrchestratorResult,
@@ -1939,7 +2848,40 @@ export async function processMessage(
     timezoneOverride: meta?.clientTimezone ?? null,
   }).catch(() => null as any);
 
-  const safetyContextOutput = initialSafetyContext({ channel });
+  // W4.7 — MAILLON 1. Rôle KEEL, projection du plan, plancher TCA du tour.
+  // Une seule passe, avant le dispatcher: le bloc plan doit exister au moment
+  // où le prompt est construit, et le plancher au moment où la route est
+  // calculée. Un utilisateur legacy paie une lecture `profiles` et rien
+  // d'autre (`loadKeelTurnContext` sort immédiatement).
+  const keelTurn = await loadKeelTurnContext({
+    supabase,
+    userId,
+    userMessage,
+    userLocalDatetime: userTime?.user_local_datetime ?? null,
+    legacyPlanSnapshot: planItemSnapshot,
+  });
+  if (keelTurn.is_student) {
+    console.log(
+      `[keel] request_id=${requestId} keel_student` +
+        ` plan_context=${keelTurn.plan_context_reason_code}` +
+        ` commitments_today=${
+          keelTurn.plan_context?.counts.scheduled_today ?? 0
+        }` +
+        ` restriction=${
+          keelTurn.restriction === null
+            ? `unavailable:${keelTurn.restriction_unavailable_reason}`
+            : String(keelTurn.restriction.restriction_flag)
+        }`,
+    );
+  }
+
+  // W3.1 — deterministic pregate on the CURRENT message. Publishes the floor
+  // the LLM frame can raise but never sink below (safety/safety_floor.ts).
+  const safetyContextOutput = initialSafetyContext({
+    channel,
+    user_message: userMessage,
+    user_id: userId,
+  });
   const recentMessagesForTurnFrame = [
     ...recentChatMessagesFromHistory(
       history,
@@ -1950,188 +2892,10 @@ export async function processMessage(
       : []),
   ];
 
-  // Potion support owns the semantic reply before the global dispatcher.
-  // The first accepted reply promotes the lightweight admission state into
-  // the existing Presence engine. During Potion-derived Presence, the same
-  // local owner still arbitrates boundaries and exits; it never names a
-  // downstream skill, only the global dispatcher.
-  // Audit invariant: any turn that started under Potion ownership and ends
-  // with a global owner must carry the local decision in its persisted
-  // skill_run — otherwise a coaching_recommendation capture is
-  // indistinguishable from a bypass of the local dispatcher.
-  let potionSupportLocalDispatchTrace: Record<string, unknown> | null = null;
-  const withPotionLocalDispatchTrace = (skillRun: unknown): unknown =>
-    potionSupportLocalDispatchTrace
-      ? {
-        ...(skillRun && typeof skillRun === "object"
-          ? skillRun as Record<string, unknown>
-          : {}),
-        potion_support_local_dispatch: potionSupportLocalDispatchTrace,
-      }
-      : skillRun;
-  const admissionState = readPotionSupportAdmissionState(
-    activeFlowState.activeSkillState,
-  );
-  const potionPresenceState = readActivePresenceState(
-    activeFlowState.activeSkillState,
-  );
-  const potionPresenceEntry =
-    potionPresenceState?.entry_context?.source === "potion_support"
-      ? potionPresenceState.entry_context
-      : null;
-  const potionLocalContext: PotionSupportAdmissionContext | null =
-    admissionState?.working_state.potion_support_admission ??
-      (potionPresenceEntry
-        ? {
-          source: "potion_support",
-          source_potion_session_id:
-            potionPresenceEntry.source_potion_session_id,
-          recurring_reminder_id: potionPresenceEntry.recurring_reminder_id,
-          scheduled_checkin_id: potionPresenceEntry.scheduled_checkin_id,
-          day_index: Math.max(1, Number(potionPresenceEntry.day_index ?? 1)),
-          topic_hint: potionPresenceEntry.topic_hint ??
-            potionPresenceState?.topic_hint ?? null,
-          opening_focus: potionPresenceEntry.opening_focus ??
-            potionPresenceState?.topic_hint ?? null,
-          anchor_evidence_refs: potionPresenceEntry.anchor_evidence_refs,
-          awaiting_first_reply: true,
-        }
-        : null);
-  if (potionLocalContext) {
-    const phase = admissionState ? "first_reply" : "presence_continuation";
-    let localDecision;
-    try {
-      localDecision = await runPotionSupportLocalDispatcher({
-        userId,
-        requestId,
-        userMessage,
-        recentMessages: recentMessagesForTurnFrame,
-        phase,
-        context: potionLocalContext,
-      });
-    } catch (error) {
-      console.warn("[potion-support] local dispatcher failed", error);
-      localDecision = potionSupportLocalFailureDecision({
-        userMessage,
-        phase,
-        context: potionLocalContext,
-      });
-    }
-    potionSupportLocalDispatchTrace = {
-      phase,
-      action: localDecision.action,
-      confidence: localDecision.confidence,
-      relation: localDecision.relation,
-      reason: localDecision.reason,
-      terminal_reason: localDecision.terminal_reason,
-      source_potion_session_id: potionLocalContext.source_potion_session_id,
-      recurring_reminder_id: potionLocalContext.recurring_reminder_id,
-      scheduled_checkin_id: potionLocalContext.scheduled_checkin_id,
-      day_index: potionLocalContext.day_index,
-      campaign_status: "active",
-    };
-
-    if (localDecision.action === "continue_support") {
-      if (admissionState) {
-        const nowIso = userTime?.now_utc ?? new Date().toISOString();
-        const localDate = String(userTime?.user_local_datetime ?? "")
-          .slice(0, 10) || nowIso.slice(0, 10);
-        tempMemory = armPotionSupportPresence({
-          tempMemory: clearActiveConversationSkillState(tempMemory),
-          nowIso,
-          localDate,
-          topicHint: potionLocalContext.topic_hint ??
-            potionLocalContext.opening_focus,
-          entryContext: {
-            source: "potion_support",
-            source_potion_session_id:
-              potionLocalContext.source_potion_session_id,
-            recurring_reminder_id: potionLocalContext.recurring_reminder_id,
-            scheduled_checkin_id: potionLocalContext.scheduled_checkin_id,
-            anchor_evidence_refs: potionLocalContext.anchor_evidence_refs,
-            day_index: potionLocalContext.day_index,
-            topic_hint: potionLocalContext.topic_hint,
-            opening_focus: potionLocalContext.opening_focus,
-            awaiting_first_reply: false,
-          },
-        });
-        potionSupportLocalDispatchTrace = {
-          ...potionSupportLocalDispatchTrace,
-          admission_promoted_to_presence: true,
-        };
-      }
-    } else {
-      let noteInformation = localDecision.note_information;
-      if (
-        localDecision.action === "cancel_campaign" &&
-        localDecision.terminal_reason
-      ) {
-        try {
-          const admin = serviceRoleLedgerReadClient();
-          if (!admin) throw new Error("potion_support_admin_client_missing");
-          const outcome = await cancelPotionSupportCampaign({
-            admin,
-            userId,
-            recurringReminderId: potionLocalContext.recurring_reminder_id,
-            sourcePotionSessionId:
-              potionLocalContext.source_potion_session_id,
-            reason: localDecision.terminal_reason,
-          });
-          if (noteInformation) {
-            noteInformation = {
-              ...noteInformation,
-              structured_context: {
-                ...noteInformation.structured_context,
-                campaign_status: "terminal_committed",
-                cancellation_outcome: outcome,
-              },
-            };
-          }
-          potionSupportLocalDispatchTrace = {
-            ...potionSupportLocalDispatchTrace,
-            campaign_status: "terminal_committed",
-            cancellation_outcome: outcome,
-          };
-        } catch (error) {
-          console.error("[potion-support] campaign cancellation failed", error);
-          if (noteInformation) {
-            noteInformation = {
-              ...noteInformation,
-              structured_context: {
-                ...noteInformation.structured_context,
-                campaign_status: "terminal_failed",
-                effects_outcome: {
-                  status: "failed",
-                  reason: "potion_support_campaign_cancellation_failed",
-                  guidance:
-                    "Ne pas confirmer l'annulation durable; dire que l'arrêt n'a pas pu être vérifié.",
-                },
-              },
-            };
-          }
-          potionSupportLocalDispatchTrace = {
-            ...potionSupportLocalDispatchTrace,
-            campaign_status: "terminal_failed",
-          };
-        }
-      }
-      tempMemory = clearActiveConversationSkillState(tempMemory);
-      tempMemory.__last_potion_support_admission_exit_memo = {
-        reason: localDecision.reason,
-        user_message_summary: userMessage,
-        flow_summary: potionLocalContext.opening_focus ??
-          potionLocalContext.topic_hint,
-        note_information: noteInformation,
-        at: new Date().toISOString(),
-      };
-    }
-    activeFlowState = readActiveFlowState(tempMemory);
-    lastLocalFlowExitContext = buildLastLocalFlowExitContext(tempMemory);
-    inboundDailyCoachingBridgeNote = localParentNoteTargetsCoaching(
-      lastLocalFlowExitContext,
-    );
-    state = { ...(state as any), temp_memory: tempMemory };
-  }
+  // W2.A/W2.B: le SAS D'ADMISSION POTION a été débranché puis supprimé. Il
+  // possédait la réponse sémantique AVANT le dispatcher global (dispatcher
+  // local 5 sorties, promotion vers Présence, annulation durable de
+  // campagne). Le tour va désormais directement au dispatcher global.
 
   const dispatcherV2Stats: DispatcherRunStats[] = [];
   const dispatcherStart = Date.now();
@@ -2205,6 +2969,10 @@ export async function processMessage(
       }
       : undefined,
     plan_snapshot: planItemSnapshot,
+    // W4.7 — MAILLON 1 (suite). Non null ⇒ le payload du dispatcher porte le
+    // plan KEEL et RIEN du legacy, et les lanes KEEL (2 effets durables +
+    // plan_question) deviennent énonçables dans le prompt.
+    keel_plan_context: keelTurn.plan_block,
     safety_context_output: safetyContextOutput,
     // P3-A: traîne pregate — les scores des tours précédents viennent de
     // temp_memory (commit post-génération plus bas).
@@ -2559,11 +3327,26 @@ export async function processMessage(
 
   let currentActiveSkillState = activeFlowState.activeSkillState;
   const presenceFlowEnabled = envFlagEnabled("SOPHIA_PRESENCE_FLOW_ENABLED");
+  // W4.7 — MAILLONS 4 & 5. Les deux entrées KEEL du routeur (`keel_student`
+  // qui rend `plan_question` atteignable, `restriction_guard` qui ouvre le
+  // plancher TCA DANS la conversation) sont calculées en UN seul endroit et
+  // appliquées aux QUATRE appels. Leçon P3 de ce dépôt: un gate posé sur le
+  // seul chemin nominal est un gate troué — un re-dispatch de sortie de flow
+  // perdrait le plancher au tour exact où il compte.
+  const keelRoutingInputs = () => ({
+    keel_student: keelTurn.is_student,
+    restriction_guard: conversationalRestrictionGuardForRouters({
+      restriction: keelTurn.restriction,
+      tempMemory,
+      userMessage,
+    }),
+  });
   let routeDecision = runConversationRouters({
     turn_frame: turnFrame,
     active_skill_state: currentActiveSkillState,
     safety_context_risk_band: safetyContextOutput.risk_band,
     presence_flow_enabled: presenceFlowEnabled,
+    ...keelRoutingInputs(),
   });
 
   // ── Mot de bascule (carte d'attaque): détection déterministe ─────────────
@@ -2662,6 +3445,7 @@ export async function processMessage(
         active_skill_state: null,
         safety_context_risk_band: safetyContextOutput.risk_band,
         presence_flow_enabled: false,
+        ...keelRoutingInputs(),
       });
       console.log(
         `[presence] request_id=${requestId} exit_reroute owner=${routeDecision.response_owner} reason=${routeDecision.reason_code}`,
@@ -2885,6 +3669,7 @@ export async function processMessage(
       turnFrame,
       userMessage,
       history,
+      keelTurn.is_student,
     );
     const nowIso = turnFrame.direct_effect_time_context?.now_utc ??
       new Date().toISOString();
@@ -2960,7 +3745,7 @@ export async function processMessage(
         route_decision: routeDecision,
         direct_effects: directEffectTrace(null),
         effect_ledger: summarizeEffectLedgerForTrace(effectLedger),
-        skill_run: withPotionLocalDispatchTrace(conversationTurnTrace.skill_run),
+        skill_run: conversationTurnTrace.skill_run,
         confirmation_token_outcomes: [],
         memory_write_candidates_emitted: 0,
         response_owner: routeDecision.response_owner,
@@ -3046,6 +3831,42 @@ export async function processMessage(
   turnFrame = operationPipeline.turnFrame ?? turnFrame;
   tempMemory = operationPipeline.tempMemory ?? tempMemory;
   let operationRuntime = operationPipeline.operationRuntime;
+  // W4.7 — MAILLON 3. Les deux effets durables KEEL, sur la MÊME lane que
+  // track_progress: la route a déjà tranché (gate default-deny, blocages
+  // safety/crise/TCA appliqués par `routers.ts`), l'exécuteur écrit et RELIT,
+  // le ledger compte, le renderer n'accuse que le committé. Le résultat est
+  // fusionné dans `operationRuntime` puis reporté sur le frame, donc le
+  // contrat de confirmation du composeur voit l'issue réelle — c'est ce qui
+  // interdit le « je l'ai noté » sans ligne (classe phantom-commit).
+  const keelDirectEffectRuntime = await runKeelDirectEffectLane({
+    supabase,
+    userId,
+    userMessage,
+    channel,
+    turnFrame,
+    routeDecision,
+    tempMemory,
+    keel: keelTurn,
+  });
+  if (keelDirectEffectRuntime) {
+    operationRuntime = mergeDirectEffectRuntimeIntoVisibleRuntime({
+      directRuntime: keelDirectEffectRuntime,
+      visibleRuntime: operationRuntime,
+    });
+    console.log(
+      `[keel] request_id=${requestId} durable_effects` +
+        ` handler=${keelDirectEffectRuntime.toolSkillRun.selected_handler}` +
+        ` status=${keelDirectEffectRuntime.toolSkillRun.status}` +
+        ` committed=${
+          (keelDirectEffectRuntime.toolSkillRun.committed_effects as unknown[])
+            .length
+        }` +
+        ` blocked=${
+          (keelDirectEffectRuntime.toolSkillRun.blocked_effects as unknown[])
+            .length
+        }`,
+    );
+  }
   turnFrame = turnFrameWithDirectEffectRuntime(turnFrame, operationRuntime) ??
     (turnFrame ? withDirectEffectConfirmationContext(turnFrame) : turnFrame);
   // P12-F (rose-hard25 R1-B03): UNE source de vérité de bande effective par
@@ -3222,6 +4043,7 @@ export async function processMessage(
           // atterrir en présence CE tour (l'entrée reste gouvernée par le
           // signal du dispatcher re-sollicité).
           presence_flow_enabled: presenceFlowEnabled,
+          ...keelRoutingInputs(),
         });
         applyPresenceEntryAfterLocalFlowExit();
         if (localFlowExitRedispatchCount <= 2) continue visibleOwnerDispatch;
@@ -3239,6 +4061,7 @@ export async function processMessage(
           turnFrame,
           userMessage,
           history,
+          keelTurn.is_student,
         );
         const effectLedger = effectLedgerForOperationRuntime(
           turnFrame.turn_id,
@@ -3274,7 +4097,7 @@ export async function processMessage(
             route_decision: routeDecision,
             direct_effects: directEffectTrace(operationRuntime),
             effect_ledger: summarizeEffectLedgerForTrace(effectLedger),
-            skill_run: withPotionLocalDispatchTrace(undefined),
+            skill_run: undefined,
             tool_skill_run: operationRuntime?.toolSkillRun ?? undefined,
             confirmation_token_outcomes: [],
             memory_write_candidates_emitted: 0,
@@ -3428,34 +4251,14 @@ export async function processMessage(
         turnFrame,
         userMessage,
         history,
+        keelTurn.is_student,
       );
       const effectLedger = effectLedgerForOperationRuntime(
         turnFrame.turn_id,
         operationRuntime,
       );
-      let potionSupportSafetyCancellation: Record<string, unknown>;
-      try {
-        const admin = serviceRoleLedgerReadClient();
-        if (!admin) throw new Error("potion_support_admin_client_missing");
-        const outcome = await cancelPotionSupportCampaign({
-          admin,
-          userId,
-          reason: "cancelled_safety",
-        });
-        potionSupportSafetyCancellation = {
-          status: "committed",
-          outcome,
-        };
-      } catch (error) {
-        console.error(
-          "[Router] potion support safety cancellation failed",
-          error,
-        );
-        potionSupportSafetyCancellation = {
-          status: "failed",
-          reason: "potion_support_safety_cancellation_failed",
-        };
-      }
+      // W2.B: l'annulation de campagne potion-support a disparu avec les
+      // potions — plus rien à annuler sur un tour de crise ici.
       const conversationTurnTrace = {
         turn_frame: turnFrame,
         route_decision: routeDecision,
@@ -3467,8 +4270,6 @@ export async function processMessage(
           status: skillOutput.status,
           latency_ms: skillLatencyMs,
           diagnosis: skillOutput.diagnosis ?? null,
-          potion_support_campaign_cancellation:
-            potionSupportSafetyCancellation,
           ...(skillOutput.status === "exit"
             ? {
               exit_note_information:
@@ -3502,7 +4303,7 @@ export async function processMessage(
           route_decision: routeDecision,
           direct_effects: directEffectTrace(operationRuntime),
           effect_ledger: summarizeEffectLedgerForTrace(effectLedger),
-          skill_run: withPotionLocalDispatchTrace(conversationTurnTrace.skill_run),
+          skill_run: conversationTurnTrace.skill_run,
           tool_skill_run: operationRuntime?.toolSkillRun ?? undefined,
           confirmation_token_outcomes: [],
           memory_write_candidates_emitted: 0,
@@ -3584,7 +4385,6 @@ export async function processMessage(
       routeDecision.response_owner === "coaching_recommendation" ||
       routeDecision.response_owner ===
         "daily_action_coaching_recommendation_v1" ||
-      routeDecision.response_owner === "feature_opportunity" ||
       routeDecision.response_owner === "plan_realignment" ||
       routeDecision.response_owner === "winback_reengagement_v1"
     ) {
@@ -3707,12 +4507,6 @@ export async function processMessage(
         ? await runProductHelpSkill({
           user_message: userMessage,
           context,
-        })
-        : skillId === "feature_opportunity"
-        ? await runFeatureOpportunitySkill({
-          user_message: userMessage,
-          context,
-          direct_effect_executor: localOneShotDirectEffectExecutor,
         })
         : skillId === "plan_realignment"
         ? await runPlanRealignmentSkill({
@@ -3894,6 +4688,7 @@ export async function processMessage(
           // tour — sans ce flag, le re-dispatch retombait en normal_reply
           // malgré un signal présence high (run nav-frontieres-r2, B6'-T5).
           presence_flow_enabled: presenceFlowEnabled,
+          ...keelRoutingInputs(),
         });
         applyPresenceEntryAfterLocalFlowExit();
         if (localFlowExitRedispatchCount <= 2) continue visibleOwnerDispatch;
@@ -3909,6 +4704,7 @@ export async function processMessage(
           turnFrame,
           userMessage,
           history,
+          keelTurn.is_student,
         );
         const effectLedger = effectLedgerForOperationRuntime(
           turnFrame.turn_id,
@@ -3966,7 +4762,7 @@ export async function processMessage(
             route_decision: routeDecision,
             direct_effects: directEffectTrace(operationRuntime),
             effect_ledger: summarizeEffectLedgerForTrace(effectLedger),
-            skill_run: withPotionLocalDispatchTrace(conversationTurnTrace.skill_run),
+            skill_run: conversationTurnTrace.skill_run,
             tool_skill_run: operationRuntime?.toolSkillRun ?? undefined,
             confirmation_token_outcomes: [],
             memory_write_candidates_emitted: 0,
@@ -4069,7 +4865,14 @@ export async function processMessage(
     directEffectConfirmationContextPrompt(turnFrame),
     // F3: la section que la regle companion designe comme source de verite
     // des recaps de plan — construite a chaque tour, inconditionnelle.
-    activePlanSnapshotPromptBlock(planItemSnapshot),
+    // W4.7: MÊME BRANCHE QUE LE DISPATCHER. Envoyer les deux projections au
+    // composeur lui laisserait choisir la plus arrangeante, et
+    // `user_plan_items` porte le compteur `current_reps` que KEEL a supprimé.
+    // Un élève KEEL dont le contexte plan n'a pas pu être lu n'obtient AUCUN
+    // bloc plan — jamais un repli sur un plan qu'il n'a plus.
+    keelTurn.is_student
+      ? keelTurn.plan_block
+      : activePlanSnapshotPromptBlock(planItemSnapshot),
     productHelpInjectedContext(routeDecision),
     // eva-r6 B02: directive de tour pour la preemption detresse SANS ideation
     // — le companion sortait un cadrage urgences disproportionne. Donnee de
@@ -4277,6 +5080,456 @@ export async function processMessage(
       String(Deno.env.get("SOPHIA_COMPANION_MODEL_DEEP") ?? "").trim() || null;
   }
 
+  // ══════════════════════════════════════════════════════════════════════
+  // W4.7 — LES DEUX LANES KEEL POSSÈDENT LEUR TOUR.
+  //
+  // W3.2 et W4.4 avaient posé ici deux ceintures anti-fail-open : `routers.ts`
+  // savait router vers ces owners, le runtime ne savait pas les exécuter, donc
+  // la route traversait le bloc et atterrissait dans le COMPOSEUR GÉNÉRIQUE.
+  // Un plancher qui dégrade en silence vers la lane qu'il devait couper n'est
+  // pas un plancher ; une permission de substitution rendue au jugé sur une
+  // prescription non lue est pire que pas de lane du tout.
+  //
+  // Les deux entrées sont maintenant ARMÉES (`keelRoutingInputs`), donc les
+  // deux exécutions sont branchées ci-dessous — c'était la condition posée par
+  // les ceintures elles-mêmes. Elles ne disparaissent pas pour autant : elles
+  // sont RETOURNÉES en garde-fous inversés (juste après les deux handlers)
+  // qui prouvent désormais l'inverse — si l'un de ces owners atteint le
+  // composeur, c'est que son handler a été débranché.
+  // ══════════════════════════════════════════════════════════════════════
+
+  /** Clôture d'un tour possédé par une lane KEEL. Même contrat de retour que
+   * la boucle des skills : trace, ledger, traîne de risque, état, message. */
+  const finishKeelSkillTurn = async (args: {
+    skillId: "disordered_eating_guard" | "plan_question";
+    skillOutput: ConversationSkillOutput;
+    skillLatencyMs: number;
+    extraSkillRun?: Record<string, unknown>;
+    ledgerEntries?: Array<{
+      status: "committed" | "failed";
+      effect_type: string;
+      operation_type: string;
+      table: string;
+      committed_id: string | null;
+      reason_code: string;
+      payload_summary: Record<string, unknown>;
+    }>;
+  }) => {
+    const responseContent = finalVisibleText(
+      mergeVisibleTextForTest(
+        operationRuntime,
+        String(args.skillOutput.reply ?? "").trim(),
+      ),
+      routeDecision,
+      turnFrame,
+      userMessage,
+      history,
+      keelTurn.is_student,
+    );
+    const effectLedger = effectLedgerForOperationRuntime(
+      turnFrame.turn_id,
+      operationRuntime,
+    );
+    for (const [index, entry] of (args.ledgerEntries ?? []).entries()) {
+      const record = entry.status === "committed"
+        ? recordCommittedEffect
+        : recordFailedEffect;
+      record(effectLedger, {
+        effect_id: `${effectLedger.turn_id}:${entry.status}:${entry.effect_type}:${index}`,
+        effect_type: entry.effect_type,
+        operation_type: entry.operation_type,
+        operation_id: null,
+        committed_id: entry.committed_id,
+        tool_id: args.skillId,
+        source: "executor",
+        reason_code: entry.reason_code,
+        payload_summary: entry.payload_summary,
+        db_ref: entry.committed_id
+          ? { table: entry.table, id: entry.committed_id }
+          : null,
+      });
+    }
+    const skillRun = {
+      selected_skill_id: args.skillId,
+      reason_code: routeDecision.reason_code,
+      status: args.skillOutput.status,
+      latency_ms: args.skillLatencyMs,
+      ...(args.extraSkillRun ?? {}),
+    };
+    const conversationTurnTrace = {
+      turn_frame: turnFrame,
+      route_decision: routeDecision,
+      effect_ledger: summarizeEffectLedgerForTrace(effectLedger),
+      response_owner: routeDecision.response_owner,
+      skill_run: skillRun,
+      tool_skill_run: operationRuntime?.toolSkillRun ?? undefined,
+    };
+    try {
+      const dispatcherStat = dispatcherV2Stats[0];
+      await logConversationTurn({
+        turn_id: turnFrame.turn_id,
+        user_id: userId,
+        source_message_id: turnFrame.source_message_id,
+        ts: new Date().toISOString(),
+        dispatcher_run: {
+          latency_ms: dispatcherStat?.latency_ms ?? dispatcherLatencyMs,
+          tokens_in: dispatcherStat?.tokens_in ?? 0,
+          tokens_out: dispatcherStat?.tokens_out ?? 0,
+          prompt_version: skipGlobalDispatcherForActiveLocalFlow
+            ? "dispatcher_skipped_active_local_flow_v1"
+            : dispatcherStat?.prompt_version ??
+              "dispatcher_v2_prompt_2026_05_s12",
+          model_used: dispatcherStat?.model_name ?? null,
+          memory_plan: turnFrame.memory_plan ?? DEFAULT_DISPATCHER_MEMORY_PLAN,
+        },
+        turn_frame: conversationTurnTrace.turn_frame,
+        route_decision: routeDecision,
+        direct_effects: directEffectTrace(operationRuntime),
+        effect_ledger: summarizeEffectLedgerForTrace(effectLedger),
+        skill_run: skillRun,
+        tool_skill_run: operationRuntime?.toolSkillRun ?? undefined,
+        confirmation_token_outcomes: [],
+        memory_write_candidates_emitted: 0,
+        response_owner: routeDecision.response_owner,
+        total_latency_ms: Date.now() - turnStartMs,
+      }, { supabase });
+    } catch (error) {
+      console.error("[Router] logConversationTurn failed after retries", {
+        turn_id: turnFrame.turn_id,
+        error: String(error),
+      });
+    }
+    await persistEffectLedgerForRuntimeTurn({
+      supabase,
+      effectLedger,
+      userId,
+      sourceMessageId: turnFrame.source_message_id,
+      requestId,
+      channel,
+      scope,
+    });
+    tempMemory = commitPostTurnRiskTrail(
+      tempMemory as Record<string, unknown>,
+      {
+        runtimeSafetyRiskBand,
+        turnFrameRiskBand: turnFrame.safety?.risk_band,
+        routeIsSafety: false,
+        sourceMessageId: turnFrame.source_message_id ?? null,
+      },
+    );
+    await updateUserState(supabase, userId, scope, {
+      current_mode: "companion",
+      temp_memory: tempMemory,
+      last_processed_at: new Date().toISOString(),
+      last_interaction_at: new Date().toISOString(),
+    } as never);
+    if (logMessages && responseContent) {
+      await logMessage(
+        supabase,
+        userId,
+        scope,
+        "assistant",
+        responseContent,
+        "companion",
+        {
+          request_id: requestId,
+          route_owner: routeDecision.response_owner,
+          selected_handler: routeDecision.selected_handler ?? null,
+          runtime_safety_risk_band: runtimeSafetyRiskBand,
+          dispatcher_latency_ms: dispatcherLatencyMs,
+          context_latency_ms: 0,
+          agent_latency_ms: args.skillLatencyMs,
+        },
+      );
+    }
+    await trace("brain:turn_complete", "io", {
+      response_owner: routeDecision.response_owner,
+      selected_handler: routeDecision.selected_handler ?? null,
+      executed_tools: operationRuntime?.executedTools ?? [],
+      tool_execution: operationRuntime?.toolExecution ?? "none",
+    }, "debug");
+    return {
+      content: responseContent,
+      mode: "companion" as AgentMode,
+      delivery: null,
+      tool_execution: operationRuntime?.toolExecution ?? "none",
+      executed_tools: operationRuntime?.executedTools ?? [],
+      conversation_turn_trace: conversationTurnTrace,
+    };
+  };
+
+  // ── MAILLON 5 — PLANCHER TCA, DANS LA CONVERSATION ────────────────────
+  if (routeDecision.response_owner === "disordered_eating_guard") {
+    const restriction = keelTurn.restriction;
+    if (!restriction || restriction.restriction_flag !== true) {
+      // Ceinture: cette lane ne s'ouvre QUE sur le plancher déterministe. Une
+      // route armée sans verdict levé signifierait que quelque chose d'autre
+      // (un signal du dispatcher, un état résiduel) a ouvert un flow clinique
+      // — précisément ce que W3.2 rend impossible par construction.
+      throw new Error(
+        "[disordered_eating_guard] route armée sans plancher levé: le verdict " +
+          "du guard est absent ou négatif. Refus d'ouvrir un flow clinique " +
+          `sans sa condition d'entrée. reason_code=${routeDecision.reason_code}`,
+      );
+    }
+    const skillStart = Date.now();
+    const guardRuntime: DisorderedEatingSkillRuntime = {
+      restriction_guard_result: restriction,
+      country: keelTurn.country,
+      plan_version_id: keelTurn.plan_version_id,
+    };
+    const skillOutput = await runDisorderedEatingGuardSkill({
+      user_message: userMessage,
+      context: {
+        skill_id: "disordered_eating_guard",
+        user_id: userId,
+        recent_messages: recentMessagesForTurnFrame,
+        // La continuité de l'épisode est portée par une clé dédiée (voir
+        // `KEEL_DISORDERED_EATING_STATE_KEY`): `active_flow_state.ts` ne
+        // connaît pas ce flow, donc l'état ne peut pas transiter par le
+        // registre des flows locaux.
+        active_skill_working_state: {
+          working_state: disorderedEatingWorkingStateForTurn(
+            tempMemory,
+            restriction,
+          ),
+        } as never,
+        turn_frame: turnFrame,
+        relevant_memory_items: [],
+        // Zéro projection de plan pendant ce flow: l'invariant du skill est
+        // qu'il ne parle jamais de chiffres, de plan ni de produit.
+        plan_items: [],
+        product_surfaces: [],
+        exclusions: [],
+        disordered_eating_guard_runtime: guardRuntime,
+      } as never,
+    });
+    const skillLatencyMs = Date.now() - skillStart;
+
+    // Escalade coach — écrite par le RUNTIME (le skill n'a aucune I/O) et
+    // idempotente PAR LIGNE OUVERTE: une passe quotidienne qui re-déclenche
+    // ne produit pas trente alertes, elle en produit une.
+    const changeRequest =
+      (skillOutput.diagnosis as Record<string, unknown> | undefined)
+        ?.contract_change_request ?? null;
+    const ledgerEntries: Parameters<
+      typeof finishKeelSkillTurn
+    >[0]["ledgerEntries"] = [];
+    if (changeRequest) {
+      try {
+        const escalation = await escalateRestrictionSignal(
+          supabase as never,
+          {
+            userId,
+            planVersionId: keelTurn.plan_version_id,
+            result: restriction,
+            studentWords: userMessage.trim() || null,
+          },
+        );
+        ledgerEntries.push({
+          status: escalation.contractChangeRequestId ? "committed" : "failed",
+          effect_type: "contract_change_request.raise",
+          operation_type: "restriction_signal_escalation",
+          table: "contract_change_requests",
+          committed_id: escalation.contractChangeRequestId,
+          reason_code: escalation.reason,
+          payload_summary: {
+            urgency: "immediate",
+            trigger_codes: restriction.triggers.map((trigger) => trigger.code),
+          },
+        });
+      } catch (error) {
+        console.error(
+          "[disordered_eating_guard] coach escalation write failed",
+          error,
+        );
+        ledgerEntries.push({
+          status: "failed",
+          effect_type: "contract_change_request.raise",
+          operation_type: "restriction_signal_escalation",
+          table: "contract_change_requests",
+          committed_id: null,
+          reason_code: "escalation_write_failed",
+          payload_summary: {
+            trigger_codes: restriction.triggers.map((trigger) => trigger.code),
+          },
+        });
+      }
+    }
+
+    tempMemory = applyDisorderedEatingEpisodeState({
+      tempMemory: tempMemory as Record<string, unknown>,
+      restriction,
+      statePatch: (skillOutput.state_patch ?? {}) as DisorderedEatingWorkingState,
+      // La CONVERSATION se ferme; la SUSPENSION, non — seule une revue coach
+      // la lève (contract.ts). Le latch n'empêche que la ré-ouverture du flow
+      // pour le même épisode, jamais la suppression des surfaces proactives.
+      closed: skillOutput.status === "exit",
+    });
+    console.log(
+      `[disordered_eating_guard] request_id=${requestId}` +
+        ` status=${skillOutput.status}` +
+        ` triggers=${restriction.triggers.map((t) => t.code).join(",")}` +
+        ` escalated=${ledgerEntries.length > 0}`,
+    );
+    return await finishKeelSkillTurn({
+      skillId: "disordered_eating_guard",
+      skillOutput,
+      skillLatencyMs,
+      extraSkillRun: {
+        restriction_trigger_codes: restriction.triggers.map((t) => t.code),
+        adherence_pressure_suspended: true,
+      },
+      ledgerEntries,
+    });
+  }
+
+  // ── MAILLON 4 — PLAN_QUESTION (Tier 0 déterministe) ───────────────────
+  if (routeDecision.response_owner === "plan_question") {
+    if (!keelTurn.is_student) {
+      // Ceinture: `routers.ts` gate cette lane sur `keel_student`. L'atteindre
+      // sans le rôle signifierait que le gate a sauté — et la lane répondrait
+      // alors sur un plan qui n'existe pas.
+      throw new Error(
+        "[plan_question] route armée sans gate keel_student: la lane ne peut " +
+          "rien résoudre sans plan_commitments. " +
+          `reason_code=${routeDecision.reason_code}`,
+      );
+    }
+    const skillStart = Date.now();
+    const signalContext = turnFrame.skill_signals.plan_question?.context;
+    let planQuestionRuntime: PlanQuestionSkillRuntime | null = null;
+    try {
+      planQuestionRuntime = await loadPlanQuestionRuntime({
+        supabase,
+        userId,
+        keel: keelTurn,
+        prescribedFoodGroup: signalContext?.prescribed_food_group ?? null,
+        slotHint: signalContext?.slot_hint ?? null,
+      });
+    } catch (error) {
+      // Prescription ou contraintes de sécurité illisibles: on n'accorde RIEN.
+      // La dégradation est nommée et honnête, et surtout elle ne retombe pas
+      // dans le composeur générique (qui, lui, dirait oui).
+      console.error("[plan_question] runtime load failed", error);
+      return await finishKeelSkillTurn({
+        skillId: "plan_question",
+        skillOutput: {
+          skill_id: "plan_question",
+          status: "complete",
+          response_intent: "escalate_to_coach",
+          reply:
+            "I can't check that against your plan right now, so I'm not going to " +
+            "guess. Stick to the line as written and ask your coach — they set " +
+            "the substitution rules.",
+          memory_trace: {
+            memory_used_for_response: false,
+            memory_item_ids_used: [],
+            correction_detected: false,
+            correction_target_item_ids: [],
+          },
+        } as ConversationSkillOutput,
+        skillLatencyMs: Date.now() - skillStart,
+        extraSkillRun: {
+          plan_question_runtime_unavailable: true,
+          prescription_mutated: false,
+        },
+      });
+    }
+
+    const skillOutput = await runPlanQuestionSkill({
+      user_message: userMessage,
+      context: {
+        skill_id: "plan_question",
+        user_id: userId,
+        recent_messages: recentMessagesForTurnFrame,
+        active_skill_working_state: null,
+        turn_frame: turnFrame,
+        relevant_memory_items: [],
+        plan_items: [],
+        product_surfaces: [],
+        exclusions: [],
+        plan_question_runtime: planQuestionRuntime,
+      } as never,
+    });
+    const skillLatencyMs = Date.now() - skillStart;
+
+    const changeRequest = (skillOutput.diagnosis as
+      | Record<string, unknown>
+      | undefined)?.contract_change_request as
+        | PlanQuestionChangeRequest
+        | null
+        | undefined;
+    const ledgerEntries: Parameters<
+      typeof finishKeelSkillTurn
+    >[0]["ledgerEntries"] = [];
+    if (changeRequest) {
+      const written = await writePlanQuestionChangeRequest({
+        supabase,
+        changeRequest,
+      });
+      ledgerEntries.push({
+        status: written.written ? "committed" : "failed",
+        effect_type: "contract_change_request.raise",
+        operation_type: "plan_question_escalation",
+        table: "contract_change_requests",
+        committed_id: written.id,
+        reason_code: written.reason_code,
+        payload_summary: {
+          reason_code: changeRequest.reason_code,
+          urgency: changeRequest.urgency,
+          commitment_id: changeRequest.commitment_id,
+          // La suggestion est un BROUILLON: rien ici ne l'applique.
+          suggested_option_is_draft: true,
+        },
+      });
+    }
+    console.log(
+      `[plan_question] request_id=${requestId}` +
+        ` outcome=${
+          (skillOutput.diagnosis as Record<string, unknown> | undefined)
+            ?.outcome
+        }` +
+        ` commitment=${planQuestionRuntime.commitment?.id ?? "none"}` +
+        ` escalated=${ledgerEntries.length > 0}`,
+    );
+    return await finishKeelSkillTurn({
+      skillId: "plan_question",
+      skillOutput,
+      skillLatencyMs,
+      extraSkillRun: {
+        plan_question_outcome:
+          (skillOutput.diagnosis as Record<string, unknown> | undefined)
+            ?.outcome ?? null,
+        prescription_mutated: false,
+      },
+      ledgerEntries,
+    });
+  }
+
+  // ── CEINTURES INVERSÉES (doctrine W2: la vérification prouve désormais le
+  // contraire de ce qu'elle prouvait). Les deux blocs ci-dessus RETOURNENT
+  // toujours; atteindre ces lignes signifie qu'un handler a été débranché et
+  // que la route retomberait dans le composeur générique — c'est-à-dire la
+  // pression d'adhérence pour la lane TCA, une permission au jugé pour
+  // plan_question. Condition de désarmement (P9): ces throws disparaissent le
+  // jour où ces owners n'existent plus dans `routers.ts`, pas avant.
+  // (Le typage narrow déjà `response_owner` ici — les deux blocs RETOURNENT —
+  // ce qui est la première moitié de la preuve. L'élargissement explicite garde
+  // la seconde: la ceinture reste exécutable si un futur refactor supprime un
+  // `return` sans que le compilateur n'ait rien à dire.)
+  const finalResponseOwner: string = routeDecision.response_owner;
+  if (
+    finalResponseOwner === "disordered_eating_guard" ||
+    finalResponseOwner === "plan_question"
+  ) {
+    throw new Error(
+      `[${finalResponseOwner}] handler débranché: la lane est armée ` +
+        "mais n'a pas exécuté son skill, et la route atteint le composeur " +
+        `générique. reason_code=${routeDecision.reason_code}`,
+    );
+  }
+
   const routeIsPureDirectEffect =
     routeDecision.response_owner === "normal_reply" &&
     routeDecision.direct_effects_to_run.length > 0 &&
@@ -4310,8 +5563,15 @@ export async function processMessage(
       checkupActive: false,
       stopCheckup: false,
       isPostCheckup: false,
-      outageTemplate:
-        "J'ai un souci technique sur ce tour. Je n'ai rien execute de plus.",
+      // W12-V — L'AVARIE PARLE LA LANGUE DE LA REPONSE.
+      // Cette phrase était du français EN DUR. Mesurée en run réel sur un
+      // `keel_role='student'` en-US (clé modèle invalide → chemin d'avarie) :
+      // l'élève recevait « J'ai un souci technique sur ce tour. » — le seul
+      // texte visible du tour, dans la mauvaise langue, sur le chemin
+      // précisément le plus probable en démo (réseau/quota).
+      // La langue vient de `resolveResponseLocale`, source unique (R3) : aucun
+      // module ne code une langue de réponse en dur, y compris celui-ci.
+      outageTemplate: keelOutageTemplate(),
       sophiaChatModel: presenceModel ?? meta?.model ?? getGlobalAiModel(),
       tempMemory,
       meta: {
@@ -4391,6 +5651,7 @@ export async function processMessage(
     turnFrame,
     userMessage,
     history,
+    keelTurn.is_student,
   );
 
   const agentToolExecution = String(agentOut.toolExecution ?? "none") as
@@ -4445,19 +5706,22 @@ export async function processMessage(
         memory_plan: turnFrame.memory_plan ?? DEFAULT_DISPATCHER_MEMORY_PLAN,
       },
       turn_frame: conversationTurnTrace.turn_frame,
+      // W3.1: trace du pregate déterministe — taux de déclenchement, ceinture
+      // qui a tiré, condition de désarmement qui l'a tue.
+      safety_pregate: safetyPregateTraceForTurn(safetyContextOutput) as
+        | Record<string, unknown>
+        | null,
       route_decision: routeDecision,
       direct_effects: directEffectTrace(operationRuntime),
       effect_ledger: summarizeEffectLedgerForTrace(effectLedger),
-      skill_run: withPotionLocalDispatchTrace(
-        localFlowExitSkillRun ??
-          (routeDecision.response_owner === "product_help" ||
-              isSafetyRoute(routeDecision)
-            ? {
-              selected_skill_id: routeDecision.selected_handler ?? null,
-              reason_code: routeDecision.reason_code,
-            }
-            : undefined),
-      ),
+      skill_run: localFlowExitSkillRun ??
+        (routeDecision.response_owner === "product_help" ||
+            isSafetyRoute(routeDecision)
+          ? {
+            selected_skill_id: routeDecision.selected_handler ?? null,
+            reason_code: routeDecision.reason_code,
+          }
+          : undefined),
       tool_skill_run: operationRuntime?.toolSkillRun ?? undefined,
       confirmation_token_outcomes: [],
       memory_write_candidates_emitted: 0,
@@ -4481,24 +5745,10 @@ export async function processMessage(
   });
 
   if (isSafetyRoute(routeDecision)) {
-    // A safety turn terminally cancels every active potion-support campaign.
-    // This never blocks the safety reply: the delivery-time safety gate is a
-    // second deterministic backstop if persistence is temporarily unavailable.
+    // W2.B: l'annulation terminale des campagnes potion-support est partie
+    // avec les potions. Le client service-role reste nécessaire au backstop
+    // réengagement ci-dessous.
     const admin = serviceRoleLedgerReadClient();
-    if (admin) {
-      await cancelPotionSupportCampaign({
-        admin,
-        userId,
-        reason: "cancelled_safety",
-      }).catch((error) => {
-        console.error(
-          "[Router] potion support safety cancellation failed",
-          error,
-        );
-      });
-    } else {
-      console.error("[Router] potion support admin client missing on safety");
-    }
     // Backstop réengagement (review adversariale 19/07) : un tour de crise
     // peut préempter AVANT que le flow winback ne soit consulté (le dispatcher
     // local n'est jamais appelé). L'épisode resterait ouvert et son state

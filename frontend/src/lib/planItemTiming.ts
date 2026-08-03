@@ -3,7 +3,10 @@ import type { PlanContentV3 } from "../types/v2";
 import {
   formatPlanDateRange,
   formatPlanDateWithWeekday,
+  normalizeWeekdayTokens,
+  parseWeekdayToken,
   resolveFrenchWeekdayDates,
+  UnknownWeekdayTokenError,
   type PlanWeekCalendar,
 } from "./planSchedule";
 
@@ -30,10 +33,53 @@ function translateTimeOfDay(value: string | null | undefined): string | null {
   }
 }
 
+// KEEL W1.3 bug 2 — this normaliser used to lowercase and de-duplicate raw
+// strings, which let canonical DB tokens (`mon..sun`) reach a French-only
+// index and vanish. It now maps through the single fail-loud token parser
+// (R7): canonical tokens win, FR aliases stay accepted, unknown throws.
+//
+// Used ONLY on `scheduled_days`, which is a CHECK-protected column
+// (user_plan_items_scheduled_days_check: subset of mon..sun). An unknown token
+// there is a genuine contract violation and must surface.
 function normalizeFrenchWeekdays(values: string[] | null | undefined): string[] {
-  return (values ?? [])
-    .map((value) => value.trim().toLowerCase())
-    .filter((value, index, array) => value.length > 0 && array.indexOf(value) === index);
+  return normalizeWeekdayTokens(values);
+}
+
+// The untrusted boundary, kept separate on purpose.
+//
+// `preferredDays` comes from `week.mission_days` — the jsonb field CONTRACT R5
+// names as the one no CHECK can reach ("carries live French that no CHECK can
+// reach"). Letting the fail-loud parser throw here would take the whole
+// dashboard down through React render on a single malformed LLM day label,
+// which trades a missing date hint for a blank screen.
+//
+// This is NOT the silent `[]` R7 forbids: each rejected token is named in the
+// console, the drop is explicit and local to one untrusted source, and the
+// mapping itself still throws for every trusted caller. Delete this quarantine
+// when mission_days is either dropped (W2.C) or CHECK-protected.
+function quarantineUntrustedWeekdays(
+  values: string[] | null | undefined,
+): string[] {
+  const kept: string[] = [];
+  const rejected: string[] = [];
+  for (const value of values ?? []) {
+    const raw = String(value ?? "").trim();
+    if (!raw) continue;
+    try {
+      parseWeekdayToken(raw);
+      kept.push(raw);
+    } catch (error) {
+      if (!(error instanceof UnknownWeekdayTokenError)) throw error;
+      rejected.push(raw);
+    }
+  }
+  if (rejected.length > 0) {
+    console.warn(
+      "[planItemTiming] mission_days carries unknown weekday tokens, dropped:",
+      rejected,
+    );
+  }
+  return normalizeWeekdayTokens(kept);
 }
 
 function buildDateRecommendationLabel(
@@ -46,7 +92,7 @@ function buildDateRecommendationLabel(
   const weekCalendar = args.weekCalendar;
   if (!weekCalendar) return null;
 
-  const explicitDays = normalizeFrenchWeekdays(args.preferredDays);
+  const explicitDays = quarantineUntrustedWeekdays(args.preferredDays);
   const scheduledDays = normalizeFrenchWeekdays(args.item.scheduled_days);
   const candidateDays = explicitDays.length > 0 ? explicitDays : scheduledDays;
 

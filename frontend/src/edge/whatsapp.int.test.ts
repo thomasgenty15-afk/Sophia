@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { createAuthedTestUser, createServiceRoleClient } from "../test/supabaseTestUtils";
+import { HAS_SUPABASE_TEST_ENV, createAuthedTestUser, createServiceRoleClient } from "../test/supabaseTestUtils";
 import { createHmac } from "node:crypto";
 
 const BASE_URL = process.env.VITE_SUPABASE_URL;
@@ -67,7 +67,7 @@ async function callInternal(fn: string, body: any) {
   return json;
 }
 
-describe("WhatsApp: webhook + send (integration, offline-safe paths)", () => {
+describe.skipIf(!HAS_SUPABASE_TEST_ENV)("WhatsApp: webhook + send (integration, offline-safe paths)", () => {
   let userId: string;
   let client: SupabaseClient;
   let admin: SupabaseClient;

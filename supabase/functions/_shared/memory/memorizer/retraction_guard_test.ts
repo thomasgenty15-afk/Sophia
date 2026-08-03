@@ -7,7 +7,7 @@ import {
 Deno.test("P10-D: objectif rétracté dans le même message → item ET récit d'abandon droppés (rose-p8reval T9)", () => {
   const messages = [
     {
-      role: "user",
+      role: "user" as const,
       content:
         "autre chose, je veux que tu retiennes un truc important pour la suite: mon objectif c'est d'arriver à zéro joint pour la rentrée de septembre... ah non, laisse tomber en fait, oublie ce que je viens de dire, je préfère pas me coller cette pression.",
     },
@@ -35,13 +35,13 @@ Deno.test("P10-D: objectif rétracté dans le même message → item ET récit d
 Deno.test("P10-D: « oublie ça » en tête de message → la cible est le message user précédent (eva-hard24 R1-B02)", () => {
   const messages = [
     {
-      role: "user",
+      role: "user" as const,
       content:
         "un truc sur moi: je prépare toujours mes affaires le dimanche soir pour la semaine.",
     },
-    { role: "assistant", content: "C'est une bonne routine !" },
+    { role: "assistant" as const, content: "C'est une bonne routine !" },
     {
-      role: "user",
+      role: "user" as const,
       content:
         "oublie ça, le retiens surtout pas comme un truc sur moi.",
     },
@@ -62,7 +62,7 @@ Deno.test("P10-D: « oublie ça » en tête de message → la cible est le messa
 Deno.test("P10-D anti-faux-positif: échec raconté SANS instruction d'oubli → rien n'est filtré", () => {
   const messages = [
     {
-      role: "user",
+      role: "user" as const,
       content:
         "j'ai arrêté le carnet au bout de deux jours, c'était pas pour moi.",
     },
@@ -78,7 +78,7 @@ Deno.test("P10-D anti-faux-positif: échec raconté SANS instruction d'oubli →
 Deno.test("P10-D anti-faux-positif: la rétractation ne touche que sa cible (rétractation ciblée)", () => {
   const messages = [
     {
-      role: "user",
+      role: "user" as const,
       content:
         "je fais du yoga le mardi et je cours le jeudi. ah et le yoga, oublie ce que je viens de dire, c'est fini le yoga du mardi en fait.",
     },
@@ -99,7 +99,7 @@ Deno.test("P10-D anti-faux-positif: la rétractation ne touche que sa cible (ré
 Deno.test("P10-D: segments — marqueur en milieu de message découpe avant lui", () => {
   const segments = retractedContentSegments([
     {
-      role: "user",
+      role: "user" as const,
       content:
         "mon objectif c'est de courir un semi au printemps. bon oublie ça en fait.",
     },
@@ -111,19 +111,19 @@ Deno.test("P10-D: segments — marqueur en milieu de message découpe avant lui"
 Deno.test("P12-E: complément post-marqueur → cible = le complément, item ET récit d'abandon droppés (rose-hard25 R1-B02)", () => {
   const messages = [
     {
-      role: "user",
+      role: "user" as const,
       content:
         "un truc à savoir sur moi: je veux me remettre à la natation, ça me manque vraiment.",
     },
-    { role: "assistant", content: "C'est une belle envie 🌊" },
+    { role: "assistant" as const, content: "C'est une belle envie 🌊" },
     {
-      role: "user",
+      role: "user" as const,
       content:
         "au fait, demain je fais ma sortie cartographie à 21h comme prévu.",
     },
-    { role: "assistant", content: "Noté pour la carto !" },
+    { role: "assistant" as const, content: "Noté pour la carto !" },
     {
-      role: "user",
+      role: "user" as const,
       content:
         "Ah et en fait, oublie ce que je t'ai dit tout à l'heure sur la natation...",
     },
@@ -158,13 +158,13 @@ Deno.test("P12-E: complément post-marqueur → cible = le complément, item ET 
 Deno.test("P12-E: contenu rétracté à 3 messages de distance → droppé (matching sur tous les user antérieurs)", () => {
   const messages = [
     {
-      role: "user",
+      role: "user" as const,
       content: "je veux me remettre à la natation à la rentrée.",
     },
-    { role: "user", content: "sinon la carto avance bien." },
-    { role: "user", content: "et je dors mieux ces temps-ci." },
+    { role: "user" as const, content: "sinon la carto avance bien." },
+    { role: "user" as const, content: "et je dors mieux ces temps-ci." },
     {
-      role: "user",
+      role: "user" as const,
       content: "oublie ce que je t'ai dit sur la natation s'il te plaît.",
     },
   ];
@@ -192,10 +192,10 @@ Deno.test("P12-E: contenu rétracté à 3 messages de distance → droppé (matc
 Deno.test("P12-E: « oublie ça » seul → fallback message précédent conservé (comportement d'origine)", () => {
   const messages = [
     {
-      role: "user",
+      role: "user" as const,
       content: "je prépare toujours mes affaires le dimanche soir.",
     },
-    { role: "user", content: "oublie ça." },
+    { role: "user" as const, content: "oublie ça." },
   ];
   const segments = retractedContentSegments(messages);
   assertEquals(segments.length, 1);
@@ -205,7 +205,7 @@ Deno.test("P12-E: « oublie ça » seul → fallback message précédent conserv
 Deno.test("P12-E anti-faux-positif: échec raconté SANS marqueur (« j'ai raté ma séance ») → rien n'est droppé", () => {
   const messages = [
     {
-      role: "user",
+      role: "user" as const,
       content: "j'ai raté ma séance de natation, c'est dur en ce moment.",
     },
   ];
@@ -220,7 +220,7 @@ Deno.test("P12-E anti-faux-positif: échec raconté SANS marqueur (« j'ai raté
 Deno.test("P12-E anti-faux-positif: rétractation ciblée ne droppe pas un item d'un AUTRE sujet du même message", () => {
   const messages = [
     {
-      role: "user",
+      role: "user" as const,
       content:
         "retiens que je fais de la poterie le jeudi. par contre oublie ce que je t'ai dit sur la natation, c'est mort ce projet.",
     },

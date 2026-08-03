@@ -295,9 +295,17 @@ Deno.test("weekly visible receives mandatory runtime context pack", () => {
   );
   assertEquals(parsed.visible_task.kind, "weekly_synthesis");
   assertEquals(parsed.hard_constraints.no_chat_plan_mutation, true);
+  // W4.4 — la destination du weekly est unique et pointe vers le coach. Le
+  // label de la fixture (« Ajuster mon plan », surface supprimee en W2) est
+  // ECRASE avant d'atteindre le prompt: le desarmement doit survivre a un etat
+  // de flow persiste avant ce lot.
+  assertEquals(
+    parsed.hard_constraints.adjustment_destination.mode,
+    "coach_review",
+  );
   assertEquals(
     parsed.hard_constraints.adjustment_destination.label,
-    "Ajuster mon plan",
+    "Ton coach",
   );
   assertEquals(
     parsed.hard_constraints.forbidden_patch_wording.includes(
@@ -355,20 +363,33 @@ Deno.test("weekly visible receives adjustment destination and closure claim guar
   });
   const parsed = JSON.parse(prompt);
 
+  // W4.4 — GARDE-FOU INVERSE: la fixture ci-dessus construit volontairement
+  // l'ancienne destination morte (`level_validation` / « Validation du
+  // niveau »), telle qu'elle peut encore exister dans un flow persiste. Le
+  // prompt ne doit plus JAMAIS la porter, quel que soit le mode.
+  const coachMessage =
+    "Je fais remonter ce point a ton coach avec le bilan: c'est lui qui decide de ce qui bouge dans le plan.";
   assertEquals(
     parsed.hard_constraints.adjust_recommendation_destination_user_message,
-    "Tu peux renseigner cette intention dans la Validation du niveau, au moment de valider le niveau.",
+    coachMessage,
   );
   assertEquals(
     parsed.visible_task.conversation_context.weekly_planning_context
       .adjustment_destination.instruction,
-    "Tu peux renseigner cette intention dans la Validation du niveau, au moment de valider le niveau.",
+    coachMessage,
+  );
+  assertEquals(
+    parsed.visible_task.conversation_context.weekly_planning_context
+      .adjustment_destination.mode,
+    "coach_review",
   );
   assertEquals(
     parsed.visible_task.conversation_context.adjust_recommendation
       .destination_instruction,
-    "Tu peux renseigner cette intention dans la Validation du niveau, au moment de valider le niveau.",
+    coachMessage,
   );
+  assertEquals(prompt.includes("Validation du niveau"), false);
+  assertEquals(prompt.includes("Ajuster mon plan"), false);
   assertEquals(parsed.hard_constraints.can_surface_adjust_recommendation, true);
   assertEquals(parsed.hard_constraints.weekly_closure_claim_allowed, false);
 });
@@ -437,7 +458,11 @@ Deno.test("weekly visible context does not expose raw destination instruction wi
   assertEquals(serialized.includes("Sans semaine suivante configuree"), false);
   assertEquals(serialized.includes("stabiliser la version courte"), false);
   assertEquals(serialized.includes("retour tardif mardi"), false);
-  assertEquals(serialized.includes("Validation du niveau"), true);
+  // W4.4 — la destination reste exposee, mais c'est le coach: « Validation du
+  // niveau » est une surface supprimee et ne doit plus apparaitre nulle part
+  // dans le payload, meme via un etat de flow persiste.
+  assertEquals(serialized.includes("Validation du niveau"), false);
+  assertEquals(serialized.includes("coach_review"), true);
 });
 
 Deno.test("weekly adjust visible does not receive incomplete recommendation payload", () => {
@@ -497,6 +522,15 @@ Deno.test("weekly visible receives direct effect confirmation context", () => {
     ],
     conversation_context: visibleContext() as any,
     direct_effect_confirmation_context: {
+      // W2.D-2 — `effects_outcome`, `blocked_one_shot_reminder`, `track_progress` and
+      // `blocked_track_progress` became required on DirectEffectConfirmationContext
+      // (router/direct_effect_local_context.ts:38-70) after this case was written. This case
+      // only checks that the committed one-shot reminder reaches the visible agent prompt, so
+      // the four new channels carry their empty/neutral value.
+      effects_outcome: [],
+      blocked_one_shot_reminder: null,
+      track_progress: null,
+      blocked_track_progress: null,
       has_committed_one_shot_reminder: true,
       has_requested_one_shot_reminder: true,
       one_shot_reminder: {
@@ -648,8 +682,13 @@ Deno.test("weekly adjust recommendation visible prompt is non-mutant and destina
     "Famille visible: weekly_adjust_recommendation.",
   );
   assertStringIncludes(prompt, "safe_to_surface=true");
-  assertStringIncludes(prompt, "Ajuster mon plan");
-  assertStringIncludes(prompt, "Validation du niveau");
+  // W4.4 — GARDE-FOU INVERSE. Ce test EPINGLAIT les deux surfaces supprimees
+  // en W2: il prouvait que le weekly renvoyait chaque dimanche vers un ecran
+  // d'ajustement de plan et vers une validation de niveau qui n'existent plus.
+  // Il prouve desormais leur ABSENCE, et la presence de la sortie KEEL.
+  assertEquals(prompt.includes("Ajuster mon plan"), false);
+  assertEquals(prompt.includes("Validation du niveau"), false);
+  assertStringIncludes(prompt, "coach_review");
   assertStringIncludes(
     prompt,
     "hard_constraints.adjust_recommendation_destination_user_message",
@@ -769,11 +808,18 @@ Deno.test("weekly visible refuses chat plan mutation request without re-surfacin
     parsed.hard_constraints.can_surface_adjust_recommendation,
     false,
   );
-  // La destination reste disponible pour le renvoi plateforme (fixture par
-  // defaut = next_week_configured => Ajuster mon plan).
+  // W4.4 — la destination reste disponible pour le renvoi, mais elle pointe
+  // desormais vers le COACH: "Ajuster mon plan" est une surface supprimee.
   assertStringIncludes(
     parsed.hard_constraints.adjust_recommendation_destination_user_message,
-    "Ajuster mon plan",
+    "ton coach",
+  );
+  assertEquals(
+    parsed.hard_constraints
+      .adjust_recommendation_destination_user_message.includes(
+        "Ajuster mon plan",
+      ),
+    false,
   );
 });
 

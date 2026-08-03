@@ -1,10 +1,18 @@
 export type ResponseOwner =
   | "safety"
+  // W3.2 — owner CLINIQUE (TCA), distinct de "safety" (crise suicidaire). Il
+  // n'est jamais sélectionné par un signal du dispatcher : seul le plancher
+  // déterministe `_shared/keel/restriction_guard.ts` l'ouvre.
+  | "disordered_eating_guard"
   | "product_help"
   | "coaching_recommendation"
   | "plan_realignment"
+  // W4.4 — KEEL. Lane d'EXÉCUTION (« je peux remplacer X par Y ? »), distincte
+  // de `plan_realignment` qui est la lane de DÉCROCHAGE. Non collante: aucune
+  // branche de continuation, la question se répond en un tour.
+  | "plan_question"
   | "daily_action_coaching_recommendation_v1"
-  | "feature_opportunity"
+  // W2.A: "feature_opportunity" retiré de l'union — plus aucun owner possible.
   | "weekly_adaptive_review_v1"
   | "presence_conversation"
   | "attack_keyword_support"

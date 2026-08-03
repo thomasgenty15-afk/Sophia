@@ -7,6 +7,8 @@ interface SEOProps {
   image?: string;
   robots?: string;
   type?: string;
+  /** Document language. Defaults to 'fr' (legacy pages); KEEL pages pass 'en'. */
+  lang?: string;
   structuredData?: Record<string, unknown> | Array<Record<string, unknown>>;
 }
 
@@ -20,11 +22,12 @@ const SEO = ({
   image = DEFAULT_IMAGE,
   robots = DEFAULT_ROBOTS,
   type = 'website',
+  lang = 'fr',
   structuredData,
 }: SEOProps) => {
   useEffect(() => {
     const fullTitle = `${title} | Sophia Coach`;
-    document.documentElement.lang = 'fr';
+    document.documentElement.lang = lang;
     document.title = fullTitle;
 
     const ensureMeta = (attrs: Record<string, string>, content: string) => {
@@ -91,7 +94,7 @@ const SEO = ({
         document.head.appendChild(script);
       });
     }
-  }, [title, description, canonical, image, robots, type, structuredData]);
+  }, [title, description, canonical, image, robots, type, lang, structuredData]);
 
   return null;
 };

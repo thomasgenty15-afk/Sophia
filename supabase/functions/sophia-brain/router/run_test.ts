@@ -113,7 +113,7 @@ const RETAINED_LOCAL_FLOW_IDS: ActiveLocalConversationFlowSkillId[] = [
   "product_help",
   "coaching_recommendation",
   "plan_realignment",
-  "feature_opportunity",
+  // W2.A: "feature_opportunity" n'est plus un flow local retenu.
   "safety_crisis",
 ];
 
@@ -397,7 +397,14 @@ Deno.test("global router does not invent active flow arbitration for standard ro
   assertEquals(decision.active_flow_arbitration, undefined);
 });
 
-Deno.test("global router routes feature opportunity signal", () => {
+// W2.B will delete this: la lane est désactivée en W2.A.
+Deno.test({
+  name:
+    "global router routes feature opportunity signal",
+  ignore: true,
+}, () => {
+  // W2.A: le signal a quitté le contrat TurnFrame — cast conservé pour que le
+  // corps du test (ignoré) reste lisible jusqu'à sa suppression en W2.B.
   const decision = route(frame({
     skill_signals: {
       feature_opportunity: {
@@ -413,7 +420,7 @@ Deno.test("global router routes feature opportunity signal", () => {
         },
       },
     },
-  }));
+  } as any));
 
   assertEquals(decision.response_owner, "feature_opportunity");
   assertEquals(decision.selected_handler, "feature_opportunity");
@@ -443,6 +450,9 @@ Deno.test("global router routes plan realignment signal", () => {
   assertEquals(decision.reason_code, "plan_realignment_signal");
 });
 
+// W2.A: la lane feature_opportunity a disparu; la priorité testée ici est
+// désormais triviale. Le signal résiduel est passé en cast pour documenter
+// qu'un signal LLM legacy est simplement droppé (W2.B nettoie le test).
 Deno.test("global router keeps coaching recommendation before feature opportunity", () => {
   const decision = route(frame({
     skill_signals: {
@@ -450,11 +460,6 @@ Deno.test("global router keeps coaching recommendation before feature opportunit
         detected: true,
         confidence_band: "high",
         reason: "risk_moment_feature_recommendation",
-      },
-      feature_opportunity: {
-        detected: true,
-        confidence_band: "high",
-        reason: "initiative_opportunity",
       },
     },
   }));
@@ -782,7 +787,7 @@ Deno.test("applyConversationSkillState purges every active flow key for local di
   const skillIds = [
     "product_help",
     "coaching_recommendation",
-    "feature_opportunity",
+    // W2.A: "feature_opportunity" retiré de RuntimeConversationSkillId.
     "plan_realignment",
   ] as const;
 
@@ -824,7 +829,12 @@ Deno.test("applyConversationSkillState purges every active flow key for local di
   }
 });
 
-Deno.test("global router keeps active feature opportunity before product_help", () => {
+// W2.B will delete this: la lane est désactivée en W2.A.
+Deno.test({
+  name:
+    "global router keeps active feature opportunity before product_help",
+  ignore: true,
+}, () => {
   const active = {
     skill_id: "feature_opportunity",
     status: "active",

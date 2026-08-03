@@ -56,7 +56,12 @@ Deno.test("dispatcher prompt separates product help from coaching recommendation
   );
 });
 
-Deno.test("dispatcher prompt defines feature opportunity entry signals", () => {
+// W2.B will delete this: la lane est désactivée en W2.A.
+Deno.test({
+  name:
+    "dispatcher prompt defines feature opportunity entry signals",
+  ignore: true,
+}, () => {
   assertEquals(
     DISPATCHER_V2_SYSTEM_PROMPT.includes(
       "Axes coach_preferences supportes: coach.tone",
@@ -113,7 +118,12 @@ Deno.test("dispatcher prompt defines feature opportunity entry signals", () => {
     ?.feature, "coach_preferences");
 });
 
-Deno.test("dispatcher prompt enforces feature_opportunity negative boundary and current-turn priority", () => {
+// W2.B will delete this: la lane est désactivée en W2.A.
+Deno.test({
+  name:
+    "dispatcher prompt enforces feature_opportunity negative boundary and current-turn priority",
+  ignore: true,
+}, () => {
   // feature_opportunity must not swallow plan restructuring nor emotional distress.
   assertEquals(
     DISPATCHER_V2_SYSTEM_PROMPT.includes(
@@ -352,7 +362,12 @@ Deno.test("dispatcher prompt routes plan reading away from plan_realignment", ()
   );
 });
 
-Deno.test("dispatcher prompt keeps explicit memorization out of feature_opportunity", () => {
+// W2.B will delete this: la lane est désactivée en W2.A.
+Deno.test({
+  name:
+    "dispatcher prompt keeps explicit memorization out of feature_opportunity",
+  ignore: true,
+}, () => {
   assertEquals(
     DISPATCHER_V2_SYSTEM_PROMPT.includes(
       "demande explicite de memorisation",
@@ -553,7 +568,12 @@ Deno.test("dispatcher prompt track_progress examples use canonical status enum a
   }
 });
 
-Deno.test("dispatcher prompt routes recurring reminder requests to initiatives", () => {
+// W2.B will delete this: la lane est désactivée en W2.A.
+Deno.test({
+  name:
+    "dispatcher prompt routes recurring reminder requests to initiatives",
+  ignore: true,
+}, () => {
   assertEquals(
     DISPATCHER_V2_SYSTEM_PROMPT.includes(
       "n'emet JAMAIS create_one_shot_reminder: c'est un signal skill_signals.feature_opportunity (initiatives)",
@@ -687,7 +707,12 @@ Deno.test("dispatcher prompt treats track verification questions and vague targe
   );
 });
 
-Deno.test("dispatcher prompt keeps initiatives away from active plan items and launch blockers", () => {
+// W2.B will delete this: la lane est désactivée en W2.A.
+Deno.test({
+  name:
+    "dispatcher prompt keeps initiatives away from active plan items and launch blockers",
+  ignore: true,
+}, () => {
   assertEquals(
     DISPATCHER_V2_SYSTEM_PROMPT.includes(
       "Si un item actif du plan couvre deja le sujet",
@@ -1003,19 +1028,29 @@ Deno.test("dispatcher prompt captures session style constraints at the turn fram
   // la normalisation, la contrainte de style doit survivre sans lui.
   assertEquals(
     DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "session_style_commitment_hint (champ RACINE du TurnFrame",
+      "session_style_commitment_hint est un champ RACINE du TurnFrame",
+    ),
+    true,
+  );
+  // W2.A: la règle ne dépend plus de feature_opportunity (lane supprimée) —
+  // elle est portée par sa propre section TRANSVERSE, valable quel que soit
+  // l'owner du tour.
+  assertEquals(
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "QUEL QUE SOIT l'owner du tour (presence active, reponse normale, coaching, safety)",
     ),
     true,
   );
   assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "MEME si aucun signal feature_opportunity n'est detecte",
-    ),
+    DISPATCHER_V2_SYSTEM_PROMPT.includes("feature_opportunity"),
     true,
+    "le prompt garde l'interdiction explicite d'émettre ce signal",
   );
   // Session-only: jamais une préférence durable (BF-PREF-01).
   assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes("Ce hint est session-only"),
+    DISPATCHER_V2_SYSTEM_PROMPT.includes(
+      "Session-only: ce n'est jamais une preference durable",
+    ),
     true,
   );
 });
@@ -1060,7 +1095,12 @@ Deno.test("dispatcher prompt: depot reflexif sans pull ⇒ rester, jamais propos
   );
 });
 
-Deno.test("dispatcher prompt: capacite produit inexistante ⇒ feature_opportunity, zero speculation (P5-H, alex-untested20 T6)", () => {
+// W2.B will delete this: la lane est désactivée en W2.A.
+Deno.test({
+  name:
+    "dispatcher prompt: capacite produit inexistante ⇒ feature_opportunity, zero speculation (P5-H, alex-untested20 T6)",
+  ignore: true,
+}, () => {
   assertEquals(
     DISPATCHER_V2_SYSTEM_PROMPT.includes(
       "Une demande de CAPACITE produit qui n'existe pas",

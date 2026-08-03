@@ -15,24 +15,39 @@ Deno.test("deriveWeekNumFromModuleId: extracts axis week from architect module i
   );
 });
 
-Deno.test("classifyArchitectUpdateKind: distinguishes creation / precision / contradiction", () => {
+// W2.D-2 — this test asserted a three-way classifier (creation / precision / contradiction).
+// `classifyArchitectUpdateKind` no longer implements one: it is two lines
+// (`architect_memory.ts:148-154`), explicitly discards `newText` via `void newText`, and
+// returns `creation` on empty previous text, `correction` otherwise. The `precision` and
+// `contradiction` members survive only in the `ArchitectUpdateKind` union.
+//
+// The test is re-pointed at the contract that exists. Note for a later wave: the whole
+// `sophia-brain/architect_memory.ts` module is now ORPHANED — this test file is its only
+// importer, the Architecte triggers were dropped in W2.A (migration 20260727150000) and the
+// Architecte frontend tabs were deleted in W2.B. When the module goes, this file goes with it.
+Deno.test("classifyArchitectUpdateKind: creation on first answer, correction on any rewrite", () => {
   assert(
     classifyArchitectUpdateKind("", "Je veux devenir plus discipliné.") ===
       "creation",
     "empty old text should be creation",
   );
   assert(
+    classifyArchitectUpdateKind("   ", "Je veux devenir plus discipliné.") ===
+      "creation",
+    "whitespace-only old text should be creation",
+  );
+  assert(
     classifyArchitectUpdateKind(
         "Je veux devenir plus discipliné.",
         "Je veux devenir plus discipliné, surtout dans ma routine du soir.",
-      ) === "precision",
-    "expanded answer should be precision",
+      ) === "correction",
+    "an expanded answer over existing text is a correction",
   );
   assert(
     classifyArchitectUpdateKind(
         "Je me vois comme quelqu'un qui doit toujours tout contrôler.",
         "Je ne veux plus tout contrôler et j'essaie d'apprendre à lâcher prise.",
-      ) === "contradiction",
-    "negation-heavy shift should be contradiction",
+      ) === "correction",
+    "a negation-heavy shift over existing text is also a correction",
   );
 });

@@ -21,7 +21,6 @@ import {
 } from "../../lib/actionCardsPreview";
 import type { DashboardV2UnlockState } from "../../hooks/useDashboardV2Logic";
 import { ClarificationExerciseModal } from "./ClarificationExerciseModal";
-import { HabitWeekModal } from "./HabitWeekModal";
 import { PlanItemResourceActions } from "./PlanItemResourceActions";
 
 type PlanItemCardProps = {
@@ -30,7 +29,6 @@ type PlanItemCardProps = {
   weekStatus?: "completed" | "current" | "upcoming" | null;
   weekOrder?: number | null;
   recommendedDays?: string[] | null;
-  onOpenWeekPlanning?: (() => void) | null;
   unlockState?: DashboardV2UnlockState | null;
   isBusy: boolean;
   onComplete: (item: DashboardV2PlanItemRuntime) => void;
@@ -63,7 +61,6 @@ export function PlanItemCard({
   weekStatus = null,
   weekOrder = null,
   recommendedDays,
-  onOpenWeekPlanning,
   unlockState,
   isBusy,
   onComplete,
@@ -74,7 +71,6 @@ export function PlanItemCard({
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
   const [descriptionOverflowing, setDescriptionOverflowing] = useState(false);
   const [cardsInfoExpanded, setCardsInfoExpanded] = useState(false);
-  const [habitModalOpen, setHabitModalOpen] = useState(false);
   const descriptionRef = useRef<HTMLParagraphElement | null>(null);
   const targetReps = item.target_reps ?? (item.dimension === "habits" ? 5 : null);
   const currentReps = item.current_reps ?? 0;
@@ -416,7 +412,7 @@ export function PlanItemCard({
             ) : isHabit ? (
               <button
                 type="button"
-                onClick={() => setHabitModalOpen(true)}
+                onClick={() => onComplete(item)}
                 disabled={isBusy}
                 className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-stone-50 hover:bg-emerald-50 text-stone-600 hover:text-emerald-700 text-sm font-bold transition-colors border border-stone-100 hover:border-emerald-200 disabled:opacity-70"
               >
@@ -462,18 +458,6 @@ export function PlanItemCard({
         />
       ) : null}
 
-      {isHabit ? (
-        <HabitWeekModal
-          item={item}
-          weekCalendar={weekCalendar}
-          isOpen={habitModalOpen}
-          onClose={() => setHabitModalOpen(false)}
-          onOpenWeekPlanning={onOpenWeekPlanning}
-          onHabitDone={async () => {
-            await onComplete(item);
-          }}
-        />
-      ) : null}
     </article>
   );
 }

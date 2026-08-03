@@ -23,6 +23,13 @@ export type ConversationTurnTrace = {
     memory_plan: DispatcherMemoryPlan | null;
   };
   turn_frame: TurnFrame;
+  /**
+   * W3.1 — deterministic pregate result for the turn (see
+   * `safety/safety_context.ts::safetyPregateTraceForTurn`). Optional in the
+   * type because the column was made nullable by migration 20260625143000 when
+   * the pregate was a stub; it is written on every routed turn now.
+   */
+  safety_pregate?: Record<string, unknown> | null;
   route_decision: RouteDecision;
   direct_effects: Array<{ tool_id: string; outcome: unknown }>;
   effect_ledger?: Record<string, unknown> | null;
@@ -188,6 +195,7 @@ async function logConversationTurnOnce(
       ts: trace.ts,
       dispatcher_run: trace.dispatcher_run,
       turn_frame: trace.turn_frame,
+      safety_pregate: trace.safety_pregate ?? null,
       route_decision: trace.route_decision,
       direct_effects: trace.direct_effects,
       effect_ledger: trace.effect_ledger ?? null,

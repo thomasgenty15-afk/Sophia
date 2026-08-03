@@ -1957,7 +1957,14 @@ Deno.test("correction de STATUT même item (retarget légitimement absent) écri
     turn_frame: statusCorrectionFrame,
     // Une entrée opposée du jour EXISTE sur la même cible → correction de
     // statut nominale (3h), la garde ne tire pas.
-    same_day_evidence_check: async () => ({ outcome: "missed" }),
+    // W2.D-2 — a full TrackProgressSameDayEvidence row (db.ts:559-563), like the other
+    // literals in this file. Only `outcome` matters to the guard here; `entry_id`/`source`
+    // were simply missing.
+    same_day_evidence_check: async () => ({
+      entry_id: "entry-same-day-missed",
+      outcome: "missed",
+      source: "daily_action_review_v1",
+    }),
     write_progress: async (input) => {
       writes.push(input);
       return { logged_progress_id: "progress-corrected" };

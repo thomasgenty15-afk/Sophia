@@ -6,9 +6,16 @@ import {
   getGlobalAiModel,
 } from "../../_shared/gemini.ts";
 import {
-  VISIBLE_CONVERSATION_FLOW_RULES,
-  VISIBLE_OUTPUT_STYLE_RULES,
+  visibleConversationFlowRules,
+  visibleOutputStyleRules,
 } from "../router/response_style_policy.ts";
+// W9 — R3. La langue de la réponse visible se résout ici et NULLE PART
+// ailleurs, et le bloc RESPONSE_LANGUAGE part en DERNIÈRE instruction.
+import {
+  appendResponseLanguageBlock,
+  isFrenchLocale,
+  resolveResponseLocale,
+} from "../../_shared/keel/locale.ts";
 declare const Deno: any;
 
 // Budget dimensionné sur le contexte réellement assemblé: prompt stable
@@ -135,22 +142,45 @@ function compactCompanionContextForPrompt(context: string): string {
   return text.replace(/\n{3,}/g, "\n\n").trim();
 }
 
-function buildCompanionContextBlock(context: string): string {
+// Étiquettes des blocs de contexte. Les MARQUEURS (`=== ... ===`) sont
+// produits ailleurs et servent de clés de découpe: ils ne sont jamais
+// traduits (les renommer supprimerait silencieusement le contexte — classe
+// d'échec N3 de BELT_AUDIT). Seule la prose d'enrobage, que ce module écrit
+// lui-même, suit la langue de réponse.
+function contextWrapperLabels(responseLocale: string): {
+  research: string;
+  living: string;
+} {
+  if (isFrenchLocale(responseLocale)) {
+    return {
+      research:
+        "CONTEXTE WEB PRIORITAIRE (A UTILISER EN PRIORITE SI LA QUESTION EST FACTUELLE OU FRAICHE) :",
+      living: "CONTEXTE VIVANT (Ce que l'on sait de lui MAINTENANT) :",
+    };
+  }
+  return {
+    research:
+      "PRIORITY WEB CONTEXT (USE THIS FIRST IF THE QUESTION IS FACTUAL OR TIME-SENSITIVE):",
+    living: "LIVING CONTEXT (what we know about them RIGHT NOW):",
+  };
+}
+
+function buildCompanionContextBlock(
+  context: string,
+  responseLocale: string,
+): string {
   const compactContext = compactCompanionContextForPrompt(context);
   const { otherContext, researchContext } = splitPinnedResearchContext(
     compactContext,
   );
+  const labels = contextWrapperLabels(responseLocale);
   const parts: string[] = [];
 
   if (researchContext) {
-    parts.push(
-      `CONTEXTE WEB PRIORITAIRE (A UTILISER EN PRIORITE SI LA QUESTION EST FACTUELLE OU FRAICHE) :\n${researchContext}`,
-    );
+    parts.push(`${labels.research}\n${researchContext}`);
   }
   if (otherContext) {
-    parts.push(
-      `CONTEXTE VIVANT (Ce que l'on sait de lui MAINTENANT) :\n${otherContext}`,
-    );
+    parts.push(`${labels.living}\n${otherContext}`);
   }
 
   return parts.join("\n\n");
@@ -160,10 +190,12 @@ function applyCompanionPromptBudgetWithPinnedContext(args: {
   basePrompt: string;
   rawContext: string;
   researchPinned: boolean;
+  responseLocale: string;
 }): string {
   const basePrompt = String(args.basePrompt ?? "").trimEnd();
   const contextBlock = buildCompanionContextBlock(
     String(args.rawContext ?? ""),
+    args.responseLocale,
   );
   if (!contextBlock) return applyCompanionPromptBudget(basePrompt);
 
@@ -179,16 +211,13 @@ function applyCompanionPromptBudgetWithPinnedContext(args: {
   const { otherContext, researchContext } = splitPinnedResearchContext(
     args.rawContext,
   );
+  const labels = contextWrapperLabels(args.responseLocale);
   const pinnedParts: string[] = [];
   if (researchContext) {
-    pinnedParts.push(
-      `CONTEXTE WEB PRIORITAIRE (A UTILISER EN PRIORITE SI LA QUESTION EST FACTUELLE OU FRAICHE) :\n${researchContext}`,
-    );
+    pinnedParts.push(`${labels.research}\n${researchContext}`);
   }
   const pinnedBlock = pinnedParts.join("\n\n").trim();
-  const otherBlock = otherContext
-    ? `CONTEXTE VIVANT (Ce que l'on sait de lui MAINTENANT) :\n${otherContext}`
-    : "";
+  const otherBlock = otherContext ? `${labels.living}\n${otherContext}` : "";
 
   if (!pinnedBlock) return applyCompanionPromptBudget(combined);
 
@@ -384,11 +413,33 @@ function buildQuestionRhythmGuide(
 function buildQuestionRhythmPromptBlock(
   context: string,
   userState: any,
+  responseLocale: string,
 ): string {
   const guide = buildQuestionRhythmGuide(context, userState);
   const windowSize = guide.recentTurns.length > 0
     ? guide.recentTurns.length
     : QUESTION_RHYTHM_WINDOW_SIZE;
+  if (!isFrenchLocale(responseLocale)) {
+    const instructionEn = guide.guidance === "ask_now"
+      ? "Ideally ask 1 useful question this turn, unless the student mainly expects a direct answer or reassurance."
+      : guide.guidance === "optional"
+      ? "Question optional. Without one, keep momentum with a hypothesis, a reflection or a stance."
+      : "Avoid asking a question unless strongly needed; prefer a hypothesis, a reflection or a useful rephrasing.";
+    const ratioEn = guide.preference === "low"
+      ? "about 1 question every 4 turns"
+      : guide.preference === "high"
+      ? "about 1 question every 2 turns"
+      : "about 1 question every 3 turns";
+    return [
+      "=== QUESTION RHYTHM (CRITICAL) ===",
+      `- Student preference: ${guide.preference}. Target: ${ratioEn}.`,
+      `- History: ${guide.questionsInWindow} question(s) over ${windowSize} turns; last one ${guide.turnsSinceLastQuestion} turn(s) ago.`,
+      `- Guidance: ${guide.guidance}.`,
+      `- ${instructionEn}`,
+      "- Even on ask_now: no forced question on a factual answer, a rushed message, an emotion that calls for presence, or right after a platform redirect.",
+      "- If you do ask: one question, concrete, useful.",
+    ].join("\n");
+  }
   const guidanceInstruction = guide.guidance === "ask_now"
     ? "Pose idealement 1 question utile sur ce tour, sauf si le user attend surtout une reponse directe ou un apaisement."
     : guide.guidance === "optional"
@@ -442,6 +493,28 @@ function buildNextQuestionRhythmState(args: {
     last_turn_had_question: hadQuestion,
     last_updated_at: new Date().toISOString(),
   };
+}
+
+/**
+ * R3 — the `conversation_locale` already committed to this thread.
+ * Read-only helper: this module never writes a locale it did not resolve
+ * through `resolveResponseLocale`.
+ */
+export function readPersistedConversationLocale(userState: any): string | null {
+  const raw = (userState?.temp_memory as any)?.conversation_locale;
+  const value = String(raw ?? "").trim();
+  return value ? value : null;
+}
+
+/**
+ * An EXPLICIT request from the student to be answered in a given language.
+ * This is the only input allowed to move a thread already anchored on a
+ * locale — everything else would re-open the oscillation R3 forbids.
+ */
+export function readExplicitConversationLocale(userState: any): string | null {
+  const raw = (userState?.temp_memory as any)?.conversation_locale_explicit;
+  const value = String(raw ?? "").trim();
+  return value ? value : null;
 }
 
 export type CompanionModelOutput = string;
@@ -598,6 +671,26 @@ function joinPromptSections(sections: string[]): string {
     .join("\n\n");
 }
 
+function buildCompanionChannelRulesEn(isWhatsApp: boolean): string {
+  if (isWhatsApp) {
+    return `
+    CHANNEL_OVERLAY WHATSAPP:
+    - Short by default: 1-2 sentences. Longer only if the student asks, if the subject is dense, or if the emotion warrants it.
+    - Plain text: no **, no "hi"/"hello" in the middle of a running conversation.
+    - Off-topic: one short useful, human remark, without digging in with a question.
+    - Message deletion: explain that it changes the visible history but does not reset the other system traces.
+    - Always end with this hidden note on a line of its own:
+      <!--fil_rouge_whatsapp: [1-2 very short sentences: where we are, what was said or tried, next step or point to keep in mind]-->
+    `;
+  }
+
+  return `
+  CHANNEL_OVERLAY WEB:
+  - Short by default; expand only if asked or warranted.
+  - No **. Plain text. No hello/goodbye in the middle of a running conversation unless the student does it first.
+  `;
+}
+
 function buildCompanionChannelRules(isWhatsApp: boolean): string {
   if (isWhatsApp) {
     return `
@@ -618,6 +711,117 @@ function buildCompanionChannelRules(isWhatsApp: boolean): string {
   `;
 }
 
+/**
+ * W9 — CLASSE B, pack ANGLAIS. Le persona est RÉÉCRIT, pas traduit.
+ *
+ * Le pack FR se présente comme « Sophia, partenaire conversationnelle » — une
+ * amie généraliste. Ce n'est pas ce produit: KEEL est le runtime du protocole
+ * que le COACH a écrit. L'IA ne rédige jamais le plan, elle l'exécute, et elle
+ * n'accuse jamais réception d'un effet non committé. Traduire l'ancien persona
+ * mot à mot aurait donné à un coach anglophone une amie bavarde là où il
+ * attend l'exécution fidèle de sa prescription.
+ *
+ * Ce qui NE CHANGE PAS entre les deux packs, parce que ce sont des jetons
+ * machine (R1) et non de la prose: `<!--sophia_delivery:...-->`,
+ * `<!--fil_rouge...-->`, les en-têtes de section, et les noms de blocs de
+ * contexte injectés (`DIRECT_EFFECT_CONFIRMATION_CONTEXT`).
+ */
+function buildCompanionStablePromptEn(opts: {
+  isWhatsApp: boolean;
+}): string {
+  const { isWhatsApp } = opts;
+  return joinPromptSections([
+    `
+    CORE_COMPANION:
+    You are the conversational runtime of KEEL. A coach wrote this student's protocol; your job is to execute it faithfully, not to rewrite it.
+    You are lucid, warm, direct and genuinely capable. You never write the plan, never grade it, and never invent a prescription.
+    In normal_reply you answer the student's last message first. This is not coaching by default.
+    Stance: a sharp, well-informed presence — not a coach hunting for the next step at every turn.
+    Never refer to yourself by a product name, and never call yourself "Sophia".
+
+    ${visibleOutputStyleRules("en-US")}
+    ${visibleConversationFlowRules("en-US")}
+    `,
+
+    `
+    OUTPUT_STYLE:
+    - One useful idea before any follow-up.
+    - Be actually useful: writing, technical help, summaries, opinions, practicalities.
+    - Never say "that's not my role". If you do not know, say so plainly.
+    - No diagnosis, no moralising, no artificial therapeutic tone, no automatic "I understand that...".
+    - 1 emoji by default, 2 max; none in a crisis, a bereavement, or a technical failure. A style constraint accepted during the session, support turns included, holds: zero emoji for as long as it holds.
+    - If the student is sad or stressed: real presence before any proposal.
+    - Short or rushed message ("ok", "go"): 1-2 sentences max; a question only if necessary.
+    `,
+
+    buildCompanionChannelRulesEn(isWhatsApp),
+
+    `
+    NORMAL_REPLY_POLICY:
+    - Answer the real need first: conversation, support, clarification, action, a light check-in, or an ambiguous request.
+    - Conversational fluidity beats optimisation. No mini coaching session unless the student asks for help, a method, a plan, a choice or a debrief.
+    - No unrequested A/B choices ("do you want X or Y") unless the student explicitly asks to compare or structure.
+    - No unrequested coaching prompts ("want to dig into it?").
+    - Mentioning an action, fatigue, resistance, a success or a routine is NOT a request to act: answer the conversational need first.
+    - If the student wants to "just understand / just talk", or says "no action": no immediate micro-action; reflect back, offer a short hypothesis, give an honest opinion.
+    - Discouraged, ashamed, sad or frustrated student: simple presence, less pressure, a small step only if useful. Do not automatically offer a tool.
+    - Post-distress bridge: if your previous reply was support through a low point, never make this turn 100% transactional. Do the task with a real sentence of emotional bridge (not just an emoji) acknowledging the previous turn.
+    - Last message wins: if it swings into emotional weight (discouragement, "what's the point") after product or plan turns, receive the emotion first, without reinterpreting it as a product question and without extending the previous topic.
+    - Talk about the plan or the protocol only if the student brings it up, if the context calls for it, or if it is genuinely useful.
+    - Never ratify a routine or a direction as a new plan. The plan is the coach's writing; you do not extend it.
+    `,
+
+    `
+    LOOP_RECOVERY:
+    - Conversational presence of mind: if the reply is going in circles, do not repeat the same validation or the same prompt.
+    - Visible loop: the same agreement, invitation or promise repeated with no useful content and no real step.
+    - Repair: acknowledge that you may have lost the thread, pick the last certain point back up, then one single clarification or a return to basics.
+    - Writes: DIRECT_EFFECT_CONFIRMATION_CONTEXT is the ONLY truth. With no committed outcome (or with no context at all), never say "done / logged / saved / scheduled / fixed"; follow the guidance, and ask clarify_question if one is present.
+    `,
+
+    `
+    CONTEXT_RULES:
+    - Rebuild the thread from the running summary and the available context without ever exposing that work.
+    - If the last message asks you to shorten, rephrase or simplify, apply it to the last active content; keep the referent unless it clearly changed.
+    - Ambiguous follow-up between recent topics: clarify in one sentence instead of choosing; otherwise answer directly.
+    - A last message that closes, or says "not now / I'll handle it": short closure, no question, no proposal.
+    - Use the context silently; never say "I see in your data" or "your memory says".
+    - Date and time: use the injected temporal markers; state them when useful. Confusing date: clarify with a concrete date.
+    - Age: adjust tone and examples slightly; mention it only if relevant. Never talk down.
+    - Profile and preferences: adapt tone, length and directness without reciting the profile. A style preference expressed during the session (tone, emojis, length) applies to EVERY following turn, support turns included.
+    - Memory: useful context, not absolute truth. If it is old or uncertain, stay careful. Never invent a memory that is absent.
+    - When asked what you remember, use only the loaded context.
+    - A personal fact explicitly confided for you to keep: sober acknowledgement ("noted"), memorisation is automatic; no initiative and no reminder in its place.
+    - Never use that acknowledgement for a protocol action: a committed outcome (any lane) is acknowledged POSITIVELY — never "I can't say it was logged"; with nothing committed, say plainly that it is not recorded.
+    - Protocol and plan: the injected plan context is the primary source for "what do I have to do?", "where am I?", "I did X" and "I'm stuck".
+    - When a relevant prescribed line is listed, speak to it directly and clarify the next step; with several candidates, ask a short clarification or answer cautiously.
+    - Only claim "it is in your plan" when the context lists the line. You never add one.
+    - Light check-in or recap: answer compactly from the listed lines and the context, without an exhaustive view.
+    - Platform boundary: outside the injected elements, answer only when the information is explicit in the context; otherwise point to the app for the full view. Never invent a list, never say "I'll go check elsewhere", never invent a screen or a path.
+    - Questions about features ("what is this / what is it for"): explain what it enables, without starting, creating or configuring anything.
+    `,
+
+    `
+    TASK_OVERLAYS:
+    - Apply the injected context blocks without reciting their titles or their internal logic.
+    - Normal chat creates, configures, activates, prepares, starts and modifies NOTHING (cancelling or moving a reminder included). Point to the app, without denying an effect that is already confirmed.
+    - Reminder status: never volunteered when the student did not ask for it this turn — especially on an emotional turn or coming out of a crisis.
+    - Review and actions: use the data present without inventing a screen or a routine; something counts as completed only if the student says so.
+    - USER MODEL: adapt style and timing to the loaded preferences without naming them; never override an explicit preference.
+    `,
+
+    `
+    SILENCE_AND_REACTIONS:
+    - Last message is a bare acknowledgement, thanks, laughter or closure after a sufficient answer ("exactly", "ok perfect", "thanks"): do not restart the conversation.
+    - After a finished flow (review, exercise): on a simple courtesy or goodbye, return the courtesy in one short sentence, without re-announcing the closure or re-summarising the finished review.
+    - On WhatsApp, if a reaction is enough, write only: <!--sophia_delivery:reaction_only emoji="✅" reason="short_ack"-->
+    - Emojis: ✅ acknowledgement, 🙂 presence, 🙏 thanks, 💛 support, 😂 laughter.
+    - No_response is rare, for an explicit closure: <!--sophia_delivery:no_response reason="user_closed"-->
+    - Never a bare reaction if there is a question, new information, a correction, a preference, significant emotion, a request for action or product help, or an active context.
+    `,
+  ]);
+}
+
 function buildCompanionStablePrompt(opts: {
   isWhatsApp: boolean;
 }): string {
@@ -630,8 +834,8 @@ function buildCompanionStablePrompt(opts: {
     Posture: amie intelligente + IA experte, pas coach qui cherche toujours un prochain pas.
     N'écris jamais "Sophia" pour te désigner.
 
-    ${VISIBLE_OUTPUT_STYLE_RULES}
-    ${VISIBLE_CONVERSATION_FLOW_RULES}
+    ${visibleOutputStyleRules("fr-FR")}
+    ${visibleConversationFlowRules("fr-FR")}
     `,
 
     `
@@ -739,30 +943,61 @@ function buildCompanionSemiStablePrompt(opts: {
   history?: any[];
   context: string;
   userState: any;
+  responseLocale: string;
 }): string {
-  const { isWhatsApp, lastAssistantMessage, context, history, userState } =
-    opts;
+  const {
+    isWhatsApp,
+    lastAssistantMessage,
+    context,
+    history,
+    userState,
+    responseLocale,
+  } = opts;
   const questionRhythmBlock = buildQuestionRhythmPromptBlock(
     context,
     userState,
+    responseLocale,
   );
-  const recentHistoryBlock = formatCompanionRecentHistory(history ?? []);
-  const lines = [
-    "=== META COMPAGNON ===",
-    `- Canal: ${isWhatsApp ? "whatsapp" : "web"}.`,
-    `- Risque actuel user: ${userState?.risk_level ?? 0}/10.`,
-    "",
-    questionRhythmBlock,
-    "",
-    `DERNIERE REPONSE DE SOPHIA : "${
-      String(lastAssistantMessage ?? "").slice(0, isWhatsApp ? 120 : 100)
-    }..."`,
-    recentHistoryBlock,
-  ];
+  const recentHistoryBlock = formatCompanionRecentHistory(
+    history ?? [],
+    responseLocale,
+  );
+  const french = isFrenchLocale(responseLocale);
+  const truncated = String(lastAssistantMessage ?? "").slice(
+    0,
+    isWhatsApp ? 120 : 100,
+  );
+  const lines = french
+    ? [
+      "=== META COMPAGNON ===",
+      `- Canal: ${isWhatsApp ? "whatsapp" : "web"}.`,
+      `- Risque actuel user: ${userState?.risk_level ?? 0}/10.`,
+      "",
+      questionRhythmBlock,
+      "",
+      `DERNIERE REPONSE DE SOPHIA : "${truncated}..."`,
+      recentHistoryBlock,
+    ]
+    : [
+      "=== COMPANION META ===",
+      `- Channel: ${isWhatsApp ? "whatsapp" : "web"}.`,
+      `- Current student risk: ${userState?.risk_level ?? 0}/10.`,
+      "",
+      questionRhythmBlock,
+      "",
+      `YOUR LAST REPLY: "${truncated}..."`,
+      recentHistoryBlock,
+    ];
   return lines.join("\n");
 }
 
-function formatCompanionRecentHistory(history: any[]): string {
+function formatCompanionRecentHistory(
+  history: any[],
+  responseLocale: string,
+): string {
+  const french = isFrenchLocale(responseLocale);
+  const assistantLabel = french ? "Sophia" : "Assistant";
+  const userLabel = french ? "User" : "Student";
   const recent = (Array.isArray(history) ? history : [])
     .filter((entry) => {
       const role = String(entry?.role ?? "");
@@ -771,8 +1006,8 @@ function formatCompanionRecentHistory(history: any[]): string {
     .slice(-6)
     .map((entry) => {
       const role = String(entry?.role ?? "") === "assistant"
-        ? "Sophia"
-        : "User";
+        ? assistantLabel
+        : userLabel;
       const content = String(entry?.content ?? "")
         .replace(/\s+/g, " ")
         .trim()
@@ -783,12 +1018,19 @@ function formatCompanionRecentHistory(history: any[]): string {
 
   if (recent.length === 0) return "";
 
-  return [
-    "",
-    "=== HISTORIQUE RECENT VISIBLE ===",
-    "Continuité, corrections, détection de répétition conversationnelle. Ne les utilise pas pour inventer un effet produit.",
-    ...recent,
-  ].join("\n");
+  return french
+    ? [
+      "",
+      "=== HISTORIQUE RECENT VISIBLE ===",
+      "Continuité, corrections, détection de répétition conversationnelle. Ne les utilise pas pour inventer un effet produit.",
+      ...recent,
+    ].join("\n")
+    : [
+      "",
+      "=== RECENT VISIBLE HISTORY ===",
+      "Continuity, corrections, detection of conversational repetition. Never use it to invent a product effect.",
+      ...recent,
+    ].join("\n");
 }
 
 function buildCompanionPromptParts(opts: {
@@ -797,26 +1039,41 @@ function buildCompanionPromptParts(opts: {
   history?: any[];
   context: string;
   userState: any;
+  /**
+   * W9/R3 — locale of the VISIBLE reply. Required: a composer that guesses its
+   * own language is exactly the module `resolveResponseLocale` exists to
+   * forbid. Callers resolve it once and persist it on the thread.
+   */
+  responseLocale: string;
 }): {
   stablePrompt: string;
   semiStablePrompt: string;
   volatilePrompt: string;
   fullPrompt: string;
 } {
-  const stablePrompt = buildCompanionStablePrompt({
-    isWhatsApp: opts.isWhatsApp,
-  }).trim();
+  const responseLocale = opts.responseLocale;
+  const stablePrompt = (isFrenchLocale(responseLocale)
+    ? buildCompanionStablePrompt({ isWhatsApp: opts.isWhatsApp })
+    : buildCompanionStablePromptEn({ isWhatsApp: opts.isWhatsApp })).trim();
   const semiStablePrompt = buildCompanionSemiStablePrompt(opts).trim();
-  const volatilePrompt = buildCompanionContextBlock(String(opts.context ?? ""))
-    .trim();
+  const volatilePrompt = buildCompanionContextBlock(
+    String(opts.context ?? ""),
+    responseLocale,
+  ).trim();
   const basePrompt = `${stablePrompt}\n\n${semiStablePrompt}`.trim();
-  const fullPrompt = applyCompanionPromptBudgetWithPinnedContext({
+  const budgeted = applyCompanionPromptBudgetWithPinnedContext({
     basePrompt,
     rawContext: opts.context,
     researchPinned: String(opts.context ?? "").includes(
       RESEARCH_CONTEXT_MARKER,
     ),
+    responseLocale,
   });
+  // ORDRE CRITIQUE: le bloc RESPONSE_LANGUAGE s'ajoute APRÈS le budget. Ce
+  // composeur tronque par la QUEUE; l'ajouter avant reviendrait à le supprimer
+  // sur les prompts longs — exactement les tours à contexte riche, et sans la
+  // moindre erreur pour le signaler.
+  const fullPrompt = appendResponseLanguageBlock(budgeted, responseLocale);
   return {
     stablePrompt,
     semiStablePrompt,
@@ -831,6 +1088,7 @@ export function buildCompanionSystemPrompt(opts: {
   history?: any[];
   context: string;
   userState: any;
+  responseLocale: string;
 }): string {
   return buildCompanionPromptParts(opts).fullPrompt;
 }
@@ -1070,12 +1328,25 @@ export async function runCompanion(
     };
   }
 
+  // W9/R3 — langue de la réponse visible.
+  // `persisted` est l'ancre anti-oscillation: la valeur déjà committée sur ce
+  // fil prime sur toute détection par message. Sans cette lecture+réécriture,
+  // la langue rebascule d'un tour à l'autre (mode de panne nommé par R3).
+  const persistedConversationLocale = readPersistedConversationLocale(
+    userState,
+  );
+  const responseLocale = resolveResponseLocale({
+    userExplicit: readExplicitConversationLocale(userState),
+    persisted: persistedConversationLocale,
+  });
+
   const promptParts = buildCompanionPromptParts({
     isWhatsApp,
     lastAssistantMessage,
     history,
     context: augmentedContext,
     userState,
+    responseLocale,
   });
   try {
     console.log(JSON.stringify({
@@ -1117,6 +1388,9 @@ export async function runCompanion(
   const nextTempMemory = {
     ...((userState?.temp_memory ?? {}) as Record<string, unknown>),
     companion_question_rhythm: nextQuestionRhythm,
+    // R3 — le fil PORTE sa langue. Le routeur persiste `temp_memory`; cette
+    // écriture est ce qui rend le prochain tour stable.
+    conversation_locale: responseLocale,
   };
 
   return {

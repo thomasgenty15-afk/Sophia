@@ -4,11 +4,18 @@ import type { ActiveConversationSkillWorkingState } from "./active_skill_state.t
 
 export type SkillId =
   | "safety_crisis"
+  // W3.2 — flow CLINIQUE (TCA), distinct de la crise suicidaire. Son entrée ne
+  // vient pas d'un signal dispatcher mais du plancher déterministe
+  // `_shared/keel/restriction_guard.ts`.
+  | "disordered_eating_guard"
   | "product_help"
   | "coaching_recommendation"
   | "daily_action_coaching_recommendation_v1"
   | "feature_opportunity"
   | "plan_realignment"
+  // W4.4 — KEEL. Lane d'exécution résolue en Tier 0 déterministe (aucun modèle
+  // sur le chemin de la permission).
+  | "plan_question"
   | "winback_reengagement_v1";
 
 export type SkillMemoryItem = {

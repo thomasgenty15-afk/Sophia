@@ -12,12 +12,14 @@ export type ActiveLocalConversationFlowSkillId =
   | "product_help"
   | "coaching_recommendation"
   | "plan_realignment"
-  | "feature_opportunity"
-  | "potion_support_admission_v1"
   | "winback_reengagement_v1"
   | "presence_conversation"
   | "safety_crisis";
 
+// W2.A: `feature_opportunity` et `potion_support_admission_v1` sont retirés du
+// registre en dur. Conséquence voulue: un état de flow résiduel déjà écrit en
+// base n'est plus reconnu comme flow actif — il ne peut ni reprendre la main,
+// ni faire sauter le dispatcher global; le tour repart en routage normal.
 const ACTIVE_LOCAL_CONVERSATION_FLOW_SKILL_IDS = new Set<
   ActiveLocalConversationFlowSkillId
 >([
@@ -26,8 +28,6 @@ const ACTIVE_LOCAL_CONVERSATION_FLOW_SKILL_IDS = new Set<
   "product_help",
   "coaching_recommendation",
   "plan_realignment",
-  "feature_opportunity",
-  "potion_support_admission_v1",
   "winback_reengagement_v1",
   "presence_conversation",
   "safety_crisis",
@@ -280,10 +280,6 @@ export function buildLastLocalFlowExitContext(
       memo: temp.__last_product_help_exit_memo,
     },
     {
-      operation_type: "potion_support_admission_v1",
-      memo: temp.__last_potion_support_admission_exit_memo,
-    },
-    {
       operation_type: "winback_reengagement_v1",
       memo: temp.__last_winback_reengagement_exit_memo,
     },
@@ -291,10 +287,10 @@ export function buildLastLocalFlowExitContext(
       operation_type: "coaching_recommendation",
       memo: temp.__last_coaching_recommendation_exit_memo,
     },
-    {
-      operation_type: "feature_opportunity",
-      memo: temp.__last_feature_opportunity_exit_memo,
-    },
+    // W2.A: memos `feature_opportunity` et `potion_support_admission_v1`
+    // retirés des candidats — un mémo résiduel en base ne doit plus produire de
+    // hint de handoff vers une lane désactivée. Les clés restent purgées par
+    // `clearLastLocalFlowExitContext` ci-dessous.
     {
       operation_type: "safety_crisis",
       memo: temp.__last_safety_crisis_exit_memo,

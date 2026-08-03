@@ -2,6 +2,13 @@ import {
   generateWithGemini,
   getGlobalAiModel,
 } from "../../../../_shared/gemini.ts";
+// W9/R3 — la langue de la reponse VISIBLE est resolue par le point unique
+// `resolveResponseLocale`, et le bloc RESPONSE_LANGUAGE part en DERNIERE
+// instruction du prompt (la position est le mecanisme: la recence gagne).
+import {
+  appendResponseLanguageBlock,
+  resolveResponseLocale,
+} from "../../../../_shared/keel/locale.ts";
 import {
   committedOneShotReminderKnown,
   directEffectContextCommittedThisTurn,
@@ -343,7 +350,7 @@ export async function runSpecializedVisibleAgent(args: {
   ].join("\n");
   try {
     const raw = await generateWithGemini(
-      prompt,
+      appendResponseLanguageBlock(prompt, resolveResponseLocale({})),
       JSON.stringify({
         visible_runtime_context: args.input.visible_runtime_context,
         flow_context: args.input.flow_context,
@@ -381,7 +388,7 @@ export async function runSpecializedVisibleAgent(args: {
       "- Retourne uniquement un JSON strict valide.",
     ].join("\n");
     const repairedRaw = await generateWithGemini(
-      repairPrompt,
+      appendResponseLanguageBlock(repairPrompt, resolveResponseLocale({})),
       JSON.stringify({
         visible_runtime_context: args.input.visible_runtime_context,
         flow_context: args.input.flow_context,

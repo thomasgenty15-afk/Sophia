@@ -252,7 +252,6 @@ const OPTIN_TEMPLATE_NAMES = new Set([
 
 const CHECKIN_BUTTON_FLAGS: Record<string, Record<string, "yes" | "later">> = {
   global_reach_template: { "Oui!": "yes", "Plus tard!": "later" },
-  auto_validation_v1: { "Oui!": "yes", "Non merci!": "later" },
   sophia_reminder_consent_v1_: {
     "Avec plaisir !": "yes",
     "Pas maintenant": "later",

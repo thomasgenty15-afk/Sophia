@@ -21,8 +21,8 @@ const RETAINED_LOCAL_FLOW_IDS: ActiveLocalConversationFlowSkillId[] = [
   "product_help",
   "coaching_recommendation",
   "plan_realignment",
-  "feature_opportunity",
-  "potion_support_admission_v1",
+  // W2.A: "feature_opportunity" et "potion_support_admission_v1" ne sont plus
+  // des flows locaux retenus (registre en dur retiré).
   "safety_crisis",
 ];
 
@@ -280,7 +280,13 @@ Deno.test("active_flow_state releases local flows stale for more than 4 hours", 
   );
 });
 
-Deno.test("potion admission keeps exactly the semantic first reply beyond four hours", () => {
+// W2.B will delete this: le sas d'admission potion est débranché en W2.A
+// (skill_id retiré du registre des flows locaux), le skill part en W2.B.
+Deno.test({
+  name:
+    "potion admission keeps exactly the semantic first reply beyond four hours",
+  ignore: true,
+}, () => {
   const staleAt = new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString();
   const state = {
     skill_id: "potion_support_admission_v1",

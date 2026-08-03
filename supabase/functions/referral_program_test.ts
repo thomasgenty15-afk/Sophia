@@ -18,6 +18,22 @@ function getEnv(name: string): string {
   return v.trim();
 }
 
+// ── Integration gate ──────────────────────────────────────────────────────────────────────
+// These cases drive a REAL Supabase stack (auth, edge functions, DB). Without that stack the
+// suite must SKIP them, not fail them: a permanently red net is a net nobody reads. Run them
+// with `npm run test:mega`, or export the env below against a local stack — see
+// docs/keel/TESTING.md.
+const REQUIRED_ENV = ["SUPABASE_URL", "VITE_SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY", "STRIPE_WEBHOOK_SECRET"] as const;
+const MISSING_ENV = REQUIRED_ENV.filter((name) =>
+  (Deno.env.get(name) ?? "").trim().length === 0
+);
+const SKIP_INTEGRATION = MISSING_ENV.length > 0;
+if (SKIP_INTEGRATION) {
+  console.log(
+    `[skip] referral_program_test.ts: needs a live Supabase stack — missing env: ${MISSING_ENV.join(", ")}`,
+  );
+}
+
 function makeNonce(): string {
   const rand = (globalThis.crypto as any)?.randomUUID?.() ??
     `${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -162,7 +178,7 @@ function paidInvoiceEvent(args: {
   };
 }
 
-Deno.test("parrainage: génération paresseuse d'un code stable et dictable", async () => {
+Deno.test("parrainage: génération paresseuse d'un code stable et dictable", { ignore: SKIP_INTEGRATION }, async () => {
   Deno.env.set("MEGA_TEST_MODE", "1");
   const { supabaseUrl, anonKey, anon, admin } = clients();
   const { userId, accessToken } = await createTestUser(anon);
@@ -183,7 +199,7 @@ Deno.test("parrainage: génération paresseuse d'un code stable et dictable", as
   assertEquals(code2, code1);
 });
 
-Deno.test("parrainage: l'inscription avec un code attribue le filleul et étend l'essai à 30 jours", async () => {
+Deno.test("parrainage: l'inscription avec un code attribue le filleul et étend l'essai à 30 jours", { ignore: SKIP_INTEGRATION }, async () => {
   Deno.env.set("MEGA_TEST_MODE", "1");
   const { supabaseUrl, anonKey, anon, admin } = clients();
 
@@ -241,7 +257,7 @@ Deno.test("parrainage: l'inscription avec un code attribue le filleul et étend 
   );
 });
 
-Deno.test("parrainage: récompense idempotente sur la première facture payée, puis créditée quand le parrain s'abonne", async () => {
+Deno.test("parrainage: récompense idempotente sur la première facture payée, puis créditée quand le parrain s'abonne", { ignore: SKIP_INTEGRATION }, async () => {
   Deno.env.set("MEGA_TEST_MODE", "1");
   const { supabaseUrl, anonKey, anon, admin } = clients();
 
@@ -382,7 +398,7 @@ Deno.test("parrainage: récompense idempotente sur la première facture payée, 
   );
 });
 
-Deno.test("parrainage: plafond fusible de 12 mois par période glissante de 12 mois", async () => {
+Deno.test("parrainage: plafond fusible de 12 mois par période glissante de 12 mois", { ignore: SKIP_INTEGRATION }, async () => {
   Deno.env.set("MEGA_TEST_MODE", "1");
   const { supabaseUrl, anonKey, anon, admin } = clients();
 
@@ -438,7 +454,7 @@ Deno.test("parrainage: plafond fusible de 12 mois par période glissante de 12 m
   assertEquals((referralRow as any).rewarded_at, null);
 });
 
-Deno.test("parrainage: l'auto-parrainage est bloqué (même compte, même téléphone)", async () => {
+Deno.test("parrainage: l'auto-parrainage est bloqué (même compte, même téléphone)", { ignore: SKIP_INTEGRATION }, async () => {
   Deno.env.set("MEGA_TEST_MODE", "1");
   const { supabaseUrl, anonKey, anon, admin } = clients();
 

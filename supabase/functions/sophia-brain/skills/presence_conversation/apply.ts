@@ -14,7 +14,6 @@ import {
   type AttackKeywordSupportPresenceEntryContext,
   type PresenceEntryContext,
   type PresenceFlowState,
-  type PotionSupportPresenceEntryContext,
   stepPresenceFlow,
 } from "./state.ts";
 import type { PresenceConversationKind } from "../../contracts/turn_frame.v1.ts";
@@ -127,27 +126,8 @@ export function commitPresenceResult(
   return writePresenceState(tempMemory, result.flow_state, nowIso);
 }
 
-/**
- * Arms the existing Presence engine after a proactive potion opening was
- * actually delivered. This is not a new flow and it is intentionally not
- * reachable from the global dispatcher as a potion-specific route.
- */
-export function armPotionSupportPresence(input: {
-  tempMemory: Record<string, unknown>;
-  nowIso: string;
-  localDate: string;
-  topicHint: string | null;
-  entryContext: PotionSupportPresenceEntryContext;
-}): Record<string, unknown> {
-  const flow = enterPresenceFlow({
-    nowIso: input.nowIso,
-    localDate: input.localDate,
-    topicHint: input.topicHint,
-    entryReason: "potion_support_door_opener",
-    entryContext: input.entryContext,
-  });
-  return writePresenceState(input.tempMemory, flow, input.nowIso);
-}
+// W2.A: `armPotionSupportPresence` supprimé — plus aucun door-opener potion
+// n'arme la Présence (le sas d'admission local est débranché).
 
 /** Opens Presence after an inbound attack keyword received its first reply. */
 export function armAttackKeywordSupportPresence(input: {
@@ -167,7 +147,14 @@ export function armAttackKeywordSupportPresence(input: {
   return writePresenceState(input.tempMemory, flow, input.nowIso);
 }
 
-/** Clears only Presence ownership that came from a potion door-opener. */
+/**
+ * Purge d'un reste de Présence armée par un door-opener potion.
+ *
+ * W2.A: plus aucun code n'écrit ce contexte d'entrée, mais des états déjà
+ * persistés peuvent encore le porter — la lecture reste donc défensive (le type
+ * `PotionSupportPresenceEntryContext` n'existe plus). Appelée hors périmètre par
+ * `process-checkins` et `whatsapp-webhook`; supprimée avec eux en W2.B.
+ */
 export function clearPotionSupportPresence(
   tempMemory: Record<string, unknown>,
 ): Record<string, unknown> {
@@ -175,7 +162,11 @@ export function clearPotionSupportPresence(
     tempMemory[ACTIVE_CONVERSATION_SKILL_KEY] ??
       tempMemory.__active_skill_state,
   );
-  if (existing?.entry_context?.source !== "potion_support") {
+  const source = String(
+    (existing?.entry_context as { source?: unknown } | null | undefined)
+      ?.source ?? "",
+  );
+  if (source !== "potion_support") {
     return tempMemory;
   }
   return clearActiveConversationSkillState(tempMemory);

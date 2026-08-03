@@ -21,6 +21,17 @@ import { CreateReminderModal, type ReminderFormValues } from './CreateReminderMo
 import { shouldValidateOnUpdate, validateEthicalText } from '../../lib/ethicalValidation';
 import { supabase } from '../../lib/supabase';
 
+// W2.B — les initiatives issues des potions (`initiative_kind = 'potion_follow_up'`,
+// `source_kind = 'potion_generated'`) ont disparu du produit. Ce composant ne lit,
+// n'affiche et n'écrit plus que les initiatives créées par l'utilisateur.
+// Le nettoyage des CHECK en base est porté par W2.C.
+//
+// Ce composant reste dans l'arbre legacy et NON dans `frontend/src/keel/` : sa copie
+// est intégralement française et il dépend de `CreateReminderModal` (français lui aussi).
+// `frontend/src/keel/` est anglais par contrat (R1) et `scripts/ci/token-lint.mjs` le
+// vérifie — le déplacer tel quel rendait le lint rouge. Il migrera vers
+// `keel/components/` quand la copie sera internationalisée (W4, surface élève).
+
 type ReminderRow = {
   id: string;
   user_id: string;
@@ -32,9 +43,7 @@ type ReminderRow = {
   scheduled_days: string[];
   status: 'active' | 'inactive' | 'completed' | 'expired' | 'archived';
   scope_kind: 'transformation' | 'out_of_plan';
-  initiative_kind: 'base_free' | 'plan_free' | 'potion_follow_up';
-  source_kind: 'user_created' | 'potion_generated';
-  source_potion_session_id: string | null;
+  initiative_kind: 'base_free' | 'plan_free';
   starts_at: string | null;
   ends_at: string | null;
   ended_reason: 'user' | 'plan_completed' | 'plan_stopped' | 'expired' | null;
@@ -53,12 +62,9 @@ type Reminder = {
   status: ReminderRow['status'];
   scopeKind: ReminderRow['scope_kind'];
   kind: ReminderRow['initiative_kind'];
-  sourceKind: ReminderRow['source_kind'];
-  sourcePotionSessionId: string | null;
   startsAt: string | null;
   endsAt: string | null;
   endedReason: ReminderRow['ended_reason'];
-  durationDays: number | null;
 };
 
 interface RemindersSectionProps {
@@ -73,11 +79,6 @@ interface RemindersSectionProps {
 }
 
 function rowToReminder(row: ReminderRow): Reminder {
-  const metadata = row.initiative_metadata ?? {};
-  const metadataDuration = Number(
-    (metadata as Record<string, unknown>).scheduled_duration_days ?? null
-  );
-
   return {
     id: row.id,
     cycleId: row.cycle_id,
@@ -90,12 +91,9 @@ function rowToReminder(row: ReminderRow): Reminder {
     status: row.status,
     scopeKind: row.scope_kind,
     kind: row.initiative_kind,
-    sourceKind: row.source_kind,
-    sourcePotionSessionId: row.source_potion_session_id,
     startsAt: row.starts_at,
     endsAt: row.ends_at,
     endedReason: row.ended_reason,
-    durationDays: Number.isFinite(metadataDuration) ? metadataDuration : null,
   };
 }
 
@@ -108,7 +106,6 @@ function isLibraryReminder(reminder: Reminder) {
 }
 
 function reminderKindLabel(reminder: Reminder) {
-  if (reminder.kind === 'potion_follow_up') return 'Potion';
   if (reminder.kind === 'plan_free') return 'Plan';
   return 'Base de vie';
 }
@@ -149,52 +146,13 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({
     try {
       const { data, error } = await supabase
         .from('user_recurring_reminders')
-        .select('id,user_id,cycle_id,transformation_id,message_instruction,rationale,local_time_hhmm,scheduled_days,status,scope_kind,initiative_kind,source_kind,source_potion_session_id,starts_at,ends_at,ended_reason,initiative_metadata')
+        .select('id,user_id,cycle_id,transformation_id,message_instruction,rationale,local_time_hhmm,scheduled_days,status,scope_kind,initiative_kind,starts_at,ends_at,ended_reason,initiative_metadata')
         .eq('user_id', userId)
         .in('status', ['active', 'inactive', 'completed', 'expired', 'archived'])
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      const rows = ((data ?? []) as ReminderRow[]).map((row) => ({ ...row }));
-      const nowIso = new Date().toISOString();
-      const expiredIds = rows
-        .filter((row) =>
-          row.status === 'active' &&
-          row.initiative_kind === 'potion_follow_up' &&
-          typeof row.ends_at === 'string' &&
-          row.ends_at <= nowIso
-        )
-        .map((row) => row.id);
-
-      if (expiredIds.length > 0) {
-        const { error: expireError } = await supabase
-          .from('user_recurring_reminders')
-          .update({
-            status: 'expired',
-            ended_reason: 'expired',
-            deactivated_at: nowIso,
-            updated_at: nowIso,
-          } as any)
-          .in('id', expiredIds);
-        if (expireError) throw expireError;
-
-        const { error: cancelCheckinsError } = await supabase
-          .from('scheduled_checkins')
-          .update({
-            status: 'cancelled',
-            processed_at: nowIso,
-          } as any)
-          .in('recurring_reminder_id', expiredIds)
-          .in('status', ['pending', 'retrying', 'awaiting_user']);
-        if (cancelCheckinsError) throw cancelCheckinsError;
-
-        rows.forEach((row) => {
-          if (expiredIds.includes(row.id)) {
-            row.status = 'expired';
-            row.ended_reason = 'expired';
-          }
-        });
-      }
+      const rows = (data ?? []) as ReminderRow[];
 
       setReminders(rows.map(rowToReminder));
     } catch (error) {
@@ -213,7 +171,7 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({
     if (scopeKind === 'transformation') {
       return reminders.filter((reminder) => reminder.transformationId === transformationId);
     }
-    return reminders.filter((reminder) => reminder.scopeKind === 'out_of_plan' || reminder.kind === 'potion_follow_up');
+    return reminders.filter((reminder) => reminder.scopeKind === 'out_of_plan');
   }, [reminders, scopeKind, transformationId]);
 
   const freeReminders = useMemo(() => {
@@ -227,13 +185,6 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({
     );
   }, [scopeKind, scopedReminders]);
 
-  const potionReminders = useMemo(
-    () => scopedReminders.filter(
-      (reminder) => reminder.kind === 'potion_follow_up' && reminder.status !== 'archived'
-    ),
-    [scopedReminders]
-  );
-
   const libraryReminders = useMemo(
     () => scopeKind === 'out_of_plan'
       ? reminders.filter((reminder) => isLibraryReminder(reminder))
@@ -241,7 +192,7 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({
     [reminders, scopeKind]
   );
 
-  const [libraryFilter, setLibraryFilter] = useState<'all' | 'base_free' | 'plan_free' | 'potion_follow_up'>('all');
+  const [libraryFilter, setLibraryFilter] = useState<'all' | 'base_free' | 'plan_free'>('all');
   const filteredLibraryReminders = useMemo(
     () => libraryReminders.filter((reminder) =>
       libraryFilter === 'all' ? true : reminder.kind === libraryFilter
@@ -307,7 +258,6 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({
           scope_kind: isBaseDeVieDestination ? 'out_of_plan' : 'transformation',
           initiative_kind: isBaseDeVieDestination ? 'base_free' : 'plan_free',
           source_kind: 'user_created',
-          source_potion_session_id: null,
           message_instruction: message,
           rationale: data.rationale ?? null,
           local_time_hhmm: data.time,
@@ -389,16 +339,7 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({
 
       if (error) throw error;
 
-      if (editingReminder.kind === 'potion_follow_up' && editingReminder.sourcePotionSessionId) {
-        const { error: potionError } = await supabase.functions.invoke('schedule-potion-follow-up-v1', {
-          body: {
-            session_id: editingReminder.sourcePotionSessionId,
-            local_time_hhmm: data.time,
-            duration_days: editingReminder.durationDays ?? 7,
-          },
-        });
-        if (potionError) throw potionError;
-      } else if (editingReminder.status === 'active') {
+      if (editingReminder.status === 'active') {
         void supabase.functions.invoke('classify-recurring-reminder', {
           body: { reminder_id: editingReminder.id, full_reset: true },
         });
@@ -417,33 +358,22 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({
 
     const nextActive = !reminder.isActive;
     if (nextActive) {
-      if (reminder.kind === 'potion_follow_up' && reminder.sourcePotionSessionId) {
-        const { error } = await supabase.functions.invoke('schedule-potion-follow-up-v1', {
-          body: {
-            session_id: reminder.sourcePotionSessionId,
-            local_time_hhmm: reminder.time,
-            duration_days: reminder.durationDays ?? 7,
-          },
-        });
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from('user_recurring_reminders')
-          .update({
-            status: 'active',
-            deactivated_at: null,
-            archived_at: null,
-            ended_reason: null,
-            updated_at: new Date().toISOString(),
-          } as any)
-          .eq('id', reminder.id);
+      const { error } = await supabase
+        .from('user_recurring_reminders')
+        .update({
+          status: 'active',
+          deactivated_at: null,
+          archived_at: null,
+          ended_reason: null,
+          updated_at: new Date().toISOString(),
+        } as any)
+        .eq('id', reminder.id);
 
-        if (error) throw error;
+      if (error) throw error;
 
-        void supabase.functions.invoke('classify-recurring-reminder', {
-          body: { reminder_id: reminder.id, full_reset: true },
-        });
-      }
+      void supabase.functions.invoke('classify-recurring-reminder', {
+        body: { reminder_id: reminder.id, full_reset: true },
+      });
     } else {
       const nowIso = new Date().toISOString();
       const { error } = await supabase
@@ -582,8 +512,7 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({
                 </p>
                 <p className="mt-4">
                   Une initiative peut servir a entretenir un elan, proteger un equilibre ou garder un repere
-                  vivant dans le temps. Certaines viennent de toi, d'autres d'une potion que tu as utilisee
-                  pendant une transformation.
+                  vivant dans le temps.
                 </p>
               </>
             )}
@@ -607,13 +536,6 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({
                 )}
               </ul>
             </div>
-            {scopeKind === 'transformation' ? (
-              <p className="mt-5">
-                Tu retrouveras aussi ici les initiatives que Sophia peut creer automatiquement apres
-                une potion, quand un soutien dans la duree peut aider a prolonger l'effet de ce que
-                tu viens de traverser.
-              </p>
-            ) : null}
             <div className="mt-5 flex items-start gap-3 rounded-2xl border border-amber-200/70 bg-white/70 px-4 py-3">
               <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700">
                 <Lightbulb className="h-4 w-4" />
@@ -828,96 +750,6 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({
             </div>
           </div>
 
-          {scopeKind === 'transformation' ? (
-            <div className="rounded-2xl border border-stone-200 bg-stone-50 mt-6">
-              <div className="flex w-full items-center justify-between gap-3 px-4 py-4 text-left">
-                <div className="flex items-start gap-3">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-emerald-100">
-                    <Sparkles className="h-4 w-4 text-emerald-700" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-stone-950">Les initiatives qui viennent des potions</p>
-                    <p className="mt-1 text-sm leading-6 text-stone-600">
-                      Ici, tu retrouves les initiatives que Sophia peut creer automatiquement apres une potion,
-                      pour prolonger son effet dans la vraie vie et t'aider a tenir dans la duree.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-4 border-t border-stone-200 px-4 py-4">
-                {potionReminders.length > 0 ? (
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    {potionReminders.map((reminder) => (
-                      <motion.article
-                        key={reminder.id}
-                        layout
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className={`group relative rounded-2xl border p-4 transition-all flex flex-col h-full ${
-                          reminder.isActive
-                            ? 'border-emerald-200 bg-white shadow-sm hover:border-emerald-300 hover:shadow-md'
-                            : 'border-stone-200 bg-stone-50/80 opacity-80'
-                        }`}
-                      >
-                        <div className="mb-3 flex items-start justify-between min-h-[28px]">
-                          <span className={`rounded-lg px-2 py-1 text-[10px] font-bold ${
-                            reminder.status === 'expired'
-                              ? 'bg-stone-100 text-stone-600'
-                              : reminder.status === 'inactive'
-                              ? 'bg-stone-100 text-stone-600'
-                              : 'bg-emerald-50 text-emerald-700'
-                          }`}>
-                            {reminderStatusLabel(reminder)}
-                          </span>
-                          {!isLocked ? (
-                            <button
-                              type="button"
-                              onClick={() => void toggleActive(reminder)}
-                              className="rounded-lg p-1.5 text-stone-400 transition-colors hover:bg-stone-100 hover:text-emerald-700"
-                              title={reminder.isActive ? 'Mettre en pause' : 'Réactiver'}
-                            >
-                              {reminder.isActive ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                            </button>
-                          ) : null}
-                        </div>
-
-                        <div className="mb-2 flex items-center gap-2">
-                          <div className="rounded-lg p-1.5 bg-emerald-50 text-emerald-700">
-                            <Sparkles className="w-3.5 h-3.5" />
-                          </div>
-                          <p className="text-[10px] font-semibold uppercase leading-4 tracking-[0.16em] text-stone-500">
-                            Potion • {reminder.time}
-                          </p>
-                        </div>
-
-                        <h3 className="mb-2 text-sm font-bold leading-5 text-stone-900">
-                          &quot;{reminder.message}&quot;
-                        </h3>
-
-                        {reminder.rationale ? (
-                          <p className="text-xs leading-relaxed text-stone-500">
-                            {reminder.rationale}
-                          </p>
-                        ) : null}
-
-                        <p className="mt-auto pt-3 text-xs text-stone-500">
-                          {reminder.durationDays ? `Serie de ${reminder.durationDays} jours` : 'Suivi temporaire'}
-                        </p>
-                      </motion.article>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="rounded-3xl border border-dashed border-stone-300 bg-white px-5 py-6 text-center">
-                    <p className="text-sm leading-6 text-stone-600">
-                      Tu n'as pas encore d'initiative créée par Sophia dans cette section.
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          ) : null}
-
           {scopeKind === 'out_of_plan' ? (
             <div className="rounded-2xl border border-stone-200 bg-stone-50 mt-6">
               <div className="flex w-full items-center justify-between gap-3 px-4 py-4 text-left">
@@ -940,7 +772,6 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({
                     ['all', 'Toutes'],
                     ['base_free', 'Base de vie'],
                     ['plan_free', 'Plan'],
-                    ['potion_follow_up', 'Potions'],
                   ] as const).map(([value, label]) => (
                     <button
                       key={value}
@@ -990,11 +821,7 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({
                           </p>
                         ) : null}
                         <p className="mt-3 text-xs text-stone-500">
-                          {reminder.kind === 'potion_follow_up'
-                            ? (reminder.durationDays
-                              ? `Suivi potion • ${reminder.durationDays} jours`
-                              : 'Suivi potion')
-                            : `Horaire de reference • ${reminder.time}`}
+                          {`Horaire de reference • ${reminder.time}`}
                         </p>
                       </article>
                     ))}

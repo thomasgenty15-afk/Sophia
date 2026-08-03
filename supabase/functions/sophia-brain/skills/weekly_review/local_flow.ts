@@ -185,12 +185,43 @@ export type WeeklyPlanningContext = {
     validation_input_destination: string;
   } | null;
   adjustment_destination: {
-    mode: "adjust_plan_platform" | "level_validation";
+    // W4.4 (KEEL) — valeur UNIQUE. Les deux modes precedents,
+    // `adjust_plan_platform` (« Ajuster mon plan ») et `level_validation`
+    // (« Validation du niveau »), designaient des surfaces SUPPRIMEES en W2:
+    // `adjust-plan-v1` / `PlanRevisionPanel` et `complete-level-v1` /
+    // `LevelCompletionModal` n'existent plus. Le weekly proposait donc chaque
+    // dimanche deux portes fermees. L'union est reduite a une seule valeur
+    // pour que le compilateur interdise de reconstruire l'une des deux.
+    mode: "coach_review";
     label: string;
     instruction: string;
     chat_mutation_allowed: false;
   };
 };
+
+/**
+ * W4.4 — la sortie KEEL du weekly: une SYNTHESE vers le coach.
+ *
+ * Doctrine (CONTRACT): « l'IA escalade, le coach decide ». Le weekly n'oriente
+ * plus l'eleve vers un ecran ou il reecrirait son plan lui-meme — cet ecran
+ * n'existe plus, et le plan appartient au coach.
+ *
+ * TODO W7 — cablage complet: la synthese doit devenir une ligne
+ * `contract_change_requests` (raised_by='sophia', urgency='next_digest') plus
+ * la boite de reception coach. Tant que W7 n'est pas la, le weekly ne PROMET
+ * rien: il dit que le point remonte au coach, et n'annonce aucune ecriture
+ * (verite d'execution — rien n'est annonce qui ne soit une ligne relue).
+ */
+export const WEEKLY_COACH_DESTINATION = {
+  mode: "coach_review",
+  label: "Ton coach",
+  instruction:
+    "Le plan ne se modifie ni par le chat weekly ni par l'eleve: il appartient " +
+    "au coach. Ce qui remonte de ce bilan lui est transmis en synthese, et " +
+    "c'est lui qui tranche. N'oriente vers aucun ecran d'ajustement de plan ni " +
+    "vers une validation de niveau: ces surfaces n'existent plus.",
+  chat_mutation_allowed: false,
+} as const;
 
 export type WeeklyAdjustRecommendation = {
   status: "none" | "candidate" | "ready" | "surfaced";
@@ -1269,15 +1300,9 @@ function emptyWeeklyPlanningContext(
       title: null,
       intention: null,
       preview_summary: null,
-      validation_input_destination: "Validation du niveau",
+      validation_input_destination: WEEKLY_COACH_DESTINATION.label,
     },
-    adjustment_destination: {
-      mode: "level_validation",
-      label: "Validation du niveau",
-      instruction:
-        "Le plan ne se modifie pas par chat weekly. Si aucune semaine suivante n'est configuree, ces inputs se renseignent dans la validation du niveau.",
-      chat_mutation_allowed: false,
-    },
+    adjustment_destination: { ...WEEKLY_COACH_DESTINATION },
   };
 }
 
@@ -1323,17 +1348,12 @@ function normalizeWeeklyPlanningContext(
       title: nullableString(rawNextLevel.title),
       intention: nullableString(rawNextLevel.intention),
       preview_summary: nullableString(rawNextLevel.preview_summary),
-      validation_input_destination:
-        nullableString(rawNextLevel.validation_input_destination) ??
-          "Validation du niveau",
+      // W4.4: la destination n'est plus lue depuis l'etat persiste. Une
+      // session ouverte avant ce lot porte encore « Validation du niveau » en
+      // base; la relire ressusciterait la surface supprimee au tour suivant.
+      validation_input_destination: WEEKLY_COACH_DESTINATION.label,
     }
     : base.next_level;
-  const destinationRoot = isRecord(root.adjustment_destination)
-    ? root.adjustment_destination
-    : {};
-  const destinationMode = mode === "next_week_configured"
-    ? "adjust_plan_platform"
-    : "level_validation";
   return {
     mode,
     current_week: {
@@ -1350,17 +1370,8 @@ function normalizeWeeklyPlanningContext(
     plan_rationale: nullableString(root.plan_rationale),
     next_week: mode === "next_week_configured" ? nextWeek : null,
     next_level: mode === "next_level_required" ? nextLevel : null,
-    adjustment_destination: {
-      mode: destinationMode,
-      label: destinationMode === "adjust_plan_platform"
-        ? "Ajuster mon plan"
-        : "Validation du niveau",
-      instruction: nullableString(destinationRoot.instruction) ??
-        (destinationMode === "adjust_plan_platform"
-          ? "Le plan ne se modifie pas par chat weekly. Le user peut aller dans Ajuster mon plan avec une intention precise si la recommandation est sure."
-          : "Le plan ne se modifie pas par chat weekly. Le user doit valider le niveau et renseigner les inputs identifies pour construire le niveau suivant."),
-      chat_mutation_allowed: false,
-    },
+    // Constante, jamais reconstruite depuis l'etat persiste (voir ci-dessus).
+    adjustment_destination: { ...WEEKLY_COACH_DESTINATION },
   };
 }
 
@@ -1487,17 +1498,10 @@ function buildWeeklyPlanningContext(args: {
         preview_summary: isRecord(nextLevel)
           ? nullableString((nextLevel as any).preview_summary)
           : null,
-        validation_input_destination: "Validation du niveau",
+        validation_input_destination: WEEKLY_COACH_DESTINATION.label,
       }
       : null,
-    adjustment_destination: {
-      mode: hasNextWeek ? "adjust_plan_platform" : "level_validation",
-      label: hasNextWeek ? "Ajuster mon plan" : "Validation du niveau",
-      instruction: hasNextWeek
-        ? "Le plan ne se modifie pas par chat weekly. Si l'ajustement est utile et tres fiable, le user peut aller dans Ajuster mon plan avec l'intention precise fournie."
-        : "Le plan ne se modifie pas par chat weekly. Quand aucune semaine suivante n'est configuree, ces inputs se renseignent dans la validation du niveau.",
-      chat_mutation_allowed: false,
-    },
+    adjustment_destination: { ...WEEKLY_COACH_DESTINATION },
   }, weekWindow);
 }
 
@@ -3567,7 +3571,7 @@ function dispatcherSystemPrompt(): string {
     "Tu n'es pas le dispatcher global. Tu ne reponds jamais directement au user.",
     "Tu retournes uniquement un JSON conforme au contrat.",
     "Sortie sparse obligatoire: fournis seulement les champs utiles a la decision courante. Omet les champs null, false, 0, tableaux vides ou objets par defaut; le reducer/runtime reconstruit les defaults.",
-    "weekly_state.weekly_flow_state.weekly_planning_context est deterministe et fait autorite: mode next_week_configured => recommandation eventuelle vers Ajuster mon plan dans la plateforme; mode next_level_required => recommandation eventuelle vers validation du niveau/prochains inputs, jamais vers Ajuster mon plan.",
+    "weekly_state.weekly_flow_state.weekly_planning_context est deterministe et fait autorite. W4.4: sa seule destination est adjustment_destination.mode=coach_review — le point remonte au COACH, qui tranche. Les deux anciennes sorties (Ajuster mon plan, Validation du niveau) designaient des surfaces supprimees: ne les nomme jamais, ne renvoie l'eleve vers aucun ecran d'ajustement de plan ni vers une validation de niveau.",
     "",
     "Actions possibles: answer_weekly_question, confirm_weekly_diagnostic, reject_weekly_diagnostic, clarify_human_signal, recap_weekly, explain_weekly_reasoning, forgotten_progress_correction, clarify_forgotten_progress, complete_weekly_no_change, complete_flow, exit_to_global_dispatcher, defer_flow.",
     "",
@@ -3610,7 +3614,7 @@ function dispatcherSystemPrompt(): string {
     "- weekly_intent: resume l'intention weekly du message courant. kind doit suivre flow_action: weekly_answer pour reponse au bilan, weekly_confirmation/rejection pour validation ou rejet, forgotten_progress pour correction retrospective, stop/off_topic/explicit_tool_request/safety/unclear selon le cas. summary doit rester court et ne pas inventer de fait.",
     "- human_signal_updates: remplis seulement les signaux humains explicitement fournis ou fortement confirmes dans ce tour. objective_delta = avancee par rapport a l'objectif global. felt_progress = ressenti subjectif sur cette avancee (aligned, encouraged, neutral, frustrated, disconnected, worried, unclear, unknown). felt_state = energie/charge. Mets null quand le message ne parle pas de progression, energie, blocage ou ressenti weekly. Ne transforme pas une hypothese du bilan en fait confirme.",
     "- handoff_updates: garde status none sauf compatibilite avec un retour deja stocke. Ne prepare pas de handoff Plan depuis ce champ. scope doit rester none ou ambiguous si le plan/action cible n'est pas clair; ne fabrique pas d'id.",
-    "- adjust_recommendation: omets sauf si la confiance est au moins 0.95 avec preuves daily solides, coherence semaine passee/semaine suivante ou niveau suivant, cause claire, action concernee claire, et utilite forte. Ce champ est strictement non-mutant: il ne modifie pas le plan, ne cree pas de patch et ne promet aucun changement. Remplis uniquement what_to_adjust, why, evidence, confidence, target_scope, safe_to_surface=true. Si mode next_week_configured, target_scope=next_week_plan et destination_instruction doit orienter vers Ajuster mon plan. Si mode next_level_required, target_scope=next_level_inputs et destination_instruction doit orienter vers validation du niveau / bilan du niveau suivant. Si le user demande quoi faire la semaine prochaine et que ce champ est deja ready ou peut etre rempli avec ce seuil, choisis visible_task.kind=weekly_adjust_recommendation; sinon continue la collecte ou la synthese.",
+    "- adjust_recommendation: omets sauf si la confiance est au moins 0.95 avec preuves daily solides, coherence semaine passee/semaine suivante ou niveau suivant, cause claire, action concernee claire, et utilite forte. Ce champ est strictement non-mutant: il ne modifie pas le plan, ne cree pas de patch et ne promet aucun changement. Remplis uniquement what_to_adjust, why, evidence, confidence, target_scope, safe_to_surface=true. target_scope reste next_week_plan ou next_level_inputs selon le mode, mais la destination est TOUJOURS le coach (coach_review): destination_instruction dit que le point lui est transmis en synthese et qu'il decidera. N'oriente jamais vers Ajuster mon plan ni vers une validation de niveau (surfaces supprimees). Si le user demande quoi faire la semaine prochaine et que ce champ est deja ready ou peut etre rempli avec ce seuil, choisis visible_task.kind=weekly_adjust_recommendation; sinon continue la collecte ou la synthese.",
     "- forgotten_progress: none par defaut. candidate si le user mentionne une progression oubliee sans cible suffisante. needs_target si la cible manque. ready_for_progress_tool seulement si la cible et l'issue sont assez claires pour le reducer. blocked si la correction est contradictoire ou impossible. Ne confonds pas correction retrospective et ajustement de plan futur.",
     ...localOneShotDirectEffectPromptLines("le weekly"),
     "- action_status_updates: liste les corrections utilisateur action par action quand le user contredit ou precise la projection DB. Utilise plan_item_id/occurrence_id depuis le contexte si disponible, sinon title exact; corrected_status completed/partial/missed/unknown; user_evidence reprend les mots du user. Laisse [] si aucune correction. Ces corrections battent la projection dans item_summaries et la synthese visible. N'en fais pas un ajustement Plan.",

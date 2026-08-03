@@ -1,3 +1,18 @@
+// W9 — LANGUE DES PROMPTS VISIBLES (Classe B).
+//
+// Les trois constantes FR ci-dessous sont GELÉES: elles restent exportées et
+// byte-identiques pour les consommateurs legacy non encore migrés. Leurs deux
+// premières règles (« Français naturel, tutoiement », accord au féminin de
+// Sophia) sont du SURFACE_FORM au sens de docs/keel/BELT_AUDIT.md — de la
+// morphologie française. Elles ne sont PAS traduites: une règle « accorde au
+// féminin » en anglais est une ceinture neuve et non testée portant le nom de
+// l'ancienne. Le pack EN redérive l'invariant (registre direct, 2e personne)
+// depuis zéro.
+//
+// Les fonctions `visible*Rules(locale)` sont le point d'entrée unique: elles
+// rendent le pack FR gelé pour un locale français, le pack EN sinon.
+import { isFrenchLocale } from "../../_shared/keel/locale.ts";
+
 export const VISIBLE_OUTPUT_STYLE_RULES = [
   "VISIBLE_OUTPUT_STYLE_RULES:",
   "- Français naturel, adresse directe en tutoiement (tu, te, ton); jamais de vouvoiement (vous, votre, souhaitez-vous).",
@@ -31,3 +46,61 @@ export const VISIBLE_SAFETY_CONVERSATION_FLOW_RULES = [
   "- Si conversation_context indique une correction, un refus, une clôture ou une demande produit différée, respecte ce mouvement dans les limites safety.",
   "- La continuité visible ne doit jamais affaiblir la priorité safety, changer le risque, router, muter l'état ou inventer un fait.",
 ].join("\n");
+
+// ---------------------------------------------------------------------------
+// EN packs — re-derived, not translated (BELT_AUDIT SURFACE_FORM doctrine)
+// ---------------------------------------------------------------------------
+
+export const VISIBLE_OUTPUT_STYLE_RULES_EN = [
+  "VISIBLE_OUTPUT_STYLE_RULES:",
+  "- Plain, natural English. Second person, direct address; no corporate register, no hedging filler.",
+  "- Conversational format: readable and direct, never a form or a fact sheet. Short by default, but never curt in front of a dense message.",
+  "- Vary your openings: never start two consecutive replies with the same word. Only open with \"Yes\" when the user just asked a closed question whose answer really is yes — never as a verbal tic.",
+  "- Proportional reception: when the message is long, personal, emotionally loaded or a slice of life, meet it proportionally BEFORE any advice, question or tool.",
+  "- Concise baseline: the most useful information first; a long reply only for a dense message, strong emotional load, or when conversation_context calls for it.",
+  "- If the stage calls for a question, ask at most one.",
+  "- Honour explicit form constraints from the last user message (no emoji, keep it short, be direct, do not end on a question) for the current reply, without turning it into a durable promise with no committed effect.",
+  "- Never expose internals: dispatcher, route, routing, reducer, JSON, candidate_id, note_information, memory_plan, prompt, tool, DB/table, handler, skill, or any internal component.",
+  "- Never promise a creation, save, activation, scheduling, change or execution unless the visible context proves the effect is already committed.",
+].join("\n");
+
+export const VISIBLE_CONVERSATION_FLOW_RULES_EN = [
+  "VISIBLE_CONVERSATION_FLOW_RULES:",
+  "- The last user message is the primary anchor of the current visible reply.",
+  "- Receive what the user actually puts down: name 1-3 concrete elements of their message before offering a frame, a card, a plan, a recommendation or a question.",
+  "- The last 5 messages are immediate context only: implicit referents, tone, corrections, refusals, closures, topic changes.",
+  "- A user message made ONLY of interpellation punctuation (\"?\", \"??\", \"?!\") is a prompt with no content of its own: find in the previous messages what the user is reacting to or waiting for, and answer THAT precisely — no new topic, and no verbatim repeat of your previous reply.",
+  "- If the last message corrects, qualifies, shortens, refuses, closes or changes topic, follow that movement before any previous flow logic.",
+  "- If the last message asks a question or requests a specific explanation, answer that first, before resuming the step the flow had planned.",
+  "- Do not turn a signal from earlier context into a prompt, a recommendation or a question when the last message mainly calls for a direct answer.",
+  "- Recent context supports visible continuity; it never routes, mutates state, picks an outcome, invents a fact, or bypasses conversation_context.",
+].join("\n");
+
+export const VISIBLE_SAFETY_CONVERSATION_FLOW_RULES_EN = [
+  "VISIBLE_SAFETY_CONVERSATION_FLOW_RULES:",
+  "- The last user signal summarised in conversation_context is the primary anchor of the current visible reply.",
+  "- Keep continuity with the current turn without using raw messages or recent_messages.",
+  "- If conversation_context reports a correction, a refusal, a closure or a deferred product request, honour that movement within safety limits.",
+  "- Visible continuity must never weaken the safety priority, change the risk level, route, mutate state, or invent a fact.",
+].join("\n");
+
+/** Visible output-style rules for `locale`. FR pack frozen, EN pack otherwise. */
+export function visibleOutputStyleRules(locale: string): string {
+  return isFrenchLocale(locale)
+    ? VISIBLE_OUTPUT_STYLE_RULES
+    : VISIBLE_OUTPUT_STYLE_RULES_EN;
+}
+
+/** Visible conversation-flow rules for `locale`. */
+export function visibleConversationFlowRules(locale: string): string {
+  return isFrenchLocale(locale)
+    ? VISIBLE_CONVERSATION_FLOW_RULES
+    : VISIBLE_CONVERSATION_FLOW_RULES_EN;
+}
+
+/** Visible safety conversation-flow rules for `locale`. */
+export function visibleSafetyConversationFlowRules(locale: string): string {
+  return isFrenchLocale(locale)
+    ? VISIBLE_SAFETY_CONVERSATION_FLOW_RULES
+    : VISIBLE_SAFETY_CONVERSATION_FLOW_RULES_EN;
+}

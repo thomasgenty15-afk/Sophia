@@ -35,7 +35,22 @@ Deno.test("memory mock llm replay fails clearly when fixture is missing", async 
   assertStringIncludes(err.message, "Missing replay fixture");
 });
 
-Deno.test("memory mock llm record writes a versioned fixture", async () => {
+// `record` mode writes fixture files, so this case needs --allow-write. The default net
+// (`deno test --allow-env --allow-read --allow-net`) deliberately does not grant it, so the
+// case SKIPS instead of failing. `npm run memory_v2_eval` grants --allow-write=/private/tmp
+// and runs it for real. See docs/keel/TESTING.md.
+const CAN_WRITE_TMP =
+  Deno.permissions.querySync({ name: "write", path: "/private/tmp" }).state ===
+    "granted";
+if (!CAN_WRITE_TMP) {
+  console.log(
+    "[skip] mock_llm_test record mode: needs --allow-write=/private/tmp",
+  );
+}
+
+Deno.test("memory mock llm record writes a versioned fixture", {
+  ignore: !CAN_WRITE_TMP,
+}, async () => {
   const dir = `/private/tmp/memory-v2-fixtures-${crypto.randomUUID()}`;
   const result = await createMemoryMockLlm({
     call: () => Promise.resolve({ recorded: true }),

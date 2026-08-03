@@ -1,12 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { createAuthedTestUser, createServiceRoleClient } from "../test/supabaseTestUtils";
+import { HAS_SUPABASE_TEST_ENV, createAuthedTestUser, createServiceRoleClient } from "../test/supabaseTestUtils";
 
 /**
  * These tests ensure "forbidden" writes are actually forbidden (RLS/permissions).
  * If any of these start passing, we likely introduced a security regression.
  */
-describe("security: RLS negative (must fail)", () => {
+describe.skipIf(!HAS_SUPABASE_TEST_ENV)("security: RLS negative (must fail)", () => {
   let admin: SupabaseClient;
   let userA: { client: SupabaseClient; userId: string };
   let userB: { client: SupabaseClient; userId: string };

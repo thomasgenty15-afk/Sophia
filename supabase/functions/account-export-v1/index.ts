@@ -31,6 +31,24 @@ const EXPORT_BUCKET = "gdpr-exports";
 const SIGNED_URL_TTL_SECONDS = 15 * 60;
 const PAGE = 1000;
 
+// KEEL private buckets (20260727130000_keel_storage.sql). Path convention is
+// `<owner_user_id>/<rest>`, so the export prefix is simply the user id.
+const KEEL_FILE_BUCKETS = [
+  { bucket: "plan-documents", folder: "fichiers/documents-plan" },
+  { bucket: "meal-photos", folder: "fichiers/photos-repas" },
+] as const;
+// storage.list() defaults to 100 objects and NEVER says it truncated — the
+// paginated walk below is the only correct way to enumerate a prefix.
+const STORAGE_LIST_PAGE = 100;
+const MAX_STORAGE_DEPTH = 4;
+// The archive is built in memory (zipSync), so the budget is bounded by the
+// edge runtime, not by politeness: raw bytes + zip output both sit in the
+// isolate at once. Past the budget the objects are LISTED in fichiers.json with
+// their exclusion reason — a truncated archive that says so beats an OOM that
+// delivers nothing.
+const MAX_STORAGE_OBJECTS = 500;
+const MAX_STORAGE_BYTES = 40 * 1024 * 1024;
+
 function requireEnv(name: string): string {
   const v = (Deno.env.get(name) ?? "").trim();
   if (!v) throw new Error(`Missing env var: ${name}`);
@@ -44,6 +62,7 @@ async function fetchAllRows(
   userColumn: string,
   userId: string,
   extra?: (q: any) => any,
+  orderColumn = "created_at",
 ): Promise<Record<string, unknown>[]> {
   const rows: Record<string, unknown>[] = [];
   for (let page = 0; page < 200; page++) {
@@ -51,7 +70,7 @@ async function fetchAllRows(
       .from(table)
       .select(columns)
       .eq(userColumn, userId)
-      .order("created_at", { ascending: true })
+      .order(orderColumn, { ascending: true })
       .range(page * PAGE, page * PAGE + PAGE - 1);
     if (extra) q = extra(q);
     const { data, error } = await q;
@@ -60,6 +79,189 @@ async function fetchAllRows(
     if (!data || data.length < PAGE) break;
   }
   return rows;
+}
+
+// --- KEEL tables --------------------------------------------------------------
+// The KEEL migrations (P0, tenancy, storage) may not be applied on the stack an
+// export runs against — a function deploy and a `db push` are two separate human
+// gates. A missing KEEL table must not deny every user their legacy export, so
+// the failure is caught. It is NOT silent: the table name lands in
+// `unavailable`, which is written into fichiers.json and flagged in the README.
+async function fetchKeelRows(
+  admin: ReturnType<typeof createClient>,
+  table: string,
+  columns: string,
+  userColumn: string,
+  userId: string | null,
+  unavailable: string[],
+  orderColumn = "created_at",
+): Promise<Record<string, unknown>[]> {
+  // Null id = the user has no such role (no coaches row): nothing to export,
+  // and nothing missing either.
+  if (!userId) return [];
+  try {
+    return await fetchAllRows(admin, table, columns, userColumn, userId, undefined, orderColumn);
+  } catch (err) {
+    console.warn(`[account-export-v1] KEEL table unavailable: ${table}`, err);
+    if (!unavailable.includes(table)) unavailable.push(table);
+    return [];
+  }
+}
+
+// W1.4 R5 — `commitment_relations` has no owner column: it hangs off
+// `plan_commitments`. It is therefore fetched by the ids of the student's own
+// commitments, in chunks so the `in.(...)` filter never blows the URL length on
+// a long protocol history.
+const RELATION_ID_CHUNK = 100;
+
+async function fetchRowsByIdChunks(
+  admin: ReturnType<typeof createClient>,
+  table: string,
+  columns: string,
+  column: string,
+  ids: string[],
+  unavailable: string[],
+  orderColumn = "created_at",
+): Promise<Record<string, unknown>[]> {
+  if (ids.length === 0) return [];
+  const rows: Record<string, unknown>[] = [];
+  try {
+    for (let i = 0; i < ids.length; i += RELATION_ID_CHUNK) {
+      const chunk = ids.slice(i, i + RELATION_ID_CHUNK);
+      const { data, error } = await admin
+        .from(table)
+        .select(columns)
+        .in(column, chunk)
+        .order(orderColumn, { ascending: true });
+      if (error) throw error;
+      rows.push(...(data ?? []));
+    }
+  } catch (err) {
+    console.warn(`[account-export-v1] KEEL table unavailable: ${table}`, err);
+    if (!unavailable.includes(table)) unavailable.push(table);
+    return [];
+  }
+  return rows;
+}
+
+// `coach_id` on the KEEL tables is `coaches.id`, NOT the auth user id (see the
+// RLS policies in 20260727120000_keel_tenancy.sql). Exporting with user.id there
+// would silently return zero rows for every coach.
+async function resolveCoachId(
+  admin: ReturnType<typeof createClient>,
+  userId: string,
+  unavailable: string[],
+): Promise<string | null> {
+  try {
+    const { data, error } = await admin
+      .from("coaches")
+      .select("id")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (error) throw error;
+    return data?.id ? String(data.id) : null;
+  } catch (err) {
+    console.warn("[account-export-v1] coaches lookup unavailable", err);
+    if (!unavailable.includes("coaches")) unavailable.push("coaches");
+    return null;
+  }
+}
+
+// --- KEEL storage -------------------------------------------------------------
+type StorageObject = { path: string; size: number };
+
+async function listBucketObjects(
+  admin: ReturnType<typeof createClient>,
+  bucket: string,
+  prefix: string,
+  depth = 0,
+): Promise<StorageObject[]> {
+  // R7: returning [] here would drop objects from BOTH the archive and the
+  // manifest that claims to list every file — a silent hole in an RGPD export.
+  // The throw is caught per bucket in collectStorageFiles and surfaces as
+  // `statut: "indisponible"` in fichiers.json.
+  if (depth > MAX_STORAGE_DEPTH) {
+    throw new Error(`storage_walk_too_deep:${bucket}/${prefix}`);
+  }
+  const found: StorageObject[] = [];
+  for (let page = 0; page < 200; page++) {
+    const { data, error } = await admin.storage.from(bucket).list(prefix, {
+      limit: STORAGE_LIST_PAGE,
+      offset: page * STORAGE_LIST_PAGE,
+      sortBy: { column: "name", order: "asc" },
+    });
+    if (error) throw error;
+    const entries = data ?? [];
+    for (const entry of entries) {
+      const name = String(entry?.name ?? "");
+      if (!name || name === ".emptyFolderPlaceholder") continue;
+      const path = `${prefix}/${name}`;
+      // A prefix ("folder") comes back with a null id; a real object has one.
+      if (entry?.id == null) {
+        found.push(...await listBucketObjects(admin, bucket, path, depth + 1));
+      } else {
+        found.push({ path, size: Number((entry as any)?.metadata?.size ?? 0) });
+      }
+    }
+    if (entries.length < STORAGE_LIST_PAGE) break;
+  }
+  return found;
+}
+
+// Bundles the user's objects from the KEEL buckets and returns a manifest that
+// states, per object, whether it made it into the archive and why not. An
+// export that quietly drops files is worse than one that says it dropped them.
+async function collectStorageFiles(
+  admin: ReturnType<typeof createClient>,
+  userId: string,
+): Promise<{ binaries: Record<string, Uint8Array>; manifest: Record<string, unknown>[] }> {
+  const binaries: Record<string, Uint8Array> = {};
+  const manifest: Record<string, unknown>[] = [];
+  let remainingBytes = MAX_STORAGE_BYTES;
+  let included = 0;
+
+  for (const { bucket, folder } of KEEL_FILE_BUCKETS) {
+    let objects: StorageObject[];
+    try {
+      objects = await listBucketObjects(admin, bucket, userId);
+    } catch (err) {
+      // Bucket missing on this stack is not an export blocker, but it is stated.
+      console.warn(`[account-export-v1] storage list failed for bucket ${bucket}`, err);
+      manifest.push({ bucket, statut: "indisponible" });
+      continue;
+    }
+    for (const object of objects) {
+      const relative = object.path.slice(userId.length + 1);
+      const entry: Record<string, unknown> = {
+        bucket,
+        chemin: object.path,
+        taille_octets: object.size,
+        inclus: false,
+      };
+      if (included >= MAX_STORAGE_OBJECTS) {
+        entry.motif_exclusion = "limite_nombre_fichiers";
+      } else if (object.size > remainingBytes) {
+        entry.motif_exclusion = "limite_taille_archive";
+      } else {
+        try {
+          const { data, error } = await admin.storage.from(bucket).download(object.path);
+          if (error || !data) throw error ?? new Error("download_failed");
+          const bytes = new Uint8Array(await data.arrayBuffer());
+          binaries[`${folder}/${relative}`] = bytes;
+          remainingBytes -= bytes.byteLength;
+          included++;
+          entry.taille_octets = bytes.byteLength;
+          entry.fichier_archive = `${folder}/${relative}`;
+          entry.inclus = true;
+        } catch (err) {
+          console.warn(`[account-export-v1] storage download failed: ${bucket}/${object.path}`, err);
+          entry.motif_exclusion = "telechargement_echoue";
+        }
+      }
+      manifest.push(entry);
+    }
+  }
+  return { binaries, manifest };
 }
 
 // Column allowlists — the RGPD scope contract. Everything not listed here
@@ -77,6 +279,83 @@ const SCOPE = {
     "id,plan_item_id,entry_kind,outcome,value_numeric,value_text,difficulty_level,blocker_hint,effective_at,created_at",
   memories: "id,kind,content_text,normalized_summary,observed_at,event_start_at,event_end_at,created_at",
   conversations: "role,content,scope,created_at",
+
+  // --- KEEL (docs/keel/SCHEMA.md) --------------------------------------------
+  // Same contract as above: the coach's prescription and the student's own
+  // facts leave the database verbatim; internal scores never do.
+  //
+  // `published_by` is stripped: another person's id has no portability value
+  // and the student cannot act on it. `user_id`/`student_id` are redundant with
+  // the export itself and omitted everywhere.
+  //
+  // `coach_id` IS exported, but only on the tenancy rows below (coachClients,
+  // coachAccessEvents, coachInvitations) where it is the whole point: it is the
+  // key that makes two access log lines attributable to the same coach, and the
+  // student is entitled to see who held a grant on their file. It stays out of
+  // the protocol tables, where it would just be noise.
+  //
+  // DECISION — coach-authored rows are exported via `coach_id = user.id`, but
+  // ONLY the ones that carry no third-party payload: plan_templates (the
+  // clonable skeleton, the coach's own work) and plan_documents (their uploaded
+  // source). plan_versions / plan_commitments are NOT exported on the coach
+  // side: those rows are the protocol OF a named student, so they belong to
+  // that student's export, not their coach's. A coach who wants them reads them
+  // in the app.
+  planTemplates:
+    "id,title,description,content_locale,default_swap_policy,default_autonomy,default_flex_allowance,default_adherence_target_pct,commitments,version,status,created_at,updated_at",
+  // ocr_result and layout_probe are excluded: machine parse artifacts (typed
+  // blocks, bboxes, confidence) — the "generation snapshot" class already
+  // excluded above. The source file itself ships in fichiers/documents-plan/.
+  planDocuments:
+    "id,template_id,storage_path,mime_type,original_filename,page_count,ingestion_path,status,parse_error,created_at",
+  planVersions:
+    "id,source_document_id,version,status,title,content_locale,timezone,anchor_week_start,duration_weeks,week_starts_on,phase_plan,adherence_target_pct,flex_allowance_per_week,published_at,supersedes_version_id,notes_for_student,created_at",
+  commitments:
+    "id,plan_version_id,polarity,activity_class,anchor_kind,slot_key,clock_local,tolerance_minutes,window_start_local,window_end_local,measure,unit,target_op,target_min,target_max,tolerance_pct,substance_ref,food_group_ref,evidence_kind,evidence_required,auto_source,counts_toward_adherence,evaluation_grain,slot_kind,scheduled_days,required_days_per_week,expected_occasions_per_day,priority,autonomy,flex_eligible,provenance,requires_clinician_signoff,title,student_instruction,content,content_locale,source_span,phase_id,auto_generated,status,created_at",
+  // recognition_confidence and evidence_weight are internal scores (see header).
+  // media_path is kept: it is the join key to fichiers/photos-repas/.
+  protocolEvents:
+    "id,occurred_at,local_date,slot_key,source,media_path,recognized,quantity,unit,substance_ref,food_group_ref,student_note,content_locale,created_at",
+  // `confidence` is an internal score.
+  evaluations:
+    "id,commitment_id,plan_version_id,local_date,slot_key,grain,expected,observed_value,observed,status,timing_status,evidence,resolved_at,resolved_by,created_at",
+  plannedDeviations:
+    "id,plan_version_id,local_date,slot_key,kind,declared_at,declared_via,note,content_locale,consumed_flex,coach_visible,created_at",
+  upcomingContexts: "id,local_date,slot_key,kind,source,note,content_locale,created_at",
+  // risk_band is named in the header as a non-exportable classification;
+  // coach_draft_reply is the coach's unsent draft, not the student's data.
+  weeklyReviews:
+    "id,plan_version_id,week_start_date,plan_version_changed_midweek,logging_coverage,core_adherence_pct,overall_adherence_pct,evaluable_days,flex_used,flex_allowance,self_rated_adherence,biofeedback,outcomes,outcome_direction,lapse_context,student_narrative,content_locale,created_at",
+  // sophia_evidence is the internal evidence snapshot (ids + scores); the
+  // human-readable summary the coach actually reads is exported.
+  changeRequests:
+    "id,plan_version_id,commitment_id,raised_by,reason_code,student_words,sophia_summary,suggested_option,urgency,status,coach_decision,content_locale,created_at,resolved_at",
+  // Health data declared by or about the user: exported in full.
+  safetyConstraints:
+    "id,kind,allergen_ref,substance_ref,medication_class,severity,declared_by,notes,content_locale,created_at,updated_at",
+  // W1.4 R5 — commitment_relations. The evaluator must never read this table
+  // (CONTRACT.md NON-INPUTS #1), but that is a rule about GRADING, not about
+  // portability: the rows are part of the protocol written for this student
+  // ("take it with fat", "keep 2 h from the iron") and the app shows them.
+  // The table has no user_id — it hangs off plan_commitments — so it is fetched
+  // by commitment id, not by owner.
+  commitmentRelations:
+    "id,commitment_a,commitment_b,relation_kind,param_minutes,cofactor_ref,created_at",
+
+  // TENANCY (20260727120000).
+  coachClients:
+    "id,coach_id,student_user_id,invited_email,status,consent_granted_at,seat_state,started_at,ended_at,created_at",
+  // Server-written audit log, readable by the student (SCHEMA.md TENANCY): the
+  // point of exporting it is that the student sees who opened their file.
+  coachAccessEvents: "id,coach_id,student_user_id,surface,occurred_at",
+  // W1.4 R5 — coach_invitations used to be excluded WHOLESALE because of
+  // `invite_token_hash`. Excluding a table to exclude one column also hid who
+  // invited the student, when, and whether the offer is still standing. The
+  // allowlist keeps the facts and drops the hash: a hash of a live credential
+  // has no place in an archive the user is told to keep on their own disk.
+  // `invite_token_hash` must NEVER be added to this list.
+  coachInvitations:
+    "id,coach_id,email,status,expires_at,created_at,accepted_at",
 };
 
 async function buildExportPayload(
@@ -133,9 +412,148 @@ async function buildExportPayload(
       ),
     ]);
 
+  // KEEL layers (docs/keel/SCHEMA.md). The student side keys on user_id /
+  // student_id; the coach side keys on coaches.id and is empty for a student.
+  const keelUnavailable: string[] = [];
+  const coachId = await resolveCoachId(admin, user.id, keelUnavailable);
+  const [
+    planTemplates,
+    planDocuments,
+    planVersions,
+    commitments,
+    protocolEvents,
+    evaluations,
+    plannedDeviations,
+    upcomingContexts,
+    weeklyReviews,
+    changeRequests,
+    safetyConstraints,
+    coachClientsAsStudent,
+    coachClientsAsCoach,
+    coachInvitationsAsStudent,
+    coachInvitationsAsCoach,
+    coachAccessEvents,
+    storage,
+  ] = await Promise.all([
+    fetchKeelRows(admin, "plan_templates", SCOPE.planTemplates, "coach_id", coachId, keelUnavailable),
+    fetchKeelRows(admin, "plan_documents", SCOPE.planDocuments, "coach_id", coachId, keelUnavailable),
+    fetchKeelRows(admin, "plan_versions", SCOPE.planVersions, "student_id", user.id, keelUnavailable),
+    fetchKeelRows(admin, "plan_commitments", SCOPE.commitments, "user_id", user.id, keelUnavailable),
+    fetchKeelRows(admin, "protocol_events", SCOPE.protocolEvents, "user_id", user.id, keelUnavailable),
+    fetchKeelRows(
+      admin,
+      "commitment_evaluations",
+      SCOPE.evaluations,
+      "user_id",
+      user.id,
+      keelUnavailable,
+    ),
+    fetchKeelRows(
+      admin,
+      "planned_deviations",
+      SCOPE.plannedDeviations,
+      "user_id",
+      user.id,
+      keelUnavailable,
+    ),
+    fetchKeelRows(
+      admin,
+      "upcoming_contexts",
+      SCOPE.upcomingContexts,
+      "user_id",
+      user.id,
+      keelUnavailable,
+    ),
+    fetchKeelRows(admin, "weekly_reviews", SCOPE.weeklyReviews, "user_id", user.id, keelUnavailable),
+    fetchKeelRows(
+      admin,
+      "contract_change_requests",
+      SCOPE.changeRequests,
+      "user_id",
+      user.id,
+      keelUnavailable,
+    ),
+    fetchKeelRows(
+      admin,
+      "student_safety_constraints",
+      SCOPE.safetyConstraints,
+      "user_id",
+      user.id,
+      keelUnavailable,
+    ),
+    // Both sides of the link: the user as a student, and as a coach.
+    fetchKeelRows(
+      admin,
+      "coach_clients",
+      SCOPE.coachClients,
+      "student_user_id",
+      user.id,
+      keelUnavailable,
+    ),
+    fetchKeelRows(admin, "coach_clients", SCOPE.coachClients, "coach_id", coachId, keelUnavailable),
+    // W1.4 R5 — invitations, both sides. As a student: the offers addressed to
+    // their own address, standing or spent. As a coach: the ones they sent.
+    fetchKeelRows(
+      admin,
+      "coach_invitations",
+      SCOPE.coachInvitations,
+      "email",
+      String(user.email ?? "").trim().toLowerCase() || null,
+      keelUnavailable,
+    ),
+    fetchKeelRows(
+      admin,
+      "coach_invitations",
+      SCOPE.coachInvitations,
+      "coach_id",
+      coachId,
+      keelUnavailable,
+    ),
+    // Only the accesses that concern THIS user as a student. coach_access_events
+    // has no created_at — it is ordered by occurred_at.
+    fetchKeelRows(
+      admin,
+      "coach_access_events",
+      SCOPE.coachAccessEvents,
+      "student_user_id",
+      user.id,
+      keelUnavailable,
+      "occurred_at",
+    ),
+    collectStorageFiles(admin, user.id),
+  ]);
+  // A coach who is also their own student would match both queries; dedupe on id.
+  const dedupeById = (rows: Record<string, unknown>[]) => {
+    const byId = new Map<string, Record<string, unknown>>();
+    for (const row of rows) {
+      byId.set(String((row as any)?.id ?? crypto.randomUUID()), row);
+    }
+    return [...byId.values()];
+  };
+  const coachClients = dedupeById([
+    ...coachClientsAsStudent,
+    ...coachClientsAsCoach,
+  ]);
+  const coachInvitations = dedupeById([
+    ...coachInvitationsAsStudent,
+    ...coachInvitationsAsCoach,
+  ]);
+
+  // W1.4 R5 — relations attached to THIS student's commitments. Sequential on
+  // purpose: the ids only exist once `commitments` has come back.
+  const commitmentRelations = await fetchRowsByIdChunks(
+    admin,
+    "commitment_relations",
+    SCOPE.commitmentRelations,
+    "commitment_a",
+    commitments.map((row) => String((row as any)?.id ?? "")).filter(Boolean),
+    keelUnavailable,
+  );
+
   const exportedAt = new Date().toISOString();
   return {
     exportedAt,
+    binaries: storage.binaries,
     files: {
       "profil.json": {
         exporte_le: exportedAt,
@@ -154,6 +572,39 @@ async function buildExportPayload(
       "suivi.json": { entrees: planEntries },
       "souvenirs.json": { souvenirs: memories },
       "conversations.json": { messages: conversations },
+      "protocole.json": {
+        versions_de_plan: planVersions,
+        engagements: commitments,
+        // Render/safety guidance attached to the engagements (co-ingestion,
+        // spacing, cofactors). Never read by the evaluator — exported because
+        // it is part of the protocol the student was given.
+        relations_entre_engagements: commitmentRelations,
+        modeles_coach: planTemplates,
+        documents_coach: planDocuments,
+      },
+      "protocole_suivi.json": {
+        evenements: protocolEvents,
+        evaluations,
+        deviations_planifiees: plannedDeviations,
+        contextes_a_venir: upcomingContexts,
+      },
+      "protocole_bilans.json": {
+        bilans_hebdomadaires: weeklyReviews,
+        demandes_ajustement: changeRequests,
+      },
+      "securite.json": { contraintes: safetyConstraints },
+      "coaching.json": {
+        liens_coach: coachClients,
+        acces_coach: coachAccessEvents,
+        // W1.4 R5: the invitations themselves, WITHOUT invite_token_hash
+        // (SCOPE.coachInvitations is the allowlist that keeps it out).
+        invitations_coach: coachInvitations,
+      },
+      // Integrity manifest: what shipped, and what did not ship and why.
+      "fichiers.json": {
+        fichiers: storage.manifest,
+        tables_indisponibles: keelUnavailable,
+      },
     },
   };
 }
@@ -172,6 +623,21 @@ function readmeText(exportedAtIso: string): string {
     "  - suivi.json           : tes entrées de suivi (check-ins, progrès, blocages).",
     "  - souvenirs.json       : les souvenirs que Sophia a retenus de vos échanges.",
     "  - conversations.json   : l'historique de tes conversations avec Sophia.",
+    "  - protocole.json       : le protocole écrit par ton coach (versions, engagements,",
+    "                           relations entre engagements) et, si tu es coach, tes",
+    "                           modèles et documents importés.",
+    "  - protocole_suivi.json : ce que tu as déclaré (repas, prises, photos) et les",
+    "                           évaluations qui en découlent, jour par jour.",
+    "  - protocole_bilans.json: tes bilans hebdomadaires et tes demandes d'ajustement.",
+    "  - securite.json        : tes contraintes de sécurité (allergies, intolérances,",
+    "                           traitements) telles que déclarées.",
+    "  - coaching.json        : tes liens avec un coach, les invitations reçues ou",
+    "                           envoyées, et les accès à ton dossier.",
+    "  - fichiers.json        : la liste de tes fichiers, avec pour chacun s'il est",
+    "                           inclus dans l'archive et, sinon, pourquoi. Si son",
+    "                           champ « tables_indisponibles » n'est pas vide, une",
+    "                           partie des données ci-dessus manque : écris-nous.",
+    "  - fichiers/            : tes documents de plan et tes photos de repas.",
     "",
     "⚠ AVERTISSEMENT",
     "Ce fichier contient des données personnelles sensibles (dont l'historique de",
@@ -269,6 +735,10 @@ Deno.serve(async (req) => {
     };
     for (const [name, content] of Object.entries(payload.files)) {
       zipEntries[name] = strToU8(JSON.stringify(content, null, 2));
+    }
+    // Storage objects (KEEL buckets) — fichiers.json above is their manifest.
+    for (const [name, bytes] of Object.entries(payload.binaries)) {
+      zipEntries[name] = bytes;
     }
     const zipBytes = zipSync(zipEntries, { level: 6 });
 

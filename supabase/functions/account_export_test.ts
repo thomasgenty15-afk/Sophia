@@ -11,6 +11,22 @@ function getEnv(name: string): string {
   return v.trim();
 }
 
+// ── Integration gate ──────────────────────────────────────────────────────────────────────
+// These cases drive a REAL Supabase stack (auth, edge functions, DB). Without that stack the
+// suite must SKIP them, not fail them: a permanently red net is a net nobody reads. Run them
+// with `npm run test:mega`, or export the env below against a local stack — see
+// docs/keel/TESTING.md.
+const REQUIRED_ENV = ["SUPABASE_URL", "VITE_SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY"] as const;
+const MISSING_ENV = REQUIRED_ENV.filter((name) =>
+  (Deno.env.get(name) ?? "").trim().length === 0
+);
+const SKIP_INTEGRATION = MISSING_ENV.length > 0;
+if (SKIP_INTEGRATION) {
+  console.log(
+    `[skip] account_export_test.ts: needs a live Supabase stack — missing env: ${MISSING_ENV.join(", ")}`,
+  );
+}
+
 function makeNonce(): string {
   const rand = (globalThis.crypto as any)?.randomUUID?.() ??
     `${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -19,7 +35,7 @@ function makeNonce(): string {
 
 const PASSWORD = "TestPassword!123";
 
-Deno.test("gdpr export: re-auth, rate limit, zip content and scope guarantees", async () => {
+Deno.test("gdpr export: re-auth, rate limit, zip content and scope guarantees", { ignore: SKIP_INTEGRATION }, async () => {
   Deno.env.set("MEGA_TEST_MODE", "1");
   const supabaseUrl = getEnv("SUPABASE_URL").replace(/\/+$/, "");
   const anonKey = getEnv("VITE_SUPABASE_ANON_KEY");

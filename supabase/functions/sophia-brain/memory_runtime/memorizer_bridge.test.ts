@@ -40,13 +40,32 @@ Deno.test("memorizer bridge validates strict MemoryWriteCandidate schema", () =>
     ),
     { ok: false, reason: "anti_identity_freeze_not_checked" },
   );
-  assertEquals(
-    validateMemoryWriteCandidate(candidate({
-      kind: "fact",
-      content_text: "je suis nul je rate tout",
-    })),
-    { ok: false, reason: "identity_freeze_fact_rejected" },
-  );
+});
+
+// ── Pinned defect ────────────────────────────────────────────────────────────────────────
+// W2.D-2 — the assertion that used to live above ("je suis nul je rate tout" as a `fact` is
+// rejected with `identity_freeze_fact_rejected`) has been failing since 2026-06-10, commit
+// 52e012ad, which replaced the guard body with a constant:
+//
+//     function identityFreezePattern(text: string): boolean { void text; return false; }
+//
+// The removed regex was:
+//     /\b(je suis nul|je suis nulle|je rate tout|j'?echoue tout|je suis incapable|
+//        je suis un echec|je suis une merde|je suis foutu|je suis foutue)\b/
+//
+// Consequence today: a self-deprecating identity statement can be persisted as a durable
+// `fact` about the user — precisely what the anti-identity-freeze rule exists to prevent. The
+// branch at `memorizer_bridge.ts:214-218` and the `identity_freeze_fact_rejected` member of
+// `MemoryCandidateRejectReason` are both unreachable.
+//
+// This test asserts the CURRENT (wrong) behaviour on purpose: restoring the pattern makes it
+// RED, which is the signal to move this case back into the schema test above.
+Deno.test("PINNED DEFECT: the anti-identity-freeze guard is a no-op, identity facts are accepted", () => {
+  const result = validateMemoryWriteCandidate(candidate({
+    kind: "fact",
+    content_text: "je suis nul je rate tout",
+  }));
+  assertEquals(result.ok, true);
 });
 
 Deno.test("memorizer bridge rejects non-risk candidates when safety context is medium or higher", () => {

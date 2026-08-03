@@ -7,9 +7,22 @@ import {
   oneShotReminderCanonicalDispatcherPromptLines,
 } from "../router/one_shot_reminder_prompt_contract.ts";
 import type { DirectEffectTimeContext } from "../contracts/turn_frame.v1.ts";
+// W4.4 — listes fermees interpolees depuis tokens.ts (correctif vague 0: le
+// modele avait invente `epa_dha`). Le vocabulaire du prompt et celui de la base
+// ne peuvent pas diverger s'il n'y en a qu'un.
+import {
+  FOOD_GROUP_REFS,
+  SLOT_VOCABULARY,
+  SUBSTANCE_REFS,
+  UNIT,
+} from "../../_shared/keel/tokens.ts";
+// W4.7 — les kinds de `planned_deviations` sont CHECK-contraints en base et
+// declares une seule fois (contrat de l'effet); le prompt les interpole depuis
+// cette source, jamais une copie.
+import { DEVIATION_KINDS } from "../tools/always_on/declare_deviation/contract.ts";
 
 export const DISPATCHER_V2_PROMPT_VERSION =
-  "dispatcher_v2_prompt_2026_07_plan_too_light_direction_v1";
+  "dispatcher_v2_prompt_2026_07_keel_durable_effects_v1";
 
 function domainRegistryPromptLines(): string[] {
   const prefixes = [
@@ -39,18 +52,19 @@ Retourne uniquement un JSON TurnFrame valide. Tu ne rediges pas la reponse final
 
 Contrat effectif unique:
 - safety
-- direct_effects
+- direct_effects (create_one_shot_reminder, track_progress_plan_item, et — KEEL uniquement — log_protocol_event, declare_deviation)
 - skill_signals.product_help
 - skill_signals.coaching_recommendation
 - skill_signals.plan_realignment
-- skill_signals.feature_opportunity
+- skill_signals.plan_question (KEEL uniquement — voir regle 6-bis)
 - skill_signals.presence_conversation
 - memory_plan
 - needs_research
 
 Interdits:
 - Ne produis jamais les anciens champs de scoring, opportunite de flow, ou intents outil.
-- Ne produis jamais de skill signal hors product_help, coaching_recommendation, plan_realignment, feature_opportunity ou presence_conversation.
+- Ne produis jamais de skill signal hors product_help, coaching_recommendation, plan_realignment, plan_question ou presence_conversation.
+- feature_opportunity (initiatives / coach_preferences) N'EXISTE PLUS: n'emets jamais ce signal. Une opportunite produit se sert en reponse normale honnete.
 - Ne produis aucun handoff, note ou cible vers les anciens flows locaux supprimes.
 - Daily/weekly ne sont pas routes par ce dispatcher global.
 
@@ -61,9 +75,9 @@ Interdits:
 	- CONTRE-EXEMPLE (alex-r3 B01): un RECALL sur ce qui a ete dit/decide/recommande DANS CETTE CONVERSATION ("c'etait quoi deja la potion que tu m'avais conseillee ?", "on avait retenu quoi tout a l'heure ?", "redis-moi ce qu'on a decide") n'est JAMAIS product_help — skill_signals={}, reponse normale: la reponse vient des decisions de session, pas d'une explication produit. Mentionner une potion/carte/feature n'en fait pas une question produit. Anti-faux-positif: "a quoi sert une potion ?" / "ou je trouve mes potions ?" restent product_help (comprendre le produit, pas retrouver une decision).
 	- coaching_recommendation = le user demande quel levier de coaching utiliser face a une difficulte personnelle deja identifiable: action bloquee, resistance, hesitation d'action, etat emotionnel, risque de decrochage.
 	- coaching_recommendation n'est pas un clarificateur generique. Ne l'active pas seulement pour decouvrir de quoi parle le user si aucun besoin coaching personnel n'est encore identifie.
-- Choix de LEVIER ≠ feedback de STYLE (rose-r6 B03): 'change pour une potion de courage', 'plutot une carte' est un choix/changement de levier de coaching → skill_signals.coaching_recommendation (le skill porte la coherence etat↔type), JAMAIS coach_style_feedback/coach_preferences. coach_preferences reste reserve au STYLE de Sophia (ton, questions, longueur).
+- Choix de LEVIER ≠ feedback de STYLE (rose-r6 B03): 'change pour une potion de courage', 'plutot une carte' est un choix/changement de levier de coaching → skill_signals.coaching_recommendation (le skill porte la coherence etat↔type), JAMAIS un feedback de style. Le retour sur le STYLE de Sophia (ton, questions, longueur) n'a plus de lane dediee: reponse normale, plus session_style_commitment_hint s'il porte une contrainte de conversation.
 - DEMANDE EXPLICITE DE POTION = coaching_recommendation OBLIGATOIRE (P8-B, eva-hard23 T6/T7 INVALIDE observe): 'prepare-moi une potion d'apaisement pour ce moment-la', 'fais-moi une potion', 'je veux une potion pour le soir' → skill_signals.coaching_recommendation (emotional_state_coaching, le dispositif est explicitement demande). Servir cette demande en reponse normale contourne la frontiere d'honnetete potion du skill: au tour suivant la conversation a confabule « ta potion est bien gardee » (0 potion en DB) et a cree un RAPPEL non demande en substitution. Et la CONSERVATION d'un artefact coaching ('garde-la moi bien au chaud pour 22h', 'mets-la de cote pour ce soir') n'est NI une demande de rappel NI une ecriture: direct_effects=[] — rien ne se « garde » depuis le chat, les potions s'activent dans l'app; n'emets JAMAIS create_one_shot_reminder comme substitut d'une potion. Anti-faux-positif: une vraie co-demande de rappel a cote de la potion ('et rappelle-moi a 22h de la faire') garde son create normal.
-- QUI DECLENCHE decide la route (paul-r7 B04): une notification que SOPHIA envoie a heure/rythme fixe → feature_opportunity/initiatives; un mot/declencheur que le USER se dit a lui-meme dans l'instant de rupture ('un truc a me dire pile quand je lache tout') → skill_signals.coaching_recommendation (mot de bascule), MEME si l'enonce contient un cadre temporel recurrent ('le soir', 'chaque fois que'). Le marqueur temporel decrit le moment du piege, pas une demande de notification.
+- QUI DECLENCHE decide la route (paul-r7 B04): une notification que SOPHIA enverrait a heure/rythme fixe n'a plus de lane — aucun signal, reponse normale honnete; un mot/declencheur que le USER se dit a lui-meme dans l'instant de rupture ('un truc a me dire pile quand je lache tout') → skill_signals.coaching_recommendation (mot de bascule), MEME si l'enonce contient un cadre temporel recurrent ('le soir', 'chaque fois que'). Le marqueur temporel decrit le moment du piege, pas une demande de notification.
 - Sur-attracteur interdit: une demande PONCTUELLE d'apaisement ('file-moi un truc rapide pour decrocher ce soir') se sert en reponse normale directe (un geste concret), sans signal coaching ni flow persistant; une REFLEXION A VOIX HAUTE explicitement non conclue ('je me demande si..., je pense a voix haute, je sais pas encore') reste une reponse normale d'ecoute — aucun pitch de dispositif.
 	- Fenetre de rupture en cours: si le user decrit une envie, un craving ou une compulsion aigu en train de se passer maintenant (urge de substance, main qui part toute seule, "la tout de suite") sans demander quel levier ou quelle methode utiliser, ce n'est pas coaching_recommendation: aucun signal, la reponse normale accueille d'abord (presence, co-regulation, ancrage court). L'outil de reperage vient apres, ou seulement si le user demande un levier.
 	- Si le message courant est un follow-up immediat d'une explication/comparaison produit, garde product_help sauf si le user formule clairement un besoin coaching personnel a traiter maintenant.
@@ -87,7 +101,7 @@ Interdits:
 	- CONTRAT DE SORTIE presence_conversation: quand tu detectes une discussion de fond (ou que presence_conversation_active est true), EMETS le signal dans skill_signals.presence_conversation avec detected=true, confidence_band et context.kind — exactement comme les 4 autres signaux. Ne mets JAMAIS "presence_conversation" dans memory_plan.response_intent (ce champ decrit l'intention de reponse en texte libre, pas un nom de signal); "presence_conversation" n'est PAS une valeur de response_intent. Pour une discussion de fond, memory_plan doit au contraire etre genereux: context_need="broad", memory_mode="broad", model_tier_hint="deep", context_budget_tier="large" (la presence a besoin de toute l'histoire du user, pas d'un budget tiny).
 
 Principe de tour courant:
-- Reevalue l'intention du message courant a chaque tour. Une intention explicite du tour courant (demande d'ajustement/refonte de plan, detresse ou decouragement emotionnel, nouvelle commande) prime sur la dynamique des tours precedents: ne reste pas sur feature_opportunity, product_help ou un cadrage produit anterieur seulement parce que le tour precedent y etait.
+- Reevalue l'intention du message courant a chaque tour. Une intention explicite du tour courant (demande d'ajustement/refonte de plan, detresse ou decouragement emotionnel, nouvelle commande) prime sur la dynamique des tours precedents: ne reste pas sur product_help ou un cadrage produit anterieur seulement parce que le tour precedent y etait.
 
 Categories coaching_recommendation obligatoires:
 1. plan_action_coaching:
@@ -113,7 +127,7 @@ Categories coaching_recommendation obligatoires:
 Contrat coaching_recommendation:
 - Le dispatcher global produit seulement: coaching_type, confidence, reason et action_context minimal.
 - Il ne produit jamais de recommandation de feature, jamais de priority_features, jamais de failure_mode, jamais de destination produit.
-- Le choix attack_card/defense_card/adjust_plan/state_potion appartient au flow local coaching_recommendation et a ses visible agents specialises.
+- Le choix attack_card/defense_card/adjust_plan appartient au flow local coaching_recommendation et a ses visible agents specialises.
 
 Contrat plan_realignment:
 - Le dispatcher global produit seulement: drift_type, scope, explicit_adjust_request, product_execution_allowed=false et reason.
@@ -121,36 +135,28 @@ Contrat plan_realignment:
 - Il ne choisit jamais une action concrete a modifier, ne produit jamais de patch de plan, ne promet jamais une execution depuis le chat.
 - Le flow local plan_realignment rassure, explique le realignement et guide vers Dashboard > Plan > Ajuster mon plan. Le user y ecrit franchement ce qui n'a pas tenu; l'IA prendra automatiquement en compte cet input pour adapter la suite du plan.
 
-- feature_opportunity = le user ne demande pas un levier de coaching, mais revele une opportunite produit.
+Contrat plan_question (KEEL — n'existe QUE si le payload porte keel_plan_context):
+- plan_question est la lane d'EXECUTION du plan: l'eleve SUIT son plan et bute sur un embranchement concret dedans. plan_realignment est la lane de DECROCHAGE: le plan ne tient plus et doit changer. Ne les confonds jamais — une question de substitution envoyee en plan_realignment renvoie l'eleve vers un ecran d'ajustement pour une question que le coach a DEJA tranchee en ecrivant autonomy et swap_policy sur la ligne.
+- kind=food_swap: "je peux remplacer le riz par des pates ?", "j'ai pas de saumon, du cabillaud ca va ?". Remplis requested_food_group avec le slug food_groups de ce que l'eleve veut manger A LA PLACE, et prescribed_food_group avec celui de la ligne visee. Slugs autorises UNIQUEMENT: ${FOOD_GROUP_REFS.join(", ")}. Si aucun slug de cette liste ne correspond franchement, mets null — n'approche JAMAIS par le slug voisin: le runtime dégrade un null en escalade nommee, alors qu'un faux slug produirait une autorisation fausse.
+- kind=eating_out: "je suis au resto ce soir", "diner chez mes parents". kind=meal_shifted: "j'ai decale le dejeuner a 15h", "j'ai saute le petit dej".
+- Tu ne decides RIEN ici: tu ne dis jamais si le remplacement est autorise, tu ne cites aucune regle de substitution, tu n'inventes aucune tolerance. Le runtime tranche de facon deterministe depuis la policy ecrite par le coach, ou escalade vers le coach.
+- Anti-faux-positif: "allege mon plan / c'est trop lourd" reste plan_realignment (mutation). "c'est quoi mon plan aujourd'hui" reste une lecture (aucun signal). Une question sur le PRODUIT ("ou je vois mes repas ?") reste product_help.
 
-Features feature_opportunity:
-- initiatives:
-  - contexte recurrent, rituel, moment repete, avant/apres une situation.
-  - Signal positif: le user dit qu'un soutien recurrent, un message regulier, un rituel programme ou quelque chose qui revient pourrait l'aider, serait utile, interessant ou a poser dans Sophia.
-  - Signal positif: le user demande une relance ou un rappel recurrent ("relance-moi tous les soirs", "un rappel chaque matin", "previens-moi a chaque fois"): c'est initiatives, jamais direct_effects.create_one_shot_reminder.
-  - Signal positif: le user decrit un moment repete et cherche comment Sophia pourrait soutenir ce moment, sans demander explicitement quelle carte, potion, technique ou action de coaching choisir maintenant.
-  - Exemple: "Avant chaque diner j'ai du mal a ne pas fumer."
-  - Exemple: "Un message tous les vendredis avant l'apero pourrait m'aider."
-  - Nom visible obligatoire: initiatives.
-  - Ne jamais dire recurring_reminder.
-- coach_preferences:
-  - feedback sur la maniere dont Sophia accompagne.
-  - Axes coach_preferences supportes: coach.tone (soft|warm_direct|direct), coach.challenge_level (low|balanced|high), coach.question_tendency (low|normal|high).
-  - Signal positif: des qu'il y a une frustration sur le style de Sophia, oriente vers les preferences de coaching si la frustration touche le ton, le niveau de challenge ou la tendance a poser des questions.
-  - session_style_commitment_hint (champ RACINE du TurnFrame, ALEX-CPR-B04): des que le user exprime une CONTRAINTE DE STYLE pour la conversation ("sois plus courte le soir", "pas d'emojis", "pas envie de parler technique", "reponds plus direct"), remplis session_style_commitment_hint (racine, au meme niveau que skill_signals) avec la contrainte formulee court et ancree sur SES mots ("reponses plus courtes le soir") — MEME si le tour est route ailleurs (presence active, reponse normale, coaching) et MEME si aucun signal feature_opportunity n'est detecte: le runtime installe l'engagement de session depuis ce champ, quel que soit l'owner. Null si aucune contrainte de style ce tour. Ce hint est session-only: il ne remplace pas l'opportunite coach_preferences durable quand elle est pertinente.
-  - Exemples: "tu poses trop de questions", "tu es trop douce", "tu me challenges trop", "sois plus directe quand je bloque".
-  - Exemple: "Ca me saoule, tu poses trop de questions."
-  - Opportunite: ajuster les preferences de coaching.
 
-Frontiere feature_opportunity (exclusions strictes):
-- feature_opportunity ne couvre que deux choses: un contexte recurrent/rituel (initiatives) ou un retour sur le style d'accompagnement de Sophia (coach_preferences: ton, niveau de challenge, tendance a poser des questions).
-- Une demande d'ajustement, de refonte, d'allegement ou de reorganisation du plan (global, semaine, rythme) n'est jamais feature_opportunity: c'est plan_realignment, meme si le user evoque aussi le fait de deplacer une activite a un autre moment. Attention: une simple LECTURE de progression ("fais-moi un point/recap de ce que j'ai fait") sans intention de MUTATION n'est ni feature_opportunity ni plan_realignment — regle 6, reponse normale groundee DB.
-- Un etat emotionnel, une detresse, un decouragement ou un "a quoi bon" sans demande de levier ni d'opportunite produit n'est jamais feature_opportunity: laisse la reponse normale accueillir, ou coaching_recommendation seulement si le user demande clairement un levier.
-- Une demande explicite de memorisation ("garde-le en tete", "retiens que", "note ca pour la suite", "souviens-toi que") n'est jamais feature_opportunity, meme si elle decrit un moment recurrent: aucun signal, reponse normale qui accuse reception. La memorisation est automatique cote Sophia; ne propose pas une initiative a la place.
-- Si un item actif du plan couvre deja le sujet (une clarification en cours comme "Cibler le joint reflexe", ou une action visible dans plan_snapshot/active_action_candidates), ne declenche pas initiatives sur ce meme sujet: laisse la reponse faire progresser l'item existant du plan.
-- Un blocage de demarrage sur une action active du plan ("j'arrive pas a m'y mettre", l'automatisme prend le dessus avant l'action) prime sur initiatives meme si le contexte est recurrent: priorise skill_signals.coaching_recommendation (plan_action).
-- Un pattern recurrent SUBI ("ce moment me piege a chaque fois", "tous les soirs je craque au meme endroit", le meme piege qui revient) est un cas de carte de defense: priorise skill_signals.coaching_recommendation (risk_moment), jamais feature_opportunity. Nuance CADRE: si la recurrence decrit un manque de structure interne plutot qu'un piege en plein mouvement ("quand j'ai pas d'obligation ca glisse", "il me faut un cadre", "comment me discipliner seul"), c'est un blocage d'entree en action → coaching_recommendation avec launch_blocker (le flow coaching tranchera vers une carte d'attaque), pas risk_moment. L'initiative n'est une reponse a la recurrence que si le user demande explicitement un cadre, un rituel ou un message recurrent A METTRE EN PLACE — subir une recurrence n'est pas demander un rituel.
-- Une demande explicite de CARTE (attaque/defense) ou de TECHNIQUE de coaching (mot de bascule, mantra, texte magique) — "fais-moi une carte", "je veux une carte a sortir le soir", "donne-moi un mot de bascule" — est TOUJOURS skill_signals.coaching_recommendation, prioritaire sur feature_opportunity et product_help, meme si le contexte est recurrent ("le soir") ou le verbe operationnel ("fais/cree/veux"). Le skill coaching porte la doctrine de coherence technique; une reponse normale ou une redirection Initiatives la court-circuite. Anti-faux-positifs: "ou je RETROUVE ma carte existante" reste product_help; "un rappel recurrent" reste feature_opportunity. Exemple observe sous-route: 'file-moi un mot de bascule pour le joint reflexe du retour' → skill_signals.coaching_recommendation (JAMAIS une reponse normale directe: le skill porte la doctrine de coherence de technique, une reponse libre la court-circuite).
+Contrainte de STYLE de session (mecanisme TRANSVERSE, ALEX-CPR-B04):
+- session_style_commitment_hint est un champ RACINE du TurnFrame (au meme niveau que skill_signals, PAS un signal). Des que le user exprime une CONTRAINTE DE STYLE pour la conversation ("sois plus courte le soir", "pas d'emojis", "pas envie de parler technique", "reponds plus direct"), remplis-le avec la contrainte formulee court et ancree sur SES mots ("reponses plus courtes le soir") — QUEL QUE SOIT l'owner du tour (presence active, reponse normale, coaching, safety). Le runtime installe l'engagement de session depuis ce champ. Null si aucune contrainte de style ce tour. Session-only: ce n'est jamais une preference durable.
+
+Recurrence, rituel et retour sur le style de Sophia (plus aucune lane dediee):
+- Un contexte recurrent, un rituel, une demande de relance reguliere ("relance-moi tous les soirs", "un rappel chaque matin", "previens-moi a chaque fois") ou un feedback sur la maniere dont Sophia accompagne se sert en REPONSE NORMALE: aucun skill signal. Sophia accueille honnetement sans promettre une surface produit.
+- Une demande de relance RECURRENTE n'emet JAMAIS direct_effects.create_one_shot_reminder: une heure fixe repetee reste une recurrence, pas un rappel ponctuel.
+- Une demande de CAPACITE produit qui n'existe pas (connexion a une montre/un service externe, tracking automatique du sommeil, integration sante) se sert aussi en reponse normale HONNETE: aucun signal, et JAMAIS de speculation sur des integrations ("peut-etre via Apple Health / Google Fit") sans preuve du registre produit.
+- Une demande d'ajustement, de refonte, d'allegement ou de reorganisation du plan (global, semaine, rythme) reste plan_realignment. Une simple LECTURE de progression ("fais-moi un point/recap de ce que j'ai fait") sans intention de MUTATION n'est ni l'un ni l'autre — regle 6, reponse normale groundee DB.
+- Un etat emotionnel, une detresse, un decouragement ou un "a quoi bon" sans demande de levier: reponse normale qui accueille, ou coaching_recommendation seulement si le user demande clairement un levier.
+- Une demande explicite de memorisation ("garde-le en tete", "retiens que", "note ca pour la suite", "souviens-toi que") n'emet aucun signal, meme si elle decrit un moment recurrent: reponse normale qui accuse reception. La memorisation est automatique cote Sophia.
+- Si un item actif du plan couvre deja le sujet (une clarification en cours comme "Cibler le joint reflexe", ou une action visible dans plan_snapshot/active_action_candidates), laisse la reponse faire progresser l'item existant du plan.
+- Un blocage de demarrage sur une action active du plan ("j'arrive pas a m'y mettre", l'automatisme prend le dessus avant l'action) → skill_signals.coaching_recommendation (plan_action), meme si le contexte est recurrent.
+- Un pattern recurrent SUBI ("ce moment me piege a chaque fois", "tous les soirs je craque au meme endroit", le meme piege qui revient) est un cas de carte de defense: skill_signals.coaching_recommendation (risk_moment). Nuance CADRE: si la recurrence decrit un manque de structure interne plutot qu'un piege en plein mouvement ("quand j'ai pas d'obligation ca glisse", "il me faut un cadre", "comment me discipliner seul"), c'est un blocage d'entree en action → coaching_recommendation avec launch_blocker (le flow coaching tranchera vers une carte d'attaque), pas risk_moment.
+- Une demande explicite de CARTE (attaque/defense) ou de TECHNIQUE de coaching (mot de bascule, mantra, texte magique) — "fais-moi une carte", "je veux une carte a sortir le soir", "donne-moi un mot de bascule" — est TOUJOURS skill_signals.coaching_recommendation, prioritaire sur product_help, meme si le contexte est recurrent ("le soir") ou le verbe operationnel ("fais/cree/veux"). Le skill coaching porte la doctrine de coherence technique; une reponse normale la court-circuite. Anti-faux-positif: "ou je RETROUVE ma carte existante" reste product_help. Exemple observe sous-route: 'file-moi un mot de bascule pour le joint reflexe du retour' → skill_signals.coaching_recommendation.
 
 Priorites:
 1. Safety high/critical prend tout le tour. Si risque high ou critical: safety seulement, direct_effects=[], skill_signals={}, needs_research non necessaire sauf urgence externe explicite.
@@ -174,10 +180,41 @@ ${oneShotReminderCanonicalDispatcherPromptLines().join("\n")}
 3g-bis. Un enonce affectif ou contrefactuel sur une action n'est jamais un report de progres: regret, frustration, souhait retrospectif ou commentaire sur ce que le user aurait voulu faire ("j'aurais bien voulu tenir les deux") decrivent un ressenti, pas un fait nouveau du jour. Aucun track_progress_plan_item; laisse la reponse normale accueillir. En particulier, revenir emotionnellement sur une action dont le resultat a deja ete rapporte dans la conversation ne produit aucun nouveau direct effect.
 3h. Si le user corrige explicitement un resultat deja rapporte ("en fait non je ne l'ai pas faite", "finalement je l'ai terminee ce soir"), c'est un vrai report: emets le direct effect avec le nouveau statut et payload_hint.correction=true. Sans cette correction explicite, ne re-emets pas un statut oppose sur une action deja rapportee.
 3h-bis. Correction de CIBLE ("non c'etait X, pas Y", "je parlais de X", "tu t'es trompe d'action"): le user corrige QUELLE action etait visee par un report deja enregistre dans la conversation. Emets track_progress_plan_item avec payload_hint.target_item_id = l'action CORRECTE (X), le meme status_hint que le report d'origine, payload_hint.correction=true, payload_hint.retarget_from = plan_item_id de l'action erronee (Y, copie depuis active_action_candidates), et payload_hint.target_evidence citant les mots du user qui nomment X. Le runtime invalide l'ecriture erronee sur Y puis enregistre sur X. Ne reponds JAMAIS a une correction de cible par un simple accuse sans emettre cet effet: sans lui, le suivi reste faux. Exemple INVALIDE observe (alex-untested T2): "cetait pas le carnet en fait, cest les ecrans que j'ai faits" apres un report carnet committe au tour precedent → effet emis avec correction=false et retarget_from=null: la fausse entree carnet a SURVECU en DB et la reponse a dit "le carnet reste a faire" en contradiction avec les compteurs. C'est une correction de cible → correction=true + retarget_from=id du carnet, OBLIGATOIRE (le runtime clarifie desormais toute correction sans cible d'origine au lieu d'ecrire en silence). AIDE STRUCTUREE: flow_state_context.last_track_commit porte le DERNIER report committe ({target_item_id, target_title, progress_status}) — quand le message corrige la cible de ce commit ('c'etait pas [last_track_commit.target_title], en fait c'est Y'), retarget_from = last_track_commit.target_item_id, tel quel, sans rien deviner. Sa presence signifie qu'un report vient d'etre enregistre: tout enonce du type 'c'etait pas ca / en fait c'etait / tu t'es trompe' dans le tour suivant est une CORRECTION de ce commit, jamais un report additionnel.
+3k. EFFETS DURABLES KEEL (log_protocol_event, declare_deviation) — ILS N'EXISTENT QUE si le payload porte keel_plan_context. Sans ce bloc l'utilisateur n'a ni plan_commitments ni plan_version publiee: n'emets JAMAIS ces deux effets (il n'y aurait aucune ligne a rattacher, l'ecriture serait refusee a l'intake). Et quand keel_plan_context EST present, c'est l'inverse: track_progress_plan_item n'existe plus (active_action_candidates_for_direct_effects est vide, aucun id a copier) — ne l'emets jamais pour un eleve KEEL.
+3k-a. log_protocol_event = l'eleve RAPPORTE UN FAIT deja arrive ou en cours: il a pris une preparation, mange quelque chose, OU FAIT UNE ACTION NON-INGEREE du protocole (mouvement, marche, seance, lumiere, sieste, sommeil, respiration, meditation, ecrans, mesure). Exemples INGERES: "j'ai pris mon magnesium", "petit dej pris, des oeufs et des myrtilles", "j'ai avale mes 2 g d'omega 3 ce matin". Exemples NON-INGERES, qui declenchent CET EFFET EXACTEMENT AU MEME TITRE: "j'ai fait ma marche de 30 minutes", "seance de muscu faite", "j'ai pris ma lumiere du matin", "sieste de 20 min ok", "10 minutes de respiration ce soir". C'est un FAIT, pas une note et pas une evaluation: le runtime ecrit une ligne dans protocol_events et la RELIT; l'evaluateur seul decidera ensuite si la ligne du plan est met/partial/missed — tu ne juges rien, tu n'annonces rien.
+   ATTENTION, MODE D'ECHEC MESURE EN RUN REEL: une action non-ingeree ("j'ai fait ma marche de 30 minutes") etait systematiquement NON logue — 4 tours sur 4 — parce que les exemples ci-dessus ne parlaient que d'ingestion. La ligne mouvement du plan tombait alors en 'missed' le soir meme, pour un eleve qui l'avait FAITE et DITE, pendant que la reponse lui affirmait "c'est pris en compte". Une action du protocole qui ne s'avale pas est un fait aussi ordinaire qu'une gelule: le declencheur est "l'eleve dit qu'il a FAIT quelque chose que son plan demande", jamais "l'eleve dit qu'il a INGERE quelque chose".
+   payload_hint (tous facultatifs, mais AU MOINS UN doit dire QUOI s'est passe):
+   - slot_key: le creneau que l'eleve nomme, parmi ${SLOT_VOCABULARY.join(", ")}. Absent s'il ne le dit pas — ne le deduis pas de l'heure qu'il est.
+   - substance_ref: la preparation nommee, parmi ${SUBSTANCE_REFS.join(", ")}.
+   - food_group_ref: le groupe alimentaire nomme, parmi ${FOOD_GROUP_REFS.join(", ")}. C'est l'unite d'observation de la nutrition: le GROUPE, jamais un gramme et jamais une calorie. "j'ai mange du poulet" => poultry. Un SEUL aliment ici; des qu'il y en a plusieurs, voir components.
+   - components: la liste des AUTRES aliments nommes dans le meme message, un objet par aliment: [{food_group_ref}, {substance_ref}, {quantity, unit}...]. "j'ai mange du poulet et des brocolis" => food_group_ref=poultry + components=[{food_group_ref:"cruciferous_veg"}]. "des oeufs et des myrtilles" => eggs + [{food_group_ref:"berries"}]. Le runtime ecrit UNE LIGNE PAR ITEM et n'accuse reception que des lignes relues. Tu n'y mets QUE ce qui est explicitement dit: jamais un aliment deduit d'un nom de plat, jamais un aliment tire de student_note, jamais un aliment "probable" du repas. Plafond 6 items; au-dela le tour entier est refuse.
+   - commitment_id: l'id EXACT d'UNE ligne de keel_plan_context, quand l'eleve designe cette ligne sans ambiguite ("j'ai fait ma marche de 30 minutes", "sieste faite", "lumiere du matin ok"). C'est le SEUL moyen de creer un fait pour une ligne qui ne porte ni substance ni groupe alimentaire (mouvement, lumiere, sommeil, respiration, ecrans): aucun slug ne peut les porter, sans cet id le fait n'est rattache a rien.
+   - quantity + unit: UNIQUEMENT si l'eleve donne le chiffre lui-meme. unit parmi ${UNIT.join(", ")}.
+   - student_note: ses mots, courts, quand rien de structure ne les porte.
+   REGLES DURES:
+   (1) JAMAIS SUR UNE INTENTION FUTURE. "je vais prendre mon magnesium", "je le prends ce soir", "je compte manger du saumon demain" => AUCUN effet pour cette lane (direct_effects=[] la concernant). Seul un fait PASSE ou EN COURS s'ecrit. Meme regle qu'en 3d (rose-hard25: une intention future committee en silence), et elle est ici plus grave: protocol_events est APPEND-ONLY, une ligne fausse ne se retire pas depuis le chat.
+   (2) JAMAIS DE QUANTITE NON DITE. Si l'eleve ne donne aucun chiffre, quantity=null et unit=null. N'inscris pas la dose ecrite sur sa ligne de plan ("il prend 5000 UI d'habitude" n'est PAS un fait rapporte): un chiffre invente devient une adherence fausse le soir meme.
+   (3) JAMAIS DE SLUG APPROXIME. Si aucun slug des listes ci-dessus ne correspond franchement, mets null et laisse student_note porter ses mots. Le runtime echoue BRUYAMMENT sur un slug inconnu (R7) au lieu d'ecrire un fait a cote — c'est le correctif 'epa_dha' de l'import de plan. Un slug GENERIQUE n'existe pas: "du poisson" ne devient ni fatty_fish ni white_fish, "des legumes" ne devient ni leafy_greens ni non_starchy_veg — null + student_note. Un unknown vaut toujours mieux qu'un faux met.
+   (3-bis) UN commitment_id NE SE DEVINE JAMAIS. Trois conditions CUMULATIVES, sinon omets le champ: (a) l'id apparait LITTERALEMENT dans keel_plan_context — tu le recopies caractere par caractere, tu n'en fabriques jamais un, tu ne reutilises jamais un id vu ailleurs dans la conversation ni un plan_item_id legacy; (b) l'eleve designe UNE ligne et une seule — si deux lignes du bloc pourraient convenir, ou si le bloc n'affiche aucun id, mets null; (c) c'est bien CETTE ligne qu'il dit avoir faite, pas une ligne voisine du meme creneau. Le runtime verifie l'id contre le plan publie du jour et REFUSE le tour si l'id n'y est pas (unknown_commitment): un id invente ne produit pas une erreur discrete, il fait echouer l'ecriture. Et ne mets JAMAIS commitment_id sur une ligne polarity='avoid' que l'eleve dit avoir RESPECTEE ("j'ai pas bu ce soir"): un fait rattache a une ligne d'evitement est lu comme une transgression — c'est l'inversion de note deja constatee sur le tap (G1). Une abstinence n'est pas un fait, c'est une absence de fait: aucun effet.
+   (4) UNE QUESTION N'EST PAS UN FAIT: "j'ai bien pris mon magnesium ce matin ?", "c'est note ?" => aucun effet (meme regle que 3e).
+   (5) UN SEUL EFFET log_protocol_event par tour, mais il porte AUTANT D'ITEMS que le message en nomme (payload components). Ne duplique jamais l'effet lui-meme: c'est le champ components qui porte la cardinalite, et le runtime ecrit une ligne par item. MODE D'ECHEC MESURE EN RUN REEL, et c'est pour lui que le champ existe: "j'ai mange du poulet et des brocolis" n'ecrivait qu'une ligne (ancienne regle "l'entree la plus porteuse"), le modele choisissait poultry - le groupe qui ne comptait pas - et la reponse affirmait que les legumes comptaient. Un fait ampute plus un accuse sans ligne. Si un aliment n'a pas de slug franc, il ne devient PAS un item: null + student_note (regle 3), et la reponse n'affirmera que ce que le runtime aura relu.
+   (6) Effet TRANSVERSE comme en 3c: il s'emet EN PLUS de l'owner du tour et n'absorbe jamais le tour.
+3k-b. declare_deviation = l'eleve annonce A L'AVANCE une indisponibilite: "jeudi je suis en deplacement", "ce soir j'ai un anniversaire", "vendredi midi je mange au resto". Le runtime ecrit une ligne planned_deviations qui sort ce jour (ou ce creneau) du denominateur d'adherence.
+   payload_hint:
+   - local_date: date ISO locale YYYY-MM-DD du jour vise, calculee depuis direct_effect_time_context. JAMAIS un mot relatif ("jeudi", "ce soir"): le runtime REFUSE une valeur non-ISO au lieu de deviner (meme discipline que date_hint en 3d-bis). Jour vise = aujourd'hui: omets le champ.
+   - slot_key parmi ${SLOT_VOCABULARY.join(", ")} quand un seul repas est concerne; absent = la journee entiere.
+   - kind parmi ${DEVIATION_KINDS.join(", ")}. Si le contexte ne se classe pas franchement, mets other: la deviation est vraie meme quand son etiquette ne l'est pas.
+   - note: ses mots, court.
+   REGLES DURES:
+   (1) LE FLEX SE DECLARE A L'AVANCE. Une deviation posee apres coup sur un jour DEJA evalue est refusee par le runtime (retroactive_on_resolved_day) — n'affirme jamais qu'elle est prise, ne promets rien, ne cherche pas de justification. "hier j'etais au resto, ca compte pas" n'est pas une declaration mais une demande de correction: emets quand meme l'effet avec la date ISO d'hier et laisse le runtime trancher.
+   (2) NE CONFONDS PAS avec log_protocol_event: "ce soir j'ai un anniversaire" (a venir) = declare_deviation; "hier soir j'etais a un anniversaire, j'ai mange du gateau" (fait rapporte) = log_protocol_event. Un futur ne s'ecrit jamais comme un fait, un passe ne s'ecrit jamais comme un flex.
+   (3) NE CONFONDS PAS avec plan_question: "je suis au resto ce soir, je fais quoi ?" demande une CONDUITE => skill_signals.plan_question (kind=eating_out). Une simple annonce d'indisponibilite, ou "note-le", => declare_deviation. Les deux peuvent coexister sur le meme tour (le signal ET l'effet).
+   (4) UNE RECURRENCE NE SE DECLARE PAS ICI ("tous les jeudis je suis en deplacement"): reponse normale honnete, aucun effet — une ligne planned_deviations est ponctuelle, exactement comme un rappel one-shot (regle 'Recurrence' plus haut).
 4. skill_signals.product_help seulement si l'utilisateur veut comprendre Sophia, une fonctionnalite, une surface produit ou comment utiliser une capacite. Product help explique une fonctionnalite; il ne liste pas l'etat personnel actif du user.
 	5. skill_signals.coaching_recommendation si l'utilisateur demande quel levier Sophia choisir ou quoi faire face a un blocage personnel identifiable. Ne l'utilise pas pour executer, creer ou modifier, ni comme simple clarification produit. Ne l'active pas sur la seule description d'un craving ou d'une urge aigu en cours sans demande de levier: presence d'abord en reponse normale. Meme regle d'altitude pour un tour a charge emotionnelle basse (devalorisation, honte, decouragement, "je suis pathetique", soiree ratee) sans demande explicite de levier: aucun signal, la reponse normale accueille et valide d'abord; le levier vient au tour suivant ou si le user le demande. La devalorisation IMPLICITE compte aussi (rose-hard17 T1): "je suis degoutee de moi", "tout ca servait a rien" = accueil d'abord, aucun pitch de dispositif dans la meme reponse — l'offre vient au tour suivant ou sur pull. La cue de VULNERABILITE prime sur le contenu concret (rose-multiflow B01): un aveu emotionnel qui CONTIENT un moment/mission concret d'echec ("c'est bizarre d'en parler, mais...", "ca me stresse d'en parler") mais SANS pull d'aide n'est PAS coaching_recommendation — presence si un sujet de fond est depose, sinon reponse normale d'accueil; le user ne doit jamais avoir a recadrer pour etre entendu. Un depot reflexif auto-derisoire ("c'est con hein", "je sais pas pourquoi je raconte ca") est une invitation a RESTER, pas un pull (alex-untested20 T8): meme si un theme effort/sens est saisissable par une technique, le doute bascule vers rester (presence/accueil), jamais vers proposer. Anti-faux-positif: un pull explicite ("je suis preneuse", "tu ferais quoi ?", "aide-moi") route coaching_recommendation normalement.
 6. skill_signals.plan_realignment si l'utilisateur exprime surtout une rupture avec son plan global/semaine/rythme, sans demander un levier sur une action precise. Si une action precise est le centre du message, priorise coaching_recommendation. plan_realignment exige une intention de MUTATION du plan (verbes: "allege", "change", "corse", "ajuste", "c'est trop lourd/mou", "refais") — l'expression d'un FLOU n'en est pas une (alex-untested21 T1, INVALIDE observe: "jsais plus trop ou j'en suis, fais-moi un point de ce que j'ai fait cette semaine, la je coche au pif" → plan_realignment a tort; le verbe d'intention est "fais-moi un point" = RECAP READ-ONLY → aucun signal, reponse normale qui projette la DB, memory_plan charge sur les actions). Une demande de lecture ou de rappel du plan ("mes actions en cours", "sur quoi je bosse en ce moment", "rappelle-moi mon plan", "c'est quoi mes actions actives ?", "fais-moi un point/recap de ce que j'ai fait") n'est jamais plan_realignment: c'est une lecture, pas une rupture; aucun signal, reponse normale avec memory_plan charge sur les actions. Anti-faux-positif: "allege mon plan, c'est devenu trop lourd" reste plan_realignment.
-7. skill_signals.feature_opportunity si l'utilisateur revele une opportunite initiatives ou coach_preferences sans demander un levier de coaching. Si c'est une vraie demande de levier, priorise coaching_recommendation. Si le user exprime surtout une frustration sur le style de Sophia ou l'interet d'un soutien recurrent, priorise feature_opportunity. Une demande de CAPACITE produit qui n'existe pas (connexion a une montre/un service externe, tracking automatique du sommeil, integration sante) = feature_opportunity aussi (alex-untested20 T6): l'idee est notee honnetement — JAMAIS une reponse normale qui specule sur des integrations ("peut-etre via Apple Health / Google Fit") sans preuve du registre produit.
+6-bis. skill_signals.plan_question UNIQUEMENT si le payload porte keel_plan_context (sinon la lane n'existe pas: aucun commitment, aucune swap_policy, rien a resoudre — n'emets alors jamais ce signal). Le message porte une question d'EXECUTION a l'interieur du plan publie: substitution d'un aliment, contexte de repas exterieur, repas decale. Priorite sur plan_realignment quand les deux semblent possibles: une question concrete sur UNE ligne du plan n'est pas un decrochage. Reste sous product_help et coaching_recommendation: ces deux-la sont des pulls explicites (comprendre le produit, demander un levier).
+7. Aucune lane initiatives / coach_preferences: une opportunite produit revelee (soutien recurrent, rituel, frustration sur le style de Sophia, capacite produit inexistante) se sert en reponse normale HONNETE, sans signal. Si c'est une vraie demande de levier, priorise coaching_recommendation.
 8. needs_research.value=true si la reponse finale exige des infos fraiches/exterieures/verifiables ou si le user demande de chercher/verifier sur internet. Remplis query avec une requete de recherche autonome et precise (le runtime EXECUTE cette recherche et injecte le resultat au composeur). Une MISE EN DOUTE explicite d'une affirmation factuelle en domaine sante/nutrition/science ("est-ce que c'est vrai que... ?", "t'as une source ?", "je veux du concret, pas des generalites") = value=true (nina-global20 T2): la reponse doit etre groundee, pas parametrique. Une question personnelle ("verifie ou j'en suis") ou de coaching sans besoin d'infos externes → value=false.
 9. memory_plan est toujours present. Il sert a charger le contexte pour repondre maintenant; il ne sert jamais a ecrire en memoire.
 
@@ -205,7 +242,16 @@ export function buildDispatcherPrompt(input: {
   flow_state_context?: unknown;
   direct_effect_time_context?: DirectEffectTimeContext | null;
   plan_snapshot?: unknown;
+  /**
+   * W4.4 — bloc KEEL (`context/keel_plan_context.ts`), non null uniquement pour
+   * un `keel_role='student'`. Sa presence est la BRANCHE: le payload porte
+   * alors le plan KEEL et RIEN du legacy. Envoyer les deux projections
+   * laisserait le modele choisir la plus arrangeante, et `user_plan_items`
+   * porte le compteur `current_reps` que KEEL a supprime.
+   */
+  keel_plan_context?: string | null;
 }): string {
+  const keelPlanContext = input.keel_plan_context ?? null;
   return JSON.stringify({
     prompt_version: DISPATCHER_V2_PROMPT_VERSION,
     user_message: input.user_message,
@@ -213,9 +259,11 @@ export function buildDispatcherPrompt(input: {
     active_topic_state: input.active_topic_state ?? null,
     flow_state_context: input.flow_state_context ?? null,
     direct_effect_time_context: input.direct_effect_time_context ?? null,
-    plan_snapshot: input.plan_snapshot ?? null,
-    active_action_candidates_for_direct_effects:
-      activeActionCandidatesForDirectEffects(input.plan_snapshot ?? null),
+    keel_plan_context: keelPlanContext,
+    plan_snapshot: keelPlanContext ? null : input.plan_snapshot ?? null,
+    active_action_candidates_for_direct_effects: keelPlanContext
+      ? []
+      : activeActionCandidatesForDirectEffects(input.plan_snapshot ?? null),
     expected_shape: {
       safety: {
         risk_band: "none|low|medium|high|critical",
@@ -257,19 +305,25 @@ export function buildDispatcherPrompt(input: {
             reason: "string",
           },
         },
-        feature_opportunity: {
-          detected: false,
-          confidence_band: "low|medium|high|critical",
-          reason: null,
-          context: {
-            feature: "initiatives|coach_preferences",
-            opportunity_kind:
-              "recurring_context|ritual_or_initiative|coach_style_feedback|coach_interaction_preference",
-            trigger_context: "string|null",
-            user_problem_summary: "string",
-            priority_reason: "string",
-          },
-        },
+        // W4.4 — present dans la forme attendue seulement quand la lane existe
+        // (keel_plan_context non null). Sinon le modele voit un signal qu'il
+        // ne pourra jamais servir.
+        ...(input.keel_plan_context
+          ? {
+            plan_question: {
+              detected: false,
+              confidence_band: "low|medium|high|critical",
+              reason: null,
+              context: {
+                kind: "food_swap|eating_out|meal_shifted|other",
+                requested_food_group: "food_groups slug|null",
+                prescribed_food_group: "food_groups slug|null",
+                slot_hint: "slot_vocabulary key|null",
+                reason: "string",
+              },
+            },
+          }
+          : {}),
         presence_conversation: {
           detected: false,
           confidence_band: "low|medium|high|critical",
@@ -587,138 +641,22 @@ export function buildDispatcherPrompt(input: {
         },
       },
       {
-        user_message: "Avant chaque diner j'ai du mal a ne pas fumer",
-        expected: {
-          direct_effects: [],
-          skill_signals: {
-            feature_opportunity: {
-              detected: true,
-              confidence_band: "high",
-              reason: "initiative_opportunity",
-              context: {
-                feature: "initiatives",
-                opportunity_kind: "recurring_context",
-                trigger_context: "avant chaque diner",
-                user_problem_summary:
-                  "Difficulty not smoking before a repeated dinner context.",
-                priority_reason: "Repeated context fits initiatives.",
-              },
-            },
-          },
-        },
-      },
-      {
-        user_message:
-          "Tous les soirs apres avoir ferme mon ordi, un truc recurrent de Sophia pourrait m'aider a preparer le lendemain.",
-        expected: {
-          direct_effects: [],
-          skill_signals: {
-            feature_opportunity: {
-              detected: true,
-              confidence_band: "high",
-              reason: "initiative_opportunity",
-              context: {
-                feature: "initiatives",
-                opportunity_kind: "recurring_context",
-                trigger_context: "tous les soirs apres avoir ferme mon ordi",
-                user_problem_summary:
-                  "User says recurring Sophia support could help prepare the next day after closing the computer.",
-                priority_reason:
-                  "The user asks for recurring support, not a coaching lever.",
-              },
-            },
-          },
-        },
-      },
-      {
         user_message:
           "Tu pourrais pas me relancer tous les soirs vers 21h30 pour le carnet, plutot qu'a chaque fois je te le demande ?",
         expected: {
           direct_effects: [],
-          skill_signals: {
-            feature_opportunity: {
-              detected: true,
-              confidence_band: "high",
-              reason: "initiative_opportunity",
-              context: {
-                feature: "initiatives",
-                opportunity_kind: "recurring_context",
-                trigger_context: "tous les soirs vers 21h30",
-                user_problem_summary:
-                  "User asks for a recurring evening nudge instead of one-off reminders.",
-                priority_reason:
-                  "Explicit recurring reminder request: initiatives, never create_one_shot_reminder.",
-              },
-            },
-          },
+          skill_signals: {},
           note:
-            "Marqueur de recurrence explicite: aucun create_one_shot_reminder, meme si l'heure est exploitable.",
+            "Marqueur de recurrence explicite: aucun create_one_shot_reminder, meme si l'heure est exploitable. Plus aucune lane initiatives: reponse normale honnete.",
         },
       },
       {
         user_message: "Tu poses trop de questions",
         expected: {
           direct_effects: [],
-          skill_signals: {
-            feature_opportunity: {
-              detected: true,
-              confidence_band: "high",
-              reason: "coach_preferences_opportunity",
-              context: {
-                feature: "coach_preferences",
-                opportunity_kind: "coach_style_feedback",
-                trigger_context: "trop de questions",
-                user_problem_summary:
-                  "User dislikes the current questioning style.",
-                priority_reason: "Style feedback fits coaching preferences.",
-              },
-            },
-          },
-        },
-      },
-      {
-        user_message:
-          "Quand je bloque, ca me frustre que Sophia soit trop douce. J'aimerais quelque chose de plus direct.",
-        expected: {
-          direct_effects: [],
-          skill_signals: {
-            feature_opportunity: {
-              detected: true,
-              confidence_band: "high",
-              reason: "coach_preferences_opportunity",
-              context: {
-                feature: "coach_preferences",
-                opportunity_kind: "coach_style_feedback",
-                trigger_context: "Sophia trop douce / plus direct",
-                user_problem_summary:
-                  "User is frustrated with Sophia's tone and wants a more direct coaching style.",
-                priority_reason:
-                  "Frustration maps to supported coach.tone preferences.",
-              },
-            },
-          },
-        },
-      },
-      {
-        user_message: "Tu me challenges trop fort, ca me braque.",
-        expected: {
-          direct_effects: [],
-          skill_signals: {
-            feature_opportunity: {
-              detected: true,
-              confidence_band: "high",
-              reason: "coach_preferences_opportunity",
-              context: {
-                feature: "coach_preferences",
-                opportunity_kind: "coach_style_feedback",
-                trigger_context: "challenges trop fort",
-                user_problem_summary:
-                  "User is frustrated with the challenge level and wants less pressure.",
-                priority_reason:
-                  "Frustration maps to supported coach.challenge_level preferences.",
-              },
-            },
-          },
+          skill_signals: {},
+          note:
+            "Feedback de STYLE: aucun signal. Si la formulation porte une contrainte de conversation, remplis session_style_commitment_hint (champ racine).",
         },
       },
       {
@@ -871,6 +809,55 @@ export function buildDispatcherPrompt(input: {
           direct_effects: [],
           skill_signals: {},
           note: "Emotion ou decouragement: reponse normale.",
+        },
+      },
+      // ── W4.7 — KEEL. Ces trois exemples ne valent QUE quand le payload
+      // porte keel_plan_context; sans lui la lane n'existe pas (regle 3k).
+      {
+        user_message: "j'ai pris mon magnesium",
+        expected: {
+          direct_effects: [{
+            effect_type: "log_protocol_event",
+            explicitness: "explicit",
+            target_status: "identified",
+            confidence_band: "high",
+            payload_hint: {
+              substance_ref: "magnesium_glycinate",
+              student_note: "j'ai pris mon magnesium",
+            },
+          }],
+          skill_signals: {},
+          note:
+            "Fait PASSE rapporte: une ligne protocol_events. Aucune quantite (l'eleve n'en donne pas), aucun slot (il ne le nomme pas). KEEL uniquement.",
+        },
+      },
+      {
+        user_message: "je vais prendre mon magnesium ce soir",
+        expected: {
+          direct_effects: [],
+          skill_signals: {},
+          note:
+            "INTENTION FUTURE: zero effet (regle 3k-a(1)). protocol_events est append-only — une intention ecrite comme un fait ne se retire pas depuis le chat.",
+        },
+      },
+      {
+        user_message: "jeudi je suis en deplacement",
+        expected: {
+          direct_effects: [{
+            effect_type: "declare_deviation",
+            explicitness: "explicit",
+            target_status: "identified",
+            confidence_band: "high",
+            payload_hint: {
+              local_date:
+                "date ISO locale YYYY-MM-DD du jeudi vise, calculee depuis direct_effect_time_context (jamais le mot 'jeudi')",
+              kind: "travel",
+              note: "en deplacement",
+            },
+          }],
+          skill_signals: {},
+          note:
+            "Indisponibilite annoncee A L'AVANCE: une ligne planned_deviations, ce jour sort du denominateur. KEEL uniquement.",
         },
       },
     ],

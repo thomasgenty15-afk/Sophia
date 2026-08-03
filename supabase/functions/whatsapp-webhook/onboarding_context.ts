@@ -1,4 +1,4 @@
-export function buildWhatsAppOnboardingContext(params) {
+export function buildWhatsAppOnboardingContext(params: any) {
   const state = String(params.state ?? "").trim() || "unknown";
   const siteUrl = String(params.siteUrl ?? "").trim();
   const supportEmail = String(params.supportEmail ?? "").trim() || "sophia@sophia-coach.ai";
@@ -35,7 +35,7 @@ export function buildWhatsAppOnboardingContext(params) {
   }
   return sections.join("\n");
 }
-function buildPersonalizationSection(profileFacts, memories, isReturningUser) {
+function buildPersonalizationSection(profileFacts: any, memories: any, isReturningUser: any) {
   const lines = [];
   // Style preferences
   const hasStylePrefs = profileFacts && (profileFacts.tone || profileFacts.verbosity || profileFacts.useEmojis);
@@ -85,7 +85,7 @@ function buildPersonalizationSection(profileFacts, memories, isReturningUser) {
   }
   return lines.length > 0 ? lines.join("\n") : "";
 }
-export function buildAdaptiveOnboardingContext(params) {
+export function buildAdaptiveOnboardingContext(params: any) {
   const baseContext = buildWhatsAppOnboardingContext({
     state: params.state,
     siteUrl: params.siteUrl,
@@ -100,7 +100,7 @@ export function buildAdaptiveOnboardingContext(params) {
   const flowInstructions = buildFlowInstructions(params.flow, params.detectedTopic);
   return flowInstructions ? `${baseContext}\n\n${flowInstructions}` : baseContext;
 }
-function buildFlowInstructions(flow, detectedTopic) {
+function buildFlowInstructions(flow: any, detectedTopic: any) {
   switch(flow){
     case "urgent":
       return [

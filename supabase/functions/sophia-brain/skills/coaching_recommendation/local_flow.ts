@@ -47,11 +47,11 @@ import type {
   CoachingVisibleStepContext,
 } from "./contract.ts";
 
+// W2.A: "state_potion" retiré des features recommandables.
 const FEATURES = new Set<CoachingFeatureSuggestion>([
   "adjust_plan",
   "attack_card",
   "defense_card",
-  "state_potion",
 ]);
 
 const COACHING_FEATURE_CATALOG_IDS: Record<CoachingFeatureSuggestion, string> =
@@ -59,7 +59,6 @@ const COACHING_FEATURE_CATALOG_IDS: Record<CoachingFeatureSuggestion, string> =
     adjust_plan: "plan.adjustment",
     attack_card: "resources.attack_card",
     defense_card: "resources.defense_card",
-    state_potion: "resources.potions",
   };
 
 const FLOW_ACTIONS = new Set<CoachingRecommendationFlowAction>([
@@ -1265,13 +1264,11 @@ function defaultStepContext(
       objective: instruction || "Aider a choisir ou comprendre une potion.",
       state_hint: null,
       intensity: null,
-      selected_feature: flowContext.recommendation.primary_feature ===
-          "state_potion"
-        ? "state_potion"
-        : "state_potion",
+      // W2.A: plus aucune feature produit sélectionnable ici.
+      selected_feature: null,
       why_selected: flowContext.recommendation.why_primary ??
         flowContext.cause_analysis.why_it_exists,
-      product_guidance: flowContext.product_guidance.state_potion ?? null,
+      product_guidance: null,
     };
   }
   if (taskKind === "no_plan_coaching") {
@@ -1314,14 +1311,10 @@ function defaultStepContext(
     };
   }
   if (taskKind === "action_plan_coaching") {
-    const selected = flowContext.recommendation.primary_feature ===
-        "state_potion"
-      ? null
-      : flowContext.recommendation.primary_feature;
-    const secondary = flowContext.recommendation.secondary_feature ===
-        "state_potion"
-      ? null
-      : flowContext.recommendation.secondary_feature;
+    // W2.A: le filtre anti-state_potion est devenu inutile (le type ne le
+    // contient plus).
+    const selected = flowContext.recommendation.primary_feature;
+    const secondary = flowContext.recommendation.secondary_feature;
     return {
       task_kind: "action_plan_coaching",
       objective: instruction || "Coacher une action concrete du plan.",
@@ -2290,11 +2283,11 @@ function enforceCoachingRecommendationContract(args: {
   if (selectedType === "emotional") {
     return {
       ...keepCoachingFlowActive(args.output),
-      feature_candidates: args.output.feature_candidates.filter((candidate) =>
-        candidate.feature === "state_potion"
-      ),
+      // W2.A: le coaching émotionnel ne recommande plus de feature produit
+      // (state_potion était la seule autorisée sur cette branche).
+      feature_candidates: [],
       recommendation: {
-        primary_feature: "state_potion",
+        primary_feature: null,
         secondary_feature: null,
         why_primary: args.output.recommendation.why_primary ||
           "Le besoin principal est emotionnel.",
@@ -2346,12 +2339,9 @@ function enforceCoachingRecommendationContract(args: {
   }
   const noPlanUnsupportedFeature =
     args.output.recommendation.primary_feature === "adjust_plan" ||
-    args.output.recommendation.primary_feature === "state_potion" ||
     args.output.recommendation.secondary_feature === "adjust_plan" ||
-    args.output.recommendation.secondary_feature === "state_potion" ||
     args.output.feature_candidates.some((candidate) =>
-      candidate.feature === "adjust_plan" ||
-      candidate.feature === "state_potion"
+      candidate.feature === "adjust_plan"
     );
   const planBoundFeatureInLegacyStep =
     args.output.visible_task.step_context?.task_kind ===
@@ -3165,7 +3155,7 @@ function dispatcherPrompt(input: CoachingRecommendationLocalDispatcherInput) {
     "Ce flow aide le user a recevoir le bon type de coaching ou, quand c'est autorise par le type de coaching, le bon levier Sophia.",
     "Ce flow est une recommandation conversationnelle: il ne cree rien, ne modifie rien, ne programme rien et ne remplit aucun slot d'anciens tools.",
     "Si inbound_note_information.structured_context.bridge_kind vaut parent_to_coaching_recommendation, conserve parent_flow_id, return_focus, action_context et parent_state_summary; a la fin, retourne une note vers ce parent.",
-    "Features recommandables uniquement: adjust_plan, attack_card, defense_card, state_potion.",
+    "Features recommandables uniquement: adjust_plan, attack_card, defense_card. state_potion N'EST PLUS une feature recommandable (W2.A): ne l'emets jamais dans recommendation ni dans feature_candidates.",
     "Features interdites: opportunites produit, preferences, rappels, progression, platform. Ne les produis jamais.",
     "Le dispatcher global transmet seulement le type cible via dispatcher_signal_context.coaching_type: plan_action, no_plan_action, emotional ou ambiguous, avec confidence, reason et action_context minimal. Il ne choisit jamais la feature.",
     "Ce coaching_type est canonique pendant le flow local. Tu peux le contredire seulement si le dernier message user indique clairement un changement de cible; dans ce cas utilise target_switch explicite si la nouvelle cible est claire, sinon visible_task.kind=change_confirm_coaching_type.",
@@ -3190,9 +3180,9 @@ function dispatcherPrompt(input: CoachingRecommendationLocalDispatcherInput) {
     "DEMANDE DE PERSISTANCE POTION (P12-G, eva-hard25 T16 INVALIDE observe: 'garde-la moi sous la main' avale en silence, l'honnetete n'est arrivee qu'au tour suivant sur relance): une demande EXPLICITE de persistance recoit l'honnetete AU TOUR de la demande — la potion travaillee ici ne s'active ni ne se garde automatiquement depuis le chat; le user peut l'activer dans Dashboard > Ressources > Potions, et cette activation cree l'appui initial puis le soutien contextualise pouvant aller jusqu'a 7 jours — jamais avalee en silence. Invariants intacts: jamais de claim de stockage, jamais de rappel generique substitue a la place (gate artefact≠rappel P8-B).",
     "DEMANDE COMPOSITE 'DEUX X' (eva-hard21 T4-T5, INVALIDE observe): 'je veux DEUX potions distinctes' est une demande de cardinalite 2 — traite-la en SEQUENCE explicite ('on cale la premiere, puis la deuxieme') ou explicite la contrainte reelle si une existe. Ne re-pose JAMAIS un narrowing 'l'un ou l'autre' que le user vient de refuser explicitement: la meme question re-posee apres refus est une violation de progression.",
     "ADEQUATION AU PREMIER SIGNAL — potion vs carte (eva-hard21 T6): le doute d'adequation s'evalue et s'exprime au PREMIER tour ou le signal existe ('une porte a ne pas rouvrir' = moment de piege → carte de defense plutot que potion), pas apres plusieurs tours de narrowing. Exprime le doute et propose les options proches des le premier tour concerne (extension de la regle adequation-1er-tour P4-D au choix potion↔carte).",
-    "Si coaching_type=emotional, utilise emotion_coaching seulement pour un etat emotionnel global, non rattache a une action concrete a faire, demarrer, tenir ou terminer. state_potion est la seule feature produit autorisee. N'utilise jamais action_plan_coaching ou no_plan_coaching dans ce cas.",
+    "Si coaching_type=emotional, utilise emotion_coaching seulement pour un etat emotionnel global, non rattache a une action concrete a faire, demarrer, tenir ou terminer. AUCUNE feature produit n'est autorisee dans ce cas: recommendation.primary_feature=null, feature_candidates=[], le coaching reste conversationnel. N'utilise jamais action_plan_coaching ou no_plan_coaching dans ce cas.",
     "Si la peur, tension, pression, boule au ventre, honte ou evitement est liee a l'action en cours, ce n'est pas emotional_state_coaching: reste dans action_plan_coaching si l'action est dans le plan, ou no_plan_coaching si elle est hors plan.",
-    "Si coaching_type=no_plan_action, utilise no_plan_coaching. Les cartes d'attaque et de defense libres sont autorisees si utiles; adjust_plan, state_potion, mission, habitude et chemins lies a une action du Plan sont interdits.",
+    "Si coaching_type=no_plan_action, utilise no_plan_coaching. Les cartes d'attaque et de defense libres sont autorisees si utiles; adjust_plan, mission, habitude et chemins lies a une action du Plan sont interdits.",
     "Si coaching_type=plan_action, utilise action_plan_coaching uniquement avec une action concrete du plan: dispatcher_signal_context.action_context.source='plan' avec plan_item_id ou contexte parent de plan.",
     "Pour action_plan_coaching, attack_card/defense_card/adjust_plan sont autorises selon le probleme. Les cartes se preparent depuis l'action du plan, pas depuis Ressources; Ressources sert seulement a consulter des cartes existantes.",
     "Pour une emotion liee a une action: attack_card peut aider a preparer l'entree dans l'action quand l'anxiete bloque le demarrage; defense_card peut proteger le moment de risque si l'emotion fait decrocher, eviter, craquer ou abandonner pendant l'action.",
@@ -3201,7 +3191,7 @@ function dispatcherPrompt(input: CoachingRecommendationLocalDispatcherInput) {
     "Pour forgetting, launch_blocker ou avoidance autour d'une action faisable: attack_card en priorite.",
     "Pour risk_moment, craquage, abandon, bascule: defense_card en priorite.",
     "REFLEXION CADRE (obligatoire avant de trancher attack_card vs defense_card): demande-toi si le probleme est un blocage SUR l'action (demarrage, moment de piege pendant/juste avant) ou une question de CADRE — manque de structure interne quand rien d'externe ne pousse, discipline a construire seul, besoin de se rappeler pourquoi ca compte ('quand j'ai pas d'obligation c'est le bordel', 'il me faut un cadre', 'comment me le rentrer dans la tete'). Question de CADRE => attack_card en priorite (mantra de force pour l'identite/tenue mentale, texte magique pour l'excuse recurrente), PAS defense_card. Le mot 'glisser' ou un moment qui revient ne fabrique pas un risk_moment si la cause racine est l'absence de cadre: c'est un probleme de motivation interne et d'entree en action. Cette qualification t'appartient en tant que coach, que le levier soit lie a une action du plan ou libre — le user ne formulera pas toujours la distinction lui-meme.",
-    "Pour emotional_state_coaching global seulement: state_potion en priorite. Les 6 potions sont anti-decrochage, courage, guerison, clarte, amour, apaisement; ne les utilise pas pour une resistance emotionnelle attachee a une action concrete.",
+    "Pour emotional_state_coaching global: AUCUNE feature produit — recommendation.primary_feature=null et feature_candidates=[]. Le tour reste un accompagnement conversationnel de l'etat.",
     "AXE D'ACTIVATION etat → potion (P8-G, paul-untested22 T7 INVALIDE observe): l'apaisement est une technique de DESCENTE d'HYPER-activation (tendu, a cran, pression, agitation) — un etat d'HYPO-activation (vide, a plat, eteint, plus d'elan, anesthesie du soir) n'est PAS le meme besoin: la potion la plus proche est amour (manque de douceur envers soi) ou guerison (apres un episode qui a fait mal), jamais apaisement par defaut. Quand le user decrit DEUX etats qualitativement opposes ('tendu le jour ET vide le soir, les deux'), la reponse distingue les deux moments et propose une potion PAR etat (apaisement pour la tension du jour + une potion distincte pour le vide du soir) — replier le second etat sur la potion deja servie dans la journee est l'erreur observee. Garde le doute (expose la difference, ne tranche pas seul), mais NOMME la potion la plus proche du second etat. CO-DEMANDE EXPLICITE DE DEUX POTIONS (rose-p8reval T14, INVALIDE observe: 'active-moi une potion d'apaisement ET une potion de motivation, les deux' → seul l'apaisement traite, l'axe motivation avale sans un mot): quand le user demande DEUX potions nommees, la reponse ACQUITTE LES DEUX axes et sequence honnetement ('l'apaisement d'abord pour redescendre, la motivation ensuite — les deux existent, une a la fois') — ne jamais replier la seconde en silence sur la premiere.",
     "Tu dois produire une structure de diagnostic explicite dans flow_context: coaching_type, difficulty, cause_analysis, recommendation, product_guidance utile et evidence_used.",
     "Aucun agent visible ne choisit la feature, la cause ou l'etape: tu dois lui fournir flow_context et step_context.",
@@ -3224,7 +3214,7 @@ function dispatcherPrompt(input: CoachingRecommendationLocalDispatcherInput) {
     "INTENTION MEMOIRE EXPLICITE pendant le flow (nina-p3reval T8, INVALIDE observe): 'garde bien en tete un truc pour la suite: [fait de vie]' pendant un flow coaching actif = le tour ACCUSE d'abord la memorisation ('c'est note, je le garde en tete') — le fait confie n'est PAS un materiau pour re-pitcher la technique deja proposee (la carte re-poussee une 3e eme fois en avalant l'accuse = l'erreur observee). Si le message ne porte rien d'autre pour le coaching, l'accuse suffit; la technique deja proposee se reference en une demi-phrase au plus, jamais re-deroulee.",
     "Invariant de coherence de sortie: exit_to_global_dispatcher est mutuellement exclusif avec une recommandation coaching active.",
     "Si flow_action=exit_to_global_dispatcher: feature_candidates doit etre [], recommendation.primary_feature=null, recommendation.secondary_feature=null, visible_task.kind=exit_ack, state_updates.status=exit_to_global, et note_information doit expliquer le vrai sujet hors coaching.",
-    "Si recommendation.primary_feature est attack_card, defense_card, adjust_plan ou state_potion, ou si visible_task.kind est action_plan_coaching, no_plan_coaching ou emotion_coaching, alors flow_action ne peut jamais etre exit_to_global_dispatcher: utilise recommend_feature, answer_followup ou compare_features avec state_updates.status=active.",
+    "Si recommendation.primary_feature est attack_card, defense_card ou adjust_plan, ou si visible_task.kind est action_plan_coaching, no_plan_coaching ou emotion_coaching, alors flow_action ne peut jamais etre exit_to_global_dispatcher: utilise recommend_feature, answer_followup ou compare_features avec state_updates.status=active.",
     "Si flow_context.recommendation.primary_feature est non-null, flow_action ne peut pas etre exit_to_global_dispatcher. Inversement, en sortie global, flow_context.recommendation.primary_feature doit etre null. Exception unique: les sorties prioritaires detresse et DEPOT DISCURSIF PROFOND abandonnent la recommandation posee (le user s'en est desengage) — dans ces deux cas rends recommendation nulle et sors.",
     "Sortie autorisee uniquement: exit_to_global_dispatcher vers le dispatcher global. Aucun handoff local vers product_help, safety_crisis ou un autre dispatcher n'existe dans ce flow.",
     "Si le user demande ou trouver, comment preparer, consulter ou utiliser la feature que ce flow vient de recommander, garde l'ownership coaching et utilise l'agent visible du type courant avec les infos de product_guidance injectees.",
@@ -3328,9 +3318,9 @@ function dispatcherPrompt(input: CoachingRecommendationLocalDispatcherInput) {
         feature_candidates: [],
         recommendation: {
           primary_feature:
-            "adjust_plan|attack_card|defense_card|state_potion|null",
+            "adjust_plan|attack_card|defense_card|null",
           secondary_feature:
-            "adjust_plan|attack_card|defense_card|state_potion|null",
+            "adjust_plan|attack_card|defense_card|null",
           why_primary: "string|null",
           user_facing_next_step: "string|null",
         },
@@ -3357,7 +3347,7 @@ function dispatcherPrompt(input: CoachingRecommendationLocalDispatcherInput) {
               "plan_action|no_plan_action|emotional|unclear|null",
             coaching_type_reason: "string|null",
             product_guidance:
-              "fiches produit canoniques utiles pour adjust_plan, attack_card, defense_card, state_potion",
+              "fiches produit canoniques utiles pour adjust_plan, attack_card, defense_card",
             difficulty: {
               target_kind: "plan_action|free_action|emotional_state|unclear",
               summary: "string|null",
@@ -3373,9 +3363,9 @@ function dispatcherPrompt(input: CoachingRecommendationLocalDispatcherInput) {
             },
             recommendation: {
               primary_feature:
-                "adjust_plan|attack_card|defense_card|state_potion|null",
+                "adjust_plan|attack_card|defense_card|null",
               secondary_feature:
-                "adjust_plan|attack_card|defense_card|state_potion|null",
+                "adjust_plan|attack_card|defense_card|null",
               why_primary: "string|null",
               why_not_others: {},
               platform_destination: {

@@ -3,7 +3,11 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
 import { getRequestId, jsonResponse, serverError } from "../_shared/http.ts";
 import { stripeRequest } from "../_shared/stripe.ts";
-import { intervalFromStripePriceId, tierFromStripePriceId } from "../_shared/billing-tier.ts";
+import {
+  intervalFromStripePriceId,
+  isKeelPlatformPriceId,
+  tierFromStripePriceIds,
+} from "../_shared/billing-tier.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
 
 function requireEnv(name: string): string {
@@ -155,12 +159,23 @@ Deno.serve(async (req) => {
     }
 
     const status = String((picked as any)?.status ?? "").trim() || null;
-    const stripePriceId =
-      (picked?.items?.data?.[0]?.price?.id as string | undefined) ??
-      (picked?.plan?.id as string | undefined) ??
+    // W10 — same two-item reasoning as the webhook: a KEEL coach subscription
+    // carries the flat line AND the seat line in an order Stripe does not
+    // promise. Resolving the tier from item[0] alone would blank it half the
+    // time, and blanking a coach's tier drops their whole roster to 'none'.
+    const allPriceIds: Array<string | null> = [
+      ...((picked?.items?.data ?? []) as Array<any>).map(
+        (it) => (it?.price?.id as string | undefined) ?? null,
+      ),
+      (picked?.plan?.id as string | undefined) ?? null,
+    ];
+    const stripePriceId = allPriceIds.find((id) => isKeelPlatformPriceId(id)) ??
+      allPriceIds.find((id) => Boolean(id)) ??
       null;
-    const tier = tierFromStripePriceId(stripePriceId);
-    const interval = intervalFromStripePriceId(stripePriceId);
+    const tier = tierFromStripePriceIds(allPriceIds);
+    const interval = allPriceIds
+      .map((id) => intervalFromStripePriceId(id))
+      .find((v) => v !== null) ?? null;
     const currentPeriodStart = unixToIso(picked.current_period_start);
     const currentPeriodEnd = unixToIso(picked.current_period_end);
     const cancelAtPeriodEnd = Boolean((picked as any)?.cancel_at_period_end);

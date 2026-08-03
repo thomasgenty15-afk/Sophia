@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { createAuthedTestUser, createServiceRoleClient } from "../test/supabaseTestUtils";
+import { HAS_SUPABASE_TEST_ENV, createAuthedTestUser, createServiceRoleClient } from "../test/supabaseTestUtils";
 
 const IS_FULL = process.env.MEGA_TEST_FULL === "1";
 const IS_STUB = process.env.MEGA_TEST_MODE !== "0";
 
-describe("ultimate: DB triggers (profiles/email/week12)", () => {
+describe.skipIf(!HAS_SUPABASE_TEST_ENV)("ultimate: DB triggers (profiles/email/week12)", () => {
   let userId: string;
   let email: string;
   let client: SupabaseClient;
@@ -56,7 +56,12 @@ describe("ultimate: DB triggers (profiles/email/week12)", () => {
       .toBe(newEmail);
   });
 
-  it("on_week12_manual_unlock: creates forge_access when week_12 is manually set available", async () => {
+  // W2.A : `on_week12_manual_unlock` est DROPPÉ (migration
+  // 20260727150000_keel_disable_legacy_surfaces.sql). Le garde-fou s'inverse :
+  // la preuve utile est désormais que la Forge ne se déverrouille plus toute
+  // seule. Écrire `week_12` reste possible (la table survit jusqu'à W2.C),
+  // mais ça ne doit plus rien déclencher.
+  it("on_week12_manual_unlock est retiré: week_12 disponible ne crée plus forge_access (W2.A)", async () => {
     const nowIso = new Date().toISOString();
     const { error: seedErr } = await admin.from("user_week_states").upsert(
       {
@@ -76,12 +81,11 @@ describe("ultimate: DB triggers (profiles/email/week12)", () => {
       .in("module_id", ["forge_access"]);
     if (unlockedErr) throw unlockedErr;
 
-    const ids = new Set((unlocked ?? []).map((r) => r.module_id));
-    expect(ids.has("forge_access")).toBe(true);
+    expect(unlocked ?? []).toHaveLength(0);
   });
 });
 
-describe("ultimate: module updates create module archives (user_module_archives)", () => {
+describe.skipIf(!HAS_SUPABASE_TEST_ENV)("ultimate: module updates create module archives (user_module_archives)", () => {
   let userId: string;
   let client: SupabaseClient;
   let admin: SupabaseClient;
@@ -103,7 +107,10 @@ describe("ultimate: module updates create module archives (user_module_archives)
     }
   });
 
-  it("on_module_entry_update: changing content archives OLD content into user_module_archives", async () => {
+  // W2.A : `on_module_entry_update` est DROPPÉ. Le parcours identitaire FR
+  // n'archive plus les contenus de modules. La preuve inversée : une écriture
+  // puis une modification ne laissent AUCUNE ligne d'archive.
+  it("on_module_entry_update est retiré: modifier un contenu n'archive plus rien (W2.A)", async () => {
     const moduleId = `a1_c1_m1_${Date.now()}`;
     const first = { content: "Premier contenu (non vide) pour activer l'archive." };
     const second = { content: "Deuxième contenu (modifié) pour déclencher l'archive." };
@@ -138,33 +145,27 @@ describe("ultimate: module updates create module archives (user_module_archives)
       .eq("id", entryId);
     if (updErr) throw updErr;
 
-    // Assert: archive row created
+    // Assert (inversé W2.A): AUCUNE ligne d'archive n'est créée.
     const { count: archCount, error: archCountErr } = await client
       .from("user_module_archives")
       .select("*", { count: "exact", head: true })
       .eq("user_id", userId)
       .eq("entry_id", entryId);
     if (archCountErr) throw archCountErr;
-    expect(archCount).toBeGreaterThanOrEqual(1);
+    expect(archCount).toBe(0);
 
-    const { data: archived, error: archErr } = await client
-      .from("user_module_archives")
-      .select("entry_id,module_id,content,archived_at")
-      .eq("entry_id", entryId)
-      .eq("user_id", userId)
-      .order("archived_at", { ascending: false })
-      .limit(1)
+    // Et la ligne courante porte bien le SECOND contenu (l'update a eu lieu).
+    const { data: current, error: currentErr } = await client
+      .from("user_module_state_entries")
+      .select("content")
+      .eq("id", entryId)
       .single();
-    if (archErr) throw archErr;
-
-    expect(archived.entry_id).toBe(entryId);
-    expect(archived.module_id).toBe(moduleId);
-    expect(archived.archived_at).toBeTruthy();
-    expect((archived.content as any)?.content).toBe(first.content);
+    if (currentErr) throw currentErr;
+    expect((current.content as any)?.content).toBe(second.content);
   });
 });
 
-describe("ultimate: schema triggers (init modules + week progression + forge progression + chat state modtime)", () => {
+describe.skipIf(!HAS_SUPABASE_TEST_ENV)("ultimate: schema triggers (init modules + week progression + forge progression + chat state modtime)", () => {
   let userId: string;
   let client: SupabaseClient;
   let admin: SupabaseClient;
@@ -188,35 +189,31 @@ describe("ultimate: schema triggers (init modules + week progression + forge pro
     }
   });
 
-  it("on_profile_created_init_modules: signup creates week_1 in user_week_states", async () => {
+  // W2.A : `on_profile_created_init_modules` est DROPPÉ — c'était lui qui
+  // seedait le parcours identitaire FR à CHAQUE signup. C'est la vérification
+  // nommée dans le BUILD_PLAN (« signup ne seede plus user_week_states »).
+  it("on_profile_created_init_modules est retiré: un signup ne seede plus AUCUN user_week_states (W2.A)", async () => {
     const { data, error } = await client
       .from("user_week_states")
-      .select("module_id,status,available_at")
-      .eq("user_id", userId)
-      .eq("module_id", "week_1")
-      .single();
+      .select("module_id")
+      .eq("user_id", userId);
     if (error) throw error;
-    expect(data.module_id).toBe("week_1");
-    expect(data.status).toBe("available");
-    expect(data.available_at).toBeTruthy();
+    expect(data ?? []).toHaveLength(0);
   });
 
-  it("on_module_activity_unlock: first module activity sets first_updated_at, schedules next week, and completes week_1 after 4 answers", async () => {
-    // Precondition: week_1 exists (created by init trigger)
-    const { data: w1Before, error: w1BeforeErr } = await client
-      .from("user_week_states")
-      .select("id,updated_at,first_updated_at,status,completed_at")
-      .eq("user_id", userId)
-      .eq("module_id", "week_1")
-      .single();
-    if (w1BeforeErr) throw w1BeforeErr;
-
-    expect(w1Before.first_updated_at).toBeNull();
-    expect(w1Before.status).toBe("available");
-    expect(w1Before.completed_at).toBeNull();
-
-    // Insert 4 distinct "m1" modules for week_1 (schema expects 4 for week 1)
+  // W2.A : `on_module_activity_unlock` et `on_forge_level_progression` sont
+  // DROPPÉS. Toute la progression semaine→semaine et la cascade Forge du
+  // parcours identitaire FR sont mortes. Les trois cas ci-dessous étaient les
+  // preuves de la progression ; ils deviennent les preuves de son ABSENCE —
+  // écrire une activité de module ne doit plus rien programmer nulle part.
+  it("on_module_activity_unlock est retiré: 4 réponses ne complètent plus week_1 et ne programment plus week_2 (W2.A)", async () => {
     const baseTime = new Date().toISOString();
+    const { error: seedErr } = await client.from("user_week_states").upsert(
+      { user_id: userId, module_id: "week_1", status: "available", available_at: baseTime },
+      { onConflict: "user_id,module_id" },
+    );
+    if (seedErr) throw seedErr;
+
     const modules = ["a1_c1_m1", "a1_c2_m1", "a1_c3_m1", "a1_c4_m1"].map((module_id) => ({
       user_id: userId,
       module_id,
@@ -225,11 +222,10 @@ describe("ultimate: schema triggers (init modules + week progression + forge pro
       available_at: baseTime,
       content: { content: "Réponse suffisamment longue pour compter." },
     }));
-
     const { error: insErr } = await client.from("user_module_state_entries").insert(modules);
     if (insErr) throw insErr;
 
-    // Assert: user_module_state_entries touched (4 inserts)
+    // Les écritures passent (les tables survivent jusqu'à W2.C)...
     const { count: moduleEntriesCount, error: moduleEntriesCountErr } = await client
       .from("user_module_state_entries")
       .select("*", { count: "exact", head: true })
@@ -238,92 +234,35 @@ describe("ultimate: schema triggers (init modules + week progression + forge pro
     if (moduleEntriesCountErr) throw moduleEntriesCountErr;
     expect(moduleEntriesCount).toBe(4);
 
-    // Assert: first_updated_at set + week_2 scheduled (week_num < 12)
+    // ...mais plus aucun effet de bord: week_1 intacte, week_2 jamais créée.
     const { data: w1After, error: w1AfterErr } = await client
       .from("user_week_states")
-      .select("updated_at,first_updated_at,status,completed_at")
+      .select("first_updated_at,status,completed_at")
       .eq("user_id", userId)
       .eq("module_id", "week_1")
       .single();
     if (w1AfterErr) throw w1AfterErr;
-
-    expect(w1After.first_updated_at).toBeTruthy();
-    expect(w1After.updated_at).toBeTruthy();
-
-    // Completion: should be marked completed after 4 answers
-    await expect
-      .poll(
-        async () => {
-          const { data, error } = await client
-            .from("user_week_states")
-            .select("status,completed_at")
-            .eq("user_id", userId)
-            .eq("module_id", "week_1")
-            .single();
-          if (error) throw error;
-          return data;
-        },
-        { timeout: 10_000, interval: 250 },
-      )
-      .satisfy((row) => row.status === "completed" && !!row.completed_at);
+    expect(w1After.first_updated_at).toBeNull();
+    expect(w1After.status).toBe("available");
+    expect(w1After.completed_at).toBeNull();
 
     const { data: w2, error: w2Err } = await client
       .from("user_week_states")
-      .select("module_id,status,available_at")
+      .select("module_id")
       .eq("user_id", userId)
-      .eq("module_id", "week_2")
-      .single();
+      .eq("module_id", "week_2");
     if (w2Err) throw w2Err;
-    expect(w2.status).toBe("available");
-    expect(w2.available_at).toBeTruthy();
-    // Scheduling rule is now() + 7 days (with timezone/clock tolerance).
-    const w2Avail = new Date(w2.available_at).getTime();
-    const baseMs = new Date(baseTime).getTime();
-    expect(w2Avail).toBeGreaterThan(baseMs + 6 * 24 * 60 * 60 * 1000);
+    expect(w2 ?? []).toHaveLength(0);
   });
 
-  it("on_module_activity_unlock: week_2 first activity schedules week_3 at ~ now+7d", async () => {
-    // Seed week_2 state as available (normally created when week_1 starts)
-    const base = new Date();
-    const { error: seedErr } = await client.from("user_week_states").upsert(
-      { user_id: userId, module_id: "week_2", status: "available", available_at: base.toISOString() },
-      { onConflict: "user_id,module_id" },
-    );
-    if (seedErr) throw seedErr;
-
-    // First activity for week 2 triggers scheduling week_3 at now()+7d
-    const nowIso = new Date().toISOString();
-    const { error: insErr } = await client.from("user_module_state_entries").insert({
-      user_id: userId,
-      module_id: "a2_c1_m1",
-      status: "completed",
-      completed_at: nowIso,
-      available_at: nowIso,
-      content: { content: "Réponse assez longue." },
-    });
-    if (insErr) throw insErr;
-
-    const { data: w3, error: w3Err } = await client
-      .from("user_week_states")
-      .select("module_id,status,available_at")
-      .eq("user_id", userId)
-      .eq("module_id", "week_3")
-      .single();
-    if (w3Err) throw w3Err;
-    expect(w3.status).toBe("available");
-    const w3Avail = new Date(w3.available_at).getTime();
-    expect(w3Avail).toBeGreaterThan(new Date(nowIso).getTime() + 6 * 24 * 60 * 60 * 1000);
-  });
-
-  it("on_module_activity_unlock: week_12 first activity schedules forge_access (+7d)", async () => {
-    // Seed week_12 state (so the trigger can find it)
-    const { error: seedErr } = await client.from("user_week_states").upsert(
-      { user_id: userId, module_id: "week_12", status: "available", available_at: new Date().toISOString() },
-      { onConflict: "user_id,module_id" },
-    );
-    if (seedErr) throw seedErr;
-
+  it("on_module_activity_unlock est retiré: une activité week_12 ne programme plus forge_access (W2.A)", async () => {
     const now = new Date();
+    const { error: seedErr } = await client.from("user_week_states").upsert(
+      { user_id: userId, module_id: "week_12", status: "available", available_at: now.toISOString() },
+      { onConflict: "user_id,module_id" },
+    );
+    if (seedErr) throw seedErr;
+
     const { error: insErr } = await client.from("user_module_state_entries").insert({
       user_id: userId,
       module_id: "a12_c1_m1",
@@ -336,23 +275,14 @@ describe("ultimate: schema triggers (init modules + week progression + forge pro
 
     const { data, error } = await client
       .from("user_week_states")
-      .select("module_id,status,available_at")
+      .select("module_id")
       .eq("user_id", userId)
       .in("module_id", ["forge_access"]);
     if (error) throw error;
-
-    const byId = new Map((data ?? []).map((r) => [r.module_id, r]));
-    expect(byId.get("forge_access")).toBeTruthy();
-
-    // forge_access should be >= now + 6 days (timezone tolerance)
-    const fa = byId.get("forge_access")!;
-    const faDate = new Date(fa.available_at);
-    expect(fa.status).toBe("available");
-    expect(faDate.getTime()).toBeGreaterThan(now.getTime() + 6 * 24 * 60 * 60 * 1000);
+    expect(data ?? []).toHaveLength(0);
   });
 
-  it("on_forge_level_progression: completing aX_cY_m1 creates next level aX_cY_m2 with available_at = completed_at + 4d", async () => {
-    // Ensure week_1 exists to avoid unrelated trigger no-ops; not strictly needed.
+  it("on_forge_level_progression est retiré: compléter aX_cY_m1 ne crée plus aX_cY_m2 (W2.A)", async () => {
     const completedAt = new Date();
     const moduleId = `a99_c1_m1`;
     const nextId = `a99_c1_m2`;
@@ -369,21 +299,14 @@ describe("ultimate: schema triggers (init modules + week progression + forge pro
 
     const { data: next, error: nextErr } = await client
       .from("user_module_state_entries")
-      .select("module_id,status,available_at,completed_at,content")
+      .select("module_id")
       .eq("user_id", userId)
       .eq("module_id", nextId)
       .maybeSingle();
     if (nextErr) throw nextErr;
-
-    if (!next) throw new Error("Expected next forge level module to be created");
-    expect(next.status).toBe("available");
-    expect(next.completed_at).toBeNull();
-    expect(next.content).toEqual({});
-
-    const avail = new Date(next.available_at).getTime();
-    const expectedMin = completedAt.getTime() + 3.5 * 24 * 60 * 60 * 1000;
-    expect(avail).toBeGreaterThan(expectedMin);
+    expect(next).toBeNull();
   });
+
 
   it("update_user_chat_states_modtime: BEFORE UPDATE sets updated_at to NOW", async () => {
     const old = new Date(Date.now() - 10_000).toISOString();
@@ -410,7 +333,7 @@ describe("ultimate: schema triggers (init modules + week progression + forge pro
   });
 });
 
-describe("ultimate: edge-triggered side effects (memories + core identity + archive) [FULL]", () => {
+describe.skipIf(!HAS_SUPABASE_TEST_ENV)("ultimate: edge-triggered side effects (memories + core identity + archive) [FULL]", () => {
   let userId: string;
   let client: SupabaseClient;
   let admin: SupabaseClient;

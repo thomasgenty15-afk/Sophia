@@ -90,11 +90,30 @@ function buildRouteDecision(args: {
   return decision;
 }
 
+/**
+ * W4.7 — vocabulaire des effets que la lane sait EXÉCUTER.
+ *
+ * Les deux effets KEEL rejoignent la liste : sans eux, `direct_effects_to_run`
+ * restait vide pour un élève KEEL et le gate n'était jamais consulté — un
+ * « j'ai pris mon magnésium » émis correctement par le dispatcher mourait ici,
+ * en silence, une couche avant l'exécuteur write-through déjà écrit.
+ *
+ * La liste est fermée et NOMMÉE : elle est le miroir routeur de
+ * `KNOWN_DIRECT_EFFECT_TYPES` (routers/direct_effect_gate.ts). Un effet ajouté
+ * au contrat sans être ajouté ici n'est pas « bloqué », il est INVISIBLE — la
+ * classe de panne que W4.3 a déjà payée sur `effect_gate_orchestrator.ts`.
+ */
+const ROUTER_RUNNABLE_DIRECT_EFFECT_TYPES: ReadonlySet<string> = new Set([
+  "create_one_shot_reminder",
+  "track_progress_plan_item",
+  "log_protocol_event",
+  "declare_deviation",
+]);
+
 function runnableDirectEffects(turnFrame: TurnFrame): string[] {
   return turnFrame.direct_effects
     .filter((effect) =>
-      (effect.effect_type === "create_one_shot_reminder" ||
-        effect.effect_type === "track_progress_plan_item") &&
+      ROUTER_RUNNABLE_DIRECT_EFFECT_TYPES.has(effect.effect_type) &&
       effect.explicitness === "explicit" &&
       effect.target_status === "identified" &&
       (effect.confidence_band === "high" ||
@@ -133,30 +152,22 @@ function coachingRecommendationDetected(turnFrame: TurnFrame): boolean {
     turnFrame.skill_signals.coaching_recommendation.confidence_band !== "low";
 }
 
-function featureOpportunityDetected(turnFrame: TurnFrame): boolean {
-  const signal = turnFrame.skill_signals.feature_opportunity;
-  if (signal?.detected !== true) return false;
-  if (signal.confidence_band === "low") return false;
-  // P2-8 (paul-untested R1-B03): un tour porteur d'un direct effect EXPLICITE
-  // (cancel/create/track) est transactionnel — un signal feature MEDIUM ne
-  // prend pas l'ownership (risque de pitch sur un tour d'annulation pure);
-  // l'opportunité reste candidate pour un tour calme ultérieur. high/critical
-  // garde la main.
-  if (
-    signal.confidence_band === "medium" &&
-    (turnFrame.direct_effects ?? []).some((effect) =>
-      effect.explicitness === "explicit" &&
-      effect.target_status === "identified" &&
-      (effect.confidence_band === "high" ||
-        effect.confidence_band === "critical")
-    )
-  ) return false;
-  return true;
-}
+// W2.A: `featureOpportunityDetected` supprimé avec la lane initiatives /
+// coach_preferences (le signal n'existe plus dans le TurnFrame).
 
 function planRealignmentDetected(turnFrame: TurnFrame): boolean {
   return turnFrame.skill_signals.plan_realignment?.detected === true &&
     turnFrame.skill_signals.plan_realignment.confidence_band !== "low";
+}
+
+// W4.4 — KEEL. Le signal SEUL ne suffit pas: la lane ne peut rien résoudre
+// sans `plan_commitments` (swap_policy, food_group_ref, autonomy). Le gate
+// `keel_student` est calculé par le RUNTIME depuis `profiles.keel_role`,
+// jamais lu dans le turn_frame — même doctrine que le plancher TCA: ce qui
+// OUVRE une lane ne transite pas par le LLM du dispatcher.
+function planQuestionDetected(turnFrame: TurnFrame): boolean {
+  return turnFrame.skill_signals.plan_question?.detected === true &&
+    turnFrame.skill_signals.plan_question.confidence_band !== "low";
 }
 
 // Entrée présence CONSERVATRICE: signal explicite ET confiance forte. La
@@ -186,11 +197,11 @@ function isActiveConversationSkill(
   activeSkillState: unknown,
   skillId:
     | "safety_crisis"
+    | "disordered_eating_guard"
     | "product_help"
     | "coaching_recommendation"
     | "plan_realignment"
     | "daily_action_coaching_recommendation_v1"
-    | "feature_opportunity"
     | "weekly_adaptive_review_v1"
     | "winback_reengagement_v1"
     | "presence_conversation",
@@ -211,6 +222,19 @@ export function runConversationRouters(input: {
   // Kill-switch du flow présence (SOPHIA_PRESENCE_FLOW_ENABLED). Gate l'ENTRÉE
   // uniquement; la continuation d'un flow déjà entré reste possible.
   presence_flow_enabled?: boolean;
+  // W3.2 — Plancher TCA. Calculé par le RUNTIME depuis la base
+  // (`_shared/keel/restriction_guard.ts`), JAMAIS lu dans le turn_frame : le
+  // turn_frame est écrit par le LLM du dispatcher, et l'entrée de ce flow ne
+  // doit pas transiter par un modèle. Absent ⇒ plancher non armé (W4 câble le
+  // calcul; l'ordre des branches ci-dessous est déjà définitif).
+  restriction_guard?: {
+    restriction_flag: boolean;
+    trigger_codes?: string[];
+  } | null;
+  // W4.4 — `profiles.keel_role === 'student'`, lu en base par le runtime.
+  // Absent/false ⇒ la lane plan_question n'existe pas pour ce tour (le legacy
+  // n'a ni commitments ni swap_policy: il n'y aurait rien à résoudre).
+  keel_student?: boolean;
 }): RouteDecision {
   void input.flow_intervention_context;
 
@@ -249,10 +273,6 @@ export function runConversationRouters(input: {
           path: "plan_realignment",
           reason_code: "safety_priority",
         },
-        {
-          path: "feature_opportunity",
-          reason_code: "safety_priority",
-        },
         { path: "normal_reply", reason_code: "safety_priority" },
       ],
     });
@@ -284,10 +304,6 @@ export function runConversationRouters(input: {
         },
         {
           path: "plan_realignment",
-          reason_code: "active_safety_priority",
-        },
-        {
-          path: "feature_opportunity",
           reason_code: "active_safety_priority",
         },
         { path: "normal_reply", reason_code: "active_safety_priority" },
@@ -325,14 +341,87 @@ export function runConversationRouters(input: {
           path: "plan_realignment",
           reason_code: "distress_ideation_safety_priority",
         },
-        {
-          path: "feature_opportunity",
-          reason_code: "distress_ideation_safety_priority",
-        },
         { path: "normal_reply", reason_code: "distress_ideation_safety_priority" },
       ],
     });
   }
+  // W3.2 — TCA. Les DEUX branches ci-dessous sont placées ICI, et cette place
+  // est le fond du lot : sous les trois branches safety (haute/critique, crise
+  // active, idéation medium) parce que rien n'est plus urgent qu'un danger
+  // immédiat pour la vie ; AU-DESSUS de tout le reste parce que toutes les
+  // lanes suivantes (soutien, présence, produit, coaching, réalignement de
+  // plan) sont des lanes de PRESSION — et la pression d'adhérence est
+  // exactement ce que le plancher suspend.
+  //
+  // Continuation d'abord : un flow ouvert n'est pas lâché parce que le
+  // plancher n'a pas été recalculé ce tour-ci.
+  if (
+    isActiveConversationSkill(input.active_skill_state, "disordered_eating_guard")
+  ) {
+    return buildRouteDecision({
+      response_owner: "disordered_eating_guard",
+      selected_handler: "disordered_eating_guard",
+      // Zéro effet durable : une coche de progrès ou un rappel de conformité
+      // committé pendant ce flow EST la pression d'adhérence. Parité avec les
+      // branches safety (P3-A), pas de carve-out.
+      direct_effects_to_run: [],
+      blocked_paths: [
+        ...blockedPaths,
+        ...directEffectsToRun.map((effect) => ({
+          path: `direct_effects.${effect}`,
+          reason_code: "active_restriction_flag_priority",
+        })),
+        { path: "product_help", reason_code: "active_restriction_flag_priority" },
+        {
+          path: "coaching_recommendation",
+          reason_code: "active_restriction_flag_priority",
+        },
+        {
+          path: "plan_realignment",
+          reason_code: "active_restriction_flag_priority",
+        },
+        { path: "normal_reply", reason_code: "active_restriction_flag_priority" },
+      ],
+      active_owner: "disordered_eating_guard",
+      arbitration_decision: "continue_active",
+      resume_policy: "resume_active",
+      reason_code: "active_disordered_eating_guard",
+    });
+  }
+
+  // Entrée : UNIQUEMENT le plancher déterministe. Aucun signal du dispatcher
+  // n'ouvre ce flow — il n'existe volontairement pas de
+  // `skill_signals.disordered_eating_guard`, sans quoi un modèle pourrait à la
+  // fois l'ouvrir et le refuser.
+  if (input.restriction_guard?.restriction_flag === true) {
+    return buildRouteDecision({
+      response_owner: "disordered_eating_guard",
+      selected_handler: "disordered_eating_guard",
+      direct_effects_to_run: [],
+      reason_code: "restriction_flag_priority",
+      blocked_paths: [
+        ...blockedPaths,
+        ...directEffectsToRun.map((effect) => ({
+          path: `direct_effects.${effect}`,
+          reason_code: "restriction_flag_priority",
+        })),
+        { path: "product_help", reason_code: "restriction_flag_priority" },
+        {
+          path: "coaching_recommendation",
+          reason_code: "restriction_flag_priority",
+        },
+        { path: "plan_realignment", reason_code: "restriction_flag_priority" },
+        {
+          path: "presence_conversation",
+          reason_code: "restriction_flag_priority",
+        },
+        { path: "normal_reply", reason_code: "restriction_flag_priority" },
+      ],
+      arbitration_decision: "enter_disordered_eating_guard",
+      resume_policy: "enter_fresh",
+    });
+  }
+
   if (distress === "support") {
     // Devalorisation/desespoir sans ideation: tour de SOUTIEN (companion),
     // pas de crise (pas de hotline), et surtout aucune lane de recommandation
@@ -352,10 +441,6 @@ export function runConversationRouters(input: {
         },
         {
           path: "plan_realignment",
-          reason_code: "distress_support_priority",
-        },
-        {
-          path: "feature_opportunity",
           reason_code: "distress_support_priority",
         },
       ],
@@ -502,22 +587,10 @@ export function runConversationRouters(input: {
     });
   }
 
-  if (
-    isActiveConversationSkill(input.active_skill_state, "feature_opportunity")
-  ) {
-    return buildRouteDecision({
-      response_owner: "feature_opportunity",
-      selected_handler: "feature_opportunity",
-      direct_effects_to_run: directEffectsToRun,
-      blocked_paths: blockedPaths,
-      active_owner: "feature_opportunity",
-      arbitration_decision: "continue_active",
-      resume_policy: "resume_active",
-      reason_code: directEffectsToRun.length > 0
-        ? "active_feature_opportunity_with_direct_effects"
-        : "active_feature_opportunity",
-    });
-  }
+  // W2.A: branche de CONTINUATION `feature_opportunity` retirée (l'ordre des
+  // branches restantes est inchangé). Un état de flow résiduel en base ne peut
+  // plus reprendre la main : `active_flow_state.ts` ne le reconnaît plus, le
+  // tour repart au dispatcher global.
 
   // ENTRÉE présence: uniquement quand AUCUN flow local n'est actif (les
   // continuations ci-dessus gardent la main sinon — pas de préemption
@@ -563,6 +636,26 @@ export function runConversationRouters(input: {
     });
   }
 
+  // W4.4 — plan_question AVANT plan_realignment, et ce placement est le fond
+  // du lot. « je peux remplacer le riz par des pâtes ? » capté par
+  // plan_realignment renvoie l'élève vers un écran d'ajustement de plan pour
+  // une question que le coach a DÉJÀ tranchée en écrivant `autonomy` et
+  // `swap_policy` — c'est la classe de misroute déjà payée sur les récaps
+  // read-only. En dessous de product_help et coaching_recommendation en
+  // revanche: ces deux-là sont des PULL explicites (comprendre le produit,
+  // demander un levier), plan_question est le défaut pour une question sur la
+  // prescription elle-même. Lane NON collante: aucune branche de continuation
+  // plus haut, la question se répond en un tour.
+  if (input.keel_student === true && planQuestionDetected(input.turn_frame)) {
+    return buildRouteDecision({
+      response_owner: "plan_question",
+      selected_handler: "plan_question",
+      direct_effects_to_run: directEffectsToRun,
+      blocked_paths: blockedPaths,
+      reason_code: "plan_question_signal",
+    });
+  }
+
   if (planRealignmentDetected(input.turn_frame)) {
     return buildRouteDecision({
       response_owner: "plan_realignment",
@@ -573,15 +666,9 @@ export function runConversationRouters(input: {
     });
   }
 
-  if (featureOpportunityDetected(input.turn_frame)) {
-    return buildRouteDecision({
-      response_owner: "feature_opportunity",
-      selected_handler: "feature_opportunity",
-      direct_effects_to_run: directEffectsToRun,
-      blocked_paths: blockedPaths,
-      reason_code: "feature_opportunity_signal",
-    });
-  }
+  // W2.A: branche d'ENTRÉE `feature_opportunity` retirée — elle était la
+  // dernière avant le repli normal_reply, l'ordre des branches précédentes est
+  // donc strictement conservé.
 
   return buildRouteDecision({
     response_owner: "normal_reply",

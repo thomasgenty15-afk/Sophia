@@ -17,6 +17,7 @@ import {
 } from "./wa_whatsapp_api.ts";
 import { replyWithBrain } from "./wa_reply.ts";
 import { getEffectiveTierForUser } from "../_shared/billing-tier.ts";
+import { handleInboundMealPhoto } from "./handlers_meal_photo.ts";
 import { handleUnlinkedInbound } from "./handlers_unlinked.ts";
 import { handleStopOptOut } from "./handlers_optout.ts";
 import {
@@ -885,6 +886,24 @@ Deno.serve(async (req) => {
             nowIso,
             requestId: processId,
           });
+        }
+        // KEEL W5.1 — a photo is a FACT, not an unsupported inbound. This runs
+        // BEFORE the fallback below and returns false when it declines (tier
+        // gate, download or write failure), in which case the fallback answers
+        // and nothing has been acknowledged. NOTE for whoever moves this: the
+        // paywall block lives ~120 lines further down and is unreachable from
+        // here, which is why the handler re-checks the gate itself.
+        if (msg.type === "image" && msg.media) {
+          const didHandleMealPhoto = await handleInboundMealPhoto({
+            admin,
+            user_id: profile.id,
+            from_e164: fromE164,
+            request_id: processId,
+            wa_message_id: msg.wa_message_id,
+            media: msg.media,
+            trial_end: profile.trial_end ?? null,
+          });
+          if (didHandleMealPhoto) continue;
         }
         // Temporary fallback: acknowledge unsupported media inbounds with a short friendly message.
         if (

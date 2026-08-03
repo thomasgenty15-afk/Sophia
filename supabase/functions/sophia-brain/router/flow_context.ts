@@ -1,7 +1,29 @@
-import type { FlowContext } from "./dispatcher.ts";
 import {
   getActiveSafetySentryFlow,
 } from "../supervisor.ts";
+
+/**
+ * W2.D-2 — this module used to do `import type { FlowContext } from "./dispatcher.ts"`, but
+ * `dispatcher.ts` stopped exporting that type (commit 75570f7b, "clean v2 redesign
+ * foundation"). The import is erased at runtime, so nothing broke — it only made
+ * `deno check` fail on every graph that reaches this file, which is how it survived.
+ *
+ * The type is declared here instead, mirroring exactly what `buildFlowContext` returns below.
+ * Note for a later wave: this module is ORPHANED — `flow_context_test.ts` is its only
+ * importer. When it goes, this declaration goes with it.
+ */
+export type FlowContext = {
+  isSafetyFlow?: boolean;
+  safetyFlowType?: string;
+  safetyPhase?: string;
+  safetyTurnCount?: number;
+  isBilan?: boolean;
+  currentItemTitle?: string;
+  missedStreak?: number;
+  bilanStale?: boolean;
+  bilanAgeHours?: number;
+  bilanStaleAfterHours?: number;
+};
 
 function parseIsoMs(raw: unknown): number {
   if (typeof raw !== "string" || !raw.trim()) return 0;

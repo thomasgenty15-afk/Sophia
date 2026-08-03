@@ -12,9 +12,27 @@ export type Intensity = "none" | "low" | "medium" | "high";
 
 export type ConversationChannel = "web" | "whatsapp";
 
+/**
+ * Durable effects a turn may request.
+ *
+ * W4.3 opened this union to the two KEEL fact-writers. They are NOT a new
+ * genre: `log_protocol_event` and `declare_deviation` write FACTS
+ * (`protocol_events`, `planned_deviations`) exactly as
+ * `track_progress_plan_item` does, so they inherit the whole doctrinal chain
+ * unchanged — contract -> gate (default-deny, safety blocks at band >= medium)
+ * -> executor (write-through) -> ledger -> renderer (never acknowledges
+ * without a committed effect).
+ *
+ * The gate rule was written in W3.3, BEFORE these two values existed
+ * (`routers/direct_effect_gate.ts`, exemption list closed). Adding a value
+ * here therefore blocks it in crisis by construction; it never has to be
+ * remembered. `routers/direct_effect_gate_keel_test.ts` pins that property.
+ */
 export type DirectEffectType =
   | "create_one_shot_reminder"
-  | "track_progress_plan_item";
+  | "track_progress_plan_item"
+  | "log_protocol_event"
+  | "declare_deviation";
 
 export type DirectEffectTimeContext = {
   now_utc: string;
@@ -137,6 +155,29 @@ export type PresenceConversationSignalContext = {
   reason: string;
 };
 
+// KEEL W4.4 — flow léger `plan_question`: le student pose une question
+// D'EXÉCUTION à l'intérieur du plan (« je peux remplacer le riz par des
+// pâtes ? », « je suis au resto », « j'ai décalé le déjeuner »). Distinct de
+// `plan_realignment`, qui est une lane de DÉCROCHAGE (le plan ne tient plus et
+// doit changer). Le contexte porte les deux slugs `food_groups` bruts: le
+// resolver Tier 0 les parse fail-loud et n'en devine JAMAIS un.
+export type PlanQuestionKind =
+  | "food_swap"
+  | "eating_out"
+  | "meal_shifted"
+  | "other";
+
+export type PlanQuestionSignalContext = {
+  kind: PlanQuestionKind;
+  /** Slug `food_groups` que l'élève veut MANGER À LA PLACE. Brut, non validé. */
+  requested_food_group?: string | null;
+  /** Slug `food_groups` prescrit, tel que l'élève le nomme. Brut, non validé. */
+  prescribed_food_group?: string | null;
+  /** Créneau visé (`slot_vocabulary`), quand l'élève le nomme. Brut. */
+  slot_hint?: string | null;
+  reason: string;
+};
+
 export type DispatcherSkillSignals = {
   product_help?: SkillSignal;
   coaching_recommendation?: SkillSignal & {
@@ -145,11 +186,18 @@ export type DispatcherSkillSignals = {
   plan_realignment?: SkillSignal & {
     context?: PlanRealignmentSignalContext;
   };
-  feature_opportunity?: SkillSignal & {
-    context?: FeatureOpportunitySignalContext;
-  };
+  // W2.A: `feature_opportunity` (initiatives / coach_preferences) est retiré
+  // du contrat de signaux — la lane n'est plus routable. Le type de contexte
+  // `FeatureOpportunitySignalContext` reste défini ci-dessus tant que le skill
+  // existe en code (supprimé en W2.B).
   presence_conversation?: SkillSignal & {
     context?: PresenceConversationSignalContext;
+  };
+  // W4.4 — KEEL only. La lane ne s'ouvre que pour un `keel_role='student'`
+  // (routers.ts gate sur `keel_student`): sans commitments il n'y a rien à
+  // résoudre, et le legacy n'a ni swap_policy ni food_groups.
+  plan_question?: SkillSignal & {
+    context?: PlanQuestionSignalContext;
   };
 };
 
