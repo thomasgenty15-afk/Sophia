@@ -26,6 +26,7 @@ import {
   TO_CATCH_UP_CAP,
 } from "./coach_synthesis.ts";
 import { computeWeekAdherence, type WeekAdherenceInput } from "./adherence.ts";
+import { REENGAGE_AFTER_HOURS } from "./reengagement.ts";
 
 const NOW = new Date("2026-08-03T09:00:00.000Z");
 const WEEK = [
@@ -343,4 +344,47 @@ Deno.test("risk_band values stay inside the SQL CHECK of weekly_reviews", async 
   ) {
     assert(block.includes(`'${band}'`), `${band} is not in the SQL CHECK`);
   }
+});
+
+Deno.test("the plate readout is emitted, and only when plates were seen", () => {
+  // The payoff of the kcal arbitration: having refused the calorie figure, the
+  // synthesis owes the coach an answer to the question it stood in for.
+  const withPlates = buildCoachSynthesis(
+    [
+      student({
+        studentUserId: "a",
+        portionBands: ["small", "moderate", "moderate", "large", null, "unclear"],
+      }),
+    ],
+    NOW,
+  );
+  assertEquals(withPlates.metrics.portions.total, 5);
+  assertEquals(withPlates.metrics.portions.moderate, 2);
+  const text = renderSynthesisText(withPlates, { locale: "en" });
+  assert(text.includes("5 plates seen: 1 small, 2 moderate, 1 large, 1 unclear."), text);
+  // And still not one calorie anywhere.
+  assert(!/kcal|calorie/i.test(text));
+
+  // No plates -> the line is absent. "0 plates: 0 small" is noise dressed as data.
+  const noPlates = buildCoachSynthesis([student({ studentUserId: "b" })], NOW);
+  assertEquals(noPlates.metrics.portions.total, 0);
+  assert(!renderSynthesisText(noPlates, { locale: "en" }).includes("plates seen"));
+});
+
+Deno.test("the two re-engagement thresholds cannot silently drift apart", () => {
+  // §7.3-(6). Two modules now encode "when has a student gone quiet":
+  // `reengagement.ts` decides whether to send, `coach_synthesis.ts` decides
+  // what the coach's cohort screen shows. They are DIFFERENT questions and are
+  // allowed to differ -- but not by accident. `slipping` must open no later
+  // than the nudge fires, or the coach reads "in touch" about a student the
+  // system has already decided to chase.
+  assert(
+    CONTACT_SLIPPING_AFTER_HOURS <= REENGAGE_AFTER_HOURS,
+    `slipping opens at ${CONTACT_SLIPPING_AFTER_HOURS}h but the nudge fires at ` +
+      `${REENGAGE_AFTER_HOURS}h: the coach would see "in touch" for a student ` +
+      `already being chased`,
+  );
+  // And `silent` must sit strictly beyond the nudge, or the cohort screen calls
+  // someone silent before anyone has tried to reach them.
+  assert(CONTACT_SILENT_AFTER_HOURS > REENGAGE_AFTER_HOURS);
 });

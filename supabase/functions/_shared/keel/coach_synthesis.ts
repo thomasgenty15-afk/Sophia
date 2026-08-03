@@ -30,6 +30,8 @@
 import {
   computeWeekAdherence,
   LOGGING_COVERAGE_MIN_DAYS,
+  type PortionBandSummary,
+  summarizePortionBands,
   type WeekAdherenceInput,
   type WeekAdherenceResult,
 } from "./adherence.ts";
@@ -114,6 +116,18 @@ export interface StudentWeekInput {
   /** Everything `computeWeekAdherence` needs. */
   adherence: WeekAdherenceInput;
   /**
+   * The `portion_band` COLUMN of every fact logged this week, `null` for facts
+   * that carry none (a text log, a tap). Never read from `recognized` jsonb.
+   *
+   * THIS IS THE PAYOFF OF THE kcal ARBITRATION (P0.0bis). Having refused to
+   * show the coach a calorie figure, we owe him an answer to the question the
+   * figure was standing in for -- "is this student eating a lot or a little?".
+   * Three ordinal bands answer it on ground the model is actually good on
+   * (classification), where a kcal estimate answers it on ground it is
+   * measurably bad on (regression, -26.6% systematic bias).
+   */
+  portionBands?: readonly (string | null | undefined)[];
+  /**
    * The deterministic TCA floor (`restriction_guard.ts`). When true, it
    * overrides every other band — see `classifyRisk`.
    */
@@ -179,6 +193,8 @@ export interface StudentSynthesisLine {
   adherence: WeekAdherenceResult;
   riskBand: RiskBand;
   flagReason: FlagReason | null;
+  /** The week's plate readout. `total: 0` when no photo carried a band. */
+  portions: PortionBandSummary;
   /** Rank key: lower sorts first. Deterministic, no ties broken by chance. */
   severity: number;
 }
@@ -227,6 +243,7 @@ export function buildStudentLine(
     adherence,
     riskBand,
     flagReason,
+    portions: summarizePortionBands(input.portionBands ?? []),
     severity: flagReason === null ? 99 : FLAG_SEVERITY[flagReason],
   };
 }
@@ -244,6 +261,8 @@ export interface CohortMetrics {
   withAdherence: number;
   /** Mean core adherence over those students only, integer percent, or null. */
   meanCoreAdherencePct: number | null;
+  /** Every plate the cohort logged this week, by band. */
+  portions: PortionBandSummary;
 }
 
 export interface CoachSynthesis {
@@ -301,6 +320,9 @@ export function buildCoachSynthesis(
     meanCoreAdherencePct: coreValues.length > 0
       ? Math.round(coreValues.reduce((a, b) => a + b, 0) / coreValues.length)
       : null,
+    portions: summarizePortionBands(
+      students.flatMap((s) => [...(s.portionBands ?? [])]),
+    ),
   };
 
   const flaggedAll = lines.filter((l) => l.flagReason !== null);
@@ -353,6 +375,19 @@ export function renderSynthesisText(
     out.push(
       `No adherence figure this week: nobody logged at least ` +
         `${LOGGING_COVERAGE_MIN_DAYS} of 7 days.`,
+    );
+  }
+
+  // The plate readout. Third, per PHOTO_QUANTIFICATION.md 5: coverage first
+  // (the metric that predicts outcome), adherence second, portions third.
+  // Emitted only when plates were actually seen -- "0 plates: 0 small" is
+  // noise dressed as data.
+  const p = m.portions;
+  if (p.total > 0) {
+    out.push(
+      `${p.total} plate${p.total === 1 ? "" : "s"} seen: ` +
+        `${p.small} small, ${p.moderate} moderate, ${p.large} large` +
+        (p.unclear > 0 ? `, ${p.unclear} unclear` : "") + ".",
     );
   }
 
@@ -448,6 +483,14 @@ export function metricsPayload(synthesis: CoachSynthesis): Record<string, unknow
     silent: m.silent,
     with_adherence: m.withAdherence,
     mean_core_adherence_pct: m.meanCoreAdherencePct,
+    portions: {
+      total: m.portions.total,
+      small: m.portions.small,
+      moderate: m.portions.moderate,
+      large: m.portions.large,
+      unclear: m.portions.unclear,
+      decidable: m.portions.decidable,
+    },
     flagged_count: synthesis.flagged.length,
     // A cap that truncates must say so, or the list reads as "everything".
     flagged_total_before_cap: synthesis.lines.filter((l) => l.flagReason !== null).length,
