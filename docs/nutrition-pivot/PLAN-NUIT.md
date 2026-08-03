@@ -1,5 +1,38 @@
 # PLAN DE NUIT — Pivot « Coach Nutrition 1:N »
 
+> ## ⚠️ AMENDEMENT DU 2026-08-03 — LIRE AVANT LE RESTE
+>
+> Trois décisions prises après la rédaction de ce plan en contredisent des passages
+> **structurants**. Elles ont été appliquées dans le code ; le texte d'origine est conservé
+> tel quel plus bas, mais **c'est cet encadré qui fait autorité** là où les deux divergent.
+>
+> **1. L'élève A une interface. §1.2 est caduc.**
+> « L'élève n'a AUCUNE interface » et l'ANNEXE A qui marque `/app/*` en suppression ne
+> décrivent plus le produit. L'élève a un compte et deux écrans : `/app/plan` (son plan de
+> la semaine) et `/app/progress` (son avancée). La saisie quotidienne reste sur WhatsApp —
+> **l'app sert à VOIR, WhatsApp à SAISIR** — ce qui préserve la thèse PUSH.
+> *Coût nul côté identité* : la décision P0.0(a) (auth.users fantôme) avait été prise en
+> gardant ce chemin ouvert.
+>
+> **2. Le coach RECOMMANDE, il ne prescrit pas. §1.5 change de forme.**
+> Dans le modèle 1:N (50-500 élèves par cohorte), le coach n'écrit pas un plan par élève :
+> il écrit UN programme (`plan_templates`) et une doctrine. **C'est l'élève qui compose sa
+> semaine**, à partir de ces recommandations, de son objectif et de sa situation.
+> L'autorité du coach n'est pas affaiblie, elle change de canal : elle passe par la
+> doctrine (interdits inclus, avec leur double verrou) et par le contenu du programme.
+> Sophia reste interdite d'inventer du contenu alimentaire — garanti par un CHECK SQL sur
+> `student_week_plans`, pas seulement par un test.
+>
+> **3. L'ADHÉRENCE sort du périmètre 1:N.**
+> Sans prescription individuelle, « l'élève a-t-il suivi ce qu'on lui a prescrit » n'a plus
+> d'objet. L'évaluateur KEEL (`commitment_evaluations`, `adherence.ts`, et les crons
+> `keel-provision-day` / `keel-sweep-day` / `keel-evaluate-adherence`) est **débranché, pas
+> supprimé** : il reste juste, et un mode 1:1 le retrouve en replanifiant trois jobs.
+> Ce que le coach lit le lundi : **couverture · vivabilité · portions · intentions**.
+>
+> Journal complet des décisions : `PROGRESS.md`. État livré : `STATUS-MORNING.md`.
+
+
 > **Charte d'exécution pour l'agent de nuit.** Tu n'as pas le droit de t'arrêter tant que ce plan
 > n'est pas entièrement en place OU que chaque blocage restant est documenté avec un contournement
 > tenté. Tu tiens un journal (`docs/nutrition-pivot/PROGRESS.md`) et tu livres au matin un état
