@@ -76,6 +76,34 @@ Deno.test("the compile prompt forbids inventing what the coach did not say", () 
   assert(p.includes("a token alone catches nothing"));
 });
 
+// QA agent 10, run of 2026-08-03, real LLM. Two compilations measured on the
+// real endpoint, and both defects were prompt-level:
+//
+//   * an interview answered "hmm" / "?" / "n/a" compiled into an INTERDIT whose
+//     token was `hmm` (surface forms "hmm", "Hmm") and two arbitrations whose
+//     coach_answer was "not sure yet" and "?". Published, that interdit is a
+//     live output lock on an ordinary word: the student stops getting answers
+//     and starts getting the doctrine fallback.
+//   * the three hard-case answers were ALSO recorded as beliefs, so a reply
+//     given to one student in one moment ("That's usually the plan working")
+//     landed in the layer the agent applies to every turn.
+//
+// These assertions pin the two rules that fixed them. They are string checks on
+// purpose: the behaviour they protect can only be measured against a live
+// model, so what a cheap test can still guarantee is that the rule is not
+// silently deleted.
+Deno.test("the compile prompt refuses filler answers and situational answers as beliefs", () => {
+  const p = DOCTRINE_COMPILE_SYSTEM_PROMPT;
+  // Filler is skipped, and the prompt says WHY (a token built from filler
+  // becomes a filter on an ordinary word).
+  assert(p.includes("AN ANSWER THAT SAYS NOTHING IS NOT AN ANSWER"));
+  assert(p.includes("Never turn filler into a token"));
+  // A hard-case answer is an arbitration and nothing else.
+  assert(p.includes("An answer he gave to one of the hard cases is an arbitration"));
+  // One conviction per belief: the key derived from it is a week plan's anchor.
+  assert(p.includes("ONE conviction per entry"));
+});
+
 Deno.test("the compile prompt carries the interview verbatim, empty answers dropped", () => {
   const msg = buildInterviewCompilePrompt([
     { section: "beliefs", question: "Q1", answer: "I believe in fasting" },
