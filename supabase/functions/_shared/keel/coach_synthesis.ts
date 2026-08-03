@@ -67,6 +67,26 @@ export const CONTACT_SILENT_AFTER_HOURS = 120;
 const HOUR_MS = 60 * 60 * 1000;
 
 /**
+ * Y a-t-il un CHIFFRE d'adhérence défendable ?
+ *
+ * FOUND ON REAL DATA (2026-08-03, run d'intégration sur la base locale): un
+ * élève qui logge 5 jours sur 7 mais dont le coach n'a PUBLIÉ AUCUN plan
+ * franchit la barrière de couverture, n'a aucune évaluation, et
+ * `computeWeekAdherence` rend alors `overallPct: 0` avec `evaluableDays: 0`.
+ * Lu naïvement, ça produit « at_risk, 0 % sur les lignes core » — une
+ * ACCUSATION envoyée au coach à propos d'un élève qui a fait exactement ce
+ * qu'on lui demandait.
+ *
+ * Le 0 % n'est pas un mauvais score, c'est une division par rien. `evaluableDays`
+ * est le seul champ qui distingue les deux, donc c'est lui qui décide. Même
+ * doctrine que le reste du contrat: `unknown` n'est jamais écrasé en échec par
+ * du silence — ici le silence est celui du COACH, pas de l'élève.
+ */
+export function hasAdherenceNumber(result: WeekAdherenceResult): boolean {
+  return result.kind === "adherence" && result.evaluableDays > 0;
+}
+
+/**
  * @param lastInboundAt the last message the STUDENT sent. Not the last message
  *   Sophia sent — a student who receives three nudges and answers none is
  *   silent, and counting outbound would hide exactly the case that matters.
@@ -159,6 +179,9 @@ export function classifyRisk(args: {
   if (args.restrictionFlag) return "restriction_flag";
   if (args.contact === "silent") return "disengaged";
   if (args.adherence.kind === "insufficient_data") return "disengaged";
+  // Rien de prescrit => rien à noter. `watch` et pas `at_risk`: l'élève n'a
+  // rien fait de mal, et c'est au coach d'agir (publier le plan).
+  if (!hasAdherenceNumber(args.adherence)) return "watch";
   if (args.outcomeMismatch) return "outcome_mismatch";
 
   const pct = args.adherence.corePct ?? args.adherence.overallPct;
@@ -182,6 +205,8 @@ export const FLAG_REASONS = [
   "coverage_below_gate",
   "adherence_at_risk",
   "outcome_mismatch",
+  /** L'élève logge, mais aucune ligne n'est publiée pour lui. */
+  "no_evaluable_plan",
 ] as const;
 export type FlagReason = (typeof FLAG_REASONS)[number];
 
@@ -202,10 +227,13 @@ export interface StudentSynthesisLine {
 const FLAG_SEVERITY: Readonly<Record<FlagReason, number>> = {
   restriction_signal: 0,
   silent_5d: 1,
-  coverage_below_gate: 2,
-  adherence_at_risk: 3,
-  outcome_mismatch: 4,
-  slipping_contact: 5,
+  // Juste après le silence: un élève qui logge dans le vide décroche vite, et
+  // la correction ne coûte au coach qu'une publication de plan.
+  no_evaluable_plan: 2,
+  coverage_below_gate: 3,
+  adherence_at_risk: 4,
+  outcome_mismatch: 5,
+  slipping_contact: 6,
 };
 
 function flagFor(line: {
@@ -216,6 +244,7 @@ function flagFor(line: {
   if (line.riskBand === "restriction_flag") return "restriction_signal";
   if (line.contact === "silent") return "silent_5d";
   if (line.adherence.kind === "insufficient_data") return "coverage_below_gate";
+  if (!hasAdherenceNumber(line.adherence)) return "no_evaluable_plan";
   if (line.riskBand === "outcome_mismatch") return "outcome_mismatch";
   if (line.riskBand === "at_risk") return "adherence_at_risk";
   if (line.contact === "slipping") return "slipping_contact";
@@ -306,7 +335,7 @@ export function buildCoachSynthesis(
     a.studentUserId.localeCompare(b.studentUserId)
   );
 
-  const withAdherence = lines.filter((l) => l.adherence.kind === "adherence");
+  const withAdherence = lines.filter((l) => hasAdherenceNumber(l.adherence));
   const coreValues = withAdherence
     .map((l) => (l.adherence.kind === "adherence" ? l.adherence.corePct ?? l.adherence.overallPct : null))
     .filter((v): v is number => v !== null);
@@ -371,11 +400,32 @@ export function renderSynthesisText(
         `(${m.withAdherence} of ${m.studentCount} logged enough for a number).`,
     );
   } else {
-    // The gate, stated rather than filled with a fake average.
-    out.push(
-      `No adherence figure this week: nobody logged at least ` +
-        `${LOGGING_COVERAGE_MIN_DAYS} of 7 days.`,
-    );
+    // The gate, stated rather than filled with a fake average — AND stated
+    // with the RIGHT reason. Saying "nobody logged 4 of 7 days" to a coach
+    // whose student logged 5 is a false statement in the one artefact whose
+    // whole value is that its numbers can be trusted. The two causes are
+    // distinguishable (`no_evaluable_plan` vs `coverage_below_gate`), so they
+    // are distinguished.
+    const noPlan = synthesis.lines.filter((l) => l.flagReason === "no_evaluable_plan").length;
+    if (noPlan > 0 && noPlan === m.studentCount) {
+      out.push(
+        "No adherence figure this week: no plan lines are published for " +
+          (m.studentCount === 1 ? "this student" : "these students") + " yet.",
+      );
+    } else if (noPlan > 0) {
+      const others = m.studentCount - noPlan;
+      out.push(
+        `No adherence figure this week: ${noPlan} of ${m.studentCount} students ` +
+          `${noPlan === 1 ? "has" : "have"} no published plan, and ` +
+          `${others === 1 ? "the other logged" : "the others logged"} fewer than ` +
+          `${LOGGING_COVERAGE_MIN_DAYS} of 7 days.`,
+      );
+    } else {
+      out.push(
+        `No adherence figure this week: nobody logged at least ` +
+          `${LOGGING_COVERAGE_MIN_DAYS} of 7 days.`,
+      );
+    }
   }
 
   // The plate readout. Third, per PHOTO_QUANTIFICATION.md 5: coverage first
@@ -425,6 +475,9 @@ export function describeFlag(line: StudentSynthesisLine): string {
       const cov = line.adherence.loggingCoverage;
       return `only logged ${cov.loggedDays} of 7 days - not enough to say how the week went.`;
     }
+    case "no_evaluable_plan":
+      // Nommé côté COACH, parce que l'action est la sienne.
+      return "is logging, but has no published plan lines to log against - publish their plan and this becomes measurable.";
     case "outcome_mismatch":
       return "following the plan, but the outcome is moving the wrong way.";
     case "adherence_at_risk": {
@@ -462,13 +515,17 @@ export function flaggedStudentsPayload(
         ? null
         : Math.round(line.hoursSinceContact),
       logged_days: line.adherence.loggingCoverage.loggedDays,
-      core_adherence_pct: line.adherence.kind === "adherence"
+      core_adherence_pct: hasAdherenceNumber(line.adherence) &&
+          line.adherence.kind === "adherence"
         ? line.adherence.corePct
         : null,
       // Explicit, so a reader of the row never has to infer why a percentage is
       // missing: absent-because-gated and absent-because-bug look identical
       // otherwise.
-      adherence_gated: line.adherence.kind === "insufficient_data",
+      adherence_gated: !hasAdherenceNumber(line.adherence),
+      evaluable_days: line.adherence.kind === "adherence"
+        ? line.adherence.evaluableDays
+        : 0,
     },
   }));
 }

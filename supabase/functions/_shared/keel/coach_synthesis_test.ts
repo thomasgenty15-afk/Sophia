@@ -388,3 +388,45 @@ Deno.test("the two re-engagement thresholds cannot silently drift apart", () => 
   // someone silent before anyone has tried to reach them.
   assert(CONTACT_SILENT_AFTER_HOURS > REENGAGE_AFTER_HOURS);
 });
+
+Deno.test("a student logging into a VOID is not accused of 0% (found on real data)", () => {
+  // 5 days logged, coverage gate cleared, and NO published plan lines. The
+  // adherence formula divides by nothing and returns 0 with evaluableDays=0.
+  // Read naively that becomes "at_risk, 0% on core lines" — an accusation sent
+  // to the coach about a student who did exactly what was asked.
+  const noPlan: StudentWeekInput = student({
+    studentUserId: "void",
+    displayName: "Julie",
+    adherence: {
+      weekDates: WEEK,
+      evaluations: [],
+      eventCountsByDate: Object.fromEntries(WEEK.slice(0, 5).map((d) => [d, 2])),
+    },
+  });
+  const synthesis = buildCoachSynthesis([noPlan], NOW);
+  const line = synthesis.lines[0];
+
+  assertEquals(line.riskBand, "watch", "not at_risk: the student did nothing wrong");
+  assertEquals(line.flagReason, "no_evaluable_plan");
+  // No percentage anywhere — neither in the cohort average nor in the payload.
+  assertEquals(synthesis.metrics.meanCoreAdherencePct, null);
+  assertEquals(synthesis.metrics.withAdherence, 0);
+  const payload = flaggedStudentsPayload(synthesis);
+  assertEquals((payload[0].evidence as Record<string, unknown>).core_adherence_pct, null);
+  assertEquals((payload[0].evidence as Record<string, unknown>).adherence_gated, true);
+  assertEquals((payload[0].evidence as Record<string, unknown>).evaluable_days, 0);
+
+  // And the sentence points at the COACH's action, not the student's failure.
+  const text = renderSynthesisText(synthesis, { locale: "en" });
+  assert(text.includes("no published plan lines"), text);
+  assert(!/\d+%/.test(text), text);
+});
+
+Deno.test("a real 0% with evaluated lines IS still at_risk", () => {
+  // The disarm side: the fix must not swallow a genuine failing week.
+  const failing = student({ adherence: adherenceInput(7, "missed") });
+  const synthesis = buildCoachSynthesis([failing], NOW);
+  assertEquals(synthesis.lines[0].riskBand, "at_risk");
+  assertEquals(synthesis.lines[0].flagReason, "adherence_at_risk");
+  assertEquals(synthesis.metrics.meanCoreAdherencePct, 0);
+});

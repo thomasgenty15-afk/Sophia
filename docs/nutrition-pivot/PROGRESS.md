@@ -529,3 +529,46 @@ le hash nécessaire au déplacement. Repris dans STATUS-MORNING.
 deno test --allow-all supabase/functions/sophia-brain/ supabase/functions/_shared/keel/
 # 1780 passed | 0 failed | 18 ignored
 ```
+
+---
+
+## 08:55 — P2.8 : VERT ET CÂBLÉ — la synthèse coach tourne sur la VRAIE base
+
+- `_shared/keel/coach_synthesis_io.ts` (neuf, 8 tests) : lit les faits, appelle le moteur, écrit.
+  **Aucun chiffre n'est calculé dans ce fichier.**
+- `supabase/functions/coach-synthesis-v1/` (neuf) : le job par coach actif, paginé, budgété,
+  idempotent (upsert sur `(coach_id, kind, period_start, period_end)`), **rejouable sur une semaine
+  passée** (`as_of_local_date` est un paramètre — un job qui lit l'horloge en interne ne peut pas
+  être testé sous horloge simulée). **Il n'appelle aucun modèle.**
+- `delivered_at` n'est jamais posé à l'écriture : générer ≠ livrer.
+
+### 🔴 DEUX BUGS TROUVÉS EN LANÇANT SUR LA VRAIE BASE (pas sur des fakes)
+Premier run d'intégration réel de la nuit : 1 coach, 2 élèves, événements et messages seedés.
+
+1. **Un élève qui logge dans le VIDE était accusé de « 0 % ».** Julie logge 5 jours sur 7, son coach
+   n'a **publié aucun plan** → `computeWeekAdherence` rend `overallPct: 0` avec `evaluableDays: 0`.
+   Lu naïvement : « at_risk, 0 % sur les lignes core » — une **accusation** envoyée au coach à propos
+   d'une élève qui a fait exactement ce qu'on lui demandait. Le 0 % n'est pas un mauvais score,
+   c'est une division par rien. Corrigé : `hasAdherenceNumber()` tranche sur `evaluableDays`, la
+   bande devient `watch` (pas `at_risk`), et un motif neuf `no_evaluable_plan` dit au coach que
+   **l'action est la sienne** : « is logging, but has no published plan lines — publish their plan
+   and this becomes measurable. »
+2. **La synthèse énonçait un motif FAUX.** Elle disait « nobody logged at least 4 of 7 days » alors
+   que Julie en avait loggé 5. Deux causes distinctes d'absence de chiffre (pas de plan publié vs
+   couverture insuffisante) étaient rendues par la même phrase. Dans le seul artefact dont toute la
+   valeur est qu'on peut croire ses chiffres, énoncer un motif faux est le pire défaut possible.
+   Les deux causes sont distinguables, donc elles sont distinguées.
+
+Aucun des deux n'était visible sur des fakes — les deux demandaient de vraies lignes.
+
+### Sortie réelle, vérifiée en base
+```
+2 students this week: 1 in touch, 0 slipping, 1 silent.
+No adherence figure this week: 1 of 2 students has no published plan, and the other logged fewer than 4 of 7 days.
+4 plates seen: 1 small, 2 moderate, 1 large.
+
+To catch up:
+- Nadia: no message for 33 days.
+- Julie: is logging, but has no published plan lines to log against - publish their plan and this becomes measurable.
+```
+Ligne écrite en base avec `delivered_at: null`, `metrics` et `flagged_students` complets.
