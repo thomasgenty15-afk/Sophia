@@ -938,3 +938,41 @@ garde est écrit dans `generate-week-plan-v1` dès le départ.
 deno test --allow-all supabase/functions/_shared/keel/ supabase/functions/sophia-brain/
 # 1834 passed | 0 failed
 ```
+
+---
+
+## N2 : VERT — le tap du soir
+
+`_shared/keel/daily_pulse.ts` (11 tests) + `daily_pulse_io.ts` + handler webhook +
+`functions/keel-daily-pulse-v1/` + cron horaire.
+
+**3 niveaux, pas 0-10** — contrainte Meta (3 boutons, `slice(0,3)` déjà dans `whatsapp-send`), mais
+la contrainte tombe bien : sur 0-10 rempli quotidiennement les réponses se massent sur 7-8 et
+l'échelle transporte presque rien tout en ayant l'air précise. La finesse (1-5 × 6 axes) part dans
+le point hebdo, dans l'app.
+
+**L'axe n'est demandé que si ça va mal.** Un bon jour n'a pas de coupable — et l'axe renseigné sur
+une bonne journée produirait une statistique fausse. La base le refuse (CHECK de cohérence).
+
+**⚠️ L'activité ne supprime JAMAIS la question** — c'est le point que tu avais relevé et il est
+maintenant testé explicitement. Les photos disent *ce qui a été mangé*, le tap dit *si le protocole
+est vivable*. Un élève qui logge parfaitement et qui est épuisé a une couverture excellente : c'est
+exactement le cas qu'on cherche, et le laisser supprimer la question le rendrait invisible.
+L'activité ne change que le **mode** d'envoi (`attach` vs `standalone`).
+
+**Le handler est placé AVANT tout routage sémantique** : un `interactive_id` est une donnée exacte
+(§3.1), le faire descendre au dispatcher reviendrait à payer un appel LLM pour interpréter une
+valeur qui n'a qu'un sens. `readPulseReply` ne lit **que** l'id de bouton, jamais le texte — un
+« moyen » tapé à la main dans une conversation n'est pas une réponse au tap.
+
+**L'accusé ne commente jamais.** « Dur » suivi de « courage, demain ira mieux » est la tendresse
+non groundée que la doctrine du dépôt proscrit, et sur un tap quotidien c'est insupportable en une
+semaine. Testé par regex.
+
+### Vérifications
+- `deno test` : **1845 passed | 0 failed**
+- `deno check whatsapp-webhook/index.ts` : le fichier **ne typecheckait pas avant** mes changements
+  (35 erreurs pré-existantes, implicit-any). J'ai comparé les erreurs par fichier avant/après :
+  **identiques** — zéro erreur ajoutée. J'en avais introduit 2 (`message_type` sans
+  `interactive_buttons` dans l'union, `error_payload` manquant), corrigées.
+- Cron `keel-daily-pulse` horaire à :10, assertions sur la fonction nommée + secret résolu.

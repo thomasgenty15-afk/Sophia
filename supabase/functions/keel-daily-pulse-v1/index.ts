@@ -1,0 +1,203 @@
+/// <reference path="../tsserver-shims.d.ts" />
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient, type SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3";
+
+import { ensureInternalRequest } from "../_shared/internal-auth.ts";
+import { getRequestId, jsonResponse } from "../_shared/http.ts";
+import { logEdgeFunctionError } from "../_shared/error-log.ts";
+import { decideDailyPulse, renderPulseQuestion } from "../_shared/keel/daily_pulse.ts";
+import { loadPulseDay } from "../_shared/keel/daily_pulse_io.ts";
+import { localHourFor } from "../_shared/keel/reengagement_io.ts";
+
+/**
+ * PIVOT NUTRITION — N2 : le job qui envoie le tap du soir.
+ *
+ * Balayage HORAIRE, parce que la fenêtre (20h-22h) est en heure LOCALE de
+ * l'élève : un job quotidien ne pourrait servir correctement qu'un seul fuseau.
+ * C'est le même raisonnement que `keel-reengage-v1`, et c'est le bug latent
+ * n°2 documenté dans BUILD_PLAN W1.3 (« planificateur cassé hors Europe »).
+ *
+ * CE QU'IL FAIT : décider, et poser la question. Il n'écrit pas la réponse —
+ * c'est le webhook qui la reçoit et l'écrit, parce que la réponse arrive par
+ * un bouton, des minutes ou des heures plus tard.
+ *
+ * `dry_run: true` décide sans envoyer : le mode qui permet de voir QUI serait
+ * sollicité avant d'ouvrir la vanne.
+ */
+
+const FN_NAME = "keel-daily-pulse-v1";
+const PAGE = 200;
+const DEFAULT_BUDGET_MS = 45_000;
+
+function cleanText(v: unknown, fb = ""): string {
+  const t = String(v ?? "").trim();
+  return t || fb;
+}
+
+function adminClient(): SupabaseClient {
+  return createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+    { auth: { persistSession: false, autoRefreshToken: false } },
+  );
+}
+
+/** La date locale de l'élève, pour la clé (user_id, local_date). */
+function localDateFor(now: Date, tz: string | null): string {
+  const zone = String(tz ?? "").trim();
+  if (!zone) return now.toISOString().slice(0, 10);
+  try {
+    return new Intl.DateTimeFormat("en-CA", { timeZone: zone }).format(now);
+  } catch {
+    return now.toISOString().slice(0, 10);
+  }
+}
+
+Deno.serve(async (req) => {
+  const requestId = getRequestId(req);
+  try {
+    const guard = ensureInternalRequest(req);
+    if (guard) return guard;
+
+    const body = await req.json().catch(() => ({} as Record<string, unknown>));
+    const nowIso = cleanText(body.now);
+    const cand = nowIso ? new Date(nowIso) : new Date();
+    const now = Number.isFinite(cand.getTime()) ? cand : new Date();
+    const dryRun = body.dry_run === true;
+    const budgetRaw = Number(body.budget_ms);
+    const budgetMs = Number.isFinite(budgetRaw) && budgetRaw > 0
+      ? Math.min(budgetRaw, 120_000)
+      : DEFAULT_BUDGET_MS;
+
+    const admin = adminClient();
+    const startedAt = Date.now();
+
+    let cursor = cleanText(body.after_user_id);
+    let scanned = 0;
+    let sent = 0;
+    const bySkip: Record<string, number> = {};
+    const failures: string[] = [];
+    let exhausted = false;
+
+    while (true) {
+      let q = admin
+        .from("profiles")
+        .select("id, timezone, whatsapp_opted_in, whatsapp_opted_out_at, phone_number")
+        .eq("keel_role", "student")
+        .order("id", { ascending: true })
+        .limit(PAGE);
+      if (cursor) q = q.gt("id", cursor);
+      const { data, error } = await q;
+      if (error) throw error;
+      const rows = (data ?? []) as Array<Record<string, unknown>>;
+      if (rows.length === 0) {
+        exhausted = true;
+        break;
+      }
+
+      for (const row of rows) {
+        cursor = String(row.id ?? "");
+        scanned++;
+
+        const tz = row.timezone ? String(row.timezone) : null;
+        const localHour = localHourFor(now, tz);
+        const localDate = localDateFor(now, tz);
+
+        // La fenêtre d'abord: c'est le filtre le moins cher, et il écarte
+        // l'écrasante majorité des élèves à chaque tick.
+        if (localHour === null || localHour < 20 || localHour >= 22) {
+          bySkip.outside_window = (bySkip.outside_window ?? 0) + 1;
+          continue;
+        }
+
+        try {
+          const day = await loadPulseDay(admin, { userId: cursor, localDate });
+          const planRes = await admin
+            .from("plan_versions")
+            .select("id")
+            .eq("student_id", cursor)
+            .eq("status", "published")
+            .limit(1);
+          if (planRes.error) throw planRes.error;
+
+          // Le plan de l'élève OU un programme publié: en 1:N c'est
+          // `student_week_plans` qui fait foi, mais un élève 1:1 garde son
+          // plan_version. On accepte les deux, sinon le modèle 1:N n'aurait
+          // jamais de tap.
+          const swpRes = await admin
+            .from("student_week_plans")
+            .select("id")
+            .eq("user_id", cursor)
+            .limit(1);
+          if (swpRes.error) throw swpRes.error;
+
+          const decision = decideDailyPulse({
+            localHour,
+            answeredToday: day.answeredToday,
+            // Le mode `attach` demande le dernier échange; ce job ne l'a pas
+            // sous la main et l'attachement se décide côté conversation. Ici
+            // on envoie toujours en standalone, ce qui est le cas nominal du
+            // soir (l'élève n'écrit pas à 20h dans la majorité des cas).
+            minutesSinceLastExchange: null,
+            optedOut: Boolean(row.whatsapp_opted_out_at) || row.whatsapp_opted_in === false,
+            hasActivePlan: ((planRes.data ?? []) as unknown[]).length > 0 ||
+              ((swpRes.data ?? []) as unknown[]).length > 0,
+          });
+
+          if (decision.decision === "skip") {
+            bySkip[decision.reason] = (bySkip[decision.reason] ?? 0) + 1;
+            continue;
+          }
+
+          if (!dryRun) {
+            const message = renderPulseQuestion();
+            const { error: sendErr } = await admin.functions.invoke("whatsapp-send", {
+              body: {
+                user_id: cursor,
+                to: row.phone_number,
+                purpose: "keel_daily_pulse",
+                message: {
+                  type: "interactive_buttons",
+                  body: message.body,
+                  buttons: message.buttons,
+                },
+              },
+            });
+            if (sendErr) throw sendErr;
+          }
+          sent++;
+        } catch (error) {
+          failures.push(
+            `${cursor}: ${error instanceof Error ? error.message : String(error)}`,
+          );
+        }
+        if (Date.now() - startedAt > budgetMs) break;
+      }
+      if (Date.now() - startedAt > budgetMs) break;
+    }
+
+    return jsonResponse(req, {
+      ok: true,
+      dry_run: dryRun,
+      scanned,
+      sent,
+      skipped_by_reason: bySkip,
+      exhausted,
+      next_after_user_id: exhausted ? null : cursor || null,
+      failures: failures.slice(0, 50),
+      request_id: requestId,
+    }, { includeCors: false });
+  } catch (error) {
+    await logEdgeFunctionError({
+      functionName: FN_NAME,
+      requestId,
+      error,
+      metadata: { source: "edge" },
+    });
+    return jsonResponse(req, {
+      ok: false,
+      error: error instanceof Error ? error.message : String(error),
+      request_id: requestId,
+    }, { status: 500, includeCors: false });
+  }
+});

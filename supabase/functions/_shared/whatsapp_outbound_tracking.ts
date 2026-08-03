@@ -14,7 +14,10 @@ export async function createWhatsAppOutboundRow(
     request_id: string
     user_id: string | null
     to_e164: string
-    message_type: "text" | "template"
+    // PIVOT N2: `interactive_buttons` rejoint l'union. Le tap du soir passe
+    // par le même chemin tracké que le texte — mêmes retries, mêmes caps,
+    // même comptage de coût. Un chemin d'envoi parallèle échapperait aux trois.
+    message_type: "text" | "template" | "interactive_buttons"
     content_preview: string
     graph_payload: unknown
     reply_to_wamid_in?: string | null

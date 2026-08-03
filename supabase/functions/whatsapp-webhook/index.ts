@@ -2,6 +2,17 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2.87.3";
 import { getRequestId, jsonResponse } from "../_shared/http.ts";
+// PIVOT N2 — le tap du soir (module pur + coquille d'I/O).
+import {
+  readPulseReply,
+  renderPulseAck,
+  renderPulseAxisQuestion,
+} from "../_shared/keel/daily_pulse.ts";
+import {
+  writePulseAxis,
+  writePulseLevel,
+} from "../_shared/keel/daily_pulse_io.ts";
+import { sendWhatsAppButtonsTracked } from "./wa_whatsapp_api.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
 import { extractMessages, extractStatuses } from "./wa_parse.ts";
 import { verifyXHubSignature } from "./wa_security.ts";
@@ -279,6 +290,72 @@ function hasValidInternalSecret(req: Request): boolean {
     (isLocalSupabaseEnv() ? Deno.env.get("SECRET_KEY")?.trim() : "");
   const got = req.headers.get("x-internal-secret")?.trim();
   return Boolean(expected && got && got === expected);
+}
+
+/**
+ * PIVOT N2 — la date LOCALE de l'élève.
+ *
+ * Le tap est journalier, et « le jour » est celui de l'élève, pas celui du
+ * serveur. Un tap à 20h30 à Paris tombe le 3 août; le même instant en UTC est
+ * le 3 aussi, mais à 23h30 à Tokyo c'est déjà le 4. Sans cette résolution, un
+ * élève à l'est perdrait un jour sur deux par écrasement de la clé unique.
+ */
+function keelLocalDateForUser(profile: { timezone?: string | null }): string {
+  const tz = String(profile?.timezone ?? "").trim();
+  const now = new Date();
+  if (!tz) return now.toISOString().slice(0, 10);
+  try {
+    // en-CA rend directement YYYY-MM-DD.
+    return new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(now);
+  } catch {
+    return now.toISOString().slice(0, 10);
+  }
+}
+
+/**
+ * PIVOT N2 — l'accusé du tap, et éventuellement la question d'axe.
+ *
+ * Deux messages au maximum, et le second seulement si quelque chose a coincé.
+ * L'accusé part TOUJOURS: un bouton tapé qui ne produit aucune réaction laisse
+ * l'élève penser que ça n'a pas marché, et il retape.
+ */
+async function sendPulseReply(args: {
+  // deno-lint-ignore no-explicit-any
+  admin: any;
+  userId: string;
+  toE164: string;
+  requestId: string;
+  ack: string;
+  followUp: { body: string; buttons: Array<{ id: string; title: string }> } | null;
+}): Promise<void> {
+  try {
+    if (args.followUp) {
+      // L'accusé et la question tiennent en UN message: deux notifications
+      // pour un tap, c'est déjà trop.
+      await sendWhatsAppButtonsTracked({
+        admin: args.admin,
+        requestId: args.requestId,
+        userId: args.userId,
+        toE164: args.toE164,
+        body: `${args.ack}\n\n${args.followUp.body}`,
+        buttons: args.followUp.buttons,
+        purpose: "keel_daily_pulse_axis",
+      });
+      return;
+    }
+    await sendWhatsAppTextTracked({
+      admin: args.admin,
+      requestId: args.requestId,
+      userId: args.userId,
+      toE164: args.toE164,
+      body: args.ack,
+      purpose: "keel_daily_pulse_ack",
+    });
+  } catch (error) {
+    // Un échec d'accusé ne doit pas faire échouer le webhook: la donnée est
+    // déjà écrite, c'est elle qui compte.
+    console.error("[keel/pulse] ack send failed", error);
+  }
 }
 
 Deno.serve(async (req) => {
@@ -758,6 +835,55 @@ Deno.serve(async (req) => {
           });
           continue;
         }
+        // ─────────────────────────────────────────────────────────────
+        // PIVOT N2 — LE TAP DU SOIR.
+        //
+        // Placé ICI, avant tout routage sémantique, et c'est le point:
+        // l'identifiant de bouton est une donnée EXACTE (§3.1 « déterministe
+        // uniquement pour les identifiants exacts »). Le laisser descendre
+        // jusqu'au dispatcher reviendrait à demander à un LLM d'interpréter
+        // une valeur qui n'a qu'un seul sens possible — et à payer un appel
+        // pour ça.
+        //
+        // `readPulseReply` ne lit QUE `interactive_id`, jamais le texte: un
+        // « moyen » tapé à la main dans une conversation en cours n'est pas
+        // une réponse au tap, et le dispatcher le traite mieux que nous.
+        const pulseReply = readPulseReply(msg.interactive_id ?? null);
+        if (pulseReply.kind !== "none") {
+          const pulseLocalDate = keelLocalDateForUser(profile);
+          if (pulseReply.kind === "level") {
+            const wrote = await writePulseLevel(admin, {
+              userId: profile.id,
+              localDate: pulseLocalDate,
+              level: pulseReply.level,
+            });
+            await sendPulseReply({
+              admin,
+              userId: profile.id,
+              toE164: fromE164,
+              requestId: processId,
+              ack: renderPulseAck(pulseReply.level, null),
+              // La question d'axe n'est posée que si quelque chose a coincé.
+              followUp: wrote.needsAxis ? renderPulseAxisQuestion() : null,
+            });
+          } else {
+            await writePulseAxis(admin, {
+              userId: profile.id,
+              localDate: pulseLocalDate,
+              axis: pulseReply.axis,
+            });
+            await sendPulseReply({
+              admin,
+              userId: profile.id,
+              toE164: fromE164,
+              requestId: processId,
+              ack: renderPulseAck("hard", pulseReply.axis),
+              followUp: null,
+            });
+          }
+          continue;
+        }
+
         const expiredOnboardingCleared =
           await clearExpiredWhatsAppOnboardingState({
             admin,

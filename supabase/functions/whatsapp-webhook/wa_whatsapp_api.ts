@@ -210,3 +210,82 @@ export async function sendWhatsAppReactionTracked(params: {
     outbound_tracking_id: outboundId,
   };
 }
+
+
+// ---------------------------------------------------------------------------
+// PIVOT N2 — l'envoi du tap du soir (boutons interactifs)
+// ---------------------------------------------------------------------------
+
+/**
+ * Envoie un message à 3 boutons de réponse.
+ *
+ * Passe par le MÊME chemin tracké que le texte (`whatsapp_outbound_messages`
+ * + `sendWhatsAppGraph`), donc les mêmes retries, les mêmes caps et le même
+ * comptage de coût. Un chemin d'envoi parallèle échapperait aux trois.
+ *
+ * La limite de 3 boutons / 20 caractères est celle de Meta; elle est déjà
+ * appliquée par `whatsapp-send`, et re-tronquée ici parce que ce chemin ne
+ * passe pas par lui.
+ */
+export async function sendWhatsAppButtonsTracked(params: {
+  // deno-lint-ignore no-explicit-any
+  admin: any;
+  requestId: string;
+  userId: string;
+  toE164: string;
+  body: string;
+  buttons: Array<{ id: string; title: string }>;
+  purpose?: string | null;
+  isProactive?: boolean;
+  metadata?: Record<string, unknown>;
+}) {
+  const buttons = params.buttons.slice(0, 3).map((b) => ({
+    type: "reply",
+    reply: { id: String(b.id).slice(0, 256), title: String(b.title).slice(0, 20) },
+  }));
+  const graphPayload = {
+    messaging_product: "whatsapp",
+    to: params.toE164.replace("+", ""),
+    type: "interactive",
+    interactive: {
+      type: "button",
+      body: { text: params.body.slice(0, 1024) },
+      action: { buttons },
+    },
+  };
+  const outboundId = await createWhatsAppOutboundRow(params.admin, {
+    request_id: params.requestId,
+    user_id: params.userId,
+    to_e164: params.toE164,
+    message_type: "interactive_buttons",
+    content_preview: params.body.slice(0, 500),
+    graph_payload: graphPayload,
+    metadata: {
+      purpose: params.purpose ?? null,
+      is_proactive: Boolean(params.isProactive),
+      ...params.metadata ?? {},
+    },
+  });
+  const sendRes = await sendWhatsAppGraph(graphPayload);
+  if (!sendRes.ok) {
+    await markWhatsAppOutboundFailed(params.admin, outboundId, {
+      attempt_count: 1,
+      retryable: Boolean(sendRes.retryable),
+      error_code: sendRes.meta_code != null
+        ? String(sendRes.meta_code)
+        : sendRes.http_status != null
+        ? String(sendRes.http_status)
+        : "network_error",
+      error_message: sendRes.non_retry_reason ?? "whatsapp_send_failed",
+      error_payload: sendRes.error,
+    });
+    return { ok: false as const, outboundId };
+  }
+  await markWhatsAppOutboundSent(params.admin, outboundId, {
+    provider_message_id: sendRes.wamid_out,
+    attempt_count: 1,
+    transport: sendRes.transport,
+    raw_response: sendRes.data,
+  });
+  return { ok: true as const, outboundId };
+}

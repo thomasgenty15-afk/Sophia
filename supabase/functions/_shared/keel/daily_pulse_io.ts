@@ -1,0 +1,138 @@
+/**
+ * PIVOT NUTRITION — N2 : la coquille d'I/O du tap du soir.
+ *
+ * `daily_pulse.ts` DÉCIDE (pur, testé). Ce module LIT l'état du jour et ÉCRIT
+ * la réponse.
+ *
+ * ── L'IDEMPOTENCE EST DANS LA BASE, PAS DANS LE CODE ─────────────────────
+ * `student_daily_checkins` porte `unique (user_id, local_date)`. L'écriture
+ * est donc un UPSERT sur cette clé : un double-tap, une re-livraison WhatsApp
+ * ou un webhook rejoué mettent à jour la ligne du jour au lieu d'en créer une
+ * seconde. On ne compte jamais deux fois la même journée.
+ *
+ * ── POURQUOI L'AXE S'ÉCRIT EN DEUXIÈME TEMPS ─────────────────────────────
+ * Le niveau arrive au premier tap, l'axe (s'il y en a un) au second. La ligne
+ * est donc écrite une première fois SANS axe, puis complétée. C'est voulu : si
+ * l'élève ne répond jamais à la seconde question, on garde quand même son
+ * niveau — perdre la journée entière parce qu'une question de suivi est restée
+ * sans réponse serait absurde.
+ */
+
+import {
+  needsAxisFollowUp,
+  type PulseAxis,
+  type PulseLevel,
+} from "./daily_pulse.ts";
+
+// deno-lint-ignore no-explicit-any
+type Db = any;
+
+export interface PulseDayState {
+  answeredToday: boolean;
+  level: PulseLevel | null;
+  axis: PulseAxis | null;
+  /** Une réponse de niveau non-`good` sans axe: la question de suivi est en attente. */
+  awaitingAxis: boolean;
+}
+
+export async function loadPulseDay(
+  db: Db,
+  args: { userId: string; localDate: string },
+): Promise<PulseDayState> {
+  const { data, error } = await db
+    .from("student_daily_checkins")
+    .select("overall, axis")
+    .eq("user_id", args.userId)
+    .eq("local_date", args.localDate)
+    .maybeSingle();
+  if (error) throw error;
+  const row = (data ?? null) as Record<string, unknown> | null;
+  if (!row) {
+    return { answeredToday: false, level: null, axis: null, awaitingAxis: false };
+  }
+  const level = String(row.overall ?? "") as PulseLevel;
+  const axis = row.axis ? (String(row.axis) as PulseAxis) : null;
+  return {
+    answeredToday: true,
+    level,
+    axis,
+    awaitingAxis: needsAxisFollowUp(level) && axis === null,
+  };
+}
+
+export interface PulseWriteResult {
+  written: boolean;
+  /** Faut-il enchaîner sur la question d'axe ? */
+  needsAxis: boolean;
+  reason_code: string;
+}
+
+/** Écrit le NIVEAU (premier tap). WRITE-THROUGH: insert/upsert puis relecture. */
+export async function writePulseLevel(
+  db: Db,
+  args: {
+    userId: string;
+    localDate: string;
+    level: PulseLevel;
+    source?: "whatsapp_button" | "app" | "chat";
+  },
+): Promise<PulseWriteResult> {
+  try {
+    const { data, error } = await db
+      .from("student_daily_checkins")
+      .upsert({
+        user_id: args.userId,
+        local_date: args.localDate,
+        overall: args.level,
+        // Un changement d'avis remet l'axe à zéro: garder l'axe d'un « dur »
+        // sur une journée repassée à « ça roule » violerait le CHECK de
+        // cohérence, et serait de toute façon faux.
+        axis: null,
+        source: args.source ?? "whatsapp_button",
+      }, { onConflict: "user_id,local_date" })
+      .select("id, overall")
+      .single();
+    if (error) throw error;
+    const ok = Boolean((data as Record<string, unknown> | null)?.id);
+    return {
+      written: ok,
+      needsAxis: ok && needsAxisFollowUp(args.level),
+      reason_code: ok ? "written" : "missing_readback_row",
+    };
+  } catch (error) {
+    console.error("[keel/pulse] level write failed", error);
+    return { written: false, needsAxis: false, reason_code: "write_failed" };
+  }
+}
+
+/**
+ * Complète la ligne du jour avec l'AXE (second tap).
+ *
+ * Ne crée jamais la ligne: un axe sans niveau serait incohérent (et refusé par
+ * le CHECK). Si la ligne n'existe pas, c'est que la question d'axe est arrivée
+ * sans son niveau — un défaut à voir, pas à rattraper en inventant un niveau.
+ */
+export async function writePulseAxis(
+  db: Db,
+  args: { userId: string; localDate: string; axis: PulseAxis },
+): Promise<{ written: boolean; reason_code: string }> {
+  try {
+    const { data, error } = await db
+      .from("student_daily_checkins")
+      .update({ axis: args.axis })
+      .eq("user_id", args.userId)
+      .eq("local_date", args.localDate)
+      .neq("overall", "good")
+      .select("id")
+      .maybeSingle();
+    if (error) throw error;
+    const ok = Boolean((data as Record<string, unknown> | null)?.id);
+    return {
+      written: ok,
+      reason_code: ok ? "written" : "no_pending_level_for_today",
+    };
+  } catch (error) {
+    console.error("[keel/pulse] axis write failed", error);
+    return { written: false, reason_code: "write_failed" };
+  }
+}
