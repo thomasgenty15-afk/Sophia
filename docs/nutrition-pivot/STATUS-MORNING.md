@@ -222,3 +222,112 @@ avec un vrai téléphone photo incluse, les clés API réelles et les coûts Wha
 
 Un vert dans ce document est un vert de **test** — unitaire, base réelle, ou navigateur. Ce n'est
 pas une validation Meta, et je ne le présente pas comme telle.
+
+---
+---
+
+# ADDENDUM — série C (corrections de modèle, même nuit)
+
+Après relecture du parcours élève, quatre corrections de modèle sont arrivées.
+Deux d'entre elles étaient bloquantes, pas cosmétiques.
+
+## Ce qui était cassé, et à quel point
+
+| # | Le défaut | Gravité réelle |
+|---|-----------|----------------|
+| C1 | Le plan élève s'ancrait sur `plan_templates.commitments`, un programme ligne à ligne. **Un coach de masterclasse n'en a pas** — il a une philosophie. | 🔴 `generate-week-plan-v1` renvoyait `coach_has_no_program` à tous les coups, et le CHECK SQL aurait rejeté chaque ligne. **La génération était morte à l'allumage** sur le seul modèle que le produit vend. |
+| C2 | Le verrou de doctrine répondait « demande à ton coach ». | 🔴 Il n'existe **aucun canal un-à-un** en masterclasse : la phrase désignait une porte inexistante. Et c'est l'inverse de ce que le coach achète — il paie pour être présent en son absence. Le verrou **médical** faisait pareil, routant une allergie vers un coach sportif. |
+| C3 | Le code de la nuit était en français. | 🟠 Le produit est anglais ; le dépôt aussi (`en-GB`, 59 occurrences). |
+| C4 | Le point hebdo n'avait aucun écran de saisie. | 🟠 `weekly_reviews.biofeedback` était **lue** par `/app/progress` et écrite par **personne**. |
+
+## Ce qui a changé
+
+**C1 — l'ancre devient la conviction.** `coach_doctrines.beliefs[].key`, avec
+CHECK SQL. Conséquence assumée et écrite en tête du module : **Sophia n'est plus
+un scribe, elle COMPOSE les lignes**. Ce que le code garantit encore
+(traçabilité, aucun chiffre, liste close d'actions, deux verrous) et ce qu'il ne
+garantit plus (**la fidélité de l'interprétation**) sont énoncés noir sur blanc.
+La conviction source voyage avec chaque ligne et s'affiche sous elle : c'est ce
+qui rend la dérivation jugeable à l'œil.
+
+Règle neuve, qui n'existait pas tant que les lignes venaient du coach : **aucune
+cible chiffrée d'énergie ou de macro**. Quatre motifs nommés, chacun testé seul,
+plus un test qui protège les cadences ordinaires (« trois repas par jour » doit
+survivre).
+
+**C2 — le coach répond à travers nous.** Chaque interdit porte son `instead`,
+écrit par le coach, et c'est ce texte que l'élève reçoit. Une question a été
+ajoutée à l'entretien de doctrine pour le recueillir, et l'écran signale un
+interdit **sans** remplacement (« students get a flat refusal here »).
+
+Ce remplacement est **re-vérifié** contre les contraintes dures de l'élève :
+sans ça, un `instead` malheureux contournait le verrou médical par la sortie de
+secours du verrou de doctrine. Le repli médical pointe désormais un médecin.
+
+**C4 — le point hebdo passe par un WhatsApp Flow.** Six axes 1-5 + poids + tour
+de taille, en deux écrans, le second entièrement facultatif. Le jeton de
+corrélation ne porte **que la semaine** : l'élève est identifié par le numéro qui
+répond, jamais par le contenu d'un jeton qui a fait l'aller-retour par un client.
+
+**C5 — la synthèse coach est enfin lue.** `/coach/weekly`, livré avec son entrée
+de nav. Marquer la lecture passe par une fonction SECURITY DEFINER et pas par une
+politique UPDATE : RLS ne restreint pas les colonnes, donc une politique update
+laisserait le coach réécrire un constat généré sur ses propres élèves.
+
+---
+
+## 🔴 Deux trous trouvés en chemin — à lire
+
+### 1. La garde crise était DÉSARMÉE en production
+
+`decideDailyPulse` et `decideReengagement` déclaraient `safetyBand` **optionnel**,
+et **aucun de leurs deux appelants de production ne le renseignait**. Les gardes
+`safety_active` étaient testées, vertes, et ne pouvaient pas mordre : **un élève
+en crise recevait « How was today? » à 20h.**
+
+C'est la classe de défaut la plus fréquente de ce dépôt — des sondes vertes sur
+un chemin que la production ne prend pas.
+
+**Fait :** le champ est devenu **requis** dans les trois modules ; le compilateur
+a confirmé les deux appelants fautifs, qui déclarent maintenant `null`
+explicitement, avec la raison.
+
+**À trancher (décision de conception, pas une ligne de code) :** ce dépôt n'a
+**aucun état de crise persisté et interrogeable** — la bande vit dans le tour.
+Câbler la garde pour de bon demande de décider **où cet état s'écrit**. Tant que
+ce n'est pas tranché, la garde reste déclarativement présente et effectivement
+inactive sur les chemins proactifs.
+
+Le plancher TCA, lui, **est** un signal réel et persisté : `decideWeeklyFlow` le
+lit et refuse de demander un poids à un élève à qui `/app/progress` masque déjà
+tous les chiffres.
+
+### 2. `weekly_reviews` acceptait des doublons
+
+N0 a rendu `plan_version_id` nullable ; or Postgres tient deux NULL pour
+**distincts**. L'unique index `(user_id, plan_version_id, week_start_date)` ne
+dédoublonnait donc plus rien. **Vérifié plutôt que supposé** : deux insertions de
+la même semaine passaient, la table portait 3 lignes pour une.
+
+Index partiel posé, après dédoublonnage explicite et compté.
+
+---
+
+## Ce qui reste ouvert, honnêtement
+
+| Quoi | État | Ce qu'il faut |
+|------|------|---------------|
+| **Templates Meta + Flow** | Rien soumis | `docs/nutrition-pivot/META-TEMPLATES.md` porte les payloads exacts et l'ordre de soumission. **Chemin critique** : tout le reste attend. Sans eux, on ne mesure que les élèves déjà actifs — pas ceux dont on a besoin. |
+| **Correction d'analyse photo** | Débranché, volontairement | `reduceMealPhotoFlow` attend une intention **déjà classée**, et cette classification vit dans le routeur `sophia-brain` (qui a déjà un mécanisme de flow local). Le brancher = enregistrer un flow local `keel_meal_photo` + persister l'état dans `whatsapp_pending_actions` + une fonction d'amendement. **Je ne l'ai pas demi-branché** : un état persisté que rien ne lit est un second composant mort. |
+| **Garde crise sur les chemins proactifs** | Déclarée, inactive | Voir ci-dessus. |
+| **Envoi du tap hors fenêtre 24h** | Non écrit | `keel-daily-pulse-v1` envoie toujours un `interactive_buttons`. Le chemin template + payloads de boutons est décrit dans META-TEMPLATES §1. |
+| **Page d'auth legacy** | Toujours en français | Les trois écrans KEEL sont en anglais ; `/auth` est l'ancien écran B2C et n'a pas été touché. |
+
+## Ce que j'ai vérifié, et comment
+
+- **2943 tests, 0 rouge**, suite complète (3 fichiers exclus : import `std/` cassé **avant** cette nuit, fichiers non modifiés).
+- **C1** : migration appliquée en local, garde SQL verte, plan existant transformé **et archivé** plutôt que supprimé.
+- **C4** : le trou des doublons prouvé par insertion réelle avant d'être fermé.
+- **C5** : les cinq contrôles d'appartenance joués en SQL en simulant les deux identités — propriétaire marque / idempotent / intrus obtient `NULL` / UPDATE direct de l'intrus touche **0 ligne** / récit intact. **Cette vérification a trouvé un vrai défaut** (`delivery_channel` n'accepte que `whatsapp|email|in_app`, `'app'` violait le CHECK).
+- **Ce que je n'ai PAS vérifié** : l'écran `/coach/weekly` dans un navigateur connecté. Il faut se connecter en coach, et je ne saisis pas de mot de passe dans un formulaire. Le typecheck passe et la requête est vérifiée en SQL ; **le rendu visuel reste à regarder**.
+- **Toutes les migrations sont LOCALES.** Aucun `db push`, aucun `functions deploy`, aucun secret.
