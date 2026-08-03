@@ -48,9 +48,14 @@ une validation produit. Concrètement :
 - la synthèse coach n'a **jamais** été calculée sur de vraies données ;
 - la semaine simulée N2 (§7.4, « le juge de paix de la nuit ») **n'a pas été jouée**.
 
-**Et le constat structurant : la majorité de ce que j'ai construit n'est pas CÂBLÉE.** Ce sont des
-moteurs testés, pas des fonctionnalités livrées. Le détail par chantier est plus bas, sans
-enjolivement.
+**Et le constat structurant : une grande partie de ce que j'ai construit n'est pas CÂBLÉE.**
+La doctrine coach l'est désormais (§2bis : chargée, injectée, vérifiée en sortie) ; la synthèse
+coach et la relance de décrochage ne le sont pas — ce sont des moteurs testés, pas des
+fonctionnalités livrées. Le détail par chantier est plus bas, sans enjolivement.
+
+⚠️ « Câblé » veut dire *le code s'exécute sur le bon chemin et 1780 tests le prouvent*. Ça ne veut
+pas dire *vu fonctionner avec un vrai modèle sur un vrai téléphone* — ça, personne ne l'a encore
+fait, et c'est l'objet de la checklist §6.
 
 Pourquoi : le plan couvre ~10-12 semaines-homme (son propre BUILD_PLAN les chiffre : W1→W12,
 ~87 jours). J'ai priorisé les briques **structurantes, sûres et difficiles à reprendre après coup**
