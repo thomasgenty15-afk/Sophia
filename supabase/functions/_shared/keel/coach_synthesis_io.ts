@@ -100,6 +100,69 @@ export async function loadStudentNames(
   return names;
 }
 
+/**
+ * QUI PORTE UN SIGNAL RESTRICTIF, sur la fenêtre couverte.
+ *
+ * TROUVÉ EN QA (2026-08-03, cohorte réelle de 7 élèves): `StudentWeekInput`
+ * porte `restrictionFlag` depuis le premier jour, `classifyRisk` le fait
+ * PASSER AVANT TOUT, `flagFor` en tire `restriction_signal` (sévérité 0, exempt
+ * du plafond, « this one is yours to handle ») — et RIEN ne le renseignait.
+ * Le paramètre était optionnel, donc l'oubli était silencieux: un élève marqué
+ * restrictif dans la base sortait de la synthèse en `no_evaluable_plan`, puis
+ * se faisait tronquer par le plafond des 3. La garde la plus importante de
+ * l'artefact était déclarée et désarmée (classe « paramètre de garde optionnel
+ * = garde désarmée », déjà payée sur `safetyBand` dans les crons).
+ *
+ * DEUX SOURCES, PARCE QU'ELLES RÉPONDENT À DEUX INSTANTS DIFFÉRENTS:
+ *   1. `contract_change_requests(reason_code='restriction_signal', status='open')`
+ *      — l'escalade VIVANTE, écrite par `escalateRestrictionSignal` (provision
+ *      du jour, routeur conversationnel) et ouverte tant qu'aucun coach ne l'a
+ *      fermée. C'est le chemin qui a réellement des écrivains aujourd'hui.
+ *   2. `weekly_reviews.risk_band = 'restriction_flag'` sur la semaine couverte
+ *      — la bande du bilan, celle que `keel-weekly-flow-v1` lit déjà pour
+ *      couper ses envois. Lire les deux évite de re-signer la même erreur en
+ *      pariant sur un seul écrivain.
+ *
+ * Un OU, jamais un ET: rater un signal restrictif coûte infiniment plus cher
+ * qu'un faux positif, dont le coût est « le coach regarde ».
+ */
+export async function loadRestrictionFlags(
+  db: Db,
+  studentUserIds: readonly string[],
+  window: SynthesisWindow,
+): Promise<Set<string>> {
+  const flagged = new Set<string>();
+  if (studentUserIds.length === 0) return flagged;
+  const ids = [...studentUserIds];
+
+  const escalations = await db
+    .from("contract_change_requests")
+    .select("user_id")
+    .in("user_id", ids)
+    .eq("reason_code", "restriction_signal")
+    .eq("status", "open");
+  if (escalations.error) throw escalations.error;
+  for (const row of (escalations.data ?? []) as Array<Record<string, unknown>>) {
+    const id = String(row.user_id ?? "").trim();
+    if (id) flagged.add(id);
+  }
+
+  const reviews = await db
+    .from("weekly_reviews")
+    .select("user_id, risk_band, week_start_date")
+    .in("user_id", ids)
+    .eq("risk_band", "restriction_flag")
+    .gte("week_start_date", window.periodStart)
+    .lte("week_start_date", window.periodEnd);
+  if (reviews.error) throw reviews.error;
+  for (const row of (reviews.data ?? []) as Array<Record<string, unknown>>) {
+    const id = String(row.user_id ?? "").trim();
+    if (id) flagged.add(id);
+  }
+
+  return flagged;
+}
+
 /** Les élèves vivants d'un coach. */
 export async function loadCohortStudentIds(
   db: Db,
@@ -359,13 +422,33 @@ export async function buildAndWriteCoachSynthesis(
   const window = lastCompleteWeek(args.asOfLocalDate);
   const studentIds = await loadCohortStudentIds(db, args.coachId);
 
+  // UN COACH SANS ÉLÈVE N'A PAS DE SEMAINE À RACONTER, et l'en-tête de
+  // `coach-synthesis-v1` le dit depuis le premier jour — sauf que l'écriture
+  // avait lieu AVANT le test, donc la ligne partait quand même. Trouvé en QA
+  // (2026-08-03): 19 lignes en base pour 16 annoncées par le job, et un coach
+  // à zéro élève lisant « 0 in touch, 0 slipping, 0 silent / nobody checked in
+  // / nobody logged at least 4 of 7 days » — un constat d'échec sur des gens
+  // qui n'existent pas. On sort AVANT le write; le compteur du job (déjà
+  // présent) fait le reste.
+  if (studentIds.length === 0) {
+    return {
+      window,
+      synthesis: buildCoachSynthesis([], args.now),
+      narrative: "",
+      write: { written: false, id: null, reason_code: "no_students" },
+      studentCount: 0,
+    };
+  }
+
   const names = await loadStudentNames(db, studentIds);
+  const restricted = await loadRestrictionFlags(db, studentIds, window);
   const students: StudentWeekInput[] = [];
   for (const studentUserId of studentIds) {
     students.push(await loadStudentWeek(db, {
       studentUserId,
       displayName: names.get(studentUserId) ?? null,
       window,
+      restrictionFlag: restricted.has(studentUserId),
     }));
   }
 

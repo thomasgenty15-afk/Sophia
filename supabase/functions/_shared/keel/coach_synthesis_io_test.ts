@@ -229,3 +229,132 @@ Deno.test("the narrative is a template over computed numbers", async () => {
   assert(out.narrative.includes("No adherence figure this week"));
   assert(!/\d+%/.test(out.narrative));
 });
+
+// ---------------------------------------------------------------------------
+// QA AGENT 11 (2026-08-03) — la garde qui était déclarée et désarmée.
+//
+// `StudentWeekInput.restrictionFlag` existait, `classifyRisk` le faisait passer
+// avant tout, `flagFor` en tirait `restriction_signal` (sévérité 0, exempt du
+// plafond) — et le chemin de production ne le renseignait JAMAIS. Un élève
+// marqué restrictif sortait donc en `no_evaluable_plan`, puis se faisait
+// tronquer par le plafond des 3. Ces tests arment la garde ET prouvent qu'elle
+// ne mord pas quand le problème n'existe pas.
+// ---------------------------------------------------------------------------
+
+function restrictionFixture(extra: Rows): Rows {
+  return {
+    coach_clients: [
+      { coach_id: "c1", student_user_id: "s1", status: "active" },
+      { coach_id: "c1", student_user_id: "s2", status: "active" },
+    ],
+    profiles: [
+      { id: "s1", full_name: "Ada" },
+      { id: "s2", full_name: "Bilal" },
+    ],
+    commitment_evaluations: [],
+    plan_commitments: [],
+    // Les deux ont loggé 5 jours: sans le drapeau, les deux sortent en
+    // `no_evaluable_plan` — c'est exactement ce qui masquait le signal.
+    protocol_events: [
+      ...["2026-07-27", "2026-07-28", "2026-07-29", "2026-07-30", "2026-07-31"]
+        .flatMap((local_date) => [
+          { user_id: "s1", local_date, portion_band: null },
+          { user_id: "s1", local_date, portion_band: null },
+          { user_id: "s2", local_date, portion_band: null },
+          { user_id: "s2", local_date, portion_band: null },
+        ]),
+    ],
+    chat_messages: [
+      { user_id: "s1", role: "user", created_at: "2026-08-03T06:00:00Z" },
+      { user_id: "s2", role: "user", created_at: "2026-08-03T06:00:00Z" },
+    ],
+    ...extra,
+  };
+}
+
+Deno.test("an OPEN restriction escalation reaches the synthesis (the live writer)", async () => {
+  const { db, writes } = fakeDb(restrictionFixture({
+    contract_change_requests: [
+      { user_id: "s1", reason_code: "restriction_signal", status: "open" },
+      // Bruit qui ne doit PAS lever le drapeau: une escalade close, et une
+      // escalade ouverte pour un autre motif.
+      { user_id: "s2", reason_code: "restriction_signal", status: "resolved" },
+      { user_id: "s2", reason_code: "coach_review", status: "open" },
+    ],
+  }));
+  const out = await buildAndWriteCoachSynthesis(db, {
+    coachId: "c1",
+    asOfLocalDate: "2026-08-03",
+    now: new Date("2026-08-03T09:00:00Z"),
+  });
+
+  const flagged = writes[0].flagged_students as Array<Record<string, unknown>>;
+  assertEquals(flagged[0].student_user_id, "s1");
+  assertEquals(flagged[0].reason_code, "restriction_signal");
+  assertEquals(flagged[0].risk_band, "restriction_flag");
+  // La ligne ne porte NI chiffre d'adhérence NI relance: la pression s'arrête.
+  assert(out.narrative.includes("this one is yours to handle"), out.narrative);
+  // Et l'autre élève n'a pas été contaminé.
+  assertEquals(
+    out.synthesis.lines.find((l) => l.studentUserId === "s2")?.flagReason,
+    "no_evaluable_plan",
+  );
+});
+
+Deno.test("a restriction_flag risk band on the covered week also reaches it", async () => {
+  const { db, writes } = fakeDb(restrictionFixture({
+    weekly_reviews: [
+      { user_id: "s2", risk_band: "restriction_flag", week_start_date: "2026-07-27" },
+      // Hors fenêtre: la semaine d'avant ne doit pas rouvrir un drapeau baissé.
+      { user_id: "s1", risk_band: "restriction_flag", week_start_date: "2026-07-13" },
+    ],
+  }));
+  await buildAndWriteCoachSynthesis(db, {
+    coachId: "c1",
+    asOfLocalDate: "2026-08-03",
+    now: new Date("2026-08-03T09:00:00Z"),
+  });
+  const flagged = writes[0].flagged_students as Array<Record<string, unknown>>;
+  assertEquals(flagged[0].student_user_id, "s2");
+  assertEquals(flagged[0].reason_code, "restriction_signal");
+  assert(
+    !flagged.some((f) =>
+      f.student_user_id === "s1" && f.reason_code === "restriction_signal"
+    ),
+  );
+});
+
+Deno.test("no restriction anywhere: nobody is accused of one (premise false)", async () => {
+  // La condition de désarmement. Une ceinture qui mord toujours est une
+  // ceinture qu'on finit par retirer.
+  const { db, writes } = fakeDb(restrictionFixture({
+    contract_change_requests: [],
+    weekly_reviews: [],
+  }));
+  await buildAndWriteCoachSynthesis(db, {
+    coachId: "c1",
+    asOfLocalDate: "2026-08-03",
+    now: new Date("2026-08-03T09:00:00Z"),
+  });
+  const flagged = writes[0].flagged_students as Array<Record<string, unknown>>;
+  assert(flagged.length > 0, "the cohort still has something to say");
+  assert(!flagged.some((f) => f.reason_code === "restriction_signal"));
+});
+
+Deno.test("a coach with no students writes NO row at all", async () => {
+  // L'en-tête de `coach-synthesis-v1` promet exactement ça depuis le premier
+  // jour; l'écriture avait simplement lieu avant le test. Trouvé en QA: 19
+  // lignes en base pour 16 annoncées par le job.
+  const { db, writes } = fakeDb({
+    coach_clients: [{ coach_id: "c2", student_user_id: "s9", status: "active" }],
+  });
+  const out = await buildAndWriteCoachSynthesis(db, {
+    coachId: "c1",
+    asOfLocalDate: "2026-08-03",
+    now: new Date("2026-08-03T09:00:00Z"),
+  });
+  assertEquals(out.studentCount, 0);
+  assertEquals(out.write.written, false);
+  assertEquals(out.write.reason_code, "no_students");
+  assertEquals(writes.length, 0);
+});

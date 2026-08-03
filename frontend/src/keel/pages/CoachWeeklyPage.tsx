@@ -3,6 +3,7 @@ import { supabase } from "../../lib/supabase";
 import { KeelAppShell } from "../components/KeelAppShell";
 import { Badge, type BadgeTone } from "../components/ui/Badge";
 import { Card, SectionLabel } from "../components/ui/Card";
+import { flagReasonCopy } from "../copy/flagReasons";
 
 /**
  * PIVOT C5 — `/coach/weekly` : Monday morning.
@@ -36,7 +37,11 @@ import { Card, SectionLabel } from "../components/ui/Card";
  */
 
 interface FlaggedStudent {
-  student_user_id: string;
+  // NULL après la purge RGPD J+7 de l'élève: la ligne « à rattraper » reste
+  // dans le rapport (sinon la semaine relue compterait 2 élèves là où le coach
+  // en a lu 3), mais elle perd son identité. `student_purged` dit laquelle.
+  student_user_id: string | null;
+  student_purged?: boolean;
   reason_code: string;
   risk_band: string | null;
   contact_state: string | null;
@@ -59,16 +64,6 @@ type LoadState =
   | { kind: "error"; message: string }
   | { kind: "ready" };
 
-/** Reason codes, in the coach's words. R7: an unknown code is shown raw. */
-const REASON_COPY: Record<string, string> = {
-  silent_contact: "Has not written in a while",
-  slipping_contact: "Going quiet",
-  hard_week: "Reported a hard week",
-  low_coverage: "Barely logged anything",
-  no_evaluable_plan: "Nothing to measure against yet",
-  restriction_flag: "Restriction signals — handle directly",
-};
-
 const CONTACT_TONE: Record<string, BadgeTone> = {
   responsive: "positive" as BadgeTone,
   slipping: "caution" as BadgeTone,
@@ -83,6 +78,7 @@ export default function CoachWeeklyPage() {
   const [state, setState] = React.useState<LoadState>({ kind: "loading" });
   const [rows, setRows] = React.useState<SynthesisRow[]>([]);
   const [selected, setSelected] = React.useState<number>(0);
+  const [names, setNames] = React.useState<Record<string, string>>({});
 
   React.useEffect(() => {
     let cancelled = false;
@@ -104,6 +100,34 @@ export default function CoachWeeklyPage() {
           setState({ kind: "error", message: err instanceof Error ? err.message : String(err) });
         }
       }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  // WHO these ids are. `flagged_students` stores user ids and nothing else —
+  // it is written by a server job that must not duplicate names into a row it
+  // will still be readable from in a year. So the screen resolves them, and it
+  // resolves them through `coach_student_directory`: the Tier B view filtered
+  // by `coached_student_ids()`, which is exactly "the students this coach still
+  // has". A coach who lost a seat stops seeing that name, without this page
+  // having to know the rule.
+  //
+  // Found in QA (2026-08-03): the list showed `b1570000` and the prose above it
+  // named "Chen Wei". A coach cannot message an 8-character uuid prefix, and
+  // the whole section is called "worth a message".
+  React.useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from("coach_student_directory")
+        .select("id, full_name");
+      if (error || cancelled) return;
+      const map: Record<string, string> = {};
+      for (const row of (data ?? []) as Array<{ id: string; full_name: string | null }>) {
+        const name = (row.full_name ?? "").trim();
+        if (row.id && name) map[row.id] = name;
+      }
+      setNames(map);
     })();
     return () => { cancelled = true; };
   }, []);
@@ -211,16 +235,27 @@ export default function CoachWeeklyPage() {
             </p>
           ) : (
             <ul className="mt-3 space-y-3">
-              {flagged.map((f) => (
+              {flagged.map((f, i) => (
                 <li
-                  key={f.student_user_id}
+                  // Indexé: après une purge RGPD, `student_user_id` est null et
+                  // deux comptes supprimés partageraient la même clé React.
+                  key={f.student_user_id ?? `purged-${i}`}
                   className="flex flex-wrap items-center gap-2 border-l-2 border-gray-200 pl-4"
                 >
-                  <span className="font-mono text-xs text-gray-500">
-                    {shortId(f.student_user_id)}
-                  </span>
-                  <span className="text-sm text-gray-900">
-                    {REASON_COPY[f.reason_code] ?? f.reason_code}
+                  {f.student_user_id && names[f.student_user_id] ? (
+                    <span className="text-sm font-medium text-gray-900">
+                      {names[f.student_user_id]}
+                    </span>
+                  ) : (
+                    // Pas de nom: invitation pas encore acceptée, siège fermé,
+                    // ou compte purgé. L'id reste, pour que la ligne demeure
+                    // traçable plutôt que muette.
+                    <span className="font-mono text-xs text-gray-500">
+                      {f.student_user_id ? shortId(f.student_user_id) : "deleted account"}
+                    </span>
+                  )}
+                  <span className="text-sm text-gray-700">
+                    {flagReasonCopy(f.reason_code)}
                   </span>
                   {f.contact_state ? (
                     <Badge tone={CONTACT_TONE[f.contact_state] ?? ("neutral" as BadgeTone)}>
@@ -247,10 +282,22 @@ export default function CoachWeeklyPage() {
           <SectionLabel>The numbers</SectionLabel>
           <dl className="mt-3 grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
             {Object.entries(metrics).map(([k, v]) => (
-              <div key={k}>
+              <div key={k} className="min-w-0">
                 <dt className="text-xs text-gray-500">{k.replace(/_/g, " ")}</dt>
-                <dd className="text-gray-900">
-                  {typeof v === "object" ? JSON.stringify(v) : String(v)}
+                {/*
+                  A nested block (portions, livability) was printed as raw JSON
+                  on one line: it ran past its column and overlapped the
+                  neighbouring figure, so the last section of the Monday read
+                  was partly unreadable. Broken into words, wrapped, and the
+                  cell allowed to shrink (`min-w-0`, without which a grid track
+                  refuses to go below its content width).
+                */}
+                <dd className="break-words text-gray-900">
+                  {v && typeof v === "object"
+                    ? Object.entries(v as Record<string, unknown>)
+                      .map(([sub, val]) => `${sub.replace(/_/g, " ")} ${String(val)}`)
+                      .join(" · ")
+                    : String(v)}
                 </dd>
               </div>
             ))}

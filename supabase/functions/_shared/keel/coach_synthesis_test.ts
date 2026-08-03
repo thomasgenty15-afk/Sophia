@@ -551,3 +551,146 @@ Deno.test("the student's own intentions are reported, without a score", () => {
   // Jamais un pourcentage de réalisation: personne ne note.
   assert(!/\d+% of (their|the) plan/i.test(text), text);
 });
+
+// ---------------------------------------------------------------------------
+// QA AGENT 11 (2026-08-03) — les trois défauts trouvés sur une cohorte réelle
+// de 7 élèves, chacun avec son test de non-régression et sa condition de
+// désarmement.
+// ---------------------------------------------------------------------------
+
+/** Un élève qui LOGGE mais n'a aucune ligne à mesurer (l'état normal du 1:N). */
+function loggingIntoTheVoid(
+  id: string,
+  loggedDays: number,
+  over: Partial<StudentWeekInput> = {},
+): StudentWeekInput {
+  return student({
+    studentUserId: id,
+    displayName: id,
+    adherence: {
+      weekDates: WEEK,
+      evaluations: [],
+      eventCountsByDate: Object.fromEntries(
+        WEEK.slice(0, loggedDays).map((d) => [d, 2]),
+      ),
+    },
+    ...over,
+  });
+}
+
+Deno.test("the gate sentence COUNTS both causes instead of deducing one from the other", () => {
+  // TROUVÉ EN QA sur une cohorte réelle. `flagReason` porte une PRIORITÉ: un
+  // élève dont la semaine a été dure sort en `week_too_hard` même s'il n'a, lui
+  // aussi, aucune ligne à mesurer. Compter « sans plan » par le motif et
+  // décrire TOUS LES AUTRES comme « ont loggé moins de 4 jours sur 7 » affirmait
+  // donc, d'un élève qui avait loggé 5 jours, qu'il n'avait quasiment rien
+  // loggé — dans le seul artefact dont toute la valeur est que ses chiffres
+  // sont vrais.
+  const hardWeekNoPlan = loggingIntoTheVoid("hard", 5, {
+    dailyPulses: [
+      { overall: "hard", axis: "hunger" },
+      { overall: "hard", axis: "hunger" },
+      { overall: "good", axis: null },
+    ],
+  });
+  const quietNoPlan = loggingIntoTheVoid("quiet", 5);
+  const barelyLogged = loggingIntoTheVoid("barely", 2);
+
+  const synthesis = buildCoachSynthesis(
+    [hardWeekNoPlan, quietNoPlan, barelyLogged],
+    NOW,
+  );
+  // La preuve que le piège est bien tendu: l'élève à 5 jours loggés N'EST PAS
+  // signalé `no_evaluable_plan`, c'est sa semaine dure qui l'emporte.
+  assertEquals(
+    synthesis.lines.find((l) => l.studentUserId === "hard")?.flagReason,
+    "week_too_hard",
+  );
+
+  const text = renderSynthesisText(synthesis, { locale: "en" });
+  assert(
+    text.includes(
+      "2 of 3 students have no published plan to log against, and 1 logged fewer than 4 of 7 days",
+    ),
+    text,
+  );
+  // Plus aucune inférence sur un ensemble qu'on n'a pas mesuré.
+  assert(!text.includes("the others logged"), text);
+  assert(!text.includes("the other logged"), text);
+});
+
+Deno.test("the gate sentence does not mention coverage when coverage is not the cause", () => {
+  // Condition de désarmement: la ceinture ne mord pas quand le problème
+  // n'existe pas. Tout le monde a loggé, personne n'a de plan -> une seule
+  // cause nommée, et pas de « 0 logged fewer than 4 of 7 days » décoratif.
+  const synthesis = buildCoachSynthesis(
+    [loggingIntoTheVoid("a", 6), loggingIntoTheVoid("b", 5)],
+    NOW,
+  );
+  const text = renderSynthesisText(synthesis, { locale: "en" });
+  assert(text.includes("no plan lines are published for these students yet"), text);
+  assert(!text.includes("fewer than"), text);
+});
+
+Deno.test("the gate sentence still says 'nobody logged' when NOBODY logged", () => {
+  // L'autre condition de désarmement: la phrase historique reste vraie quand
+  // elle est vraie.
+  const synthesis = buildCoachSynthesis(
+    [loggingIntoTheVoid("a", 1), loggingIntoTheVoid("b", 0)],
+    NOW,
+  );
+  const text = renderSynthesisText(synthesis, { locale: "en" });
+  assert(text.includes("nobody logged at least 4 of 7 days"), text);
+});
+
+Deno.test("a coach with no students is not told his cohort went quiet", () => {
+  // « 0 students: 0 in touch, 0 slipping, 0 silent » + « nobody checked in » +
+  // « nobody logged at least 4 of 7 days » est indiscernable d'une semaine où
+  // tout le monde s'est tu. C'est un constat d'échec sur des gens qui
+  // n'existent pas.
+  const text = renderSynthesisText(buildCoachSynthesis([], NOW), { locale: "en" });
+  assertEquals(text, "No students in this cohort yet - nothing to report this week.");
+  assert(!text.includes("0 in touch"), text);
+  assert(!text.includes("nobody logged"), text);
+  assert(!text.includes("Nobody checked in"), text);
+});
+
+Deno.test("the row CARRIES the livability, it is not only in the sentence", () => {
+  // La vivabilité est le chiffre de tête du modèle 1:N. Absente de `metrics`,
+  // la phrase « 2 holding up » n'était vérifiable qu'en recalculant la semaine
+  // sur les tables sources — ce que l'en-tête du module promet l'inverse.
+  const synthesis = buildCoachSynthesis([
+    student({
+      studentUserId: "a",
+      dailyPulses: [
+        { overall: "good", axis: null },
+        { overall: "good", axis: null },
+        { overall: "good", axis: null },
+      ],
+      weekPlan: { nutritionLines: 3, actionLines: 1, adopted: true },
+    }),
+    student({
+      studentUserId: "b",
+      dailyPulses: [
+        { overall: "hard", axis: "hunger" },
+        { overall: "hard", axis: "hunger" },
+        { overall: "mixed", axis: "hunger" },
+      ],
+    }),
+    student({ studentUserId: "c", dailyPulses: [{ overall: "good", axis: null }] }),
+  ], NOW);
+
+  const payload = metricsPayload(synthesis) as Record<string, unknown>;
+  assertEquals(payload.livability, {
+    sustainable: 1,
+    strained: 0,
+    hard: 1,
+    unknown: 1,
+  });
+  assertEquals(payload.planned, 1);
+
+  // Et le chiffre de la ligne est EXACTEMENT celui de la phrase.
+  const text = renderSynthesisText(synthesis, { locale: "en" });
+  assert(text.includes("1 holding up"), text);
+  assert(text.includes("1 having a hard time"), text);
+});

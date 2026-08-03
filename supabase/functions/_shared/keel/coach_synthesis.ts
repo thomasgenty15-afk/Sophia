@@ -507,6 +507,16 @@ export function renderSynthesisText(
   const m = synthesis.metrics;
   const out: string[] = [];
 
+  // ZÉRO ÉLÈVE N'EST PAS UNE SEMAINE SILENCIEUSE.
+  // « 0 students: 0 in touch, 0 slipping, 0 silent » suivi de « nobody checked
+  // in » et « nobody logged at least 4 of 7 days » décrit une cohorte devenue
+  // muette. Un coach sans élève lirait donc un constat d'échec sur des gens
+  // qui n'existent pas. Le job ne persiste plus cette synthèse (voir
+  // `buildAndWriteCoachSynthesis`), et le rendu ne la fabrique plus non plus.
+  if (m.studentCount === 0) {
+    return "No students in this cohort yet - nothing to report this week.";
+  }
+
   out.push(
     `${m.studentCount} student${m.studentCount === 1 ? "" : "s"} this week: ` +
       `${m.responsive} in touch, ${m.slipping} slipping, ${m.silent} silent.`,
@@ -545,26 +555,38 @@ export function renderSynthesisText(
     // The gate, stated rather than filled with a fake average — AND stated
     // with the RIGHT reason. Saying "nobody logged 4 of 7 days" to a coach
     // whose student logged 5 is a false statement in the one artefact whose
-    // whole value is that its numbers can be trusted. The two causes are
-    // distinguishable (`no_evaluable_plan` vs `coverage_below_gate`), so they
-    // are distinguished.
-    const noPlan = synthesis.lines.filter((l) => l.flagReason === "no_evaluable_plan").length;
-    if (noPlan > 0 && noPlan === m.studentCount) {
+    // whole value is that its numbers can be trusted.
+    //
+    // LES DEUX CAUSES SONT COMPTÉES SUR LES FAITS, PAS SUR LE MOTIF DE
+    // SIGNALEMENT. C'est la deuxième moitié de l'incident, trouvée en QA le
+    // 2026-08-03 sur une cohorte réelle: `flagReason` porte une PRIORITÉ (le
+    // silence, la semaine dure passent avant), donc un élève qui a loggé 5
+    // jours sans plan sort du compte `no_evaluable_plan` et se retrouvait
+    // décrit, par déduction, comme « a loggé moins de 4 jours sur 7 ». La
+    // phrase « et les autres ont loggé moins de X jours » est une INFÉRENCE
+    // sur un ensemble qu'on n'a pas mesuré: elle est remplacée par deux
+    // comptes que l'on mesure, chacun vrai de lui-même.
+    const noPlan = synthesis.lines.filter(
+      (l) => l.adherence.kind === "adherence" && l.adherence.evaluableDays === 0,
+    ).length;
+    const belowGate = synthesis.lines.filter(
+      (l) => l.adherence.kind === "insufficient_data",
+    ).length;
+    if (belowGate === 0) {
       out.push(
         "No adherence figure this week: no plan lines are published for " +
-          (m.studentCount === 1 ? "this student" : "these students") + " yet.",
+          (noPlan === 1 ? "this student" : "these students") + " yet.",
       );
-    } else if (noPlan > 0) {
-      const others = m.studentCount - noPlan;
+    } else if (noPlan === 0) {
       out.push(
-        `No adherence figure this week: ${noPlan} of ${m.studentCount} students ` +
-          `${noPlan === 1 ? "has" : "have"} no published plan, and ` +
-          `${others === 1 ? "the other logged" : "the others logged"} fewer than ` +
+        `No adherence figure this week: nobody logged at least ` +
           `${LOGGING_COVERAGE_MIN_DAYS} of 7 days.`,
       );
     } else {
       out.push(
-        `No adherence figure this week: nobody logged at least ` +
+        `No adherence figure this week: ${noPlan} of ${m.studentCount} ` +
+          `${noPlan === 1 ? "student has" : "students have"} no published plan ` +
+          `to log against, and ${belowGate} logged fewer than ` +
           `${LOGGING_COVERAGE_MIN_DAYS} of 7 days.`,
       );
     }
@@ -687,6 +709,19 @@ export function metricsPayload(synthesis: CoachSynthesis): Record<string, unknow
     silent: m.silent,
     with_adherence: m.withAdherence,
     mean_core_adherence_pct: m.meanCoreAdherencePct,
+    // LA VIVABILITÉ EST LE CHIFFRE DE TÊTE DU MODÈLE 1:N — elle doit donc
+    // vivre dans la ligne, pas seulement dans la phrase. Sans ça, « 2 holding
+    // up, 1 having a hard time » n'est vérifiable qu'en recalculant la semaine
+    // sur les tables sources, ce qui contredit l'en-tête de ce module (« la
+    // ligne peut être relue plus tard sans recalculer une semaine passée »).
+    livability: {
+      sustainable: m.livability.sustainable,
+      strained: m.livability.strained,
+      hard: m.livability.hard,
+      unknown: m.livability.unknown,
+    },
+    /** Combien d'élèves ont ADOPTÉ un plan (le narratif l'annonce déjà). */
+    planned: m.planned,
     portions: {
       total: m.portions.total,
       small: m.portions.small,
