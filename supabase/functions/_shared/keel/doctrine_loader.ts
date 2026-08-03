@@ -128,6 +128,29 @@ export async function loadPublishedDoctrine(
   }
   if (!coachId) return empty("no_coach");
 
+  // LE NOM DU COACH, et ce n'est pas cosmétique.
+  //
+  // `coach_doctrines` ne porte pas de nom — c'est `coaches.display_name` qui
+  // l'a. Sans cette lecture, le bloc compilé s'ouvre sur "THE COACH'S METHOD"
+  // au lieu de "MARC'S METHOD", et le produit qu'on vend est précisément que
+  // l'élève parle à l'agent DE SON COACH. Trouvé par la semaine simulée §7.4,
+  // qui assertait le nom dans le bloc: les tests unitaires passaient le nom en
+  // argument et ne pouvaient pas voir qu'aucun appelant réel ne le faisait.
+  let coachDisplayName: string | null = null;
+  try {
+    const { data, error } = await client
+      .from("coaches")
+      .select("display_name")
+      .eq("id", coachId)
+      .maybeSingle();
+    if (error) throw error;
+    coachDisplayName =
+      String((data as Record<string, unknown> | null)?.display_name ?? "").trim() || null;
+  } catch (error) {
+    // Un nom illisible dégrade la formulation, pas la doctrine: on continue.
+    console.warn("[keel/doctrine] coach name unreadable", error);
+  }
+
   let row: Record<string, unknown> | null = null;
   try {
     const { data, error } = await client
@@ -148,7 +171,10 @@ export async function loadPublishedDoctrine(
   }
   if (!row) return empty("no_published_doctrine", coachId);
 
-  const { doctrine, issues } = parseCoachDoctrine(row);
+  const { doctrine, issues } = parseCoachDoctrine({
+    ...row,
+    coach_display_name: coachDisplayName,
+  });
   const compiled = compileDoctrineBlock(doctrine);
 
   return {

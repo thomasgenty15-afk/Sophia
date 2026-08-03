@@ -706,3 +706,57 @@ Corrigé (`if (req.method === "OPTIONS")`, le motif des 5 autres fonctions du d�
   l'explication de ce que fait l'agent en attendant.
 - `/coach` avec 3 élèves seedés : Julie (3 h) **In touch**, Nadia (60 h) **Slipping**,
   Leo (9 j) **Silent** — et le compteur de sièges reste à 3.
+
+---
+
+## 12:30 — P3.10 : VERT — LA SEMAINE SIMULÉE (§7.4 N2), 13 étapes sur la vraie base
+
+`sophia-brain/test_harness/keel_properties/simulated_week_test.ts` (neuf).
+**Modules RÉELS contre la base LOCALE RÉELLE**, horloge injectée (jamais `new Date()` : une
+horloge partagée fait capter les rappels d'un run par le cron d'un autre — leçon
+`qa-simulated-clock-cron`). Sans stack locale, le fichier **skip proprement** au lieu de rendre un
+faux vert.
+
+| Étape | Assertion |
+|---|---|
+| J1 | La doctrine de Marc est celle que le runtime charge, avec sa voix et son vocabulaire |
+| J1 | L'élève parle + logge 2 assiettes → **pas candidate** à la relance |
+| J3 | Allergie déclarée → contrainte DURE, relue depuis sa table |
+| J3 soir | La ceinture **bloque** « ajoute des tree nuts »… et **laisse passer** « évite les tree nuts ici » |
+| J3 soir | La ceinture **bloque** « essaie 6 petits repas »… et **laisse passer** « Marc ne fait pas de 6 petits repas » |
+| J4 | 23 h de silence → **pas encore** de relance |
+| J6 | 74 h → **UNE** relance, ton `gentle`, épisode ouvert |
+| J6 | Seconde passe → `already_nudged_this_episode` (pas de spam) |
+| J6 nuit | 23h locales → **DIFFÉRÉ** à 08h, jamais annulé |
+| J8 lundi | Synthèse sur les faits : `responsive/slipping/silent = 0/1/1`, 2 assiettes remontées, **zéro kcal**, les deux élèves nommés |
+| J8 | La synthèse est **générée, pas livrée** (`delivered_at` null) |
+| J8 | Rejouer le lundi n'écrit **pas** une seconde synthèse |
+| ISOLATION | L'allergie de Julie **n'existe pas** pour Paul (même texte → `clean`), mais l'interdit du COACH s'applique **aux deux** |
+
+### 🔴 UN BUG QUE SEULE LA SEMAINE SIMULÉE POUVAIT MONTRER
+**Le bloc doctrine ne nommait pas le coach.** `coach_doctrines` ne porte pas de nom — c'est
+`coaches.display_name` qui l'a — et `loadPublishedDoctrine` ne le lisait pas. Le bloc injecté
+s'ouvrait donc sur « THE COACH'S METHOD » au lieu de « MARC'S METHOD ».
+Les 21 tests unitaires de `doctrine.ts` **passaient le nom en argument** et étaient donc
+structurellement incapables de voir qu'aucun appelant réel ne le faisait. C'est le pattern
+§7.3-(3) : le producteur n'écrit pas ce que le consommateur lit. Et ça touchait exactement la
+promesse produit — « l'élève parle à l'agent DE SON COACH ».
+
+### Une correction d'attente, pas de code
+J'attendais `silent: 2` au J8 ; le code rend `slipping: 1, silent: 1`. **Le code a raison** :
+Julie est à 116 h, sous le seuil de 120 h. J'ai corrigé l'attente — et le test est meilleur ainsi,
+puisqu'il prouve que les deux états sont bien distingués (l'un se rattrape d'un message, l'autre
+est déjà parti).
+
+```bash
+SUPABASE_SERVICE_ROLE_KEY=<clé locale> deno test --allow-all \
+  supabase/functions/sophia-brain/test_harness/keel_properties/simulated_week_test.ts
+# 1 passed (13 steps) | 0 failed
+deno test --allow-all supabase/functions/_shared/keel/ supabase/functions/sophia-brain/
+# 1809 passed | 0 failed | 18 ignored
+```
+
+**Ce que la semaine simulée NE prouve pas** : elle ne traverse ni Meta ni un modèle de vision.
+Les jours photo de §7.4 (J1 midi, J2 reconnaissance récurrente, J3 soir plat aux noix) assertent
+la ceinture et les faits, **pas la lecture d'image**. Le contrat photo v3 reste non exercé contre
+un vrai modèle.
