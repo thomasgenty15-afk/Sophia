@@ -500,3 +500,32 @@ deno test --allow-all supabase/functions/sophia-brain/ supabase/functions/_share
 23 tests neufs, dont 5 **au niveau du runtime** (`run_output_locks_test.ts`) et pas seulement du
 module : le défaut n'était pas un validateur cassé mais un validateur non atteint — un test de
 module seul ne l'aurait ni détecté, ni empêché de revenir.
+
+---
+
+## 08:10 — P1.5c : VERT — la doctrine atteint le composeur (l'autre moitié)
+
+`withKeelDoctrineBlock()` dans `run.ts`, appliqué sur le contexte passé à `runAgentAndVerify`.
+Sans ça, le verrou de sortie était **un videur devant une salle vide** : il empêche l'agent de
+contredire le coach, il ne le fait pas parler comme lui — et « c'est MON agent » (§1.4) n'existe pas.
+
+**Placé EN TÊTE du contexte, et c'est le point technique** : `companion.ts` documente que le budget
+de prompt **tronque par la QUEUE**. Un bloc ajouté en fin de contexte disparaît donc en silence sur
+les tours les plus riches — exactement ceux où la doctrine compte le plus. Un test l'assert
+(`indexOf(doctrine) < indexOf(plan)`).
+
+**Pas de doctrine → bloc de PRUDENCE, jamais une couche vide** : une couche vide est comblée par la
+culture nutritionnelle générale du modèle, précisément la voix qu'on ne vend pas.
+
+### LIMITE CONNUE, assumée
+§3.3 veut ce bloc dans le **préfixe MIS EN CACHE** (tier semi-stable de
+`buildCompanionPromptParts`), pas dans le contexte volatile. Le placer correctement demande de
+faire traverser le contexte KEEL à `agent_exec` **puis** à `runCompanion` — trois signatures sur le
+chemin de TOUTE conversation, et je ne fais pas ça à 8h du matin après une nuit. **Le comportement
+produit est correct ; l'économie de cache ne l'est pas encore.** `compileDoctrineBlock` expose déjà
+le hash nécessaire au déplacement. Repris dans STATUS-MORNING.
+
+```bash
+deno test --allow-all supabase/functions/sophia-brain/ supabase/functions/_shared/keel/
+# 1780 passed | 0 failed | 18 ignored
+```

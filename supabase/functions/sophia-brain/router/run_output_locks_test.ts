@@ -9,11 +9,17 @@
 
 import { assert, assertEquals } from "jsr:@std/assert@1";
 
-import { finalVisibleText, type KeelTurnContext } from "./run.ts";
+import {
+  finalVisibleText,
+  type KeelTurnContext,
+  withKeelDoctrineBlock,
+} from "./run.ts";
 import {
   DOCTRINE_BLOCK_FALLBACK_EN,
   MEDICAL_BLOCK_FALLBACK_EN,
 } from "../skills/_shared/keel_output_locks.ts";
+import { FALLBACK_PRUDENCE_BLOCK } from "../../_shared/keel/doctrine_loader.ts";
+import { compileDoctrineBlock } from "../../_shared/keel/doctrine.ts";
 
 function keel(over: Partial<KeelTurnContext> = {}): KeelTurnContext {
   return {
@@ -134,4 +140,51 @@ Deno.test("a non-KEEL turn is not touched at all", () => {
     keel({ is_student: false, role: null, safety_constraints: null }),
   );
   assert(out.includes("peanut butter"));
+});
+
+// ---------------------------------------------------------------------------
+// THE OTHER HALF OF THE DOUBLE LOCK: the doctrine must actually reach the
+// composer. Without it the belt is a bouncer in front of an empty room -- it
+// stops the agent contradicting the coach, it does not make it speak like him.
+// ---------------------------------------------------------------------------
+
+Deno.test("the doctrine block is injected AT THE HEAD of the composer context", () => {
+  const doctrine = DOCTRINE_CTX.doctrine!.doctrine!;
+  const compiled = compileDoctrineBlock(doctrine);
+  const ctx = withKeelDoctrineBlock("=== PLAN ===\nweek 2", {
+    ...DOCTRINE_CTX,
+    doctrine: { ...DOCTRINE_CTX.doctrine!, compiled },
+  });
+  assert(ctx.includes("six_small_meals"));
+  // AT THE HEAD: the prompt budget truncates by the TAIL, so a doctrine
+  // appended at the end vanishes silently on exactly the richest turns.
+  assert(
+    ctx.indexOf("MARC'S METHOD") < ctx.indexOf("=== PLAN ==="),
+    "the doctrine must precede the plan, or truncation eats it first",
+  );
+});
+
+Deno.test("no doctrine loaded -> the PRUDENCE block, never an empty layer", () => {
+  // An empty layer gets filled by the model's general nutrition culture, which
+  // is precisely the voice this product does not sell.
+  const ctx = withKeelDoctrineBlock("=== PLAN ===", {
+    ...DOCTRINE_CTX,
+    doctrine: {
+      doctrine: null,
+      compiled: null,
+      coachId: null,
+      reason: "no_published_doctrine",
+      issues: [],
+    },
+  });
+  assert(ctx.includes(FALLBACK_PRUDENCE_BLOCK));
+  assert(ctx.includes("Do NOT give prescriptive nutrition advice"));
+});
+
+Deno.test("a non-KEEL turn keeps its context byte-for-byte", () => {
+  const ctx = "=== LEGACY FR CONTEXT ===";
+  assertEquals(
+    withKeelDoctrineBlock(ctx, keel({ is_student: false, role: null })),
+    ctx,
+  );
 });

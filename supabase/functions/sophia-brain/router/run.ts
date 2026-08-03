@@ -267,6 +267,7 @@ import {
 // les brancher sur le seul point de passage de tout texte visible.
 import { applyKeelOutputLocks } from "../skills/_shared/keel_output_locks.ts";
 import {
+  doctrineBlockFor,
   type LoadedDoctrine,
   loadPublishedDoctrine,
 } from "../../_shared/keel/doctrine_loader.ts";
@@ -1936,6 +1937,43 @@ export function keelOutageTemplate(locale?: string | null): string {
   return isFrenchLocale(tag)
     ? "J'ai un souci technique sur ce tour. Je n'ai rien execute de plus."
     : "I hit a technical problem on this turn. Nothing was logged.";
+}
+
+/**
+ * PIVOT §3.3 — INJECTION de la couche `[DOCTRINE COACH]` dans le composeur.
+ *
+ * L'autre moitié du double verrou: `applyKeelOutputLocks` VÉRIFIE la sortie,
+ * ceci FAIT la voix. Sans cette injection le verrou est un videur devant une
+ * salle vide — il empêche l'agent de contredire le coach, il ne le fait pas
+ * parler comme lui, et « c'est MON agent » (§1.4) n'existe pas.
+ *
+ * POURQUOI EN TÊTE DU CONTEXTE, et pas ailleurs:
+ *   - `applyCompanionPromptBudgetWithPinnedContext` **tronque par la QUEUE**
+ *     (note explicite dans `companion.ts`). Un bloc ajouté en fin de contexte
+ *     disparaît donc silencieusement sur les tours les plus riches — ceux où
+ *     la doctrine compte le plus. En tête, il survit à la troncature.
+ *   - la couche `[DOCTRINE COACH]` de §3.3 est censée précéder le protocole et
+ *     la mémoire de l'élève: l'ordre du contexte reproduit celui du contrat.
+ *
+ * LIMITE CONNUE, assumée et notée dans STATUS-MORNING: §3.3 veut ce bloc dans
+ * le PRÉFIXE MIS EN CACHE (tier semi-stable de `buildCompanionPromptParts`),
+ * pas dans le contexte volatile. Le placer correctement demande de faire
+ * traverser le contexte KEEL à `agent_exec` puis à `runCompanion` — trois
+ * signatures sur le chemin de TOUTE conversation. Le comportement produit est
+ * ici correct; l'économie de cache ne l'est pas encore. `compileDoctrineBlock`
+ * expose déjà le hash nécessaire le jour où on déplacera le bloc.
+ *
+ * HORS ÉLÈVE KEEL: rendu tel quel. La branche FR legacy n'est pas touchée.
+ */
+export function withKeelDoctrineBlock(
+  context: string,
+  keel: KeelTurnContext,
+): string {
+  if (!keel.is_student) return context;
+  const block = keel.doctrine ? doctrineBlockFor(keel.doctrine) : null;
+  if (!block || !block.trim()) return context;
+  const base = String(context ?? "");
+  return base.trim() ? `${block}\n\n${base}` : block;
 }
 
 export function finalVisibleText(
@@ -5643,7 +5681,7 @@ export async function processMessage(
       userMessage,
       history,
       state,
-      context: presenceContext ?? context,
+      context: withKeelDoctrineBlock(presenceContext ?? context, keelTurn),
       targetMode,
       nCandidates: 1,
       checkupActive: false,
