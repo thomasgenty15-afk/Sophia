@@ -12,6 +12,7 @@ import {
 import {
   assertValidVisionMedia,
   buildVisionPayload,
+  completeTruncatedJson,
   generateWithVision,
   resolveVisionModel,
 } from "./vision.ts";
@@ -379,6 +380,186 @@ Deno.test("generateWithVision: invalid media rejected before any network call", 
       "Unsupported vision mime type",
     );
     assertEquals(callCount, 0);
+  } finally {
+    globalThis.fetch = originalFetch;
+    restoreEnv(snapshot);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// The provider's truncated-JSON defect (agent-3 QA, 2026-08-03).
+//
+// MEASURED, not hypothetical: 4 of 12 real `gemini-3.1-pro-preview` calls on
+// real meal photos returned valid JSON minus its final `}`, with
+// `finishReason: "STOP"`. Before this belt that was HTTP 500 and a meal photo
+// with no reading at all. Tests below pin: what it closes, what it REFUSES to
+// close (every refusal is a case where closing would invent a value), and that
+// it does nothing at all when the JSON is already whole.
+// ---------------------------------------------------------------------------
+
+Deno.test("completeTruncatedJson: closes the observed defect (missing final brace)", () => {
+  const truncated =
+    '{\n  "detected_foods": [{"label": "salmon"}],\n  "image_quality": "clear"';
+  const out = completeTruncatedJson(truncated);
+  assertEquals(out.ok, true);
+  if (!out.ok) return;
+  assertEquals(out.repaired, true);
+  assertEquals(JSON.parse(out.text).image_quality, "clear");
+  assertEquals(JSON.parse(out.text).detected_foods[0].label, "salmon");
+});
+
+Deno.test("completeTruncatedJson: closes nested arrays and objects at once", () => {
+  const out = completeTruncatedJson('{"a": [1, 2, {"b": "c"}');
+  assertEquals(out.ok, true);
+  if (!out.ok) return;
+  assertEquals(out.text, '{"a": [1, 2, {"b": "c"}]}');
+});
+
+// --- FALSE-PREMISE: the belt must not bite when there is nothing wrong ------
+Deno.test("completeTruncatedJson: valid JSON is returned untouched, repaired=false", () => {
+  const whole = '{"image_quality":"clear","overall_confidence":0.95}';
+  const out = completeTruncatedJson(whole);
+  assertEquals(out.ok, true);
+  if (!out.ok) return;
+  assertEquals(out.repaired, false);
+  assertEquals(out.text, whole);
+});
+
+// --- REFUSALS: each one is a case where closing would FABRICATE a value -----
+Deno.test("completeTruncatedJson: refuses a truncation inside a string", () => {
+  // Closing this would invent the label "sal".
+  const out = completeTruncatedJson('{"detected_foods": [{"label": "sal');
+  assertEquals(out.ok, false);
+  if (out.ok) return;
+  assertEquals(out.reason, "truncated_inside_string");
+});
+
+Deno.test("completeTruncatedJson: refuses a truncated bare number", () => {
+  // `0.9` may be `0.95` cut short: valid JSON carrying a WRONG confidence.
+  const out = completeTruncatedJson('{"image_quality": "clear", "overall_confidence": 0.9');
+  assertEquals(out.ok, false);
+  if (out.ok) return;
+  assertEquals(out.reason, "incomplete_trailing_value");
+});
+
+Deno.test("completeTruncatedJson: refuses a dangling separator", () => {
+  for (const text of ['{"a": "b",', '{"a":']) {
+    const out = completeTruncatedJson(text);
+    assertEquals(out.ok, false);
+    if (out.ok) return;
+    assertEquals(out.reason, "incomplete_trailing_value");
+  }
+});
+
+Deno.test("completeTruncatedJson: refuses prose that is not JSON at all", () => {
+  assertEquals(completeTruncatedJson("I cannot analyse this image.").ok, false);
+  assertEquals(completeTruncatedJson("").ok, false);
+});
+
+Deno.test("generateWithVision: jsonMode completes a truncated payload without a second call", async () => {
+  const snapshot = snapshotEnv();
+  const originalFetch = globalThis.fetch;
+  let callCount = 0;
+  setTestEnv();
+
+  globalThis.fetch = ((_input: string | URL | Request, _init?: RequestInit) => {
+    callCount++;
+    return Promise.resolve(geminiTextResponse('{"image_quality": "clear"'));
+  }) as typeof fetch;
+
+  try {
+    const result = await generateWithVision({
+      systemPrompt: "sys",
+      userMessage: "msg",
+      media: [{ mimeType: "image/jpeg", base64: "AAA" }],
+      jsonMode: true,
+    });
+    assertEquals(JSON.parse(result.text).image_quality, "clear");
+    // The whole point of completing rather than retrying: no extra vision call.
+    assertEquals(callCount, 1);
+  } finally {
+    globalThis.fetch = originalFetch;
+    restoreEnv(snapshot);
+  }
+});
+
+Deno.test("generateWithVision: jsonMode RETRIES when the payload cannot be completed", async () => {
+  const snapshot = snapshotEnv();
+  const originalFetch = globalThis.fetch;
+  let callCount = 0;
+  setTestEnv();
+
+  globalThis.fetch = ((_input: string | URL | Request, _init?: RequestInit) => {
+    callCount++;
+    // First answer is truncated mid-string: uncompletable, so it must be re-asked.
+    return Promise.resolve(
+      geminiTextResponse(
+        callCount === 1 ? '{"label": "sal' : '{"image_quality": "clear"}',
+      ),
+    );
+  }) as typeof fetch;
+
+  try {
+    const result = await generateWithVision({
+      systemPrompt: "sys",
+      userMessage: "msg",
+      media: [{ mimeType: "image/jpeg", base64: "AAA" }],
+      jsonMode: true,
+    });
+    assertEquals(JSON.parse(result.text).image_quality, "clear");
+    assertEquals(callCount, 2);
+  } finally {
+    globalThis.fetch = originalFetch;
+    restoreEnv(snapshot);
+  }
+});
+
+Deno.test("generateWithVision: jsonMode throws rather than hand back unparseable text", async () => {
+  const snapshot = snapshotEnv();
+  const originalFetch = globalThis.fetch;
+  let callCount = 0;
+  setTestEnv();
+
+  globalThis.fetch = ((_input: string | URL | Request, _init?: RequestInit) => {
+    callCount++;
+    return Promise.resolve(geminiTextResponse("not json at all"));
+  }) as typeof fetch;
+
+  try {
+    await assertRejects(
+      () =>
+        generateWithVision({
+          systemPrompt: "sys",
+          userMessage: "msg",
+          media: [{ mimeType: "image/jpeg", base64: "AAA" }],
+          jsonMode: true,
+        }),
+      Error,
+      "unparseable",
+    );
+    assertEquals(callCount, 3); // 1 + MAX_RETRIES
+  } finally {
+    globalThis.fetch = originalFetch;
+    restoreEnv(snapshot);
+  }
+});
+
+// Non-JSON callers are untouched: a plain-text vision call may return prose.
+Deno.test("generateWithVision: non-jsonMode text is never validated as JSON", async () => {
+  const snapshot = snapshotEnv();
+  const originalFetch = globalThis.fetch;
+  setTestEnv();
+
+  globalThis.fetch = ((_input: string | URL | Request, _init?: RequestInit) =>
+    Promise.resolve(geminiTextResponse("a plain sentence"))) as typeof fetch;
+
+  try {
+    const result = await generateWithVision({
+      systemPrompt: "sys",
+      userMessage: "msg",
+      media: [{ mimeType: "image/jpeg", base64: "AAA" }],
+    });
+    assertEquals(result.text, "a plain sentence");
   } finally {
     globalThis.fetch = originalFetch;
     restoreEnv(snapshot);

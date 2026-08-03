@@ -36,6 +36,7 @@ import {
 import { replyWithBrain } from "./wa_reply.ts";
 import { getEffectiveTierForUser } from "../_shared/billing-tier.ts";
 import { handleInboundMealPhoto } from "./handlers_meal_photo.ts";
+import { resolveResponseLocale } from "../_shared/keel/locale.ts";
 import { handleUnlinkedInbound } from "./handlers_unlinked.ts";
 import { handleStopOptOut } from "./handlers_optout.ts";
 import {
@@ -108,25 +109,58 @@ const WHATSAPP_BRAIN_RETRY_WATCHDOG_DELAY_SECONDS = (() => {
   // Edge timeout is around 150s; this aims for roughly one minute after abort.
   return 210;
 })();
-const GENERIC_UNSUPPORTED_REPLY =
-  "Je n'arrive pas encore à lire ce type de contenu, mais c'est dans les tuyaux, je te ferai savoir quand c'est au point :)";
+/**
+ * The unsupported-media fallbacks.
+ *
+ * WHY THIS IS KEYED ON A LOCALE NOW (agent-3 QA, 2026-08-03): these five
+ * strings were hardcoded French, and a KEEL student who sends a voice note, a
+ * video, a sticker or a PDF is answered on a KEEL surface -- where French is a
+ * stated red line (the product is en-GB). Measured, not inferred: four inbounds
+ * of those types on an `en-GB` student produced four French replies in
+ * `chat_messages`.
+ *
+ * The `image` line was worse than a language bug. It says "I cannot read photos
+ * yet" about the flagship gesture of the product, and it is exactly what a
+ * student sees when `handleInboundMealPhoto` DECLINES -- tier gate, download
+ * failure, unreadable upload. The English line below says what is true in that
+ * moment (this one did not go through, send it again) instead of denying the
+ * feature exists.
+ *
+ * `resolveResponseLocale` is the single point that decides a reply's language
+ * (R3); during the pilot it returns `en-US` for everyone, so this is English
+ * today. The French copy is KEPT, verbatim, as the `fr` entry: when
+ * multi-language ships, the branch is already here and nothing has to be
+ * re-translated.
+ */
+const UNSUPPORTED_REPLIES: Record<string, Record<string, string>> = {
+  en: {
+    audio: "I cannot listen to voice notes yet - write it to me and I will pick it up.",
+    // Deliberately does NOT promise that sending it again will work: this line
+    // is reached for EVERY `handleInboundMealPhoto` refusal, and the most
+    // common one in the pivot is the tier gate (`PHOTO_ALLOWED_TIERS` holds the
+    // legacy alliance/architecte tiers, which a masterclass student on
+    // `access_tier='student'` never has once their trial ends). "Send it again"
+    // would be an infinite retry loop for exactly those students. Saying less
+    // is the only honest option until the gate itself is decided.
+    image: "I could not save that photo just now.",
+    video: "I cannot read videos yet - a photo of the plate works though.",
+    document: "I cannot open documents yet - tell me what is in it and I will pick it up.",
+    sticker: "Noted :)",
+    generic: "I cannot read that kind of message yet - write it to me and I will pick it up.",
+  },
+  fr: {
+    audio: "Je n'arrive pas encore à lire les vocaux, mais c'est dans les tuyaux, je te ferai savoir quand c'est au point :)",
+    image: "Je n'ai pas pu enregistrer cette photo.",
+    video: "Je n'arrive pas encore à lire les vidéos, mais c'est dans les tuyaux, je te ferai savoir quand c'est au point :)",
+    document: "Je n'arrive pas encore à lire les documents, mais c'est dans les tuyaux, je te ferai savoir quand c'est au point :)",
+    sticker: "Noté :)",
+    generic: "Je n'arrive pas encore à lire ce type de contenu, mais c'est dans les tuyaux, je te ferai savoir quand c'est au point :)",
+  },
+};
 function getUnsupportedReplyByType(type) {
-  if (type === "audio") {
-    return "Je n'arrive pas encore à lire les vocaux, mais c'est dans les tuyaux, je te ferai savoir quand c'est au point :)";
-  }
-  if (type === "image") {
-    return "Je n'arrive pas encore à lire les photos, mais c'est dans les tuyaux, je te ferai savoir quand c'est au point :)";
-  }
-  if (type === "video") {
-    return "Je n'arrive pas encore à lire les vidéos, mais c'est dans les tuyaux, je te ferai savoir quand c'est au point :)";
-  }
-  if (type === "document") {
-    return "Je n'arrive pas encore à lire les documents, mais c'est dans les tuyaux, je te ferai savoir quand c'est au point :)";
-  }
-  if (type === "sticker") {
-    return "Je n'arrive pas encore à lire les stickers, mais c'est dans les tuyaux, je te ferai savoir quand c'est au point :)";
-  }
-  return GENERIC_UNSUPPORTED_REPLY;
+  const locale = String(resolveResponseLocale({}) ?? "").slice(0, 2).toLowerCase();
+  const copy = UNSUPPORTED_REPLIES[locale] ?? UNSUPPORTED_REPLIES.en;
+  return copy[String(type ?? "")] ?? copy.generic;
 }
 function decodeJwtAlg(jwt) {
   const t = (jwt ?? "").trim();

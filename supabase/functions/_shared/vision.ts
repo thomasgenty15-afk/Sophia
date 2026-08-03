@@ -139,6 +139,95 @@ export function assertValidVisionMedia(media: VisionInput[]): void {
   }
 }
 
+/**
+ * MEASURED DEFECT this exists for (2026-08-03, agent-3 QA, 12 real calls on two
+ * real meal photos against `gemini-3.1-pro-preview`): **4 of 12 responses came
+ * back as valid JSON minus its final closing brace**, with
+ * `finishReason: "STOP"`, no `MAX_TOKENS`, ~700 output tokens — the provider
+ * simply dropped the last character of a `responseMimeType: application/json`
+ * response it declared complete. Every one of those ended on
+ * `"image_quality": "clear"`, the last field of the schema.
+ *
+ * The cost of that at the time: `parseMealAnalysis` does `JSON.parse`,
+ * `analyze-meal-photo-v1` has no branch for a parse failure, so a third of real
+ * meal photos got HTTP 500 and NO reading at all — `food_group_ref`,
+ * `portion_band` and `recognized` left null forever on a row nothing re-analyzes,
+ * and a WhatsApp student answered with a bare "Photo saved.".
+ *
+ * WHAT THIS FUNCTION IS ALLOWED TO DO: append closing brackets. Nothing else.
+ * It adds STRUCTURE, never CONTENT, and it refuses every case where the two
+ * cannot be told apart:
+ *
+ *   - truncated inside a string  -> refused (`"sal` would become `"sal"`, a
+ *     fabricated label);
+ *   - trailing `,` or `:`        -> refused (a pair with no value);
+ *   - last token is bare (number / true / false / null) -> REFUSED, and this is
+ *     the subtle one: `0.9` truncated from `0.95` closes into perfectly valid
+ *     JSON carrying a WRONG confidence. A completeness we cannot prove is a
+ *     completeness we do not assert.
+ *
+ * So the acceptance condition is narrow and provable: the walk must end outside
+ * any string, and the last non-whitespace character must be `"`, `}` or `]` --
+ * the three characters that can only appear where a value has just CLOSED.
+ *
+ * DISARMING CONDITION (the belt must not bite when the problem is absent): text
+ * that already parses is returned untouched with `repaired: false`, and no
+ * caller behaves differently for it. `vision_test.ts` pins that, plus one case
+ * per refusal above.
+ */
+export type JsonCompletion =
+  | { ok: true; text: string; repaired: boolean }
+  | { ok: false; reason: string };
+
+export function completeTruncatedJson(raw: string): JsonCompletion {
+  const text = String(raw ?? "").trim();
+  if (text === "") return { ok: false, reason: "empty" };
+  try {
+    JSON.parse(text);
+    return { ok: true, text, repaired: false };
+  } catch {
+    // fall through — this is the only branch that may append anything
+  }
+
+  const stack: string[] = [];
+  let inString = false;
+  let escaped = false;
+  for (const ch of text) {
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (ch === "\\") escaped = true;
+      else if (ch === '"') inString = false;
+      continue;
+    }
+    if (ch === '"') inString = true;
+    else if (ch === "{" || ch === "[") stack.push(ch);
+    else if (ch === "}" || ch === "]") {
+      const open = stack.pop();
+      if (!open || (ch === "}") !== (open === "{")) {
+        return { ok: false, reason: "unbalanced" };
+      }
+    }
+  }
+
+  if (inString) return { ok: false, reason: "truncated_inside_string" };
+  if (stack.length === 0) return { ok: false, reason: "not_a_truncation" };
+  const last = text[text.length - 1];
+  if (last !== '"' && last !== "}" && last !== "]") {
+    // Covers dangling `,` / `:` AND the bare-token case above, in one test:
+    // only these three characters prove the preceding value is finished.
+    return { ok: false, reason: "incomplete_trailing_value" };
+  }
+
+  const closers = stack.reverse().map((c) => (c === "{" ? "}" : "]")).join("");
+  const completed = text + closers;
+  try {
+    JSON.parse(completed);
+  } catch {
+    return { ok: false, reason: "still_invalid" };
+  }
+  return { ok: true, text: completed, repaired: true };
+}
+
 // Pure payload builder — Gemini REST v1beta generateContent with inline_data
 // parts only (no fileData/upload: meal photos are <4MB inline).
 export function buildVisionPayload(args: {
@@ -433,9 +522,60 @@ export async function generateWithVision(
     });
 
     const rawText = String(textPart.text ?? "");
-    const text = jsonMode
+    let text = jsonMode
       ? rawText.replace(/```json\n?|```/g, "").trim()
       : rawText;
+
+    // JSON MODE IS A PROMISE THIS FUNCTION MAKES, so it is this function that
+    // has to keep it. See `completeTruncatedJson` for the measured provider
+    // defect (1 response in 3 on real meal photos) and for the narrow set of
+    // truncations it is allowed to close.
+    //
+    // Order matters: try the content-free completion FIRST, and only spend
+    // another vision call (~20s, real money) when even that cannot prove the
+    // payload is whole. A caller that receives `{ text }` still gets a string
+    // it must parse itself -- nothing here decides what the JSON MEANS.
+    let jsonRepaired = false;
+    if (jsonMode) {
+      const completion = completeTruncatedJson(text);
+      if (completion.ok) {
+        text = completion.text;
+        jsonRepaired = completion.repaired;
+      } else {
+        await logLlmRawResponseEvent({
+          request_id: meta.requestId ?? null,
+          user_id: meta.userId ?? null,
+          source,
+          provider: "gemini",
+          model,
+          attempt,
+          status: "unparseable_json_mode_output",
+          http_status: response.status,
+          json_mode: jsonMode,
+          tool_choice: "none",
+          has_tools: false,
+          outcome: "empty_or_invalid",
+          output_text: text,
+          raw_response: data,
+          error_message: `json mode returned unparseable text (${completion.reason})`,
+          metadata: {
+            vision: true,
+            media_count: args.media.length,
+            completion_reason: completion.reason,
+          },
+        });
+        lastErr = new Error(
+          `Vision error: json mode returned unparseable text (${completion.reason})`,
+        );
+        if (attempt <= MAX_RETRIES) {
+          await sleep(backoffMs(attempt));
+          continue;
+        }
+        // Out of attempts: still throw. A caller must never receive a payload
+        // this function could not prove is whole.
+        throw lastErr;
+      }
+    }
 
     await logLlmRawResponseEvent({
       request_id: meta.requestId ?? null,
@@ -452,7 +592,13 @@ export async function generateWithVision(
       outcome: "text",
       output_text: text,
       raw_response: data,
-      metadata: { vision: true, media_count: args.media.length },
+      metadata: {
+        vision: true,
+        media_count: args.media.length,
+        // Auditable: the rate of provider truncations this belt absorbed is
+        // countable without re-reading every raw response.
+        ...(jsonRepaired ? { json_structurally_completed: true } : {}),
+      },
     });
 
     return { text };
