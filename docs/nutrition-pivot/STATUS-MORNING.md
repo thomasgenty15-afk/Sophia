@@ -113,7 +113,7 @@ code↔contrat n'a été créée.
 | **P0.2** tables manquantes | ✅ VERT | 5 tables + RLS, **37 assertions** |
 | **P0.3** contrat photo | 🟡 MOITIÉ | Module v3 vert (83 tests) ; **bout-en-bout non joué** |
 | **P1.4** dispatcher + flows | ❌ **NON FAIT** | Rien. Voir §4 |
-| **P1.5** doctrine + double verrou | 🟡 MOITIÉ | Moteur vert (21 tests) ; **non câblé au composeur** |
+| **P1.5** doctrine + double verrou | ✅ **CÂBLÉ** | Moteur + chargeur + ceinture de sortie **appliqués au runtime** (50 tests). Voir §2bis |
 | **P1.6** proactif | 🟡 QUART | Décideur de relance vert (20 tests) ; **non câblé** ; checkin matin et bilan hebdo élève **non faits** |
 | **P2.7** Doctrine Copilot | ❌ **NON FAIT** | Table + moteur de compilation prêts ; interview, replay, rollback : rien |
 | **P2.8** synthèse coach | 🟡 MOITIÉ | Moteur vert (22 tests) ; **aucun job ne l'écrit ni ne la livre** |
@@ -121,7 +121,47 @@ code↔contrat n'a été créée.
 | **P3** semaine simulée N2 | ❌ **NON JOUÉE** | Le juge de paix n'a pas été convoqué |
 | **P3** passe adversariale | ✅ VERT | Les 7 patterns audités, **3 findings corrigés** |
 
-**7 commits**, 17 fichiers, +4 794 / −103 lignes. Aucun rouge laissé derrière.
+**10 commits**, 24 fichiers. Aucun rouge laissé derrière.
+
+---
+
+## 2bis. CE QUI A ÉTÉ CÂBLÉ APRÈS LA PREMIÈRE VERSION DE CE FICHIER
+
+### 🔴 Une garantie du CONTRACT était FAUSSE — c'est réparé
+`docs/keel/CONTRACT.md` énonce globalement : « A deterministic post-generation validator rejects
+any output containing a `severity='medical'` token ». **Dans le code, ce validateur n'avait qu'UN
+SEUL appelant** : `skills/plan_question/renderer.ts`. La réponse normale, l'accusé de photo, les
+messages proactifs et tous les autres skills ne passaient par **aucun** validateur — une allergie
+`severity='medical'` pouvait être suggérée à l'élève sur presque tous les chemins.
+
+C'est maintenant appliqué dans **`finalVisibleText`**, le point de passage unique de tout texte
+visible, en dernier (les autres ceintures réinjectent du texte) et **hors** du raccourci
+`isSafetyRoute` (un tour de crise est le dernier endroit où suggérer un allergène).
+
+- **Médical** → le message **entier** est remplacé (amputer la phrase laisse un texte qui parlait
+  quand même de cacahuètes à un anaphylactique), et le repli **ne renomme pas** l'allergène.
+- **Interdit coach** → remplacé par un renvoi au coach. Le médical **prime**.
+- La doctrine du coach est **chargée** par tour et **injectée en tête du contexte** du composeur
+  (le budget tronque par la queue : en fin de contexte, elle disparaîtrait sur les tours riches).
+- Pas de doctrine lisible → **bloc de prudence** (« ne prescris pas, défère au coach »), jamais une
+  couche vide : une couche vide se remplit de la culture générale du modèle.
+
+**Le paramètre a été rendu OBLIGATOIRE** plutôt qu'optionnel : le défaut corrigé est exactement une
+garantie « globale » appliquée sur 1 chemin sur N, et un paramètre optionnel laisse le prochain
+appelant rouvrir le trou en silence. Le compilateur a trouvé les 6 sites + 2 fixtures.
+
+### ⚠️ Deux arbitrages à valider par toi
+1. **Fail-open sur les contraintes.** Si `student_safety_constraints` ne se lit pas, la livraison
+   passe quand même (avec `safety_constraints: null` ≠ `[]` et un log bruyant). Bloquer tous les
+   messages de tous les élèves pendant un hoquet Postgres est une panne produit complète ; un tour
+   non vérifié est un risque borné (le prompt porte déjà les contraintes). Même asymétrie que le
+   plancher TCA existant. **C'est le seul endroit où j'ai choisi la disponibilité contre la
+   vérification** — dis-moi si tu veux l'inverse.
+2. **La doctrine est dans le contexte volatile, pas dans le préfixe caché.** §3.3 veut le bloc dans
+   le tier semi-stable (mis en cache par coach). Le déplacer demande de faire traverser le contexte
+   KEEL à `agent_exec` puis `runCompanion` — 3 signatures sur le chemin de toute conversation.
+   Comportement produit **correct** ; économie de cache **pas encore**. `compileDoctrineBlock`
+   expose déjà le hash nécessaire.
 
 ---
 
@@ -134,10 +174,10 @@ Prérequis : Docker Desktop lancé (il était éteint cette nuit ; `open -a Dock
 npx supabase start
 ```
 
-**Toute la suite KEEL — 370 tests, 0 échec** (c'est la commande principale) :
+**La commande principale — 1780 tests, 0 échec** (cerveau + couche KEEL) :
 
 ```bash
-deno test --allow-all supabase/functions/_shared/keel/
+deno test --allow-all supabase/functions/sophia-brain/ supabase/functions/_shared/keel/
 ```
 
 **Les tables du pivot — 37 assertions SQL, 0 échec** :
@@ -156,18 +196,19 @@ deno check supabase/functions/analyze-meal-photo-v1/index.ts supabase/functions/
 
 ## 4. CE QUI RESTE — avec cause, tentative, prochaine étape
 
-### 4.1 Le câblage (c'est le gros morceau)
-**Cause** : j'ai construit les moteurs avant les branchements, délibérément — un moteur non câblé
-se câble ; un câblage sur un moteur faux se paie en production. La conséquence assumée est qu'à
-cette heure, **rien de neuf n'est visible pour un utilisateur**.
-**Prochaine étape, dans cet ordre** :
-1. `doctrine.ts` → le composeur de `sophia-brain` (couche `[DOCTRINE COACH]` + appel de
-   `assertNoDoctrineViolation` avant envoi, avec `doctrineRetryInstruction` sur la reprise).
-2. `coach_synthesis.ts` → un job hebdo qui lit `coach_clients` + `commitment_evaluations` +
+### 4.1 Le câblage — **1 sur 3 fait**
+✅ **`doctrine.ts` est câblé** (§2bis) : chargé par tour, injecté dans le composeur, vérifié en
+sortie. C'était le morceau qui portait la promesse produit ET le trou de sécurité.
+
+Restent, dans cet ordre :
+1. `coach_synthesis.ts` → un job hebdo qui lit `coach_clients` + `commitment_evaluations` +
    `protocol_events.portion_band`, écrit `coach_syntheses`, puis livre (et ne pose `delivered_at`
    qu'après livraison réelle).
-3. `reengagement.ts` → `process-checkins` (la sélection SQL doit précouper sur
+2. `reengagement.ts` → `process-checkins` (la sélection SQL doit précouper sur
    `REENGAGE_AFTER_HOURS`, sinon la requête et le décideur divergent).
+3. La régénération sur violation (`doctrineRetryInstruction`) côté composeur : aujourd'hui la
+   ceinture **remplace** le message ; régénérer produirait une meilleure réponse. La ceinture reste
+   le filet dans les deux cas.
 
 ### 4.2 P1.4 dispatcher + flows locaux — non commencé
 **Cause** : `sophia-brain` fait 330 fichiers ; un dispatcher à moitié recâblé est pire que pas de
@@ -227,9 +268,10 @@ mais un modèle qui omet ce champ peut toujours poser une question. À trancher.
       (c'est ton fichier) ; j'ai travaillé avec un override de scratchpad.
 - [ ] **2. (10 min)** Relire les 2 migrations, puis `npx supabase db push`.
       → `20260803030000_pivot_disable_b2c_crons.sql`, `20260803031000_pivot_nutrition_tables.sql`
-- [ ] **3. (5 min)** `npx supabase functions deploy` — liste exacte des fonctions dont le
-      comportement a changé cette nuit : **`analyze-meal-photo-v1`** et **`whatsapp-webhook`**
-      (tous deux consomment `meal_analysis.ts` v3 et `whatsapp_graph.ts`).
+- [ ] **3. (5 min)** `npx supabase functions deploy` — fonctions dont le comportement a changé :
+      **`analyze-meal-photo-v1`**, **`whatsapp-webhook`** (contrat photo v3 + `whatsapp_graph.ts`)
+      et **`sophia-brain`** (ceinture de sortie + injection doctrine — c'est le changement le plus
+      sensible de la nuit, il touche le chemin de TOUTE conversation ; 1780 tests verts).
       ⚠️ Le bump de version de prompt (`meal_analysis.en.v2` → `v3`) est **volontaire** : il rend
       une lecture v2 et une lecture v3 distinguables sur la ligne (`analysis_version`).
 - [ ] **4. (10 min) Templates Meta** — **rien n'a changé cette nuit**, donc rien de neuf à soumettre.
@@ -240,9 +282,14 @@ mais un modèle qui omet ce champ peut toujours poser une question. À trancher.
       les hypothèses OU une question (jamais les deux), et **aucun chiffre**.
 - [ ] **6. (10 min)** Vérifier en base que la ligne écrite porte bien `assumptions` et
       `clarifying_question` dans `recognized`, et un `portion_band` en colonne.
-- [ ] **7.** Premier vrai coach (§1.4, ~30 min) — ⚠️ **pas encore outillé** : l'écran Doctrine
-      n'existe pas. Faisable en pair-pilotage avec insertion SQL directe dans `coach_doctrines`
-      (le schéma et le compilateur sont prêts et testés).
+- [ ] **7. (10 min) Tester la doctrine pour de vrai** — insère une doctrine dans `coach_doctrines`
+      (`published_at` non nul, un interdit avec ses `surface_forms`), puis demande à l'agent, depuis
+      le téléphone de test, quelque chose qui devrait déclencher l'interdit. Attendu : l'agent
+      **n'endosse pas** l'interdit ; s'il l'endosse quand même, la ceinture renvoie au coach. Et
+      vérifie qu'il PEUT toujours **expliquer** l'interdit (« Marc ne fait pas X ») — c'est la
+      distinction que tout le design porte.
+- [ ] **8.** Premier vrai coach (§1.4, ~30 min) — ⚠️ l'écran Doctrine n'existe toujours pas.
+      Faisable en pair-pilotage avec insertion SQL directe dans `coach_doctrines`.
 
 ---
 
