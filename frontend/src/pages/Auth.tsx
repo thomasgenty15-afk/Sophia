@@ -196,7 +196,7 @@ const Auth = () => {
   }, [coachSignup, prelaunchLockdown, onboardingRedirect]);
 
   useEffect(() => {
-    const msg = "Accès restreint (pré-lancement). Seul le compte master_admin peut se connecter.";
+    const msg = "Access is restricted (pre-launch). Only the master_admin account can sign in.";
     if (!forbidden) {
       // Clear stale "prelaunch forbidden" message if user navigated away from forbidden state.
       if (error === msg) setError(null);
@@ -314,12 +314,12 @@ const Auth = () => {
         await runPostSignupFlow(signInData.user.id);
       } else {
         setVerificationStatus('idle');
-        setError("Email pas encore vérifié. Clique sur le lien dans ton email puis reviens ici.");
+        setError("Email not verified yet. Click the link in your email, then come back here.");
       }
     } catch (err) {
       console.error('[Auth] Manual check error:', err);
       setVerificationStatus('idle');
-      setError(getErrorMessage(err, "Erreur lors de la vérification."));
+      setError(getErrorMessage(err, "Something went wrong while verifying."));
     }
   };
 
@@ -450,23 +450,23 @@ const Auth = () => {
       const isLocalSupabase =
         !!supabaseUrl &&
         (supabaseUrl.includes('127.0.0.1:54321') || supabaseUrl.includes('localhost:54321'));
-      const localHint = isLocalSupabase ? " (en local: ouvre http://127.0.0.1:54324 pour voir l’email)" : "";
-      alert(`Si un compte existe pour ${email}, un email de réinitialisation va être envoyé${localHint}.`);
+      const localHint = isLocalSupabase ? " (local: open http://127.0.0.1:54324 to read the email)" : "";
+      alert(`If an account exists for ${email}, a reset email is on its way${localHint}.`);
       setIsResettingPassword(false);
     } catch (err: unknown) {
       console.error("Reset error:", err);
-      const msg = getErrorMessage(err, "Erreur lors de l'envoi.");
+      const msg = getErrorMessage(err, "Sending failed.");
       // Supabase Auth returns a generic error when the mailer (SMTP) is misconfigured or unavailable.
       // Make it actionable for ops.
       if (typeof msg === "string" && msg.toLowerCase().includes("recovery email")) {
         setError(
-          "Impossible d’envoyer l’email de réinitialisation.\n\n" +
-          "À vérifier dans Supabase Dashboard → Auth → SMTP:\n" +
-          "- custom SMTP activé mais incomplet / mauvais identifiants\n" +
-          "- sender/domain non vérifié\n\n" +
-          "Et dans Auth → URL Configuration:\n" +
+          "Could not send the password reset email.\n\n" +
+          "Check in Supabase Dashboard → Auth → SMTP:\n" +
+          "- custom SMTP enabled but incomplete / wrong credentials\n" +
+          "- sender/domain not verified\n\n" +
+          "And in Auth → URL Configuration:\n" +
           `- Redirect URL allowlist: ${window.location.origin}/reset-password\n\n` +
-          `Détail: ${msg}`,
+          `Detail: ${msg}`,
         );
       } else {
         setError(msg);
@@ -484,13 +484,13 @@ const Auth = () => {
     try {
         if (isSignUp) {
         if (prelaunchLockdown) {
-          throw new Error("Inscription désactivée (pré-lancement). Connecte-toi avec le compte master_admin.");
+          throw new Error("Sign-up is disabled (pre-launch). Sign in with the master_admin account.");
         }
         // --- INSCRIPTION ---
         
         // Validation CGV/CGU
         if (!hasAcceptedLegal) {
-          throw new Error("Veuillez accepter les CGU et la Politique de Confidentialité pour continuer.");
+          throw new Error("Please accept the Terms and the Privacy Policy to continue.");
         }
 
         // KEEL W6.1 — a coach signs up WITHOUT a phone number.
@@ -503,12 +503,12 @@ const Auth = () => {
         if (!coachSignup) {
         // Basic phone validation (optional but recommended)
         if (!phone) {
-             throw new Error("Le numéro de téléphone est requis pour Sophia.");
+             throw new Error("A phone number is required for Sophia.");
         }
 
         phoneNorm = normalizePhone(phone);
         if (!phoneNorm) {
-          throw new Error("Le numéro de téléphone est requis pour Sophia.");
+          throw new Error("A phone number is required for Sophia.");
         }
 
         // Validation plus stricte du format
@@ -516,13 +516,13 @@ const Auth = () => {
           // France : on attend exactement 12 caractères (+33 + 9 chiffres)
           // Ex: +33 6 12 34 56 78
           if (phoneNorm.length !== 12) {
-            throw new Error("Numéro de téléphone incorrect (10 chiffres attendus pour la France).");
+            throw new Error("Invalid phone number (10 digits expected for France).");
           }
         } else if (phoneNorm.startsWith('+0')) {
              // Cas où normalizePhone n'a pas reconnu le pays et a juste ajouté + devant un 0
-             throw new Error("Format international requis (ex: +33...) ou numéro incomplet.");
+             throw new Error("International format required (e.g. +33…), or the number is incomplete.");
         } else if (phoneNorm.length < 8) {
-             throw new Error("Numéro de téléphone trop court.");
+             throw new Error("Phone number is too short.");
         }
 
         // If the phone is already validated by another account, block signup with a friendly message.
@@ -542,7 +542,7 @@ const Auth = () => {
         }
         if (phoneAlreadyInUse) {
           throw new Error(
-            "Ce numéro de téléphone est déjà associé à un compte Sophia. Si c'est bien ton numéro, contacte l'assistance à sophia@sophia-coach.ai pour récupérer ou transférer ton accès."
+            "This phone number is already linked to a Sophia account. If it is yours, contact support at sophia@sophia-coach.ai to recover or transfer your access."
           );
         }
         } // end of the non-coach phone path
@@ -657,7 +657,7 @@ const Auth = () => {
       }
     } catch (err: unknown) {
       console.error("Auth error:", err);
-      setError(getErrorMessage(err, "Une erreur est survenue."));
+      setError(getErrorMessage(err, "Something went wrong."));
     } finally {
       setLoading(false);
     }
@@ -676,10 +676,10 @@ const Auth = () => {
                 <CheckCircle2 className="w-8 h-8" />
               </div>
               <h2 className="text-3xl font-bold text-emerald-600 mb-4">
-                Email vérifié !
+                Email verified!
               </h2>
               <p className="text-slate-600 mb-4">
-                Préparation de ton espace…
+                Setting up your space…
               </p>
               <Loader2 className="w-6 h-6 animate-spin text-slate-400 mx-auto" />
             </>
@@ -695,20 +695,20 @@ const Auth = () => {
                 )}
               </div>
               <h2 className="text-3xl font-extrabold text-slate-900 mb-4 tracking-tight">
-                Vérifie ta boîte mail.
+                Check your inbox.
               </h2>
               <p className="text-lg text-slate-600 mb-8 max-w-md mx-auto leading-relaxed">
-                Un lien de confirmation a été envoyé à <strong className="text-slate-900 font-semibold">{email}</strong>.<br />
-                Clique dessus puis reviens ici — la page se met à jour toute seule.
+                A confirmation link has been sent to <strong className="text-slate-900 font-semibold">{email}</strong>.<br />
+                Click it, then come back here — this page updates on its own.
                 <br />
                 <span className="text-sm text-slate-500 mt-2 block font-medium bg-slate-50 py-1 px-3 rounded-full inline-block mt-3 border border-slate-100">
-                   💡 Si tu ne le vois pas, regarde aussi dans tes indésirables.
+                   💡 If you cannot see it, check your spam folder too.
                 </span>
               </p>
 
               <div className="flex items-center justify-center gap-3 text-sm font-medium text-indigo-600 bg-indigo-50 py-2 px-4 rounded-full mx-auto w-fit mb-10 border border-indigo-100">
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>En attente de vérification…</span>
+                <span>Waiting for verification…</span>
               </div>
 
               <div className="space-y-4 max-w-xs mx-auto">
@@ -719,10 +719,10 @@ const Auth = () => {
                   className="w-full flex justify-center py-4 px-6 border border-transparent rounded-2xl shadow-lg shadow-indigo-200 text-base font-bold text-white bg-slate-900 hover:bg-indigo-600 hover:shadow-indigo-300 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed items-center gap-3 group"
                 >
                   {verificationStatus === 'checking' ? (
-                    <><Loader2 className="w-5 h-5 animate-spin" /> Vérification…</>
+                    <><Loader2 className="w-5 h-5 animate-spin" /> Verifying…</>
                   ) : (
                     <>
-                      <CheckCircle2 className="w-5 h-5" /> J'ai cliqué sur le lien
+                      <CheckCircle2 className="w-5 h-5" /> I have clicked the link
                     </>
                   )}
                 </button>
@@ -742,8 +742,8 @@ const Auth = () => {
                     className="text-sm font-medium text-indigo-600 hover:text-indigo-500 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors"
                   >
                     {resendCooldown > 0
-                      ? `Renvoyer l'email (${resendCooldown}s)`
-                      : "Renvoyer l'email de confirmation"}
+                      ? `Resend the email (${resendCooldown}s)`
+                      : "Resend the confirmation email"}
                   </button>
                   <button
                     onClick={() => {
@@ -753,7 +753,7 @@ const Auth = () => {
                     }}
                     className="text-xs text-slate-400 hover:text-slate-600 underline decoration-dotted transition-colors"
                   >
-                    Modifier mon adresse email
+                    Change my email address
                   </button>
                 </div>
               </div>
@@ -804,31 +804,31 @@ const Auth = () => {
         ) : onboardingRedirect ? (
           <div className="animate-fade-in-up">
             <h2 className="text-3xl font-bold text-slate-900 mb-2">
-              Creer ton espace Sophia.
+              Create your Sophia space.
             </h2>
             <p className="text-slate-600 max-w-sm mx-auto">
-              Inscris-toi pour reprendre ton onboarding V2 et finaliser ton plan.
+              Sign up to resume your onboarding and finish your plan.
             </p>
           </div>
         ) : (
           <div>
             <h2 className="text-3xl font-bold text-slate-900 mb-2">
               {isResettingPassword 
-                ? "Réinitialisation" 
+                ? "Reset your password" 
                 : isSignUp 
-                  ? "Bienvenue sur Sophia." 
-                  : "Ravi de te revoir."}
+                  ? "Welcome to Sophia." 
+                  : "Good to see you again."}
             </h2>
             <p className="text-slate-600">
               {isResettingPassword 
-                ? "Je vais t'envoyer un lien magique."
+                ? "I will send you a magic link."
                 : isSignUp 
-                  ? "Crée ton compte pour commencer." 
-                  : "Connecte-toi pour reprendre ta transformation."}
+                  ? "Create your account to get started." 
+                  : "Sign in to pick up where you left off."}
             </p>
             {prelaunchLockdown && !isResettingPassword && (
               <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold">
-                Accès restreint (pré-lancement) · master_admin uniquement
+                Restricted access (pre-launch) · master_admin only
               </div>
             )}
             {debug && (
@@ -848,7 +848,7 @@ const Auth = () => {
             <form className="space-y-6" onSubmit={handleResetPassword}>
               <div>
                 <label className="block text-sm font-bold text-slate-700 mb-1">
-                  Adresse Email
+                  Email address
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -860,7 +860,7 @@ const Auth = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="appearance-none block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent sm:text-sm transition-all"
-                    placeholder="prenom@exemple.com"
+                    placeholder="name@example.com"
                   />
                 </div>
               </div>
@@ -880,10 +880,10 @@ const Auth = () => {
                 >
                   {loading ? (
                     <>
-                      <Loader2 className="w-5 h-5 animate-spin" /> Envoi...
+                      <Loader2 className="w-5 h-5 animate-spin" /> Sending…
                     </>
                   ) : (
-                    "Envoyer le lien"
+                    "Send the link"
                   )}
                 </button>
               </div>
@@ -894,7 +894,7 @@ const Auth = () => {
                   onClick={() => setIsResettingPassword(false)}
                   className="text-sm font-medium text-slate-500 hover:text-indigo-600"
                 >
-                  Retour à la connexion
+                  Back to sign-in
                 </button>
               </div>
             </form>
@@ -907,7 +907,7 @@ const Auth = () => {
               <>
                 <div>
                   <label className="block text-sm font-bold text-slate-700 mb-1">
-                    {coachSignup ? "Your name" : "Prénom"}
+                    {coachSignup ? "Your name" : "First name"}
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -919,14 +919,14 @@ const Auth = () => {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       className="appearance-none block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent sm:text-sm transition-all"
-                      placeholder={coachSignup ? "How your students will see you" : "Ton prénom"}
+                      placeholder={coachSignup ? "How your students will see you" : "Your first name"}
                     />
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-bold text-slate-700 mb-1">
-                    {coachSignup ? "Email address" : "Adresse Email"}
+                    Email address
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -938,7 +938,7 @@ const Auth = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="appearance-none block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent sm:text-sm transition-all"
-                      placeholder="prenom@exemple.com"
+                      placeholder="name@example.com"
                     />
                   </div>
                 </div>
@@ -951,7 +951,7 @@ const Auth = () => {
                 {!coachSignup && (
                 <div>
                   <label className="block text-sm font-bold text-slate-700 mb-1">
-                    Numéro WhatsApp
+                    WhatsApp number
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -966,7 +966,7 @@ const Auth = () => {
                       placeholder="+33 6 12 34 56 78"
                     />
                   </div>
-                  <p className="mt-1 text-xs text-slate-500">Pour que Sophia puisse te contacter.</p>
+                  <p className="mt-1 text-xs text-slate-500">So Sophia can reach you.</p>
                 </div>
                 )}
 
@@ -1004,7 +1004,7 @@ const Auth = () => {
             {(!isSignUp || prelaunchLockdown) && (
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-1">
-                Adresse Email
+                Email address
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -1016,7 +1016,7 @@ const Auth = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="appearance-none block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent sm:text-sm transition-all"
-                  placeholder="prenom@exemple.com"
+                  placeholder="name@example.com"
                 />
               </div>
             </div>
@@ -1024,7 +1024,7 @@ const Auth = () => {
 
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-1">
-                {coachSignup ? "Password" : "Mot de passe"}
+                Password
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -1043,7 +1043,7 @@ const Auth = () => {
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
                   className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
-                  aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
@@ -1068,7 +1068,7 @@ const Auth = () => {
                       {coachSignup ? (
                         <>I accept the <a href="/legal" target="_blank" className="text-indigo-600 hover:text-indigo-500 hover:underline">Terms</a> and the <a href="/legal#confidentialite" target="_blank" className="text-indigo-600 hover:text-indigo-500 hover:underline">Privacy Policy</a>.</>
                       ) : (
-                        <>J'accepte les <a href="/legal" target="_blank" className="text-indigo-600 hover:text-indigo-500 hover:underline">Conditions Générales</a> et la <a href="/legal#confidentialite" target="_blank" className="text-indigo-600 hover:text-indigo-500 hover:underline">Politique de Confidentialité</a>.</>
+                        <>I accept the <a href="/legal" target="_blank" className="text-indigo-600 hover:text-indigo-500 hover:underline">Terms</a> and the <a href="/legal#confidentialite" target="_blank" className="text-indigo-600 hover:text-indigo-500 hover:underline">Privacy Policy</a>.</>
                       )}
                     </label>
                   </div>
@@ -1086,10 +1086,10 @@ const Auth = () => {
                 >
                   <div className="text-left">
                     <div className="text-sm font-bold text-slate-900">
-                      {coachSignup ? "Preferences" : "Préférences"}
+                      Preferences
                     </div>
                     <div className="text-xs text-slate-500">
-                      {coachSignup ? "English" : "Français"} · {tzFollowDevice ? `${detectBrowserTimezone() || timezone || DEFAULT_TIMEZONE} (${coachSignup ? "device" : "appareil"})` : `${timezone || DEFAULT_TIMEZONE} (${coachSignup ? "profile" : "profil"})`}
+                      English · {tzFollowDevice ? `${detectBrowserTimezone() || timezone || DEFAULT_TIMEZONE} (device)` : `${timezone || DEFAULT_TIMEZONE} (profile)`}
                     </div>
                   </div>
                   <div className="text-slate-400 text-sm font-bold">{prefsOpen ? "—" : "+"}</div>
@@ -1099,27 +1099,24 @@ const Auth = () => {
                   <div className="p-4 bg-white border-t border-slate-200 space-y-3">
                     <div>
                       <label className="block text-sm font-bold text-slate-700 mb-1">
-                        {coachSignup ? "Language" : "Langue"}
+                        Language
                       </label>
-                      {/* R3: ui_locale. The FR consumer path is locked to
-                          French; the coach workspace is English. Two locked
-                          values, not one guessed one. */}
+                      {/* R3: ui_locale. One locked value: the product ships in
+                          English on every surface. */}
                       <input
                         type="text"
-                        value={coachSignup ? "English" : "Français"}
+                        value="English"
                         readOnly
                         className="appearance-none block w-full px-3 py-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-700 sm:text-sm"
                       />
                       <p className="mt-1 text-xs text-slate-500">
-                        {coachSignup
-                          ? "The coach workspace ships in English."
-                          : "Langue verrouillée pour le moment."}
+                        The workspace ships in English.
                       </p>
                     </div>
 
                     <div>
                       <label className="block text-sm font-bold text-slate-700 mb-1">
-                        {coachSignup ? "Time zone (IANA)" : "Fuseau horaire (IANA)"}
+                        Time zone (IANA)
                       </label>
                       <select
                         value={(timezone || "").trim()}
@@ -1136,8 +1133,8 @@ const Auth = () => {
 
                     <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 p-3">
                       <div>
-                        <div className="text-sm font-bold text-slate-700">Itinérance</div>
-                        <div className="text-xs text-slate-500">Suivre automatiquement le fuseau horaire de l’appareil.</div>
+                        <div className="text-sm font-bold text-slate-700">Roaming</div>
+                        <div className="text-xs text-slate-500">Follow the device time zone automatically.</div>
                       </div>
                       <button
                         type="button"
@@ -1152,7 +1149,7 @@ const Auth = () => {
                           })}
                         className={`w-11 h-6 rounded-full p-1 transition-colors ${tzFollowDevice ? "bg-indigo-600" : "bg-slate-200"}`}
                         aria-pressed={tzFollowDevice}
-                        aria-label="Activer l'itinérance"
+                        aria-label="Enable roaming"
                       >
                         <div className={`w-4 h-4 bg-white rounded-full shadow-sm transform transition-transform ${tzFollowDevice ? "translate-x-5" : "translate-x-0"}`} />
                       </button>
@@ -1170,7 +1167,7 @@ const Auth = () => {
                     onClick={() => setIsResettingPassword(true)}
                     className="font-medium text-indigo-600 hover:text-indigo-500"
                   >
-                    Mot de passe oublié ?
+                    Forgotten your password?
                   </button>
                 </div>
               </div>
@@ -1191,15 +1188,15 @@ const Auth = () => {
               >
                 {loading ? (
                   <>
-                    <Loader2 className="w-5 h-5 animate-spin" /> Traitement...
+                    <Loader2 className="w-5 h-5 animate-spin" /> Working…
                   </>
                 ) : isSignUp ? (
                   <>
-                    {coachSignup ? "Create my coach account" : "Découvrir mon Plan"}{" "}
+                    {coachSignup ? "Create my coach account" : "Create my account"}{" "}
                     <ArrowRight className="w-5 h-5" />
                   </>
                 ) : (
-                  coachSignup ? "Sign in" : "Se connecter"
+                  "Sign in"
                 )}
               </button>
             </div>
@@ -1217,7 +1214,7 @@ const Auth = () => {
                   <span className="px-2 bg-white text-slate-500">
                     {coachSignup
                       ? (isSignUp ? "Already have a coach account?" : "No coach account yet?")
-                      : (isSignUp ? "Déjà un compte ?" : "Pas encore de compte ?")}
+                      : (isSignUp ? "Already have an account?" : "No account yet?")}
                   </span>
                 </div>
               </div>
@@ -1229,7 +1226,7 @@ const Auth = () => {
                 >
                   {coachSignup
                     ? (isSignUp ? "Sign in" : "Create a coach account")
-                    : (isSignUp ? "Me connecter" : "Créer un compte gratuitement")}
+                    : (isSignUp ? "Sign in" : "Create a free account")}
                 </button>
               </div>
 
@@ -1266,8 +1263,8 @@ const Auth = () => {
         {/* Trust Signals */}
         {isSignUp && !isResettingPassword && !prelaunchLockdown && (
             <div className="mt-8 flex justify-center gap-6 text-xs text-slate-400 font-medium uppercase tracking-wider">
-                <span className="flex items-center gap-1"><ShieldCheck className="w-4 h-4" /> {coachSignup ? "Private data" : "Données Privées"}</span>
-                <span className="flex items-center gap-1"><Sparkles className="w-4 h-4" /> {coachSignup ? "Secured AI" : "IA Sécurisée"}</span>
+                <span className="flex items-center gap-1"><ShieldCheck className="w-4 h-4" /> Private data</span>
+                <span className="flex items-center gap-1"><Sparkles className="w-4 h-4" /> Secured AI</span>
             </div>
         )}
       </div>

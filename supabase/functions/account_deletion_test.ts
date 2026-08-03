@@ -126,7 +126,7 @@ async function deleteAccount(
   const confirm = await callFn(supabaseUrl, anonKey, "account-deletion-v1", accessToken, {
     action: "confirm",
     token: prepare.json.token,
-    typed_confirmation: "SUPPRIMER",
+    typed_confirmation: "DELETE",
   });
   assertEquals(confirm.status, 200, `confirm failed: ${JSON.stringify(confirm.json)}`);
   return confirm.json;
@@ -192,7 +192,7 @@ Deno.test("account deletion: T0 flags the profile, cancels Stripe/WhatsApp, revo
   const confirm = await callFn(supabaseUrl, anonKey, "account-deletion-v1", accessToken, {
     action: "confirm",
     token: prepare.json.token,
-    typed_confirmation: "SUPPRIMER",
+    typed_confirmation: "DELETE",
   });
   assertEquals(confirm.status, 200, JSON.stringify(confirm.json));
   assert(confirm.json?.ok);
@@ -221,7 +221,7 @@ Deno.test("account deletion: T0 flags the profile, cancels Stripe/WhatsApp, revo
   const replay = await callFn(supabaseUrl, anonKey, "account-deletion-v1", accessToken, {
     action: "confirm",
     token: prepare.json.token,
-    typed_confirmation: "SUPPRIMER",
+    typed_confirmation: "DELETE",
   });
   assert(replay.status === 401 || replay.status === 403 || replay.status === 409,
     `replay should be rejected, got ${replay.status}`);

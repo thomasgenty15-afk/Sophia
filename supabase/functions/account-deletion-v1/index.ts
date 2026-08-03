@@ -4,7 +4,7 @@
 // Two-step contract (INV-5, reuses the destructive-operation confirmation tokens):
 //   * action="prepare": fresh password re-auth, then returns a signed
 //     ConfirmationToken (10 min TTL) bound to a pending-confirmation row.
-//   * action="confirm": requires the token + the typed word "SUPPRIMER".
+//   * action="confirm": requires the token + the typed word "DELETE".
 //     Executes T0: profile flagged deletion_pending (purge at J+7), Stripe
 //     cancelled immediately (no proration refund), coaching links ended if the
 //     user is a coach, WhatsApp shut down after a last sober confirmation

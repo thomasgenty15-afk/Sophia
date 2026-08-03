@@ -12,8 +12,8 @@ export const ACCOUNT_STATUS_ACTIVE = "active";
 export const ACCOUNT_STATUS_DELETION_PENDING = "deletion_pending";
 export const DELETION_GRACE_DAYS = 7;
 
-// Typed "SUPPRIMER" is the strong-confirmation contract shared with the frontend.
-export const DELETION_CONFIRMATION_WORD = "SUPPRIMER";
+// Typed "DELETE" is the strong-confirmation contract shared with the frontend.
+export const DELETION_CONFIRMATION_WORD = "DELETE";
 
 function bytesToHex(bytes: Uint8Array): string {
   return [...bytes].map((b) => b.toString(16).padStart(2, "0")).join("");

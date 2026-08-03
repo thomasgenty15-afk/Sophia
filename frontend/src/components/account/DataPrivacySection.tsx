@@ -48,14 +48,14 @@ async function invokeFn<T>(name: string, body: Record<string, unknown>): Promise
 }
 
 function frenchExportError(outcome: { status: number | null; code: string | null }): string {
-  if (outcome.code === "invalid_password") return "Mot de passe incorrect.";
+  if (outcome.code === "invalid_password") return "Wrong password.";
   if (outcome.status === 429) {
-    return "Tu as déjà demandé un export récemment (limite : 1 export par 24 h). Réessaie plus tard.";
+    return "You already requested an export recently (limit: 1 export per 24 h). Try again later.";
   }
-  return "L'export a échoué. Réessaie dans quelques minutes ou écris à sophia@sophia-coach.ai.";
+  return "The export failed. Try again in a few minutes, or write to sophia@sophia-coach.ai.";
 }
 
-const CONFIRMATION_WORD = "SUPPRIMER";
+const CONFIRMATION_WORD = "DELETE";
 
 type DeleteStep = "export" | "explain" | "confirm" | "done";
 
@@ -137,11 +137,11 @@ export default function DataPrivacySection({ isArchitect }: Props) {
       }>("account-deletion-v1", { action: "prepare", password: deletePassword });
       if (!prepare.ok) {
         if (prepare.code === "invalid_password") {
-          setDeleteError("Mot de passe incorrect.");
+          setDeleteError("Wrong password.");
         } else if (prepare.status === 429) {
-          setDeleteError("Trop de tentatives. Réessaie dans une heure.");
+          setDeleteError("Too many attempts. Try again in an hour.");
         } else {
-          setDeleteError("La demande a échoué. Réessaie ou écris à sophia@sophia-coach.ai.");
+          setDeleteError("The request failed. Try again, or write to sophia@sophia-coach.ai.");
         }
         return;
       }
@@ -154,13 +154,13 @@ export default function DataPrivacySection({ isArchitect }: Props) {
       });
       if (!confirm.ok) {
         if (confirm.code === "confirmation_word_mismatch") {
-          setDeleteError(`Tape exactement « ${CONFIRMATION_WORD} » pour confirmer.`);
+          setDeleteError(`Type exactly "${CONFIRMATION_WORD}" to confirm.`);
         } else if (confirm.code === "subscription_cancel_failed") {
           setDeleteError(
-            "Impossible de résilier ton abonnement pour le moment. Rien n'a été supprimé — réessaie dans quelques minutes.",
+            "Could not cancel your subscription right now. Nothing has been deleted — try again in a few minutes.",
           );
         } else {
-          setDeleteError("La suppression a échoué. Rien n'a été supprimé — réessaie.");
+          setDeleteError("The deletion failed. Nothing has been deleted — try again.");
         }
         return;
       }
@@ -184,12 +184,12 @@ export default function DataPrivacySection({ isArchitect }: Props) {
   };
 
   const formatDate = (iso: string | null) => {
-    if (!iso) return "dans 7 jours";
+    if (!iso) return "in 7 days";
     try {
       return new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", year: "numeric" })
         .format(new Date(iso));
     } catch {
-      return "dans 7 jours";
+      return "in 7 days";
     }
   };
 
@@ -198,35 +198,35 @@ export default function DataPrivacySection({ isArchitect }: Props) {
       <h3 className={`text-xs font-bold uppercase tracking-widest mb-4 mt-8 ${
         isArchitect ? "text-emerald-600" : "text-slate-400"
       }`}>
-        Mes données
+        My data
       </h3>
 
       {/* --- Export RGPD --- */}
       <div className={cardClass}>
         <div className="flex items-center gap-3 mb-2">
           <Download className={`w-4 h-4 ${isArchitect ? "text-emerald-400" : "text-slate-400"}`} />
-          <span className="text-sm font-medium">Exporter mes données</span>
+          <span className="text-sm font-medium">Export my data</span>
         </div>
         <p className={`text-[11px] leading-snug mb-3 ${mutedText}`}>
-          Télécharge une copie de tes données (profil, plans, conversations, souvenirs) au format
-          JSON dans une archive ZIP. Limite : 1 export par 24 h.
+          Download a copy of your data (profile, plans, conversations, memories) as JSON in a
+          ZIP archive. Limit: 1 export per 24 h.
         </p>
 
         {!exportOpen ? (
           <button type="button" onClick={() => setExportOpen(true)} className={primaryBtn}>
-            Préparer mon export
+            Prepare my export
           </button>
         ) : (
           <div className="space-y-2">
             <label className={labelClass}>
-              Confirme ton mot de passe pour continuer
+              Confirm your password to continue
             </label>
             <input
               type="password"
               value={exportPassword}
               onChange={(e) => setExportPassword(e.target.value)}
               className={inputClass}
-              placeholder="Ton mot de passe"
+              placeholder="Your password"
               autoComplete="current-password"
             />
             {exportError && <div className={errorBox}>{exportError}</div>}
@@ -238,7 +238,7 @@ export default function DataPrivacySection({ isArchitect }: Props) {
                 }`}
                 download
               >
-                Télécharger l'archive (lien valable 15 minutes)
+                Download the archive (link valid for 15 minutes)
               </a>
             ) : (
               <button
@@ -249,13 +249,12 @@ export default function DataPrivacySection({ isArchitect }: Props) {
                   isArchitect ? "bg-emerald-700 hover:bg-emerald-600 text-white" : "bg-slate-900 hover:bg-slate-800 text-white"
                 }`}
               >
-                {exportLoading ? "Préparation de l'archive..." : "Générer mon export"}
+                {exportLoading ? "Preparing the archive…" : "Generate my export"}
               </button>
             )}
             <p className={`text-[11px] leading-snug ${mutedText}`}>
-              Par sécurité, une notification est envoyée sur WhatsApp et par email à chaque demande
-              d'export. Le fichier contient des données personnelles sensibles : conserve-le en lieu
-              sûr.
+              For your safety, a notification is sent on WhatsApp and by email for every export
+              request. The file contains sensitive personal data: keep it somewhere safe.
             </p>
           </div>
         )}
@@ -271,7 +270,7 @@ export default function DataPrivacySection({ isArchitect }: Props) {
         }`}
       >
         <span className="font-bold text-sm flex items-center gap-2">
-          <Trash2 className="w-4 h-4" /> Supprimer mon compte
+          <Trash2 className="w-4 h-4" /> Delete my account
         </span>
       </button>
 
@@ -289,11 +288,11 @@ export default function DataPrivacySection({ isArchitect }: Props) {
               <h4 className="font-bold text-sm flex items-center gap-2">
                 {deleteStep === "done" ? (
                   <>
-                    <ShieldCheck className="w-4 h-4 text-emerald-600" /> C'est fait
+                    <ShieldCheck className="w-4 h-4 text-emerald-600" /> Done
                   </>
                 ) : (
                   <>
-                    <Trash2 className="w-4 h-4 text-red-600" /> Supprimer mon compte
+                    <Trash2 className="w-4 h-4 text-red-600" /> Delete my account
                   </>
                 )}
               </h4>
@@ -312,9 +311,9 @@ export default function DataPrivacySection({ isArchitect }: Props) {
               {deleteStep === "export" && (
                 <>
                   <p>
-                    Avant de partir, tu peux télécharger une copie de tes données (profil, plans,
-                    conversations, souvenirs). C'est optionnel — et possible uniquement tant que ton
-                    compte existe.
+                    Before you go, you can download a copy of your data (profile, plans,
+                    conversations, memories). It is optional — and only possible while your account
+                    still exists.
                   </p>
                   <div className="mt-5 grid gap-2">
                     <button
@@ -325,14 +324,14 @@ export default function DataPrivacySection({ isArchitect }: Props) {
                       }}
                       className="w-full py-3 rounded-lg font-bold text-sm border border-slate-200 text-slate-700 hover:bg-slate-50"
                     >
-                      Télécharger mes données d'abord
+                      Download my data first
                     </button>
                     <button
                       type="button"
                       onClick={() => setDeleteStep("explain")}
                       className="w-full py-3 rounded-lg font-bold text-sm bg-slate-900 hover:bg-slate-800 text-white"
                     >
-                      Continuer
+                      Continue
                     </button>
                   </div>
                 </>
@@ -340,32 +339,31 @@ export default function DataPrivacySection({ isArchitect }: Props) {
 
               {deleteStep === "explain" && (
                 <>
-                  <p className="font-semibold text-slate-900">Voici ce qui va se passer :</p>
+                  <p className="font-semibold text-slate-900">Here is what will happen:</p>
                   <ul className="mt-3 space-y-2 list-disc pl-5">
-                    <li>Ton accès à l'app est coupé immédiatement.</li>
-                    <li>Sophia arrête tout de suite de t'écrire sur WhatsApp.</li>
+                    <li>Your access to the app is cut off immediately.</li>
+                    <li>Sophia stops writing to you on WhatsApp straight away.</li>
                     <li>
-                      Ton abonnement est résilié immédiatement, sans nouveau prélèvement. La période
-                      déjà payée n'est pas remboursée au prorata.
+                      Your subscription is cancelled immediately, with no further charge. The
+                      period already paid is not refunded pro rata.
                     </li>
                     <li>
-                      <strong>Toutes tes données sont définitivement supprimées dans 7 jours.</strong>{" "}
-                      Cette suppression est irréversible.
+                      <strong>All your data is permanently deleted in 7 days.</strong>{" "}
+                      This deletion is irreversible.
                     </li>
                     <li>
-                      Tu peux changer d'avis : reconnecte-toi avant cette date et ton compte sera
-                      restauré en un clic (l'abonnement, lui, ne sera pas réactivé automatiquement).
+                      You can change your mind: sign in again before that date and your account is
+                      restored in one click (the subscription is not reactivated automatically).
                     </li>
                   </ul>
                   <div className="mt-4 rounded-xl border border-amber-100 bg-amber-50 p-3 text-xs text-amber-900">
                     <p className="font-semibold flex items-center gap-1.5">
-                      <AlertTriangle className="w-3.5 h-3.5" /> Ce qui est conservé
+                      <AlertTriangle className="w-3.5 h-3.5" /> What is kept
                     </p>
                     <p className="mt-1">
-                      Les factures liées à tes paiements (obligation légale de conservation
-                      comptable) et une trace minimale anonymisée de la suppression (empreintes
-                      chiffrées de ton email et de ton téléphone, avec la date) comme preuve de
-                      conformité. Rien d'autre.
+                      The invoices for your payments (statutory accounting retention obligation)
+                      and a minimal anonymised record of the deletion (hashed email and phone
+                      number, with the date) as proof of compliance. Nothing else.
                     </p>
                   </div>
                   <div className="mt-5 grid gap-2">
@@ -374,14 +372,14 @@ export default function DataPrivacySection({ isArchitect }: Props) {
                       onClick={() => setDeleteStep("confirm")}
                       className="w-full py-3 rounded-lg font-bold text-sm bg-red-600 hover:bg-red-500 text-white"
                     >
-                      J'ai compris, continuer
+                      I understand, continue
                     </button>
                     <button
                       type="button"
                       onClick={() => setDeleteOpen(false)}
                       className="w-full py-3 rounded-lg font-bold text-sm border border-slate-200 text-slate-700 hover:bg-slate-50"
                     >
-                      Annuler
+                      Cancel
                     </button>
                   </div>
                 </>
@@ -390,13 +388,13 @@ export default function DataPrivacySection({ isArchitect }: Props) {
               {deleteStep === "confirm" && (
                 <>
                   <p>
-                    Dernière étape. Confirme ton mot de passe puis tape{" "}
-                    <strong>{CONFIRMATION_WORD}</strong> pour supprimer ton compte.
+                    Last step. Confirm your password, then type{" "}
+                    <strong>{CONFIRMATION_WORD}</strong> to delete your account.
                   </p>
                   <div className="mt-4 space-y-3">
                     <div>
                       <label className="block text-xs font-medium mb-1.5 text-slate-500">
-                        Mot de passe
+                        Password
                       </label>
                       <input
                         type="password"
@@ -408,7 +406,7 @@ export default function DataPrivacySection({ isArchitect }: Props) {
                     </div>
                     <div>
                       <label className="block text-xs font-medium mb-1.5 text-slate-500">
-                        Tape « {CONFIRMATION_WORD} »
+                        Type {CONFIRMATION_WORD}
                       </label>
                       <input
                         type="text"
@@ -433,7 +431,7 @@ export default function DataPrivacySection({ isArchitect }: Props) {
                       }
                       className="w-full py-3 rounded-lg font-bold text-sm bg-red-600 hover:bg-red-500 text-white disabled:opacity-50"
                     >
-                      {deleteLoading ? "Suppression en cours..." : "Supprimer définitivement mon compte"}
+                      {deleteLoading ? "Deleting…" : "Permanently delete my account"}
                     </button>
                   </div>
                 </>
@@ -442,23 +440,23 @@ export default function DataPrivacySection({ isArchitect }: Props) {
               {deleteStep === "done" && (
                 <>
                   <p>
-                    Ton compte est désactivé. Toutes tes données seront{" "}
-                    <strong>définitivement supprimées le {formatDate(purgeDate)}</strong>.
+                    Your account is deactivated. All your data will be{" "}
+                    <strong>permanently deleted on {formatDate(purgeDate)}</strong>.
                   </p>
                   <p className="mt-3">
-                    Si tu changes d'avis, reconnecte-toi avant cette date : ton compte sera restauré
-                    en un clic.
+                    If you change your mind, sign in again before that date: your account will be restored
+                    in one click.
                     {hadSubscription
-                      ? " Ton abonnement a été résilié et ne sera pas réactivé automatiquement."
+                      ? " Your subscription has been cancelled and will not be reactivated automatically."
                       : ""}
                   </p>
-                  <p className="mt-3">Merci d'avoir fait un bout de chemin avec Sophia. Prends soin de toi.</p>
+                  <p className="mt-3">Thank you for walking part of the way with Sophia. Take care of yourself.</p>
                   <button
                     type="button"
                     onClick={handleAfterDeletion}
                     className="mt-5 w-full py-3 rounded-lg font-bold text-sm bg-slate-900 hover:bg-slate-800 text-white"
                   >
-                    Fermer
+                    Close
                   </button>
                 </>
               )}

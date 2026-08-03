@@ -6,7 +6,7 @@ import { supabase } from "../../lib/supabase";
 import { newRequestId, requestHeaders } from "../../lib/requestId";
 
 function formatFrenchDate(iso: string | null): string {
-  if (!iso) return "dans 7 jours";
+  if (!iso) return "in 7 days";
   try {
     return new Intl.DateTimeFormat("fr-FR", {
       day: "numeric",
@@ -14,7 +14,7 @@ function formatFrenchDate(iso: string | null): string {
       year: "numeric",
     }).format(new Date(iso));
   } catch {
-    return "dans 7 jours";
+    return "in 7 days";
   }
 }
 
@@ -39,7 +39,7 @@ export default function DeletionPendingScreen() {
       });
       if (fnError) throw fnError;
       if (!(data as { ok?: boolean } | null)?.ok) {
-        throw new Error("La restauration a échoué. Réessaie ou contacte sophia@sophia-coach.ai.");
+        throw new Error("The restore failed. Try again, or contact sophia@sophia-coach.ai.");
       }
       await refreshAccountStatus();
       navigate("/dashboard", { replace: true });
@@ -47,7 +47,7 @@ export default function DeletionPendingScreen() {
       setError(
         err instanceof Error && err.message
           ? err.message
-          : "La restauration a échoué. Réessaie ou contacte sophia@sophia-coach.ai.",
+          : "The restore failed. Try again, or contact sophia@sophia-coach.ai.",
       );
     } finally {
       setRestoring(false);
@@ -68,16 +68,16 @@ export default function DeletionPendingScreen() {
           </div>
 
           <h1 className="mt-6 text-2xl font-semibold leading-tight sm:text-3xl">
-            Ton compte est en cours de suppression
+            Your account is being deleted
           </h1>
           <p className="mt-4 text-sm leading-6 text-stone-600">
-            Toutes tes données seront <strong>définitivement supprimées le {formatFrenchDate(purgeAt)}</strong>.
-            Jusqu'à cette date, tu peux restaurer ton compte en un clic : tout sera remis en place
+            All your data will be <strong>permanently deleted on {formatFrenchDate(purgeAt)}</strong>.
+            Until then, you can restore your account in one click: everything is put back
             (plans, conversations, souvenirs, rappels WhatsApp).
           </p>
           <p className="mt-3 text-sm leading-6 text-stone-600">
-            Si tu avais un abonnement, il a été résilié et ne sera pas réactivé automatiquement :
-            tu pourras en souscrire un nouveau depuis la page Abonnement.
+            If you had a subscription, it has been cancelled and will not be reactivated
+            automatically: you can take out a new one from the Subscription page.
           </p>
 
           {error && (
@@ -94,7 +94,7 @@ export default function DeletionPendingScreen() {
               className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-stone-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-stone-800 disabled:opacity-60"
             >
               <RotateCcw className="h-4 w-4" />
-              {restoring ? "Restauration en cours..." : "Restaurer mon compte"}
+              {restoring ? "Restoring…" : "Restore my account"}
             </button>
             <button
               type="button"
@@ -102,7 +102,7 @@ export default function DeletionPendingScreen() {
               className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-stone-200 bg-white px-5 py-3 text-sm font-semibold text-stone-700 transition hover:bg-stone-50"
             >
               <LogOut className="h-4 w-4" />
-              Me déconnecter
+              Sign out
             </button>
           </div>
         </section>

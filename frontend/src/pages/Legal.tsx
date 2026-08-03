@@ -6,7 +6,7 @@ import SEO from '../components/SEO';
 const Legal = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const seoDescription = "Consulte les mentions légales, CGU, politique de confidentialité et CGV de Sophia Coach.";
+  const seoDescription = "Read the legal notice, terms of use, privacy policy and terms of sale for Sophia Coach.";
 
   // Scroll to section if hash is present
   useEffect(() => {
@@ -23,16 +23,16 @@ const Legal = () => {
   return (
     <div className="min-h-screen bg-[#fbf7ef] font-sans text-[#17211d] selection:bg-[#cfe8d7] selection:text-[#17211d]">
       <SEO 
-        title="Mentions Légales & CGU"
+        title="Legal notice & Terms"
         description={seoDescription}
         canonical="https://sophia-coach.ai/legal"
         structuredData={{
           "@context": "https://schema.org",
           "@type": "WebPage",
-          "name": "Mentions Légales & CGU",
+          "name": "Legal notice & Terms",
           "url": "https://sophia-coach.ai/legal",
           "description": seoDescription,
-          "inLanguage": "fr-FR"
+          "inLanguage": "en-GB"
         }}
       />
       <div className="sticky top-0 z-50 border-b border-white/30 bg-[#fffaf1]/78 backdrop-blur-xl">
@@ -42,7 +42,7 @@ const Legal = () => {
             className="flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold text-[#52635b] transition-colors hover:bg-white/52 hover:text-[#17211d]"
           >
             <ArrowLeft className="h-4 w-4" />
-            Retour
+            Back
           </button>
           <button onClick={() => navigate('/')} className="flex items-center gap-2">
             <img src="/apple-touch-icon.png" alt="Sophia Logo" className="h-8 w-8 rounded-lg" />
@@ -52,14 +52,14 @@ const Legal = () => {
             onClick={() => navigate('/auth')}
             className="rounded-full bg-[#17211d] px-4 py-2 text-xs font-bold text-white shadow-lg shadow-[#31453b]/18 transition-colors hover:bg-[#002d21] md:px-5 md:py-2.5 md:text-sm"
           >
-            Accès Membre
+            Member access
           </button>
         </div>
         <div className="flex gap-2 overflow-x-auto px-4 pb-3 text-sm font-semibold text-[#52635b] md:hidden">
-          <button onClick={() => navigate('/le-plan')} className="shrink-0 rounded-full bg-white/52 px-4 py-2">Le Plan</button>
-          <button onClick={() => navigate('/l-architecte')} className="shrink-0 rounded-full bg-white/52 px-4 py-2">Architecte</button>
-          <button onClick={() => navigate('/formules')} className="shrink-0 rounded-full bg-white/52 px-4 py-2">Offres</button>
-          <button className="shrink-0 rounded-full bg-[#e3f1e6] px-4 py-2 text-[#002d21]">Légal</button>
+          <button onClick={() => navigate('/le-plan')} className="shrink-0 rounded-full bg-white/52 px-4 py-2">The Plan</button>
+          <button onClick={() => navigate('/l-architecte')} className="shrink-0 rounded-full bg-white/52 px-4 py-2">Architect</button>
+          <button onClick={() => navigate('/formules')} className="shrink-0 rounded-full bg-white/52 px-4 py-2">Plans</button>
+          <button className="shrink-0 rounded-full bg-[#e3f1e6] px-4 py-2 text-[#002d21]">Legal</button>
         </div>
       </div>
 
@@ -69,29 +69,29 @@ const Legal = () => {
         <div className="mb-12 text-center md:mb-16">
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/50 bg-white/36 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.18em] text-[#002d21] shadow-sm backdrop-blur-md">
             <Shield className="h-3.5 w-3.5" />
-            Cadre légal Sophia
+            Sophia legal framework
           </div>
-          <h1 className="mb-5 text-4xl font-bold tracking-tight text-[#17211d] md:text-6xl">Mentions légales</h1>
+          <h1 className="mb-5 text-4xl font-bold tracking-tight text-[#17211d] md:text-6xl">Legal notice</h1>
           <p className="mx-auto max-w-2xl text-lg leading-8 text-[#405148]">
-            Transparence, sécurité, confidentialité et conditions d'utilisation du coach IA Sophia.
+            Transparency, security, privacy and terms of use for the Sophia AI coach.
           </p>
         </div>
         
         <div className="mb-12 flex flex-wrap justify-center gap-3">
           <a href="#mentions-legales" className="flex items-center gap-2 rounded-full border border-white/54 bg-white/52 px-4 py-2 text-sm font-bold text-[#405148] shadow-sm backdrop-blur transition-colors hover:bg-[#e3f1e6] hover:text-[#002d21]">
-            <Briefcase className="h-4 w-4" /> Mentions légales
+            <Briefcase className="h-4 w-4" /> Legal notice
           </a>
           <a href="#cgu" className="flex items-center gap-2 rounded-full border border-white/54 bg-white/52 px-4 py-2 text-sm font-bold text-[#405148] shadow-sm backdrop-blur transition-colors hover:bg-[#e3f1e6] hover:text-[#002d21]">
-            <FileText className="h-4 w-4" /> CGU
+            <FileText className="h-4 w-4" /> Terms of use
           </a>
           <a href="#confidentialite" className="flex items-center gap-2 rounded-full border border-white/54 bg-white/52 px-4 py-2 text-sm font-bold text-[#405148] shadow-sm backdrop-blur transition-colors hover:bg-[#e3f1e6] hover:text-[#002d21]">
-            <Shield className="h-4 w-4" /> Confidentialité
+            <Shield className="h-4 w-4" /> Privacy
           </a>
           <a href="#cgv" className="flex items-center gap-2 rounded-full border border-white/54 bg-white/52 px-4 py-2 text-sm font-bold text-[#405148] shadow-sm backdrop-blur transition-colors hover:bg-[#e3f1e6] hover:text-[#002d21]">
-            <Scale className="h-4 w-4" /> CGV
+            <Scale className="h-4 w-4" /> Terms of sale
           </a>
           <a href="#parrainage" className="flex items-center gap-2 rounded-full border border-white/54 bg-white/52 px-4 py-2 text-sm font-bold text-[#405148] shadow-sm backdrop-blur transition-colors hover:bg-[#e3f1e6] hover:text-[#002d21]">
-            <Gift className="h-4 w-4" /> Parrainage
+            <Gift className="h-4 w-4" /> Referral
           </a>
         </div>
 
@@ -104,35 +104,35 @@ const Legal = () => {
                 <Briefcase className="h-8 w-8" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-[#17211d]">Mentions légales</h2>
-                <p className="text-sm text-[#6f8178]">Informations légales obligatoires</p>
+                <h2 className="text-2xl font-bold text-[#17211d]">Legal notice</h2>
+                <p className="text-sm text-[#6f8178]">Mandatory legal information</p>
               </div>
             </div>
             
             <div className="prose prose-slate max-w-none text-[#52635b] prose-headings:font-bold prose-headings:text-[#17211d]">
-              <h3>1. Éditeur du site</h3>
+              <h3>1. Site publisher</h3>
               <p>
-                Le site <strong>sophia-coach.ai</strong> est édité par la société <strong>IKIZEN</strong>.
+                The site <strong>sophia-coach.ai</strong> is published by <strong>IKIZEN</strong>.
               </p>
 
               <h3>2. Contact</h3>
               <p>
-                Pour toute question ou demande, vous pouvez nous contacter à l'adresse suivante :<br/>
+                For any question or request, you can contact us at:<br/>
                 <a href="mailto:sophia@sophia-coach.ai" className="text-[#002d21] hover:underline">sophia@sophia-coach.ai</a>
               </p>
 
-              <h3>3. Hébergement</h3>
+              <h3>3. Hosting</h3>
               <p>
-                Le site est hébergé par :<br/>
+                The site is hosted by:<br/>
                 <strong>Vercel Inc.</strong><br/>
                 440 N Barranca Ave #4133<br/>
                 Covina, CA 91723<br/>
-                États-Unis
+                United States
               </p>
 
-              <h3>4. Propriété intellectuelle</h3>
+              <h3>4. Intellectual property</h3>
               <p>
-                L'ensemble de ce site relève de la législation française et internationale sur le droit d'auteur et la propriété intellectuelle. Tous les droits de reproduction sont réservés, y compris pour les documents téléchargeables et les représentations iconographiques et photographiques.
+                This site as a whole is governed by French and international copyright and intellectual property law. All reproduction rights are reserved, including for downloadable documents and for iconographic and photographic material.
               </p>
             </div>
           </section>
@@ -144,62 +144,62 @@ const Legal = () => {
                 <FileText className="h-8 w-8" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-[#17211d]">Conditions Générales d'Utilisation</h2>
-                <p className="text-sm text-[#6f8178]">Règles d'accès et d'usage de la plateforme</p>
+                <h2 className="text-2xl font-bold text-[#17211d]">Terms of Use</h2>
+                <p className="text-sm text-[#6f8178]">Rules for accessing and using the platform</p>
               </div>
             </div>
             
             <div className="prose prose-slate max-w-none text-[#52635b] prose-headings:font-bold prose-headings:text-[#17211d] prose-a:text-[#002d21]">
-              <p className="mb-6 text-sm italic text-[#6f8178]">En vigueur au {new Date().toLocaleDateString('fr-FR')}</p>
+              <p className="mb-6 text-sm italic text-[#6f8178]">In force as of {new Date().toLocaleDateString('en-GB')}</p>
               
-              <h3>1. Objet et Acceptation</h3>
+              <h3>1. Purpose and acceptance</h3>
               <p>
-                Les présentes Conditions Générales d'Utilisation (les "CGU") régissent l'accès et l'utilisation de la plateforme SaaS "Sophia" (ci-après le "Service"), éditée par la société <strong>IKIZEN</strong> (ci-après "l'Éditeur").
+                These Terms of Use (the "Terms") govern access to and use of the "Sophia" SaaS platform (the "Service"), published by <strong>IKIZEN</strong> (the "Publisher").
               </p>
               <p>
-                L'utilisation du Service implique l'acceptation sans réserve des présentes CGU. L'utilisateur reconnaît avoir pris connaissance de l'ensemble des conditions avant de cocher la case "J'accepte" lors de son inscription.
+                Using the Service implies unreserved acceptance of these Terms. The user acknowledges having read all of the conditions before ticking the "I accept" box when signing up.
               </p>
 
-              <h3>2. Description du Service</h3>
+              <h3>2. Description of the Service</h3>
               <p>
-                Sophia est un assistant virtuel intelligent (IA) dédié au développement personnel, à la productivité et à l'architecture de vie. Le Service permet notamment de :
+                Sophia is an intelligent virtual assistant (AI) for personal development, productivity and life design. The Service allows you in particular to:
               </p>
               <ul>
-                <li>Générer des plans d'actions personnalisés pour organiser son quotidien et atteindre ses objectifs.</li>
-                <li>Interagir avec une IA conversationnelle pour le soutien motivationnel et le suivi d'habitudes.</li>
-                <li>Accéder à des outils de structuration de l'identité et de suivi de progression.</li>
+                <li>Generate personalised action plans to organise your days and reach your goals.</li>
+                <li>Interact with a conversational AI for motivational support and habit tracking.</li>
+                <li>Access tools for structuring identity and tracking progress.</li>
               </ul>
               <p className="rounded-2xl border border-[#cfe8d7] bg-[#eef8ef] p-4 text-sm text-[#002d21]">
-                <strong>Avertissement IA :</strong> Les conseils et contenus générés par Sophia sont produits par des algorithmes d'intelligence artificielle. Ils sont fournis à titre informatif et d'aide à la décision, mais ne sauraient remplacer le jugement professionnel humain, ni constituer un conseil juridique, médical ou financier certifié.
+                <strong>AI notice:</strong> The advice and content generated by Sophia are produced by artificial intelligence algorithms. They are provided for information and decision support, and cannot replace human professional judgement or constitute certified legal, medical or financial advice.
               </p>
 
-              <h3>3. Accès au Service</h3>
+              <h3>3. Access to the Service</h3>
               <p>
-                Le Service est accessible 24h/24 et 7j/7, sauf cas de force majeure ou maintenance. L'Éditeur se réserve le droit de suspendre, d'interrompre ou de limiter l'accès à tout ou partie du Service pour des raisons techniques ou de sécurité, sans que cela n'ouvre droit à indemnisation.
+                The Service is available 24/7, except in cases of force majeure or maintenance. The Publisher reserves the right to suspend, interrupt or limit access to all or part of the Service for technical or security reasons, without this giving rise to compensation.
               </p>
 
-              <h3>4. Compte Utilisateur</h3>
+              <h3>4. User account</h3>
               <p>
-                L'inscription est obligatoire pour accéder aux fonctionnalités. L'Utilisateur est seul responsable de la confidentialité de ses identifiants. Toute action effectuée depuis son compte est réputée être effectuée par lui. En cas de perte ou de vol d'identifiants, l'Utilisateur doit en informer l'Éditeur sans délai.
+                Registration is required to access the features. The User is solely responsible for keeping their credentials confidential. Any action taken from their account is deemed to have been taken by them. If credentials are lost or stolen, the User must inform the Publisher without delay.
               </p>
 
-              <h3>5. Propriété Intellectuelle</h3>
+              <h3>5. Intellectual property</h3>
               <p>
-                <strong>Contenu du Service :</strong> L'ensemble des éléments du Service (structure, design, codes, algorithmes, marques "Sophia") est la propriété exclusive de IKIZEN. Toute reproduction est interdite sans autorisation.
+                <strong>Service content:</strong> All elements of the Service (structure, design, code, algorithms, the "Sophia" trade marks) are the exclusive property of IKIZEN. Any reproduction is prohibited without authorisation.
               </p>
               <p>
-                <strong>Contenu Utilisateur :</strong> Les données, textes et informations fournis par l'Utilisateur restent sa propriété. L'Utilisateur concède à l'Éditeur un droit d'utilisation de ces contenus pour les seuls besoins de fonctionnement et d'amélioration du Service (notamment l'entraînement des modèles IA, sous forme anonymisée).
+                <strong>User content:</strong> The data, text and information provided by the User remain their property. The User grants the Publisher a right to use this content solely for operating and improving the Service (including training AI models, in anonymised form).
               </p>
 
-              <h3>6. Responsabilité</h3>
+              <h3>6. Liability</h3>
               <p>
-                L'Éditeur fournit le Service dans le cadre d'une obligation de moyens. Sa responsabilité ne saurait être engagée pour :
+                The Publisher provides the Service under a best-efforts obligation. It cannot be held liable for:
               </p>
               <ul>
-                <li>Les dommages indirects (perte de chiffre d'affaires, perte de chance, etc.).</li>
-                <li>L'inadéquation des conseils de l'IA à la situation spécifique de l'Utilisateur.</li>
-                <li>Les problèmes liés au réseau internet de l'Utilisateur.</li>
-                <li>Les conséquences d'une défaillance, d'un incident de sécurité ou d'un piratage (hacking) survenant sur les infrastructures des prestataires tiers (hébergeurs, fournisseurs de modèles IA, messagerie), dès lors que l'Éditeur n'a pas commis de faute prouvée dans la sélection ou la configuration de ces services.</li>
+                <li>Indirect damages (loss of revenue, loss of opportunity, and so on).</li>
+                <li>AI advice being unsuited to the User's specific situation.</li>
+                <li>Problems related to the User's own internet connection.</li>
+                <li>The consequences of a failure, security incident or hack occurring on third-party providers' infrastructure (hosting, AI model providers, messaging), where no proven fault of the Publisher in selecting or configuring those services is established.</li>
               </ul>
             </div>
           </section>
@@ -211,87 +211,87 @@ const Legal = () => {
                 <Shield className="h-8 w-8" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-[#17211d]">Politique de confidentialité</h2>
-                <p className="text-sm text-[#6f8178]">Protection de vos données personnelles (RGPD)</p>
+                <h2 className="text-2xl font-bold text-[#17211d]">Privacy policy</h2>
+                <p className="text-sm text-[#6f8178]">Protection of your personal data (GDPR)</p>
               </div>
             </div>
             
             <div className="prose prose-slate max-w-none text-[#52635b] prose-headings:font-bold prose-headings:text-[#17211d]">
-              <h3>1. Données Collectées</h3>
+              <h3>1. Data collected</h3>
               <p>
-                Dans le cadre de l'utilisation de Sophia, nous collectons les données suivantes :
+                When you use Sophia, we collect the following data:
               </p>
               <ul>
-                <li><strong>Données d'Identité :</strong> Nom, Prénom, Email, Numéro de téléphone (pour WhatsApp).</li>
-                <li><strong>Données de Vie & Objectifs :</strong> Réponses aux questionnaires, objectifs personnels, plans d'actions générés.</li>
-                <li><strong>Données Conversationnelles :</strong> Historique des échanges avec l'assistant Sophia.</li>
-                <li><strong>Données Techniques :</strong> Logs de connexion, adresse IP, type de navigateur.</li>
+                <li><strong>Identity data:</strong> surname, first name, email, phone number (for WhatsApp).</li>
+                <li><strong>Life &amp; goal data:</strong> questionnaire answers, personal goals, generated action plans.</li>
+                <li><strong>Conversation data:</strong> the history of exchanges with the Sophia assistant.</li>
+                <li><strong>Technical data:</strong> sign-in logs, IP address, browser type.</li>
               </ul>
 
-              <h3>2. Finalités du Traitement</h3>
+              <h3>2. Purposes of processing</h3>
               <p>
-                Vos données sont traitées pour les raisons suivantes :
+                Your data is processed for the following reasons:
               </p>
               <ul>
-                <li>Fourniture et personnalisation du Service (Base légale : Exécution du contrat).</li>
-                <li>Envoi de notifications et rappels via WhatsApp (Base légale : Consentement).</li>
-                <li>Amélioration continue des algorithmes d'IA (Base légale : Intérêt légitime).</li>
-                <li>Gestion de la facturation et du support client.</li>
+                <li>Providing and personalising the Service (legal basis: performance of the contract).</li>
+                <li>Sending notifications and reminders over WhatsApp (legal basis: consent).</li>
+                <li>Continuous improvement of the AI algorithms (legal basis: legitimate interest).</li>
+                <li>Handling billing and customer support.</li>
               </ul>
 
-              <h3>3. Partage des Données</h3>
+              <h3>3. Data sharing</h3>
               <p>
-                Vos données sont strictement confidentielles. Elles ne sont transmises qu'à nos sous-traitants techniques indispensables (hébergement cloud, fournisseur d'API d'IA, service d'envoi de messages) qui sont tenus aux mêmes obligations de sécurité. <strong>Nous ne vendons jamais vos données à des tiers publicitaires.</strong>
+                Your data is strictly confidential. It is passed only to the technical sub-processors we cannot operate without (cloud hosting, AI API provider, message delivery service), who are bound by the same security obligations. <strong>We never sell your data to advertisers.</strong>
               </p>
 
-              <h3>4. Sécurité</h3>
+              <h3>4. Security</h3>
               <p>
-                Nous mettons en œuvre des mesures de sécurité techniques (chiffrement SSL/TLS, bases de données sécurisées) et organisationnelles pour protéger vos données contre tout accès non autorisé, perte ou altération.
+                We put in place technical security measures (SSL/TLS encryption, secured databases) and organisational ones to protect your data against unauthorised access, loss or alteration.
               </p>
 
-              <h3>5. Vos Droits</h3>
+              <h3>5. Your rights</h3>
               <p>
-                Conformément au RGPD, vous disposez d'un droit d'accès, de rectification, d'effacement, de limitation et de portabilité de vos données. Vous pouvez exercer directement les droits d'effacement et de portabilité depuis l'application, sans nous contacter : menu <strong>Compte → Options → Mes données</strong> (export de vos données) et <strong>Supprimer mon compte</strong>.
+                Under the GDPR you have rights of access, rectification, erasure, restriction and portability over your data. You can exercise the erasure and portability rights directly in the app, without contacting us: menu <strong>Account → Options → My data</strong> (export your data) and <strong>Delete my account</strong>.
               </p>
 
-              <h3>6. Conservation et Suppression des Données</h3>
+              <h3>6. Data retention and deletion</h3>
               <p>
-                <strong>Suppression de compte en libre-service :</strong> vous pouvez supprimer votre compte à tout moment depuis l'application. La suppression se déroule en deux temps :
-              </p>
-              <ul>
-                <li>
-                  <strong>Immédiatement :</strong> votre accès est désactivé, les messages WhatsApp cessent et votre abonnement est résilié sans nouveau prélèvement.
-                </li>
-                <li>
-                  <strong>Sous 7 jours :</strong> l'ensemble de vos données (profil, plans, conversations, souvenirs) est définitivement et irréversiblement supprimé de nos bases de données. Pendant ce délai, vous pouvez annuler la suppression en vous reconnectant.
-                </li>
-              </ul>
-              <p>
-                <strong>Données conservées après la suppression :</strong>
+                <strong>Self-service account deletion:</strong> you can delete your account at any time from the app. Deletion happens in two stages:
               </p>
               <ul>
                 <li>
-                  Les <strong>factures</strong> liées à vos paiements, conservées par obligation légale de conservation comptable (article L.123-22 du Code de commerce).
+                  <strong>Immediately:</strong> your access is disabled, WhatsApp messages stop and your subscription is cancelled with no further charge.
                 </li>
                 <li>
-                  Une <strong>trace minimale anonymisée</strong> de la suppression (empreintes cryptographiques de l'email et du numéro de téléphone, et date de suppression), conservée comme preuve de conformité. Elle ne permet pas de vous identifier.
-                </li>
-                <li>
-                  Des données de mesure d'usage technique (volumes et coûts de calcul), <strong>anonymisées</strong> au moment de la suppression : elles ne sont plus rattachées à aucune personne.
+                  <strong>Within 7 days:</strong> all of your data (profile, plans, conversations, memories) is permanently and irreversibly deleted from our databases. During that period you can cancel the deletion by signing in again.
                 </li>
               </ul>
               <p>
-                <strong>Sauvegardes techniques :</strong> des copies de sauvegarde de nos bases de données peuvent subsister temporairement après la suppression. Elles expirent automatiquement selon leur cycle de rotation et ne sont jamais utilisées pour restaurer des données supprimées, sauf incident technique majeur affectant l'ensemble du service.
+                <strong>Data kept after deletion:</strong>
+              </p>
+              <ul>
+                <li>
+                  The <strong>invoices</strong> relating to your payments, kept under the statutory accounting retention obligation (article L.123-22 of the French Commercial Code).
+                </li>
+                <li>
+                  A <strong>minimal anonymised record</strong> of the deletion (cryptographic hashes of the email and phone number, and the deletion date), kept as proof of compliance. It cannot be used to identify you.
+                </li>
+                <li>
+                  Technical usage measurements (volumes and compute costs), <strong>anonymised</strong> at deletion time: they are no longer attached to any person.
+                </li>
+              </ul>
+              <p>
+                <strong>Technical backups:</strong> backup copies of our databases may remain temporarily after deletion. They expire automatically on their rotation cycle and are never used to restore deleted data, except in a major technical incident affecting the whole service.
               </p>
               <p>
-                <strong>Export de vos données :</strong> vous pouvez à tout moment télécharger une copie de vos données (profil, plans, conversations, souvenirs) au format JSON depuis le menu Compte. Par sécurité, une ré-authentification est exigée, une notification vous est envoyée à chaque demande et l'export est limité à un par 24 heures.
+                <strong>Exporting your data:</strong> you can download a copy of your data (profile, plans, conversations, memories) as JSON at any time from the Account menu. For security, re-authentication is required, a notification is sent to you for every request, and exports are limited to one per 24 hours.
               </p>
               <div className="not-prose mt-6 flex items-start gap-4 rounded-2xl border border-[#cfe8d7] bg-[#eef8ef] p-6">
                 <Mail className="mt-1 h-6 w-6 flex-shrink-0 text-[#002d21]" />
                 <div>
-                  <h4 className="mb-1 text-sm font-bold text-[#17211d]">Exercer vos droits</h4>
+                  <h4 className="mb-1 text-sm font-bold text-[#17211d]">Exercising your rights</h4>
                   <p className="text-sm text-[#405148]">
-                    Pour toute demande concernant vos données, contactez-nous à : <a href="mailto:sophia@sophia-coach.ai" className="underline hover:text-[#002d21]">sophia@sophia-coach.ai</a>
+                    For any request about your data, contact us at: <a href="mailto:sophia@sophia-coach.ai" className="underline hover:text-[#002d21]">sophia@sophia-coach.ai</a>
                   </p>
                 </div>
               </div>
@@ -305,41 +305,41 @@ const Legal = () => {
                 <Scale className="h-8 w-8" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-[#17211d]">Conditions Générales de Vente</h2>
-                <p className="text-sm text-[#6f8178]">Abonnements, paiements et rétractation</p>
+                <h2 className="text-2xl font-bold text-[#17211d]">Terms of Sale</h2>
+                <p className="text-sm text-[#6f8178]">Subscriptions, payments and withdrawal</p>
               </div>
             </div>
             
             <div className="prose prose-slate max-w-none text-[#52635b] prose-headings:font-bold prose-headings:text-[#17211d]">
-              <h3>1. Offres et Prix</h3>
+              <h3>1. Plans and prices</h3>
               <p>
-                Les services sont proposés sous forme d'abonnements (mensuels ou annuels) ou d'achats uniques. Les tarifs sont indiqués en Euros (€) toutes taxes comprises (TTC) sur la page "Tarifs". IKIZEN se réserve le droit de modifier ses prix à tout moment, mais le Service sera facturé sur la base des tarifs en vigueur au moment de la validation de la commande.
+                Services are offered as subscriptions (monthly or annual) or as one-off purchases. Prices are shown in Euros (€) including all taxes on the "Pricing" page. IKIZEN reserves the right to change its prices at any time, but the Service is billed at the prices in force when the order is confirmed.
               </p>
 
-              <h3>2. Paiement</h3>
+              <h3>2. Payment</h3>
               <p>
-                Le règlement s'effectue par carte bancaire via notre prestataire de paiement sécurisé (Stripe). Le paiement est exigible immédiatement à la commande. En cas de défaut de paiement, l'accès au Service sera immédiatement suspendu.
+                Payment is made by card through our secure payment provider (Stripe). Payment is due immediately on ordering. If payment fails, access to the Service is suspended immediately.
               </p>
 
-              <h3>3. Renouvellement et Résiliation</h3>
+              <h3>3. Renewal and cancellation</h3>
               <p>
-                <strong>Renouvellement :</strong> Les abonnements sont renouvelés tacitement pour une durée identique à celle initialement souscrite, sauf dénonciation par l'Utilisateur.
+                <strong>Renewal:</strong> Subscriptions renew automatically for a period identical to the one originally taken out, unless cancelled by the User.
               </p>
               <p>
-                <strong>Résiliation :</strong> L'Utilisateur peut résilier son abonnement à tout moment depuis son espace "Mon Compte". La résiliation prend effet à la fin de la période d'abonnement en cours. Aucun remboursement prorata temporis n'est effectué pour la période entamée.
+                <strong>Cancellation:</strong> The User can cancel their subscription at any time from the "My Account" area. Cancellation takes effect at the end of the current subscription period. No pro-rata refund is made for a period already started.
               </p>
 
-              <h3>4. Absence de Droit de Rétractation</h3>
+              <h3>4. No right of withdrawal</h3>
               <p className="rounded-2xl border border-[#f6d8b8] bg-[#fff8ec] p-4 text-sm font-medium text-[#8a5633]">
-                Conformément à l'article L.221-28 du Code de la consommation, le droit de rétractation ne peut être exercé pour les contrats de fourniture d'un contenu numérique non fourni sur un support matériel (SaaS) dont l'exécution a commencé après accord préalable exprès du consommateur et renoncement exprès à son droit de rétractation.
+                Under article L.221-28 of the French Consumer Code, the right of withdrawal cannot be exercised for contracts supplying digital content not provided on a physical medium (SaaS) whose performance has begun after the consumer's express prior agreement and express waiver of their right of withdrawal.
               </p>
               <p>
-                En souscrivant au Service et en accédant immédiatement aux fonctionnalités numériques, l'Utilisateur reconnaît renoncer expressément à son droit de rétractation.
+                By subscribing to the Service and accessing the digital features immediately, the User expressly waives their right of withdrawal.
               </p>
               
-              <h3>5. Loi Applicable</h3>
+              <h3>5. Governing law</h3>
               <p>
-                Les présentes CGV sont soumises à la loi française. En cas de litige, compétence est attribuée aux tribunaux compétents du ressort du siège social de IKIZEN, nonobstant pluralité de défendeurs ou appel en garantie.
+                These Terms of Sale are governed by French law. In the event of a dispute, jurisdiction is granted to the competent courts in the district of IKIZEN's registered office, notwithstanding multiple defendants or third-party proceedings.
               </p>
             </div>
           </section>
@@ -351,38 +351,38 @@ const Legal = () => {
                 <Gift className="h-8 w-8" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-[#17211d]">Programme de Parrainage</h2>
-                <p className="text-sm text-[#6f8178]">Conditions du programme</p>
+                <h2 className="text-2xl font-bold text-[#17211d]">Referral programme</h2>
+                <p className="text-sm text-[#6f8178]">Programme conditions</p>
               </div>
             </div>
 
             <div className="prose prose-slate max-w-none text-[#52635b] prose-headings:font-bold prose-headings:text-[#17211d]">
-              <h3>1. Principe</h3>
+              <h3>1. How it works</h3>
               <p>
-                Chaque Utilisateur dispose d'un code de parrainage personnel, partageable sous forme de lien ou de code. Lorsqu'une personne (le « Filleul ») crée un compte Sophia avec ce code, son essai gratuit est porté à 30 jours (au lieu de 14 jours). Le code doit être renseigné au moment de l'inscription : il ne peut pas être ajouté ultérieurement à un compte existant.
+                Every User has a personal referral code, shareable as a link or a code. When someone (the "Referee") creates a Sophia account with that code, their free trial is extended to 30 days (instead of 14). The code must be entered at sign-up: it cannot be added later to an existing account.
               </p>
 
-              <h3>2. Récompense du Parrain</h3>
+              <h3>2. Referrer reward</h3>
               <p>
-                Le Parrain reçoit un (1) mois d'abonnement offert, correspondant au tarif mensuel de sa formule en cours, sous la forme d'un avoir déduit de ses prochaines factures. Cette récompense est créditée <strong>uniquement lorsque le Filleul règle sa première facture d'un montant strictement supérieur à zéro</strong>. L'inscription seule du Filleul, la période d'essai ou une facture à 0&nbsp;€ n'ouvrent droit à aucune récompense.
+                The Referrer receives one (1) free month of subscription, matching the monthly price of their current plan, as a credit deducted from their next invoices. This reward is credited <strong>only when the Referee pays a first invoice for an amount strictly greater than zero</strong>. The Referee merely signing up, the trial period, or a €0 invoice give no entitlement to a reward.
               </p>
               <p>
-                Si le Parrain n'est pas encore abonné au moment de la conversion de son Filleul, la récompense est conservée et appliquée automatiquement sur ses premières factures dès qu'il souscrit un abonnement.
-              </p>
-
-              <h3>3. Plafond</h3>
-              <p>
-                Le nombre de mois offerts est plafonné à douze (12) mois par période glissante de douze (12) mois par Parrain. Au-delà de ce plafond, les parrainages restent comptabilisés mais n'ouvrent plus droit à récompense.
+                If the Referrer is not yet subscribed when their Referee converts, the reward is held and applied automatically to their first invoices as soon as they take out a subscription.
               </p>
 
-              <h3>4. Réserve anti-fraude</h3>
+              <h3>3. Cap</h3>
+              <p>
+                Free months are capped at twelve (12) months per rolling twelve (12) month period per Referrer. Beyond that cap, referrals are still counted but no longer give entitlement to a reward.
+              </p>
+
+              <h3>4. Anti-fraud reservation</h3>
               <p className="rounded-2xl border border-[#f6d8b8] bg-[#fff8ec] p-4 text-sm font-medium text-[#8a5633]">
-                L'auto-parrainage (même personne, même numéro de téléphone ou comptes multiples) est interdit. Le Filleul doit être un nouvel utilisateur ne disposant pas déjà d'un compte Sophia. IKIZEN se réserve le droit de refuser, suspendre ou annuler toute récompense obtenue en violation de ces conditions ou par tout moyen frauduleux ou abusif, et de suspendre les comptes concernés.
+                Self-referral (same person, same phone number, or multiple accounts) is prohibited. The Referee must be a new user who does not already have a Sophia account. IKIZEN reserves the right to refuse, suspend or cancel any reward obtained in breach of these conditions or by any fraudulent or abusive means, and to suspend the accounts involved.
               </p>
 
-              <h3>5. Nature de la récompense</h3>
+              <h3>5. Nature of the reward</h3>
               <p>
-                Les mois offerts n'ont aucune valeur monétaire : ils ne sont ni remboursables, ni cessibles, ni convertibles en espèces. IKIZEN peut modifier ou mettre fin au programme de parrainage à tout moment ; les récompenses déjà acquises restent alors dues.
+                Free months have no monetary value: they are not refundable, transferable or convertible into cash. IKIZEN may change or end the referral programme at any time; rewards already earned remain due.
               </p>
             </div>
           </section>
