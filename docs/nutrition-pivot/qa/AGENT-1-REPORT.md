@@ -566,21 +566,24 @@ par règle, pas par chance.
 
 ---
 
-## Nettoyage — à faire avant de rendre la base
+## Nettoyage — état de la base rendue
 
-Deux modifications d'environnement sont **toujours en place** :
+| Modification | État |
+|---|---|
+| 6 crons désactivés pendant le run (`process-checkins`, `schedule-whatsapp-v2-checkins`, `keel-week-rollover-v1`, `keel-reengage-v1`, `keel-daily-pulse-v1`, `keel-weekly-flow-v1`) | **RESTAURÉS** — `cron.alter_job(jobid, active := true)`, vérifié : `2=true 20=true 22=true 31=true 32=true 33=true` |
+| Timeout Kong porté à 600 s (`scripts/local_extend_kong_functions_timeout.sh`) | **LAISSÉ EN PLACE.** C'est lui qui a supprimé mes 7 faux « pas de réponse » ; il revient tout seul au prochain redémarrage du container Kong. À garder tant que plusieurs agents partagent la stack |
+| `supabase/functions/night_llm.env` | **LAISSÉ EN PLACE** — un autre agent servait ses fonctions avec au moment du rendu. Ajouté au `.gitignore` : il porte des clés d'API vivantes et ne doit jamais être commité |
+| Personas `a1a1…`, coach, doctrine, plans | **LAISSÉS EN BASE** — fixtures rejouables et idempotentes (`agent-1-fixtures.sql`) |
+
+### Comment rejouer ce run
 
 ```bash
-docker exec supabase_db_Sophia_2 psql -U postgres -d postgres -c "SELECT cron.alter_job(jobid, active := true) FROM cron.job WHERE jobid IN (2,20,22,31,32,33);"
+docker exec -i supabase_db_Sophia_2 psql -U postgres -d postgres -v ON_ERROR_STOP=1 < docs/nutrition-pivot/qa/agent-1-fixtures.sql
+npx supabase functions serve --env-file supabase/functions/night_llm.env --no-verify-jwt
+./scripts/local_extend_kong_functions_timeout.sh
+npx deno run --allow-all docs/nutrition-pivot/qa/agent-1-negation-probe.ts
 ```
 
-(crons `process-checkins`, `schedule-whatsapp-v2-checkins`, `keel-week-rollover-v1`,
-`keel-reengage-v1`, `keel-daily-pulse-v1`, `keel-weekly-flow-v1` — désactivés pour
-que le proactif ne pollue pas les transcripts.)
-
-Le timeout Kong a été porté à 600 s via `scripts/local_extend_kong_functions_timeout.sh` ;
-il revient tout seul au prochain redémarrage du container Kong. **À garder** tant que
-plusieurs agents partagent la stack : c'est lui qui a produit mes 7 faux « pas de
-réponse ».
-
-Les personas `a1a1…` restent en base (fixtures rejouables, idempotentes).
+Les messages entrants passent par `whatsapp-webhook` avec l'en-tête
+`x-sophia-wa-transport: loopback` et `sophia_user_id` dans le message — le transport
+ne contourne que la signature Meta, tout le reste est le chemin de production.
