@@ -618,3 +618,48 @@ Helper repris à l'identique de W7.5 — les secrets sont résolus **à l'exécu
 Les assertions vont plus loin que « le job existe » : elles vérifient que la commande **nomme la
 bonne fonction** et **résout son secret**, parce que « le job existe » est exactement la
 vérification qui avait laissé passer le défaut W7.5.
+
+---
+
+## 10:35 — P2.7 : VERT — Doctrine Copilot (briques 1, 2, 6)
+
+- `_shared/keel/doctrine_versions.ts` (neuf, 13 tests) + `functions/coach-doctrine-v1/` (neuf,
+  8 actions : `questions`, `compile`, `save`, `publish`, `rollback`, `diff`, `replay`, `list`).
+
+**Brique 1 — l'interview.** Les 7 questions couvrent les 5 couches, et les 3 cas durs demandent
+« tu réponds quoi, **mot pour mot** ? ». Un coach à qui on demande sa philosophie répond en
+abstractions, inutilisables comme few-shot ; à qui on demande sa phrase, il donne sa voix.
+Le prompt de compilation est un **transcripteur, pas un auteur** : interdiction d'inventer une
+croyance, un interdit ou une réponse que le coach n'a pas donnés (« une règle inventée est pire
+qu'une règle manquante : le coach la relira, ne se reconnaîtra pas, et cessera de tout croire »).
+La compilation **n'écrit rien** : le coach valide avant. Même règle que l'import de plan.
+Le prompt exige des `surface_forms` — un token seul n'attrape rien dans de la vraie prose, donc un
+interdit sans formes de surface serait décoratif.
+
+**Brique 6 — le rollback CRÉE une version, il ne déplace pas le pointeur.** Deux implémentations
+étaient possibles ; une seule est honnête. Republier v1 donnerait une timeline où v2 n'a jamais
+existé, **alors que des élèves ont réellement reçu des messages sous v2**. On copie donc v1 dans
+une v3 neuve, `created_from_version=1`. Même doctrine que `plan_versions.supersedes_version_id` :
+on n'efface pas ce qui a été servi.
+**L'invalidation du cache n'est pas une opération, c'est une conséquence** : la clé est le hash du
+contenu compilé, donc publier un contenu différent produit mécaniquement une clé différente. Il n'y
+a aucun cache à purger, donc aucun purge à oublier.
+
+**Brique 2 — le replay différentiel.** Le diff parle en termes de coach (« interdit ajouté : keto »),
+pas en lignes de prompt : un coach à qui on montre un diff de prompt ne voit rien d'actionnable.
+Et l'échange rejoué est passé au modèle comme **DONNÉE, jamais comme instruction** — un message
+d'élève contenant « ignore tes règles » est du texte à réécrire, pas un ordre. C'est écrit dans le
+system prompt et testé.
+
+### Vérifié sur la VRAIE base (cycle complet)
+```
+v1 published: 1
+v2 published (v1 auto-unpublished): 1:null  2:2026-08-03 10:30:59+00
+runtime loader sees: loaded | forbidden: ["keto"]        ← le runtime suit la publication
+rollback plan: {ok:true, sourceVersion:1, newVersion:3, changeNote:"Rollback to v1"}
+after rollback -> loaded | forbidden: ["six_small_meals"]
+cache key moved: true (fd943b22018a9dd8 -> 6563b7367a98c679)
+history intact: 1(from=-,pub=n) 2(from=-,pub=n) 3(from=1,pub=Y)
+```
+L'index unique partiel « une seule publiée par coach » tient (dépublier AVANT publier — l'ordre
+inverse violerait l'index et ouvrirait une fenêtre à deux doctrines actives).
