@@ -346,3 +346,53 @@ deno test --allow-all supabase/functions/_shared/keel/    # 348 passed | 0 faile
 ```
 **Reste sur P2.8** : le job qui lit la base, appelle ce moteur et écrit `coach_syntheses`
 (+ livraison WhatsApp/email) — le moteur est prêt, l'I/O ne l'est pas.
+
+---
+
+## 06:20 — P1.6 (décision) : VERT — relance de décrochage
+
+`_shared/keel/reengagement.ts` (neuf) + 20 tests. C'est la boucle REMARQUER (§1.3), « celle pour
+laquelle le coach paie ».
+
+### ÉCART DOCUMENTÉ : la relance part à **72h**, pas 48h
+Le plan §1.3 dit « 48-72h ». `_shared/whatsapp_winback.ts` porte un commentaire écrit au moment où
+les seuils sont passés de 2/5/9 à 3/6/10 jours :
+> « À 2 jours on relançait encore dans la variance d'un rythme normal ; à 3 jours le décrochage
+> est un vrai signal. »
+C'est du comportement **mesuré sur les utilisateurs de ce produit**, et 48h est à l'intérieur de la
+variance qu'il nomme. Une relance qui part dans le rythme normal n'est pas douce : c'est l'app qui
+est en demande, au jour 2 — et l'élève apprend que le silence déclenche un ping, ce qui brûle le
+signal pour le jour 9. Je garde l'INTENTION du plan (attraper le glissement tôt, une fois,
+doucement) et le SEUIL mesuré du dépôt. **À arbitrer par Thomas** (une constante,
+`REENGAGE_AFTER_HOURS`).
+
+### L'ordre des gardes est le contrat
+`opted_out` (réglementaire) → `safety_active` → `restriction_flag` → `cohort_ended`/`no_active_plan`
+→ seuil → **une seule par épisode** → heures calmes. Testé que la safety est bien reportée même
+quand 40 jours de silence + cohorte finie + pas de plan pourraient tous produire un autre motif :
+le dépôt a un incident documenté d'effet durable committé pendant un tour de crise
+(`p4-safety-deferred-gate-leak`), donc la garde doit être inatteignable par en dessous.
+
+**Heures calmes = DEFER, jamais skip.** Un élève qui se tait à 23h a toujours droit à sa relance,
+le matin. Un skip perdrait l'épisode en silence (classe phantom-commit, côté proactif).
+
+**Le ton s'allège, le protocole jamais** : il n'existe **aucune** valeur de ton signifiant
+« relâche le plan » — §1.5, Sophia n'a pas ce pouvoir, et l'instruction le dit à voix haute.
+`warm_return` (J6) interdit explicitement de revenir sur l'absence.
+
+### DEUX BRANCHES MORTES trouvées dans le garde-fou « zéro culpabilisation »
+Le garde est déterministe (« ne culpabilise pas » est une excellente consigne et une garantie
+nulle). En écrivant les tests, deux motifs ne pouvaient structurellement **jamais** matcher :
+1. `\bça fait N jours…` — le `\b` de JavaScript est **ASCII-only**, donc `\bç` ne matche jamais en
+   début de chaîne. Le motif était mort.
+2. `laiss\s+tomber` ne peut pas matcher « laissé tomber » (l'accent est entre le radical et
+   l'espace).
+Les deux étaient **invisibles** : une alternative voisine matchait dans la même phrase de test, donc
+le test passait pendant que la branche était morte. Un test dédié exerce maintenant **chaque branche
+isolément**. C'est exactement le pattern §7.3-(2) (« condition toujours fausse »).
+
+```bash
+deno test --allow-all supabase/functions/_shared/keel/    # 368 passed | 0 failed
+```
+**Reste sur P1.6** : le câblage dans `process-checkins` (sélection SQL + envoi) ; le décideur est
+prêt et testé, l'I/O ne l'est pas. Le checkin matin et le bilan hebdo élève ne sont pas faits.
