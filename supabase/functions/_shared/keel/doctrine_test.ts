@@ -168,6 +168,59 @@ Deno.test("the compiled block tells the model it may explain but not advise", ()
   assert(compiled.text.includes("never advise"));
 });
 
+Deno.test("the compiled block carries WHAT THE COACH DOES INSTEAD", () => {
+  // THE DEFECT THIS PINS (measured in a real run, 2026-08-03): `instead` was
+  // parsed, stored, and read by lock 2 ALONE. The coach's own answer could
+  // therefore only reach a student as a belt SUBSTITUTION -- 6 of 6 interdit
+  // turns were delivered by the lock rather than written by the model, a 20.6%
+  // bite rate against a 10% budget. A prompt that states the rule and withholds
+  // the answer leaves the model nothing to say but the forbidden thing.
+  const compiled = compileDoctrineBlock(doctrine({
+    forbidden: [{
+      token: "six_small_meals",
+      surfaceForms: ["6 petits repas"],
+      reason: "it breaks the fasting window",
+      instead: "Three real meals, and we build breakfast first.",
+    }],
+  }));
+  assert(compiled.text.includes("INSTEAD, this coach says:"));
+  assert(compiled.text.includes("Three real meals, and we build breakfast first."));
+});
+
+Deno.test("an interdit with no `instead` compiles without an empty promise", () => {
+  // DISARM CONDITION (doctrine P9): the coach who wrote no alternative gets no
+  // orphan header. A dangling "INSTEAD, this coach says:" with nothing after it
+  // reads to a model as "he answered and you lost it", which is worse than
+  // silence -- it invites an invention.
+  const compiled = compileDoctrineBlock(doctrine());
+  assertEquals(doctrine().forbidden[0].instead, undefined);
+  assert(!compiled.text.includes("INSTEAD, this coach says:"));
+});
+
+Deno.test("the block tells the model to lead with the coach's position", () => {
+  // Lock 2's negation exceptions only fire when the refusal comes immediately
+  // BEFORE the term. "Intermittent fasting is X. Marc doesn't use it." bites;
+  // "Marc doesn't use intermittent fasting. It's X." passes. The permission to
+  // EXPLAIN is unusable without the word order that survives the check, so the
+  // two halves of the double lock are stated together or not at all.
+  const compiled = compileDoctrineBlock(doctrine());
+  assert(compiled.text.includes("LEAD with this coach's position"));
+  assert(compiled.text.includes("never the reverse order"));
+});
+
+Deno.test("editing only `instead` moves the cache key", () => {
+  // §3.7 brique 6 reaches `instead` too, now that it is compiled: a coach who
+  // rewrites his alternative must be served the new one on the NEXT message.
+  const base = { token: "six_small_meals", surfaceForms: ["6 petits repas"], reason: null };
+  const before = compileDoctrineBlock(
+    doctrine({ forbidden: [{ ...base, instead: "Three real meals." }] }),
+  );
+  const after = compileDoctrineBlock(
+    doctrine({ forbidden: [{ ...base, instead: "Three real meals, breakfast first." }] }),
+  );
+  assert(before.hash !== after.hash);
+});
+
 Deno.test("a doctrine edit changes the cache key (§3.7 brique 6)", () => {
   const before = compileDoctrineBlock(doctrine());
   const after = compileDoctrineBlock(

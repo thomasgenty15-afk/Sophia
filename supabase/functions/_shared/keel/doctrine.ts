@@ -366,10 +366,39 @@ export function compileDoctrineBlock(doctrine: CoachDoctrine): CompiledDoctrine 
       "These are this coach's red lines. You may EXPLAIN that the coach does " +
         "not do these things; you may never advise the student to do them.",
     );
+    // HOW to explain, not just permission to. Lock 2 reads the SENTENCE, not
+    // the intent: its negation exceptions only fire when the refusal comes
+    // immediately BEFORE the term (`forbidden_matcher.ts`). "Intermittent
+    // fasting is when you compress your eating into a window. Marc doesn't use
+    // it." therefore trips the lock and the whole reply is replaced -- the
+    // permission granted on the line above is unusable in the most natural
+    // English word order. Measured on 2026-08-03: 6 of 6 interdit turns were
+    // delivered by the lock rather than by the model. Telling the model to
+    // lead with the coach's position costs one sentence here and is the only
+    // half of the fix that belongs in a prompt.
+    lines.push(
+      "When you explain one, LEAD with this coach's position and only then " +
+        "describe the practice — \"Marc doesn't use X. It's when people ...\" " +
+        "— never the reverse order.",
+    );
     for (const f of doctrine.forbidden) {
       const forms = (f.surfaceForms ?? []).filter(Boolean);
       const alias = forms.length > 0 ? ` (also phrased: ${forms.join("; ")})` : "";
       lines.push(f.reason ? `- ${f.token}${alias} — ${f.reason}` : `- ${f.token}${alias}`);
+      // WHAT HE DOES INSTEAD, and why it has to be HERE.
+      //
+      // `instead` was parsed, stored, and read by lock 2 alone. So the coach's
+      // own answer could only ever reach a student as a SUBSTITUTION: the model
+      // wrote something that broke the rule, the belt threw the whole message
+      // away and posted the coach's sentence in its place. The belt was doing
+      // the product's job, and the bite rate was measuring the prompt's silence
+      // rather than the model's misbehaviour.
+      //
+      // Injected here, the model can answer WITH the coach's alternative and
+      // the belt goes back to being what it is meant to be: the net under the
+      // trapeze, not the trapeze.
+      const instead = String(f.instead ?? "").trim();
+      if (instead) lines.push(`  INSTEAD, this coach says: ${instead}`);
     }
   }
 

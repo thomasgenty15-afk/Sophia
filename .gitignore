@@ -56,3 +56,6 @@ supabase/.temp
 supabase/.env.keys
 supabase/.env*
 feat/Commande sensibles
+
+# Local real-LLM env for QA runs — carries live API keys, never committed.
+supabase/functions/night_llm.env
