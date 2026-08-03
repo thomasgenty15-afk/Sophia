@@ -5,6 +5,7 @@ import type {
   TrackProgressStatus,
   TrackProgressWrite,
 } from "./contract.ts";
+import { renderTrackProgressClarification } from "./renderer.ts";
 import { runTrackProgressPlanItemDirectEffect } from "./router.ts";
 
 export type { TrackProgressStatus, TrackProgressWrite };
@@ -79,6 +80,10 @@ function blockedReason(reasonCode: string):
 
 function toOutcome(
   result: TrackProgressDirectEffectResult,
+  // QA agent 6: le repli de clarification est un texte VISIBLE, donc il a une
+  // langue. Requis, jamais optionnel: un défaut silencieux ici rendrait du
+  // français à un élève en-GB, ce qui est une ligne rouge du produit.
+  locale: string,
 ): TrackProgressPlanItemOutcome {
   if (!result.detected) return { detected: false };
 
@@ -109,7 +114,8 @@ function toOutcome(
       detected: true,
       status: "needs_clarify",
       reason: clarifyReason(result.debug.reason_code),
-      message: result.reply ?? "Je prefere confirmer avant de l'ecrire.",
+      message: result.reply ??
+        renderTrackProgressClarification("ambiguity_present", locale),
     };
   }
 
@@ -138,5 +144,12 @@ export async function runTrackProgressPlanItemV2(params: {
     db_idempotency_check: params.db_idempotency_check,
     write_progress: params.write_progress,
   });
-  return toOutcome(result);
+  return toOutcome(
+    result,
+    String(
+      (params.turn_frame.direct_effect_time_context as
+        | { user_locale?: string }
+        | undefined)?.user_locale ?? "fr-FR",
+    ),
+  );
 }

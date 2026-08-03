@@ -128,6 +128,46 @@ function needsClarify(
   };
 }
 
+/**
+ * QA agent 6 (2026-08-03) — les clarifications de ce gate sont VISIBLES.
+ *
+ * `suggested_clarification` remonte telle quelle jusqu'au message envoyé
+ * (`track_progress_plan_item/router.ts`: `gate.suggested_clarification ?? …`),
+ * donc ces trois chaînes étaient du français rendu à un élève KEEL en-GB.
+ *
+ * Source de la locale: `direct_effect_time_context.user_locale`, la seule
+ * réellement écrite en production (`turn_frame.user_locale` est déclaré au
+ * contrat et n'a aucun écrivain — le lire aurait donné `undefined`, donc le
+ * repli français, donc un correctif mort). Repli 'fr-FR': le legacy B2C est
+ * francophone, l'absence de locale garde donc le comportement d'avant, ce qui
+ * est la condition de désarmement de ce changement.
+ */
+function gateLocale(input: DirectEffectGateInput): string {
+  return String(
+    (input.turn_frame.direct_effect_time_context as
+      | { user_locale?: string }
+      | undefined)?.user_locale ?? "fr-FR",
+  );
+}
+
+function gateClarification(
+  input: DirectEffectGateInput,
+  key: "intent_implied_weak" | "target_ambiguous" | "ambiguity_present",
+): string {
+  const fr = String(gateLocale(input)).trim().toLowerCase().startsWith("fr");
+  if (key === "intent_implied_weak") {
+    return fr ? "Tu veux que je le note vraiment ?" : "Do you want me to log that?";
+  }
+  if (key === "target_ambiguous") {
+    return fr
+      ? "Tu parles de quel element exactement ?"
+      : "Which one exactly do you mean?";
+  }
+  return fr
+    ? "Je prefere confirmer avant de l'ecrire."
+    : "I'd rather check with you before I write it down.";
+}
+
 export async function runDirectEffectGate(
   input: DirectEffectGateInput,
 ): Promise<DirectEffectGateOutcome> {
@@ -169,7 +209,7 @@ export async function runDirectEffectGate(
     return needsClarify(
       toolId,
       "intent_implied_weak",
-      "Tu veux que je le note vraiment ?",
+      gateClarification(input, "intent_implied_weak"),
     );
   }
   if (effect.target_status !== "identified") {
@@ -178,14 +218,14 @@ export async function runDirectEffectGate(
       effect.target_status === "ambiguous"
         ? "target_ambiguous"
         : "missing_time",
-      "Tu parles de quel element exactement ?",
+      gateClarification(input, "target_ambiguous"),
     );
   }
   if (effect.confidence_band !== "high") {
     return needsClarify(
       toolId,
       "ambiguity_present",
-      "Je prefere confirmer avant de l'ecrire.",
+      gateClarification(input, "ambiguity_present"),
     );
   }
   if (

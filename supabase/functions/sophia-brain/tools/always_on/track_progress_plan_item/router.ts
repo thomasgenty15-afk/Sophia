@@ -572,6 +572,18 @@ export async function runTrackProgressPlanItemDirectEffect(
     return emptyResult("no_track_progress_direct_effect");
   }
 
+  // QA agent 6: la langue des textes visibles de cette lane. Source =
+  // `direct_effect_time_context.user_locale` (alimentée par
+  // `getUserTimeContext` depuis `profiles.locale`), la SEULE locale réellement
+  // écrite sur le TurnFrame en production — `turn_frame.user_locale` est
+  // déclaré au contrat et n'a aucun écrivain. Repli 'fr-FR': le legacy B2C est
+  // francophone, donc l'absence de locale garde le comportement d'avant.
+  const turnLocale = String(
+    (input.turn_frame.direct_effect_time_context as
+      | { user_locale?: string }
+      | undefined)?.user_locale ?? "fr-FR",
+  );
+
   const intake = runTrackProgressIntake({
     turn_frame: input.turn_frame,
     message: input.message,
@@ -702,7 +714,7 @@ export async function runTrackProgressPlanItemDirectEffect(
             intent: "clarify",
             status: "needs_clarify",
             reason_code: "target_not_evidenced",
-            reply: renderTrackProgressClarification("target_missing"),
+            reply: renderTrackProgressClarification("target_missing", turnLocale),
           });
         }
       }
@@ -761,7 +773,7 @@ export async function runTrackProgressPlanItemDirectEffect(
       reason_code: reasonCode,
       gate_reason: gate.reason_code,
       reply: gate.suggested_clarification ??
-        renderTrackProgressClarification(reasonCode),
+        renderTrackProgressClarification(reasonCode, turnLocale),
       requested_effects: requestedEffects,
     });
   }
@@ -771,7 +783,7 @@ export async function runTrackProgressPlanItemDirectEffect(
       intent: "clarify",
       status: "needs_clarify",
       reason_code: "status_missing",
-      reply: renderTrackProgressClarification("status_missing"),
+      reply: renderTrackProgressClarification("status_missing", turnLocale),
       requested_effects: requestedEffects,
     });
   }
@@ -783,6 +795,7 @@ export async function runTrackProgressPlanItemDirectEffect(
       reason_code: intake.target_item_id ? "status_missing" : "target_missing",
       reply: renderTrackProgressClarification(
         intake.target_item_id ? "status_missing" : "target_missing",
+        turnLocale,
       ),
     });
   }
@@ -986,6 +999,7 @@ export async function runTrackProgressPlanItemDirectEffect(
           target_title: item.title,
           existing_outcome: conflicting.outcome,
           requested_status: requested.progress_status,
+          locale: turnLocale,
         }),
         requested_effects: requestedEffects,
       });
@@ -1133,7 +1147,7 @@ export async function runTrackProgressPlanItemDirectEffect(
     detected: true,
     intent: intake.intent,
     status: "logged",
-    reply: renderTrackProgressLoggedReply(committed),
+    reply: renderTrackProgressLoggedReply(committed, turnLocale),
     executed_tools: ["track_progress_plan_item"],
     requested_effects: requestedEffects,
     allowed_effects: [allowed],
