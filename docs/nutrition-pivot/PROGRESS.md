@@ -396,3 +396,43 @@ deno test --allow-all supabase/functions/_shared/keel/    # 368 passed | 0 faile
 ```
 **Reste sur P1.6** : le câblage dans `process-checkins` (sélection SQL + envoi) ; le décideur est
 prêt et testé, l'I/O ne l'est pas. Le checkin matin et le bilan hebdo élève ne sont pas faits.
+
+---
+
+## 06:45 — P3 : passe adversariale §7.3 sur le code produit CETTE NUIT
+
+Auditée contre les 7 patterns. Résultat honnête, findings compris :
+
+1. **Regex sémantique ?** — Deux existent (`GUILT_PATTERNS`, `forbidden_matcher`), et les deux
+   sont appliquées à **notre propre sortie générée**, jamais à un message entrant humain. §3.1
+   interdit la regex pour *interpréter un humain* ; §3.3 *prescrit* le filtre déterministe sur la
+   sortie. Aucune regex de sens n'a été ajoutée sur un chemin entrant. ⚠️ Reste honnête : une
+   deny-list attrape les constructions connues, elle **ne prouve pas** l'absence de culpabilisation.
+   Le mécanisme principal reste l'instruction de ton ; la regex est une ceinture.
+2. **Condition toujours-vraie/fausse ?** — **2 TROUVÉES ET CORRIGÉES** (branches mortes du garde
+   anti-culpabilisation : `\bç` impossible en ASCII-\b, `laiss\s+tomber`). Un test exerce désormais
+   chaque branche isolément. ⚠️ **Une softness restante, assumée** : dans `parseMealAnalysis`, si le
+   modèle omet `image_quality`, le défaut `partial` ouvre la porte à une question de clarification.
+   C'est le choix conservateur (on ne sait pas que l'image est nette), mais ça veut dire qu'un
+   modèle qui omet ce champ peut toujours poser une question. Documenté, pas corrigé.
+3. **Producteur sans consommateur ?** — **OUI, et c'est LE constat de la nuit.**
+   `assumptions`/`clarifying_question` sont écrits dans `recognized` : rien ne les lit encore.
+   `coach_syntheses` existe, le moteur produit ses payloads : aucun job ne les écrit.
+   `cohorts.cohort_id` : rien ne le lit. **La majorité de ce que j'ai construit n'est pas câblée.**
+   Repris en tête de STATUS-MORNING.
+4. **Contexte calculé puis jeté ?** — **1 TROUVÉ ET CORRIGÉ** : l'en-tête de `coach_synthesis.ts`
+   affirmait composer `summarizePortionBands` sans le faire. Câblé pour de vrai (c'est le
+   contrepoids de la décision kcal). `parseCoachDoctrine` renvoie des `issues` que personne ne lit
+   encore — à brancher sur l'écran Doctrine.
+5. **Désalignement config externe vs code ?** — Rien touché côté templates Meta. Deux vrais
+   désalignements **environnementaux** signalés : (a) les 5 crons ne sont coupés qu'en local ;
+   (b) `EMAIL_DELIVERY_ENABLED=1` dans `supabase/.env`.
+6. **Deux sources de vérité ?** — 4 activement **évitées** (moteur de matching partagé ;
+   `student_facts` vs `student_safety_constraints` ; réutilisation des 6 `risk_band` ;
+   `responsive` ≠ `active` facturable). **1 TROUVÉE ET GARDÉE PAR UN TEST** : deux modules encodent
+   « depuis quand cet élève est silencieux » — un test verrouille l'ordre des seuils pour que le
+   coach ne lise jamais « en contact » sur un élève que le système relance déjà.
+7. **« Vert en sim » présenté comme « vérifié en réel » ?** — **Aucune sim n'a tourné. Aucun appel
+   LLM n'a été fait cette nuit.** Tout ce qui est vert est un test unitaire déterministe sur des
+   modules purs. Le pipeline photo v3 n'a **jamais** été exercé contre un vrai modèle de vision.
+   C'est écrit en toutes lettres dans STATUS-MORNING.
