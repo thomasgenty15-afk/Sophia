@@ -23,6 +23,10 @@ import {
   type PulseAxis,
   type PulseLevel,
 } from "./daily_pulse.ts";
+import { localDateFor } from "./reengagement_io.ts";
+
+/** Le purpose des messages sortants qui PORTENT la question du soir. */
+export const PULSE_QUESTION_PURPOSE = "keel_daily_pulse";
 
 // deno-lint-ignore no-explicit-any
 type Db = any;
@@ -58,6 +62,48 @@ export async function loadPulseDay(
     axis,
     awaitingAxis: needsAxisFollowUp(level) && axis === null,
   };
+}
+
+/**
+ * La question est-elle DÉJÀ PARTIE dans le jour local de l'élève ?
+ *
+ * ── POURQUOI ON INTERROGE LES SORTANTS ET PAS LES RÉPONSES ───────────────
+ * La fenêtre du soir fait deux heures et le cron est horaire: il y a deux
+ * ticks dedans. `already_answered_today` ne bouge que si l'élève RÉPOND —
+ * l'élève silencieux recevait donc la même question à 20h10 puis à 21h10, et
+ * c'est précisément celui qu'on ne veut pas relancer. La seule trace de « on
+ * a demandé » quand personne ne répond, c'est le message sorti.
+ *
+ * ── POURQUOI AUCUN FILTRE SUR `status` ───────────────────────────────────
+ * Un envoi `failed` reste une question POSÉE: la ligne existe, le worker de
+ * retry la reprendra, et re-demander en parallèle produirait exactement le
+ * doublon qu'on interdit. Perdre le tap d'un soir sur un échec dur est le
+ * moindre mal, et l'échec est visible dans `failures[]` et dans la table. Les
+ * refus de préflight (fenêtre 24h fermée, cap) n'écrivent AUCUNE ligne: ils ne
+ * bloquent donc rien, ce qui est le comportement voulu.
+ *
+ * Fenêtre de lecture de 36h: elle couvre le jour local le plus décalé (UTC±14)
+ * sans jamais scanner l'historique complet.
+ */
+export async function wasPulseAskedToday(
+  db: Db,
+  args: { userId: string; localDate: string; timezone: string | null; now: Date },
+): Promise<boolean> {
+  const since = new Date(args.now.getTime() - 36 * 60 * 60 * 1000).toISOString();
+  const { data, error } = await db
+    .from("whatsapp_outbound_messages")
+    .select("created_at")
+    .eq("user_id", args.userId)
+    .eq("metadata->>purpose", PULSE_QUESTION_PURPOSE)
+    .gte("created_at", since);
+  if (error) throw error;
+  // Le rattachement au jour se fait ICI, dans le fuseau de l'élève, avec la
+  // MÊME fonction que celle qui a calculé `localDate`. Un filtre SQL sur des
+  // bornes UTC calculées à la main serait une deuxième implémentation du
+  // découpage des jours, et c'est ce genre de doublon qui a produit le défaut.
+  return ((data ?? []) as Array<Record<string, unknown>>).some((row) =>
+    localDateFor(new Date(String(row.created_at)), args.timezone) === args.localDate
+  );
 }
 
 export interface PulseWriteResult {

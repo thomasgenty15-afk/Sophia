@@ -28,6 +28,7 @@ function input(over: Partial<PulseDecisionInput> = {}): PulseDecisionInput {
   return {
     localHour: 20,
     answeredToday: false,
+    askedToday: false,
     minutesSinceLastExchange: null,
     safetyBand: null,
     hasActivePlan: true,
@@ -66,6 +67,39 @@ Deno.test("one tap per day", () => {
   if (d.decision === "skip") assertEquals(d.reason, "already_answered_today");
 });
 
+Deno.test("silence is not a request for a reminder: one ASK per day", () => {
+  // Regression, QA agent 7 (2026-08-03). The window is two hours wide and the
+  // cron is hourly, so there are two ticks inside it. With `answeredToday` as
+  // the only gate, a student who did not answer got "How was today?" at 20:10
+  // AND at 21:10 — proven in local with two `keel_daily_pulse` outbound rows on
+  // the same local day for one silent student.
+  const d = decideDailyPulse(input({ answeredToday: false, askedToday: true }));
+  assertEquals(d.decision, "skip");
+  if (d.decision === "skip") assertEquals(d.reason, "already_asked_today");
+
+  // ...AND ITS DISARMING CONDITION. The belt must not bite when the premise is
+  // false: nothing sent today means the question still goes out. A gate that
+  // can only ever say no is a gate that silently kills the feature.
+  assertEquals(
+    decideDailyPulse(input({ answeredToday: false, askedToday: false })).decision,
+    "send",
+  );
+  // And it does not leak across days: `askedToday` is computed against the
+  // student's local date, so a question sent yesterday leaves today open.
+  assertEquals(
+    decideDailyPulse(input({ localHour: 21, askedToday: false })).decision,
+    "send",
+  );
+});
+
+Deno.test("answered outranks asked: the two make different days for the coach", () => {
+  const d = decideDailyPulse(input({ answeredToday: true, askedToday: true }));
+  assertEquals(d.decision, "skip");
+  // "He answered" and "we asked and got nothing" are not the same day, and the
+  // job's counter is what tells them apart.
+  if (d.decision === "skip") assertEquals(d.reason, "already_answered_today");
+});
+
 Deno.test("the evening window is 20h-22h local, and outside it nothing happens", () => {
   for (const h of [20, 21]) {
     assertEquals(decideDailyPulse(input({ localHour: h })).decision, "send", `${h}h`);
@@ -97,6 +131,13 @@ Deno.test("the gate order holds: opt-out outranks safety outranks the rest", () 
     input({ safetyBand: "high", hasActivePlan: false, answeredToday: true }),
   );
   if (s.decision === "skip") assertEquals(s.reason, "safety_active");
+
+  // ...and "nothing to follow" still outranks both day-gates. A student with no
+  // adopted plan is not "already asked", he is out of scope entirely.
+  const p = decideDailyPulse(
+    input({ hasActivePlan: false, answeredToday: true, askedToday: true }),
+  );
+  if (p.decision === "skip") assertEquals(p.reason, "no_active_plan");
 });
 
 // ---------------------------------------------------------------------------
@@ -111,6 +152,21 @@ Deno.test("exactly 3 buttons, titles under 20 chars (Meta's cap)", () => {
       assert(b.id.length > 0);
     }
   }
+});
+
+Deno.test("the labels are PINNED: they must match the approved Meta template", () => {
+  // These five strings exist twice: here, and in the `keel_daily_pulse_v1`
+  // template submitted to Meta (docs/nutrition-pivot/META-TEMPLATES.md).
+  // Inside the 24h window our code renders the message; outside it Meta's
+  // template does. A rename here that "reads better" silently gives the same
+  // student two different products depending on the hour — and the template
+  // cannot be re-approved as fast as a string is edited.
+  assertEquals(renderPulseQuestion().body, "How was today?");
+  assertEquals(pulseLevelButtons().map((b) => b.title), [
+    "All good",
+    "So-so",
+    "Rough",
+  ]);
 });
 
 Deno.test("button ids round-trip through the reply reader", () => {

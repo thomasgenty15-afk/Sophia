@@ -6,8 +6,8 @@ import { ensureInternalRequest } from "../_shared/internal-auth.ts";
 import { getRequestId, jsonResponse } from "../_shared/http.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
 import { decideDailyPulse, renderPulseQuestion } from "../_shared/keel/daily_pulse.ts";
-import { loadPulseDay } from "../_shared/keel/daily_pulse_io.ts";
-import { localHourFor } from "../_shared/keel/reengagement_io.ts";
+import { loadPulseDay, wasPulseAskedToday } from "../_shared/keel/daily_pulse_io.ts";
+import { localDateFor, localHourFor } from "../_shared/keel/reengagement_io.ts";
 
 /**
  * PIVOT NUTRITION — N2 : le job qui envoie le tap du soir.
@@ -42,16 +42,10 @@ function adminClient(): SupabaseClient {
   );
 }
 
-/** La date locale de l'élève, pour la clé (user_id, local_date). */
-function localDateFor(now: Date, tz: string | null): string {
-  const zone = String(tz ?? "").trim();
-  if (!zone) return now.toISOString().slice(0, 10);
-  try {
-    return new Intl.DateTimeFormat("en-CA", { timeZone: zone }).format(now);
-  } catch {
-    return now.toISOString().slice(0, 10);
-  }
-}
+// `localDateFor` vient de `_shared/keel/reengagement_io.ts`. Elle était copiée
+// ici; le webhook en avait une troisième copie et lisait un profil SANS la
+// colonne `timezone`, donc rangeait le tap au jour UTC pendant que ce job
+// interrogeait le jour local. Une seule implémentation, un seul jour.
 
 Deno.serve(async (req) => {
   const requestId = getRequestId(req);
@@ -124,16 +118,35 @@ Deno.serve(async (req) => {
           // `student_week_plans` qui fait foi, mais un élève 1:1 garde son
           // plan_version. On accepte les deux, sinon le modèle 1:N n'aurait
           // jamais de tap.
+          //
+          // `status='adopted'` OBLIGATOIRE. Sans ce filtre, un brouillon
+          // généré et jamais adopté comptait comme plan actif: l'élève qui a
+          // regardé une proposition sans la prendre recevait « How was
+          // today? » tous les soirs, alors qu'il ne suit rien. « Rien à
+          // suivre, rien à demander » — c'est la garde `no_active_plan`, et
+          // elle ne mordait pas. Le point hebdomadaire, lui, exigeait déjà
+          // `adopted`: les deux surfaces divergeaient sur ce que « avoir un
+          // plan » veut dire.
           const swpRes = await admin
             .from("student_week_plans")
             .select("id")
             .eq("user_id", cursor)
+            .eq("status", "adopted")
             .limit(1);
           if (swpRes.error) throw swpRes.error;
 
           const decision = decideDailyPulse({
             localHour,
             answeredToday: day.answeredToday,
+            // La question est-elle déjà sortie ce jour local ? Le cron est
+            // horaire et la fenêtre fait deux heures: sans cette garde, le
+            // silence de l'élève valait relance une heure plus tard.
+            askedToday: await wasPulseAskedToday(admin, {
+              userId: cursor,
+              localDate,
+              timezone: tz,
+              now,
+            }),
             // Le mode `attach` demande le dernier échange; ce job ne l'a pas
             // sous la main et l'attachement se décide côté conversation. Ici
             // on envoie toujours en standalone, ce qui est le cas nominal du

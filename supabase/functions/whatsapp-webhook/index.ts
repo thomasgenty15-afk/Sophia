@@ -12,6 +12,7 @@ import {
   writePulseAxis,
   writePulseLevel,
 } from "../_shared/keel/daily_pulse_io.ts";
+import { localDateFor } from "../_shared/keel/reengagement_io.ts";
 // PIVOT C4 — le point hebdomadaire, reçu comme réponse de WhatsApp Flow.
 import {
   parseWeeklyFlowToken,
@@ -305,17 +306,14 @@ function hasValidInternalSecret(req: Request): boolean {
  * serveur. Un tap à 20h30 à Paris tombe le 3 août; le même instant en UTC est
  * le 3 aussi, mais à 23h30 à Tokyo c'est déjà le 4. Sans cette résolution, un
  * élève à l'est perdrait un jour sur deux par écrasement de la clé unique.
+ *
+ * Le calcul lui-même vit dans `localDateFor` (partagé avec le job du soir):
+ * deux implémentations de « quel jour est-on pour cet élève » finissent
+ * toujours par répondre deux choses différentes, et la clé
+ * `(user_id, local_date)` cesse alors de se rejoindre.
  */
 function keelLocalDateForUser(profile: { timezone?: string | null }): string {
-  const tz = String(profile?.timezone ?? "").trim();
-  const now = new Date();
-  if (!tz) return now.toISOString().slice(0, 10);
-  try {
-    // en-CA rend directement YYYY-MM-DD.
-    return new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(now);
-  } catch {
-    return now.toISOString().slice(0, 10);
-  }
+  return localDateFor(new Date(), profile?.timezone ?? null);
 }
 
 /**
@@ -675,14 +673,25 @@ Deno.serve(async (req) => {
           startedAtMs: processStartedAtMs,
         });
         const simUserId = loopback ? String(msg.sim_user_id ?? "").trim() : "";
+        // `timezone` EST DANS LA LISTE, et ce n'est pas décoratif: le tap du
+        // soir range sa ligne sur (user_id, local_date), et `local_date` se
+        // calcule dans le fuseau de l'ÉLÈVE. Sans la colonne ici,
+        // `keelLocalDateForUser` retombait sur la date UTC — mesuré: un tap de
+        // Tokyo à 01h34 locale s'écrivait au 2026-08-03 au lieu du 08-04.
+        // Le job du soir, lui, interroge bien la date locale: la garde
+        // `already_answered_today` ne retrouvait donc jamais la réponse et
+        // reposait la question. Pour tout le continent américain la fenêtre
+        // 20h-22h locale tombe entre 00h et 02h UTC: le décalage y était
+        // systématique, à chaque tap.
+        const KEEL_PROFILE_COLUMNS =
+          "id, full_name, email, phone_invalid, whatsapp_opted_in, whatsapp_opted_out_at, whatsapp_optout_confirmed_at, whatsapp_state, whatsapp_state_updated_at, whatsapp_onboarding_started_at, whatsapp_bilan_winback_step, whatsapp_bilan_paused_until, phone_verified_at, trial_end, onboarding_completed, account_status, timezone";
         const { data: candidates, error: profErr } = simUserId
-          ? await admin.from("profiles").select(
-            "id, full_name, email, phone_invalid, whatsapp_opted_in, whatsapp_opted_out_at, whatsapp_optout_confirmed_at, whatsapp_state, whatsapp_state_updated_at, whatsapp_onboarding_started_at, whatsapp_bilan_winback_step, whatsapp_bilan_paused_until, phone_verified_at, trial_end, onboarding_completed, account_status",
-          ).eq("id", simUserId).limit(1)
+          ? await admin.from("profiles").select(KEEL_PROFILE_COLUMNS)
+            .eq("id", simUserId).limit(1)
           : await admin.from(
             "profiles",
           ).select(
-            "id, full_name, email, phone_invalid, whatsapp_opted_in, whatsapp_opted_out_at, whatsapp_optout_confirmed_at, whatsapp_state, whatsapp_state_updated_at, whatsapp_onboarding_started_at, whatsapp_bilan_winback_step, whatsapp_bilan_paused_until, phone_verified_at, trial_end, onboarding_completed, account_status",
+            KEEL_PROFILE_COLUMNS,
           ) // NOTE: users may have stored phone_number as "+33..." OR "33..." OR "06..." from manual input.
             // We try a small set of safe variants to avoid false "unknown number" prompts.
             .in(

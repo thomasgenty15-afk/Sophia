@@ -72,6 +72,31 @@ export function localHourFor(now: Date, timezone: string | null): number | null 
 }
 
 /**
+ * La date locale d'un élève (YYYY-MM-DD), depuis sa timezone IANA.
+ *
+ * ICI et nulle part ailleurs. Cette fonction existait en TROIS copies —
+ * `keel-daily-pulse-v1`, `keel-weekly-flow-v1`, et `keelLocalDateForUser` dans
+ * le webhook — et elles ont divergé de la pire façon possible: le job passait
+ * bien la timezone, le webhook recevait un profil où la colonne n'était même
+ * pas sélectionnée. Les deux calculaient donc une `local_date` différente pour
+ * le même élève, et la clé `(user_id, local_date)` ne se rejoignait jamais.
+ *
+ * Timezone vide ou illisible => date UTC. C'est un repli assumé, pas un
+ * silence: sans fuseau il n'existe aucune autre référence, et le jour UTC est
+ * au moins stable et le même partout dans le code.
+ */
+export function localDateFor(now: Date, timezone: string | null): string {
+  const tz = String(timezone ?? "").trim();
+  if (!tz) return now.toISOString().slice(0, 10);
+  try {
+    // en-CA rend directement YYYY-MM-DD.
+    return new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(now);
+  } catch {
+    return now.toISOString().slice(0, 10);
+  }
+}
+
+/**
  * Les élèves KEEL dont le dernier message entrant est plus vieux que le seuil.
  *
  * Le seuil vient du décideur (voir l'en-tête). La requête est volontairement

@@ -160,6 +160,7 @@ export const PULSE_ATTACH_IF_ACTIVE_WITHIN_MINUTES = 30;
 
 export const PULSE_SKIP_REASONS = [
   "already_answered_today",
+  "already_asked_today",
   "outside_window",
   "safety_active",
   "opted_out",
@@ -172,6 +173,21 @@ export interface PulseDecisionInput {
   localHour: number;
   /** A-t-il déjà répondu aujourd'hui ? */
   answeredToday: boolean;
+  /**
+   * La question est-elle DÉJÀ PARTIE aujourd'hui (jour local de l'élève) ?
+   *
+   * REQUIS, et distinct de `answeredToday` — c'est tout l'objet du correctif.
+   * La fenêtre fait deux heures et le cron est horaire : il y a donc DEUX ticks
+   * dedans. Tant que la seule garde était « a-t-il répondu ? », l'élève qui ne
+   * répondait pas — c'est-à-dire précisément celui qu'on ne veut pas harceler —
+   * recevait la même question à 20h10 puis à 21h10. Vérifié en local le
+   * 2026-08-03 : deux `whatsapp_outbound_messages` « How was today? » de purpose
+   * `keel_daily_pulse` le même jour local, pour un élève sans réponse.
+   *
+   * La garde se fonde sur ce qui est SORTI, pas sur ce qui est revenu : c'est
+   * la seule trace qui existe quand l'élève se tait.
+   */
+  askedToday: boolean;
   /** Minutes depuis le dernier échange, null si aucun. */
   minutesSinceLastExchange: number | null;
   /**
@@ -207,9 +223,19 @@ export type PulseDecision =
  *   4. already_answered   — un tap par jour. Le CHECK d'unicité le tient aussi,
  *                           mais mieux vaut ne pas envoyer que d'envoyer et
  *                           refuser l'écriture.
- *   5. outside_window     — hors 20h-22h locales, on ne fait rien: le tick
+ *   5. already_asked      — UNE question par jour, répondue ou non. La fenêtre
+ *                           dure deux heures et le cron est horaire: sans
+ *                           cette garde, le silence de l'élève vaut
+ *                           relance à 21h10. Le silence n'est pas une demande
+ *                           de rappel.
+ *   6. outside_window     — hors 20h-22h locales, on ne fait rien: le tick
  *                           suivant retombera dedans. Jamais annulé, juste
  *                           pas maintenant.
+ *
+ * `already_answered` avant `already_asked` alors que les deux coupent au même
+ * endroit: c'est de l'ATTRIBUTION. « Il a répondu » et « on l'a sollicité sans
+ * réponse » sont deux journées différentes pour le coach, et le compteur du
+ * job est ce qui les distingue.
  *
  * ⚠️ L'ACTIVITÉ NE SUPPRIME JAMAIS LA QUESTION. Un élève qui a envoyé trois
  * photos aujourd'hui a une bonne couverture et peut être épuisé : les photos
@@ -226,6 +252,7 @@ export function decideDailyPulse(input: PulseDecisionInput): PulseDecision {
 
   if (!input.hasActivePlan) return { decision: "skip", reason: "no_active_plan" };
   if (input.answeredToday) return { decision: "skip", reason: "already_answered_today" };
+  if (input.askedToday) return { decision: "skip", reason: "already_asked_today" };
 
   const hour = Math.floor(input.localHour);
   if (!Number.isFinite(hour) || hour < PULSE_HOUR_LOCAL || hour >= PULSE_WINDOW_END_LOCAL) {
