@@ -976,3 +976,44 @@ semaine. Testé par regex.
   **identiques** — zéro erreur ajoutée. J'en avais introduit 2 (`message_type` sans
   `interactive_buttons` dans l'union, `error_payload` manquant), corrigées.
 - Cron `keel-daily-pulse` horaire à :10, assertions sur la fonction nommée + secret résolu.
+
+---
+
+## N4 + N5 : VERTS — la synthèse bascule sur la vivabilité, l'évaluateur se débranche
+
+### N4 — la vivabilité remplace l'adhérence
+`summarizeLivability()` : une **bande**, jamais un score sur 100 — une note chiffrée sur trois
+niveaux subjectifs serait de la fausse précision, et de la gamification (bannie §1.3).
+`sustainable | strained | hard | unknown`.
+
+**Sous 3 taps, `unknown`.** Deux jours ne font pas une semaine, et prétendre le contraire est
+exactement le genre de chiffre qui fait perdre confiance dans tous les autres.
+**Un tiers de journées dures suffit** à lever la bande : on alerte tôt, parce que le coût d'un faux
+positif (le coach regarde) est très inférieur au coût d'un décrochage.
+**L'axe dominant est déterministe sur égalité** (tri alphabétique) — deux semaines identiques
+doivent produire la même synthèse, sinon ce n'est pas une preuve.
+
+Le narratif mène désormais avec **« How the week felt »**, et l'adhérence sort. Nouveau motif de
+flag `week_too_hard`, placé juste après le silence : c'est le signal qui prédit l'abandon, et la
+correction — alléger — appartient au coach.
+Les intentions de l'élève sont **comptées, jamais notées** : « 1 of 2 set themselves a plan », et
+un test interdit tout pourcentage de réalisation.
+
+⚠️ **Un faux rouge de mon fait** : 5 tests IO sont tombés après le branchement — mon *fake* de test
+n'avait pas `maybeSingle` sur cette chaîne. Le code était bon, le fake était incomplet. Corrigé.
+C'est un rappel utile : un fake incomplet produit un rouge qui n'apprend rien.
+
+### N5 — l'évaluateur débranché du 1:N
+`keel-provision-day`, `keel-sweep-day`, `keel-evaluate-adherence` déprogrammés.
+Sans prescription individuelle, ils tournaient sur une population vide — et surtout
+`keel-sweep-day` passe les `unknown` en `missed`, donc sur un élève sans prescription il
+**fabriquerait des échecs à partir de rien**.
+
+**Débrancher, pas supprimer** : le code reste juste et en place ; un mode 1:1 se retrouve en
+replanifiant les trois jobs. Le garde-fou assert les 3 partis **et les 5 jobs du modèle 1:N
+intacts** — un « 0 partout » passerait la première vérification pour la pire des raisons.
+
+```bash
+deno test --allow-all supabase/functions/_shared/keel/ supabase/functions/sophia-brain/
+# 1854 passed | 0 failed
+```

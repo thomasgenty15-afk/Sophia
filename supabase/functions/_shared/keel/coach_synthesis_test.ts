@@ -23,6 +23,7 @@ import {
   metricsPayload,
   renderSynthesisText,
   type StudentWeekInput,
+  summarizeLivability,
   TO_CATCH_UP_CAP,
 } from "./coach_synthesis.ts";
 import { computeWeekAdherence, type WeekAdherenceInput } from "./adherence.ts";
@@ -429,4 +430,124 @@ Deno.test("a real 0% with evaluated lines IS still at_risk", () => {
   assertEquals(synthesis.lines[0].riskBand, "at_risk");
   assertEquals(synthesis.lines[0].flagReason, "adherence_at_risk");
   assertEquals(synthesis.metrics.meanCoreAdherencePct, 0);
+});
+
+// ---------------------------------------------------------------------------
+// PIVOT N4 — LA VIVABILITÉ remplace l'adhérence
+//
+// Le coach RECOMMANDE, l'élève DÉCIDE: « ont-ils suivi ma prescription » n'a
+// plus d'objet. « Est-ce que mon programme est tenable » en a un, et c'est le
+// seul chiffre sur lequel un coach peut agir — en allégeant.
+// ---------------------------------------------------------------------------
+
+Deno.test("livability: a band, never a score out of 100", () => {
+  // Une note chiffrée sur trois niveaux subjectifs serait de la fausse
+  // précision, et de la gamification — bannie (§1.3).
+  const s = summarizeLivability([
+    { overall: "good", axis: null },
+    { overall: "good", axis: null },
+    { overall: "good", axis: null },
+    { overall: "mixed", axis: "sleep" },
+  ]);
+  assertEquals(s.band, "sustainable");
+  assertEquals(s.taps, 4);
+  assertEquals(s.good, 3);
+});
+
+Deno.test("livability: a third of hard days is enough to raise it", () => {
+  // On alerte tôt: le coût d'un faux positif (le coach regarde) est très
+  // inférieur au coût d'un décrochage.
+  const s = summarizeLivability([
+    { overall: "good", axis: null },
+    { overall: "good", axis: null },
+    { overall: "hard", axis: "hunger" },
+  ]);
+  assertEquals(s.band, "hard");
+});
+
+Deno.test("livability: strained sits between the two", () => {
+  const s = summarizeLivability([
+    { overall: "mixed", axis: "energy" },
+    { overall: "mixed", axis: "energy" },
+    { overall: "good", axis: null },
+  ]);
+  assertEquals(s.band, "strained");
+});
+
+Deno.test("livability: under 3 taps we claim NOTHING", () => {
+  // Deux jours ne font pas une semaine. `unknown` est une réponse honnête.
+  const s = summarizeLivability([{ overall: "hard", axis: "sleep" }]);
+  assertEquals(s.band, "unknown");
+  assertEquals(summarizeLivability([]).band, "unknown");
+});
+
+Deno.test("livability: the dominant axis is deterministic on a tie", () => {
+  // Deux semaines identiques doivent produire le même axe, sinon la synthèse
+  // n'est pas une preuve.
+  const pulses = [
+    { overall: "hard", axis: "sleep" },
+    { overall: "hard", axis: "hunger" },
+    { overall: "hard", axis: "energy" },
+  ];
+  const a = summarizeLivability(pulses);
+  const b = summarizeLivability([...pulses].reverse());
+  assertEquals(a.dominantAxis, b.dominantAxis);
+  assertEquals(a.dominantAxis, "energy"); // ordre alphabétique sur égalité
+});
+
+Deno.test("a hard week is FLAGGED, and the line names the axis", () => {
+  const synthesis = buildCoachSynthesis([
+    student({
+      displayName: "Julie",
+      dailyPulses: [
+        { overall: "hard", axis: "hunger" },
+        { overall: "hard", axis: "hunger" },
+        { overall: "good", axis: null },
+      ],
+    }),
+  ], NOW);
+  const line = synthesis.lines[0];
+  assertEquals(line.flagReason, "week_too_hard");
+  assertEquals(line.livability.band, "hard");
+
+  const text = renderSynthesisText(synthesis, { locale: "en" });
+  assert(text.includes("hunger"), text);
+  assert(text.includes("2 hard days out of 3"), text);
+});
+
+Deno.test("the narrative leads with how the week FELT, not with adherence", () => {
+  const synthesis = buildCoachSynthesis([
+    student({ studentUserId: "a", dailyPulses: [
+      { overall: "good", axis: null }, { overall: "good", axis: null }, { overall: "good", axis: null },
+    ] }),
+    student({ studentUserId: "b", dailyPulses: [
+      { overall: "hard", axis: "sleep" }, { overall: "hard", axis: "sleep" }, { overall: "mixed", axis: "sleep" },
+    ] }),
+  ], NOW);
+  const text = renderSynthesisText(synthesis, { locale: "en" });
+  assert(text.includes("How the week felt"), text);
+  assert(text.includes("1 holding up"), text);
+  assert(text.includes("1 having a hard time"), text);
+  // Et la vivabilité vient AVANT toute mention d'adhérence.
+  const feltAt = text.indexOf("How the week felt");
+  const adhAt = text.indexOf("adherence");
+  assert(feltAt >= 0 && (adhAt === -1 || feltAt < adhAt), text);
+});
+
+Deno.test("nobody tapped: the synthesis says so instead of inventing a band", () => {
+  const synthesis = buildCoachSynthesis([student({ dailyPulses: [] })], NOW);
+  const text = renderSynthesisText(synthesis, { locale: "en" });
+  assert(text.includes("Nobody checked in enough"), text);
+});
+
+Deno.test("the student's own intentions are reported, without a score", () => {
+  const synthesis = buildCoachSynthesis([
+    student({ studentUserId: "a", weekPlan: { nutritionLines: 4, actionLines: 2, adopted: true } }),
+    student({ studentUserId: "b", weekPlan: null }),
+  ], NOW);
+  assertEquals(synthesis.metrics.planned, 1);
+  const text = renderSynthesisText(synthesis, { locale: "en" });
+  assert(text.includes("1 of 2 set themselves a plan"), text);
+  // Jamais un pourcentage de réalisation: personne ne note.
+  assert(!/\d+% of (their|the) plan/i.test(text), text);
 });

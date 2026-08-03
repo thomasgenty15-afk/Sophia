@@ -222,12 +222,46 @@ export async function loadStudentWeek(
   const msgRow = ((msgRes.data ?? []) as Array<Record<string, unknown>>)[0];
   if (msgRow) lastInboundAt = String(msgRow.created_at ?? "") || null;
 
+  // PIVOT N4 — LES TAPS DE LA SEMAINE (la vivabilité).
+  // C'est ce qui remplace l'adhérence: le coach recommande, l'élève décide,
+  // donc « a-t-il suivi » n'a plus d'objet — mais « est-ce tenable » en a un.
+  const pulseRes = await db
+    .from("student_daily_checkins")
+    .select("overall, axis")
+    .eq("user_id", args.studentUserId)
+    .gte("local_date", periodStart)
+    .lte("local_date", periodEnd);
+  if (pulseRes.error) throw pulseRes.error;
+  const dailyPulses = ((pulseRes.data ?? []) as Array<Record<string, unknown>>).map(
+    (r) => ({ overall: String(r.overall ?? ""), axis: r.axis ? String(r.axis) : null }),
+  );
+
+  // PIVOT N4 — CE QUE L'ÉLÈVE S'ÉTAIT FIXÉ. Compté, jamais noté.
+  const planRes = await db
+    .from("student_week_plans")
+    .select("items, status")
+    .eq("user_id", args.studentUserId)
+    .eq("week_start", periodStart)
+    .maybeSingle();
+  if (planRes.error) throw planRes.error;
+  const planRow = (planRes.data ?? null) as Record<string, unknown> | null;
+  const planItems = Array.isArray(planRow?.items) ? planRow!.items as Array<Record<string, unknown>> : [];
+  const weekPlan = planRow
+    ? {
+      nutritionLines: planItems.filter((i) => i.kind === "nutrition").length,
+      actionLines: planItems.filter((i) => i.kind === "action").length,
+      adopted: String(planRow.status ?? "") === "adopted",
+    }
+    : null;
+
   return {
     studentUserId: args.studentUserId,
     displayName: args.displayName ?? null,
     lastInboundAt,
     adherence: { weekDates, evaluations, eventCountsByDate },
     portionBands,
+    dailyPulses,
+    weekPlan,
     restrictionFlag: args.restrictionFlag === true,
   };
 }

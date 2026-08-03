@@ -45,6 +45,10 @@ function fakeDb(rows: Rows) {
       limit: () => node,
       select: () => node,
       single: () => Promise.resolve({ data: data[0] ?? null, error: null }),
+      // `maybeSingle` manquait au fake: le module l'utilise pour lire le plan
+      // de la semaine, et son absence faisait tomber cinq tests qui n'avaient
+      // rien à voir. Un fake incomplet est un faux rouge.
+      maybeSingle: () => Promise.resolve({ data: data[0] ?? null, error: null }),
       then: (resolve: (v: unknown) => unknown) =>
         resolve({ data, error: null }),
     };

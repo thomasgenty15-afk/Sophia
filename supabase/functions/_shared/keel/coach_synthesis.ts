@@ -109,6 +109,75 @@ export function classifyContact(
 }
 
 // ---------------------------------------------------------------------------
+// AXIS 1bis — VIVABILITÉ (PIVOT N4)
+// ---------------------------------------------------------------------------
+
+/**
+ * Ce que les taps de la semaine disent du protocole.
+ *
+ * PAS UN SCORE SUR 100. Une note chiffrée serait de la fausse précision sur
+ * trois niveaux subjectifs, et de la gamification — bannie (§1.3). Une bande
+ * se lit d'un coup d'œil, se compare de semaine en semaine, et surtout mappe
+ * sur quelque chose que le coach peut ACTIONNER : une semaine « dure » qui se
+ * répète, c'est un protocole à alléger, et c'est lui qui décide.
+ */
+export const LIVABILITY_BANDS = ["sustainable", "strained", "hard", "unknown"] as const;
+export type LivabilityBand = (typeof LIVABILITY_BANDS)[number];
+
+/** Sous ce nombre de taps, on ne prétend rien: 2 jours ne font pas une semaine. */
+export const LIVABILITY_MIN_TAPS = 3;
+
+export interface LivabilitySummary {
+  band: LivabilityBand;
+  taps: number;
+  good: number;
+  mixed: number;
+  hard: number;
+  /** L'axe qui lâche le plus souvent. Plus actionnable qu'une moyenne. */
+  dominantAxis: string | null;
+}
+
+export function summarizeLivability(
+  pulses: ReadonlyArray<{ overall: string; axis: string | null }>,
+): LivabilitySummary {
+  let good = 0, mixed = 0, hard = 0;
+  const axisCounts = new Map<string, number>();
+  for (const p of pulses) {
+    if (p.overall === "good") good++;
+    else if (p.overall === "mixed") mixed++;
+    else if (p.overall === "hard") hard++;
+    if (p.axis) axisCounts.set(p.axis, (axisCounts.get(p.axis) ?? 0) + 1);
+  }
+  const taps = good + mixed + hard;
+
+  let dominantAxis: string | null = null;
+  let best = 0;
+  // Tri déterministe sur l'égalité: deux semaines identiques doivent produire
+  // le même axe, sinon la synthèse n'est pas une preuve.
+  for (const axis of [...axisCounts.keys()].sort()) {
+    const n = axisCounts.get(axis) ?? 0;
+    if (n > best) {
+      best = n;
+      dominantAxis = axis;
+    }
+  }
+
+  if (taps < LIVABILITY_MIN_TAPS) {
+    return { band: "unknown", taps, good, mixed, hard, dominantAxis };
+  }
+  // Un tiers de journées dures suffit à sortir du « soutenable »: on préfère
+  // alerter tôt qu'attendre la majorité, parce que le coût d'un faux positif
+  // (le coach regarde) est très inférieur au coût d'un décrochage.
+  if (hard / taps >= 1 / 3) {
+    return { band: "hard", taps, good, mixed, hard, dominantAxis };
+  }
+  if ((hard + mixed) / taps > 0.5) {
+    return { band: "strained", taps, good, mixed, hard, dominantAxis };
+  }
+  return { band: "sustainable", taps, good, mixed, hard, dominantAxis };
+}
+
+// ---------------------------------------------------------------------------
 // AXIS 2 — RISK. The existing KEEL vocabulary, not a new one.
 // ---------------------------------------------------------------------------
 
@@ -147,6 +216,17 @@ export interface StudentWeekInput {
    * measurably bad on (regression, -26.6% systematic bias).
    */
   portionBands?: readonly (string | null | undefined)[];
+  /**
+   * PIVOT N4 — LA VIVABILITÉ. Les taps du soir de la semaine.
+   *
+   * C'est la métrique qui remplace l'adhérence dans le modèle 1:N. Le coach
+   * RECOMMANDE et l'élève DÉCIDE, donc « a-t-il suivi la prescription » n'a
+   * plus d'objet — mais « est-ce que ce protocole est tenable pour lui »
+   * en a un, et c'est celle sur laquelle un coach peut agir.
+   */
+  dailyPulses?: ReadonlyArray<{ overall: string; axis: string | null }>;
+  /** Combien de lignes l'élève s'était fixées cette semaine, et de quel type. */
+  weekPlan?: { nutritionLines: number; actionLines: number; adopted: boolean } | null;
   /**
    * The deterministic TCA floor (`restriction_guard.ts`). When true, it
    * overrides every other band — see `classifyRisk`.
@@ -207,6 +287,8 @@ export const FLAG_REASONS = [
   "outcome_mismatch",
   /** L'élève logge, mais aucune ligne n'est publiée pour lui. */
   "no_evaluable_plan",
+  /** PIVOT N4: le protocole n'est pas tenable pour cette personne. */
+  "week_too_hard",
 ] as const;
 export type FlagReason = (typeof FLAG_REASONS)[number];
 
@@ -218,6 +300,10 @@ export interface StudentSynthesisLine {
   adherence: WeekAdherenceResult;
   riskBand: RiskBand;
   flagReason: FlagReason | null;
+  /** PIVOT N4: ce que les taps disent du protocole. */
+  livability: LivabilitySummary;
+  /** PIVOT N4: ce que l'élève s'était fixé. Null s'il n'a pas fait de plan. */
+  weekPlan: { nutritionLines: number; actionLines: number; adopted: boolean } | null;
   /** The week's plate readout. `total: 0` when no photo carried a band. */
   portions: PortionBandSummary;
   /** Rank key: lower sorts first. Deterministic, no ties broken by chance. */
@@ -230,6 +316,9 @@ const FLAG_SEVERITY: Readonly<Record<FlagReason, number>> = {
   // Juste après le silence: un élève qui logge dans le vide décroche vite, et
   // la correction ne coûte au coach qu'une publication de plan.
   no_evaluable_plan: 2,
+  // Juste après: une semaine dure est un signal d'abandon imminent, et la
+  // correction (alléger) appartient au coach.
+  week_too_hard: 2,
   coverage_below_gate: 3,
   adherence_at_risk: 4,
   outcome_mismatch: 5,
@@ -240,9 +329,14 @@ function flagFor(line: {
   contact: ContactState;
   adherence: WeekAdherenceResult;
   riskBand: RiskBand;
+  livability?: LivabilityBand;
 }): FlagReason | null {
   if (line.riskBand === "restriction_flag") return "restriction_signal";
   if (line.contact === "silent") return "silent_5d";
+  // PIVOT N4: une semaine dure passe AVANT les motifs d'adhérence — c'est le
+  // signal qui prédit l'abandon, et le seul sur lequel le coach peut agir en
+  // allégeant. L'adhérence, elle, n'existe plus dans le modèle 1:N.
+  if (line.livability === "hard") return "week_too_hard";
   if (line.adherence.kind === "insufficient_data") return "coverage_below_gate";
   if (!hasAdherenceNumber(line.adherence)) return "no_evaluable_plan";
   if (line.riskBand === "outcome_mismatch") return "outcome_mismatch";
@@ -263,7 +357,13 @@ export function buildStudentLine(
     restrictionFlag: input.restrictionFlag,
     outcomeMismatch: input.outcomeMismatch,
   });
-  const flagReason = flagFor({ contact: contact.state, adherence, riskBand });
+  const livability = summarizeLivability(input.dailyPulses ?? []);
+  const flagReason = flagFor({
+    contact: contact.state,
+    adherence,
+    riskBand,
+    livability: livability.band,
+  });
   return {
     studentUserId: input.studentUserId,
     displayName: input.displayName ?? null,
@@ -272,6 +372,8 @@ export function buildStudentLine(
     adherence,
     riskBand,
     flagReason,
+    livability,
+    weekPlan: input.weekPlan ?? null,
     portions: summarizePortionBands(input.portionBands ?? []),
     severity: flagReason === null ? 99 : FLAG_SEVERITY[flagReason],
   };
@@ -290,6 +392,15 @@ export interface CohortMetrics {
   withAdherence: number;
   /** Mean core adherence over those students only, integer percent, or null. */
   meanCoreAdherencePct: number | null;
+  /**
+   * PIVOT N4 — la vivabilité de la cohorte. Combien d'élèves tiennent, combien
+   * sont tendus, combien sont en difficulté. C'est ce qui remplace l'adhérence
+   * comme chiffre de tête: le coach recommande, donc « ont-ils suivi » n'a plus
+   * d'objet, mais « est-ce que mon programme est tenable » en a un.
+   */
+  livability: { sustainable: number; strained: number; hard: number; unknown: number };
+  /** Combien d'élèves se sont fixé un plan cette semaine. */
+  planned: number;
   /** Every plate the cohort logged this week, by band. */
   portions: PortionBandSummary;
 }
@@ -349,6 +460,13 @@ export function buildCoachSynthesis(
     meanCoreAdherencePct: coreValues.length > 0
       ? Math.round(coreValues.reduce((a, b) => a + b, 0) / coreValues.length)
       : null,
+    livability: {
+      sustainable: lines.filter((l) => l.livability.band === "sustainable").length,
+      strained: lines.filter((l) => l.livability.band === "strained").length,
+      hard: lines.filter((l) => l.livability.band === "hard").length,
+      unknown: lines.filter((l) => l.livability.band === "unknown").length,
+    },
+    planned: lines.filter((l) => l.weekPlan?.adopted).length,
     portions: summarizePortionBands(
       students.flatMap((s) => [...(s.portionBands ?? [])]),
     ),
@@ -393,6 +511,30 @@ export function renderSynthesisText(
     `${m.studentCount} student${m.studentCount === 1 ? "" : "s"} this week: ` +
       `${m.responsive} in touch, ${m.slipping} slipping, ${m.silent} silent.`,
   );
+
+  // PIVOT N4 — LA VIVABILITÉ EN DEUXIÈME, JUSTE APRÈS LE CONTACT.
+  //
+  // Elle prend la place qu'occupait l'adhérence. Dans le modèle 1:N le coach
+  // RECOMMANDE et l'élève DÉCIDE: « ont-ils suivi ma prescription » n'a plus
+  // d'objet, alors que « est-ce que mon programme est tenable » en a un — et
+  // c'est le seul chiffre sur lequel un coach peut agir en allégeant.
+  const liv = m.livability;
+  const rated = liv.sustainable + liv.strained + liv.hard;
+  if (rated > 0) {
+    const parts: string[] = [];
+    if (liv.sustainable > 0) parts.push(`${liv.sustainable} holding up`);
+    if (liv.strained > 0) parts.push(`${liv.strained} strained`);
+    if (liv.hard > 0) parts.push(`${liv.hard} having a hard time`);
+    out.push(`How the week felt: ${parts.join(", ")}.`);
+  } else {
+    out.push("Nobody checked in enough this week to say how it felt.");
+  }
+
+  if (m.planned > 0) {
+    out.push(
+      `${m.planned} of ${m.studentCount} set themselves a plan for the week.`,
+    );
+  }
 
   if (m.meanCoreAdherencePct !== null) {
     out.push(
@@ -475,6 +617,11 @@ export function describeFlag(line: StudentSynthesisLine): string {
       const cov = line.adherence.loggingCoverage;
       return `only logged ${cov.loggedDays} of 7 days - not enough to say how the week went.`;
     }
+    case "week_too_hard":
+      // Nommé côté COACH: l'action est d'alléger, et elle est la sienne.
+      return line.livability.dominantAxis
+        ? `${line.livability.hard} hard days out of ${line.livability.taps} - it is ${line.livability.dominantAxis} that keeps giving way.`
+        : `${line.livability.hard} hard days out of ${line.livability.taps} this week.`;
     case "no_evaluable_plan":
       // Nommé côté COACH, parce que l'action est la sienne.
       return "is logging, but has no published plan lines to log against - publish their plan and this becomes measurable.";
