@@ -291,3 +291,58 @@ deno test --allow-all supabase/functions/_shared/keel/     # 328 passed | 0 fail
 21 tests neufs sur la doctrine + 1 régression safety.
 **Reste** : brancher l'assemblage dans le composeur de `sophia-brain` (P1.4/P1.5b) — le module
 est prêt et testé, le câblage runtime ne l'est pas.
+
+---
+
+## 05:35 — P2.8 (moteur) : VERT — synthèse coach déterministe
+
+`_shared/keel/coach_synthesis.ts` (neuf) + 20 tests. C'est l'artefact que le coach paie
+(« la valeur est poussée, l'interface sert à configurer »).
+
+**Règle qui façonne tout le fichier** : *les chiffres sont CALCULÉS, jamais narrés par un modèle.*
+Le dépôt a déjà payé l'alternative (`tracking-projection-not-grounded-db`,
+`recap-readonly-routed-to-plan-realignment`). `renderSynthesisText` est un **template** sur des
+valeurs calculées. Ce qui n'est pas calculable est **absent**, jamais estimé.
+
+**Rien n'est recalculé** : `computeWeekAdherence`, `computeLoggingCoverage`,
+`summarizePortionBands` existent et sont testés — ce module les compose. Une deuxième formule
+d'adhérence dans la synthèse serait §7.3-(6) appliqué au chiffre que lit le coach.
+
+### Deux décisions de nommage qui évitent une collision réelle
+1. Les états de contact sont **`responsive|slipping|silent`**, PAS `active`. `active` veut déjà
+   dire autre chose *et facturable* dans ce schéma (`coach_clients.status='active'` = le siège ;
+   §1.7 « actif = ≥1 interaction/mois »). Un élève peut être un siège `active` facturable ET
+   `silent` depuis 9 jours — deux questions différentes, pas une contradiction. Réutiliser le mot
+   garantissait qu'on câble un jour la facture sur l'écran cohorte.
+2. Le risque réutilise **exactement** les 6 valeurs de `weekly_reviews.risk_band` déjà en base.
+   Un test relit le CHECK SQL de la migration : une 7ᵉ valeur inventée ici planterait à l'écriture,
+   en production, un lundi matin.
+
+### L'ordre de la matrice EST la règle (et le cap a une exemption)
+`restriction_flag` (TCA) **écrase tout** : le cas dangereux est 100 % d'adhérence + contact
+quotidien + restriction — si l'adhérence était consultée d'abord, cet élève passe pour le modèle
+de la promo. Puis `disengaged` (sous la barrière de couverture il n'y a **pas** de chiffre
+d'adhérence, donc aucune bande dérivée de l'adhérence n'est honnête).
+**Le cap « 3 élèves à rattraper » exempte les signaux de restriction** : un cap qui peut faire
+tomber un finding de sécurité parce que 3 problèmes d'adhérence ont trié au-dessus est un cap qui
+cache le seul item de la liste qui peut blesser quelqu'un. Testé avec 4 problèmes d'adhérence
+placés devant : le signal de restriction reste, et **en premier**.
+La troncature n'est jamais silencieuse : `flagged_total_before_cap` est dans les metrics.
+
+### Autres invariants testés
+- Sous la barrière : **aucun pourcentage nulle part** dans le texte (regex `\d+%` sur la sortie),
+  et `adherence_gated: true` dans le payload (absent-parce-que-barré et absent-parce-que-bug se
+  ressemblent sinon).
+- La moyenne porte sur les élèves **qui ont un chiffre**, pas sur tous : compter un élève barré
+  comme 0 % inventerait un échec à partir d'un silence.
+- La ligne « restriction » ne porte **ni pourcentage ni relance** (§3.4 : la pression d'adhérence
+  s'arrête) — testé par regex sur la ligne elle-même.
+- **Déterminisme** : même semaine, même synthèse, y compris en inversant l'ordre d'entrée.
+- Seul l'**entrant** compte pour le contact : 3 relances sans réponse = `silent` (la signature ne
+  permet même pas de passer du sortant).
+
+```bash
+deno test --allow-all supabase/functions/_shared/keel/    # 348 passed | 0 failed
+```
+**Reste sur P2.8** : le job qui lit la base, appelle ce moteur et écrit `coach_syntheses`
+(+ livraison WhatsApp/email) — le moteur est prêt, l'I/O ne l'est pas.
