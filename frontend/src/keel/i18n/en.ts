@@ -934,6 +934,122 @@ export const en = {
     "This invitation has been accepted and your coach is connected to your space. Nothing else to do here.",
   "invite.already_in_cta": "Go to my space",
 
+  // ── /join — the student's front door ────────────────────────────────────
+  //
+  // The ONLY page a student meets before they have an account. They did not
+  // come from the landing (that page sells to coaches): they came from their
+  // coach's invitation email, and they already have a coach. So this is not
+  // acquisition copy — it is the welcome of someone who has decided, and now
+  // wants to know what they are walking into.
+  //
+  // `{coach}` is ALWAYS the mid-sentence form: the caller passes the coach's
+  // first name, or "your coach" when the RPC returned null. No key below may
+  // put `{coach}` at the start of a sentence, or the fallback reads as a
+  // lowercase opener. `invite.accept_title` is the one sentence-initial use,
+  // and it carries its own "Your coach" fallback.
+  //
+  // EVERY CLAIM HERE IS A COLUMN, OR AN ABSENCE OF ONE. The sees/never-sees
+  // block was written against the live schema, not against intent — see
+  // docs/nutrition-pivot/STUDENT-PAGE.md for the line-by-line proof. Adding a
+  // line here without that proof is how this page starts lying.
+
+  "join.lead":
+    "Sophia is the assistant {coach} coaches through. It carries their method — their convictions, their red lines, the calls they make when it gets complicated — and answers you in it, every day, on WhatsApp.",
+  "join.lead_form_note":
+    "The form is at the bottom. Read this first — it is what you are agreeing to.",
+
+  // What the days actually look like. The eyebrow is the SURFACE, because
+  // which screen a thing happens on is the useful fact: two of the three are
+  // WhatsApp, and that asymmetry is the product.
+  "join.day.title": "What this actually looks like",
+  "join.day.where_whatsapp": "On WhatsApp",
+  "join.day.where_app": "In this app",
+  "join.day.photo_title": "You send a photo of your plate, whenever you want.",
+  "join.day.photo_body":
+    "No app to open, no fields, no weighing. What comes back is an answer in {coach}'s method — what the plate does well, what it is short of, in their words rather than a nutrition label's.",
+  "join.day.evening_title": "In the evening, one question and one tap.",
+  "join.day.evening_body":
+    "Good day, so-so, or rough. If it was not a good day, one more tap says whether it was energy, hunger or sleep. That is the whole thing, and you can leave it alone on the days you'd rather not.",
+  "join.day.app_title": "Your week, and how it is going.",
+  "join.day.app_body":
+    "Sophia drafts a week from {coach}'s method and from what your life actually allows, and it is not yours until you say it is. Next to it: the days you logged, how the evenings went, what your plates looked like.",
+  "join.day.tap_good": "All good",
+  "join.day.tap_mixed": "So-so",
+  "join.day.tap_hard": "Rough",
+
+  // The dark block. The landing spends its one dark ground on the guarantee a
+  // coach cares about; this page spends it on the one a student cares about.
+  "join.grade.kicker": "The part that is different",
+  "join.grade.title": "Nobody is grading you",
+  "join.grade.lead":
+    "Not as a policy someone could change their mind about — there is nothing here that counts, and nowhere to put a mark if we wanted to.",
+  "join.grade.one_title": "No score, no streak, no percentage.",
+  "join.grade.one_body":
+    "Nothing is counting up. A day you miss breaks nothing, because there is no run to break and no total to spoil.",
+  "join.grade.two_title": "A photo never becomes a number.",
+  "join.grade.two_body":
+    "No calories, no macros — not shown to you, not stored, not sent to your coach. We measured why before deciding: across 85 real analyses, a calorie estimate from a photo landed 26.6% under the truth on average, and the model's own margin of error contained the truth barely more than half the time.",
+  "join.grade.three_title": "A day you don't log is not a day you failed.",
+  "join.grade.three_body":
+    "Silence is recorded as unknown, and unknown is never quietly turned into a miss. It is the one thing this product refuses to guess about you.",
+
+  // The ledger. The strongest argument on the page, and the only one that
+  // required reading the database to write.
+  "join.seen.kicker": "Before you send a single photo",
+  "join.seen.title": "What {coach} sees, and what they don't",
+  "join.seen.lead":
+    "You are about to start showing your food to software. You should have the actual list, not a reassurance. This is it.",
+  "join.seen.sees_label": "What crosses over",
+  "join.seen.never_label": "What stays with you",
+  "join.seen.sees_1": "Your name, and the time zone you live in.",
+  "join.seen.sees_2": "When you last wrote, and how many times in the past week.",
+  "join.seen.sees_3":
+    "That you logged something, when, and whether a photo came with it.",
+  "join.seen.sees_4":
+    "How the week went: how many days were good, so-so or rough, and which of energy, hunger or sleep comes up most when it isn't good.",
+  "join.seen.sees_5":
+    "Every time they open your space — which is written down, and which you can read too.",
+  "join.seen.never_1":
+    "What you write. Their window over your conversation has two columns: when you last wrote, and how often. There is no column holding the words.",
+  "join.seen.never_2":
+    "Your photos. They reach Sophia and stop there. What your coach's view carries is that a photo existed, never the photo.",
+  "join.seen.never_3": "Anything you add in your own words alongside a meal.",
+  "join.seen.never_4":
+    "A calorie count or a macro figure — there is no such number anywhere in here, for anyone.",
+  "join.seen.exception_label": "One exception, and it is deliberate",
+  "join.seen.exception_body":
+    "If something you write suggests your relationship with food is turning against you, that sentence goes to {coach} the same day, marked urgent. Software should not be the only thing holding that.",
+
+  // The limit, stated plainly and immediately before the form — the last thing
+  // read before a password is typed. There is no one-to-one channel, and a
+  // page that lets someone hope for one has mis-sold the product on day one.
+  "join.limit.title": "There is no direct line to {coach}",
+  "join.limit.body":
+    "This is not a messaging app with your coach at the other end. They teach one method to everyone they coach, and Sophia is how it reaches you daily. What you share builds the weekly picture they read — it is not a message waiting for their reply.",
+
+  "join.form.title": "Create your space",
+  "join.form.lead": "You are connected to {coach} the moment you finish.",
+  "join.form.name": "Your name",
+  "join.form.email": "Email",
+  "join.form.password": "Password",
+  "join.form.password_hint": "At least 8 characters.",
+  "join.form.submitting": "Creating your space…",
+  "join.form.have_account": "Already have an account?",
+  "join.form.have_account_cta": "Sign in and accept from there",
+  "join.form.signed_in_as": "Signed in as {email}.",
+  "join.form.signed_in_body":
+    "Accepting opens exactly the window described above to {coach}, and nothing wider. They read; they can never act as you. You can end it from your account page whenever you want.",
+
+  // No token. Not an error — the ordinary case of someone who typed the
+  // address, or opened a link that lost its tail. There is one action, and it
+  // is not on this page.
+  "join.no_token.title": "You'll need your coach's link",
+  "join.no_token.body":
+    "There is no sign-up here. A space is only ever created from an invitation your coach sends you, with your address on it. Ask them for it, and open it on your phone.",
+  "join.no_token.have_account": "Already have an account?",
+  "join.no_token.have_account_cta": "Sign in",
+  "join.no_token.what_is_this": "What you'd be joining",
+
   // Attack cards (extracted from the legacy LabCardsPanel in W2.B)
   "attack.section.title": "Attack",
   "attack.section.subtitle":
@@ -1020,7 +1136,7 @@ export const en = {
   "brand.wordmark": "Sophia",
   "public.header.sign_in": "Sign in",
   "public.header.start_trial": "Start free trial",
-  "public.footer.tagline": "Sophia runs the plan. You keep the pen.",
+  "public.footer.tagline": "Your method, answering in your absence.",
   "public.footer.legal": "Legal & privacy",
   "public.footer.contact": "Contact",
   "public.footer.contact_email": "sophia@sophia-coach.ai",
@@ -1042,102 +1158,145 @@ export const en = {
   "auth.coach_link.back_cta": "Go to the standard sign-in",
 
   // Landing — hero
-  "landing.seo_title": "Sophia — your coaching plan, run every day",
+  "landing.seo_title": "Sophia — your method, answering every student, every day",
   "landing.seo_description":
-    "Sophia is the client-side AI for professional coaches. You write the plan; Sophia runs it with your client on WhatsApp every day — a photo of the plate or one sentence is enough — and hands you the clients who need you on Monday.",
-  "landing.hero.kicker": "For professional coaches",
-  "landing.hero.title": "You write the plan. Sophia makes sure it gets lived.",
+    "Sophia is the AI that answers a masterclass coach's students in their coach's own method and words, on WhatsApp, every day. You record your method once; every outgoing message is checked against your red lines before it is sent. On Monday you read one page — who is still talking, how the week felt, what they set themselves.",
+  "landing.hero.kicker": "For coaches teaching a method at scale",
+  "landing.hero.title": "You can't answer two hundred students. Your method can.",
   "landing.hero.subtitle":
-    "Sophia runs your protocol with your client on WhatsApp, every day. A photo of the plate or one sentence is enough to log a meal — no app to install. On Monday you get the few clients who actually need you.",
-  "landing.hero.cta_trial": "Start free trial",
+    "Sophia learns how you coach — your convictions, your red lines, your vocabulary, the calls you make on the hard cases — and answers in your place, on WhatsApp, all week. Every message is checked against your red lines before it goes out. On Monday, you read one page.",
+  "landing.hero.cta_trial": "Start the 14-day trial",
   "landing.hero.cta_signin": "Sign in",
   "landing.hero.note":
-    "Built for independent coaches. Your clients join by invitation, and answer where they already type all day.",
+    "14 days, up to 3 students. They join by invitation and answer on WhatsApp — nothing for them to install, and no one-to-one inbox for you to keep up with.",
 
-  // Landing — schematic product preview (labels inside the CSS mock, generic on purpose)
-  "landing.mock.monday_title": "Monday review",
-  "landing.mock.needs_attention": "Needs your attention",
-  "landing.mock.on_track": "On track — no action needed",
-  "landing.mock.insufficient": "Insufficient data",
-  "landing.mock.client_generic": "Client",
-  "landing.mock.student_today": "On WhatsApp, today",
-  "landing.mock.logged": "Logged",
-  "landing.mock.photo_alt": "Photo of a plate, sent by the client",
+  // Landing — schematic of the Monday page. Labels are the product's own; the
+  // cohort is an example and says so (landing.mock.caption).
+  "landing.mock.monday_title": "Monday",
+  "landing.mock.monday_subtitle": "One page. Not a dashboard.",
+  "landing.mock.contact_label": "Who's still talking",
+  "landing.mock.contact_line": "34 students this week: 25 in touch, 6 slipping, 3 silent.",
+  "landing.mock.contact_responsive": "In touch",
+  "landing.mock.contact_slipping": "Slipping",
+  "landing.mock.contact_silent": "Silent",
+  "landing.mock.contact_responsive_hint": "answered within 2 days",
+  "landing.mock.contact_slipping_hint": "quiet 2 to 5 days",
+  "landing.mock.contact_silent_hint": "quiet 5 days or more",
+  "landing.mock.felt_label": "How the week felt",
+  "landing.mock.felt_line": "How the week felt: 18 holding up, 8 strained, 3 having a hard time.",
+  "landing.mock.felt_sustainable": "Holding up",
+  "landing.mock.felt_strained": "Strained",
+  "landing.mock.felt_hard": "Having a hard time",
+  "landing.mock.felt_unknown": "Not enough check-ins to say",
+  "landing.mock.felt_caption":
+    "Five students tapped fewer than three times. They are missing from the sentence above on purpose — one tap is not a week, and nobody is filed as fine by default.",
+  "landing.mock.intent_label": "What they set themselves",
+  "landing.mock.intent_line": "21 of 34 wrote themselves a week from your method.",
+  "landing.mock.caption":
+    "A schematic of the Monday page. The wording is the product's own; the cohort is an example.",
+
+  // Landing — the WhatsApp exchange, shown inside the “every day” step
+  "landing.mock.wa_label": "On WhatsApp, today",
+  "landing.mock.photo_alt": "Photo of a plate, sent by a student",
   "landing.mock.chat_student": "Lunch — had to eat out today",
   "landing.mock.chat_sophia":
-    "Greens and lean protein, both on today's plan. Logged, moderate portion.",
+    "Greens and a protein, moderate portion. That's the line you set yourself on Monday — noted.",
+  "landing.mock.chat_evening": "How did today go?",
+  "landing.mock.chat_tap_good": "Good",
+  "landing.mock.chat_tap_mixed": "Mixed",
+  "landing.mock.chat_tap_hard": "Hard",
+  "landing.mock.chat_tap_caption":
+    "Three buttons. If it was hard, one follow-up — energy, hunger or sleep. That's the whole evening.",
 
   // Landing — the problem
   "landing.problem.kicker": "The problem",
-  "landing.problem.title": "You only find out when they go quiet",
+  "landing.problem.title": "A masterclass sells your method. It can't sell your evenings.",
   "landing.problem.body":
-    "Client tracking doesn't fail loudly. It fades: fewer logs, shorter answers, then silence. By the time you notice, the pattern is weeks old.",
-  "landing.problem.stat1_value": "Less than half",
-  "landing.problem.stat1_label": "of clients are still logging by week 10 of a program",
-  "landing.problem.stat2_value": "5.4 → 1.4",
-  "landing.problem.stat2_label": "days logged per week between week 4 and week 12",
-  "landing.problem.stat3_value": "Shame, not churn intent",
-  "landing.problem.stat3_label":
-    "the documented reason clients stop reporting after a bad week — they hide from the coach they respect",
+    "You recorded the modules, the cohort is full, and the method is good. Then Tuesday night arrives and a student has a question that isn't in any module — because it's about their evening, their kitchen, their week. Multiply it by everyone enrolled. There is no version of you that answers all of it.",
+  "landing.problem.q1": "“Can I swap the rice for pasta tonight?”",
+  "landing.problem.q2": "“I'm starving at 4pm — is that normal?”",
+  "landing.problem.q3": "“I ate badly at a wedding. Have I wrecked the week?”",
   "landing.problem.close":
-    "Nobody quits your coaching because the plan was wrong. They drift because nobody was there on Tuesday night. That is the part Sophia takes.",
+    "Every one of those has an answer, and the answer is yours — you've made that call a hundred times. Nobody leaves because your method was wrong. They drift because on Tuesday night, nobody who thinks like you was there.",
 
-  // Landing — how it works
+  // Landing — how it works. The eyebrows are the CADENCE, not 1/2/3: the whole
+  // argument is the asymmetry between recording once and answering daily.
   "landing.how.kicker": "How it works",
-  "landing.how.title": "Your plan, from PDF to daily practice",
-  "landing.how.step1_title": "Drop in your plan",
+  "landing.how.title": "Recorded once. Answering all week.",
+  "landing.how.step1_when": "Once",
+  "landing.how.step1_title": "You record your method",
   "landing.how.step1_body":
-    "Import the PDF or paste the text you already wrote. Sophia decomposes it line by line; you review every line and publish. Nothing reaches a client unapproved.",
-  "landing.how.step2_title": "Your client lives it, on WhatsApp",
+    "A guided interview turns how you coach into something the agent can hold: your convictions, your red lines, your vocabulary, how you answer the hard cases, your tone. You read back exactly what it understood, then publish. Revise it whenever you like — an edit lands on the next message — and roll back to any earlier version without losing the history of what your students actually received.",
+  "landing.how.step2_when": "Every day",
+  "landing.how.step2_title": "Your students live it, on WhatsApp",
   "landing.how.step2_body":
-    "A photo of the plate, or one sentence — “had the salmon, skipped the rice”. Both count the same. Sophia matches it against the line you wrote, answers, and records the fact. Your client also gets a web space with their day and their week, but nothing forces them to open it.",
-  "landing.how.step3_title": "Monday, you decide",
+    "They send a photo of a plate or a sentence about their day, and get an answer in your method. In the evening, one tap. No app to install, no dashboard to open, and no message that reaches them at night.",
+  "landing.how.step3_when": "Every Monday",
+  "landing.how.step3_title": "You read one page",
   "landing.how.step3_body":
-    "You don't get a dashboard to dig through. You get the handful of clients who need a decision from you — and the list of those who don't. You and your client read the same week, side by side, with a summary when it closes.",
+    "Who's still talking, how the week felt, what your students set themselves. Computed from what actually happened, never narrated by a model — and when there isn't enough to say something, it says that instead.",
 
-  // Landing — what makes Sophia different
-  "landing.diff.kicker": "Why Sophia",
-  "landing.diff.title": "The market builds AI for your desk. Sophia sits with your client.",
+  // Landing — the double lock (the dark block: the guarantee, not the argument)
+  "landing.diff.kicker": "The part you should be most afraid of",
+  "landing.diff.title": "An AI speaking in your name is a risk. We treat it as one.",
   "landing.diff.body":
-    "Every major coaching platform points its AI at the practitioner — summaries, admin, form letters. None of them puts a conversational AI on the client's side of the relationship. Sophia does exactly that, with one constraint the others don't have: it executes your plan. It never writes one.",
-  "landing.diff.point1":
-    "Lives on WhatsApp, where your client already types every day — nothing to install, nothing to remember to open",
-  "landing.diff.point2":
-    "A photo or a sentence both count: Sophia reads the plate against your plan, never as a calorie estimate",
-  "landing.diff.point3": "Escalates to you with the client's words and the facts. You decide.",
+    "A prompt is an instruction, not a guarantee. Tell any model “never recommend grazing between meals” and it will comply almost always — and almost always is the wrong number when one public contradiction of you is the thing your students remember. So your red lines are enforced twice, by two mechanisms that fail differently.",
+  "landing.diff.lock1_tag": "Lock 1 — injected",
+  "landing.diff.lock1": "Your method goes into the prompt, on every message.",
+  "landing.diff.lock2_tag": "Lock 2 — verified",
+  "landing.diff.lock2":
+    "Every outgoing message is scanned against your red lines before it is sent. Deterministic, no model in that loop. That one is the guarantee.",
+  "landing.diff.trace_label": "What that looks like, on one message",
+  "landing.diff.trace_example": "Example — a coach whose method rules out grazing",
+  "landing.diff.trace_ask": "A student asks",
+  "landing.diff.trace_ask_text": "“Should I add a snack between lunch and dinner?”",
+  "landing.diff.trace_draft": "The draft said",
+  "landing.diff.trace_draft_text":
+    "“A small snack mid-afternoon can help — try six smaller meals across the day.”",
+  "landing.diff.trace_held": "Held by lock 2",
+  "landing.diff.trace_sent": "What went out instead",
+  "landing.diff.trace_sent_text":
+    "“Three real meals. If you're hungry between them, the meal before was too small — fix the meal, not the gap.”",
+  "landing.diff.trace_note":
+    "That replacement is not ours. Each red line carries what you do instead, in your words, and that is what your student receives.",
+  "landing.diff.close":
+    "Your student never gets a refusal, and never gets “ask your coach” — in a masterclass that points at a door which doesn't exist. They get your answer.",
 
   // Landing — doctrine
   "landing.doctrine.kicker": "Our doctrine",
   "landing.doctrine.title": "Three rules we don't bend",
-  "landing.doctrine.rule1_title": "You write. Sophia never does.",
+  "landing.doctrine.rule1_title": "You teach. They decide. Nobody is graded.",
   "landing.doctrine.rule1_body":
-    "Sophia executes the protocol you published. It never edits a prescription, never pads one, never improvises one. Your client hears your plan, kept alive.",
-  "landing.doctrine.rule2_title": "No number without the days behind it.",
+    "No adherence score, no percentage, no streak, no ranking of your students. A student is not marked against a plan they never signed. The week records how it went; the judgement stays yours.",
+  "landing.doctrine.rule2_title": "Every line names the conviction it came from.",
   "landing.doctrine.rule2_body":
-    "Adherence is only shown once a client has logged at least 4 of 7 days. Below that you see “insufficient data” — because a made-up percentage is worse than none.",
-  "landing.doctrine.rule3_title": "A fact is never deduced from another.",
+    "When a student builds their week out of your method, each food line says which of your convictions it applies — and the database refuses a line that names none. That's a constraint, not a convention. Your student reads the belief under the line, so you can both judge whether it was a fair reading of you.",
+  "landing.doctrine.rule3_title": "Silence is never rounded up.",
   "landing.doctrine.rule3_body":
-    "A logged meal is a logged meal. It never silently becomes a nutrient count, a calorie score or a guessed habit. What you read is what happened — or it isn't shown.",
+    "A student who tapped twice hasn't given us a week. They come back as “not enough check-ins”, never as “doing fine”. It costs us a nicer-looking page, and it's the only reason the page is worth reading.",
   "landing.doctrine.no_calories_title": "And no, Sophia doesn't count calories.",
   "landing.doctrine.no_calories_body":
-    "We measured it on our own model before deciding: calorie estimates from a photo land roughly a quarter under the truth, and the gap widens as the plate gets fuller. That error does not average out over a week — it leans the same way every time, hardest exactly where you would want to look. So Sophia reports what is on the plate and how big the portion is, against the line you wrote, and leaves the numbers to the person qualified to prescribe them. That refusal is the feature.",
+    "We measured it on our own model before deciding: across 85 real analyses scored against USDA reference data, calorie estimates from a photo came in 26.6% under the truth on average, and the gap widens as the plate gets fuller. That error doesn't average out over a week — it leans the same way every time, hardest exactly where you'd want to look. Worse, when the model offers its own margin of error, the truth falls inside it barely more than half the time: it doesn't know when it's wrong.",
+  "landing.doctrine.no_calories_body2":
+    "So Sophia says what is on the plate and how big the portion was — small, moderate or large — and leaves the numbers to whoever is qualified to prescribe them. It isn't a limitation we're working around: a deterministic filter strips any calorie or macro target the model produces anyway, and logs that it did. The refusal is the feature.",
 
   // Landing — pricing
   "landing.pricing.kicker": "Pricing",
-  "landing.pricing.title": "Priced to grow with your results",
+  "landing.pricing.title": "Priced the way a masterclass grows",
   "landing.pricing.base": "$49",
   "landing.pricing.base_period": "per month",
-  "landing.pricing.base_label": "Your coach workspace",
+  "landing.pricing.base_label": "Your workspace and your method",
   "landing.pricing.seat": "+ $12",
-  "landing.pricing.seat_period": "per active client per month",
+  "landing.pricing.seat_period": "per active student per month",
   "landing.pricing.seat_label": "Active = 3 or more interactions that month",
   "landing.pricing.why":
-    "You pay for clients who are actually engaging — the ones Sophia is keeping in your program. If a client goes quiet, they cost you nothing. Our margin depends on their engagement, exactly like yours does.",
-  "landing.pricing.cta": "Start free trial",
+    "Twenty students or two hundred, you pay for the ones actually using it. A student who never answers costs you nothing, so we carry the cost of keeping them engaged — the same incentive you have. Nothing about the price depends on how many hours you put in, because the whole point is that you don't.",
+  "landing.pricing.cta": "Start the 14-day trial",
+  "landing.pricing.trial_note": "14 days, up to 3 students, then it stops on its own.",
 
   // Landing — closing call
-  "landing.closing.title": "Your next client review could be three decisions, not thirty tabs.",
-  "landing.closing.cta": "Start free trial",
+  "landing.closing.title": "You've already written the method. This is what makes it answer at 9pm.",
+  "landing.closing.cta": "Start the 14-day trial",
   "landing.closing.signin_prompt": "Already using Sophia?",
   "landing.closing.signin_link": "Sign in",
 } as const
