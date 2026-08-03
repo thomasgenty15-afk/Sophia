@@ -1444,39 +1444,6 @@ async function loadReflectionsSurfaceSummary(
   return lines.length > 0 ? `${lines.join("\n")}\n` : null;
 }
 
-async function loadQuotesSurfaceSummary(
-  supabase: SupabaseClient,
-  userId: string,
-  query: string,
-  limit: number,
-): Promise<string | null> {
-  const { data, error } = await supabase
-    .from("user_architect_quotes")
-    .select("quote_text,author,source_context,tags,updated_at")
-    .eq("user_id", userId)
-    .order("updated_at", { ascending: false })
-    .limit(12);
-  if (error) return null;
-  const rows = Array.isArray(data) ? data as Array<Record<string, any>> : [];
-  if (rows.length === 0) return null;
-  const ranked = rankSurfaceItems(
-    rows,
-    query,
-    (row) =>
-      `${String(row.quote_text ?? "")} ${String(row.author ?? "")} ${
-        String(row.source_context ?? "")
-      } ${Array.isArray(row.tags) ? row.tags.join(" ") : ""}`,
-    limit,
-  );
-  const lines = ranked.map((row) => {
-    const quote = String(row.quote_text ?? "").trim().replace(/\s+/g, " ")
-      .slice(0, 140);
-    const author = String(row.author ?? "").trim().slice(0, 60);
-    return `- "${quote}"${author ? ` — ${author}` : ""}`;
-  });
-  return lines.length > 0 ? `${lines.join("\n")}\n` : null;
-}
-
 async function loadSurfaceSupportingContent(args: {
   supabase: SupabaseClient;
   userId: string;
@@ -1520,13 +1487,13 @@ async function loadSurfaceSupportingContent(args: {
         query,
         contentLimit,
       ) ?? "";
+    // PIVOT — la surface "quotes" (Architecte) est supprimée avec sa table.
+    // Le case reste NOMMÉ plutôt que retiré du switch: le token peut encore
+    // arriver d'un état conversationnel persisté d'avant le pivot, et un
+    // `default: return ""` silencieux serait indiscernable d'un bug de
+    // routage. Ici l'absence est explicite.
     case "quotes":
-      return await loadQuotesSurfaceSummary(
-        args.supabase,
-        args.userId,
-        query,
-        contentLimit,
-      ) ?? "";
+      return "";
     default:
       return "";
   }

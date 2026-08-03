@@ -8,7 +8,6 @@ import type {
   UserTransformationRow,
 } from "../types/v2";
 import { extractProfessionalSupport } from "./professionalSupport";
-import { getStoredReferralCode, normalizeReferralCode } from "./referral";
 
 export type IntakeAspectV2 = {
   label: string;
@@ -333,8 +332,11 @@ export function normalizeOnboardingV2Draft(
       ...baseDraft.profile,
       ...(draft?.profile ?? {}),
     },
-    referral_code: normalizeReferralCode(draft?.referral_code) ??
-      getStoredReferralCode(),
+    // PIVOT — le parrainage B2C est supprimé (tables + lib). Le champ RESTE
+    // dans le brouillon d'onboarding parce que des brouillons persistés
+    // d'avant le pivot le portent encore: le retirer du type ferait échouer
+    // leur relecture. Il vaut désormais toujours null, et rien ne le lit.
+    referral_code: null,
     created_at: createdAt,
     updated_at: updatedAt,
   };

@@ -19,11 +19,6 @@ import {
   type SubscriptionSnapshot,
   type SubTier,
 } from "../_shared/subscription-notification.ts";
-import {
-  applyBankedReferralRewards,
-  claimReferralRewardForInvoice,
-  resolveInvoiceUserId,
-} from "../_shared/referral-reward.ts";
 
 const SUBSCRIPTION_CONFIRMED_PURPOSE = "subscription_confirmed";
 const SUBSCRIPTION_MODIFIED_PURPOSE = "subscription_modified";
@@ -406,39 +401,14 @@ Deno.serve(async (req) => {
           }).eq("id", userId);
         }
 
-        // Referral: a referrer who just became a paying customer picks up the
-        // months banked while they were still on trial. Best-effort — a
-        // failure here must not break the subscription mirror, and the banked
-        // rows are retried on the next subscription/invoice event.
-        if (status === "active" || status === "trialing") {
-          try {
-            const bankedResult = await applyBankedReferralRewards({
-              admin,
-              referrerId: userId,
-              requestId,
-            });
-            if (bankedResult.credited > 0) {
-              console.log(
-                `[stripe-webhook] request_id=${requestId} applied ${bankedResult.credited} banked referral reward(s) user_id=${userId}`,
-              );
-            }
-          } catch (referralErr) {
-            console.warn(
-              "[stripe-webhook] banked referral rewards application failed",
-              referralErr,
-            );
-            await logEdgeFunctionError({
-              functionName: "stripe-webhook",
-              error: referralErr,
-              severity: "warn",
-              title: "referral_banked_rewards_apply_failed",
-              requestId,
-              userId,
-              source: "stripe",
-              metadata: { stripe_subscription_id: stripeSubscriptionId },
-            });
-          }
-        }
+        // PIVOT — le parrainage B2C est supprimé (tables `referral_codes`,
+        // `referrals`, `referral_rewards`). Le bloc qui créditait ici les mois
+        // « bankés » d'un parrain devenu payant part avec elles.
+        //
+        // `handle_new_user()` est réécrite dans la même migration pour ne plus
+        // appeler `apply_referral_attribution`: sans ça, un signup portant un
+        // `referral_code` en metadata lèverait un warning à chaque inscription
+        // — visible nulle part, et pour toujours.
 
         const prevRow = prevSub as
           | {
@@ -558,88 +528,19 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Referral conversion: the referrer's reward is triggered by the referred
-    // user's first PAID invoice — never at signup, never on a 0€ invoice.
+    // PIVOT — le parrainage B2C est supprimé (tables `referral_codes`,
+    // `referrals`, `referral_rewards`). `invoice.payment_succeeded` n'avait
+    // AUCUN autre rôle ici que de déclencher la récompense du parrain à la
+    // première facture payée: la branche part avec lui.
+    //
+    // Le miroir d'abonnement, lui, vit sur `customer.subscription.*` — c'est
+    // là que l'accès est calculé, et rien de ce qui précède n'y touche.
     if (evt.type === "invoice.payment_succeeded") {
-      const invoice = evt.data.object ?? {};
-      const stripeInvoiceId = invoice?.id as string | undefined;
-      const amountPaid = Number(invoice?.amount_paid ?? 0);
-
-      if (!stripeInvoiceId || !(amountPaid > 0)) {
-        return jsonResponse(req, {
-          ok: true,
-          ignored: true,
-          reason: "zero_amount_invoice",
-          type: evt.type,
-          request_id: requestId,
-        });
-      }
-
-      const referredUserId = await resolveInvoiceUserId(admin, invoice);
-      if (!referredUserId) {
-        // Likely an out-of-order delivery (invoice before the subscription
-        // mirror). Release the event-id claim and 500 so Stripe redelivers
-        // once the mapping exists; the reward claim itself is idempotent.
-        await admin.from("stripe_webhook_events").delete().eq("id", evt.id);
-        console.warn(
-          `[stripe-webhook] request_id=${requestId} could not resolve user for invoice ${stripeInvoiceId}`,
-        );
-        return serverError(req, requestId, "Unresolved invoice user");
-      }
-
-      const claim = await claimReferralRewardForInvoice({
-        admin,
-        referredUserId,
-        stripeInvoiceId,
-      });
-
-      if (claim.claimed && !claim.capped && claim.referrer_id) {
-        console.log(
-          `[stripe-webhook] request_id=${requestId} referral converted referred=${referredUserId} referrer=${claim.referrer_id}`,
-        );
-        // Credit now if the referrer is already a paying customer; otherwise
-        // the reward stays banked until their own subscription shows up.
-        try {
-          await applyBankedReferralRewards({
-            admin,
-            referrerId: claim.referrer_id,
-            requestId,
-          });
-        } catch (creditErr) {
-          // The reward row is back to banked (see referral-reward.ts): it will
-          // be retried on the referrer's next subscription/invoice event.
-          console.warn(
-            "[stripe-webhook] referral credit failed, reward stays banked",
-            creditErr,
-          );
-          await logEdgeFunctionError({
-            functionName: "stripe-webhook",
-            error: creditErr,
-            severity: "warn",
-            title: "referral_credit_failed_reward_banked",
-            requestId,
-            userId: claim.referrer_id,
-            source: "stripe",
-            metadata: {
-              stripe_invoice_id: stripeInvoiceId,
-              referred_user_id: referredUserId,
-            },
-          });
-        }
-      } else if (claim.claimed && claim.capped) {
-        console.log(
-          `[stripe-webhook] request_id=${requestId} referral conversion tracked but capped referrer=${claim.referrer_id} months_last_12m=${claim.months_last_12m}`,
-        );
-      }
-
       return jsonResponse(req, {
         ok: true,
+        ignored: true,
+        reason: "referral_program_removed",
         type: evt.type,
-        referral: {
-          claimed: claim.claimed,
-          capped: claim.capped ?? false,
-          reason: claim.reason ?? null,
-        },
         request_id: requestId,
       });
     }

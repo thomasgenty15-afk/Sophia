@@ -833,3 +833,57 @@ WhatsApp déjà envoyés) tombe ici au lieu de tomber dans le vide.
 Placée **en dernier** dans `<Routes>` : React Router prend la première route qui matche, un `"*"`
 plus haut avalerait tout ce qui suit.
 Vérifié dans le navigateur : `/dashboard-qui-nexiste-pas` → la 404 ; `/coach` → inchangé.
+
+---
+
+## 14:10 — LEGACY : 13 tables non-spine droppées (code d'abord, tables ensuite)
+
+Arbitrage de Thomas : « code mort frontend + les 13 tables non-spine ». Fait, **dans l'ordre du
+plan** (« on supprime le code avant les tables »), et après vérification indépendante
+(doctrine `verify-before-delete`).
+
+### Vérifications AVANT toute suppression
+- **FK entrantes** depuis une table gardée vers les 13 : **aucune** (requête sur `pg_constraint`).
+- **Consommateurs applicatifs** : 5 trouvés — et c'est le point qui aurait fait mal.
+  Les dropper sans toucher au code aurait laissé le cerveau interroger des tables absentes à
+  chaque tour. Les lectures dégradaient certes proprement (`if (error) return null`), donc pas de
+  crash — mais un aller-retour réseau et une erreur loggée par tour, pour toujours.
+
+### Le code, retiré avant les tables
+| Fichier | Traitement |
+|---|---|
+| `sophia-brain/architect_memory.ts` + `_shared/identity-manager.ts` | **Supprimés** — paire morte : `architect_memory` a 0 importeur et il était le seul à importer `identity-manager` |
+| `sophia-brain/context/loader.ts` | Surface `quotes` retirée ; le `case "quotes"` reste **nommé** et rend `""` — un token persisté d'avant le pivot doit tomber sur une absence explicite, pas sur un `default` silencieux |
+| `sophia-brain/state-manager.ts` | `getCoreIdentity()` rend `""` **sans aucun I/O**. Elle payait un embedding + une RPC + une lecture par tour pour un axe produit qui n'existe plus. Fonction conservée : `""` est déjà une valeur légitime pour son unique appelant |
+| `_shared/referral-reward.ts` | **Supprimée** + ses 2 blocs retirés de `stripe-webhook` (la branche `invoice.payment_succeeded` n'avait aucun autre rôle) |
+| `frontend` : `lib/referral.ts`, `components/dashboard/WeekCard.tsx`, `FrameworkHistoryModal.tsx`, `config/modules-registry.ts`, `pages/LandingPage.tsx`, `src/data/` (4 fichiers) | **Supprimés** — 0 importeur vérifié un par un |
+| `App.tsx`, `Auth.tsx`, `lib/onboardingV2.ts` | Capture/saisie/attribution du code de parrainage retirées (champ UI + bloc signup + metadata) |
+
+### La migration `20260803140000_pivot_drop_non_spine_legacy.sql`
+**`handle_new_user()` réécrite EN PREMIER**, sans le bloc referral — c'est l'avertissement nommé du
+plan : dropper `apply_referral_attribution()` sans la réécrire ferait lever un warning à **chaque
+inscription**, invisible et pour toujours. Repart de la version `20260727200000` (celle qui porte
+l'invitation coach), tout le reste inchangé.
+Puis : 6 triggers, 15 fonctions orphelines, **13 tables**.
+
+**Le garde-fou de fin est double** : il assert que les 13 tables sont parties **ET que la colonne
+vertébrale est intacte (7/7)**. Une migration de suppression qui emporterait plus que prévu doit
+échouer là, pas se découvrir en production.
+
+### Résultat vérifié
+```
+NOTICE: pivot: 13 tables legacy droppées, colonne vertébrale intacte (7/7)
+133 tables -> 120
+deno test _shared/keel + sophia-brain : 1820 passed | 0 failed
+semaine simulée §7.4 N2                : 1 passed (13 steps) | 0 failed
+frontend : tsc -b OK, eslint 0 erreur sur les fichiers touchés
+navigateur : /auth rend correctement
+```
+
+### CE QUI RESTE, et pourquoi je n'y touche pas
+**14 tables de la colonne vertébrale** + **18 edge functions** + **6 pages** (~6 900 l.).
+`BUILD_PLAN.md` arbitrage n°1 : les tables legacy sont « **vivantes pour la branche FR** ». Les
+dropper, c'est décider que la branche FR n'a plus d'utilisateurs — arbitrage produit, et
+irréversible au `db push`. Le plan le dit aussi : « après validation réelle du produit ».
+L'ordre de démolition (ANNEXE B §F, feuilles→racine, 2 FK sans ON DELETE et 2 cycles à casser
+d'abord) reste prêt à dérouler le jour où tu trancheras.

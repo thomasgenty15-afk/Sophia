@@ -7,7 +7,6 @@ import { t as keelT } from '../keel/i18n/t';
 import { newRequestId, requestHeaders } from '../lib/requestId';
 import { getPrelaunchLockdownRawValue, isPrelaunchLockdownEnabled } from '../security/prelaunch';
 import { DEFAULT_LOCALE, DEFAULT_TIMEZONE, detectBrowserTimezone, getAllSupportedTimezones } from '../lib/localization';
-import { getStoredReferralCode, normalizeReferralCode, storeReferralCode } from '../lib/referral';
 import {
   Mail,
   Lock,
@@ -20,8 +19,7 @@ import {
   Loader2,
   Eye,
   EyeOff,
-  CheckCircle2,
-  Gift
+  CheckCircle2
 } from 'lucide-react';
 
 // Email-verification polling cadence. Each unconfirmed attempt is a 400 against
@@ -147,7 +145,6 @@ const Auth = () => {
   const [coachCountry, setCoachCountry] = useState('US');
   // Parrainage : prérempli depuis ?ref= (capturé au chargement de l'app),
   // modifiable/saisissable manuellement à l'inscription.
-  const [referralCode, setReferralCode] = useState(() => getStoredReferralCode() ?? '');
   const [hasAcceptedLegal, setHasAcceptedLegal] = useState(false); // New state for legal acceptance
   const [confirmationPending, setConfirmationPending] = useState(false); // Nouvel état
   const [isResettingPassword, setIsResettingPassword] = useState(false); // Pour la demande de reset MDP
@@ -562,17 +559,6 @@ const Auth = () => {
           ? detectedTimezone || (timezone || "").trim() || DEFAULT_TIMEZONE
           : (timezone || "").trim() || DEFAULT_TIMEZONE;
 
-        // Parrainage : champ facultatif, mais si un code est saisi il doit être
-        // valide (sinon le filleul croirait à tort bénéficier des 30 jours).
-        let referralCodeNorm: string | null = null;
-        if (referralCode.trim()) {
-          referralCodeNorm = normalizeReferralCode(referralCode);
-          if (!referralCodeNorm) {
-            throw new Error("Le code de parrainage saisi est invalide (format attendu : SOPHIA-XXXX).");
-          }
-          storeReferralCode(referralCodeNorm);
-        }
-
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -590,8 +576,6 @@ const Auth = () => {
                 locale: coachSignup ? COACH_LOCALE : DEFAULT_LOCALE,
                 timezone: signupTimezone,
                 tz_follow_device: tzFollowDevice,
-                // Attribution du parrainage côté DB (handle_new_user)
-                ...(referralCodeNorm ? { referral_code: referralCodeNorm } : {})
             },
             // Redirect vers une page dédiée (nouvel onglet après clic sur le lien email).
             // L'onglet ORIGINAL reste sur /auth avec le cache intact et poll pour détecter la vérification.
@@ -1013,32 +997,6 @@ const Auth = () => {
                 </div>
                 )}
 
-                {/* The referral code buys consumer trial days. It has no meaning
-                    for a coach account, so it is not shown. */}
-                {!coachSignup && (
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1">
-                    Code de parrainage <span className="font-normal text-slate-400">(facultatif)</span>
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Gift className="h-5 w-5 text-slate-400" />
-                    </div>
-                    <input
-                      type="text"
-                      value={referralCode}
-                      onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
-                      className="appearance-none block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent sm:text-sm transition-all"
-                      placeholder="SOPHIA-XXXX"
-                      autoComplete="off"
-                      spellCheck={false}
-                    />
-                  </div>
-                  <p className="mt-1 text-xs text-slate-500">
-                    Avec un code de parrainage, ton essai gratuit passe de 14 à 30 jours.
-                  </p>
-                </div>
-                )}
               </>
             )}
 

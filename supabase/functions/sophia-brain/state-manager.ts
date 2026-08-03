@@ -211,70 +211,23 @@ export async function insertChatMessage(
 }
 
 export async function getCoreIdentity(
-  supabase: SupabaseClient,
-  userId: string,
-  opts?: {
-    message?: string;
-    maxItems?: number;
-    semanticThreshold?: number;
-  },
+  _supabase: SupabaseClient,
+  _userId: string,
+  _opts?: unknown,
 ): Promise<string> {
-  const maxItems = Math.max(1, Math.min(2, Number(opts?.maxItems ?? 2) || 2));
-  const semanticThreshold = Number(opts?.semanticThreshold ?? 0.52);
-  const message = String(opts?.message ?? "").trim();
-
-  const formatRows = (rows: Array<{ week_id: string; content: string }>) =>
-    rows.map((d) =>
-      `[IDENTITÉ PROFONDE - ${d.week_id.toUpperCase()}]\n${d.content}`
-    ).join("\n\n");
-
-  if (message.length > 0) {
-    try {
-      const queryEmbedding = await generateEmbedding(message, {
-        source: "sophia-brain:state-manager",
-        operationName: "embedding.core_identity_query",
-      });
-      const { data: matched, error: matchErr } = await supabase.rpc(
-        "match_core_identity_by_embedding",
-        {
-          target_user_id: userId,
-          query_embedding: queryEmbedding,
-          match_threshold: semanticThreshold,
-          match_count: maxItems,
-        } as any,
-      );
-
-      if (!matchErr && Array.isArray(matched) && matched.length > 0) {
-        const rows = matched
-          .slice(0, maxItems)
-          .map((r: any) => ({
-            week_id: String(r.week_id ?? ""),
-            content: String(r.content ?? "").trim(),
-          }))
-          .filter((r) => r.week_id && r.content);
-        if (rows.length > 0) return formatRows(rows);
-      }
-    } catch (e) {
-      console.warn(
-        "[StateManager] semantic core identity retrieval failed (fallback latest):",
-        e,
-      );
-    }
-  }
-
-  // Fallback: latest identity blocks if no semantic match / missing embeddings
-  const { data, error } = await supabase
-    .from("user_core_identity")
-    .select("week_id, content")
-    .eq("user_id", userId)
-    .order("last_updated_at", { ascending: false })
-    .limit(maxItems);
-
-  if (error || !data || data.length === 0) return "";
-  return formatRows(
-    (data as any[]).map((d) => ({
-      week_id: String(d.week_id ?? ""),
-      content: String(d.content ?? "").trim(),
-    })),
-  );
+  // PIVOT — l'Identité Profonde (Architecte) est supprimée avec ses tables
+  // (`user_core_identity`, `user_core_identity_archive`) et sa RPC
+  // `match_core_identity_by_embedding`.
+  //
+  // La fonction SURVIT en rendant "" plutôt que d'être retirée: son unique
+  // appelant (`context/loader.ts`) compose un bloc de contexte, et "" y est
+  // déjà une valeur légitime (« rien à dire sur cet axe »). Supprimer l'appel
+  // demanderait de retoucher l'assemblage du contexte du cerveau — beaucoup
+  // plus de surface pour zéro gain, alors que le contrat de retour, lui, est
+  // déjà exactement celui-là.
+  //
+  // Elle ne fait plus AUCUN appel réseau: avant ce changement elle payait un
+  // embedding + une RPC + une lecture de table à chaque tour pour un axe
+  // produit qui n'existe plus.
+  return "";
 }

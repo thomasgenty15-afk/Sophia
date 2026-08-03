@@ -27,7 +27,6 @@ import {
 } from "./security/RouteGuards";
 import { OnboardingAmbientAudioProvider } from "./context/OnboardingAmbientAudioContext";
 import { ErrorBoundary } from "./components/ErrorBoundary";
-import { captureReferralCodeFromUrl } from "./lib/referral";
 import PlanImportPage from "./keel/pages/PlanImportPage";
 import TodayPage from "./keel/pages/TodayPage";
 import ProgressPage from "./keel/pages/ProgressPage";
@@ -48,7 +47,6 @@ function App() {
   // Parrainage : les liens de partage pointent vers n'importe quelle page du
   // site avec ?ref=CODE ; on capture le code dès le chargement initial.
   React.useEffect(() => {
-    captureReferralCodeFromUrl();
   }, []);
   return (
     <ToastProvider>
