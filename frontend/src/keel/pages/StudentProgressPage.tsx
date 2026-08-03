@@ -4,6 +4,10 @@ import { KeelAppShell } from "../components/KeelAppShell";
 import { Badge, type BadgeTone } from "../components/ui/Badge";
 import { Card, SectionLabel } from "../components/ui/Card";
 import { displayWeights, type ReviewRow } from "./studentProgressWeight";
+import {
+  aggregateWeekInFood,
+  type FoodEventRow,
+} from "../lib/weekInFood";
 
 /**
  * PIVOT N3 — `/app/progress` : l'avancée, semaine et mois.
@@ -45,10 +49,9 @@ interface PulseRow {
   overall: "good" | "mixed" | "hard";
   axis: string | null;
 }
-interface EventRow {
-  local_date: string;
-  portion_band: string | null;
-}
+// C8: les événements portent maintenant le contenu alimentaire (aliments
+// détectés, groupes) en plus de la bande de portion — même type que l'util
+// d'agrégation, une seule forme pour les deux lecteurs.
 type LoadState =
   | { kind: "loading" }
   | { kind: "error"; message: string }
@@ -77,7 +80,10 @@ export default function StudentProgressPage() {
   const [state, setState] = React.useState<LoadState>({ kind: "loading" });
   const [range, setRange] = React.useState<Range>("week");
   const [pulses, setPulses] = React.useState<PulseRow[]>([]);
-  const [events, setEvents] = React.useState<EventRow[]>([]);
+  const [events, setEvents] = React.useState<FoodEventRow[]>([]);
+  // C8: la fenêtre PRÉCÉDENTE, uniquement pour donner une direction («more
+  // vegetables than the week before») — jamais affichée en tant que telle.
+  const [prevEvents, setPrevEvents] = React.useState<FoodEventRow[]>([]);
   const [reviews, setReviews] = React.useState<ReviewRow[]>([]);
 
   React.useEffect(() => {
@@ -109,8 +115,11 @@ export default function StudentProgressPage() {
             .order("local_date", { ascending: true }),
           supabase
             .from("protocol_events")
-            .select("local_date, portion_band")
-            .gte("local_date", since),
+            // C8: le contenu alimentaire voyage avec la ligne. On remonte 7
+            // jours PLUS LOIN que la fenêtre affichée quand elle est
+            // hebdomadaire: la semaine d'avant ne sert qu'à la direction.
+            .select("local_date, slot_key, portion_band, food_group_ref, recognized")
+            .gte("local_date", range === "week" ? isoDaysAgo(14) : since),
           supabase
             .from("weekly_reviews")
             .select("week_start_date, outcomes, biofeedback")
@@ -123,7 +132,14 @@ export default function StudentProgressPage() {
 
         if (cancelled) return;
         setPulses((pulseRes.data ?? []) as PulseRow[]);
-        setEvents((eventRes.data ?? []) as EventRow[]);
+        // Le découpage en deux fenêtres se fait ICI, pas dans les cartes: les
+        // cartes existantes (régularité, assiettes) ne doivent voir QUE la
+        // fenêtre affichée, sinon leurs chiffres changent en silence.
+        const allEvents = (eventRes.data ?? []) as FoodEventRow[];
+        setEvents(allEvents.filter((e) => e.local_date >= since));
+        setPrevEvents(
+          range === "week" ? allEvents.filter((e) => e.local_date < since) : [],
+        );
         setReviews((reviewRes.data ?? []) as ReviewRow[]);
         setState({ kind: "ready" });
       } catch (err) {
@@ -156,6 +172,18 @@ export default function StudentProgressPage() {
   // 3. PORTIONS.
   const bands = events.map((e) => e.portion_band).filter(Boolean) as string[];
   const bandCount = (b: string) => bands.filter((x) => x === b).length;
+
+  // 3bis. LA SEMAINE DANS L'ASSIETTE — l'agrégat de fréquence. Des comptes,
+  // jamais des pourcentages: « at 9 of 13 meals » décrit, « 69% » note.
+  const windowDates = range === "week"
+    ? Array.from({ length: 7 }, (_, i) => isoDaysAgo(6 - i))
+    : [];
+  const food = aggregateWeekInFood(events, {
+    dates: windowDates,
+    prevRows: range === "week" ? prevEvents : undefined,
+  });
+  const dayName = (iso: string) =>
+    new Date(`${iso}T00:00:00`).toLocaleDateString("en-GB", { weekday: "short" });
 
   // 4. POIDS — la pesée du point du dimanche. Voir `displayWeights`.
   const weights = displayWeights(reviews);
@@ -248,6 +276,67 @@ export default function StudentProgressPage() {
                 </p>
               ) : null}
             </>
+          )}
+        </Card>
+
+        {/* 3bis. LA SEMAINE DANS L'ASSIETTE — ce que les photos construisent.
+            Le payoff visible du geste quotidien: des fréquences et des
+            aliments, pas un score. Aucun kcal ici, par contrat produit. */}
+        <Card>
+          <SectionLabel>{range === "week" ? "Your week in food" : "Your month in food"}</SectionLabel>
+          {food.meals === 0 ? (
+            <p className="mt-2 text-sm text-gray-600">
+              No photos read in this period yet. Send a plate on WhatsApp and
+              it starts adding up here.
+            </p>
+          ) : (
+            <div className="mt-3 space-y-2 text-sm text-gray-800">
+              <p>
+                <span className="font-medium">{food.meals}</span> meal{food.meals > 1 ? "s" : ""} logged
+                across <span className="font-medium">{food.daysLogged}</span> day{food.daysLogged > 1 ? "s" : ""}.
+              </p>
+              <p>
+                Vegetables at {food.vegMeals} of {food.meals} meals · protein
+                at {food.proteinMeals} · fruit at {food.fruitMeals}.
+              </p>
+              {food.topFoods.length > 0 ? (
+                <p className="text-gray-700">
+                  Seen most:{" "}
+                  {food.topFoods.map((f) => `${f.label} ×${f.count}`).join(" · ")}
+                </p>
+              ) : null}
+              {food.watchCounts.length > 0 ? (
+                // Un COMPTE, pas un commentaire. « Fried food ×3 » est un fait;
+                // la morale reste chez le coach.
+                <p className="text-gray-700">
+                  Also this period:{" "}
+                  {food.watchCounts.map((w) => `${w.label} ×${w.count}`).join(" · ")}
+                </p>
+              ) : null}
+              {food.dinnerLarge && food.dinnerLarge.total >= 2 ? (
+                <p className="text-gray-700">
+                  Dinners ran large {food.dinnerLarge.large} of {food.dinnerLarge.total} nights.
+                </p>
+              ) : null}
+              {range === "week" && food.missingDays.length > 0 && food.missingDays.length <= 4 ? (
+                <p className="text-gray-700">
+                  Nothing logged on {food.missingDays.map(dayName).join(", ")}.
+                </p>
+              ) : null}
+              {food.vegTrend ? (
+                <p className="text-gray-700">
+                  {food.vegTrend === "up"
+                    ? "More vegetables than the week before."
+                    : food.vegTrend === "down"
+                    ? "Fewer vegetables than the week before."
+                    : "About the same vegetables as the week before."}
+                </p>
+              ) : null}
+              <p className="pt-1 text-xs leading-5 text-gray-500">
+                Counts from your photos — what showed up, and how often. No
+                calories here: the logging itself is what moves the needle.
+              </p>
+            </div>
           )}
         </Card>
 

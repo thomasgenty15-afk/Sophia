@@ -8,6 +8,11 @@ import { KeelShellBar } from "../components/KeelAppShell";
 import WeekView from "../components/WeekView";
 import { Card } from "../components/ui/Card";
 import { t } from "../i18n/t";
+import {
+  aggregateWeekInFood,
+  coachStartingNumbers,
+  type FoodEventRow,
+} from "../lib/weekInFood";
 
 // KEEL — /coach/clients/:id. READ-ONLY, and structurally so.
 //
@@ -332,10 +337,196 @@ export default function CoachStudentPage() {
         subjectKey={d.student.id}
       />
 
+      {/* C8 — the food journal and the starting numbers. Same doctrine as the
+          rest of this page: every read below runs under the COACH'S OWN JWT
+          (Tier B view + Tier A weekly_reviews policy), no edge function, no
+          impersonation. */}
+      <FoodAndNumbers studentId={d.student.id} />
+
       <footer className="mt-8 border-t border-gray-100 pt-4 text-xs leading-5 text-gray-500">
         {t("coach.student.footer")}
       </footer>
     </Frame>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// C8 — « On the plate » + « Starting numbers »
+// ---------------------------------------------------------------------------
+
+interface FoodReviewRow {
+  week_start_date: string;
+  biofeedback: Record<string, unknown> | null;
+  risk_band: string | null;
+}
+
+function isoDaysAgo(n: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${
+    String(d.getDate()).padStart(2, "0")
+  }`;
+}
+
+/**
+ * The aggregation is the SAME function the student's own progress page runs
+ * (`lib/weekInFood.ts`) — one implementation, two readers, same numbers. The
+ * only coach-side addition is `coachStartingNumbers`, and it is coach-side BY
+ * RULE: ranges shown to a student become targets, and nobody grades here.
+ */
+function FoodAndNumbers({ studentId }: { studentId: string }) {
+  const [rows, setRows] = React.useState<FoodEventRow[] | null>(null);
+  const [prevRows, setPrevRows] = React.useState<FoodEventRow[]>([]);
+  const [reviews, setReviews] = React.useState<FoodReviewRow[]>([]);
+  const [failed, setFailed] = React.useState(false);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const since = isoDaysAgo(6);
+      const [eventsRes, reviewsRes] = await Promise.all([
+        supabase
+          .from("coach_student_events")
+          .select("local_date, slot_key, portion_band, food_group_ref, recognized")
+          .eq("user_id", studentId)
+          .gte("local_date", isoDaysAgo(13)),
+        supabase
+          .from("weekly_reviews")
+          .select("week_start_date, biofeedback, risk_band")
+          .eq("user_id", studentId)
+          .order("week_start_date", { ascending: false })
+          .limit(8),
+      ]);
+      if (cancelled) return;
+      if (eventsRes.error || reviewsRes.error) {
+        // A failed read renders AS a failed read — never as "no data", which
+        // would tell the coach their student logged nothing.
+        setFailed(true);
+        return;
+      }
+      const all = (eventsRes.data ?? []) as unknown as FoodEventRow[];
+      setRows(all.filter((e) => e.local_date >= since));
+      setPrevRows(all.filter((e) => e.local_date < since));
+      setReviews((reviewsRes.data ?? []) as unknown as FoodReviewRow[]);
+    })();
+    return () => { cancelled = true; };
+  }, [studentId]);
+
+  if (failed) {
+    return (
+      <Card tone="dashed" className="mt-6">
+        <p className="text-sm text-gray-500">
+          The food journal could not be loaded just now.
+        </p>
+      </Card>
+    );
+  }
+  if (rows === null) return null;
+
+  const food = aggregateWeekInFood(rows, {
+    dates: Array.from({ length: 7 }, (_, i) => isoDaysAgo(6 - i)),
+    prevRows,
+  });
+
+  // The latest weigh-in wins; older reviews only fill in when the student
+  // skipped the numbers on Sunday.
+  const latestWeight = reviews
+    .map((r) => Number((r.biofeedback ?? {})["weight_kg"]))
+    .find((w) => Number.isFinite(w) && w > 0) ?? null;
+  const numbers = latestWeight === null ? null : coachStartingNumbers(latestWeight);
+  const restrictionFlagged = reviews[0]?.risk_band === "restriction_flag";
+
+  return (
+    <div className="mt-6 space-y-6">
+      <Card>
+        <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+          On the plate — last 7 days
+        </p>
+        {food.meals === 0 ? (
+          <p className="mt-2 text-sm text-gray-600">
+            No meals read this week. The Monday page tells you if they have
+            gone quiet everywhere, not just here.
+          </p>
+        ) : (
+          <div className="mt-3 space-y-2 text-sm text-gray-800">
+            <p>
+              <span className="font-medium">{food.meals}</span> meal{food.meals > 1 ? "s" : ""} across{" "}
+              <span className="font-medium">{food.daysLogged}</span> day{food.daysLogged > 1 ? "s" : ""} ·
+              vegetables at {food.vegMeals} · protein at {food.proteinMeals} · fruit at {food.fruitMeals}.
+            </p>
+            {food.topFoods.length > 0 ? (
+              <p className="text-gray-700">
+                Seen most: {food.topFoods.map((f) => `${f.label} ×${f.count}`).join(" · ")}
+              </p>
+            ) : null}
+            {food.watchCounts.length > 0 ? (
+              <p className="text-gray-700">
+                Also: {food.watchCounts.map((w) => `${w.label} ×${w.count}`).join(" · ")}
+              </p>
+            ) : null}
+            {food.dinnerLarge && food.dinnerLarge.total >= 2 ? (
+              <p className="text-gray-700">
+                Dinners ran large {food.dinnerLarge.large} of {food.dinnerLarge.total} nights.
+              </p>
+            ) : null}
+            {food.vegTrend ? (
+              <p className="text-gray-700">
+                {food.vegTrend === "up"
+                  ? "More vegetables than the week before."
+                  : food.vegTrend === "down"
+                  ? "Fewer vegetables than the week before."
+                  : "About the same vegetables as the week before."}
+              </p>
+            ) : null}
+            <p className="pt-1 text-xs leading-5 text-gray-500">
+              Frequency read of their photo log — the same numbers they see.
+              The photos themselves stay with the student.
+            </p>
+          </div>
+        )}
+      </Card>
+
+      <Card>
+        <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+          Starting numbers
+        </p>
+        {restrictionFlagged ? (
+          // Clinical prudence outranks convenience: handing out deficit-ready
+          // brackets in a restriction-flagged week invites exactly the wrong
+          // move. The flag itself already reached you on the Monday page.
+          <p className="mt-2 text-sm leading-6 text-gray-800">
+            Restriction signals this week — numbers are the wrong tool right
+            now. Reach out first.
+          </p>
+        ) : numbers === null ? (
+          <p className="mt-2 text-sm text-gray-600">
+            No weigh-in yet. Ranges appear after their first Sunday check-in
+            with a weight.
+          </p>
+        ) : (
+          <div className="mt-3 space-y-2 text-sm text-gray-800">
+            <p>
+              Maintenance ≈{" "}
+              <span className="font-medium">
+                {numbers.maintenanceLow.toLocaleString("en-GB")}–{numbers.maintenanceHigh.toLocaleString("en-GB")} kcal/day
+              </span>
+            </p>
+            <p>
+              Protein ≈{" "}
+              <span className="font-medium">
+                {numbers.proteinLow}–{numbers.proteinHigh} g/day
+              </span>
+            </p>
+            <p className="pt-1 text-xs leading-5 text-gray-500">
+              Computed from their {numbers.weightKg} kg weigh-in alone — no
+              height, age or activity in the math, so treat it as the bracket
+              you would open, not the number you would prescribe. Never derived
+              from photos, and the student never sees these figures.
+            </p>
+          </div>
+        )}
+      </Card>
+    </div>
   );
 }
 

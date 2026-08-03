@@ -1,0 +1,257 @@
+/**
+ * PIVOT C8 — « Your week in food » : l'agrégation du journal alimentaire.
+ *
+ * ---------------------------------------------------------------------------
+ * POURQUOI CE MODULE EXISTE
+ * ---------------------------------------------------------------------------
+ * Chaque photo écrit déjà en base les aliments détectés, les groupes présents
+ * et la taille de l'assiette. Ce qui n'existait pas, c'est l'étage au-dessus :
+ * personne ne transformait 14 lignes en « ta semaine alimentaire ». L'élève
+ * photographiait dans le vide — le payoff visible du geste quotidien, c'est ce
+ * fichier.
+ *
+ * UNE implémentation, DEUX lecteurs : l'élève (/app/progress, ses propres
+ * `protocol_events`) et le coach (fiche élève, la vue Tier B
+ * `coach_student_events`). Même règle que WeekView : ce que l'élève voit, le
+ * coach le voit, et le seul moyen que ça reste vrai est qu'il n'y ait pas de
+ * seconde implémentation à maintenir.
+ *
+ * ---------------------------------------------------------------------------
+ * CE QUE CE MODULE NE PRODUIT JAMAIS
+ * ---------------------------------------------------------------------------
+ * Pas une calorie, pas un gramme de macro, pas un pourcentage-objectif. Des
+ * COMPTES (« vegetables at 9 of 13 meals ») — c'est l'analyse de fréquence
+ * qu'un diététicien fait d'un journal alimentaire, et c'est honnête là où le
+ * chiffre calorique mesuré sur notre propre modèle ment de −26,6 %.
+ *
+ * La seule exception vit dans `coachStartingNumbers`, et elle est d'une autre
+ * NATURE : des besoins dérivés du POIDS CORPOREL (arithmétique par kg,
+ * déterministe), jamais des photos. Réservée à l'écran du coach — la personne
+ * qualifiée pour prescrire. Aucun chemin élève ne l'appelle, et le rester est
+ * une règle produit, pas un hasard.
+ */
+
+export interface FoodEventRow {
+  local_date: string;
+  slot_key: string | null;
+  portion_band: string | null;
+  food_group_ref: string | null;
+  recognized: {
+    detected_foods?: Array<{ label?: string | null }> | null;
+    food_groups_present?: string[] | null;
+  } | null;
+}
+
+// ---------------------------------------------------------------------------
+// Le vocabulaire (R1 : les tokens viennent du vocab fermé de labels.en.ts)
+// ---------------------------------------------------------------------------
+
+export const VEG_GROUPS: readonly string[] = [
+  "leafy_greens",
+  "cruciferous_veg",
+  "non_starchy_veg",
+  "starchy_veg",
+];
+export const PROTEIN_GROUPS: readonly string[] = [
+  "lean_protein",
+  "fatty_fish",
+  "white_fish",
+  "shellfish",
+  "poultry",
+  "red_meat",
+  "eggs",
+  "legumes",
+  "tofu_tempeh",
+];
+export const FRUIT_GROUPS: readonly string[] = ["berries", "citrus", "other_fruit"];
+
+/**
+ * Les groupes « à l'œil » — affichés en COMPTE, jamais en jugement. « Fried
+ * food ×3 » est un fait qu'un coach sait lire ; « attention aux fritures » est
+ * une morale qu'on ne rend pas.
+ */
+export const WATCH_GROUPS: readonly string[] = [
+  "fried_food",
+  "sugar_sweets",
+  "sweetened_beverage",
+  "alcohol",
+];
+
+const GROUP_LABELS: Record<string, string> = {
+  fried_food: "Fried food",
+  sugar_sweets: "Sugar and sweets",
+  sweetened_beverage: "Sweetened drinks",
+  alcohol: "Alcohol",
+};
+
+/** R7 adouci pour de l'affichage : un token inconnu est montré lisible, jamais planté. */
+export function labelForGroup(token: string): string {
+  const known = GROUP_LABELS[token];
+  if (known) return known;
+  const pretty = token.replace(/_/g, " ");
+  return pretty.charAt(0).toUpperCase() + pretty.slice(1);
+}
+
+// ---------------------------------------------------------------------------
+// L'agrégat
+// ---------------------------------------------------------------------------
+
+export interface WeekInFoodSummary {
+  meals: number;
+  daysLogged: number;
+  daysInRange: number;
+  /** Repas où au moins un groupe protéiné est présent. */
+  proteinMeals: number;
+  vegMeals: number;
+  fruitMeals: number;
+  /** Uniquement les groupes « watch » VUS (count > 0), triés par compte. */
+  watchCounts: Array<{ group: string; label: string; count: number }>;
+  /** Aliments détectés ≥ 2 fois, top 6, comptés sur libellé normalisé. */
+  topFoods: Array<{ label: string; count: number }>;
+  /** Dîners et combien étaient larges. Null si aucun dîner loggé. */
+  dinnerLarge: { large: number; total: number } | null;
+  /** Dates de la fenêtre sans AUCUN log. Vide si `dates` absent. */
+  missingDays: string[];
+  /**
+   * Direction de la présence de légumes vs la période précédente. Le biais
+   * systématique d'un même instrument s'annule dans une comparaison — on peut
+   * donner la DIRECTION sans jamais donner un chiffre absolu. Null tant que
+   * l'une des deux périodes a moins de 4 repas : une tendance sur 2 points
+   * n'est pas une tendance.
+   */
+  vegTrend: "up" | "down" | "steady" | null;
+}
+
+function groupsOf(row: FoodEventRow): Set<string> {
+  const set = new Set<string>();
+  for (const g of row.recognized?.food_groups_present ?? []) {
+    const t = String(g ?? "").trim();
+    if (t) set.add(t);
+  }
+  const ref = String(row.food_group_ref ?? "").trim();
+  if (ref) set.add(ref);
+  return set;
+}
+
+function mealsWithAny(rows: FoodEventRow[], groups: readonly string[]): number {
+  return rows.filter((r) => {
+    const gs = groupsOf(r);
+    return groups.some((g) => gs.has(g));
+  }).length;
+}
+
+function vegRate(rows: FoodEventRow[]): number | null {
+  if (rows.length < 4) return null;
+  return mealsWithAny(rows, VEG_GROUPS) / rows.length;
+}
+
+export function aggregateWeekInFood(
+  rows: FoodEventRow[],
+  opts: {
+    /** Les dates EXACTES de la fenêtre, pour nommer les jours sans log. */
+    dates?: string[];
+    /** La période précédente, pour la direction. */
+    prevRows?: FoodEventRow[];
+  } = {},
+): WeekInFoodSummary {
+  const dates = opts.dates ?? [];
+
+  // Groupes « watch », comptés par repas où le groupe apparaît.
+  const watch = WATCH_GROUPS
+    .map((group) => ({
+      group,
+      label: labelForGroup(group),
+      count: mealsWithAny(rows, [group]),
+    }))
+    .filter((w) => w.count > 0)
+    .sort((a, b) => b.count - a.count || a.group.localeCompare(b.group));
+
+  // Aliments détectés : compte sur libellé normalisé, tri déterministe.
+  const foodCounts = new Map<string, number>();
+  for (const row of rows) {
+    for (const f of row.recognized?.detected_foods ?? []) {
+      const norm = String(f?.label ?? "").trim().toLowerCase();
+      if (!norm) continue;
+      foodCounts.set(norm, (foodCounts.get(norm) ?? 0) + 1);
+    }
+  }
+  const topFoods = [...foodCounts.entries()]
+    .filter(([, n]) => n >= 2)
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, 6)
+    .map(([label, count]) => ({
+      label: label.charAt(0).toUpperCase() + label.slice(1),
+      count,
+    }));
+
+  const dinners = rows.filter((r) => (r.slot_key ?? "") === "dinner");
+  const dinnerLarge = dinners.length === 0 ? null : {
+    large: dinners.filter((r) => r.portion_band === "large").length,
+    total: dinners.length,
+  };
+
+  const daysWith = new Set(rows.map((r) => r.local_date));
+
+  let vegTrend: WeekInFoodSummary["vegTrend"] = null;
+  const nowRate = vegRate(rows);
+  const prevRate = opts.prevRows ? vegRate(opts.prevRows) : null;
+  if (nowRate !== null && prevRate !== null) {
+    const diff = nowRate - prevRate;
+    vegTrend = diff > 0.1 ? "up" : diff < -0.1 ? "down" : "steady";
+  }
+
+  return {
+    meals: rows.length,
+    daysLogged: daysWith.size,
+    daysInRange: dates.length,
+    proteinMeals: mealsWithAny(rows, PROTEIN_GROUPS),
+    vegMeals: mealsWithAny(rows, VEG_GROUPS),
+    fruitMeals: mealsWithAny(rows, FRUIT_GROUPS),
+    watchCounts: watch,
+    topFoods,
+    dinnerLarge,
+    missingDays: dates.filter((d) => !daysWith.has(d)),
+    vegTrend,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Les chiffres de départ du coach — depuis le POIDS, jamais depuis les photos
+// ---------------------------------------------------------------------------
+
+export interface CoachStartingNumbers {
+  /** kcal/jour, fourchette de maintenance ~28-33 kcal/kg, arrondie aux 50. */
+  maintenanceLow: number;
+  maintenanceHigh: number;
+  /** g/jour de protéines, 1.6-2.2 g/kg (Morton 2018), arrondis aux 5. */
+  proteinLow: number;
+  proteinHigh: number;
+  weightKg: number;
+}
+
+/**
+ * Des FOURCHETTES de départ, pas une prescription — et côté coach uniquement.
+ *
+ * Sans taille, âge, sexe ni niveau d'activité (on ne les collecte pas), toute
+ * valeur unique serait une fausse précision. La fourchette par kg est
+ * exactement le raccourci qu'un coach utilise de tête ; on lui épargne le
+ * calcul, on ne lui vole pas le jugement. L'élève, lui, ne voit JAMAIS ces
+ * nombres : un chiffre affiché à l'élève devient un objectif, et « personne ne
+ * note » couvre aussi ça.
+ */
+export function coachStartingNumbers(weightKg: unknown): CoachStartingNumbers | null {
+  const w = Number(weightKg);
+  // Mêmes bornes de plausibilité que le point hebdo: hors bornes, pas de
+  // nombres — un 500 kg d'erreur de frappe produirait des cibles absurdes
+  // présentées avec l'aplomb d'un tableau.
+  if (!Number.isFinite(w) || w < 25 || w > 400) return null;
+  const round50 = (n: number) => Math.round(n / 50) * 50;
+  const round5 = (n: number) => Math.round(n / 5) * 5;
+  return {
+    maintenanceLow: round50(28 * w),
+    maintenanceHigh: round50(33 * w),
+    proteinLow: round5(1.6 * w),
+    proteinHigh: round5(2.2 * w),
+    weightKg: w,
+  };
+}

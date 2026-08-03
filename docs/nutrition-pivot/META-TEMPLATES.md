@@ -95,30 +95,20 @@ coup.
 
 ---
 
-## 2. `keel_pulse_axis_v1` — la relance d'axe
+## 2. `keel_pulse_axis_v1` — ~~à créer~~ PAS NÉCESSAIRE (décision 2026-08-04)
 
-Même forme. N'est nécessaire que si la relance d'axe peut partir hors fenêtre —
-ce qui n'arrive que si l'élève tape « So-so » ou « Rough » puis laisse passer
-24h avant de répondre. **Rare, et à faire en second.**
+Retiré de la liste, et le raisonnement tient tout seul : la question d'axe
+part **dans le même message** que l'accusé, en réponse SYNCHRONE au tap de
+niveau. Or un tap de bouton est un message entrant — il ouvre la fenêtre 24h à
+l'instant même. Aucun chemin du code ne repose la question d'axe plus tard :
+il n'existe donc AUCUN état où elle serait émise hors fenêtre.
 
-```json
-{
-  "name": "keel_pulse_axis_v1",
-  "language": "en_GB",
-  "category": "UTILITY",
-  "components": [
-    { "type": "BODY", "text": "What was hard?" },
-    {
-      "type": "BUTTONS",
-      "buttons": [
-        { "type": "QUICK_REPLY", "text": "Energy" },
-        { "type": "QUICK_REPLY", "text": "Hunger" },
-        { "type": "QUICK_REPLY", "text": "Sleep" }
-      ]
-    }
-  ]
-}
-```
+Corollaire budget : chaque conversation template coûte ; les réponses en
+fenêtre de service sont gratuites. Un template ici serait un coût récurrent
+pour couvrir un cas qui ne peut pas se produire.
+
+(Si un jour on ajoute une re-relance d'axe différée, ce template redevient
+nécessaire — le jour où ce chemin existe, pas avant.)
 
 ---
 
@@ -331,4 +321,3 @@ dans `getFallbackTemplate`.
 3. Flow `keel_weekly_checkin` + secret `KEEL_WEEKLY_FLOW_ID`.
 4. `keel_weekly_checkin_v1` (porteur du Flow).
 5. `keel_daily_pulse_v1`.
-6. `keel_pulse_axis_v1`.
