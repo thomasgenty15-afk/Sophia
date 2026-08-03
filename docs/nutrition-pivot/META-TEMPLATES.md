@@ -243,3 +243,37 @@ Le dépôt porte un incident précis là-dessus : `sophia_checkin_v2` était ver
 partout côté code et son corps chez Meta disait « Hello Thomas 🙂 » à tout le
 monde. Nos logs enregistrent ce qu'on ENVOIE ; le screenshot du téléphone
 montre ce que l'élève REÇOIT. Seul le second fait foi.
+
+---
+
+## Périmètre exact — ce qu'il ne faut PAS créer (vérifié 2026-08-03)
+
+- **`keel_slot_reminder` / `keel_sunday_digest`** : chemin 1:1 d'origine —
+  les rappels de créneau dérivent de `plan_commitments`, qu'un élève de
+  masterclasse n'a pas, et le digest est émis par `provision-day-v1`,
+  déprogrammé depuis N5. Ne pas créer tant que le 1:1 n'est pas relancé.
+- **Les accusés** (`keel_daily_pulse_ack`, réponse d'axe…) : une réponse à un
+  tap rouvre la fenêtre 24h par définition. Jamais besoin d'un template.
+- **Tout le legacy B2C** (`sophia_checkin_v2`, bilans, anniversaire, winback…) :
+  hors périmètre du pilote masterclasse.
+- **Premier contact** : rien dans le code n'initie un message vers un élève
+  qui n'a JAMAIS écrit. Recommandation pilote : lien `wa.me` à l'adoption du
+  plan (l'élève écrit en premier → fenêtre ouverte → zéro template). L'autre
+  option — Sophia écrit la première — exige un template d'opt-in de plus et
+  une décision produit.
+
+## ⚠️ Le piège du fallback (côté code, AVANT d'ouvrir la vanne)
+
+`whatsapp-send::getFallbackTemplate` ne connaît PAS les purposes du pivot
+(`keel_daily_pulse`, `keel_weekly_flow`, `keel_reengage`). Hors fenêtre 24h,
+un envoi avec ces purposes retombe aujourd'hui sur **`global_reach_template`
+en FRANÇAIS** — le motif exact de l'incident du 2026-07-12 (3× global_reach,
+purposes hors table). En local ça échoue faute de secrets ; en prod ça
+enverrait « J'ai une info pour toi » à un élève anglophone.
+
+Donc, une fois les templates approuvés chez Meta, il reste DEUX gestes de
+code avant tout envoi hors fenêtre :
+1. mapper les trois purposes vers leurs templates dans `getFallbackTemplate`
+   (+ variables `WHATSAPP_KEEL_*_TEMPLATE_NAME/LANG`) ;
+2. le chemin template du tap avec payloads de boutons à l'envoi
+   (index 0/1/2 = good/mixed/hard — voir §1).
