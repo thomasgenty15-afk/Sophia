@@ -953,10 +953,30 @@ export const en = {
   // docs/nutrition-pivot/STUDENT-PAGE.md for the line-by-line proof. Adding a
   // line here without that proof is how this page starts lying.
 
+  // "{coach} coaches through" stuttered on the null branch ("your coach coaches
+  // through"), which is the branch a student with an unnamed coach reads. The
+  // possessive works on both substitutions.
   "join.lead":
-    "Sophia is the assistant {coach} coaches through. It carries their method — their convictions, their red lines, the calls they make when it gets complicated — and answers you in it, every day, on WhatsApp.",
+    "Sophia is {coach}'s assistant, and from today it is yours too. It carries their method — their convictions, their red lines, the calls they make when it gets complicated — and answers you in it, every day, on WhatsApp.",
   "join.lead_form_note":
     "The form is at the bottom. Read this first — it is what you are agreeing to.",
+
+  // The route carries a token, so it must never be indexed. It also had no
+  // <SEO> at all, which left a student's first screen wearing the legacy
+  // French index.html title.
+  "join.seo_title": "Your coach's invitation",
+  "join.seo_description":
+    "What Sophia is, what your days will look like, and exactly what your coach can and cannot see — before you create anything.",
+
+  // Compact states. Only the strings this rewrite authored moved here; the
+  // PREVIEW_REFUSALS / ACCEPT_REFUSALS maps stay inline, verbatim and
+  // untouched, because transcribing a refusal is how a refusal gets weakened.
+  "join.refused.title": "This invitation cannot be used",
+  "join.refused.signin_cta": "Sign in to an existing account",
+  "join.accepted.title": "You are in.",
+  "join.accepted.title_with_coach": "You are in, with {coach}.",
+  "join.accepted.body":
+    "Your space is open. The rest happens on WhatsApp — this is where you come to look at your week.",
 
   // What the days actually look like. The eyebrow is the SURFACE, because
   // which screen a thing happens on is the useful fact: two of the three are
@@ -1003,12 +1023,19 @@ export const en = {
   "join.seen.never_label": "What stays with you",
   "join.seen.sees_1": "Your name, and the time zone you live in.",
   "join.seen.sees_2": "When you last wrote, and how many times in the past week.",
+  // Deliberately not the weaker "that you logged something": the coach view
+  // carries `recognized`, `food_group_ref` and `quantity`, so the food groups
+  // read off a plate DO cross over. Understating here would be the same
+  // dishonesty as overstating, one page before someone types a password.
   "join.seen.sees_3":
-    "That you logged something, when, and whether a photo came with it.",
+    "What you logged and when — including the food groups read off a plate, and whether a photo came with it.",
   "join.seen.sees_4":
     "How the week went: how many days were good, so-so or rough, and which of energy, hunger or sleep comes up most when it isn't good.",
+  // The student CAN get this back — `coach_access_events` has a student SELECT
+  // policy and account-export-v1 includes it — but there is no screen for it,
+  // so the copy points at the export rather than implying a page.
   "join.seen.sees_5":
-    "Every time they open your space — which is written down, and which you can read too.",
+    "Every time they open your space. That gets written down, and it comes back to you if you ask for your data.",
   "join.seen.never_1":
     "What you write. Their window over your conversation has two columns: when you last wrote, and how often. There is no column holding the words.",
   "join.seen.never_2":
@@ -1230,7 +1257,11 @@ export const en = {
   "landing.how.step2_when": "Every day",
   "landing.how.step2_title": "Your students live it, on WhatsApp",
   "landing.how.step2_body":
-    "They send a photo of a plate or a sentence about their day, and get an answer in your method. In the evening, one tap. No app to install, no dashboard to open, and no message that reaches them at night.",
+    "They send a photo of a plate or a sentence about their day, and get an answer in your method. In the evening, one tap. Nothing to install, nothing they have to remember to open, and nothing that arrives at night.",
+  "landing.how.space_when": "On their own time",
+  "landing.how.space_title": "And a space of their own",
+  "landing.how.space_body":
+    "Not somewhere they get chased into — they open it when they want to. It's where they build their week out of your method: Sophia drafts it, they adopt it only if they recognise themselves in it, and the conviction each food line came from is printed underneath. It's also where they look back — their consistency, how the days went, their plates.",
   "landing.how.step3_when": "Every Monday",
   "landing.how.step3_title": "You read one page",
   "landing.how.step3_body":

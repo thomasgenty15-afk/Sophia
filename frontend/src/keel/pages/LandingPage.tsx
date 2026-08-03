@@ -27,6 +27,12 @@ import { t, type MessageKey } from "../i18n/t";
  * get back to you". The vocabulary is students / cohort / your method / your
  * voice; never "your client", never "personalised follow-up".
  *
+ * The student DOES have a web space, and it is not a detail: /app/plan is where
+ * they compose their own week out of the coach's method (Sophia drafts, they
+ * adopt), /app/progress is where they look back. It is PULL, never push — that
+ * is the nuance the copy has to keep. An earlier pass of this page wrote "no
+ * dashboard to open" and deleted the whole surface in five words.
+ *
  * NOTHING here promises what the product refuses to do, and — the harder
  * discipline — nothing here promises what the product has not yet PROVEN.
  * Concretely, the copy stays silent on: WhatsApp delivery outside a 24h window
@@ -427,6 +433,18 @@ function HowItWorks() {
           >
             <WhatsAppMock />
           </Step>
+          {/*
+            The student's web space is a cadence of its own — theirs, on pull,
+            not on push — which is why it earns a row instead of a clause. It is
+            also where the doctrine's "every line names the conviction it came
+            from" becomes something a student actually sees, so the two sections
+            hold each other up.
+          */}
+          <Step
+            when={t("landing.how.space_when")}
+            title={t("landing.how.space_title")}
+            body={t("landing.how.space_body")}
+          />
           <Step
             when={t("landing.how.step3_when")}
             title={t("landing.how.step3_title")}

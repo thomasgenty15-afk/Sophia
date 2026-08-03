@@ -81,6 +81,35 @@ soir (trois boutons — la limite Meta, `daily_pulse.ts`), ce qui referme la
 boucle : les trois boutons de l'étape 2 sont ce qui produit la bande de
 vivabilité du panneau du lundi.
 
+> **Correction après relecture du fondateur (même journée).** La première
+> version de l'étape 2 disait « No app to install, **no dashboard to open** ».
+> C'était faux et ça supprimait tout l'espace élève en cinq mots : `/app/plan`
+> est l'écran où l'élève **compose sa semaine** à partir de la méthode du coach
+> (Sophia propose un brouillon, il l'adopte seulement s'il s'y reconnaît, avec
+> la conviction sous chaque ligne alimentaire), et `/app/progress` a quatre
+> blocs — *Your consistency*, *How it went*, *Your plates*, *Your weight*.
+>
+> Une **quatrième cadence** a donc été ajoutée entre « Every day » et « Every
+> Monday » : **« On their own time — And a space of their own »**. Elle mérite
+> une ligne et pas une subordonnée, parce que c'est la seule surface du produit
+> qui fonctionne en **pull** et pas en push, et parce que c'est là que la règle
+> de doctrine n°2 (« every line names the conviction it came from ») devient
+> quelque chose qu'un élève voit vraiment — les deux sections se tiennent.
+>
+> `step2_body` dit maintenant « nothing they have to remember to open », qui est
+> la vraie nuance : WhatsApp ne demande aucune discipline, l'espace s'ouvre
+> quand l'élève en a envie.
+>
+> **Le poids n'est pas mentionné**, et c'est délibéré : le formulaire hebdo
+> écrit `weight_kg` (`weekly_flow.ts:201`) tandis que l'écran lit
+> `outcomes.weight_7d_avg` (`StudentProgressPage.tsx:167`). La chaîne est bien
+> cassée aux deux bouts, et l'écran renvoie d'ailleurs vers un check-in du
+> dimanche qui n'existe pas encore chez Meta. Les trois autres blocs sont réels
+> et cités tels quels : consistency, how the days went, plates.
+>
+> Clés ajoutées par cette correction (3) : `landing.how.space_when`,
+> `space_title`, `space_body`. Total : **102 déclarées, 102 utilisées**.
+
 ### Difference → **le double verrou**
 | | |
 |---|---|
