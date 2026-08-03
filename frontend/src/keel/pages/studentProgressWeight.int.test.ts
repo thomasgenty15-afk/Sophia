@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { displayWeights, type ReviewRow } from "./StudentProgressPage";
+import { displayWeights, type ReviewRow } from "./studentProgressWeight";
 
 /**
  * Le lien écrivain → lecteur du poids.

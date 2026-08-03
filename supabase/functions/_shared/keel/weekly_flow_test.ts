@@ -93,6 +93,54 @@ Deno.test("skipping the numbers still records the week", () => {
   assertEquals(r.issues, []);
 });
 
+Deno.test("a malformed FIELD is never coerced into a plausible measurement", () => {
+  // `String(["80"])` vaut "80": un tableau produisait un poids de 80 kg sorti
+  // de nulle part, plausible et faux — le défaut exact que les bornes
+  // existent pour empêcher, sur une forme que personne ne surveillait.
+  const r = parseWeeklyFlowResponse(JSON.stringify({
+    weight_kg: ["80"],
+    waist_cm: { v: 86 },
+    energy: ["3"],
+    hunger: true,
+    sleep: "3",
+  }));
+  assertEquals(r.weightKg, null);
+  assertEquals(r.waistCm, null);
+  assertEquals(r.biofeedback.energy, undefined);
+  assertEquals(r.biofeedback.hunger, undefined);
+  // Le reste de la réponse survit: une case cassée n'annule pas la semaine.
+  assertEquals(r.biofeedback.sleep, 3);
+  for (const field of ["weight_kg", "waist_cm", "energy", "hunger"]) {
+    assert(r.issues.some((i) => i.startsWith(`${field}:`)), `${field} non nommé`);
+  }
+});
+
+Deno.test("PRÉMISSE FAUSSE: chaînes et nombres restent lisibles", () => {
+  // La ceinture de forme ne doit pas mordre sur ce que Meta envoie vraiment
+  // (des chaînes), ni sur un nombre JSON si le formulaire venait à en émettre.
+  const r = parseWeeklyFlowResponse(JSON.stringify({
+    energy: "4", hunger: "3", sleep: 2, digestion: "3", mood: "3", training: "3",
+    weight_kg: 78.4,
+  }));
+  assertEquals(r.biofeedback.energy, 4);
+  assertEquals(r.biofeedback.sleep, 2);
+  assertEquals(r.weightKg, 78.4);
+  assertEquals(r.issues, []);
+});
+
+Deno.test("a MISSING axis is named as missing, never as an out-of-range zero", () => {
+  // `Number("")` vaut 0: un axe absent ressortait « 0 is outside 1-5 », soit un
+  // chiffre inventé dans le seul canal censé dire ce qui a été écarté. Le
+  // formulaire déclare ces six champs `required`: leur absence signale un Flow
+  // publié qui a divergé de ce fichier, et c'est CETTE information qui compte.
+  const r = parseWeeklyFlowResponse(JSON.stringify({ energy: "4" }));
+  assertEquals(r.biofeedback, { energy: 4 });
+  for (const axis of ["hunger", "sleep", "digestion", "mood", "training"]) {
+    assert(r.issues.includes(`${axis}: missing, dropped`), `${axis}: ${r.issues.join(" | ")}`);
+  }
+  assert(!r.issues.some((i) => i.includes("outside")), r.issues.join(" | "));
+});
+
 Deno.test("garbage in response_json degrades without throwing", () => {
   for (const bad of ["not json", "[]", "null", '"a string"']) {
     const r = parseWeeklyFlowResponse(bad);
@@ -117,6 +165,7 @@ const SENDABLE = {
   localDow: 0,
   localHour: 19,
   answeredThisWeek: false,
+  askedThisWeek: false,
   safetyBand: null,
   restrictionFlagged: false,
   hasActivePlan: true,
@@ -172,6 +221,58 @@ Deno.test("one check-in per week", () => {
   assertEquals(
     decideWeeklyFlow({ ...SENDABLE, answeredThisWeek: true }),
     { decision: "skip", reason: "already_answered_this_week" },
+  );
+});
+
+// ---------------------------------------------------------------------------
+// Une QUESTION par semaine (le triple-envoi du dimanche soir)
+// ---------------------------------------------------------------------------
+
+Deno.test("asked once, silent student -> the 19:40 and 20:40 ticks stay quiet", () => {
+  // Reproduit le défaut mesuré le 2026-08-03: la fenêtre est 18h-21h, le cron
+  // passe à :40, et `answeredThisWeek` ne bouge pas tant que l'élève se tait.
+  // Trois ticks produisaient trois envois réels — trois lignes
+  // `whatsapp_outbound_messages` status='sent' pour un seul dimanche.
+  for (const hour of [18, 19, 20]) {
+    const first = decideWeeklyFlow({ ...SENDABLE, localHour: hour });
+    assertEquals(first, { decision: "send" }, `tick ${hour}h, jamais demandé`);
+    assertEquals(
+      decideWeeklyFlow({ ...SENDABLE, localHour: hour, askedThisWeek: true }),
+      { decision: "skip", reason: "already_asked_this_week" },
+      `tick ${hour}h, déjà demandé`,
+    );
+  }
+});
+
+Deno.test("PRÉMISSE FAUSSE: the belt does not bite when nothing was asked", () => {
+  // Règle 4 du socle QA: toute ceinture porte un test qui prouve qu'elle ne
+  // mord PAS quand le problème n'existe pas. Sans lui, « plus aucun doublon »
+  // est indiscernable de « plus aucun envoi ».
+  assertEquals(decideWeeklyFlow({ ...SENDABLE, askedThisWeek: false }), {
+    decision: "send",
+  });
+});
+
+Deno.test("a student who ANSWERED outranks a student who was merely asked", () => {
+  // L'ordre compte pour le compte-rendu: un dimanche où tout le monde a répondu
+  // ne doit pas se lire « déjà demandé ».
+  assertEquals(
+    decideWeeklyFlow({ ...SENDABLE, answeredThisWeek: true, askedThisWeek: true }),
+    { decision: "skip", reason: "already_answered_this_week" },
+  );
+});
+
+Deno.test("the ask-belt never outranks a clinical guard", () => {
+  // Une ceinture anti-doublon ne doit jamais devenir la raison rapportée à la
+  // place d'un plancher TCA ou d'une crise: le compte-rendu servirait alors à
+  // masquer le signal clinique.
+  assertEquals(
+    decideWeeklyFlow({ ...SENDABLE, askedThisWeek: true, restrictionFlagged: true }),
+    { decision: "skip", reason: "restriction_flagged" },
+  );
+  assertEquals(
+    decideWeeklyFlow({ ...SENDABLE, askedThisWeek: true, safetyBand: "high" }),
+    { decision: "skip", reason: "safety_active" },
   );
 });
 

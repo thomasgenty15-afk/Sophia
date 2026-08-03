@@ -875,7 +875,22 @@ Deno.serve(async (req) => {
         // pour n'importe quel entrant. Un jeton qui ferait l'aller-retour avec
         // un identifiant dedans serait un identifiant modifiable désignant la
         // ligne à écrire.
+        //
+        // LE JETON NE CHOISIT PAS L'ÉLÈVE, IL NE CHOISIT QUE LA SEMAINE — et
+        // quand il est illisible, le formulaire ne descend PAS pour autant chez
+        // le classifieur: `flow_response_json` seul suffit à capter le tour.
+        // Sans ça, un jeton malformé faisait « converser » du JSON de
+        // formulaire, ce qui est précisément ce que ce bloc existe pour empêcher.
         const flowWeek = parseWeeklyFlowToken(msg.flow_token ?? null);
+        if (msg.flow_response_json && !flowWeek) {
+          console.warn("keel.weekly_flow.unusable_token", {
+            user_id: profile.id,
+            // Le jeton est une donnée entrante: on journalise ce qu'on a reçu,
+            // tronqué, sans jamais le laisser désigner quoi que ce soit.
+            flow_token: String(msg.flow_token ?? "").slice(0, 64),
+          });
+          continue;
+        }
         if (msg.flow_response_json && flowWeek) {
           try {
             const written = await writeWeeklyFlowReply(admin, {
@@ -895,11 +910,28 @@ Deno.serve(async (req) => {
           } catch (error) {
             // On ne laisse PAS le tour retomber sur le dispatcher en cas
             // d'échec: il analyserait le JSON du formulaire comme une phrase.
+            const err = error as { message?: string; code?: string; details?: string };
             console.error("keel.weekly_flow.write_failed", {
               user_id: profile.id,
               week: flowWeek,
-              error: error instanceof Error ? error.message : String(error),
+              // Une erreur PostgREST n'est pas une `Error`: sans ces champs le
+              // journal ne disait que « [object Object] », et c'est ainsi qu'un
+              // 42P10 permanent sur l'upsert est resté invisible.
+              error: error instanceof Error
+                ? error.message
+                : [err?.code, err?.message, err?.details].filter(Boolean).join(" — ") ||
+                  String(error),
             });
+            // L'élève a rempli huit champs: le silence complet lui ferait croire
+            // que c'est enregistré. On le dit, sans lui renvoyer un chiffre.
+            await sendPulseReply({
+              admin,
+              userId: profile.id,
+              toE164: fromE164,
+              requestId: processId,
+              ack: "Something went wrong on my side and I couldn't save that. Sorry — could you send it again?",
+              followUp: null,
+            }).catch(() => {});
           }
           continue;
         }

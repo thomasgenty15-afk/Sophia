@@ -11,7 +11,13 @@ import {
   WEEKLY_FLOW_BODY_EN,
   WEEKLY_FLOW_CTA_EN,
 } from "../_shared/keel/weekly_flow.ts";
-import { hasAnsweredWeek, weekStartOf } from "../_shared/keel/weekly_flow_io.ts";
+import {
+  hasAnsweredWeek,
+  hasAskedWeek,
+  weekStartOf,
+  WEEKLY_FLOW_WEEK_META_KEY,
+} from "../_shared/keel/weekly_flow_io.ts";
+import { sendKeelWhatsApp } from "../_shared/keel/internal_send.ts";
 import { localHourFor } from "../_shared/keel/reengagement_io.ts";
 
 /**
@@ -43,6 +49,33 @@ const FLOW_ENTRY_SCREEN = "WEEK_FELT";
 function cleanText(v: unknown, fb = ""): string {
   const t = String(v ?? "").trim();
   return t || fb;
+}
+
+/**
+ * Une erreur PostgREST n'est PAS une `Error`: c'est un objet nu
+ * `{ code, message, details, hint }`. `String(...)` le rend `[object Object]`,
+ * et le compte-rendu du job ne dit alors plus RIEN sur ce qui a cassé.
+ *
+ * Constaté en vrai: ce job a échoué sur `column profiles.content_locale does
+ * not exist` et n'a su rapporter que « [object Object] », y compris dans
+ * `system_error_logs`. Un job qui échoue doit dire de quoi.
+ */
+function errorText(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (error && typeof error === "object") {
+    const e = error as Record<string, unknown>;
+    const parts = [e.message, e.details, e.hint]
+      .map((p) => String(p ?? "").trim())
+      .filter(Boolean);
+    const code = String(e.code ?? "").trim();
+    if (parts.length > 0) return code ? `${code}: ${parts.join(" — ")}` : parts.join(" — ");
+    try {
+      return JSON.stringify(error);
+    } catch {
+      return String(error);
+    }
+  }
+  return String(error);
 }
 
 function adminClient(): SupabaseClient {
@@ -126,7 +159,13 @@ Deno.serve(async (req) => {
     while (true) {
       let q = admin
         .from("profiles")
-        .select("id, timezone, whatsapp_opted_in, whatsapp_opted_out_at, phone_number, content_locale")
+        // Exactement les colonnes qui EXISTENT et qui sont LUES plus bas.
+        // `content_locale` figurait ici et n'existe pas sur `profiles`: PostgREST
+        // rendait 42703 dès la première page, le job répondait 500, et AUCUN
+        // élève n'a jamais été examiné. Toutes les gardes en aval étaient du
+        // code mort derrière un SELECT cassé. Voir le test de dérive de schéma
+        // dans `_shared/keel/weekly_flow_schema_test.sql`.
+        .select("id, timezone, whatsapp_opted_in, whatsapp_opted_out_at, phone_number")
         .eq("keel_role", "student")
         .order("id", { ascending: true })
         .limit(PAGE);
@@ -170,6 +209,11 @@ Deno.serve(async (req) => {
             localDow,
             localHour,
             answeredThisWeek: await hasAnsweredWeek(admin, cursor, weekStart),
+            // La question a-t-elle DÉJÀ été posée ce dimanche ? Le cron passe
+            // à 18:40, 19:40 et 20:40 dans la fenêtre, et le silence de l'élève
+            // ne fait pas bouger `answeredThisWeek`: sans cette lecture, il
+            // reçoit trois fois le même formulaire.
+            askedThisWeek: await hasAskedWeek(admin, cursor, weekStart),
             // EXPLICITE, parce que le type l'exige. Ce dépôt n'a aujourd'hui
             // aucun état de crise persisté et interrogeable: la bande vit dans
             // le tour, pas dans une table. Passer `null` est donc une
@@ -189,30 +233,43 @@ Deno.serve(async (req) => {
           }
 
           if (!dryRun) {
-            const { error: sendErr } = await admin.functions.invoke("whatsapp-send", {
-              body: {
-                user_id: cursor,
-                to: row.phone_number,
-                purpose: "keel_weekly_flow",
-                message: {
-                  type: "interactive_flow",
-                  body: WEEKLY_FLOW_BODY_EN,
-                  flow_id: flowId,
-                  // Le jeton ne porte que la semaine: l'élève est identifié par
-                  // le numéro qui répond, jamais par le contenu du jeton.
-                  flow_token: buildWeeklyFlowToken(weekStart),
-                  flow_cta: WEEKLY_FLOW_CTA_EN,
-                  screen: FLOW_ENTRY_SCREEN,
-                },
+            // `functions.invoke` n'envoie PAS `x-internal-secret`, et c'est la
+            // seule porte de `whatsapp-send`: chaque envoi recevait 403.
+            // Voir `_shared/keel/internal_send.ts`.
+            const sent = await sendKeelWhatsApp({
+              user_id: cursor,
+              to: row.phone_number,
+              purpose: "keel_weekly_flow",
+              // La semaine voyage AVEC l'envoi: c'est ce qui rend
+              // `hasAskedWeek` exact au lieu de le faire deviner à partir
+              // d'un `created_at` UTC dans le fuseau de quelqu'un d'autre.
+              metadata_extra: { [WEEKLY_FLOW_WEEK_META_KEY]: weekStart },
+              message: {
+                type: "interactive_flow",
+                body: WEEKLY_FLOW_BODY_EN,
+                flow_id: flowId,
+                // Le jeton ne porte que la semaine: l'élève est identifié par
+                // le numéro qui répond, jamais par le contenu du jeton.
+                flow_token: buildWeeklyFlowToken(weekStart),
+                flow_cta: WEEKLY_FLOW_CTA_EN,
+                screen: FLOW_ENTRY_SCREEN,
               },
             });
-            if (sendErr) throw sendErr;
+            if (sent.status === 409) {
+              // Fenêtre 24h fermée. Ce n'est PAS une panne: c'est la règle de
+              // Meta, et l'élève silencieux est justement celui qu'on visait.
+              // On le compte comme un écart NOMMÉ plutôt qu'en `failures`,
+              // sinon le compte-rendu d'un dimanche normal ressemble à un
+              // incident. Le produit devra trancher: template KEEL approuvé qui
+              // rouvre la fenêtre, ou renoncer à demander aux silencieux.
+              bySkip.window_closed_at_send = (bySkip.window_closed_at_send ?? 0) + 1;
+              continue;
+            }
+            if (!sent.ok) throw new Error(sent.error);
           }
           sent++;
         } catch (error) {
-          failures.push(
-            `${cursor}: ${error instanceof Error ? error.message : String(error)}`,
-          );
+          failures.push(`${cursor}: ${errorText(error)}`);
         }
         if (Date.now() - startedAt > budgetMs) break;
       }
@@ -240,7 +297,7 @@ Deno.serve(async (req) => {
     });
     return jsonResponse(req, {
       ok: false,
-      error: error instanceof Error ? error.message : String(error),
+      error: errorText(error),
       request_id: requestId,
     }, { status: 500, includeCors: false });
   }

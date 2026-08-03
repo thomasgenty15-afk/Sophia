@@ -3,6 +3,7 @@ import { supabase } from "../../lib/supabase";
 import { KeelAppShell } from "../components/KeelAppShell";
 import { Badge, type BadgeTone } from "../components/ui/Badge";
 import { Card, SectionLabel } from "../components/ui/Card";
+import { displayWeights, type ReviewRow } from "./studentProgressWeight";
 
 /**
  * PIVOT N3 — `/app/progress` : l'avancée, semaine et mois.
@@ -48,12 +49,6 @@ interface EventRow {
   local_date: string;
   portion_band: string | null;
 }
-interface ReviewRow {
-  week_start_date: string;
-  outcomes: Record<string, unknown> | null;
-  biofeedback: Record<string, unknown> | null;
-}
-
 type LoadState =
   | { kind: "loading" }
   | { kind: "error"; message: string }
@@ -162,10 +157,8 @@ export default function StudentProgressPage() {
   const bands = events.map((e) => e.portion_band).filter(Boolean) as string[];
   const bandCount = (b: string) => bands.filter((x) => x === b).length;
 
-  // 4. POIDS — moyenne 7 jours issue du point hebdo, jamais une pesée isolée.
-  const weights = reviews
-    .map((r) => Number((r.outcomes ?? {}).weight_7d_avg))
-    .filter((n) => Number.isFinite(n));
+  // 4. POIDS — la pesée du point du dimanche. Voir `displayWeights`.
+  const weights = displayWeights(reviews);
   const firstWeight = weights[0] ?? null;
   const lastWeight = weights.length > 0 ? weights[weights.length - 1] : null;
 
@@ -274,7 +267,8 @@ export default function StudentProgressPage() {
           )}
         </Card>
 
-        {/* 4. LE POIDS, en dernier. Moyenne 7 jours, jamais une pesée isolée. */}
+        {/* 4. LE POIDS, EN DERNIER. Une pesée par semaine, lue comme une
+            tendance: le chiffre du jour n'est pas l'information. */}
         <Card>
           <SectionLabel>Your weight</SectionLabel>
           {lastWeight === null ? (
@@ -294,8 +288,9 @@ export default function StudentProgressPage() {
                 </p>
               ) : null}
               <p className="mt-2 text-xs leading-5 text-gray-500">
-                A 7-day average, never a single weigh-in: day to day, water
-                moves the scale more than a whole week of eating does.
+                One weigh-in a week, read as a line and not as a number: day to
+                day, water moves the scale more than a whole week of eating
+                does.
               </p>
             </>
           )}

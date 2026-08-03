@@ -724,6 +724,35 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Un Flow hors fenêtre 24h : MÊME REFUS EXPLICITE que les boutons.
+    //
+    // Sans ce garde-fou, un `interactive_flow` hors fenêtre tombait dans la
+    // branche `else` générique et partait en TEMPLATE DE REPLI. Constaté en
+    // local le 2026-08-03 : le point hebdo de KEEL, adressé par construction à
+    // des élèves silencieux un dimanche soir, sortait en
+    // `global_reach_template` — « J'ai une info pour toi » — en FRANÇAIS sur un
+    // produit en-GB, pendant que l'appelant comptait un envoi réussi. C'est le
+    // motif exact de l'incident du 2026-07-12, sur un nouveau chemin.
+    //
+    // Un formulaire ne se dégrade PAS en message générique : ni le Flow ni sa
+    // question ne survivent à la substitution, et l'élève reçoit une phrase qui
+    // n'a aucun rapport. Mieux vaut ne rien envoyer et le DIRE.
+    //
+    // Condition de désarmement : la fenêtre ouverte. Dès que l'élève a écrit
+    // dans les 24h, ce garde-fou ne se déclenche plus et le Flow part.
+    if (body.message.type === "interactive_flow" && mustUseTemplate) {
+      return await preflightErrorResponse({
+        req,
+        requestId,
+        userId: userIdForLog,
+        status: 409,
+        error: "Interactive flow requires an open 24h WhatsApp window",
+        purpose,
+        metadataExtra,
+        extra: { in_24h_window: Boolean(isIn24h) },
+      });
+    }
+
     if (
       !webSimulationEnabled && isProactive && mustUseTemplate &&
       templatePolicyPriority > 0

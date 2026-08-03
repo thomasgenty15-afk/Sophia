@@ -8,6 +8,7 @@ import { logEdgeFunctionError } from "../_shared/error-log.ts";
 import { decideDailyPulse, renderPulseQuestion } from "../_shared/keel/daily_pulse.ts";
 import { loadPulseDay, wasPulseAskedToday } from "../_shared/keel/daily_pulse_io.ts";
 import { localDateFor, localHourFor } from "../_shared/keel/reengagement_io.ts";
+import { sendKeelWhatsApp } from "../_shared/keel/internal_send.ts";
 
 /**
  * PIVOT NUTRITION — N2 : le job qui envoie le tap du soir.
@@ -177,19 +178,19 @@ Deno.serve(async (req) => {
 
           if (!dryRun) {
             const message = renderPulseQuestion();
-            const { error: sendErr } = await admin.functions.invoke("whatsapp-send", {
-              body: {
-                user_id: cursor,
-                to: row.phone_number,
-                purpose: "keel_daily_pulse",
-                message: {
-                  type: "interactive_buttons",
-                  body: message.body,
-                  buttons: message.buttons,
-                },
+            // Même défaut que le point hebdo, même correctif: `functions.invoke`
+            // n'envoie pas `x-internal-secret`, seule porte de `whatsapp-send`.
+            const sent = await sendKeelWhatsApp({
+              user_id: cursor,
+              to: row.phone_number,
+              purpose: "keel_daily_pulse",
+              message: {
+                type: "interactive_buttons",
+                body: message.body,
+                buttons: message.buttons,
               },
             });
-            if (sendErr) throw sendErr;
+            if (!sent.ok) throw new Error(sent.error);
           }
           sent++;
         } catch (error) {

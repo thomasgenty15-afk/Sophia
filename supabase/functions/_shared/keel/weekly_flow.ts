@@ -245,15 +245,44 @@ export interface WeeklyFlowReply {
   issues: string[];
 }
 
+/**
+ * Une valeur de formulaire est une CHAÎNE ou un NOMBRE, jamais autre chose.
+ *
+ * `String(["80"])` vaut `"80"`, et `Number` en fait 80: un tableau malformé
+ * produisait donc un poids parfaitement plausible, inventé à partir d'une forme
+ * que ce formulaire n'émet pas. C'est exactement ce que le reste de ce module
+ * refuse de faire pour un 500 kg — sauf que là, rien ne le disait.
+ *
+ * Renvoie `null` quand la forme n'est pas lisible; l'appelant NOMME l'écart.
+ */
+function readableText(raw: unknown): string | null {
+  if (raw === null || raw === undefined) return "";
+  if (typeof raw === "string") return raw.trim();
+  if (typeof raw === "number") return Number.isFinite(raw) ? String(raw) : null;
+  return null;
+}
+
 function readScale(raw: unknown, axis: string, issues: string[]): number | null {
-  const n = Number(String(raw ?? "").trim());
+  const text = readableText(raw);
+  if (text === null) {
+    issues.push(`${axis}: ${JSON.stringify(raw)} is not a form value, dropped`);
+    return null;
+  }
+  if (text === "") {
+    // Une case vide sur un champ REQUIS ne devrait pas arriver: on le dit,
+    // parce que ça signale un formulaire publié chez Meta qui a divergé de ce
+    // fichier. On le dit TEL QUEL — « manquant » — et pas comme une valeur.
+    //
+    // `Number("")` vaut 0, et l'ancien code laissait donc un axe absent
+    // ressortir en « 0 is outside 1-5 »: un axe jamais rempli était rapporté
+    // comme une valeur hors bornes, c'est-à-dire un chiffre inventé dans le
+    // seul canal censé dire la vérité sur ce qui a été écarté.
+    issues.push(`${axis}: missing, dropped`);
+    return null;
+  }
+  const n = Number(text);
   if (!Number.isFinite(n)) {
-    // Une case vide sur un champ requis ne devrait pas arriver: on le dit
-    // plutôt que de l'absorber, parce que ça signalerait un formulaire publié
-    // chez Meta qui a divergé de ce fichier.
-    if (String(raw ?? "").trim() !== "") {
-      issues.push(`${axis}: ${JSON.stringify(raw)} is not a number, dropped`);
-    }
+    issues.push(`${axis}: ${JSON.stringify(raw)} is not a number, dropped`);
     return null;
   }
   const v = Math.round(n);
@@ -271,7 +300,11 @@ function readMeasure(
   max: number,
   issues: string[],
 ): number | null {
-  const text = String(raw ?? "").trim();
+  const text = readableText(raw);
+  if (text === null) {
+    issues.push(`${field}: ${JSON.stringify(raw)} is not a form value, dropped`);
+    return null;
+  }
   // Vide = non renseigné, et c'est un choix légitime, pas une anomalie.
   if (!text) return null;
   // La virgule décimale est ce que tape la moitié de l'Europe.
@@ -350,6 +383,7 @@ export const WEEKLY_FLOW_WINDOW_END_LOCAL = 21;
 
 export const WEEKLY_FLOW_SKIP_REASONS = [
   "already_answered_this_week",
+  "already_asked_this_week",
   "outside_window",
   "safety_active",
   "restriction_flagged",
@@ -363,6 +397,27 @@ export interface WeeklyFlowDecisionInput {
   localDow: number;
   localHour: number;
   answeredThisWeek: boolean;
+  /**
+   * A-t-on DÉJÀ POSÉ la question cette semaine ?
+   *
+   * ── POURQUOI CETTE GARDE EXISTE, ET POURQUOI `answeredThisWeek` NE SUFFIT
+   *    PAS ─────────────────────────────────────────────────────────────────
+   * La fenêtre est dimanche 18h-21h locales et le cron tourne à `:40`. Un élève
+   * qui ne répond pas laisse `answeredThisWeek` à `false` aux trois ticks —
+   * 18:40, 19:40, 20:40 — et reçoit donc TROIS fois le formulaire dans la même
+   * soirée. Constaté en local le 2026-08-03: trois lignes
+   * `whatsapp_outbound_messages` `status='sent'` pour un seul dimanche.
+   *
+   * L'élève silencieux est précisément celui que ce produit ne doit pas
+   * harceler: son silence est une réponse, et la relance appartient au
+   * réengagement, pas au point hebdo.
+   *
+   * ── SA CONDITION DE DÉSARMEMENT ──────────────────────────────────────────
+   * Elle est portée par `weekStart`: une semaine NEUVE est une question neuve.
+   * Et un envoi qui a ÉCHOUÉ ne compte pas comme posé — sinon un incident Meta
+   * ferait taire l'élève pour la semaine entière. Voir `hasAskedWeek`.
+   */
+  askedThisWeek: boolean;
   /**
    * REQUIS, pas optionnel, et c'est délibéré.
    *
@@ -410,7 +465,9 @@ export type WeeklyFlowDecision =
  *   5. flow_not_configured  — le Flow n'existe pas chez Meta. On se tait
  *                             plutôt que d'émettre un message cassé.
  *   6. already_answered     — un point par semaine.
- *   7. outside_window       — hors dimanche 18h-21h locales, on ne fait rien.
+ *   7. already_asked        — une QUESTION par semaine. Le silence de l'élève
+ *                             n'autorise pas à redemander à 19h40 puis à 20h40.
+ *   8. outside_window       — hors dimanche 18h-21h locales, on ne fait rien.
  */
 export function decideWeeklyFlow(input: WeeklyFlowDecisionInput): WeeklyFlowDecision {
   if (input.optedOut) return { decision: "skip", reason: "opted_out" };
@@ -428,6 +485,9 @@ export function decideWeeklyFlow(input: WeeklyFlowDecisionInput): WeeklyFlowDeci
   }
   if (input.answeredThisWeek) {
     return { decision: "skip", reason: "already_answered_this_week" };
+  }
+  if (input.askedThisWeek) {
+    return { decision: "skip", reason: "already_asked_this_week" };
   }
 
   const hour = Math.floor(input.localHour);
