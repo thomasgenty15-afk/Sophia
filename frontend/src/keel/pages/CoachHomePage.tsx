@@ -7,6 +7,13 @@ import { Badge, type BadgeTone } from "../components/ui/Badge";
 import { Button, ButtonLink } from "../components/ui/Button";
 import { Card, SectionLabel } from "../components/ui/Card";
 import { t } from "../i18n/t";
+import {
+  CONTACT_LABEL,
+  type ContactState,
+  contactStateFor,
+  countActiveSeats,
+  countPendingInvitations,
+} from "../api/coachCohort";
 
 /**
  * KEEL W6.1 — `/coach`: the coach's home. Who they follow, and how many seats
@@ -63,10 +70,25 @@ interface DirectoryRow {
   locale: string | null;
 }
 
+interface ContactRow {
+  student_user_id: string;
+  last_inbound_at: string | null;
+  inbound_count_7d: number;
+}
+
 interface CoachHomeData {
   clients: CoachClientRow[];
   directory: Map<string, DirectoryRow>;
+  contact: Map<string, ContactRow>;
 }
+
+const CONTACT_TONE: Record<ContactState, BadgeTone> = {
+  responsive: "positive",
+  slipping: "caution",
+  silent: "critical",
+};
+
+
 
 type LoadState =
   | { kind: "loading" }
@@ -80,7 +102,7 @@ async function loadCoachHome(coachUserId: string): Promise<CoachHomeData> {
   // from it).
   void coachUserId;
 
-  const [clientsRes, directoryRes] = await Promise.all([
+  const [clientsRes, directoryRes, contactRes] = await Promise.all([
     supabase
       .from("coach_clients")
       .select(
@@ -91,6 +113,12 @@ async function loadCoachHome(coachUserId: string): Promise<CoachHomeData> {
     supabase
       .from("coach_student_directory")
       .select("id, full_name, avatar_url, timezone, locale"),
+    // PIVOT §1.4 — WHEN the student last spoke, never WHAT they said. Tier B
+    // view: `chat_messages` has no coach policy at all, and that is deliberate
+    // (the conversation log is the student's private journal, §1.5).
+    supabase
+      .from("coach_student_contact")
+      .select("student_user_id, last_inbound_at, inbound_count_7d"),
   ]);
 
   if (clientsRes.error) {
@@ -102,6 +130,18 @@ async function loadCoachHome(coachUserId: string): Promise<CoachHomeData> {
     );
   }
 
+  // A contact read that fails degrades the BADGE, never the screen: knowing
+  // who is on the roster matters more than knowing who went quiet, and a coach
+  // staring at an error page learns neither.
+  const contact = new Map<string, ContactRow>();
+  if (!contactRes.error) {
+    for (const row of (contactRes.data ?? []) as unknown as ContactRow[]) {
+      contact.set(row.student_user_id, row);
+    }
+  } else {
+    console.warn("[keel/coach] coach_student_contact failed", contactRes.error);
+  }
+
   const directory = new Map<string, DirectoryRow>();
   for (const row of (directoryRes.data ?? []) as unknown as DirectoryRow[]) {
     directory.set(row.id, row);
@@ -109,18 +149,8 @@ async function loadCoachHome(coachUserId: string): Promise<CoachHomeData> {
   return {
     clients: (clientsRes.data ?? []) as unknown as CoachClientRow[],
     directory,
+    contact,
   };
-}
-
-/** The billing unit. Derived from the rows, never stored. */
-export function countActiveSeats(clients: readonly { status: string }[]): number {
-  return clients.filter((c) => c.status === "active").length;
-}
-
-export function countPendingInvitations(
-  clients: readonly { status: string }[],
-): number {
-  return clients.filter((c) => c.status === "invited").length;
 }
 
 export function CoachHomePage() {
@@ -224,6 +254,9 @@ function CoachHomeBody({
                 directory={client.student_user_id
                   ? data.directory.get(client.student_user_id) ?? null
                   : null}
+                contact={client.student_user_id
+                  ? data.contact.get(client.student_user_id) ?? null
+                  : null}
               />
             ))}
           </ul>
@@ -325,9 +358,11 @@ const SEAT_LABEL: Record<CoachClientRow["seat_state"], Parameters<typeof t>[0]> 
 function StudentRow({
   client,
   directory,
+  contact,
 }: {
   client: CoachClientRow;
   directory: DirectoryRow | null;
+  contact: ContactRow | null;
 }) {
   // Name resolution order, and what each step means:
   //   directory.full_name -> ACTIVE link: `coach_student_directory` filters on
@@ -362,6 +397,15 @@ function StudentRow({
         )}
       </div>
       <div className="flex flex-shrink-0 items-center gap-2">
+        {/* PIVOT §1.4 — shown only on a LIVE link: "silent" about a paused or
+            ended student is noise, and about an invitation nobody accepted it
+            would be a lie (there is nothing to be silent from yet). */}
+        {client.status === "active" && (() => {
+          const state = contactStateFor(contact?.last_inbound_at, new Date());
+          return (
+            <Badge tone={CONTACT_TONE[state]}>{CONTACT_LABEL[state]}</Badge>
+          );
+        })()}
         {client.status === "active" && (
           <Badge>{t(SEAT_LABEL[client.seat_state])}</Badge>
         )}

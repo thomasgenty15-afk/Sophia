@@ -113,8 +113,12 @@ async function loadDoctrineRow(
 
 Deno.serve(async (req) => {
   const requestId = getRequestId(req);
-  const preflight = handleCorsOptions(req);
-  if (preflight) return preflight;
+  // `handleCorsOptions` ALWAYS returns a Response — it is the preflight
+  // handler, not a preflight detector. Calling it unguarded answers every
+  // request with a bare "ok" and the function never runs. (Found by curling it:
+  // 200, text/plain, 2 bytes, with correct CORS headers — the most convincing
+  // possible impression of a working endpoint.)
+  if (req.method === "OPTIONS") return handleCorsOptions(req);
   const corsError = enforceCors(req);
   if (corsError) return corsError;
 

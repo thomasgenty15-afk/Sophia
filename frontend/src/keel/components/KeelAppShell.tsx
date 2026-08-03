@@ -28,6 +28,9 @@ const NAV: Record<ShellVariant, { to: string; label: () => string; end?: boolean
     // `end` so /coach/templates and /coach/clients/:id do not light "Students".
     { to: "/coach", label: () => t("shell.nav.students"), end: true },
     { to: "/coach/templates", label: () => t("shell.nav.templates") },
+    // A ROUTE WITH NO LINK IS A FEATURE NOBODY HAS (see the note above): the
+    // doctrine screen ships with its nav entry in the same change.
+    { to: "/coach/doctrine", label: () => t("shell.nav.doctrine") },
   ],
 };
 

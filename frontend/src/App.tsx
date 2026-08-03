@@ -38,6 +38,7 @@ import MealPlanPage from "./keel/pages/MealPlanPage";
 import StudentMealPlanPage from "./keel/pages/mealPlan/StudentMealPlanPage";
 import { KeelStudentRoute } from "./keel/components/KeelStudentRoute";
 import CoachHomePage from "./keel/pages/CoachHomePage";
+import CoachDoctrinePage from "./keel/pages/CoachDoctrinePage";
 import CoachBillingPage from "./keel/pages/CoachBillingPage";
 import TemplatesPage from "./keel/pages/TemplatesPage";
 import { CoachRoute } from "./keel/components/CoachRoute";
@@ -141,6 +142,20 @@ function App() {
                 element={
                   <CoachRoute>
                     <CoachHomePage />
+                  </CoachRoute>
+                }
+              />
+              {/* PIVOT §3.7 — the Doctrine Copilot. The screen that carries
+                  "c'est MON agent": the coach's beliefs, interdictions,
+                  vocabulary and voice, versioned. Same CoachRoute guard;
+                  coach_doctrines has a coach-owned RLS policy but every write
+                  on this screen goes through coach-doctrine-v1 so publication
+                  order (unpublish before publish) stays server-side. */}
+              <Route
+                path="/coach/doctrine"
+                element={
+                  <CoachRoute>
+                    <CoachDoctrinePage />
                   </CoachRoute>
                 }
               />

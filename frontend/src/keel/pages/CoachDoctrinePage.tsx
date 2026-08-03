@@ -1,0 +1,422 @@
+import React from "react";
+import { supabase } from "../../lib/supabase";
+import { KeelAppShell } from "../components/KeelAppShell";
+import { Badge } from "../components/ui/Badge";
+import { Button } from "../components/ui/Button";
+import { Card, SectionLabel } from "../components/ui/Card";
+import { Field, inputClass } from "../components/ui/Field";
+
+/**
+ * PIVOT NUTRITION §3.7 — `/coach/doctrine`: the Doctrine Copilot.
+ *
+ * THE SCREEN THAT DID NOT EXIST. The pivot inventory (ANNEXE A) found ~70% of
+ * the coach UI already built and exactly two screens missing; this is the one
+ * that carries the product's core claim — "c'est MON agent".
+ *
+ * ---------------------------------------------------------------------------
+ * WHY THIS IS NOT A TEXTAREA
+ * ---------------------------------------------------------------------------
+ * "Le coach n'est ni prompt-engineer ni développeur." A raw prompt box asks him
+ * to be both, and the result is either empty or unusable. So the screen is an
+ * INTERVIEW: it asks seven questions in his own domain, and the AI compiles the
+ * answers into configuration. He speaks, the machine configures.
+ *
+ * The questions come from the server (`action: "questions"`), never from a copy
+ * in this file. Two lists would diverge on the first edit, and the prompt that
+ * compiles the answers is written against the server's list.
+ *
+ * ---------------------------------------------------------------------------
+ * "L'IA TRANSCRIT, ELLE N'ÉCRIT JAMAIS" — the rule this screen inherits
+ * ---------------------------------------------------------------------------
+ * `compile` returns a DRAFT and writes nothing. The coach reads it back, edits
+ * it, and only then saves. It is the same authority rule the plan import screen
+ * already implements (`PlanImportPage`), applied to the doctrine: the AI never
+ * commits something the coach has not seen.
+ *
+ * And saving is still not publishing. Draft -> save -> publish are three
+ * gestures because the middle one is where the coach discovers the AI
+ * misheard him.
+ *
+ * ---------------------------------------------------------------------------
+ * FAIL LOUD, SHOW NOTHING
+ * ---------------------------------------------------------------------------
+ * A failed read renders the error, never an empty state. "You have no doctrine
+ * yet" and "we could not read your doctrine" are different sentences, and
+ * showing the first for the second invites a coach to rewrite everything he
+ * already wrote.
+ */
+
+const FN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/coach-doctrine-v1`;
+
+interface InterviewQuestion {
+  section: string;
+  question: string;
+}
+
+interface VersionRow {
+  version: number;
+  published_at: string | null;
+  created_from_version: number | null;
+  change_note: string | null;
+  created_at: string;
+}
+
+interface DoctrineDraft {
+  beliefs?: Array<{ claim?: string; rationale?: string | null }>;
+  forbidden?: Array<{ token?: string; surface_forms?: string[]; reason?: string | null }>;
+  vocabulary?: Array<{ term?: string; meaning?: string | null }>;
+  arbitrations?: Array<{ situation?: string; coach_answer?: string }>;
+  voice?: Record<string, unknown>;
+}
+
+type LoadState =
+  | { kind: "loading" }
+  | { kind: "error"; message: string }
+  | { kind: "ready" };
+
+async function callDoctrine<T>(payload: Record<string, unknown>): Promise<T> {
+  const { data: sessionData } = await supabase.auth.getSession();
+  const token = sessionData.session?.access_token ?? "";
+  const res = await fetch(FN_URL, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      apikey: import.meta.env.VITE_SUPABASE_ANON_KEY as string,
+      authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok || json?.ok === false) {
+    // The server's reason code travels to the screen. A generic "something went
+    // wrong" would hide `coach_suspended` and `compile_unparseable`, which mean
+    // very different things to the person reading.
+    throw new Error(String(json?.error ?? `HTTP ${res.status}`));
+  }
+  return json as T;
+}
+
+export default function CoachDoctrinePage() {
+  const [state, setState] = React.useState<LoadState>({ kind: "loading" });
+  const [questions, setQuestions] = React.useState<InterviewQuestion[]>([]);
+  const [versions, setVersions] = React.useState<VersionRow[]>([]);
+  const [answers, setAnswers] = React.useState<Record<number, string>>({});
+  const [draft, setDraft] = React.useState<DoctrineDraft | null>(null);
+  const [issues, setIssues] = React.useState<string[]>([]);
+  const [busy, setBusy] = React.useState<string | null>(null);
+  const [notice, setNotice] = React.useState<string | null>(null);
+  const [failure, setFailure] = React.useState<string | null>(null);
+
+  const refresh = React.useCallback(async () => {
+    const [q, v] = await Promise.all([
+      callDoctrine<{ questions: InterviewQuestion[] }>({ action: "questions" }),
+      callDoctrine<{ versions: VersionRow[] }>({ action: "list" }),
+    ]);
+    setQuestions(q.questions ?? []);
+    setVersions(v.versions ?? []);
+  }, []);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        await refresh();
+        if (!cancelled) setState({ kind: "ready" });
+      } catch (err) {
+        if (!cancelled) {
+          setState({
+            kind: "error",
+            message: err instanceof Error ? err.message : String(err),
+          });
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [refresh]);
+
+  const published = versions.find((v) => v.published_at) ?? null;
+
+  async function run(label: string, fn: () => Promise<void>) {
+    setBusy(label);
+    setFailure(null);
+    setNotice(null);
+    try {
+      await fn();
+    } catch (err) {
+      setFailure(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  const onCompile = () =>
+    run("compile", async () => {
+      const payload = questions
+        .map((q, i) => ({
+          section: q.section,
+          question: q.question,
+          answer: (answers[i] ?? "").trim(),
+        }))
+        .filter((a) => a.answer !== "");
+      if (payload.length === 0) {
+        throw new Error("answer_at_least_one_question");
+      }
+      const out = await callDoctrine<{ draft: DoctrineDraft; issues: string[] }>({
+        action: "compile",
+        answers: payload,
+      });
+      setDraft(out.draft ?? null);
+      setIssues(out.issues ?? []);
+      setNotice("Read it back before saving - the AI transcribes, it does not decide.");
+    });
+
+  const onSave = () =>
+    run("save", async () => {
+      if (!draft) return;
+      await callDoctrine({ action: "save", doctrine: draft });
+      await refresh();
+      setNotice("Saved as a draft. It is not live until you publish it.");
+    });
+
+  const onPublish = (version: number) =>
+    run(`publish-${version}`, async () => {
+      await callDoctrine({ action: "publish", version });
+      await refresh();
+      setNotice(`v${version} is live. Your students' next message uses it.`);
+    });
+
+  const onRollback = (version: number) =>
+    run(`rollback-${version}`, async () => {
+      const out = await callDoctrine<{ created: { version: number } }>({
+        action: "rollback",
+        to_version: version,
+      });
+      await refresh();
+      // Named precisely: a rollback COPIES into a new version. Saying "reverted
+      // to v1" would describe a history the product deliberately does not keep.
+      setNotice(
+        `Copied v${version} into v${out.created.version}. Publish it to make it live.`,
+      );
+    });
+
+  if (state.kind === "loading") {
+    return (
+      <KeelAppShell variant="coach" title="Doctrine">
+        <p className="text-sm text-gray-500">Loading…</p>
+      </KeelAppShell>
+    );
+  }
+
+  if (state.kind === "error") {
+    return (
+      <KeelAppShell variant="coach" title="Doctrine">
+        <Card tone="warning">
+          <p className="text-sm text-gray-900">We could not read your doctrine.</p>
+          <p className="mt-1 text-xs text-gray-600">{state.message}</p>
+        </Card>
+      </KeelAppShell>
+    );
+  }
+
+  return (
+    <KeelAppShell variant="coach" title="Doctrine">
+      <div className="space-y-6">
+        <Card>
+          <SectionLabel>What this is</SectionLabel>
+          <p className="mt-2 text-sm leading-6 text-gray-700">
+            Your agent answers your students in your method and your voice. It
+            learns that here — by interviewing you, not by asking you to write a
+            prompt. Nothing you write reaches a student until you publish it.
+          </p>
+          {published ? (
+            <p className="mt-3 text-sm text-gray-900">
+              <Badge tone="positive">Live</Badge>{" "}
+              <span className="ml-1">
+                v{published.version} — published{" "}
+                {new Date(published.published_at as string).toLocaleDateString()}
+              </span>
+            </p>
+          ) : (
+            <p className="mt-3 text-sm text-gray-700">
+              <Badge tone="caution">Nothing published</Badge>{" "}
+              <span className="ml-1">
+                Until you publish, your agent stays deliberately cautious: it
+                sticks to what your protocol already says and defers the rest to
+                you.
+              </span>
+            </p>
+          )}
+        </Card>
+
+        {failure ? (
+          <Card tone="warning">
+            <p className="text-sm text-gray-900">That did not go through.</p>
+            <p className="mt-1 text-xs text-gray-600">{failure}</p>
+          </Card>
+        ) : null}
+        {notice ? (
+          <Card>
+            <p className="text-sm text-gray-900">{notice}</p>
+          </Card>
+        ) : null}
+
+        <Card>
+          <SectionLabel>The interview</SectionLabel>
+          <p className="mt-2 text-xs leading-5 text-gray-500">
+            Answer in your own words. The last three ask for your sentence, word
+            for word — that is what makes the agent sound like you rather than
+            like a nutrition textbook.
+          </p>
+          <div className="mt-4 space-y-4">
+            {questions.map((q, i) => (
+              <Field
+                key={`${q.section}-${i}`}
+                label={q.question}
+                htmlFor={`q-${i}`}
+                hint={q.section === "hard_cases" ? "Word for word." : undefined}
+              >
+                <textarea
+                  id={`q-${i}`}
+                  className={inputClass}
+                  rows={3}
+                  value={answers[i] ?? ""}
+                  onChange={(e) =>
+                    setAnswers((prev) => ({ ...prev, [i]: e.target.value }))}
+                />
+              </Field>
+            ))}
+          </div>
+          <div className="mt-4">
+            <Button onClick={onCompile} disabled={busy !== null}>
+              {busy === "compile" ? "Reading you…" : "Turn this into my method"}
+            </Button>
+          </div>
+        </Card>
+
+        {draft ? (
+          <Card>
+            <SectionLabel>What I understood</SectionLabel>
+            <p className="mt-2 text-xs leading-5 text-gray-500">
+              Nothing here is saved yet. If a line is not yours, it should not be
+              here — edit your answers and run it again.
+            </p>
+
+            {issues.length > 0 ? (
+              <ul className="mt-3 list-disc space-y-1 pl-5 text-xs text-amber-800">
+                {issues.map((issue) => <li key={issue}>{issue}</li>)}
+              </ul>
+            ) : null}
+
+            <DraftPreview draft={draft} />
+
+            <div className="mt-4 flex gap-2">
+              <Button onClick={onSave} disabled={busy !== null}>
+                {busy === "save" ? "Saving…" : "Save as draft"}
+              </Button>
+            </div>
+          </Card>
+        ) : null}
+
+        <Card>
+          <SectionLabel>Versions</SectionLabel>
+          {versions.length === 0 ? (
+            <p className="mt-2 text-sm text-gray-600">
+              No version yet. The interview above creates the first one.
+            </p>
+          ) : (
+            <ul className="mt-3 divide-y divide-gray-100">
+              {versions.slice().reverse().map((v) => (
+                <li key={v.version} className="flex items-center gap-3 py-3">
+                  <span className="w-14 text-sm font-medium text-gray-900">
+                    v{v.version}
+                  </span>
+                  <span className="flex-1 text-xs text-gray-600">
+                    {v.published_at ? <Badge tone="positive">Live</Badge> : (
+                      <Badge tone="neutral">Draft</Badge>
+                    )}
+                    {v.created_from_version ? (
+                      <span className="ml-2">
+                        copied from v{v.created_from_version}
+                      </span>
+                    ) : null}
+                    {v.change_note ? (
+                      <span className="ml-2 text-gray-500">{v.change_note}</span>
+                    ) : null}
+                  </span>
+                  {!v.published_at ? (
+                    <Button
+                      size="sm"
+                      onClick={() => onPublish(v.version)}
+                      disabled={busy !== null}
+                    >
+                      Publish
+                    </Button>
+                  ) : null}
+                  {published && v.version !== published.version ? (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => onRollback(v.version)}
+                      disabled={busy !== null}
+                    >
+                      Go back to this
+                    </Button>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+      </div>
+    </KeelAppShell>
+  );
+}
+
+/** Read-back of the compiled draft, in the coach's terms. */
+function DraftPreview({ draft }: { draft: DoctrineDraft }) {
+  const rows: Array<[string, string[]]> = [
+    ["What you believe", (draft.beliefs ?? []).map((b) => String(b.claim ?? ""))],
+    [
+      "What your agent must never say",
+      (draft.forbidden ?? []).map((f) =>
+        [String(f.token ?? ""), (f.surface_forms ?? []).join(" / ")]
+          .filter(Boolean)
+          .join(" — ")
+      ),
+    ],
+    [
+      "Your words",
+      (draft.vocabulary ?? []).map((v) =>
+        [String(v.term ?? ""), String(v.meaning ?? "")].filter(Boolean).join(": ")
+      ),
+    ],
+    [
+      "How you answer",
+      (draft.arbitrations ?? []).map((a) =>
+        `${String(a.situation ?? "")} → ${String(a.coach_answer ?? "")}`
+      ),
+    ],
+  ];
+  return (
+    <div className="mt-4 space-y-4">
+      {rows.map(([label, items]) => (
+        <div key={label}>
+          <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+            {label}
+          </p>
+          {items.filter(Boolean).length === 0 ? (
+            <p className="mt-1 text-sm text-gray-400">
+              Nothing — you did not say anything I could use here.
+            </p>
+          ) : (
+            <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-gray-800">
+              {items.filter(Boolean).map((item, i) => <li key={i}>{item}</li>)}
+            </ul>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}

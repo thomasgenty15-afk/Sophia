@@ -663,3 +663,46 @@ history intact: 1(from=-,pub=n) 2(from=-,pub=n) 3(from=1,pub=Y)
 ```
 L'index unique partiel « une seule publiée par coach » tient (dépublier AVANT publier — l'ordre
 inverse violerait l'index et ouvrirait une fenêtre à deux doctrines actives).
+
+---
+
+## 11:45 — P2.9 : VERT — écrans coach, vérifiés DANS LE NAVIGATEUR
+
+### Écran Doctrine (celui qui n'existait pas) — `/coach/doctrine`
+`keel/pages/CoachDoctrinePage.tsx` (neuf) + route + entrée de nav + clé i18n.
+**Ce n'est pas un textarea** : les 7 questions viennent du **serveur** (`action:"questions"`),
+jamais d'une copie dans le fichier — deux listes divergeraient à la première édition, et le prompt
+de compilation est écrit contre celle du serveur.
+`compile` rend un **brouillon et n'écrit rien** ; sauver n'est pas publier. Trois gestes, parce que
+le geste du milieu est celui où le coach découvre que l'IA l'a mal entendu.
+Le rollback est nommé honnêtement dans l'UI (« Copied v1 into v3 »), pas « reverted to v1 » — ça
+décrirait un historique que le produit refuse de tenir.
+
+### Écran Cohorte — `/coach` re-mappé actif/glisse/silencieux
+Le coach n'a **aucune policy** sur `chat_messages`, et c'est voulu (§1.5 : le journal de
+conversation est le journal intime de l'élève). Mais l'état de contact ne demande pas le journal :
+il demande un **horodatage**. D'où une vue Tier B `coach_student_contact`
+(`20260803100000`) qui expose `last_inbound_at` + `inbound_count_7d` et **rien d'autre** — un coach
+qui la lirait en entier n'apprendrait pas UN mot de ce que son élève a écrit.
+Motif repris de `coach_student_directory`, pas réinventé : PostgREST applique les droits par RÔLE,
+donc restreindre des colonnes ne se fait que par une vue.
+Une lecture de contact ratée dégrade **le badge**, jamais l'écran : savoir qui est sur la liste
+compte plus que savoir qui s'est tu.
+
+### 🔴 UN BUG QUE SEULE L'EXÉCUTION POUVAIT MONTRER
+`handleCorsOptions()` **retourne toujours** une Response — c'est le *handler* de préflight, pas un
+*détecteur*. Je l'avais appelé sans garde (`const preflight = handleCorsOptions(req); if (preflight)…`),
+donc **toutes** les requêtes recevaient un « ok » de 2 octets et la fonction ne tournait jamais.
+`deno check` était vert, les tests unitaires étaient verts, et l'endpoint rendait 200 avec des
+en-têtes CORS corrects — l'impression la plus convaincante possible d'un endpoint qui marche.
+Corrigé (`if (req.method === "OPTIONS")`, le motif des 5 autres fonctions du dépôt).
+
+### Vérifié dans le navigateur (pas seulement `tsc`)
+- `/coach/doctrine` non connecté → redirige vers `/auth?redirect=%2Fcoach%2Fdoctrine` (garde OK).
+- Fonctions edge éteintes → **« We could not read your doctrine. HTTP 503 »**, pas un état vide.
+  C'est la règle fail-loud : « tu n'as pas de doctrine » et « on n'a pas pu la lire » sont deux
+  phrases différentes, et montrer la première pour la seconde invite le coach à tout réécrire.
+- Connecté : l'interview s'affiche avec les questions du serveur, badge « Nothing published » +
+  l'explication de ce que fait l'agent en attendant.
+- `/coach` avec 3 élèves seedés : Julie (3 h) **In touch**, Nadia (60 h) **Slipping**,
+  Leo (9 j) **Silent** — et le compteur de sièges reste à 3.

@@ -1029,6 +1029,7 @@ export const en = {
   // App shell (connected chrome, coach + student)
   "shell.nav.students": "Students",
   "shell.nav.templates": "Templates",
+  "shell.nav.doctrine": "Doctrine",
   "shell.nav.account": "Account",
   "shell.nav.sign_out": "Sign out",
 
