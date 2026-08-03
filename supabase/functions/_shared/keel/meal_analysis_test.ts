@@ -1213,9 +1213,312 @@ Deno.test("prompt v2: naming the invisible NEVER authorizes a number", () => {
   assert(p.includes("the answer is \"unclear\""));
 });
 
-Deno.test("prompt v2: the version moved, so a v1 reading is distinguishable", () => {
+Deno.test("prompt v3: the version moved, so an older reading is distinguishable", () => {
   // `analyze-meal-photo-v1` decides idempotence on the STORED version. A prompt
-  // that changed behaviour without moving its version would make a v1 and a v2
+  // that changed behaviour without moving its version would make a v2 and a v3
   // reading indistinguishable on the row, and a benchmark re-run unauditable.
-  assertEquals(MEAL_ANALYSIS_PROMPT_VERSION, "meal_analysis.en.v2");
+  // v3 (pivot P0.3) added `assumptions[]` and `clarifying_question`.
+  assertEquals(MEAL_ANALYSIS_PROMPT_VERSION, "meal_analysis.en.v3");
+});
+
+// ---------------------------------------------------------------------------
+// P0.3 (pivot nutrition) — assumptions[] and clarifying_question
+//
+// The arbitration these tests pin (docs/nutrition-pivot/PROGRESS.md, P0.0bis):
+// PLAN-NUIT §3.5 asks for three things — kcal/macro RANGES, assumptions, and
+// one question. Two are implemented; the ranges are refused on this repo's own
+// measurement. So the tests below assert BOTH halves:
+//   * the two new fields work, and
+//   * they did not become a back door for the number that was refused.
+// ---------------------------------------------------------------------------
+
+Deno.test("assumptions: the invisible is named, with its basis kept honest", () => {
+  const analysis = parseMealAnalysis(
+    modelOutput({
+      assumptions: [
+        {
+          subject: "cooking_fat",
+          assumption: "The chicken was seared in a fat, judging by the browning.",
+          basis: "visible_cue",
+        },
+        {
+          subject: "sauce_dressing",
+          assumption: "The salad was probably dressed.",
+          basis: "standard_default",
+        },
+      ],
+    }),
+    [ID_A],
+  );
+  assertEquals(analysis.assumptions.length, 2);
+  assertEquals(analysis.assumptions[0].subject, "cooking_fat");
+  assertEquals(analysis.assumptions[0].basis, "visible_cue");
+  assertEquals(analysis.assumptions[1].basis, "standard_default");
+  assertEquals(analysis.issues.length, 0);
+});
+
+Deno.test("assumptions: an unknown subject is kept as `other`, never dropped", () => {
+  // Losing "there is a sauce under this" over a token spelling is worse than a
+  // coarse subject: the sentence is composition evidence a coach line may need.
+  const analysis = parseMealAnalysis(
+    modelOutput({
+      assumptions: [
+        { subject: "dressing", assumption: "There is a sauce underneath.", basis: "visible_cue" },
+      ],
+    }),
+    [ID_A],
+  );
+  assertEquals(analysis.assumptions.length, 1);
+  assertEquals(analysis.assumptions[0].subject, "other");
+  assertEquals(analysis.assumptions[0].assumption, "There is a sauce underneath.");
+  assert(analysis.issues.some((i) => i.includes("assumptions[0].subject")));
+});
+
+Deno.test("assumptions: an unreadable basis defaults to the WEAKER claim", () => {
+  // Defaulting the other way would promote a guess into evidence. A student can
+  // correct a default; they cannot correct something the system claims to have
+  // seen.
+  const analysis = parseMealAnalysis(
+    modelOutput({
+      assumptions: [
+        { subject: "cooking_fat", assumption: "Probably some oil.", basis: "i_reckon" },
+      ],
+    }),
+    [ID_A],
+  );
+  assertEquals(analysis.assumptions[0].basis, "standard_default");
+  assert(analysis.issues.some((i) => i.includes("assumptions[0].basis")));
+});
+
+Deno.test("assumptions: a quantified claim inside an assumption is REDACTED", () => {
+  // The measurement filter runs on the whole payload before any field is read,
+  // so a calorie cannot ride in on a field added after the filter was written.
+  // This is the regression that matters for P0.3: two new free-text fields are
+  // two new places a number could have survived.
+  const analysis = parseMealAnalysis(
+    modelOutput({
+      assumptions: [
+        {
+          subject: "cooking_fat",
+          assumption: "Seared in oil, which adds about 90 kcal to the plate.",
+          basis: "visible_cue",
+        },
+      ],
+    }),
+    [ID_A],
+  );
+  assert(!/90\s*kcal/i.test(analysis.assumptions[0].assumption));
+  assert(analysis.assumptions[0].assumption.includes("[removed]"));
+  assert(analysis.dropped_measurement_fields.length > 0);
+});
+
+Deno.test("assumptions: an `impact_kcal` field is deleted, not stored", () => {
+  // PLAN-NUIT §3.5 shapes an assumption as {sujet, hypothese, impact_kcal}.
+  // The third key is the calorie question wearing a different hat; if the model
+  // emits it anyway, it must not reach the row.
+  const analysis = parseMealAnalysis(
+    modelOutput({
+      assumptions: [
+        {
+          subject: "cooking_fat",
+          assumption: "Pan, plus standard oil.",
+          basis: "standard_default",
+          impact_kcal: 100,
+        },
+      ],
+    }),
+    [ID_A],
+  );
+  assertEquals(
+    (analysis.assumptions[0] as unknown as Record<string, unknown>).impact_kcal,
+    undefined,
+  );
+  assert(analysis.dropped_measurement_fields.some((f) => f.includes("impact_kcal")));
+});
+
+Deno.test("clarifying_question: kept when an assumption gives it a stake", () => {
+  const analysis = parseMealAnalysis(
+    modelOutput({
+      assumptions: [
+        { subject: "cooking_fat", assumption: "Maybe oil.", basis: "standard_default" },
+      ],
+      clarifying_question: "Did you cook these with any oil or butter?",
+    }),
+    [ID_A],
+  );
+  assertEquals(analysis.clarifying_question, "Did you cook these with any oil or butter?");
+});
+
+Deno.test("clarifying_question: kept when the image is not clear", () => {
+  const analysis = parseMealAnalysis(
+    modelOutput({
+      image_quality: "partial",
+      clarifying_question: "Is there anything under the rice I cannot see?",
+    }),
+    [ID_A],
+  );
+  assertEquals(analysis.clarifying_question, "Is there anything under the rice I cannot see?");
+});
+
+Deno.test("clarifying_question: DROPPED when nothing is at stake", () => {
+  // "Clarify only if the ambiguity changes the action" (§3.3bis), enforced
+  // rather than requested. A clear image with nothing assumed has no doubt to
+  // resolve, so the question is an interrogation and the drop is recorded.
+  const analysis = parseMealAnalysis(
+    modelOutput({
+      image_quality: "clear",
+      assumptions: [],
+      clarifying_question: "What kind of rice is that?",
+    }),
+    [ID_A],
+  );
+  assertEquals(analysis.clarifying_question, null);
+  assert(analysis.issues.some((i) => i.includes("clarifying_question: dropped")));
+});
+
+Deno.test("clarifying_question: two questions is a defect, the first is kept", () => {
+  const analysis = parseMealAnalysis(
+    modelOutput({
+      image_quality: "partial",
+      clarifying_question: ["Was there oil?", "And how much rice?"],
+    }),
+    [ID_A],
+  );
+  assertEquals(analysis.clarifying_question, "Was there oil?");
+  assert(analysis.issues.some((i) => i.includes("kept the first")));
+});
+
+Deno.test("clarifying_question: a question asking for a quantity is redacted", () => {
+  const analysis = parseMealAnalysis(
+    modelOutput({
+      image_quality: "partial",
+      clarifying_question: "Roughly 300 kcal of rice there, or more?",
+    }),
+    [ID_A],
+  );
+  assert(!/300\s*kcal/i.test(String(analysis.clarifying_question)));
+  assert(analysis.dropped_measurement_fields.length > 0);
+});
+
+Deno.test("recognized payload carries assumptions + question for coach/webhook", () => {
+  const analysis = parseMealAnalysis(
+    modelOutput({
+      assumptions: [
+        { subject: "cooking_fat", assumption: "Maybe oil.", basis: "standard_default" },
+      ],
+      clarifying_question: "Cooked with oil?",
+    }),
+    [ID_A],
+  );
+  const payload = buildRecognizedPayload({
+    analysis,
+    binding: { kind: "explicit", commitmentId: ID_A },
+    model: "test-model",
+  });
+  assertEquals((payload.assumptions as unknown[]).length, 1);
+  assertEquals(payload.clarifying_question, "Cooked with oil?");
+  assertEquals(payload.analysis_version, "meal_analysis.en.v3");
+});
+
+// ---- the acknowledgement: ONE uncertainty form, never two ------------------
+
+Deno.test("ack: the clarifying question supersedes the generic caveat", () => {
+  const analysis = parseMealAnalysis(
+    modelOutput({
+      overall_confidence: 0.2, // -> confidence_band "low"
+      assumptions: [
+        { subject: "cooking_fat", assumption: "Maybe oil.", basis: "standard_default" },
+      ],
+      clarifying_question: "Did you cook these with oil?",
+    }),
+    [ID_A],
+  );
+  const text = renderMealPhotoAck({
+    analysis,
+    binding: { kind: "explicit", commitmentId: ID_A },
+    commitmentTitles: { [ID_A]: "Protocol breakfast" },
+    locale: "en",
+  });
+  assert(text.includes("Did you cook these with oil?"));
+  // Not stacked: one form of doubt per message (§3.3bis, anti-interrogatoire).
+  assert(!text.includes("I am not confident"));
+  assert(!text.includes("Tell me if that is wrong"));
+});
+
+Deno.test("ack: a standard_default assumption is stated with a correction door", () => {
+  const analysis = parseMealAnalysis(
+    modelOutput({
+      assumptions: [
+        {
+          subject: "cooking_fat",
+          assumption: "I assumed the broccoli was tossed in oil.",
+          basis: "standard_default",
+        },
+      ],
+    }),
+    [ID_A],
+  );
+  const text = renderMealPhotoAck({
+    analysis,
+    binding: { kind: "explicit", commitmentId: ID_A },
+    commitmentTitles: { [ID_A]: "Protocol breakfast" },
+    locale: "en",
+  });
+  assert(text.includes("I assumed the broccoli was tossed in oil."));
+  assert(text.includes("Tell me if that is wrong."));
+});
+
+Deno.test("ack: a visible_cue assumption is NOT surfaced to the student", () => {
+  // Asking someone to confirm what the photo plainly shows is noise, and noise
+  // is what makes a student stop reading the acknowledgement.
+  const analysis = parseMealAnalysis(
+    modelOutput({
+      overall_confidence: 0.9,
+      assumptions: [
+        { subject: "cooking_fat", assumption: "Seared, visibly.", basis: "visible_cue" },
+      ],
+    }),
+    [ID_A],
+  );
+  const text = renderMealPhotoAck({
+    analysis,
+    binding: { kind: "explicit", commitmentId: ID_A },
+    commitmentTitles: { [ID_A]: "Protocol breakfast" },
+    locale: "en",
+  });
+  assert(!text.includes("Seared, visibly."));
+  assert(!text.includes("Tell me if that is wrong"));
+});
+
+Deno.test("ack: still carries no number, whatever the new fields contain", () => {
+  const analysis = parseMealAnalysis(
+    modelOutput({
+      image_quality: "partial",
+      assumptions: [
+        { subject: "cooking_fat", assumption: "Oil, roughly 2 tablespoons.", basis: "standard_default" },
+      ],
+      clarifying_question: "Was that around 150 kcal of oil?",
+    }),
+    [ID_A],
+  );
+  const text = renderMealPhotoAck({
+    analysis,
+    binding: { kind: "explicit", commitmentId: ID_A },
+    commitmentTitles: { [ID_A]: "Protocol breakfast" },
+    locale: "en",
+  });
+  assert(!/kcal|calorie/i.test(text));
+});
+
+Deno.test("prompt v3: the two new fields are specified, the calorie ban is not", () => {
+  const p = MEAL_ANALYSIS_SYSTEM_PROMPT;
+  assert(p.includes("assumptions"));
+  assert(p.includes("clarifying_question"));
+  assert(p.includes("visible_cue"));
+  assert(p.includes("standard_default"));
+  // The ban that P0.0bis kept, still verbatim in the prompt.
+  assert(p.includes("YOU ARE NOT A CALORIE COUNTER"));
+  assert(p.includes("NONE of this authorizes a number"));
+  // And the question rule is stated as a stake, not as a style preference.
+  assert(p.includes("One question maximum"));
 });

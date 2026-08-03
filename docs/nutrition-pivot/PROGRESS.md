@@ -177,3 +177,56 @@ une seule doctrine publiée par coach mais plusieurs brouillons ; `recurring_mea
 `confirmed_at` (le système ne se confirme jamais lui-même) ; idempotence de `coach_syntheses` ;
 cloisonnement RLS coach↔coach et élève↔élève ; **et le coach qui ne lit ni les repas récurrents
 ni les préférences de SON élève** (§1.5 « l'adhérence, jamais le journal intime »).
+
+---
+
+## 04:05 — P0.3 (module) : VERT — contrat photo étendu
+
+`_shared/keel/meal_analysis.ts` : version de prompt `meal_analysis.en.v2` → **v3**.
+Deux champs ajoutés, zéro champ retiré :
+
+- **`assumptions[]`** — `{subject, assumption, basis}`. `subject` = liste ASCII fermée
+  (`cooking_fat`, `sauce_dressing`, `added_sugar`, `preparation_method`, `beverage_content`,
+  `hidden_component`, `other`). **`basis` est le champ qui compte** : `visible_cue` (l'image le
+  montre = preuve) vs `standard_default` (l'image ne le montre pas, c'est une supposition).
+  Un élève peut corriger un défaut ; il ne peut pas corriger ce que le système prétend avoir vu.
+  ⚠️ **Pas de `impact_kcal`** — le champ du §3.5 est la question calorique déguisée (décision
+  P0.0bis). Un test le prouve : s'il arrive quand même, il est supprimé et l'audit l'enregistre.
+- **`clarifying_question`** — une seule, `null` par défaut. La règle « clarifier seulement si ça
+  change l'action » (§3.3bis) est rendue **déterministe** au lieu d'être une consigne de prompt :
+  la question ne survit que si la lecture porte une incertitude (une hypothèse déclarée, ou une
+  image non-`clear`). Sinon elle est jetée **et la suppression est tracée**. Une question sans
+  enjeu est un interrogatoire.
+
+**Retour élève** (`renderMealPhotoAck`) : **une seule** forme de doute par message, jamais deux —
+question > hypothèse `standard_default` annoncée + porte de correction > caveat générique.
+Les hypothèses `visible_cue` ne sont **pas** remontées à l'élève (lui demander de confirmer ce que
+la photo montre est du bruit). Le retour reste qualitatif : aucun nombre ne peut y entrer, le type
+n'en porte aucun.
+
+**Persistance** : `assumptions` + `clarifying_question` sont écrites dans `recognized` jsonb —
+les deux consommateurs en ont besoin (synthèse coach « la matière grasse de cet élève est inconnue
+4 fois sur 5 » et webhook coach §1.8).
+
+### DoD module vérifiée
+```bash
+deno test --allow-all supabase/functions/_shared/keel/ \
+  supabase/functions/whatsapp-webhook/handlers_meal_photo_test.ts
+# 327 passed | 0 failed
+deno check supabase/functions/analyze-meal-photo-v1/index.ts \
+  supabase/functions/whatsapp-webhook/handlers_meal_photo.ts \
+  supabase/functions/meal-photo-upload-v1/index.ts     # 3 OK
+```
+16 tests neufs, dont 5 qui gardent la porte fermée : un kcal dans une hypothèse est rédigé, un
+`impact_kcal` est supprimé, une question qui demande une quantité est rédigée, l'accusé ne contient
+jamais de nombre, et le prompt garde son interdit calorique verbatim.
+
+**Reste sur P0.3** : la DoD de bout en bout (« une image via le sim produit une entrée repas
+complète ») — nécessite les edge functions servies ; en cours.
+
+### Garde-fou d'exécution posé maintenant
+`supabase/.env` porte **`EMAIL_DELIVERY_ENABLED=1`** : un run de sim qui déclenche un chemin email
+enverrait de VRAIS emails via Resend. Je ne modifie pas le fichier de Thomas ; tous les runs de la
+nuit utilisent un override de scratchpad (`night.env`) avec `EMAIL_DELIVERY_ENABLED=0`,
+`WHATSAPP_DELIVERY_ENABLED=0`, `MEGA_TEST_MODE=1`.
+**À relire au matin** : `EMAIL_DELIVERY_ENABLED=1` en local est un pistolet chargé.

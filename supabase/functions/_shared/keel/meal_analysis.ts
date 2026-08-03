@@ -71,7 +71,29 @@ import {
  * whose stored `analysis_version` differs as re-analyzable under `force`, so a
  * benchmark re-run can be told apart from a v1 reading.
  */
-export const MEAL_ANALYSIS_PROMPT_VERSION = "meal_analysis.en.v2";
+/**
+ * v3 (2026-08-03, pivot nutrition P0.3) — two fields added, zero field removed:
+ * `assumptions[]` and `clarifying_question`.
+ *
+ * WHY THESE TWO, AND WHY NOT THE THIRD THE PIVOT PLAN ASKED FOR.
+ * PLAN-NUIT §3.5 specifies a target contract of three parts: kcal/macro RANGES,
+ * explicit assumptions, and one question that would change the conclusion. The
+ * night's arbitration (P0.0bis, docs/nutrition-pivot/PROGRESS.md) implements
+ * the last two and REFUSES the first, on this repo's own measurement
+ * (docs/keel/PHOTO_QUANTIFICATION.md, 85 real calls): the model's 90% interval
+ * covers 58% of cases, so it cannot produce its own honest range; the bias is
+ * systematic (-26.6%), so a range centred on it is wrong in the same direction
+ * every time. A displayed interval invites reading its midpoint. The band token
+ * already IS the honest range.
+ *
+ * What the two retained fields buy, measured, at zero token cost: naming the
+ * invisible moved the bias -26.6% -> -11.6%, and asking one targeted question
+ * moved it to -7.8%. Here they serve COMPOSITION ("there is added oil", "was
+ * this cooked in oil?"), never energy — the calorie filters below are unchanged
+ * and still delete any number that reaches them, including inside an assumption
+ * sentence or a question.
+ */
+export const MEAL_ANALYSIS_PROMPT_VERSION = "meal_analysis.en.v3";
 
 // ---------------------------------------------------------------------------
 // Closed vocabularies (R1: ASCII snake_case, never translated)
@@ -110,6 +132,45 @@ export type ImageQuality = (typeof IMAGE_QUALITIES)[number];
  */
 export const CONFIDENCE_BANDS = ["low", "moderate", "high"] as const;
 export type ConfidenceBand = (typeof CONFIDENCE_BANDS)[number];
+
+/**
+ * What an assumption can be ABOUT. A closed ASCII list (R1) because code
+ * branches on it: the clarifying-question rule below, and the coach synthesis
+ * that counts "how often is this student's cooking fat unknown?".
+ *
+ * `other` exists on purpose. The alternative — dropping an assumption whose
+ * subject token is unrecognized — would delete a composition signal ("there is
+ * a sauce under this") because the model wrote "dressing" instead of
+ * `sauce_dressing`. The token space stays closed AND the information survives;
+ * the mismatch is recorded in `issues` so the prompt can be fixed.
+ */
+export const ASSUMPTION_SUBJECTS = [
+  "cooking_fat",
+  "sauce_dressing",
+  "added_sugar",
+  "preparation_method",
+  "beverage_content",
+  "hidden_component",
+  "other",
+] as const;
+export type AssumptionSubject = (typeof ASSUMPTION_SUBJECTS)[number];
+
+/**
+ * WHERE an assumption comes from. This distinction is the whole point of
+ * declaring assumptions at all (PLAN-NUIT §3.5: "l'invisible est supposé par
+ * défauts standards ET déclaré"):
+ *
+ *   visible_cue      — the image shows it (a sheen, browning, a pooled sauce).
+ *                      This is evidence.
+ *   standard_default — the image does NOT show it; it is assumed because that
+ *                      is how this dish is normally made. This is a guess, and
+ *                      labelling it as one is what keeps it honest.
+ *
+ * A student correction ("no, I grilled it dry") must be able to invalidate the
+ * second kind without touching the first.
+ */
+export const ASSUMPTION_BASES = ["visible_cue", "standard_default"] as const;
+export type AssumptionBasis = (typeof ASSUMPTION_BASES)[number];
 
 export function confidenceBand(value: number): ConfidenceBand {
   if (!Number.isFinite(value)) return "low";
@@ -169,6 +230,23 @@ export interface CommitmentMatch {
   confidence: number;
 }
 
+/**
+ * ONE stated assumption about something the photograph cannot show.
+ *
+ * Deliberately carries NO quantity field. PLAN-NUIT §3.5 shapes this as
+ * `{sujet, hypothese, impact_kcal}`; `impact_kcal` is the calorie question
+ * wearing a different hat, and it is refused for the reason written at
+ * MEAL_ANALYSIS_PROMPT_VERSION. An assumption names an INGREDIENT the coach's
+ * line may care about ("cooked without added fat" is a real prescription); it
+ * never names an amount.
+ */
+export interface MealAssumption {
+  subject: AssumptionSubject;
+  /** One short sentence. Passes the measurement prose filter like any other. */
+  assumption: string;
+  basis: AssumptionBasis;
+}
+
 export interface MealAnalysis {
   detected_foods: DetectedFood[];
   food_groups_present: FoodGroupRef[];
@@ -177,6 +255,23 @@ export interface MealAnalysis {
   portion_band: PortionBand;
   portion_rationale: string;
   commitment_matches: CommitmentMatch[];
+  /**
+   * What was assumed about the invisible, always explicit (PLAN-NUIT §3.5).
+   * Empty is a legitimate answer: a photo of a whole apple assumes nothing.
+   */
+  assumptions: MealAssumption[];
+  /**
+   * AT MOST ONE question, and only when the answer would change the coaching
+   * conclusion. `null` is the normal case and the preferred one.
+   *
+   * The "changes the conclusion" test is enforced deterministically by
+   * `parseMealAnalysis`, not left to the prompt: a question survives only if
+   * the reading actually carries an uncertainty — a declared assumption, or a
+   * degraded image. A question with nothing behind it is an interrogation, and
+   * PLAN-NUIT §3.3bis is explicit that clarifying without a stake is what
+   * separates "fluide" from "interrogatoire".
+   */
+  clarifying_question: string | null;
   overall_confidence: number;
   confidence_band: ConfidenceBand;
   image_quality: ImageQuality;
@@ -436,9 +531,22 @@ If you catch yourself reasoning about how much the invisible would add, stop: th
    - confidence: 0..1 for this specific verdict.
    Return an entry ONLY for commitments the photo says something about. A plan line the image cannot speak to at all does not need a not_visible entry unless it is anchored at this slot.
 
-6. overall_confidence -- 0..1, your confidence in the whole reading.
+6. assumptions -- everything you had to ASSUME about the invisible section above, stated out loud. One entry per assumption, or an empty array when the plate assumes nothing (a whole apple assumes nothing).
+   - subject: one of ${ASSUMPTION_SUBJECTS.join(" | ")}.
+   - assumption: ONE short sentence naming the ingredient or preparation you are assuming. Name the THING, never an amount: "cooked in oil, judging by the sheen", not "cooked in oil, which adds fat".
+   - basis:
+       visible_cue      -- the image itself shows it (sheen, browning, pooled sauce, glossy vegetables, fried texture)
+       standard_default -- the image does NOT show it and you are assuming it because that is how this dish is normally made
+     Be strict about this split. Calling a guess a visible cue is the one error here that matters: the student may correct a default, and they cannot correct something you claimed to have seen.
 
-7. image_quality -- clear | partial | unusable. Use unusable when the food cannot be identified at all (too dark, too blurry, no food in frame); then detected_foods and commitment_matches must be empty.
+7. clarifying_question -- ONE question, or null. null is the normal answer.
+   Ask ONLY when the answer would change what the coach's protocol says about this plate -- i.e. it would flip one of your verdicts or move the portion band. "Was this cooked with oil?" changes a "cooked without added fat" line. "What kind of rice is that?" usually changes nothing: do not ask it.
+   Never ask a question whose only purpose is to sharpen a quantity: quantity is not something this system reports.
+   One question maximum. Two questions is an interrogation, and the student stops answering.
+
+8. overall_confidence -- 0..1, your confidence in the whole reading.
+
+9. image_quality -- clear | partial | unusable. Use unusable when the food cannot be identified at all (too dark, too blurry, no food in frame); then detected_foods and commitment_matches must be empty.
 
 == CLOSED LIST: food_group_ref ==
 
@@ -469,6 +577,14 @@ ${FOOD_GROUP_REFS.join(" | ")}
       "confidence": number
     }
   ],
+  "assumptions": [
+    {
+      "subject": ${ASSUMPTION_SUBJECTS.map((s) => `"${s}"`).join("|")},
+      "assumption": string,
+      "basis": "visible_cue"|"standard_default"
+    }
+  ],
+  "clarifying_question": string|null,
   "overall_confidence": number,
   "image_quality": "clear"|"partial"|"unusable"
 }
@@ -505,11 +621,54 @@ Photo: a bowl of oats topped with sliced banana, and a boiled egg on the side.
       "confidence": 0.8
     }
   ],
+  "assumptions": [],
+  "clarifying_question": null,
   "overall_confidence": 0.87,
   "image_quality": "clear"
 }
 
-Note on the example: no calorie or gram figure appears anywhere; the banana is named as a swap rather than silently accepted or silently failed; the daily berries line is not_visible rather than inconsistent, because one photo cannot close a day.`;
+Note on the example: no calorie or gram figure appears anywhere; the banana is named as a swap rather than silently accepted or silently failed; the daily berries line is not_visible rather than inconsistent, because one photo cannot close a day. assumptions is EMPTY and clarifying_question is null: oats, banana and a boiled egg hide nothing, so there is nothing to assume and nothing worth asking. That is the normal case.
+
+== SECOND EXAMPLE: when there IS something to assume ==
+
+Plan block (abridged): commitment_id "33333333-3333-3333-3333-333333333333", title "Lunch cooked without added fat", polarity "do", measure "presence", autonomy "strict".
+
+Photo: chicken breast and broccoli, both glossy, with a slight browning on the chicken.
+
+{
+  "detected_foods": [
+    { "label": "pan-seared chicken breast", "food_group_ref": "poultry", "confidence": 0.92 },
+    { "label": "glossy broccoli", "food_group_ref": "cruciferous_veg", "confidence": 0.94 }
+  ],
+  "food_groups_present": ["poultry", "cruciferous_veg", "other_added_fat"],
+  "food_groups_absent": [],
+  "portion": { "band": "moderate", "rationale": "The two components each cover about a third of the plate." },
+  "commitment_matches": [
+    {
+      "commitment_id": "33333333-3333-3333-3333-333333333333",
+      "verdict": "partial",
+      "rationale": "Both items look glossy and the chicken is browned, which suggests a cooking fat.",
+      "confidence": 0.6
+    }
+  ],
+  "assumptions": [
+    {
+      "subject": "cooking_fat",
+      "assumption": "The chicken was seared in a fat, judging by the browning and the sheen.",
+      "basis": "visible_cue"
+    },
+    {
+      "subject": "cooking_fat",
+      "assumption": "The broccoli was probably tossed in oil or butter after cooking.",
+      "basis": "standard_default"
+    }
+  ],
+  "clarifying_question": "Did you cook these with any oil or butter?",
+  "overall_confidence": 0.7,
+  "image_quality": "clear"
+}
+
+Note on the second example: the question is asked because the answer FLIPS a verdict -- "cooked without added fat" is either respected or not, and only the student knows. The two assumptions are split honestly: the sear is visible, the broccoli's oil is a guess. Still not one number anywhere.`;
 
 // ---------------------------------------------------------------------------
 // Parsing + the two filters
@@ -719,11 +878,90 @@ export function parseMealAnalysis(
     });
   }
 
+  // ---- assumptions: the invisible, named --------------------------------
+  const assumptions: MealAssumption[] = [];
+  const rawAssumptions = Array.isArray(obj.assumptions) ? obj.assumptions : [];
+  if (!Array.isArray(obj.assumptions) && obj.assumptions !== undefined) {
+    issues.push("assumptions: expected an array");
+  }
+  for (const [i, item] of rawAssumptions.entries()) {
+    const a = (item && typeof item === "object" ? item : {}) as Record<
+      string,
+      unknown
+    >;
+    const text = String(a.assumption ?? "").trim();
+    if (!text) {
+      issues.push(`assumptions[${i}]: empty assumption, dropped`);
+      continue;
+    }
+    const subject = parseEnum(a.subject, ASSUMPTION_SUBJECTS);
+    if (subject === null) {
+      // Kept as `other`, never dropped: see ASSUMPTION_SUBJECTS. Losing "there
+      // is a sauce under this" over a token spelling is a worse outcome than a
+      // coarse subject.
+      issues.push(
+        `assumptions[${i}].subject: unknown value ${
+          JSON.stringify(a.subject)
+        }, kept as "other"`,
+      );
+    }
+    const basis = parseEnum(a.basis, ASSUMPTION_BASES);
+    if (basis === null) {
+      // Defaults to `standard_default`, the WEAKER claim. Defaulting the other
+      // way would promote a guess into evidence -- exactly the direction that
+      // must never happen by accident.
+      issues.push(
+        `assumptions[${i}].basis: unknown value ${
+          JSON.stringify(a.basis)
+        }, treated as standard_default`,
+      );
+    }
+    assumptions.push({
+      subject: subject ?? "other",
+      assumption: text,
+      basis: basis ?? "standard_default",
+    });
+  }
+
   const overallConfidence = clampConfidence(
     obj.overall_confidence,
     "overall_confidence",
     issues,
   );
+
+  // ---- FILTER 3: the clarifying question needs a stake --------------------
+  // "Clarify ONLY if the ambiguity changes the action" (PLAN-NUIT §3.3bis),
+  // made deterministic instead of advisory. The stake is: something was
+  // assumed, or the image is not clear. Without one, the question is dropped
+  // and the drop is recorded -- silence is the correct default, and a model
+  // that asks anyway must be visible in the trace, not accommodated.
+  //
+  // DISARM CONDITION (doctrine P9): this filter does nothing at all when the
+  // reading carries an uncertainty. It only ever removes questions asked into
+  // an unambiguous reading.
+  let clarifyingQuestion: string | null = null;
+  const rawQuestion = obj.clarifying_question;
+  if (Array.isArray(rawQuestion)) {
+    // Cardinality discipline, same as commitment_matches: "one question max"
+    // is a product rule, so two questions is a defect to name, not to average.
+    issues.push(
+      `clarifying_question: model returned ${rawQuestion.length} questions, kept the first`,
+    );
+  }
+  const questionText = String(
+    (Array.isArray(rawQuestion) ? rawQuestion[0] : rawQuestion) ?? "",
+  ).trim();
+  if (questionText) {
+    const hasStake = assumptions.length > 0 || (imageQuality ?? "partial") !== "clear";
+    if (hasStake) {
+      clarifyingQuestion = questionText;
+    } else {
+      issues.push(
+        "clarifying_question: dropped -- nothing was assumed and the image is " +
+          "clear, so the answer could not change the conclusion",
+      );
+    }
+  }
 
   return {
     detected_foods: detectedFoods,
@@ -740,6 +978,8 @@ export function parseMealAnalysis(
     portion_band: band ?? "unclear",
     portion_rationale: String(portionRaw.rationale ?? "").trim(),
     commitment_matches: commitmentMatches,
+    assumptions,
+    clarifying_question: clarifyingQuestion,
     overall_confidence: overallConfidence,
     confidence_band: confidenceBand(overallConfidence),
     image_quality: imageQuality ?? "partial",
@@ -1217,6 +1457,12 @@ export function buildRecognizedPayload(args: {
     portion_band: args.analysis.portion_band,
     portion_rationale: args.analysis.portion_rationale,
     commitment_matches: args.analysis.commitment_matches,
+    // P0.3: what was assumed about the invisible, and the one question that
+    // would settle it. Persisted because BOTH downstream consumers need them:
+    // the coach synthesis ("this student's cooking fat is unknown 4 times out
+    // of 5") and the coach webhook (PLAN-NUIT §1.8). Neither carries a number.
+    assumptions: args.analysis.assumptions,
+    clarifying_question: args.analysis.clarifying_question,
     confidence_band: args.analysis.confidence_band,
     image_quality: args.analysis.image_quality,
     rejected_commitment_ids: args.analysis.rejected_commitment_ids,
@@ -1402,7 +1648,28 @@ export function renderMealPhotoAck(args: MealPhotoAckArgs): string {
     );
   }
 
-  if (a.confidence_band === "low") {
+  // ---- 5. the uncertainty, resolved in ONE of three ways -------------------
+  // PLAN-NUIT §3.3bis, "Reparation and clarification": of the three options --
+  // guess (forbidden), clarify (costly), or proceed on the most likely
+  // hypothesis WHILE SAYING IT -- pick exactly one, never two. Stacking a
+  // question on top of an assumption on top of "correct me if I'm wrong" is
+  // the interrogation the same section warns about.
+  //
+  // Precedence, strongest first:
+  //   a) a clarifying question -- it already embodies the doubt AND opens the
+  //      correction door, so it supersedes both weaker forms;
+  //   b) otherwise, an assumption that is only a `standard_default` -- stated,
+  //      with the correction door ("hypothèse annoncée + porte de correction").
+  //      `visible_cue` assumptions are NOT surfaced: those are things the photo
+  //      shows, and asking the student to confirm what is visible is noise;
+  //   c) otherwise, the generic low-confidence caveat.
+  const question = String(a.clarifying_question ?? "").trim();
+  const guessed = a.assumptions.filter((h) => h.basis === "standard_default");
+  if (question) {
+    lines.push(question);
+  } else if (guessed.length > 0) {
+    lines.push(`${guessed[0].assumption} Tell me if that is wrong.`);
+  } else if (a.confidence_band === "low") {
     // Named, not hidden: a low-confidence reading that presents itself as
     // certain is exactly what destroys a coach's trust (W5.5's metric).
     lines.push("I am not confident about this reading - correct me if I got it wrong.");
