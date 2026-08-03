@@ -29,6 +29,7 @@ function input(over: Partial<PulseDecisionInput> = {}): PulseDecisionInput {
     localHour: 20,
     answeredToday: false,
     minutesSinceLastExchange: null,
+    safetyBand: null,
     hasActivePlan: true,
     ...over,
   };

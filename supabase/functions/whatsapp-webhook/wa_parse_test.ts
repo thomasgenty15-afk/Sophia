@@ -1,4 +1,4 @@
-import { assertEquals } from "jsr:@std/assert@1";
+import { assert, assertEquals } from "jsr:@std/assert@1";
 
 import { extractMessages } from "./wa_parse.ts";
 
@@ -138,4 +138,49 @@ Deno.test("extractMessages leaves media undefined for non-media types", () => {
   }));
   assertEquals(text.media, undefined);
   assertEquals(text.text, "coucou");
+});
+
+// ---------------------------------------------------------------------------
+// PIVOT C4 — la réponse d'un WhatsApp Flow
+// ---------------------------------------------------------------------------
+
+Deno.test("extractMessages keeps a Flow reply raw, and never as text", () => {
+  const [msg] = extractMessages(mediaPayload({
+    from: "33600000000",
+    id: "wamid.FLOW",
+    type: "interactive",
+    interactive: {
+      type: "nfm_reply",
+      nfm_reply: {
+        name: "flow",
+        body: "Sent",
+        response_json: JSON.stringify({
+          flow_token: "KEEL_WEEKLY_2026-08-03",
+          energy: "4",
+          weight_kg: "78.4",
+        }),
+      },
+    },
+  }));
+  assertEquals(msg.flow_token, "KEEL_WEEKLY_2026-08-03");
+  assert(String(msg.flow_response_json).includes("weight_kg"));
+  // `text` reste VIDE délibérément: un objet de formulaire qui coulerait dans
+  // `text` serait dédupliqué, stocké et classifié comme une phrase de l'élève.
+  assertEquals(msg.text, "");
+  assertEquals(msg.interactive_id, undefined);
+});
+
+Deno.test("a plain button tap is untouched by the Flow branch", () => {
+  const [msg] = extractMessages(mediaPayload({
+    from: "33600000000",
+    id: "wamid.BTN",
+    type: "interactive",
+    interactive: {
+      type: "button_reply",
+      button_reply: { id: "KEEL_PULSE_GOOD", title: "All good" },
+    },
+  }));
+  assertEquals(msg.interactive_id, "KEEL_PULSE_GOOD");
+  assertEquals(msg.text, "All good");
+  assertEquals(msg.flow_response_json, undefined);
 });

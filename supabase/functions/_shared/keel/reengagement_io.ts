@@ -185,6 +185,12 @@ export function decideForCandidates(
       declaredHardWeek: c.declaredHardWeek,
       hasActivePlan: c.hasActivePlan,
       optedOut: c.optedOut,
+      // ⚠️ DÉCLARATION, PAS OUBLI — la garde crise reste inactive ici.
+      // Même situation que `keel-daily-pulse-v1`: aucun état de crise n'est
+      // persisté ni interrogeable dans ce dépôt. Le champ est requis pour que
+      // l'omission ne puisse plus passer inaperçue. `restrictionFlag`
+      // ci-dessus, lui, EST câblé et mord réellement.
+      safetyBand: null,
       now,
     }),
   }));

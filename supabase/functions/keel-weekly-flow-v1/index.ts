@@ -5,29 +5,40 @@ import { createClient, type SupabaseClient } from "jsr:@supabase/supabase-js@2.8
 import { ensureInternalRequest } from "../_shared/internal-auth.ts";
 import { getRequestId, jsonResponse } from "../_shared/http.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
-import { decideDailyPulse, renderPulseQuestion } from "../_shared/keel/daily_pulse.ts";
-import { loadPulseDay } from "../_shared/keel/daily_pulse_io.ts";
+import {
+  buildWeeklyFlowToken,
+  decideWeeklyFlow,
+  WEEKLY_FLOW_BODY_EN,
+  WEEKLY_FLOW_CTA_EN,
+} from "../_shared/keel/weekly_flow.ts";
+import { hasAnsweredWeek, weekStartOf } from "../_shared/keel/weekly_flow_io.ts";
 import { localHourFor } from "../_shared/keel/reengagement_io.ts";
 
 /**
- * PIVOT NUTRITION — N2 : le job qui envoie le tap du soir.
+ * PIVOT C4 — le job qui envoie le point hebdomadaire.
  *
- * Balayage HORAIRE, parce que la fenêtre (20h-22h) est en heure LOCALE de
- * l'élève : un job quotidien ne pourrait servir correctement qu'un seul fuseau.
- * C'est le même raisonnement que `keel-reengage-v1`, et c'est le bug latent
- * n°2 documenté dans BUILD_PLAN W1.3 (« planificateur cassé hors Europe »).
+ * Balayage HORAIRE pour la même raison que `keel-daily-pulse-v1` : la fenêtre
+ * (dimanche 18h-21h) est en heure LOCALE de l'élève, et un job quotidien ne
+ * servirait correctement qu'un seul fuseau.
  *
  * CE QU'IL FAIT : décider, et poser la question. Il n'écrit pas la réponse —
- * c'est le webhook qui la reçoit et l'écrit, parce que la réponse arrive par
- * un bouton, des minutes ou des heures plus tard.
+ * elle arrive par le webhook sous forme de `nfm_reply`, parfois des heures
+ * plus tard.
  *
- * `dry_run: true` décide sans envoyer : le mode qui permet de voir QUI serait
- * sollicité avant d'ouvrir la vanne.
+ * ── L'ENVOI EST CONDITIONNÉ À UNE CONFIGURATION QU'ON N'A PAS ENCORE ──────
+ * `KEEL_WEEKLY_FLOW_ID` est l'identifiant d'un Flow publié CHEZ META. Tant
+ * qu'il est absent, chaque élève est écarté sur `flow_not_configured` et rien
+ * ne part. C'est voulu : mieux vaut un job qui ne fait rien et le DIT dans son
+ * compte-rendu qu'un job qui émet des bulles vides.
+ *
+ * `dry_run: true` décide sans envoyer.
  */
 
-const FN_NAME = "keel-daily-pulse-v1";
+const FN_NAME = "keel-weekly-flow-v1";
 const PAGE = 200;
 const DEFAULT_BUDGET_MS = 45_000;
+/** L'écran d'entrée du Flow publié. Doit correspondre à `weeklyFlowJson()`. */
+const FLOW_ENTRY_SCREEN = "WEEK_FELT";
 
 function cleanText(v: unknown, fb = ""): string {
   const t = String(v ?? "").trim();
@@ -42,7 +53,7 @@ function adminClient(): SupabaseClient {
   );
 }
 
-/** La date locale de l'élève, pour la clé (user_id, local_date). */
+/** La date locale de l'élève. */
 function localDateFor(now: Date, tz: string | null): string {
   const zone = String(tz ?? "").trim();
   if (!zone) return now.toISOString().slice(0, 10);
@@ -51,6 +62,35 @@ function localDateFor(now: Date, tz: string | null): string {
   } catch {
     return now.toISOString().slice(0, 10);
   }
+}
+
+/** Le jour de la semaine local, 0 = dimanche. */
+function localDowFor(now: Date, tz: string | null): number {
+  const date = localDateFor(now, tz);
+  return new Date(`${date}T00:00:00Z`).getUTCDay();
+}
+
+/**
+ * Le plancher TCA de l'élève.
+ *
+ * On lit le bilan le plus récent, quel que soit son âge : un drapeau de
+ * restriction ne se périme pas au bout d'une semaine, et le lever
+ * automatiquement par simple écoulement du temps serait une décision clinique
+ * prise par un `order by`.
+ */
+async function isRestrictionFlagged(
+  admin: SupabaseClient,
+  userId: string,
+): Promise<boolean> {
+  const { data, error } = await admin
+    .from("weekly_reviews")
+    .select("risk_band")
+    .eq("user_id", userId)
+    .order("week_start_date", { ascending: false })
+    .limit(1);
+  if (error) throw error;
+  const row = (data ?? [])[0] as { risk_band?: string } | undefined;
+  return row?.risk_band === "restriction_flag";
 }
 
 Deno.serve(async (req) => {
@@ -69,6 +109,10 @@ Deno.serve(async (req) => {
       ? Math.min(budgetRaw, 120_000)
       : DEFAULT_BUDGET_MS;
 
+    // Configuration, jamais devinée: pas d'identifiant, pas d'envoi.
+    const flowId = cleanText(body.flow_id) ||
+      cleanText(Deno.env.get("KEEL_WEEKLY_FLOW_ID")) || null;
+
     const admin = adminClient();
     const startedAt = Date.now();
 
@@ -82,7 +126,7 @@ Deno.serve(async (req) => {
     while (true) {
       let q = admin
         .from("profiles")
-        .select("id, timezone, whatsapp_opted_in, whatsapp_opted_out_at, phone_number")
+        .select("id, timezone, whatsapp_opted_in, whatsapp_opted_out_at, phone_number, content_locale")
         .eq("keel_role", "student")
         .order("id", { ascending: true })
         .limit(PAGE);
@@ -101,60 +145,42 @@ Deno.serve(async (req) => {
 
         const tz = row.timezone ? String(row.timezone) : null;
         const localHour = localHourFor(now, tz);
-        const localDate = localDateFor(now, tz);
+        const localDow = localDowFor(now, tz);
 
-        // La fenêtre d'abord: c'est le filtre le moins cher, et il écarte
-        // l'écrasante majorité des élèves à chaque tick.
-        if (localHour === null || localHour < 20 || localHour >= 22) {
+        // La fenêtre d'abord: filtre le moins cher, et il écarte six jours sur
+        // sept avant la moindre requête.
+        if (localHour === null || localDow !== 0 || localHour < 18 || localHour >= 21) {
           bySkip.outside_window = (bySkip.outside_window ?? 0) + 1;
           continue;
         }
 
         try {
-          const day = await loadPulseDay(admin, { userId: cursor, localDate });
-          const planRes = await admin
-            .from("plan_versions")
-            .select("id")
-            .eq("student_id", cursor)
-            .eq("status", "published")
-            .limit(1);
-          if (planRes.error) throw planRes.error;
+          const localDate = localDateFor(now, tz);
+          const weekStart = weekStartOf(localDate);
 
-          // Le plan de l'élève OU un programme publié: en 1:N c'est
-          // `student_week_plans` qui fait foi, mais un élève 1:1 garde son
-          // plan_version. On accepte les deux, sinon le modèle 1:N n'aurait
-          // jamais de tap.
           const swpRes = await admin
             .from("student_week_plans")
             .select("id")
             .eq("user_id", cursor)
+            .eq("status", "adopted")
             .limit(1);
           if (swpRes.error) throw swpRes.error;
 
-          const decision = decideDailyPulse({
+          const decision = decideWeeklyFlow({
+            localDow,
             localHour,
-            answeredToday: day.answeredToday,
-            // Le mode `attach` demande le dernier échange; ce job ne l'a pas
-            // sous la main et l'attachement se décide côté conversation. Ici
-            // on envoie toujours en standalone, ce qui est le cas nominal du
-            // soir (l'élève n'écrit pas à 20h dans la majorité des cas).
-            minutesSinceLastExchange: null,
-            // ⚠️ DÉCLARATION, PAS OUBLI — et la garde reste inactive ici.
-            //
-            // Ce champ était omis, et l'omission était invisible: la garde
-            // `safety_active` de ce job était testée, verte, et ne pouvait pas
-            // mordre. Le champ est devenu REQUIS pour que ça ne puisse plus
-            // arriver en silence.
-            //
-            // Il vaut `null` parce que ce dépôt n'a AUCUN état de crise
-            // persisté et interrogeable: la bande vit dans le tour, pas dans
-            // une table. La câbler pour de bon demande de décider où cet état
-            // s'écrit — une décision de conception, pas une ligne de code, et
-            // elle est remontée telle quelle dans STATUS-MORNING.
+            answeredThisWeek: await hasAnsweredWeek(admin, cursor, weekStart),
+            // EXPLICITE, parce que le type l'exige. Ce dépôt n'a aujourd'hui
+            // aucun état de crise persisté et interrogeable: la bande vit dans
+            // le tour, pas dans une table. Passer `null` est donc une
+            // DÉCLARATION — « ce job ne sait pas » — et pas un oubli. Le
+            // plancher TCA ci-dessous est le signal clinique réel dont on
+            // dispose, et il couvre précisément le risque de cette question.
             safetyBand: null,
+            restrictionFlagged: await isRestrictionFlagged(admin, cursor),
             optedOut: Boolean(row.whatsapp_opted_out_at) || row.whatsapp_opted_in === false,
-            hasActivePlan: ((planRes.data ?? []) as unknown[]).length > 0 ||
-              ((swpRes.data ?? []) as unknown[]).length > 0,
+            hasActivePlan: ((swpRes.data ?? []) as unknown[]).length > 0,
+            flowId,
           });
 
           if (decision.decision === "skip") {
@@ -163,16 +189,20 @@ Deno.serve(async (req) => {
           }
 
           if (!dryRun) {
-            const message = renderPulseQuestion();
             const { error: sendErr } = await admin.functions.invoke("whatsapp-send", {
               body: {
                 user_id: cursor,
                 to: row.phone_number,
-                purpose: "keel_daily_pulse",
+                purpose: "keel_weekly_flow",
                 message: {
-                  type: "interactive_buttons",
-                  body: message.body,
-                  buttons: message.buttons,
+                  type: "interactive_flow",
+                  body: WEEKLY_FLOW_BODY_EN,
+                  flow_id: flowId,
+                  // Le jeton ne porte que la semaine: l'élève est identifié par
+                  // le numéro qui répond, jamais par le contenu du jeton.
+                  flow_token: buildWeeklyFlowToken(weekStart),
+                  flow_cta: WEEKLY_FLOW_CTA_EN,
+                  screen: FLOW_ENTRY_SCREEN,
                 },
               },
             });
@@ -192,6 +222,7 @@ Deno.serve(async (req) => {
     return jsonResponse(req, {
       ok: true,
       dry_run: dryRun,
+      flow_configured: Boolean(flowId),
       scanned,
       sent,
       skipped_by_reason: bySkip,

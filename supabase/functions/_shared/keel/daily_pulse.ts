@@ -174,7 +174,20 @@ export interface PulseDecisionInput {
   answeredToday: boolean;
   /** Minutes depuis le dernier échange, null si aucun. */
   minutesSinceLastExchange: number | null;
-  safetyBand?: "none" | "low" | "medium" | "high" | "critical" | null;
+  /**
+   * REQUIS, pas optionnel — corrigé en C4.
+   *
+   * Il était optionnel, et VÉRIFICATION FAITE, l'unique appelant de production
+   * (`keel-daily-pulse-v1`) ne le renseignait pas. La garde `safety_active`
+   * était donc testée, verte, et DÉSARMÉE en vrai: un élève en crise recevait
+   * « How was today? » à 20h. C'est la classe de défaut la plus fréquente de ce
+   * dépôt — des sondes vertes sur un chemin que la production ne prend pas.
+   *
+   * Un paramètre requis force chaque appelant à DIRE ce qu'il sait, quitte à
+   * dire `null`. Un `null` explicite est une déclaration; une clé absente est
+   * un oubli, et rien ne distingue les deux quand le champ est optionnel.
+   */
+  safetyBand: "none" | "low" | "medium" | "high" | "critical" | null;
   optedOut?: boolean;
   hasActivePlan: boolean;
 }

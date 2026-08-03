@@ -59,6 +59,17 @@ export type WhatsAppInboundMessage = {
    * exactly as before (fallback reply), because there is nothing to fetch.
    */
   media?: WhatsAppInboundMedia;
+  /**
+   * PIVOT C4 — la réponse d'un WhatsApp Flow (`interactive.nfm_reply`).
+   *
+   * Gardée BRUTE, en chaîne, telle que Meta l'a rendue. Le parsing appartient
+   * au module qui connaît le formulaire (`_shared/keel/weekly_flow.ts`): ce
+   * fichier ne sait pas ce qu'un Flow demande, et deviner ici la forme d'un
+   * formulaire hébergé ailleurs est exactement la divergence qu'on veut éviter.
+   */
+  flow_response_json?: string;
+  /** Le jeton de corrélation qu'on avait émis, rendu tel quel. */
+  flow_token?: string;
 };
 
 function cleanOrNull(value: unknown): string | null {
@@ -104,6 +115,8 @@ export function extractMessages(payload: any): WhatsAppInboundMessage[] {
         let interactive_id: string | undefined = undefined;
         let interactive_title: string | undefined = undefined;
         let media: WhatsAppInboundMedia | undefined = undefined;
+        let flow_response_json: string | undefined = undefined;
+        let flow_token: string | undefined = undefined;
         if (type === "text") text = m.text?.body ?? "";
         else if (type === "button") {
           // Normalize button payloads as interactive ids for consistent routing
@@ -113,9 +126,33 @@ export function extractMessages(payload: any): WhatsAppInboundMessage[] {
         } else if (type === "interactive") {
           const br = m.interactive?.button_reply;
           const lr = m.interactive?.list_reply;
-          interactive_id = br?.id ?? lr?.id;
-          interactive_title = br?.title ?? lr?.title;
-          text = interactive_title ?? interactive_id ?? "";
+          const nfm = m.interactive?.nfm_reply;
+          if (nfm) {
+            // C4: une réponse de Flow. `text` reste vide DÉLIBÉRÉMENT — le
+            // `response_json` est un objet de formulaire, pas une phrase, et le
+            // laisser couler dans `text` le ferait traiter comme un message de
+            // l'élève par la déduplication, le stockage et le classifieur.
+            const rawResponse: string = typeof nfm.response_json === "string"
+              ? nfm.response_json
+              : JSON.stringify(nfm.response_json ?? {});
+            flow_response_json = rawResponse;
+            // Meta range le `flow_token` DANS le response_json. On le remonte
+            // ici parce que c'est de la corrélation de transport, pas de la
+            // donnée de formulaire — et parce qu'un routeur doit pouvoir dire
+            // « ce Flow-ci » sans avoir à comprendre le formulaire.
+            try {
+              const parsed = JSON.parse(rawResponse);
+              const t = parsed?.flow_token;
+              if (typeof t === "string" && t.trim()) flow_token = t.trim();
+            } catch {
+              // Illisible: on garde la chaîne brute, le module métier le dira.
+            }
+            text = "";
+          } else {
+            interactive_id = br?.id ?? lr?.id;
+            interactive_title = br?.title ?? lr?.title;
+            text = interactive_title ?? interactive_id ?? "";
+          }
         } else if (isMediaType(type)) {
           // Keep media inbound messages so the webhook can answer with a friendly fallback.
           // W5.1: ALSO keep the media descriptor. `text` stays "" on purpose —
@@ -139,7 +176,9 @@ export function extractMessages(payload: any): WhatsAppInboundMessage[] {
           reply_to_wa_message_id: m.context?.id ?? undefined,
           profile_name: profileName,
           sim_user_id: m.sophia_user_id ?? m.metadata?.sophia_user_id ?? undefined,
-          media
+          media,
+          flow_response_json,
+          flow_token
         });
       }
     }

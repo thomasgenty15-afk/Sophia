@@ -34,6 +34,7 @@ function input(over: Partial<ReengageInput> = {}): ReengageInput {
   return {
     lastInboundAt: hoursAgo(80),
     localHour: 10,
+    safetyBand: null,
     hasActivePlan: true,
     now: NOW,
     ...over,

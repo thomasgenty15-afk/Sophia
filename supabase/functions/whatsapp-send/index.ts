@@ -43,12 +43,33 @@ type SendInteractiveButtons = {
   body: string;
   buttons: Array<{ id: string; title: string }>;
 };
+/**
+ * PIVOT C4 — un WhatsApp Flow: le seul moyen de recueillir plus de trois
+ * valeurs en une interaction.
+ *
+ * `flow_token` fait l'aller-retour et revient dans le `nfm_reply`: c'est la
+ * clé de corrélation, et elle ne doit porter aucune identité (voir
+ * `_shared/keel/weekly_flow.ts` pour le pourquoi).
+ *
+ * `flow_id` est une donnée de CONFIGURATION: le Flow est un objet hébergé par
+ * Meta. Cette fonction ne le devine pas et n'en fabrique pas — l'appelant le
+ * fournit, ou il n'y a pas de message.
+ */
+type SendInteractiveFlow = {
+  type: "interactive_flow";
+  body: string;
+  flow_id: string;
+  flow_token: string;
+  flow_cta: string;
+  /** L'écran d'entrée du Flow publié. */
+  screen: string;
+};
 
 type Body = {
   user_id: string;
   // If provided, overrides profile phone number
   to?: string;
-  message: SendText | SendTemplate | SendInteractiveButtons;
+  message: SendText | SendTemplate | SendInteractiveButtons | SendInteractiveFlow;
   // Optional metadata/purpose for logging & throttling
   purpose?: string;
   // Extra metadata merged into chat_messages.metadata (for cooldown/idempotence/debug)
@@ -772,6 +793,45 @@ Deno.serve(async (req) => {
           },
         },
       };
+    } else if (body.message.type === "interactive_flow" && !mustUseTemplate) {
+      const flowId = String(body.message.flow_id ?? "").trim();
+      const flowToken = String(body.message.flow_token ?? "").trim();
+      if (!flowId || !flowToken) {
+        // Un Flow sans identifiant ou sans jeton produirait une bulle vide chez
+        // l'élève, et une réponse qu'on ne saurait rattacher à personne. On
+        // échoue AVANT l'envoi plutôt que de laisser Meta rendre l'erreur.
+        return await preflightErrorResponse({
+          req,
+          requestId,
+          userId: userIdForLog,
+          status: 400,
+          error: "Interactive flow requires both flow_id and flow_token",
+          purpose,
+          metadataExtra,
+        });
+      }
+      graphPayload = {
+        messaging_product: "whatsapp",
+        to: toE164.replace("+", ""),
+        type: "interactive",
+        interactive: {
+          type: "flow",
+          body: { text: body.message.body.slice(0, 1024) },
+          action: {
+            name: "flow",
+            parameters: {
+              flow_message_version: "3",
+              flow_id: flowId,
+              flow_token: flowToken,
+              flow_cta: String(body.message.flow_cta ?? "Open").slice(0, 20),
+              flow_action: "navigate",
+              flow_action_payload: {
+                screen: String(body.message.screen ?? "").trim(),
+              },
+            },
+          },
+        },
+      };
     } else if (body.message.type === "text" && !mustUseTemplate) {
       graphPayload = {
         messaging_product: "whatsapp",
@@ -844,7 +904,8 @@ Deno.serve(async (req) => {
     const contentForLog = graphPayload?.type === "template"
       ? renderedTemplate?.content ?? `[TEMPLATE:${graphTemplateName}]`
       : body.message.type === "text" ||
-          body.message.type === "interactive_buttons"
+          body.message.type === "interactive_buttons" ||
+          body.message.type === "interactive_flow"
       ? body.message.body
       : renderedTemplate?.content ?? `[TEMPLATE:${body.message.name}]`;
 

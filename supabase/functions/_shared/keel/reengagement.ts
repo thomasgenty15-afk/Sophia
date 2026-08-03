@@ -104,7 +104,13 @@ export interface ReengageInput {
   /** Student's local hour, 0..23. The caller resolves the timezone. */
   localHour: number;
   /** Safety band from the pregate. Anything but 'none' stops the nudge. */
-  safetyBand?: "none" | "low" | "medium" | "high" | "critical" | null;
+  /**
+   * REQUIS, pas optionnel — corrigé en C4, même défaut que `decideDailyPulse`:
+   * `keel-reengage-v1` ne le renseignait pas, donc la garde ne pouvait pas
+   * mordre en production. Voir l'en-tête de `daily_pulse.ts` pour le
+   * raisonnement complet.
+   */
+  safetyBand: "none" | "low" | "medium" | "high" | "critical" | null;
   /** The deterministic TCA floor. Adherence pressure stops entirely. */
   restrictionFlag?: boolean;
   /** Did the student declare a hard week? Softens the tone, never the plan. */

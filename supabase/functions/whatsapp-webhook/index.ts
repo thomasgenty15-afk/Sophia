@@ -12,6 +12,12 @@ import {
   writePulseAxis,
   writePulseLevel,
 } from "../_shared/keel/daily_pulse_io.ts";
+// PIVOT C4 — le point hebdomadaire, reçu comme réponse de WhatsApp Flow.
+import {
+  parseWeeklyFlowToken,
+  renderWeeklyFlowAck,
+} from "../_shared/keel/weekly_flow.ts";
+import { writeWeeklyFlowReply } from "../_shared/keel/weekly_flow_io.ts";
 import { sendWhatsAppButtonsTracked } from "./wa_whatsapp_api.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
 import { extractMessages, extractStatuses } from "./wa_parse.ts";
@@ -848,6 +854,47 @@ Deno.serve(async (req) => {
         // `readPulseReply` ne lit QUE `interactive_id`, jamais le texte: un
         // « moyen » tapé à la main dans une conversation en cours n'est pas
         // une réponse au tap, et le dispatcher le traite mieux que nous.
+        // ── C4 : LA RÉPONSE DU POINT HEBDOMADAIRE ──────────────────────────
+        //
+        // Avant le tap et avant le dispatcher, pour la même raison qu'eux: un
+        // `response_json` est un objet de formulaire, pas une phrase. Le
+        // laisser descendre jusqu'au classifieur ferait analyser du JSON comme
+        // un message d'élève.
+        //
+        // L'ATTRIBUTION NE VIENT PAS DU JETON. Le jeton dit la SEMAINE;
+        // l'élève est `profile.id`, résolu depuis le numéro qui écrit, comme
+        // pour n'importe quel entrant. Un jeton qui ferait l'aller-retour avec
+        // un identifiant dedans serait un identifiant modifiable désignant la
+        // ligne à écrire.
+        const flowWeek = parseWeeklyFlowToken(msg.flow_token ?? null);
+        if (msg.flow_response_json && flowWeek) {
+          try {
+            const written = await writeWeeklyFlowReply(admin, {
+              userId: profile.id,
+              weekStart: flowWeek,
+              responseJson: msg.flow_response_json,
+              contentLocale: profile.content_locale ?? "en-GB",
+            });
+            await sendPulseReply({
+              admin,
+              userId: profile.id,
+              toE164: fromE164,
+              requestId: processId,
+              ack: renderWeeklyFlowAck(written.reply),
+              followUp: null,
+            });
+          } catch (error) {
+            // On ne laisse PAS le tour retomber sur le dispatcher en cas
+            // d'échec: il analyserait le JSON du formulaire comme une phrase.
+            console.error("keel.weekly_flow.write_failed", {
+              user_id: profile.id,
+              week: flowWeek,
+              error: error instanceof Error ? error.message : String(error),
+            });
+          }
+          continue;
+        }
+
         const pulseReply = readPulseReply(msg.interactive_id ?? null);
         if (pulseReply.kind !== "none") {
           const pulseLocalDate = keelLocalDateForUser(profile);
