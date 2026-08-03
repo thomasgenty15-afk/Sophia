@@ -39,7 +39,7 @@ corrigé — arbitrage produit). Plus un red line global (français sur surface
 | 4 | Étiquette nutritionnelle (kcal lisibles) | aucune kcal en base ni dans l'accusé | `image_quality=unusable`, 0 aliment, 0 chiffre, `quantity/unit/substance_ref` NULL | **GREEN** | P-A, §4 |
 | 5 | Photo non-nourriture (bureau) | rien d'inventé | idem, rien inventé | **GREEN** | P-A |
 | 6 | Photo floue | `unclear` assumé, pas d'invention confiante | `image_quality=partial`, crédit null, doute annoncé | **AMBER** | §6 |
-| 7 | Menu resto / screenshot livraison | pas un repas mangé, honnête | menu → `unusable`, rien écrit | **AMBER** | §7 |
+| 7 | Menu resto / screenshot livraison | pas un repas mangé, honnête | menu → `unusable` ; screenshot livraison → **lu comme un repas** sur un run, `unusable` sur le suivant | **RED** | P1-4, §7 |
 | 8 | Doublons | même `wamid` → 1 ligne ; 2 photos distinctes → 2 lignes | 2 livraisons du même wamid → **1 ligne** ; 16 lignes / 16 `source_message_id` distincts | **GREEN** | P-B |
 | 9 | Rafale de 10 photos | `enforce_rate_limit` mord, message localisé, pas de 500 | mord à 6/600 s, 7 messages `keel_meal_photo_rate_limited` en anglais, 0 erreur | **GREEN** | P-C |
 | 10 | Vidéo / vocal / sticker / document | repli gracieux par type | repli OK **mais en français** sur surface élève KEEL | **RED → corrigé** | P0-3 |
@@ -244,6 +244,35 @@ présent pour le persona central, parce que c'est le **départageur** qui manque
 pas le groupe. L'information survit dans `recognized.food_groups_present`, que
 R5 interdit à l'évaluateur de lire.
 
+### P1-4 — Un screenshot d'app de livraison peut créditer une ligne du plan
+
+Rien dans le pipeline ne distingue **une assiette mangée** d'une **image
+d'aliments** (menu, screenshot de commande, publicité, photo de frigo). Le
+comportement n'est donc pas *défini* : il est ce que le modèle dit ce jour-là.
+
+Même image (screenshot FoodDash : 4 plats, prix, et « 820 kcal / 540 kcal /
+410 kcal / 220 kcal » parfaitement lisibles), deux runs consécutifs :
+
+```
+run 1 : image_quality=partial · detected = sweet and sour chicken, egg fried rice,
+        spring rolls, prawn crackers
+        groups = [poultry, refined_grain, fried_food, eggs, sauce_dressing, sugar_sweets]
+        portion_band=unclear · food_group_ref=NULL · leaks_kcal=false
+run 2 : image_quality=unusable · 0 aliment · credit_reason=no_group_detected
+```
+
+Le run 1 n'a rien crédité **par accident** : six groupes détectés, aucun
+départageable sur ce plan. Si une seule de ces six lignes avait été au plan du
+jour, `resolveFoodGroupCredit` aurait écrit le crédit — **une commande qui n'a
+peut-être jamais été mangée créditerait une ligne**.
+
+Le bon côté, et il est solide : **aucune kcal n'a fuité** alors que quatre
+étaient lisibles à l'écran, et `quantity`/`unit`/`substance_ref` restent NULL.
+NON-INPUT #4 tient même sur l'entrée la plus tentante du corpus.
+
+Correctif proposé en §Fixes proposés (5) : le token `not_a_meal` manquant sert
+aussi ici — c'est la même information absente.
+
 ### P2-1 — Un accusé identique pour « illisible » et « ce n'est pas un repas »
 
 Étiquette nutritionnelle, bureau, menu de restaurant → tous `image_quality =
@@ -355,8 +384,8 @@ question, jamais les deux (`ack_has_question=false` partout où
   et non `unclear` sur une image où la portion n'est franchement pas jugeable —
   AMBER plutôt que GREEN.
 - **§7 menu** : `unusable`, rien écrit. Bon résultat, mauvaise phrase (P2-1).
-  Le screenshot d'app de livraison n'a pas pu être testé (fenêtre de débit
-  saturée par la rafale) — **NON TESTÉ**, à rejouer.
+  Le screenshot d'app de livraison, lui, est instable d'un run à l'autre et
+  peut être lu comme un repas — voir P1-4.
 - **§11 légende** : la légende n'atteint **jamais** le modèle — le port
   `analyze_meal_photo` reçoit `caption` mais le `fetch` vers
   `analyze-meal-photo-v1` n'envoie que `protocol_event_id`, `base64`,
@@ -417,9 +446,13 @@ base** (erreurs `implicit any` préexistantes du fichier).
    soit un départageur par confiance quand il n'y a pas de plan. La première
    est plus honnête : la ligne dit tout ce qui a été vu, l'évaluateur choisit.
 
-5. **P2-1 — séparer « illisible » de « pas un repas ».** `image_quality` a déjà
-   trois valeurs ; il manque un token `not_a_meal`. Sans lui, le renderer ne
-   peut pas dire la vérité.
+5. **P2-1 + P1-4 — séparer « illisible » de « pas un repas ».** `image_quality`
+   a trois valeurs (`clear`/`partial`/`unusable`) ; il manque le quatrième cas,
+   qui n'est pas une qualité d'image mais une nature de sujet. Proposition :
+   un champ distinct `subject ∈ {eaten_meal, food_not_eaten, not_food}` demandé
+   au prompt, puis **`resolveFoodGroupCredit` ne crédite QUE `eaten_meal`**.
+   Sans lui, le renderer ne peut pas dire la vérité (P2-1) *et* rien n'empêche
+   un menu de créditer une ligne (P1-4). Un seul champ ferme les deux.
 
 6. **P3-1 — `updated_at` sur `protocol_events`**, sinon un `force` de rattrapage
    est invisible à l'audit.
@@ -437,10 +470,8 @@ base** (erreurs `implicit any` préexistantes du fichier).
   appelle, avec les mêmes octets inline. Ce qui reste non prouvé en local :
   `fetchWhatsAppMedia` sur une vraie URL Graph, et le rendu du message chez
   Meta. À prouver en réel avec un numéro de test et une photo envoyée à la main.
-- **Screenshot d'app de livraison (§7b)** : non exécuté (fenêtre de débit
-  saturée). À rejouer, c'est une seule commande.
 - Aucun template ni Flow Meta n'intervient sur ce chemin — rien d'autre à
-  marquer ici.
+  marquer ici. Les 12 scénarios du mandat ont tous été exécutés.
 
 ---
 
