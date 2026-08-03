@@ -27,6 +27,12 @@
  * that names a `severity='medical'` token is rejected, deterministically.
  */
 
+import {
+  type ForbiddenMatchOptions,
+  findForbiddenMatches,
+  type ForbiddenTerm,
+} from "./forbidden_matcher.ts";
+
 // ---------------------------------------------------------------------------
 // Row shape
 // ---------------------------------------------------------------------------
@@ -202,53 +208,8 @@ export class MedicalConstraintViolationError extends Error {
   }
 }
 
-/** NFD-strip diacritics + lowercase, so 'proteine' matches 'proteine'. */
-function normalizeForMatch(text: string): string {
-  return text.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
-}
-
-function escapeRegex(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-/**
- * A slug becomes a tolerant word pattern: 'tree_nut' matches "tree nut",
- * "tree-nut", "tree nuts"; 'vitamin_d3' matches "vitamin d3". Word boundaries
- * are lookarounds on letters/digits so "peanut" does not match "peanuts" only
- * by luck, and does not match inside an unrelated word.
- */
-function tokenPattern(token: string): RegExp {
-  const parts = normalizeForMatch(token)
-    .split(/[_\s-]+/)
-    .filter(Boolean)
-    .map(escapeRegex);
-  const body = parts.join("[\\s\\-_]*");
-  return new RegExp(`(?<![a-z0-9])${body}(?:e?s)?(?![a-z0-9])`, "gi");
-}
-
-/**
- * CLOSED list of constructions that make a mention SAFE.
- *
- * Why this exists: the contract says "rejects any output containing a
- * severity='medical' token", and taken absolutely that rejects "gluten-free
- * bread" for the coeliac student whose plan is literally made of gluten-free
- * items (acceptance fixture 3). A validator that rejects every legitimate turn
- * gets switched off within a week, which is a worse outcome than a narrow,
- * documented, tested exception list. Pass `allowNegatedMentions: false` for the
- * absolute reading (audit mode).
- *
- * EN + FR because the legacy branch still generates French.
- */
-const NEGATION_BEFORE =
-  /(?:\b(?:no|not|without|avoid|avoids|avoiding|skip|skips|exclude|excludes|excluding|never|instead\s+of|free\s+(?:from|of)|allergic\s+to|allergy\s+to|intolerant\s+to|sans|pas|aucun|aucune|eviter|evite|evitez|remplace|remplacer|a\s+la\s+place)\s+(?:any\s+|all\s+|the\s+|some\s+|du\s+|de\s+la\s+|de\s+l'\s*|des\s+|de\s+|d'\s*)*)$/;
-
-const NEGATION_AFTER =
-  /^(?:\s*[-\s]?free\b|\s*[-\s]?sans\b|\s+allerg(?:y|ies|ic|ie|ique|ies)\b|\s+intoleran(?:ce|t)\b)/;
-
-export type MedicalConstraintCheckOptions = {
-  /** Default true. See NEGATION_BEFORE for why. */
-  allowNegatedMentions?: boolean;
-};
+/** Alias, not a copy: the negation policy is one decision, made in one place. */
+export type MedicalConstraintCheckOptions = ForbiddenMatchOptions;
 
 /**
  * Pure, deterministic, zero-I/O. Returns every medical-token occurrence that
@@ -260,45 +221,23 @@ export function findMedicalConstraintViolations(
   constraints: readonly StudentSafetyConstraint[],
   options: MedicalConstraintCheckOptions = {},
 ): MedicalConstraintViolation[] {
-  const allowNegated = options.allowNegatedMentions !== false;
-  const haystackRaw = String(text ?? "");
-  if (!haystackRaw.trim()) return [];
-  const haystack = normalizeForMatch(haystackRaw);
-  // Diacritic stripping preserves length for precomposed input, but not for
-  // already-decomposed input. When the two disagree, report the normalized
-  // match rather than slicing the raw text at a shifted offset.
-  const offsetsAligned = haystack.length === haystackRaw.length;
-  const violations: MedicalConstraintViolation[] = [];
+  // The engine lives in `forbidden_matcher.ts` -- see that file's header for
+  // why. This function keeps its exact signature, its exact semantics and its
+  // exact tests; what it no longer keeps is a private second copy of the
+  // normalization and negation rules that the coach-doctrine lock also needs.
+  const terms: ForbiddenTerm[] = [];
   for (const constraint of constraints) {
     if (constraint.severity !== "medical") continue;
     for (const token of safetyConstraintTokens(constraint)) {
-      const pattern = tokenPattern(token);
-      let match: RegExpExecArray | null;
-      while ((match = pattern.exec(haystack)) !== null) {
-        if (match[0].length === 0) {
-          pattern.lastIndex += 1;
-          continue;
-        }
-        const before = haystack.slice(0, match.index);
-        const after = haystack.slice(match.index + match[0].length);
-        if (
-          allowNegated &&
-          (NEGATION_BEFORE.test(before) || NEGATION_AFTER.test(after))
-        ) {
-          continue;
-        }
-        violations.push({
-          constraintId: constraint.id,
-          token: token.trim().toLowerCase(),
-          matchedText: offsetsAligned
-            ? haystackRaw.slice(match.index, match.index + match[0].length)
-            : match[0],
-          index: match.index,
-        });
-      }
+      terms.push({ ruleId: constraint.id, token });
     }
   }
-  return violations;
+  return findForbiddenMatches(text, terms, options).map((m) => ({
+    constraintId: m.ruleId,
+    token: m.token,
+    matchedText: m.matchedText,
+    index: m.index,
+  }));
 }
 
 /**

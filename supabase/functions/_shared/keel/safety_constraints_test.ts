@@ -117,17 +117,47 @@ Deno.test("loadStudentSafetyConstraints — an empty set is a legitimate answer"
 Deno.test("safety constraints are loaded OUTSIDE the LLM memory path", async () => {
   // Structural, not aspirational: this module must not reach the memorizer,
   // the embedding runtime, or anything that produces 'candidate' items.
-  const source = await Deno.readTextFile(
-    new URL("./safety_constraints.ts", import.meta.url),
+  //
+  // This assertion used to be "zero imports", which was the correct enforcement
+  // while the module had no dependencies. It now has exactly one -- the shared
+  // token matcher, extracted so that the coach-doctrine lock could not become a
+  // second, divergent copy of these matching rules (see forbidden_matcher.ts).
+  //
+  // "Zero imports" is therefore replaced by the invariant it was standing in
+  // for, checked TRANSITIVELY: every module reachable from this one is on a
+  // closed allowlist, is itself import-free, and none of them names the memory
+  // path. That is strictly stronger than the original -- the original only ever
+  // looked at one file, and would have said nothing about what a dependency
+  // dragged in.
+  const ALLOWED_DEPS = ["./forbidden_matcher.ts"];
+
+  const readImports = async (file: string): Promise<[string, string[]]> => {
+    const source = await Deno.readTextFile(new URL(file, import.meta.url));
+    return [source, [...source.matchAll(/from\s+"([^"]+)"/g)].map((m) => m[1])];
+  };
+
+  const [rootSource, rootImports] = await readImports("./safety_constraints.ts");
+  assertEquals(
+    rootImports,
+    ALLOWED_DEPS,
+    "this module may only import the shared token matcher",
   );
-  const imports = [...source.matchAll(/from\s+"([^"]+)"/g)].map((m) => m[1]);
-  assertEquals(imports, [], "this module must have zero imports");
-  for (const forbidden of ["memory", "memorizer", "embedding", "pgvector"]) {
-    assertEquals(
-      source.toLowerCase().includes(`/${forbidden}`),
-      false,
-      `must not reference the ${forbidden} path`,
-    );
+
+  const sources: Array<[string, string]> = [["safety_constraints.ts", rootSource]];
+  for (const dep of ALLOWED_DEPS) {
+    const [depSource, depImports] = await readImports(dep);
+    assertEquals(depImports, [], `${dep} must itself have zero imports`);
+    sources.push([dep, depSource]);
+  }
+
+  for (const [name, source] of sources) {
+    for (const forbidden of ["memory", "memorizer", "embedding", "pgvector"]) {
+      assertEquals(
+        source.toLowerCase().includes(`/${forbidden}`),
+        false,
+        `${name} must not reference the ${forbidden} path`,
+      );
+    }
   }
 });
 
@@ -254,4 +284,36 @@ Deno.test("validator — reports every occurrence, from every constraint", () =>
   );
   assertEquals(violations.length, 3);
   assertEquals(violations.map((v) => v.constraintId).sort(), ["a", "a", "b"]);
+});
+
+Deno.test("validator — French determiners after a negation are safe (regression)", () => {
+  // FOUND WHILE BUILDING THE COACH-DOCTRINE LOCK, and it was live here first.
+  // The shared negation list stopped at `de`/`du`/`des`/`d'`, so the commonest
+  // French determiners were missing and these sentences were all REJECTED:
+  // a validator that rejects "évite les cacahuètes" is a validator that gets
+  // switched off. Fixed once in forbidden_matcher.ts, which is why the fix
+  // reaches this lock without anyone porting it.
+  for (const safe of [
+    "Évite les cacahuètes dans ce plat.",
+    "Supprime le beurre de cacahuète du petit-déjeuner.",
+    "On ne met jamais la cacahuète dans cette recette.",
+    "Remplace les cacahuètes par des graines de courge.",
+    "Avoid your peanut butter here.",
+  ]) {
+    assertEquals(
+      findMedicalConstraintViolations(safe, [constraint()]).length,
+      0,
+      safe,
+    );
+  }
+
+  // And the endorsement is still caught — the fix widened the negation list,
+  // it did not open the gate.
+  assertEquals(
+    findMedicalConstraintViolations(
+      "Ajoute des cacahuètes sur ton yaourt.",
+      [constraint({ allergenRef: "cacahuete" })],
+    ).length,
+    1,
+  );
 });

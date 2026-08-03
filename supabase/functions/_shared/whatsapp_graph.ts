@@ -177,6 +177,56 @@ export const WHATSAPP_MEDIA_MAX_BYTES = 8 * 1024 * 1024
 const STUB_PNG_BASE64 =
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
 
+/**
+ * FIXTURE INJECTION for the non-network transports (pivot nutrition, N1/N2).
+ *
+ * THE PROBLEM THIS SOLVES. The three test transports return a 1x1 PNG. That is
+ * exactly right for proving the plumbing (upload, insert, idempotence), and
+ * useless for proving the PRODUCT: a 1x1 pixel sent to the vision model can
+ * never produce "I see chicken and broccoli". So the whole photo half of the
+ * simulated week (PLAN-NUIT §7.4 N2: J1 chicken-and-rice, J2 the recurring
+ * breakfast, J3 a plate with visible nuts) was unprovable in the simulator —
+ * not because the pipeline was wrong, but because no real image could reach it.
+ *
+ * The fix keeps the default byte-for-byte identical and adds ONE door:
+ * `globalThis.__SOPHIA_WA_MEDIA_FIXTURES`, a map of media_id -> {bytes, mime}.
+ * A harness registers a real photo under the media id it is about to send; the
+ * transport serves it; every other caller keeps getting the 1x1 PNG.
+ *
+ * WHY A GLOBAL AND NOT AN ENV VAR: the same process must serve DIFFERENT images
+ * for different media ids within one simulated week, and an env var is one
+ * value for the life of the process. Same mechanism as `__SOPHIA_WA_LOOPBACK`
+ * right below, and same blast radius: it is only ever read AFTER the three
+ * network-free doors have already been taken, so a production run — where all
+ * three are shut — cannot reach this code at all, whatever the global holds.
+ */
+export type WhatsAppMediaFixture = { bytes: Uint8Array; mime_type: string }
+
+export function registerWhatsAppMediaFixture(
+  mediaId: string,
+  fixture: WhatsAppMediaFixture,
+): void {
+  const id = String(mediaId ?? "").trim()
+  if (!id) throw new Error("registerWhatsAppMediaFixture: empty media id")
+  const g = globalThis as any
+  if (!g.__SOPHIA_WA_MEDIA_FIXTURES) g.__SOPHIA_WA_MEDIA_FIXTURES = new Map()
+  g.__SOPHIA_WA_MEDIA_FIXTURES.set(id, fixture)
+}
+
+export function clearWhatsAppMediaFixtures(): void {
+  ;(globalThis as any).__SOPHIA_WA_MEDIA_FIXTURES = undefined
+}
+
+function mediaFixtureFor(mediaId: string): WhatsAppMediaFixture | null {
+  const store = (globalThis as any).__SOPHIA_WA_MEDIA_FIXTURES
+  if (!store || typeof store.get !== "function") return null
+  const hit = store.get(String(mediaId ?? "").trim())
+  if (!hit || !(hit.bytes instanceof Uint8Array) || hit.bytes.byteLength === 0) {
+    return null
+  }
+  return { bytes: hit.bytes, mime_type: String(hit.mime_type || "image/jpeg") }
+}
+
 function stubMediaBytes(): Uint8Array {
   const binary = atob(STUB_PNG_BASE64)
   const bytes = new Uint8Array(binary.length)
@@ -244,9 +294,12 @@ export async function fetchWhatsAppMedia(
   }
 
   const stub = (transport: WhatsAppMediaTransport): WhatsAppMediaFetchOk => {
-    const bytes = stubMediaBytes()
+    // A registered fixture wins over the 1x1 PNG; absent one, nothing changes.
+    const fixture = mediaFixtureFor(id)
+    const bytes = fixture?.bytes ?? stubMediaBytes()
     return {
-      ok: true, media_id: id, bytes, mime_type: "image/png", sha256: null,
+      ok: true, media_id: id, bytes,
+      mime_type: fixture?.mime_type ?? "image/png", sha256: null,
       declared_size: bytes.byteLength, byte_length: bytes.byteLength, transport,
     }
   }

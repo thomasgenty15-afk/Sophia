@@ -230,3 +230,64 @@ enverrait de VRAIS emails via Resend. Je ne modifie pas le fichier de Thomas ; t
 nuit utilisent un override de scratchpad (`night.env`) avec `EMAIL_DELIVERY_ENABLED=0`,
 `WHATSAPP_DELIVERY_ENABLED=0`, `MEGA_TEST_MODE=1`.
 **À relire au matin** : `EMAIL_DELIVERY_ENABLED=1` en local est un pistolet chargé.
+
+---
+
+## 04:55 — P1.5 : VERT — injection doctrine en couches + double verrou
+
+Trois fichiers neufs/refondus dans `_shared/keel/` :
+
+### `forbidden_matcher.ts` (neuf) — UN moteur, deux verrous
+Le produit a **deux** verrous post-génération qui sont la même mécanique pointée sur deux listes :
+les contraintes médicales de l'ÉLÈVE (existant) et les INTERDITS du COACH (§3.3, neuf).
+Écrire le second en copiant le premier aurait produit le pattern §7.3-(6) — deux sources de
+vérité qui divergent. Et elles **auraient** divergé : la liste des négations est précisément la
+partie qu'on édite (chaque faux positif « gluten-free » ajoute une construction).
+Donc : moteur extrait, `safety_constraints.ts` refondu pour le consommer, comportement identique
+prouvé par ses 14 tests d'origine **inchangés**.
+
+⚠️ **J'ai modifié un test de sécurité** — à relire au matin. `safety_constraints_test.ts`
+assertait « zéro import » comme preuve de « ne touche jamais le chemin mémoire ». Mon extraction
+ajoute un import. Je ne l'ai pas affaibli : il vérifie maintenant l'invariant **transitivement**
+(allowlist fermée de dépendances + chaque dépendance elle-même sans import + aucune ne nomme le
+chemin mémoire). C'est strictement plus fort : l'ancien ne regardait qu'un fichier et n'aurait
+rien dit de ce qu'une dépendance traînait.
+
+### **DEUX BUGS RÉELS trouvés par les tests neufs — ils étaient déjà dans le verrou médical**
+1. **Faux positifs sur les déterminants français.** La liste de négations s'arrêtait à
+   `de/du/des/d'` : « **évite les** cacahuètes », « **supprime le** beurre de cacahuète »,
+   « on ne met **jamais la** cacahuète » étaient tous **REJETÉS**. Un validateur qui rejette
+   « évite les cacahuètes » est un validateur qu'on débranche dans la semaine. Corrigé une fois,
+   les deux verrous en profitent. Test de régression ajouté côté safety.
+2. **Une occurrence comptée deux fois.** Le token `six_small_meals` produit un motif qui matche
+   déjà la forme de surface littérale « six small meals » → 2 violations pour 1 phrase. Ça gonfle
+   le log d'incidents, le chiffre « combien de fois l'agent m'a contredit » que lit le coach, et
+   l'instruction de reprise. Dédup par (règle, offset), la plus longue gagne.
+
+### `doctrine.ts` (neuf) — la méthode du coach, compilée
+- `compileDoctrineBlock()` : croyances / INTERDITS / vocabulaire / arbitrages / voix → un bloc,
+  **déterministe** (le hash est la clé de cache : une compilation non déterministe raterait le
+  cache à chaque tour et multiplierait la facture en silence).
+- **Invalidation §3.7 brique 6** : le hash dérive du **contenu**, pas d'un numéro de version
+  qu'un appelant peut oublier de bumper. Un coach qui édite à 14h02 est servi à 14h03.
+- `assembleTurnPrompt()` : les 5 couches §3.3 dans l'ordre. **SYSTEM CORE en premier et
+  non-surchargeable** — un coach ne peut pas écrire « ignore les règles de safety » dans ses
+  croyances et se retrouver au-dessus d'elles (testé). Couche vide = **omise**, pas un en-tête
+  vide (« ça existe et c'est vide » est une autre affirmation que « ça ne s'applique pas »).
+- `doctrineCachePrefix()` : le préfixe partageable entre tous les élèves d'un coach.
+
+### La divergence VOULUE entre les deux verrous (le cœur du design)
+- **Allergie** : le danger est la SUGGESTION. « Ajoute du beurre de cacahuète » est le mal.
+- **Interdit** : le danger est l'ADHÉSION, pas le mot. L'agent **doit** pouvoir dire
+  « Marc ne fait pas de 6 petits repas » — cette phrase EST la doctrine qui fonctionne. La
+  rejeter rendrait l'agent incapable d'expliquer la méthode de son propre coach.
+C'est le cas qui rend la liste d'exceptions structurante et non cosmétique. Testé dans les deux
+sens.
+
+### DoD vérifiée
+```bash
+deno test --allow-all supabase/functions/_shared/keel/     # 328 passed | 0 failed
+```
+21 tests neufs sur la doctrine + 1 régression safety.
+**Reste** : brancher l'assemblage dans le composeur de `sophia-brain` (P1.4/P1.5b) — le module
+est prêt et testé, le câblage runtime ne l'est pas.

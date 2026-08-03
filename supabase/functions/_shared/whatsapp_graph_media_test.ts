@@ -7,8 +7,12 @@
  * not hammer Meta with real media downloads.
  */
 
-import { assertEquals } from "jsr:@std/assert@1";
-import { fetchWhatsAppMedia } from "./whatsapp_graph.ts";
+import { assert, assertEquals, assertThrows } from "jsr:@std/assert@1";
+import {
+  clearWhatsAppMediaFixtures,
+  fetchWhatsAppMedia,
+  registerWhatsAppMediaFixture,
+} from "./whatsapp_graph.ts";
 
 const ENV_KEYS = [
   "WHATSAPP_ACCESS_TOKEN",
@@ -274,4 +278,106 @@ Deno.test("fetchWhatsAppMedia treats an empty body as a retryable binary failure
     assertEquals(result.stage, "binary");
     assertEquals(result.retryable, true);
   });
+});
+
+// ---------------------------------------------------------------------------
+// PIVOT NUTRITION (N1/N2) — fixture injection on the network-free transports.
+//
+// Why these tests exist: the simulated week asserts on what the agent SAYS
+// about a plate ("I see chicken and broccoli"). A 1x1 PNG can never produce
+// that, so before this door the photo half of PLAN-NUIT 7.4 was structurally
+// unprovable in the simulator -- not because the pipeline was wrong, but
+// because no real image could reach it. These tests pin both halves of the
+// door: it opens for a registered id, and it stays shut for everything else.
+// ---------------------------------------------------------------------------
+
+Deno.test("media fixture: a registered id serves the real bytes", async () => {
+  const real = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 1, 2, 3, 4]); // JPEG magic
+  registerWhatsAppMediaFixture("meal_j1", { bytes: real, mime_type: "image/jpeg" });
+  try {
+    await withHarness({ env: { WHATSAPP_DELIVERY_ENABLED: "0" } }, async () => {
+      const res = await fetchWhatsAppMedia("meal_j1");
+      assert(res.ok);
+      if (!res.ok) return;
+      assertEquals(res.transport, "disabled");
+      assertEquals(res.mime_type, "image/jpeg");
+      assertEquals(res.byte_length, 8);
+      assertEquals(Array.from(res.bytes), Array.from(real));
+    });
+  } finally {
+    clearWhatsAppMediaFixtures();
+  }
+});
+
+Deno.test("media fixture: works on the loopback transport too", async () => {
+  registerWhatsAppMediaFixture("meal_j2", {
+    bytes: new Uint8Array([9, 9, 9]),
+    mime_type: "image/jpeg",
+  });
+  try {
+    await withHarness({ loopback: true }, async (calls) => {
+      const res = await fetchWhatsAppMedia("meal_j2");
+      assert(res.ok);
+      if (!res.ok) return;
+      assertEquals(res.transport, "loopback");
+      assertEquals(res.byte_length, 3);
+      // The whole point of a network-free transport: still zero calls to Meta.
+      assertEquals(calls.length, 0);
+    });
+  } finally {
+    clearWhatsAppMediaFixtures();
+  }
+});
+
+Deno.test("media fixture: an UNregistered id still gets the 1x1 PNG", async () => {
+  registerWhatsAppMediaFixture("meal_j1", {
+    bytes: new Uint8Array([1, 2, 3]),
+    mime_type: "image/jpeg",
+  });
+  try {
+    await withHarness({ env: { WHATSAPP_DELIVERY_ENABLED: "0" } }, async () => {
+      const res = await fetchWhatsAppMedia("some_other_id");
+      assert(res.ok);
+      if (!res.ok) return;
+      // The default is untouched: no other caller changes behaviour because a
+      // harness registered one photo elsewhere in the same process.
+      assertEquals(res.mime_type, "image/png");
+    });
+  } finally {
+    clearWhatsAppMediaFixtures();
+  }
+});
+
+Deno.test("media fixture: a fixture NEVER opens the network transport", async () => {
+  // The door is read only AFTER the three network-free doors were taken. With
+  // delivery enabled and no loopback, the Graph path must run as before --
+  // otherwise a stray fixture in a production process would serve a fake photo.
+  registerWhatsAppMediaFixture("meal_j1", {
+    bytes: new Uint8Array([1, 2, 3]),
+    mime_type: "image/jpeg",
+  });
+  try {
+    await withHarness(
+      {
+        env: { WHATSAPP_DELIVERY_ENABLED: "1", MEGA_TEST_MODE: "0" },
+        respond: () => new Response("{}", { status: 500 }),
+      },
+      async (calls) => {
+        const res = await fetchWhatsAppMedia("meal_j1");
+        assertEquals(res.ok, false);
+        assert(calls.length > 0, "the Graph metadata hop must still be attempted");
+      },
+    );
+  } finally {
+    clearWhatsAppMediaFixtures();
+  }
+});
+
+Deno.test("media fixture: registering an empty media id fails loudly (R7)", () => {
+  assertThrows(() =>
+    registerWhatsAppMediaFixture("  ", {
+      bytes: new Uint8Array([1]),
+      mime_type: "image/jpeg",
+    })
+  );
 });
