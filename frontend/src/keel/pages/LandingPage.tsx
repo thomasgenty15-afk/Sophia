@@ -29,9 +29,20 @@ import { t, type MessageKey } from "../i18n/t";
  *
  * The student DOES have a web space, and it is not a detail: /app/plan is where
  * they compose their own week out of the coach's method (Sophia drafts, they
- * adopt), /app/progress is where they look back. It is PULL, never push — that
- * is the nuance the copy has to keep. An earlier pass of this page wrote "no
- * dashboard to open" and deleted the whole surface in five words.
+ * adopt), /app/progress is where they look back. It is PULL, never push.
+ *
+ * The daily step went through three drafts on this exact point, so the lesson
+ * is written down rather than re-learnt: it said "no dashboard to open" (which
+ * deleted the whole surface in five words), then "nothing they have to
+ * remember to open" (which still read as a denial on first pass), and it now
+ * says what is THERE instead of what is absent. Do not reintroduce a
+ * "nothing to open / nothing to install" of any shape: that sentence sits one
+ * row above a section describing the thing it would be denying.
+ *
+ * "Nothing that arrives at night" also went, and that one was a FACTUAL error,
+ * not a framing one. Quiet hours (21h-8h) live in `reengagement.ts` and cover
+ * the nudge only; the evening tap fires on a 20h-22h local window
+ * (`PULSE_HOUR_LOCAL`), so a tap can legitimately land at 21h50.
  *
  * NOTHING here promises what the product refuses to do, and — the harder
  * discipline — nothing here promises what the product has not yet PROVEN.

@@ -96,9 +96,18 @@ vivabilité du panneau du lundi.
 > de doctrine n°2 (« every line names the conviction it came from ») devient
 > quelque chose qu'un élève voit vraiment — les deux sections se tiennent.
 >
-> `step2_body` dit maintenant « nothing they have to remember to open », qui est
-> la vraie nuance : WhatsApp ne demande aucune discipline, l'espace s'ouvre
-> quand l'élève en a envie.
+> **Troisième passe sur la même phrase, et la leçon est de copie.** « nothing
+> they have to remember to open » se lisait encore comme un déni : le fondateur
+> a buté dessus une deuxième fois. Et son vrai reproche allait plus loin — « en
+> fait ils **peuvent** accéder à la plateforme, donc c'est ça qu'il faut dire ».
+> Il a raison : l'étape entière était construite en creux (*nothing to install,
+> nothing to open, nothing at night*), et une liste d'absences ne vend pas une
+> surface qui existe.
+>
+> `step2_body` dit maintenant ce qui **est** là : « on WhatsApp, in the thread
+> they already have open all day. In the evening, one tap says how the day
+> went. » Zéro négation. La ligne « On their own time » qui suit n'a plus rien à
+> contredire.
 >
 > **Le poids n'est pas mentionné**, et c'est délibéré : le formulaire hebdo
 > écrit `weight_kg` (`weekly_flow.ts:201`) tandis que l'écran lit
@@ -224,7 +233,8 @@ aurait tenu sur la page mais qui repose sur quelque chose de non prouvé.
 | « Point hebdomadaire : 6 axes + poids + tour de taille, dans WhatsApp » | Le code existe (`weekly_flow.ts`), **l'objet Flow n'est pas créé chez Meta**. | Rien. La page ne mentionne pas le point hebdo. |
 | « Suis le poids de tes élèves » | La chaîne est **cassée** : le formulaire écrit dans un champ que l'écran de progression ne lit pas. | Rien. Aucune mention de poids, de mesure, de progression chiffrée. |
 | « Ton élève corrige l'analyse si elle se trompe » | Non branché. | Rien. |
-| « Tes élèves sont relancés au jour 3 » | `REENGAGE_AFTER_HOURS = 72` est vrai et testé, mais l'envoi réel dépend de Meta. | La relance n'est **pas** un argument de vente sur la page. Elle n'apparaît qu'en creux (« no message that reaches them at night »), et cette clause-là est vérifiée : `QUIET_HOURS_START = 21`, `QUIET_HOURS_END = 8`, report et non abandon. |
+| « Tes élèves sont relancés au jour 3 » | 🔴 **Pire que « pas déployé » : le cron n'envoie rien.** `keel-reengage-v1` ouvre l'épisode, incrémente une variable nommée `sent`, pousse dans `armed[]` et **rend la réponse** — aucun appel à `whatsapp-send` ni à `internal_send` dans tout le fichier. `grep -rl "internal_send\|whatsapp-send" supabase/functions/keel-reengage-v1/` : zéro. La décision est juste et testée (`reengagement.ts`), l'exécution manque. | La relance n'apparaît **nulle part** sur la page. |
+| « Aucun message ne leur arrive la nuit » | 🔴 **Faux tel quel.** Les quiet hours (`QUIET_HOURS_START = 21` / `_END = 8`) vivent dans `reengagement.ts` et ne couvrent **que** la relance — laquelle n'envoie rien. Le tap du soir, lui, tire sur une fenêtre **20h–22h locales** (`PULSE_HOUR_LOCAL = 20`, `outside_window` au-delà), donc un tap peut légitimement arriver à 21h50. | Retiré. La phrase a vécu deux commits avant d'être vérifiée ; c'est la seule erreur factuelle que j'aie écrite sur cette page. |
 | « −2 kg en 4 semaines », taux de rétention, nombre de coachs | Rien de tel n'existe. | Aucune projection de résultat, aucune preuve sociale, aucun logo, aucun témoignage. |
 | Les 3 statistiques du bloc Problem | **Non sourcées dans le dépôt.** | Supprimées (voir §1). |
 

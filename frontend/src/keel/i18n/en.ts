@@ -1195,7 +1195,7 @@ export const en = {
   "landing.hero.cta_trial": "Start the 14-day trial",
   "landing.hero.cta_signin": "Sign in",
   "landing.hero.note":
-    "14 days, up to 3 students. They join by invitation and answer on WhatsApp — nothing for them to install, and no one-to-one inbox for you to keep up with.",
+    "14 days, up to 3 students. They join by invitation, live it on WhatsApp, and get a space of their own on the web. There is no one-to-one inbox for you to keep up with.",
 
   // Landing — schematic of the Monday page. Labels are the product's own; the
   // cohort is an example and says so (landing.mock.caption).
@@ -1257,7 +1257,7 @@ export const en = {
   "landing.how.step2_when": "Every day",
   "landing.how.step2_title": "Your students live it, on WhatsApp",
   "landing.how.step2_body":
-    "They send a photo of a plate or a sentence about their day, and get an answer in your method. In the evening, one tap. Nothing to install, nothing they have to remember to open, and nothing that arrives at night.",
+    "They send a photo of a plate or a sentence about their day, and get an answer in your method — on WhatsApp, in the thread they already have open all day. In the evening, one tap says how the day went.",
   "landing.how.space_when": "On their own time",
   "landing.how.space_title": "And a space of their own",
   "landing.how.space_body":

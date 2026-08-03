@@ -277,3 +277,58 @@ code avant tout envoi hors fenêtre :
    (+ variables `WHATSAPP_KEEL_*_TEMPLATE_NAME/LANG`) ;
 2. le chemin template du tap avec payloads de boutons à l'envoi
    (index 0/1/2 = good/mixed/hard — voir §1).
+
+---
+
+## 6. `keel_optin_v1` — le premier message (décision 2026-08-03 : Sophia écrit la première)
+
+Le seul template SANS lequel la relation ne démarre pas : un élève qui vient
+de créer son compte n'a jamais écrit sur WhatsApp, sa fenêtre 24h n'a jamais
+existé. Meta exige un template pour tout message initié par l'entreprise — et
+exige surtout que le CONSENTEMENT existe AVANT l'envoi : c'est la case à
+cocher à l'inscription qui crée le droit d'écrire (`whatsapp_opted_in`), pas
+le template.
+
+```json
+{
+  "name": "keel_optin_v1",
+  "language": "en_GB",
+  "category": "UTILITY",
+  "components": [
+    {
+      "type": "BODY",
+      "text": "Hi {{1}} — I'm Sophia, the assistant for {{2}}'s programme. This is where your day-to-day happens: send a photo of a meal, or just write to me, any time. Tap below to get started.",
+      "example": { "body_text": [["Julie", "Marc"]] }
+    },
+    { "type": "FOOTER", "text": "Reply STOP anytime to opt out." },
+    {
+      "type": "BUTTONS",
+      "buttons": [{ "type": "QUICK_REPLY", "text": "Let's go" }]
+    }
+  ]
+}
+```
+
+Pourquoi cette forme :
+- **Le bouton est le mécanisme**, pas la décoration : le tap de l'élève OUVRE
+  la fenêtre 24h. Aucun handler déterministe à écrire — `wa_parse` remonte le
+  texte du bouton comme un message normal et le dispatcher répond.
+- **Le footer STOP** aide l'approbation UTILITY et rend l'opt-out visible dès
+  le premier message (le handler STOP existe déjà côté code).
+- **UTILITY tient** parce que le corps est transactionnel (conséquence d'une
+  inscription), sans promesse ni marketing. Ne pas l'enrichir.
+
+⚠️ CÔTÉ CODE, RIEN N'ENVOIE CE TEMPLATE AUJOURD'HUI. C'est le trou
+d'onboarding (agent QA 15) : il faut un déclencheur à l'adoption du plan (ou à
+la liaison du numéro), envoyé avec `require_opted_in: false` (c'est le message
+qui matérialise l'opt-in donné au signup) et `purpose: "keel_optin"` mappé
+dans `getFallbackTemplate`.
+
+## Ordre de soumission RÉVISÉ (opt-in inclus)
+
+1. `keel_optin_v1` — sans lui, aucune relation ne démarre.
+2. `keel_reengage_v1` — aucune alternative (toujours hors fenêtre).
+3. Flow `keel_weekly_checkin` + secret `KEEL_WEEKLY_FLOW_ID`.
+4. `keel_weekly_checkin_v1` (porteur du Flow).
+5. `keel_daily_pulse_v1`.
+6. `keel_pulse_axis_v1`.
