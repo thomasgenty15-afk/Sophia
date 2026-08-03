@@ -161,9 +161,19 @@ Deno.serve(async (req) => {
         "auto",
         { requestId, userId },
       );
+      // `generateWithGemini` rend `string | {tool, args}` — JAMAIS `{text}`.
+      // Le cast `as {text?: string}` compilait et rendait "" à chaque appel:
+      // `deno check` vert, tests verts, et `compile` cassé à 100% en runtime.
+      // Motif repris de plan-import-v1, qui le fait correctement.
+      if (typeof result !== "string") {
+        return jsonResponse(req, {
+          error: "compile_returned_tool_call",
+          request_id: requestId,
+        }, { status: 502 });
+      }
       let parsed: Record<string, unknown>;
       try {
-        const raw = String((result as { text?: string }).text ?? "").trim()
+        const raw = result.trim()
           .replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
         parsed = JSON.parse(raw);
       } catch (err) {
@@ -365,11 +375,17 @@ Deno.serve(async (req) => {
         "auto",
         { requestId, userId },
       );
+      if (typeof result !== "string") {
+        return jsonResponse(req, {
+          error: "replay_returned_tool_call",
+          request_id: requestId,
+        }, { status: 502 });
+      }
       return jsonResponse(req, {
         ok: true,
         version: target,
         before: previousReply,
-        after: String((result as { text?: string }).text ?? "").trim(),
+        after: result.trim(),
         request_id: requestId,
       });
     }

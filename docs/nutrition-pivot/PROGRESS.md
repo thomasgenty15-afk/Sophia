@@ -887,3 +887,54 @@ dropper, c'est décider que la branche FR n'a plus d'utilisateurs — arbitrage 
 irréversible au `db push`. Le plan le dit aussi : « après validation réelle du produit ».
 L'ordre de démolition (ANNEXE B §F, feuilles→racine, 2 FK sans ON DELETE et 2 cycles à casser
 d'abord) reste prêt à dérouler le jour où tu trancheras.
+
+---
+
+## N1 : VERT — la génération du plan de l'élève
+
+`_shared/keel/week_plan_generation.ts` (14 tests) + `functions/generate-week-plan-v1/`.
+
+**Les trois règles sont en CODE, pas dans le prompt** — un prompt est une consigne, pas une
+garantie, et ces trois-là décident si un coach renouvelle :
+
+1. **Traçabilité** — toute ligne `nutrition` porte une `source_commitment_key` qui existe dans le
+   programme du coach. Clé inventée = rejetée, comptée, nommée. La base le tient **aussi** par
+   CHECK (N0) : ceinture et bretelles sur la seule règle qui tue le produit si elle lâche.
+2. **Vocabulaire fermé des ajouts** — ce que Sophia ajoute est une `action` parmi 5
+   (marche, eau, fenêtre de sommeil, prep, respiration). Jamais alimentaire, jamais chiffré, 2 max.
+3. **Les deux verrous** — le plan rendu passe `applyKeelOutputLocks`. Un plan qui contredit la
+   doctrine ne part pas, et **le plan ENTIER est retenu**, pas seulement la ligne fautive : un plan
+   à moitié conforme reste un plan qui contredit le coach.
+
+L'objectif et la situation changent **l'agencement** (lesquelles, combien, quels jours), jamais le
+contenu.
+
+### Génération RÉELLE vérifiée (appel modèle, programme + doctrine de Marc)
+Élève : perte de poids, cantine le midi, ne cuisine jamais le soir, sport mardi/jeudi.
+```
+[nutrition] Fenêtre d'alimentation de 8h            ← coach: eating_window_8h
+[nutrition] Une source de protéines à chaque repas  ← coach: protein_each_meal
+[nutrition] 2 portions de légumes par jour          ← coach: veg_two_servings
+            « Utilise les accompagnements de la cantine… »
+[nutrition] Pas d'alcool en semaine                 ← coach: no_alcohol_weekdays
+[action]    Marche après le déjeuner                ← Sophia (walk)
+[action]    Respiration                             ← Sophia (breathing)
+clés inventées: []   actions hors liste: []   verrous: clean   issues: aucune
+```
+La situation a servi (« la cantine », « après ton sport ») et le modèle a **écarté** ce qui ne
+tenait pas (`fish_twice_week` = dîner à cuisiner). Il a sélectionné, pas recopié.
+
+### 🔴 UN BUG DANS DU CODE DÉJÀ COMMITÉ, trouvé en lançant pour de vrai
+`generateWithGemini` rend **`string | {tool, args}`** — jamais `{text}`. J'avais écrit
+`String((result as { text?: string }).text ?? "")` dans **`coach-doctrine-v1`, à deux endroits**
+(`compile` et `replay`). Le cast compilait, `deno check` était vert, les tests unitaires étaient
+verts — et les deux actions rendaient **une chaîne vide à 100 %** en runtime : le Doctrine Copilot
+était cassé depuis son commit.
+Aucun test ne pouvait le voir : ils testent les modules purs, et l'edge function n'avait jamais été
+appelée. Corrigé sur le motif de `plan-import-v1` (`if (typeof result !== "string")`), et le même
+garde est écrit dans `generate-week-plan-v1` dès le départ.
+
+```bash
+deno test --allow-all supabase/functions/_shared/keel/ supabase/functions/sophia-brain/
+# 1834 passed | 0 failed
+```
