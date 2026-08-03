@@ -240,6 +240,17 @@ function analysisFor(args: {
       rationale: "visible on the plate",
       confidence: 0.8,
     })),
+    // PIVOT P0.3: les deux champs du contrat v3. La propriété testée par ce
+    // fichier — AUCUN chiffre calorique n'atteint l'élève — doit tenir AVEC
+    // eux, puisqu'ils portent de la prose libre issue du modèle.
+    assumptions: [
+      {
+        subject: "cooking_fat",
+        assumption: "The potatoes were probably roasted in oil.",
+        basis: "standard_default",
+      },
+    ],
+    clarifying_question: "Did you use any oil on those potatoes?",
     overall_confidence: 0.8,
     confidence_band: args.confidenceBand,
     image_quality: args.imageQuality,

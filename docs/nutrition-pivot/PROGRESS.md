@@ -436,3 +436,67 @@ Auditée contre les 7 patterns. Résultat honnête, findings compris :
    LLM n'a été fait cette nuit.** Tout ce qui est vert est un test unitaire déterministe sur des
    modules purs. Le pipeline photo v3 n'a **jamais** été exercé contre un vrai modèle de vision.
    C'est écrit en toutes lettres dans STATUS-MORNING.
+
+---
+
+## 07:40 — P1.5b : VERT — la ceinture de sortie est CÂBLÉE (et une garantie fausse est réparée)
+
+### 🔴 LE FINDING — une garantie du CONTRACT était fausse
+`docs/keel/CONTRACT.md` énonce, globalement :
+> « A deterministic post-generation validator rejects any output containing a
+> `severity='medical'` token. »
+
+**Vérifié dans le code** : `findMedicalConstraintViolations` n'avait **qu'un seul appelant en
+production** — `skills/plan_question/renderer.ts:115`. La réponse normale, l'accusé de photo, les
+messages proactifs et tous les autres skills ne passaient par **aucun** validateur. Une allergie
+`severity='medical'` pouvait donc être suggérée à l'élève sur presque tous les chemins.
+
+C'est le pattern §7.3-(3) dans sa forme la plus coûteuse : le consommateur (le contrat, la revue
+de sécurité, la promesse commerciale) lit une garantie que le producteur n'écrit que sur 1 chemin
+sur N. Personne n'a menti — la garantie était simplement fausse.
+
+### Ce qui a été fait
+- `skills/_shared/keel_output_locks.ts` (neuf, 12 tests) : les **deux** verrous, avec des réactions
+  différentes parce qu'ils ne protègent pas la même chose. **Médical → le message ENTIER est
+  remplacé** (amputer la phrase dangereuse laisse un texte qui parlait quand même de cacahuètes à
+  un anaphylactique, et le contexte résiduel peut porter la suggestion à lui seul) ; le repli **ne
+  renomme pas l'allergène** à l'élève. **Interdit coach → remplacé par un renvoi au coach**
+  (§1.5 rendue visible au moment exact où elle a failli être enfreinte). Le médical **prime**.
+- `_shared/keel/doctrine_loader.ts` (neuf, 6 tests) : charge la doctrine publiée du coach vivant.
+  **Arbitrage de panne asymétrique** : ni refus de répondre, ni réponse normale — un
+  `FALLBACK_PRUDENCE_BLOCK` qui dit au modèle de rester factuel et de déférer. Un bloc **vide**
+  serait comblé par la culture nutritionnelle générale du modèle, exactement la voix qu'on ne vend
+  pas. Chaque mode de panne est **nommé** (`no_coach`, `no_published_doctrine`, `load_failed`,
+  `empty_doctrine` — une doctrine publiée mais vide est un vrai état).
+- `router/run.ts` : chargement dans `loadKeelTurnContext` (« tout ce dont le tour a besoin, en une
+  passe ») et application dans **`finalVisibleText`**, le point de passage unique de tout texte
+  visible.
+
+### Deux décisions de câblage qui comptent
+1. **Le paramètre est OBLIGATOIRE, pas optionnel.** Le défaut corrigé est précisément une garantie
+   « globale » appliquée sur 1 chemin sur N ; avec un paramètre optionnel il suffit d'un futur
+   appel qui l'oublie pour rouvrir le trou **en silence**. Le compilateur est le seul relecteur qui
+   ne se fatigue pas. (Même raisonnement que le `binding` obligatoire de `renderMealPhotoAck`.)
+   TypeScript a effectivement trouvé les 6 sites + 2 fixtures de test.
+2. **La ceinture est en TOUT DERNIER, et HORS du `if (!isSafetyRoute(...))`.** Les autres ceintures
+   réinjectent du texte (`ensureClarifyQuestionVisible`, l'emoji, l'override de correction) : un
+   allergène réintroduit après la vérification sortirait intact. Et un tour de crise est le dernier
+   endroit où suggérer un allergène médical.
+
+### Arbitrage de panne des contraintes — FLAG pour Thomas
+`loadStudentSafetyConstraints` **throw** exprès (une lecture ratée ≠ « pas d'allergie »). Je
+rattrape dans `loadKeelTurnContext` et je porte `safety_constraints: null` (≠ `[]`) +
+`safety_constraints_unavailable_reason`. La livraison est **fail-open** : bloquer tous les messages
+de tous les élèves pendant un hoquet Postgres est une panne produit complète, alors qu'un tour non
+vérifié est un risque borné (le prompt porte déjà les contraintes ; seule la vérification
+déterministe manque). C'est la même asymétrie que le plancher TCA juste au-dessus. **À valider ou
+inverser par Thomas** — c'est le seul endroit où j'ai choisi la disponibilité contre la vérification.
+
+### DoD vérifiée
+```bash
+deno test --allow-all supabase/functions/sophia-brain/ supabase/functions/_shared/keel/
+# 1777 passed | 0 failed | 18 ignored
+```
+23 tests neufs, dont 5 **au niveau du runtime** (`run_output_locks_test.ts`) et pas seulement du
+module : le défaut n'était pas un validateur cassé mais un validateur non atteint — un test de
+module seul ne l'aurait ni détecté, ni empêché de revenir.

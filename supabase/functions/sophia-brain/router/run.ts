@@ -262,6 +262,14 @@ import {
   loadStudentSafetyConstraints,
   type StudentSafetyConstraint,
 } from "../../_shared/keel/safety_constraints.ts";
+// PIVOT §3.3 — la ceinture de sortie (les deux verrous) et le chargeur de
+// doctrine. Le raisonnement complet vit dans les modules; ici on ne fait que
+// les brancher sur le seul point de passage de tout texte visible.
+import { applyKeelOutputLocks } from "../skills/_shared/keel_output_locks.ts";
+import {
+  type LoadedDoctrine,
+  loadPublishedDoctrine,
+} from "../../_shared/keel/doctrine_loader.ts";
 import {
   recordAllowedEffect,
   recordBlockedEffect,
@@ -1186,6 +1194,17 @@ export type KeelTurnContext = {
    */
   restriction: RestrictionGuardResult | null;
   restriction_unavailable_reason: string | null;
+  /**
+   * PIVOT §3.3 — les contraintes dures de l'élève, pour la CEINTURE DE SORTIE.
+   *
+   * `null` ⇒ la lecture a échoué, et c'est un état DISTINCT de `[]` (aucune
+   * contrainte). `loadStudentSafetyConstraints` throw exprès pour rendre ces
+   * deux cas indiscernables impossibles; on rattrape ici et on nomme.
+   */
+  safety_constraints: StudentSafetyConstraint[] | null;
+  safety_constraints_unavailable_reason: string | null;
+  /** PIVOT §3.3 — la doctrine publiée du coach de cet élève. */
+  doctrine: LoadedDoctrine | null;
 };
 
 export const LEGACY_KEEL_TURN_CONTEXT: KeelTurnContext = {
@@ -1200,6 +1219,9 @@ export const LEGACY_KEEL_TURN_CONTEXT: KeelTurnContext = {
   plan_context_reason_code: "legacy_plan_snapshot",
   restriction: null,
   restriction_unavailable_reason: null,
+  safety_constraints: null,
+  safety_constraints_unavailable_reason: null,
+  doctrine: null,
 };
 
 const ISO_LOCAL_DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -1309,6 +1331,37 @@ export async function loadKeelTurnContext(args: {
     restrictionUnavailableReason = "missing_local_date";
   }
 
+  // PIVOT §3.3 — CEINTURE DE SORTIE, moitié « contraintes dures ».
+  //
+  // FAIL-OPEN NOMMÉ, même arbitrage que le plancher TCA juste au-dessus, et
+  // pour la même raison asymétrique: bloquer la livraison de TOUS les messages
+  // de TOUS les élèves pendant un hoquet Postgres est une panne produit
+  // complète, alors qu'un tour non vérifié est un risque borné — le prompt
+  // porte déjà les contraintes, seule la vérification déterministe manque.
+  // L'incident est BRUYANT (`safety_constraints_unavailable_reason` + log), et
+  // la distinction `null` (pas lu) / `[]` (rien à lire) est préservée: c'est
+  // exactement ce que `loadStudentSafetyConstraints` protège en throwant.
+  let safetyConstraints: StudentSafetyConstraint[] | null = null;
+  let safetyConstraintsUnavailableReason: string | null = null;
+  try {
+    safetyConstraints = await loadStudentSafetyConstraints(
+      args.supabase as never,
+      args.userId,
+    );
+  } catch (error) {
+    safetyConstraintsUnavailableReason = error instanceof Error
+      ? error.message
+      : String(error);
+    console.warn(
+      "[keel] safety constraints unavailable for this turn (OUTPUT LOCK NOT ARMED)",
+      safetyConstraintsUnavailableReason,
+    );
+  }
+
+  // PIVOT §3.3 — moitié « interdits du coach ». Ne throw jamais: le loader
+  // porte son propre arbitrage de panne (bloc de prudence).
+  const doctrine = await loadPublishedDoctrine(args.supabase, args.userId);
+
   return {
     role,
     is_student: true,
@@ -1321,6 +1374,9 @@ export async function loadKeelTurnContext(args: {
     plan_context_reason_code: selection.reason_code,
     restriction,
     restriction_unavailable_reason: restrictionUnavailableReason,
+    safety_constraints: safetyConstraints,
+    safety_constraints_unavailable_reason: safetyConstraintsUnavailableReason,
+    doctrine,
   };
 }
 
@@ -1882,24 +1938,35 @@ export function keelOutageTemplate(locale?: string | null): string {
     : "I hit a technical problem on this turn. Nothing was logged.";
 }
 
-function finalVisibleText(
+export function finalVisibleText(
   text: unknown,
   routeDecision: RouteDecision | null,
-  turnFrame?: TurnFrame | null,
+  turnFrame: TurnFrame | null,
   // P12-C (eva-hard25 R1-B03): le message user arrive aux gardes PAR CONTRAT
   // — l'ancienne lecture `turnFrame.user_message` visait un champ qui
   // n'existe pas au runtime (la garde P10-V était inatteignable en prod, la
   // probe passait sur un frame synthétique enrichi).
-  userMessage?: string,
+  userMessage: string | undefined,
   // P12-V (probe P12-3 passe 1): l'history du tour alimente la garde de
   // MENTION RÉTRACTÉE — le verrou write-path et l'interdit de contexte ne
   // suffisent pas quand le composeur lit le contenu dans l'historique brut.
-  history?: unknown,
-  // W8: le rôle KEEL du tour. Seule information que les gardes de rendu ne
+  history: unknown,
+  // W8: le contexte KEEL du tour. Seule information que les gardes de rendu ne
   // pouvaient PAS déduire du frame — et la ceinture accusé-fantôme est
-  // indexée dessus (hors élève KEEL, il n'y a pas de ligne de protocole à
-  // accuser, donc rien à réconcilier).
-  isKeelStudent?: boolean,
+  // indexée sur `is_student` (hors élève KEEL, il n'y a pas de ligne de
+  // protocole à accuser, donc rien à réconcilier).
+  //
+  // PIVOT §3.3 — le paramètre est passé en OBJET et RENDU OBLIGATOIRE. Deux
+  // raisons, et la seconde est la vraie:
+  //   1. il porte maintenant aussi les contraintes dures et la doctrine, que
+  //      la ceinture de sortie exige;
+  //   2. OBLIGATOIRE parce que le défaut qu'on corrige ici est précisément une
+  //      garantie « globale » appliquée sur 1 chemin sur N. Avec un paramètre
+  //      optionnel, il suffit d'un `finalVisibleText` futur qui l'oublie pour
+  //      recréer le trou, en silence. Le compilateur est le seul relecteur qui
+  //      ne se fatigue pas. (Même raisonnement que le `binding` obligatoire de
+  //      `renderMealPhotoAck`.)
+  keel: KeelTurnContext,
 ) {
   // paul-r6 B01: sur un commit de CORRECTION track, la reply deterministe du
   // tool remplace la paraphrase du composeur — l'historique (refus du tour
@@ -1926,11 +1993,30 @@ function finalVisibleText(
       out,
       turnFrame ?? null,
       userMessage,
-      isKeelStudent === true,
+      keel.is_student === true,
       routeDecision?.response_owner === "disordered_eating_guard",
     );
   }
-  return out.trim();
+  out = out.trim();
+
+  // PIVOT §3.3 — LES DEUX VERROUS DÉTERMINISTES, EN TOUT DERNIER.
+  //
+  // Position volontairement finale, après TOUTES les autres ceintures: elles
+  // réinjectent du texte (`ensureClarifyQuestionVisible`,
+  // `ensureVisibleSophiaEmoji`, l'override de correction), et un allergène
+  // réintroduit après la vérification sortirait intact. C'est le même
+  // raisonnement que la note de `stripKeelAckWithoutCommittedEffect`, poussé
+  // d'un cran.
+  //
+  // ET HORS DU `if (!isSafetyRoute(...))`, exprès: un tour de crise est le
+  // dernier endroit où l'on veut suggérer un allergène médical.
+  const locked = applyKeelOutputLocks({
+    text: out,
+    isKeelStudent: keel.is_student === true,
+    safetyConstraints: keel.safety_constraints,
+    doctrine: keel.doctrine?.doctrine ?? null,
+  });
+  return locked.text;
 }
 
 /**
@@ -3669,7 +3755,7 @@ export async function processMessage(
       turnFrame,
       userMessage,
       history,
-      keelTurn.is_student,
+      keelTurn,
     );
     const nowIso = turnFrame.direct_effect_time_context?.now_utc ??
       new Date().toISOString();
@@ -4061,7 +4147,7 @@ export async function processMessage(
           turnFrame,
           userMessage,
           history,
-          keelTurn.is_student,
+          keelTurn,
         );
         const effectLedger = effectLedgerForOperationRuntime(
           turnFrame.turn_id,
@@ -4251,7 +4337,7 @@ export async function processMessage(
         turnFrame,
         userMessage,
         history,
-        keelTurn.is_student,
+        keelTurn,
       );
       const effectLedger = effectLedgerForOperationRuntime(
         turnFrame.turn_id,
@@ -4704,7 +4790,7 @@ export async function processMessage(
           turnFrame,
           userMessage,
           history,
-          keelTurn.is_student,
+          keelTurn,
         );
         const effectLedger = effectLedgerForOperationRuntime(
           turnFrame.turn_id,
@@ -5124,7 +5210,7 @@ export async function processMessage(
       turnFrame,
       userMessage,
       history,
-      keelTurn.is_student,
+      keelTurn,
     );
     const effectLedger = effectLedgerForOperationRuntime(
       turnFrame.turn_id,
@@ -5651,7 +5737,7 @@ export async function processMessage(
     turnFrame,
     userMessage,
     history,
-    keelTurn.is_student,
+    keelTurn,
   );
 
   const agentToolExecution = String(agentOut.toolExecution ?? "none") as
