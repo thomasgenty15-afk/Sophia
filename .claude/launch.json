@@ -42,6 +42,14 @@
       "autoPort": false
     },
     {
+      "name": "frontend-alt5",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--", "--port", "5179", "--strictPort"],
+      "cwd": "frontend",
+      "port": 5179,
+      "autoPort": false
+    },
+    {
       "name": "frontend-a8",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev", "--", "--port", "5188", "--strictPort"],
@@ -71,6 +79,14 @@
       "runtimeArgs": ["run", "dev", "--", "--port", "5182", "--strictPort"],
       "cwd": "frontend",
       "port": 5182,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-a16",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--", "--port", "5186", "--strictPort"],
+      "cwd": "frontend",
+      "port": 5186,
       "autoPort": false
     }
   ]

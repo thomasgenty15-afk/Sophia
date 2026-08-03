@@ -439,6 +439,125 @@ n'a jamais été écrite.
 
 ---
 
+## ANNEXE — Audit de langue du site (« tout est-il en anglais ? »)
+
+**Réponse courte : les surfaces KEEL le sont ; le site ne l'est pas.** Le
+français ne vit plus dans le code KEEL — il vit dans les **trois pages legacy
+que les surfaces KEEL pointent du doigt**, et dans la coquille HTML commune.
+
+Méthode : scan de `frontend/src/**` (chaînes visibles JSX + littéraux,
+commentaires exclus, accents + mots-outils français), puis **rendu réel** dans
+un navigateur sur le serveur de dev, avec session élève (Julie) et session coach
+(Marc) injectées.
+
+### Couche 1 — le code KEEL : propre
+
+| Surface | Résultat |
+|---|---|
+| `frontend/src/keel/**` (14 pages + composants) | **0 chaîne française candidate** |
+| `src/keel/i18n/en.ts` (1 333 lignes, dictionnaire unique) | **0 accent français, 0 mot-outil français** ; `t.ts` documente « Pilot: English only » |
+| Contenu servi depuis la base | `card_templates` 16/16 `en` · `crisis_resources` 23/23 `en` · `meal_ideas` vide · `food_groups` passe par `label_i18n_key` |
+
+Rendus vérifiés en navigateur, aucun caractère accentué dans le corps :
+`/` · `/join` · `/app/plan` · `/app/today` · `/coach/weekly` (qui affiche bien
+la synthèse de la semaine jouée plus haut, en anglais).
+
+### Couche 2 — la coquille HTML, commune à TOUTES les pages
+
+`frontend/index.html` : `<html lang="fr">`, titre **« Sophia Coach | Coach IA
+proactif sur WhatsApp »**, `meta description` + `og:description` +
+`twitter:description` en français.
+
+`KeelAppShell` corrige `document.title` et `documentElement.lang = "en"` **après
+le montage** — mais rien ne corrige les métadonnées. Mesuré en direct sur
+`/app/plan` :
+
+```json
+{"path":"/app/plan","htmlLang":"en","title":"Sophia",
+ "desc":"Sophia est un coach IA proactif sur WhatsApp qui transforme …",
+ "ogLocale":"fr_FR"}
+```
+
+Et [SEO.tsx:69](frontend/src/components/SEO.tsx:69) écrit `og:locale = 'fr_FR'`
+**en dur**, y compris sur les deux pages KEEL qui passent pourtant `lang="en"`
+(landing et `/join`). Conséquence concrète : le lien de la landing partagé sur
+LinkedIn ou WhatsApp s'annonce en français, et un crawler classe le site en FR.
+
+### Couche 3 — les trois pages legacy que KEEL pointe (les vraies fautes)
+
+**1. `/auth` — 9 liens depuis les surfaces KEEL**, dont le CTA « Sign in » de la
+landing (`LandingPage.tsx` ×4), `PublicHeader` ×2, `JoinPage` ×2 et la
+redirection de `CoachRoute`. Rendu réel :
+
+```
+Titre d'onglet : Sophia Coach | Coach IA proactif sur WhatsApp
+Ravi de te revoir.
+Connecte-toi pour reprendre ta transformation.
+Adresse Email · Mot de passe · Mot de passe oublié ? · Se connecter
+Pas encore de compte ? · Créer un compte gratuitement
+Are you a coach? Create a coach account        ← seule ligne anglaise
+```
+
+`/auth?role=coach` est, lui, entièrement anglais : la branche coach a été
+traduite, **la branche élève et la branche par défaut ne l'ont pas été**. Le
+parcours d'un élève britannique est donc : landing anglaise → « Sign in » →
+écran de connexion français, en copie B2C (« reprendre ta transformation »).
+
+**2. `/account` — dans la barre de navigation de l'app KEEL**
+([KeelAppShell.tsx:76](frontend/src/components/KeelAppShell.tsx:76)), donc
+atteint par l'élève **et** par le coach. Rendu réel avec la session de Julie :
+
+```
+Compte · Plan · Options · Parrainage
+INFORMATIONS PERSONNELLES · Nom complet · Modifier mon email
+Téléphone (WhatsApp) · Modifier mon numéro · Enregistrer
+Niveau : Initié · Membre depuis 0 jour
+Préférences · Langue · « Langue verrouillée pour le moment. » · Fuseau horaire (IANA)
+Mes données · Préparer mon export · Supprimer mon compte · Déconnexion
+```
+
+Deux choses en plus du français : **« Niveau : Initié »** est un niveau de
+progression affiché à une élève KEEL — à traiter avec la ligne rouge « aucun
+score, badge ou niveau montré à l'élève » — et l'onglet **« Parrainage »**
+survit à la suppression des tables de parrainage du pivot. La surface RGPD
+(export, suppression) est française pour une élève en-GB.
+
+**3. `/legal` — lien du pied de page KEEL** ([PublicHeader.tsx:61](frontend/src/keel/components/PublicHeader.tsx:61))
+et cible du consentement à l'inscription coach (« I accept the Terms and the
+Privacy Policy »). 100 % français, avec sa propre navigation legacy
+(« Accès Membre · Le Plan · Architecte · Offres · Parrainage ») et
+« L'ensemble de ce site relève de la législation française ». **Ce n'est pas
+qu'un problème de langue** : un coach britannique accepte des CGU françaises
+qu'il ne peut pas lire, depuis un écran anglais.
+
+Également françaises et atteignables, hors chemin KEEL direct :
+`/reset-password`, `/email-verified`, `/upgrade`, `/installer-app`, `/le-plan`
+(chemin d'URL lui-même en français), `/dashboard`, `/onboarding-v2`, `/chat`.
+
+### Couche 4 — adjacent, même ligne rouge : les templates WhatsApp
+
+`_shared/whatsapp_templates.ts` est **intégralement français**, y compris
+`global_reach_template` — le repli hors fenêtre 24 h (« Je te laisse un petit
+mot ici au cas où », boutons « Je veux bien / Pas maintenant / J'ai décroché »).
+Le trou a été fermé pour les boutons et les Flows (409 explicite, cf. P0-1),
+mais tout chemin proactif KEEL qui retomberait sur la branche template écrira
+en français à un élève en-GB.
+
+### Ordre de correction proposé
+
+1. **`/auth`** — traduire la branche par défaut/élève, ou router les élèves KEEL
+   vers un écran KEEL. C'est le premier clic de tout le monde.
+2. **`/account`** — écran KEEL propre, ou retirer l'entrée de nav du shell tant
+   qu'il est en français ; supprimer « Niveau » et « Parrainage » pour un
+   utilisateur KEEL.
+3. **`/legal`** — version anglaise, faute de quoi le consentement du coach porte
+   sur un texte qu'il ne peut pas lire.
+4. **Coquille** — `index.html` en anglais (`lang`, titre, descriptions) et
+   `og:locale` paramétré au lieu de `fr_FR` codé en dur.
+5. **Templates WhatsApp** — versions en-GB, en même temps que la soumission Meta.
+
+---
+
 ## Ce que la semaine dit, en une phrase
 
 Chaque domaine, pris seul, écrit ce qu'il doit écrire — et l'agent qui le teste
