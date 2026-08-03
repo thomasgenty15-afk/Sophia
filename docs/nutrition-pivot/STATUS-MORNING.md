@@ -90,8 +90,16 @@ mesuré attaché au payload. Le préalable honnête reste le pilote photo + pes�
 | **P2.9** écrans coach | ✅ | Doctrine (neuf) + Cohorte re-mappée, **vus dans le navigateur** |
 | **P3** semaine simulée N2 | ✅ | **13 étapes sur la vraie base** |
 | **P3** passe adversariale | ✅ | 7 patterns ; 3 findings corrigés |
+| **Legacy** non-spine | ✅ | **13 tables droppées**, 133 → 120 ; code retiré AVANT |
 
 **18 commits**, 50 fichiers, +10 430 lignes. **1 822 tests, 0 échec.** Aucun rouge laissé derrière.
+
+### Legacy : ce qui reste debout, et pourquoi
+**14 tables de colonne vertébrale**, **18 edge functions**, **6 pages** (~6 900 l.).
+`BUILD_PLAN.md` arbitrage n°1 : les tables legacy sont « **vivantes pour la branche FR** ». Les
+dropper, c'est **décider que la branche FR n'a plus d'utilisateurs** — ton arbitrage, pas le mien,
+et irréversible au `db push`. L'ordre de démolition (ANNEXE B §F : feuilles→racine, 2 FK sans
+ON DELETE et 2 cycles à casser d'abord) reste prêt à dérouler.
 
 ### Ce qui reste NON CÂBLÉ (honnêtement)
 1. Le **reducer `meal_photo`** n'est pas branché dans `handlers_meal_photo.ts` (il faut persister
@@ -140,9 +148,13 @@ cd frontend && npx tsc -b --noEmit && npx vitest run src/keel/api/coachCohort.in
 - [ ] **1. (2 min)** `EMAIL_DELIVERY_ENABLED=0` dans `supabase/.env`. Il est à **1** : un run local
       qui touche un chemin email envoie de VRAIS emails via Resend. Je ne l'ai pas modifié (c'est
       ton fichier) ; j'ai travaillé avec un override de scratchpad.
-- [ ] **2. (10 min)** Relire les **4 migrations** puis `npx supabase db push` :
+- [ ] **2. (15 min)** Relire les **5 migrations** puis `npx supabase db push` :
       `20260803030000` (crons B2C), `20260803031000` (5 tables), `20260803090000` (2 crons neufs),
-      `20260803100000` (vue contact).
+      `20260803100000` (vue contact), **`20260803140000` (DROP de 13 tables legacy)**.
+      ⚠️ La dernière est **destructive** : elle droppe architect / modules / core_identity /
+      weekly_bilan / **parrainage**, et réécrit `handle_new_user()` sans le bloc referral.
+      Elle NE touche PAS la colonne vertébrale (un garde-fou l'assert : 7/7 restantes).
+      **Prends un dump avant.**
 - [ ] **3. (10 min)** `npx supabase functions deploy` — fonctions dont le comportement a changé :
       **`sophia-brain`** (ceinture de sortie + injection doctrine — le plus sensible, il touche
       TOUTE conversation), **`analyze-meal-photo-v1`** et **`whatsapp-webhook`** (contrat v3),
