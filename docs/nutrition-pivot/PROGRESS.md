@@ -1017,3 +1017,42 @@ intacts** — un « 0 partout » passerait la première vérification pour la pi
 deno test --allow-all supabase/functions/_shared/keel/ supabase/functions/sophia-brain/
 # 1854 passed | 0 failed
 ```
+
+---
+
+## N3 : VERT — l'app élève, vérifiée dans le navigateur
+
+`StudentWeekPlanPage` (`/app/plan`) + `StudentProgressPage` (`/app/progress`, remplace l'ancienne
+`ProgressPage`) + routes + nav + i18n.
+
+**Écran plan** — objectif + situation, génération, adoption. **Chaque ligne dit d'où elle vient** :
+« Recommandé par ton coach » vs « Suggéré par Sophia ». Ce n'est pas décoratif, c'est la règle
+d'autorité §1.5 rendue **lisible** — un élève doit distinguer d'un coup d'œil ce qui vient de son
+coach de ce que l'assistant a ajouté, sinon les deux se confondent et le coach perd son autorité
+sans que personne ne l'ait décidé.
+**Générer n'est pas adopter** : la génération produit un brouillon, l'élève adopte s'il s'y
+reconnaît. Un plan appliqué automatiquement serait le plan de la machine porté par l'élève.
+
+**Écran progression — l'ordre des blocs est une décision, pas une mise en page** :
+1. **Régularité** (la seule métrique dont ce dépôt a la preuve qu'elle prédit — Peterson 2014,
+   p<0,0001 sur la fréquence ; la complétude, elle, p>0,05)
+2. **Vivabilité** (« quand ça coince, c'est le plus souvent la faim »)
+3. **Portions** (« beaucoup ou peu » sans un kcal)
+4. **Poids en dernier**, en moyenne 7 jours, avec la raison écrite à l'écran
+Zéro score, zéro pourcentage de réalisation, zéro série, zéro badge.
+**Garde TCA** : `restriction_flag` levé → l'écran chiffré se masque entièrement (doctrine W3.2),
+sans nommer le drapeau — un diagnostic posé par une machine n'a rien à faire là.
+
+### 🔴 Un faux négatif de MON environnement, pas du produit
+La génération via l'edge function rendait `empty_plan`. Cause : **mon propre override
+`MEGA_TEST_MODE=1`**, que j'avais mis pour bloquer les envois — et qui stubbe **aussi le LLM**
+(`MEGA_TEST_STUB`). Le code était juste ; c'est l'environnement de test qui mentait.
+Corrigé avec un second fichier d'env (`night_llm.env`) : `MEGA_TEST_MODE=0`, envois toujours à 0.
+**Leçon à garder** : un flag « mode test » qui couvre deux choses (envois ET modèle) produit un
+faux négatif indiscernable d'un bug produit.
+
+### Vérifié dans le navigateur (bout en bout, modèle réel)
+Objectif enregistré → génération → 3 lignes coach + 1 action Sophia, chacune badgée, rationales
+utilisant la situation (« tu manges à la cantine le midi », « une semaine où tu ne cuisines pas le
+soir »). Puis `/app/progress` : 3/7 jours, 2 ça roule · 1 moyen · 1 dur, « c'est le plus souvent
+la faim », 3 assiettes, 77.6 kg (−0.8 sur la période).

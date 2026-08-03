@@ -29,7 +29,6 @@ import { OnboardingAmbientAudioProvider } from "./context/OnboardingAmbientAudio
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import PlanImportPage from "./keel/pages/PlanImportPage";
 import TodayPage from "./keel/pages/TodayPage";
-import ProgressPage from "./keel/pages/ProgressPage";
 import CardsPage from "./keel/pages/CardsPage";
 import JoinPage from "./keel/pages/JoinPage";
 import CoachStudentPage from "./keel/pages/CoachStudentPage";
@@ -38,6 +37,8 @@ import StudentMealPlanPage from "./keel/pages/mealPlan/StudentMealPlanPage";
 import { KeelStudentRoute } from "./keel/components/KeelStudentRoute";
 import CoachHomePage from "./keel/pages/CoachHomePage";
 import CoachDoctrinePage from "./keel/pages/CoachDoctrinePage";
+import StudentWeekPlanPage from "./keel/pages/StudentWeekPlanPage";
+import StudentProgressPage from "./keel/pages/StudentProgressPage";
 import NotFoundPage from "./keel/pages/NotFoundPage";
 import CoachBillingPage from "./keel/pages/CoachBillingPage";
 import TemplatesPage from "./keel/pages/TemplatesPage";
@@ -112,11 +113,25 @@ function App() {
                   </KeelStudentRoute>
                 }
               />
+              {/* PIVOT N3 — le plan de la semaine, celui de l'ÉLÈVE.
+                  §1.2 disait « l'élève n'a AUCUNE interface » ; l'arbitrage du
+                  2026-08-03 l'a inversé (voir l'amendement en tête de
+                  PLAN-NUIT.md). La décision P0.0(a) — auth.users fantôme —
+                  avait été prise pour garder ce chemin ouvert : il suffit de
+                  poser un mot de passe sur la même ligne. */}
+              <Route
+                path="/app/plan"
+                element={
+                  <KeelStudentRoute>
+                    <StudentWeekPlanPage />
+                  </KeelStudentRoute>
+                }
+              />
               <Route
                 path="/app/progress"
                 element={
                   <KeelStudentRoute>
-                    <ProgressPage />
+                    <StudentProgressPage />
                   </KeelStudentRoute>
                 }
               />
