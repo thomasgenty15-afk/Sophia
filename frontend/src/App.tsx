@@ -37,6 +37,7 @@ import StudentMealPlanPage from "./keel/pages/mealPlan/StudentMealPlanPage";
 import { KeelStudentRoute } from "./keel/components/KeelStudentRoute";
 import CoachHomePage from "./keel/pages/CoachHomePage";
 import CoachDoctrinePage from "./keel/pages/CoachDoctrinePage";
+import CoachWeeklyPage from "./keel/pages/CoachWeeklyPage";
 import StudentWeekPlanPage from "./keel/pages/StudentWeekPlanPage";
 import StudentProgressPage from "./keel/pages/StudentProgressPage";
 import NotFoundPage from "./keel/pages/NotFoundPage";
@@ -170,6 +171,21 @@ function App() {
                 element={
                   <CoachRoute>
                     <CoachDoctrinePage />
+                  </CoachRoute>
+                }
+              />
+              {/* PIVOT C5 — the Monday read. `coach-synthesis-v1` had been
+                  writing a row every Monday at 06:00 UTC with `delivered_at`
+                  null and no screen referencing the table: the synthesis
+                  existed only in the database. Same CoachRoute guard; the row
+                  is readable through the coach-owned RLS policy, and marking
+                  it read goes through a SECURITY DEFINER function so a coach
+                  cannot rewrite a report about their own students. */}
+              <Route
+                path="/coach/weekly"
+                element={
+                  <CoachRoute>
+                    <CoachWeeklyPage />
                   </CoachRoute>
                 }
               />

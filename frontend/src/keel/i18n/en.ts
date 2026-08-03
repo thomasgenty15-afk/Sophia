@@ -1030,6 +1030,7 @@ export const en = {
   "shell.nav.students": "Students",
   "shell.nav.templates": "Templates",
   "shell.nav.doctrine": "Doctrine",
+  "shell.nav.weekly": "This week",
   "app.nav.plan": "My week",
   "shell.nav.account": "Account",
   "shell.nav.sign_out": "Sign out",

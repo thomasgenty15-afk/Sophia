@@ -35,6 +35,9 @@ const NAV: Record<ShellVariant, { to: string; label: () => string; end?: boolean
     // A ROUTE WITH NO LINK IS A FEATURE NOBODY HAS (see the note above): the
     // doctrine screen ships with its nav entry in the same change.
     { to: "/coach/doctrine", label: () => t("shell.nav.doctrine") },
+    // C5: the Monday read. It shipped with its nav entry for exactly the
+    // reason above — the synthesis had been written weekly for nobody.
+    { to: "/coach/weekly", label: () => t("shell.nav.weekly") },
   ],
 };
 
