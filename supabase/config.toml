@@ -411,9 +411,6 @@ verify_jwt = false
 [functions.promote-candidate-memory-items]
 verify_jwt = false
 
-[functions.cycle-draft]
-verify_jwt = false
-
 # J+7 account purge (cron, X-Internal-Secret)
 [functions.purge-deleted-accounts]
 verify_jwt = false
