@@ -1359,3 +1359,149 @@ questions_de_precision : [{"local_date":"2026-08-04","axis":"accompaniment",
   sièges vivants).
 
 **Verdict** : AMBER.
+
+---
+
+## L10 — TRANSVERSE
+
+Preuves : `qa-web/L10-transverse.txt`.
+
+### 2026-08-04 21:35Z — RLS élève : VERT
+
+Sous le JWT d'Alice, avec Bob (élève d'un autre coach) qui a de la donnée :
+
+```
+chat_messages               → 2 lignes, aucune d'autrui ✅
+protocol_events             → 1 ligne,  aucune d'autrui ✅
+student_week_plans          → 1 ligne,  aucune d'autrui ✅
+plan_commitments / plan_versions → les siens ✅
+meal_precision_questions    → refus net (permission denied) ✅
+écriture chez Bob           → refusée: « new row violates row-level security
+                               policy for table chat_messages » ✅
+```
+
+### 2026-08-04 21:35Z — AMBER · `anon` garde des privilèges sur 13 tables du pivot
+
+Le prompt demande de vérifier `has_table_privilege('anon', …)`, **jamais**
+`'public'`. Fait :
+
+```
+13 des 17 tables du pivot rendent true sur SELECT/INSERT/UPDATE/DELETE pour anon
+```
+
+**Mais RLS tient** : une lecture réelle avec la clé anonyme rend **0 ligne** sur
+les 8 tables testées. Ce n'est donc **pas une fuite**, c'est une couche de
+défense manquante — le `revoke ... from public` laisse intacts les privilèges
+par défaut d'`anon`, exactement le piège documenté.
+
+Ce qui rend le constat utile : les tables **récentes**
+(`meal_precision_questions`, `coach_clients`, `coaches`, `coach_invitations`)
+n'ont **aucun** privilège anon. La discipline existe ; ce sont les tables
+antérieures au durcissement qui traînent.
+
+**Non corrigé** : un `revoke` global sur 13 tables mérite d'être joué contre la
+suite complète, et il touche des tables que la couche B2C survivante lit encore.
+**Documenté pour la checklist du matin**, avec la commande.
+
+### 2026-08-04 21:35Z — `system_error_logs` : aucune surprise
+
+Les 30 dernières minutes ne contiennent **que** les traces de mes propres
+gestes adversariaux — `Unauthorized` (élève supprimé qui poste),
+`unknown_action`, `invalid_password`, « The uploaded bytes are not a JPEG… »,
+« No published plan… » — plus des `warn safety_band_medium` des scénarios de
+crise. Aucune erreur inattendue.
+
+### 2026-08-04 21:36Z — i18n : aucune chaîne française visible côté KEEL
+
+Extraction de toutes les chaînes littérales de `frontend/src/keel/` (hors
+commentaires et hors tests), filtrées sur les marqueurs français :
+**0 occurrence**. Aucune clé i18n brute non plus dans les écrans joués.
+
+⚠️ **L'exception est le bundle RGPD**, entièrement en français (voir L9).
+
+### NON TESTÉ — et pourquoi
+
+- **Responsive à 375 px et 768 px.** Le pilote de navigateur emprunte le serveur
+  de dev d'une autre session ; son viewport refuse de descendre sous **658 px**
+  (`resize_window` répond « set to 375x812 », `innerWidth` reste à 658). À
+  658 px, **aucun débordement horizontal** sur `/app/chat`
+  (`scrollWidth == innerWidth`). Les deux autres points restent à jouer.
+- **Console navigateur / réseau** : `read_console_messages` et
+  `read_network_requests` n'ont pas été exploités — le même emprunt de serveur
+  rendait la capture peu fiable. Les erreurs SERVEUR, elles, sont couvertes par
+  `system_error_logs` ci-dessus.
+- **Latence perçue** : mesurée seulement par les tours du harnais (3,7 s à 24 s
+  par tour, mesuré dans `L3-conversation.txt`). L'indicateur « Sophia écrit »
+  existe et s'éteint à l'arrivée du message (vérifié en L3 au navigateur), mais
+  sa couverture n'a pas été chronométrée.
+
+---
+
+## RELECTURES À FROID
+
+### 2026-08-04 21:45Z — Passe 1 : mes propres correctifs, rejoués
+
+- **Lignée de migrations** : `uniq -d` sur les versions → aucun doublon ; les
+  5 migrations `≥ 20260804170000` sont **appliquées** en base locale et
+  inscrites dans `schema_migrations`.
+- **Un faux positif de ma propre relecture, attrapé** : un test de la garde
+  `profiles` sous `set local role authenticated` rendait « 0/2 gardes qui
+  mordent ». C'était **RLS**, pas la garde : sans `auth.uid()`, l'UPDATE touche
+  **0 ligne**, donc un trigger `BEFORE UPDATE FOR EACH ROW` ne s'exécute jamais.
+  La preuve qui vaut reste celle du navigateur, avec un vrai JWT — et là la
+  garde mord : « profiles.access_tier is managed by the billing system ».
+  *Une garde qu'on croit désarmée parce qu'on l'a testée hors de son contexte
+  est le symétrique exact d'une garde qu'on croit armée sans l'avoir vue mordre.*
+
+### 2026-08-04 21:50Z — Passe 2 : ce que la première a laissé passer
+
+La consigne est de chercher **ce que la passe 1 n'a pas vu**. J'ai donc éprouvé
+le plancher d'allergie **dans les directions que ses tests unitaires ne couvrent
+pas** : la répétition, et la rétractation.
+
+#### 🔴 P2 · La même allergie déclarée deux fois crée DEUX lignes actives
+
+```
+« I'm allergic to peanuts, badly »          → 1 ligne
+« just to be clear, I'm allergic to peanuts » → 2 lignes
+student_safety_constraints : ["peanut|active", "peanut|active"]
+```
+
+L'écriture **est** conçue idempotente, mais son index unique porte sur
+`(user_id, source_message_id)` — donc **par message**, pas par allergène. Deux
+messages différents déclarant la même allergie produisent légitimement deux
+lignes. Le bloc de prompt liste alors l'allergène deux fois, et toute logique de
+rétractation doit fermer *n* lignes au lieu d'une.
+
+Ce n'est **pas** causé par mon plancher (le chemin d'écriture est inchangé),
+mais mon plancher rend la seconde déclaration **fiable**, donc le rend visible.
+
+#### 🔴 P1 · Une rétractation ANNONCÉE mais jamais écrite
+
+Et c'est la moitié qui compte :
+
+```
+ÉLÈVE  : actually I was wrong, I'm not allergic to peanuts at all — my allergy
+         test came back negative
+SOPHIA : Understood — I won't treat peanuts as a constraint from this turn.
+BASE   : ["peanut|active", "peanut|active"]   ← inchangé
+TOUR SUIVANT : « Sure — two peanut-free snack ideas: … »
+```
+
+C'est le **symétrique exact** de l'accusé fantôme : Sophia annonce avoir levé
+une contrainte qui reste en vigueur, et se contredit au tour suivant.
+
+**La direction de l'échec est la sûre** — la contrainte persiste, donc aucun
+allergène n'est servi. Mais l'élève repart en croyant que quelque chose a
+changé, et c'est exactement la classe de défaut que ce dépôt appelle
+« execution truth ».
+
+**Non corrigé** : le chemin `intent: "retract"` dépend du même `direct_effects`
+stochastique que la déclaration. Y poser un plancher demande de décider ce qui
+compte comme rétractation d'une contrainte **médicale** — un arbitrage clinique,
+pas un correctif de QA. Mon plancher de déclaration porte déjà les motifs de
+rétractation dans ses **conditions de désarmement** (il ne re-déclare pas sur
+« I'm not allergic »), donc il n'aggrave rien.
+
+**Verdict** : deux défauts neufs, trouvés par la seconde passe — ce qui est
+précisément ce qu'elle sert à faire.
