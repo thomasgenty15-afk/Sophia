@@ -1,0 +1,57 @@
+██████████████████████████████████████████████████████████████████████████
+1 — plan-import-v1 (document réel)
+██████████████████████████████████████████████████████████████████████████
+plan-import-v1 → HTTP 200
+clés : ["request_id","content_locale","summary","commitments","relations","gaps","unparsed_spans"]
+brouillon (extrait) : {"request_id":"087e8dc3-9815-490c-a027-f588b929deb4","content_locale":"en","summary":{"commitments":11,"blocking":0,"needs_review":0,"relations":0,"gaps":2,"unparsed_spans":2,"model_attempts":1},"commitments":[{"template_commitment_key":"breakfast_within_90min","title":"Breakfast within 90 minutes of waking","polarity":"do","activity_class":"nutrition","anchor_kind":"slot","slot_key":"breakfast","clock_local":null,"window_start_local":null,"window_end_local":null,"measure":"presence","unit":null,"target_op":"any","target_min":null,"target_max":null,"substance_ref":null,"food_group_ref":null,"evidence_kind":"self_report","evaluation_grain":"occasion","slot_kind":"nominal","scheduled_days":null,"required_days_per_week":7,"expected_occasions_per_day":1,"priority":"core","content":{"timing_rule":"within 90 minutes of waking","composition":["a protein source — eggs, Greek yoghurt or a protein-rich leftover"]},"content_locale":"en","source_span":{"quote":"- Breakfast (within 90 minutes of waking): a protein source — eggs, Greek\nyoghurt or a protein-rich leftover."},"confidence":0.86,"needs_review":false,"blocking":false,"review_questions":[],"validation_issues":[],"diagnostics":[]},{"te
+
+contre-factuel document illisible → HTTP 200 {"request_id":"cf34d67f-1afe-4d1d-aaae-58a06f11cde9","content_locale":"en","summary":{"commitments":0,"blocking":0,"needs_review":0,"relations":0,"gaps":0,"unparsed_spans":1,"model_attempts":1},"commitments":[],"relation
+contre-factuel document vide      → HTTP 429 {"error":"Rate limit exceeded. Please slow down and try again shortly.","request_id":"f255d2a5-4ef7-48ea-8fb3-ab2ec2aef1ed","retry_after_seconds":312}
+
+██████████████████████████████████████████████████████████████████████████
+2 — plan-publish-v1
+██████████████████████████████████████████████████████████████████████████
+contre-factuel « publier SANS approbation » → HTTP 400 ["approvals: at least one section approval is required — the coach is the prescriber and the approval click is the regulatory trace"]
+HTTP 200 {"request_id":"a4bf894b-751e-43ad-86ac-2fa3578b0006","plan_version":{"id":"2315ae9d-8646-4f14-9ae5-959d9348fe9e","coach_id":"61b63747-55a4-4d6e-bc32-490b14d470e8","student_id":"3a7b0402-e94f-49e6-8980-ad9f0f2b8292","template_id":null,"source_document_id":null,"version":1,"status":"published","title":"Marlow method","content_locale":"en-GB","timezone":"Europe/London","anchor_week_start":null,"durat
+plan_versions : ["published | Marlow method | 2026-08-04 22:14:48.596+00"]
+plan_commitments : ["breakfast | - | Breakfast within 90 minutes of waking","dinner | - | Dinner plate rule, lighter on the starch","- | legumes | Legumes at least three times a week","lunch | - | Lunch plate rule","- | - | No calorie counting","- | - | No intermittent fasting","breakfast | - | No skipped breakfasts","- | - | No weighing food","- | fatty_fish | Oily fish at least twice a week","- | - | One planned flexible meal per week, taken without guilt","snack_am | - | Snacks only if genuinely hungry, always protein-led"]
+
+contre-factuel « publier chez l'élève d'un autre » → HTTP 403 {"error":"not_your_student","request_id":"edec4b4b-a389-48a4-9369-3ab5607fb354"}
+
+██████████████████████████████████████████████████████████████████████████
+3 — LE PLAN EST-IL VISIBLE À LA CONVERSATION ? (AGENT-6)
+██████████████████████████████████████████████████████████████████████████
+
+ÉLÈVE  : what am I supposed to eat at lunch?
+SOPHIA : That one sits outside what your coach set on this line, so I am not going to green-light it myself. I have passed your question to them with exactly what you told me — they will come back on it. Nothing in your plan has changed in the meantime.
+
+ÉLÈVE  : can I swap the rice for pasta tonight?
+SOPHIA : That one sits outside what your coach set on this line, so I am not going to green-light it myself. I have passed your question to them with exactly what you told me — they will come back on it. Nothing in your plan has changed in the meantime.
+
+██████████████████████████████████████████████████████████████████████████
+4 — generate-week-plan-v1 (l'élève compose SA semaine)
+██████████████████████████████████████████████████████████████████████████
+contre-factuel « semaine sans objectif » → HTTP 409 {"error":"goal_required","detail":"Set a goal and situation before generating a week.","request_id":"0aaab55f-87b5-4af6-87ae-aad93dd0b95d"}
+HTTP 409 — clés ["error","detail","request_id"]
+extrait : {"error":"goal_required","detail":"Set a goal and situation before generating a week.","request_id":"58e2b4b2-5aa3-4287-9313-d8ae868ba0a6"}
+student_week_plans : ["2026-08-03 | adopted | 0 item(s)"]
+
+██████████████████████████████████████████████████████████████████████████
+5 — keel-week-rollover-v1
+██████████████████████████████████████████████████████████████████████████
+cron → HTTP 200 {"ok":true,"users_scanned":0,"users_activated":0,"items_activated":0,"exhausted":true,"next_after_user_id":null,"warnings":[],"request_id":"7989bfb3-468b-4117-9372-a179bae56505"}
+avant : ["2026-08-03 | adopted"]
+après : ["2026-08-03 | adopted"]
+rien de perdu ? ✅ toutes les semaines d'avant sont là
+
+██████████████████████████████████████████████████████████████████████████
+6 — les autres fonctions
+██████████████████████████████████████████████████████████████████████████
+  plan-template-v1       (élève) → HTTP 403 {"error":"not_a_coach","request_id":"44b27ed1-253b-4d6f-b3d4-21dfc5281fe8"}
+  keel-meal-plan-v1      (élève) → HTTP 400 {"ok":false,"error":"[keel-meal-plan-v1] unknown action \"list\". Expected one of: vocabulary, week, list_ideas, create_idea, update_idea, archive_idea, place, unplace","request_id":"b5b12abf-8774-416
+  keel-cards-v1          (élève) → HTTP 400 {"ok":false,"error":"[keel-cards-v1] unknown action \"list\". Expected one of: list_templates, create_card, update_card, log_win, arm_sweep, due","request_id":"9a63841b-f2ab-4554-a813-3185106909fb"}
+  plan-template-v1       (coach) → HTTP 200 {"request_id":"a11bcd1d-b48f-41c7-b137-3edee59468cb","templates":[]}
+
+context: {"coachId":"61b63747-55a4-4d6e-bc32-490b14d470e8","studentId":"3a7b0402-e94f-49e6-8980-ad9f0f2b8292"}
+
+→ écrit

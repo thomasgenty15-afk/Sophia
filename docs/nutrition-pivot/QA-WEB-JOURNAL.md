@@ -1505,3 +1505,147 @@ rétractation dans ses **conditions de désarmement** (il ne re-déclare pas sur
 
 **Verdict** : deux défauts neufs, trouvés par la seconde passe — ce qui est
 précisément ce qu'elle sert à faire.
+
+---
+
+## L7 — PROTOCOLES, PLANS, SEMAINES
+
+Preuves : `qa-web/L7-plans.txt`.
+
+### 2026-08-04 22:14Z — `plan-import-v1` sur un document RÉEL de coach
+
+**Geste** : un protocole de 8 semaines écrit en prose (principe, structure
+quotidienne, règles hebdomadaires, « ce que je ne fais pas », autonomie de
+substitution) passé à `plan-import-v1`.
+
+**Résultat** : **11 engagements** extraits, typés, avec la citation d'origine :
+
+```
+breakfast | -           | Breakfast within 90 minutes of waking
+lunch     | -           | Lunch plate rule
+dinner    | -           | Dinner plate rule, lighter on the starch
+snack_am  | -           | Snacks only if genuinely hungry, always protein-led
+-         | fatty_fish  | Oily fish at least twice a week
+-         | legumes     | Legumes at least three times a week
+-         | -           | One planned flexible meal per week, taken without guilt
+-         | -           | No calorie counting / No weighing food
+-         | -           | No intermittent fasting
+breakfast | -           | No skipped breakfasts
+```
+
+Chaque engagement porte `source_span.quote` (la phrase exacte du coach),
+`confidence`, `needs_review`, et le rapport nomme ses **trous** (`gaps: 1`,
+`unparsed_spans: 9`). Les interdits du coach deviennent des engagements
+négatifs, les règles hebdomadaires portent leur `food_group_ref`.
+
+**Adversarial** :
+- document illisible (`??? %%%`) → **200 avec 0 engagement** et 1 span non
+  interprété. Il n'invente pas ;
+- document vide → **400**, motif nommé sur le champ.
+
+**Verdict** : VERT.
+
+### 2026-08-04 22:14Z — `plan-publish-v1` : la trace d'approbation est opposable
+
+```
+publier SANS approbation → 400 publish_refused
+  « approvals: at least one section approval is required — the coach is the
+    prescriber and the approval click is the regulatory trace »
+publier AVEC approbation → 200, plan_versions: published | Marlow method
+publier chez l'élève d'un AUTRE coach → 403 not_your_student
+```
+
+Le contre-factuel a été joué **avant** de satisfaire la garde — c'est ce qui
+prouve qu'elle mord.
+
+**Verdict** : VERT.
+
+### 2026-08-04 22:20Z — `generate-week-plan-v1` : trois préconditions, chacune nommée
+
+Le chemin complet demande trois choses, et **les refuse une par une avec son
+motif** — aucun défaut silencieux :
+
+```
+1. sans objectif        → 409 goal_required
+                          « Set a goal and situation before generating a week. »
+2. sans doctrine publiée → 409 coach_has_no_doctrine
+                          « The coach has not published any convictions yet. »
+3. semaine déjà adoptée → 409 plan_already_adopted
+                          « Regenerating replaces it and un-adopts it;
+                            send replace_adopted to confirm. »
+4. les trois satisfaites → 200
+```
+
+Et la semaine produite est **tracée à la conviction du coach** :
+
+```json
+{"kind":"nutrition",
+ "label":"Build breakfast around eggs so the day starts with a protein anchor.",
+ "source_belief_key":"every_meal_is_built_on_a",
+ "source_belief_claim":"Every meal is built on a protein anchor.",
+ "days":["mon","wed","fri"]}
+```
+
+Les doublons sont **nommés** plutôt qu'écartés en silence :
+`issues: ["items[1]: duplicate conviction every_meal_is_built_on_a, kept the first", …]`.
+
+AMBER mineur : ma doctrine de fixture n'a **qu'une** conviction, donc les quatre
+candidats en dérivaient et un seul item survit. Ce n'est pas un défaut, c'est
+mon décor.
+
+**Verdict** : VERT.
+
+### 2026-08-04 22:15Z — AGENT-6 (« le plan est invisible à la conversation ») : NE SE REPRODUIT PAS
+
+Avec un plan publié dont l'engagement du midi porte un groupe alimentaire,
+la conversation le lit :
+
+> « Nice — chicken gives you the protein anchor **for lunch**. »
+> « If that was lunch, **it fits the lunch protein line**. »
+
+Avec le plan importé — dont l'engagement du midi est une règle de composition
+**sans groupe alimentaire** — elle défère plutôt que d'inventer :
+
+> « That one sits outside what your coach set on this line, so I am not going to
+> green-light it myself. I have passed your question to them. »
+
+Les deux comportements sont corrects et se distinguent par ce que le plan
+**porte réellement**. Le défaut AGENT-6 est **fermé**.
+
+**Verdict** : VERT.
+
+### 2026-08-04 22:16Z — `keel-week-rollover-v1` : rien ne se perd
+
+```
+avant : ["2026-08-03 | adopted"]
+après : ["2026-08-03 | adopted"]   ✅ aucune semaine disparue
+```
+
+Le job répond `users_scanned: 0` sur ce jeu : il **n'a rien eu à faire**. Il ne
+perd rien, mais il n'est pas éprouvé sur une vraie bascule. **NON TESTÉ en
+profondeur**, comme dit en L5.
+
+### 2026-08-04 22:16Z — Les autres fonctions, et leurs gardes
+
+```
+plan-template-v1  (élève) → 403 not_a_coach            ✅ tenancy
+plan-template-v1  (coach) → 200, templates: []
+keel-meal-plan-v1         → 400, et il ÉNUMÈRE ses actions valides
+keel-cards-v1             → 400, idem
+```
+
+Les deux 400 sont des refus **utiles** : ils listent les actions acceptées au
+lieu de rendre un 400 muet.
+
+### NON TESTÉ dans ce lot
+
+- **Les écrans** `/app/plan`, `/app/meals`, `/app/progress`, `/app/cards` au
+  navigateur.
+- **`keel-meal-plan-v1`, `generate-meal-v1`, `meal-document-v1`, `keel-cards-v1`**
+  sur leurs actions réelles (`week`, `place`, `create_idea`, `create_card`…) —
+  seul leur refus d'action inconnue est prouvé.
+- **Une semaine à cheval sur un changement de mois** et **un élève qui ne
+  compose jamais sa semaine**.
+
+**Verdict du lot** : VERT sur le cœur (import → publication → semaine →
+conversation → bascule), NON TESTÉ sur les écrans et les actions secondaires.
