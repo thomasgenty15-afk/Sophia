@@ -1199,6 +1199,104 @@ export const en = {
   "common.close": "Close",
   "common.continue": "Continue",
 
+  // ── /start — l'inscription libre ────────────────────────────────────────
+  //
+  // Le registre est différent de `join.*` et ce n'est pas un accident. Sur
+  // /join, quelqu'un a déjà choisi cette personne: le texte peut parler de
+  // « votre coach ». Ici personne ne l'attend, et la page doit être honnête sur
+  // ce qu'elle offre — un programme générique — sinon un testeur rend un avis
+  // sur un produit qui n'existe pas.
+  "start.seo_title": "Try KEEL",
+  "start.seo_description":
+    "Start the KEEL discovery program: photograph your meals, answer three taps in " +
+    "the evening, and see what a week of steady eating actually looks like.",
+  "start.loading": "Getting things ready…",
+  "start.title": "Try it without a coach first",
+  "start.lead":
+    "This is the KEEL discovery program. It is free, it takes about a minute to " +
+    "start, and you will be eating your way through it by tonight.",
+
+  "start.day.title": "What your days look like",
+  "start.day.photo_title": "You photograph a meal",
+  "start.day.photo_body":
+    "Send a photo in the chat and it gets filed against your week. No weighing, " +
+    "no calorie box to fill in — what the meal was made of is the part that counts.",
+  "start.day.evening_title": "Three taps in the evening",
+  "start.day.evening_body":
+    "Good, mixed, or hard. That is the whole check-in. It takes five seconds and it " +
+    "is what makes a week readable instead of a blur.",
+  "start.day.week_title": "A week you can actually see",
+  "start.day.week_body":
+    "A handful of habits, laid out over seven days, with what you did next to what " +
+    "you meant to do. Nothing here scores you.",
+
+  "start.limit.kicker": "Where this stops",
+  "start.limit.title": "This program does not know you",
+  "start.limit.body":
+    "It carries general principles — real food, protein at every meal, regular " +
+    "times, one change at a time. It has no idea about your history, your training, " +
+    "or your health, and when something depends on those it will say so instead of " +
+    "guessing.",
+  "start.limit.coach":
+    "A coach on KEEL is a different thing: their own method, and someone who has " +
+    "your history. If you came here to try the product, this is the honest version " +
+    "of it — not a smaller one pretending to be the same.",
+
+  "start.form.title": "Create your account",
+  "start.form.name": "Your name",
+  "start.form.email": "Email",
+  "start.form.password": "Password",
+  "start.form.password_hint": "At least 8 characters.",
+  "start.form.country": "Where you live",
+  // Pourquoi on le demande, dit à la personne. Quelqu'un qui comprend l'usage
+  // répond juste — et l'usage est réel: c'est ce champ qui décide quel numéro
+  // d'urgence on donne si la conversation part là.
+  "start.form.country_hint":
+    "Used to give you the right emergency number if a conversation ever needs one.",
+  "start.form.legal_prefix": "I accept the",
+  "start.form.legal_terms": "Terms",
+  "start.form.legal_and": "and the",
+  "start.form.legal_privacy": "Privacy Policy",
+  "start.form.cta": "Start the program",
+  "start.form.submitting": "Creating your account…",
+  "start.form.have_account": "Already have an account?",
+  "start.have_account_cta": "Sign in",
+
+  "start.repair.title": "One thing left",
+  "start.repair.body":
+    "Your account exists but it is not attached to the program yet. Tell us where " +
+    "you live and it will be, in one click.",
+  "start.repair.cta": "Attach my account",
+
+  "start.check_email.title": "Confirm your email",
+  "start.check_email.body":
+    "Your account is created and already attached to the discovery program. Open the " +
+    "confirmation email we just sent to finish signing in.",
+  "start.joined.title": "You're in",
+  "start.joined.body":
+    "Say hello, or send a photo of your next meal — that is where the program starts.",
+  "start.joined.cta": "Open the conversation",
+  "start.existing.title": "You already have an account",
+  "start.existing.body":
+    "That address is already registered. Sign in and we will pick up right here.",
+  "start.existing.cta": "Sign in",
+
+  "start.unavailable.title": "Free signup is paused",
+  "start.unavailable.body":
+    "The discovery program is not available right now, so we are not creating " +
+    "accounts that would have nothing to run. Try again a little later — and if a " +
+    "coach invited you, use the link in their email instead.",
+
+  "start.error.legal": "Please accept the Terms and the Privacy Policy to continue.",
+  "start.error.country_required": "Please tell us where you live.",
+  "start.error.already_coached":
+    "Your account already follows a coach's program. You do not need this one.",
+  "start.error.caller_is_coach":
+    "This is a coach account. Your space is the coach workspace, not a student one.",
+  "start.error.unavailable":
+    "The discovery program is not available right now. Nothing was created — try again later.",
+  "start.error.generic": "That did not go through. Nothing changed — try again.",
+
   // Brand + public chrome (header/footer shared by the public pages)
   "brand.wordmark": "Sophia",
   "public.header.sign_in": "Sign in",
@@ -1239,6 +1337,11 @@ export const en = {
   "landing.hero.cta_signin": "Sign in",
   "landing.hero.note":
     "14 days, up to 3 students. They join by invitation and get a space of their own, chat included. There is no one-to-one inbox for you to keep up with.",
+  // Discret par construction: cette page vend au coach. Mais un coach qui évalue
+  // veut voir le produit avant d'y inviter un client, et « essayez d'abord »
+  // répond à ça sans lui vendre une seconde offre.
+  "landing.hero.try_prompt": "Want to see it from the student's side first?",
+  "landing.hero.try_cta": "Try the free program",
 
   // Landing — schematic of the Monday page. Labels are the product's own; the
   // cohort is an example and says so (landing.mock.caption).

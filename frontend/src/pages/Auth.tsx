@@ -6,7 +6,7 @@ import { consumePendingCoachInvitation } from '../keel/api/coachInvite';
 import { t as keelT } from '../keel/i18n/t';
 import { newRequestId, requestHeaders } from '../lib/requestId';
 import { getPrelaunchLockdownRawValue, isPrelaunchLockdownEnabled } from '../security/prelaunch';
-import { DEFAULT_LOCALE, DEFAULT_TIMEZONE, detectBrowserTimezone, getAllSupportedTimezones } from '../lib/localization';
+import { DEFAULT_TIMEZONE, detectBrowserTimezone, getAllSupportedTimezones } from '../lib/localization';
 import {
   Mail,
   Lock,
@@ -14,7 +14,6 @@ import {
   Sparkles,
   ShieldCheck,
   User,
-  Phone,
   AlertCircle,
   Loader2,
   Eye,
@@ -36,23 +35,30 @@ function getErrorMessage(err: unknown, fallback: string) {
 }
 
 // ---------------------------------------------------------------------------
-// KEEL W6.1 — COACH SIGNUP MODE (?role=coach)
+// CE QUE CETTE PAGE FAIT ENCORE, ET CE QU'ELLE NE FAIT PLUS (2026-08-05)
 //
-// The French consumer path below assumes a French user: the phone number is
-// REQUIRED (Sophia reaches people on WhatsApp), `normalizePhone` presupposes
-// +33, and the language field is a read-only "Français".
+// ELLE FAIT: la CONNEXION de tout le monde (élève, coach, admin), la
+// réinitialisation de mot de passe, la confirmation d'email, et l'INSCRIPTION
+// COACH sous `?role=coach` (W6.1).
 //
-// None of that holds for a coach. A coach never receives a WhatsApp check-in —
-// they prescribe, their students are the ones who get messages — and KEEL ships
-// in English. Requiring a French mobile number to create a coach account would
-// make the product uninstallable outside France for the exact population it is
-// being built for.
+// ELLE NE FAIT PLUS: l'inscription générique. Elle exigeait un numéro de
+// téléphone, normalisé en `+33`, avec un contrôle de longueur français
+// (« 10 digits expected for France ») — sur un produit anglais qui vise les
+// États-Unis. C'était le chemin d'un ÉLÈVE qui atterrit ici au lieu de /join
+// (son client mail casse le lien, il revient par la porte d'entrée), et il se
+// heurtait donc à un mur invisible dans les tests, parce que tout le monde passe
+// par /join.
 //
-// The whole coach mode is gated on `?role=coach`. Every branch added below is
-// `coachSignup && ...` or `!coachSignup && ...`: the FR path executes the same
-// statements it executed before, in the same order. That is deliberate — this
-// file is the single door to the product and a regression here is a total
-// outage, so the new mode is added BESIDE the old one, never woven into it.
+// L'inscription élève est /start (`keel/pages/StartPage.tsx`). Elle n'y a pas
+// été déplacée seulement pour retirer un champ: elle doit demander le PAYS, que
+// le numéro déduisait avant le pivot et dont dépend la HOTLINE servie en cas de
+// crise. Garder ici une inscription élève sans pays aurait rouvert, par cette
+// porte, le défaut « élève britannique, hotline française » que la migration
+// 20260804180000 vient de fermer sur l'autre.
+//
+// Le mode coach reste gaté sur `?role=coach` et n'a pas bougé d'une ligne: ce
+// fichier est la porte de connexion unique du produit, et une régression ici est
+// une panne totale.
 // ---------------------------------------------------------------------------
 
 /**
@@ -88,33 +94,13 @@ const COACH_COUNTRIES: { code: string; label: string }[] = [
 /** R3: the coach workspace is English. This is `ui_locale`, not content locale. */
 const COACH_LOCALE = "en-US";
 
-function normalizePhone(input: string): string {
-  let s = (input ?? "").trim();
-  if (!s) return "";
-  // keep digits and '+' only
-  s = s.replace(/[^\d+]/g, "");
-  if (!s) return "";
-
-  // 00... => +...
-  if (s.startsWith("00")) s = `+${s.slice(2)}`;
-
-  // If already E.164-ish, keep it
-  if (s.startsWith("+")) return s;
-
-  // Digits-only: try to normalize common French formats into E.164 (+33XXXXXXXXX)
-  const digits = s.replace(/\D/g, "");
-  if (!digits) return "";
-
-  // 06XXXXXXXX (10 digits) -> +33 6XXXXXXXX
-  if (digits.length === 10 && digits.startsWith("0")) return `+33${digits.slice(1)}`;
-  // 33XXXXXXXXX (11 digits) -> +33XXXXXXXXX
-  if (digits.length === 11 && digits.startsWith("33")) return `+${digits}`;
-  // 9 digits (no leading 0) -> assume FR and prefix +33
-  if (digits.length === 9) return `+33${digits}`;
-
-  // Fallback: prefix '+' (better chance to match WhatsApp normalizeFrom)
-  return `+${digits}`;
-}
+// `normalizePhone` A ÉTÉ RETIRÉE AVEC LE CHAMP TÉLÉPHONE (2026-08-05).
+// Elle présupposait `+33` — 10 chiffres commençant par 0, 9 chiffres sans
+// indicatif, repli en préfixant `+` — donc elle ne pouvait servir qu'un
+// utilisateur français. Aucun appelant ne subsiste sur cette page. La garde
+// équivalente côté base (`is_verified_phone_in_use`, et le contrôle sur
+// `phone_verified_at` dans `handle_new_user()`) reste en place pour les
+// imports: ce qui disparaît est la SAISIE, pas la protection.
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -142,7 +128,6 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
   // KEEL W6.1 — asked only in coach mode; never derived from the locale.
   const [coachCountry, setCoachCountry] = useState('US');
   // Parrainage : prérempli depuis ?ref= (capturé au chargement de l'app),
@@ -214,7 +199,8 @@ const Auth = () => {
 
   useEffect(() => {
     // Prefill timezone from browser when opening signup (non-destructive if user already typed something else).
-    // Language is locked to French for now (DEFAULT_LOCALE).
+    // La seule inscription qui reste ici est celle du coach, dont la langue est
+    // `COACH_LOCALE` (en-US) et non une valeur choisie dans le formulaire.
     if (!isSignUp || prelaunchLockdown) return;
     const detected = detectBrowserTimezone();
     if (detected) setTimezone(detected);
@@ -487,59 +473,33 @@ const Auth = () => {
           throw new Error("Please accept the Terms and the Privacy Policy to continue.");
         }
 
-        // KEEL W6.1 — a coach signs up WITHOUT a phone number.
-        // The block below (required field, +33 normalization, French length
-        // check, verified-phone precheck) is the WhatsApp consumer path and is
-        // skipped whole for a coach. It is skipped rather than made
-        // conditional field by field so the FR path keeps running exactly the
-        // statements it ran before.
-        let phoneNorm = "";
+        // ── LA FIN DU TÉLÉPHONE (2026-08-05) ────────────────────────────
+        //
+        // Ici vivaient: un champ obligatoire, une normalisation `+33`, un
+        // contrôle de longueur français (« 10 digits expected for France »), et
+        // un pré-contrôle `is_verified_phone_in_use`. Tout cela sur le chemin
+        // d'inscription GÉNÉRIQUE, c'est-à-dire celui d'un élève qui atterrit
+        // sur /auth au lieu de /join — son client mail casse le lien, il revient
+        // par la porte d'entrée — et qui se heurtait donc à un validateur de
+        // numéro français.
+        //
+        // Le bloc n'est pas seulement supprimé: l'inscription générique elle
+        // aussi disparaît de cette page (le switcher renvoie vers /start).
+        // Supprimer la validation en gardant le chemin aurait laissé une
+        // inscription élève qui n'écrit PAS `country` — c'est-à-dire un élève
+        // dont la hotline de crise est déduite de sa langue, le défaut exact que
+        // la migration 20260804180000 vient de fermer sur l'autre porte.
+        //
+        // Reste armée SANS ce code: la garde anti-collision de
+        // `handle_new_user()` sur `phone_verified_at`, pour les imports et pour
+        // tout appelant qui poserait un numéro demain (migration
+        // 20260805091000). `normalizePhone` et `is_verified_phone_in_use`
+        // survivent pour les mêmes raisons — ils n'ont plus d'appelant ici.
         if (!coachSignup) {
-        // Basic phone validation (optional but recommended)
-        if (!phone) {
-             throw new Error("A phone number is required for Sophia.");
-        }
-
-        phoneNorm = normalizePhone(phone);
-        if (!phoneNorm) {
-          throw new Error("A phone number is required for Sophia.");
-        }
-
-        // Validation plus stricte du format
-        if (phoneNorm.startsWith('+33')) {
-          // France : on attend exactement 12 caractères (+33 + 9 chiffres)
-          // Ex: +33 6 12 34 56 78
-          if (phoneNorm.length !== 12) {
-            throw new Error("Invalid phone number (10 digits expected for France).");
-          }
-        } else if (phoneNorm.startsWith('+0')) {
-             // Cas où normalizePhone n'a pas reconnu le pays et a juste ajouté + devant un 0
-             throw new Error("International format required (e.g. +33…), or the number is incomplete.");
-        } else if (phoneNorm.length < 8) {
-             throw new Error("Phone number is too short.");
-        }
-
-        // If the phone is already validated by another account, block signup with a friendly message.
-        // Note: Uses an RPC to avoid exposing broad profiles read access to anon users.
-        let phoneAlreadyInUse = false;
-        try {
-          const { data: inUse, error: inUseErr } = await supabase.rpc('is_verified_phone_in_use', {
-            p_phone: phoneNorm,
-          });
-          if (inUseErr) throw inUseErr;
-          if (inUse) {
-            phoneAlreadyInUse = true;
-          }
-        } catch (precheckErr) {
-          // Best-effort: if the precheck fails, don't block signup (DB constraint will still protect verified numbers).
-          console.warn("Phone in-use precheck failed (non-blocking):", precheckErr);
-        }
-        if (phoneAlreadyInUse) {
           throw new Error(
-            "This phone number is already linked to a Sophia account. If it is yours, contact support at sophia@sophia-coach.ai to recover or transfer your access."
+            "Student sign-up has moved. Open /start to create your account, or use the link your coach emailed you.",
           );
         }
-        } // end of the non-coach phone path
 
         // KEEL W6.1 — the coach's country is a SELECTOR value, validated for
         // shape here and again by the DB CHECK. R7: a bad value fails at the
@@ -559,15 +519,13 @@ const Auth = () => {
           options: {
             data: {
                 full_name: name,
-                // KEEL W6.1 — `phone` is omitted entirely for a coach.
-                // `handle_new_user` does `nullif(coalesce(meta->>'phone', new.phone, ''), '')`,
-                // so an absent key stores NULL and the duplicate-phone guard in
-                // the trigger is never entered. Sending "" would take the same
-                // branch; omitting the key states the intent.
-                ...(coachSignup ? {} : { phone: phoneNorm }),
-                // Localization (stored on profiles via DB trigger).
-                // The FR path is locked to fr-FR; KEEL is English (R3).
-                locale: coachSignup ? COACH_LOCALE : DEFAULT_LOCALE,
+                // `phone` N'EST PLUS ENVOYÉ, par aucun chemin de cette page.
+                // `handle_new_user` fait
+                // `nullif(coalesce(meta->>'phone', new.phone, ''), '')`, donc une
+                // clé absente stocke NULL et la garde anti-collision du trigger
+                // n'est jamais entrée. Envoyer "" prendrait la même branche;
+                // omettre la clé énonce l'intention.
+                locale: COACH_LOCALE,
                 timezone: signupTimezone,
                 tz_follow_device: tzFollowDevice,
             },
@@ -928,34 +886,20 @@ const Auth = () => {
                   </div>
                 </div>
 
-                {/* KEEL W6.1 — le téléphone reste la CLÉ D'IDENTITÉ élève
-                    (décision P0.0), mais ce n'est plus un canal: la
-                    conversation vit dans l'app depuis le chantier de-whatsapp.
-                    A coach is never messaged by Sophia, so the field is not
-                    rendered at all: an optional-but-visible phone box would
-                    still be answered with a French number by half the coaches
-                    and give us a contact channel we do not use. */}
-                {!coachSignup && (
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1">
-                    Phone number
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Phone className="h-5 w-5 text-slate-400" />
-                    </div>
-                    <input
-                      type="tel"
-                      required={isSignUp}
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      className="appearance-none block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent sm:text-sm transition-all"
-                      placeholder="+33 6 12 34 56 78"
-                    />
-                  </div>
-                  <p className="mt-1 text-xs text-slate-500">So Sophia can reach you.</p>
-                </div>
-                )}
+                {/* ── LE CHAMP TÉLÉPHONE A ÉTÉ RETIRÉ (2026-08-05) ──────────
+                    Il était OBLIGATOIRE sur ce chemin, normalisé en `+33`, et
+                    refusait tout ce qui ne faisait pas exactement 12 caractères
+                    avec le message « 10 digits expected for France » — sur un
+                    produit anglais qui vise les États-Unis.
+                    Le numéro était l'identité du compte quand Sophia parlait
+                    sur WhatsApp. La conversation vit dans l'app depuis le
+                    chantier de-whatsapp: plus aucun chemin élève ni coach
+                    n'alimente `profiles.phone_number`, et le demander était un
+                    MUR — invisible dans les tests parce que tout le monde passe
+                    par /join.
+                    Ce chemin d'inscription générique n'existe plus du tout ici:
+                    l'inscription élève est /start, qui demande le PAYS (ce que
+                    le numéro déduisait). Voir le switcher en bas de page. */}
 
                 {/* KEEL W6.1 — country. Asked, never derived from the locale:
                     `profiles.country` is read FIRST by the crisis-resource
@@ -1207,14 +1151,31 @@ const Auth = () => {
               </div>
 
               <div className="mt-6 grid grid-cols-1 gap-3">
-                <button
-                  onClick={() => setIsSignUp(!isSignUp)}
-                  className="w-full inline-flex justify-center py-3 px-4 border border-slate-200 rounded-xl shadow-sm bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
-                >
-                  {coachSignup
-                    ? (isSignUp ? "Sign in" : "Create a coach account")
-                    : (isSignUp ? "Sign in" : "Create a free account")}
-                </button>
+                {/* DEUX BOUTONS QUI NE FONT PAS LA MÊME CHOSE, ET C'EST LE POINT.
+                    Côté coach, le basculement inscription/connexion reste LOCAL:
+                    le formulaire coach vit sur cette page.
+                    Côté élève, « créer un compte » est un LIEN vers /start, pas
+                    un `setIsSignUp(true)`. Deux raisons, et la seconde est un
+                    bug qu'on éviterait de justesse: (1) l'inscription élève doit
+                    demander le PAYS, que cette page ne demande pas; (2) le
+                    `useEffect` qui suit `?role=coach` remet `isSignUp` à false à
+                    chaque rendu hors mode coach, donc le basculement local
+                    n'aurait affiché le formulaire qu'un clignement. */}
+                {coachSignup ? (
+                  <button
+                    onClick={() => setIsSignUp(!isSignUp)}
+                    className="w-full inline-flex justify-center py-3 px-4 border border-slate-200 rounded-xl shadow-sm bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+                  >
+                    {isSignUp ? "Sign in" : "Create a coach account"}
+                  </button>
+                ) : (
+                  <Link
+                    to="/start"
+                    className="w-full inline-flex justify-center py-3 px-4 border border-slate-200 rounded-xl shadow-sm bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+                  >
+                    Create a free account
+                  </Link>
+                )}
               </div>
 
               {/* KEEL — the two doors reference each other. A coach landing on

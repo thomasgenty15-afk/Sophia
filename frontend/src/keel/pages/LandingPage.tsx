@@ -1,5 +1,5 @@
 import React from "react";
-import { Navigate } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import SEO from "../../components/SEO";
 import { useAuth } from "../../context/AuthContext";
 import { LEGAL_ENTITY, organizationStructuredData } from "../../lib/legalEntity";
@@ -188,6 +188,19 @@ function Hero() {
           </div>
           <p className="mt-4 max-w-md text-sm leading-6 text-gray-500">
             {t("landing.hero.note")}
+          </p>
+          {/* LA PORTE LIBRE, ET ELLE EST DÉLIBÉRÉMENT DISCRÈTE.
+              Cette page vend au COACH, qui paie: mettre « essayez
+              gratuitement » à côté de « démarrez votre essai » ferait hésiter
+              l'acheteur entre deux offres dont une seule le concerne. Mais un
+              coach qui évalue le produit veut le VOIR avant d'inviter un client,
+              et un testeur envoyé ici a besoin d'une porte. Une ligne de texte
+              sous la note, pas un troisième bouton. */}
+          <p className="mt-3 max-w-md text-sm leading-6 text-gray-500">
+            {t("landing.hero.try_prompt")}{" "}
+            <Link to="/start" className="font-medium text-gray-900 underline">
+              {t("landing.hero.try_cta")}
+            </Link>
           </p>
         </div>
         <MondayPanel />

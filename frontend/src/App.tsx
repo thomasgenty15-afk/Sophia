@@ -27,6 +27,7 @@ import TodayPage from "./keel/pages/TodayPage";
 import KeelChatPage from "./keel/pages/ChatPage";
 import CardsPage from "./keel/pages/CardsPage";
 import JoinPage from "./keel/pages/JoinPage";
+import StartPage from "./keel/pages/StartPage";
 import CoachStudentPage from "./keel/pages/CoachStudentPage";
 import MealPlanPage from "./keel/pages/MealPlanPage";
 import StudentMealPlanPage from "./keel/pages/mealPlan/StudentMealPlanPage";
@@ -203,6 +204,14 @@ function App() {
                   (preview_coach_invitation) that returns the coach's first
                   name and the invited email, and nothing else. */}
               <Route path="/join" element={<JoinPage />} />
+              {/* KEEL — la porte d'entrée LIBRE, sans invitation. PUBLIQUE, et
+                  elle parle à une seule RPC anon (keel_free_signup_available)
+                  qui rend un booléen sur l'état de NOTRE programme de découverte
+                  — rien sur personne. C'est la seule inscription élève du
+                  produit depuis que /auth a perdu la sienne: elle demande le
+                  PAYS, que /auth ne demandait pas et que le numéro de téléphone
+                  déduisait avant le pivot. */}
+              <Route path="/start" element={<StartPage />} />
               {/* KEEL — a coach reading ONE student's space (W6.6). No route
                   guard wrapper: the page is gated by RLS itself, and it writes
                   a coach_access_events line through log_coach_student_access
