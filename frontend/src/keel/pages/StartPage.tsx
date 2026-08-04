@@ -110,9 +110,31 @@ export default function StartPage() {
   const [submitting, setSubmitting] = React.useState(false);
   const [formError, setFormError] = React.useState<string | null>(null);
 
+  // ── LE VERROU D'ENTRÉE, ET IL VIENT D'UN DÉFAUT MESURÉ ─────────────────
+  //
+  // TROUVÉ PAR L'ÉPREUVE DE RÉEL (2026-08-05), pas par un test: le parcours
+  // navigateur complet, joué de la landing à l'inscription, atterrissait sur
+  // `/app/today` — un écran VIDE qui annonce « Your coach is putting it
+  // together » — au lieu de l'écran « You're in » et de la conversation.
+  //
+  // Pourquoi: `signUp` ouvre une session, donc `user` change, donc CET effet se
+  // rejoue. Il retrouve alors le lien qui vient d'être créé et prend sa branche
+  // « déjà connecté, déjà un coach: je t'emmène dans ton espace ». Cette branche
+  // est juste pour un visiteur qui ARRIVE ici avec un compte; appliquée à
+  // quelqu'un qui vient de s'inscrire, elle écrase le seul écran qui lui dit
+  // quoi faire ensuite.
+  //
+  // Le verrou: la résolution d'entrée ne s'exécute QU'UNE FOIS, et jamais après
+  // que le formulaire a pris la main. Un `useRef` et pas un état: il ne doit
+  // provoquer aucun rendu, et il doit être lu de façon synchrone par le rejeu de
+  // l'effet — un `useState` serait mis à jour trop tard.
+  const entryResolved = React.useRef(false);
+
   // ÉTAT D'ENTRÉE. Trois questions dans l'ordre où elles décident de l'écran.
   React.useEffect(() => {
     if (authLoading) return;
+    if (entryResolved.current) return;
+    entryResolved.current = true;
     let cancelled = false;
     (async () => {
       const { data, error } = await supabase.rpc("keel_free_signup_available");

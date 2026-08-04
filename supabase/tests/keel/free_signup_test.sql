@@ -57,6 +57,15 @@
 --     26. la SÉCURITÉ n'est pas planchonnée (allergies visibles quelle que soit
 --         leur date)
 --     27. un `started_at` NULL ne cache rien à un coach en exercice
+--   F. LE PROTOCOLE PUBLIÉ (trouvé par l'épreuve de réel, pas par un test)
+--     28. un rattachement maison PUBLIE un plan_versions, avec exactement UN
+--         engagement, qui ne compte JAMAIS vers l'adhérence
+--     29. rejouable: un second rattachement ne duplique rien
+--     30. condition de désarmement: un coach HUMAIN ne se fait rien provisionner
+--     31. à la bascule vers un vrai coach, le protocole de découverte est
+--         SUPERSEDED — le nouveau coach n'hérite pas d'un plan signé d'un parti
+--     32. si un vrai coach a déjà publié, le provisionnement ne lui vole pas sa
+--         place
 -- ============================================================================
 
 begin;
@@ -627,6 +636,164 @@ begin
   perform pg_temp.unbecome();
   perform pg_temp.assert_eq(
     'E27 a NULL started_at hides nothing from a coach in exercise', v_seen, 1);
+end;
+$$;
+
+-- ---------------------------------------------------------------------------
+-- F. LE PROTOCOLE PUBLIÉ
+--
+-- CE QUE CETTE SECTION EXISTE POUR ATTRAPER: sans protocole publié,
+-- `meal-photo-upload-v1` rend 409 « No published plan » et la PHOTO — le geste
+-- central du produit — est morte pour tout inscrit libre. Aucun test de ce
+-- fichier ne le voyait: il a fallu jouer le parcours au navigateur jusqu'à
+-- l'envoi d'une vraie photo.
+-- ---------------------------------------------------------------------------
+
+do $$
+declare
+  v_house uuid := (select id from public.coaches where coach_kind='house');
+  v_res jsonb;
+  v_plan record;
+begin
+  perform pg_temp.mkuser('ffff0000-0000-4000-8000-000000000001', 'freeplan@example.com');
+  update public.profiles set timezone = 'Europe/London'
+   where id = 'ffff0000-0000-4000-8000-000000000001';
+
+  perform pg_temp.become('ffff0000-0000-4000-8000-000000000001');
+  v_res := public.keel_join_house_coach('GB');
+  perform pg_temp.unbecome();
+  perform pg_temp.assert_true('F28a joined', (v_res->>'joined')::boolean);
+
+  select status, timezone, coach_id, published_at is not null as published
+    into v_plan
+    from public.plan_versions
+   where student_id = 'ffff0000-0000-4000-8000-000000000001';
+
+  perform pg_temp.assert_txt('F28b a plan_versions row is PUBLISHED', v_plan.status, 'published');
+  perform pg_temp.assert_true('F28c published_at is set', v_plan.published);
+  perform pg_temp.assert_true('F28d it belongs to the house coach', v_plan.coach_id = v_house);
+  -- Le fuseau vient du PROFIL: `meal-photo-upload-v1` le lit sur cette ligne
+  -- pour dater la photo, et un fuseau faux daterait les repas d'un jour à côté.
+  perform pg_temp.assert_txt('F28e the timezone comes from the profile',
+    v_plan.timezone, 'Europe/London');
+
+  perform pg_temp.assert_eq('F28f exactly ONE commitment (plan-publish-v1 refuses zero)',
+    (select count(*) from public.plan_commitments
+      where user_id = 'ffff0000-0000-4000-8000-000000000001'), 1);
+  perform pg_temp.assert_false('F28g and it NEVER counts toward adherence',
+    (select bool_or(counts_toward_adherence) from public.plan_commitments
+      where user_id = 'ffff0000-0000-4000-8000-000000000001'));
+  perform pg_temp.assert_txt('F28h it is a capture, not a target',
+    (select polarity from public.plan_commitments
+      where user_id = 'ffff0000-0000-4000-8000-000000000001'), 'capture');
+end;
+$$;
+
+do $$
+declare
+  v_res jsonb;
+begin
+  perform pg_temp.become('ffff0000-0000-4000-8000-000000000001');
+  v_res := public.keel_join_house_coach('GB');
+  perform pg_temp.unbecome();
+  perform pg_temp.assert_eq('F29a replaying the join does NOT duplicate the plan',
+    (select count(*) from public.plan_versions
+      where student_id = 'ffff0000-0000-4000-8000-000000000001'), 1);
+  perform pg_temp.assert_eq('F29b nor the commitment',
+    (select count(*) from public.plan_commitments
+      where user_id = 'ffff0000-0000-4000-8000-000000000001'), 1);
+end;
+$$;
+
+do $$
+declare
+  v_human uuid := (select id from public.coaches where user_id = 'aaaa0000-0000-4000-8000-000000000004');
+  v_out text;
+begin
+  -- CONDITION DE DÉSARMEMENT. Un vrai coach publie sa méthode lui-même, par
+  -- `plan-publish-v1`. Lui en fabriquer une serait écrire sa méthode à sa place.
+  perform pg_temp.mkuser('ffff0000-0000-4000-8000-000000000002', 'humanstu@example.com');
+  v_out := public.keel_attach_student_to_coach(
+    'ffff0000-0000-4000-8000-000000000002', v_human, 'humanstu@example.com', 'FR');
+  perform pg_temp.assert_txt('F30a attached to a human coach', v_out, 'attached');
+  perform pg_temp.assert_eq(
+    'F30b DISARM CONDITION: a HUMAN coach''s student gets NO provisioned plan',
+    (select count(*) from public.plan_versions
+      where student_id = 'ffff0000-0000-4000-8000-000000000002'), 0);
+  perform pg_temp.assert_true('F30c and the provisioner refuses him explicitly',
+    public.keel_provision_house_plan_version(
+      'ffff0000-0000-4000-8000-000000000002', v_human) is null);
+end;
+$$;
+
+do $$
+declare
+  v_real uuid;
+  v_house uuid := (select id from public.coaches where coach_kind='house');
+  v_res jsonb;
+begin
+  -- UN COACH QUI PAIE, et pas Sarah: elle porte déjà ses 3 sièges d'essai depuis
+  -- la section D, et le 4ᵉ lèverait le plafond que B13 vient de prouver armé.
+  -- C'est aussi le cas réel: celui qui reprend un inscrit libre est un coach en
+  -- exercice, pas un coach en fin d'essai.
+  perform pg_temp.mkuser('aaaa0000-0000-4000-8000-000000000005', 'paying-real@example.com');
+  update public.profiles set country = 'GB' where id = 'aaaa0000-0000-4000-8000-000000000005';
+  insert into public.coaches (user_id, display_name, status, coach_kind, trial_ends_at)
+  values ('aaaa0000-0000-4000-8000-000000000005', 'Nadia Okonkwo', 'active', 'human',
+          now() + interval '30 days')
+  returning id into v_real;
+  insert into public.subscriptions (user_id, status)
+  values ('aaaa0000-0000-4000-8000-000000000005', 'active');
+
+  -- LA BASCULE. `plan-publish-v1` supersède déjà le protocole publié avant d'en
+  -- publier un nouveau; le trou est ENTRE la bascule et cette publication, où le
+  -- nouveau coach verrait un protocole signé d'un coach que l'élève n'a plus.
+  perform pg_temp.invite(v_real, 'freeplan@example.com', 'tok_plan_transfer_00000000001');
+  v_res := public.accept_coach_invitation_for_user(
+    'ffff0000-0000-4000-8000-000000000001', 'tok_plan_transfer_00000000001');
+  perform pg_temp.assert_true('F31a the real coach''s invitation is accepted',
+    (v_res->>'accepted')::boolean);
+
+  perform pg_temp.assert_eq('F31b the discovery protocol is SUPERSEDED',
+    (select count(*) from public.plan_versions
+      where student_id = 'ffff0000-0000-4000-8000-000000000001'
+        and coach_id = v_house and status = 'superseded'), 1);
+  perform pg_temp.assert_eq(
+    'F31c the student has NO published plan until the real coach publishes',
+    (select count(*) from public.plan_versions
+      where student_id = 'ffff0000-0000-4000-8000-000000000001'
+        and status = 'published'), 0);
+  -- Et l'historique n'est pas détruit: superseded, pas supprimé.
+  perform pg_temp.assert_eq('F31d the discovery protocol survives as history',
+    (select count(*) from public.plan_versions
+      where student_id = 'ffff0000-0000-4000-8000-000000000001'), 1);
+end;
+$$;
+
+do $$
+declare
+  v_real uuid := (select id from public.coaches where user_id = 'aaaa0000-0000-4000-8000-000000000005');
+  v_house uuid := (select id from public.coaches where coach_kind='house');
+  v_existing uuid;
+  v_returned uuid;
+begin
+  -- Un vrai coach a publié. Le provisionnement maison ne doit PAS lui voler la
+  -- place du protocole publié (index unique partiel: un seul par élève).
+  insert into public.plan_versions (coach_id, student_id, version, status, title,
+    content_locale, timezone, published_at)
+  values (v_real, 'ffff0000-0000-4000-8000-000000000001', 2, 'published',
+    'Nadia''s twelve weeks', 'en-US', 'Europe/London', now())
+  returning id into v_existing;
+
+  v_returned := public.keel_provision_house_plan_version(
+    'ffff0000-0000-4000-8000-000000000001', v_house);
+  perform pg_temp.assert_true(
+    'F32 an existing published plan is RETURNED, never displaced',
+    v_returned = v_existing);
+  perform pg_temp.assert_eq('F32b still exactly one published plan',
+    (select count(*) from public.plan_versions
+      where student_id = 'ffff0000-0000-4000-8000-000000000001'
+        and status = 'published'), 1);
 end;
 $$;
 
