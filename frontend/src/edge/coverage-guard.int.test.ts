@@ -77,14 +77,10 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       "account-deletion-v1",
       "account-export-v1",
       "account-restore-v1",
-      "activate-plan-item-v2",
-      "advance-phase-v2",
-      "analyze-attack-technique-adjustment-v1",
       // KEEL W5.3 — meal photo -> protocol_events.recognized. Its two filters
       // (anti-hallucination on commitment_id, measurement stripping) are pure
       // and covered by _shared/keel/meal_analysis_test.ts.
       "analyze-meal-photo-v1",
-      "classify-plan-type-v1",
       "classify-recurring-reminder",
       // PIVOT NUTRITION — les huit fonctions ci-dessous étaient absentes de
       // cette liste alors qu'elles existaient déjà: le garde était ROUGE avant
@@ -101,20 +97,12 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       // the RPCs and the tenancy invariants by
       // coach-invite-student-v1/invitation_rls_test.sql.
       "coach-invite-student-v1",
-      "cycle-draft",
-      "draft-defense-card-v1",
-      "draft-transformation-from-text-v1",
       "ethical-text-validator",
       // KEEL W4.1 — pure evaluator + adherence formula; covered by
       // supabase/functions/evaluate-adherence-v1/snapshot_test.ts and by
       // _shared/keel/{evaluator,adherence}_test.ts.
       "evaluate-adherence-v1",
-      "generate-attack-card-v1",
-      "generate-attack-technique-v1",
-      "generate-defense-card-v3",
       "generate-meal-v1",
-      "generate-plan-v2",
-      "generate-questionnaire-v2",
       "generate-week-plan-v1",
       "get-coaching-intervention-scorecard",
       "get-coaching-intervention-trace",
@@ -122,7 +110,6 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       "get-memory-trace",
       "get-momentum-scorecard",
       "get-momentum-trace",
-      "intake-to-transformations-v2",
       // KEEL W8 — the card runtime. Four student actions behind a JWT and two
       // internal ones (the hourly arming sweep and its due list) behind
       // X-Internal-Secret. Zero model calls: the render is deterministic.
@@ -184,7 +171,6 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       "trigger-synthesizer-batch",
       "trigger-topic-compaction",
       "trigger-watcher-batch",
-      "update-defense-card-v3",
     ].sort();
 
     expect(discovered).toEqual(expected);

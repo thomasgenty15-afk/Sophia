@@ -130,18 +130,9 @@ function ExpiredAccessPanel() {
   );
 }
 
-/**
- * Allows access when prelaunch lockdown is OFF.
- * When prelaunch lockdown is ON, behaves like RequireAppAccess (master_admin only).
- *
- * Use this for "guest funnel" routes (ex: questionnaire) that should be publicly accessible
- * during normal operation, but closed during prelaunch.
- */
-export function RequirePrelaunchGate({ children }: { children: React.ReactNode }) {
-  const { prelaunchLockdown } = useAuth();
-  if (!prelaunchLockdown) return <>{children}</>;
-  return <RequireAppAccess>{children}</RequireAppAccess>;
-}
+// PIVOT KEEL — `RequirePrelaunchGate` gardait les routes « entonnoir invité »
+// (le questionnaire, /onboarding-v2). Ces routes sont supprimées, et le garde
+// n'avait plus qu'un import sans usage.
 
 export function RequireAdmin({ children }: { children: React.ReactNode }) {
   const { user, loading, isAdmin } = useAuth();
@@ -156,17 +147,7 @@ export function RequireAdmin({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-export function RequireArchitecte({ children }: { children: React.ReactNode }) {
-  const { user, loading, accessTier } = useAuth();
-  const location = useLocation();
-
-  if (loading) return null;
-  if (!user) {
-    return <Navigate to={`/auth?${buildRedirectQuery(location.pathname, location.search)}`} replace />;
-  }
-  if (accessTier !== "architecte") {
-    return <Navigate to="/upgrade" replace />;
-  }
-  return <>{children}</>;
-}
+// PIVOT KEEL — `RequireArchitecte` gardait les routes du palier « architecte »
+// de l'ancienne offre. Elles ont été démontées en W2.A; le garde n'avait déjà
+// plus aucun appelant avant ce chantier.
 

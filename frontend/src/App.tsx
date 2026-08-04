@@ -5,9 +5,6 @@ import { AuthProvider } from "./context/AuthProvider";
 // KEEL pivot: "/" sells Sophia to coaches (English, B2B). The old French
 // consumer landing (pages/LandingPage) is unmounted, not deleted.
 import LandingPage from "./keel/pages/LandingPage";
-import PlanSavedModal from "./components/dashboard-v2/PlanSavedModal";
-import DashboardV2 from "./pages/DashboardV2";
-import OnboardingV2 from "./pages/OnboardingV2";
 import ProductPlan from "./pages/ProductPlan";
 import UpgradePlan from "./pages/UpgradePlan"; // IMPORT UPGRADE PAGE
 import Account from "./pages/Account";
@@ -22,7 +19,6 @@ import AdminProductionLog from "./pages/AdminProductionLog";
 import {
   RequireAdmin,
   RequireAppAccess,
-  RequirePrelaunchGate,
 } from "./security/RouteGuards";
 import { OnboardingAmbientAudioProvider } from "./context/OnboardingAmbientAudioContext";
 import { ErrorBoundary } from "./components/ErrorBoundary";
@@ -59,23 +55,6 @@ function App() {
             <ErrorBoundary>
             <Routes>
               <Route path="/" element={<LandingPage />} />
-              {import.meta.env.DEV ? (
-                // Dev-only visual preview of the plan-saved modal (excluded
-                // from production builds): lets us see both variants without
-                // completing a full onboarding behind auth.
-                <Route
-                  path="/dev/plan-saved-modal"
-                  element={
-                    /* sophia-action-skin mirrors the dashboard wrapper that
-                       defines --action-green; without it the Ok button renders
-                       white-on-white. La variante `?opted=1` a disparu avec
-                       l'opt-in Meta: il n'y a plus qu'un seul état. */
-                    <div className="sophia-action-skin">
-                      <PlanSavedModal open onClose={() => {}} />
-                    </div>
-                  }
-                />
-              ) : null}
               {/* DE-WHATSAPP — `/chat` était le simulateur WhatsApp web (le trio
                   ChatPage + ChatInterface + useChat). Il redirige vers la vraie
                   bulle plutôt que de 404: un lien en circulation ne doit pas
@@ -278,22 +257,12 @@ function App() {
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/installer-app" element={<InstallAppGuide />} />
               <Route path="/legal" element={<Legal />} /> {/* ROUTE LEGALE */}
-              <Route
-                path="/dashboard"
-                element={
-                  <RequireAppAccess>
-                    <DashboardV2 />
-                  </RequireAppAccess>
-                }
-              />
-              <Route
-                path="/onboarding-v2"
-                element={
-                  <RequirePrelaunchGate>
-                    <OnboardingV2 />
-                  </RequirePrelaunchGate>
-                }
-              />
+              {/* PIVOT KEEL — `/dashboard` et `/onboarding-v2` sont démontées
+                  ET supprimées. C'étaient les deux écrans du produit grand
+                  public: le tableau de bord des plans, des cartes d'attaque et
+                  de défense, et son onboarding. Aucun des deux n'avait de
+                  lecteur dans KEEL — la page des cartes de l'élève passe par
+                  `keel-cards-v1` et `card_templates`, pas par ces panneaux. */}
               {/* W2.A: routes legacy démontées (/architecte/*, /grimoire/*,
                   /formules, /l-architecte, /tdah, /parrainage,
                   /transformations/new). Les fichiers de pages restent en
