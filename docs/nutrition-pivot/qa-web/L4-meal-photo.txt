@@ -1,0 +1,112 @@
+████████████████████████████████████████████████████████████████████████████
+1 & 2 — FILTRE DE SUJET (chaque image jouée DEUX fois)
+████████████████████████████████████████████████████████████████████████████
+
+▌ assiette (nominal)  (assiette-poulet-riz-brocolis.png, 1848 Ko)
+  passe 1 : eaten_meal | <compté> | - | moderate | true
+  passe 2 : eaten_meal | <compté> | - | moderate | true
+  ✅ verdict STABLE sur rejeu
+  accusé  : 
+  attendu compte → compté ✅
+
+▌ assiette qui cache (sauce)  (assiette-saumon-sauce-luisante.png, 1665 Ko)
+  passe 1 : eaten_meal | <compté> | non_starchy_veg | moderate | true
+  passe 2 : eaten_meal | <compté> | non_starchy_veg | moderate | true
+  ✅ verdict STABLE sur rejeu
+  accusé  : 
+  attendu compte → compté ✅
+
+▌ assiette qui ne cache rien  (assiette-pomme-entiere.png, 1320 Ko)
+  passe 1 : eaten_meal | <compté> | other_fruit | small | true
+  passe 2 : eaten_meal | <compté> | other_fruit | small | true
+  ✅ verdict STABLE sur rejeu
+  accusé  : 
+  attendu compte → compté ✅
+
+▌ menu de restaurant  (menu-restaurant.jpg, 85 Ko)
+  passe 1 : food_not_eaten | food_not_eaten | - | unclear | true
+  passe 2 : food_not_eaten | food_not_eaten | - | unclear | true
+  ✅ verdict STABLE sur rejeu
+  accusé  : 
+  attendu refuse → refusé/absent ✅
+
+▌ capture d'app de livraison  (capture-app-livraison.jpg, 83 Ko)
+  passe 1 : food_not_eaten | food_not_eaten | - | unclear | true
+  passe 2 : food_not_eaten | food_not_eaten | - | unclear | true
+  ✅ verdict STABLE sur rejeu
+  accusé  : 
+  attendu refuse → refusé/absent ✅
+
+▌ rayon de supermarché  (rayon-supermarche.png, 2200 Ko)
+  passe 1 : food_not_eaten | food_not_eaten | - | unclear | true
+  passe 2 : food_not_eaten | food_not_eaten | - | unclear | true
+  ✅ verdict STABLE sur rejeu
+  accusé  : 
+  attendu refuse → refusé/absent ✅
+
+▌ selfie  (selfie.png, 1557 Ko)
+  passe 1 : not_food | not_food | - | unclear | true
+  passe 2 : not_food | not_food | - | unclear | true
+  ✅ verdict STABLE sur rejeu
+  accusé  : 
+  attendu refuse → refusé/absent ✅
+
+▌ paysage  (paysage.png, 1664 Ko)
+  passe 1 : not_food | not_food | - | unclear | true
+  passe 2 : not_food | not_food | - | unclear | true
+  ✅ verdict STABLE sur rejeu
+  accusé  : 
+  attendu refuse → refusé/absent ✅
+
+▌ étiquette nutritionnelle  (etiquette-nutritionnelle.jpg, 115 Ko)
+  passe 1 : not_food | not_food | - | unclear | true
+  passe 2 : not_food | not_food | - | unclear | true
+  ✅ verdict STABLE sur rejeu
+  accusé  : 
+  attendu refuse → refusé/absent ✅
+
+▌ photo trop sombre  (photo-trop-sombre.jpg, 50 Ko)
+  passe 1 : eaten_meal | unreadable | - | unclear | true
+  passe 2 : not_food | not_food | - | unclear | true
+  🔴 verdict INSTABLE entre deux runs
+  accusé  : 
+  attendu refuse → refusé/absent ✅
+
+████████████████████████████████████████████████████████████████████████████
+3 — L'ACCUSÉ: ni calorie, ni macro, ni pourcentage
+████████████████████████████████████████████████████████████████████████████
+
+████████████████████████████████████████████████████████████████████████████
+4 — DÉDUP: la MÊME photo deux fois, puis une AUTRE
+████████████████████████████████████████████████████████████████████████████
+  1re photo  → HTTP 200, events=1
+  MÊME photo → HTTP 200, events=1  ✅ un seul fait
+  AUTRE      → HTTP 200, events=2  ✅ deux photos = deux faits
+  réponse au rejeu : {"ok":true,"duplicate":false,"idempotent":true,"chat_message_id":null,"event":{"id":"3070ff92-7efe-4137-9575-48fcd7dc037a","user_id":"0c557853-a462-4339-8496-deb42d28eb5d","occurred_at":"2026-08-04T21:03:07.811+00:00","local_date":"2026-08-
+
+████████████████████████████████████████████████████████████████████████████
+5 — ADVERSARIAL
+████████████████████████████████████████████████████████████████████████████
+  non-image déguisée en image/jpeg → HTTP 400 {"error":"The uploaded bytes are not a JPEG, PNG or WebP image","request_id":"9cd12139-8130-47c3-8ca4-b6760d4f60ab"}
+  charge > plafond du contrat        → HTTP 400 {"error":"Invalid request body","request_id":"07745e4a-9780-41d0-a434-115fb35a89f1","details":[{"path":["base64"],"message":"String must contain at most 1200000
+  élève SANS plan publié             → HTTP 409 {"error":"No published plan: there is nothing to log this photo against yet.","request_id":"59a22882-1964-4f62-a733-28f45ad18465"}
+  deux uploads SIMULTANÉS            → 200/200, events=1 ✅
+
+████████████████████████████████████████████████████████████████████████████
+6 — QUESTION DE CLARIFICATION (jamais quantitative)
+████████████████████████████████████████████████████████████████████████████
+
+▌ assiette qui CACHE (sauce luisante)
+  questions : []
+  messages  : ["I see salmon fillet with dill, green beans, couscous, pooled sauce. Counted toward \"Vegetables at lunch\". It does not line up with \"Protein at lunch\"."]
+  attendu question=true → false 🔴
+
+▌ assiette qui ne cache RIEN (pomme)
+  questions : []
+  messages  : ["I see red apple. I have not attached it to a line on your plan - it is on file for your coach."]
+  attendu question=false → false ✅
+
+LIGNE ROUGE — quantité dans une question de photo :
+  (aucune question rendue sur ce run)
+
+→ écrit

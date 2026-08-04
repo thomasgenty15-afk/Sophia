@@ -927,3 +927,109 @@ jeu de données : ils répondent, ils ne prouvent pas leur travail. **NON TESTÉ
 en profondeur**, et c'est écrit comme tel.
 
 **Verdict** : AMBER (répondent tous ; deux ne sont pas éprouvés).
+
+---
+
+## L4 — LA PHOTO DE REPAS
+
+### 2026-08-04 21:00Z — Les images
+
+Le prompt exige de VRAIES images. Le dépôt n'en contient aucune : les neuf
+fixtures ont été **générées par un modèle d'image** (`qa-web/gen_images.ts`) puis
+**versionnées** dans `qa-web/images/` — un verdict de filtre de sujet ne veut
+rien dire si l'image change entre deux runs.
+
+⚠️ **Ce qu'elles sont, et ce qu'elles ne sont pas** : des images de synthèse
+photoréalistes, pas des photos prises au téléphone par un élève. Elles éprouvent
+le filtre de sujet et la stabilité du verdict ; elles n'éprouvent **pas** le
+bruit d'un vrai capteur (flou de bougé, contre-jour, compression d'un envoi
+mobile). C'est écrit pour que personne ne prenne l'un pour l'autre.
+
+### 2026-08-04 21:05Z — Le filtre de sujet : 9 sujets sur 10, stables au rejeu
+
+Chaque image jouée **deux fois**, sur deux élèves neufs. Preuve :
+`qa-web/L4-meal-photo.txt`.
+
+| Image | `subject_kind` | `disqualified_reason` | Rejeu |
+|---|---|---|---|
+| assiette poulet/riz/brocolis | `eaten_meal` | *comptée*, band `moderate` | ✅ stable |
+| assiette saumon en sauce | `eaten_meal` | *comptée*, `non_starchy_veg` | ✅ stable |
+| assiette pomme entière | `eaten_meal` | *comptée*, `other_fruit`, `small` | ✅ stable |
+| menu de restaurant | `food_not_eaten` | `food_not_eaten` | ✅ stable |
+| capture d'app de livraison | `food_not_eaten` | `food_not_eaten` | ✅ stable |
+| rayon de supermarché | `food_not_eaten` | `food_not_eaten` | ✅ stable |
+| selfie | `not_food` | `not_food` | ✅ stable |
+| paysage | `not_food` | `not_food` | ✅ stable |
+| étiquette nutritionnelle | `not_food` | `not_food` | ✅ stable |
+| **photo trop sombre** | `eaten_meal` **puis** `not_food` | `unreadable` **puis** `not_food` | 🔴 **instable** |
+
+Les **trois** familles de refus existent bien et sont distinctes
+(`food_not_eaten` / `not_food` / `unreadable`), comme le lot l'exige.
+
+🔴 **L'instabilité résiduelle porte sur la photo trop sombre** : les deux passes
+refusent, mais avec **deux motifs différents**, donc deux phrases différentes
+pour la même image. C'est le défaut d'origine que le prompt demande de
+revérifier ; il ne subsiste plus que sur le cas le plus ambigu des dix.
+Conséquence bornée (l'élève est refusé dans les deux cas), donc **P2**.
+
+**Verdict** : VERT sur 9 sujets, AMBER sur le dixième.
+
+### 2026-08-04 21:06Z — L'accusé ne porte jamais de chiffre nutritionnel
+
+```
+« I see red apple. I have not attached it to a line on your plan — it is on
+  file for your coach. »
+« I see salmon fillet with dill, green beans, couscous, pooled sauce.
+  Counted toward "Vegetables at lunch". It does not line up with
+  "Protein at lunch". »
+```
+
+Scan SQL sur tous les accusés du run
+(`content ~* '[0-9]+\s*(kcal|cal|g de|grammes|grams)'` ou `'[0-9]+\s*%'`) :
+**0 suspect**. Et le crédit annoncé (« Counted toward *Vegetables at lunch* »)
+correspond bien à la colonne relue.
+
+**Verdict** : VERT.
+
+### 2026-08-04 21:06Z — Dédup, concurrence, et les refus
+
+| Geste | Résultat |
+|---|---|
+| même photo, même `client_upload_id` | `events` reste à **1** — `idempotent: true` |
+| une **autre** photo | `events` = **2** (anti-faux-positif) |
+| **deux uploads simultanés**, même clé | `200/200`, `events` = **1** |
+| non-image déguisée en `image/jpeg` | **400** « The uploaded bytes are not a JPEG, PNG or WebP image » (octets magiques, pas l'en-tête déclaré) |
+| charge au-delà du plafond du contrat | **400**, motif nommé sur le champ |
+| élève **sans plan publié** | **409** « No published plan: there is nothing to log this photo against yet. » |
+
+**Verdict** : VERT.
+
+### 2026-08-04 21:07Z — La question de clarification : câblée, mais silencieuse ici
+
+- assiette **qui cache** (saumon, sauce luisante) → **aucune** question ;
+- assiette **qui ne cache rien** (pomme entière) → aucune question ✅.
+
+**Ce n'est pas un fil coupé** : le chemin est complet et correctement gaté —
+`analyze-meal-photo-v1` émet `clarifying_question`, la passe par
+`gateMealPrecisionQuestion`, **consomme la place du plafond AVANT d'envoyer**, et
+`meal-photo-upload-v1` ouvre le flow de correction sur la bonne ligne. Ici c'est
+le **modèle de vision** qui n'a pas jugé qu'il y avait un enjeu — et son accusé
+prouve qu'il a bien **vu** la sauce (« pooled sauce »), ce qui affaiblit
+l'argument du « quelque chose de caché ».
+
+**Le plafond partagé photo + texte est bien UN seul compteur** :
+`countMealPrecisionQuestionsToday` lit la même table `meal_precision_questions`
+des deux côtés, et le commentaire du code nomme exactement le défaut évité
+(« deux compteurs séparés donneraient QUATRE questions par jour »). **Vérifié
+par lecture et par le schéma, pas de bout en bout** : trop peu de questions
+partent pour atteindre un plafond de deux — même blocage qu'en L3-bis.
+
+🔴 **LIGNE ROUGE** : aucune question quantitative — aucune question du tout sur
+ce run, donc rien à reprocher, mais rien à créditer non plus. La garantie
+structurelle (gabarits figés côté texte) ne couvre PAS le chemin photo, où la
+question est **générée** par le modèle de vision. **C'est le seul endroit du
+produit où une question quantitative reste possible**, et cette QA n'a pas
+réussi à en faire naître une pour l'éprouver. **NON TESTÉ**, et c'est le trou
+le plus important de ce lot.
+
+**Verdict** : AMBER — mécanisme vérifié, comportement non éprouvé.
