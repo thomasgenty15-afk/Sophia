@@ -51,6 +51,10 @@ import { CHAT_SCOPE, deliverChatMessage } from "../_shared/chat/delivery.ts";
 import {
   handleDeterministicButton,
 } from "../_shared/chat/deterministic_buttons.ts";
+import {
+  classifyArmedQuestionReply,
+  resolveArmedQuestion,
+} from "../_shared/chat/armed_question.ts";
 import { processMessage } from "../sophia-brain/router/run.ts";
 import { extractHiddenFilRougeNote } from "../sophia-brain/chat_text.ts";
 
@@ -199,19 +203,55 @@ Deno.serve(async (req) => {
       }, { status: 200 });
     }
 
-    // ── GARDE 3 : LE JOURNAL ET LA PRÉSENCE ──────────────────────────────────
+    // ── GARDE 3 : LA QUESTION ARMÉE, AVANT LA JOURNALISATION ─────────────────
+    // Résolue AVANT que le tour ne soit journalisé, exprès : le compteur de
+    // tours armés lit `chat_messages`, et journaliser d'abord ferait compter le
+    // tour en cours parmi ceux qui périment la question. La question mourrait
+    // donc un tour trop tôt — le défaut exact que le plafond à 3 tours existait
+    // pour éviter.
+    let effectiveMessage = message;
+    let armedResolution: string | null = null;
+    if (message.kind === "text") {
+      const armed = await resolveArmedQuestion(admin, {
+        userId: user.id,
+        nowIso: message.received_at,
+        replyToMessageId: message.reply_to,
+      });
+      if (armed) {
+        const classified = await classifyArmedQuestionReply({
+          question: armed,
+          inboundText: message.text,
+          requestId,
+          userId: user.id,
+        });
+        const matched = armed.buttons.find((b) => b.payload === classified.choice);
+        if (matched) {
+          // La réponse libre EST la réponse au bouton. On la fait suivre le
+          // chemin déterministe, sans réécrire le texte de l'élève : c'est son
+          // message qui reste dans la bulle, pas le libellé du bouton.
+          effectiveMessage = {
+            ...message,
+            kind: "button",
+            button_payload: matched.payload,
+          };
+          armedResolution = matched.payload;
+        }
+      }
+    }
+
+    // ── GARDE 4 : LE JOURNAL ET LA PRÉSENCE ──────────────────────────────────
     const inboundChatId = await logInboundMessage(admin, {
       message,
       requestId,
       scope: CHAT_SCOPE,
     });
 
-    // ── GARDE 4 : LES BOUTONS DÉTERMINISTES, AVANT LE DISPATCHER ─────────────
+    // ── GARDE 5 : LES BOUTONS DÉTERMINISTES, AVANT LE DISPATCHER ─────────────
     // Un `button_payload` est une valeur que NOUS avons émise et qui n'a qu'un
     // sens possible. La faire interpréter par un LLM, c'est payer un appel pour
     // risquer une erreur sur une donnée exacte.
     const deterministic = await handleDeterministicButton(admin, {
-      message,
+      message: effectiveMessage,
       requestId,
     });
     if (deterministic.handled) {
@@ -222,11 +262,12 @@ Deno.serve(async (req) => {
       return jsonResponse(req, {
         ok: true,
         handled_by: deterministic.reason,
+        armed_resolution: armedResolution,
         request_id: requestId,
       }, { status: 200 });
     }
 
-    // ── GARDE 5 : LE MOTEUR DE TOUR ──────────────────────────────────────────
+    // ── GARDE 6 : LE MOTEUR DE TOUR ──────────────────────────────────────────
     // Inchangé. Safety, dispatcher global, flows locaux, mémoire, doctrine :
     // tout est derrière cet appel, et ce chantier n'y touche pas.
     const response = await withTimeout(
@@ -259,7 +300,7 @@ Deno.serve(async (req) => {
       "chat_inbound_brain",
     );
 
-    // ── GARDE 6 : LA LIVRAISON ───────────────────────────────────────────────
+    // ── GARDE 7 : LA LIVRAISON ───────────────────────────────────────────────
     // `isReply: true` : c'est l'autre moitié d'un échange, pas une
     // notification. Elle ne traverse aucun plafond et n'en consomme aucun.
     const visible = extractHiddenFilRougeNote(String(response?.content ?? ""));

@@ -366,3 +366,158 @@ touché.
 
 **DoD P1** : conversation réelle au navigateur ✅ · 7 patterns sur l'entrée ✅ ·
 reload = historique intact ✅ · dedup par id client ✅ (y compris sous concurrence).
+
+---
+
+## P2 — LA COUCHE PROACTIVE SANS TEMPLATES
+
+### P2.1 — `armed_question.ts` : le concept survit, le transport meurt
+
+`template_context.ts` est mort ; son mécanisme est repris dans
+`_shared/chat/armed_question.ts`, **avec ses deux règles ratées consignées dans
+l'en-tête** pour que personne ne les repaye :
+- « fermée dès que Sophia reparle » → elle répond à chaque entrant, donc c'était
+  toujours vrai : la question mourait au premier mot de l'élève ;
+- « n'importe quelle question dans les 24 h » → trop lâche : une question périmée
+  capturait un « oui » qui répondait à autre chose.
+
+Une **simplification** au passage : la question armée n'est plus une ligne
+d'outbound dont il faut re-rendre le template pour retrouver le texte — c'est le
+message lui-même, avec ses boutons dans ses `metadata`. Le commentaire d'origine
+disait que le texte rendu « était calculé puis jeté, et le classifieur devait
+décider sans jamais voir ce qui avait été demandé ». **Ce problème n'existe plus.**
+
+Une **correction structurelle** : le classifieur rend le `payload`, jamais le
+libellé. `classifyTemplateReplyChoice` rendait le libellé, que chaque appelant
+devait remapper — c'est ainsi qu'un « Absolument! » vs « Absolument ! » devenait
+silencieusement `unrelated`.
+
+🔴 **Défaut trouvé par le test bilingue** : le pré-filtre « une réserve n'est pas
+un accord » s'écrivait `\b(pas|non|not|n't|never|jamais)\b`. Dans `can't`, le `n`
+est précédé d'un `a` : **aucune frontière de mot avant `n't`**, donc l'alternative
+ne mordait jamais et « sure but I can't » passait pour un accord. C'est le défaut
+déjà payé dans ce dépôt (« `not` ne couvre pas `doesn't` »), reproduit et attrapé
+par le test EN — le test FR seul serait resté vert. Ajouté au passage : la
+négation doit venir **après** la concession (« je ne peux pas mais vas-y » est un
+accord).
+
+```
+deno test --allow-all supabase/functions/_shared/chat/armed_question_test.ts
+→ ok | 21 passed | 0 failed
+```
+
+### P2.2 — Les crons KEEL livrent dans la bulle
+
+| Cron | Ce qui disparaît |
+|---|---|
+| `keel-daily-pulse-v1` | `sendKeelWhatsApp` + `x-internal-secret`, le 409 « fenêtre 24 h » (le cas **nominal** du job), le template de repli et ses payloads voyageant par index |
+| `keel-reengage-v1` | le template nommé, le repli `global_reach`, `toneDelivered` qui comptait les tons décidés mais non délivrés |
+| `keel-weekly-flow-v1` | le `flow_id` Meta, l'écran d'entrée, le CTA, le template porteur de Flow |
+
+`sendReengageNudge` : **`toneDelivered` vaut désormais invariablement `true`** —
+il n'y a plus de template, donc le ton décidé est le ton reçu. C'est une
+propriété, pas un hasard.
+
+`decideWeeklyFlow` : la garde `flow_not_configured` est **supprimée, pas rendue
+optionnelle**. Elle gardait un identifiant Meta ; le formulaire vit maintenant
+dans l'app, donc la condition est structurellement vraie. Le champ d'entrée est
+retiré du type — *un paramètre de garde optionnel est une garde désarmée*, et ce
+dépôt a déjà payé ça avec `safetyBand`.
+
+`weeklyBiofeedbackPayload` : `source` passe de `"whatsapp_flow"` à
+`"in_app_weekly_form"`. Ce champ est **lu** (synthèse, `/app/progress`) : le
+laisser mentir sur son origine rendrait l'historique inexploitable.
+
+**Couverture migrée, jamais supprimée** : les tests « the nudge goes as a
+TEMPLATE » et « no published Flow → silence » sont devenus les tests du concept
+survivant (le corps livré EST celui que la ceinture a vérifié ; le motif
+`flow_not_configured` n'existe plus nulle part).
+
+### P2.3 — 🔴🔴 LE DÉFAUT LE PLUS GRAVE DE LA NUIT : toute la base était muette
+
+Constaté en tirant le vrai cron contre la base locale, avec le navigateur ouvert :
+
+```
+{"scanned":108,"sent":0,"skipped_by_reason":{"opted_out":14, ...}}
+```
+
+L'élève de la vérification au navigateur — plan adopté, bon fuseau, dans la
+fenêtre — était écarté en `opted_out`. Cause :
+
+```ts
+optedOut: Boolean(row.whatsapp_opted_out_at) || row.whatsapp_opted_in === false
+```
+
+**`profiles.whatsapp_opted_in` vaut `false` par défaut, et aucun élève KEEL n'a
+jamais donné d'opt-in Meta — il n'existe aucun parcours qui le lui demande.**
+Donc : tout élève KEEL était `opted_out`, et le tap du soir n'atteignait
+personne. Même condition dans `keel-weekly-flow-v1` et dans
+`loadReengageCandidates` : **les trois boucles proactives du produit**.
+
+C'est la classe de défaut n°1 du dépôt sous une forme neuve : une garde
+réglementaire Meta, lue à l'envers, faisant taire la base du produit qui la
+remplace. La migration `20260804121000` avait anticipé le raisonnement (son
+backfill est asymétrique **exprès**, avec le commentaire qui le dit) — mais seule
+la colonne avait été corrigée, pas ses lecteurs.
+
+**Corrigé** : les trois lisent `proactive_muted_at`. Après correction, le même
+tick rend `"sent":1` et le message arrive.
+
+### P2.4 — Le point hebdomadaire, dans l'app
+
+`WeeklyCheckInDialog` + `weeklyCheckIn.ts` : six axes 1-5, deux mesures
+facultatives, ouvert par un bouton dont le **payload porte la semaine et rien
+d'autre**. Règle héritée non négociable : le jeton dit QUELLE SEMAINE, jamais QUI.
+
+Le contrat est dupliqué entre les deux runtimes (Vite/TS ↔ Deno, aucun import
+possible). `weeklyCheckIn.int.test.ts` **lit le module Deno sur le disque** et
+vérifie axes, libellés mot pour mot, échelle et bornes. Un axe que l'écran
+propose mais que le parseur ignore est une case que l'élève remplit dans le vide,
+et les deux côtés seraient verts séparément.
+
+### P2.5 — Le gantelet P2
+
+**Épreuve 1+2** — `deno test _shared/chat/` → **78 passed | 0 failed**.
+9 tests d'intégration tirent le **vrai cron par HTTP**, horloge injectée
+(sinon un test qui dépend de l'heure réelle est vert 2 h par jour) :
+
+| DoD | Résultat |
+|---|---|
+| checkin proactif dans la bulle **sans action de l'élève** | ✅ 1 message, `is_proactive: true`, 3 boutons armés |
+| réponse **libre** classée contre la question | ✅ « pretty rough, I barely slept » → `KEEL_PULSE_HARD` |
+| le 3ᵉ tour désarme | ✅ armé à 2, mort à 3 |
+| un nouveau message armé supplante l'ancien | ✅ |
+| réponse **explicite** à une vieille question | ✅ elle seule est réactivée |
+| mute respecté | ✅ + ligne `skipped / muted` au ledger |
+| cap respecté | ✅ et le tap passe quand même (créneau réservé) |
+| deux ticks, un seul message | ✅ |
+| **fuseau** (edge case n°9) | ✅ 18h30 UTC : Paris reçoit, Los Angeles non ; 03h30 UTC : l'inverse |
+
+**Épreuve 3 (réel)** — cron tiré pendant que la bulle était ouverte au
+navigateur : « How was today? » et ses trois boutons **apparaissent seuls**, sans
+rechargement. Puis clic sur « Rough » →
+`student_daily_checkins(overall='hard', source='chat')` écrit, accusé « Got it. »
+et question d'axe armée de ses trois boutons. Ledger :
+
+```
+sent | keel_daily_pulse      | conversation_active | false
+sent | keel_daily_pulse_ack  | reply               | false
+sent | keel_daily_pulse_axis | reply               | false
+```
+
+### P2.6 — ⚠️ Deux dettes héritées, mesurées et non masquées
+
+**1. Trois fichiers de test ne compilaient pas** (`std/testing/asserts.ts`, cassé
+avant cette nuit et documenté dans STATUS-MORNING). Corrigés → 13 tests de plus
+exécutables.
+
+**2. 101 tests d'intégration B2C sont ROUGES en local, et le pré-existaient.**
+Vérifié en stashant tout mon travail : ils échouent aussi sur la base de départ.
+Ils ne s'exécutent **que** si `SUPABASE_*` est exporté (sinon ils sautent), ce qui
+explique qu'ils soient invisibles avec la commande de STATUS-MORNING. Cause
+probable : les 13 tables legacy droppées par `20260803140000`. **Ce ne sont pas
+mes régressions, et je ne les compte pas comme vertes.**
+
+Filet de régression utilisé : `deno test _shared/ sophia-brain/ chat-inbound-v1/`
+**sans** les variables d'env → **2648 passed, 0 failed**.
+Frontend : `npx vitest run src/keel/` → **169 passed | 0 failed**.

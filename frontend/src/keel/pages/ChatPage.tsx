@@ -18,6 +18,10 @@ import {
 } from "../api/chat";
 import KeelAppShell from "../components/KeelAppShell";
 import { Button } from "../components/ui/Button";
+import WeeklyCheckInDialog, {
+  type WeeklyCheckInValues,
+} from "../components/WeeklyCheckInDialog";
+import { isWeeklyCheckInToken } from "../api/weeklyCheckIn";
 import { t } from "../i18n/t";
 
 type Status = "connecting" | "live" | "offline";
@@ -32,6 +36,9 @@ export default function ChatPage() {
   const [hasMore, setHasMore] = React.useState(false);
   const [loadingMore, setLoadingMore] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  // Le jeton de la semaine dont le formulaire est ouvert, ou null. Il ne porte
+  // QUE la semaine: l'élève est identifié par son JWT, côté serveur.
+  const [weeklyToken, setWeeklyToken] = React.useState<string | null>(null);
   const bottomRef = React.useRef<HTMLDivElement | null>(null);
 
   const refetch = React.useCallback(async () => {
@@ -117,6 +124,34 @@ export default function ChatPage() {
       await refetch();
     },
     [sending, refetch],
+  );
+
+  // Un bouton de point hebdo n'ENVOIE rien: il OUVRE le formulaire. C'est la
+  // seule catégorie de bouton qui ne va pas droit au serveur, et elle est
+  // reconnue par la FORME de son payload — pas par le libellé, qui est de
+  // l'affichage et peut être traduit.
+  const onButton = React.useCallback(
+    (payload: string, label: string) => {
+      if (isWeeklyCheckInToken(payload)) {
+        setWeeklyToken(payload);
+        return;
+      }
+      void send({ kind: "button", payload, label }, label);
+    },
+    [send],
+  );
+
+  const submitWeekly = React.useCallback(
+    (values: WeeklyCheckInValues) => {
+      const token = weeklyToken;
+      if (!token) return;
+      setWeeklyToken(null);
+      void send(
+        { kind: "form", response: values, token },
+        t("chat.weekly.title"),
+      );
+    },
+    [weeklyToken, send],
   );
 
   const onSubmit = (event: React.FormEvent) => {
@@ -224,15 +259,7 @@ export default function ChatPage() {
                         key={button.payload}
                         size="sm"
                         disabled={sending}
-                        onClick={() =>
-                          void send(
-                            {
-                              kind: "button",
-                              payload: button.payload,
-                              label: button.label,
-                            },
-                            button.label,
-                          )}
+                        onClick={() => onButton(button.payload, button.label)}
                       >
                         {button.label}
                       </Button>
@@ -250,6 +277,14 @@ export default function ChatPage() {
           )}
           <div ref={bottomRef} />
         </div>
+
+        {weeklyToken && (
+          <WeeklyCheckInDialog
+            busy={sending}
+            onSubmit={submitWeekly}
+            onCancel={() => setWeeklyToken(null)}
+          />
+        )}
 
         {error && <p className="text-sm text-red-600">{error}</p>}
 

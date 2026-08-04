@@ -1,4 +1,4 @@
-import { assertEquals } from "std/testing/asserts.ts";
+import { assertEquals } from "jsr:@std/assert@1";
 import {
   filterFreshMessages,
   MESSAGE_FRESHNESS_WINDOW_MS,

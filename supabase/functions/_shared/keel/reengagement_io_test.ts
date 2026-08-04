@@ -220,11 +220,16 @@ Deno.test("the first name is the FIRST name, never the full name", async () => {
   assertEquals(c.phoneNumber, "+447700900001");
 });
 
-Deno.test("the nudge goes as a TEMPLATE, never as free text", async () => {
-  // À 72h la fenêtre 24h est fermée par construction, et `whatsapp-send`
-  // bascule alors sur `getFallbackTemplate(purpose)`. Envoyer `type: "text"`
-  // laissait donc ce repli choisir — et un purpose non mappé tombe sur
-  // `global_reach_template` (« J'ai une info pour toi », en français).
+Deno.test("DE-WHATSAPP: la relance part avec le corps EXACT qu'on a rendu", async () => {
+  // ── CE TEST EST LE DESCENDANT DE « the nudge goes as a TEMPLATE » ─────────
+  // L'ancêtre exigeait un template NOMMÉ, parce qu'à 72 h la fenêtre 24 h de
+  // Meta est fermée par construction et qu'un purpose non mappé tombait sur
+  // `global_reach_template` (« J'ai une info pour toi », en français) —
+  // l'incident du 2026-07-12.
+  //
+  // Le TRANSPORT de cette exigence est mort avec Meta. Le CONCEPT survit, et
+  // c'est lui qu'on teste ici: **ce que l'élève lit est exactement ce que la
+  // ceinture a vérifié**, jamais un contenu choisi par une couche d'envoi.
   const src = await Deno.readTextFile(
     new URL("./reengagement_io.ts", import.meta.url),
   );
@@ -232,20 +237,37 @@ Deno.test("the nudge goes as a TEMPLATE, never as free text", async () => {
     src.indexOf("export async function sendReengageNudge"),
     src.indexOf("export async function closeKeelReengagementEpisodeOnInbound"),
   );
+
+  // 1. La ceinture tourne AVANT la livraison, sur le corps réel.
+  const beltAt = send.indexOf("assertNoGuiltTripping(body)");
+  const deliverAt = send.indexOf("deliverChatMessage");
+  assert(beltAt > 0, "la ceinture anti-culpabilisation doit tourner");
   assert(
-    /message:\s*\{\s*\n\s*type:\s*"template"/.test(send),
-    "l'envoi doit nommer un template",
+    beltAt < deliverAt,
+    "la ceinture doit mordre AVANT l'envoi, pas après",
   );
-  // `{ type: "text", text: … }` reste légitime: c'est la forme d'un PARAMÈTRE
-  // de template chez Meta. Ce qui est interdit, c'est le message en texte libre
-  // (`{ type: "text", body: … }`) — hors fenêtre il ne serait pas délivré, et
-  // `whatsapp-send` le remplacerait par son repli.
+
+  // 2. Le corps livré EST celui qu'elle a vérifié — pas une variante.
   assert(
-    !/type:\s*"text"\s*,\s*body:/.test(send),
-    "aucun envoi en texte libre: il ne serait pas délivré hors fenêtre",
+    /content:\s*body\b/.test(send),
+    "le contenu livré doit être exactement `body`",
   );
-  // Et la ceinture tourne sur le corps réel avant l'envoi.
-  assert(send.includes("assertNoGuiltTripping"));
+
+  // 3. Plus aucune couche d'envoi ne peut substituer un contenu: ni template
+  //    nommé, ni repli générique, ni composant Meta.
+  //
+  //    Les COMMENTAIRES sont retirés avant l'examen. Sans ça, la garde mordait
+  //    sur l'en-tête qui EXPLIQUE que les templates sont morts — un test qui
+  //    interdit de documenter ce qu'il vérifie finit par se faire désarmer.
+  const code = send
+    .replace(/\/\*[\s\S]*?\*\//g, " ")
+    .replace(/^\s*\/\/.*$/gm, " ");
+  for (const forbidden of ["template", "global_reach", "components", "sendKeelWhatsApp"]) {
+    assert(
+      !code.includes(forbidden),
+      `la relance ne doit plus rien savoir de « ${forbidden} »`,
+    );
+  }
 });
 
 Deno.test("the template body is what the belt actually checks", () => {

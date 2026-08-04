@@ -14,7 +14,7 @@ import {
 } from "../_shared/keel/daily_pulse.ts";
 import { loadPulseDay, wasPulseAskedToday } from "../_shared/keel/daily_pulse_io.ts";
 import { localDateFor, localHourFor } from "../_shared/keel/reengagement_io.ts";
-import { sendKeelWhatsApp } from "../_shared/keel/internal_send.ts";
+import { deliverChatMessage } from "../_shared/chat/delivery.ts";
 
 /**
  * PIVOT NUTRITION — N2 : le job qui envoie le tap du soir.
@@ -73,25 +73,9 @@ Deno.serve(async (req) => {
     const admin = adminClient();
     const startedAt = Date.now();
 
-    // Le template de repli, nommé EXPLICITEMENT. Jamais le repli générique de
-    // `whatsapp-send`: un purpose non mappé y tombe sur `global_reach_template`
-    // — « J'ai une info pour toi », en français — et c'est l'incident du
-    // 2026-07-12. Les variables d'env existent pour que ops repointe sans
-    // redéploiement le jour où Meta approuve une autre version.
-    const templateName = cleanText(
-      Deno.env.get("WHATSAPP_KEEL_PULSE_TEMPLATE_NAME"),
-      PULSE_TEMPLATE_NAME_DEFAULT,
-    );
-    const templateLang = cleanText(
-      Deno.env.get("WHATSAPP_KEEL_PULSE_TEMPLATE_LANG"),
-      PULSE_TEMPLATE_LANG_DEFAULT,
-    );
-
     let cursor = cleanText(body.after_user_id);
     let scanned = 0;
     let sent = 0;
-    /** Combien des envois ci-dessus sont passés par le template hors fenêtre. */
-    let sentViaTemplate = 0;
     const bySkip: Record<string, number> = {};
     const failures: string[] = [];
     let exhausted = false;
@@ -99,7 +83,7 @@ Deno.serve(async (req) => {
     while (true) {
       let q = admin
         .from("profiles")
-        .select("id, timezone, whatsapp_opted_in, whatsapp_opted_out_at, phone_number")
+        .select("id, timezone, proactive_muted_at")
         .eq("keel_role", "student")
         .order("id", { ascending: true })
         .limit(PAGE);
@@ -188,7 +172,26 @@ Deno.serve(async (req) => {
             // s'écrit — une décision de conception, pas une ligne de code, et
             // elle est remontée telle quelle dans STATUS-MORNING.
             safetyBand: null,
-            optedOut: Boolean(row.whatsapp_opted_out_at) || row.whatsapp_opted_in === false,
+            // ── DE-WHATSAPP — LE MUTE VIENT DU RÉGLAGE PRODUIT, PAS DE META ──
+            //
+            // 🔴 LE DÉFAUT QUE CETTE LIGNE CORRIGE, MESURÉ EN LOCAL LE 2026-08-04:
+            // la condition était
+            //     Boolean(row.whatsapp_opted_out_at) || row.whatsapp_opted_in === false
+            // et `profiles.whatsapp_opted_in` vaut `false` par défaut. Un élève
+            // KEEL n'a JAMAIS donné d'opt-in Meta — il n'y a pas de parcours qui
+            // le lui demande. **Tous les élèves KEEL étaient donc `opted_out`**,
+            // et le tap du soir n'atteignait personne.
+            //
+            // Constaté sur la base locale: 14 profils sur 108 écartés en
+            // `opted_out`, dont l'élève de la vérification au navigateur. La
+            // colonne était le vestige d'une obligation réglementaire Meta; la
+            // lire à l'envers (« pas d'opt-in ⇒ muet ») faisait taire toute la
+            // base du produit qu'on est en train de construire.
+            //
+            // `proactive_muted_at` est le réglage produit: il n'est posé QUE
+            // quand l'élève coupe ses relances (migration 20260804121000, dont
+            // le backfill est délibérément asymétrique pour cette raison exacte).
+            optedOut: Boolean(row.proactive_muted_at),
             hasActivePlan: ((planRes.data ?? []) as unknown[]).length > 0 ||
               ((swpRes.data ?? []) as unknown[]).length > 0,
           });
@@ -200,42 +203,36 @@ Deno.serve(async (req) => {
 
           if (!dryRun) {
             const message = renderPulseQuestion();
-            // Même défaut que le point hebdo, même correctif: `functions.invoke`
-            // n'envoie pas `x-internal-secret`, seule porte de `whatsapp-send`.
-            const sent = await sendKeelWhatsApp({
-              user_id: cursor,
-              to: row.phone_number,
+            // DE-WHATSAPP — la livraison est une ÉCRITURE, plus un appel Graph.
+            //
+            // Ce qui disparaît avec Meta, et ce que ça supprime de complexité:
+            //   * `sendKeelWhatsApp` + `x-internal-secret` (les 403 silencieux
+            //     qui comptaient chaque envoi en `failures` sans rien envoyer);
+            //   * le 409 « fenêtre 24h fermée », qui était le cas NOMINAL de ce
+            //     job — l'élève qu'on veut mesurer est justement celui qui n'a
+            //     pas écrit depuis la veille;
+            //   * le repli template et ses payloads de boutons voyageant par
+            //     index, avec le risque de divergence de libellés qui allait
+            //     avec.
+            // Il ne reste qu'une ligne écrite dans la bulle, et Realtime.
+            const delivered = await deliverChatMessage(admin, {
+              userId: cursor,
+              content: message.body,
               purpose: "keel_daily_pulse",
-              message: {
-                type: "interactive_buttons",
-                body: message.body,
-                buttons: message.buttons,
-              },
+              buttons: message.buttons.map((b) => ({
+                payload: b.id,
+                label: b.title,
+              })),
+              requestId,
             });
-            if (!sent.ok) {
-              // 409 = fenêtre 24h fermée. Ce n'est PAS une panne, et surtout
-              // c'est le cas NOMINAL de ce job: l'élève qu'on veut mesurer est
-              // justement celui qui n'a pas écrit depuis la veille. Le compter
-              // en `failures` faisait ressembler un soir normal à un incident.
-              //
-              // Le template porte la même question et les mêmes trois boutons;
-              // les payloads voyagent par index (voir
-              // `pulseTemplateButtonComponents`). Toute autre erreur reste une
-              // vraie erreur.
-              if (sent.status !== 409) throw new Error(sent.error);
-              const viaTemplate = await sendKeelWhatsApp({
-                user_id: cursor,
-                to: row.phone_number,
-                purpose: "keel_daily_pulse",
-                message: {
-                  type: "template",
-                  name: templateName,
-                  language: templateLang,
-                  components: pulseTemplateButtonComponents(message.buttons),
-                },
-              });
-              if (!viaTemplate.ok) throw new Error(viaTemplate.error);
-              sentViaTemplate++;
+            if (!delivered.delivered) {
+              // Un refus de livraison N'EST PAS une panne: mute, plafond ou
+              // état périmé sont des décisions produit. On les compte par motif
+              // pour qu'un soir « rien n'est parti » soit lisible, au lieu de
+              // ressembler à un incident ou — pire — à un succès.
+              bySkip[`delivery:${delivered.reason}`] =
+                (bySkip[`delivery:${delivered.reason}`] ?? 0) + 1;
+              continue;
             }
           }
           sent++;
@@ -254,8 +251,6 @@ Deno.serve(async (req) => {
       dry_run: dryRun,
       scanned,
       sent,
-      sent_via_template: sentViaTemplate,
-      template_name: templateName,
       skipped_by_reason: bySkip,
       exhausted,
       next_after_user_id: exhausted ? null : cursor || null,

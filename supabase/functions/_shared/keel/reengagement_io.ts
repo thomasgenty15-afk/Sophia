@@ -44,10 +44,9 @@ import {
   type JobReachableTone,
   type ReengageDecision,
   REENGAGE_AFTER_HOURS,
-  reengageTemplateFor,
   renderReengageNudge,
 } from "./reengagement.ts";
-import { sendKeelWhatsApp } from "./internal_send.ts";
+import { deliverChatMessage } from "../chat/delivery.ts";
 
 // deno-lint-ignore no-explicit-any
 type Db = any;
@@ -142,7 +141,7 @@ export async function loadReengageCandidates(
   let query = db
     .from("profiles")
     .select(
-      "id, phone_number, full_name, timezone, whatsapp_opted_in, whatsapp_opted_out_at, keel_role",
+      "id, phone_number, full_name, timezone, proactive_muted_at, keel_role",
     )
     .eq("keel_role", "student")
     .order("id", { ascending: true })
@@ -212,7 +211,11 @@ export async function loadReengageCandidates(
       localHour: localHourFor(args.now, String(row.timezone ?? "")) ?? Number.NaN,
       timezone: String(row.timezone ?? "") || null,
       hasActivePlan: ((planRes.data ?? []) as unknown[]).length > 0,
-      optedOut: Boolean(row.whatsapp_opted_out_at) || row.whatsapp_opted_in === false,
+      // DE-WHATSAPP: le mute produit, pas l'opt-in Meta. `whatsapp_opted_in`
+      // vaut `false` par défaut et aucun élève KEEL n'a de parcours d'opt-in
+      // Meta: lire cette colonne écartait la totalité de la base en
+      // `opted_out`. Voir le commentaire long dans `keel-daily-pulse-v1`.
+      optedOut: Boolean(row.proactive_muted_at),
       nudgedThisEpisode: episodeUnavailable || Boolean(openEpisode),
       lastNudgeAt: openEpisode ? String(openEpisode.opened_at ?? "") || null : null,
       restrictionFlag: await isRestrictionFlagged(db, userId),
@@ -438,11 +441,12 @@ export async function markReengagementTouchSent(
  * passe pas cette ligne.
  */
 export async function sendReengageNudge(
+  db: Db,
   args: {
     userId: string;
-    phoneNumber: string | null;
     firstName: string;
     tone: JobReachableTone;
+    requestId?: string;
   },
 ): Promise<
   { ok: boolean; error: string; status: number; toneDelivered: boolean }
@@ -453,39 +457,35 @@ export async function sendReengageNudge(
   // produit exactement le silence que cette boucle existe pour éviter.
   assertNoGuiltTripping(body);
 
-  const tpl = reengageTemplateFor(args.tone, (n) => Deno.env.get(n));
-
-  if (!args.phoneNumber) {
+  // ── DE-WHATSAPP — LE TON EST MAINTENANT TOUJOURS DÉLIVRÉ ──────────────────
+  // `toneDelivered` existait pour compter les relances dont le ton DÉCIDÉ
+  // (`lighter`) n'était pas celui ENVOYÉ, parce qu'un seul template Meta était
+  // approuvé et que tout tombait sur `gentle`. Un « ton adouci » n'existait
+  // alors que dans nos journaux.
+  //
+  // Il n'y a plus de template. Le corps rendu EST le corps livré, donc le ton
+  // décidé est le ton reçu — toujours. Le champ reste dans le contrat le temps
+  // que les appelants et leurs tests s'alignent; il vaut désormais
+  // invariablement `true`, et c'est une propriété, pas un hasard.
+  const delivered = await deliverChatMessage(db as never, {
+    userId: args.userId,
+    content: body,
+    purpose: "keel_reengage",
+    requestId: args.requestId,
+  });
+  if (!delivered.delivered) {
+    // Un refus de livraison est classé comme une erreur PRÉ-LIVRAISON (status
+    // 4xx) : rien n'est parti, donc l'appelant doit rendre l'élève à la boucle
+    // au lieu de le verrouiller derrière un épisode ouvert. C'est l'asymétrie
+    // décrite dans `rollbackReengagementEpisode`, préservée telle quelle.
     return {
       ok: false,
-      status: 0,
-      error: "no phone number on profile",
-      toneDelivered: tpl.toneDelivered,
+      status: 409,
+      error: `delivery refused: ${delivered.reason}`,
+      toneDelivered: true,
     };
   }
-
-  const sent = await sendKeelWhatsApp({
-    user_id: args.userId,
-    to: args.phoneNumber,
-    purpose: "keel_reengage",
-    // Template NOMMÉ explicitement, jamais le repli de `whatsapp-send`. Le
-    // repli existe et il est correct, mais c'est une ceinture: le chemin
-    // nominal doit dire quel template il veut. Le dépôt porte l'incident du
-    // 2026-07-12 — un purpose non mappé était tombé sur `global_reach_template`
-    // (« J'ai une info pour toi ») et l'avait envoyé trois fois.
-    message: {
-      type: "template",
-      name: tpl.name,
-      language: tpl.language,
-      components: [
-        {
-          type: "body",
-          parameters: [{ type: "text", text: args.firstName.trim() || "there" }],
-        },
-      ],
-    },
-  });
-  return { ...sent, toneDelivered: tpl.toneDelivered };
+  return { ok: true, status: 200, error: "", toneDelivered: true };
 }
 
 /**

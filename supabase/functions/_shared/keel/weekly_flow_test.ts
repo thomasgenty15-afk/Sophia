@@ -13,6 +13,7 @@ import { assert, assertEquals } from "jsr:@std/assert@1";
 import {
   buildWeeklyFlowToken,
   decideWeeklyFlow,
+  WEEKLY_FLOW_SKIP_REASONS,
   parseWeeklyFlowResponse,
   parseWeeklyFlowToken,
   renderWeeklyFlowAck,
@@ -157,7 +158,11 @@ Deno.test("the payload keeps weight WITH the axes, in one place", () => {
   const payload = weeklyBiofeedbackPayload(r);
   assertEquals(payload.energy, 4);
   assertEquals(payload.weight_kg, 78.4);
-  assertEquals(payload.source, "whatsapp_flow");
+  // La provenance dit la VÉRITÉ: le formulaire vit dans l'app depuis le
+  // chantier de-whatsapp. Ce champ est lu par la synthèse et par
+  // /app/progress; le laisser mentir sur son origine rendrait l'historique
+  // inexploitable le jour où on voudra comparer deux canaux.
+  assertEquals(payload.source, "in_app_weekly_form");
 });
 
 // ---------------------------------------------------------------------------
@@ -172,7 +177,6 @@ const SENDABLE = {
   safetyBand: null,
   restrictionFlagged: false,
   hasActivePlan: true,
-  flowId: "1234567890",
 };
 
 Deno.test("Sunday evening, plan adopted, not yet answered -> send", () => {
@@ -209,15 +213,25 @@ Deno.test("opt-out outranks everything, including safety", () => {
   );
 });
 
-Deno.test("no published Flow -> silence, never a broken message", () => {
+Deno.test("DE-WHATSAPP: la garde `flow_not_configured` n'a plus de raison d'être", () => {
+  // ── LE DESCENDANT DE « no published Flow -> silence » ─────────────────────
+  // L'ancêtre gardait un identifiant de Flow publié CHEZ META: absent, le
+  // message serait parti avec un bouton qui n'ouvre rien. La règle était juste.
+  //
+  // Le formulaire vit maintenant dans l'app, à côté de la bulle: la condition
+  // « le formulaire est-il joignable ? » est structurellement vraie, et le
+  // champ d'entrée a été SUPPRIMÉ plutôt que rendu optionnel — un paramètre de
+  // garde optionnel est une garde désarmée, et ce dépôt a déjà payé ça avec
+  // `safetyBand`.
+  //
+  // Ce test vérifie donc la SUPPRESSION, pas le comportement: le motif ne doit
+  // plus exister nulle part, sinon un appelant pourrait encore le produire.
   assertEquals(
-    decideWeeklyFlow({ ...SENDABLE, flowId: null }),
-    { decision: "skip", reason: "flow_not_configured" },
+    (WEEKLY_FLOW_SKIP_REASONS as readonly string[]).includes("flow_not_configured"),
+    false,
   );
-  assertEquals(
-    decideWeeklyFlow({ ...SENDABLE, flowId: "   " }),
-    { decision: "skip", reason: "flow_not_configured" },
-  );
+  // Et un élève par ailleurs éligible part vraiment.
+  assertEquals(decideWeeklyFlow(SENDABLE), { decision: "send" });
 });
 
 Deno.test("one check-in per week", () => {

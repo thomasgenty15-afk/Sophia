@@ -20,7 +20,7 @@ import {
   weekStartOf,
   WEEKLY_FLOW_WEEK_META_KEY,
 } from "../_shared/keel/weekly_flow_io.ts";
-import { sendKeelWhatsApp } from "../_shared/keel/internal_send.ts";
+import { deliverChatMessage } from "../_shared/chat/delivery.ts";
 import {
   isRestrictionFlagged,
   localHourFor,
@@ -136,30 +136,12 @@ Deno.serve(async (req) => {
       ? Math.min(budgetRaw, 120_000)
       : DEFAULT_BUDGET_MS;
 
-    // Configuration, jamais devinée: pas d'identifiant, pas d'envoi.
-    const flowId = cleanText(body.flow_id) ||
-      cleanText(Deno.env.get("KEEL_WEEKLY_FLOW_ID")) || null;
-
-    // Le template qui porte le Flow hors fenêtre 24h. Le Flow et son écran
-    // d'entrée sont déclarés DANS le template chez Meta; il ne reste ici que
-    // le jeton de corrélation.
-    const templateName = cleanText(
-      Deno.env.get("WHATSAPP_KEEL_WEEKLY_TEMPLATE_NAME"),
-      WEEKLY_TEMPLATE_NAME_DEFAULT,
-    );
-    const templateLang = cleanText(
-      Deno.env.get("WHATSAPP_KEEL_WEEKLY_TEMPLATE_LANG"),
-      WEEKLY_TEMPLATE_LANG_DEFAULT,
-    );
-
     const admin = adminClient();
     const startedAt = Date.now();
 
     let cursor = cleanText(body.after_user_id);
     let scanned = 0;
     let sent = 0;
-    /** Combien des envois ci-dessus ont dû passer par le template. */
-    let sentViaTemplate = 0;
     const bySkip: Record<string, number> = {};
     const failures: string[] = [];
     let exhausted = false;
@@ -173,7 +155,7 @@ Deno.serve(async (req) => {
         // élève n'a jamais été examiné. Toutes les gardes en aval étaient du
         // code mort derrière un SELECT cassé. Voir le test de dérive de schéma
         // dans `_shared/keel/weekly_flow_schema_test.sql`.
-        .select("id, timezone, whatsapp_opted_in, whatsapp_opted_out_at, phone_number")
+        .select("id, timezone, proactive_muted_at")
         .eq("keel_role", "student")
         .order("id", { ascending: true })
         .limit(PAGE);
@@ -230,9 +212,27 @@ Deno.serve(async (req) => {
             // dispose, et il couvre précisément le risque de cette question.
             safetyBand: null,
             restrictionFlagged: await isRestrictionFlagged(admin, cursor),
-            optedOut: Boolean(row.whatsapp_opted_out_at) || row.whatsapp_opted_in === false,
+            // ── DE-WHATSAPP — LE MUTE VIENT DU RÉGLAGE PRODUIT, PAS DE META ──
+            //
+            // 🔴 LE DÉFAUT QUE CETTE LIGNE CORRIGE, MESURÉ EN LOCAL LE 2026-08-04:
+            // la condition était
+            //     Boolean(row.whatsapp_opted_out_at) || row.whatsapp_opted_in === false
+            // et `profiles.whatsapp_opted_in` vaut `false` par défaut. Un élève
+            // KEEL n'a JAMAIS donné d'opt-in Meta — il n'y a pas de parcours qui
+            // le lui demande. **Tous les élèves KEEL étaient donc `opted_out`**,
+            // et le tap du soir n'atteignait personne.
+            //
+            // Constaté sur la base locale: 14 profils sur 108 écartés en
+            // `opted_out`, dont l'élève de la vérification au navigateur. La
+            // colonne était le vestige d'une obligation réglementaire Meta; la
+            // lire à l'envers (« pas d'opt-in ⇒ muet ») faisait taire toute la
+            // base du produit qu'on est en train de construire.
+            //
+            // `proactive_muted_at` est le réglage produit: il n'est posé QUE
+            // quand l'élève coupe ses relances (migration 20260804121000, dont
+            // le backfill est délibérément asymétrique pour cette raison exacte).
+            optedOut: Boolean(row.proactive_muted_at),
             hasActivePlan: ((swpRes.data ?? []) as unknown[]).length > 0,
-            flowId,
           });
 
           if (decision.decision === "skip") {
@@ -241,68 +241,33 @@ Deno.serve(async (req) => {
           }
 
           if (!dryRun) {
-            // `functions.invoke` n'envoie PAS `x-internal-secret`, et c'est la
-            // seule porte de `whatsapp-send`: chaque envoi recevait 403.
-            // Voir `_shared/keel/internal_send.ts`.
+            // ── DE-WHATSAPP — LE FLOW META DEVIENT UN FORMULAIRE IN-APP ─────
+            // Ce qui disparaît: le `flow_id` déclaré chez Meta, l'écran
+            // d'entrée, le CTA du Flow, le 409 « fenêtre 24h fermée » (le cas
+            // NOMINAL de ce job, puisqu'il vise l'élève silencieux du
+            // dimanche), et le template de repli avec son composant de bouton.
+            //
+            // Ce qui SURVIT à l'identique, parce que c'était la vraie règle:
+            // le jeton ne porte QUE la semaine. L'élève est identifié par son
+            // JWT, jamais par le contenu d'un jeton qui a fait l'aller-retour
+            // par un client.
             const flowToken = buildWeeklyFlowToken(weekStart);
-            // Nommé `res` et pas `sent`: le compteur du job s'appelle `sent`, et
-            // l'ombrer empêchait de l'incrémenter depuis cette branche.
-            const res = await sendKeelWhatsApp({
-              user_id: cursor,
-              to: row.phone_number,
+            const delivered = await deliverChatMessage(admin, {
+              userId: cursor,
+              content: WEEKLY_FLOW_BODY_EN,
               purpose: "keel_weekly_flow",
-              // La semaine voyage AVEC l'envoi: c'est ce qui rend
-              // `hasAskedWeek` exact au lieu de le faire deviner à partir
-              // d'un `created_at` UTC dans le fuseau de quelqu'un d'autre.
-              metadata_extra: { [WEEKLY_FLOW_WEEK_META_KEY]: weekStart },
-              message: {
-                type: "interactive_flow",
-                body: WEEKLY_FLOW_BODY_EN,
-                flow_id: flowId,
-                // Le jeton ne porte que la semaine: l'élève est identifié par
-                // le numéro qui répond, jamais par le contenu du jeton.
-                flow_token: flowToken,
-                flow_cta: WEEKLY_FLOW_CTA_EN,
-                screen: FLOW_ENTRY_SCREEN,
-              },
+              buttons: [{ payload: flowToken, label: WEEKLY_FLOW_CTA_EN }],
+              requestId,
+              metadata: { [WEEKLY_FLOW_WEEK_META_KEY]: weekStart },
             });
-            if (res.status === 409) {
-              // Fenêtre 24h fermée. Ce n'est PAS une panne: c'est la règle de
-              // Meta, et l'élève silencieux est justement celui qu'on visait.
-              // Le produit a tranché — c'est le template KEEL qui rouvre la
-              // porte, pas le renoncement.
-              //
-              // Le template est nommé EXPLICITEMENT: le repli générique de
-              // `whatsapp-send` enverrait `global_reach_template` (« J'ai une
-              // info pour toi », en français) à un élève anglophone, et
-              // compterait ça comme un succès. C'est l'incident du 2026-07-12.
-              const viaTemplate = await sendKeelWhatsApp({
-                user_id: cursor,
-                to: row.phone_number,
-                purpose: "keel_weekly_flow",
-                metadata_extra: {
-                  [WEEKLY_FLOW_WEEK_META_KEY]: weekStart,
-                  keel_weekly_via_template: true,
-                },
-                message: {
-                  type: "template",
-                  name: templateName,
-                  language: templateLang,
-                  components: weeklyTemplateFlowComponents(flowToken),
-                },
-              });
-              if (!viaTemplate.ok) {
-                // Le template n'est pas encore approuvé, ou le nom est faux.
-                // On le NOMME au lieu de le compter en panne muette: sans ça,
-                // un dimanche entier sans bilan ressemble à un dimanche calme.
-                bySkip.window_closed_at_send = (bySkip.window_closed_at_send ?? 0) + 1;
-                continue;
-              }
-              sentViaTemplate++;
-              sent++;
+            if (!delivered.delivered) {
+              // Un refus est une décision produit (mute, plafond, état
+              // périmé), pas une panne. On le NOMME: sans ça, un dimanche
+              // entier sans bilan ressemble à un dimanche calme.
+              bySkip[`delivery:${delivered.reason}`] =
+                (bySkip[`delivery:${delivered.reason}`] ?? 0) + 1;
               continue;
             }
-            if (!res.ok) throw new Error(res.error);
           }
           sent++;
         } catch (error) {
@@ -316,11 +281,9 @@ Deno.serve(async (req) => {
     return jsonResponse(req, {
       ok: true,
       dry_run: dryRun,
-      flow_configured: Boolean(flowId),
+
       scanned,
       sent,
-      sent_via_template: sentViaTemplate,
-      template_name: templateName,
       skipped_by_reason: bySkip,
       exhausted,
       next_after_user_id: exhausted ? null : cursor || null,

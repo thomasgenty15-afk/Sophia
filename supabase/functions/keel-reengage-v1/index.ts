@@ -154,22 +154,20 @@ Deno.serve(async (req) => {
       }
 
       try {
-        // TEMPLATE, jamais texte libre. À 72h de silence la fenêtre 24h de Meta
-        // est fermée par construction, et `whatsapp-send` bascule alors sur
-        // `getFallbackTemplate(purpose)`. Envoyer `type: "text"` ici revenait
-        // donc à laisser ce repli choisir — et un purpose non mappé tombe sur
-        // `global_reach_template` (« J'ai une info pour toi », en français).
-        // C'est l'incident du 2026-07-12, à l'identique. Le chemin nominal
-        // nomme son template; le mapping ajouté dans `whatsapp-send` n'est plus
-        // qu'une ceinture.
+        // DE-WHATSAPP — texte libre, tout simplement. Le détour par un template
+        // NOMMÉ existait parce qu'à 72 h de silence la fenêtre 24 h de Meta est
+        // fermée par construction, et qu'un purpose non mappé tombait sur
+        // `global_reach_template` (« J'ai une info pour toi », en français) —
+        // l'incident du 2026-07-12. Sans Meta, la contrainte disparaît avec sa
+        // classe d'incident.
         //
-        // La ceinture anti-culpabilisation tourne dans `sendReengageNudge`, sur
-        // le corps exact que l'élève va lire.
-        const res = await sendReengageNudge({
+        // La ceinture anti-culpabilisation tourne toujours dans
+        // `sendReengageNudge`, sur le corps exact que l'élève va lire.
+        const res = await sendReengageNudge(admin, {
           userId: outcome.userId,
-          phoneNumber: phone,
           firstName: byUserId.get(outcome.userId)?.firstName ?? "",
           tone: d.tone,
+          requestId,
         });
         if (!res.toneDelivered) toneNotDelivered++;
         if (!res.ok) {

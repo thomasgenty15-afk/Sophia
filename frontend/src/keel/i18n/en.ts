@@ -926,6 +926,21 @@ export const en = {
   // tombée ET que rien n'est perdu, parce que les deux sont vrais.
   "chat.status.offline":
     "Live updates are off right now — messages still arrive, just more slowly.",
+
+  // Le point hebdomadaire, dans l'app. C'était un WhatsApp Flow: deux écrans
+  // declares chez Meta. Il ne reste que ce qui comptait.
+  "chat.weekly.title": "How the week actually went",
+  "chat.weekly.subtitle": "Six quick reads. Two minutes, and nothing here is graded.",
+  "chat.weekly.optional": "Optional — only if you track them.",
+  "chat.weekly.weight": "Weight (kg)",
+  "chat.weekly.waist": "Waist (cm)",
+  "chat.weekly.submit": "Send",
+  "chat.weekly.cancel": "Not now",
+  "chat.weekly.error.empty": "Give at least one of the six a score.",
+  "chat.weekly.error.number": "{field} should be a number.",
+  // Hors bornes = refusé et NOMMÉ, jamais ramené au bord: une valeur corrigee
+  // en silence est une donnee fausse qui a l'air vraie.
+  "chat.weekly.error.range": "{field} should be between {min} and {max}.",
   "app.plan_untitled": "Your plan",
   "app.guard.checking": "Checking your access...",
   "app.guard.not_student_title": "This space is for students",

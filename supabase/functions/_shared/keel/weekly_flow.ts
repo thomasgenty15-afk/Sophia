@@ -375,7 +375,11 @@ export function weeklyBiofeedbackPayload(reply: WeeklyFlowReply): Record<string,
   const payload: Record<string, unknown> = { ...reply.biofeedback };
   if (reply.weightKg !== null) payload.weight_kg = reply.weightKg;
   if (reply.waistCm !== null) payload.waist_cm = reply.waistCm;
-  payload.source = "whatsapp_flow";
+  // La provenance, honnête: ce n'est plus un Flow WhatsApp mais le formulaire
+  // in-app. Le champ est LU (par la synthèse et par /app/progress) — le laisser
+  // mentir sur son origine rendrait l'historique inexploitable le jour où on
+  // voudra comparer les deux canaux.
+  payload.source = "in_app_weekly_form";
   return payload;
 }
 
@@ -396,7 +400,6 @@ export const WEEKLY_FLOW_SKIP_REASONS = [
   "restriction_flagged",
   "opted_out",
   "no_active_plan",
-  "flow_not_configured",
 ] as const;
 export type WeeklyFlowSkipReason = (typeof WEEKLY_FLOW_SKIP_REASONS)[number];
 
@@ -447,8 +450,6 @@ export interface WeeklyFlowDecisionInput {
   restrictionFlagged: boolean;
   optedOut?: boolean;
   hasActivePlan: boolean;
-  /** L'identifiant du Flow publié chez Meta. Absent = rien à envoyer. */
-  flowId: string | null;
 }
 
 export type WeeklyFlowDecision =
@@ -469,12 +470,22 @@ export type WeeklyFlowDecision =
  *                             pendant qu'un écran refuse de le lui montrer
  *                             serait une incohérence qui fait du dégât.
  *   4. no_active_plan       — rien à suivre, rien à demander.
- *   5. flow_not_configured  — le Flow n'existe pas chez Meta. On se tait
- *                             plutôt que d'émettre un message cassé.
- *   6. already_answered     — un point par semaine.
- *   7. already_asked        — une QUESTION par semaine. Le silence de l'élève
+ *   5. already_answered     — un point par semaine.
+ *   6. already_asked        — une QUESTION par semaine. Le silence de l'élève
  *                             n'autorise pas à redemander à 19h40 puis à 20h40.
- *   8. outside_window       — hors dimanche 18h-21h locales, on ne fait rien.
+ *   7. outside_window       — hors dimanche 18h-21h locales, on ne fait rien.
+ *
+ * ── LA GARDE QUI A DISPARU, ET POURQUOI CE N'EST PAS UN RELÂCHEMENT ─────────
+ * `flow_not_configured` gardait un identifiant de Flow publié CHEZ META:
+ * absent, le message serait parti avec un bouton qui n'ouvre rien. C'était la
+ * bonne règle — « on se tait plutôt que d'émettre un message cassé ».
+ *
+ * Le formulaire vit maintenant DANS l'app, à côté de la bulle. Il n'y a plus
+ * d'identifiant à configurer, donc plus rien à vérifier: la condition
+ * « le formulaire est-il joignable ? » est devenue structurellement vraie.
+ * Supprimer le champ d'entrée plutôt que de le laisser optionnel est
+ * délibéré — un paramètre de garde optionnel est une garde désarmée, et ce
+ * dépôt a déjà payé ça avec `safetyBand`.
  */
 export function decideWeeklyFlow(input: WeeklyFlowDecisionInput): WeeklyFlowDecision {
   if (input.optedOut) return { decision: "skip", reason: "opted_out" };
@@ -487,9 +498,6 @@ export function decideWeeklyFlow(input: WeeklyFlowDecisionInput): WeeklyFlowDeci
   }
 
   if (!input.hasActivePlan) return { decision: "skip", reason: "no_active_plan" };
-  if (!String(input.flowId ?? "").trim()) {
-    return { decision: "skip", reason: "flow_not_configured" };
-  }
   if (input.answeredThisWeek) {
     return { decision: "skip", reason: "already_answered_this_week" };
   }

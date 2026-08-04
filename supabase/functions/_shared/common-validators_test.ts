@@ -1,4 +1,4 @@
-import { assertEquals, assertThrows } from "std/testing/asserts.ts";
+import { assertEquals, assertThrows } from "jsr:@std/assert@1";
 import { validateDispatcher, validateMiniAction } from "./common-validators.ts";
 
 Deno.test("validateDispatcher: accepte un dispatch valide", () => {
