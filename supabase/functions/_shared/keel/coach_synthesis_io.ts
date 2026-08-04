@@ -249,10 +249,15 @@ export async function loadStudentWeek(
     };
   });
 
+  // `.is("disqualified_reason", null)` — ce que le coach lit le lundi ne doit
+  // compter QUE des repas. Sans ce filtre, une photo de menu, un selfie ou une
+  // capture d'écran d'app de livraison gonflaient le nombre de jours actifs et
+  // la distribution des portions de cet élève.
   const eventsRes = await db
     .from("protocol_events")
     .select("local_date, portion_band")
     .eq("user_id", args.studentUserId)
+    .is("disqualified_reason", null)
     .gte("local_date", periodStart)
     .lte("local_date", periodEnd);
   if (eventsRes.error) throw eventsRes.error;

@@ -149,12 +149,18 @@ async function loadContext(args: {
     .eq("status", "active");
   if (cErr) throw cErr;
 
+  // `.is("disqualified_reason", null)` — l'évaluateur ne grade que des faits
+  // alimentaires. Une photo dont l'analyse a conclu « ceci n'est pas un repas
+  // servi » porte encore un `food_group_ref` nul et des `commitment_matches`
+  // vides, donc elle ne créditerait rien; mais elle compte dans les dénombrements
+  // d'évidence, et une preuve qui n'en est pas ne doit pas peser sur une note.
   const { data: eventRows, error: eErr } = await admin
     .from("protocol_events")
     .select(
       "id, occurred_at, local_date, slot_key, source, quantity, unit, substance_ref, food_group_ref, portion_band, evidence_weight, recognized",
     )
     .eq("user_id", userId)
+    .is("disqualified_reason", null)
     .gte("local_date", weekStart)
     .lte("local_date", weekEnd)
     .order("occurred_at", { ascending: true });

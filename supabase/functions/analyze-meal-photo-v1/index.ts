@@ -14,6 +14,7 @@ import {
   buildRecognizedPayload,
   type MealAnalysisCommitmentContext,
   MEAL_ANALYSIS_PROMPT_VERSION,
+  mealDisqualification,
   parseMealAnalysis,
   renderMealPhotoAck,
   resolveFoodGroupCredit,
@@ -103,6 +104,10 @@ const EVENT_COLUMNS = [
   "portion_band",
   "recognized",
   "recognition_confidence",
+  // Relu pour la même raison que `food_group_ref`: l'accusé annonce à l'élève
+  // que sa photo ne compte pas, et cette phrase doit reposer sur ce que la
+  // BASE porte, pas sur ce que l'analyse a décidé.
+  "disqualified_reason",
   // Lu pour rendre l'accusé dans la langue de la ligne, plutôt que dans une
   // constante en dur au point d'appel.
   "content_locale",
@@ -125,6 +130,7 @@ type EventRow = {
   portion_band: string | null;
   recognized: Record<string, unknown> | null;
   recognition_confidence: number | null;
+  disqualified_reason: string | null;
   content_locale: string | null;
 };
 
@@ -407,6 +413,14 @@ Deno.serve(async (req) => {
     // CHECK on four values, and `quantity`/`unit` stay null beside it. A band is
     // a rank, not a quantity -- see the branch comment in `evaluator.ts` for why
     // it may downgrade a cap and may never lift a floor.
+    // Le verdict de SUJET. `mealDisqualification` est la seule opinion du
+    // système sur « est-ce que ceci est un repas », et elle est écrite sur la
+    // LIGNE plutôt que déduite à la lecture: les six lecteurs qui comptent des
+    // repas n'ont pas à ré-implémenter la règle, ils filtrent une colonne.
+    //
+    // Inconditionnel comme les trois autres: un rejeu `force` dont la nouvelle
+    // lecture voit un vrai repas doit EFFACER la disqualification précédente.
+    const disqualifiedReason = mealDisqualification(analysis);
     const updated = await admin
       .from("protocol_events")
       .update({
@@ -417,6 +431,12 @@ Deno.serve(async (req) => {
         // whose new reading is `unclear` must OVERWRITE a `large` the previous
         // reading left behind, not leave the stale band on the row.
         portion_band: analysis.portion_band,
+        disqualified_reason: disqualifiedReason,
+        // La dette que la QA avait nommée (P3-1): sans horodatage, une ligne
+        // analysée à l'insertion et une ligne rejouée trois jours plus tard
+        // sont indistinguables, et tout audit d'un changement de prompt
+        // devient impossible après coup.
+        analyzed_at: new Date().toISOString(),
       })
       .eq("id", event.id)
       .select(EVENT_COLUMNS)
@@ -459,6 +479,20 @@ Deno.serve(async (req) => {
           JSON.stringify(readBack.portion_band ?? null)
         } does not match the analysis ${
           JSON.stringify(analysis.portion_band)
+        } (write-through violated)`,
+      );
+    }
+    // Et la même discipline sur la disqualification, qui en a le PLUS besoin:
+    // c'est la colonne que six lecteurs interrogent pour décider si ce repas
+    // compte. Un CHECK rejeté ou une colonne absente (migration non appliquée)
+    // laisserait la photo d'un menu compter comme un repas, silencieusement —
+    // exactement le défaut que tout ceci corrige.
+    if ((readBack.disqualified_reason ?? null) !== disqualifiedReason) {
+      throw new Error(
+        `protocol_events read-back disqualified_reason ${
+          JSON.stringify(readBack.disqualified_reason ?? null)
+        } does not match the analysis ${
+          JSON.stringify(disqualifiedReason)
         } (write-through violated)`,
       );
     }

@@ -118,6 +118,10 @@ async function cleanup(userId: string) {
       "outbound_messages",
       "chat_messages",
       "protocol_events",
+      // Le flow de correction y vit: un état laissé derrière capterait le
+      // premier tour d'un futur élève réutilisant l'id (jamais en pratique,
+      // mais un test qui ne nettoie pas tout ment sur son isolation).
+      "user_chat_states",
     ]
   ) {
     await db.from(table).delete().eq("user_id", userId);
@@ -393,6 +397,234 @@ Deno.test({
       );
     } finally {
       await cleanup(student.id);
+    }
+  },
+});
+
+// ───────────────────────────────────────────────────────────────────────────
+// LA DÉDUPLICATION EXACTE
+//
+// Le défaut: `client_upload_id` est régénéré à CHAQUE sélection de fichier, et
+// le seul index unique ne portait que sur lui. L'élève qui renvoie sa photo —
+// parce qu'il n'a pas vu la réponse arriver — doublait son repas dans les
+// données du coach. Ce qui suit prouve que ce n'est plus possible, ET que la
+// dédup ne mord pas sur deux repas réellement différents.
+// ───────────────────────────────────────────────────────────────────────────
+
+/** CRC32, polynôme PNG. Nécessaire pour fabriquer un chunk valide. */
+function crc32(bytes: Uint8Array): number {
+  let crc = 0xFFFFFFFF;
+  for (const b of bytes) {
+    crc ^= b;
+    for (let i = 0; i < 8; i++) {
+      crc = (crc >>> 1) ^ (0xEDB88320 & -(crc & 1));
+    }
+  }
+  return (crc ^ 0xFFFFFFFF) >>> 0;
+}
+
+/**
+ * Le MÊME PNG augmenté d'un chunk `tEXt`: une image toujours parfaitement
+ * décodable, d'octets différents.
+ *
+ * Pourquoi pas une image bidon — le test traverse aussi le reniflage par
+ * octets magiques et le modèle de vision. Une image invalide le ferait passer
+ * pour une raison qui n'est pas celle qu'on veut prouver.
+ */
+function pngWithComment(base64Png: string, comment: string): string {
+  const raw = Uint8Array.from(atob(base64Png), (c) => c.charCodeAt(0));
+  // IEND fait toujours 12 octets et termine le fichier.
+  const head = raw.subarray(0, raw.length - 12);
+  const iend = raw.subarray(raw.length - 12);
+
+  const payload = new TextEncoder().encode(`Comment ${comment}`);
+  const typed = new Uint8Array(4 + payload.length);
+  typed.set(new TextEncoder().encode("tEXt"), 0);
+  typed.set(payload, 4);
+
+  const chunk = new Uint8Array(8 + payload.length + 4);
+  const view = new DataView(chunk.buffer);
+  view.setUint32(0, payload.length);
+  chunk.set(typed, 4);
+  view.setUint32(8 + payload.length, crc32(typed));
+
+  const out = new Uint8Array(head.length + chunk.length + iend.length);
+  out.set(head, 0);
+  out.set(chunk, head.length);
+  out.set(iend, head.length + chunk.length);
+  return btoa(String.fromCharCode(...out));
+}
+
+Deno.test({
+  name: "réel: la MEME photo renvoyée ne crée pas un second repas",
+  ignore: SKIP,
+  fn: async () => {
+    const student = await makeStudent();
+    const coachId = await publishPlan(student.id);
+    try {
+      const first = await upload(student, {
+        mime_type: "image/png",
+        base64: PNG_1PX,
+        client_upload_id: crypto.randomUUID(),
+        chat_client_message_id: crypto.randomUUID(),
+      });
+      assertEquals(first.status, 200, JSON.stringify(first.json));
+      assertEquals(first.json?.duplicate ?? false, false);
+
+      // Un client_upload_id DIFFÉRENT: exactement ce que fait la bulle quand
+      // l'élève re-sélectionne le même fichier. L'ancienne idempotence ne
+      // voyait rien passer.
+      const second = await upload(student, {
+        mime_type: "image/png",
+        base64: PNG_1PX,
+        client_upload_id: crypto.randomUUID(),
+        chat_client_message_id: crypto.randomUUID(),
+      });
+      assertEquals(second.status, 200, JSON.stringify(second.json));
+      assertEquals(second.json?.duplicate, true, "le doublon doit être annoncé");
+      assertEquals(
+        second.json?.analysis,
+        null,
+        "un doublon ne repasse pas par le modèle de vision",
+      );
+
+      // LE point: la base, pas la réponse HTTP.
+      const { data } = await admin()
+        .from("protocol_events")
+        .select("id, media_sha256")
+        .eq("user_id", student.id);
+      const rows = (data ?? []) as Array<{ id: string; media_sha256: string }>;
+      assertEquals(rows.length, 1, "un repas mangé une fois = un seul fait");
+      assertEquals(
+        (second.json?.event as { id?: string })?.id,
+        rows[0].id,
+        "le doublon renvoie le fait DÉJÀ en base",
+      );
+      assert(/^[0-9a-f]{64}$/.test(rows[0].media_sha256), rows[0].media_sha256);
+
+      // Et l'élève n'est pas laissé dans le silence: c'est ce silence qui le
+      // ferait recommencer une troisième fois.
+      const { data: msgs } = await admin()
+        .from("chat_messages")
+        .select("role,content")
+        .eq("user_id", student.id)
+        .eq("role", "assistant")
+        .order("created_at", { ascending: true });
+      const replies = (msgs ?? []) as Array<{ content: string }>;
+      assert(
+        replies.some((m) => m.content.toLowerCase().includes("already have")),
+        replies.map((m) => m.content).join(" | "),
+      );
+    } finally {
+      await cleanup(student.id);
+      await cleanupCoach(coachId);
+    }
+  },
+});
+
+Deno.test({
+  name: "réel: l'accusé OUVRE le flow de correction, sur la bonne ligne",
+  ignore: SKIP,
+  fn: async () => {
+    // La moitié « ouverture » du câblage anti-doublon. Sans cet état, le tour
+    // suivant (« non c'était du poulet ») repart dans le routeur global et
+    // `log_protocol_event` écrit une SECONDE ligne. L'autre moitié — la lecture
+    // par le cerveau — est couverte par `keel_meal_photo_lane_test.ts`.
+    const student = await makeStudent();
+    const coachId = await publishPlan(student.id);
+    try {
+      const clientId = crypto.randomUUID();
+      const res = await upload(student, {
+        mime_type: "image/png",
+        base64: PNG_1PX,
+        client_upload_id: clientId,
+        chat_client_message_id: clientId,
+      });
+      assertEquals(res.status, 200, JSON.stringify(res.json));
+      const eventId = (res.json?.event as { id?: string })?.id ?? "";
+      assert(eventId, "un fait a bien été écrit");
+
+      const { data } = await admin()
+        .from("user_chat_states")
+        .select("temp_memory")
+        .eq("user_id", student.id)
+        .eq("scope", "app")
+        .maybeSingle();
+      const temp = (data as { temp_memory?: Record<string, unknown> } | null)
+        ?.temp_memory ?? {};
+      const stored = temp["__keel_meal_photo_flow_state"] as
+        | Record<string, unknown>
+        | undefined;
+
+      const disqualified =
+        (res.json?.event as { disqualified_reason?: unknown })
+          ?.disqualified_reason ?? null;
+      if (disqualified !== null) {
+        // Le PNG 1×1 n'est pas un repas: si le filtre de sujet l'a disqualifié,
+        // AUCUN flow ne doit s'ouvrir — il n'y a rien à corriger sur une photo
+        // qui ne compte pas. C'est une assertion, pas une échappatoire.
+        assertEquals(stored, undefined, "pas de flow sur un fait disqualifié");
+        return;
+      }
+
+      assert(stored, "le flow est ouvert après l'accusé");
+      const flow = stored!.flow as Record<string, unknown>;
+      assertEquals(flow.eventId, eventId, "il pointe LA ligne qu'il amendera");
+      assertEquals(flow.turns, 0);
+      assert(
+        flow.state === "awaiting_clarification" ||
+          flow.state === "awaiting_correction",
+        String(flow.state),
+      );
+      assert(typeof stored!.updated_at === "string");
+    } finally {
+      await cleanup(student.id);
+      await cleanupCoach(coachId);
+    }
+  },
+});
+
+Deno.test({
+  name: "réel: deux photos DIFFÉRENTES restent deux repas (anti-faux-positif)",
+  ignore: SKIP,
+  fn: async () => {
+    // La garde qui manque le plus souvent à une déduplication: la preuve
+    // qu'elle ne mord pas trop large. Sans elle, une dédup trop agressive
+    // effacerait des repas réels sans que rien ne l'annonce.
+    const student = await makeStudent();
+    const coachId = await publishPlan(student.id);
+    try {
+      const other = pngWithComment(PNG_1PX, "second meal of the day");
+      assert(other !== PNG_1PX, "le fixture doit vraiment différer");
+
+      const a = await upload(student, {
+        mime_type: "image/png",
+        base64: PNG_1PX,
+        client_upload_id: crypto.randomUUID(),
+      });
+      const b = await upload(student, {
+        mime_type: "image/png",
+        base64: other,
+        client_upload_id: crypto.randomUUID(),
+      });
+      assertEquals(a.status, 200, JSON.stringify(a.json));
+      assertEquals(b.status, 200, JSON.stringify(b.json));
+      assertEquals(b.json?.duplicate ?? false, false, "images différentes");
+
+      const { data } = await admin()
+        .from("protocol_events")
+        .select("id, media_sha256")
+        .eq("user_id", student.id);
+      const rows = (data ?? []) as Array<{ media_sha256: string }>;
+      assertEquals(rows.length, 2, "deux repas différents = deux faits");
+      assertEquals(
+        new Set(rows.map((r) => r.media_sha256)).size,
+        2,
+        "deux empreintes distinctes",
+      );
+    } finally {
+      await cleanup(student.id);
+      await cleanupCoach(coachId);
     }
   },
 });

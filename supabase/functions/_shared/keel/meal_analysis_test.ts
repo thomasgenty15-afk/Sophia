@@ -23,6 +23,7 @@ import {
   type MealAnalysisCommitmentContext,
   MEAL_ANALYSIS_PROMPT_VERSION,
   MEAL_ANALYSIS_SYSTEM_PROMPT,
+  mealDisqualification,
   parseMealAnalysis,
   renderMealPhotoAck,
   resolveFoodGroupCredit,
@@ -78,6 +79,10 @@ function modelOutput(over: Record<string, unknown> = {}): Record<string, unknown
     ],
     overall_confidence: 0.87,
     image_quality: "clear",
+    // Un modèle qui suit le prompt répond à la PREMIÈRE question. L'absence de
+    // ce champ est elle-même testée (« subject_kind: absent … »), donc le
+    // fixture par défaut représente le cas nominal.
+    subject_kind: "eaten_meal",
     ...over,
   };
 }
@@ -1114,12 +1119,18 @@ Deno.test("ack: an unusable image claims nothing at all", () => {
       commitment_matches: [],
       overall_confidence: 0.1,
       image_quality: "unusable",
+      subject_kind: "eaten_meal",
     },
     [ID_A],
   );
   const message = ack({ analysis, binding: { kind: "none" } });
-  assert(message.includes("It is saved either way."), message);
+  assert(message.includes("will not count toward your plan"), message);
   assert(!message.includes("Counted toward"), message);
+  // L'ancienne phrase promettait « It is saved either way » — et la ligne
+  // qu'elle décrivait comptait ensuite comme un repas. La photo est bien
+  // conservée en base, mais l'élève doit être dit ce qui lui importe: elle ne
+  // compte pas. Ne jamais réintroduire la promesse inverse.
+  assert(!message.toLowerCase().includes("saved either way"), message);
 });
 
 Deno.test("ack: no percentage, no calorie, no evaluator status word, ever", () => {
@@ -1521,4 +1532,193 @@ Deno.test("prompt v3: the two new fields are specified, the calorie ban is not",
   assert(p.includes("NONE of this authorizes a number"));
   // And the question rule is stated as a stake, not as a style preference.
   assert(p.includes("One question maximum"));
+});
+
+// ---------------------------------------------------------------------------
+// FILTER 3 — le filtre de SUJET
+//
+// Le défaut que ces tests ferment a été MESURÉ (QA AGENT-3, P1-4): la même
+// capture d'écran d'app de livraison, analysée deux fois de suite, a rendu
+// `partial` avec six groupes alimentaires au premier run et `unusable` au
+// second. Le premier n'a rien crédité par accident. Ce qui suit rend le
+// comportement déterministe, quel que soit l'humeur du modèle ce jour-là.
+// ---------------------------------------------------------------------------
+
+Deno.test("subject: `food_not_eaten` vide l'analyse — un menu n'est pas un repas", () => {
+  // Le cas dangereux, et le seul que le prompt seul ne suffisait pas à tenir:
+  // les aliments détectés sont RÉELS, donc tout l'aval veut les créditer.
+  const analysis = parseMealAnalysis(
+    modelOutput({ subject_kind: "food_not_eaten" }),
+    [ID_A],
+  );
+  assertEquals(analysis.subject_kind, "food_not_eaten");
+  assertEquals(analysis.detected_foods.length, 0);
+  assertEquals(analysis.food_groups_present.length, 0);
+  assertEquals(analysis.food_groups_absent.length, 0);
+  assertEquals(analysis.commitment_matches.length, 0);
+  assertEquals(analysis.assumptions.length, 0);
+  assertEquals(analysis.clarifying_question, null);
+  assertEquals(analysis.portion_band, "unclear");
+  // Vidé, jamais en silence: l'audit doit porter la trace du désaccord avec le
+  // prompt, sinon on ne saura jamais que le prompt doit être corrigé.
+  assert(
+    analysis.issues.some((i) => i.includes("food_not_eaten")),
+    analysis.issues.join(" | "),
+  );
+  assertEquals(mealDisqualification(analysis), "food_not_eaten");
+});
+
+Deno.test("subject: `not_food` vide l'analyse et disqualifie", () => {
+  const analysis = parseMealAnalysis(
+    modelOutput({ subject_kind: "not_food" }),
+    [ID_A],
+  );
+  assertEquals(analysis.detected_foods.length, 0);
+  assertEquals(analysis.commitment_matches.length, 0);
+  assertEquals(mealDisqualification(analysis), "not_food");
+});
+
+Deno.test("subject: le crédit par contenu ne peut plus partir d'un menu", () => {
+  // La preuve de bout en bout: `resolveFoodGroupCredit` lit l'analyse, et
+  // l'analyse vidée ne peut plus rien lui donner à créditer. C'est ce chemin
+  // exact qui aurait crédité une commande jamais mangée.
+  const commitments: MealAnalysisCommitmentContext[] = [{
+    id: ID_A,
+    title: "Whole grain at breakfast",
+    student_instruction: null,
+    polarity: "do",
+    activity_class: "nutrition",
+    slot_key: "breakfast",
+    measure: "presence",
+    unit: null,
+    target_op: "at_least",
+    target_min: 1,
+    target_max: null,
+    food_group_ref: "whole_grain",
+    substance_ref: null,
+    evaluation_grain: "day",
+    autonomy: "flexible",
+    priority: "core",
+    content: null,
+  }];
+
+  const eaten = parseMealAnalysis(modelOutput({}), [ID_A]);
+  const menu = parseMealAnalysis(
+    modelOutput({ subject_kind: "food_not_eaten" }),
+    [ID_A],
+  );
+
+  // Même entrée modèle, même plan: seul le sujet change.
+  assertEquals(
+    resolveFoodGroupCredit({ analysis: eaten, commitmentsToday: commitments })
+      .foodGroupRef,
+    "whole_grain",
+  );
+  assertEquals(
+    resolveFoodGroupCredit({ analysis: menu, commitmentsToday: commitments })
+      .foodGroupRef,
+    null,
+  );
+});
+
+Deno.test("subject: absent ou inconnu retombe sur `eaten_meal`, et le dit", () => {
+  // Le sens du repli est un arbitrage, pas un hasard: une analyse dégradée ne
+  // doit pas coûter à l'élève le crédit d'un repas qu'il a vraiment mangé.
+  // C'est le même arbitrage que « a saved photo with no verdict beats a lost
+  // photo » côté upload.
+  const raw = modelOutput({});
+  delete (raw as Record<string, unknown>).subject_kind;
+  const missing = parseMealAnalysis(raw, [ID_A]);
+  assertEquals(missing.subject_kind, "eaten_meal");
+  assertEquals(missing.detected_foods.length, 1);
+  assertEquals(mealDisqualification(missing), null);
+  assert(
+    missing.issues.some((i) => i.startsWith("subject_kind:")),
+    missing.issues.join(" | "),
+  );
+
+  const unknown = parseMealAnalysis(
+    modelOutput({ subject_kind: "restaurant_menu" }),
+    [ID_A],
+  );
+  assertEquals(unknown.subject_kind, "eaten_meal");
+  assert(unknown.issues.some((i) => i.includes("restaurant_menu")));
+});
+
+Deno.test("subject: `image_quality` et `subject_kind` sont deux axes indépendants", () => {
+  // LE défaut d'origine: une photo NETTE d'un menu recevait « I could not read
+  // that photo », parce que le seul canal disponible pour dire « ceci n'est pas
+  // un repas » était la qualité d'image.
+  const sharpMenu = parseMealAnalysis(
+    modelOutput({ image_quality: "clear", subject_kind: "food_not_eaten" }),
+    [ID_A],
+  );
+  assertEquals(sharpMenu.image_quality, "clear");
+  assertEquals(mealDisqualification(sharpMenu), "food_not_eaten");
+
+  const message = ack({ analysis: sharpMenu, binding: { kind: "none" } });
+  assert(!message.toLowerCase().includes("could not read"), message);
+  assert(message.toLowerCase().includes("not eaten yet"), message);
+});
+
+Deno.test("subject: une lecture partielle n'est PAS jetée", () => {
+  // `unusable` AVEC des aliments identifiés reste une lecture partielle d'un
+  // vrai repas. Les deux conditions sont requises pour disqualifier, sans quoi
+  // on perdrait une assiette réelle sur une photo médiocre.
+  const partial = parseMealAnalysis(
+    modelOutput({ image_quality: "unusable" }),
+    [ID_A],
+  );
+  assertEquals(partial.detected_foods.length, 1);
+  assertEquals(mealDisqualification(partial), null);
+
+  const empty = parseMealAnalysis(
+    modelOutput({
+      image_quality: "unusable",
+      detected_foods: [],
+      food_groups_present: [],
+      commitment_matches: [],
+    }),
+    [ID_A],
+  );
+  assertEquals(mealDisqualification(empty), "unreadable");
+});
+
+Deno.test("subject: les trois refus donnent trois phrases distinctes", () => {
+  const say = (over: Record<string, unknown>) =>
+    ack({
+      analysis: parseMealAnalysis(modelOutput(over), [ID_A]),
+      binding: { kind: "none" },
+    });
+
+  const notFood = say({ subject_kind: "not_food" });
+  const notEaten = say({ subject_kind: "food_not_eaten" });
+  const unreadable = say({
+    image_quality: "unusable",
+    detected_foods: [],
+    food_groups_present: [],
+    commitment_matches: [],
+  });
+
+  assertEquals(new Set([notFood, notEaten, unreadable]).size, 3);
+  // Aucune des trois ne prétend avoir compté quoi que ce soit, et aucune ne
+  // porte de chiffre (la garde d'affichage du contrat vaut aussi ici).
+  for (const m of [notFood, notEaten, unreadable]) {
+    assert(!m.includes("Counted toward"), m);
+    assert(!/\d/.test(m), m);
+  }
+});
+
+Deno.test("prompt v3: le filtre de sujet est spécifié avant tout le reste", () => {
+  const p = MEAL_ANALYSIS_SYSTEM_PROMPT;
+  assert(p.includes("subject_kind"));
+  assert(p.includes("eaten_meal"));
+  assert(p.includes("food_not_eaten"));
+  assert(p.includes("not_food"));
+  // Le cas dangereux est nommé explicitement, avec l'instinct qu'il faut
+  // combattre — c'est ce qui distingue une consigne d'une liste de tokens.
+  assert(p.includes("has not eaten the menu"));
+  // Et la question du sujet est posée AVANT la règle des calories, parce que
+  // c'est une garde: ce qui n'est pas un repas n'a pas à être analysé du tout.
+  assert(p.indexOf("subject_kind") < p.indexOf("YOU ARE NOT A CALORIE COUNTER"));
 });

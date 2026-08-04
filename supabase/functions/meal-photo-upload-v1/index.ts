@@ -20,6 +20,8 @@ import { resolveResponseLocale } from "../_shared/keel/locale.ts";
 import { parseSlotKey } from "../_shared/keel/tokens.ts";
 import { CHAT_SCOPE, deliverChatMessage } from "../_shared/chat/delivery.ts";
 import { claimInbound } from "../_shared/chat/inbound_pipeline.ts";
+import { openMealPhotoFlow } from "../_shared/keel/meal_photo_flow.ts";
+import { openMealPhotoFlowState } from "../_shared/keel/meal_photo_flow_state.ts";
 
 /**
  * KEEL W5 — `meal-photo-upload-v1`: the WEB path for a meal photo.
@@ -246,6 +248,45 @@ function objectPath(args: {
   return `${args.userId}/${args.localDate}/${safeUploadId}.${ext}`;
 }
 
+/**
+ * SHA-256 des octets, en hexadécimal minuscule.
+ *
+ * C'est l'étage DÉTERMINISTE de la déduplication. Deux envois du même fichier
+ * par le même élève le même jour local sont le même repas — une certitude, pas
+ * une probabilité: aucun modèle, aucun seuil, aucun faux positif possible.
+ *
+ * Ce que ça ne couvre pas, volontairement: deux photos DIFFÉRENTES du même
+ * repas (un autre angle). Ce cas-là est incertain, et l'incertitude ne se règle
+ * pas dans une contrainte d'unicité — elle se règle en demandant à l'élève.
+ *
+ * Le format est contraint côté base (`^[0-9a-f]{64}$`), donc une implémentation
+ * qui rendrait autre chose serait refusée à l'écriture plutôt que stockée.
+ */
+/**
+ * Les colonnes du fait, lues au même endroit par les trois chemins: l'INSERT,
+ * la relecture d'idempotence, et la détection de doublon. Remontée au niveau
+ * module parce que la déduplication interroge la table AVANT l'upload — et
+ * qu'une seconde liste de colonnes est une liste qui diverge.
+ */
+const EVENT_COLUMNS =
+  "id, user_id, occurred_at, local_date, slot_key, source, media_path, " +
+  "food_group_ref, portion_band, recognized, recognition_confidence, " +
+  "disqualified_reason, media_sha256, source_message_id";
+
+async function sha256Hex(bytes: Uint8Array): Promise<string> {
+  // La copie n'est pas décorative: `crypto.subtle` n'accepte pas une vue dont
+  // le buffer pourrait être partagé (`SharedArrayBuffer`), et le type de
+  // `bytes` ne l'exclut pas. Sur une photo de 8 Mo au maximum, la copie coûte
+  // moins qu'un cast qui mentirait au compilateur.
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    new Uint8Array(bytes).buffer,
+  );
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return handleCorsOptions(req);
   const corsError = enforceCors(req);
@@ -409,7 +450,11 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ---- 6. upload, read the object back ----------------------------------
+    // L'IDENTITÉ DE CET ENVOI, calculée avant la déduplication parce qu'elle
+    // sert à la déduplication: `source_message_id` est ce qui distingue « le
+    // MÊME envoi rejoué » (retry réseau) de « un AUTRE envoi portant la même
+    // image » (l'élève renvoie sa photo). Les deux sont des doublons, ils
+    // n'ont pas le même nom, et l'appelant lit les deux.
     const uploadId = body.client_upload_id ?? crypto.randomUUID();
     const path = objectPath({
       userId,
@@ -417,6 +462,111 @@ Deno.serve(async (req) => {
       uploadId,
       mimeType: declaredMime,
     });
+    const sourceMessageId = `web_photo:${path}`;
+
+    // ---- 5bis. LA DÉDUPLICATION EXACTE ------------------------------------
+    // AVANT l'upload, et pas après l'INSERT: un doublon détecté ici ne coûte ni
+    // un objet de plus dans le bucket, ni un appel au modèle de vision.
+    //
+    // L'index unique `protocol_events_media_dedup_idx` reste l'arbitre — ce
+    // SELECT est l'optimisation, pas la garantie. Deux taps simultanés sur
+    // envoyer passeraient tous les deux ici; c'est Postgres qui tranche, au
+    // rattrapage de violation d'unicité plus bas.
+    const mediaSha256 = await sha256Hex(bytes);
+    const priorSame = await admin
+      .from("protocol_events")
+      .select(EVENT_COLUMNS)
+      .eq("user_id", userId)
+      .eq("local_date", localDate)
+      .eq("media_sha256", mediaSha256)
+      .maybeSingle();
+    if (priorSame.error) {
+      throw new Error(
+        `protocol_events dedup lookup failed: ${priorSame.error.message}`,
+      );
+    }
+    if (priorSame.data) {
+      const priorRow = priorSame.data as Record<string, unknown>;
+      const priorPath = String(priorRow.media_path ?? "");
+      // Le MÊME envoi rejoué porte le même `source_message_id` — c'est un
+      // retry réseau, et l'appelant doit continuer de lire `idempotent`. Un
+      // envoi différent portant la même image est un `duplicate`. Confondre
+      // les deux ferait mentir la réponse sur ce qui vient de se passer.
+      const sameUpload = String(priorRow.source_message_id ?? "") === sourceMessageId;
+      // On répond dans la bulle, on ne reste pas muet: l'élève qui renvoie sa
+      // photo le fait presque toujours parce qu'il n'a pas vu la réponse
+      // arriver. Un silence le ferait recommencer une troisième fois.
+      let dupDelivered: string | null = null;
+      if (body.chat_client_message_id) {
+        try {
+          const claim = await claimInbound(admin, {
+            message: {
+              client_message_id: body.chat_client_message_id,
+              user_id: userId,
+              kind: "media",
+              text: String(body.student_note ?? "").trim(),
+              media_ref: {
+                path: priorPath,
+                content_type: sniffed,
+                size_bytes: bytes.length,
+              },
+              button_payload: null,
+              form_response: null,
+              form_token: null,
+              reply_to: null,
+              received_at: new Date().toISOString(),
+            },
+            requestId,
+          });
+          if (claim.status === "fresh") {
+            const res = await deliverChatMessage(admin, {
+              userId,
+              content:
+                "I already have that photo — it is the same one, so I have not logged it twice.",
+              isReply: true,
+              purpose: "keel_meal_photo_ack",
+              requestId,
+              metadata: {
+                media_path: priorPath,
+                event_id: String(priorRow.id ?? ""),
+                duplicate_of: String(priorRow.id ?? ""),
+              },
+            });
+            dupDelivered = res.chatMessageId;
+          }
+        } catch (chatError) {
+          console.warn(JSON.stringify({
+            tag: "meal_photo_duplicate_chat_delivery_failed",
+            user_id: userId,
+            error: chatError instanceof Error
+              ? chatError.message
+              : String(chatError),
+          }));
+        }
+      }
+      return jsonResponse(req, {
+        ok: true,
+        // `duplicate` est distinct d'`idempotent`: `idempotent` dit « ce MÊME
+        // envoi était déjà traité » (rejeu réseau), `duplicate` dit « un AUTRE
+        // envoi portait déjà cette image ». L'appelant ne doit présenter ni
+        // l'un ni l'autre comme un fait neuf.
+        duplicate: !sameUpload,
+        idempotent: sameUpload,
+        chat_message_id: dupDelivered,
+        event: priorRow,
+        food_group_ref: priorRow.food_group_ref ?? null,
+        portion_band: priorRow.portion_band ?? null,
+        media_path: priorPath,
+        local_date: localDate,
+        slot_key: slotKey,
+        analysis: null,
+        request_id: requestId,
+      });
+    }
+
+    // ---- 6. upload, read the object back ----------------------------------
+    // `uploadId`, `path` et `sourceMessageId` sont calculés plus haut: la
+    // déduplication en a besoin avant d'écrire quoi que ce soit.
     const uploaded = await admin.storage
       .from(MEAL_PHOTO_BUCKET)
       .upload(path, bytes, { contentType: declaredMime, upsert: true });
@@ -443,7 +593,6 @@ Deno.serve(async (req) => {
     }
 
     // ---- 7. the fact, inserted AND read back ------------------------------
-    const sourceMessageId = `web_photo:${path}`;
     const insertPayload: Record<string, unknown> = {
       user_id: userId,
       occurred_at: new Date().toISOString(),
@@ -468,6 +617,10 @@ Deno.serve(async (req) => {
       // from the single resolver, never hardcoded at a call site.
       content_locale: resolveResponseLocale({}),
       evidence_weight: PHOTO_EVIDENCE_WEIGHT,
+      // L'empreinte des octets. C'est elle que `protocol_events_media_dedup_idx`
+      // contraint: à partir d'ici, deux envois du même fichier le même jour ne
+      // peuvent plus produire deux faits, même s'ils arrivent en même temps.
+      media_sha256: mediaSha256,
       source_message_id: sourceMessageId,
     };
     if (commitmentId) {
@@ -485,10 +638,6 @@ Deno.serve(async (req) => {
       };
     }
 
-    const EVENT_COLUMNS =
-      "id, user_id, occurred_at, local_date, slot_key, source, media_path, " +
-      "food_group_ref, portion_band, recognized, recognition_confidence, " +
-      "source_message_id";
 
     let eventRow: Record<string, unknown> | null = null;
     let idempotent = false;
@@ -518,6 +667,28 @@ Deno.serve(async (req) => {
       }
       eventRow = existing.data as Record<string, unknown> | null;
       idempotent = true;
+      if (!eventRow) {
+        // DEUX index uniques mordent sur cette table maintenant, et ils ne
+        // disent pas la même chose. Le premier est le rejeu du MÊME envoi
+        // (`source_message_id`); le second est la course perdue contre un AUTRE
+        // envoi portant la même image (`media_sha256`) — deux taps simultanés
+        // sur le bouton, que le SELECT de l'étape 5bis a tous les deux laissés
+        // passer. Sans ce second rattrapage, cette course rendait une 500 à un
+        // élève dont la photo était pourtant bien enregistrée.
+        const sameMedia = await admin
+          .from("protocol_events")
+          .select(EVENT_COLUMNS)
+          .eq("user_id", userId)
+          .eq("local_date", localDate)
+          .eq("media_sha256", mediaSha256)
+          .maybeSingle();
+        if (sameMedia.error) {
+          throw new Error(
+            `protocol_events media read-back failed: ${sameMedia.error.message}`,
+          );
+        }
+        eventRow = sameMedia.data as Record<string, unknown> | null;
+      }
       if (!eventRow) {
         throw new Error(
           "protocol_events unique violation with no readable existing row",
@@ -662,6 +833,57 @@ Deno.serve(async (req) => {
           user_id: userId,
           error: chatError instanceof Error ? chatError.message : String(chatError),
         }));
+      }
+    }
+
+    // ── LE FLOW DE CORRECTION S'OUVRE ICI ────────────────────────────────────
+    // Sophia vient de dire ce qu'elle a vu. Le tour suivant — « non c'était du
+    // poulet » — doit AMENDER cette ligne, pas en écrire une seconde. Sans cet
+    // état, la correction repart dans le routeur global, `log_protocol_event`
+    // y voit une information alimentaire, et l'élève qui a mangé une fois en a
+    // deux au compteur de son coach.
+    //
+    // Conditions, toutes nécessaires:
+    //  - un accusé est réellement parti dans la bulle (`chatDelivered`): sans
+    //    message à quoi répondre, il n'y a pas de correction possible;
+    //  - le fait COMPTE (`disqualified_reason` null): il n'y a rien à corriger
+    //    sur une photo qui n'est pas un repas — et rien à en retirer non plus.
+    //
+    // Best-effort par contrat: un échec ici ne défait pas une photo déjà
+    // enregistrée et déjà analysée.
+    if (chatDelivered) {
+      const recognized =
+        (analysis as { recognized?: Record<string, unknown> } | null)?.recognized ??
+          null;
+      const disqualified =
+        (eventRow as { disqualified_reason?: unknown }).disqualified_reason ?? null;
+      if (recognized && disqualified === null) {
+        const foods = Array.isArray(recognized.detected_foods)
+          ? (recognized.detected_foods as Array<Record<string, unknown>>)
+            .map((f) => String(f?.label ?? "").trim())
+            .filter((l) => l !== "")
+          : [];
+        const question = typeof recognized.clarifying_question === "string"
+          ? recognized.clarifying_question
+          : null;
+        const now = new Date();
+        const opened = await openMealPhotoFlowState(admin, {
+          userId,
+          scope: CHAT_SCOPE,
+          flow: openMealPhotoFlow({ eventId, question, now }),
+          detectedFoods: foods,
+          now,
+        });
+        if (!opened) {
+          // On le DIT. Un flow qui ne s'ouvre pas ne casse rien de visible —
+          // il rend juste au tour suivant le comportement d'avant, celui qui
+          // double le repas. Le silence rendrait ça indétectable.
+          console.warn(JSON.stringify({
+            tag: "meal_photo_flow_open_failed",
+            user_id: userId,
+            event_id: eventId,
+          }));
+        }
       }
     }
 

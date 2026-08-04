@@ -224,6 +224,7 @@ import {
   isFrenchLocale,
   resolveResponseLocale,
 } from "../../_shared/keel/locale.ts";
+import { runMealPhotoCorrectionLane } from "./keel_meal_photo_lane.ts";
 import { createProtocolEventWrite } from "../tools/always_on/log_protocol_event/db.ts";
 import { runLogProtocolEventDirectEffect } from "../tools/always_on/log_protocol_event/router.ts";
 import { createSafetyConstraintWrite } from "../tools/always_on/declare_safety_constraint/db.ts";
@@ -4074,6 +4075,50 @@ export async function processMessage(
   // fusionné dans `operationRuntime` puis reporté sur le frame, donc le
   // contrat de confirmation du composeur voit l'issue réelle — c'est ce qui
   // interdit le « je l'ai noté » sans ligne (classe phantom-commit).
+  // LA CORRECTION D'UNE PHOTO AMENDE, ELLE N'AJOUTE PAS.
+  //
+  // Avant la lane suivante, parce que c'est elle qui doit être désarmée: quand
+  // l'élève corrige la lecture de sa photo (« non c'était du poulet »),
+  // `log_protocol_event` y voit une information alimentaire et écrit une
+  // SECONDE ligne. Un repas mangé une fois, deux faits chez le coach.
+  //
+  // ICI et pas dans la lane: `tempMemory` et `routeDecision` sont des locaux
+  // vivants à cet endroit. Écrire l'état depuis la lane serait écrasé par la
+  // réécriture complète de `temp_memory` en fin de tour.
+  //
+  // `hasMedia: false` est EXACT et non un raccourci: une nouvelle photo ne
+  // traverse pas le cerveau, elle passe par `meal-photo-upload-v1`, qui
+  // rouvre le flow sur le nouvel `event_id` — donc le même effet que la sortie
+  // `new_photo` du reducer, obtenu par le seul chemin que la photo emprunte.
+  const mealPhotoLane = await runMealPhotoCorrectionLane({
+    supabase,
+    userId,
+    userMessage,
+    hasMedia: false,
+    tempMemory,
+    safetyBand: turnFrame?.safety?.risk_band,
+    now: new Date(),
+    requestId,
+  });
+  tempMemory = mealPhotoLane.tempMemory;
+  if (mealPhotoLane.amended) {
+    console.log(
+      `[keel] request_id=${requestId} meal_photo_amended` +
+        ` event=${mealPhotoLane.amended.eventId}` +
+        ` kind=${mealPhotoLane.amended.amendment}` +
+        ` cleared_credit=${mealPhotoLane.amended.clearedCredit}`,
+    );
+  }
+  if (mealPhotoLane.suppressLogProtocolEvent && routeDecision) {
+    // Le fait a été amendé: retirer l'effet est ce qui empêche le doublon de
+    // revenir par la porte que la lane vient de fermer.
+    routeDecision = {
+      ...routeDecision,
+      direct_effects_to_run: routeDecision.direct_effects_to_run.filter(
+        (effect) => effect !== "log_protocol_event",
+      ),
+    };
+  }
   const keelDirectEffectRuntime = await runKeelDirectEffectLane({
     supabase,
     userId,

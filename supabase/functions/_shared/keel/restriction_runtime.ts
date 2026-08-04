@@ -261,6 +261,14 @@ export async function loadStudentTextSamples(
   params: { userId: string; asOfLocalDate: string; turnMessage?: string | null; turnLocale?: string | null },
 ): Promise<StudentTextSample[]> {
   const since = shiftIsoDate(params.asOfLocalDate, -TEXT_HISTORY_DAYS);
+  // PAS de filtre sur `disqualified_reason`, et c'est délibéré.
+  //
+  // Les lecteurs qui COMPTENT des repas l'excluent (synthèse coach, évaluateur).
+  // Celui-ci ne compte rien: il lit les MOTS de l'élève pour la garde
+  // restrictive. Un élève qui photographie un frigo vide en écrivant « je n'ai
+  // rien mangé aujourd'hui non plus » produit une ligne disqualifiée dont la
+  // note est précisément le signal à ne pas manquer. La safety lit tout ce que
+  // l'élève a écrit, quel que soit le sort du fait alimentaire.
   const { data, error } = await db
     .from("protocol_events")
     .select("student_note, content_locale, local_date")

@@ -33,6 +33,17 @@ function fakeDb(rows: Rows) {
         data = data.filter((r) => set.has(String(r[col] ?? "")));
         return node;
       },
+      // `is(col, null)` — le fake doit connaître le filtre de disqualification,
+      // sinon il rend VRAI un comptage que la vraie base refuserait. Un fake
+      // incomplet est un faux vert autant qu'un faux rouge.
+      is: (col: string, val: unknown) => {
+        if (val === null) {
+          data = data.filter((r) => r[col] === null || r[col] === undefined);
+        } else {
+          data = data.filter((r) => r[col] === val);
+        }
+        return node;
+      },
       gte: (col: string, val: string) => {
         data = data.filter((r) => String(r[col] ?? "") >= val);
         return node;
@@ -357,4 +368,54 @@ Deno.test("a coach with no students writes NO row at all", async () => {
   assertEquals(out.write.written, false);
   assertEquals(out.write.reason_code, "no_students");
   assertEquals(writes.length, 0);
+});
+
+Deno.test("une photo disqualifiée ne compte PAS dans ce que le coach lit", async () => {
+  // Le défaut d'origine, vu depuis l'écran du lundi: un selfie et une capture
+  // d'écran de menu gonflaient les jours actifs de l'élève et la distribution
+  // de ses portions. Le coach voyait un élève régulier là où il y avait une
+  // photo de chat.
+  const { db } = fakeDb({
+    commitment_evaluations: [],
+    plan_commitments: [],
+    protocol_events: [
+      // Un vrai repas.
+      {
+        user_id: "s1",
+        local_date: "2026-07-27",
+        portion_band: "large",
+        disqualified_reason: null,
+      },
+      // Un menu de restaurant: des aliments réels, aucun repas mangé.
+      {
+        user_id: "s1",
+        local_date: "2026-07-27",
+        portion_band: "moderate",
+        disqualified_reason: "food_not_eaten",
+      },
+      // Un selfie.
+      {
+        user_id: "s1",
+        local_date: "2026-07-28",
+        portion_band: "unclear",
+        disqualified_reason: "not_food",
+      },
+      // Une photo trop sombre: le geste a eu lieu, la preuve non.
+      {
+        user_id: "s1",
+        local_date: "2026-07-29",
+        portion_band: null,
+        disqualified_reason: "unreadable",
+      },
+    ],
+    chat_messages: [],
+  });
+  const week = await loadStudentWeek(db, { studentUserId: "s1", window: WINDOW });
+
+  assertEquals(week.adherence.eventCountsByDate["2026-07-27"], 1);
+  // Le jour du selfie n'est pas un jour actif.
+  assertEquals(week.adherence.eventCountsByDate["2026-07-28"], 0);
+  assertEquals(week.adherence.eventCountsByDate["2026-07-29"], 0);
+  // Et la distribution des portions ne porte que celle du vrai repas.
+  assertEquals([...(week.portionBands ?? [])], ["large"]);
 });

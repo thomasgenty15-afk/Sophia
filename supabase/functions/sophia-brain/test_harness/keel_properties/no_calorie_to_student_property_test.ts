@@ -254,6 +254,11 @@ function analysisFor(args: {
     overall_confidence: 0.8,
     confidence_band: args.confidenceBand,
     image_quality: args.imageQuality,
+    // Un repas réellement servi: c'est le cas où le rendu est le plus bavard,
+    // donc celui où un chiffre aurait le plus d'occasions de fuir. Les trois
+    // refus (`not_food`, `food_not_eaten`, `unreadable`) sont couverts par
+    // `meal_analysis_test.ts`, qui vérifie qu'aucun ne porte de chiffre.
+    subject_kind: "eaten_meal",
     rejected_commitment_ids: [],
     dropped_measurement_fields: [],
     issues: [],

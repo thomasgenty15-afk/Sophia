@@ -125,6 +125,41 @@ export const IMAGE_QUALITIES = ["clear", "partial", "unusable"] as const;
 export type ImageQuality = (typeof IMAGE_QUALITIES)[number];
 
 /**
+ * WHAT THE PHOTOGRAPH IS OF. The filter this contract did not have.
+ *
+ * `image_quality` conflated two different failures — "too dark to read" and
+ * "there is no meal here" — and the repo measured the cost: the SAME screenshot
+ * of a delivery app, analysed twice in a row, returned `partial` with six food
+ * groups detected on the first run and `unusable` on the second (QA AGENT-3,
+ * defect P1-4). The first run credited nothing BY ACCIDENT: had one of those
+ * six groups been on the day's plan, an order possibly never eaten would have
+ * been credited to it.
+ *
+ *   eaten_meal     — a served portion: a plate, a bowl, a glass, a lunchbox,
+ *                    food in front of the person who is about to eat it. This
+ *                    is the ONLY value that produces a countable fact.
+ *   food_not_eaten — real food, but not a served portion: a menu, an
+ *                    advertisement, a supermarket shelf, an open fridge, a
+ *                    packet, a screenshot of an order. THE DANGEROUS CASE, and
+ *                    the reason this token is not a boolean: the model detects
+ *                    genuine foods, so every downstream credit fires while
+ *                    nobody has eaten anything.
+ *   not_food       — no food in frame at all: a selfie, a landscape, a
+ *                    document, a pet.
+ *
+ * Why a separate axis rather than a fourth `image_quality` value: a menu can be
+ * perfectly `clear` AND not a meal. Collapsing them is exactly the conflation
+ * that produced the defect, and it would also make "I could not read that
+ * photo" the answer to a legible photograph of a restaurant menu.
+ */
+export const SUBJECT_KINDS = [
+  "eaten_meal",
+  "food_not_eaten",
+  "not_food",
+] as const;
+export type SubjectKind = (typeof SUBJECT_KINDS)[number];
+
+/**
  * Confidence is stored AND banded here, on purpose. The student surface must
  * show no percentage (CONTRACT display gate), so the renderer must never have
  * to divide anything: it reads a token. The number stays for the coach and for
@@ -275,6 +310,18 @@ export interface MealAnalysis {
   overall_confidence: number;
   confidence_band: ConfidenceBand;
   image_quality: ImageQuality;
+  /**
+   * What the photograph is OF. See {@link SUBJECT_KINDS}.
+   *
+   * Defaults to `eaten_meal` when the model omits it or emits a token this
+   * parser does not know, and the fallback is recorded in `issues`. That
+   * direction is deliberate and it is the same arbitrage the upload path
+   * already makes ("a saved photo with no verdict beats a lost photo"): a
+   * degraded parse must not silently cost a student the credit for a meal he
+   * really ate. An EXPLICIT non-meal token is always honoured — the model
+   * saying "this is a menu" is evidence, its silence is not.
+   */
+  subject_kind: SubjectKind;
 
   // ---- AUDIT: what the filters removed, always visible ---------------------
   /**
@@ -481,6 +528,20 @@ export const MEAL_ANALYSIS_SYSTEM_PROMPT =
 
 Output: a single JSON object, nothing else. No prose outside the JSON, no markdown fences.
 
+== FIRST QUESTION, BEFORE ANY OTHER: IS THIS A MEAL SOMEONE IS ABOUT TO EAT? ==
+
+You are told you receive "a photo of a meal". Sometimes you do not. Answer this first, in subject_kind:
+
+- "eaten_meal" -- a served portion in front of the person: a plate, a bowl, a glass, a lunchbox, a snack in hand. This is the only value that lets the rest of your analysis count for anything.
+- "food_not_eaten" -- real food, but nobody is eating it: a restaurant menu, an advertisement, a supermarket shelf or aisle, an open fridge or cupboard, an unopened packet, a recipe page, a screenshot of a delivery order or of another app. THIS IS THE CASE THAT MATTERS MOST. The foods in the image are genuine, so every instinct you have will be to list them and match them against the plan. Do not. A student who photographs a menu has not eaten the menu.
+- "not_food" -- no food in the frame: a person, a place, a document, an animal, a screen showing something other than food.
+
+Rules that follow:
+
+1. When subject_kind is NOT "eaten_meal", return EMPTY detected_foods, EMPTY food_groups_present, EMPTY food_groups_absent, EMPTY commitment_matches, EMPTY assumptions, portion band "unclear", and clarifying_question null. Naming the foods you can see in a menu is what causes a meal to be credited to a student who never ate it.
+2. subject_kind is INDEPENDENT of image_quality. A restaurant menu can be perfectly sharp and well lit: that is image_quality "clear" AND subject_kind "food_not_eaten". Never use "unusable" to mean "this is not a meal" -- they are different answers to different questions, and the student gets a different reply for each.
+3. When you genuinely cannot tell whether a portion is served or merely displayed, choose "eaten_meal". A student is far more likely to photograph his own plate than a catalogue, and wrongly discarding a real meal costs him credit he earned.
+
 == THE HARD RULE: YOU ARE NOT A CALORIE COUNTER ==
 
 Identifying foods from a photo is reliable. Measuring them is not. Therefore:
@@ -546,7 +607,9 @@ If you catch yourself reasoning about how much the invisible would add, stop: th
 
 8. overall_confidence -- 0..1, your confidence in the whole reading.
 
-9. image_quality -- clear | partial | unusable. Use unusable when the food cannot be identified at all (too dark, too blurry, no food in frame); then detected_foods and commitment_matches must be empty.
+9. image_quality -- clear | partial | unusable. This is about the IMAGE, never about its subject. Use unusable when a meal may well be there but the photograph does not let you read it: too dark, too blurry, too close, badly overexposed; then detected_foods and commitment_matches must be empty. Do NOT use unusable for a sharp photograph of something that is not a meal -- that is subject_kind, and answering it here sends the student "I could not read that photo" about a picture that is perfectly legible.
+
+10. subject_kind -- eaten_meal | food_not_eaten | not_food, per the first section of this prompt. Answer it before anything else, and obey rule 1 there: anything other than "eaten_meal" empties the analysis.
 
 == CLOSED LIST: food_group_ref ==
 
@@ -586,7 +649,8 @@ ${FOOD_GROUP_REFS.join(" | ")}
   ],
   "clarifying_question": string|null,
   "overall_confidence": number,
-  "image_quality": "clear"|"partial"|"unusable"
+  "image_quality": "clear"|"partial"|"unusable",
+  "subject_kind": ${SUBJECT_KINDS.map((s) => `"${s}"`).join("|")}
 }
 
 == EXAMPLE ==
@@ -963,18 +1027,71 @@ export function parseMealAnalysis(
     }
   }
 
+  // ---- FILTER 3: the subject filter --------------------------------------
+  // Enforced HERE and not left to the prompt, for the same reason as the
+  // allowlist and the measurement filter: a rule that only lives in a prompt is
+  // a rule the model may decline to follow on any given run, and this one was
+  // measured to flip between two consecutive runs on the same image.
+  //
+  // The emptying is the whole point. A menu whose foods are listed is a menu
+  // whose foods will be credited three layers down, by code that has no way of
+  // knowing the plate was never served.
+  const subjectKind = parseEnum(obj.subject_kind, SUBJECT_KINDS);
+  if (subjectKind === null) {
+    issues.push(
+      `subject_kind: missing or unknown value ${
+        JSON.stringify(obj.subject_kind)
+      }, treated as eaten_meal`,
+    );
+  }
+  const resolvedSubjectKind: SubjectKind = subjectKind ?? "eaten_meal";
+
+  const foodGroupsPresent = parseFoodGroupList(
+    obj.food_groups_present,
+    "food_groups_present",
+    issues,
+  );
+  const foodGroupsAbsent = parseFoodGroupList(
+    obj.food_groups_absent,
+    "food_groups_absent",
+    issues,
+  );
+
+  if (resolvedSubjectKind !== "eaten_meal") {
+    const carried = detectedFoods.length + foodGroupsPresent.length +
+      foodGroupsAbsent.length + commitmentMatches.length + assumptions.length;
+    if (carried > 0 || clarifyingQuestion !== null) {
+      // Not a silent correction: the prompt asked for empties and did not get
+      // them, which is a defect against the prompt worth seeing in the audit.
+      issues.push(
+        `subject_kind=${resolvedSubjectKind}: emptied ${carried} carried ` +
+          `finding(s) — a photograph nobody ate cannot evidence a commitment`,
+      );
+    }
+    return {
+      detected_foods: [],
+      food_groups_present: [],
+      food_groups_absent: [],
+      portion_band: "unclear",
+      portion_rationale: "",
+      commitment_matches: [],
+      assumptions: [],
+      clarifying_question: null,
+      overall_confidence: overallConfidence,
+      confidence_band: confidenceBand(overallConfidence),
+      image_quality: imageQuality ?? "partial",
+      subject_kind: resolvedSubjectKind,
+      rejected_commitment_ids: rejectedCommitmentIds,
+      dropped_measurement_fields: droppedMeasurementFields,
+      issues,
+      prompt_version: MEAL_ANALYSIS_PROMPT_VERSION,
+    };
+  }
+
   return {
     detected_foods: detectedFoods,
-    food_groups_present: parseFoodGroupList(
-      obj.food_groups_present,
-      "food_groups_present",
-      issues,
-    ),
-    food_groups_absent: parseFoodGroupList(
-      obj.food_groups_absent,
-      "food_groups_absent",
-      issues,
-    ),
+    food_groups_present: foodGroupsPresent,
+    food_groups_absent: foodGroupsAbsent,
     portion_band: band ?? "unclear",
     portion_rationale: String(portionRaw.rationale ?? "").trim(),
     commitment_matches: commitmentMatches,
@@ -983,11 +1100,39 @@ export function parseMealAnalysis(
     overall_confidence: overallConfidence,
     confidence_band: confidenceBand(overallConfidence),
     image_quality: imageQuality ?? "partial",
+    subject_kind: resolvedSubjectKind,
     rejected_commitment_ids: rejectedCommitmentIds,
     dropped_measurement_fields: droppedMeasurementFields,
     issues,
     prompt_version: MEAL_ANALYSIS_PROMPT_VERSION,
   };
+}
+
+/**
+ * The single place that decides whether a photo event COUNTS.
+ *
+ * Returns the value for `protocol_events.disqualified_reason`: `null` when the
+ * fact is countable, a token when it is not. Every reader that counts meals
+ * filters on that column being null, so this function is the only opinion in
+ * the system about what a meal is.
+ *
+ * `unreadable` is deliberately separate from `not_food`: the student made the
+ * gesture, he deserves a different sentence, and "this student sends unreadable
+ * photographs" is a signal his coach can act on — where "this student sends
+ * pictures of his cat" is a different conversation entirely.
+ */
+export function mealDisqualification(
+  analysis: Pick<MealAnalysis, "subject_kind" | "image_quality" | "detected_foods">,
+): "not_food" | "food_not_eaten" | "unreadable" | null {
+  if (analysis.subject_kind === "not_food") return "not_food";
+  if (analysis.subject_kind === "food_not_eaten") return "food_not_eaten";
+  // A meal may well be in frame; the photograph just does not evidence it.
+  // Both conditions are required: `unusable` with foods still identified is a
+  // partial reading, and throwing it away would lose a real plate.
+  if (analysis.image_quality === "unusable" && analysis.detected_foods.length === 0) {
+    return "unreadable";
+  }
+  return null;
 }
 
 // ---------------------------------------------------------------------------
@@ -1465,6 +1610,12 @@ export function buildRecognizedPayload(args: {
     clarifying_question: args.analysis.clarifying_question,
     confidence_band: args.analysis.confidence_band,
     image_quality: args.analysis.image_quality,
+    // Le token du sujet, à côté de la qualité d'image parce que les deux se
+    // lisent ensemble: `clear` + `not_food` est une photo nette de quelque
+    // chose qui n'est pas un repas, et c'est la combinaison exacte qui passait
+    // avant. La COLONNE `disqualified_reason` porte la conséquence; ce champ
+    // porte la RAISON, sans laquelle un audit ne peut pas dire pourquoi.
+    subject_kind: args.analysis.subject_kind,
     rejected_commitment_ids: args.analysis.rejected_commitment_ids,
     dropped_measurement_fields: args.analysis.dropped_measurement_fields,
     issues: args.analysis.issues,
@@ -1590,8 +1741,20 @@ export function renderMealPhotoAck(args: MealPhotoAckArgs): string {
     throw new Error("[keel/meal_analysis] renderMealPhotoAck requires the binding");
   }
   const a = args.analysis;
-  if (a.image_quality === "unusable") {
-    return "I could not read that photo well enough to say anything useful. It is saved either way.";
+  // The three ways a photo does not become a meal. They were ONE sentence
+  // before ("I could not read that photo"), which was sent about perfectly
+  // legible photographs of restaurant menus — and which claimed the photo was
+  // "saved either way" while the row it produced went on to be counted.
+  const disqualified = mealDisqualification(a);
+  if (disqualified !== null) {
+    switch (disqualified) {
+      case "not_food":
+        return "That does not look like food, so I have not counted it as a meal. Send me your plate when you sit down and I will take it from there.";
+      case "food_not_eaten":
+        return "That looks like food you have not eaten yet — a menu, a shelf or a packet. I have not counted it as a meal. Send me the plate once it is in front of you.";
+      case "unreadable":
+        return "I could not read that photo well enough to say anything useful, so it will not count toward your plan. Another one, a little brighter, and I will.";
+    }
   }
 
   const lines: string[] = [];

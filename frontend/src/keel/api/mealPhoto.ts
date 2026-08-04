@@ -23,6 +23,14 @@ export type PortionBand = "small" | "moderate" | "large" | "unclear";
 export type MatchVerdict = "consistent" | "partial" | "inconsistent" | "not_visible";
 export type ConfidenceBand = "low" | "moderate" | "high";
 export type ImageQuality = "clear" | "partial" | "unusable";
+/**
+ * Ce que la photographie MONTRE, et non ce qu'on peut en lire. Deux axes
+ * distincts: un menu de restaurant peut être parfaitement net (`image_quality`
+ * "clear") et n'être aucun repas (`subject_kind` "food_not_eaten").
+ */
+export type SubjectKind = "eaten_meal" | "food_not_eaten" | "not_food";
+/** Pourquoi un fait photo ne compte pas. `null` = il compte. */
+export type DisqualifiedReason = "not_food" | "food_not_eaten" | "unreadable";
 
 export const ACCEPTED_PHOTO_MIME_TYPES = [
   "image/jpeg",
@@ -58,23 +66,38 @@ export interface MealPhotoRecognized {
   commitment_matches?: MealPhotoCommitmentMatch[];
   confidence_band?: ConfidenceBand;
   image_quality?: ImageQuality;
+  subject_kind?: SubjectKind;
 }
 
 export interface MealPhotoUploadResult {
   ok: boolean;
   /** true when this exact upload was already on file: NOT a new fact. */
   idempotent: boolean;
-  event: { id: string; local_date: string; slot_key: string | null };
+  /**
+   * true quand un AUTRE envoi portait déjà exactement cette image, le même jour.
+   * Distinct d'`idempotent`, qui désigne le rejeu réseau du MÊME envoi. Dans ce
+   * cas `analysis` vaut `null` — rien n'a été réanalysé, et `event` renvoie le
+   * fait déjà en base.
+   */
+  duplicate?: boolean;
+  event: {
+    id: string;
+    local_date: string;
+    slot_key: string | null;
+    /** `null` = ce fait compte. Sinon, pourquoi il ne compte pas. */
+    disqualified_reason?: DisqualifiedReason | null;
+  };
   media_path: string;
   local_date: string;
   slot_key: string | null;
+  /** `null` sur un doublon exact: rien n'a été réanalysé. */
   analysis: {
     status?: string;
     binding?: string;
     student_message?: string;
     recognized?: MealPhotoRecognized;
     error?: unknown;
-  };
+  } | null;
 }
 
 /** Whether the analysis actually ran. `false` means: the photo is on file and
