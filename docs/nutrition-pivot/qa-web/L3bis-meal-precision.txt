@@ -1,0 +1,169 @@
+
+════════════════════════════════════════════════════════════════════════════
+▌ pauvre-1-EN   élève=4c096446-3f22-4f71-b33d-d93e9eda2990
+════════════════════════════════════════════════════════════════════════════
+ÉLÈVE  : I had chicken
+SOPHIA : Nice — chicken gives you a solid protein anchor. If you’re logging meals, just pair it with the rest of the plate later so the meal is complete.
+events après le 1er tour : 0
+questions de précision   : ["(0 rows)"]
+✅ question attendue=true, obtenue=true
+
+ÉLÈVE  : with rice and some broccoli
+SOPHIA : Rice and broccoli can work as the carb and veg, but you still need a protein anchor for the meal. If you want, I can help you turn that into a full plate.
+events après la réponse  : 0  (delta 0, plafond 2)
+✅ pas de repas en double
+amendments : <aucun>
+lignes     : fg|lbl
+(0 rows)
+
+════════════════════════════════════════════════════════════════════════════
+▌ pauvre-2-EN   élève=68bdb71d-2fe4-4a11-b2c9-fe326d11743d
+════════════════════════════════════════════════════════════════════════════
+ÉLÈVE  : I had a salad
+SOPHIA : A salad is a good base, but it’s not enough by itself for this method. The key is to add a clear protein anchor so the meal actually holds.
+events après le 1er tour : 0
+questions de précision   : ["(0 rows)"]
+✅ question attendue=true, obtenue=true
+
+ÉLÈVE  : chicken and avocado in it
+SOPHIA : Protein anchor first: chicken gives you that, and avocado fits as the fat. If you’re building a meal, just make sure there’s a clear protein portion and not only the avocado.
+events après la réponse  : 0  (delta 0, plafond 2)
+✅ pas de repas en double
+amendments : <aucun>
+lignes     : fg|lbl
+(0 rows)
+
+════════════════════════════════════════════════════════════════════════════
+▌ pauvre-3-EN   élève=26ac9c3b-636c-4916-a01b-50c81160516b
+════════════════════════════════════════════════════════════════════════════
+ÉLÈVE  : a sandwich
+SOPHIA : A sandwich fits the protein-anchor rule if you make the filling the center of it: chicken, tuna, eggs, turkey, tofu, or ham. Then keep the rest simple. 🥪
+events après le 1er tour : 0
+questions de précision   : ["(0 rows)"]
+✅ question attendue=true, obtenue=true
+
+════════════════════════════════════════════════════════════════════════════
+▌ pauvre-4-FR   élève=3a8c5dd8-1954-4ab3-b8c7-a45bd20d5a8f
+════════════════════════════════════════════════════════════════════════════
+ÉLÈVE  : j'ai mangé du poulet
+SOPHIA : Good — chicken gives you a solid protein anchor. If that was a meal, you’ve got the base right.
+events après le 1er tour : 1
+questions de précision   : ["(0 rows)"]
+✅ question attendue=true, obtenue=true
+
+ÉLÈVE  : avec du riz
+SOPHIA : With rice, the protein anchor still matters first. If you want, tell me what the rice is going with and I’ll help you make it fit.
+events après la réponse  : 1  (delta 0, plafond 1)
+✅ pas de repas en double
+amendments : <aucun>
+lignes     : fg|lbl
+poultry|
+(1 row)
+
+════════════════════════════════════════════════════════════════════════════
+▌ pauvre-5-FR   élève=7749dcfd-0cf7-44a6-b042-3e5af3cb8327
+════════════════════════════════════════════════════════════════════════════
+ÉLÈVE  : j'ai pris une salade
+SOPHIA : Nice — a salad is a clean move, but by itself it’s often too light on protein. If you can, make sure the next meal has a proper protein anchor.
+events après le 1er tour : 1
+questions de précision   : ["(0 rows)"]
+✅ question attendue=true, obtenue=true
+
+════════════════════════════════════════════════════════════════════════════
+▌ pauvre-6-FR   élève=7350d9ac-abfb-415e-a797-3e236373c9f5
+════════════════════════════════════════════════════════════════════════════
+ÉLÈVE  : un sandwich ce midi
+SOPHIA : Good move: a sandwich at lunch fits the protein-anchor idea well. Keep it simple—aim for a real protein filling, not just bread and extras.
+events après le 1er tour : 0
+questions de précision   : ["(0 rows)"]
+✅ question attendue=true, obtenue=true
+
+════════════════════════════════════════════════════════════════════════════
+▌ complete-1-FR   élève=90a35286-a6c4-4025-9063-5e9cf73b7d4f
+════════════════════════════════════════════════════════════════════════════
+ÉLÈVE  : Poulet grillé, riz complet et brocolis à midi
+SOPHIA : Good lunch base: grilled chicken gives you the protein anchor, and the brown rice + broccoli round it out well. If that was your meal, you’re on the right track. 🙂
+events après le 1er tour : 0
+questions de précision   : ["(0 rows)"]
+🔴 question attendue=false, obtenue=true
+
+════════════════════════════════════════════════════════════════════════════
+▌ complete-2-EN   élève=5f40621d-6cf6-4109-a422-8700803cab3f
+════════════════════════════════════════════════════════════════════════════
+ÉLÈVE  : Grilled salmon with quinoa and green beans for dinner
+SOPHIA : Good dinner choice: salmon gives you the protein anchor, and quinoa plus green beans rounds it out well. If you want, I can help you sanity-check the portion balance.
+events après le 1er tour : 0
+questions de précision   : ["(0 rows)"]
+🔴 question attendue=false, obtenue=true
+
+════════════════════════════════════════════════════════════════════════════
+▌ suffit-1-EN   élève=b95a5362-c7d4-436b-8b08-494b4c3c94c4
+════════════════════════════════════════════════════════════════════════════
+ÉLÈVE  : an apple
+SOPHIA : An apple is a clean choice, but it’s not enough on its own if you want it to hold you. If you’re aiming for this coach’s rule, pair it with a protein anchor.
+events après le 1er tour : 0
+questions de précision   : ["(0 rows)"]
+🔴 question attendue=false, obtenue=true
+
+════════════════════════════════════════════════════════════════════════════
+▌ suffit-2-EN   élève=e0af1d1c-a33e-4a32-90f0-75e7744d3104
+════════════════════════════════════════════════════════════════════════════
+ÉLÈVE  : a glass of water
+SOPHIA : A glass of water is a good move. If you’re trying to keep the meal aligned with the method, it doesn’t replace a protein anchor on its own.
+events après le 1er tour : 0
+questions de précision   : ["(0 rows)"]
+🔴 question attendue=false, obtenue=true
+
+════════════════════════════════════════════════════════════════════════════
+▌ suffit-3-FR   élève=cfd386ed-41b1-4a49-bd7d-f216f4ae9f95
+════════════════════════════════════════════════════════════════════════════
+ÉLÈVE  : une pomme
+SOPHIA : A apple is fine, but if you’re using it as a meal or snack, pair it with a protein anchor so it actually holds you.
+events après le 1er tour : 0
+questions de précision   : ["(0 rows)"]
+🔴 question attendue=false, obtenue=true
+
+════════════════════════════════════════════════════════════════════════════
+▌ correction-EN   élève=1ff815f8-94b5-43ba-91ef-035784e6c7e0
+════════════════════════════════════════════════════════════════════════════
+ÉLÈVE  : I had chicken with rice for lunch
+SOPHIA : Noted — you had chicken with rice for lunch. I’ve recorded two lunch protocol entries for 2026-08-04.
+events après le 1er tour : 2
+questions de précision   : ["(0 rows)"]
+🔴 question attendue=false, obtenue=true
+
+ÉLÈVE  : actually no, it was turkey
+SOPHIA : Got it — turkey, not whatever I’d assumed before. That changes the protein anchor cleanly 👍
+events après la réponse  : 2  (delta 0, plafond 0)
+✅ pas de repas en double
+amendments : <aucun>
+lignes     : fg|lbl
+poultry|
+whole_grain|
+(2 rows)
+
+════════════════════════════════════════════════════════════════════════════
+▌ futur-EN   élève=c1e4f42f-7c35-4da1-a983-89b11d4cce9c
+════════════════════════════════════════════════════════════════════════════
+ÉLÈVE  : I'm going to have chicken tonight
+SOPHIA : Nice. Chicken fits the protein anchor well, especially for dinner tonight.
+
+Keep it simple: make the chicken the center of the plate, then add whatever sides you were already going to have.
+events après le 1er tour : 0
+questions de précision   : ["(0 rows)"]
+🔴 question attendue=false, obtenue=true
+
+════════════════════════════════════════════════════════════════════════════
+▌ futur-FR   élève=1747a0e6-ebc1-4005-a2a2-b14019568a28
+════════════════════════════════════════════════════════════════════════════
+ÉLÈVE  : je vais manger du poulet ce soir
+SOPHIA : Nice — that gives you a solid protein anchor for the evening. If you want, keep the plate simple: chicken plus a clear side, and you’re covered.
+events après le 1er tour : 0
+questions de précision   : ["(0 rows)"]
+🔴 question attendue=false, obtenue=true
+
+████████████████████████████████████████████████████████████████████████████
+LIGNE ROUGE — aucune question ne doit demander une quantité
+████████████████████████████████████████████████████████████████████████████
+questions rendues à un élève, toutes confondues (14) :
+  ✅ « (0 rows) »

@@ -651,3 +651,153 @@ même message.
 correctif de QA. **À trancher par Thomas.**
 
 **Verdict** : AMBER. Défaut **P2** (mesuré, à arbitrer).
+
+---
+
+## L3 — au navigateur
+
+### 2026-08-04 20:23Z — Realtime, deux onglets, rechargement
+
+**Geste** : un élève neuf, session posée dans le `localStorage`, `/app/chat`
+ouvert. Le cron `keel-daily-pulse-v1` est tiré **depuis un terminal**.
+
+- **« How was today? » et ses trois boutons apparaissent seuls dans l'onglet
+  ouvert**, sans rechargement. `pg_publication_tables` confirme que
+  `supabase_realtime` porte bien `chat_messages` (le risque nommé par
+  STATUS-DEWHATSAPP est fermé).
+- Clic **réel du pilote** sur « Rough » → « Got it. » puis « What was hard? »
+  (question d'axe armée). Capture d'écran à l'appui.
+- Second tick du cron : `already_asked_today: 21` — le job ne redemande pas.
+- **Deux onglets** : un message envoyé depuis l'onglet 1 arrive dans l'onglet 2,
+  **une seule fois**, sans rechargement — ni doublon Realtime, ni écho perdu.
+- **Rechargement** : l'historique est intact.
+
+Rejeu du même `client_message_id` et concurrence de deux POST identiques :
+couverts par `chat_inbound_int_test.ts` (vrais appels HTTP, 10 tests verts).
+
+**Verdict** : VERT.
+
+**⚠️ Artefact d'horloge, à connaître pour tout rejeu** : quand le cron est tiré
+avec une horloge simulée **en avance** (la règle « simulée ≥ réelle »), la ligne
+qu'il écrit porte cette heure — c'est le correctif L0. Dans la bulle, elle se
+range donc **après** les réponses qui la suivent réellement, et une réponse en
+texte libre ne l'armerait pas (`resolveArmedQuestion` refuse une question
+future). En production les deux horloges coïncident et rien de tout ça
+n'existe ; les **boutons**, eux, sont déterministes et fonctionnent dans les
+deux cas.
+
+---
+
+## L3-bis — LE REPAS DÉCLARÉ EN TEXTE
+
+### 2026-08-04 20:45Z — Le premier passage était FAUX, et c'est mon harnais
+
+Le premier run rendait « question posée » sur les 14 cas, **dont les 8
+contre-factuels**. Cause : `psql -A` imprime la ligne littérale `(0 rows)` sur un
+résultat vide, et mon compteur la comptait comme une réponse.
+
+Un harnais qui ment **dans le sens du succès** est pire qu'un harnais cassé :
+il aurait rendu VERT tout ce lot. Corrigé dans `qa-web/harness.ts` (`sql()`
+retire le pied de page, plus deux helpers `rows()` / `scalar()`), et le run
+invalide est conservé tel quel sous `qa-web/L3bis-premier-passage-INVALIDE.txt`.
+
+### 2026-08-04 20:50Z — Le second était faux AUSSI, et cette fois c'est le décor
+
+Second run : **zéro** ligne `protocol_events` et **zéro** question sur presque
+tous les cas. Avant de conclure, la lecture du prompt du dispatcher :
+
+> `3k. EFFETS DURABLES KEEL (log_protocol_event, declare_deviation) — ILS
+> N'EXISTENT QUE si le payload porte keel_plan_context. Sans ce bloc […]
+> n'émets JAMAIS ces deux effets`
+
+Mes élèves n'avaient qu'un `student_week_plans`, **pas de `plan_versions`
+publié ni de `plan_commitments`**. Le dispatcher avait donc consigne de ne rien
+écrire — et toute conclusion tirée là-dessus aurait été fausse dans le sens le
+plus dangereux : celui du « ça ne marche pas ».
+
+Le harnais fabrique désormais un **plan publié avec ses engagements**
+(`publishPlanFor`), copiés d'une prescription réelle relue en base.
+
+**Leçon, et elle vaut pour toute la suite de cette QA** : un élève KEEL sans
+plan **publié** n'est pas un élève « au repos », c'est un élève dont la moitié
+du moteur est éteinte.
+
+### 2026-08-04 21:05Z — 🔴 P0 · Un repas déclaré est enregistré au hasard
+
+**Le geste** : la MÊME déclaration, jouée **4 fois** sur 4 élèves neufs
+correctement provisionnés. Preuve : `qa-web/L3bis-determinisme.txt`.
+
+| Déclaration | `protocol_events` sur 4 tours | Verdict |
+|---|---|---|
+| « j'ai mangé du poulet » | `[1, 1, 1, 1]` | ✅ stable |
+| « I'm going to have chicken tonight » | `[0, 0, 0, 0]` | ✅ stable (intention future) |
+| **« Poulet grillé, riz complet et brocolis à midi »** | **`[0, 3, 3, 0]`** | 🔴 **pile ou face** |
+| **« Grilled salmon with quinoa and green beans for dinner »** | **`[0, 0, 0, 0]`** | 🔴 **jamais enregistré** |
+| « an apple » | `[0, 0, 0, 1]` | 🔴 instable |
+
+**Ce que ça veut dire, en clair** : une déclaration de repas **complète, au
+passé, sans ambiguïté** — c'est-à-dire la meilleure qu'un élève puisse écrire —
+n'est enregistrée qu'une fois sur deux en français et **jamais** en anglais sur
+le créneau du soir. Et pendant ce temps la réponse **confirme le repas** :
+
+> « That sounds like a solid dinner: protein from the salmon, carbs from the
+> quinoa, and veg from the green beans. »
+
+C'est le **même accusé fantôme** que l'allergie, sur la donnée qui fait le
+produit : ce que le coach voit de la semaine de son élève est construit
+là-dessus. Un élève assidu qui dîne tous les soirs apparaît silencieux.
+
+**La cause** : comme pour l'allergie, l'écriture est gouvernée par
+`turn_frame.direct_effects` — donc par le LLM du dispatcher — sans aucun
+plancher déterministe derrière. L'instabilité `[0,3,3,0]` sur une phrase
+identique le prouve : ce n'est pas une règle, c'est un tirage.
+
+**Non corrigé, et pourquoi** : la réparation propre est un plancher déterministe
+de déclaration de repas, sur le modèle de celui que j'ai posé pour l'allergie.
+Mais celui-ci doit résoudre de la **prose vers `food_group_ref`** (vocabulaire
+fermé de 30 entrées), choisir un créneau, et composer les `components` — c'est
+un module à part entière sur le chemin d'écriture central du produit, très
+au-delà de la règle des 30 minutes. **La mesure ci-dessus est le cahier des
+charges de ce module.**
+
+**Verdict** : RED, documenté. Défaut **P0**.
+
+### 2026-08-04 21:06Z — 🔴 LA LIGNE ROUGE : aucune question ne demande une quantité
+
+**Le geste** : toutes les questions **réellement rendues** à un élève sur
+l'ensemble des runs de ce lot, relues une par une et passées à un lexique de
+quantité FR + EN de 30 termes (`how much`, `combien`, `portion`, `grammes`,
+`copieux`, `bien mangé`, `a lot`, `generous`…).
+
+```
+questions rendues : « And what did you have with it? »   ✅ aucun terme de quantité
+```
+
+Et la garantie est **structurelle**, pas statistique :
+`MEAL_PRECISION_QUESTIONS` est un dictionnaire de **trois textes figés**
+(`What was in it?`, `And what did you have with it?`,
+`Did you cook that with any oil or butter?`), plus une question de créneau
+composée de libellés de créneaux. Aucun de ces chemins ne passe par une
+génération. `meal_precision_test.ts` vérifie déjà le lexique côté unitaire ;
+cette QA confirme qu'aucun **autre** chemin ne rend une question à l'élève.
+
+**Verdict** : VERT. Ligne rouge **tenue**.
+
+### 2026-08-04 21:06Z — La question de précision, quand elle part
+
+Sur « j'ai mangé du poulet » (le cas où l'écriture est stable), **4 tours sur
+4** :
+
+- une question part, sur l'axe **accompagnement** — autorisé ;
+- le texte est *« And what did you have with it? »* ;
+- la réponse de l'élève ne crée pas de repas en double (`delta = 0` mesuré) ;
+- une déclaration complète ne déclenche **aucune** question (`[]` sur 4 tours,
+  EN et FR) — le contre-factuel du lot ;
+- une intention future ne déclenche ni écriture ni question (4/4).
+
+Le plafond quotidien partagé et le désarmement par timeout n'ont **pas** pu être
+éprouvés en réel : ils se comptent en questions posées, et le défaut P0
+ci-dessus ne laisse pas assez de questions partir pour atteindre le plafond de
+deux. **NON TESTÉ**, et la raison est ce P0.
+
+**Verdict** : VERT sur ce qui a pu être joué ; le reste dépend du P0.

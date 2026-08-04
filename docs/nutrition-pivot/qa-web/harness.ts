@@ -192,6 +192,60 @@ export async function makeStudent(opts: {
   return account;
 }
 
+/**
+ * UN PLAN PUBLIÉ, AVEC SES ENGAGEMENTS — et c'est un PRÉREQUIS, pas un décor.
+ *
+ * MESURÉ (QA WEB L3-bis) : sans plan **publié**, le dispatcher a pour consigne
+ * explicite de n'émettre JAMAIS `log_protocol_event` ni `declare_deviation`
+ * (« ILS N'EXISTENT QUE si le payload porte keel_plan_context »). Un élève
+ * fabriqué avec un simple `student_week_plans` — ce que faisait ce harnais —
+ * ne peut donc RIEN enregistrer, et toute conclusion tirée sur lui est fausse
+ * dans le sens le plus dangereux : celui du « ça ne marche pas ».
+ *
+ * Les deux engagements reproduisent une prescription réelle relue en base
+ * (`Protein at lunch` / `Vegetables at lunch`).
+ */
+export async function publishPlanFor(
+  coach: Coach,
+  studentUserId: string,
+  opts: { timezone?: string; contentLocale?: string } = {},
+): Promise<string> {
+  const db = admin();
+  const { data, error } = await db.from("plan_versions").insert({
+    coach_id: coach.coachId,
+    student_id: studentUserId,
+    version: 1,
+    status: "published",
+    title: "QA protocol",
+    content_locale: opts.contentLocale ?? "en-GB",
+    timezone: opts.timezone ?? "Europe/London",
+    published_at: new Date().toISOString(),
+  } as never).select("id").maybeSingle();
+  if (error) throw new Error(`plan_versions: ${error.message}`);
+  const planVersionId = String((data as { id: string }).id);
+
+  const base = {
+    plan_version_id: planVersionId,
+    user_id: studentUserId,
+    coach_id: coach.coachId,
+    polarity: "do",
+    activity_class: "nutrition",
+    anchor_kind: "slot",
+    slot_key: "lunch",
+    measure: "presence",
+    target_op: "any",
+    evidence_kind: "self_report",
+    evaluation_grain: "day",
+    content_locale: opts.contentLocale ?? "en-GB",
+  };
+  const { error: cErr } = await db.from("plan_commitments").insert([
+    { ...base, food_group_ref: "lean_protein", title: "Protein at lunch" },
+    { ...base, food_group_ref: "non_starchy_veg", title: "Vegetables at lunch" },
+  ] as never);
+  if (cErr) throw new Error(`plan_commitments: ${cErr.message}`);
+  return planVersionId;
+}
+
 export function mondayOf(d: Date): string {
   const c = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
   const dow = (c.getUTCDay() + 6) % 7; // lundi = 0
@@ -272,7 +326,16 @@ export async function transcript(
   return (data ?? []) as never;
 }
 
-/** SQL brut via `psql` — pour ce que PostgREST ne sait pas dire. */
+/**
+ * SQL brut via `psql` — pour ce que PostgREST ne sait pas dire.
+ *
+ * ⚠️ Le pied de page `(N rows)` est RETIRÉ, et ça a coûté un run.
+ * Avec `-A`, un résultat vide rend la ligne littérale `(0 rows)`; un appelant
+ * qui comptait les lignes non vides voyait donc UNE réponse là où il n'y en
+ * avait aucune — et rendait « question posée » sur les 14 cas de L3-bis, dont
+ * les 8 contre-factuels. Un harnais qui ment dans le sens du succès est pire
+ * qu'un harnais cassé.
+ */
 export async function sql(query: string): Promise<string> {
   const cmd = new Deno.Command("docker", {
     args: [
@@ -286,7 +349,23 @@ export async function sql(query: string): Promise<string> {
   const text = new TextDecoder().decode(out.stdout);
   const err = new TextDecoder().decode(out.stderr);
   if (!out.success) throw new Error(`psql: ${err || text}`);
-  return text.trim();
+  return text
+    .split("\n")
+    .filter((line) => !/^\(\d+ rows?\)$/.test(line.trim()))
+    .join("\n")
+    .trim();
+}
+
+/** Les LIGNES de données d'une requête, sans l'en-tête ni le pied de page. */
+export async function rows(query: string): Promise<string[]> {
+  const out = await sql(query);
+  return out.split("\n").slice(1).map((l) => l.trim()).filter(Boolean);
+}
+
+/** Un scalaire (`select count(*) …`), ou `0`. */
+export async function scalar(query: string): Promise<number> {
+  const [first] = await rows(query);
+  return Number(first ?? 0);
 }
 
 /** Efface un compte jetable et tout ce qui pend dessus. */

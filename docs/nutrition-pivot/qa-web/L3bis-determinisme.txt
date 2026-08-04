@@ -1,0 +1,48 @@
+
+▌ pauvre EN — « I had chicken »   (4 tours, attendu 1+)
+  protocol_events par tour : [1,1,1,1]  ✅ stable
+  questions de précision   : [["And what did you have with it?"],["And what did you have with it?"],["And what did you have with it?"],["And what did you have with it?"]]
+  [1] Good. Chicken gives you the protein anchor. And what did you have with it?
+  [2] Good — chicken gives you a clean protein anchor. If that was lunch, it fits the lunch protein line. And what d
+  [3] Good. Chicken gives you a protein anchor. And what did you have with it?
+  [4] Good. Chicken gives you the protein anchor. If that was lunch, the vegetables line is still the one to cover i
+
+▌ pauvre FR — « j'ai mangé du poulet »   (4 tours, attendu 1+)
+  protocol_events par tour : [1,1,1,1]  ✅ stable
+  questions de précision   : [["And what did you have with it?"],["And what did you have with it?"],["And what did you have with it?"],["And what did you have with it?"]]
+  [1] You had chicken at lunch, so the protein anchor is covered for that meal. And what did you have with it?
+  [2] Nice — that gives you the protein anchor for lunch. If there were vegetables with it, say so and I’ll count th
+  [3] Good. That covers the protein anchor at lunch. And what did you have with it?
+  [4] Good. That covers the protein anchor at lunch. And what did you have with it?
+
+▌ complète EN — « Grilled salmon with quinoa and green beans for dinner »   (4 tours, attendu 3)
+  protocol_events par tour : [0,0,0,0]  ✅ stable
+  questions de précision   : [[],[],[],[]]
+  [1] Nice dinner: salmon gives you the protein anchor, and green beans cover the veg side. Quinoa is the carb piece
+  [2] That sounds like a solid dinner: protein from the salmon, carbs from the quinoa, and veg from the green beans.
+  [3] Nice dinner: you’ve got a solid protein anchor with the salmon, plus quinoa and green beans for balance. If yo
+  [4] Good dinner: you’ve got protein, carbs, and a veg on the plate.   If you want, I can help you map it to the da
+
+▌ complète FR — « Poulet grillé, riz complet et brocolis à midi »   (4 tours, attendu 3)
+  protocol_events par tour : [0,3,3,0]  🔴 INSTABLE
+  questions de précision   : [[],[],[],[]]
+  [1] Good. That covers the lunch protein and the vegetables, and the rice gives you the base.
+  [2] Noted: grilled chicken, brown rice, and broccoli at lunch.
+  [3] At lunch, you had the protein anchor and the vegetables. Good. The brown rice completes the meal well.
+  [4] Good. That matches the lunch anchor: grilled chicken gives you the protein, and the broccoli covers the vegeta
+
+▌ auto-suffisante — « an apple »   (4 tours, attendu 1+)
+  protocol_events par tour : [0,0,0,1]  🔴 INSTABLE
+  questions de précision   : [[],[],[],["And what did you have with it?"]]
+  [1] Apple is fine, but it’s not a protein anchor. If that was lunch, the lunch protein and vegetables are still th
+  [2] An apple gives you a clean carb source, but it doesn’t count as the protein anchor for lunch. If lunch is stil
+  [3] Apple is fine as a snack, but it doesn’t count as the protein anchor for lunch. If that’s your lunch, pair it 
+  [4] For lunch, you’ve got protein and vegetables listed; an apple doesn’t cover either of those. If you’re just no
+
+▌ intention future — « I'm going to have chicken tonight »   (4 tours, attendu 0)
+  protocol_events par tour : [0,0,0,0]  ✅ stable
+  questions de précision   : [[],[],[],[]]
+  [1] Good — that gives you a solid protein anchor for dinner. If you want, keep the rest simple with vegetables on 
+  [2] Chicken works well tonight — it gives you a solid protein anchor. If you can, pair it with some vegetables too
+  [3] Chicken gives you a solid protein anchor tonight. Good move.
+  [4] Good. Chicken gives you a protein anchor for the evening. If you can, pair it with some non-starchy veg too.
