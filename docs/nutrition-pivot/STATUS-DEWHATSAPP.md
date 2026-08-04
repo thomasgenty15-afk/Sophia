@@ -69,7 +69,8 @@ SQL, et les vues.**
 | **P1** chemin entrant in-app | **VERT** | 9 tests HTTP + 1 e2e modèle réel + parcours joué au navigateur |
 | **P2** proactif sans templates | **VERT** | 78 tests, dont 9 contre le **vrai cron** ; tap reçu **live** au navigateur |
 | **P3** médias | **VERT** | 6 tests contre la vraie fonction, avec de vrais appels au modèle de vision |
-| **P4** parcours d'entrée & mode test coach | **🔴 NON FAIT** | voir §« Ce qui reste » |
+| **P4** parcours d'entrée & mode test coach | **🔴 PARTIEL** | textes UI et deep-links faits (P7) ; `/join` bout en bout, capture du `country` et bulle coach **non faits** |
+| **P7** texte visible | **VERT** | landing, Legal, email de bienvenue, join, paywalls — tout ce qui promettait WhatsApp |
 | **P5** démolition | **VERT** | 7 fonctions, 7 tables, 5 modules, 3 fichiers front supprimés, épreuve d'absence pour chaque |
 | **P6** gantelet final | **PARTIEL** | suites vertes, semaine simulée J1→J7 rejouée (13 étapes) ; la relecture à froid n'a été faite qu'une fois sur deux |
 
@@ -202,12 +203,14 @@ Le prompt demandait : `/join` (token → session → bulle), `country` au profil
 mode test coach (la bulle sur sa propre doctrine), i18n EN complet, mort des
 textes « WhatsApp » dans l'UI.
 
-**Fait quand même** : la mort des deep-links `wa.me` (`PlanSavedModal` renvoie
-vers `/app/chat`, `send-welcome-email` reste à traiter), la suppression des deux
-appels `whatsapp-optin` du frontend, et l'i18n de la bulle.
+**Fait depuis** (voir §P7 du journal) : **tout le texte visible**. La landing
+page ne vend plus WhatsApp, `Legal.tsx` ne décrit plus un traitement de données
+disparu, et `send-welcome-email` n'envoie plus un lien `wa.me` avec « ton
+téléphone a dû vibrer à l'instant » — il pointe vers `/app/chat`. Plus les deux
+deep-links `wa.me`, les appels `whatsapp-optin` du frontend, et l'i18n.
 
-**Pas fait** : le parcours `/join` de bout en bout, la capture du `country` à
-l'inscription, la bulle côté coach. **Le mode test coach est un composant à
+**Pas fait** : le parcours `/join` joué de bout en bout au navigateur, la
+capture du `country` à l'inscription, la bulle côté coach. **Le mode test coach est un composant à
 réutiliser, pas un chantier** — `ChatPage` prend une variante de shell, et
 `chat-inbound-v1` n'a aucune notion d'élève dans sa garde. Compte 1 h.
 
