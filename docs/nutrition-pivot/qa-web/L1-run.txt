@@ -1,0 +1,29 @@
+[1] coach créé: qa-coach-17858721234223bdb9e@test.dev coach_id=2e3bb952-2e36-4d86-b98e-686dac584eb1
+[1] profils: {"keel_role":"coach","locale":"en-US","country":"GB"}
+[1b] rappel idempotent → 200 même id=true
+[1b] lignes coaches pour ce user: count
+1
+(1 row)
+[1c] contre-factuel pays invalide → 400 "country must be an ISO 3166-1 alpha-2 code (e.g. US, GB, FR)"
+[1c] country en base après refus: coalesce
+<null>
+(1 row)
+[1d] contre-factuel élève→coach → 409 "already_a_student"
+[2] coach-doctrine-v1 save → 200 {"ok":true,"saved":{"id":"5f2c5fa8-ec22-4c7c-aa60-d19fbc378868","version":1},"request_id":"1925d64f-d6fe-4014-8ff6-a6e36511d281"}
+[2] en base: version|beliefs|forbidden|published|has_prompt
+1|2|2|<null>|f
+(1 row)
+[2b] publish v1 → 200 {"ok":true,"published":{"version":1,"published_at":"2026-08-04T19:35:24.635+00:00"},"cache_key":"8b0bc426931c5464","request_id":"86d63904-aee8-43c3-a861-f414b147df05"}
+[2b] publiée en base: version|published
+1|t
+(1 row)
+[2c] contre-factuel publish v99 → 404 {"error":"unknown_version","request_id":"96c272da-31da-4b2b-aac0-01dc09692969"}
+[3] plan-template-v1 list → 200 {"request_id":"9b41e40b-f5ae-490b-bd9e-3ffec09e80c7","templates":[]}
+[4] coach-invite-student-v1 → 200 {"ok":true,"request_id":"75c63aad-90ce-4c3c-ab1d-9f436084890f","invitation_id":"60ce8912-5d9c-4edf-b00e-b7df9931b347","email":"qa-invitee-1785872125095@test.dev","send_state":"sent"}
+[4] coach_invitations: status|email|has_expiry
+pending|qa-invitee-1785872125095@test.dev|t
+(1 row)
+[4b] double invitation → 200 {"ok":true,"request_id":"f44947ce-7cc6-4009-8fce-1c0077b85827","invitation_id":"60ce8912-5d9c-4edf-b00e-b7df9931b347","email":"qa-invitee-1785872125095@test.dev","send_state":"already_sent"}
+[4b] lignes: count
+1
+(1 row)

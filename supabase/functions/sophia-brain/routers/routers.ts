@@ -621,7 +621,42 @@ export function runConversationRouters(input: {
     });
   }
 
-  if (productHelpDetected(input.turn_frame)) {
+  // ══════════════════════════════════════════════════════════════════════
+  // KEEL — LES TROIS LANES B2C SONT FERMÉES À UN ÉLÈVE DE COACH.
+  //
+  // MESURÉ, pas déduit (QA WEB L1-c, run réel): un élève KEEL dont le coach
+  // interdit explicitement le comptage de calories demande « Should I start
+  // counting my calories? ». Le dispatcher classe
+  // `coaching_recommendation.detected=true` et la lane répond
+  // « What's the situation you want to get unstuck from, exactly? » — une
+  // relance générique, sans un mot de la position du coach.
+  //
+  // POURQUOI C'EST STRUCTUREL ET PAS UNE ERREUR DE MODÈLE. La doctrine du
+  // coach n'est injectée qu'à UN endroit — `withKeelDoctrineBlock`, sur le
+  // contexte du composeur (`runAgentAndVerify`) — alors que
+  // `applyKeelOutputLocks` VÉRIFIE la sortie sur SIX chemins. Ces trois lanes
+  // sont donc verrouillées sur une doctrine qu'elles n'ont jamais lue: elles
+  // peuvent contredire le coach, et le verrou ne rattrape que les formes de
+  // surface qu'il connaît. Un plancher qui laisse la lane la plus bavarde
+  // parler à la place du coach n'est pas un plancher.
+  //
+  // Elles sont B2C DE PART EN PART, en plus: leurs prompts sont en français,
+  // ils parlent de potions, de leviers et de surfaces produit qui n'existent
+  // pas dans KEEL. Les fermer ne retire donc aucune capacité à un élève — ça
+  // lui rend le composeur, qui porte la doctrine ET le verrou.
+  //
+  // FERMÉES À L'ENTRÉE SEULEMENT. Les branches de CONTINUATION plus haut
+  // restent intactes: un flow déjà ouvert (compte migré, état résiduel) doit
+  // pouvoir se refermer proprement plutôt que d'être coupé au milieu. Comme
+  // un élève KEEL ne peut plus en ouvrir, la continuation ne se déclenchera
+  // pour lui qu'une fois, sur un état antérieur à ce correctif.
+  //
+  // `keel_student` vient du RUNTIME (`profiles.keel_role`), jamais du LLM du
+  // dispatcher — même doctrine que le plancher TCA et que `plan_question`.
+  // ══════════════════════════════════════════════════════════════════════
+  const keelStudent = input.keel_student === true;
+
+  if (!keelStudent && productHelpDetected(input.turn_frame)) {
     return buildRouteDecision({
       response_owner: "product_help",
       selected_handler: "product_help",
@@ -633,7 +668,7 @@ export function runConversationRouters(input: {
     });
   }
 
-  if (coachingRecommendationDetected(input.turn_frame)) {
+  if (!keelStudent && coachingRecommendationDetected(input.turn_frame)) {
     return buildRouteDecision({
       response_owner: "coaching_recommendation",
       selected_handler: "coaching_recommendation",
@@ -653,7 +688,7 @@ export function runConversationRouters(input: {
   // demander un levier), plan_question est le défaut pour une question sur la
   // prescription elle-même. Lane NON collante: aucune branche de continuation
   // plus haut, la question se répond en un tour.
-  if (input.keel_student === true && planQuestionDetected(input.turn_frame)) {
+  if (keelStudent && planQuestionDetected(input.turn_frame)) {
     return buildRouteDecision({
       response_owner: "plan_question",
       selected_handler: "plan_question",
@@ -663,7 +698,11 @@ export function runConversationRouters(input: {
     });
   }
 
-  if (planRealignmentDetected(input.turn_frame)) {
+  // Fermée pour la même raison que les deux précédentes, et pour une de plus:
+  // `plan_realignment` renvoie vers l'écran d'ajustement de plan B2C. Un récap
+  // read-only y a déjà été capté une fois (défaut connu), et un élève KEEL n'a
+  // pas d'écran d'ajustement — sa semaine se compose, elle ne se réaligne pas.
+  if (!keelStudent && planRealignmentDetected(input.turn_frame)) {
     return buildRouteDecision({
       response_owner: "plan_realignment",
       selected_handler: "plan_realignment",

@@ -334,7 +334,15 @@ Deno.serve(async (req: Request) => {
       clearToken,
     );
 
-    let sendState: "sent" | "skipped_ephemeral";
+    // `skipped_delivery_disabled` EXISTE POUR NE PAS MENTIR EN LOCAL.
+    // `sendResendEmail` rend `{ok:true, skipped:true}` quand
+    // `EMAIL_DELIVERY_ENABLED=0` ou en `MEGA_TEST_MODE` — c'est-à-dire dans
+    // TOUTE session de QA locale. Rendre `sent` dans ce cas fait croire à
+    // l'appelant (et à qui relit un journal de QA) qu'un email est parti, alors
+    // que la seule trace honnête était enfouie dans
+    // `communication_logs.metadata.skipped`. Un état d'envoi qui ne distingue
+    // pas « parti » de « supprimé » ne se vérifie pas.
+    let sendState: "sent" | "skipped_ephemeral" | "skipped_delivery_disabled";
 
     if (isEphemeralTestEmail(email)) {
       sendState = "skipped_ephemeral";
@@ -355,16 +363,17 @@ Deno.serve(async (req: Request) => {
       if (!out.ok) {
         throw new Error(`Resend failed: ${(out as { error: string }).error}`);
       }
-      sendState = "sent";
+      const suppressed = Boolean((out as { skipped?: boolean }).skipped);
+      sendState = suppressed ? "skipped_delivery_disabled" : "sent";
       await admin.from("communication_logs").insert({
         user_id: coachUserId,
         channel: "email",
         type: COMMUNICATION_TYPE,
-        status: "sent",
+        status: suppressed ? "skipped" : "sent",
         metadata: {
           invitation_id: invitationId,
           resend_id: (out as { data?: { id?: string } }).data?.id ?? null,
-          skipped: Boolean((out as { skipped?: boolean }).skipped),
+          skipped: suppressed,
         },
       });
     }

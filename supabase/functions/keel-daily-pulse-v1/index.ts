@@ -224,6 +224,16 @@ Deno.serve(async (req) => {
                 label: b.title,
               })),
               requestId,
+              // L'HORLOGE DU JOB EST AUSSI CELLE DE SES EFFETS.
+              // Sans ce passage, `now` gouvernait la DÉCISION (fenêtre 20-22 h
+              // locales) et l'horloge réelle gouvernait l'ÉCRITURE: la ligne
+              // était estampillée à une heure que le job n'avait pas choisie, et
+              // le plafond quotidien se comptait sur une AUTRE date locale que
+              // celle qui avait autorisé l'envoi. En production les deux
+              // coïncident; en rejeu — le seul moment où on peut éprouver ce
+              // job — elles divergent, et une question posée « dans le futur »
+              // n'est jamais armée.
+              now,
             });
             if (!delivered.delivered) {
               // Un refus de livraison N'EST PAS une panne: mute, plafond ou

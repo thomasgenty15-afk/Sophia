@@ -259,6 +259,10 @@ Deno.serve(async (req) => {
               buttons: [{ payload: flowToken, label: WEEKLY_FLOW_CTA_EN }],
               requestId,
               metadata: { [WEEKLY_FLOW_WEEK_META_KEY]: weekStart },
+              // Même raison qu'en `keel-daily-pulse-v1`: l'horloge qui DÉCIDE
+              // doit être celle qui ÉCRIT, sinon le plafond quotidien se compte
+              // sur une autre date locale que celle qui a autorisé l'envoi.
+              now,
             });
             if (!delivered.delivered) {
               // Un refus est une décision produit (mute, plafond, état

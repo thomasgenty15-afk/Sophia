@@ -67,7 +67,24 @@ Deno.test("plan_question does NOT route without the keel_student gate", () => {
   }
 });
 
-Deno.test("plan_question outranks plan_realignment, and stays under product_help/coaching", () => {
+// RENVERSÉ PAR LA QA WEB (L1-c), et la raison vaut d'être écrite plutôt que
+// l'assertion effacée.
+//
+// Ce test affirmait: « product_help et coaching_recommendation sont des PULL
+// explicites, ils gardent la priorité, même pour un élève KEEL. » L'intention
+// était bonne — un élève qui demande de l'aide sur le produit doit l'obtenir.
+//
+// Ce qu'un run réel a montré: pour un élève KEEL, ces deux lanes ne rendent pas
+// de l'aide produit, elles rendent du B2C. Leurs prompts sont en français,
+// parlent de potions et de leviers, et surtout n'ont JAMAIS lu la doctrine du
+// coach — qui n'est injectée que dans le contexte du composeur. Un élève dont
+// le coach interdit le comptage de calories recevait une relance générique.
+//
+// La priorité n'a donc pas été « déplacée »: les deux lanes sont FERMÉES à un
+// élève KEEL (`routers_keel_b2c_lanes_test.ts`), ce qui rend le tour au
+// composeur. Hors KEEL, l'invariant d'origine tient toujours, et il est gardé
+// dans ce même fichier ci-dessous.
+Deno.test("plan_question outranks plan_realignment; les lanes B2C sont fermées à un élève KEEL", () => {
   const realign = {
     detected: true,
     confidence_band: "high" as const,
@@ -90,7 +107,8 @@ Deno.test("plan_question outranks plan_realignment, and stays under product_help
     "plan_question",
   );
 
-  // The two lanes above are explicit pulls and keep priority.
+  // Pour un élève KEEL, `product_help` ne peut plus rafler le tour: la lane
+  // est fermée, donc `plan_question` répond.
   assertEquals(
     runConversationRouters({
       turn_frame: frame({
@@ -101,6 +119,24 @@ Deno.test("plan_question outranks plan_realignment, and stays under product_help
       }),
       safety_context_risk_band: "none",
       keel_student: true,
+    }).response_owner,
+    "plan_question",
+  );
+
+  // Hors KEEL, l'invariant d'origine est INTACT: `product_help` est un pull
+  // explicite et garde la priorité. (`plan_question` étant gaté sur
+  // `keel_student`, il ne concourt pas ici — ce qui est le point: fermer les
+  // lanes B2C côté KEEL ne change rien côté B2C.)
+  assertEquals(
+    runConversationRouters({
+      turn_frame: frame({
+        skill_signals: {
+          plan_question: planQuestionSignal,
+          product_help: { detected: true, confidence_band: "high" },
+        },
+      }),
+      safety_context_risk_band: "none",
+      keel_student: false,
     }).response_owner,
     "product_help",
   );
