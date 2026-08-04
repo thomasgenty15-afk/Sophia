@@ -727,3 +727,111 @@ cd frontend && npx vitest run           → 17 files passed | 218 passed | 20 sk
 select relname, relkind from pg_class … where relname like '%whatsapp%'
 → whatsapp_cost_events | TABLE     (gelée, seule survivante)
 ```
+
+---
+
+## P6 — LE GANTELET FINAL
+
+### P6.1 — 🔴 Le défaut que seule la semaine simulée pouvait montrer
+
+Premier geste de la relecture à froid : rejouer `simulated_week_test.ts`. Résultat
+immédiat — **9 des 13 étapes rouges**, et la première assertion échouait sur
+`loaded.reason: "no_coach"`.
+
+Cause, en remontant la chaîne :
+
+```
+INSERT dans coach_clients
+  → trigger on_coach_clients_change_recompute_access
+  → met à jour profiles.access_tier
+  → trigger trg_refresh_whatsapp_scheduling_on_access_tier_change
+  → handle_whatsapp_scheduling_access_tier_change
+  → cleanup_whatsapp_scheduling_for_user
+  → update public.whatsapp_pending_actions   ← table renommée en P5
+```
+
+```
+ERROR:  relation "public.whatsapp_pending_actions" does not exist
+```
+
+**Un coach ne pouvait plus ajouter un élève.** Le geste le plus fondamental du
+produit, cassé par un renommage de table, et invisible à tout ce qui avait été
+vérifié : les 2 702 tests passaient, le typecheck passait, la bulle marchait au
+navigateur, et `grep` sur le TypeScript était propre.
+
+**Ce que mon épreuve d'absence avait manqué** : `pg_proc.prosrc`. Un corps de
+fonction PL/pgSQL nomme ses tables en **texte**, et aucun compilateur ne le
+vérifie. Sept fonctions étaient concernées :
+
+| Fonction | Traitement |
+|---|---|
+| `cleanup_whatsapp_scheduling_for_user` | repointée (corps recopié depuis `pg_get_functiondef`, seul le nom change) |
+| `queue_whatsapp_access_ended_notification` | repointée |
+| `get_production_log` | 5 blocs `union all` retirés (tables droppées), 2 repointés, le bloc `cost_events` **conservé** — la table est gelée et son historique reste consultable |
+| `claim_whatsapp_outbound_retries` | supprimée (le worker de renvoi n'existe plus) |
+| `consume_whatsapp_monthly_quota` | supprimée (plus de quota Meta) |
+| `release_whatsapp_monthly_quota` | supprimée |
+| `backfill_whatsapp_template_cost_events` | supprimée (backfill ponctuel) |
+
+Les corps sont **recopiés**, pas réécrits : réécrire à la main une logique
+d'annulation de rappels, c'est réintroduire un bug pour corriger un renommage.
+
+**Le contrôle final de la migration rejoue le geste**, il ne l'inspecte pas :
+
+```sql
+insert into public.coach_clients (...) values (...);   -- c'est CET insert qui échouait
+raise exception 'dewhatsapp_probe_rollback';           -- sonde annulée
+→ NOTICE: dewhatsapp: lier un eleve a un coach fonctionne (sonde annulee)
+```
+
+Un contrôle qui se serait contenté de grep `prosrc` aurait été vert **avant**
+comme après : la fonction fautive existait, elle nommait juste la mauvaise table.
+
+### P6.2 — Les suites, après correction
+
+```
+deno test --allow-all supabase/functions/_shared/ supabase/functions/sophia-brain/
+→ ok | 2702 passed (4 steps) | 0 failed | 35 ignored (28s)
+
+deno test _shared/chat/ chat-inbound-v1/ meal-photo-upload-v1/   (stack + secrets)
+→ ok | 101 passed | 0 failed | 1 ignored (32s)
+
+deno test sophia-brain/test_harness/keel_properties/simulated_week_test.ts
+→ ok | 1 passed (13 steps) | 0 failed (6s)
+
+cd frontend && npx tsc -b --noEmit   → 0 erreur
+cd frontend && npx vitest run        → 17 files passed | 218 passed | 20 skipped
+```
+
+**La semaine simulée passe en entier** : doctrine chargée, ceinture qui bloque une
+violation d'interdit coach, contrainte médicale relue, relance à 72 h non
+spammée, heures calmes différées, synthèse générée puis non re-générée, et
+isolation stricte entre les deux élèves.
+
+### P6.3 — Le parcours réel, rejoué après démolition
+
+Navigateur, même élève, après suppression des 7 fonctions et 7 tables :
+clic sur « Sleep » (question d'axe armée) → `student_daily_checkins` porte
+`overall='hard', axis='sleep', source='chat'`. Le chemin
+bulle → `chat-inbound-v1` → boutons déterministes → écriture produit tient.
+
+### P6.4 — Le critère de fin du chantier, vérifié
+
+```bash
+grep -rnE "functions/v1/whatsapp-|functions\.invoke\(['\"]whatsapp|from \"\.\./whatsapp-" \
+  supabase/functions frontend/src scripts | grep -v node_modules
+# → aucun résultat
+```
+
+**Plus aucun appel runtime vers du WhatsApp supprimé.** Les fossiles restants
+(scope de conversation B2C, colonnes gelées, commentaires portant les leçons) sont
+inventoriés et justifiés dans STATUS-DEWHATSAPP.md.
+
+### P6.5 — Ce qui reste ouvert, sans emballage
+
+- **P4 n'est pas fait** : `/join` de bout en bout, capture du `country`, bulle
+  coach. ~1 h de travail, et le mode test coach est un composant à réutiliser,
+  pas un chantier.
+- **La seconde passe de relecture à froid n'est pas faite.** La première l'est —
+  c'est elle qui a produit P6.1.
+- **101 tests d'intégration B2C rouges**, pré-existants, vérifiés par stash.
