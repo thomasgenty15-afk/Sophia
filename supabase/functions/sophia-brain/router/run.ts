@@ -286,6 +286,7 @@ import {
   loadPublishedDoctrine,
 } from "../../_shared/keel/doctrine_loader.ts";
 import { detectDeclaredSafetyConstraint } from "../../_shared/keel/safety_constraint_floor.ts";
+import { detectDeclaredMeal } from "../../_shared/keel/meal_declaration_floor.ts";
 import {
   recordAllowedEffect,
   recordBlockedEffect,
@@ -3692,6 +3693,60 @@ export async function processMessage(
   // Même famille et même place que le plancher TCA et le gate `plan_question`:
   // ce qui OUVRE un effet médical ne transite pas par le LLM du dispatcher.
   if (keelTurn.is_student) {
+    // ── PLANCHER DE DÉCLARATION DE REPAS ────────────────────────────────────
+    //
+    // MESURÉ (QA WEB L3-bis), la MÊME phrase jouée 4 fois:
+    //   « Poulet grillé, riz complet et brocolis à midi »        → [0,3,3,0]
+    //   « Grilled salmon with quinoa and green beans for dinner » → [0,0,0,0]
+    // pendant que la réponse CONFIRMAIT le repas. Une déclaration complète, au
+    // passé, sans ambiguïté n'était donc écrite qu'une fois sur deux — sur la
+    // donnée qui fait le produit, celle que le coach lit le lundi.
+    //
+    // Même forme que le plancher d'allergie juste en dessous, et pour la même
+    // raison: l'instabilité sur une phrase IDENTIQUE prouve un tirage, pas une
+    // règle. Il n'écrase JAMAIS le dispatcher — il ne s'ajoute que sur un
+    // silence, ce qui est la définition d'un plancher.
+    const declaredMeal = detectDeclaredMeal(
+      userMessage,
+      slotKeyNamedIn(userMessage),
+    );
+    const mealAlreadyRequested = turnFrame.direct_effects.some(
+      (effect) => effect.effect_type === "log_protocol_event",
+    );
+    if (declaredMeal && !mealAlreadyRequested) {
+      console.warn("[keel] meal_declaration_floor raised", {
+        request_id: requestId,
+        gate: declaredMeal.gate,
+        components: declaredMeal.components.map((c) => c.food_group_ref),
+        matched: declaredMeal.components.map((c) => c.matched),
+        detail:
+          "le dispatcher n'avait demandé aucun log_protocol_event; le plancher " +
+          "déterministe l'ajoute. Un repas confirmé sans ligne est un accusé " +
+          "fantôme sur la donnée centrale du produit.",
+      });
+      turnFrame = {
+        ...turnFrame,
+        direct_effects: [
+          ...turnFrame.direct_effects,
+          {
+            effect_type: "log_protocol_event",
+            explicitness: "explicit",
+            target_status: "identified",
+            confidence_band: "high",
+            payload_hint: {
+              // `components` porte la CARDINALITÉ (règle D2 de l'intake): un
+              // message qui nomme trois aliments écrit trois lignes, jamais
+              // « l'entrée la plus porteuse ».
+              components: declaredMeal.components.map((c) => ({
+                food_group_ref: c.food_group_ref,
+              })),
+              student_note: declaredMeal.studentNote,
+            },
+          },
+        ],
+      };
+    }
+
     const declared = detectDeclaredSafetyConstraint(userMessage);
     const alreadyRequested = turnFrame.direct_effects.some(
       (effect) => effect.effect_type === "declare_safety_constraint",

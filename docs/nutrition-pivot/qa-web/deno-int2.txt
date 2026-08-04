@@ -1,0 +1,26 @@
+[0m[32mCheck[0m supabase/functions/chat-inbound-v1/chat_inbound_int_test.ts
+[0m[32mCheck[0m supabase/functions/meal-photo-upload-v1/chat_seam_int_test.ts
+[0m[38;5;245mrunning 10 tests from ./supabase/functions/chat-inbound-v1/chat_inbound_int_test.ts[0m
+http: sans jeton ⇒ 401, et rien n'est écrit ... [0m[32mok[0m [0m[38;5;245m(769ms)[0m
+http: GET et OPTIONS — la méthode est gardée, le préflight répond ... [0m[32mok[0m [0m[38;5;245m(10ms)[0m
+http: un corps invalide est refusé avec SON motif, pas un 200 vide ... [0m[32mok[0m [0m[38;5;245m(598ms)[0m
+http: élève en cours de suppression ⇒ 410, pas de tour fantôme ... [0m[32mok[0m [0m[38;5;245m(194ms)[0m
+http: profil purgé mais JWT encore valide ⇒ 410 ... [0m[32mok[0m [0m[38;5;245m(175ms)[0m
+http: BOUTON déterministe — un seul tour, écriture réelle, accusé livré ... [0m[32mok[0m [0m[38;5;245m(293ms)[0m
+http: CONCURRENCE — deux POST identiques simultanés ⇒ un seul tour ... [0m[32mok[0m [0m[38;5;245m(184ms)[0m
+http: le même client_message_id chez DEUX élèves ne bloque personne ... [0m[32mok[0m [0m[38;5;245m(536ms)[0m
+http: un formulaire hebdo au jeton illisible ne descend PAS chez le classifieur ... [0m[32mok[0m [0m[38;5;245m(214ms)[0m
+e2e: un message texte traverse le moteur et revient dans la bulle ... [0m[33mignored[0m [0m[38;5;245m(0ms)[0m
+[0m[38;5;245mrunning 9 tests from ./supabase/functions/meal-photo-upload-v1/chat_seam_int_test.ts[0m
+réel: une photo envoyée dans la bulle y écrit LE message et SON accusé ... [0m[32mok[0m [0m[38;5;245m(7s)[0m
+réel: une photo SANS légende écrit quand même une trace lisible ... [0m[32mok[0m [0m[38;5;245m(7s)[0m
+réel: REJEU du même envoi — un seul message, un seul accusé ... [0m[32mok[0m [0m[38;5;245m(7s)[0m
+réel: UN NON-IMAGE est refusé — et n'entre pas dans la conversation ... [0m[32mok[0m [0m[38;5;245m(188ms)[0m
+réel: SANS la couture, l'écran du jour n'écrit rien dans la bulle ... [0m[32mok[0m [0m[38;5;245m(8s)[0m
+réel: PHOTO SANS PLAN ACTIF — l'élève reçoit une réponse, pas un silence ... [0m[32mok[0m [0m[38;5;245m(223ms)[0m
+réel: la MEME photo renvoyée ne crée pas un second repas ... [0m[32mok[0m [0m[38;5;245m(6s)[0m
+réel: l'accusé OUVRE le flow de correction, sur la bonne ligne ... [0m[32mok[0m [0m[38;5;245m(5s)[0m
+réel: deux photos DIFFÉRENTES restent deux repas (anti-faux-positif) ... [0m[32mok[0m [0m[38;5;245m(23s)[0m
+
+[0m[32mok[0m | 18 passed | 0 failed | 1 ignored [0m[38;5;245m(1m9s)[0m
+
