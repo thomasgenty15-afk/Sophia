@@ -110,6 +110,16 @@ export async function uploadMealPhoto(args: {
   slotKey: string | null;
   commitmentId?: string | null;
   clientUploadId: string;
+  /**
+   * DE-WHATSAPP — présent quand la photo est envoyée DANS la conversation.
+   * Le serveur écrit alors la photo et son accusé dans la bulle, en une seule
+   * chaîne: l'accusé est rendu à partir de la liaison et du crédit réellement
+   * écrits, et le faire re-rendre côté client serait une seconde
+   * implémentation de « qu'est-ce qui a été crédité ».
+   */
+  chatClientMessageId?: string;
+  /** La légende de l'élève. Facultative: une photo sans mot est le cas normal. */
+  note?: string;
 }): Promise<MealPhotoUploadResult> {
   const mimeType = args.file.type.toLowerCase();
   if (!(ACCEPTED_PHOTO_MIME_TYPES as readonly string[]).includes(mimeType)) {
@@ -139,6 +149,10 @@ export async function uploadMealPhoto(args: {
       slot_key: args.slotKey,
       commitment_id: args.commitmentId ?? null,
       client_upload_id: args.clientUploadId,
+      ...(args.chatClientMessageId
+        ? { chat_client_message_id: args.chatClientMessageId }
+        : {}),
+      ...(args.note?.trim() ? { student_note: args.note.trim() } : {}),
     }),
   });
 

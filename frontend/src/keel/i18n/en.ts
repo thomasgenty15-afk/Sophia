@@ -929,6 +929,11 @@ export const en = {
 
   // Le point hebdomadaire, dans l'app. C'était un WhatsApp Flow: deux écrans
   // declares chez Meta. Il ne reste que ce qui comptait.
+  "chat.photo.label": "Photo",
+  "chat.photo.sending": "Sending a photo…",
+  "chat.photo.error.type": "That file type isn't supported — send a JPEG, PNG or WebP.",
+  "chat.photo.error.size": "That photo is too large. Try a smaller one.",
+
   "chat.weekly.title": "How the week actually went",
   "chat.weekly.subtitle": "Six quick reads. Two minutes, and nothing here is graded.",
   "chat.weekly.optional": "Optional — only if you track them.",

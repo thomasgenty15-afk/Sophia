@@ -18,6 +18,8 @@ import {
 } from "../_shared/http.ts";
 import { resolveResponseLocale } from "../_shared/keel/locale.ts";
 import { parseSlotKey } from "../_shared/keel/tokens.ts";
+import { CHAT_SCOPE, deliverChatMessage } from "../_shared/chat/delivery.ts";
+import { claimInbound } from "../_shared/chat/inbound_pipeline.ts";
 
 /**
  * KEEL W5 — `meal-photo-upload-v1`: the WEB path for a meal photo.
@@ -112,6 +114,27 @@ const REQUEST_SCHEMA = z.object({
    * photo, which is the honest reading of a request that carries no identity.
    */
   client_upload_id: z.string().trim().min(8).max(64).optional(),
+  /**
+   * DE-WHATSAPP — LA COUTURE VERS LA BULLE.
+   *
+   * Présent = cette photo a été envoyée DANS la conversation, et non depuis
+   * l'écran du jour. La fonction écrit alors deux lignes dans `chat_messages`:
+   * la photo de l'élève, puis l'accusé.
+   *
+   * ── POURQUOI ICI ET PAS DANS `chat-inbound-v1` ────────────────────────────
+   * L'accusé (`analysis.student_message`) est rendu par `analyze-meal-photo-v1`
+   * à partir de la LIAISON et du CRÉDIT réellement écrits — deux choses que
+   * seule cette chaîne connaît. Le faire re-rendre par la bulle demanderait de
+   * reconstruire la liaison depuis la ligne, c'est-à-dire une SECONDE
+   * implémentation de « qu'est-ce qui a été crédité » — précisément la classe
+   * de mensonge que `renderMealPhotoAck` a été refondu pour rendre impossible
+   * (voir `MealPhotoAckArgs.binding`, « an argument that is absent cannot be
+   * forgotten by a caller; an optional one can »).
+   *
+   * C'est aussi l'identifiant d'idempotence du tour côté conversation: le même
+   * envoi rejoué n'écrit qu'un message.
+   */
+  chat_client_message_id: z.string().trim().min(8).max(128).optional(),
 });
 
 function adminClient(): SupabaseClient {
@@ -319,6 +342,26 @@ Deno.serve(async (req) => {
       // Without a published plan there is no timezone to resolve the day in and
       // no line to evidence. Trusting a client date instead would be a fact
       // whose origin is the browser clock.
+      //
+      // ── DE-WHATSAPP: DANS LA CONVERSATION, UN REFUS SE DIT ─────────────────
+      // Le 409 reste le contrat de l'API, et l'écran du jour le lit très bien.
+      // Mais un élève qui vient d'envoyer une photo DANS LA BULLE ne lit pas un
+      // code HTTP: sans un mot, il voit sa photo partir et rien revenir, ce qui
+      // est indiscernable d'une panne. On lui répond, dans la bulle, ce que le
+      // 409 dit à l'API — et sans lui reprocher quoi que ce soit: ne pas avoir
+      // encore de plan n'est pas sa faute.
+      if (body.chat_client_message_id) {
+        await deliverChatMessage(admin, {
+          userId,
+          content:
+            "I can't file that photo yet — your coach hasn't published your plan, " +
+            "so there's nothing for it to count toward. Send it again once your " +
+            "plan is live and I'll log it.",
+          isReply: true,
+          purpose: "keel_meal_photo_no_plan",
+          requestId,
+        }).catch(() => {});
+      }
       return jsonResponse(req, {
         error: "No published plan: there is nothing to log this photo against yet.",
         request_id: requestId,
@@ -548,11 +591,86 @@ Deno.serve(async (req) => {
       eventRow = refreshed.data as Record<string, unknown>;
     }
 
+    // ── DE-WHATSAPP — LA PHOTO ENTRE DANS LA CONVERSATION ────────────────────
+    // Après tout le reste, jamais avant: un échec ici ne doit pas défaire un
+    // fait déjà écrit et déjà analysé. Une photo enregistrée sans message dans
+    // la bulle est un défaut visible et réparable; une photo perdue ne l'est pas.
+    let chatDelivered: string | null = null;
+    if (body.chat_client_message_id) {
+      try {
+        const claim = await claimInbound(admin, {
+          message: {
+            client_message_id: body.chat_client_message_id,
+            user_id: userId,
+            kind: "media",
+            text: String(body.student_note ?? "").trim(),
+            button_payload: null,
+            media_ref: {
+              path,
+              // Le type SNIFFÉ (octets magiques), jamais celui déclaré: le
+              // déclaré a déjà été refusé s'il divergeait, mais c'est le sniffé
+              // qui décrit le fichier réellement stocké.
+              content_type: sniffed,
+              size_bytes: bytes.length,
+            },
+            form_response: null,
+            form_token: null,
+            reply_to: null,
+            received_at: new Date().toISOString(),
+          },
+          requestId,
+        });
+        // Rejeu du même envoi: la photo est déjà dans la bulle, on n'y remet ni
+        // le message ni l'accusé. `idempotent` dit déjà la même chose du fait.
+        if (claim.status === "fresh") {
+          await admin.from("chat_messages").insert({
+            user_id: userId,
+            scope: CHAT_SCOPE,
+            role: "user",
+            // Une photo sans légende a quand même besoin d'un texte lisible
+            // dans le journal; la légende de l'élève gagne quand il y en a une.
+            content: String(body.student_note ?? "").trim() || "[photo]",
+            metadata: {
+              channel: "in_app",
+              kind: "media",
+              client_message_id: body.chat_client_message_id,
+              media_ref: { path, content_type: sniffed, size_bytes: bytes.length },
+              request_id: requestId,
+            },
+          } as never);
+
+          const ack = String(
+            (analysis as { student_message?: unknown } | null)?.student_message ?? "",
+          ).trim();
+          // Pas d'accusé rendu = l'analyse n'a pas tourné. On le DIT au lieu de
+          // laisser un silence qui ressemble à une photo ignorée.
+          const body_text = ack ||
+            "Saved. I could not analyse it just now — it is on file either way.";
+          const res = await deliverChatMessage(admin, {
+            userId,
+            content: body_text,
+            isReply: true,
+            purpose: "keel_meal_photo_ack",
+            requestId,
+            metadata: { media_path: path, event_id: eventId },
+          });
+          chatDelivered = res.chatMessageId;
+        }
+      } catch (chatError) {
+        console.warn(JSON.stringify({
+          tag: "meal_photo_chat_delivery_failed",
+          user_id: userId,
+          error: chatError instanceof Error ? chatError.message : String(chatError),
+        }));
+      }
+    }
+
     return jsonResponse(req, {
       ok: true,
       // `idempotent: true` means this exact upload was already on file. The
       // caller must not present it as a new fact.
       idempotent,
+      chat_message_id: chatDelivered,
       event: eventRow,
       // Read from the row, not from the analysis response: this is what the
       // evaluator will see.

@@ -6,30 +6,30 @@ import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
 import { getRequestId, jsonResponse } from "../_shared/http.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
 import { buildMealPdf } from "../_shared/keel/meal_pdf.ts";
-import { uploadWhatsAppMedia } from "../_shared/whatsapp_media.ts";
+import { deliverChatMessage } from "../_shared/chat/delivery.ts";
 import type { GeneratedDish, ShoppingItem } from "../_shared/keel/meal_generation.ts";
 
 /**
- * `meal-document-v1` — le PDF d'un repas, et son envoi WhatsApp.
+ * `meal-document-v1` — le PDF d'un repas, et son annonce dans la bulle.
  *
  * ── L'ORDRE DES ÉTAPES EST LE CONTRAT ────────────────────────────────────
  *   1. le PDF est construit;
  *   2. il est DÉPOSÉ dans le bucket, et la ligne `student_meal_documents` est
- *      écrite AVANT toute tentative d'envoi;
- *   3. l'envoi WhatsApp est tenté, et son résultat MET À JOUR la ligne.
+ *      écrite AVANT toute annonce;
+ *   3. le message est livré dans la bulle, et son résultat MET À JOUR la ligne.
  *
  * Cet ordre n'est pas cosmétique. Le fichier doit survivre à l'échec de
- * l'envoi: un élève dont le WhatsApp est fermé doit quand même pouvoir
- * télécharger sa liste depuis l'app, et un renvoi ne doit pas régénérer un
- * document différent de celui qu'on lui a déjà annoncé. L'ordre inverse
- * (envoyer puis écrire) produit exactement la classe d'incidents « accusé sans
- * ligne » que ce dépôt connaît: un message parti que rien ne référence.
+ * l'annonce, et un renvoi ne doit pas régénérer un document différent de celui
+ * qu'on a déjà annoncé. L'ordre inverse (annoncer puis écrire) produit
+ * exactement la classe d'incidents « accusé sans ligne » que ce dépôt connaît:
+ * un message parti que rien ne référence.
  *
- * ── CE QUI EST TESTABLE EN LOCAL, ET CE QUI NE L'EST PAS ─────────────────
- * Le PDF, le dépôt, la ligne et le statut `skipped` le sont entièrement.
- * L'upload média et l'envoi passent par Meta: NOT_TESTABLE_LOCALLY, et la
- * fonction est écrite pour que leur échec soit une ligne `failed` lisible
- * plutôt qu'une exception qui perd le fichier.
+ * ── DE-WHATSAPP: L'ÉTAPE QUI A DISPARU ──────────────────────────────────
+ * Il y avait un upload média Meta entre 2 et 3: déposer les octets sur Graph,
+ * récupérer un `media_id` qui expire à 30 jours, puis envoyer un message qui le
+ * référence. C'était la seule partie NOT_TESTABLE_LOCALLY de cette fonction.
+ * Elle disparaît entièrement: le fichier est déjà dans notre bucket et l'app
+ * sait le servir derrière une URL signée. Il n'y a rien à transporter.
  */
 
 const FN_NAME = "meal-document-v1";
@@ -159,71 +159,47 @@ Deno.serve(async (req) => {
     // --- 3. l'envoi, dont l'échec est une LIGNE et pas une exception ------
     let delivery: Record<string, unknown> = { status: send ? "pending" : "skipped" };
     if (send) {
-      const phone = String(profile.phone_number ?? "").trim();
-      if (!phone) {
+      // ── DE-WHATSAPP — LE DOCUMENT NE S'ENVOIE PLUS, IL S'ANNONCE ─────────
+      //
+      // Le chemin Meta était: déposer les octets sur `POST /{phone_id}/media`,
+      // récupérer un `media_id` (qui EXPIRE à 30 jours), puis envoyer un
+      // message qui le référence. Trois appels réseau, une pièce jointe
+      // dupliquée hors de notre stockage, et un identifiant périssable.
+      //
+      // L'app a déjà le fichier: il est dans `meal-documents`, la ligne
+      // `student_meal_documents` le référence, et `/app/meals` sait le
+      // télécharger derrière une URL signée. Il n'y a donc RIEN à transporter
+      // — seulement à dire que c'est prêt.
+      //
+      // L'ordre du fichier reste le contrat: le PDF et sa ligne existent AVANT
+      // cette étape, et un échec ici laisse un document parfaitement
+      // téléchargeable. C'est la même garantie qu'avant, avec une étape en
+      // moins qui pouvait la casser.
+      const label = mode === "to_shop"
+        ? "Your shopping list is ready."
+        : "What to cook with what you have is ready.";
+      const res = await deliverChatMessage(admin, {
+        userId,
+        content: `${label} You can open it from your meals screen.`,
+        purpose: "keel_meal_document",
+        // `isReply: true`: l'élève vient de demander ce document. Ce n'est pas
+        // une relance, et le plafond quotidien n'a rien à voir avec elle.
+        isReply: true,
+        requestId,
+        metadata: { document_id: documentId, filename },
+      });
+      if (res.delivered) {
         await admin.from("student_meal_documents")
-          .update({ delivery_status: "failed", delivery_error: "no_phone_number" })
+          .update({ delivery_status: "sent", sent_at: new Date().toISOString() })
           .eq("id", documentId);
-        delivery = { status: "failed", error: "no_phone_number" };
+        delivery = { status: "sent", chat_message_id: res.chatMessageId };
       } else {
-        try {
-          const mediaId = await uploadWhatsAppMedia({
-            bytes,
-            filename,
-            mimeType: "application/pdf",
-          });
-          const sendRes = await fetch(
-            `${requireEnv("SUPABASE_URL")}/functions/v1/whatsapp-send`,
-            {
-              method: "POST",
-              headers: {
-                "content-type": "application/json",
-                Authorization: `Bearer ${requireEnv("SUPABASE_SERVICE_ROLE_KEY")}`,
-                "x-internal-secret": Deno.env.get("INTERNAL_FUNCTION_SECRET") ?? "",
-              },
-              body: JSON.stringify({
-                user_id: userId,
-                purpose: "meal_document",
-                message: {
-                  type: "document",
-                  media_id: mediaId,
-                  filename,
-                  caption: mode === "to_shop"
-                    ? "Your shopping list."
-                    : "What to cook with what you have.",
-                },
-              }),
-            },
-          );
-          const sendJson = await sendRes.json().catch(() => ({}));
-          if (!sendRes.ok) {
-            await admin.from("student_meal_documents")
-              .update({
-                delivery_status: "failed",
-                delivery_error: String(sendJson?.error ?? `HTTP ${sendRes.status}`).slice(0, 500),
-              })
-              .eq("id", documentId);
-            delivery = { status: "failed", error: sendJson?.error ?? `HTTP ${sendRes.status}` };
-          } else {
-            await admin.from("student_meal_documents")
-              .update({
-                delivery_status: "sent",
-                sent_at: new Date().toISOString(),
-                whatsapp_message_id: String(sendJson?.message_id ?? "") || null,
-              })
-              .eq("id", documentId);
-            delivery = { status: "sent" };
-          }
-        } catch (error) {
-          // L'upload média a échoué. Le FICHIER EXISTE toujours et la ligne le
-          // dit: l'élève peut le télécharger, et un renvoi est possible sans
-          // rien régénérer.
-          const detail = error instanceof Error ? error.message : String(error);
-          await admin.from("student_meal_documents")
-            .update({ delivery_status: "failed", delivery_error: detail.slice(0, 500) })
-            .eq("id", documentId);
-          delivery = { status: "failed", error: detail };
-        }
+        // Un refus de livraison est une LIGNE, pas une exception: le fichier
+        // est là, l'élève peut le télécharger, et le motif est lisible.
+        await admin.from("student_meal_documents")
+          .update({ delivery_status: "failed", delivery_error: res.reason })
+          .eq("id", documentId);
+        delivery = { status: "failed", error: res.reason };
       }
     }
 

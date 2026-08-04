@@ -521,3 +521,79 @@ mes régressions, et je ne les compte pas comme vertes.**
 Filet de régression utilisé : `deno test _shared/ sophia-brain/ chat-inbound-v1/`
 **sans** les variables d'env → **2648 passed, 0 failed**.
 Frontend : `npx vitest run src/keel/` → **169 passed | 0 failed**.
+
+---
+
+## P3 — MÉDIAS
+
+### P3.1 — Décision : la photo garde UN SEUL chemin d'upload
+
+Le prompt propose « upload direct du client vers un bucket Storage privé ».
+**Je ne le fais pas, et c'est un refus motivé** : migration `20260727130000` et
+W1.4 R3 posent qu'il n'existe **aucune policy sur `storage.objects`** — `anon` et
+`authenticated` sont structurellement incapables de toucher les buckets, et tout
+accès fichier est une edge function en service_role qui a déjà vérifié la
+propriété. C'est l'arbitrage, pas une préférence.
+
+`meal-photo-upload-v1` est déjà ce chemin, avec deux gardes qu'un upload direct
+contournerait : la vérification du type par **octets magiques** (un client qui
+déclare `image/png` sur un payload arbitraire ne doit pas le voir stocké puis
+donné à un modèle) et le calcul de la **date locale côté serveur** (une date
+fournie par le client laisserait déposer une assiette sur un jour que
+l'évaluateur a déjà fermé).
+
+La bulle passe donc **par là**, via un champ optionnel `chat_client_message_id`.
+
+**Pourquoi la couture est dans la fonction d'upload et pas dans
+`chat-inbound-v1`** : l'accusé est rendu par `analyze-meal-photo-v1` à partir de
+la **liaison** et du **crédit réellement écrits**. Le faire re-rendre par la
+bulle demanderait de reconstruire la liaison depuis la ligne — une seconde
+implémentation de « qu'est-ce qui a été crédité », précisément la classe de
+mensonge que `renderMealPhotoAck` a été refondu pour rendre impossible
+(« an argument that is absent cannot be forgotten by a caller; an optional one
+can »).
+
+### P3.2 — `whatsapp_media.ts` MEURT, sans successeur
+
+Ce module déposait des octets sur `POST /{phone_id}/media` pour obtenir un
+`media_id` — qui **expire à 30 jours** — puis `meal-document-v1` envoyait un
+message le référençant. Trois appels réseau et une pièce jointe dupliquée hors de
+notre stockage.
+
+L'app a déjà le fichier : il est dans `meal-documents`, `student_meal_documents`
+le référence, et `/app/meals` sait le servir derrière une URL signée. **Il n'y a
+rien à transporter, seulement à dire que c'est prêt.** `meal-document-v1` livre
+donc un message dans la bulle. L'ordre du fichier reste le contrat (PDF et ligne
+écrits AVANT l'annonce) — avec une étape en moins qui pouvait le casser, et qui
+était la seule partie `NOT_TESTABLE_LOCALLY` de la fonction.
+
+**Épreuve d'absence** avant suppression :
+`grep -rn "whatsapp_media" supabase/functions frontend/src scripts` (hors le
+fichier lui-même) → **0 résultat**. Supprimé.
+
+### P3.3 — Le gantelet P3
+
+```
+deno test --allow-all supabase/functions/meal-photo-upload-v1/
+→ ok | 6 passed | 0 failed (28s)
+```
+
+Les durées (6 s, 9 s, 5 s) sont celles de **vrais appels au modèle de vision** —
+c'est la première fois de ce chantier qu'une image est réellement lue.
+
+| Cas | Vérifié |
+|---|---|
+| photo dans la bulle | la photo **et** son accusé, jamais l'un sans l'autre ; `media_ref` avec le type **sniffé** ; accusé `is_proactive: false` |
+| photo sans légende | trace lisible `[photo]` — une chaîne vide serait une bulle blanche |
+| **rejeu** (c) | même `chat_client_message_id` ⇒ `idempotent: true`, **2 messages au total** |
+| **non-image** (adversarial exigé) | refusé, **rien** dans la bulle, **et** l'identifiant d'idempotence non consommé |
+| absence de couture | `/app/today` reste muet — une photo prise sur l'écran du plan est un fait, pas une conversation |
+| **photo sans plan actif** (adversarial exigé) | le 409 reste le contrat d'API, **et** l'élève reçoit une réponse dans la bulle |
+
+🔴 **Défaut de produit trouvé au passage** : sans plan publié, la fonction rend
+409. Sur l'écran du jour c'est lisible ; **dans la bulle, l'élève ne lit pas un
+code HTTP** — il voit sa photo partir et rien revenir, ce qui est indiscernable
+d'une panne. La bulle reçoit maintenant une phrase qui explique pourquoi, sans
+lui reprocher quoi que ce soit (ne pas avoir de plan publié est le fait de son
+coach). Le test interdit la régression **et** le reproche
+(`!/you (?:should|must|need to|failed|forgot)/`).

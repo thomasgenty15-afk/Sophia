@@ -22,6 +22,11 @@ import WeeklyCheckInDialog, {
   type WeeklyCheckInValues,
 } from "../components/WeeklyCheckInDialog";
 import { isWeeklyCheckInToken } from "../api/weeklyCheckIn";
+import {
+  ACCEPTED_PHOTO_MIME_TYPES,
+  MAX_PHOTO_BYTES,
+  uploadMealPhoto,
+} from "../api/mealPhoto";
 import { t } from "../i18n/t";
 
 type Status = "connecting" | "live" | "offline";
@@ -152,6 +157,62 @@ export default function ChatPage() {
       );
     },
     [weeklyToken, send],
+  );
+
+  // ── LA PHOTO DE REPAS, DANS LA CONVERSATION ────────────────────────────────
+  // Elle ne passe PAS par `chat-inbound-v1`: `meal-photo-upload-v1` est le seul
+  // chemin qui touche le bucket (il n'existe aucune policy sur
+  // `storage.objects`, W1), et c'est lui qui écrit la photo ET son accusé dans
+  // la bulle. Un second chemin d'upload contournerait la vérification par
+  // octets magiques et le calcul de la date locale côté serveur.
+  const onPickPhoto = React.useCallback(
+    async (file: File | null) => {
+      if (!file || sending) return;
+      const mime = file.type.toLowerCase();
+      if (!(ACCEPTED_PHOTO_MIME_TYPES as readonly string[]).includes(mime)) {
+        setError(t("chat.photo.error.type"));
+        return;
+      }
+      if (file.size > MAX_PHOTO_BYTES) {
+        setError(t("chat.photo.error.size"));
+        return;
+      }
+      const clientMessageId = crypto.randomUUID();
+      setSending(true);
+      setThinking(true);
+      setError(null);
+      setMessages((prev) => [...prev, {
+        id: `pending-${clientMessageId}`,
+        role: "user",
+        content: t("chat.photo.sending"),
+        createdAt: new Date().toISOString(),
+        buttons: [],
+        pending: true,
+        clientMessageId,
+      }]);
+      try {
+        await uploadMealPhoto({
+          file,
+          slotKey: null,
+          clientUploadId: clientMessageId,
+          chatClientMessageId: clientMessageId,
+        });
+        await refetch();
+      } catch (err) {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.clientMessageId === clientMessageId
+              ? { ...m, pending: false, failed: true }
+              : m
+          )
+        );
+        setError(err instanceof Error ? err.message : String(err));
+      } finally {
+        setSending(false);
+        setThinking(false);
+      }
+    },
+    [sending, refetch],
   );
 
   const onSubmit = (event: React.FormEvent) => {
@@ -289,6 +350,26 @@ export default function ChatPage() {
         {error && <p className="text-sm text-red-600">{error}</p>}
 
         <form onSubmit={onSubmit} className="flex gap-2">
+          <label
+            className="inline-flex cursor-pointer items-center rounded-full border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+            aria-label={t("chat.photo.label")}
+          >
+            {t("chat.photo.label")}
+            <input
+              type="file"
+              accept={ACCEPTED_PHOTO_MIME_TYPES.join(",")}
+              className="hidden"
+              disabled={sending}
+              onChange={(e) => {
+                const file = e.target.files?.[0] ?? null;
+                // Le champ est remis à zéro pour que RE-choisir le même fichier
+                // redéclenche `change`. Sans ça, un envoi raté ne peut pas être
+                // réessayé avec la même photo.
+                e.target.value = "";
+                void onPickPhoto(file);
+              }}
+            />
+          </label>
           <input
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
