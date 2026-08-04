@@ -10,6 +10,9 @@ import {
   decideWeeklyFlow,
   WEEKLY_FLOW_BODY_EN,
   WEEKLY_FLOW_CTA_EN,
+  WEEKLY_TEMPLATE_LANG_DEFAULT,
+  WEEKLY_TEMPLATE_NAME_DEFAULT,
+  weeklyTemplateFlowComponents,
 } from "../_shared/keel/weekly_flow.ts";
 import {
   hasAnsweredWeek,
@@ -18,7 +21,10 @@ import {
   WEEKLY_FLOW_WEEK_META_KEY,
 } from "../_shared/keel/weekly_flow_io.ts";
 import { sendKeelWhatsApp } from "../_shared/keel/internal_send.ts";
-import { localHourFor } from "../_shared/keel/reengagement_io.ts";
+import {
+  isRestrictionFlagged,
+  localHourFor,
+} from "../_shared/keel/reengagement_io.ts";
 
 /**
  * PIVOT C4 — le job qui envoie le point hebdomadaire.
@@ -103,28 +109,16 @@ function localDowFor(now: Date, tz: string | null): number {
   return new Date(`${date}T00:00:00Z`).getUTCDay();
 }
 
-/**
- * Le plancher TCA de l'élève.
- *
- * On lit le bilan le plus récent, quel que soit son âge : un drapeau de
- * restriction ne se périme pas au bout d'une semaine, et le lever
- * automatiquement par simple écoulement du temps serait une décision clinique
- * prise par un `order by`.
- */
-async function isRestrictionFlagged(
-  admin: SupabaseClient,
-  userId: string,
-): Promise<boolean> {
-  const { data, error } = await admin
-    .from("weekly_reviews")
-    .select("risk_band")
-    .eq("user_id", userId)
-    .order("week_start_date", { ascending: false })
-    .limit(1);
-  if (error) throw error;
-  const row = (data ?? [])[0] as { risk_band?: string } | undefined;
-  return row?.risk_band === "restriction_flag";
-}
+// Le plancher TCA (`weekly_reviews.risk_band`) se lit désormais dans
+// `_shared/keel/reengagement_io.ts::isRestrictionFlagged`, importé ci-dessus.
+//
+// Il vivait ICI et nulle part ailleurs, et `keel-reengage-v1` posait
+// `restrictionFlag: false` en dur: sur le même élève et la même ligne, ce job
+// écartait pendant que la relance armait. Deux lecteurs pour un plancher
+// clinique, c'est un lecteur de trop. La raison de lire le bilan le plus
+// récent quel que soit son âge — un drapeau de restriction ne se périme pas, et
+// le lever par simple écoulement du temps serait une décision clinique prise
+// par un `order by` — est partie avec la fonction.
 
 Deno.serve(async (req) => {
   const requestId = getRequestId(req);
@@ -146,12 +140,26 @@ Deno.serve(async (req) => {
     const flowId = cleanText(body.flow_id) ||
       cleanText(Deno.env.get("KEEL_WEEKLY_FLOW_ID")) || null;
 
+    // Le template qui porte le Flow hors fenêtre 24h. Le Flow et son écran
+    // d'entrée sont déclarés DANS le template chez Meta; il ne reste ici que
+    // le jeton de corrélation.
+    const templateName = cleanText(
+      Deno.env.get("WHATSAPP_KEEL_WEEKLY_TEMPLATE_NAME"),
+      WEEKLY_TEMPLATE_NAME_DEFAULT,
+    );
+    const templateLang = cleanText(
+      Deno.env.get("WHATSAPP_KEEL_WEEKLY_TEMPLATE_LANG"),
+      WEEKLY_TEMPLATE_LANG_DEFAULT,
+    );
+
     const admin = adminClient();
     const startedAt = Date.now();
 
     let cursor = cleanText(body.after_user_id);
     let scanned = 0;
     let sent = 0;
+    /** Combien des envois ci-dessus ont dû passer par le template. */
+    let sentViaTemplate = 0;
     const bySkip: Record<string, number> = {};
     const failures: string[] = [];
     let exhausted = false;
@@ -236,7 +244,10 @@ Deno.serve(async (req) => {
             // `functions.invoke` n'envoie PAS `x-internal-secret`, et c'est la
             // seule porte de `whatsapp-send`: chaque envoi recevait 403.
             // Voir `_shared/keel/internal_send.ts`.
-            const sent = await sendKeelWhatsApp({
+            const flowToken = buildWeeklyFlowToken(weekStart);
+            // Nommé `res` et pas `sent`: le compteur du job s'appelle `sent`, et
+            // l'ombrer empêchait de l'incrémenter depuis cette branche.
+            const res = await sendKeelWhatsApp({
               user_id: cursor,
               to: row.phone_number,
               purpose: "keel_weekly_flow",
@@ -250,22 +261,48 @@ Deno.serve(async (req) => {
                 flow_id: flowId,
                 // Le jeton ne porte que la semaine: l'élève est identifié par
                 // le numéro qui répond, jamais par le contenu du jeton.
-                flow_token: buildWeeklyFlowToken(weekStart),
+                flow_token: flowToken,
                 flow_cta: WEEKLY_FLOW_CTA_EN,
                 screen: FLOW_ENTRY_SCREEN,
               },
             });
-            if (sent.status === 409) {
+            if (res.status === 409) {
               // Fenêtre 24h fermée. Ce n'est PAS une panne: c'est la règle de
               // Meta, et l'élève silencieux est justement celui qu'on visait.
-              // On le compte comme un écart NOMMÉ plutôt qu'en `failures`,
-              // sinon le compte-rendu d'un dimanche normal ressemble à un
-              // incident. Le produit devra trancher: template KEEL approuvé qui
-              // rouvre la fenêtre, ou renoncer à demander aux silencieux.
-              bySkip.window_closed_at_send = (bySkip.window_closed_at_send ?? 0) + 1;
+              // Le produit a tranché — c'est le template KEEL qui rouvre la
+              // porte, pas le renoncement.
+              //
+              // Le template est nommé EXPLICITEMENT: le repli générique de
+              // `whatsapp-send` enverrait `global_reach_template` (« J'ai une
+              // info pour toi », en français) à un élève anglophone, et
+              // compterait ça comme un succès. C'est l'incident du 2026-07-12.
+              const viaTemplate = await sendKeelWhatsApp({
+                user_id: cursor,
+                to: row.phone_number,
+                purpose: "keel_weekly_flow",
+                metadata_extra: {
+                  [WEEKLY_FLOW_WEEK_META_KEY]: weekStart,
+                  keel_weekly_via_template: true,
+                },
+                message: {
+                  type: "template",
+                  name: templateName,
+                  language: templateLang,
+                  components: weeklyTemplateFlowComponents(flowToken),
+                },
+              });
+              if (!viaTemplate.ok) {
+                // Le template n'est pas encore approuvé, ou le nom est faux.
+                // On le NOMME au lieu de le compter en panne muette: sans ça,
+                // un dimanche entier sans bilan ressemble à un dimanche calme.
+                bySkip.window_closed_at_send = (bySkip.window_closed_at_send ?? 0) + 1;
+                continue;
+              }
+              sentViaTemplate++;
+              sent++;
               continue;
             }
-            if (!sent.ok) throw new Error(sent.error);
+            if (!res.ok) throw new Error(res.error);
           }
           sent++;
         } catch (error) {
@@ -282,6 +319,8 @@ Deno.serve(async (req) => {
       flow_configured: Boolean(flowId),
       scanned,
       sent,
+      sent_via_template: sentViaTemplate,
+      template_name: templateName,
       skipped_by_reason: bySkip,
       exhausted,
       next_after_user_id: exhausted ? null : cursor || null,

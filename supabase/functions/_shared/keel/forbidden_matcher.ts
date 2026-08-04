@@ -144,6 +144,42 @@ const NEGATION_WORD = [
   "reject",
   "rejects",
   "rejected",
+  // RETIRER / SUBSTITUER — le trou symétrique de celui des contractions, et il
+  // était LIVE en anglais (QA agent 4, 2026-08-03). Le français avait déjà
+  // `supprime`/`remplace`; l'anglais n'avait ni `remove` ni `replace` ni
+  // `swap`. Mesuré sur une contrainte `peanut` `severity='medical'`:
+  //
+  //   "Replace the peanuts with pumpkin seeds."  -> REJETÉ
+  //   "Remove the peanut butter from breakfast." -> REJETÉ
+  //   "Swap the peanuts for pumpkin seeds."      -> REJETÉ
+  //
+  // Ce sont les phrases les plus normales qu'un agent de nutrition produise à
+  // propos d'un allergène — c'est littéralement le vocabulaire de
+  // `autonomy='swap_within_policy'`. Chacune faisait remplacer le message
+  // ENTIER par « pose la question à un médecin ». Le test qui couvrait cette
+  // garantie n'existait qu'en FRANÇAIS, où la liste était complète: le même
+  // accident de langue que les contractions, à l'envers.
+  "remove",
+  "removes",
+  "removing",
+  "replace",
+  "replaces",
+  "replacing",
+  "swap",
+  "swaps",
+  "swapping",
+  "drop",
+  "drops",
+  "dropping",
+  "omit",
+  "omits",
+  "omitting",
+  "leave\\s+out",
+  "leaves\\s+out",
+  "cut\\s+out",
+  "cuts\\s+out",
+  "take\\s+out",
+  "takes\\s+out",
   "instead\\s+of",
   "rather\\s+than",
   "moved\\s+away\\s+from",
@@ -246,6 +282,39 @@ const NEGATED_VERB = [
   "put\\s+you\\s+on",
   "go\\s+for",
   "goes\\s+for",
+  // CUISINER. Ajouté avec la liste d'ALIMENTS déconseillés du coach, parce que
+  // c'est le verbe que prend cette liste-là. Un interdit est une PRATIQUE et se
+  // nie avec « doesn't DO six small meals »; un aliment est un INGRÉDIENT et se
+  // nie avec « doesn't COOK WITH seed oil ». Sans ces trois formes, la phrase
+  // que l'en-tête de `doctrine.ts` désigne comme devant survivre — l'agent
+  // EXPLIQUE la méthode de son coach — était bloquée, et le message entier
+  // remplacé. Mesuré, pas supposé.
+  "cook",
+  "cooks",
+  "cooking",
+].join("|");
+
+/**
+ * LA PRÉPOSITION qui peut suivre le verbe. Liste FERMÉE, volontairement
+ * minuscule.
+ *
+ * Créneau séparé et non fondu dans `NEGATION_ARTICLE`: un déterminant et une
+ * préposition ne se placent pas au même endroit, et les mélanger autoriserait
+ * des enchaînements que personne n'écrit tout en rendant la règle illisible.
+ *
+ * CE QUI REND L'AJOUT SÛR reste l'ancre `$` de `NEGATION_BEFORE`: négation,
+ * verbe, préposition et déterminants doivent courir SANS INTERRUPTION jusqu'au
+ * token. « don't skip breakfast, cook with seed oil » mord donc toujours — la
+ * virgule après « breakfast » casse la course. C'est cette propriété qui est
+ * testée, pas chaque mot de la liste.
+ */
+const NEGATION_PREPOSITION = [
+  "with\\s+",
+  "avec\\s+",
+  "a\\s+l'\\s*",
+  "a\\s+la\\s+",
+  "au\\s+",
+  "aux\\s+",
 ].join("|");
 
 // NOTE ON THE ARTICLE LIST. It used to stop at `de`/`du`/`des`/`de la`/`d'`,
@@ -284,7 +353,7 @@ const NEGATION_ARTICLE = [
 ].join("|");
 
 const NEGATION_BEFORE = new RegExp(
-  `(?:\\b(?:${NEGATION_WORD})\\s+(?:(?:${NEGATED_VERB})\\s+)?(?:${NEGATION_ARTICLE})*)$`,
+  `(?:\\b(?:${NEGATION_WORD})\\s+(?:(?:${NEGATED_VERB})\\s+)?(?:${NEGATION_PREPOSITION})?(?:${NEGATION_ARTICLE})*)$`,
 );
 
 const NEGATION_AFTER =
@@ -311,6 +380,10 @@ export function findForbiddenMatches(
   const offsetsAligned = haystack.length === haystackRaw.length;
 
   const matches: ForbiddenMatch[] = [];
+  // Les portées DÉJÀ BLANCHIES par la négation, par règle. Voir le bloc
+  // « MENTION IMBRIQUÉE » plus bas: sans ça, une forme de surface longue
+  // blanchie laisse survivre le mot court qu'elle contient.
+  const clearedSpans = new Map<string, Array<[number, number]>>();
   for (const term of terms) {
     const needles = [term.token, ...(term.surfaceForms ?? [])]
       .map((n) => String(n ?? "").trim())
@@ -323,25 +396,61 @@ export function findForbiddenMatches(
           pattern.lastIndex += 1;
           continue;
         }
-        const before = haystack.slice(0, match.index);
-        const after = haystack.slice(match.index + match[0].length);
+        const start = match.index;
+        const end = start + match[0].length;
+        const before = haystack.slice(0, start);
+        const after = haystack.slice(end);
         if (
           allowNegated &&
           (NEGATION_BEFORE.test(before) || NEGATION_AFTER.test(after))
         ) {
+          const spans = clearedSpans.get(term.ruleId) ?? [];
+          spans.push([start, end]);
+          clearedSpans.set(term.ruleId, spans);
           continue;
         }
         matches.push({
           ruleId: term.ruleId,
           token: needle.toLowerCase(),
           matchedText: offsetsAligned
-            ? haystackRaw.slice(match.index, match.index + match[0].length)
+            ? haystackRaw.slice(start, end)
             : match[0],
-          index: match.index,
+          index: start,
         });
       }
     }
   }
+
+  // MENTION IMBRIQUÉE = MÊME MENTION.
+  //
+  // La négation est évaluée PAR AIGUILLE, et les aiguilles d'une même règle se
+  // chevauchent par construction (`peanut` a `beurre de cacahuete` ET
+  // `cacahuete` comme formes de surface). Sur:
+  //
+  //     "Supprime le beurre de cacahuète du petit-déjeuner."
+  //
+  // la forme longue commence à « beurre », voit « supprime le » juste avant,
+  // et est correctement blanchie. La forme courte commence à « cacahuète »,
+  // voit « ...le beurre de » — où « beurre » n'est ni un déterminant ni un
+  // verbe de la liste — et SURVIT. La dédup ne peut pas les fusionner: elle est
+  // indexée sur l'offset, et les deux offsets diffèrent.
+  //
+  // Résultat: une phrase qui RETIRE l'allergène était rejetée comme si elle le
+  // recommandait. La règle ci-dessous le dit une fois pour toutes: une
+  // occurrence entièrement CONTENUE dans une occurrence déjà blanchie de la
+  // MÊME règle n'est pas une seconde mention, c'est la même — vue par une
+  // aiguille plus courte.
+  //
+  // Portée volontairement étroite: `ruleId` identique et containment STRICT
+  // (`<=`/`>=` sur les deux bornes). Deux interdits distincts qui se
+  // chevauchent restent deux constats, et une mention qui déborde de la portée
+  // blanchie n'est pas couverte.
+  const surviving = matches.filter((m) => {
+    const spans = clearedSpans.get(m.ruleId);
+    if (!spans) return true;
+    const end = m.index + m.matchedText.length;
+    return !spans.some(([s, e]) => m.index >= s && end <= e);
+  });
 
   // ONE OCCURRENCE IS ONE VIOLATION.
   //
@@ -358,7 +467,7 @@ export function findForbiddenMatches(
   // needles overlap, the longest match wins -- it is the most specific phrasing,
   // and the one a human reading the report needs to see.
   const best = new Map<string, ForbiddenMatch>();
-  for (const m of matches) {
+  for (const m of surviving) {
     const key = `${m.ruleId} ${m.index}`;
     const kept = best.get(key);
     if (!kept || m.matchedText.length > kept.matchedText.length) best.set(key, m);

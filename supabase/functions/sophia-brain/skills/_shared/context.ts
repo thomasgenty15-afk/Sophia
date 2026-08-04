@@ -52,6 +52,17 @@ export type SkillContext = {
    * sur un tour possédé par safety — le visible agent la restitue en une
    * ligne ou la diffère honnêtement, jamais un silence. */
   benign_recall_request?: { asked: boolean; facts: string[] } | null;
+  /**
+   * W4.2 / QA agent-12: `profiles.country`, ISO 3166-1 alpha-2, tel que le
+   * runtime l'a lu — JAMAIS dérivé de la locale ici, la précédence est la
+   * règle de `crisis_resources.ts`. C'est le canal par lequel la lane crise
+   * apprend le pays, le même que `disordered_eating_guard_runtime.country`
+   * pour la lane TCA.
+   *
+   * `null` = pays inconnu, et cela DOIT rester distinguable d'un pays connu:
+   * le repli international n'est correct que sur un inconnu déclaré.
+   */
+  student_country?: string | null;
 };
 
 export type LoadSkillContextInput = {

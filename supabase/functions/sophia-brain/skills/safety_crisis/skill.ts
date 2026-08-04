@@ -114,10 +114,25 @@ export async function runSafetyCrisisSkill(
     currentUserMessage: input.user_message,
     noteInformationInbound: input.context.turn_frame.note_information ?? null,
     benignRecallRequest,
-    // W3.3: le seul signal porteur de pays sur un tour aujourd'hui
-    // (`profiles` a `locale`, pas `country`). Absent => le reducer applique
-    // le défaut DÉCLARÉ de la branche; présent mais non semé => jeu
-    // international, bruyamment. Jamais de numéro en dur.
+    // W4.2 / QA agent-12: `profiles.country` D'ABORD, la locale seulement
+    // ensuite. Le commentaire précédent ici disait « `profiles` a `locale`,
+    // pas `country` » — vrai en W3.3, faux depuis la migration
+    // 20260727190000, et cette phrase périmée est TOUT ce qui restait pour
+    // justifier de ne pas lire la colonne. Le résultat mesuré: un élève
+    // `country='US'` en crise recevait 999 / 112 / 116 123, des numéros
+    // britanniques qui ne décrochent pas depuis les États-Unis, parce que sa
+    // locale valait 'en-GB'. C'est l'incident W3.3 (« un Américain reçoit le
+    // 3114 ») rejoué dans une autre paire de pays.
+    //
+    // Le pays arrive par le contexte du skill, comme le fait déjà
+    // `disordered_eating_guard_runtime.country` — la lane TCA lisait
+    // `profiles.country` correctement pendant que la lane crise ne la lisait
+    // pas, et cette asymétrie était l'oubli, pas une décision.
+    //
+    // Absent (null) => comportement INCHANGÉ: le reducer retombe sur la
+    // locale, puis sur le défaut déclaré de la branche. Cette garde ne peut
+    // donc que restreindre le mauvais numéro, jamais en introduire un.
+    userCountry: input.context.student_country ?? null,
     userLocale: input.context.turn_frame.direct_effect_time_context
       ?.user_locale ?? null,
   });

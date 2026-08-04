@@ -603,6 +603,7 @@ const SANITIZED_DIRECT_EFFECT_TYPES: ReadonlySet<DirectEffectType> = new Set<
   "track_progress_plan_item",
   "log_protocol_event",
   "declare_deviation",
+  "declare_safety_constraint",
 ]);
 
 function sanitizedDirectEffectType(value: string): DirectEffectType | null {
@@ -934,8 +935,32 @@ function sanitizeLlmTurnFrame(
     responseIntentNormalized.includes("status_question") ||
     responseIntentNormalized.includes("verification") ||
     responseIntentNormalized.includes("_verify");
+  // QA agent 4 — EXCLUSIVITÉ KEEL / LEGACY, RENDUE STRUCTURELLE.
+  //
+  // La règle 3k du prompt dit déjà « quand keel_plan_context est présent,
+  // n'émets jamais track_progress_plan_item ». Elle a été VIOLÉE en run réel:
+  // « I had a chicken salad for lunch » sur un élève KEEL a produit un
+  // `track_progress_plan_item` portant l'uuid d'un `plan_commitments`, que le
+  // tracker legacy a correctement refusé (`target_not_in_plan`) — et le repas
+  // a disparu. Aucune ligne, aucun message d'erreur, un fait perdu.
+  //
+  // C'est la leçon `p8-revalidation-rose-reds` dans sa forme la plus nette: un
+  // correctif prompt-only régresse en run réel. La règle vit donc désormais
+  // ici, en TypeScript, où le modèle ne peut pas ne pas l'appliquer.
+  //
+  // CONDITION DE DÉSARMEMENT (P9): le filtre ne mord QUE quand
+  // `keel_plan_context` est présent — c'est-à-dire pour un élève KEEL avec un
+  // plan publié. La branche FR legacy, où `track_progress_plan_item` est le
+  // seul effet de suivi qui existe, n'est pas touchée d'une ligne.
+  const isKeelTurn = Boolean(String(input.keel_plan_context ?? "").trim());
+  const scopedDirectEffects = isKeelTurn
+    ? directEffects.filter(
+      (effect) => effect.effect_type !== "track_progress_plan_item",
+    )
+    : directEffects;
+
   let guardedDirectEffects = statusCheckIntent
-    ? directEffects.filter((effect) => {
+    ? scopedDirectEffects.filter((effect) => {
       if (effect.effect_type === "create_one_shot_reminder") {
         const payloadIntent = String(
           (effect.payload_hint as Record<string, unknown> | undefined)
@@ -967,9 +992,17 @@ function sanitizeLlmTurnFrame(
       ) {
         return false;
       }
+      // `declare_safety_constraint` N'EST PAS dans la liste ci-dessus, et c'est
+      // délibéré. Le filtre porte sur les tours de VÉRIFICATION (« j'ai bien
+      // pris mon magnésium ? »), où écrire rendrait l'assertion
+      // auto-réalisatrice. Une contrainte dure ne joue pas dans cette classe:
+      // « je suis bien allergique aux arachides, non ? » n'est pas une
+      // question dont l'écriture fabrique la réponse — la contrainte est vraie
+      // ou fausse indépendamment du tour, et sur-enregistrer sur-bloque
+      // (récupérable) là où sous-enregistrer sert l'allergène.
       return true;
     })
-    : directEffects;
+    : scopedDirectEffects;
   // P3-C (paul-untested16 R1-B01): même invariant intra-frame que P2-1, côté
   // CORRECTION — le frame se classait lui-même track_progress_correction
   // (confiance 0.95) pendant que l'émission portait correction=false : la

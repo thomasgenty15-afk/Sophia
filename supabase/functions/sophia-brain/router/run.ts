@@ -225,6 +225,8 @@ import {
 } from "../../_shared/keel/locale.ts";
 import { createProtocolEventWrite } from "../tools/always_on/log_protocol_event/db.ts";
 import { runLogProtocolEventDirectEffect } from "../tools/always_on/log_protocol_event/router.ts";
+import { createSafetyConstraintWrite } from "../tools/always_on/declare_safety_constraint/db.ts";
+import { runDeclareSafetyConstraintDirectEffect } from "../tools/always_on/declare_safety_constraint/router.ts";
 import { createPlannedDeviationWrite } from "../tools/always_on/declare_deviation/db.ts";
 import { runDeclareDeviationDirectEffect } from "../tools/always_on/declare_deviation/router.ts";
 import type { DayResolution } from "../tools/always_on/declare_deviation/contract.ts";
@@ -260,6 +262,7 @@ import type {
 import { extractSwapPolicy } from "../../evaluate-adherence-v1/snapshot.ts";
 import {
   loadStudentSafetyConstraints,
+  safetyConstraintsPromptBlock,
   type StudentSafetyConstraint,
 } from "../../_shared/keel/safety_constraints.ts";
 // PIVOT §3.3 — la ceinture de sortie (les deux verrous) et le chargeur de
@@ -1046,6 +1049,11 @@ const KEEL_LEDGER_EFFECT_TYPES: Readonly<
     table: "planned_deviations",
     id_field: "planned_deviation_id",
   },
+  declare_safety_constraint: {
+    effect_type: "safety_constraint.declare",
+    table: "student_safety_constraints",
+    id_field: "constraint_id",
+  },
 };
 
 function keelLedgerPayloadSummary(
@@ -1334,11 +1342,26 @@ export async function loadKeelTurnContext(args: {
 
   // PIVOT §3.3 — CEINTURE DE SORTIE, moitié « contraintes dures ».
   //
-  // FAIL-OPEN NOMMÉ, même arbitrage que le plancher TCA juste au-dessus, et
-  // pour la même raison asymétrique: bloquer la livraison de TOUS les messages
-  // de TOUS les élèves pendant un hoquet Postgres est une panne produit
-  // complète, alors qu'un tour non vérifié est un risque borné — le prompt
-  // porte déjà les contraintes, seule la vérification déterministe manque.
+  // FAIL-OPEN NOMMÉ, même arbitrage que le plancher TCA juste au-dessus:
+  // bloquer la livraison de TOUS les messages de TOUS les élèves pendant un
+  // hoquet Postgres est une panne produit complète, alors qu'un tour non
+  // vérifié est un risque borné.
+  //
+  // ⚠️ CE COMMENTAIRE A ÉTÉ FAUX, et c'est le genre de faux qui coûte cher.
+  // Il disait: « le prompt porte déjà les contraintes, seule la vérification
+  // déterministe manque ». Vérifié le 2026-08-03 (QA agent 4): AUCUN prompt ne
+  // portait les contraintes. Le fail-open — le seul arbitrage
+  // disponibilité-contre-vérification du fichier — était donc adossé à une
+  // moitié de verrou qui n'existait pas: en panne de lecture, il ne restait
+  // RIEN, pas « une moitié sur deux ».
+  //
+  // La phrase est maintenant vraie: `withKeelDoctrineBlock` injecte
+  // `safetyConstraintsPromptBlock` en TÊTE du contexte. Le fail-open dégrade
+  // donc bien de deux moitiés à une seule, ce qui est ce qu'il prétendait
+  // faire. Si l'injection de prompt disparaît un jour, CE FAIL-OPEN DOIT ÊTRE
+  // INVERSÉ en même temps — les deux se tiennent, et c'est la raison d'être de
+  // ce paragraphe.
+  //
   // L'incident est BRUYANT (`safety_constraints_unavailable_reason` + log), et
   // la distinction `null` (pas lu) / `[]` (rien à lire) est préservée: c'est
   // exactement ce que `loadStudentSafetyConstraints` protège en throwant.
@@ -1505,7 +1528,9 @@ export function disorderedEatingWorkingStateForTurn(
 function keelToolExecutionFor(
   status: string,
 ): OperationRuntimeResult["toolExecution"] {
-  if (status === "logged" || status === "declared") return "success";
+  if (
+    status === "logged" || status === "declared" || status === "recorded"
+  ) return "success";
   if (status === "failed") return "failed";
   if (status === "ignored") return "none";
   return "blocked";
@@ -1574,7 +1599,8 @@ export async function runKeelDirectEffectLane(
   const toRun = new Set(input.routeDecision.direct_effects_to_run);
   const runLog = toRun.has("log_protocol_event");
   const runDeviation = toRun.has("declare_deviation");
-  if (!runLog && !runDeviation) return null;
+  const runConstraint = toRun.has("declare_safety_constraint");
+  if (!runLog && !runDeviation && !runConstraint) return null;
 
   const handlers: string[] = [];
   const replies: string[] = [];
@@ -1675,6 +1701,29 @@ export async function runKeelDirectEffectLane(
         // a montré et le runtime le rejette.
         allowed_commitment_ids: keelBindableCommitmentIds(input.keel.plan_context),
         write_protocol_event: createProtocolEventWrite({
+          supabase: input.supabase,
+        }),
+      }),
+    );
+  }
+
+  // QA agent 4 — L'ÉCRITURE DE LA CONTRAINTE DURE.
+  //
+  // Elle ne porte AUCUNE des deux ceintures des effets voisins, et chacune de
+  // ces absences est une décision:
+  //   * pas de ceinture « intention future »: « je vais être allergique » n'a
+  //     pas de sens. La contrainte est un état, pas un événement daté.
+  //   * pas de dépendance au plan: `plan_context` peut être null. Une allergie
+  //     déclarée par un élève sans plan publié doit être enregistrée quand
+  //     même — c'est précisément le moment où le coach ne l'a pas encore vue.
+  if (runConstraint) {
+    absorb(
+      "declare_safety_constraint",
+      await runDeclareSafetyConstraintDirectEffect({
+        turn_frame: input.turnFrame,
+        user_id: input.userId,
+        content_locale: input.keel.content_locale,
+        write_safety_constraint: createSafetyConstraintWrite({
           supabase: input.supabase,
         }),
       }),
@@ -1970,10 +2019,32 @@ export function withKeelDoctrineBlock(
   keel: KeelTurnContext,
 ): string {
   if (!keel.is_student) return context;
-  const block = keel.doctrine ? doctrineBlockFor(keel.doctrine) : null;
-  if (!block || !block.trim()) return context;
+  const blocks: string[] = [];
+
+  // PIVOT §3.3 — LA MOITIÉ « AVANT GÉNÉRATION » DU VERROU MÉDICAL, et elle
+  // manquait entièrement (QA agent 4, 2026-08-03).
+  //
+  // Elle passe AVANT la doctrine, délibérément, pour la raison exacte donnée
+  // ci-dessus sur l'ordre: le budget de prompt tronque PAR LA QUEUE. Sur un
+  // tour riche — celui où l'agent a le plus de matière pour proposer à manger,
+  // donc celui où l'allergène risque le plus de sortir — c'est le dernier bloc
+  // qui saute. Mettre la contrainte dure derrière la doctrine reviendrait à la
+  // faire disparaître précisément quand elle compte.
+  //
+  // `safety_constraints === null` (lecture en panne) ne produit AUCUN bloc,
+  // et c'est la bonne posture: on n'écrit pas « aucune contrainte » quand on
+  // ne sait pas. La distinction null / [] est préservée jusqu'ici.
+  const safetyBlock = safetyConstraintsPromptBlock(keel.safety_constraints);
+  if (safetyBlock && safetyBlock.trim()) blocks.push(safetyBlock);
+
+  const doctrine = keel.doctrine ? doctrineBlockFor(keel.doctrine) : null;
+  if (doctrine && doctrine.trim()) blocks.push(doctrine);
+
+  if (blocks.length === 0) return context;
   const base = String(context ?? "");
-  return base.trim() ? `${block}\n\n${base}` : block;
+  return base.trim()
+    ? `${blocks.join("\n\n")}\n\n${base}`
+    : blocks.join("\n\n");
 }
 
 export function finalVisibleText(
@@ -2053,8 +2124,42 @@ export function finalVisibleText(
     isKeelStudent: keel.is_student === true,
     safetyConstraints: keel.safety_constraints,
     doctrine: keel.doctrine?.doctrine ?? null,
+    // Condition de désarmement n°5: ce que CE TOUR retire. Lu depuis le FRAME
+    // (la demande de l'élève), pas depuis le texte généré — une ceinture qui
+    // se désarmerait sur une phrase que le modèle a écrite se désarmerait
+    // toute seule.
+    retractedConstraintRefs: retractedConstraintRefsIn(turnFrame),
   });
   return locked.text;
+}
+
+/**
+ * Les identifiants qu'un tour demande de RETIRER.
+ *
+ * Lu sur `direct_effects` — donc sur ce que l'élève a demandé — et non sur les
+ * effets committés: la ceinture s'applique au rendu, qui peut précéder ou
+ * suivre l'écriture, et une rétractation qui échoue en base doit quand même
+ * pouvoir être EXPLIQUÉE à l'élève. Le pire cas d'un désarmement trop large
+ * ici est une phrase qui nomme un allergène que l'élève vient lui-même de
+ * nommer pour le retirer; le pire cas de l'inverse est un élève enfermé.
+ */
+function retractedConstraintRefsIn(frame: TurnFrame | null): string[] {
+  if (!frame) return [];
+  const refs: string[] = [];
+  for (const effect of frame.direct_effects ?? []) {
+    if (effect.effect_type !== "declare_safety_constraint") continue;
+    const payload = (effect.payload_hint ?? {}) as Record<string, unknown>;
+    if (String(payload.intent ?? "").trim().toLowerCase() !== "retract") {
+      continue;
+    }
+    for (
+      const key of ["allergen_ref", "substance_ref", "medication_class"]
+    ) {
+      const value = String(payload[key] ?? "").trim();
+      if (value) refs.push(value);
+    }
+  }
+  return refs;
 }
 
 /**
@@ -4334,6 +4439,13 @@ export async function processMessage(
           exclusions: [],
           precomputed_safety_crisis_local_dispatcher_output:
             precomputedSafetyCrisisLocalDispatcherOutput,
+          // QA agent-12: le pays de l'élève, lu dans `profiles.country` par
+          // `loadKeelTurnContext`. Sans lui, la résolution des numéros
+          // d'urgence retombait sur la locale — et un élève `country='US'`
+          // dont la locale vaut 'en-GB' recevait 999 / 116 123 en pleine
+          // crise. `keelTurn.country` est `null` hors KEEL, ce qui laisse le
+          // comportement legacy intact.
+          student_country: keelTurn.country,
           // P7-A (paul-p6reval R1-B06): une question de recall bénigne posée
           // PENDANT le flow safety reçoit au minimum un accusé — le silence
           // total (2 tours de suite observés) est un déni de la demande.

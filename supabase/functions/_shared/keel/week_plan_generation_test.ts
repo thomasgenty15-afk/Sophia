@@ -53,6 +53,20 @@ const DOCTRINE = {
       instead: "Three meals you actually finish. Grazing hides how much you eat.",
     },
   ],
+  // Les aliments déconseillés sont vérifiés par le MÊME verrou que les
+  // interdits, donc la fixture les porte. `recommended` reste vide ici: un
+  // aliment conseillé nommé dans un plan est le comportement attendu, jamais
+  // une violation, et le test qui le prouve est plus bas.
+  foods: {
+    recommended: [],
+    discouraged: [
+      {
+        term: "seed oil",
+        surfaceForms: ["seed oils", "sunflower oil", "rapeseed oil"],
+        reason: "he cooks with butter and olive oil, nothing else",
+      },
+    ],
+  },
 };
 
 const PEANUT: StudentSafetyConstraint = {
@@ -265,6 +279,101 @@ Deno.test("a numeric target in the RATIONALE is caught too", () => {
   assertEquals(plan.rejected_numeric, ["macro_quantity"]);
 });
 
+// --- la conviction du COACH est elle aussi du texte lu par l'élève ---------
+//
+// Trouvé en conditions réelles (QA agent 5, 2026-08-03) et pas en test: le
+// modèle rédigeait un libellé impeccable en le rattachant à une conviction
+// chiffrée, `rejected_numeric` restait vide, et l'app affichait quand même
+// « 30 g of protein » / « 1800 kcal » / « 40% » dans la citation sous la ligne.
+// Le filtre ne lisait que ce que SOPHIA écrit, jamais ce que le COACH a écrit.
+
+const NUMERIC_PRINCIPLES: CoachPrinciple[] = [
+  {
+    belief_key: "thirty_grams_per_meal",
+    claim: "Aim for 30 g of protein at every single meal.",
+    rationale: null,
+  },
+  {
+    belief_key: "vegetables_are_the_floor",
+    claim: "Vegetables are the floor of a plate, not a garnish.",
+    rationale: null,
+  },
+];
+
+Deno.test("a conviction that CARRIES a number never reaches the student", () => {
+  const plan = parseWeekPlan(
+    {
+      items: [{
+        // Le libellé est propre: c'est tout le piège. Rien dans ce que Sophia
+        // écrit ne déclenche le filtre d'origine.
+        kind: "nutrition",
+        label: "Build each meal around a solid protein anchor",
+        rationale: "It keeps the day from being a negotiation.",
+        source_belief_key: "thirty_grams_per_meal",
+        days: ["mon"],
+      }],
+    },
+    NUMERIC_PRINCIPLES,
+    { doctrine: DOCTRINE, safetyConstraints: [], maxNutrition: 4 },
+  );
+  assertEquals(plan.items, []);
+  assertEquals(plan.rejected_numeric, ["source_claim:macro_quantity"]);
+  assert(plan.issues.some((i) => i.includes("thirty_grams_per_meal")));
+});
+
+Deno.test("the numeric conviction is dropped, the clean ones beside it survive", () => {
+  // Le rejet est CHIRURGICAL: il ne coûte pas au plan les lignes qui n'ont
+  // rien à se reprocher. Sans ce test, la garde pourrait vider tout un plan
+  // parce qu'une seule conviction du coach porte un chiffre.
+  const plan = parseWeekPlan(
+    {
+      items: [
+        {
+          kind: "nutrition",
+          label: "Build each meal around an anchor",
+          rationale: "",
+          source_belief_key: "thirty_grams_per_meal",
+          days: ["mon"],
+        },
+        {
+          kind: "nutrition",
+          label: "Put vegetables down first",
+          rationale: "",
+          source_belief_key: "vegetables_are_the_floor",
+          days: ["tue"],
+        },
+      ],
+    },
+    NUMERIC_PRINCIPLES,
+    { doctrine: DOCTRINE, safetyConstraints: [], maxNutrition: 4 },
+  );
+  assertEquals(plan.items.length, 1);
+  assertEquals(plan.items[0].source_belief_key, "vegetables_are_the_floor");
+  assertEquals(plan.rejected_numeric, ["source_claim:macro_quantity"]);
+});
+
+Deno.test("DISARMED: convictions with no number are left completely alone", () => {
+  // Le test prémisse-fausse (P9). Une ceinture qui mord quand le problème
+  // n'existe pas est une ceinture qu'on débranche dans la semaine.
+  const plan = parse([
+    {
+      kind: "nutrition",
+      label: "Put vegetables down before anything else",
+      rationale: "It settles the plate without any counting.",
+      source_belief_key: "vegetables_are_the_floor",
+      days: ["mon", "thu"],
+    },
+  ]);
+  assertEquals(plan.items.length, 1);
+  assertEquals(plan.rejected_numeric, []);
+  assertEquals(plan.issues, []);
+  // Et la citation voyage intacte: la provenance reste affichable.
+  assertEquals(
+    plan.items[0].source_belief_claim,
+    "Vegetables are the floor of a plate, not a garnish.",
+  );
+});
+
 // ---------------------------------------------------------------------------
 // RÈGLE 3 — ce que Sophia peut ajouter
 // ---------------------------------------------------------------------------
@@ -369,12 +478,23 @@ Deno.test("every goal has a named branch (R6)", () => {
 Deno.test("the prompt carries the convictions and forbids numbers", () => {
   const { userMessage, allowedKeys, systemPrompt } = buildWeekPlanPrompt({
     principles: PRINCIPLES,
-    situation: { goal: "fat_loss", situation: "I eat at a canteen at midday", practicalConstraints: {} },
+    situation: {
+      goal: "fat_loss",
+      situation: "I eat at a canteen at midday",
+      context: "I have a wedding on Tuesday",
+      practicalConstraints: {},
+    },
     doctrineBlock: "== MARC'S METHOD ==",
     weekStart: "2026-08-03",
+    safetyConstraints: null,
   });
   assertEquals(allowedKeys.length, 3);
   assert(userMessage.includes("satiety_before_arithmetic"));
+  // La situation STABLE et le contexte DATÉ arrivent dans deux phrases
+  // distinctes. Les fondre ferait traiter un mariage comme une habitude de vie
+  // — et le laisserait dans le profil longtemps après le mariage.
+  assert(userMessage.includes("their situation, in their words: I eat at a canteen"));
+  assert(userMessage.includes("THIS WEEK: I have a wedding on Tuesday"));
   assert(userMessage.includes("canteen"));
   assert(userMessage.includes("MARC'S METHOD"));
   // Le prompt doit dire que le coach n'a PAS écrit de plan — c'était l'erreur

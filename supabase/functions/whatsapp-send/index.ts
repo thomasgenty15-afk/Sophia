@@ -44,6 +44,30 @@ type SendInteractiveButtons = {
   buttons: Array<{ id: string; title: string }>;
 };
 /**
+ * UN DOCUMENT (PDF) — la liste de courses, la fiche repas.
+ *
+ * `media_id` et PAS les octets: l'upload vers Graph (`/{phone}/media`) est fait
+ * par l'appelant, avant d'arriver ici. Deux raisons, et la seconde est la
+ * vraie:
+ *   - cette fonction est le point de passage des PLAFONDS, de la fenêtre 24h
+ *     et du journal. Lui faire porter un binaire multipart en plus mélangerait
+ *     deux responsabilités qui n'échouent pas de la même façon;
+ *   - un upload raté doit être distinguable d'un envoi raté. Séparés, le
+ *     premier n'écrit aucune ligne de message et le second en écrit une en
+ *     échec — confondus, on ne saurait plus lequel réessayer.
+ *
+ * PAS DE REPLI EN TEMPLATE: aucun template approuvé chez Meta ne porte
+ * d'en-tête document à ce jour. Hors fenêtre 24h, l'envoi est REFUSÉ plutôt que
+ * dégradé en texte — un « ta liste de courses est prête » sans la liste est un
+ * message qui ne sert à personne.
+ */
+type SendDocument = {
+  type: "document";
+  media_id: string;
+  filename: string;
+  caption?: string;
+};
+/**
  * PIVOT C4 — un WhatsApp Flow: le seul moyen de recueillir plus de trois
  * valeurs en une interaction.
  *
@@ -69,7 +93,7 @@ type Body = {
   user_id: string;
   // If provided, overrides profile phone number
   to?: string;
-  message: SendText | SendTemplate | SendInteractiveButtons | SendInteractiveFlow;
+  message: SendText | SendTemplate | SendInteractiveButtons | SendInteractiveFlow | SendDocument;
   // Optional metadata/purpose for logging & throttling
   purpose?: string;
   // Extra metadata merged into chat_messages.metadata (for cooldown/idempotence/debug)
@@ -246,6 +270,27 @@ function getFallbackTemplate(
   // template (zero placeholders) so an out-of-window reminder re-opens the window
   // and the real body is delivered from the stored draft; dedicated env vars let
   // ops repoint them at a KEEL-specific template once Meta approves one.
+  // KEEL §1.3 — la relance de décrochage. Elle DOIT être ici, et c'est le cas
+  // le plus contraint de la liste: une relance part après 72h de silence, donc
+  // elle est TOUJOURS hors fenêtre 24h, donc elle passe TOUJOURS par un
+  // template. Sans mapping elle tomberait à 100% sur `global_reach_template`
+  // — « J'ai une info pour toi », en français, à un élève KEEL anglophone,
+  // c'est-à-dire l'incident du 2026-07-12 reproduit à chaque décrochage.
+  //
+  // Même défaut par défaut que les deux purposes voisins: le template de
+  // check-in approuvé (zéro placeholder) rouvre la fenêtre, et le vrai texte
+  // suit dès que l'élève répond. La variable dédiée existe pour que ops
+  // repointe vers un template KEEL le jour où Meta en approuve un.
+  if (p === "keel_reengage") {
+    return {
+      name: (Deno.env.get("WHATSAPP_KEEL_REENGAGE_TEMPLATE_NAME") ??
+        Deno.env.get("WHATSAPP_CHECKIN_TEMPLATE_NAME") ?? "sophia_checkin_v1")
+        .trim(),
+      language: (Deno.env.get("WHATSAPP_KEEL_REENGAGE_TEMPLATE_LANG") ??
+        Deno.env.get("WHATSAPP_CHECKIN_TEMPLATE_LANG") ?? "fr").trim(),
+      injectBodyNameParam: false,
+    };
+  }
   if (p === "keel_slot_reminder" || p === "keel_sunday_digest") {
     return {
       name: (Deno.env.get("WHATSAPP_KEEL_REMINDER_TEMPLATE_NAME") ??
@@ -254,6 +299,25 @@ function getFallbackTemplate(
       language: (Deno.env.get("WHATSAPP_KEEL_REMINDER_TEMPLATE_LANG") ??
         Deno.env.get("WHATSAPP_CHECKIN_TEMPLATE_LANG") ?? "fr").trim(),
       injectBodyNameParam: false,
+    };
+  }
+  // KEEL — la relance de silence. Présente ici pour la MÊME raison que les deux
+  // purposes au-dessus, et le risque y est structurel plutôt qu'accidentel: à
+  // 72h de silence la fenêtre 24h est fermée PAR CONSTRUCTION, donc ce purpose
+  // passe par ce repli à CHAQUE envoi, jamais par hasard. Sans mapping, chaque
+  // relance de décrochage partait en `global_reach_template` (« J'ai une info
+  // pour toi », en français) — l'incident du 2026-07-12, mais systématique.
+  //
+  // Le chemin nominal (`sendReengageNudge`) nomme déjà son template; ceci est la
+  // ceinture pour tout autre appelant.
+  if (p === "keel_reengage") {
+    return {
+      name: (Deno.env.get("WHATSAPP_KEEL_REENGAGE_TEMPLATE_NAME") ??
+        "keel_reengage_v1").trim(),
+      language: (Deno.env.get("WHATSAPP_KEEL_REENGAGE_TEMPLATE_LANG") ??
+        "en_GB").trim(),
+      // `keel_reengage_v1` porte {{1}} = le prénom (META-TEMPLATES.md §3).
+      injectBodyNameParam: true,
     };
   }
   // Weekly lifecycle purpose: dedicated template, never global_reach.
@@ -711,6 +775,22 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Un document hors fenêtre 24h est REFUSÉ, pas dégradé. Aucun template
+    // approuvé ne porte d'en-tête document, et annoncer une liste de courses
+    // sans la joindre est un message qui ne rend service à personne.
+    if (body.message.type === "document" && mustUseTemplate) {
+      return await preflightErrorResponse({
+        req,
+        requestId,
+        userId: userIdForLog,
+        status: 409,
+        error: "A document requires an open 24h WhatsApp window",
+        purpose,
+        metadataExtra,
+        extra: { in_24h_window: Boolean(isIn24h) },
+      });
+    }
+
     if (body.message.type === "interactive_buttons" && mustUseTemplate) {
       return await preflightErrorResponse({
         req,
@@ -820,6 +900,34 @@ Deno.serve(async (req) => {
               },
             })),
           },
+        },
+      };
+    } else if (body.message.type === "document" && !mustUseTemplate) {
+      const mediaId = String(body.message.media_id ?? "").trim();
+      const filename = String(body.message.filename ?? "").trim().slice(0, 240);
+      if (!mediaId || !filename) {
+        // Un document sans média produirait une bulle vide, et sans nom de
+        // fichier un « document.pdf » que l'élève ne saura pas rattacher à sa
+        // semaine trois jours plus tard.
+        return await preflightErrorResponse({
+          req,
+          requestId,
+          userId: userIdForLog,
+          status: 400,
+          error: "A document needs both media_id and filename",
+          purpose,
+          metadataExtra,
+        });
+      }
+      const caption = String(body.message.caption ?? "").trim().slice(0, 1024);
+      graphPayload = {
+        messaging_product: "whatsapp",
+        to: toE164.replace("+", ""),
+        type: "document",
+        document: {
+          id: mediaId,
+          filename,
+          ...(caption ? { caption } : {}),
         },
       };
     } else if (body.message.type === "interactive_flow" && !mustUseTemplate) {
@@ -936,6 +1044,13 @@ Deno.serve(async (req) => {
           body.message.type === "interactive_buttons" ||
           body.message.type === "interactive_flow"
       ? body.message.body
+      // Un document n'a pas de corps: ce qui est journalisé est ce que l'élève
+      // VOIT dans la bulle — sa légende, et à défaut le nom du fichier. Écrire
+      // "[DOCUMENT]" rendrait le journal illisible le jour où il faut savoir
+      // laquelle des trois listes de courses est partie.
+      : body.message.type === "document"
+      ? (String(body.message.caption ?? "").trim() ||
+        `[DOCUMENT:${body.message.filename}]`)
       : renderedTemplate?.content ?? `[TEMPLATE:${body.message.name}]`;
 
     const outboundId = await createWhatsAppOutboundRow(admin as any, {

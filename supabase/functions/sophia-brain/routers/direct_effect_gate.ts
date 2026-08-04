@@ -24,6 +24,7 @@ import { blocksDirectEffects } from "../safety/safety_thresholds.ts";
 export const KEEL_DIRECT_EFFECT_TYPES = [
   "log_protocol_event",
   "declare_deviation",
+  "declare_safety_constraint",
 ] as const;
 
 /**
@@ -63,6 +64,21 @@ export function isKnownDirectEffectType(
  */
 const SAFETY_BLOCK_EXEMPT_EFFECT_TYPES: ReadonlySet<string> = new Set([
   "create_one_shot_reminder",
+  // DÉCISION PRODUIT ÉCRITE (QA agent 4, 2026-08-03), exigée par le paragraphe
+  // ci-dessus. `declare_safety_constraint` survit à une bande safety >= medium.
+  //
+  // Le raisonnement est le même que pour le rappel explicite, et il est plus
+  // fort: enregistrer une allergie est un ACTE DE PROTECTION, pas un effet de
+  // confort. Un élève en crise qui dit « je suis allergique aux arachides »
+  // doit être protégé au tour suivant — le bloquer laisserait le coffre vide
+  // précisément quand l'élève est le plus vulnérable, et la ceinture de sortie
+  // n'aurait toujours rien à comparer.
+  //
+  // L'asymétrie qui tranche: une contrainte enregistrée à tort SUR-BLOQUE
+  // (récupérable, et l'élève peut la rétracter), une contrainte manquante
+  // sert l'allergène (irrécupérable). C'est la même asymétrie qui gouverne
+  // `allergen_bridge.ts` et `allergen_surface_forms.ts`.
+  "declare_safety_constraint",
 ]);
 
 /**

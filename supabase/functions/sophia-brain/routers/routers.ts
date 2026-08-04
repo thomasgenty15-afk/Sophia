@@ -103,11 +103,18 @@ function buildRouteDecision(args: {
  * au contrat sans être ajouté ici n'est pas « bloqué », il est INVISIBLE — la
  * classe de panne que W4.3 a déjà payée sur `effect_gate_orchestrator.ts`.
  */
-const ROUTER_RUNNABLE_DIRECT_EFFECT_TYPES: ReadonlySet<string> = new Set([
+export const ROUTER_RUNNABLE_DIRECT_EFFECT_TYPES: ReadonlySet<string> = new Set([
   "create_one_shot_reminder",
   "track_progress_plan_item",
   "log_protocol_event",
   "declare_deviation",
+  // QA agent 4 — et l'avertissement du paragraphe ci-dessus s'est vérifié
+  // séance tenante: `declare_safety_constraint` était déclaré au contrat,
+  // accepté par le sanitizer, connu du gate, exécutable par sa lane... et
+  // INVISIBLE, parce qu'il manquait dans CE Set. Deux tours réels ont émis
+  // `direct_effects: []` sans le moindre message d'erreur avant que la cause
+  // soit trouvée ici. Cinq points de contrôle, et le cinquième est muet.
+  "declare_safety_constraint",
 ]);
 
 function runnableDirectEffects(turnFrame: TurnFrame): string[] {

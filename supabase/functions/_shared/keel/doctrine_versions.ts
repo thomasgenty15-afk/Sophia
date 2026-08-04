@@ -53,7 +53,18 @@ export const INTERVIEW_SECTIONS = [
   "beliefs",
   "forbidden",
   "vocabulary",
+  // LES ALIMENTS. Section à part et pas fondue dans `forbidden`: un interdit
+  // est une PRATIQUE dont le coach doit écrire le remplacement mot pour mot,
+  // un aliment est un INGRÉDIENT que le générateur remplace tout seul. Poser
+  // les deux dans la même question obligeait le coach à rédiger un `instead`
+  // verbatim pour chaque aliment qu'il n'aime pas — donc à ne rien remplir.
+  "foods",
   "hard_cases",
+  // LES QUESTIONS/RÉPONSES. Distinctes des cas durs: un cas dur demande son
+  // TON dans un moment difficile, un Q/R demande son CONTENU sur une question
+  // factuelle. Confondre les deux fait répondre par du réconfort à quelqu'un
+  // qui posait une question technique.
+  "qa",
   "voice",
 ] as const;
 export type InterviewSection = (typeof INTERVIEW_SECTIONS)[number];
@@ -104,6 +115,20 @@ export const INTERVIEW_QUESTIONS: ReadonlyArray<
       "Which words do you use with your students that are yours - and what do they mean exactly?",
   },
   {
+    section: "foods",
+    question:
+      "Which foods do you actually reach for with your students — the ones that keep showing up in your plans? Name them plainly.",
+  },
+  {
+    // On demande les FORMULATIONS, pas seulement le nom, pour la même raison
+    // que les `surface_forms` d'un interdit: « huiles de graines » ne s'écrit
+    // presque jamais comme ça dans une phrase, et un terme seul rendrait la
+    // vérification décorative.
+    section: "foods",
+    question:
+      "And which ones do you not put on a plate? Say each one the different ways people write it, and why you avoid it.",
+  },
+  {
     section: "hard_cases",
     question:
       "A student writes: \"I cracked tonight, I ate everything.\" You answer what, word for word?",
@@ -117,6 +142,11 @@ export const INTERVIEW_QUESTIONS: ReadonlyArray<
     section: "hard_cases",
     question:
       "A student says your plan is too much food. You answer what, word for word?",
+  },
+  {
+    section: "qa",
+    question:
+      "What do your students ask you over and over? Write the question and your usual answer, as many as come to mind.",
   },
   {
     section: "voice",
@@ -138,6 +168,9 @@ Output a single JSON object, nothing else.
   "forbidden":   [{ "token": "snake_case_ascii", "surface_forms": ["..."], "reason": "..."|null, "instead": "..."|null }],
   "vocabulary":  [{ "term": "...", "meaning": "..."|null }],
   "arbitrations":[{ "situation": "...", "coach_answer": "..." }],
+  "foods":       { "recommended": [{ "term": "...", "reason": "..."|null }],
+                   "discouraged": [{ "term": "...", "surface_forms": ["..."], "reason": "..."|null }] },
+  "qa":          [{ "question": "...", "answer": "..." }],
   "voice":       { "address": "tu"|"vous"|null, "length": "short"|"medium"|null, "emojis": "none"|"light"|null, "language": "BCP-47"|null }
 }
 
@@ -151,6 +184,10 @@ RULES PER FIELD:
 - forbidden.surface_forms: the ACTUAL phrasings a model would write, in the coach's language AND in English. This is what a deterministic filter matches on; a token alone catches nothing in real prose. Give 2-4 per interdiction.
 - forbidden.instead: what the coach said to do INSTEAD, as close to verbatim as you can. This is not a summary and not a paraphrase — this exact text is shown to students when the agent has to hold the coach's line, so it must sound like him and must stand on its own as a complete answer. If he did not say what he does instead, null. NEVER write one yourself: an invented replacement is the agent putting words in the coach's mouth at the precise moment it claims to be protecting his method.
 - arbitrations.coach_answer: the coach's words, kept as close to verbatim as possible. Do NOT smooth them, do NOT make them more professional. Their value is that they sound like him.
+- foods.discouraged.surface_forms: the ACTUAL phrasings, in the coach's language AND in English, exactly like forbidden.surface_forms. A deterministic filter matches on these, and a bare term catches almost nothing in real prose ("seed oil" never appears as those two words in a French sentence). Give 2-4 per food.
+- foods vs forbidden: an INGREDIENT goes in foods ("seed oil", "protein bars"); a PRACTICE goes in forbidden ("six small meals", "intermittent fasting"). If the coach names an ingredient, do NOT invent a practice around it, and do not duplicate it into forbidden — the two lists are enforced by the same filter and a doubled entry doubles the incident report for one rule.
+- foods.recommended: only foods he actually named as ones he uses. This list is an INVITATION for the meal generator to reach for, so a food he merely tolerated does not belong in it.
+- qa: the questions his students actually ask, with HIS answer. Keep the answer close to verbatim, same rule as arbitrations. A qa entry is FACTUAL ("can I have coffee in the morning?"); if what he gave you is a reply to someone in distress, it is an arbitration, not a qa — putting it here would make the agent answer a technical question with reassurance.
 - voice: only fill a field the coach actually indicated. Guessing "tu" because the interview was in French is exactly the kind of invention this prompt forbids.
 
 If the coach said something that is a belief AND an interdiction ("I never do six small meals, it breaks the fast"), record it in BOTH: the belief explains, the interdiction enforces.`;

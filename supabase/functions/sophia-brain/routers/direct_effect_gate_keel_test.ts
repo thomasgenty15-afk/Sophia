@@ -79,8 +79,16 @@ Deno.test("safetyBandBlocksEffect — bloque à partir de medium, par défaut", 
   }
 });
 
-Deno.test("safetyBandBlocksEffect — les effets KEEL de W4 sont bloqués en bande >= medium", () => {
-  for (const effectType of KEEL_DIRECT_EFFECT_TYPES) {
+/**
+ * QA agent 4 — les effets KEEL qui ÉCRIVENT UN FAIT restent bloqués en crise.
+ * `declare_safety_constraint` en sort: voir le test d'exemption plus bas.
+ */
+const KEEL_FACT_EFFECT_TYPES = KEEL_DIRECT_EFFECT_TYPES.filter(
+  (t) => t !== "declare_safety_constraint",
+);
+
+Deno.test("safetyBandBlocksEffect — les effets KEEL de FAIT sont bloqués en bande >= medium", () => {
+  for (const effectType of KEEL_FACT_EFFECT_TYPES) {
     assertEquals(safetyBandBlocksEffect(effectType, "low"), false, effectType);
     assertEquals(safetyBandBlocksEffect(effectType, "medium"), true, effectType);
     assertEquals(safetyBandBlocksEffect(effectType, "high"), true, effectType);
@@ -92,10 +100,34 @@ Deno.test("safetyBandBlocksEffect — les effets KEEL de W4 sont bloqués en ban
   }
 });
 
-Deno.test("safetyBandBlocksEffect — create_one_shot_reminder reste la SEULE exemption", () => {
-  // Arbitrage V5 « safety + rappel explicit only ». Si cette exemption
-  // s'élargit un jour, ce test tombe et la décision devient visible.
+Deno.test("safetyBandBlocksEffect — les DEUX exemptions, et pas une de plus", () => {
+  // Arbitrage V5 « safety + rappel explicit only » pour la première.
   assertEquals(safetyBandBlocksEffect("create_one_shot_reminder", "high"), false);
+
+  // QA agent 4 — DEUXIÈME exemption, décision produit écrite (le commentaire de
+  // `SAFETY_BLOCK_EXEMPT_EFFECT_TYPES` porte le raisonnement complet).
+  // Enregistrer une allergie est un ACTE DE PROTECTION: la bloquer laisserait
+  // la ceinture de sortie sans rien à comparer précisément au moment où
+  // l'élève est le plus vulnérable. L'asymétrie tranche — sur-enregistrer
+  // sur-bloque (récupérable, et rétractable), sous-enregistrer sert
+  // l'allergène.
+  assertEquals(
+    safetyBandBlocksEffect("declare_safety_constraint", "critical"),
+    false,
+  );
+
+  // Et la liste s'arrête là: tout le reste est bloqué par défaut-deny. Si une
+  // troisième exemption apparaît, CE test tombe et la décision devient visible
+  // — c'est sa seule raison d'être.
+  for (
+    const other of [
+      "track_progress_plan_item",
+      "log_protocol_event",
+      "declare_deviation",
+    ]
+  ) {
+    assertEquals(safetyBandBlocksEffect(other, "high"), true, other);
+  }
 });
 
 Deno.test("runDirectEffectGate — le comportement observable ne change pas (W3.3 refactor)", async () => {
@@ -147,7 +179,7 @@ Deno.test({
     // aujourd'hui (le helper caste en DirectEffectType) et le test serait un
     // faux vert le jour où on lèverait l'ignore par erreur.
     await assertDirectEffectTypeUnionContainsKeelEffects();
-    for (const effectType of KEEL_DIRECT_EFFECT_TYPES) {
+    for (const effectType of KEEL_FACT_EFFECT_TYPES) {
       const blockedOutcome = await gate("high", effectType);
       assertEquals(blockedOutcome.decision, "blocked", effectType);
       assertEquals(
@@ -181,7 +213,7 @@ Deno.test("W4.3 — l'orchestrateur reconnaît les effets KEEL (plus de liste du
   // Bout-en-bout par l'orchestrateur: avant W4.3, un effet KEEL en ressortait
   // en `unknown_effect_type` — bloqué, certes, mais pour la mauvaise raison
   // (jamais gaté par la safety, jamais exécuté, et invisible au ledger).
-  for (const effectType of KEEL_DIRECT_EFFECT_TYPES) {
+  for (const effectType of KEEL_FACT_EFFECT_TYPES) {
     const allowed = await runEffectGateOrchestrator({
       turn_frame: turnFrame("low", effectType),
       direct_effects_to_run: [effectType],
@@ -198,6 +230,18 @@ Deno.test("W4.3 — l'orchestrateur reconnaît les effets KEEL (plus de liste du
       { path: effectType, reason_code: "safety_high" },
     ]);
   }
+
+  // QA agent 4 — et l'exempté traverse l'orchestrateur DANS LES DEUX BANDES.
+  // C'est le bout-en-bout de la décision produit: en crise, l'allergie
+  // s'enregistre quand même.
+  for (const band of ["low", "high"] as const) {
+    const outcome = await runEffectGateOrchestrator({
+      turn_frame: turnFrame(band, "declare_safety_constraint"),
+      direct_effects_to_run: ["declare_safety_constraint"],
+    });
+    assertEquals(outcome.allowed, ["declare_safety_constraint"], band);
+    assertEquals(outcome.additional_blocked_paths, [], band);
+  }
 });
 
 Deno.test("W4.3 — le vocabulaire connu du gate == l'union DirectEffectType", async () => {
@@ -209,4 +253,31 @@ Deno.test("W4.3 — le vocabulaire connu du gate == l'union DirectEffectType", a
   const fromContract = [...union.matchAll(/"([a-z_]+)"/g)].map((m) => m[1])
     .sort();
   assertEquals([...KNOWN_DIRECT_EFFECT_TYPES].sort(), fromContract);
+});
+
+Deno.test("QA agent 4 — le vocabulaire du ROUTEUR == celui du gate (parité des 5 points)", async () => {
+  // CE TEST N'EXISTAIT PAS, et son absence a coûté deux tours de QA en aveugle.
+  //
+  // `declare_safety_constraint` avait été ajouté au contrat, au sanitizer, au
+  // gate et à sa lane d'exécution — mais pas à
+  // `ROUTER_RUNNABLE_DIRECT_EFFECT_TYPES`. Résultat: le dispatcher émettait
+  // l'effet, `runnableDirectEffects` le filtrait, `direct_effects_to_run`
+  // sortait VIDE, et le tour se terminait normalement. Aucune erreur, aucun
+  // log, aucun `blocked` — le commentaire de ce Set avertissait déjà, mot pour
+  // mot: « un effet ajouté au contrat sans être ajouté ici n'est pas bloqué,
+  // il est INVISIBLE ».
+  //
+  // Le test au-dessus fige contrat == gate. Celui-ci ferme le maillon suivant,
+  // qui était le seul des cinq à n'avoir aucune assertion.
+  const source = await Deno.readTextFile(
+    new URL("./routers.ts", import.meta.url),
+  );
+  const start = source.indexOf("export const ROUTER_RUNNABLE_DIRECT_EFFECT_TYPES");
+  const block = source.slice(start, source.indexOf("]);", start));
+  const fromRouter = [...block.matchAll(/"([a-z_]+)"/g)].map((m) => m[1]).sort();
+  assertEquals(
+    fromRouter,
+    [...KNOWN_DIRECT_EFFECT_TYPES].sort(),
+    "tout effet connu du gate doit être exécutable par le routeur, sinon il est muet",
+  );
 });

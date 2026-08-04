@@ -68,6 +68,12 @@ const DOCTRINE_CTX = keel({
       vocabulary: [],
       arbitrations: [],
       voice: {},
+      // `foods` est devenu un champ REQUIS de `CoachDoctrine` (aliments
+      // recommandés / déconseillés, vérifiés par le même verrou que les
+      // interdits). Cette fixture ne l'avait pas et `compileDoctrineBlock`
+      // levait sur `doctrine.foods.recommended`.
+      foods: { recommended: [], discouraged: [] },
+      qa: [],
       contentLocale: "fr-FR",
     },
     compiled: null,

@@ -22,19 +22,46 @@
  * été touché, plutôt que de compter des messages sortants — deux relances
  * envoyées à 3 semaines d'écart dans le MÊME silence restent deux relances de
  * trop.
+ *
+ * ── UN ÉPISODE QUI S'OUVRE DOIT POUVOIR SE REFERMER ───────────────────────
+ * L'invariant ci-dessus a un revers, et il a mordu: tant qu'aucun chemin ne
+ * refermait l'épisode KEEL, `nudgedThisEpisode` restait vrai. L'élève relancé
+ * une fois — même s'il répondait le jour même — n'était plus relançable jusqu'au
+ * cap de 30 jours du sweep, qui le classait alors `no_reply` alors qu'il avait
+ * répondu. Un verrou anti-spam sans condition de désarmement est un verrou tout
+ * court (doctrine P9: toute ceinture porte sa condition de désarmement).
+ *
+ * D'où `closeKeelReengagementEpisodeOnInbound`, appelée par le webhook au
+ * PREMIER message entrant. Elle ne referme QUE les épisodes `source =
+ * 'keel_reengage'`: le winback legacy escalade sur trois touches et referme les
+ * siens en lisant le contenu de la réponse, le couper au premier inbound
+ * casserait ce flow-là.
  */
 
 import {
+  assertNoGuiltTripping,
   decideReengagement,
+  type JobReachableTone,
   type ReengageDecision,
   REENGAGE_AFTER_HOURS,
+  reengageTemplateFor,
+  renderReengageNudge,
 } from "./reengagement.ts";
+import { sendKeelWhatsApp } from "./internal_send.ts";
 
 // deno-lint-ignore no-explicit-any
 type Db = any;
 
 export interface ReengageCandidate {
   userId: string;
+  /**
+   * REQUIS pour envoyer. Il manquait, et son absence n'était pas visible: le
+   * job « armait » un élève sans jamais avoir de quoi le joindre, ce qui se
+   * lisait comme un succès dans le compte-rendu.
+   */
+  phoneNumber: string | null;
+  /** `{{1}}` du template. Vide => « there », jamais « Hi , ». */
+  firstName: string;
   lastInboundAt: string | null;
   localHour: number;
   timezone: string | null;
@@ -115,7 +142,7 @@ export async function loadReengageCandidates(
   let query = db
     .from("profiles")
     .select(
-      "id, timezone, whatsapp_opted_in, whatsapp_opted_out_at, keel_role",
+      "id, phone_number, full_name, timezone, whatsapp_opted_in, whatsapp_opted_out_at, keel_role",
     )
     .eq("keel_role", "student")
     .order("id", { ascending: true })
@@ -175,6 +202,12 @@ export async function loadReengageCandidates(
 
     candidates.push({
       userId,
+      phoneNumber: String(row.phone_number ?? "").trim() || null,
+      // Le PRÉNOM, pas le nom complet: `{{1}}` du template ouvre la phrase
+      // (« Hi Julie - … »). Le dépôt porte deux incidents de `{{1}}` mal câblé
+      // (`sophia_checkin_v2` qui disait « Hello Thomas » à tout le monde, un
+      // bilan hebdo rempli avec le mauvais champ) — d'où la découpe explicite.
+      firstName: String(row.full_name ?? "").trim().split(/\s+/)[0] ?? "",
       lastInboundAt,
       localHour: localHourFor(args.now, String(row.timezone ?? "")) ?? Number.NaN,
       timezone: String(row.timezone ?? "") || null,
@@ -182,11 +215,102 @@ export async function loadReengageCandidates(
       optedOut: Boolean(row.whatsapp_opted_out_at) || row.whatsapp_opted_in === false,
       nudgedThisEpisode: episodeUnavailable || Boolean(openEpisode),
       lastNudgeAt: openEpisode ? String(openEpisode.opened_at ?? "") || null : null,
-      restrictionFlag: false,
-      declaredHardWeek: false,
+      restrictionFlag: await isRestrictionFlagged(db, userId),
+      declaredHardWeek: await hasDeclaredHardWeek(db, {
+        userId,
+        now: args.now,
+        timezone: String(row.timezone ?? "") || null,
+      }),
     });
   }
   return candidates;
+}
+
+/**
+ * Le plancher TCA (§3.4): la dernière `weekly_reviews.risk_band` de l'élève.
+ *
+ * ICI et nulle part ailleurs. Cette lecture existait dans `keel-weekly-flow-v1`
+ * et NULLE PART dans la relance, qui posait `restrictionFlag: false` en dur
+ * pendant qu'un commentaire affirmait le contraire. Résultat mesurable: sur le
+ * même élève et la même ligne, le point hebdo écartait et la relance armait.
+ * Un seul lecteur, importé par les deux, et la divergence n'a plus où naître.
+ *
+ * Une lecture qui échoue REMONTE. C'est l'asymétrie inverse de celle de
+ * l'épisode: rater une relance coûte une relance, rater le plancher TCA envoie
+ * de la pression d'adhérence à quelqu'un qu'il faut laisser tranquille.
+ */
+export async function isRestrictionFlagged(
+  db: Db,
+  userId: string,
+): Promise<boolean> {
+  const { data, error } = await db
+    .from("weekly_reviews")
+    .select("risk_band")
+    .eq("user_id", userId)
+    .order("week_start_date", { ascending: false })
+    .limit(1);
+  if (error) throw error;
+  const row = ((data ?? [])[0] ?? null) as { risk_band?: string } | null;
+  return row?.risk_band === "restriction_flag";
+}
+
+/**
+ * Fenêtre de lecture d'une « semaine difficile », en jours locaux.
+ */
+export const HARD_WEEK_LOOKBACK_DAYS = 7;
+
+/**
+ * Combien de « hard » il faut pour que ce soit une SEMAINE difficile.
+ *
+ * Deux, pas un. Le raisonnement est celui du seuil de 72h quelques lignes plus
+ * haut: un seul mauvais jour est dans la variance d'un rythme normal, et
+ * adoucir le ton pour un mardi raté vide `lighter` de son sens le jour où
+ * l'élève en a vraiment besoin.
+ */
+export const HARD_WEEK_MIN_DECLARATIONS = 2;
+
+/**
+ * L'élève a-t-il DÉCLARÉ une semaine difficile ?
+ *
+ * `student_daily_checkins.overall = 'hard'` est une réponse de l'élève à « How
+ * was today? » — c'est lui qui le dit, en tapant un bouton. C'est bien une
+ * DÉCLARATION, la seule persistée dans ce dépôt, et c'est exactement ce que
+ * `toneInstruction('lighter')` suppose: « The student has told you they are
+ * having a hard time ».
+ *
+ * Ce qu'on ne fait PAS: déduire l'humeur d'un `biofeedback.mood` bas ou d'une
+ * adhérence en baisse. Une inférence n'est pas une déclaration, et `lighter`
+ * adoucit le ton sur la foi de ce que l'élève a dit, pas de ce qu'on croit lire
+ * en lui.
+ *
+ * Best-effort: sur erreur de lecture on rend `false`. Se tromper ici ne coûte
+ * qu'un ton un peu moins doux — jamais un envoi de trop, jamais un envoi
+ * manqué. C'est le seul champ du candidat où l'échec est neutre.
+ */
+export async function hasDeclaredHardWeek(
+  db: Db,
+  args: { userId: string; now: Date; timezone: string | null },
+): Promise<boolean> {
+  const since = new Date(
+    args.now.getTime() - HARD_WEEK_LOOKBACK_DAYS * 24 * 3600_000,
+  );
+  try {
+    const { data, error } = await db
+      .from("student_daily_checkins")
+      .select("local_date")
+      .eq("user_id", args.userId)
+      .eq("overall", "hard")
+      // La table est clé sur le jour LOCAL de l'élève; on compare donc à une
+      // date locale, pas à un instant UTC.
+      .gte("local_date", localDateFor(since, args.timezone))
+      .lte("local_date", localDateFor(args.now, args.timezone))
+      .limit(HARD_WEEK_MIN_DECLARATIONS);
+    if (error) throw error;
+    return ((data ?? []) as unknown[]).length >= HARD_WEEK_MIN_DECLARATIONS;
+  } catch (error) {
+    console.warn("[keel/reengagement] hard-week read failed", error);
+    return false;
+  }
 }
 
 export interface ReengageOutcome {
@@ -213,8 +337,13 @@ export function decideForCandidates(
       // ⚠️ DÉCLARATION, PAS OUBLI — la garde crise reste inactive ici.
       // Même situation que `keel-daily-pulse-v1`: aucun état de crise n'est
       // persisté ni interrogeable dans ce dépôt. Le champ est requis pour que
-      // l'omission ne puisse plus passer inaperçue. `restrictionFlag`
-      // ci-dessus, lui, EST câblé et mord réellement.
+      // l'omission ne puisse plus passer inaperçue.
+      //
+      // `restrictionFlag` et `declaredHardWeek` ci-dessus, eux, sont désormais
+      // LUS EN BASE (`weekly_reviews.risk_band`, `student_daily_checkins`). Ils
+      // étaient figés à `false` sous ce même commentaire, qui affirmait déjà
+      // qu'ils mordaient — d'où la règle qu'on s'applique maintenant: un
+      // commentaire ne certifie pas un câblage, un test le fait.
       safetyBand: null,
       now,
     }),
@@ -247,7 +376,12 @@ export async function openReengagementEpisode(
         // EST la touche 1. On ne pousse jamais au-delà — « une seule par
         // épisode » est l'invariant, pas une séquence de trois.
         last_touch_step: 1,
-        touch1_sent_at: args.at,
+        // `touch1_sent_at` n'est PAS posé ici. Il l'était, et il mentait: la
+        // ligne affirmait qu'une touche était partie à l'instant où l'épisode
+        // s'ouvrait, donc avant tout envoi — y compris quand l'envoi échouait
+        // ensuite. Le ledger ne date la touche qu'une fois `whatsapp-send`
+        // revenu OK (`markReengagementTouchSent`).
+        source: KEEL_EPISODE_SOURCE,
       })
       .select("id")
       .single();
@@ -257,5 +391,195 @@ export async function openReengagementEpisode(
   } catch (error) {
     console.error("[keel/reengagement] episode open failed", error);
     return { opened: false, id: null };
+  }
+}
+
+/**
+ * Le marqueur de producteur. Voir la migration
+ * `20260804110000_reengagement_episodes_source.sql`: le winback legacy escalade
+ * sur trois touches et referme ses épisodes en lisant le CONTENU de la réponse;
+ * la relance KEEL fait une touche et se referme au premier inbound. Chacun ne
+ * ferme que les siens, sinon l'un coupe l'autre en plein milieu.
+ */
+export const KEEL_EPISODE_SOURCE = "keel_reengage";
+
+/**
+ * Date la touche APRÈS que l'envoi soit revenu OK.
+ *
+ * L'ordre ouvrir → envoyer → dater est la seule séquence où le ledger ne peut
+ * pas mentir dans le sens dangereux. Ouvrir d'abord borne le spam (un crash
+ * après l'ouverture coûte une relance, pas deux); dater après l'envoi garantit
+ * que `touch1_sent_at` non nul veut dire « c'est parti ».
+ */
+export async function markReengagementTouchSent(
+  db: Db,
+  args: { episodeId: string; at: string },
+): Promise<void> {
+  const { error } = await db
+    .from("reengagement_episodes")
+    .update({ touch1_sent_at: args.at, updated_at: args.at })
+    .eq("id", args.episodeId);
+  if (error) {
+    // L'envoi a eu lieu: on ne le défait pas. Mais la trace doit être bruyante,
+    // parce qu'un épisode sans `touch1_sent_at` sera balayé plus tard comme
+    // s'il n'avait jamais été touché.
+    console.error("[keel/reengagement] touch stamp failed", error);
+  }
+}
+
+/**
+ * Envoie la relance. Template obligatoire — voir `renderReengageNudge`.
+ *
+ * La ceinture anti-culpabilisation tourne ICI, sur le texte exact que l'élève
+ * va lire. Elle était écrite, testée, et appelée nulle part: le seul texte qui
+ * part vit chez Meta, donc aucun chemin de production ne lui donnait rien à
+ * mordre. Un `keel_reengage_v1` re-soumis un jour avec « you haven't logged
+ * anything in a while » passerait toutes les revues de code du dépôt; il ne
+ * passe pas cette ligne.
+ */
+export async function sendReengageNudge(
+  args: {
+    userId: string;
+    phoneNumber: string | null;
+    firstName: string;
+    tone: JobReachableTone;
+  },
+): Promise<
+  { ok: boolean; error: string; status: number; toneDelivered: boolean }
+> {
+  const body = renderReengageNudge(args.firstName);
+  // Lève si le corps culpabilise. Volontairement NON rattrapé: le job compte
+  // l'échec et n'envoie pas. Un message qui fait honte à quelqu'un qui décroche
+  // produit exactement le silence que cette boucle existe pour éviter.
+  assertNoGuiltTripping(body);
+
+  const tpl = reengageTemplateFor(args.tone, (n) => Deno.env.get(n));
+
+  if (!args.phoneNumber) {
+    return {
+      ok: false,
+      status: 0,
+      error: "no phone number on profile",
+      toneDelivered: tpl.toneDelivered,
+    };
+  }
+
+  const sent = await sendKeelWhatsApp({
+    user_id: args.userId,
+    to: args.phoneNumber,
+    purpose: "keel_reengage",
+    // Template NOMMÉ explicitement, jamais le repli de `whatsapp-send`. Le
+    // repli existe et il est correct, mais c'est une ceinture: le chemin
+    // nominal doit dire quel template il veut. Le dépôt porte l'incident du
+    // 2026-07-12 — un purpose non mappé était tombé sur `global_reach_template`
+    // (« J'ai une info pour toi ») et l'avait envoyé trois fois.
+    message: {
+      type: "template",
+      name: tpl.name,
+      language: tpl.language,
+      components: [
+        {
+          type: "body",
+          parameters: [{ type: "text", text: args.firstName.trim() || "there" }],
+        },
+      ],
+    },
+  });
+  return { ...sent, toneDelivered: tpl.toneDelivered };
+}
+
+/**
+ * L'élève a écrit: son épisode KEEL est terminé.
+ *
+ * Appelée par le webhook à CHAQUE inbound, avant tout routage. C'est la
+ * condition de désarmement du verrou « une seule relance par épisode »: sans
+ * elle, `nudgedThisEpisode` restait vrai jusqu'au cap de 30 jours du sweep, qui
+ * classait ensuite l'épisode `no_reply` sur un élève qui avait répondu — un
+ * ledger faux ET un élève injoignable pendant un mois.
+ *
+ * `source = 'keel_reengage'` est le filtre qui compte: les épisodes du winback
+ * legacy appartiennent à ses propres closers, qui lisent le contenu de la
+ * réponse pour distinguer `reengaged` d'une pause consentie. Les fermer ici au
+ * premier inbound couperait cette escalade en plein milieu.
+ *
+ * Best-effort: un échec ne fait jamais échouer la réception d'un message.
+ */
+export async function closeKeelReengagementEpisodeOnInbound(
+  db: Db,
+  args: { userId: string; atIso: string; stopped?: boolean },
+): Promise<{ closed: boolean }> {
+  try {
+    const { data, error } = await db
+      .from("reengagement_episodes")
+      .update({
+        closed_at: args.atIso,
+        first_reply_at: args.atIso,
+        replied_at_step: 1,
+        // Un STOP est une réponse, et c'est une sortie: la nommer `stopped`
+        // évite de compter un opt-out comme un réengagement réussi dans la
+        // synthèse du coach.
+        exit_status: args.stopped ? "stopped" : "reengaged",
+        entry_kind: "replied_to_template",
+        updated_at: args.atIso,
+      })
+      .eq("user_id", args.userId)
+      .eq("source", KEEL_EPISODE_SOURCE)
+      .is("closed_at", null)
+      .select("id");
+    if (error) throw error;
+    return { closed: ((data ?? []) as unknown[]).length > 0 };
+  } catch (error) {
+    console.warn("[keel/reengagement] episode close on inbound failed", error);
+    return { closed: false };
+  }
+}
+
+/**
+ * Annule un épisode ouvert dont l'envoi n'est JAMAIS parti.
+ *
+ * ── LE DÉFAUT QUE CETTE FONCTION FERME ───────────────────────────────────
+ * L'ordre « ouvrir puis envoyer » (voir juste au-dessus) accepte sciemment le
+ * pire cas « une relance en moins ». Ce raisonnement tenait tant qu'un envoi
+ * SUIVAIT. Tant qu'il n'y en avait aucun, il produisait autre chose :
+ * `nudgedThisEpisode` vaut `Boolean(openEpisode)`, un épisode ne se ferme que
+ * quand l'élève répond — or il ne peut pas répondre à un message qu'il n'a
+ * jamais reçu. L'épisode restait donc ouvert pour toujours et l'élève sortait
+ * définitivement de la boucle, en silence. « Une relance en moins » était en
+ * réalité « plus jamais aucune relance ».
+ *
+ * ── POURQUOI SUPPRIMER ET PAS FERMER ─────────────────────────────────────
+ * La ligne porte `touch1_sent_at`. Un épisode fermé garderait cette date,
+ * c'est-à-dire l'affirmation qu'un message est parti à cet instant — un
+ * fantôme dans le ledger, exactement ce que la doctrine « execution truth »
+ * interdit. Rien n'étant parti, la trace juste est l'absence de trace.
+ *
+ * ── L'ASYMÉTRIE, QUI EST LE CŒUR ─────────────────────────────────────────
+ * On n'annule QUE sur un échec sans ambiguïté d'avant-livraison (configuration
+ * manquante, refus de notre propre passerelle). Sur un doute — timeout, 5xx,
+ * réseau — le message a PEUT-ÊTRE atteint Meta, donc l'épisode reste ouvert.
+ * Entre « une relance en moins » et « deux d'affilée », le produit choisit
+ * toujours la première (§1.3 : la honte précède le silence).
+ */
+export async function rollbackReengagementEpisode(
+  db: Db,
+  episodeId: string,
+): Promise<boolean> {
+  const id = String(episodeId ?? "").trim();
+  if (!id) return false;
+  try {
+    const { error } = await db
+      .from("reengagement_episodes")
+      .delete()
+      .eq("id", id);
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    // Un rollback raté laisse l'élève verrouillé: c'est exactement le bug
+    // qu'on vient de corriger, donc il se crie au lieu de se taire.
+    console.error("[keel/reengagement] episode rollback FAILED — student stays locked", {
+      episode_id: id,
+      error,
+    });
+    return false;
   }
 }

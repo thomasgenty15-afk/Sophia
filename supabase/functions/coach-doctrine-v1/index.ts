@@ -217,6 +217,11 @@ Deno.serve(async (req) => {
           forbidden: payload.forbidden ?? [],
           vocabulary: payload.vocabulary ?? [],
           arbitrations: payload.arbitrations ?? [],
+          // Sans ces deux lignes, `compile` produisait les sections et `save`
+          // les jetait en silence: le coach voyait ses aliments à l'écran de
+          // validation, publiait, et l'agent n'en savait rien.
+          foods: payload.foods ?? { recommended: [], discouraged: [] },
+          qa: payload.qa ?? [],
           voice: payload.voice ?? {},
           content_locale: String(body.content_locale ?? "en"),
           change_note: String(body.change_note ?? "") || null,

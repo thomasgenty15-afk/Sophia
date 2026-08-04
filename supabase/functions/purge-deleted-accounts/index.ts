@@ -11,7 +11,12 @@
 //   2. delete storage objects under <user_id>/ in every bucket (gdpr-exports,
 //      plan-documents, meal-photos) — paginated, storage.list() caps at 100
 //   3. explicit deletes for tables whose FK is ON DELETE SET NULL but whose rows
-//      still carry personal data (message contents, phone numbers, error payloads)
+//      still carry personal data (message contents, phone numbers, error payloads),
+//      plus the FK-less rate-limit counters keyed by user id
+//   3bis. anonymise the ONE reference that must survive: the coach's weekly
+//      synthesis. It belongs to the coach, so it does not cascade — but it
+//      carried the student's uuid AND their rendered full name (AGENT 13).
+//      Runs BEFORE step 4, because the name is read from `profiles`.
 //   4. auth.admin.deleteUser → cascades profiles + the ~80 ON DELETE CASCADE tables;
 //      llm_usage_events is anonymised (user_id → NULL) by its SET NULL FK, keeping
 //      cost accounting without personal data.
@@ -187,7 +192,14 @@ async function purgeWhatsAppTraces(
 
 async function purgeOneUser(
   admin: ReturnType<typeof createClient>,
-  profile: { id: string; email: string | null; phone_number: string | null },
+  profile: {
+    id: string;
+    email: string | null;
+    phone_number: string | null;
+    // Le NOM: il ne sert qu'a l'anonymisation de coach_syntheses, et il doit
+    // etre lu AVANT que profiles ne parte en cascade.
+    full_name: string | null;
+  },
 ): Promise<void> {
   const userId = profile.id;
 
@@ -224,6 +236,35 @@ async function purgeOneUser(
     .eq("user_id", userId);
   if (selErr) throw selErr;
 
+  // Compteurs de limitation de débit: clés `<surface>:<user_id>:<fenêtre>`.
+  // Aucune FK, donc aucune cascade. Ils expirent en < 24 h et un cron les
+  // ramasse, mais « plus une ligne » doit être vrai à la seconde où la purge
+  // rend la main, pas dans une journée.
+  const { error: rateErr } = await admin
+    .from("rate_limit_counters")
+    .delete()
+    .like("bucket_key", `%${userId}%`);
+  if (rateErr) throw rateErr;
+
+  // 3bis) LA RÉFÉRENCE QUI DOIT SURVIVRE, ANONYMISÉE.
+  //
+  // `coach_syntheses` appartient au COACH: elle ne casse pas avec l'élève, et
+  // c'est voulu — un rapport hebdomadaire qui se réécrit tout seul n'est plus
+  // un rapport. Mais elle portait l'élève en clair sur deux colonnes:
+  // `flagged_students[].student_user_id` (son uuid) et `narrative` (son NOM,
+  // rendu par nameOf() dans la section « To catch up »).
+  //
+  // AVANT le delete auth, parce que le nom vient de `profiles`, qui part en
+  // cascade juste après. La ligne « à rattraper » reste (le rapport garderait
+  // sinon 2 élèves là où le coach en a lu 3); c'est QUI c'était qui disparaît.
+  const { error: anonErr } = await admin.rpc("keel_anonymise_purged_student", {
+    p_user_id: userId,
+    p_full_name: profile.full_name ?? null,
+  });
+  // On ne l'avale pas: la fonction relit et lève si une trace subsiste. Laisser
+  // passer ici rendrait une purge « réussie » avec le nom encore en base.
+  if (anonErr) throw anonErr;
+
   // 4) Final step: delete the auth user (SQL RPC — see purge_auth_user in the
   //    migration). This cascades profiles and every ON DELETE CASCADE table,
   //    and anonymises llm_usage_events via SET NULL. Deleting an already-gone
@@ -258,7 +299,7 @@ Deno.serve(async (req) => {
     for (let round = 0; round < 40; round++) {
       const { data: due, error } = await admin
         .from("profiles")
-        .select("id,email,phone_number")
+        .select("id,email,phone_number,full_name")
         .eq("account_status", ACCOUNT_STATUS_DELETION_PENDING)
         .lte("purge_at", nowIso)
         .order("purge_at", { ascending: true })

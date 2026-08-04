@@ -1,5 +1,6 @@
 import React from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import SEO from "../../components/SEO";
 import { useAuth } from "../../context/AuthContext";
 import { supabase } from "../../lib/supabase";
 import {
@@ -7,12 +8,14 @@ import {
   storeCoachInviteToken,
 } from "../api/coachInvite";
 import { PublicFooter, PublicHeader } from "../components/PublicHeader";
+import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { Field, inputClass } from "../components/ui/Field";
 import { t } from "../i18n/t";
 
-// KEEL — /join?token=... (BUILD_PLAN W6.5)
+// KEEL — /join?token=... (BUILD_PLAN W6.5, rewritten as the student's front
+// door on 2026-08-03)
 //
 // The only page of the product reachable with no account and no session. It
 // speaks to exactly one RPC before authentication — `preview_coach_invitation`
@@ -31,10 +34,37 @@ import { t } from "../i18n/t";
 // An expired link is the single most likely way a real person meets this page,
 // and it must read as a fixable situation, not as a broken product.
 //
-// I18N NOTE (W6.3 scope): `invite.accept_title`, `invite.accept_button` and
-// `invite.expired` come from keel/i18n/en.ts. The remaining copy is inline
-// English because en.ts is outside this lot's file perimeter; W9 consolidates
-// it. Nothing here is French.
+// ── WHY THIS PAGE IS LONG, WHEN IT USED TO BE A FORM ─────────────────────
+// A student does NOT arrive from the landing — that page sells to coaches, who
+// pay. They arrive here, from their coach's email, and this is the first and
+// only place they can learn what they are about to live every day for weeks.
+// So the explanation comes BEFORE the form, and the form is the last thing on
+// the page: they type a password knowing what they agreed to. That ordering is
+// the consent, and it is the reason not to add a jump link past the content.
+//
+// ── THE SEES / NEVER-SEES BLOCK IS LOAD-BEARING ──────────────────────────
+// Every line of it was written against the live schema, and it is the only
+// part of this page that can turn into a lie by someone else's migration. The
+// short version, proved line by line in docs/nutrition-pivot/STUDENT-PAGE.md:
+//
+//   · `chat_messages` has RLS on and NO coach policy. The only coach-facing
+//     object over it, the `coach_student_contact` view, selects
+//     `max(created_at)` and `count(*)`. There is no column to read text from.
+//   · `coach_student_events` exposes `media_path IS NOT NULL AS has_media` and
+//     neither `media_path` nor `student_note`. The `meal-photos` bucket is
+//     private and `storage.objects` carries zero policies.
+//   · No energy or macro column exists on `protocol_events` (CONTRACT
+//     NON-INPUT #4), and `findNumericTarget` strips them out of a plan line.
+//   · THE EXCEPTION IS REAL AND IS NAMED ON THE PAGE. When the restriction
+//     guard raises, `router/run.ts` passes the student's own message into
+//     `escalateRestrictionSignal`, which writes it to
+//     `contract_change_requests.student_words` — a table the coach may SELECT.
+//     Claiming "your coach never reads a word you write" would be false. The
+//     page states the carve-out instead, which is what makes the rest true.
+//
+// I18N. All visible copy is in keel/i18n/en.ts (`join.*` plus the pre-existing
+// `invite.*`). `{coach}` is always the mid-sentence form — the caller passes
+// the first name or "your coach", so no key may open a sentence with it.
 
 interface PreviewOk {
   valid: true;
@@ -87,6 +117,11 @@ function isAlreadyRegistered(message: string): boolean {
 
 function headline(coachName: string | null): string {
   return t("invite.accept_title", { coach: coachName ?? "Your coach" });
+}
+
+/** Mid-sentence form of the coach, for every `join.*` key. Never sentence-initial. */
+function coachRef(coachName: string | null): string {
+  return coachName ?? "your coach";
 }
 
 export default function JoinPage() {
@@ -230,21 +265,16 @@ export default function JoinPage() {
   };
 
   // -------------------------------------------------------------------------
+  // The compact states. Someone who has just joined, or who is holding a link
+  // the server refused, needs an answer and an exit — not a welcome tour.
+  // -------------------------------------------------------------------------
 
   if (phase.kind === "loading" || authLoading) {
-    return <Frame><p className="text-sm text-gray-500">Checking this invitation...</p></Frame>;
+    return <Notice><p className="text-sm text-gray-500">Checking this invitation...</p></Notice>;
   }
 
-  if (phase.kind === "no_token") {
-    return (
-      <Frame>
-        <h1 className="text-xl font-semibold text-gray-900">This link is incomplete</h1>
-        <p className="mt-2 text-sm leading-6 text-gray-600">
-          An invitation link carries a token. Open the link from your coach's email
-          again, in full.
-        </p>
-      </Frame>
-    );
+  if (phase.kind === "accepting") {
+    return <Notice><p className="text-sm text-gray-500">Joining...</p></Notice>;
   }
 
   // Already used AND signed in: this is someone who joined and re-opened their
@@ -253,7 +283,7 @@ export default function JoinPage() {
   // negative the /auth redirect used to produce at the moment of success.
   if (phase.kind === "refused" && phase.reason === "already_accepted" && user) {
     return (
-      <Frame>
+      <Notice>
         <h1 className="text-xl font-semibold text-gray-900">
           {t("invite.already_in_title")}
         </h1>
@@ -270,54 +300,33 @@ export default function JoinPage() {
         >
           {t("invite.already_in_cta")}
         </Button>
-      </Frame>
+      </Notice>
     );
-  }
-
-  if (phase.kind === "refused") {
-    return (
-      <Frame>
-        <h1 className="text-xl font-semibold text-gray-900">
-          This invitation cannot be used
-        </h1>
-        <p className="mt-2 text-sm leading-6 text-gray-600">{phase.message}</p>
-        <p className="mt-6 text-sm">
-          <Link to="/auth" className="underline">
-            Sign in to an existing account
-          </Link>
-        </p>
-      </Frame>
-    );
-  }
-
-  if (phase.kind === "accepting") {
-    return <Frame><p className="text-sm text-gray-500">Joining...</p></Frame>;
   }
 
   if (phase.kind === "accepted") {
     return (
-      <Frame>
+      <Notice>
         <h1 className="text-xl font-semibold text-gray-900">
-          You are in{phase.coachName ? `, with ${phase.coachName}` : ""}.
+          {phase.coachName
+            ? t("join.accepted.title_with_coach", { coach: phase.coachName })
+            : t("join.accepted.title")}
         </h1>
-        <p className="mt-2 text-sm leading-6 text-gray-600">
-          Your coach writes the plan. It appears in your space the moment they publish
-          it — nothing is generated for you in the meantime.
-        </p>
+        <p className="mt-2 text-sm leading-6 text-gray-600">{t("join.accepted.body")}</p>
         <Button
           variant="primary"
           className="mt-6"
           onClick={() => navigate("/app/today")}
         >
-          Go to my space
+          {t("invite.already_in_cta")}
         </Button>
-      </Frame>
+      </Notice>
     );
   }
 
   if (phase.kind === "existing_account") {
     return (
-      <Frame>
+      <Notice>
         <h1 className="text-xl font-semibold text-gray-900">
           {t("invite.existing_account_title")}
         </h1>
@@ -336,118 +345,496 @@ export default function JoinPage() {
         >
           {t("invite.existing_account_cta")}
         </Button>
-      </Frame>
+      </Notice>
     );
   }
 
   if (phase.kind === "check_email") {
     return (
-      <Frame>
+      <Notice>
         <h1 className="text-xl font-semibold text-gray-900">Confirm your email</h1>
         <p className="mt-2 text-sm leading-6 text-gray-600">
           Your account is created and you are already attached to
           {phase.coachName ? ` ${phase.coachName}'s` : " your coach's"} program. Open
           the confirmation email we just sent to finish signing in.
         </p>
-      </Frame>
+      </Notice>
+    );
+  }
+
+  // -------------------------------------------------------------------------
+  // The two full surfaces. Both explain the product; they differ only in what
+  // the reader can DO about it.
+  // -------------------------------------------------------------------------
+
+  // A refused link is not a dead end: the person still wants this, and the one
+  // useful thing we can do is tell them what they are chasing their coach for.
+  if (phase.kind === "refused") {
+    return (
+      <Welcome>
+        <Opening title={t("join.refused.title")} body={phase.message}>
+          <p className="mt-6 text-base">
+            <Link to="/auth" className="font-medium text-gray-900 underline">
+              {t("join.refused.signin_cta")}
+            </Link>
+          </p>
+        </Opening>
+        <Explanation coach={null} />
+      </Welcome>
+    );
+  }
+
+  if (phase.kind === "no_token") {
+    return (
+      <Welcome>
+        <Opening
+          title={t("join.no_token.title")}
+          body={t("join.no_token.body")}
+        >
+          <p className="mt-6 text-base leading-7 text-gray-600">
+            {t("join.no_token.have_account")}{" "}
+            <Link to="/auth" className="font-medium text-gray-900 underline">
+              {t("join.no_token.have_account_cta")}
+            </Link>
+          </p>
+        </Opening>
+        <Explanation coach={null} label={t("join.no_token.what_is_this")} />
+      </Welcome>
     );
   }
 
   // phase.kind === "ready"
+  const coach = coachRef(phase.coachName);
   return (
-    <Frame>
-      <h1 className="text-xl font-semibold text-gray-900">{headline(phase.coachName)}</h1>
-      <p className="mt-2 text-sm leading-6 text-gray-600">
-        Your coach writes the protocol; this space runs it. You will see what to do
-        today, log what actually happened, and read how the week went — from your own
-        records, never from a guess.
-      </p>
-
-      {user
-        ? (
-          <div className="mt-6">
-            <p className="text-sm text-gray-600">
-              Signed in as {user.email}. Accepting gives{" "}
-              {phase.coachName ?? "your coach"} read access to your plan, your logs and
-              your weekly reviews — never to what you write in chat, and never the
-              ability to act as you. You can revoke it at any time from your account.
-            </p>
-            <Button variant="primary" className="mt-4" onClick={accept}>
-              {t("invite.accept_button")}
-            </Button>
-          </div>
-        )
-        : (
-          <form onSubmit={signUp} className="mt-6 space-y-3">
-            <Field label="Your name" htmlFor="join-name">
-              <input
-                id="join-name"
-                type="text"
-                required
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                className={inputClass}
-              />
-            </Field>
-            <Field label="Email" htmlFor="join-email">
-              <input
-                id="join-email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className={inputClass}
-              />
-            </Field>
-            <Field label="Password" htmlFor="join-password">
-              <input
-                id="join-password"
-                type="password"
-                required
-                minLength={8}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className={inputClass}
-              />
-            </Field>
-
-            {formError && <p className="text-sm text-rose-700">{formError}</p>}
-
-            <Button
-              type="submit"
-              variant="primary"
-              disabled={submitting}
-              className="w-full"
-            >
-              {submitting ? "Creating your space..." : t("invite.accept_button")}
-            </Button>
-
-            <p className="text-sm text-gray-500">
-              Already have an account?{" "}
-              <Link
-                to={`/auth?redirect=${encodeURIComponent(
-                  `/join?token=${token ?? ""}`,
-                )}`}
-                className="underline"
-              >
-                Sign in and accept from there
-              </Link>
-              .
-            </p>
-          </form>
+    <Welcome>
+      <Opening title={headline(phase.coachName)} body={t("join.lead", { coach })}>
+        {!user && (
+          <p className="mt-6 text-sm leading-6 text-gray-500">
+            {t("join.lead_form_note")}
+          </p>
         )}
-    </Frame>
+      </Opening>
+
+      <Explanation coach={phase.coachName} />
+
+      <Band>
+        {user
+          ? (
+            <>
+              <h2 className="text-2xl font-semibold leading-tight tracking-tight text-gray-900">
+                {t("join.form.title")}
+              </h2>
+              <Card className="mt-6 sm:p-6">
+                <p className="text-base leading-7 text-gray-900">
+                  {t("join.form.signed_in_as", { email: user.email ?? "" })}
+                </p>
+                <p className="mt-2 text-sm leading-6 text-gray-600">
+                  {t("join.form.signed_in_body", { coach })}
+                </p>
+                <Button variant="primary" className="mt-5 w-full sm:w-auto" onClick={accept}>
+                  {t("invite.accept_button")}
+                </Button>
+              </Card>
+            </>
+          )
+          : (
+            <>
+              <h2 className="text-2xl font-semibold leading-tight tracking-tight text-gray-900">
+                {t("join.form.title")}
+              </h2>
+              <p className="mt-3 text-base leading-7 text-gray-600">
+                {t("join.form.lead", { coach })}
+              </p>
+              <Card className="mt-6 sm:p-6">
+                <form onSubmit={signUp} className="space-y-4">
+                  <Field label={t("join.form.name")} htmlFor="join-name">
+                    <input
+                      id="join-name"
+                      type="text"
+                      required
+                      autoComplete="name"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      className={inputClass}
+                    />
+                  </Field>
+                  <Field label={t("join.form.email")} htmlFor="join-email">
+                    <input
+                      id="join-email"
+                      type="email"
+                      required
+                      autoComplete="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className={inputClass}
+                    />
+                  </Field>
+                  <Field
+                    label={t("join.form.password")}
+                    htmlFor="join-password"
+                    hint={t("join.form.password_hint")}
+                  >
+                    <input
+                      id="join-password"
+                      type="password"
+                      required
+                      minLength={8}
+                      autoComplete="new-password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className={inputClass}
+                    />
+                  </Field>
+
+                  {formError && <p className="text-sm text-rose-700">{formError}</p>}
+
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    disabled={submitting}
+                    className="w-full"
+                  >
+                    {submitting ? t("join.form.submitting") : t("invite.accept_button")}
+                  </Button>
+
+                  <p className="text-sm leading-6 text-gray-500">
+                    {t("join.form.have_account")}{" "}
+                    <Link
+                      to={`/auth?redirect=${encodeURIComponent(
+                        `/join?token=${token ?? ""}`,
+                      )}`}
+                      className="font-medium text-gray-900 underline"
+                    >
+                      {t("join.form.have_account_cta")}
+                    </Link>
+                    .
+                  </p>
+                </form>
+              </Card>
+            </>
+          )}
+      </Band>
+    </Welcome>
   );
 }
 
-function Frame({ children }: { children: React.ReactNode }) {
+// ---------------------------------------------------------------------------
+// Chrome
+// ---------------------------------------------------------------------------
+
+/**
+ * The compact frame, unchanged in spirit from W6.5: a single card for the
+ * states that are an ANSWER (you are in / confirm your email / joining). The
+ * header drops the coach trial — see PublicHeader.
+ */
+function Notice({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col bg-white">
-      <PublicHeader />
+      <JoinSEO />
+      <PublicHeader audience="student" />
       <main className="mx-auto w-full max-w-lg flex-1 px-4 py-16">
         <Card className="p-6">{children}</Card>
       </main>
       <PublicFooter />
     </div>
   );
+}
+
+/**
+ * The full page. One column at every width: a student opens this link on their
+ * phone, and a two-column layout that only exists above 1024px is a layout
+ * written for the reviewer rather than the reader. Sections are separated by
+ * hairline rules — the landing's device — never by alternating tints, so the
+ * two ground changes that DO happen (the dark block, nothing else) each mean
+ * something.
+ */
+function Welcome({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex min-h-screen flex-col bg-white">
+      <JoinSEO />
+      <PublicHeader audience="student" />
+      <main className="flex-1">{children}</main>
+      <PublicFooter />
+    </div>
+  );
+}
+
+/**
+ * NOINDEX, and not as a precaution: every real URL of this route carries an
+ * invitation token in the query string, and an indexed one is a live invitation
+ * in a search result. No `canonical` either, for the same reason.
+ *
+ * It also repairs a smaller thing that only a student ever saw: /join had no
+ * <SEO> at all, so the tab of the one page written for them was still wearing
+ * the legacy French title of index.html.
+ */
+function JoinSEO() {
+  return (
+    <SEO
+      title={t("join.seo_title")}
+      description={t("join.seo_description")}
+      robots="noindex,nofollow"
+      lang="en"
+    />
+  );
+}
+
+/** The prose column: ~65 characters at body size, which is where reading is. */
+function Column({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return <div className={`mx-auto w-full max-w-xl px-5 ${className}`}>{children}</div>;
+}
+
+/** A white section, ruled off from the one above it. */
+function Band({ children }: { children: React.ReactNode }) {
+  return (
+    <section className="border-t border-gray-200">
+      <Column className="py-12 sm:py-16">{children}</Column>
+    </section>
+  );
+}
+
+function Eyebrow({ children, tone = "light" }: { children: React.ReactNode; tone?: "light" | "dark" }) {
+  return (
+    <p
+      className={`text-xs font-semibold uppercase tracking-widest ${
+        tone === "dark" ? "text-gray-400" : "text-gray-500"
+      }`}
+    >
+      {children}
+    </p>
+  );
+}
+
+/**
+ * The top of the page, whichever surface this is. The title is the situation
+ * the reader is in — invited, refused, or link-less — and it is the only h1.
+ */
+function Opening({
+  title,
+  body,
+  children,
+}: {
+  title: string;
+  body: string;
+  children?: React.ReactNode;
+}) {
+  return (
+    <section>
+      <Column className="pb-12 pt-12 sm:pb-16 sm:pt-20">
+        <h1 className="text-3xl font-semibold leading-[1.1] tracking-tight text-gray-900 text-balance sm:text-4xl">
+          {title}
+        </h1>
+        <p className="mt-6 text-lg leading-8 text-gray-600">{body}</p>
+        {children}
+      </Column>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// The explanation — identical on every surface that shows it
+// ---------------------------------------------------------------------------
+
+/**
+ * Three sections, in the order a person actually asks the questions: what will
+ * my days look like, what is this going to do to me, and who is watching.
+ *
+ * `coach` is the raw first name (or null): every string interpolates the
+ * mid-sentence form, so a page with no token still reads as English.
+ */
+function Explanation({ coach, label }: { coach: string | null; label?: string }) {
+  const c = coachRef(coach);
+  return (
+    <>
+      <Band>
+        {label ? <Eyebrow>{label}</Eyebrow> : null}
+        <h2
+          className={`text-2xl font-semibold leading-tight tracking-tight text-gray-900 text-balance ${
+            label ? "mt-2" : ""
+          }`}
+        >
+          {t("join.day.title")}
+        </h2>
+
+        <div className="mt-10 space-y-10">
+          <Moment
+            where={t("join.day.where_whatsapp")}
+            title={t("join.day.photo_title")}
+            body={t("join.day.photo_body", { coach: c })}
+          />
+          <Moment
+            where={t("join.day.where_whatsapp")}
+            title={t("join.day.evening_title")}
+            body={t("join.day.evening_body")}
+          >
+            {/*
+              The three taps, literally. WhatsApp caps reply buttons at three,
+              which is why the evening question has three answers and not a
+              0-10 scale (`_shared/keel/daily_pulse.ts`) — and the tones are the
+              ones /app/progress already renders these three states in, so the
+              student meets the same colours twice.
+            */}
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Badge tone="positive">{t("join.day.tap_good")}</Badge>
+              <Badge tone="caution">{t("join.day.tap_mixed")}</Badge>
+              <Badge tone="critical">{t("join.day.tap_hard")}</Badge>
+            </div>
+          </Moment>
+          <Moment
+            where={t("join.day.where_app")}
+            title={t("join.day.app_title")}
+            body={t("join.day.app_body", { coach: c })}
+          />
+        </div>
+      </Band>
+
+      <NobodyGrades />
+      <Ledger coach={c} />
+
+      {/*
+        The limit, and the last thing read before a password is typed on the
+        surface that has a form. There is no one-to-one channel back to the
+        coach, and a page that lets someone hope for one has mis-sold the
+        product on the day they joined. It closes the explanation on every
+        surface, not just the one with a form — an expired link should not be
+        the reason someone finds this out three weeks later.
+      */}
+      <Band>
+        <h2 className="text-2xl font-semibold leading-tight tracking-tight text-gray-900 text-balance">
+          {t("join.limit.title", { coach: c })}
+        </h2>
+        <p className="mt-4 text-base leading-7 text-gray-600">{t("join.limit.body")}</p>
+      </Band>
+    </>
+  );
+}
+
+/**
+ * One moment of the day. The eyebrow is the SURFACE, not a number: "on
+ * WhatsApp" twice and "in this app" once is a true statement about where this
+ * product lives, and 01/02/03 would only have said there are three of them.
+ */
+function Moment({
+  where,
+  title,
+  body,
+  children,
+}: {
+  where: string;
+  title: string;
+  body: string;
+  children?: React.ReactNode;
+}) {
+  return (
+    <div>
+      <Eyebrow>{where}</Eyebrow>
+      <h3 className="mt-2 text-lg font-medium leading-7 text-gray-900 text-balance">
+        {title}
+      </h3>
+      <p className="mt-2 text-base leading-7 text-gray-600">{body}</p>
+      {children}
+    </div>
+  );
+}
+
+/**
+ * The page's one dark ground. The landing spends its dark block on the double
+ * lock, because that is the argument a coach buys; this page spends it on the
+ * absence of a grade, because that is the one a student stays for. Full-bleed
+ * so the change of ground reads as a change of register rather than as a card.
+ *
+ * No accent hue is introduced here — as on the landing, every saturated colour
+ * in this product is a STATE, and a brand tint on the one page whose argument
+ * is "nothing here is scoring you" would be decoration pretending to mean
+ * something.
+ */
+function NobodyGrades() {
+  return (
+    <section className="bg-gray-950 text-white">
+      <Column className="py-14 sm:py-20">
+        <Eyebrow tone="dark">{t("join.grade.kicker")}</Eyebrow>
+        <h2 className="mt-2 text-2xl font-semibold leading-tight tracking-tight text-balance sm:text-3xl">
+          {t("join.grade.title")}
+        </h2>
+        <p className="mt-4 text-base leading-7 text-gray-300">{t("join.grade.lead")}</p>
+
+        <dl className="mt-10 grid gap-8">
+          <Refusal title={t("join.grade.one_title")}>{t("join.grade.one_body")}</Refusal>
+          <Refusal title={t("join.grade.two_title")}>{t("join.grade.two_body")}</Refusal>
+          <Refusal title={t("join.grade.three_title")}>{t("join.grade.three_body")}</Refusal>
+        </dl>
+      </Column>
+    </section>
+  );
+}
+
+function Refusal({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="border-l-2 border-gray-700 pl-5">
+      <dt className="text-lg font-medium leading-7 text-white text-balance">{title}</dt>
+      <dd className="mt-2 text-base leading-7 text-gray-400">{children}</dd>
+    </div>
+  );
+}
+
+/**
+ * The ledger — the one designed object on this page, and the only block that
+ * required reading the database rather than the product brief.
+ *
+ * It is one container with a seam through it, because the seam IS the thing
+ * being described. The two halves are told apart by ground and by label, not
+ * by icons or ticks-and-crosses: a green tick against "what crosses over"
+ * would be scoring the list, on the page that just promised not to score
+ * anything.
+ *
+ * The exception sits inside the same container, under a heavy rule rather than
+ * a warning tint. It is not an alarm — it is the one place the boundary is
+ * crossed on purpose, and burying it in amber would be editorialising a fact.
+ */
+function Ledger({ coach }: { coach: string }) {
+  return (
+    <Band>
+      <Eyebrow>{t("join.seen.kicker")}</Eyebrow>
+      <h2 className="mt-2 text-2xl font-semibold leading-tight tracking-tight text-gray-900 text-balance">
+        {t("join.seen.title", { coach })}
+      </h2>
+      <p className="mt-4 text-base leading-7 text-gray-600">{t("join.seen.lead")}</p>
+
+      <Card padded={false} className="mt-8">
+        <div className="px-5 py-5 sm:px-6">
+          <Eyebrow>{t("join.seen.sees_label")}</Eyebrow>
+          <ul className="mt-3 space-y-3">
+            <LedgerLine>{t("join.seen.sees_1")}</LedgerLine>
+            <LedgerLine>{t("join.seen.sees_2")}</LedgerLine>
+            <LedgerLine>{t("join.seen.sees_3")}</LedgerLine>
+            <LedgerLine>{t("join.seen.sees_4")}</LedgerLine>
+            <LedgerLine>{t("join.seen.sees_5")}</LedgerLine>
+          </ul>
+        </div>
+
+        <div className="border-t border-gray-200 bg-gray-50 px-5 py-5 sm:px-6">
+          <Eyebrow>{t("join.seen.never_label")}</Eyebrow>
+          <ul className="mt-3 space-y-3">
+            <LedgerLine>{t("join.seen.never_1")}</LedgerLine>
+            <LedgerLine>{t("join.seen.never_2")}</LedgerLine>
+            <LedgerLine>{t("join.seen.never_3")}</LedgerLine>
+            <LedgerLine>{t("join.seen.never_4")}</LedgerLine>
+          </ul>
+        </div>
+
+        <div className="border-t-2 border-gray-900 px-5 py-5 sm:px-6">
+          <p className="text-xs font-semibold uppercase tracking-widest text-gray-900">
+            {t("join.seen.exception_label")}
+          </p>
+          <p className="mt-3 text-base leading-7 text-gray-700">
+            {t("join.seen.exception_body", { coach })}
+          </p>
+        </div>
+      </Card>
+    </Band>
+  );
+}
+
+function LedgerLine({ children }: { children: React.ReactNode }) {
+  return <li className="text-base leading-7 text-gray-700">{children}</li>;
 }

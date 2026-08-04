@@ -6,8 +6,20 @@ import { ButtonLink } from "./ui/Button";
 // KEEL — public chrome. The header is the coach's door into the product:
 // wordmark, sign in, start trial. Nothing else — a public page that needs more
 // navigation than this is trying to be the app.
+//
+// TWO AUDIENCES, ONE HEADER. /join is public but is NOT a sales surface: the
+// person reading it was invited by a coach who already pays. "Start free trial"
+// there offers them the coach product — a second, paid account they have no use
+// for — at the exact moment they are trying to accept the one they were given.
+// `audience="student"` drops that CTA and keeps "Sign in", which is the one
+// thing a student on that page might genuinely need (they may already have an
+// account). Default is unchanged, so every existing caller keeps the coach door.
 
-export function PublicHeader() {
+export function PublicHeader({
+  audience = "coach",
+}: {
+  audience?: "coach" | "student";
+} = {}) {
   // Public KEEL pages are English; the legacy index.html declares lang="fr".
   // The landing corrects both through SEO; this covers pages without it (join).
   React.useEffect(() => {
@@ -21,12 +33,14 @@ export function PublicHeader() {
           {t("brand.wordmark")}
         </Link>
         <nav className="flex items-center gap-2">
-          <ButtonLink to="/auth" variant="ghost">
+          <ButtonLink to="/auth" variant={audience === "student" ? "secondary" : "ghost"}>
             {t("public.header.sign_in")}
           </ButtonLink>
-          <ButtonLink to="/auth?role=coach" variant="primary">
-            {t("public.header.start_trial")}
-          </ButtonLink>
+          {audience === "coach" && (
+            <ButtonLink to="/auth?role=coach" variant="primary">
+              {t("public.header.start_trial")}
+            </ButtonLink>
+          )}
         </nav>
       </div>
     </header>

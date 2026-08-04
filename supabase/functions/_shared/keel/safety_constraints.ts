@@ -32,6 +32,7 @@ import {
   findForbiddenMatches,
   type ForbiddenTerm,
 } from "./forbidden_matcher.ts";
+import { surfaceFormsFor } from "./allergen_surface_forms.ts";
 
 // ---------------------------------------------------------------------------
 // Row shape
@@ -84,13 +85,13 @@ type StudentSafetyConstraintRow = {
 };
 
 /** Structural type: tests inject a fake, production injects a SupabaseClient. */
+type SafetyConstraintsQuery =
+  & PromiseLike<{ data: StudentSafetyConstraintRow[] | null; error: unknown }>
+  & { eq(column: string, value: string): SafetyConstraintsQuery };
+
 export type SafetyConstraintsDb = {
   from(table: string): {
-    select(columns: string): {
-      eq(column: string, value: string): PromiseLike<
-        { data: StudentSafetyConstraintRow[] | null; error: unknown }
-      >;
-    };
+    select(columns: string): SafetyConstraintsQuery;
   };
 };
 
@@ -138,7 +139,14 @@ export async function loadStudentSafetyConstraints(
         "id, user_id, kind, allergen_ref, substance_ref, medication_class, " +
           "severity, declared_by, notes, content_locale",
       )
-      .eq("user_id", id));
+      .eq("user_id", id)
+      // RÉTRACTATION (migration 20260803160000). Une contrainte retirée reste
+      // EN BASE pour l'audit clinique et cesse de mordre ici, au seul endroit
+      // qui compte: le chargement de chaque tour. Filtrer à la source plutôt
+      // qu'au consommateur, sinon chaque nouveau lecteur doit se souvenir de
+      // le faire — et un qui oublie ré-arme une contrainte que l'élève a
+      // corrigée.
+      .eq("status", "active"));
   } catch (thrown) {
     throw new SafetyConstraintsLoadError(id, thrown);
   }
@@ -155,6 +163,79 @@ export async function loadStudentSafetyConstraints(
     notes: row.notes,
     contentLocale: row.content_locale,
   }));
+}
+
+// ---------------------------------------------------------------------------
+// Le bloc de PROMPT — la moitié « avant génération » du double verrou
+// ---------------------------------------------------------------------------
+
+/**
+ * Les contraintes dures de l'élève, rendues pour le PROMPT.
+ *
+ * ── POURQUOI CETTE FONCTION N'EXISTAIT PAS, ET CE QUE ÇA COÛTAIT ──────────
+ * Le §3.3 du pivot décrit un DOUBLE verrou: injecté dans le prompt ET vérifié
+ * en sortie. La moitié « vérifié en sortie » était écrite, testée, posée au
+ * point de passage unique du rendu. La moitié « injecté dans le prompt »
+ * n'existait pas: `grep` du 2026-08-03 montre que `safety_constraints` n'avait
+ * que deux consommateurs runtime, `applyKeelOutputLocks` et le skill
+ * `plan_question`. Les deux seuls blocs qu'un tour d'élève KEEL recevait
+ * étaient le plan et la doctrine du coach.
+ *
+ * Le modèle générait donc À L'AVEUGLE, et toute la sécurité reposait sur un
+ * matcher post-hoc. Conséquence mesurée: « the nut butter option is the
+ * stronger bag snack » servi à un élève anaphylactique.
+ *
+ * Pire, cette absence rendait FAUSSE la justification écrite du fail-open de
+ * `run.ts` (« le prompt porte déjà les contraintes, seule la vérification
+ * déterministe manque »). Le fail-open est acceptable quand une des deux
+ * moitiés tient. Il ne l'était pas quand aucune ne tenait.
+ *
+ * ── CE QUE LE BLOC DIT, ET CE QU'IL SE GARDE DE DIRE ──────────────────────
+ * Il nomme les identifiants, pas la prose des `notes` (R1: on branche sur des
+ * identifiants). Et il autorise EXPLICITEMENT d'en parler pour les éviter ou
+ * les expliquer — sans cette phrase, un modèle prudent refuse de répondre à
+ * « est-ce que ce plat contient des arachides ? », qui est précisément la
+ * question qu'un élève allergique a le droit de poser. C'est la même carve-out
+ * que la condition de désarmement `disarmed_negated_mention` de la ceinture:
+ * les deux moitiés du verrou doivent avoir la MÊME politique de négation,
+ * sinon le prompt produit un texte que la ceinture rejette.
+ *
+ * Rend `null` quand il n'y a rien à dire — un bloc vide dans un prompt est du
+ * bruit qui coûte du cache.
+ */
+export function safetyConstraintsPromptBlock(
+  constraints: readonly StudentSafetyConstraint[] | null,
+): string | null {
+  if (!constraints || constraints.length === 0) return null;
+  const lines: string[] = [];
+  for (const constraint of constraints) {
+    const refs = safetyConstraintTokens(constraint);
+    if (refs.length === 0) continue;
+    lines.push(
+      `- ${refs.join(", ")} — ${constraint.kind}, severity=${constraint.severity}` +
+        ` (declared by ${constraint.declaredBy})`,
+    );
+  }
+  if (lines.length === 0) return null;
+  const hasMedical = constraints.some((c) => c.severity === "medical");
+  return [
+    "=== THIS STUDENT'S HARD CONSTRAINTS (source: student_safety_constraints) ===",
+    "These are not preferences. They are loaded fresh every turn.",
+    ...lines,
+    "",
+    "NEVER suggest, recommend or include any of the above, and never suggest a",
+    "food that ordinarily contains one (a nut butter for a peanut constraint, a",
+    "satay sauce, a tahini for sesame). When you propose anything to eat, check",
+    "it against this list first.",
+    "You MAY name them to warn, to exclude, or to answer a direct question about",
+    "them — avoiding a food requires being able to say its name.",
+    ...(hasMedical
+      ? [
+        "A medical-severity constraint is not something to reason around: if a",
+        "question turns on it clinically, say so and point to a doctor.",
+      ]
+      : []),
+  ].join("\n");
 }
 
 // ---------------------------------------------------------------------------
@@ -229,7 +310,24 @@ export function findMedicalConstraintViolations(
   for (const constraint of constraints) {
     if (constraint.severity !== "medical") continue;
     for (const token of safetyConstraintTokens(constraint)) {
-      terms.push({ ruleId: constraint.id, token });
+      // LES FORMES DE SURFACE, et leur absence était le trou (QA agent 4).
+      //
+      // Le moteur supporte `surfaceForms` depuis toujours et la doctrine du
+      // coach s'en sert; cette moitié-ci ne les alimentait pas, donc la garde
+      // MÉDICALE — la plus critique des deux — était la seule à ne matcher
+      // qu'un mot. Mesuré: "the nut butter option is the stronger bag snack"
+      // est SORTI, `reason: "clean"`, sur un élève `allergen_ref='peanut'`
+      // `severity='medical'`.
+      //
+      // La table est plate, fermée, écrite à la main (voir son en-tête). Un
+      // slug qui n'y figure pas garde exactement son comportement d'avant:
+      // `surfaceFormsFor` rend `[]`, jamais `null`, donc l'ajout ne peut pas
+      // réduire la couverture.
+      terms.push({
+        ruleId: constraint.id,
+        token,
+        surfaceForms: surfaceFormsFor(token),
+      });
     }
   }
   return findForbiddenMatches(text, terms, options).map((m) => ({

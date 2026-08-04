@@ -55,8 +55,15 @@ export const WEEKLY_AXES = [
 ] as const;
 export type WeeklyAxis = (typeof WEEKLY_AXES)[number];
 
+/**
+ * Meta coupe un label de Dropdown au-delà de 20 caractères sur les petits
+ * écrans. La limite est tenue par un test: un label tronqué ne se voit pas
+ * d'ici, il se voit sur le téléphone de l'élève.
+ */
+export const WEEKLY_LABEL_MAX_CHARS = 20;
+
 export const WEEKLY_AXIS_LABELS_EN: Record<WeeklyAxis, string> = {
-  energy: "Energy through the day",
+  energy: "Day-to-day energy",
   hunger: "Hunger between meals",
   sleep: "Sleep quality",
   digestion: "Digestion",
@@ -509,6 +516,36 @@ export function decideWeeklyFlow(input: WeeklyFlowDecisionInput): WeeklyFlowDeci
 
 export const WEEKLY_FLOW_BODY_EN = "Two minutes on how the week actually went?";
 export const WEEKLY_FLOW_CTA_EN = "Take the check-in";
+
+/**
+ * Le template approuvé qui PORTE le Flow hors fenêtre 24h.
+ *
+ * Le point hebdo part le dimanche soir à des élèves qui, par construction, ont
+ * pu ne pas écrire de la journée. Sans ce repli, `whatsapp-send` refuse le
+ * `interactive_flow` en 409 et le bilan n'est jamais demandé — le produit ne
+ * mesurerait que les élèves déjà bavards.
+ *
+ * Le template déclare CHEZ META le Flow et son écran d'entrée; il ne reste à
+ * l'envoi que le jeton, qui fait l'aller-retour et revient dans le `nfm_reply`.
+ */
+export const WEEKLY_TEMPLATE_NAME_DEFAULT = "keel_weekly_checkin_v1";
+export const WEEKLY_TEMPLATE_LANG_DEFAULT = "en_GB";
+
+/**
+ * Le composant `button` du template: le jeton de corrélation, et rien d'autre.
+ *
+ * Le jeton ne porte que la semaine — l'élève est résolu par le numéro qui
+ * répond. Cette propriété tient des deux côtés, natif comme template: elle
+ * serait vide si le repli glissait un identifiant dans le jeton.
+ */
+export function weeklyTemplateFlowComponents(flowToken: string): unknown[] {
+  return [{
+    type: "button",
+    sub_type: "flow",
+    index: "0",
+    parameters: [{ type: "action", action: { flow_token: flowToken } }],
+  }];
+}
 
 /**
  * L'accusé après le point. Court, sans commentaire sur les valeurs.

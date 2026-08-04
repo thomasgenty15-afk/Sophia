@@ -101,6 +101,42 @@ export function pulseAxisButtons(): PulseButton[] {
 export const PULSE_QUESTION_EN = "How was today?";
 export const PULSE_AXIS_QUESTION_EN = "What was hard?";
 
+/**
+ * Le template approuvé qui porte la MÊME question hors fenêtre 24h.
+ *
+ * Il existe parce que le pouls vise par construction l'élève qui n'a pas
+ * écrit: dans la fenêtre, notre code rend le message nativement; hors fenêtre,
+ * `whatsapp-send` refuse un `interactive_buttons` en 409, et sans repli le
+ * produit ne mesure que les élèves déjà actifs — ceux dont on n'avait pas
+ * besoin de mesurer.
+ */
+export const PULSE_TEMPLATE_NAME_DEFAULT = "keel_daily_pulse_v1";
+export const PULSE_TEMPLATE_LANG_DEFAULT = "en_GB";
+
+/**
+ * Les composants `button` du template: le payload de chaque réponse rapide,
+ * PAR INDEX.
+ *
+ * C'est ici que se joue le contrat le plus silencieux du pivot. Meta ne renvoie
+ * pas le libellé du bouton tapé, il renvoie le payload que NOUS avons attaché à
+ * son index. Si l'ordre des boutons chez Meta ne correspond pas à l'ordre de
+ * `pulseLevelButtons()`, un élève qui tape « All good » voit « Rough »
+ * enregistré — sans erreur, sans trace, et le bilan du coach est faux.
+ *
+ * Dériver les composants des mêmes boutons que le rendu natif est ce qui
+ * empêche les deux chemins de diverger.
+ */
+export function pulseTemplateButtonComponents(
+  buttons: PulseButton[],
+): unknown[] {
+  return buttons.map((button, index) => ({
+    type: "button",
+    sub_type: "quick_reply",
+    index: String(index),
+    parameters: [{ type: "payload", payload: button.id }],
+  }));
+}
+
 // ---------------------------------------------------------------------------
 // Lire la réponse
 // ---------------------------------------------------------------------------

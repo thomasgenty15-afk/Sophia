@@ -80,6 +80,11 @@ interface DoctrineDraft {
   }>;
   vocabulary?: Array<{ term?: string; meaning?: string | null }>;
   arbitrations?: Array<{ situation?: string; coach_answer?: string }>;
+  foods?: {
+    recommended?: Array<{ term?: string; reason?: string | null }>;
+    discouraged?: Array<{ term?: string; surface_forms?: string[]; reason?: string | null }>;
+  };
+  qa?: Array<{ question?: string; answer?: string }>;
   voice?: Record<string, unknown>;
 }
 
@@ -418,6 +423,33 @@ function DraftPreview({ draft }: { draft: DoctrineDraft }) {
       "How you answer",
       (draft.arbitrations ?? []).map((a) =>
         `${String(a.situation ?? "")} → ${String(a.coach_answer ?? "")}`
+      ),
+    ],
+    [
+      "Foods you reach for",
+      (draft.foods?.recommended ?? []).map((f) =>
+        [String(f.term ?? ""), String(f.reason ?? "")].filter(Boolean).join(" — ")
+      ),
+    ],
+    [
+      "Foods you keep off the plate",
+      (draft.foods?.discouraged ?? []).map((f) => {
+        const head = [String(f.term ?? ""), (f.surface_forms ?? []).join(" / ")]
+          .filter(Boolean)
+          .join(" — ");
+        // Les formulations sont montrées, et leur ABSENCE est dite. Un aliment
+        // sans surface_forms est un aliment que le filtre ne reconnaîtra
+        // presque jamais dans une phrase réelle: mieux vaut le voir ici que le
+        // découvrir quand l'agent l'aura suggéré à un élève.
+        return (f.surface_forms ?? []).length > 0
+          ? head
+          : `${head}  ·  no phrasings recorded — this one will be hard to catch`;
+      }),
+    ],
+    [
+      "What you have already answered",
+      (draft.qa ?? []).map((q) =>
+        `${String(q.question ?? "")} → ${String(q.answer ?? "")}`
       ),
     ],
   ];

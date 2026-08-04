@@ -18,6 +18,7 @@ import {
   pulseAxisButtons,
   pulseLevelButtonId,
   pulseLevelButtons,
+  pulseTemplateButtonComponents,
   readPulseReply,
   renderPulseAck,
   renderPulseAxisQuestion,
@@ -226,4 +227,47 @@ Deno.test("the ack never comments, consoles or bounces back", () => {
     assert(ack.length <= 20, ack);
     assert(!/courage|demain|bravo|dommage|essaie/i.test(ack), ack);
   }
+});
+
+// ---------------------------------------------------------------------------
+// Le repli template hors fenêtre 24h
+// ---------------------------------------------------------------------------
+
+Deno.test("the template payloads follow the SAME order as the native buttons", () => {
+  // Le contrat le plus silencieux du pivot. Meta ne renvoie pas le libellé du
+  // bouton tapé, il renvoie le payload attaché à son INDEX. Deux boutons
+  // inversés entre le template et le rendu natif = « Rough » enregistré pour
+  // un élève qui a tapé « All good », sans erreur et sans trace.
+  const buttons = pulseLevelButtons();
+  const components = pulseTemplateButtonComponents(buttons) as Array<
+    Record<string, unknown>
+  >;
+  assertEquals(components.length, buttons.length);
+  components.forEach((component, index) => {
+    assertEquals(component.type, "button");
+    assertEquals(component.sub_type, "quick_reply");
+    // L'index part en CHAÎNE chez Meta. Un nombre y est refusé.
+    assertEquals(component.index, String(index));
+    const params = component.parameters as Array<Record<string, unknown>>;
+    assertEquals(params.length, 1);
+    assertEquals(params[0].type, "payload");
+    assertEquals(params[0].payload, buttons[index].id);
+  });
+});
+
+Deno.test("the template carries the payloads the reader actually accepts", () => {
+  // Un payload que `readPulseReply` ne sait pas lire est un tap perdu: l'élève
+  // a répondu, le produit n'a rien enregistré.
+  const components = pulseTemplateButtonComponents(pulseLevelButtons()) as Array<
+    Record<string, unknown>
+  >;
+  for (const component of components) {
+    const params = component.parameters as Array<Record<string, unknown>>;
+    const reply = readPulseReply(String(params[0].payload));
+    assert(reply, `payload ${params[0].payload} unreadable`);
+  }
+});
+
+Deno.test("PRÉMISSE FAUSSE: no buttons, no components — never a bare index", () => {
+  assertEquals(pulseTemplateButtonComponents([]), []);
 });

@@ -79,6 +79,8 @@ Deno.serve(async (req) => {
     const userId = user.id;
 
     const body = await req.json().catch(() => ({} as Record<string, unknown>));
+    // Le contexte qualitatif de CETTE semaine, en prose libre.
+    const weekContext = String(body.context ?? "").trim().slice(0, 2000) || null;
     const weekStart = mondayOf(
       String(body.local_date ?? "").trim() || new Date().toISOString().slice(0, 10),
     );
@@ -152,6 +154,45 @@ Deno.serve(async (req) => {
       }, { status: 409 });
     }
 
+    // --- LE PLAN ADOPTÉ NE S'ÉCRASE PAS TOUT SEUL --------------------------
+    //
+    // « Regenerate » sur un plan ADOPTÉ remettait `status='draft'` en silence,
+    // parce que l'upsert plus bas écrit toujours `draft`. Mesuré le 2026-08-03
+    // (QA agent 5): adopted -> draft, items remplacés, et `adopted_at` CONSERVÉ
+    // — une ligne qui porte l'horodatage d'une adoption qu'elle ne revendique
+    // plus.
+    //
+    // Ce n'est pas cosmétique. `keel-daily-pulse-v1` et `keel-weekly-flow-v1`
+    // filtrent tous les deux sur `status='adopted'`: une désadoption silencieuse
+    // coupe le tap du soir ET le point hebdomadaire de l'élève, sans que rien
+    // ne le lui dise.
+    //
+    // La garde est ICI et pas seulement dans l'app: une confirmation d'UI ne
+    // protège que le client qui l'implémente, et ce chemin a vocation à être
+    // appelé aussi depuis WhatsApp. L'élève reste maître de son plan — il
+    // repasse en renvoyant `replace_adopted: true`, ce que le bouton fait après
+    // avoir demandé confirmation.
+    //
+    // DÉSARMEMENT (P9): pas de plan, ou plan en `draft`/`archived` -> la garde
+    // ne mord pas. Testé par le cas prémisse-fausse dans le rapport agent 5.
+    const existingRes = await admin
+      .from("student_week_plans")
+      .select("id, status")
+      .eq("user_id", userId)
+      .eq("week_start", weekStart)
+      .maybeSingle();
+    if (existingRes.error) throw existingRes.error;
+    const existing = existingRes.data as Record<string, unknown> | null;
+    if (existing?.status === "adopted" && body.replace_adopted !== true) {
+      return jsonResponse(req, {
+        error: "plan_already_adopted",
+        detail:
+          "This week is already adopted. Regenerating replaces it and un-adopts it; " +
+          "send replace_adopted to confirm.",
+        request_id: requestId,
+      }, { status: 409 });
+    }
+
     // --- contraintes dures de l'élève : le second verrou --------------------
     let constraints = null;
     try {
@@ -168,10 +209,20 @@ Deno.serve(async (req) => {
       situation: {
         goal,
         situation: goalRow.situation ? String(goalRow.situation) : null,
+        // Le contexte du moment vient du CORPS de la requête, pas du profil:
+        // « mariage mardi » ne doit pas survivre au mariage. Il est archivé
+        // dans `generated_from` pour qu'on puisse relire, trois semaines plus
+        // tard, pourquoi cette semaine-là avait cette forme.
+        context: weekContext,
         practicalConstraints: (goalRow.practical_constraints ?? {}) as Record<string, unknown>,
       },
       doctrineBlock: doctrineBlockFor(doctrine),
       weekStart,
+      // VERROU 4, moitié « avant génération ». Le même objet qui alimente
+      // `parseWeekPlan` plus bas: une seule lecture, deux moitiés de verrou.
+      // `null` ici (lecture en panne) est explicite et voulu — voir le catch
+      // ci-dessus, qui log et n'interrompt pas.
+      safetyConstraints: constraints,
     });
 
     const result = await generateWithGemini(
@@ -229,9 +280,17 @@ Deno.serve(async (req) => {
           // quand le coach a depuis réécrit sa doctrine.
           belief_keys: principles.map((p) => p.belief_key),
           goal,
+          context: weekContext,
           prompt_version: WEEK_PLAN_PROMPT_VERSION,
         },
         status: "draft",
+        // `adopted_at` remis à NULL avec le statut, et pas laissé tel quel.
+        // L'upsert ne touchant que les colonnes citées, un plan régénéré
+        // gardait sinon l'horodatage de son adoption précédente: une ligne
+        // `draft` datée d'une adoption est une ligne qui ment sur elle-même, et
+        // c'est exactement le genre d'incohérence dont on se sert plus tard
+        // pour affirmer qu'un élève avait adopté sa semaine.
+        adopted_at: null,
         content_locale: String(goalRow.content_locale ?? "en"),
       }, { onConflict: "user_id,week_start" })
       .select("id, week_start, status")

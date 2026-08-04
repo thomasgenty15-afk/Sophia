@@ -37,6 +37,7 @@ import { replyWithBrain } from "./wa_reply.ts";
 import { getEffectiveTierForUser } from "../_shared/billing-tier.ts";
 import { handleInboundMealPhoto } from "./handlers_meal_photo.ts";
 import { resolveResponseLocale } from "../_shared/keel/locale.ts";
+import { closeKeelReengagementEpisodeOnInbound } from "../_shared/keel/reengagement_io.ts";
 import { handleUnlinkedInbound } from "./handlers_unlinked.ts";
 import { handleStopOptOut } from "./handlers_optout.ts";
 import {
@@ -1120,6 +1121,28 @@ Deno.serve(async (req) => {
           },
         }).select("id,created_at").maybeSingle();
         if (inErr) throw inErr;
+
+        // KEEL — l'élève a écrit: son épisode de décrochage est terminé.
+        //
+        // ICI, juste après l'écriture de l'entrant, et avant tout routage: la
+        // clôture ne doit dépendre ni du handler qui répondra ni du fait qu'il
+        // y ait une réponse. Un STOP, un vocal, un « merci » ferment tous
+        // l'épisode — c'est le SILENCE qui l'avait ouvert, et il n'y a plus de
+        // silence.
+        //
+        // Sans ce point, `nudgedThisEpisode` restait vrai jusqu'au cap de 30
+        // jours du sweep, qui classait alors l'épisode `no_reply` sur un élève
+        // qui avait répondu. Le verrou anti-spam n'avait aucune condition de
+        // désarmement (doctrine P9), et un ledger faux avec.
+        //
+        // Best-effort, jamais bloquant: rater une clôture coûte une relance,
+        // faire échouer la réception d'un message coûte le message.
+        await closeKeelReengagementEpisodeOnInbound(admin, {
+          userId: profile.id,
+          atIso: nowIso,
+          stopped: isStop,
+        });
+
         // Mark dedup row as processed + link to the logged chat message.
         await admin.from("whatsapp_inbound_dedup").update({
           status: "processed",
@@ -1242,6 +1265,9 @@ Deno.serve(async (req) => {
             replyWithBrain,
             requestId: processId,
             replyToWaMessageId: msg.wa_message_id,
+            // La langue de la confirmation vient du profil, plus d'une phrase
+            // française codée en dur dans la consigne de tour.
+            profileLocale: (profile as Record<string, unknown>).locale ?? null,
           });
           continue;
         }

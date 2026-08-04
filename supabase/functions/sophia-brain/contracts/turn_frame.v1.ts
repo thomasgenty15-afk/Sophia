@@ -32,7 +32,10 @@ export type DirectEffectType =
   | "create_one_shot_reminder"
   | "track_progress_plan_item"
   | "log_protocol_event"
-  | "declare_deviation";
+  | "declare_deviation"
+  // QA agent 4 — l'écrivain manquant de `student_safety_constraints` (6
+  // lecteurs armés, 0 écrivain avant ce lot).
+  | "declare_safety_constraint";
 
 export type DirectEffectTimeContext = {
   now_utc: string;

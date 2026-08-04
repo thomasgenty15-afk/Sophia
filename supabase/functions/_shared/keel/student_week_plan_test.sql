@@ -100,19 +100,32 @@ select pg_temp.assert_rejects('§2 ligne nutrition SANS source coach refusée', 
     '[{"kind":"nutrition","label":"3 dîners riches en protéines","days":["mon","wed","fri"]}]'::jsonb)
 $q$);
 
-select pg_temp.assert_rejects('§2 source_commitment_key null refusée aussi', $q$
+select pg_temp.assert_rejects('§2 source_belief_key null refusée aussi', $q$
   insert into public.student_week_plans (user_id, week_start, content_locale, items)
   values ('9a000000-0000-4000-8000-000000000011','2026-08-03','fr-FR',
-    '[{"kind":"nutrition","label":"x","source_commitment_key":null}]'::jsonb)
+    '[{"kind":"nutrition","label":"x","source_belief_key":null}]'::jsonb)
+$q$);
+
+-- L'ANCIEN nom du champ ne trace plus rien, et il faut que ça se voie.
+-- La migration C1 a déplacé l'ancre du PROGRAMME (source_commitment_key) vers
+-- la DOCTRINE (source_belief_key). Ce fichier avait gardé l'ancien nom: la
+-- ligne « tracée » ci-dessous était refusée par le nouveau CHECK, la
+-- transaction s'abandonnait, et TOUTES les assertions suivantes (§2 kind, §2
+-- adopted, §3, §4, §5 RLS) étaient silencieusement sautées. Un fichier de test
+-- qui s'arrête à sa cinquième ligne en affichant des PASS est pire qu'absent.
+select pg_temp.assert_rejects('§2 l''ANCIENNE clé programme ne trace plus rien', $q$
+  insert into public.student_week_plans (user_id, week_start, content_locale, items)
+  values ('9a000000-0000-4000-8000-000000000011','2026-08-03','fr-FR',
+    '[{"kind":"nutrition","label":"x","source_commitment_key":"protein_dinner"}]'::jsonb)
 $q$);
 
 -- ... et la ligne TRACÉE passe.
 insert into public.student_week_plans (user_id, week_start, content_locale, items, generated_from)
 values ('9a000000-0000-4000-8000-000000000011','2026-08-03','fr-FR',
   '[{"kind":"nutrition","label":"3 dîners riches en protéines",
-     "source_commitment_key":"protein_dinner","days":["mon","wed","fri"]},
+     "source_belief_key":"protein_dinner","days":["mon","wed","fri"]},
     {"kind":"action","label":"20 min de marche après le déjeuner","days":["mon","tue"]}]'::jsonb,
-  '{"template_id":"t1","goal":"fat_loss"}'::jsonb);
+  '{"doctrine_version":1,"goal":"fat_loss"}'::jsonb);
 
 select pg_temp.assert_eq('§2 ligne nutrition TRACÉE acceptée, + action sans source',
   (select jsonb_array_length(items) from public.student_week_plans

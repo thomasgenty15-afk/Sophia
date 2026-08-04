@@ -99,6 +99,10 @@ const ERROR_COPY: Record<string, string> = {
   empty_plan:
     "Nothing usable came back. Nothing was saved — try again, and tell us if it keeps happening.",
   model_returned_tool_call: "Something went wrong on our side. Nothing was saved.",
+  // Reached only if the confirmation below was somehow bypassed: the server
+  // holds this line for every client, not just this one.
+  plan_already_adopted:
+    "You have already adopted this week. Building a new one would replace it.",
 };
 
 /** Monday of the current week, in local date. */
@@ -188,8 +192,31 @@ export default function StudentWeekPlanPage() {
       await refresh();
     });
 
+  /**
+   * Build the week — and ASK FIRST when it would throw away an adopted one.
+   *
+   * Regenerating replaces the lines and drops the plan back to a draft, which
+   * also stops the evening tap and the weekly point (both read
+   * `status='adopted'`). That is a real loss, so it is a decision the student
+   * makes on purpose rather than one they discover afterwards.
+   *
+   * The confirmation is the courtesy; the refusal is the guarantee. The server
+   * rejects an unconfirmed overwrite on its own (`plan_already_adopted`), so
+   * this dialog is not what makes the plan safe — it is what makes saying yes
+   * possible.
+   */
   const generate = () =>
     run("generate", async () => {
+      const replaceAdopted = plan?.status === "adopted";
+      if (
+        replaceAdopted &&
+        !window.confirm(
+          "You have already adopted this week. Building a new one replaces it, " +
+            "and it stops counting as adopted until you adopt the new one. Continue?",
+        )
+      ) {
+        return;
+      }
       const { data: sess } = await supabase.auth.getSession();
       const res = await fetch(FN_URL, {
         method: "POST",
@@ -198,7 +225,10 @@ export default function StudentWeekPlanPage() {
           apikey: import.meta.env.VITE_SUPABASE_ANON_KEY as string,
           authorization: `Bearer ${sess.session?.access_token ?? ""}`,
         },
-        body: JSON.stringify({ local_date: weekStart }),
+        body: JSON.stringify({
+          local_date: weekStart,
+          ...(replaceAdopted ? { replace_adopted: true } : {}),
+        }),
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok || json?.ok === false) {

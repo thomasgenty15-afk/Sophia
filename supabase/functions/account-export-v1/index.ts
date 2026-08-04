@@ -342,6 +342,66 @@ const SCOPE = {
   commitmentRelations:
     "id,commitment_a,commitment_b,relation_kind,param_minutes,cofactor_ref,created_at",
 
+  // --- PIVOT NUTRITION (20260803031000, 20260803160000) ----------------------
+  // AGENT 13 — ces cinq tables portent ce que l'élève DÉCIDE et ce qu'il
+  // DÉCLARE. Elles étaient absentes de l'export: un compte exporté rendait un
+  // `tables_indisponibles: []` (donc « rien ne manque ») en ayant laissé son
+  // objectif, son plan de la semaine, ses taps du soir, ses repas habituels et
+  // ses préférences dans la base. Mesuré sur un élève « plein », 2026-08-03.
+  //
+  // `generated_from` EST exporté: c'est la réponse à « pourquoi Sophia m'a
+  // proposé ça », et le §3.7 brique 3 en fait une exigence d'observabilité.
+  studentGoals: "id,goal,situation,practical_constraints,content_locale,created_at,updated_at",
+  studentWeekPlans:
+    "id,week_start,generated_from,items,status,adopted_at,content_locale,created_at,updated_at",
+  studentDailyCheckins: "id,local_date,overall,axis,source,created_at",
+  // `portion_bias` est une calibration ORDINALE (bandes), pas un score interne:
+  // elle est lisible par l'élève et sort avec le reste.
+  recurringMeals:
+    "id,label,canonical_items,slot_key,occurrences,last_seen_at,portion_bias,status,confirmed_at,content_locale,created_at,updated_at",
+  // `source_message_id` reste dedans ici (contrairement à protocol_events): sur
+  // student_facts c'est un id de message de l'élève LUI-MÊME, donc la trace de
+  // « d'où vient ce que le système croit de moi » — précisément ce qu'un
+  // export doit permettre de contester.
+  studentFacts:
+    "id,kind,value,note,content_locale,status,invalidated_at,superseded_by_fact_id,source_message_id,declared_by,created_at,updated_at",
+
+  // --- CARTES (20260727230000) -----------------------------------------------
+  // `approved_by` est retiré (id d'un tiers, même règle que `published_by`).
+  studentCards:
+    "id,template_id,plan_version_id,commitment_id,variable_values,rendered,rendered_at,keyword,coach_approved,approved_at,content_locale,status,created_by,created_at",
+  cardArmings:
+    "id,student_card_id,trigger_kind,trigger_ref_id,local_date,slot_key,event_at,arm_at,status,delivered_at,delivery_channel,created_at",
+  // `source_message_id` exclu: transport interne (wamid), comme sur protocol_events.
+  cardWins:
+    "id,student_card_id,arming_id,occurred_at,local_date,slot_key,outcome,source,note,content_locale,created_at",
+
+  // --- ÉCHAFAUDAGE REPAS (20260728120000) ------------------------------------
+  // Écrites PAR le coach POUR cet élève: c'est du contenu qu'il a reçu, au même
+  // titre que `plan_commitments`. `coach_id` reste hors liste (bruit).
+  mealIdeas:
+    "id,author_kind,title,description,slot_key,food_group_refs,content_locale,status,created_at",
+  mealPlanEntries:
+    "id,plan_version_id,day_token,slot_key,meal_idea_id,note,sort_order,created_at",
+
+  // --- CÔTÉ COACH (20260803031000) -------------------------------------------
+  // La doctrine est la propriété intellectuelle du coach, et elle est à lui.
+  // `compiled_prompt` / `compiled_prompt_hash` sont exclus: bloc de prompt
+  // assemblé et sa clé de cache — la classe « no system prompts » de l'en-tête.
+  // `published_by` exclu (id d'un tiers).
+  coachDoctrines:
+    "id,version,beliefs,forbidden,vocabulary,arbitrations,voice,content_locale,published_at,created_from_version,change_note,created_at,updated_at",
+  cohorts:
+    "id,label,content_locale,plan_template_id,starts_on,duration_weeks,status,created_at,updated_at",
+  // DÉCISION — `narrative` et `flagged_students` NE SONT PAS exportés.
+  // Ce sont des listes d'AUTRES personnes (nom rendu, uuid, risk_band,
+  // adhérence). Les faire sortir dans l'archive d'un coach transformerait son
+  // export en dump des scores internes de ses élèves — exactement la raison
+  // pour laquelle `plan_versions` / `plan_commitments` sont déjà hors du côté
+  // coach. Ce qui sort est l'AGRÉGAT de sa propre pratique.
+  coachSyntheses:
+    "id,cohort_id,kind,period_start,period_end,metrics,content_locale,generated_at,delivered_at,delivery_channel,created_at",
+
   // TENANCY (20260727120000).
   coachClients:
     "id,coach_id,student_user_id,invited_email,status,consent_granted_at,seat_state,started_at,ended_at,created_at",
@@ -433,6 +493,19 @@ async function buildExportPayload(
     coachInvitationsAsStudent,
     coachInvitationsAsCoach,
     coachAccessEvents,
+    studentGoals,
+    studentWeekPlans,
+    studentDailyCheckins,
+    recurringMeals,
+    studentFacts,
+    studentCards,
+    cardArmings,
+    cardWins,
+    mealIdeas,
+    mealPlanEntries,
+    coachDoctrines,
+    cohorts,
+    coachSyntheses,
     storage,
   ] = await Promise.all([
     fetchKeelRows(admin, "plan_templates", SCOPE.planTemplates, "coach_id", coachId, keelUnavailable),
@@ -520,6 +593,64 @@ async function buildExportPayload(
       keelUnavailable,
       "occurred_at",
     ),
+    // --- PIVOT: ce que l'élève décide et déclare (AGENT 13) ------------------
+    fetchKeelRows(admin, "student_goals", SCOPE.studentGoals, "user_id", user.id, keelUnavailable),
+    fetchKeelRows(
+      admin,
+      "student_week_plans",
+      SCOPE.studentWeekPlans,
+      "user_id",
+      user.id,
+      keelUnavailable,
+    ),
+    fetchKeelRows(
+      admin,
+      "student_daily_checkins",
+      SCOPE.studentDailyCheckins,
+      "user_id",
+      user.id,
+      keelUnavailable,
+    ),
+    fetchKeelRows(
+      admin,
+      "recurring_meals",
+      SCOPE.recurringMeals,
+      "user_id",
+      user.id,
+      keelUnavailable,
+    ),
+    fetchKeelRows(admin, "student_facts", SCOPE.studentFacts, "user_id", user.id, keelUnavailable),
+    fetchKeelRows(admin, "student_cards", SCOPE.studentCards, "user_id", user.id, keelUnavailable),
+    fetchKeelRows(admin, "card_armings", SCOPE.cardArmings, "user_id", user.id, keelUnavailable),
+    fetchKeelRows(admin, "card_wins", SCOPE.cardWins, "user_id", user.id, keelUnavailable),
+    // meal_ideas / meal_plan_entries scopent l'élève en `student_id`.
+    fetchKeelRows(admin, "meal_ideas", SCOPE.mealIdeas, "student_id", user.id, keelUnavailable),
+    fetchKeelRows(
+      admin,
+      "meal_plan_entries",
+      SCOPE.mealPlanEntries,
+      "student_id",
+      user.id,
+      keelUnavailable,
+    ),
+    // --- PIVOT: le matériel du coach (vide pour un élève) --------------------
+    fetchKeelRows(
+      admin,
+      "coach_doctrines",
+      SCOPE.coachDoctrines,
+      "coach_id",
+      coachId,
+      keelUnavailable,
+    ),
+    fetchKeelRows(admin, "cohorts", SCOPE.cohorts, "coach_id", coachId, keelUnavailable),
+    fetchKeelRows(
+      admin,
+      "coach_syntheses",
+      SCOPE.coachSyntheses,
+      "coach_id",
+      coachId,
+      keelUnavailable,
+    ),
     collectStorageFiles(admin, user.id),
   ]);
   // A coach who is also their own student would match both queries; dedupe on id.
@@ -581,6 +712,12 @@ async function buildExportPayload(
         relations_entre_engagements: commitmentRelations,
         modeles_coach: planTemplates,
         documents_coach: planDocuments,
+        // AGENT 13 — côté COACH uniquement (vide pour un élève): sa doctrine
+        // versionnée, ses promos, et l'agrégat de ses synthèses. Le nom et
+        // l'uuid de ses élèves n'y figurent pas (voir SCOPE.coachSyntheses).
+        doctrine_coach: coachDoctrines,
+        cohortes_coach: cohorts,
+        syntheses_coach: coachSyntheses,
       },
       "protocole_suivi.json": {
         evenements: protocolEvents,
@@ -593,6 +730,25 @@ async function buildExportPayload(
         demandes_ajustement: changeRequests,
       },
       "securite.json": { contraintes: safetyConstraints },
+      // AGENT 13 — le pivot 1:N: le coach recommande, l'ÉLÈVE décide. Ce
+      // fichier porte ce qu'il a décidé, pas ce qu'on lui a prescrit; c'est
+      // pour ça qu'il est séparé de protocole.json.
+      "mon_plan.json": {
+        objectif: studentGoals,
+        semaines: studentWeekPlans,
+        points_du_soir: studentDailyCheckins,
+      },
+      "ma_memoire_alimentaire.json": {
+        repas_recurrents: recurringMeals,
+        preferences_et_contexte: studentFacts,
+        idees_repas: mealIdeas,
+        entrees_de_menu: mealPlanEntries,
+      },
+      "mes_cartes.json": {
+        cartes: studentCards,
+        armements: cardArmings,
+        victoires: cardWins,
+      },
       "coaching.json": {
         liens_coach: coachClients,
         acces_coach: coachAccessEvents,
@@ -625,7 +781,14 @@ function readmeText(exportedAtIso: string): string {
     "  - conversations.json   : l'historique de tes conversations avec Sophia.",
     "  - protocole.json       : le protocole écrit par ton coach (versions, engagements,",
     "                           relations entre engagements) et, si tu es coach, tes",
-    "                           modèles et documents importés.",
+    "                           modèles, documents importés, doctrine, cohortes et",
+    "                           l'agrégat de tes synthèses hebdomadaires.",
+    "  - mon_plan.json        : ton objectif, les semaines que tu t'es fixées et tes",
+    "                           points du soir.",
+    "  - ma_memoire_alimentaire.json : tes repas récurrents, tes préférences et ton",
+    "                           contexte, et les idées de repas reçues.",
+    "  - mes_cartes.json      : tes cartes, quand elles ont été armées et ce que tu en",
+    "                           as fait.",
     "  - protocole_suivi.json : ce que tu as déclaré (repas, prises, photos) et les",
     "                           évaluations qui en découlent, jour par jour.",
     "  - protocole_bilans.json: tes bilans hebdomadaires et tes demandes d'ajustement.",

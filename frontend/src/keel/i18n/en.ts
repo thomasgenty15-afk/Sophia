@@ -1309,7 +1309,7 @@ export const en = {
   "landing.doctrine.no_calories_body":
     "We measured it on our own model before deciding: across 85 real analyses scored against USDA reference data, calorie estimates from a photo came in 26.6% under the truth on average, and the gap widens as the plate gets fuller. That error doesn't average out over a week — it leans the same way every time, hardest exactly where you'd want to look. Worse, when the model offers its own margin of error, the truth falls inside it barely more than half the time: it doesn't know when it's wrong.",
   "landing.doctrine.no_calories_body2":
-    "So Sophia says what is on the plate and how big the portion was — small, moderate or large — and leaves the numbers to whoever is qualified to prescribe them. It isn't a limitation we're working around: a deterministic filter strips any calorie or macro target the model produces anyway, and logs that it did. The refusal is the feature.",
+    "Reading a plate and weighing it are different jobs. What's on the plate, your student can check at a glance — a miss gets corrected in one message. A calorie count is the one estimate nobody at the table can verify, and it's the number decisions get made on. So Sophia keeps the half that works — what was eaten, when, and how big: small, moderate or large — and leaves the numbers to whoever is qualified to prescribe them. That half is not the consolation prize, it is the part that carries the result: how often a student logs is the strongest predictor of outcomes we know of; how precisely, predicts nothing. A deterministic filter strips any calorie or macro target the model produces anyway, and logs that it did. The refusal is the feature.",
 
   // Landing — pricing
   "landing.pricing.kicker": "Pricing",

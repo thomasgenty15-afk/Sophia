@@ -74,9 +74,28 @@ const HOUR_MS = 3600_000;
  * CADENCE soften, and the PROTOCOL does not move. That separation is the
  * authority rule §1.5 expressed as a token — there is deliberately no tone
  * value that means "relax the plan", because Sophia has no such power.
+ *
+ * ── WHICH OF THESE A SCHEDULED JOB CAN ACTUALLY EMIT ─────────────────────
+ * `gentle` and `lighter`: yes — see `JOB_REACHABLE_TONES`. `declaredHardWeek`
+ * is fed from the student's own daily taps (`student_daily_checkins.overall =
+ * 'hard'`), which is a DECLARATION, not a mood inference.
+ *
+ * `warm_return` is NOT job-reachable, and that is by design rather than an
+ * omission: it is the posture of the REPLY when the student comes back on their
+ * own (§7.4 J6). No cron can decide it, because the event that triggers it is
+ * an inbound message. It stays exported because `toneInstruction` is the single
+ * place that phrasing lives; a conversational caller may hand it to the
+ * composer. Nothing in this repo may claim the job emits three tones.
  */
 export const REENGAGE_TONES = ["gentle", "lighter", "warm_return"] as const;
 export type ReengageTone = (typeof REENGAGE_TONES)[number];
+
+/**
+ * The tones a scheduled sweep can produce. Narrower than `REENGAGE_TONES` on
+ * purpose — see above. `decideReengagement` returns only these.
+ */
+export const JOB_REACHABLE_TONES = ["gentle", "lighter"] as const;
+export type JobReachableTone = (typeof JOB_REACHABLE_TONES)[number];
 
 export const SKIP_REASONS = [
   "recent_contact",
@@ -122,7 +141,10 @@ export interface ReengageInput {
 }
 
 export type ReengageDecision =
-  | { decision: "send"; tone: ReengageTone; hoursSilent: number }
+  // `JobReachableTone`, pas `ReengageTone`: le type dit maintenant ce que le
+  // balayage peut réellement émettre. `warm_return` appartient au tour de
+  // retour, et un décideur sans conversation ne peut pas le produire.
+  | { decision: "send"; tone: JobReachableTone; hoursSilent: number }
   | { decision: "skip"; reason: SkipReason; hoursSilent: number | null }
   | { decision: "defer"; untilLocalHour: number; hoursSilent: number };
 
@@ -316,6 +338,101 @@ export function assertNoGuiltTripping(text: string): void {
   throw new GuiltTrippingError(findings);
 }
 
+// ---------------------------------------------------------------------------
+// Le message qui part réellement
+// ---------------------------------------------------------------------------
+
+/**
+ * À 72h de silence, la fenêtre 24h de Meta est fermée PAR CONSTRUCTION: c'est
+ * un message entrant qui l'ouvre, et le seuil de ce module dit précisément
+ * qu'il n'y en a pas eu depuis trois jours. Il n'existe donc aucun cas où la
+ * relance part en texte libre — elle part TOUJOURS en template approuvé.
+ *
+ * Conséquence directe sur la conception: composer un texte libre ici serait du
+ * code mort déguisé en fonctionnalité. La doctrine du coach ne se joue pas dans
+ * la relance (une phrase neutre qui rouvre la porte), elle se joue dans le tour
+ * de RETOUR, quand l'élève répond — et là c'est le cerveau qui la porte.
+ *
+ * `keel_reengage_v1` (META-TEMPLATES.md §3) : `{{1}}` = le prénom.
+ */
+export const REENGAGE_TEMPLATE_NAME_DEFAULT = "keel_reengage_v1";
+export const REENGAGE_TEMPLATE_LANG_DEFAULT = "en_GB";
+
+/**
+ * Le corps du template, rendu avec le prénom — le texte EXACT que l'élève lit.
+ *
+ * ── POURQUOI CE N'EST PAS LE COMPOSEUR, ET CE QUE ÇA COÛTE ───────────────
+ * L'en-tête de `keel-reengage-v1` dit que la génération doit passer par le
+ * composeur, qui porte la doctrine du coach. C'est la bonne cible et ça reste
+ * la cible. Ce n'est pas ce qui est câblé, et la raison n'est pas la paresse:
+ * une relance part APRÈS 72h de silence, donc TOUJOURS hors fenêtre 24h — c'est
+ * un entrant qui ouvre cette fenêtre, et le seuil de ce module dit précisément
+ * qu'il n'y en a pas eu. `whatsapp-send` bascule alors obligatoirement en
+ * template (`mustUseTemplate = !isIn24h`), et un template est un texte figé
+ * approuvé par Meta. Un texte libre composé pour l'occasion NE SERAIT PAS
+ * DÉLIVRÉ. Le composer ici serait du code mort déguisé en fonctionnalité.
+ *
+ * CE QUE ÇA COÛTE, dit franchement: ce message n'est PAS dans la voix du coach,
+ * il est neutre. C'est un écart au modèle, assumé, parce qu'un message
+ * générique qui part vaut mieux qu'un message personnalisé qui ne part jamais —
+ * ce que faisait ce chemin jusqu'ici. La voix du coach revient au tour SUIVANT,
+ * quand l'élève répond: là, c'est le cerveau qui répond, avec la doctrine.
+ *
+ * ── POURQUOI CETTE COPIE LOCALE DU CORPS ─────────────────────────────────
+ * Sans elle, la ceinture anti-culpabilisation n'a rien à mordre:
+ * `assertNoGuiltTripping` était écrite, testée, et appelée NULLE PART, parce
+ * que le seul texte qui part vit chez Meta. On garde donc ici le corps exact
+ * soumis, on le rend, et on le passe à la ceinture avant chaque envoi. Elle est
+ * là pour la PROCHAINE version de ce texte, pas pour celle-ci.
+ *
+ * Le texte suit `toneInstruction('gentle')` à la lettre: il ne nomme pas la
+ * durée du silence, ne demande pas pourquoi, ne parle ni de log ni d'adhérence
+ * ni de série, et il ouvre une porte facile à pousser.
+ *
+ * Doit rester synchronisé avec le template approuvé — `META-TEMPLATES.md` §3
+ * est la source de vérité, et un test épingle les deux ensemble.
+ */
+export function renderReengageNudge(firstName: string): string {
+  const name = String(firstName ?? "").trim();
+  // Meta remplace un paramètre vide par « ! »; on ne laisse jamais partir
+  // « Hi , ». `there` est le repli, et il est délibérément sans genre.
+  return `Hi ${name || "there"} - no rush, just checking in. How is the week going?`;
+}
+
+/**
+ * Le template à utiliser pour un ton donné.
+ *
+ * ── LE TON EST DÉCIDÉ, IL N'EST PAS ENCORE DÉLIVRÉ ───────────────────────
+ * `decideReengagement` distingue `gentle` de `lighter`, et cette distinction
+ * est réelle: elle est écrite au ledger et la synthèse du coach la compte. Mais
+ * un ton ne change le MESSAGE que si Meta a approuvé un second template, et
+ * `META-TEMPLATES.md` a tranché l'inverse: « Commencer avec le seul `gentle` —
+ * trois templates à faire approuver pour une nuance de ton est un mauvais
+ * échange tant que le premier n'a pas tourné en réel. »
+ *
+ * Donc aujourd'hui les deux tons délivrent le même corps, et cette fonction
+ * existe pour que ce soit DIT plutôt que subi: le jour où un template `lighter`
+ * est approuvé, il s'active par un secret, sans toucher au code. Tant que le
+ * secret est absent, le repli est explicite et non silencieux.
+ */
+export function reengageTemplateFor(
+  tone: JobReachableTone,
+  env: (name: string) => string | undefined,
+): { name: string; language: string; toneDelivered: boolean } {
+  const base = (env("WHATSAPP_KEEL_REENGAGE_TEMPLATE_NAME") ?? "").trim() ||
+    REENGAGE_TEMPLATE_NAME_DEFAULT;
+  const language = (env("WHATSAPP_KEEL_REENGAGE_TEMPLATE_LANG") ?? "").trim() ||
+    REENGAGE_TEMPLATE_LANG_DEFAULT;
+  if (tone === "gentle") {
+    return { name: base, language, toneDelivered: true };
+  }
+  const lighter = (env("WHATSAPP_KEEL_REENGAGE_TEMPLATE_NAME_LIGHTER") ?? "")
+    .trim();
+  return lighter
+    ? { name: lighter, language, toneDelivered: true }
+    : { name: base, language, toneDelivered: false };
+}
+
 /**
  * The instruction handed to the composer for each tone.
  *
@@ -324,6 +441,7 @@ export function assertNoGuiltTripping(text: string): void {
  * chaleureuse SANS revenir sur l'épisode". Naming the silence at the moment
  * someone returns is the single most reliable way to make them leave again.
  */
+
 export function toneInstruction(tone: ReengageTone): string {
   switch (tone) {
     case "gentle":

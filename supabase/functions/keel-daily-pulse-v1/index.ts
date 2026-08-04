@@ -5,7 +5,13 @@ import { createClient, type SupabaseClient } from "jsr:@supabase/supabase-js@2.8
 import { ensureInternalRequest } from "../_shared/internal-auth.ts";
 import { getRequestId, jsonResponse } from "../_shared/http.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
-import { decideDailyPulse, renderPulseQuestion } from "../_shared/keel/daily_pulse.ts";
+import {
+  decideDailyPulse,
+  PULSE_TEMPLATE_LANG_DEFAULT,
+  PULSE_TEMPLATE_NAME_DEFAULT,
+  pulseTemplateButtonComponents,
+  renderPulseQuestion,
+} from "../_shared/keel/daily_pulse.ts";
 import { loadPulseDay, wasPulseAskedToday } from "../_shared/keel/daily_pulse_io.ts";
 import { localDateFor, localHourFor } from "../_shared/keel/reengagement_io.ts";
 import { sendKeelWhatsApp } from "../_shared/keel/internal_send.ts";
@@ -67,9 +73,25 @@ Deno.serve(async (req) => {
     const admin = adminClient();
     const startedAt = Date.now();
 
+    // Le template de repli, nommé EXPLICITEMENT. Jamais le repli générique de
+    // `whatsapp-send`: un purpose non mappé y tombe sur `global_reach_template`
+    // — « J'ai une info pour toi », en français — et c'est l'incident du
+    // 2026-07-12. Les variables d'env existent pour que ops repointe sans
+    // redéploiement le jour où Meta approuve une autre version.
+    const templateName = cleanText(
+      Deno.env.get("WHATSAPP_KEEL_PULSE_TEMPLATE_NAME"),
+      PULSE_TEMPLATE_NAME_DEFAULT,
+    );
+    const templateLang = cleanText(
+      Deno.env.get("WHATSAPP_KEEL_PULSE_TEMPLATE_LANG"),
+      PULSE_TEMPLATE_LANG_DEFAULT,
+    );
+
     let cursor = cleanText(body.after_user_id);
     let scanned = 0;
     let sent = 0;
+    /** Combien des envois ci-dessus sont passés par le template hors fenêtre. */
+    let sentViaTemplate = 0;
     const bySkip: Record<string, number> = {};
     const failures: string[] = [];
     let exhausted = false;
@@ -190,7 +212,31 @@ Deno.serve(async (req) => {
                 buttons: message.buttons,
               },
             });
-            if (!sent.ok) throw new Error(sent.error);
+            if (!sent.ok) {
+              // 409 = fenêtre 24h fermée. Ce n'est PAS une panne, et surtout
+              // c'est le cas NOMINAL de ce job: l'élève qu'on veut mesurer est
+              // justement celui qui n'a pas écrit depuis la veille. Le compter
+              // en `failures` faisait ressembler un soir normal à un incident.
+              //
+              // Le template porte la même question et les mêmes trois boutons;
+              // les payloads voyagent par index (voir
+              // `pulseTemplateButtonComponents`). Toute autre erreur reste une
+              // vraie erreur.
+              if (sent.status !== 409) throw new Error(sent.error);
+              const viaTemplate = await sendKeelWhatsApp({
+                user_id: cursor,
+                to: row.phone_number,
+                purpose: "keel_daily_pulse",
+                message: {
+                  type: "template",
+                  name: templateName,
+                  language: templateLang,
+                  components: pulseTemplateButtonComponents(message.buttons),
+                },
+              });
+              if (!viaTemplate.ok) throw new Error(viaTemplate.error);
+              sentViaTemplate++;
+            }
           }
           sent++;
         } catch (error) {
@@ -208,6 +254,8 @@ Deno.serve(async (req) => {
       dry_run: dryRun,
       scanned,
       sent,
+      sent_via_template: sentViaTemplate,
+      template_name: templateName,
       skipped_by_reason: bySkip,
       exhausted,
       next_after_user_id: exhausted ? null : cursor || null,

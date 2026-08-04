@@ -295,3 +295,80 @@ Deno.test("a clean message passes through byte-for-byte", () => {
   assertEquals(result.reason, "clean");
   assertEquals(result.text, text);
 });
+
+// ---------------------------------------------------------------------------
+// QA agent 4 — CONDITION DE DÉSARMEMENT n°5: le tour de rétractation.
+// ---------------------------------------------------------------------------
+
+Deno.test("désarmement n°5 — la contrainte que CE tour retire ne piège plus l'élève", () => {
+  const peanut = {
+    id: "c1",
+    userId: "u1",
+    kind: "allergy" as const,
+    allergenRef: "peanut",
+    substanceRef: null,
+    medicationClass: null,
+    severity: "medical" as const,
+    declaredBy: "student" as const,
+    notes: null,
+    contentLocale: "en-GB",
+  };
+  // Formulation choisie exprès SANS « peanut allergy »: cette collocation est
+  // déjà blanchie par `NEGATION_AFTER` (déclarer une allergie n'est pas la
+  // recommander). Le piège réel se referme sur l'accusé qui dit ce que la
+  // rétractation AUTORISE — et c'est la phrase la plus naturelle à écrire.
+  const ack = "Understood - that's off your record now, so peanuts are fine for you.";
+
+  // AVANT: la ceinture voyait un token médical et remplaçait tout le message.
+  // Chaque nouvelle tentative de correction renommait l'allergène et
+  // redéclenchait le remplacement: l'élève ne pouvait jamais corriger.
+  const trapped = applyKeelOutputLocks({
+    text: ack,
+    isKeelStudent: true,
+    safetyConstraints: [peanut],
+    doctrine: null,
+  });
+  assertEquals(trapped.reason, "blocked_medical_constraint");
+
+  // APRÈS: le tour porte la rétractation, la ceinture se désarme POUR CE
+  // TOKEN, et l'accusé passe.
+  const freed = applyKeelOutputLocks({
+    text: ack,
+    isKeelStudent: true,
+    safetyConstraints: [peanut],
+    doctrine: null,
+    retractedConstraintRefs: ["peanut"],
+  });
+  // La contrainte retirée sort de la liste; comme c'était la seule, la ceinture
+  // se déclare désarmée faute de matière. Ce qui compte est l'invariant de
+  // sortie: le TEXTE est intact, l'élève reçoit son accusé.
+  assertEquals(freed.text, ack);
+  assertEquals(freed.reason.startsWith("disarmed"), true, freed.reason);
+});
+
+Deno.test("désarmement n°5 — retirer UNE contrainte n'ouvre pas la porte aux autres", () => {
+  // La portée est le point: sans elle, un tour de rétractation deviendrait une
+  // fenêtre où TOUTES les contraintes de l'élève sont muettes.
+  const base = {
+    userId: "u1",
+    substanceRef: null,
+    medicationClass: null,
+    severity: "medical" as const,
+    declaredBy: "student" as const,
+    notes: null,
+    contentLocale: "en-GB",
+  };
+  const constraints = [
+    { ...base, id: "c1", kind: "allergy" as const, allergenRef: "peanut" },
+    { ...base, id: "c2", kind: "allergy" as const, allergenRef: "sesame" },
+  ];
+  const result = applyKeelOutputLocks({
+    text: "I've removed the peanut note. Tahini on toast is a good snack.",
+    isKeelStudent: true,
+    safetyConstraints: constraints,
+    doctrine: null,
+    retractedConstraintRefs: ["peanut"],
+  });
+  // `tahini` est une forme de surface de `sesame`, qui n'est PAS retiré.
+  assertEquals(result.reason, "blocked_medical_constraint");
+});

@@ -17,7 +17,10 @@ import {
   parseWeeklyFlowToken,
   renderWeeklyFlowAck,
   WEEKLY_AXES,
+  WEEKLY_AXIS_LABELS_EN,
+  WEEKLY_LABEL_MAX_CHARS,
   WEEKLY_SCALE_LABELS_EN,
+  weeklyTemplateFlowComponents,
   weeklyBiofeedbackPayload,
   weeklyFlowJson,
 } from "./weekly_flow.ts";
@@ -318,10 +321,61 @@ Deno.test("the form offers exactly the 1-5 scale the parser accepts", () => {
   assertEquals(options.map((o) => o.id), Object.keys(WEEKLY_SCALE_LABELS_EN));
 });
 
+Deno.test("no axis label is long enough for Meta to truncate it", () => {
+  // Meta ne refuse pas un label trop long, il le COUPE — en silence, et
+  // seulement sur les petits écrans. Un « Energy through the d… » ne se voit
+  // pas d'ici. La limite se tient donc au commit, pas à la publication.
+  for (const axis of WEEKLY_AXES) {
+    const label = WEEKLY_AXIS_LABELS_EN[axis];
+    assert(
+      label.length <= WEEKLY_LABEL_MAX_CHARS,
+      `${axis}: "${label}" fait ${label.length} caractères, max ${WEEKLY_LABEL_MAX_CHARS}`,
+    );
+  }
+});
+
 Deno.test("the ack returns no number to the student", () => {
   const r = parseWeeklyFlowResponse(FULL);
   const ack = renderWeeklyFlowAck(r);
   // Renvoyer « -0,4 kg cette semaine » ferait de ce formulaire une pesée
   // commentée — exactement l'usage que /app/progress évite.
   assert(!/\d/.test(ack), ack);
+});
+
+// ---------------------------------------------------------------------------
+// Le repli template hors fenêtre 24h
+// ---------------------------------------------------------------------------
+
+Deno.test("the template button carries the week token and NOTHING else", () => {
+  // Même propriété de sécurité que le chemin natif, sur le chemin de repli.
+  // Elle serait vide si le repli glissait un identifiant dans le jeton: le
+  // jeton fait l'aller-retour par le client, et qui sait éditer une chaîne
+  // écrirait dans le dossier d'autrui.
+  const token = buildWeeklyFlowToken("2026-08-03");
+  const components = weeklyTemplateFlowComponents(token) as Array<
+    Record<string, unknown>
+  >;
+  assertEquals(components.length, 1);
+  assertEquals(components[0].type, "button");
+  assertEquals(components[0].sub_type, "flow");
+  assertEquals(components[0].index, "0");
+
+  const params = components[0].parameters as Array<Record<string, unknown>>;
+  assertEquals(params.length, 1);
+  assertEquals(params[0].type, "action");
+  const action = params[0].action as Record<string, unknown>;
+  assertEquals(Object.keys(action), ["flow_token"]);
+  assertEquals(action.flow_token, token);
+});
+
+Deno.test("the fallback token is read back by the SAME parser as the native path", () => {
+  // Un jeton que `parseWeeklyFlowToken` ne sait pas relire est un bilan reçu
+  // et jeté: l'élève a rempli le formulaire, la semaine reste vide.
+  const token = buildWeeklyFlowToken("2026-08-03");
+  const components = weeklyTemplateFlowComponents(token) as Array<
+    Record<string, unknown>
+  >;
+  const params = components[0].parameters as Array<Record<string, unknown>>;
+  const action = params[0].action as Record<string, unknown>;
+  assertEquals(parseWeeklyFlowToken(String(action.flow_token)), "2026-08-03");
 });

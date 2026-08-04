@@ -156,7 +156,10 @@ export async function loadPublishedDoctrine(
     const { data, error } = await client
       .from("coach_doctrines")
       .select(
-        "coach_id, version, beliefs, forbidden, vocabulary, arbitrations, voice, " +
+        // `foods` et `qa` font partie de la sélection, sinon le parseur les
+        // voit absentes et le VERROU sur les aliments déconseillés se retrouve
+        // désarmé — sans que rien ne le signale.
+        "coach_id, version, beliefs, forbidden, vocabulary, arbitrations, foods, qa, voice, " +
           "compiled_prompt, compiled_prompt_hash, content_locale, published_at",
       )
       .eq("coach_id", coachId)

@@ -133,6 +133,50 @@ export interface DoctrineVoice {
   language?: string | null;
 }
 
+/**
+ * UN ALIMENT que le coach conseille, ou qu'il déconseille.
+ *
+ * ── POURQUOI CE N'EST PAS UN `DoctrineForbidden` ────────────────────────
+ * Les deux interdisent, et pourtant les confondre casse la saisie du coach.
+ * Un `forbidden` est une PRATIQUE ("six petits repas") dont le remède est un
+ * `instead` que le coach écrit MOT POUR MOT, parce que c'est littéralement ce
+ * que l'élève lira. Un aliment déconseillé est un INGRÉDIENT, et son remède
+ * est un autre ingrédient que le générateur choisit tout seul. Exiger un
+ * `instead` verbatim pour chaque aliment, c'est garantir une section vide.
+ *
+ * `surfaceForms` porte le même poids qu'ailleurs: un terme seul ne matche rien
+ * dans de la prose réelle ("huiles de graines" ne s'écrit jamais comme ça).
+ */
+export interface DoctrineFood {
+  term: string;
+  surfaceForms?: readonly string[];
+  reason?: string | null;
+}
+
+export interface DoctrineFoods {
+  recommended: readonly DoctrineFood[];
+  discouraged: readonly DoctrineFood[];
+}
+
+/**
+ * UNE question/réponse de la méthode.
+ *
+ * ── POURQUOI CE N'EST PAS UNE `DoctrineArbitration` ─────────────────────
+ * Une arbitration est SITUATIONNELLE et émotionnelle: un élève a craqué, le
+ * coach répond, et ce qui compte est le TON. Un Q/R est FACTUEL: « est-ce que
+ * je peux boire du café le matin », et ce qui compte est le CONTENU.
+ *
+ * Les fondre a un coût réel dans les deux sens. Une arbitration servie comme
+ * réponse factuelle donne du réconfort à qui posait une question technique;
+ * un Q/R servi comme few-shot de ton apprend à l'agent à répondre à un élève
+ * en détresse par une fiche.
+ */
+export interface DoctrineQA {
+  question: string;
+  answer: string;
+  source?: "interview" | "coach_edit" | null;
+}
+
 export interface CoachDoctrine {
   coachId: string;
   version: number;
@@ -141,6 +185,8 @@ export interface CoachDoctrine {
   forbidden: readonly DoctrineForbidden[];
   vocabulary: readonly DoctrineVocabularyEntry[];
   arbitrations: readonly DoctrineArbitration[];
+  foods: DoctrineFoods;
+  qa: readonly DoctrineQA[];
   voice: DoctrineVoice;
   contentLocale: string;
 }
@@ -271,6 +317,66 @@ export function parseCoachDoctrine(
     });
   }
 
+  // ── LES ALIMENTS ────────────────────────────────────────────────────────
+  // Même arbitrage que partout ici: une entrée sans `term` est LÂCHÉE et
+  // COMPTÉE. Un aliment déconseillé sans terme est un aliment que le verrou
+  // est structurellement incapable de reconnaître — le garder mettrait dans le
+  // prompt une règle que la vérification ne peut pas tenir, c'est-à-dire le
+  // pire des deux mondes (même raisonnement que l'interdit sans token).
+  const parseFoodList = (raw: unknown, where: string): DoctrineFood[] => {
+    const out: DoctrineFood[] = [];
+    const seen = new Set<string>();
+    for (const [i, entry] of asArray(raw).entries()) {
+      const f = (entry ?? {}) as Record<string, unknown>;
+      const term = str(f.term);
+      if (!term) {
+        issues.push(`${where}[${i}]: empty term, dropped (unenforceable)`);
+        continue;
+      }
+      const dedupKey = term.toLowerCase();
+      if (seen.has(dedupKey)) {
+        issues.push(`${where}[${i}]: duplicate term ${JSON.stringify(term)}, kept the first`);
+        continue;
+      }
+      seen.add(dedupKey);
+      out.push({
+        term,
+        surfaceForms: asArray(f.surface_forms ?? f.surfaceForms).map(str).filter(Boolean),
+        reason: str(f.reason) || null,
+      });
+    }
+    return out;
+  };
+
+  const foodsRaw = (row.foods ?? {}) as Record<string, unknown>;
+  const foods: DoctrineFoods = {
+    recommended: parseFoodList(foodsRaw.recommended, "foods.recommended"),
+    discouraged: parseFoodList(foodsRaw.discouraged, "foods.discouraged"),
+  };
+
+  // ── LES QUESTIONS/RÉPONSES ──────────────────────────────────────────────
+  // Une moitié de Q/R est, comme une demi-arbitration, TROMPEUSE et pas
+  // seulement pauvre: une question sans réponse apprend au modèle que le sujet
+  // compte et lui laisse inventer la position du coach dessus.
+  const qa: DoctrineQA[] = [];
+  for (const [i, raw] of asArray(row.qa).entries()) {
+    const entry = (raw ?? {}) as Record<string, unknown>;
+    const question = str(entry.question);
+    const answer = str(entry.answer);
+    if (!question || !answer) {
+      issues.push(`qa[${i}]: needs both question and answer, dropped`);
+      continue;
+    }
+    const source = str(entry.source);
+    qa.push({
+      question,
+      answer,
+      source: (["interview", "coach_edit"].includes(source)
+        ? source
+        : null) as DoctrineQA["source"],
+    });
+  }
+
   const voiceRaw = (row.voice ?? {}) as Record<string, unknown>;
   const length = str(voiceRaw.length);
   const emojis = str(voiceRaw.emojis);
@@ -284,6 +390,8 @@ export function parseCoachDoctrine(
       forbidden,
       vocabulary,
       arbitrations,
+      foods,
+      qa,
       voice: {
         address: str(voiceRaw.address) || null,
         length: (length === "short" || length === "medium" ? length : null),
@@ -419,6 +527,47 @@ export function compileDoctrineBlock(doctrine: CoachDoctrine): CompiledDoctrine 
     }
   }
 
+  // ── LES ALIMENTS ────────────────────────────────────────────────────────
+  // Les deux listes sont émises SÉPARÉMENT et avec des verbes différents, pas
+  // fusionnées en un « voici les aliments ». Le conseillé est une INVITATION
+  // (le générateur de repas peut piocher dedans), le déconseillé est une
+  // BORNE (il ne peut pas). Les mettre sous un même titre laisserait au modèle
+  // le soin de deviner lequel est lequel.
+  if (doctrine.foods.recommended.length > 0) {
+    lines.push("");
+    lines.push("-- FOODS THIS COACH LEANS ON — reach for these first --");
+    for (const f of doctrine.foods.recommended) {
+      lines.push(f.reason ? `- ${f.term} — ${f.reason}` : `- ${f.term}`);
+    }
+  }
+
+  if (doctrine.foods.discouraged.length > 0) {
+    lines.push("");
+    lines.push("-- FOODS THIS COACH DOES NOT PUT ON A PLATE --");
+    lines.push(
+      "Never suggest these to the student. You may say the coach does not use " +
+        "them if asked; you may never build a meal around one.",
+    );
+    for (const f of doctrine.foods.discouraged) {
+      const forms = (f.surfaceForms ?? []).filter(Boolean);
+      const alias = forms.length > 0 ? ` (also: ${forms.join("; ")})` : "";
+      lines.push(f.reason ? `- ${f.term}${alias} — ${f.reason}` : `- ${f.term}${alias}`);
+    }
+  }
+
+  if (doctrine.qa.length > 0) {
+    lines.push("");
+    lines.push("-- WHAT THIS COACH HAS ALREADY ANSWERED --");
+    lines.push(
+      "These are settled. When a student asks one of these, answer as the " +
+        "coach did rather than reasoning it out again.",
+    );
+    for (const entry of doctrine.qa) {
+      lines.push(`- Q: ${entry.question}`);
+      lines.push(`  A: ${entry.answer}`);
+    }
+  }
+
   const v = doctrine.voice;
   const voiceBits: string[] = [];
   if (v.address) voiceBits.push(`address the student with "${v.address}"`);
@@ -434,10 +583,17 @@ export function compileDoctrineBlock(doctrine: CoachDoctrine): CompiledDoctrine 
   }
 
   const text = lines.join("\n");
+  // `isEmpty` décide de l'injection du bloc de PRUDENCE à la place de la
+  // doctrine. Les deux nouvelles sections y entrent: un coach qui n'a rempli
+  // QUE ses aliments a bel et bien publié une méthode, et servir le repli
+  // « aucune méthode disponible » à ses élèves serait faux.
   const isEmpty = doctrine.beliefs.length === 0 &&
     doctrine.forbidden.length === 0 &&
     doctrine.vocabulary.length === 0 &&
     doctrine.arbitrations.length === 0 &&
+    doctrine.foods.recommended.length === 0 &&
+    doctrine.foods.discouraged.length === 0 &&
+    doctrine.qa.length === 0 &&
     voiceBits.length === 0;
 
   return { text, hash: contentHash(text), isEmpty };
@@ -550,10 +706,16 @@ export class DoctrineViolationError extends Error {
  */
 export function findDoctrineViolations(
   text: string,
-  doctrine: Pick<CoachDoctrine, "forbidden">,
+  // `foods` est OBLIGATOIRE et pas optionnel, et ce n'est pas une coquetterie
+  // de typage: ce dépôt a déjà expédié une garde désarmée par un paramètre
+  // facultatif qu'aucun appelant ne passait (`safetyBand: null`, documenté).
+  // Un verrou dont la moitié des règles dépend de la mémoire de l'appelant est
+  // un verrou qui ment sur sa couverture. Le compilateur oblige donc chaque
+  // appelant à dire, explicitement, quelles listes il fait vérifier.
+  doctrine: Pick<CoachDoctrine, "forbidden" | "foods">,
   options: ForbiddenMatchOptions = {},
 ): DoctrineViolation[] {
-  const byToken = new Map<string, DoctrineForbidden>();
+  const byToken = new Map<string, { reason?: string | null }>();
   const terms: ForbiddenTerm[] = [];
   for (const f of doctrine.forbidden) {
     const token = String(f.token ?? "").trim();
@@ -565,6 +727,27 @@ export function findDoctrineViolations(
       surfaceForms: f.surfaceForms,
     });
   }
+
+  // Les aliments déconseillés entrent dans le MÊME moteur, avec les mêmes
+  // exceptions de négation. C'est ce qui permet à l'agent de dire « ton coach
+  // ne cuisine pas avec ça » — une phrase qui est la doctrine EN TRAIN DE
+  // FONCTIONNER — tout en bloquant « ajoute une cuillère de ça ».
+  //
+  // Le `ruleId` est préfixé `food:` pour que l'incident nomme la règle qui a
+  // mordu (R7) sans jamais collider avec un token d'interdit qui porterait le
+  // même mot.
+  for (const f of doctrine.foods?.discouraged ?? []) {
+    const term = String(f.term ?? "").trim();
+    if (!term) continue;
+    const ruleId = `food:${term}`;
+    byToken.set(ruleId, f);
+    terms.push({
+      ruleId,
+      token: term,
+      surfaceForms: f.surfaceForms,
+    });
+  }
+
   return findForbiddenMatches(text, terms, options).map((
     m: ForbiddenMatch,
   ): DoctrineViolation => ({
@@ -584,7 +767,7 @@ export function findDoctrineViolations(
  */
 export function assertNoDoctrineViolation(
   text: string,
-  doctrine: Pick<CoachDoctrine, "forbidden">,
+  doctrine: Pick<CoachDoctrine, "forbidden" | "foods">,
   options: ForbiddenMatchOptions = {},
 ): void {
   const violations = findDoctrineViolations(text, doctrine, options);

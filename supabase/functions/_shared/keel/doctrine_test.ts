@@ -46,6 +46,23 @@ function doctrine(over: Partial<CoachDoctrine> = {}): CoachDoctrine {
         source: "interview",
       },
     ],
+    foods: {
+      recommended: [{ term: "oeufs", surfaceForms: [], reason: "toujours dans ses petits-déjeuners" }],
+      discouraged: [
+        {
+          term: "huile de graines",
+          surfaceForms: ["huiles de graines", "huile de tournesol", "seed oil"],
+          reason: "il cuisine au beurre et à l'huile d'olive",
+        },
+      ],
+    },
+    qa: [
+      {
+        question: "Est-ce que je peux boire du café le matin ?",
+        answer: "Oui, noir, et après avoir mangé quelque chose.",
+        source: "interview",
+      },
+    ],
     voice: { address: "tu", length: "short", emojis: "none", language: "fr-FR" },
     contentLocale: "fr-FR",
     ...over,
@@ -237,9 +254,90 @@ Deno.test("compilation is deterministic — same doctrine, same hash", () => {
 
 Deno.test("an empty doctrine compiles to an empty-flagged block, not to junk", () => {
   const compiled = compileDoctrineBlock(
-    doctrine({ beliefs: [], forbidden: [], vocabulary: [], arbitrations: [], voice: {} }),
+    doctrine({
+      beliefs: [],
+      forbidden: [],
+      vocabulary: [],
+      arbitrations: [],
+      foods: { recommended: [], discouraged: [] },
+      qa: [],
+      voice: {},
+    }),
   );
   assertEquals(compiled.isEmpty, true);
+});
+
+Deno.test("a coach whose whole method is a food list has NOT published an empty doctrine", () => {
+  // `isEmpty` déclenche l'injection du bloc de PRUDENCE à la place de la
+  // méthode. Rater ce cas servirait « aucune méthode disponible » aux élèves
+  // d'un coach qui a bel et bien rempli la sienne — la pire forme d'échec,
+  // parce qu'elle est silencieuse et qu'elle ressemble à une panne.
+  const compiled = compileDoctrineBlock(
+    doctrine({
+      beliefs: [],
+      forbidden: [],
+      vocabulary: [],
+      arbitrations: [],
+      qa: [],
+      voice: {},
+      foods: {
+        recommended: [{ term: "oeufs", surfaceForms: [], reason: null }],
+        discouraged: [],
+      },
+    }),
+  );
+  assertEquals(compiled.isEmpty, false);
+  assert(compiled.text.includes("oeufs"));
+});
+
+Deno.test("a discouraged food is caught by the SAME lock as an interdit", () => {
+  const violations = findDoctrineViolations(
+    "Finish it with a spoon of seed oil.",
+    doctrine(),
+  );
+  assertEquals(violations.length, 1);
+  // Le ruleId est préfixé pour que l'incident nomme la règle qui a mordu sans
+  // jamais collider avec un token d'interdit portant le même mot.
+  assertEquals(violations[0].token, "food:huile de graines");
+  assertEquals(violations[0].matchedText, "seed oil");
+});
+
+Deno.test("DISARMED: saying the coach avoids a food is the doctrine WORKING", () => {
+  // La condition de désarmement du verrou aliment, et elle porte tout: sans
+  // elle, l'agent devient incapable d'expliquer la méthode de son propre
+  // coach, et une ceinture qui bloque les bonnes réponses est une ceinture
+  // qu'on débranche dans la semaine.
+  //
+  // Les deux langues, parce que le verbe « cuisiner » est celui que prend une
+  // liste d'ALIMENTS et qu'il manquait à la liste fermée du matcher.
+  assertEquals(
+    findDoctrineViolations("Marc ne cuisine pas à l'huile de tournesol.", doctrine()),
+    [],
+  );
+  assertEquals(
+    findDoctrineViolations("Your coach doesn't cook with seed oil.", doctrine()),
+    [],
+  );
+});
+
+Deno.test("the food lock still bites when the negation points somewhere ELSE", () => {
+  // Le test adversarial du désarmement ci-dessus. Élargir la liste de négation
+  // ne doit pas rendre blanchissable une phrase qui RECOMMANDE l'aliment: la
+  // course négation→token doit être ININTERROMPUE, et une virgule la casse.
+  assertEquals(
+    findDoctrineViolations("Don't skip breakfast, cook with seed oil.", doctrine()).length,
+    1,
+  );
+  assertEquals(
+    findDoctrineViolations("Avoid butter, cook with seed oil instead.", doctrine()).length,
+    1,
+  );
+});
+
+Deno.test("DISARMED: a RECOMMENDED food is never a violation", () => {
+  // Le piège symétrique: passer les deux listes au même moteur bloquerait
+  // exactement les réponses que le coach veut voir sortir.
+  assertEquals(findDoctrineViolations("Add a couple of oeufs.", doctrine()), []);
 });
 
 Deno.test("the cache prefix moves with the doctrine AND with the system core", () => {

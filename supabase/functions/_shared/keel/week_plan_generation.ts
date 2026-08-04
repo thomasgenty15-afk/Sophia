@@ -55,7 +55,10 @@ import {
   type OutputLockResult,
 } from "../../sophia-brain/skills/_shared/keel_output_locks.ts";
 import type { CoachDoctrine } from "./doctrine.ts";
-import type { StudentSafetyConstraint } from "./safety_constraints.ts";
+import {
+  safetyConstraintsPromptBlock,
+  type StudentSafetyConstraint,
+} from "./safety_constraints.ts";
 
 // ---------------------------------------------------------------------------
 // Entrées
@@ -87,6 +90,21 @@ export interface StudentSituation {
   goal: StudentGoal;
   /** Prose, dans les mots de l'élève. Lue par le modèle, jamais branchée. */
   situation: string | null;
+  /**
+   * CE QUI SE PASSE CETTE SEMAINE-LÀ, en prose libre: « mariage mardi »,
+   * « je pars en vacances vendredi », « week-end chez mes parents ».
+   *
+   * SÉPARÉ de `situation` et pas fondu dedans, parce que les deux ne vivent pas
+   * au même rythme. La situation est STABLE (« je mange à la cantine le
+   * midi ») et vaut pour des mois; le contexte est DATÉ et ne vaut que pour
+   * cette génération. Les mettre dans le même champ ferait traiter un mariage
+   * comme une habitude de vie — et, pire, le laisserait dans le profil de
+   * l'élève longtemps après le mariage.
+   *
+   * Délibérément NON structuré: dès qu'on le met en cases, l'élève ne peut
+   * plus dire la seule chose qui comptait cette semaine-là.
+   */
+  context: string | null;
   practicalConstraints: Record<string, unknown>;
 }
 
@@ -343,13 +361,35 @@ export function buildWeekPlanPrompt(args: {
   situation: StudentSituation;
   doctrineBlock: string;
   weekStart: string;
+  /**
+   * VERROU 4, moitié « avant génération ». REQUIS, `T | null`, jamais `T?`.
+   *
+   * Ce paramètre n'existait pas: les contraintes étaient chargées par
+   * `generate-week-plan-v1` puis passées UNIQUEMENT à `parseWeekPlan`, c'est-
+   * à-dire au validateur post-génération. Le modèle composait donc la semaine
+   * d'un élève anaphylactique sans savoir qu'il l'était, et on comptait sur un
+   * matcher littéral pour rattraper — exactement le défaut mesuré côté
+   * conversation (« nut butter »).
+   *
+   * Optionnel, il serait re-oublié par le prochain appelant, en silence, et la
+   * seule preuve serait une assiette. `null` explicite (lecture en panne) est
+   * une déclaration auditable; l'absence de champ n'en est pas une. Même
+   * raisonnement que `safetyBand` et que `keel: KeelTurnContext` dans
+   * `finalVisibleText`.
+   */
+  safetyConstraints: readonly StudentSafetyConstraint[] | null;
 }): { systemPrompt: string; userMessage: string; allowedKeys: string[] } {
   const focus = focusFor(args.situation.goal);
   const allowedKeys = args.principles
     .map((p) => String(p.belief_key ?? "").trim())
     .filter(Boolean);
 
+  // En TÊTE, avant la doctrine: si le budget de prompt tronque quoi que ce
+  // soit, ce n'est pas la ligne qui dit « pas d'arachide » qui doit sauter.
+  const safetyBlock = safetyConstraintsPromptBlock(args.safetyConstraints);
+
   const userMessage = [
+    ...(safetyBlock ? [safetyBlock, ""] : []),
     args.doctrineBlock.trim(),
     "",
     "== YOUR COACH'S CONVICTIONS (the only method that exists here) ==",
@@ -370,6 +410,9 @@ export function buildWeekPlanPrompt(args: {
     args.situation.situation
       ? `their situation, in their words: ${args.situation.situation}`
       : "their situation: not stated — keep the week simple and low-effort.",
+    args.situation.context
+      ? `what is going on for them THIS WEEK: ${args.situation.context}`
+      : "nothing special going on this week.",
     `practical constraints: ${JSON.stringify(args.situation.practicalConstraints ?? {})}`,
     "",
     `week starting: ${args.weekStart} (Monday)`,
@@ -413,7 +456,7 @@ export function parseWeekPlan(
   raw: unknown,
   principles: readonly CoachPrinciple[],
   args: {
-    doctrine: Pick<CoachDoctrine, "forbidden"> | null;
+    doctrine: Pick<CoachDoctrine, "forbidden" | "foods"> | null;
     safetyConstraints: readonly StudentSafetyConstraint[] | null;
     maxNutrition: number;
   },
@@ -487,6 +530,34 @@ export function parseWeekPlan(
         // Discipline de cardinalité: une conviction, une ligne. Deux lignes sur
         // la même conviction doublent la charge perçue pour rien.
         issues.push(`items[${i}]: duplicate conviction ${key}, kept the first`);
+        continue;
+      }
+      // ── RÈGLE 2, SECONDE MOITIÉ : LA CONVICTION EST AUSSI LUE PAR L'ÉLÈVE ─
+      //
+      // Le filtre au-dessus ne regardait que `label` et `rationale`, c'est-à-
+      // dire le texte que SOPHIA écrit. Mais `source_belief_claim` est rendu
+      // par l'app en citation SOUS chaque ligne (StudentWeekPlanPage), donc
+      // c'est du texte visible par l'élève au même titre que le reste.
+      //
+      // Un coach dont la conviction est « 30 g de protéines à chaque repas »
+      // faisait donc passer le chiffre par la porte de derrière: le modèle
+      // rédigeait un label parfaitement propre, `rejected_numeric` restait
+      // vide, et l'élève lisait quand même les grammes dans la citation.
+      // Mesuré en conditions réelles le 2026-08-03 (QA agent 5): trois lignes
+      // servies portant « 30 g of protein », « 1800 kcal » et « 40% ».
+      //
+      // La ligne entière part, elle n'est pas amputée de sa citation: une
+      // ligne alimentaire sans sa provenance est précisément ce que le produit
+      // refuse d'afficher. Et le rejet est COMPTÉ, donc visible dans la
+      // réponse plutôt qu'avalé (R7).
+      const claimNumeric = findNumericTarget(claimByKey.get(key) ?? "");
+      if (claimNumeric) {
+        const tag = `source_claim:${claimNumeric}`;
+        if (!rejectedNumeric.includes(tag)) rejectedNumeric.push(tag);
+        issues.push(
+          `items[${i}]: the conviction ${key} carries a numeric target ` +
+            `(${claimNumeric}) and is quoted to the student -- line rejected`,
+        );
         continue;
       }
       if (nutritionCount >= args.maxNutrition) {

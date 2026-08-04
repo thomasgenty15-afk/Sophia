@@ -87,8 +87,23 @@ export interface OutputLockInput {
   isKeelStudent: boolean;
   /** Chargées à chaque tour, hors chemin mémoire. */
   safetyConstraints?: readonly StudentSafetyConstraint[] | null;
-  /** La doctrine PUBLIÉE du coach de cet élève, si elle a pu être chargée. */
-  doctrine?: Pick<CoachDoctrine, "forbidden"> | null;
+  /**
+   * La doctrine PUBLIÉE du coach de cet élève, si elle a pu être chargée.
+   *
+   * `foods` fait partie du Pick parce que les aliments DÉCONSEILLÉS sont
+   * vérifiés par le même verrou que les interdits: suggérer à un élève un
+   * aliment que son coach ne met pas dans une assiette est la même
+   * contradiction publique, avec les mêmes conséquences commerciales.
+   */
+  doctrine?: Pick<CoachDoctrine, "forbidden" | "foods"> | null;
+  /**
+   * Les identifiants que CE TOUR retire (`declare_safety_constraint` avec
+   * `intent: 'retract'`). Voir la condition de désarmement n°5 dans le corps:
+   * sans elle, un élève ne peut JAMAIS corriger une contrainte, parce que la
+   * réponse qui accuse la rétractation renomme forcément l'allergène et
+   * redéclenche le remplacement — à chaque tentative.
+   */
+  retractedConstraintRefs?: readonly string[] | null;
 }
 
 export interface OutputLockResult {
@@ -186,9 +201,48 @@ export function applyKeelOutputLocks(input: OutputLockInput): OutputLockResult {
     return { text, reason: "disarmed_not_keel_student", tokens: [] };
   }
 
-  const constraints = input.safetyConstraints ?? [];
+  // CONDITION DE DÉSARMEMENT n°5 (doctrine P9) — LE TOUR DE RÉTRACTATION.
+  //
+  // Mesurée en QA: l'élève écrit « Actually I'm NOT allergic to peanuts, that
+  // was my sister — please remove that », l'agent répond, sa réponse nomme
+  // l'allergène (elle ne peut pas faire autrement: accuser une rétractation
+  // sans nommer ce qu'on retire est inintelligible), la ceinture voit un token
+  // médical et REMPLACE tout le message par « pose la question à un médecin ».
+  //
+  // C'est un CUL-DE-SAC, et il se referme sur lui-même: chaque nouvelle
+  // tentative de correction renomme l'allergène et redéclenche le remplacement.
+  // L'élève ne peut jamais corriger, et ne comprend jamais pourquoi. Même
+  // famille que `safety-crisis-flow-no-exit-on-denial`: un dispositif qu'on ne
+  // peut pas quitter est un piège, pas une protection.
+  //
+  // PORTÉE VOLONTAIREMENT ÉTROITE: on ne désarme que les contraintes que CE
+  // TOUR retire, nommément. Les autres contraintes de l'élève restent gardées
+  // dans le même message — retirer une allergie à l'arachide n'ouvre pas la
+  // porte au sésame. Et le désarmement vient d'un EFFET DU TOUR, pas d'une
+  // heuristique sur le texte: c'est la demande de l'élève, pas une phrase que
+  // le modèle aurait pu produire tout seul.
+  const retracted = new Set(
+    (input.retractedConstraintRefs ?? [])
+      .map((r) => String(r ?? "").trim().toLowerCase())
+      .filter(Boolean),
+  );
+  const constraints = (input.safetyConstraints ?? []).filter((c) => {
+    if (retracted.size === 0) return true;
+    const refs = [c.allergenRef, c.substanceRef, c.medicationClass]
+      .filter((r): r is string => Boolean(r))
+      .map((r) => r.trim().toLowerCase());
+    return !refs.some((r) => retracted.has(r));
+  });
   const forbidden = input.doctrine?.forbidden ?? [];
-  if (constraints.length === 0 && forbidden.length === 0) {
+  // Les aliments déconseillés comptent dans la condition de désarmement. Les
+  // oublier ici rendrait la ceinture muette pour un coach qui n'aurait rempli
+  // QUE cette section — c'est-à-dire précisément le coach dont la méthode
+  // tient dans « voilà ce que je ne mets pas dans une assiette ».
+  const discouragedFoods = input.doctrine?.foods?.discouraged ?? [];
+  if (
+    constraints.length === 0 && forbidden.length === 0 &&
+    discouragedFoods.length === 0
+  ) {
     return { text, reason: "disarmed_no_constraints", tokens: [] };
   }
 
@@ -206,8 +260,15 @@ export function applyKeelOutputLocks(input: OutputLockInput): OutputLockResult {
     };
   }
 
-  if (forbidden.length > 0) {
-    const doctrineViolations = findDoctrineViolations(text, { forbidden });
+  if (forbidden.length > 0 || discouragedFoods.length > 0) {
+    const doctrineViolations = findDoctrineViolations(text, {
+      forbidden,
+      // Reconstruit plutôt que passé tel quel: `recommended` n'a rien à faire
+      // dans un verrou. Un aliment CONSEILLÉ nommé dans une réponse est le
+      // comportement voulu, et le passer à un moteur de correspondance qui
+      // ignore la distinction bloquerait exactement les bonnes réponses.
+      foods: { recommended: [], discouraged: discouragedFoods },
+    });
     if (doctrineViolations.length > 0) {
       const tokens = [...new Set(doctrineViolations.map((v) => v.token))];
       // On répond À LA PLACE du coach avec SES mots quand il les a donnés.
