@@ -55,6 +55,7 @@ import {
   type OutputLockResult,
 } from "../../sophia-brain/skills/_shared/keel_output_locks.ts";
 import type { CoachDoctrine } from "./doctrine.ts";
+import { type BodyInputs, weekEmphasis } from "./student_body.ts";
 import {
   safetyConstraintsPromptBlock,
   type StudentSafetyConstraint,
@@ -106,6 +107,19 @@ export interface StudentSituation {
    */
   context: string | null;
   practicalConstraints: Record<string, unknown>;
+  /**
+   * CE QU'ON SAIT DU CORPS: bande d'âge et tendances des mesures.
+   *
+   * REQUIS, `T` avec une valeur explicite pour « on ne sait rien »
+   * (`UNKNOWN_BODY`), jamais `T?`. Un champ optionnel serait ré-oublié par le
+   * prochain appelant, en silence, et la seule preuve serait une semaine
+   * construite à l'aveugle pour un corps dont on savait des choses — c'est-à-
+   * dire exactement le défaut que ce chantier répare. Même raisonnement que
+   * `safetyConstraints` ci-dessous, et que `safetyBand` dans les crons.
+   *
+   * Ce que chaque entrée altère est documenté dans `student_body.ts`.
+   */
+  body: BodyInputs;
 }
 
 /**
@@ -378,8 +392,35 @@ export function buildWeekPlanPrompt(args: {
    * `finalVisibleText`.
    */
   safetyConstraints: readonly StudentSafetyConstraint[] | null;
-}): { systemPrompt: string; userMessage: string; allowedKeys: string[] } {
-  const focus = focusFor(args.situation.goal);
+}): {
+  systemPrompt: string;
+  userMessage: string;
+  allowedKeys: string[];
+  /**
+   * LE PLAFOND EFFECTIF, rendu pour que `parseWeekPlan` le REÇOIVE au lieu de
+   * le recalculer.
+   *
+   * L'appelant faisait `focusFor(goal).maxNutrition` de son côté pour le
+   * validateur. Tant que le plafond ne dépendait que de l'objectif, les deux
+   * calculs tombaient d'accord par chance. Dès que le CORPS peut le baisser
+   * (« ne répare pas ce qui marche », -1 ligne), ils divergent: le prompt
+   * demande 3 lignes et le parseur en accepte 4 — c'est-à-dire que la baisse
+   * devient une suggestion polie au modèle au lieu d'une règle.
+   *
+   * Deux copies d'un même nombre, dont une seule reçoit la modification: le
+   * défaut que `MACRO_WORDS` documente vingt lignes plus haut, re-signé. Une
+   * seule source, rendue ici.
+   */
+  maxNutrition: number;
+} {
+  // L'objectif décide, le CORPS module. `focusFor` reste la branche par
+  // objectif; `weekEmphasis` y ajoute la bande d'âge et les tendances. Corps
+  // inconnu => `focus` est identique, au caractère près, à `focusFor(goal)`.
+  const focus = weekEmphasis(
+    args.situation.goal,
+    args.situation.body,
+    focusFor(args.situation.goal),
+  );
   const allowedKeys = args.principles
     .map((p) => String(p.belief_key ?? "").trim())
     .filter(Boolean);
@@ -418,7 +459,12 @@ export function buildWeekPlanPrompt(args: {
     `week starting: ${args.weekStart} (Monday)`,
   ].join("\n");
 
-  return { systemPrompt: WEEK_PLAN_SYSTEM_PROMPT, userMessage, allowedKeys };
+  return {
+    systemPrompt: WEEK_PLAN_SYSTEM_PROMPT,
+    userMessage,
+    allowedKeys,
+    maxNutrition: focus.maxNutrition,
+  };
 }
 
 // ---------------------------------------------------------------------------

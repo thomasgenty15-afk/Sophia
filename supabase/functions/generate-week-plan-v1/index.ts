@@ -8,10 +8,20 @@ import { logEdgeFunctionError } from "../_shared/error-log.ts";
 import { generateWithGemini } from "../_shared/gemini.ts";
 import { doctrineBlockFor, loadPublishedDoctrine } from "../_shared/keel/doctrine_loader.ts";
 import { loadStudentSafetyConstraints } from "../_shared/keel/safety_constraints.ts";
+import { ageBandOf, usableAge, weekPlanAgeGate } from "../_shared/keel/student_age.ts";
+import {
+  trendOf,
+  WAIST_NOISE_CM,
+  WEIGHT_NOISE_KG,
+} from "../_shared/keel/student_body.ts";
+import {
+  escalateMinorStudent,
+  loadStudentBody,
+} from "../_shared/keel/student_body_io.ts";
+import { localDateFor } from "../_shared/keel/reengagement_io.ts";
 import {
   buildWeekPlanPrompt,
   type CoachPrinciple,
-  focusFor,
   parseWeekPlan,
   type StudentGoal,
   weekPlanItemsPayload,
@@ -203,8 +213,58 @@ Deno.serve(async (req) => {
       console.warn(`[${FN_NAME}] safety constraints unavailable`, error);
     }
 
+    // --- LE CORPS AUQUEL CETTE SEMAINE S'ADRESSE ---------------------------
+    //
+    // Cette fonction ne lisait QUE `student_goals`. Le produit collecte pourtant
+    // le poids et le tour de taille chaque dimanche, et l'âge dort dans
+    // `profiles.birth_date` — on construisait une semaine à l'aveugle pour un
+    // corps dont on savait des choses.
+    //
+    // La lecture N'EST PAS best-effort, contrairement aux contraintes de
+    // sécurité juste au-dessus: là, un hoquet dégrade une ceinture et on
+    // préfère un produit vivant; ici, un hoquet avalé ferait générer la semaine
+    // d'un mineur comme s'il était adulte. Les deux erreurs n'ont pas le même
+    // prix, donc pas le même traitement. L'exception remonte au catch général,
+    // qui rend un 500 honnête.
+    const todayLocal = localDateFor(new Date(), null);
+    const studentBody = await loadStudentBody(admin, userId, todayLocal);
+
+    // --- LA CEINTURE « MINEUR » --------------------------------------------
+    //
+    // Décision et alternative écrites dans `_shared/keel/student_age.ts`, et
+    // reprises en clair dans STATUS-PLAN-INPUTS.md: on bloque la génération et
+    // on prévient le coach, parce qu'un accompagnement nutritionnel de mineur
+    // relève de son cadre professionnel et pas du nôtre.
+    //
+    // DÉSARMEMENT: la ceinture ne mord que sur un mineur AVÉRÉ. Une date
+    // absente — le cas de tous les élèves d'avant ce chantier — ne bloque rien.
+    const ageGate = weekPlanAgeGate(studentBody.verdict);
+    if (!ageGate.allowed) {
+      // L'escalade AVANT la réponse: si l'insert échoue, l'élève reçoit un 500
+      // et réessaie, plutôt qu'un refus poli dont le coach n'entendrait jamais
+      // parler. Un blocage silencieux serait le pire des deux mondes.
+      const escalation = await escalateMinorStudent(admin, {
+        userId,
+        age: ageGate.age ?? 0,
+      });
+      console.warn(JSON.stringify({
+        tag: "keel.week_plan.minor_blocked",
+        user_id: userId,
+        age: ageGate.age,
+        escalated: escalation.escalated,
+        reason: escalation.reason,
+        contract_change_request_id: escalation.contractChangeRequestId,
+      }));
+      return jsonResponse(req, {
+        error: "minor_student",
+        detail:
+          "Plan generation is held for students under 18. Your coach has been told.",
+        request_id: requestId,
+      }, { status: 409 });
+    }
+
     const goal = String(goalRow.goal ?? "health") as StudentGoal;
-    const { systemPrompt, userMessage, allowedKeys } = buildWeekPlanPrompt({
+    const { systemPrompt, userMessage, allowedKeys, maxNutrition } = buildWeekPlanPrompt({
       principles,
       situation: {
         goal,
@@ -215,6 +275,16 @@ Deno.serve(async (req) => {
         // tard, pourquoi cette semaine-là avait cette forme.
         context: weekContext,
         practicalConstraints: (goalRow.practical_constraints ?? {}) as Record<string, unknown>,
+        // Ce que chaque entrée ALTÈRE est documenté dans `student_body.ts`. Une
+        // bande d'âge (pas un nombre) et des TENDANCES (pas des valeurs): le
+        // modèle n'a aucun usage légitime de « 78,4 kg » qu'il n'ait de
+        // « le poids descend », et un chiffre exact finit toujours par
+        // ressortir dans une ligne du plan.
+        body: {
+          ageBand: ageBandOf(usableAge(studentBody.verdict)),
+          weightTrend: trendOf(studentBody.weights, WEIGHT_NOISE_KG),
+          waistTrend: trendOf(studentBody.waists, WAIST_NOISE_CM),
+        },
       },
       doctrineBlock: doctrineBlockFor(doctrine),
       weekStart,
@@ -240,7 +310,9 @@ Deno.serve(async (req) => {
       plan = parseWeekPlan(result, principles, {
         doctrine: doctrine.doctrine,
         safetyConstraints: constraints,
-        maxNutrition: focusFor(goal).maxNutrition,
+        // Le plafond EFFECTIF rendu par le prompt, jamais un second calcul —
+        // voir le commentaire sur `maxNutrition` dans `buildWeekPlanPrompt`.
+        maxNutrition,
       });
     } catch (error) {
       return jsonResponse(req, {
@@ -282,6 +354,22 @@ Deno.serve(async (req) => {
           goal,
           context: weekContext,
           prompt_version: WEEK_PLAN_PROMPT_VERSION,
+          // LE CORPS QUI A PRODUIT CETTE SEMAINE, archivé avec elle.
+          //
+          // Des BANDES et des TENDANCES, pas des valeurs: `generated_from` est
+          // relu des semaines plus tard pour comprendre pourquoi la semaine
+          // avait cette forme, et il n'a pas à devenir un historique de poids
+          // parallèle à `weekly_reviews` — qui, lui, s'efface avec le compte.
+          //
+          // Sans ça, la baisse d'une ligne (« ça marche déjà ») serait
+          // indistinguable d'un modèle qui a été avare ce jour-là.
+          body_inputs: {
+            age_band: ageBandOf(usableAge(studentBody.verdict)),
+            age_known: usableAge(studentBody.verdict) !== null,
+            weight_trend: trendOf(studentBody.weights, WEIGHT_NOISE_KG),
+            waist_trend: trendOf(studentBody.waists, WAIST_NOISE_CM),
+            max_nutrition: maxNutrition,
+          },
         },
         status: "draft",
         // `adopted_at` remis à NULL avec le statut, et pas laissé tel quel.

@@ -24,6 +24,7 @@ import {
   WEEK_PLAN_SYSTEM_PROMPT,
   weekPlanItemsPayload,
 } from "./week_plan_generation.ts";
+import { UNKNOWN_BODY } from "./student_body.ts";
 import type { StudentSafetyConstraint } from "./safety_constraints.ts";
 
 const PRINCIPLES: CoachPrinciple[] = [
@@ -483,6 +484,10 @@ Deno.test("the prompt carries the convictions and forbids numbers", () => {
       situation: "I eat at a canteen at midday",
       context: "I have a wedding on Tuesday",
       practicalConstraints: {},
+      // Corps inconnu: ce test porte sur les convictions et l'interdiction des
+      // chiffres, pas sur ce que le corps module. Voir `student_body_test.ts`
+      // pour l'invariant « corps inconnu => prompt inchangé ».
+      body: UNKNOWN_BODY,
     },
     doctrineBlock: "== MARC'S METHOD ==",
     weekStart: "2026-08-03",
