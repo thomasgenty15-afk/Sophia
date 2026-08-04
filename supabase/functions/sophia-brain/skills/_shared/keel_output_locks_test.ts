@@ -37,7 +37,16 @@ function constraint(
   };
 }
 
+// `foods` est REQUIS par `Pick<CoachDoctrine, "forbidden" | "foods">` depuis
+// que la doctrine porte les aliments (migration 20260804100000). Les deux
+// fixtures ci-dessous ne le déclaraient pas: 1 erreur TS2741 qui empêchait
+// TOUTE la suite `sophia-brain/` de tourner — elle échouait au typecheck avant
+// d'exécuter un seul test. Vide et non `null`: ces cas testent le verrou des
+// INTERDITS, pas celui des aliments.
+const NO_FOODS = { recommended: [], discouraged: [] } as const;
+
 const DOCTRINE = {
+  foods: NO_FOODS,
   forbidden: [
     {
       token: "six_small_meals",
@@ -105,6 +114,7 @@ Deno.test("an endorsed coach interdit is replaced, and never sends the student a
 // ---------------------------------------------------------------------------
 
 const DOCTRINE_WITH_INSTEAD = {
+  foods: NO_FOODS,
   forbidden: [
     {
       token: "six_small_meals",

@@ -34,6 +34,23 @@ function constraint(
 // Loading — every turn, no cache, no memory
 // ---------------------------------------------------------------------------
 
+// La forme que `SafetyConstraintsQuery` promet. Recopiée ici plutôt
+// qu'importée: `StudentSafetyConstraintRow` n'est pas exporté, et l'exporter
+// pour un test élargirait la surface publique d'un module de sécurité.
+type SettledRow = {
+  id: string;
+  user_id: string;
+  kind: string;
+  allergen_ref: string | null;
+  substance_ref: string | null;
+  medication_class: string | null;
+  severity: string;
+  declared_by: string;
+  notes: string | null;
+  content_locale: string;
+};
+type Settled = { data: SettledRow[] | null; error: unknown };
+
 function fakeDb(outcome: {
   rows?: Record<string, unknown>[] | null;
   error?: unknown;
@@ -60,17 +77,24 @@ function fakeDb(outcome: {
       if (column === "user_id") calls.push({ table: currentTable, userId: value });
       return query;
     },
-    then(resolve: unknown, reject: unknown) {
-      let promise: Promise<unknown>;
+    // La signature est GÉNÉRIQUE, et pas `(resolve: unknown, reject: unknown)`:
+    // `PromiseLike<T>.then` l'est, donc un faux qui ne l'est pas ne satisfait
+    // pas `SafetyConstraintsDb` — 8 erreurs TS2345 qui empêchaient toute la
+    // suite `_shared/keel/` de tourner (elle échouait au typecheck avant
+    // d'exécuter un seul test).
+    then<TResult1 = Settled, TResult2 = never>(
+      resolve?:
+        | ((value: Settled) => TResult1 | PromiseLike<TResult1>)
+        | null,
+      reject?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
+    ): PromiseLike<TResult1 | TResult2> {
+      let promise: Promise<Settled>;
       try {
         promise = settle();
       } catch (error) {
         promise = Promise.reject(error);
       }
-      return promise.then(
-        resolve as never,
-        reject as never,
-      );
+      return promise.then(resolve, reject);
     },
   };
   let currentTable = "";

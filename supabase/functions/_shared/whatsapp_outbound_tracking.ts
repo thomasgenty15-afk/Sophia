@@ -35,6 +35,11 @@ export async function createWhatsAppOutboundRow(
       message_type: params.message_type,
       content_preview: params.content_preview,
       graph_payload: params.graph_payload as any,
+      // DE-WHATSAPP P0 — `outbound_messages.delivery_channel` est NOT NULL SANS
+      // DEFAULT, exprès: un writer qui oublie le canal doit échouer, pas se
+      // déclarer WhatsApp en silence. Ce module n'écrit que du WhatsApp; il le
+      // dit. Il meurt en P5 avec `whatsapp-send`.
+      delivery_channel: "whatsapp",
       status: "queued",
       updated_at: nowIso,
       metadata: (params.metadata ?? {}) as any,

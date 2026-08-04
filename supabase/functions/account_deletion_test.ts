@@ -370,6 +370,9 @@ Deno.test("purge: hard-deletes everything, anonymises llm_usage_events, is idemp
     content_preview: "contenu de message personnel",
     status: "sent",
     provider_message_id: providerMsgId,
+    // NOT NULL sans DEFAULT depuis la migration de-whatsapp: le canal est dit,
+    // jamais deviné.
+    delivery_channel: "whatsapp",
   });
   if (outErr) throw outErr;
   const { error: evErr } = await admin.from("whatsapp_outbound_status_events").insert({
