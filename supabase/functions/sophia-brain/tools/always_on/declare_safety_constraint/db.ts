@@ -87,24 +87,45 @@ export function createSafetyConstraintWrite(args: {
       }) as Record<string, unknown> | undefined;
       if (!match) return { outcome: "nothing_to_retract" };
 
-      // L'écriture passe par la fonction SECURITY DEFINER, pas par un UPDATE
+      // L'écriture passe par une fonction SECURITY DEFINER, pas par un UPDATE
       // direct: la table n'a AUCUNE policy UPDATE, et lui en ajouter une
       // laisserait l'élève réécrire `severity` (voir la migration
-      // 20260803160000 pour le raisonnement complet). Un UPDATE direct touchait
-      // zéro ligne — le mode d'échec exact rencontré en run réel.
+      // 20260803160000 pour le raisonnement complet).
+      //
+      // ⚠️ ET L'IDENTITÉ EST UN PARAMÈTRE, PAS `auth.uid()`.
+      //
+      // La variante `retract_student_safety_constraint(p_constraint_id)` porte
+      // `and user_id = (select auth.uid())`. Or CE code écrit avec le client
+      // **service_role**, pour lequel `auth.uid()` vaut NULL: l'UPDATE ne
+      // matchait AUCUNE ligne, la fonction rendait `null`, et on retombait ici
+      // sur `nothing_to_retract`. Mesuré par sonde directe (QA WEB, seconde
+      // relecture) — la rétractation n'avait donc JAMAIS pu s'écrire depuis le
+      // moteur de tour, pendant que la réponse annonçait le contraire.
+      // `SECURITY DEFINER` change le RÔLE d'exécution, pas `auth.uid()`.
+      //
+      // ET ON RETIRE TOUTES LES LIGNES DE CETTE RÉFÉRENCE, pas la première.
+      // Deux déclarations de la même allergie créent deux lignes actives
+      // (l'index unique porte sur `(user_id, source_message_id)`, donc par
+      // MESSAGE). N'en fermer qu'une laissait l'élève contraint après avoir été
+      // explicitement libéré — l'exact inverse de ce qu'il a demandé.
       const rpc = await args.supabase.rpc(
-        "retract_student_safety_constraint",
-        { p_constraint_id: String(match.id), p_reason: input.notes },
+        "retract_student_safety_constraints_for_user",
+        { p_user_id: input.user_id, p_refs: refs, p_reason: input.notes },
       );
       if (rpc.error) {
         throw new Error(
           `student_safety_constraints retract failed: ${rpc.error.message}`,
         );
       }
-      if (!rpc.data) {
-        // La fonction n'a rien rendu: la ligne n'était plus active (course avec
-        // un autre tour). Ce n'est pas une panne, c'est « il n'y avait plus
-        // rien à retirer » — et le renderer le dira ainsi.
+      const retractedIds = (Array.isArray(rpc.data) ? rpc.data as unknown[] : [])
+        .map((value: unknown) =>
+          String((value as { id?: unknown } | null)?.id ?? value ?? "").trim()
+        )
+        .filter((value: string) => value !== "");
+      if (retractedIds.length === 0) {
+        // Aucune ligne retirée: elle n'était plus active (course avec un autre
+        // tour). Ce n'est pas une panne, c'est « il n'y avait plus rien à
+        // retirer » — et le renderer le dira ainsi.
         return { outcome: "nothing_to_retract" };
       }
 
@@ -113,7 +134,7 @@ export function createSafetyConstraintWrite(args: {
       const readBack = await args.supabase
         .from("student_safety_constraints")
         .select(READ_BACK_COLUMNS)
-        .eq("id", String(match.id))
+        .eq("id", retractedIds[0])
         .maybeSingle();
       if (readBack.error) {
         throw new Error(

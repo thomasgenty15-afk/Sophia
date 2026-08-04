@@ -666,15 +666,16 @@ async function buildExportPayload(
       user.id,
       keelUnavailable,
     ),
-    fetchKeelRows(
-      admin,
-      "recurring_meals",
-      SCOPE.recurringMeals,
-      "user_id",
-      user.id,
-      keelUnavailable,
-    ),
-    fetchKeelRows(admin, "student_facts", SCOPE.studentFacts, "user_id", user.id, keelUnavailable),
+    // `recurring_meals` et `student_facts` ont été DROPPÉES par le pivot
+    // nutrition (le memorizer fait cette couche souple). Les sonder à chaque
+    // export les rangeait dans `tables_indisponibles`, c'est-à-dire un bruit
+    // permanent dans le bundle de CHAQUE élève, pour deux tables qui ne
+    // reviendront pas. On rend un tableau vide sans interroger la base: la
+    // section reste dans le bundle (un lecteur d'export antérieur ne se
+    // retrouve pas devant une clé disparue), mais elle ne ment plus sur une
+    // indisponibilité.
+    Promise.resolve([] as Record<string, unknown>[]),
+    Promise.resolve([] as Record<string, unknown>[]),
     fetchKeelRows(admin, "student_cards", SCOPE.studentCards, "user_id", user.id, keelUnavailable),
     fetchKeelRows(admin, "card_armings", SCOPE.cardArmings, "user_id", user.id, keelUnavailable),
     fetchKeelRows(admin, "card_wins", SCOPE.cardWins, "user_id", user.id, keelUnavailable),

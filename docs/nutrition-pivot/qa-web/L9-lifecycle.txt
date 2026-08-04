@@ -1,4 +1,4 @@
-élève=337813bd-e5df-4983-814c-e77dade9bdb6  coach=eec4970c-55b1-45cc-94ed-688b7e824515
+élève=1124c499-f187-4e27-b014-3f72cd539715  coach=c1af7a15-47d8-49b9-8076-ad91e93c81fa
 
 ▌ donnée avant suppression :
   {"protocol_events":1,"chat_messages":4,"student_week_plans":1,"student_daily_checkins":1,"student_safety_constraints":1,"planned_deviations":0,"meal_precision_questions":1,"outbound_messages":2,"inbound_dedup":2,"reengagement_episodes":0,"plan_versions":1,"plan_commitments":2,"coach_clients":1,"contract_change_requests":0,"coach_access_events":0}
@@ -8,7 +8,7 @@
 ██████████████████████████████████████████████████████████████████████████
   HTTP 200
   réponse : ["ok","url","expires_in_seconds","notified_whatsapp","notified_email","request_id"]
-  bundle téléchargé : HTTP 200, 6321 octets
+  bundle téléchargé : HTTP 200, 6261 octets
   contenu de l'archive :
     
   🔴 protocol_events              (1 ligne(s) en base)
@@ -26,21 +26,21 @@
 ██████████████████████████████████████████████████████████████████████████
 2 — SUPPRESSION / RESTAURATION
 ██████████████████████████████████████████████████████████████████████████
-  prepare → HTTP 200 {"ok":true,"token":{"token_id":"fd112fe0-e575-4f04-b586-2c75c3c6f38d","user_id":"337813bd-e5df-4983-814c-e77dade9bdb6","operation_id":"account_deletion:3b62d990
-  suppression → HTTP 200 {"ok":true,"purge_at":"2026-08-11T21:29:59.029Z","cancelled_subscriptions":0,"ended_coach_links":0,"students_notified":0,"students_notify_failed":0,"students_notify_truncated":false,"deletion_notified
-  profil : ["deletion_pending | 2026-08-04 21:29:59.02+00 | 2026-08-11 21:29:59.029+00"]
+  prepare → HTTP 200 {"ok":true,"token":{"token_id":"10122608-c72f-4e43-a2be-a9b98c156c15","user_id":"1124c499-f187-4e27-b014-3f72cd539715","operation_id":"account_deletion:d833c27a
+  suppression → HTTP 200 {"ok":true,"purge_at":"2026-08-11T22:23:48.643Z","cancelled_subscriptions":0,"ended_coach_links":0,"students_notified":0,"students_notify_failed":0,"students_notify_truncated":false,"deletion_notified
+  profil : ["deletion_pending | 2026-08-04 22:23:48.636+00 | 2026-08-11 22:23:48.643+00"]
   l'élève supprimé poste → HTTP 401 ✅ refus propre
   message écrit malgré tout ? 0 ✅
   reconnexion → ✅ session obtenue
-  restauration → HTTP 200 {"ok":true,"restored":true,"proactive_relances_restored":true,"subscription_restored":false,"request_id":"db8eacfc-5fdf-4185-9cd5-37f76c3b6dbe"}
+  restauration → HTTP 200 {"ok":true,"restored":true,"proactive_relances_restored":true,"subscription_restored":false,"request_id":"c7e8241a-be86-46b0-a9c9-e2cb2a45c132"}
   profil : ["active | -"]
   l'élève restauré poste → HTTP 200 ✅ réponse reçue
 
 ██████████████████████████████████████████████████████████████████████████
 3 — PURGE J+7 (horloge simulée)
 ██████████████████████████████████████████████████████████████████████████
-  purge_at : ["2026-08-11 21:30:05.776+00"]
-  cron purge (now=2026-08-12T21:30:05.907Z) → HTTP 200 {"ok":true,"purged":1,"errors":[],"request_id":"d2754b94-a14d-46fc-92d7-0876683153b8"}
+  purge_at : ["2026-08-11 22:23:53.774+00"]
+  cron purge (now=2026-08-12T22:23:53.936Z) → HTTP 200 {"ok":true,"purged":1,"errors":[],"request_id":"2e878091-fd46-43b0-886e-90de89b38630"}
 
 ▌ ce qui SURVIT à la purge :
   ✅ protocol_events              1 → 0
@@ -60,5 +60,3 @@
 ▌ le prénom dans coach_syntheses :
   []
   occurrences de « Deletable Sam » : 0
-
-→ écrit
