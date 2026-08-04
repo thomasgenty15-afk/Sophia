@@ -37,10 +37,29 @@ const REFUSALS: Record<string, string> = {
   invite_failed: "The invitation was not sent. Nothing was created — try again.",
 };
 
+/**
+ * `send_state`, TEL QUE LE SERVEUR LE REND — et il le rendait déjà.
+ *
+ * LE DÉFAUT, RAPPORTÉ PAR UN COACH: il a invité quelqu'un, l'écran a affiché
+ * « Invitation sent to … », et aucun email n'est parti.
+ *
+ * `coach-invite-student-v1` distingue exprès trois états, et son commentaire dit
+ * pourquoi: « `skipped_delivery_disabled` EXISTE POUR NE PAS MENTIR EN LOCAL ».
+ * Ce dialogue ne lisait pas le champ. Le serveur avait pris soin de séparer
+ * « parti » de « supprimé », et l'écran jetait la distinction pour toujours
+ * afficher la même phrase.
+ *
+ * Ce n'est pas cosmétique: un coach qui croit avoir invité quelqu'un attend une
+ * réponse qui ne viendra jamais, et il n'a aucun moyen de le découvrir. Vérifié
+ * en base sur l'invitation réelle: `communication_logs.status='skipped'`,
+ * `resend_id='resend_DISABLED'`.
+ */
+type ServerSendState = "sent" | "skipped_ephemeral" | "skipped_delivery_disabled";
+
 type SendState =
   | { kind: "idle" }
   | { kind: "sending" }
-  | { kind: "sent"; email: string }
+  | { kind: "sent"; email: string; serverState: ServerSendState }
   | { kind: "error"; message: string };
 
 export function InviteDialog({
@@ -86,6 +105,7 @@ export function InviteDialog({
         ok?: boolean;
         error?: string;
         email?: string;
+        send_state?: string;
       };
       if (!res.ok || !json.ok) {
         const code = String(json.error ?? `http_${res.status}`);
@@ -93,7 +113,17 @@ export function InviteDialog({
       }
       // Announced only from what came back: the server states the normalised
       // address it actually filed, not the one typed into the box.
-      setState({ kind: "sent", email: json.email ?? email });
+      // Un `send_state` inconnu est traité comme « parti » plutôt que comme une
+      // panne: l'invitation EST créée côté serveur (le 200 le dit), et refuser
+      // de l'annoncer pousserait le coach à réinviter — ce qui révoque le lien
+      // qui vient d'être émis. On penche vers l'état réel du produit, jamais
+      // vers l'alarme.
+      const serverState: ServerSendState =
+        json.send_state === "skipped_delivery_disabled" ||
+          json.send_state === "skipped_ephemeral"
+          ? json.send_state
+          : "sent";
+      setState({ kind: "sent", email: json.email ?? email, serverState });
       onInvited?.();
     } catch (err) {
       setState({
@@ -112,8 +142,21 @@ export function InviteDialog({
           ? (
             <div className="mt-4">
               <p className="text-sm text-gray-700">
-                {t("invite.sent", { email: state.email })}
+                {state.serverState === "sent"
+                  ? t("invite.sent", { email: state.email })
+                  : t("invite.created_not_sent", { email: state.email })}
               </p>
+              {state.serverState !== "sent" && (
+                /* AMBRE, et pas rouge: rien n'a échoué. L'invitation existe, elle
+                   est valable, et son lien marche — c'est l'ENVOI qui a été
+                   supprimé par la configuration. Un ton d'erreur ferait croire
+                   qu'il faut réinviter, ce qui révoquerait le jeton émis. */
+                <p className="mt-2 rounded-md bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">
+                  {state.serverState === "skipped_delivery_disabled"
+                    ? t("invite.not_sent_delivery_disabled")
+                    : t("invite.not_sent_ephemeral")}
+                </p>
+              )}
               <p className="mt-2 text-xs text-gray-500">
                 The link expires in 14 days and can be used once. Nothing exists in
                 their name until they accept.

@@ -35,6 +35,18 @@ export const en = {
   "coach.home.templates_cta": "Plan templates",
   "coach.home.open_student": "Open",
   "coach.home.list_title": "Students",
+  // ── LES INVITATIONS EN ATTENTE ──────────────────────────────────────────
+  // Signalé par un coach: « on n'a aucune idée de qui est en attente de
+  // confirmation d'invitation ». La tuile « Invitations pending » comptait
+  // `coach_clients.status='invited'`, une valeur que le chemin d'invitation ne
+  // produit jamais — elle affichait donc zéro en permanence.
+  "coach.home.invites_title": "Invited, not joined yet",
+  "coach.home.invites_hint":
+    "Nothing exists in their name until they accept. Inviting the same address again sends a fresh link and cancels the old one.",
+  "coach.home.invite_state_pending": "Waiting",
+  "coach.home.invite_state_expired": "Expired",
+  "coach.home.invite_expires_at": "Link valid until {date}",
+  "coach.home.invite_expired_at": "Link expired on {date} — invite them again",
   "coach.home.student_unnamed": "Invited student",
   "coach.home.student_hidden": "Name hidden while this link is not active",
   "coach.home.no_name_yet": "Has not created their account yet",
@@ -957,6 +969,13 @@ export const en = {
   "invite.email_label": "Student email",
   "invite.send_button": "Send invitation",
   "invite.sent": "Invitation sent to {email}",
+  // L'invitation EXISTE et son lien marche; c'est l'envoi qui a été supprimé.
+  // Le titre dit donc « created », pas « sent » — et surtout pas « failed ».
+  "invite.created_not_sent": "Invitation created for {email} — but no email went out.",
+  "invite.not_sent_delivery_disabled":
+    "Email delivery is switched off in this environment (EMAIL_DELIVERY_ENABLED), so nothing was sent. The invitation is real and its link works — send it to them yourself, or turn delivery on and invite again.",
+  "invite.not_sent_ephemeral":
+    "This looks like a throwaway test address, so no email was sent on purpose. The invitation itself is real.",
   "invite.expired": "This invitation has expired. Ask your coach for a new one.",
   "invite.accept_title": "{coach} invited you to their coaching program",
   "invite.accept_button": "Accept invitation",

@@ -12,7 +12,10 @@ import {
   type ContactState,
   contactStateFor,
   countActiveSeats,
-  countPendingInvitations,
+  countPendingInvitationsFrom,
+  type CoachInvitationRow,
+  type InvitationState,
+  visibleInvitations,
 } from "../api/coachCohort";
 
 /**
@@ -78,6 +81,15 @@ interface ContactRow {
 
 interface CoachHomeData {
   clients: CoachClientRow[];
+  /**
+   * LES INVITATIONS, ET ELLES NE SONT PAS DANS `clients`.
+   *
+   * `coach-invite-student-v1` n'écrit que `coach_invitations`; la ligne
+   * `coach_clients` n'apparaît qu'à l'ACCEPTATION. Une invitation envoyée et non
+   * acceptée était donc invisible sur cet écran — et la tuile « en attente »,
+   * qui comptait `coach_clients.status='invited'`, affichait un zéro permanent.
+   */
+  invitations: CoachInvitationRow[];
   directory: Map<string, DirectoryRow>;
   contact: Map<string, ContactRow>;
 }
@@ -102,7 +114,7 @@ async function loadCoachHome(coachUserId: string): Promise<CoachHomeData> {
   // from it).
   void coachUserId;
 
-  const [clientsRes, directoryRes, contactRes] = await Promise.all([
+  const [clientsRes, directoryRes, contactRes, invitationsRes] = await Promise.all([
     supabase
       .from("coach_clients")
       .select(
@@ -119,6 +131,14 @@ async function loadCoachHome(coachUserId: string): Promise<CoachHomeData> {
     supabase
       .from("coach_student_contact")
       .select("student_user_id, last_inbound_at, inbound_count_7d"),
+    // Les invitations de CE coach. La policy `coach_invitations_coach_select`
+    // existait déjà: le droit de lire était là, personne ne lisait. Le jeton
+    // n'est PAS sélectionné — seul son hash est en base, et un écran n'a aucune
+    // raison de manipuler de quoi rejouer une invitation.
+    supabase
+      .from("coach_invitations")
+      .select("id, email, status, created_at, expires_at")
+      .order("created_at", { ascending: false }),
   ]);
 
   if (clientsRes.error) {
@@ -142,6 +162,16 @@ async function loadCoachHome(coachUserId: string): Promise<CoachHomeData> {
     console.warn("[keel/coach] coach_student_contact failed", contactRes.error);
   }
 
+  // Même arbitrage que le contact: une lecture ratée dégrade la SECTION, jamais
+  // l'écran. Savoir qui est sur le roster compte plus que savoir qui est en
+  // attente, et un coach devant une page d'erreur n'apprend ni l'un ni l'autre.
+  let invitations: CoachInvitationRow[] = [];
+  if (!invitationsRes.error) {
+    invitations = (invitationsRes.data ?? []) as unknown as CoachInvitationRow[];
+  } else {
+    console.warn("[keel/coach] coach_invitations failed", invitationsRes.error);
+  }
+
   const directory = new Map<string, DirectoryRow>();
   for (const row of (directoryRes.data ?? []) as unknown as DirectoryRow[]) {
     directory.set(row.id, row);
@@ -150,6 +180,7 @@ async function loadCoachHome(coachUserId: string): Promise<CoachHomeData> {
     clients: (clientsRes.data ?? []) as unknown as CoachClientRow[],
     directory,
     contact,
+    invitations,
   };
 }
 
@@ -157,6 +188,21 @@ export function CoachHomePage() {
   const { user } = useAuth();
   const [state, setState] = React.useState<LoadState>({ kind: "loading" });
   const [reloadKey, setReloadKey] = React.useState(0);
+  /**
+   * LE DIALOGUE EST MONTÉ ICI, ET C'EST UNE CORRECTION D'UN DÉFAUT MESURÉ.
+   *
+   * Il vivait DANS `EmptyState` et DANS `CoachHomeBody`, chacun avec son propre
+   * `inviteOpen`. Or inviter déclenche un rechargement, et le rechargement fait
+   * précisément BASCULER d'une branche à l'autre — la cohorte n'est plus vide.
+   * Le dialogue était donc démonté à la seconde où il avait quelque chose à
+   * dire, et sa confirmation partait avec lui.
+   *
+   * Mesuré au navigateur le 2026-08-05 sur le cas du coach qui a signalé le
+   * trou (cohorte vide, une invitation): l'avertissement « aucun email n'est
+   * parti » n'était JAMAIS affiché. Un état de succès qui ne survit pas à son
+   * propre effet de bord ne se lit pas.
+   */
+  const [inviteOpen, setInviteOpen] = React.useState(false);
 
   const userId = user?.id ?? null;
 
@@ -202,34 +248,42 @@ export function CoachHomePage() {
       {state.kind === "ready" && (
         <CoachHomeBody
           data={state.data}
-          onInvited={() => setReloadKey((k) => k + 1)}
+          setInviteOpen={setInviteOpen}
         />
       )}
+
+      <InviteDialog
+        open={inviteOpen}
+        onClose={() => setInviteOpen(false)}
+        onInvited={() => setReloadKey((k) => k + 1)}
+      />
     </KeelAppShell>
   );
 }
 
 function CoachHomeBody({
   data,
-  onInvited,
+  setInviteOpen,
 }: {
   data: CoachHomeData;
-  onInvited: () => void;
+  setInviteOpen: (open: boolean) => void;
 }) {
   const activeSeats = countActiveSeats(data.clients);
-  const pending = countPendingInvitations(data.clients);
-  // W6.5 — the dialog exists; this is its only entry point. A component with no
-  // caller is not a feature (the W4.7 lesson), so the state lives here.
-  const [inviteOpen, setInviteOpen] = React.useState(false);
+  // `new Date()` une fois par rendu, passé aux deux appels: deux `now`
+  // différents entre le compteur et la liste pourraient afficher « 1 en
+  // attente » au-dessus d'une liste où elle est expirée.
+  const now = new Date();
+  const pending = countPendingInvitationsFrom(data.invitations, now);
+  const invitations = visibleInvitations(data.invitations, now);
 
-  if (data.clients.length === 0) {
-    return (
-      <EmptyState
-        inviteOpen={inviteOpen}
-        setInviteOpen={setInviteOpen}
-        onInvited={onInvited}
-      />
-    );
+  // L'ÉCRAN VIDE NE L'EST PLUS QUAND DES INVITATIONS SONT DEHORS.
+  //
+  // C'est le cas exact du coach qui a signalé le trou: il venait d'inviter
+  // quelqu'un, sa cohorte était vide, et il voyait donc « invitez votre premier
+  // élève » — l'écran lui redemandait de faire ce qu'il venait de faire, sans
+  // jamais mentionner l'invitation en cours.
+  if (data.clients.length === 0 && invitations.length === 0) {
+    return <EmptyState setInviteOpen={setInviteOpen} />;
   }
 
   return (
@@ -243,6 +297,23 @@ function CoachHomeBody({
         <StatTile label={t("coach.home.pending_label")} value={String(pending)} />
       </section>
 
+      {invitations.length > 0 && (
+        <section className="mb-8">
+          <SectionLabel>{t("coach.home.invites_title")}</SectionLabel>
+          <Card padded={false}>
+            <ul className="divide-y divide-gray-200">
+              {invitations.map((invitation) => (
+                <InvitationRow key={invitation.id} invitation={invitation} />
+              ))}
+            </ul>
+          </Card>
+          <p className="mt-2 text-xs leading-5 text-gray-500">
+            {t("coach.home.invites_hint")}
+          </p>
+        </section>
+      )}
+
+      {data.clients.length > 0 && (
       <section>
         <SectionLabel>{t("coach.home.list_title")}</SectionLabel>
         <Card padded={false}>
@@ -262,6 +333,7 @@ function CoachHomeBody({
           </ul>
         </Card>
       </section>
+      )}
 
       <div className="mt-6 flex flex-wrap gap-3">
         <ButtonLink to="/coach/import" variant="primary">
@@ -275,23 +347,14 @@ function CoachHomeBody({
         </Button>
       </div>
 
-      <InviteDialog
-        open={inviteOpen}
-        onClose={() => setInviteOpen(false)}
-        onInvited={onInvited}
-      />
     </>
   );
 }
 
 function EmptyState({
-  inviteOpen,
   setInviteOpen,
-  onInvited,
 }: {
-  inviteOpen: boolean;
   setInviteOpen: (open: boolean) => void;
-  onInvited: () => void;
 }) {
   return (
     <Card tone="dashed" className="p-8 text-center">
@@ -312,14 +375,54 @@ function EmptyState({
           {t("coach.home.import_cta")}
         </ButtonLink>
       </div>
-
-      <InviteDialog
-        open={inviteOpen}
-        onClose={() => setInviteOpen(false)}
-        onInvited={onInvited}
-      />
+      {/* Plus de second `InviteDialog` ici: il est monté une fois par
+          CoachHomePage, au-dessus de la bascule vide/non-vide. C'était le
+          défaut — deux montages, deux états, et celui-ci disparaissait au
+          rechargement qu'il venait lui-même de déclencher. */}
     </Card>
   );
+}
+
+/**
+ * UNE INVITATION EN ATTENTE.
+ *
+ * L'adresse est le seul identifiant qu'on a: personne n'a de compte ni de nom
+ * tant qu'il n'a pas accepté. On l'affiche donc en clair, au coach qui l'a
+ * saisie lui-même — pas une fuite, sa propre donnée.
+ *
+ * L'état est un BADGE et pas une phrase, avec les tons du produit: « en
+ * attente » est neutre, « expirée » demande un geste. Et la date d'expiration
+ * est écrite en toutes lettres, parce que « dans 4 jours » est ce dont le coach
+ * a besoin pour décider s'il relance.
+ */
+function InvitationRow({
+  invitation,
+}: {
+  invitation: CoachInvitationRow & { state: InvitationState };
+}) {
+  const expired = invitation.state === "expired";
+  return (
+    <li className="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
+      <div className="min-w-0">
+        <p className="truncate text-sm font-medium text-gray-900">{invitation.email}</p>
+        <p className="mt-0.5 text-xs text-gray-500">
+          {expired
+            ? t("coach.home.invite_expired_at", { date: formatDay(invitation.expires_at) })
+            : t("coach.home.invite_expires_at", { date: formatDay(invitation.expires_at) })}
+        </p>
+      </div>
+      <Badge tone={expired ? "caution" : "neutral"}>
+        {expired ? t("coach.home.invite_state_expired") : t("coach.home.invite_state_pending")}
+      </Badge>
+    </li>
+  );
+}
+
+/** Date courte, lisible, sans dépendance: l'écran est en anglais (R3). */
+function formatDay(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 }
 
 function StatTile({
