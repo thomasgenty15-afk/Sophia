@@ -23,7 +23,7 @@ import { logEdgeFunctionError } from "../_shared/error-log.ts";
 import { sendResendEmail } from "../_shared/resend.ts";
 import {
   formatFrenchDate,
-  sendInternalWhatsApp,
+  sendLifecycleMessage,
   verifyPasswordFresh,
 } from "../_shared/account_lifecycle.ts";
 
@@ -875,7 +875,7 @@ Deno.serve(async (req) => {
       "Un export de tes données Sophia vient d'être demandé depuis ton compte. " +
       "Si ce n'est pas toi, change ton mot de passe immédiatement.";
     const [waNotified, emailResult] = await Promise.all([
-      sendInternalWhatsApp({
+      sendLifecycleMessage({
         user_id: user.id,
         purpose: "gdpr_export_requested",
         body: notifyBody,

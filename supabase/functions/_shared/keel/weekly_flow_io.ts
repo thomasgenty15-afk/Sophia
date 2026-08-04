@@ -164,7 +164,7 @@ export async function hasAskedWeek(
   weekStart: string,
 ): Promise<boolean> {
   const { data, error } = await admin
-    .from("whatsapp_outbound_messages")
+    .from("outbound_messages")
     .select("id")
     .eq("user_id", userId)
     .eq("metadata->>purpose", WEEKLY_FLOW_PURPOSE)

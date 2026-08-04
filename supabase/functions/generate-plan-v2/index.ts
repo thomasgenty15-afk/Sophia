@@ -7,6 +7,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 
 import { classifyPlanTypeForTransformation } from "../classify-plan-type-v1/index.ts";
+import { deliverChatMessage } from "../_shared/chat/delivery.ts";
 import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
 import { enforceRateLimit, RATE_PRESETS } from "../_shared/rate-limit.ts";
 import { distributePlanItemsV3 } from "../_shared/v2-plan-distribution.ts";
@@ -2244,36 +2245,40 @@ const PLAN_ACTIVATED_PURPOSE = "plan_activated";
 const PLAN_ACTIVATED_TONE_QUESTION =
   "Avant qu'on démarre : tu préfères que je sois plutôt douce, plutôt cash, ou un peu des deux (bienveillante mais ferme) ?";
 
-async function postToWhatsappSend(
-  secret: string,
-  payload: unknown,
+/**
+ * DE-WHATSAPP — la confirmation d'activation est écrite dans la bulle.
+ *
+ * `postToWhatsappSend` faisait un POST interne vers `whatsapp-send` et lisait
+ * `skipped: true` pour savoir si le message était réellement parti. La
+ * distinction survit — `deliverChatMessage` rend `delivered` et son motif — et
+ * c'est ce qui compte ici: l'appelant refuse d'enchaîner sur l'onboarding tant
+ * que la célébration n'a pas atteint l'élève.
+ */
+async function deliverPlanMessage(
+  admin: SupabaseClient,
+  args: {
+    userId: string;
+    body: string;
+    purpose: string;
+    metadata?: Record<string, unknown>;
+  },
 ): Promise<{ delivered: boolean }> {
   try {
-    const res = await fetch(
-      `${functionsBaseUrl()}/functions/v1/whatsapp-send`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Internal-Secret": secret,
-        },
-        body: JSON.stringify(payload),
-      },
-    );
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      console.error(
-        `[generate-plan-v2] whatsapp-send failed (${res.status}): ${
-          JSON.stringify(data)
-        }`,
+    const res = await deliverChatMessage(admin, {
+      userId: args.userId,
+      content: args.body,
+      purpose: args.purpose,
+      isReply: true,
+      metadata: args.metadata ?? {},
+    });
+    if (!res.delivered) {
+      console.warn(
+        `[generate-plan-v2] plan message not delivered: ${res.reason}`,
       );
-      return { delivered: false };
     }
-    // whatsapp-send answers 200 with skipped:true when it declines (not opted in,
-    // throttled, paywalled…). That is not a delivery.
-    return { delivered: !(data as { skipped?: unknown }).skipped };
+    return { delivered: res.delivered };
   } catch (error) {
-    console.error("[generate-plan-v2] whatsapp-send request failed", error);
+    console.error("[generate-plan-v2] plan message delivery failed", error);
     return { delivered: false };
   }
 }
@@ -2388,7 +2393,7 @@ async function sendPlanActivatedConfirmation(args: {
     if (!isFirstPlanActivation(args.planRow.status)) return;
     const { data: confirmationProfile } = await args.admin
       .from("profiles")
-      .select("full_name, whatsapp_opted_in")
+      .select("full_name")
       .eq("id", args.userId)
       .maybeSingle();
     const payload = buildPlanActivatedConfirmationPayload({
@@ -2399,18 +2404,18 @@ async function sendPlanActivatedConfirmation(args: {
       planId: args.planRow.id,
     });
     if (!payload) return;
-    const secret = internalFunctionSecret();
-    if (!secret) {
-      console.error(
-        "[generate-plan-v2] plan_activated confirmation skipped: missing INTERNAL_FUNCTION_SECRET",
-      );
-      return;
-    }
-
-    // 1) The celebration. If it did not actually reach WhatsApp (not opted in →
-    //    whatsapp-send skips it), stop here: never hand the onboarding to someone
-    //    who is not on the channel yet.
-    const confirmation = await postToWhatsappSend(secret, payload);
+    // 1) The celebration. If it did not actually reach the student, stop here:
+    //    never hand the onboarding to someone who has not received it.
+    const confirmation = await deliverPlanMessage(args.admin, {
+      userId: args.userId,
+      body: String(
+        (payload as { message?: { body?: unknown } }).message?.body ?? "",
+      ),
+      purpose: String((payload as { purpose?: unknown }).purpose ?? ""),
+      metadata:
+        (payload as { metadata_extra?: Record<string, unknown> }).metadata_extra ??
+          {},
+    });
     if (!confirmation.delivered) return;
 
     // 2) Never ask a question we already have the answer to: an established user
@@ -2418,12 +2423,11 @@ async function sendPlanActivatedConfirmation(args: {
     if (await knowsWhatsAppTonePreference(args.admin, args.userId)) return;
 
     // 3) The onboarding continues on its own, so the user has nothing to confirm.
-    const toneQuestion = await postToWhatsappSend(secret, {
-      user_id: args.userId,
-      message: { type: "text", body: PLAN_ACTIVATED_TONE_QUESTION },
+    const toneQuestion = await deliverPlanMessage(args.admin, {
+      userId: args.userId,
+      body: PLAN_ACTIVATED_TONE_QUESTION,
       purpose: "onboarding_pref_tone_prompt",
-      require_opted_in: true,
-      metadata_extra: {
+      metadata: {
         plan_id: args.planRow.id,
         kind: "plan_activated_pref_tone_prompt",
       },

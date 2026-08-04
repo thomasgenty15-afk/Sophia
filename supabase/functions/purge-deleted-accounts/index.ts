@@ -135,59 +135,51 @@ async function deleteUserStorage(
   }
 }
 
-async function purgeWhatsAppTraces(
+/**
+ * DE-WHATSAPP — ce qu'il reste à purger côté messagerie.
+ *
+ * ── CE QUI A DISPARU DE CETTE FONCTION, ET POURQUOI ──────────────────────────
+ * `whatsapp_outbound_status_events` (accusés de réception Meta, sans FK, reliés
+ * par `provider_message_id` et portant le numéro dans `recipient_id`) et
+ * `whatsapp_link_requests` (liaison d'un numéro à un compte) sont DROPPÉES par
+ * la migration `20260804130000`: plus aucune donnée personnelle à y effacer.
+ * La pagination sur 50 pages de `provider_message_id` qui existait pour les
+ * atteindre disparaît avec elles.
+ *
+ * ── CE QUI RESTE, ET POURQUOI ÇA RESTE ───────────────────────────────────────
+ * `whatsapp_cost_events` est GELÉE, pas supprimée: elle porte le coût réel payé
+ * à Meta et c'est la donnée qui justifie l'abandon du canal. **Un gel n'est pas
+ * une exemption au droit à l'effacement** — les lignes d'un compte supprimé
+ * partent toujours.
+ *
+ * `outbound_messages` porte l'historique de livraison, WhatsApp et in-app
+ * confondus. Elle est purgée par `user_id`, comme avant.
+ */
+async function purgeMessagingTraces(
   admin: ReturnType<typeof createClient>,
   userId: string,
-  phoneDigits: string,
 ): Promise<void> {
-  // whatsapp_outbound_status_events has no FK at all; it links back via
-  // provider_message_id and carries the recipient's phone in recipient_id.
-  const providerIds: string[] = [];
-  for (let page = 0; page < 50; page++) {
-    const { data, error } = await admin
-      .from("whatsapp_outbound_messages")
-      .select("provider_message_id")
-      .eq("user_id", userId)
-      .not("provider_message_id", "is", null)
-      .range(page * 1000, page * 1000 + 999);
-    if (error) throw error;
-    for (const row of data ?? []) {
-      const id = String(row?.provider_message_id ?? "").trim();
-      if (id) providerIds.push(id);
-    }
-    if (!data || data.length < 1000) break;
-  }
-  for (const ids of chunk(providerIds, 200)) {
-    const { error } = await admin
-      .from("whatsapp_outbound_status_events")
-      .delete()
-      .in("provider_message_id", ids);
-    if (error) throw error;
-  }
-  if (phoneDigits) {
-    const { error } = await admin
-      .from("whatsapp_outbound_status_events")
-      .delete()
-      .eq("recipient_id", phoneDigits);
-    if (error) throw error;
-  }
-
-  // ON DELETE SET NULL tables that still hold personal data → hard delete.
   const { error: costErr } = await admin
     .from("whatsapp_cost_events")
     .delete()
     .eq("user_id", userId);
   if (costErr) throw costErr;
+
   const { error: outErr } = await admin
-    .from("whatsapp_outbound_messages")
+    .from("outbound_messages")
     .delete()
     .eq("user_id", userId);
   if (outErr) throw outErr;
-  const { error: linkErr } = await admin
-    .from("whatsapp_link_requests")
+
+  // Idempotence des entrants in-app: elle porte `user_id` et un identifiant
+  // fourni par le client. Elle CASCADE sur `auth.users`, mais la purge est
+  // explicite ici pour la même raison que les autres — ne rien laisser dépendre
+  // d'un ON DELETE qu'on n'a pas relu.
+  const { error: dedupErr } = await admin
+    .from("inbound_dedup")
     .delete()
-    .eq("linked_user_id", userId);
-  if (linkErr) throw linkErr;
+    .eq("user_id", userId);
+  if (dedupErr) throw dedupErr;
 }
 
 async function purgeOneUser(
@@ -228,8 +220,7 @@ async function purgeOneUser(
   await deleteUserStorage(admin, userId);
 
   // 3) Personal data in SET-NULL / FK-less tables.
-  const phoneDigits = String(profile.phone_number ?? "").replace(/\D/g, "");
-  await purgeWhatsAppTraces(admin, userId, phoneDigits);
+  await purgeMessagingTraces(admin, userId);
   const { error: selErr } = await admin
     .from("system_error_logs")
     .delete()

@@ -2,6 +2,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2.87.3";
 import { ensureInternalRequest } from "../_shared/internal-auth.ts";
+import { deliverLegacyPurpose } from "../_shared/chat/send_compat.ts";
 import { getRequestId, jsonResponse } from "../_shared/http.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
 import { logMomentumObservabilityEvent } from "../_shared/momentum-observability.ts";
@@ -14,7 +15,7 @@ import {
   evaluateWhatsAppWinback,
   WINBACK_STEP_MIN_INACTIVITY_DAYS,
   type WinbackStep,
-} from "../_shared/whatsapp_winback.ts";
+} from "../_shared/winback_policy.ts";
 import {
   closeReengagementEpisode,
   decideReengagementEpisodeSweep,
@@ -35,10 +36,10 @@ import {
   disarmWinbackReengagementForUser,
   isWinbackReengagementFlowEnabled,
 } from "../sophia-brain/skills/winback_reengagement/context.ts";
-import { computeNextRetryAtIso } from "../_shared/whatsapp_outbound_tracking.ts";
+import { computeNextRetryAtIso } from "../_shared/retry_backoff.ts";
 import {
   pickMorningLightVariant,
-} from "../_shared/whatsapp_templates.ts";
+} from "../_shared/chat/message_catalog.ts";
 import {
   ACCESS_ENDED_NOTIFICATION_KIND,
   ACCESS_REACTIVATION_OFFER_KIND,
@@ -231,7 +232,7 @@ async function pauseWhatsappCoachingWorkForUser(params: {
     .not("event_context", "like", "one_shot_reminder:%");
 
   await params.supabaseAdmin
-    .from("whatsapp_pending_actions")
+    .from("pending_actions")
     .update({
       status: "cancelled",
       processed_at: nowIso,
@@ -367,40 +368,31 @@ function weeklyProgressReviewTemplateMessage() {
   };
 }
 
+/**
+ * DE-WHATSAPP — un seul point d'envoi remplacé, dix appelants intacts.
+ *
+ * Ce fichier appelait `whatsapp-send` en dix endroits. Réécrire dix sites
+ * d'appel sur 5 269 lignes de legacy, c'est dix occasions de casser une garde
+ * qu'on n'a pas relue — et celles d'ici (fraîcheur, anti-doublon, placement par
+ * `time_of_day`) ont été chèrement acquises.
+ *
+ * On remplace donc la FONCTION D'ENVOI, pas ses appelants: même nom, même
+ * payload, même forme de résultat (`skipped`). Voir
+ * `_shared/chat/send_compat.ts` pour ce que deviennent les templates.
+ */
+function sendAdminClient() {
+  return createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+    { auth: { persistSession: false, autoRefreshToken: false } },
+  );
+}
+
 async function callWhatsappSend(payload: unknown) {
-  const secret = internalSecret();
-  if (!secret) throw new Error("Missing INTERNAL_FUNCTION_SECRET");
-  const url = `${functionsBaseUrl()}/functions/v1/whatsapp-send`;
-  try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Internal-Secret": secret,
-      },
-      body: JSON.stringify(payload),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      const err = new Error(
-        `whatsapp-send failed (${res.status}): ${JSON.stringify(data)}`,
-      );
-      (err as any).status = res.status;
-      (err as any).data = data;
-      throw err;
-    }
-    return data;
-  } catch (error) {
-    if ((error as any)?.status != null) throw error;
-    const err = new Error(
-      `whatsapp-send internal request failed: ${
-        (error as any)?.message ?? String(error)
-      }`,
-    );
-    (err as any).status = null;
-    (err as any).data = null;
-    throw err;
-  }
+  return await deliverLegacyPurpose(
+    sendAdminClient(),
+    payload as Parameters<typeof deliverLegacyPurpose>[1],
+  );
 }
 
 // Re-run today's proactive provisioning for a single user. Called right after a
@@ -467,7 +459,7 @@ async function markScheduledCheckinAwaitingTemplateUser(params: {
   extraPayload?: Record<string, unknown>;
 }) {
   const { error } = await params.supabaseAdmin
-    .from("whatsapp_pending_actions")
+    .from("pending_actions")
     .insert({
       user_id: params.checkin.user_id,
       kind: "scheduled_checkin",
@@ -1135,7 +1127,7 @@ async function consumeUnansweredRecurringProbe(params: {
   const { supabaseAdmin, userId, recurringReminderId } = params;
   const eventContext = `recurring_reminder:${recurringReminderId}`;
   const { data: pendingRows, error } = await supabaseAdmin
-    .from("whatsapp_pending_actions")
+    .from("pending_actions")
     .select("id,scheduled_checkin_id,status,payload")
     .eq("user_id", userId)
     .eq("kind", "scheduled_checkin")
@@ -1148,7 +1140,7 @@ async function consumeUnansweredRecurringProbe(params: {
 
   for (const row of pendingRows as any[]) {
     await supabaseAdmin
-      .from("whatsapp_pending_actions")
+      .from("pending_actions")
       .update({ status: "expired", processed_at: new Date().toISOString() })
       .eq("id", row.id)
       .eq("status", "pending");
@@ -1869,7 +1861,7 @@ async function processPendingProactiveTemplateCandidates(params: {
 }) {
   const nowIso = new Date().toISOString();
   const { data: rows, error } = await params.supabaseAdmin
-    .from("whatsapp_pending_actions")
+    .from("pending_actions")
     .select("id,user_id,payload,created_at,expires_at,not_before")
     .eq("kind", PROACTIVE_TEMPLATE_CANDIDATE_KIND)
     .eq("status", "pending")
@@ -1935,7 +1927,7 @@ async function processPendingProactiveTemplateCandidates(params: {
         });
         if (!quotaResult.allowed) {
           await params.supabaseAdmin
-            .from("whatsapp_pending_actions")
+            .from("pending_actions")
             .update({
               status: "cancelled",
               processed_at: new Date().toISOString(),
@@ -1992,7 +1984,7 @@ async function processPendingProactiveTemplateCandidates(params: {
       const status = (e as any)?.status;
       if (status === 429) continue;
       await params.supabaseAdmin
-        .from("whatsapp_pending_actions")
+        .from("pending_actions")
         .update({ status: "cancelled", processed_at: new Date().toISOString() })
         .eq("id", winner.id)
         .eq("status", "pending");
@@ -2072,7 +2064,7 @@ async function processPendingProactiveTemplateCandidates(params: {
             .eq("user_id", userId);
         }
         await params.supabaseAdmin
-          .from("whatsapp_pending_actions")
+          .from("pending_actions")
           .insert({
             user_id: userId,
             kind: "scheduled_checkin",
@@ -2099,7 +2091,7 @@ async function processPendingProactiveTemplateCandidates(params: {
     }
 
     await params.supabaseAdmin
-      .from("whatsapp_pending_actions")
+      .from("pending_actions")
       .update({
         status: skipped ? "cancelled" : "done",
         processed_at: new Date().toISOString(),
@@ -2110,7 +2102,7 @@ async function processPendingProactiveTemplateCandidates(params: {
     for (const loser of losers) {
       const loserPayload = (loser?.payload ?? {}) as any;
       await params.supabaseAdmin
-        .from("whatsapp_pending_actions")
+        .from("pending_actions")
         .update({ status: "cancelled", processed_at: new Date().toISOString() })
         .eq("id", loser.id)
         .eq("status", "pending");
@@ -2141,7 +2133,7 @@ async function processPendingAccessEndedNotifications(params: {
 }) {
   const nowIso = new Date().toISOString();
   const { data: rows, error } = await params.supabaseAdmin
-    .from("whatsapp_pending_actions")
+    .from("pending_actions")
     .select("id,user_id,payload,created_at,expires_at")
     .eq("kind", ACCESS_ENDED_NOTIFICATION_KIND)
     .eq("status", "pending")
@@ -2157,7 +2149,7 @@ async function processPendingAccessEndedNotifications(params: {
       : null;
     if (expiresAt && expiresAt <= nowIso) {
       await params.supabaseAdmin
-        .from("whatsapp_pending_actions")
+        .from("pending_actions")
         .update({ status: "expired", processed_at: nowIso })
         .eq("id", row.id)
         .eq("status", "pending");
@@ -2168,7 +2160,7 @@ async function processPendingAccessEndedNotifications(params: {
     const reason = normalizeAccessEndedReason(payload.ended_reason);
     if (!reason) {
       await params.supabaseAdmin
-        .from("whatsapp_pending_actions")
+        .from("pending_actions")
         .update({ status: "cancelled", processed_at: nowIso })
         .eq("id", row.id)
         .eq("status", "pending");
@@ -2186,7 +2178,7 @@ async function processPendingAccessEndedNotifications(params: {
         `[process-checkins] access_ended_skipped user_id=${row.user_id} reason=account_deletion_pending`,
       );
       await params.supabaseAdmin
-        .from("whatsapp_pending_actions")
+        .from("pending_actions")
         .update({ status: "cancelled", processed_at: nowIso })
         .eq("id", row.id)
         .eq("status", "pending");
@@ -2214,7 +2206,7 @@ async function processPendingAccessEndedNotifications(params: {
 
       if (Boolean((resp as any)?.skipped)) {
         await params.supabaseAdmin
-          .from("whatsapp_pending_actions")
+          .from("pending_actions")
           .update({
             status: "cancelled",
             processed_at: new Date().toISOString(),
@@ -2225,14 +2217,14 @@ async function processPendingAccessEndedNotifications(params: {
       }
 
       await params.supabaseAdmin
-        .from("whatsapp_pending_actions")
+        .from("pending_actions")
         .update({ status: "cancelled", processed_at: new Date().toISOString() })
         .eq("user_id", row.user_id)
         .eq("kind", ACCESS_REACTIVATION_OFFER_KIND)
         .eq("status", "pending");
 
       const { error: replyErr } = await params.supabaseAdmin
-        .from("whatsapp_pending_actions")
+        .from("pending_actions")
         .insert({
           user_id: row.user_id,
           kind: ACCESS_REACTIVATION_OFFER_KIND,
@@ -2248,7 +2240,7 @@ async function processPendingAccessEndedNotifications(params: {
       if (replyErr) throw replyErr;
 
       await params.supabaseAdmin
-        .from("whatsapp_pending_actions")
+        .from("pending_actions")
         .update({ status: "done", processed_at: new Date().toISOString() })
         .eq("id", row.id)
         .eq("status", "pending");
@@ -2258,7 +2250,7 @@ async function processPendingAccessEndedNotifications(params: {
       const status = (e as any)?.status;
       if (status === 429) continue;
       await params.supabaseAdmin
-        .from("whatsapp_pending_actions")
+        .from("pending_actions")
         .update({ status: "cancelled", processed_at: new Date().toISOString() })
         .eq("id", row.id)
         .eq("status", "pending");
@@ -2350,14 +2342,14 @@ async function replacePendingRendezVousReplyAction(params: {
 }) {
   const nowIso = new Date().toISOString();
   await params.supabaseAdmin
-    .from("whatsapp_pending_actions")
+    .from("pending_actions")
     .update({ status: "cancelled", processed_at: nowIso })
     .eq("user_id", params.userId)
     .eq("kind", "rendez_vous")
     .eq("status", "pending");
 
   const { error } = await params.supabaseAdmin
-    .from("whatsapp_pending_actions")
+    .from("pending_actions")
     .insert({
       user_id: params.userId,
       kind: "rendez_vous",
@@ -2645,7 +2637,7 @@ Deno.serve(async (req) => {
     const nowIso = new Date().toISOString();
     const quietMs = QUIET_WINDOW_MINUTES * 60 * 1000;
     const { data: deferred, error: defErr } = await supabaseAdmin
-      .from("whatsapp_pending_actions")
+      .from("pending_actions")
       .select("id, user_id, payload, not_before, expires_at, created_at")
       .eq("kind", "deferred_send")
       .eq("status", "pending")
@@ -2685,7 +2677,7 @@ Deno.serve(async (req) => {
             `[process-checkins] request_id=${requestId} deferred_send_skipped pending_id=${row.id} reason=account_deletion_pending`,
           );
           await supabaseAdmin
-            .from("whatsapp_pending_actions")
+            .from("pending_actions")
             .update({
               status: "cancelled",
               processed_at: new Date().toISOString(),
@@ -2750,7 +2742,7 @@ Deno.serve(async (req) => {
           });
 
           await supabaseAdmin
-            .from("whatsapp_pending_actions")
+            .from("pending_actions")
             .update({ status: "done", processed_at: new Date().toISOString() })
             .eq("id", row.id);
           flushedCount++;
@@ -2785,7 +2777,7 @@ Deno.serve(async (req) => {
             });
           }
           await supabaseAdmin
-            .from("whatsapp_pending_actions")
+            .from("pending_actions")
             .update({
               status: "cancelled",
               processed_at: new Date().toISOString(),
@@ -4029,7 +4021,7 @@ Deno.serve(async (req) => {
           }
 
           const { error: pendErr } = await supabaseAdmin
-            .from("whatsapp_pending_actions")
+            .from("pending_actions")
             .insert({
               user_id: checkin.user_id,
               kind: "scheduled_checkin",
@@ -4366,7 +4358,7 @@ Deno.serve(async (req) => {
               continue;
             }
             const { error: pendErr } = await supabaseAdmin
-              .from("whatsapp_pending_actions")
+              .from("pending_actions")
               .insert({
                 user_id: checkin.user_id,
                 kind: "scheduled_checkin",
@@ -5056,7 +5048,7 @@ Deno.serve(async (req) => {
 
         // Create pending action for this user, and mark checkin as awaiting_user to avoid spamming.
         const { error: pendErr } = await supabaseAdmin
-          .from("whatsapp_pending_actions")
+          .from("pending_actions")
           .insert({
             user_id: checkin.user_id,
             kind: "scheduled_checkin",

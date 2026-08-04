@@ -7,6 +7,9 @@
 //   * deletion_records — anonymised proof of deletion kept after the purge
 //     (SHA-256 hashes only, see migration 20260708150000).
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "jsr:@supabase/supabase-js@2.87.3";
+
+import { deliverChatMessage } from "./chat/delivery.ts";
 
 export const ACCOUNT_STATUS_ACTIVE = "active";
 export const ACCOUNT_STATUS_DELETION_PENDING = "deletion_pending";
@@ -77,10 +80,22 @@ export function confirmationTokenSecret(): string {
 }
 
 /**
- * Best-effort internal call to the whatsapp-send edge function (same transport
- * as process-checkins). Returns true when the message was accepted.
+ * Livre un message de cycle de vie dans la bulle de l'élève.
+ *
+ * ── DE-WHATSAPP ─────────────────────────────────────────────────────────────
+ * S'appelait `sendInternalWhatsApp` et faisait un aller-retour HTTP vers
+ * `whatsapp-send` avec un `x-internal-secret` — une fonction appelant une
+ * fonction pour, au bout du compte, écrire une ligne. La livraison in-app EST
+ * cette écriture: l'appel réseau, le secret interne et leur classe de panne
+ * (403 silencieux comptés comme des envois réussis) disparaissent avec.
+ *
+ * `isReply: true` sur ces messages: un accusé de fin d'essai, de changement
+ * d'abonnement ou de suppression de compte répond à une action que l'élève
+ * vient de faire. Ce n'est pas une relance, et le plafond quotidien n'a rien à
+ * voir avec lui — c'est aussi pourquoi `TRANSACTIONAL_PURPOSES` existe dans la
+ * politique de livraison.
  */
-export async function sendInternalWhatsApp(payload: {
+export async function sendLifecycleMessage(payload: {
   user_id: string;
   body: string;
   purpose: string;
@@ -88,27 +103,21 @@ export async function sendInternalWhatsApp(payload: {
 }): Promise<boolean> {
   try {
     const supabaseUrl = (Deno.env.get("SUPABASE_URL") ?? "").trim();
-    const anonKey = (Deno.env.get("SUPABASE_ANON_KEY") ?? "").trim();
-    const secret = internalFunctionSecret();
-    if (!supabaseUrl || !anonKey || !secret) return false;
-    const res = await fetch(`${supabaseUrl}/functions/v1/whatsapp-send`, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        apikey: anonKey,
-        authorization: `Bearer ${anonKey}`,
-        "x-internal-secret": secret,
-      },
-      body: JSON.stringify({
-        user_id: payload.user_id,
-        message: { type: "text", body: payload.body },
-        purpose: payload.purpose,
-        metadata_extra: payload.metadata_extra ?? {},
-      }),
+    const serviceKey = (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "").trim();
+    if (!supabaseUrl || !serviceKey) return false;
+    const admin = createClient(supabaseUrl, serviceKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
     });
-    return res.ok;
+    const res = await deliverChatMessage(admin, {
+      userId: payload.user_id,
+      content: payload.body,
+      purpose: payload.purpose,
+      isReply: true,
+      metadata: payload.metadata_extra ?? {},
+    });
+    return res.delivered;
   } catch (err) {
-    console.warn("[account_lifecycle] whatsapp send failed (non-blocking)", err);
+    console.warn("[account_lifecycle] delivery failed (non-blocking)", err);
     return false;
   }
 }

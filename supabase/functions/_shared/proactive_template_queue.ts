@@ -44,7 +44,7 @@ export async function enqueueProactiveTemplateCandidate(
   }
 
   const { data: existing, error: existingError } = await admin
-    .from("whatsapp_pending_actions")
+    .from("pending_actions")
     .select("id")
     .eq("user_id", params.userId)
     .eq("kind", PROACTIVE_TEMPLATE_CANDIDATE_KIND)
@@ -70,7 +70,7 @@ export async function enqueueProactiveTemplateCandidate(
   };
 
   const { data, error } = await admin
-    .from("whatsapp_pending_actions")
+    .from("pending_actions")
     .insert({
       user_id: params.userId,
       kind: PROACTIVE_TEMPLATE_CANDIDATE_KIND,

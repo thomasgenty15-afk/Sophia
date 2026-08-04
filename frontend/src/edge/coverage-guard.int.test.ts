@@ -86,6 +86,12 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       "analyze-meal-photo-v1",
       "classify-plan-type-v1",
       "classify-recurring-reminder",
+      // PIVOT NUTRITION — les huit fonctions ci-dessous étaient absentes de
+      // cette liste alors qu'elles existaient déjà: le garde était ROUGE avant
+      // le chantier de-whatsapp, ce qui veut dire qu'il ne gardait plus rien.
+      // Un garde en permanence rouge n'est plus lu.
+      "coach-doctrine-v1",
+      "coach-synthesis-v1",
       // KEEL W6.1 — creates the `coaches` row (the table has no INSERT policy)
       // and sets keel_role/locale/country on the profile.
       "coach-signup-v1",
@@ -106,8 +112,10 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       "generate-attack-card-v1",
       "generate-attack-technique-v1",
       "generate-defense-card-v3",
+      "generate-meal-v1",
       "generate-plan-v2",
       "generate-questionnaire-v2",
+      "generate-week-plan-v1",
       "get-coaching-intervention-scorecard",
       "get-coaching-intervention-trace",
       "get-memory-scorecard",
@@ -119,16 +127,31 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       // internal ones (the hourly arming sweep and its due list) behind
       // X-Internal-Secret. Zero model calls: the render is deterministic.
       "keel-cards-v1",
+      // PIVOT N2/C4/§1.3 — les trois boucles proactives KEEL. Depuis le
+      // chantier de-whatsapp elles livrent dans la bulle; couvertes par
+      // _shared/chat/proactive_int_test.ts (9 cas contre le vrai cron).
+      "keel-daily-pulse-v1",
       // KEEL Q6 — the coach composes the student's week of meals. Every action
       // is coach-gated from the JWT; there is no internal path and no model
       // call. It writes to the two meal tables and to nothing else, which is
       // what keeps the scaffolding off the adherence counter.
       "keel-meal-plan-v1",
+      "keel-reengage-v1",
       "keel-week-rollover-v1",
-      // KEEL W5.4 — the web path for a meal photo (the WhatsApp equivalent is
-      // whatsapp-webhook/handlers_meal_photo.ts). Uploads to `meal-photos`,
-      // writes the fact, then delegates the reading to analyze-meal-photo-v1.
+      "keel-weekly-flow-v1",
+      // Q6 — le PDF d'un repas. Depuis de-whatsapp il s'annonce dans la bulle
+      // au lieu d'être envoyé par Graph.
+      "meal-document-v1",
+      // KEEL W5.4 — LE chemin d'une photo de repas, désormais le seul (le
+      // pendant WhatsApp est supprimé avec le webhook). Dépose dans
+      // `meal-photos`, écrit le fait, délègue la lecture à
+      // analyze-meal-photo-v1, puis — quand la photo vient de la bulle —
+      // écrit le message et son accusé dans la conversation.
       "meal-photo-upload-v1",
+      // DE-WHATSAPP — l'entrée de la conversation in-app, successeur de
+      // whatsapp-webhook. Couvert par chat-inbound-v1/chat_inbound_int_test.ts
+      // (9 cas HTTP) et par src/edge/chat.int.test.ts côté frontend.
+      "chat-inbound-v1",
       "notify-profile-change",
       "plan-import-v1",
       // KEEL W6.2 — template -> clone+diff -> published plan_version. Sole
@@ -139,8 +162,6 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       "plan-template-v1",
       "process-checkins",
       "process-llm-retry-jobs",
-      "process-whatsapp-optin-recovery",
-      "process-whatsapp-outbound-retries",
       "promote-candidate-memory-items",
       // KEEL W4.2: opens the student's day (local 00:0x), closes it (local
       // 23:5x), and re-seeds it on republication.
@@ -164,11 +185,6 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       "trigger-topic-compaction",
       "trigger-watcher-batch",
       "update-defense-card-v3",
-      "whatsapp-optin",
-      "whatsapp-send",
-      "whatsapp-sim-inbound",
-      "whatsapp-sim-trigger",
-      "whatsapp-webhook",
     ].sort();
 
     expect(discovered).toEqual(expected);
@@ -185,9 +201,6 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       "guard_profiles_privileged_columns_biu",
       "guard_unlocked_principles_update",
       "guard_v2_plan_item_activation",
-      "normalize_user_architect_quotes",
-      "normalize_user_architect_reflections",
-      "normalize_user_architect_stories",
       "on_auth_user_created",
       "on_auth_user_email_confirmed_send_onboarding",
       "on_profile_created_master_admin",
@@ -233,9 +246,9 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       "trg_validate_app_config_edge_base_url",
       "unlock_v2_principles_from_entry",
       "unlock_v2_principles_from_item_transition",
-      "update_user_architect_quotes_modtime",
-      "update_user_architect_reflections_modtime",
-      "update_user_architect_stories_modtime",
+      // Les six triggers `user_architect_*` ont disparu avec les 13 tables
+      // legacy droppées par 20260803140000. Ils étaient encore listés ici —
+      // seconde raison pour laquelle ce garde était rouge.
       "update_user_chat_states_modtime",
       "update_user_cycle_drafts_modtime",
       "update_user_cycles_modtime",

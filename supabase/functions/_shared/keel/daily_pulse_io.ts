@@ -91,7 +91,7 @@ export async function wasPulseAskedToday(
 ): Promise<boolean> {
   const since = new Date(args.now.getTime() - 36 * 60 * 60 * 1000).toISOString();
   const { data, error } = await db
-    .from("whatsapp_outbound_messages")
+    .from("outbound_messages")
     .select("created_at")
     .eq("user_id", args.userId)
     .eq("metadata->>purpose", PULSE_QUESTION_PURPOSE)

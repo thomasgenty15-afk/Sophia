@@ -237,8 +237,26 @@ Deno.serve(async (req) => {
           }
           sent++;
         } catch (error) {
+          // Une erreur PostgREST n'est PAS une `Error`: sans ces champs, le
+          // journal ne dit que « [object Object] ». C'est exactement ce qui a
+          // masqué un 42P10 permanent dans le point hebdo, et ce qui a rendu
+          // illisible la panne du 2026-08-04 quand une vue de compat a été
+          // droppée sous les pieds de ce job.
+          const err = error as {
+            message?: string;
+            code?: string;
+            details?: string;
+            hint?: string;
+          };
           failures.push(
-            `${cursor}: ${error instanceof Error ? error.message : String(error)}`,
+            `${cursor}: ${
+              error instanceof Error ? error.message : [
+                err?.code,
+                err?.message,
+                err?.details,
+                err?.hint,
+              ].filter(Boolean).join(" — ") || String(error)
+            }`,
           );
         }
         if (Date.now() - startedAt > budgetMs) break;

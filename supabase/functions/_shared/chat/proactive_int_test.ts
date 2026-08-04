@@ -202,7 +202,7 @@ Deno.test({
       proactive_muted_at: new Date().toISOString(),
     });
     try {
-      await runPulse(PULSE_WINDOW_UTC);
+      const report = await runPulse(PULSE_WINDOW_UTC);
 
       const { count } = await admin()
         .from("chat_messages")
@@ -210,14 +210,27 @@ Deno.test({
         .eq("user_id", userId);
       assertEquals(count, 0, "rien n'est arrivé dans la bulle");
 
-      // Et « rien envoyé » est DISTINCT de « rien à envoyer ».
-      const { data: skipped } = await admin()
+      // ── LE MUTE MORD DEUX FOIS, ET C'EST VOULU ─────────────────────────────
+      // Le DÉCIDEUR du job l'attrape en premier (`opted_out`), donc aucune
+      // livraison n'est même tentée — d'où l'absence de ligne `skipped` au
+      // ledger. La garde de LIVRAISON existe quand même et mord aussi: elle est
+      // prouvée séparément par `delivery_int_test.ts` (« muté ⇒ le proactif
+      // s'arrête, la réponse passe toujours »).
+      //
+      // Ce que ce test garde, c'est que « rien envoyé » soit DIT: un dimanche
+      // silencieux et un dimanche entièrement bloqué doivent être distinguables
+      // dans le compte-rendu du job.
+      const skips = (report.skipped_by_reason ?? {}) as Record<string, number>;
+      assert(
+        (skips.opted_out ?? 0) >= 1,
+        `le job doit NOMMER le refus, reçu: ${JSON.stringify(skips)}`,
+      );
+
+      const { count: ledger } = await admin()
         .from("outbound_messages")
-        .select("status,last_error_code")
-        .eq("user_id", userId)
-        .maybeSingle();
-      assertEquals((skipped as any)?.status, "skipped");
-      assertEquals((skipped as any)?.last_error_code, "muted");
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId);
+      assertEquals(ledger, 0, "aucune livraison n'a même été tentée");
     } finally {
       await cleanup(userId);
     }

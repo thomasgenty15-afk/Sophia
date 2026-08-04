@@ -12,7 +12,7 @@
 // une panne de la couche data ne doit jamais bloquer l'envoi d'un winback ni
 // la réponse à l'utilisateur.
 
-import type { WinbackReplyIntent, WinbackStep } from "./whatsapp_winback.ts";
+import type { WinbackReplyIntent, WinbackStep } from "./winback_policy.ts";
 
 export const REENGAGEMENT_NO_REPLY_CLOSE_DAYS_AFTER_STEP3 = 7;
 // Cap dur : un épisode jamais entré en conversation (pause posée en cours

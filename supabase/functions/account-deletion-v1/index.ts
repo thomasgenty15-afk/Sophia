@@ -31,7 +31,7 @@ import {
   DELETION_CONFIRMATION_WORD,
   DELETION_GRACE_DAYS,
   formatFrenchDate,
-  sendInternalWhatsApp,
+  sendLifecycleMessage,
   verifyPasswordFresh,
 } from "../_shared/account_lifecycle.ts";
 
@@ -125,7 +125,7 @@ async function shutDownWhatsApp(
     .eq("user_id", userId)
     .in("status", ["pending", "retrying", "awaiting_user"]);
   await admin
-    .from("whatsapp_pending_actions")
+    .from("pending_actions")
     .update({ status: "cancelled", processed_at: nowIso })
     .eq("user_id", userId)
     .eq("status", "pending");
@@ -591,7 +591,7 @@ Deno.serve(async (req) => {
       let whatsappNotified = false;
       if (wasOptedIn) {
         const purgeDateFr = formatFrenchDate(purgeAtIso, profile.timezone);
-        whatsappNotified = await sendInternalWhatsApp({
+        whatsappNotified = await sendLifecycleMessage({
           user_id: user.id,
           purpose: "account_deletion_confirmed",
           body:

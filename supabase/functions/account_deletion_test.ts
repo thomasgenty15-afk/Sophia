@@ -159,7 +159,7 @@ Deno.test("account deletion: T0 flags the profile, cancels Stripe/WhatsApp, revo
     status: "pending",
   }).select("id").single();
   if (checkinErr) throw checkinErr;
-  const { error: pendingErr } = await admin.from("whatsapp_pending_actions").insert({
+  const { error: pendingErr } = await admin.from("pending_actions").insert({
     user_id: userId,
     kind: "scheduled_checkin",
     status: "pending",
@@ -213,7 +213,7 @@ Deno.test("account deletion: T0 flags the profile, cancels Stripe/WhatsApp, revo
   assertEquals(sub!.status, "canceled");
   const { data: checkin } = await admin.from("scheduled_checkins").select("status").eq("id", checkinRow.id).single();
   assertEquals(checkin!.status, "cancelled");
-  const { data: pendings } = await admin.from("whatsapp_pending_actions")
+  const { data: pendings } = await admin.from("pending_actions")
     .select("status").eq("user_id", userId);
   for (const p of pendings ?? []) assertEquals(p.status, "cancelled");
 
@@ -270,7 +270,7 @@ Deno.test("account deletion: process-checkins does not deliver for deletion_pend
 
   // T0 legitimately sent the final confirmation message; the invariant is that
   // the cron run adds NOTHING on top of it.
-  const { data: beforeRows } = await admin.from("whatsapp_outbound_messages")
+  const { data: beforeRows } = await admin.from("outbound_messages")
     .select("id").eq("user_id", userId);
   const beforeCount = (beforeRows ?? []).length;
 
@@ -280,7 +280,7 @@ Deno.test("account deletion: process-checkins does not deliver for deletion_pend
   const { data: after } = await admin.from("scheduled_checkins")
     .select("status").eq("id", checkinRow.id).single();
   assert(after!.status !== "sent", `checkin must not be sent (got ${after!.status})`);
-  const { data: outbound } = await admin.from("whatsapp_outbound_messages")
+  const { data: outbound } = await admin.from("outbound_messages")
     .select("id").eq("user_id", userId);
   assertEquals((outbound ?? []).length, beforeCount, "the cron run must not send anything");
 });
@@ -363,7 +363,7 @@ Deno.test("purge: hard-deletes everything, anonymises llm_usage_events, is idemp
   }).select("id").single();
   if (llmErr) throw llmErr;
   const providerMsgId = `wamid_test_${makeNonce()}`;
-  const { error: outErr } = await admin.from("whatsapp_outbound_messages").insert({
+  const { error: outErr } = await admin.from("outbound_messages").insert({
     user_id: userId,
     to_e164: phone,
     message_type: "text",
@@ -375,12 +375,16 @@ Deno.test("purge: hard-deletes everything, anonymises llm_usage_events, is idemp
     delivery_channel: "whatsapp",
   });
   if (outErr) throw outErr;
-  const { error: evErr } = await admin.from("whatsapp_outbound_status_events").insert({
-    provider_message_id: providerMsgId,
-    status: "delivered",
-    recipient_id: phone.replace(/\D/g, ""),
+  // DE-WHATSAPP: `whatsapp_outbound_status_events` (accusés de réception Meta)
+  // est droppée par `20260804130000` — il n'y a plus d'accusé tiers à effacer.
+  // La donnée personnelle qu'elle portait (le numéro dans `recipient_id`) n'a
+  // plus de table où subsister, ce que le contrôle plus bas vérifie.
+  const { error: dedupErr } = await admin.from("inbound_dedup").insert({
+    user_id: userId,
+    client_message_id: `del-${providerMsgId}`,
+    status: "processed",
   });
-  if (evErr) throw evErr;
+  if (dedupErr) throw dedupErr;
 
   await deleteAccount(supabaseUrl, anonKey, accessToken);
   // Force the purge window open.
@@ -404,10 +408,15 @@ Deno.test("purge: hard-deletes everything, anonymises llm_usage_events, is idemp
   const { data: chats } = await admin.from("chat_messages").select("id").eq("user_id", userId);
   assertEquals((chats ?? []).length, 0);
   // Personal data in FK-less / SET NULL tables hard-deleted.
-  const { data: outbound } = await admin.from("whatsapp_outbound_messages").select("id").eq("provider_message_id", providerMsgId);
+  const { data: outbound } = await admin.from("outbound_messages").select("id").eq("provider_message_id", providerMsgId);
   assertEquals((outbound ?? []).length, 0);
-  const { data: events } = await admin.from("whatsapp_outbound_status_events").select("id").eq("provider_message_id", providerMsgId);
-  assertEquals((events ?? []).length, 0);
+  const { data: dedupAfter } = await admin.from("inbound_dedup").select("id").eq("user_id", userId);
+  assertEquals((dedupAfter ?? []).length, 0, "l'idempotence des entrants est purgée");
+  // La table des accusés Meta n'existe plus du tout: le vérifier ici évite
+  // qu'une réintroduction silencieuse passe sous le radar de la purge.
+  const { error: goneTable } = await admin
+    .from("whatsapp_outbound_status_events").select("id").limit(1);
+  assert(goneTable, "whatsapp_outbound_status_events doit avoir disparu");
   // llm_usage_events anonymised, not deleted (cost accounting preserved).
   const { data: llmAfter } = await admin.from("llm_usage_events").select("id,user_id,total_tokens").eq("id", llmRow.id).single();
   assertEquals(llmAfter!.user_id, null);

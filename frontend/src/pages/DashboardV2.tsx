@@ -1682,7 +1682,6 @@ export default function DashboardV2() {
 
       <PlanSavedModal
         open={isPlanSavedModalOpen}
-        whatsappOptedIn={profile ? profile.whatsappOptedIn : true}
         onClose={() => setIsPlanSavedModalOpen(false)}
       />
 

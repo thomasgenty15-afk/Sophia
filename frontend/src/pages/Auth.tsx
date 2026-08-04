@@ -270,16 +270,9 @@ const Auth = () => {
       return;
     }
 
-    // WhatsApp opt-in (best-effort, non-blocking)
-    try {
-      const waReqId = newRequestId();
-      await supabase.functions.invoke('whatsapp-optin', {
-        body: {},
-        headers: requestHeaders(waReqId),
-      });
-    } catch (e) {
-      console.warn('WhatsApp opt-in send failed (non-blocking):', e);
-    }
+    // DE-WHATSAPP: plus d'opt-in Meta à l'inscription. Créer son compte EST le
+    // consentement à la conversation; les relances proactives se coupent depuis
+    // les réglages (`profiles.proactive_muted_at`).
 
     // KEEL — same replay on the signup door. A student who created their
     // account from /auth rather than /join still carries the stored token.

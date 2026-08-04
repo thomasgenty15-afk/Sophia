@@ -3,7 +3,7 @@ import { assertEquals } from "jsr:@std/assert@1";
 import {
   classifyWinbackReplyIntent,
   evaluateWhatsAppWinback,
-} from "./whatsapp_winback.ts";
+} from "./winback_policy.ts";
 
 const NOW = new Date("2026-07-19T12:00:00.000Z");
 

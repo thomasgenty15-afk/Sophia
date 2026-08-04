@@ -597,3 +597,133 @@ d'une panne. La bulle reçoit maintenant une phrase qui explique pourquoi, sans
 lui reprocher quoi que ce soit (ne pas avoir de plan publié est le fait de son
 coach). Le test interdit la régression **et** le reproche
 (`!/you (?:should|must|need to|failed|forgot)/`).
+
+---
+
+## P5 — LA DÉMOLITION
+
+L'ordre du chantier est respecté : **le code part avant la base.** Dropper
+d'abord et retirer le code ensuite, c'est se donner une fenêtre pendant laquelle
+la production lève à chaque tour.
+
+### P5.1 — Les appelants, coupés avant les fonctions
+
+| Appelant | Ce qui a changé |
+|---|---|
+| `_shared/account_lifecycle.ts` | `sendInternalWhatsApp` → `sendLifecycleMessage` : une fonction appelant une fonction pour, au bout du compte, écrire une ligne. L'appel HTTP et le `x-internal-secret` disparaissent avec leur classe de panne (403 silencieux comptés comme des envois réussis) |
+| `stripe-webhook` | La fenêtre 24 h meurt, **et avec elle le renoncement à envoyer un avis de MODIFICATION hors fenêtre** (« aucun template approuvé ne porte un palier dynamique »). L'avis part maintenant, avec le bon palier dedans. `whatsapp_opted_in` retiré de la garde |
+| `generate-plan-v2` | `postToWhatsappSend` → `deliverPlanMessage`. La distinction « parti / pas parti » survit, c'est elle qui empêche d'enchaîner l'onboarding sur quelqu'un qui n'a rien reçu |
+| `process-checkins` | **Un seul point remplacé, dix appelants intacts.** Réécrire dix sites sur 5 269 lignes de legacy, c'est dix occasions de casser une garde qu'on n'a pas relue (fraîcheur, anti-doublon, placement par `time_of_day`). Voir `_shared/chat/send_compat.ts` |
+| `process-llm-retry-jobs` | Le renvoi Graph meurt : in-app, écrire le message EST le rendre visible |
+| `frontend` (`Auth`, `UserProfile`) | Les deux invocations de `whatsapp-optin` supprimées. Créer son compte EST le consentement |
+
+**`WHATSAPP_TEMPLATE_CATALOG` ne meurt pas** : il devient la source de
+**composition locale**. `renderWhatsAppTemplate` rendait déjà corps + boutons
+pour que le classifieur voie la question posée ; on rend maintenant la même
+chose pour l'élève. Un template devient un message armé.
+Le module est renommé `_shared/chat/message_catalog.ts` ; `whatsapp_winback.ts`
+devient `_shared/winback_policy.ts`.
+
+⚠️ **Le seul cas qui refuse** : un template inconnu du catalogue rendait
+`[TEMPLATE:<nom>]`. Acceptable pour un classifieur, **inacceptable pour un
+élève**. La livraison est refusée avec un motif plutôt que d'envoyer un artefact.
+
+### P5.2 — Ce qui est supprimé, avec son épreuve d'absence
+
+**7 edge functions** — `whatsapp-webhook` (15 487 l. avec ses handlers),
+`whatsapp-send`, `whatsapp-optin`, `whatsapp-sim-inbound`, `whatsapp-sim-trigger`,
+`process-whatsapp-outbound-retries`, `process-whatsapp-optin-recovery`.
+
+**5 modules `_shared/`** — `whatsapp_graph.ts` (+ test), `whatsapp_media.ts`,
+`keel/internal_send.ts`, `sophia-brain/whatsapp_readiness/`, et
+`whatsapp_outbound_tracking.ts` **réduit** à sa seule fonction pure
+(`retry_backoff.ts`) : la table de délais n'a jamais rien eu de WhatsApp, elle
+sert aussi aux relances de `scheduled_checkins`.
+
+**3 fichiers frontend** — `pages/ChatPage.tsx`, `components/ChatInterface.tsx`,
+`hooks/useChat.ts`. `/chat` **redirige** vers `/app/chat` plutôt que de 404 : un
+lien en circulation ne doit pas mourir, et l'écran qu'il visait existe.
+
+**5 scripts**, **22 lignes de `config.toml`**, les entrées de `frontend/env.example`.
+
+Épreuve d'absence pour chaque cible : `grep` des invocations réelles
+(`functions.invoke`, `fetch .../functions/v1/...`, `import`) — **0 appelant**
+avant chaque suppression.
+
+### P5.3 — La base
+
+`20260804130000_dewhatsapp_drop_dead_tables.sql` :
+- **2 vues de compatibilité** supprimées, comme annoncé par `20260804120000`
+  (« leur suppression est un livrable de P5, pas une option ») ;
+- **7 tables droppées** : `whatsapp_inbound_dedup`, `_link_requests`,
+  `_link_tokens`, `_monthly_quotas`, `_optin_recovery`, `_outbound_status_events`,
+  `_unlinked_inbound_messages` ;
+- **`whatsapp_cost_events` GELÉE** — elle porte le coût réel payé à Meta, et
+  c'est **la donnée qui justifie ce chantier**. La dropper effacerait la preuve
+  du raisonnement en même temps que la dépendance. `revoke insert, update` rend
+  le gel structurel ; la purge RGPD continue d'en retirer les lignes d'un compte
+  supprimé — un gel n'est pas une exemption au droit à l'effacement ;
+- **1 cron déprogrammé** (`process-whatsapp-outbound-retries`).
+
+`20260804131000_dewhatsapp_profile_columns.sql` : **2 colonnes droppées**
+(0 lecteur), **16 gelées et documentées**. Les seize sont lues par la couche B2C
+qui survit à ce chantier ; les dropper demanderait de réécrire 5 000 lignes de
+legacy dans le même mouvement. **Pas de preuve d'absence, pas de suppression.**
+Trois portent désormais un commentaire SQL qui dit le piège — dont
+`whatsapp_opted_in` : « NE PAS lire pour décider d'un envoi ».
+
+La purge RGPD est réécrite : `purgeWhatsAppTraces` → `purgeMessagingTraces`, avec
+`inbound_dedup` **ajoutée** à la purge (mémoire projet : le lifecycle RGPD oublie
+les tables neuves).
+
+### P5.4 — 🔴 Défaut trouvé par la démolition elle-même
+
+Après le drop des vues de compat, le cron du soir est passé à
+`sent: 0, failures: [162 × "[object Object]"]`. Deux défauts en un :
+
+1. **`daily_pulse_io.ts` et `weekly_flow_io.ts` lisaient encore
+   `whatsapp_outbound_messages`** — la vue que je venais de dropper. Le grep
+   d'épreuve d'absence portait sur les *fonctions*, pas sur les *tables* : la
+   leçon est que les deux épreuves sont distinctes. 8 fichiers repointés.
+2. **`[object Object]`** — une erreur PostgREST n'est pas une `Error`, et ce job
+   ne lisait que `.message`. Le dépôt porte déjà cet incident (un 42P10 permanent
+   resté invisible dans le point hebdo). Corrigé : `code — message — details — hint`.
+
+Après correction : `sent: 2, failures: []`.
+
+### P5.5 — Le garde de couverture était ROUGE avant d'arriver
+
+`coverage-guard.int.test.ts` doit forcer l'acknowledgement de toute fonction
+neuve. Il échouait **déjà** : 8 fonctions de la nuit précédente
+(`coach-doctrine-v1`, `coach-synthesis-v1`, `generate-meal-v1`,
+`generate-week-plan-v1`, les 3 crons KEEL, `meal-document-v1`) n'y étaient pas,
+et 6 triggers de tables droppées y étaient encore. **Un garde en permanence rouge
+n'est plus lu.** Remis au vert, avec les 8 + `chat-inbound-v1`.
+
+### P5.6 — La couverture MIGRE, elle n'est pas supprimée
+
+`frontend/src/edge/whatsapp.int.test.ts` (9 cas) → `chat.int.test.ts`. Chaque
+règle a une destination écrite dans l'en-tête du nouveau fichier : handshake +
+signature → JWT ; STOP → mute ; wrong-number/LINK → morts (l'élève est un porteur
+de JWT) ; `wa_message_id` → `(user_id, client_message_id)` ; `require_opted_in` →
+mute ; throttle 429 → plafond quotidien **atomique**.
+
+### P5.7 — Preuves
+
+```
+deno test --allow-all supabase/functions/_shared/ supabase/functions/sophia-brain/
+→ ok | 2702 passed | 0 failed | 35 ignored (29s)
+
+deno test _shared/chat/ chat-inbound-v1/ meal-photo-upload-v1/   (stack + secrets)
+→ ok | 101 passed | 0 failed | 1 ignored (1m1s)
+
+cd frontend && npx tsc -b --noEmit      → 0 erreur
+cd frontend && npx vitest run           → 17 files passed | 218 passed | 20 skipped
+```
+
+**État de la base après démolition** (vérifié, pas supposé) :
+
+```
+select relname, relkind from pg_class … where relname like '%whatsapp%'
+→ whatsapp_cost_events | TABLE     (gelée, seule survivante)
+```

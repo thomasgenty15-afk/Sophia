@@ -1,4 +1,4 @@
-/// <reference path="../tsserver-shims.d.ts" />
+/// <reference path="../../tsserver-shims.d.ts" />
 
 export type WhatsAppTemplateDefinition = {
   name: string;

@@ -250,7 +250,7 @@ async function applyCoachingPause(params: {
   if (morningCancelErr) throw morningCancelErr;
 
   const { error: morningPendingErr } = await params.supabase
-    .from("whatsapp_pending_actions")
+    .from("pending_actions")
     .update({
       status: "cancelled",
       processed_at: nowIso,

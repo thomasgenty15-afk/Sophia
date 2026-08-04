@@ -302,7 +302,7 @@ async function cancelPendingWhatsappCoachingCheckins(params: {
   if (error) throw error;
 
   const { error: pendingActionsError } = await params.supabaseAdmin
-    .from("whatsapp_pending_actions")
+    .from("pending_actions")
     .update({
       status: "cancelled",
       processed_at: params.nowIso,

@@ -16,7 +16,6 @@ import EmailVerified from "./pages/EmailVerified";
 import ResetPassword from "./pages/ResetPassword";
 import InstallAppGuide from "./pages/InstallAppGuide";
 import Legal from "./pages/Legal"; // IMPORT PAGE LEGALE
-import { ChatPage } from "./pages/ChatPage"; // Import ChatPage
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminUsageDashboard from "./pages/AdminUsageDashboard";
 import AdminProductionLog from "./pages/AdminProductionLog";
@@ -69,27 +68,19 @@ function App() {
                   element={
                     /* sophia-action-skin mirrors the dashboard wrapper that
                        defines --action-green; without it the Ok button renders
-                       white-on-white. ?opted=1 previews the opted-in variant. */
+                       white-on-white. La variante `?opted=1` a disparu avec
+                       l'opt-in Meta: il n'y a plus qu'un seul état. */
                     <div className="sophia-action-skin">
-                      <PlanSavedModal
-                        open
-                        whatsappOptedIn={new URLSearchParams(
-                          window.location.search,
-                        ).get("opted") === "1"}
-                        onClose={() => {}}
-                      />
+                      <PlanSavedModal open onClose={() => {}} />
                     </div>
                   }
                 />
               ) : null}
-              <Route
-                path="/chat"
-                element={
-                  <RequireAppAccess>
-                    <ChatPage />
-                  </RequireAppAccess>
-                }
-              />
+              {/* DE-WHATSAPP — `/chat` était le simulateur WhatsApp web (le trio
+                  ChatPage + ChatInterface + useChat). Il redirige vers la vraie
+                  bulle plutôt que de 404: un lien en circulation ne doit pas
+                  mourir, et l'écran qu'il visait EST maintenant `/app/chat`. */}
+              <Route path="/chat" element={<Navigate to="/app/chat" replace />} />
               {/* KEEL — coach plan import. Lives under /coach/import: "keel"
                   is internal namespace and must never surface in a URL. The
                   old /keel/import path redirects rather than 404s. Guarded by

@@ -4,6 +4,7 @@ import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
 import { getRequestId, jsonResponse, serverError } from "../_shared/http.ts";
 import { verifyStripeWebhookSignature } from "../_shared/stripe.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
+import { deliverChatMessage } from "../_shared/chat/delivery.ts";
 import {
   intervalFromStripePriceId,
   isKeelPlatformPriceId,
@@ -82,35 +83,38 @@ function functionsBaseUrl(): string {
   return supabaseUrl.replace(/\/+$/, "");
 }
 
-function isOpenWhatsappWindow(lastInboundAt: unknown): boolean {
-  const raw = String(lastInboundAt ?? "").trim();
-  if (!raw) return false;
-  const lastInboundMs = new Date(raw).getTime();
-  return Number.isFinite(lastInboundMs) &&
-    Date.now() - lastInboundMs <= 24 * 60 * 60 * 1000;
-}
-
-async function callWhatsappSend(payload: unknown) {
-  const secret = internalSecret();
-  if (!secret) throw new Error("Missing INTERNAL_FUNCTION_SECRET");
-  const res = await fetch(`${functionsBaseUrl()}/functions/v1/whatsapp-send`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Internal-Secret": secret,
-    },
-    body: JSON.stringify(payload),
+/**
+ * DE-WHATSAPP — la confirmation d'abonnement est écrite, plus envoyée.
+ *
+ * `callWhatsappSend` faisait un POST interne vers `whatsapp-send` avec un
+ * `X-Internal-Secret`. Il ne reste qu'une écriture: `deliverChatMessage`
+ * classe ces purposes comme TRANSACTIONNELS — jamais plafonnés, jamais coupés
+ * par un mute, parce qu'ils accusent une action que l'élève vient de faire.
+ *
+ * L'erreur reste LEVÉE (et non avalée) : l'appelant compte sur elle pour
+ * distinguer « pas envoyé » de « envoyé », et c'est ce que la déduplication
+ * atomique de `subscription_notifications` arbitre ensuite.
+ */
+async function deliverSubscriptionMessage(args: {
+  admin: SupabaseClient;
+  userId: string;
+  body: string;
+  purpose: string;
+  metadata?: Record<string, unknown>;
+}) {
+  const res = await deliverChatMessage(args.admin, {
+    userId: args.userId,
+    content: args.body,
+    purpose: args.purpose,
+    isReply: true,
+    metadata: args.metadata ?? {},
   });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    const err = new Error(
-      `whatsapp-send failed (${res.status}): ${JSON.stringify(data)}`,
-    );
-    (err as any).status = res.status;
-    (err as any).data = data;
+  if (!res.delivered) {
+    const err = new Error(`subscription message not delivered: ${res.reason}`);
+    (err as { reason?: string }).reason = res.reason;
     throw err;
   }
-  return data;
+  return res;
 }
 
 async function sendSubscriptionWhatsapp(args: {
@@ -131,21 +135,19 @@ async function sendSubscriptionWhatsapp(args: {
     .eq("id", args.userId)
     .maybeSingle();
   if (profileErr) throw profileErr;
-  if (
-    !profile || !Boolean((profile as any).whatsapp_opted_in) ||
-    Boolean((profile as any).whatsapp_opted_out_at)
-  ) {
-    return;
-  }
-
-  const in24hWindow = isOpenWhatsappWindow(
-    (profile as any).whatsapp_last_inbound_at,
-  );
-
-  // Modification notices are free text carrying the new tier, so they can only
-  // go out inside the open 24h window (no approved template holds a dynamic
-  // tier). Outside the window we skip rather than send a misleading template.
-  if (args.kind === "modified" && !in24hWindow) return;
+  // ── DE-WHATSAPP ────────────────────────────────────────────────────────────
+  // Ce qui gardait ce bloc, et qui disparaît:
+  //   * `whatsapp_opted_in` — obligation Meta. La garder ici ferait taire tout
+  //     compte qui n'a jamais eu d'opt-in Meta, c'est-à-dire tous les comptes
+  //     KEEL. C'est le défaut exact trouvé sur les crons du soir.
+  //   * la fenêtre de 24 h — contrainte Meta, et avec elle le renoncement à
+  //     envoyer un avis de MODIFICATION hors fenêtre (« aucun template approuvé
+  //     ne porte un palier dynamique »). Un texte libre in-app n'a pas ce
+  //     problème: l'avis part, avec le bon palier dedans.
+  //   * le mute produit n'est PAS testé ici: `deliverChatMessage` classe ces
+  //     purposes comme transactionnels, et un accusé d'abonnement doit partir
+  //     même à quelqu'un qui a coupé ses relances — il a payé.
+  if (!profile) return;
 
   // Preserve "confirm a given subscription at most once, ever" for first
   // activations sent through the legacy path (pre-claim rows have no claim).
@@ -154,7 +156,7 @@ async function sendSubscriptionWhatsapp(args: {
       .from("chat_messages")
       .select("id")
       .eq("user_id", args.userId)
-      .eq("scope", "whatsapp")
+      .eq("scope", "app")
       .eq("role", "assistant")
       .filter("metadata->>purpose", "eq", SUBSCRIPTION_CONFIRMED_PURPOSE)
       .filter(
@@ -197,32 +199,21 @@ async function sendSubscriptionWhatsapp(args: {
     const purpose = args.kind === "new"
       ? SUBSCRIPTION_CONFIRMED_PURPOSE
       : SUBSCRIPTION_MODIFIED_PURPOSE;
-    const message = args.kind === "new"
-      ? (in24hWindow
-        ? { type: "text" as const, body: subscriptionConfirmedText() }
-        : {
-          type: "template" as const,
-          name: SUBSCRIPTION_CONFIRMED_TEMPLATE_NAME,
-          language: SUBSCRIPTION_CONFIRMED_TEMPLATE_LANG,
-        })
-      : {
-        type: "text" as const,
-        body: subscriptionModifiedText(args.tier as SubTier),
-      };
+    const body = args.kind === "new"
+      ? subscriptionConfirmedText()
+      : subscriptionModifiedText(args.tier as SubTier);
 
-    await callWhatsappSend({
-      user_id: args.userId,
-      message,
+    await deliverSubscriptionMessage({
+      admin: args.admin,
+      userId: args.userId,
+      body,
       purpose,
-      require_opted_in: true,
-      force_template: args.kind === "new" ? !in24hWindow : false,
-      metadata_extra: {
+      metadata: {
         source: "stripe_webhook",
         notification_kind: args.kind,
         stripe_subscription_id: args.stripeSubscriptionId,
         subscription_tier: args.tier,
         subscription_interval: args.interval,
-        in_24h_window_at_decision: in24hWindow,
       },
     });
   } catch (sendErr) {

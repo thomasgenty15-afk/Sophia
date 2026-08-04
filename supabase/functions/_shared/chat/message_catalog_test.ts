@@ -6,7 +6,7 @@ import {
   pickMorningLightVariant,
   potionReminderComponents,
   renderWhatsAppTemplate,
-} from "./whatsapp_templates.ts";
+} from "./message_catalog.ts";
 
 Deno.test("global reach template renders generic outside-window prompt", () => {
   const rendered = renderWhatsAppTemplate({
