@@ -131,12 +131,15 @@ curl -s -X POST "http://127.0.0.1:54321/functions/v1/keel-daily-pulse-v1" -H "ap
 cd frontend && npm run dev
 ```
 
-1. Crée un élève jetable et pose sa session (aucun mot de passe saisi dans un
-   formulaire — voir §« Ce que je n'ai pas fait, et pourquoi ») :
+1. Crée un élève jetable, avec son plan adopté, et récupère sa session :
 
 ```bash
-deno run --allow-all scripts/../supabase/functions/_shared/chat/../../../..//dev/null 2>/dev/null; echo "voir PROGRESS-DEWHATSAPP.md §P1.5 pour le script exact"
+deno run --allow-all scripts/dev_make_chat_student.ts
 ```
+
+Le script rend une ligne `localStorage.setItem(...)` à coller dans la console du
+navigateur. Aucun mot de passe n'est saisi dans un formulaire, et le script
+refuse de tourner sur autre chose que `127.0.0.1`.
 
 2. Va sur `/app/chat`. Écris un message : la réponse arrive **sans
    rechargement**.
