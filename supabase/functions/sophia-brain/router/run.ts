@@ -229,6 +229,7 @@ import {
   runMealPrecisionLane,
 } from "./keel_meal_precision_lane.ts";
 import type { PrecisionPlanLine } from "../../_shared/keel/meal_precision.ts";
+import type { MealPrecisionFlowState } from "../../_shared/keel/meal_precision_flow.ts";
 import {
   applyMealPrecisionFlowState,
   readMealPrecisionFlowState,
@@ -4180,6 +4181,17 @@ export async function processMessage(
   // rouvre le flow sur le nouvel `event_id` — donc le même effet que la sortie
   // `new_photo` du reducer, obtenu par le seul chemin que la photo emprunte.
   const mealPrecisionTurnClock = new Date();
+  /**
+   * Le flow de précision à RÉ-APPLIQUER après la génération.
+   *
+   * Le companion reconstruit `temp_memory` depuis l'état PRÉ-routing
+   * (`agents/companion.ts :: nextTempMemory`), donc tout état posé pendant le
+   * tour est effacé au moment de la persistance. Même véhicule et même remède
+   * que `sessionStyleCommitmentHintForTurn`.
+   */
+  let mealPrecisionFlowToCommit:
+    | { flow: MealPrecisionFlowState | null; detectedFoods: string[] }
+    | null = null;
   const mealPrecisionLane = await runMealPrecisionLane({
     supabase,
     userId,
@@ -4191,6 +4203,17 @@ export async function processMessage(
     requestId,
   });
   tempMemory = mealPrecisionLane.tempMemory;
+  // La FERMETURE du flow doit survivre à la reconstruction post-génération au
+  // même titre que son ouverture. Mesuré: sans ça, un flow amendé rouvrait au
+  // tour suivant avec `turns` figé à 0 — il ne pouvait donc plus jamais
+  // atteindre son max-tours et ne se fermait qu'au timeout de 30 minutes,
+  // pendant lesquelles chaque phrase de l'élève devenait un amendement.
+  if (mealPrecisionLane.flowToCommit !== undefined) {
+    mealPrecisionFlowToCommit = {
+      flow: mealPrecisionLane.flowToCommit,
+      detectedFoods: mealPrecisionLane.detectedFoods,
+    };
+  }
   if (mealPrecisionLane.amended) {
     console.log(
       `[keel] request_id=${requestId} meal_precision_amended` +
@@ -4323,15 +4346,31 @@ export async function processMessage(
       );
       if (armed.armed) {
         // Le flow s'ouvre pour que la RÉPONSE amende au lieu de doubler.
+        //
+        // DEUX ÉCRITURES, ET LA SECONDE N'EST PAS UNE CEINTURE DÉCORATIVE.
+        // Celle-ci sert les chemins de retour anticipés (safety, skill-owner),
+        // qui persistent `tempMemory` avant la génération. Mais le chemin
+        // NORMAL passe par `tempMemory = cleanupLegacyRuntimeState(agentOut.tempMemory ...)`,
+        // où le companion RECONSTRUIT `temp_memory` depuis l'état PRÉ-routing —
+        // et efface tout ce qui a été posé pendant le tour. Mesuré en run réel:
+        // la question partait, la ligne du plafond s'écrivait, et le flow
+        // n'existait nulle part au tour suivant.
+        //
+        // C'est la classe `p1-session-style-commitments`, et on applique son
+        // remède: mémoriser, puis RÉ-APPLIQUER après la génération.
+        mealPrecisionFlowToCommit = {
+          flow: armed.armed.flow,
+          detectedFoods: committedFacts
+            .map((fact) => fact.food_group_ref ?? fact.substance_ref ?? "")
+            .filter((label) => label !== ""),
+        };
         tempMemory = applyMealPrecisionFlowState({
           tempMemory: (tempMemory && typeof tempMemory === "object" &&
               !Array.isArray(tempMemory))
             ? tempMemory as Record<string, unknown>
             : {},
           flow: armed.armed.flow,
-          detectedFoods: committedFacts
-            .map((fact) => fact.food_group_ref ?? fact.substance_ref ?? "")
-            .filter((label) => label !== ""),
+          detectedFoods: mealPrecisionFlowToCommit.detectedFoods,
           now: mealPrecisionTurnClock,
         });
         // LE VÉHICULE DE LA QUESTION, et c'est un choix structurel: `keelTurn`
@@ -6099,6 +6138,21 @@ export async function processMessage(
       tempMemory,
       sessionStyleCommitmentHintForTurn,
     );
+  }
+  // MÊME RAISON, MÊME REMÈDE: la question de précision est partie dans la
+  // réponse et la place du plafond est consommée. Sans cette ré-application, le
+  // flow qui doit rattacher la RÉPONSE au fait déjà écrit serait effacé par la
+  // reconstruction ci-dessus — et « avec du riz » repartirait écrire un repas
+  // complet, c'est-à-dire exactement le doublon que tout ce chantier ferme.
+  // Mesuré en run réel avant correctif: flow absent de `temp_memory` au tour
+  // suivant, alors que la question ET la ligne de plafond, elles, existaient.
+  if (mealPrecisionFlowToCommit) {
+    tempMemory = applyMealPrecisionFlowState({
+      tempMemory: tempMemory as Record<string, unknown>,
+      flow: mealPrecisionFlowToCommit.flow,
+      detectedFoods: mealPrecisionFlowToCommit.detectedFoods,
+      now: mealPrecisionTurnClock,
+    });
   }
   // P2-4a + P2-7a + P3-A + P4-C: vieillissement du marqueur track + traîne
   // conversation_risk — helper partagé avec les chemins de retour safety et

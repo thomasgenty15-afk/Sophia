@@ -66,6 +66,26 @@ export interface MealPrecisionLaneResult {
   /** `temp_memory` à reporter sur le local du tour. Toujours rendu. */
   tempMemory: Record<string, unknown>;
   /**
+   * L'ÉTAT DE FLOW À RÉ-APPLIQUER APRÈS LA GÉNÉRATION, et pourquoi il ne
+   * suffit pas de rendre `tempMemory`.
+   *
+   * Le companion reconstruit `temp_memory` depuis l'état PRÉ-routing
+   * (`agents/companion.ts :: nextTempMemory`): tout ce que la lane écrit sur le
+   * local du tour est effacé au moment de la persistance. Mesuré en run réel —
+   * après un amendement réussi, le flow FERMÉ réapparaissait ouvert au tour
+   * suivant, `turns` figé à 0. Un flow qui survit à sa fermeture capture les
+   * tours suivants et transforme chaque phrase de l'élève en amendement d'un
+   * repas qu'il a oublié: exactement ce que l'en-tête de
+   * `meal_precision_flow_state.ts` annonce comme interdit.
+   *
+   *   `undefined` — la lane n'a touché à rien (aucun flow ouvert).
+   *   `null`      — le flow doit être EFFACÉ.
+   *   un état     — le flow doit être écrit.
+   */
+  flowToCommit?: MealPrecisionFlowState | null;
+  /** Les aliments à conserver avec l'état, quand il y en a un. */
+  detectedFoods: string[];
+  /**
    * true quand le tour ne doit PLUS armer `log_protocol_event` du tout: la
    * parole de l'élève a été absorbée par un amendement qui n'ajoute aucun fait.
    */
@@ -105,9 +125,13 @@ function asSafetyBand(value: unknown): SafetyBand {
 function idle(
   tempMemory: Record<string, unknown>,
   reason: string,
+  flowToCommit?: MealPrecisionFlowState | null,
+  detectedFoods: string[] = [],
 ): MealPrecisionLaneResult {
   return {
     tempMemory,
+    flowToCommit,
+    detectedFoods,
     suppressLogProtocolEvent: false,
     suppressComponentKeys: [],
     linkToEventId: null,
@@ -169,17 +193,17 @@ export async function runMealPrecisionLane(args: {
   // `stay` laisse le tour à son chemin normal — c'est le comportement d'avant
   // ce câblage, et c'est ce que produit une classification incertaine.
   if (decision.kind === "stay") {
-    return {
-      ...idle(
-        applyMealPrecisionFlowState({
-          tempMemory: base,
-          flow: decision.nextFlow,
-          detectedFoods: stored.detected_foods,
-          now: args.now,
-        }),
-        `stay:${intent}`,
-      ),
-    };
+    return idle(
+      applyMealPrecisionFlowState({
+        tempMemory: base,
+        flow: decision.nextFlow,
+        detectedFoods: stored.detected_foods,
+        now: args.now,
+      }),
+      `stay:${intent}`,
+      decision.nextFlow,
+      stored.detected_foods,
+    );
   }
 
   if (decision.kind === "exit") {
@@ -189,6 +213,7 @@ export async function runMealPrecisionLane(args: {
     return idle(
       applyMealPrecisionFlowState({ tempMemory: base, flow: null, now: args.now }),
       `exit:${decision.reason}`,
+      null,
     );
   }
 
@@ -215,6 +240,7 @@ export async function runMealPrecisionLane(args: {
     return idle(
       applyMealPrecisionFlowState({ tempMemory: base, flow: null, now: args.now }),
       `amend_failed:${result.reason ?? "unknown"}`,
+      null,
     );
   }
 
@@ -225,6 +251,11 @@ export async function runMealPrecisionLane(args: {
       detectedFoods: stored.detected_foods,
       now: args.now,
     }),
+    // Le reducer ferme le flow après un amendement: `nextFlow.state === "closed"`
+    // vaut EFFACEMENT, et c'est cet effacement qui doit survivre à la
+    // reconstruction post-génération.
+    flowToCommit: decision.nextFlow.state === "closed" ? null : decision.nextFlow,
+    detectedFoods: [...stored.detected_foods],
     // Une CORRECTION n'ajoute rien: l'effet est retiré du tour. Une RÉPONSE
     // peut ajouter, mais seulement ce qui n'est pas déjà écrit.
     suppressLogProtocolEvent: !decision.allowsNewComponents,

@@ -218,7 +218,8 @@ Deno.test({
       .eq("user_id", userId)
       .order("food_group_ref");
     assertEquals(
-      (all ?? []).map((r) => r.food_group_ref).sort(),
+      (all ?? []).map((r: { food_group_ref: string | null }) => r.food_group_ref)
+        .sort(),
       ["poultry", "whole_grain"],
       "un repas mangé une fois ne fait que les faits qu'il contient",
     );
