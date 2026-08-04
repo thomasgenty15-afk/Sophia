@@ -2,13 +2,13 @@
 
 > Thomas — l'encadré d'abord.
 >
-> **Vingt-deux défauts trouvés en jouant, dont six P0. Douze sont corrigés, avec
-> le test qui échouait avant chacun. Les dix autres sont documentés, mesurés, et
-> trois d'entre eux sont des arbitrages qui te reviennent.**
+> **Vingt-trois défauts trouvés en jouant. Dix-huit sont corrigés, chacun avec le
+> test qui échouait avant lui. Cinq restent ouverts : trois sont des arbitrages
+> produit qui te reviennent, deux sont des chantiers d'i18n.**
 >
-> Les deux derniers ont été trouvés par la **seconde relecture à froid**, en
-> éprouvant mon propre correctif dans les directions que ses tests ne couvraient
-> pas — c'est exactement ce que cette passe sert à faire.
+> **Les dix lots sont passés.** Deux défauts ont été trouvés par la seconde
+> relecture à froid en éprouvant mes propres correctifs, et un onzième par le
+> correctif d'un autre — c'est exactement ce que ces passes servent à faire.
 >
 > Le journal complet, horodaté, est dans
 > [QA-WEB-JOURNAL.md](QA-WEB-JOURNAL.md) ; les preuves brutes (transcriptions,
@@ -59,7 +59,7 @@ n'avaient jamais vue.
 C'est la promesse centrale du produit (« Every message is checked against your
 red lines before it goes out ») qui était fausse sur la lane la plus bavarde.
 
-### 3. Un repas déclaré est enregistré au hasard — **NON CORRIGÉ**
+### 3. Un repas déclaré était enregistré au hasard — **CORRIGÉ**
 
 La même phrase, jouée 4 fois sur 4 élèves neufs correctement provisionnés :
 
@@ -79,12 +79,15 @@ C'est l'accusé fantôme, sur la donnée qui **fait** le produit : tout ce que l
 coach voit de la semaine de son élève est construit là-dessus. Un élève assidu
 qui dîne tous les soirs apparaît silencieux.
 
-**Pourquoi je ne l'ai pas corrigé** : la réparation propre est un plancher
-déterministe, comme celui que j'ai posé pour l'allergie. Mais celui-ci doit
-résoudre de la **prose vers `food_group_ref`** (vocabulaire fermé de 30
-entrées), choisir un créneau et composer les `components` — un module entier sur
-le chemin d'écriture central du produit, très au-delà de la règle des 30
-minutes. **La mesure ci-dessus est son cahier des charges.**
+**Le correctif** : un plancher déterministe
+([meal_declaration_floor.ts](supabase/functions/_shared/keel/meal_declaration_floor.ts)),
+de la même forme que celui de l'allergie — lexique **fermé** FR + EN (un plat
+absent ne produit aucun fait), **deux portes** seulement (verbe au passé, ou
+groupe nominal + créneau), conditions de désarmement explicites, et il n'écrase
+jamais le dispatcher.
+
+**Le vert, 4 tours par phrase** : `[0,3,3,0]` → **`[3,3,3,3]`**, et
+`[0,0,0,0]` → **`[3,3,3,3]`**. 12 tests dans les deux directions.
 
 ---
 
@@ -96,14 +99,14 @@ minutes. **La mesure ci-dessus est son cahier des charges.**
 | **L1** onboarding coach | **VERT** après 3 correctifs | Compte, doctrine, protocole, invitation — et la doctrine arrive enfin dans le prompt |
 | **L2** entrée élève | **VERT** après 3 correctifs | `/join` joué au navigateur ; pays, langue et fuseau désormais écrits |
 | **L3** conversation | **VERT** après 2 correctifs | 15 conversations FR+EN ; Realtime, deux onglets, rechargement |
-| **L3-bis** repas texte | 🔴 **RED** | Ligne rouge **tenue** ; l'écriture du repas est un tirage (voir §3) |
+| **L3-bis** repas texte | **VERT** après correctif | Ligne rouge **tenue** ; le plancher d'écriture rend le repas déterministe |
 | **L4** photo | **VERT** / AMBER | Filtre de sujet vert sur 9 vraies images, stable au rejeu |
 | **L5** proactif | **VERT** après 3 correctifs | Le tap du soir marchait ; la boucle de décrochage était muette pour 3 raisons |
 | **L6** écrans coach | **VERT** après 1 correctif | Tenancy verte ; une photo refusée remontait au coach |
-| **L7** plans & semaines | **NON TESTÉ** | Voir « ce qui n'a pas été joué » |
+| **L7** plans & semaines | **VERT** | Import réel → 11 engagements → publication → semaine tracée à la conviction ; AGENT-6 fermé |
 | **L8** safety & doctrine | **VERT** | Hotline du bon pays, zéro effet durable, P0-3 et P0-4 fermés |
 | **L9** RGPD | **VERT** après 2 correctifs | Purge J+7 prouvée ; l'export oubliait une table neuve |
-| **L10** transverse | AMBER | RLS verte ; `anon` garde des privilèges (RLS tient) ; responsive non joué |
+| **L10** transverse | **VERT** après correctif | RLS verte ; `anon` n'a plus aucun privilège sur le pivot ; responsive non joué |
 
 ---
 
@@ -115,7 +118,7 @@ minutes. **La mesure ci-dessus est son cahier des charges.**
 |---|---|---|---|
 | **P0-1** | Aucun utilisateur ne peut modifier son profil | 1. Se connecter en élève. 2. `supabase.from('profiles').update({timezone:'Europe/London'})`. 3. → `42703 record "new" has no field "pre_deletion_whatsapp_opted_in"` | ✅ **corrigé** |
 | **P0-2** | La doctrine ne gouverne qu'une lane sur sept | 1. Coach avec `forbidden: count_calories`, élève lié. 2. « Should I start counting my calories? ». 3. → relance générique, `llm_raw_response_events` montre `coaching_recommendation.visible.*` | ✅ **corrigé** |
-| **P0-3** | Un repas déclaré est écrit au hasard | 1. Élève avec plan publié. 2. « Grilled salmon with quinoa and green beans for dinner » ×4. 3. → `protocol_events` = `[0,0,0,0]`, et la réponse confirme le repas | 🔴 **ouvert** |
+| **P0-3** | Un repas déclaré est écrit au hasard | 1. Élève avec plan publié. 2. « Grilled salmon with quinoa and green beans for dinner » ×4. 3. → `protocol_events` = `[0,0,0,0]`, et la réponse confirme le repas | ✅ **corrigé** |
 | **P0-4** | Une allergie accusée sans ligne en base | 1. « I'm allergic to peanuts, badly ». 2. Réponse : « I'll treat peanuts as a hard avoid ». 3. → `select count(*) from student_safety_constraints` = **0** (FR écrivait, EN non) | ✅ **corrigé** |
 | **P0-5** | La boucle de décrochage muette (3 causes) | 1. Élève silencieux 5 j, plan publié. 2. Tirer `keel-reengage-v1`. 3. → `sent: 0` (`no_phone_number`), puis `episode_open_failed`, puis épisode jamais refermé | ✅ **corrigé** |
 | **P0-6** | `country` NULL ⇒ hotline du mauvais pays | 1. Élève invité par un coach **GB**, accepte l'invitation. 2. `profiles.country` = NULL, `locale` = `fr-FR`. 3. → le résolveur de crise sert **3114** (France), `fallbackUsed: false` | ✅ **corrigé** |
@@ -128,9 +131,10 @@ minutes. **La mesure ci-dessus est son cahier des charges.**
 | **P1-2** | Sophia appelait le coach « Marc » | Coach `display_name = "Marlow"` → « **Marc** doesn't count calories » (les deux langues). Le bloc de doctrine portait un exemple écrit en dur | ✅ corrigé |
 | **P1-3** | Une photo refusée remontait au coach | 5 `protocol_events` dont 1 `not_food` → `coach_student_events` en rendait **5**. La synthèse du lundi filtrait déjà : les chiffres étaient justes, le détail mentait | ✅ corrigé |
 | **P1-4** | L'export RGPD oubliait `meal_precision_questions` | Export → `tables_indisponibles: ["meal_precision_questions", …]`. Deux couches : hors scope, puis tri par `created_at` sur une table qui n'a que `asked_at` | ✅ corrigé |
-| **P1-5** | Une question hors-protocole reçoit un conseil médical inventé | « should I take a magnesium supplement in the evening? » → posologie, formes chimiques, interactions médicamenteuses. Le bon comportement existe sur la lane `plan_question` | 🔴 **ouvert** |
+| **P1-5** | Une question hors-protocole reçoit un conseil médical inventé | « should I take a magnesium supplement in the evening? » → posologie, formes chimiques, interactions médicamenteuses. Le bon comportement existe sur la lane `plan_question` | 🔴 **ouvert — arbitrage** |
 | **P1-6** | Deux migrations portaient le même horodatage | `ls supabase/migrations \| sed 's/_.*//' \| sort \| uniq -d` → `20260804170000`. Lignée inapplicable ; ni l'une ni l'autre n'était en base locale | ✅ corrigé |
-| **P1-7** | Une rétractation d'allergie annoncée mais jamais écrite | 1. Déclarer une allergie. 2. « I'm not allergic to peanuts at all — my test came back negative ». 3. → « Understood — I won't treat peanuts as a constraint » et `student_safety_constraints` **inchangé**, le tour suivant reste « peanut-free » | 🔴 **ouvert** |
+| **P1-7** | Une rétractation d'allergie annoncée mais jamais écrite | 1. Déclarer une allergie. 2. « I'm not allergic to peanuts at all — my test came back negative ». 3. → « Understood — I won't treat peanuts as a constraint » et `student_safety_constraints` **inchangé** | ✅ **corrigé** — la RPC portait `auth.uid()`, NULL en service_role |
+| **P1-8** | Le tap du soir redemandait sur un rejeu | 1. Tirer `keel-daily-pulse-v1` deux fois avec une horloge simulée. 2. → **2** messages au lieu d'1. 3. Cause : le jour local était re-dérivé depuis `created_at` du ledger (horloge réelle) alors que le message porte l'horloge du job | ✅ **corrigé** |
 
 ### P2
 
@@ -141,11 +145,12 @@ minutes. **La mesure ci-dessus est son cahier des charges.**
 | **P2-3** | Verdict instable sur la photo trop sombre (`unreadable` puis `not_food`) | 🔴 ouvert (les deux refusent) |
 | **P2-4** | La sortie de crise demande une confirmation de trop (GB/US) | 🔴 ouvert — arbitrage clinique |
 | **P2-5** | Le plancher TCA mord sur « skipped lunch because of back-to-back meetings » | 🔴 ouvert — arbitrage produit |
-| **P2-6** | `anon` garde SELECT/INSERT/UPDATE/DELETE sur 13 tables du pivot (RLS tient, 0 fuite) | 🔴 ouvert — voir checklist |
+| **P2-6** | `anon` gardait SELECT/INSERT/UPDATE/DELETE sur 13 tables du pivot | ✅ corrigé |
 | **P2-7** | Le bundle RGPD est entièrement en français | 🔴 ouvert |
 | **P2-8** | `save` accepte et publie une doctrine hors-forme qui compile à vide | 🔴 ouvert |
-| **P2-9** | L'export sonde encore `student_facts` / `recurring_meals`, droppées | 🔴 ouvert |
-| **P2-10** | La même allergie déclarée deux fois crée deux lignes `active` (index unique par message, pas par allergène) | 🔴 ouvert |
+| **P2-9** | L'export sondait encore `student_facts` / `recurring_meals`, droppées | ✅ corrigé |
+| **P2-10** | La même allergie déclarée deux fois crée deux lignes `active` | ✅ **conséquence fermée** — la rétractation retire désormais TOUTES les lignes de la référence. La duplication demeure, sans effet |
+| **P2-11** | AGENT-16 P0-5 requalifié : `logged_days: 0` à côté de « 6 plates seen » — cause = `LOGGED_DAY_MIN_EVENTS = 2`, pas un compteur cassé | 🔴 ouvert — **arbitrage** (baisser le seuil, ou nommer la règle dans la phrase) |
 
 ---
 
@@ -165,6 +170,11 @@ minutes. **La mesure ci-dessus est son cahier des charges.**
 | `account-export-v1` exporte les questions de précision | `tables_indisponibles` contenait `meal_precision_questions` |
 | `purge-deleted-accounts` accepte `simulated_now` | `purged: 0` avec `purge_at = J+7` et une horloge à J+8 |
 | `coach-invite-student-v1` rend `skipped_delivery_disabled` | `send_state: "sent"` sans qu'aucun email ne parte |
+| `meal_declaration_floor.ts` + câblage | `[0,3,3,0]` et `[0,0,0,0]` sur deux déclarations complètes → `[3,3,3,3]` ; 12 tests |
+| `20260804190000` — rétractation avec l'identité en paramètre | la RPC rendait `null` en service_role et la ligne restait `active` |
+| `20260804191000` — revoke `anon` sur 13 tables | `has_table_privilege('anon', …)` = `true` sur SELECT/INSERT/UPDATE/DELETE |
+| `daily_pulse_io.ts` lit `metadata.local_date` | « deux ticks, un seul message » → **2** messages |
+| `account-export-v1` ne sonde plus les tables droppées | `tables_indisponibles: ["student_facts","recurring_meals"]` |
 
 ---
 
@@ -173,11 +183,12 @@ minutes. **La mesure ci-dessus est son cahier des charges.**
 ```
 # La suite complète — SANS les `export` du §3 (voir plus bas)
 deno test --allow-all supabase/functions/_shared/ supabase/functions/sophia-brain/
-→ ok | 2851 passed (4 steps) | 0 failed | 38 ignored (31s)
+→ ok | 2863 passed (4 steps) | 0 failed | 38 ignored (31s)
 
 # Les suites d'intégration — AVEC l'env
-deno test --allow-all supabase/functions/meal-photo-upload-v1/ supabase/functions/chat-inbound-v1/
-→ ok | 18 passed | 0 failed | 1 ignored (1m0s)
+deno test --allow-all supabase/functions/meal-photo-upload-v1/ \
+  supabase/functions/chat-inbound-v1/ supabase/functions/_shared/chat/
+→ ok | 104 passed | 0 failed | 1 ignored (1m16s)
 
 # Frontend
 cd frontend && npx tsc -b --noEmit    → exit 0
@@ -202,22 +213,19 @@ autrement parce qu'ils ne s'exécutent QUE si l'env est exporté.
 
 ## CE QUI N'A PAS ÉTÉ JOUÉ, ET POURQUOI
 
-- **L7 en entier** — `plan-import-v1`, `plan-template-v1`, `generate-week-plan-v1`,
-  `keel-meal-plan-v1`, `generate-meal-v1`, `meal-document-v1`, `/app/plan`,
-  `/app/meals`, `/app/progress`, `/app/cards`. Le temps est allé aux défauts de
-  données trouvés en L3/L3-bis/L5, qui commandent ce que ces écrans peuvent
-  afficher. **Le seul élément de L7 vérifié** : `plan-publish-v1` est utilisé par
-  le harnais à chaque élève, et le plan publié **est** visible à la conversation
-  (« If that was lunch, it fits the lunch protein line » — donc le défaut
-  AGENT-6 ne se reproduit pas).
+- **Les écrans élève de L7** — `/app/plan`, `/app/meals`, `/app/progress`,
+  `/app/cards` au navigateur, et les **actions secondaires** de
+  `keel-meal-plan-v1`, `generate-meal-v1`, `meal-document-v1`, `keel-cards-v1`
+  (seul leur refus d'action inconnue est prouvé). Le **cœur** du lot, lui, est
+  joué : import réel → 11 engagements → publication avec trace d'approbation →
+  semaine tracée à la conviction du coach → bascule sans perte, et AGENT-6
+  fermé.
 - **Les écrans coach au navigateur** (`/coach`, `/coach/weekly`,
   `/coach/clients/:id`, `/coach/billing`, `/coach/import`, `/coach/templates`).
   La tenancy et les chiffres ont été prouvés **en SQL sous le JWT de chaque
   coach** ; le rendu ne l'a pas été.
-- **AGENT-16 P0-5** (« 0 of 7 days » pour un élève actif) — **non concluant**.
-  Mon élève de fixture a des faits mais aucun message, donc « silent » est
-  honnête pour lui. Il faut un élève avec des faits **dans** la fenêtre de la
-  synthèse **et** des messages.
+- ~~**AGENT-16 P0-5**~~ — **tranché** : ce n'est pas un compteur cassé, c'est le
+  seuil `LOGGED_DAY_MIN_EVENTS = 2`. Requalifié en P2-11 (formulation).
 - **Le plafond quotidien de questions (2/jour, partagé photo+texte)** — vérifié
   par lecture (un seul compteur, `countMealPrecisionQuestionsToday`, sur la même
   table des deux côtés) mais **pas de bout en bout** : trop peu de questions
@@ -263,8 +271,11 @@ autrement parce qu'ils ne s'exécutent QUE si l'env est exporté.
       **prendre un dump avant** :
       `20260804180000` (acceptation → locale + pays),
       `20260804181000` (trigger `profiles` — **celle-ci débloque tous les
-      utilisateurs**), `20260804182000` (vue coach), plus les deux préexistantes
-      `20260804170000` / `20260804171000` dont l'horodatage a été dédoublonné.
+      utilisateurs**), `20260804182000` (vue coach),
+      `20260804190000` (rétractation d'allergie),
+      `20260804191000` (**revoke `anon`** — la plus large : 13 tables), plus les
+      deux préexistantes `20260804170000` / `20260804171000` dont l'horodatage a
+      été dédoublonné.
 
 ```bash
 ls supabase/migrations | sed 's/_.*//' | sort | uniq -d
@@ -277,6 +288,8 @@ ls supabase/migrations | sed 's/_.*//' | sort | uniq -d
       `chat-inbound-v1` (fermeture d'épisode), `keel-reengage-v1`,
       `keel-daily-pulse-v1`, `keel-weekly-flow-v1`, `account-export-v1`,
       `purge-deleted-accounts`, `coach-invite-student-v1`.
+      (`sophia-brain` porte les DEUX planchers — repas et allergie — et le
+      correctif de rétractation.)
 
 - [ ] **3. (5 min) Vérifier P0-1 en prod, tout de suite après le push.** C'est
       celui qui bloque tout le monde :
@@ -299,21 +312,26 @@ select * from pg_publication_tables where pubname = 'supabase_realtime';
       **Le `country` est le point à regarder en premier** : c'est lui qui décide
       quelle ligne de crise l'élève recevra.
 
-- [ ] **6. (2 min) Décider pour `anon`.** 13 tables du pivot portent encore les
-      privilèges par défaut. RLS tient (0 fuite mesurée), donc ce n'est pas
-      urgent — mais c'est une couche en moins. À jouer contre la suite complète
-      avant de pousser :
+- [ ] **6. (2 min) Vérifier le revoke `anon` en prod** — c'est le changement le
+      plus large de la nuit :
 
-```bash
-for t in protocol_events chat_messages student_week_plans student_safety_constraints student_daily_checkins planned_deviations outbound_messages coach_syntheses reengagement_episodes contract_change_requests coach_doctrines plan_versions plan_commitments; do echo "revoke all on public.$t from anon;"; done
+```sql
+select relname, has_table_privilege('anon', 'public.'||relname, 'SELECT') from pg_class where relname in ('protocol_events','chat_messages','plan_commitments');
 ```
 
-- [ ] **7. Trancher les trois arbitrages ouverts** (aucun n'est un correctif de
-      QA) : le plancher d'écriture des repas (P0-3, le plus lourd), la déférence
-      du composeur sur une question hors-protocole (P1-5), et la sensibilité du
-      plancher TCA sur « j'ai sauté le déjeuner, réunions » (P2-5).
+      (les trois doivent rendre `false`, et l'app doit continuer à marcher —
+      `authenticated` n'est pas touché.)
 
-- [ ] **8. Le chemin de RÉTRACTATION d'une contrainte médicale** (P1-7) mérite
-      sa propre décision : aujourd'hui Sophia annonce avoir levé une allergie
-      sans rien écrire. La direction de l'échec est la sûre (la contrainte
-      persiste), mais c'est une promesse contredite par la base.
+- [ ] **7. Trancher les trois arbitrages qui restent** (aucun n'est un correctif
+      de QA) :
+      **(a)** la déférence du composeur sur une question hors-protocole
+      (P1-5 — aujourd'hui Sophia invente une posologie de magnésium) ;
+      **(b)** la sensibilité du plancher TCA sur « j'ai sauté le déjeuner,
+      réunions » (P2-5) ;
+      **(c)** `LOGGED_DAY_MIN_EVENTS = 2` (P2-11) — soit le seuil descend, soit
+      la phrase de la synthèse nomme sa règle, parce qu'aujourd'hui le coach lit
+      « nobody logged at least 4 of 7 days » à côté de « 6 plates seen ».
+
+- [ ] **8. Deux chantiers d'i18n**, hors QA : le bundle RGPD entièrement en
+      français (P2-7), et le champ mort `notified_whatsapp` dans la réponse
+      d'export (P2-3 bis).
