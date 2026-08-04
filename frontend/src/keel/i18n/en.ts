@@ -972,8 +972,14 @@ export const en = {
   // L'invitation EXISTE et son lien marche; c'est l'envoi qui a été supprimé.
   // Le titre dit donc « created », pas « sent » — et surtout pas « failed ».
   "invite.created_not_sent": "Invitation created for {email} — but no email went out.",
+  // « envoyez-le vous-même » A ÉTÉ RETIRÉ D'ICI, et c'était le même défaut que
+  // celui qu'on vient de corriger: le navigateur du coach ne voit JAMAIS le
+  // jeton (`coach-invite-student-v1` n'échoue le join_url qu'à un appelant
+  // porteur du secret interne, et seul le sha256 est en base). Lui conseiller de
+  // transmettre le lien lui-même, c'était lui demander l'impossible dans le
+  // message censé le sortir de sa confusion.
   "invite.not_sent_delivery_disabled":
-    "Email delivery is switched off in this environment (EMAIL_DELIVERY_ENABLED), so nothing was sent. The invitation is real and its link works — send it to them yourself, or turn delivery on and invite again.",
+    "Email delivery is switched off in this environment (EMAIL_DELIVERY_ENABLED), so nothing was sent. The invitation is on file, but its link only ever existed inside that email — nobody can retrieve it now. Turn delivery on, then invite this address again: that sends a fresh link and cancels this one.",
   "invite.not_sent_ephemeral":
     "This looks like a throwaway test address, so no email was sent on purpose. The invitation itself is real.",
   "invite.expired": "This invitation has expired. Ask your coach for a new one.",
