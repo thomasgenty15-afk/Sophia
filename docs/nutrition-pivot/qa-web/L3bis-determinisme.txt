@@ -1,48 +1,50 @@
 
 ▌ pauvre EN — « I had chicken »   (4 tours, attendu 1+)
-  protocol_events par tour : [1,1,1,1]  ✅ stable
-  questions de précision   : [["And what did you have with it?"],["And what did you have with it?"],["And what did you have with it?"],["And what did you have with it?"]]
-  [1] Good. Chicken gives you the protein anchor. And what did you have with it?
-  [2] Good — chicken gives you a clean protein anchor. If that was lunch, it fits the lunch protein line. And what d
-  [3] Good. Chicken gives you a protein anchor. And what did you have with it?
-  [4] Good. Chicken gives you the protein anchor. If that was lunch, the vegetables line is still the one to cover i
+  protocol_events par tour : [0,0,0,1]  🔴 INSTABLE
+  questions de précision   : [[],[],[],[]]
+  [1] Chicken is a solid protein anchor. Keep the rest of the meal simple around it: add some veg and a carb if you 
+  [2] Chicken is a good protein anchor. If that was your meal, it fits the method well. If you want, I can help you 
+  [3] Chicken is a solid protein anchor. If that was a meal on its own, the main thing I’d flag is whether there was
+  [4] Nice. Chicken gives you a clean protein anchor.
 
 ▌ pauvre FR — « j'ai mangé du poulet »   (4 tours, attendu 1+)
   protocol_events par tour : [1,1,1,1]  ✅ stable
-  questions de précision   : [["And what did you have with it?"],["And what did you have with it?"],["And what did you have with it?"],["And what did you have with it?"]]
-  [1] You had chicken at lunch, so the protein anchor is covered for that meal. And what did you have with it?
-  [2] Nice — that gives you the protein anchor for lunch. If there were vegetables with it, say so and I’ll count th
-  [3] Good. That covers the protein anchor at lunch. And what did you have with it?
-  [4] Good. That covers the protein anchor at lunch. And what did you have with it?
+  questions de précision   : [[],[],[],[]]
+  [1] You had the chicken. Good protein anchor for a meal. 🙂
+  [2] Nice — chicken gives you a solid protein anchor. If you want, send the rest of the meal and I’ll help you chec
+  [3] Good. Chicken gives you a clean protein anchor. 🙂
+  [4] Good. Poultry gives you a solid protein anchor for the meal.
 
 ▌ complète EN — « Grilled salmon with quinoa and green beans for dinner »   (4 tours, attendu 3)
   protocol_events par tour : [0,0,0,0]  ✅ stable
   questions de précision   : [[],[],[],[]]
-  [1] Nice dinner: salmon gives you the protein anchor, and green beans cover the veg side. Quinoa is the carb piece
-  [2] That sounds like a solid dinner: protein from the salmon, carbs from the quinoa, and veg from the green beans.
-  [3] Nice dinner: you’ve got a solid protein anchor with the salmon, plus quinoa and green beans for balance. If yo
-  [4] Good dinner: you’ve got protein, carbs, and a veg on the plate.   If you want, I can help you map it to the da
+  [1] Nice dinner: you’ve got a clear protein anchor with the salmon, plus quinoa and green beans to round it out. T
+  [2] Good dinner. You’ve got a solid protein anchor with the salmon, plus a clean carb in the quinoa and veg on the
+  [3] Good protein anchor for dinner. Salmon covers the main protein, and the quinoa plus green beans make it a soli
+  [4] Good dinner: you’ve got a solid protein anchor with the salmon, plus carbs and veg on the side. That fits the 
 
 ▌ complète FR — « Poulet grillé, riz complet et brocolis à midi »   (4 tours, attendu 3)
-  protocol_events par tour : [0,3,3,0]  🔴 INSTABLE
+  protocol_events par tour : [0,0,0,0]  ✅ stable
   questions de précision   : [[],[],[],[]]
-  [1] Good. That covers the lunch protein and the vegetables, and the rice gives you the base.
-  [2] Noted: grilled chicken, brown rice, and broccoli at lunch.
-  [3] At lunch, you had the protein anchor and the vegetables. Good. The brown rice completes the meal well.
-  [4] Good. That matches the lunch anchor: grilled chicken gives you the protein, and the broccoli covers the vegeta
+  [1] Good lunch base: grilled chicken gives you the protein anchor, and the brown rice + broccoli make it a solid, 
+  [2] Good lunch base: grilled chicken gives you the protein anchor, and the brown rice plus broccoli round it out w
+  [3] Good lunch base: grilled chicken, brown rice, and broccoli gives you a clean protein anchor with solid carbs a
+  [4] Good, that’s a solid protein-anchored lunch: grilled chicken, brown rice, and broccoli. If you want to tighten
 
 ▌ auto-suffisante — « an apple »   (4 tours, attendu 1+)
-  protocol_events par tour : [0,0,0,1]  🔴 INSTABLE
-  questions de précision   : [[],[],[],["And what did you have with it?"]]
-  [1] Apple is fine, but it’s not a protein anchor. If that was lunch, the lunch protein and vegetables are still th
-  [2] An apple gives you a clean carb source, but it doesn’t count as the protein anchor for lunch. If lunch is stil
-  [3] Apple is fine as a snack, but it doesn’t count as the protein anchor for lunch. If that’s your lunch, pair it 
-  [4] For lunch, you’ve got protein and vegetables listed; an apple doesn’t cover either of those. If you’re just no
+  protocol_events par tour : [0,0,0,0]  ✅ stable
+  questions de précision   : [[],[],[],[]]
+  [1] An apple fits the protein-anchor rule only if it’s paired with protein. By itself, it’s just a carb-based snac
+  [2] An apple fits the protein-anchor method less well than a protein-first snack, so if this is your actual meal, 
+  [3] An apple is fine as a snack, but by this coach’s rule it works best if you pair it with a protein anchor, like
+  [4] An apple is a fine simple choice, especially if you want something quick and light. If you’re thinking in the 
 
 ▌ intention future — « I'm going to have chicken tonight »   (4 tours, attendu 0)
   protocol_events par tour : [0,0,0,0]  ✅ stable
   questions de précision   : [[],[],[],[]]
-  [1] Good — that gives you a solid protein anchor for dinner. If you want, keep the rest simple with vegetables on 
-  [2] Chicken works well tonight — it gives you a solid protein anchor. If you can, pair it with some vegetables too
-  [3] Chicken gives you a solid protein anchor tonight. Good move.
-  [4] Good. Chicken gives you a protein anchor for the evening. If you can, pair it with some non-starchy veg too.
+  [1] Nice. Chicken is a solid protein anchor for the evening. If you want to keep it simple, build the rest of the 
+  [2] Chicken tonight works well as a protein anchor. Keep the rest of the plate simple and you’re covered.
+  [3] Chicken tonight is a solid protein anchor. Keep the rest simple: add some veg and a carb if you need the energ
+  [4] Good choice — chicken gives you a clean protein anchor for the evening. Add whatever makes the meal feel compl
+
+→ écrit

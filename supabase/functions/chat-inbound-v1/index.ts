@@ -48,6 +48,7 @@ import {
   markInboundProcessed,
 } from "../_shared/chat/inbound_pipeline.ts";
 import { CHAT_SCOPE, deliverChatMessage } from "../_shared/chat/delivery.ts";
+import { closeKeelReengagementEpisodeOnInbound } from "../_shared/keel/reengagement_io.ts";
 import {
   handleDeterministicButton,
 } from "../_shared/chat/deterministic_buttons.ts";
@@ -244,6 +245,29 @@ Deno.serve(async (req) => {
       message,
       requestId,
       scope: CHAT_SCOPE,
+    });
+
+    // L'ÉPISODE DE DÉCROCHAGE SE FERME ICI, ET NULLE PART AILLEURS.
+    //
+    // `closeKeelReengagementEpisodeOnInbound` existait, était testée, et
+    // n'était appelée par PERSONNE (QA WEB L5: son seul référent hors
+    // définition était son propre test, qui asserte sur du texte source).
+    //
+    // Ce que ça produisait, mesuré: la relance part, l'épisode s'ouvre,
+    // l'élève répond — et l'épisode reste ouvert pour toujours. Or
+    // `nudgedThisEpisode` vaut `Boolean(openEpisode)`: chaque élève passé une
+    // fois par la boucle en sortait DÉFINITIVEMENT. Un verrou permanent, par
+    // élève, en silence.
+    //
+    // Ici et pas dans le moteur de tour: c'est le SEUL point par lequel un
+    // message d'élève entre, et un bouton compte autant qu'une phrase — un
+    // élève qui répond « All good » au tap du soir a rompu son silence.
+    //
+    // Best-effort assumé: un échec de fermeture ne doit jamais faire échouer
+    // la réception d'un message (la fonction avale déjà ses erreurs).
+    await closeKeelReengagementEpisodeOnInbound(admin, {
+      userId: user.id,
+      atIso: message.received_at,
     });
 
     // ── GARDE 5 : LES BOUTONS DÉTERMINISTES, AVANT LE DISPATCHER ─────────────

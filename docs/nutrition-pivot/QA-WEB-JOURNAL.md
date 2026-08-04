@@ -801,3 +801,129 @@ ci-dessus ne laisse pas assez de questions partir pour atteindre le plafond de
 deux. **NON TESTÉ**, et la raison est ce P0.
 
 **Verdict** : VERT sur ce qui a pu être joué ; le reste dépend du P0.
+
+---
+
+## L5 — LES BOUCLES PROACTIVES
+
+Chaque job tiré par HTTP avec son en-tête interne, sur une horloge explicite
+**≥ l'heure réelle**. Preuves : `qa-web/L5-proactive.txt`.
+
+### 2026-08-04 20:47Z — `keel-daily-pulse-v1` : VERT sur les six axes
+
+```
+tick 1 → sent: 2   skipped: {already_asked_today:85, outside_window:158,
+                             opted_out:3, no_active_plan:4}
+```
+
+| Élève | Attendu | Mesuré |
+|---|---|---|
+| dans sa fenêtre du soir | reçoit | **1** tap |
+| **muté** (`proactive_muted_at`) | ne reçoit rien | **0** — et compté en `opted_out` |
+| **sans plan actif** | ne reçoit rien | **0** — compté en `no_active_plan` |
+| **hors fenêtre locale** (fuseau) | ne reçoit rien | **0** — compté en `outside_window` |
+| **second tick** du même cron | ne redemande pas | `sent: 0`, `already_asked_today: 87` |
+
+Et le contre-factuel du mute, qui est le vrai test : **l'élève muté écrit, et il
+reçoit une réponse** (HTTP 200, réponse en base). Le mute coupe le proactif,
+pas la conversation.
+
+Aucun décideur ne lit plus une colonne gelée : `grep -rn "whatsapp_opted"` rend
+**9** occurrences dans `supabase/functions`, **toutes des commentaires** (vérifié
+en retirant les lignes de commentaire : résultat vide — le piège
+« audit d'appelants sans retirer les commentaires » est évité).
+
+**Verdict** : VERT.
+
+### 2026-08-04 20:47Z — `keel-weekly-flow-v1` : VERT, mais il fallait le dimanche
+
+Un tick de mardi rend `outside_window: 248` et ne prouve rien. Rejoué sur
+l'horloge du **prochain dimanche 20 h 30** (toujours ≥ réelle) :
+
+```
+sent: 4   skipped: {outside_window:243, opted_out:3, no_active_plan:3}
+→ l'élève du soir a bien 1 message `keel_weekly_flow`
+```
+
+**Verdict** : VERT.
+
+### 2026-08-04 20:50Z — 🔴 P0 · La boucle de décrochage était muette, pour TROIS raisons empilées
+
+Le prompt de mission liste ce défaut sous `AGENT-16 P0-2`. Il n'y en avait pas
+un, il y en avait trois, et il fallait corriger le premier pour voir le second.
+
+**Le rouge, tick réel** :
+
+```
+candidates: 155, sent: 0, armed: 0,
+skipped_by_reason: { no_active_plan:142, no_phone_number:4, opted_out:5, … }
+```
+
+**① `no_phone_number` — la garde d'un canal qui n'existe plus.**
+Le job refusait d'envoyer sans `phone_number`. C'est exactement le défaut
+`whatsapp_opted_in` corrigé sur les trois autres décideurs — **sur une autre
+colonne, donc il a survécu à l'épreuve d'absence**. Or `sendReengageNudge`
+appelle `deliverChatMessage` : il écrit une ligne dans `chat_messages` et n'a
+jamais besoin d'un numéro. Et **aucun élève KEEL n'en a un** (le parcours
+d'entrée n'en capture aucun — prouvé en L2). Les seuls élèves jugés relançables
+étaient donc écartés faute d'un canal supprimé.
+→ garde retirée, [keel-reengage-v1](supabase/functions/keel-reengage-v1/index.ts:126).
+
+**② `Infinity` sérialisé en `null` — et Postgres refuse la ligne.**
+Une fois ① levé : `armed: 8`, **`episode_open_failed: 7`**, `sent: 1`.
+Les logs du runtime disent pourquoi :
+
+```
+[keel/reengagement] episode open failed
+  null value in column "days_inactive_at_open" violates not-null constraint
+```
+
+`decideReengagement` traite « n'a jamais écrit » comme *silencieux depuis
+toujours* et rend `hoursSilent = Infinity` — c'est **volontaire et correct**,
+c'est même la population que la relance vise. Mais l'appelant faisait
+`Math.floor(Infinity / 24)` = `Infinity`, et **`JSON.stringify(Infinity)` vaut
+`null`**. L'épisode ne s'ouvrait donc pas, donc rien ne partait — précisément
+pour les élèves visés. Le compte-rendu affichait `hours_silent: null`, qui
+ressemble à une lecture ratée alors que c'est une information.
+→ clampé, et le compte-rendu dit maintenant `"never_wrote"`.
+
+**③ L'épisode ne se refermait jamais — un verrou permanent, par élève.**
+`closeKeelReengagementEpisodeOnInbound` existe, est documentée, est « testée »…
+et **n'était appelée par personne** : son seul référent hors définition était
+son propre test, qui asserte sur du **texte source**. Or `nudgedThisEpisode`
+vaut `Boolean(openEpisode)` : tout élève passé une fois par la boucle en
+sortait **définitivement**.
+→ câblée dans [chat-inbound-v1](supabase/functions/chat-inbound-v1/index.ts:242),
+le seul point par lequel un message d'élève entre — un bouton compte autant
+qu'une phrase.
+
+**Le vert après les trois**, sur un élève décroché de 5 jours :
+
+```
+DRY  → armé ? [{"user_id":"75abed49…","tone":"gentle","hours_silent":"never_wrote"}]
+RÉEL → sent: 1
+épisode  : days_inactive=0 | touch1_sent_at=2026-08-05 15:00 | <ouvert>
+message  : « Hi Lapsed - no rush, just checking in. How is the week going? »
+après réponse de l'élève → closed_at = 2026-08-04 20:51:40
+```
+
+La boucle est **entière** pour la première fois : elle envoie, elle ouvre, elle
+referme. Le texte ne culpabilise pas et ne compte pas les jours.
+
+**Verdict** : VERT après correctifs. Défaut **P0** (trois causes).
+
+### 2026-08-04 20:48Z — Les autres jobs
+
+| Job | Résultat |
+|---|---|
+| `provision-day-v1` | 200, `students_scanned: 47`, `rows_seeded: 0` (rien à semer sur ces plans) |
+| `keel-week-rollover-v1` | 200, `users_scanned: 0` — aucune semaine à basculer aujourd'hui |
+| `coach-synthesis-v1` | 200, **`syntheses_written: 98`** sur 107 coachs, 9 sans élève |
+| `schedule-checkins-v2` | 200, 0 planifié (surface B2C, aucun élève KEEL concerné) |
+| `process-checkins` | 200, « No checkins to process » |
+
+`keel-week-rollover-v1` et `provision-day-v1` n'ont **rien eu à faire** sur ce
+jeu de données : ils répondent, ils ne prouvent pas leur travail. **NON TESTÉS
+en profondeur**, et c'est écrit comme tel.
+
+**Verdict** : AMBER (répondent tous ; deux ne sont pas éprouvés).

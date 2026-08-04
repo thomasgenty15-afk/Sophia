@@ -108,7 +108,7 @@ Deno.serve(async (req) => {
     // évite qu'un « ton adouci » existe uniquement dans nos journaux.
     let toneNotDelivered = 0;
     const failures: string[] = [];
-    const armed: Array<{ user_id: string; tone: string; hours_silent: number }> = [];
+    const armed: Array<{ user_id: string; tone: string; hours_silent: number | "never_wrote" }> = [];
     const byUserId = new Map(candidates.map((c) => [c.userId, c]));
 
     for (const outcome of outcomes) {
@@ -123,20 +123,38 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      // Pas de numéro, pas d'envoi — et surtout pas d'épisode ouvert. Ouvrir
-      // ici verrouillerait l'élève pour un message qu'on n'a jamais eu les
-      // moyens de lui adresser.
-      const phone = byUserId.get(outcome.userId)?.phoneNumber ?? null;
-      if (!phone) {
-        bySkipReason.no_phone_number = (bySkipReason.no_phone_number ?? 0) + 1;
-        continue;
-      }
+      // ══════════════════════════════════════════════════════════════════
+      // LA GARDE « PAS DE NUMÉRO » EST RETIRÉE, ET C'EST LE MÊME DÉFAUT QUE
+      // `whatsapp_opted_in` — sur une autre colonne, donc il a survécu.
+      //
+      // Elle disait: « pas de numéro, pas d'envoi — et surtout pas d'épisode
+      // ouvert », ce qui était juste tant que la relance partait par Meta.
+      // Depuis la bascule, `sendReengageNudge` appelle `deliverChatMessage`:
+      // il écrit une ligne dans `chat_messages` et n'a **jamais** besoin d'un
+      // numéro. Or aucun élève KEEL n'en a un — le parcours d'entrée n'en
+      // capture aucun (vérifié en L2).
+      //
+      // MESURÉ avant retrait, sur un tick réel:
+      //     candidates: 155, sent: 0, ... "no_phone_number": 4
+      // c'est-à-dire: les seuls élèves que le job jugeait relançables étaient
+      // écartés faute d'un canal qui n'existe plus. La boucle de décrochage
+      // était MUETTE, exactement comme le tap du soir l'était avant la
+      // correction de `whatsapp_opted_in`.
+      //
+      // `phoneNumber` reste chargé par `loadReengageCandidates`: il sert la
+      // couche B2C survivante, et le retirer déborderait ce lot.
+      // ══════════════════════════════════════════════════════════════════
 
       if (dryRun) {
         armed.push({
           user_id: outcome.userId,
           tone: d.tone,
-          hours_silent: Math.round(d.hoursSilent),
+          // `Infinity` (jamais écrit) sérialise en `null` — voir la note sur
+          // `daysInactive`. Le compte-rendu doit DIRE « jamais écrit »
+          // plutôt que rendre un trou qui ressemble à une lecture ratée.
+          hours_silent: Number.isFinite(d.hoursSilent)
+            ? Math.round(d.hoursSilent as number)
+            : "never_wrote",
         });
         continue;
       }
@@ -144,7 +162,27 @@ Deno.serve(async (req) => {
       const opened = await openReengagementEpisode(admin, {
         userId: outcome.userId,
         at: now.toISOString(),
-        daysInactive: Math.floor(d.hoursSilent / 24),
+        // `hoursSilent` VAUT `Infinity` POUR QUI N'A JAMAIS ÉCRIT, et c'est
+        // délibéré côté décision: `decideReengagement` traite l'absence de
+        // premier message comme « silencieux depuis toujours » — c'est
+        // exactement la population que cette relance existe pour rattraper.
+        //
+        // Mais `Math.floor(Infinity / 24)` vaut `Infinity`, et
+        // `JSON.stringify(Infinity)` vaut **`null`**. La ligne partait donc
+        // vers PostgREST avec `days_inactive_at_open: null`, et Postgres la
+        // refusait: `null value in column "days_inactive_at_open" violates
+        // not-null constraint`. L'épisode ne s'ouvrait pas, donc la relance ne
+        // partait pas — pour PRÉCISÉMENT les élèves qu'elle visait.
+        //
+        // MESURÉ (QA WEB L5, tick réel): `armed: 8`, `episode_open_failed: 7`,
+        // et l'élève de la sonde ressortait avec 0 message et 0 épisode.
+        //
+        // 0 plutôt qu'un nombre inventé: on ne sait pas depuis combien de
+        // jours il est inactif, et la colonne dit « au moment de l'ouverture »,
+        // pas « estimé ».
+        daysInactive: Number.isFinite(d.hoursSilent)
+          ? Math.floor((d.hoursSilent as number) / 24)
+          : 0,
       });
       // Pas d'épisode ouvert => pas d'envoi. Sans ce garde, un échec d'écriture
       // produirait une relance non tracée, donc une seconde au tick suivant.
@@ -208,7 +246,9 @@ Deno.serve(async (req) => {
       armed.push({
         user_id: outcome.userId,
         tone: d.tone,
-        hours_silent: Math.round(d.hoursSilent),
+        hours_silent: Number.isFinite(d.hoursSilent)
+          ? Math.round(d.hoursSilent as number)
+          : "never_wrote",
       });
     }
 

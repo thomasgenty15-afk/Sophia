@@ -1,0 +1,43 @@
+horloge simulée : 2026-08-04T20:47:45.700Z  (réelle : 2026-08-04T20:45:45.706Z)
+fuseau « il est 20h30 chez lui » : Etc/GMT
+
+élèves : soir=6bee1302-21c5-4353-9cff-748f1f1b88b6  muté=999ca39a-22d1-4ae5-baf5-68c29f2ac106  sans-plan=54f0d924-dee2-485b-8ffb-313788702b93  hors-fenêtre=8271e4cc-047a-409b-a64d-de5f9db4732d
+
+══════════════════════════════════════════════════════════════════════════
+▌ keel-daily-pulse-v1
+══════════════════════════════════════════════════════════════════════════
+tick 1 → {"ok":true,"dry_run":false,"scanned":253,"sent":2,"skipped_by_reason":{"already_asked_today":85,"outside_window":158,"opted_out":3,"no_active_plan":4,"already_answered_today":1},"exhausted":true,"next_after_user_id":null,"failures":[],"request_id":"79241c95-63ff-41cf-93e3-96de140c1421"}
+  soir           messages de tap : 1
+  muté           messages de tap : 0
+  sans-plan      messages de tap : 0
+  hors-fenêtre   messages de tap : 0
+tick 2 (double) → sent=0 skipped={"already_asked_today":87,"outside_window":158,"opted_out":3,"no_active_plan":4,"already_answered_today":1}
+  soir a toujours 1 tap(s)
+
+▌ élève muté, conversation directe → HTTP 200, réponse reçue
+
+══════════════════════════════════════════════════════════════════════════
+▌ keel-weekly-flow-v1
+══════════════════════════════════════════════════════════════════════════
+horloge du point hebdo : 2026-08-09T20:30:00.000Z (dimanche)
+→ {"ok":true,"dry_run":false,"scanned":253,"sent":4,"skipped_by_reason":{"outside_window":243,"opted_out":3,"no_active_plan":3},"exhausted":true,"next_after_user_id":null,"failures":[],"request_id":"a37b8d49-c921-460c-8c31-609d76a8fa9c"}
+messages hebdo pour l'élève du soir : 1
+
+══════════════════════════════════════════════════════════════════════════
+▌ keel-reengage-v1
+══════════════════════════════════════════════════════════════════════════
+→ {"ok":true,"dry_run":false,"candidates":159,"sent":0,"armed":0,"deferred_quiet_hours":3,"tone_not_delivered":0,"skipped_by_reason":{"no_active_plan":143,"episode_open_failed":7,"opted_out":5,"already_nudged_this_episode":1},"failures":[],"tone_instructions":{},"armed_users":[],"request_id":"2f4ed0fa-5337-4cd0-b585-9429db53a162"}
+épisodes : []
+messages reçus par le décrocheur : 0
+
+▌ provision-day-v1 → HTTP 200 {"ok":true,"mode":"provision","timezone_gate_enabled":true,"students_scanned":47,"students_processed":0,"rows_seeded":0,"rows_already_present":0,"rows_rejected":0,"swept_missed":0,"swept_met":0,"swept_not_applicable":0,"swept_flex_used":0,"swept_held_device_unknown":0,"skipped_not_keel_student":0,"skipped_invalid_timez
+
+▌ keel-week-rollover-v1 → HTTP 200 {"ok":true,"users_scanned":0,"users_activated":0,"items_activated":0,"exhausted":true,"next_after_user_id":null,"warnings":[],"request_id":"96a77024-efc0-4b9b-a6f6-a8cd77c8e678"}
+
+▌ coach-synthesis-v1 → HTTP 200 {"ok":true,"as_of_local_date":"2026-08-04","coaches_scanned":107,"syntheses_written":98,"coaches_without_students":9,"exhausted":true,"next_after_coach_id":null,"failures":[],"request_id":"a72af931-d77a-413d-a876-fa1128937487"}
+
+▌ schedule-checkins-v2 → HTTP 200 {"success":true,"scheduled":0,"action_morning_scheduled":0,"action_morning_followup_scheduled":0,"light_greeting_scheduled":0,"action_evening_review_scheduled":0,"action_late_afternoon_scheduled":0,"action_night_prep_scheduled":0,"weekly_progress_review_scheduled":0,"weekly_progress_review_skipped_new_user":0,"birthday
+
+▌ process-checkins → HTTP 200 {"message":"No checkins to process","flushed_deferred":0,"delivered_rendez_vous":0,"processed_access_notifications":0,"enqueued_daily_bilan_winbacks":0,"swept_reengagement_episodes":0,"extracted_reengagement_episodes":0,"processed_reengagement_outcomes":0,"processed_proactive_candidates":0,"request_id":"8d182c86-f3f8-4
+
+▌ décideurs lisant encore une colonne gelée : aucun (grep sans commentaires, vide)
