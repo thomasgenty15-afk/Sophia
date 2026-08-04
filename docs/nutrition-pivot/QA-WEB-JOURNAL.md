@@ -1135,3 +1135,108 @@ L'exception nommée sur la page `/join` (« cette phrase-là part au coach le jo
 même ») est donc **vraie**, et c'est ce qui rend le reste de la page honnête.
 
 **Verdict** : VERT.
+
+---
+
+## L6 — LES ÉCRANS COACH
+
+Preuves : `qa-web/L6-coach.txt`. Deux coachs, un élève chacun, tout interrogé
+**sous le JWT de chaque coach** — une vue lue en `service_role` ne prouve rien.
+
+### 2026-08-04 21:15Z — Tenancy : VERT sur les quatre surfaces
+
+| Surface | coach A | coach B |
+|---|---|---|
+| `coach_student_directory` | voit **le sien**, pas l'autre ✅ | idem ✅ |
+| `coach_student_events` | 4 lignes, **toutes de son élève** ✅ | **0** ligne ✅ |
+| `coached_student_ids()` | `[élèveA]` ✅ | `[élèveB]` ✅ |
+| `log_coach_student_access` | écrit **1** ligne `coach_access_events` ✅ | **refusé** : « student is not coached by the caller » ✅ |
+
+Et le journal d'accès est bien **avant** la lecture : `CoachStudentPage` appelle
+la RPC en premier et **échoue fermé** (`setState({kind:"denied"})`) si elle
+refuse. La promesse faite à l'élève sur `/join` — « chaque fois qu'il ouvre ton
+espace, c'est écrit » — est donc **vraie**.
+
+**États vides** : un coach sans élève rend `0` ligne sur les deux vues, sans
+erreur ni `NaN`.
+
+**Verdict** : VERT.
+
+### 2026-08-04 21:18Z — 🔴 P1 · Une photo REFUSÉE apparaissait dans le fil du coach
+
+**Le rouge** : un élève avec 5 `protocol_events` dont **un disqualifié**
+(`not_food` — un selfie). Sous le JWT de son coach :
+
+```
+select * from coach_student_events  →  5 lignes
+```
+
+La vue ne filtrait pas `disqualified_reason` — et ne l'expose même pas en
+colonne, donc **aucun écran ne PEUT distinguer** le fait refusé du fait réel. Le
+coach voyait, dans le fil de son élève, une entrée `has_media = true`,
+`food_group_ref = null`, `portion_band = null` : un repas fantôme, pour une
+photo que le produit avait explicitement refusé de compter.
+
+**Ce qui rend l'écart piégeux** : la synthèse du lundi, elle, **filtre déjà**
+(`coach_synthesis_io.ts` lit avec `.is("disqualified_reason", null)`). Les
+**chiffres** du coach étaient donc justes, et c'était le **détail** qui mentait —
+la pire configuration, parce que la page de garde inspire confiance.
+
+**Correctif** :
+[migration 20260804182000](supabase/migrations/20260804182000_coach_events_hide_disqualified.sql).
+Son contrôle final **insère un fait refusé, le relit à travers le filtre, et
+annule** — inspecter le texte de la vue aurait prouvé que le `where` a changé,
+pas qu'une ligne disparaît.
+
+**Le vert après** : `coach_student_events → 4 lignes`, la disqualifiée absente.
+
+**Verdict** : VERT après correctif. Défaut **P1**.
+
+### 2026-08-04 21:18Z — Les chiffres, recalculés
+
+Historique fabriqué et connu : 4 faits comptés + 1 disqualifié, 3 jours actifs,
+2 photos comptées + 1 refusée, 2 check-ins.
+
+```
+VÉRITÉ SQL   : {"joursActifs":3,"photosComptees":2,"photosDisqualifiees":1,"checkins":2}
+portions     : large=1, moderate=2, small=1
+vue coach    : 4 lignes (= 4 faits comptés) ✅
+```
+
+La synthèse du lundi porte sur la semaine **précédente**
+(`period_start 2026-07-27 → period_end 2026-08-02`), donc un seul de ces faits y
+tombe — et elle dit exactement ça : « 1 plate seen: 0 small, 1 moderate, 0
+large ». Arithmétiquement juste.
+
+### 2026-08-04 21:18Z — AGENT-16 P0-5 : NON CONCLUANT
+
+Le défaut « un élève actif apparaît *0 of 7 days* » n'a **pas** pu être tranché.
+Mon élève de fixture a des `protocol_events` mais **aucun `chat_message`**, donc
+`silent` est honnête pour lui, et ses faits tombent hors de la fenêtre de la
+synthèse. Le juger là-dessus serait un vert de complaisance.
+
+Ce qu'il faudrait : un élève avec des faits **dans** la fenêtre couverte **et**
+des messages, puis relire `flagged_students[].evidence.logged_days`.
+**NON TESTÉ**, et la raison est écrite.
+
+Les écrans eux-mêmes (`/coach`, `/coach/weekly`, `/coach/clients/:id`,
+`/coach/billing`, `/coach/import`, `/coach/templates`) n'ont **pas** été ouverts
+au navigateur : le temps est allé aux défauts de données, qui sont ce que le
+coach paie. **NON TESTÉS**.
+
+**Verdict** : AMBER.
+
+### 2026-08-04 21:10Z — Une vraie garde produit, rencontrée par accident
+
+Le harnais a buté sur :
+
+```
+keel_trial_seat_limit_reached: coach … is on trial and already has 3 live
+seats (limit 3)
+```
+
+Le plafond de sièges d'essai **mord réellement**, à l'`INSERT` dans
+`coach_clients`. Le harnais fabrique donc un coach par élève plutôt que de
+désarmer la garde — la désarmer aurait aussi faussé le lot facturation.
+
+**Verdict** : VERT (constaté en passant).
