@@ -79,6 +79,7 @@ declare
   v_plan_id uuid;
   v_timezone text;
   v_kind text;
+  v_version integer;
 begin
   select c.coach_kind into v_kind from public.coaches c where c.id = p_coach_id;
   if v_kind is distinct from 'house' then
@@ -109,13 +110,24 @@ begin
     from public.profiles p where p.id = p_user_id;
   v_timezone := coalesce(v_timezone, 'UTC');
 
+  -- LA VERSION SE SUIT, elle ne se réinvente pas à 1.
+  --
+  -- Trouvé en relecture à froid, sur un chemin bien atteignable: un inscrit libre
+  -- passe à un vrai coach (son protocole de découverte devient `superseded`),
+  -- quitte ce coach, puis revient sur la porte libre. Un `version = 1` en dur
+  -- écrirait une SECONDE ligne version 1 pour le même élève — rien ne l'interdit
+  -- (l'index unique ne porte que sur « un seul publié »), et l'historique de ses
+  -- protocoles devient inordonnable.
+  select coalesce(max(pv.version), 0) + 1 into v_version
+    from public.plan_versions pv where pv.student_id = p_user_id;
+
   insert into public.plan_versions (
     coach_id, student_id, version, status, title, content_locale, timezone,
     anchor_week_start, duration_weeks, published_at, published_by,
     notes_for_student
   )
   values (
-    p_coach_id, p_user_id, 1, 'published',
+    p_coach_id, p_user_id, v_version, 'published',
     'KEEL discovery program', 'en-US', v_timezone,
     (date_trunc('week', (now() at time zone v_timezone))::date), 12,
     now(),

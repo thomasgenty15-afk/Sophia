@@ -86,10 +86,27 @@ revoke all on function public.coach_student_history_floor(uuid) from public, ano
 grant execute on function public.coach_student_history_floor(uuid) to authenticated, service_role;
 
 -- ---------------------------------------------------------------------------
--- Les trois vues d'activité. `security_invoker` et les GRANT sont conservés à
--- l'identique: `create or replace view` ne les touche pas, mais A13 a montré
--- qu'un `drop`/`create` les perd en silence (revoke from public laisse anon).
--- On ne DROP donc rien ici.
+-- Les trois vues d'activité.
+--
+-- ── `security_invoker = off` EST RÉAFFIRMÉ APRÈS CHAQUE VUE, ET C'EST UNE
+--    CORRECTION DE CE FICHIER (relecture à froid) ──────────────────────────
+-- La première version de cette migration se contentait d'un `create or replace
+-- view` en supposant que les options survivaient. Elles ne survivent PAS:
+-- mesuré, `pg_class.reloptions` passait de `{security_invoker=off}` à NULL sur
+-- les trois vues.
+--
+-- Le comportement, lui, ne changeait pas — `off` est la valeur par défaut de
+-- PostgreSQL — donc AUCUN test ne pouvait le voir. C'est précisément ce qui rend
+-- l'omission dangereuse: les trois vues étaient marquées `off` DÉLIBÉRÉMENT, et
+-- la migration 20260803100000 explique pourquoi (la vue lit `chat_messages` avec
+-- les droits du PROPRIÉTAIRE, parce que le coach n'a aucune policy dessus — c'est
+-- la vue elle-même qui porte la tenancy, via `coached_student_ids()`).
+--
+-- Si quelqu'un remettait `on` un jour, le coach ne lirait plus RIEN: pas une
+-- fuite, une mort silencieuse de la fonctionnalité. Une intention écrite noir sur
+-- blanc dans le schéma vaut mieux qu'un défaut de moteur sur lequel on compte.
+-- Les GRANT, eux, survivent bien à `create or replace` (vérifié: `anon` n'a
+-- aucun privilège sur les trois).
 -- ---------------------------------------------------------------------------
 
 create or replace view public.coach_student_events as
@@ -104,6 +121,8 @@ create or replace view public.coach_student_events as
     and disqualified_reason is null
     and occurred_at >= public.coach_student_history_floor(user_id);
 
+alter view public.coach_student_events set (security_invoker = off);
+
 create or replace view public.coach_student_contact as
   select
     user_id as student_user_id,
@@ -116,6 +135,8 @@ create or replace view public.coach_student_contact as
   where user_id = any (((select public.coached_student_ids()))::uuid[])
     and created_at >= public.coach_student_history_floor(user_id)
   group by user_id;
+
+alter view public.coach_student_contact set (security_invoker = off);
 
 create or replace view public.coach_student_pulse as
   with scoped as (
@@ -149,3 +170,5 @@ create or replace view public.coach_student_pulse as
   from scoped s
   left join dominant d on d.user_id = s.user_id and d.week_start = s.week_start
   group by s.user_id, s.week_start, d.axis;
+
+alter view public.coach_student_pulse set (security_invoker = off);

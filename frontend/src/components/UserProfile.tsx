@@ -32,27 +32,11 @@ type TabType = 'general' | 'subscription' | 'settings';
 
 type Profile = {
   full_name: string | null;
-  phone_number?: string | null;
   timezone?: string | null;
   locale?: string | null;
   tz_follow_device?: boolean | null;
 };
 
-type ProfilePhoneUpdate = {
-  phone_number: string | null;
-  phone_verified_at: null;
-  whatsapp_opted_in: boolean;
-  whatsapp_bilan_opted_in: boolean;
-  whatsapp_last_inbound_at: null;
-  whatsapp_last_outbound_at: null;
-  whatsapp_state: null;
-  whatsapp_state_updated_at: string;
-  phone_invalid: boolean;
-  whatsapp_optin_sent_at: null;
-  whatsapp_opted_out_at: null;
-  whatsapp_optout_reason: null;
-  whatsapp_optout_confirmed_at: null;
-};
 
 function getErrorMessage(err: unknown, fallback: string) {
   if (err instanceof Error && err.message) return err.message;
@@ -73,13 +57,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
   const [fullNameDraft, setFullNameDraft] = useState<string>("");
-  const [phoneDraft, setPhoneDraft] = useState<string>("");
-  const [originalPhone, setOriginalPhone] = useState<string>("");
 
-  const [phoneEditOpen, setPhoneEditOpen] = useState<boolean>(false);
-  const [phoneLoading, setPhoneLoading] = useState<boolean>(false);
-  const [phoneError, setPhoneError] = useState<string | null>(null);
-  const [phoneSuccess, setPhoneSuccess] = useState<string | null>(null);
 
   const [emailEditOpen, setEmailEditOpen] = useState<boolean>(false);
   const [emailDraft, setEmailDraft] = useState<string>("");
@@ -107,7 +85,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
       const fetchProfile = async () => {
         const { data } = await supabase
           .from('profiles')
-          .select('full_name, phone_number, timezone, locale, tz_follow_device')
+          .select('full_name, timezone, locale, tz_follow_device')
           .eq('id', user.id)
           .single();
         
@@ -115,12 +93,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
           const loadedProfile = data as Profile;
           setProfile(loadedProfile);
           setFullNameDraft(loadedProfile.full_name || user?.user_metadata?.full_name || "");
-          const p = loadedProfile.phone_number ?? "";
-          // IMPORTANT: Ne pas écraser phoneDraft si l'utilisateur est en train d'éditer ?
-          // Pour faire simple et éviter les conflits, on update le draft seulement si on vient d'ouvrir ou charger.
-          // Ici c'est le fetch initial.
-          setPhoneDraft(p);
-          setOriginalPhone(p);
 
           const tz = (loadedProfile.timezone ?? "").trim();
           setTimezoneDraft(tz || detectBrowserTimezone() || DEFAULT_TIMEZONE);
@@ -131,14 +103,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
     }
   }, [user]);
 
-  // Update phone draft if profile loads later or changes externally
-  useEffect(() => {
-    if (profile && !phoneEditOpen) {
-       const p = (profile.phone_number ?? "") as string;
-       setPhoneDraft(p);
-       setOriginalPhone(p);
-    }
-  }, [profile, phoneEditOpen]);
 
   useEffect(() => {
     if (!shouldRender) return;
@@ -149,9 +113,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
     setEmailSuccess(null);
     setEmailDraft(displayEmail);
     setEmailEditOpen(false);
-    setPhoneError(null);
-    setPhoneSuccess(null);
-    setPhoneEditOpen(false);
     setPrefsError(null);
     setPrefsSuccess(null);
   }, [shouldRender, initialTab, displayEmail]);
@@ -178,113 +139,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
   const successColor = isArchitect ? "text-emerald-300" : "text-emerald-700";
   const errorColor = isArchitect ? "text-red-300" : "text-red-600";
 
-  function normalizePhoneInput(raw: string): string | null {
-    const cleaned = (raw ?? "").trim().replace(/[()\s.-]/g, "");
-    if (!cleaned) return null;
-    // Common FR case: 06/07XXXXXXXX => +336/7XXXXXXXX
-    if (/^0[67]\d{8}$/.test(cleaned)) return `+33${cleaned.slice(1)}`;
-    if (cleaned.startsWith("00") && /^\d+$/.test(cleaned.slice(2))) return `+${cleaned.slice(2)}`;
-    if (cleaned.startsWith("+") && /^\+\d{8,15}$/.test(cleaned)) return cleaned;
-    throw new Error("Invalid number. Use the international format, e.g. +33612345678.");
-  }
-
-  const handleUpdatePhone = async () => {
-    if (!user) return;
-    setPhoneLoading(true);
-    setPhoneError(null);
-    setPhoneSuccess(null);
-
-    try {
-      const nextPhone = normalizePhoneInput(phoneDraft);
-      const prevPhone = (originalPhone ?? "").trim();
-      const nextPhoneStr = (nextPhone ?? "").trim();
-      const phoneChanged = (prevPhone || "") !== (nextPhoneStr || "");
-
-      if (!phoneChanged) {
-        setPhoneSuccess("Number unchanged.");
-        setPhoneEditOpen(false);
-        return;
-      }
-
-      // Friendly pre-check: block numbers already used by a verified / WhatsApp-active account.
-      // (DB also enforces this in some paths, but this gives a better UX.)
-      try {
-        const { data: inUse, error: inUseErr } = await supabase.rpc('is_verified_phone_in_use', {
-          p_phone: nextPhoneStr,
-        });
-        if (inUseErr) throw inUseErr;
-        if (inUse) {
-          throw new Error("This number is already used by another account.");
-        }
-      } catch (precheckErr) {
-        // Best-effort: if the precheck fails due to permissions/network, we don't hard-block,
-        // but we still let the DB constraints/logic protect us.
-        console.warn('Phone in-use precheck failed (non-blocking):', precheckErr);
-      }
-
-      const nowIso = new Date().toISOString();
-      const updatePayload: ProfilePhoneUpdate = {
-        phone_number: nextPhone,
-        // Reset phone verification marker (new number must be re-validated)
-        phone_verified_at: null,
-        // Reset WhatsApp flags/state for the new number
-        whatsapp_opted_in: false,
-        whatsapp_bilan_opted_in: false,
-        whatsapp_last_inbound_at: null,
-        whatsapp_last_outbound_at: null,
-        whatsapp_state: null,
-        whatsapp_state_updated_at: nowIso,
-        phone_invalid: false,
-        whatsapp_optin_sent_at: null,
-        whatsapp_opted_out_at: null,
-        whatsapp_optout_reason: null,
-        whatsapp_optout_confirmed_at: null,
-      };
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .update(updatePayload)
-        .eq('id', user.id)
-        .select('phone_number')
-        .single();
-
-      if (error) throw error;
-
-      if (data) {
-        setProfile((prev) => ({ ...(prev ?? { full_name: null }), phone_number: data.phone_number }));
-        setOriginalPhone(data.phone_number ?? "");
-        setPhoneDraft(data.phone_number ?? "");
-      }
-
-      // Best-effort: notify user by email about the phone number change.
-      try {
-        const notifyReqId = newRequestId();
-        const { error: notifyErr } = await supabase.functions.invoke('notify-profile-change', {
-          body: { kind: 'phone_changed', old_phone: prevPhone || null, new_phone: nextPhoneStr || null },
-          headers: requestHeaders(notifyReqId),
-        });
-        if (notifyErr) console.warn('Phone change notify failed (non-blocking):', notifyErr);
-      } catch (e) {
-        console.warn('Phone change notify failed (non-blocking):', e);
-      }
-
-      // DE-WHATSAPP: le renvoi d'opt-in Meta disparaît. Il n'y a plus de canal
-      // à autoriser — le numéro reste la clé d'identité, mais la conversation
-      // vit dans l'app et n'a rien à demander à Meta.
-
-      setPhoneSuccess("Number updated.");
-      setPhoneEditOpen(false);
-    } catch (err: unknown) {
-      const msg = getErrorMessage(err, "Could not save the number.");
-      if (typeof msg === "string" && (msg.toLowerCase().includes("duplicate") || msg.toLowerCase().includes("unique"))) {
-        setPhoneError("This number is already used by another account.");
-      } else {
-        setPhoneError(msg);
-      }
-    } finally {
-      setPhoneLoading(false);
-    }
-  };
 
   const handleSaveProfile = async () => {
     if (!user) return;
@@ -294,7 +148,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
     try {
       const nextFullName = (fullNameDraft ?? "").trim() || null;
       
-      // On ne sauvegarde que le nom ici maintenant, le téléphone est géré à part.
+      // Le nom, et lui seul: le téléphone n'est plus une donnée que cette page
+      // (ni aucune autre) fait saisir — voir le bloc retiré plus bas.
       // Sauf si on veut garder la compatibilité ? 
       // Pour être safe et cohérent avec l'UI scindée, on ne touche qu'au nom.
 
@@ -612,86 +467,27 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                       </div>
                     )}
                   </div>
-                  <div>
-                    <label className={`block text-xs font-medium mb-1.5 ${isArchitect ? "text-emerald-400" : "text-slate-500"}`}>Phone</label>
-                    
-                    {!phoneEditOpen ? (
-                       <div className="relative">
-                          <input 
-                            type="text" 
-                            value={originalPhone || "No number"} 
-                            className={`${styles.input} opacity-70`} 
-                            readOnly 
-                          />
-                          <div className={`absolute right-3 top-3 ${isArchitect ? "text-emerald-500" : "text-emerald-600"}`}>
-                             {originalPhone && <Check className="w-4 h-4" />}
-                          </div>
-                       </div>
-                    ) : null}
+                  {/* ── LE NUMÉRO DE TÉLÉPHONE A ÉTÉ RETIRÉ D'ICI (2026-08-05) ────
+                      Ce bloc laissait l'utilisateur SAISIR et ÉCRIRE
+                      `profiles.phone_number` — plus `phone_verified_at`,
+                      `whatsapp_opted_in`, `whatsapp_bilan_opted_in`,
+                      `whatsapp_state`… — c'est-à-dire précisément les colonnes
+                      que le pivot de-whatsapp a gelées.
 
-                    <div className="mt-2 flex items-center justify-between gap-3">
-                      {!phoneEditOpen && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setPhoneDraft(originalPhone);
-                            setPhoneError(null);
-                            setPhoneSuccess(null);
-                            setPhoneEditOpen(true);
-                          }}
-                          className={`text-xs font-semibold underline ${
-                            isArchitect ? "text-emerald-400 hover:text-emerald-300" : "text-slate-600 hover:text-slate-900"
-                          }`}
-                        >
-                          Change my number
-                        </button>
-                      )}
-                      
-                      {phoneSuccess && <div className={`text-xs ${successColor}`}>{phoneSuccess}</div>}
-                      {phoneError && <div className={`text-xs ${errorColor}`}>{phoneError}</div>}
-                    </div>
+                      Trouvé en relecture à froid, après avoir retiré le mur du
+                      téléphone de l'inscription: geler des colonnes en base et
+                      laisser une interface vivante les écrire, c'est le motif
+                      « ceinture armée sur coffre vide » que ce dépôt passe son
+                      temps à retrouver. Et /account n'est pas une page morte —
+                      c'est là que `resolveHomePath` envoie quiconque dont le
+                      rôle ne se résout pas.
 
-                    {phoneEditOpen && (
-                      <div className={`mt-3 p-3 rounded-xl border ${isArchitect ? "bg-emerald-900/30 border-emerald-800" : "bg-white border-slate-200"}`}>
-                        <div className="space-y-2">
-                          <input
-                            type="tel"
-                            value={phoneDraft}
-                            onChange={(e) => setPhoneDraft(e.target.value)}
-                            className={styles.input}
-                            placeholder="Ex: +33612345678"
-                          />
-                          
-                          <div className="flex items-center justify-end gap-2">
-                            <button
-                              type="button"
-                              onClick={() => setPhoneEditOpen(false)}
-                              className={`px-3 py-2 rounded-lg text-xs font-bold border ${
-                                isArchitect ? "border-emerald-800 text-emerald-200 hover:bg-emerald-900/40" : "border-slate-200 text-slate-600 hover:bg-slate-50"
-                              }`}
-                              disabled={phoneLoading}
-                            >
-                              Cancel
-                            </button>
-                            <button
-                              type="button"
-                              onClick={handleUpdatePhone}
-                              className={`px-3 py-2 rounded-lg text-xs font-bold ${
-                                isArchitect ? "bg-emerald-700 hover:bg-emerald-600 text-white" : "bg-slate-900 hover:bg-slate-800 text-white"
-                              }`}
-                              disabled={phoneLoading}
-                            >
-                              {phoneLoading ? "Saving…" : "Confirm"}
-                            </button>
-                          </div>
-                          
-                          <p className={`text-[11px] leading-snug ${isArchitect ? "text-emerald-500/80" : "text-slate-500"}`}>
-                            Required format: international (E.164), e.g. +33612345678. Your number identifies your account; the conversation itself lives in the app.
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                      Son `normalizePhoneInput` portait le même biais français
+                      que celui de /auth (06/07 → +33), sur un produit anglais.
+
+                      Rien n'est perdu: la colonne existe toujours et porte
+                      l'historique B2C (voir `comment on column`). Ce qui
+                      disparaît est la SAISIE. */}
                 </div>
 
                 <div className="mt-6 space-y-2">
