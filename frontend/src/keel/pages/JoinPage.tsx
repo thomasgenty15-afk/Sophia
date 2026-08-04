@@ -209,6 +209,33 @@ export default function JoinPage() {
       });
       return;
     }
+    // LE FUSEAU, ET IL N'Y A QUE LE NAVIGATEUR POUR LE SAVOIR.
+    //
+    // Mesuré (QA WEB L2): un visiteur DÉJÀ connecté qui accepte ici ne passait
+    // par aucun `signUp`, donc par aucune métadonnée — son `profiles.timezone`
+    // restait NULL. Et un fuseau NULL fait rendre `null` à `localHourFor`, ce
+    // qui range l'élève en `outside_window` à CHAQUE tick de
+    // `keel-daily-pulse-v1`. Silencieusement, pour toujours: il ne recevrait
+    // jamais son tap du soir, et rien dans le compte-rendu du job ne le
+    // distinguerait d'un élève qui dort.
+    //
+    // Écrit APRÈS l'acceptation, jamais avant: un fuseau posé sur un jeton
+    // refusé serait une écriture sur un visiteur qui n'est pas devenu élève.
+    // Et l'échec est AVALÉ — la relation coach↔élève est faite et validée
+    // côté serveur; la perdre pour un patch de confort serait le mauvais
+    // arbitrage (même règle que le try/catch de `handle_new_user()`).
+    try {
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      if (timezone) {
+        await supabase
+          .from("profiles")
+          .update({ timezone, tz_follow_device: true })
+          .eq("id", user!.id)
+          .is("timezone", null);
+      }
+    } catch {
+      // Volontairement muet: voir ci-dessus.
+    }
     // Spent: the server has ruled. Leaving it in storage would replay the same
     // `already_accepted` at every future sign-in.
     clearStoredCoachInviteToken();

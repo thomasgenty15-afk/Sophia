@@ -1,0 +1,50 @@
+[1] invitation 044ec624-9405-4608-be6d-328f67dbb8d8
+[1] JOIN_URL_A=http://localhost:5173/join?token=_JHxHqQxkLXhltJDTidfnFCE3V_BLwwBibsogsY4RS4
+[1] preview (anon, aucun compte): {"data":{"email":"qa-join-a-17858735045311f3056@test.dev","valid":true,"coach_first_name":"Marlow"},"error":null}
+[1b] colonnes rendues: 
+
+[2] jeton bidon: {"data":{"valid":false,"reason":"invalid_token"},"error":null}
+[2] jeton vide : {"data":{"valid":false,"reason":"invalid_token"},"error":null}
+
+[3] jeton expiré: {"data":{"valid":false,"reason":"expired"},"error":null}
+
+[4] accept (connecté) → {"data":{"accepted":true,"coach_first_name":"Marlow"}}
+[4] profil après: keel_role|country|tz|locale
+student|GB|<null>|en-US
+(1 row)
+[4] coach_clients: status|linked
+active|t
+(1 row)
+[4] invitation: status|accepted
+accepted|t
+(1 row)
+
+[5] REJEU sur un autre compte → {"data":{"reason":"already_accepted","accepted":false}}
+[5] profil du rejoueur: coalesce
+<null>
+(1 row)
+[5] lignes coach_clients pour ce coach: count
+1
+(1 row)
+
+[6] signUp avec jeton → ok user=8bcae3ea-0470-40d2-812d-a337cecb56bd
+[6] profil: keel_role|country|tz|locale
+student|GB|<null>|en-US
+(1 row)
+[6] lien: status|linked
+active|t
+(1 row)
+[6] invitation: status
+accepted
+(1 row)
+
+[7] coach 2 invite un élève déjà pris → 409 {"error":"student_already_coached","request_id":"55ed0dc9-01cb-4dba-949b-1009e571d57d"}
+
+[8] pays + langue des élèves fabriqués par CE parcours (le P0 connu):
+country|locale|tz|count
+GB|en-US|<NULL>|2
+(1 row)
+[8] visiteur connecté: profil={"country":"GB","locale":"en-US"} → pays=GB (profile_country) → 116 123 fallback=false
+[8] inscrit par le lien: profil={"country":"GB","locale":"en-US"} → pays=GB (profile_country) → 116 123 fallback=false
+
+context: {"coachId":"8c6d9153-c117-405c-9ae9-53c362c4e186","joinUrlA":"http://localhost:5173/join?token=_JHxHqQxkLXhltJDTidfnFCE3V_BLwwBibsogsY4RS4","expiredUrl":"http://localhost:5173/join?token=51zR3zQEBKwJls63XdCZ8vWOEgzzS28UV_AOOEvhn5Y"}

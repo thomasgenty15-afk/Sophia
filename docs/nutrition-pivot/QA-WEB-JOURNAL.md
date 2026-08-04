@@ -273,3 +273,210 @@ produit). **Documenté**, à trancher : `save` devrait au minimum rendre
 `issues` et refuser un `publish` dont le bloc compilé est vide.
 
 **Verdict** : AMBER. Défaut **P2**.
+
+---
+
+## L2 — ENTRÉE ÉLÈVE
+
+### 2026-08-04 19:52Z — Les états de `/join`, au navigateur
+
+**Geste** : `/join?token=…` joué dans le navigateur pour quatre états, avec de
+VRAIES invitations émises par `coach-invite-student-v1`.
+
+| État | Ce que la page dit |
+|---|---|
+| jeton valide | « Marlow invited you to their coaching program » + la page de consentement entière (ce que le coach voit / ne voit pas), en anglais |
+| jeton expiré | « This invitation cannot be used — This invitation has expired. Ask your coach for a new one. » |
+| jeton bidon | même écran, motif `invalid_token` |
+| **aucun** jeton | « You'll need your coach's link — There is no sign-up here. » |
+
+Aucun écran blanc, aucune clé i18n brute, aucun texte français résiduel.
+
+**Preuve API** (`qa-web/L2-join.txt`) : `preview_coach_invitation` ne rend que
+`{email, valid, coach_first_name}` — rien d'autre sur la relation de coaching.
+Rejeu du même jeton sur un second compte → `already_accepted`, aucun rôle
+accordé, toujours **1** ligne `coach_clients`. Un second coach qui invite un
+élève déjà pris → **409 `student_already_coached`**.
+
+**Verdict** : VERT.
+
+---
+
+### 2026-08-04 19:55Z — 🔴 P0 · `country` NULL ⇒ un élève britannique reçoit la ligne de crise FRANÇAISE
+
+Le prompt annonçait ce défaut comme « connu, seule la capture manque ». La voici.
+
+**Le rouge** — un élève invité par un coach **GB**, arrivé par `/join` :
+
+```
+[4] profil après acceptation:  keel_role=student  country=<null>  tz=<null>  locale=fr-FR
+```
+
+`accept_coach_invitation_for_user` n'écrivait **que** `keel_role`. Le `fr-FR`
+est le défaut legacy de `handle_new_user()`, que personne n'a choisi.
+
+**La conséquence, jouée contre le VRAI résolveur** :
+
+```
+crisisCountryForProfile({country:null, locale:'fr-FR'})
+  → { country: 'FR', source: 'locale' }
+resolveCrisisResources('FR','suicide')
+  → 3114 « National suicide prevention line »   fallbackUsed: FALSE
+```
+
+Un élève britannique en détresse reçoit un numéro **français**, qui ne décroche
+pas depuis le Royaume-Uni — et `fallbackUsed` est **faux**, donc rien ne
+signale la dégradation. Le commentaire de `crisis_resources.ts` décrit
+exactement ce scénario comme celui que `profiles.country` devait fermer : la
+colonne existait, ce chemin ne la remplissait pas.
+
+**Deuxième conséquence, silencieuse celle-là** : `timezone` NULL fait rendre
+`null` à `localHourFor`, ce qui range l'élève en **`outside_window` à chaque
+tick** de `keel-daily-pulse-v1`. Il ne recevrait **jamais** son tap du soir, et
+rien dans le compte-rendu du job ne le distinguerait d'un élève qui dort.
+
+**Correctifs**
+- [migration 20260804180000](supabase/migrations/20260804180000_join_sets_student_locale_and_country.sql)
+  — l'acceptation pose `locale='en-US'` (KEEL est anglais ; le formulaire de
+  `/join` le passait déjà en dur, seul le chemin « visiteur déjà connecté » ne
+  l'écrivait pas) et, **à défaut**, le pays **déclaré du coach**. Ce n'est pas
+  une devinette : c'est une valeur choisie dans un sélecteur, en sachant
+  qu'elle sert aux ressources de crise. `country is null` reste la seule garde,
+  donc un élève qui déclare le sien gagne.
+- [JoinPage.tsx](frontend/src/keel/pages/JoinPage.tsx:210) — le **fuseau**, que
+  seul le navigateur connaît, écrit après une acceptation réussie.
+
+**Le vert après**, mesuré sur les deux chemins d'entrée :
+
+```
+[8] visiteur connecté  : {"country":"GB","locale":"en-US"} → GB (profile_country) → 116 123
+[8] inscrit par le lien: {"country":"GB","locale":"en-US"} → GB (profile_country) → 116 123
+```
+
+Et par un **vrai clic du pilote** sur « Accept invitation » :
+
+```
+role=student | country=GB | tz=Europe/Paris | locale=en-US | tz_follow_device=t
+```
+
+**Verdict** : VERT après correctif. Défaut **P0**.
+
+---
+
+### 2026-08-04 20:00Z — 🔴 P0 · Aucun utilisateur ne pouvait modifier son propre profil
+
+Trouvé **par accident**, en vérifiant que le correctif précédent écrivait bien
+le fuseau : il ne l'écrivait pas, et la raison n'était pas le correctif.
+
+**Le rouge**, dans la vraie page, avec la vraie session d'un élève :
+
+```js
+supabase.from('profiles').update({ timezone: 'Europe/London' })
+→ { code: '42703',
+    message: 'record "new" has no field "pre_deletion_whatsapp_opted_in"' }
+```
+
+`guard_profiles_privileged_columns()` — le trigger BEFORE UPDATE qui protège
+les colonnes de facturation et d'état de suppression — lit
+`new.pre_deletion_whatsapp_opted_in`. La colonne a été **renommée** en
+`pre_deletion_proactive_muted` par `20260804152000`. PL/pgSQL ne résout ses
+champs qu'à l'**exécution** : rien n'échoue au `rename`, tout échoue au premier
+`update`.
+
+**Portée** : **TOUT** `update` sur `profiles` par un utilisateur final — le nom,
+le fuseau, la langue, les réglages de `/account`. Pas une colonne en
+particulier : la ligne fautive est évaluée à chaque UPDATE, quel que soit le
+champ touché.
+
+**Pourquoi c'était invisible, et c'est le vrai enseignement** : la garde est
+encadrée par `if current_user in ('authenticated','anon')`. Le `service_role`
+ne l'exécute **jamais** — et tout ce qui éprouve ce dépôt (suite Deno, crons,
+harnais, fixtures) écrit en `service_role`. Le seul chemin cassé est celui que
+rien n'emprunte sauf un vrai navigateur avec un vrai JWT d'élève.
+
+C'est la **troisième** fois que ce dépôt paie la leçon du renommage, et la
+version la plus fine : `STATUS-DEWHATSAPP` conclut qu'il faut trois épreuves
+d'absence (code, corps de fonctions SQL, vues). Il en manquait une quatrième,
+plus étroite — **les corps de trigger nomment aussi des COLONNES**, et un grep
+de noms de tables ne les attrape pas.
+
+**Correctif** :
+[migration 20260804181000](supabase/migrations/20260804181000_fix_profiles_guard_renamed_column.sql).
+Son contrôle final **rejoue le geste** sous l'identité `authenticated` dans une
+sous-transaction, plutôt que d'inspecter `pg_proc.prosrc` — un contrôle textuel
+aurait prouvé que le nom a changé, pas que l'UPDATE passe.
+
+**Le vert, et son contre-factuel** (la garde doit toujours mordre) :
+
+```json
+{"update":[{"timezone":"Europe/Paris","tz_follow_device":true}],
+ "error":null,
+ "garde_toujours_armee":"profiles.access_tier is managed by the billing system
+                         and cannot be modified directly"}
+```
+
+**Verdict** : VERT après correctif. Défaut **P0**.
+
+---
+
+### 2026-08-04 20:02Z — 🔴 P1 (infra) · Deux migrations portaient le même horodatage
+
+**Geste** : `ls supabase/migrations | sed 's/_.*//' | sort | uniq -d`
+
+```
+20260804170000     ← meal_precision_questions  ET  plan_inputs_direction_and_body
+```
+
+Et **aucune des deux n'était appliquée en local** (dernière appliquée :
+`20260804160000`). Deux conséquences :
+
+1. `supabase db push` casse sur la seconde : `schema_migrations` a `version`
+   pour clé primaire. La lignée était **inapplicable**, en local comme à
+   distance ;
+2. la table de plafond des **questions de précision** n'existait pas dans la
+   base locale — le lot L3-bis aurait été joué contre un schéma incomplet, et
+   ses verts n'auraient rien voulu dire.
+
+**Correctif** : `plan_inputs_direction_and_body` (la plus récente, encore WIP)
+renommée en `20260804171000`. Les deux migrations, puis les deux de cette QA,
+sont appliquées localement et inscrites dans `schema_migrations`.
+
+⚠️ **Pour la checklist du matin** : `db push` reste à faire par Thomas, avec un
+dump avant. La QA n'a touché QUE la base locale.
+
+**Verdict** : VERT après correctif. Défaut **P1**.
+
+---
+
+### 2026-08-04 20:04Z — Atterrissage dans la conversation
+
+**Geste** : après acceptation, `/app/chat` au navigateur.
+
+```
+Sophia — Your day-to-day, with your coach's method behind it.
+Nothing here yet. Say hello, or send a photo of your next meal.
+[Photo] [Send]
+```
+
+L'état vide dit quoi faire, en anglais. Navigation : Today · Chat · My week ·
+Meals · Progress · Account · Legal · Sign out.
+
+**Verdict** : VERT.
+
+---
+
+### NON TESTÉ — et pourquoi
+
+- **Le formulaire d'inscription de `/join` rempli à la main** (nom, email, mot
+  de passe tapés dans les champs). Les comptes de cette QA sont créés par l'API
+  et leur session est posée dans le `localStorage` — aucun mot de passe n'est
+  saisi dans un formulaire, aucun compte réel n'est touché. Le **mécanisme** que
+  ce formulaire déclenche est lui bien éprouvé : `signUp` avec
+  `raw_user_meta_data.coach_invite_token` → `handle_new_user()` →
+  `accept_coach_invitation_for_user` (cas [6], vert). Ce qui reste non prouvé
+  est la saisie elle-même et ses validations de champ.
+- **Les captures d'écran.** Les cinq serveurs de dev de ce dossier appartiennent
+  à d'autres sessions ; celui qu'on emprunte rend un `document.visibilityState`
+  = `hidden` et une image vide, alors que le DOM, l'arbre d'accessibilité et les
+  clics du pilote fonctionnent. Les preuves visuelles de cette QA sont donc du
+  **texte de page** et de l'**arbre d'accessibilité**, pas des images.
