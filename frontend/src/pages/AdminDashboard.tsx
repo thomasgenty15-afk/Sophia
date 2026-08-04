@@ -12,7 +12,7 @@ const ADMIN_LINKS = [
   {
     href: "/admin/production-log",
     label: "Production log",
-    description: "Journal de production agrege pour le web, WhatsApp, Stripe et les Edge Functions.",
+    description: "Journal de production agrege pour le web, la conversation, Stripe et les Edge Functions.",
     icon: Terminal,
   },
 ] as const;

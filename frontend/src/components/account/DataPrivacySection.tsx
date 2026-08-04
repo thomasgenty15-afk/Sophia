@@ -253,7 +253,7 @@ export default function DataPrivacySection({ isArchitect }: Props) {
               </button>
             )}
             <p className={`text-[11px] leading-snug ${mutedText}`}>
-              For your safety, a notification is sent on WhatsApp and by email for every export
+              For your safety, a notification is sent in your chat and by email for every export
               request. The file contains sensitive personal data: keep it somewhere safe.
             </p>
           </div>
@@ -342,7 +342,7 @@ export default function DataPrivacySection({ isArchitect }: Props) {
                   <p className="font-semibold text-slate-900">Here is what will happen:</p>
                   <ul className="mt-3 space-y-2 list-disc pl-5">
                     <li>Your access to the app is cut off immediately.</li>
-                    <li>Sophia stops writing to you on WhatsApp straight away.</li>
+                    <li>Sophia stops writing to you straight away.</li>
                     <li>
                       Your subscription is cancelled immediately, with no further charge. The
                       period already paid is not refunded pro rata.

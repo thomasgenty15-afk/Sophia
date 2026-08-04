@@ -658,21 +658,22 @@ function Explanation({ coach, label }: { coach: string | null; label?: string })
 
         <div className="mt-10 space-y-10">
           <Moment
-            where={t("join.day.where_whatsapp")}
+            where={t("join.day.where_chat")}
             title={t("join.day.photo_title")}
             body={t("join.day.photo_body", { coach: c })}
           />
           <Moment
-            where={t("join.day.where_whatsapp")}
+            where={t("join.day.where_chat")}
             title={t("join.day.evening_title")}
             body={t("join.day.evening_body")}
           >
             {/*
-              The three taps, literally. WhatsApp caps reply buttons at three,
-              which is why the evening question has three answers and not a
-              0-10 scale (`_shared/keel/daily_pulse.ts`) — and the tones are the
-              ones /app/progress already renders these three states in, so the
-              student meets the same colours twice.
+              The three taps, literally. Three answers and not a 0-10 scale
+              (`_shared/keel/daily_pulse.ts`): the cap came from WhatsApp
+              originally, and it SURVIVES the move in-app because it was the
+              right shape anyway — a tired student at 8pm answers three buttons,
+              not a slider. The tones are the ones /app/progress already renders
+              these three states in, so the student meets the same colours twice.
             */}
             <div className="mt-4 flex flex-wrap gap-2">
               <Badge tone="positive">{t("join.day.tap_good")}</Badge>
@@ -711,7 +712,7 @@ function Explanation({ coach, label }: { coach: string | null; label?: string })
 
 /**
  * One moment of the day. The eyebrow is the SURFACE, not a number: "on
- * WhatsApp" twice and "in this app" once is a true statement about where this
+ * chat" twice and "in this app" once is a true statement about where this
  * product lives, and 01/02/03 would only have said there are three of them.
  */
 function Moment({

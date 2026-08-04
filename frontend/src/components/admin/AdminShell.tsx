@@ -52,7 +52,7 @@ const NAV_ITEMS: Array<{
     id: "production-log",
     href: "/admin/production-log",
     label: "Logs",
-    detail: "Web, WhatsApp, Stripe, Edge",
+    detail: "Web, Chat, Stripe, Edge",
     icon: Terminal,
   },
 ];

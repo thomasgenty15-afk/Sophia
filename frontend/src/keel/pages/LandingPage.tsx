@@ -46,12 +46,12 @@ import { t, type MessageKey } from "../i18n/t";
  *
  * NOTHING here promises what the product refuses to do, and — the harder
  * discipline — nothing here promises what the product has not yet PROVEN.
- * Concretely, the copy stays silent on: WhatsApp delivery outside a 24h window
- * (Meta templates are not approved), the weekly six-axis form (the Flow object
- * does not exist at Meta), weight tracking (the write path and the read path
- * disagree), and photo analysis against a live vision model (the v3 contract is
- * written, filtered and tested, but has never read an image — see
- * docs/keel/PHOTO_QUANTIFICATION.md and docs/nutrition-pivot/STATUS-MORNING.md).
+ * Concretely, the copy stays silent on: weight tracking (the write path and the
+ * read path disagree) and the coach-side one-to-one inbox (there is none, by
+ * design). Two silences have LIFTED since the de-whatsapp change: delivery no
+ * longer depends on Meta approving a template, and the weekly six-axis form now
+ * exists in the app (`WeeklyCheckInDialog`) instead of being a Flow object that
+ * had never been created at Meta.
  * A pilot coach who discovers that gap after paying is a pilot coach lost.
  *
  * ── DESIGN NOTES ─────────────────────────────────────────────────────────
@@ -442,7 +442,7 @@ function HowItWorks() {
             title={t("landing.how.step2_title")}
             body={t("landing.how.step2_body")}
           >
-            <WhatsAppMock />
+            <ChatMock />
           </Step>
           {/*
             The student's web space is a cadence of its own — theirs, on pull,
@@ -519,11 +519,12 @@ function Step({
  * of the day the product actually owns: a meal answered in the coach's method,
  * and the evening tap that the Monday page is built out of.
  *
- * The three buttons are literal: WhatsApp caps reply buttons at three, which is
- * why the pulse has three levels and not a 0-10 scale
- * (`_shared/keel/daily_pulse.ts`).
+ * The three buttons are literal: the pulse has three levels and not a 0-10
+ * scale (`_shared/keel/daily_pulse.ts`). The cap came from WhatsApp originally
+ * and survives the move in-app, because three buttons is the right shape for a
+ * tired student at 8pm.
  */
-function WhatsAppMock() {
+function ChatMock() {
   return (
     <div className="w-full lg:w-80">
       <div className="text-[0.6875rem] font-semibold uppercase tracking-wider text-gray-500">
@@ -563,7 +564,7 @@ function WhatsAppMock() {
 }
 
 /**
- * Schematic stand-in for the photo a student sends on WhatsApp. Deliberately
+ * Schematic stand-in for the photo a student sends in chat. Deliberately
  * NOT a photograph: a real plate picture here would read as someone's actual
  * meal, and we show no data we do not have. The two shapes are the two food
  * groups named back in the reply — greens and a protein — so the mock and the

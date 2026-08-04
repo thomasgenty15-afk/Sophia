@@ -610,7 +610,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                     )}
                   </div>
                   <div>
-                    <label className={`block text-xs font-medium mb-1.5 ${isArchitect ? "text-emerald-400" : "text-slate-500"}`}>Phone (WhatsApp)</label>
+                    <label className={`block text-xs font-medium mb-1.5 ${isArchitect ? "text-emerald-400" : "text-slate-500"}`}>Phone</label>
                     
                     {!phoneEditOpen ? (
                        <div className="relative">
@@ -683,7 +683,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                           </div>
                           
                           <p className={`text-[11px] leading-snug ${isArchitect ? "text-emerald-500/80" : "text-slate-500"}`}>
-                            Required format: international (E.164), e.g. +33612345678. If you change your number, we will ask for the WhatsApp opt-in again.
+                            Required format: international (E.164), e.g. +33612345678. Your number identifies your account; the conversation itself lives in the app.
                           </p>
                         </div>
                       </div>

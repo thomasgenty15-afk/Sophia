@@ -370,7 +370,7 @@ const UpgradePlan = () => {
               </div>
               <div className="flex items-start gap-3 opacity-50">
                 <X className="w-5 h-5 text-slate-400 flex-shrink-0" />
-                <span className="text-sm text-slate-400 line-through">Sophia sur WhatsApp</span>
+                <span className="text-sm text-slate-400 line-through">Sophia au quotidien</span>
               </div>
               <div className="flex items-start gap-3 opacity-50">
                 <X className="w-5 h-5 text-slate-400 flex-shrink-0" />
@@ -455,7 +455,7 @@ const UpgradePlan = () => {
               </div>
               <div className="flex items-start gap-3">
                 <MessageCircle className="w-5 h-5 text-emerald-400 flex-shrink-0 animate-pulse" />
-                <span className="text-sm text-emerald-400 font-bold">Sophia sur WhatsApp (24/7)</span>
+                <span className="text-sm text-emerald-400 font-bold">Sophia au quotidien (24/7)</span>
               </div>
               <div className="flex items-start gap-3">
                 <Zap className="w-5 h-5 text-emerald-400 flex-shrink-0" />

@@ -994,7 +994,7 @@ export const en = {
   // through"), which is the branch a student with an unnamed coach reads. The
   // possessive works on both substitutions.
   "join.lead":
-    "Sophia is {coach}'s assistant, and from today it is yours too. It carries their method — their convictions, their red lines, the calls they make when it gets complicated — and answers you in it, every day, on WhatsApp.",
+    "Sophia is {coach}'s assistant, and from today it is yours too. It carries their method — their convictions, their red lines, the calls they make when it gets complicated — and answers you in it, every day, in your chat here.",
   "join.lead_form_note":
     "The form is at the bottom. Read this first — it is what you are agreeing to.",
 
@@ -1013,13 +1013,13 @@ export const en = {
   "join.accepted.title": "You are in.",
   "join.accepted.title_with_coach": "You are in, with {coach}.",
   "join.accepted.body":
-    "Your space is open. The rest happens on WhatsApp — this is where you come to look at your week.",
+    "Your space is open. Sophia talks to you in Chat; this is where you come to look at your week.",
 
   // What the days actually look like. The eyebrow is the SURFACE, because
   // which screen a thing happens on is the useful fact: two of the three are
   // WhatsApp, and that asymmetry is the product.
   "join.day.title": "What this actually looks like",
-  "join.day.where_whatsapp": "On WhatsApp",
+  "join.day.where_chat": "In your chat",
   "join.day.where_app": "In this app",
   "join.day.photo_title": "You send a photo of your plate, whenever you want.",
   "join.day.photo_body":
@@ -1224,15 +1224,15 @@ export const en = {
   // Landing — hero
   "landing.seo_title": "Sophia — your method, answering every student, every day",
   "landing.seo_description":
-    "Sophia is the AI that answers a masterclass coach's students in their coach's own method and words, on WhatsApp, every day. You record your method once; every outgoing message is checked against your red lines before it is sent. On Monday you read one page — who is still talking, how the week felt, what they set themselves.",
+    "Sophia is the AI that answers a masterclass coach's students in their coach's own method and words, every day, in the app. You record your method once; every outgoing message is checked against your red lines before it is sent. On Monday you read one page — who is still talking, how the week felt, what they set themselves.",
   "landing.hero.kicker": "For coaches teaching a method at scale",
   "landing.hero.title": "You can't answer two hundred students. Your method can.",
   "landing.hero.subtitle":
-    "Sophia learns how you coach — your convictions, your red lines, your vocabulary, the calls you make on the hard cases — and answers in your place, on WhatsApp, all week. Every message is checked against your red lines before it goes out. On Monday, you read one page.",
+    "Sophia learns how you coach — your convictions, your red lines, your vocabulary, the calls you make on the hard cases — and answers in your place, all week. Every message is checked against your red lines before it goes out. On Monday, you read one page.",
   "landing.hero.cta_trial": "Start the 14-day trial",
   "landing.hero.cta_signin": "Sign in",
   "landing.hero.note":
-    "14 days, up to 3 students. They join by invitation, live it on WhatsApp, and get a space of their own on the web. There is no one-to-one inbox for you to keep up with.",
+    "14 days, up to 3 students. They join by invitation and get a space of their own, chat included. There is no one-to-one inbox for you to keep up with.",
 
   // Landing — schematic of the Monday page. Labels are the product's own; the
   // cohort is an example and says so (landing.mock.caption).
@@ -1259,8 +1259,8 @@ export const en = {
   "landing.mock.caption":
     "A schematic of the Monday page. The wording is the product's own; the cohort is an example.",
 
-  // Landing — the WhatsApp exchange, shown inside the “every day” step
-  "landing.mock.wa_label": "On WhatsApp, today",
+  // Landing — the chat exchange, shown inside the “every day” step
+  "landing.mock.wa_label": "In their chat, today",
   "landing.mock.photo_alt": "Photo of a plate, sent by a student",
   "landing.mock.chat_student": "Lunch — had to eat out today",
   "landing.mock.chat_sophia":
@@ -1292,9 +1292,9 @@ export const en = {
   "landing.how.step1_body":
     "A guided interview turns how you coach into something the agent can hold: your convictions, your red lines, your vocabulary, how you answer the hard cases, your tone. You read back exactly what it understood, then publish. Revise it whenever you like — an edit lands on the next message — and roll back to any earlier version without losing the history of what your students actually received.",
   "landing.how.step2_when": "Every day",
-  "landing.how.step2_title": "Your students live it, on WhatsApp",
+  "landing.how.step2_title": "Your students live it, day by day",
   "landing.how.step2_body":
-    "They send a photo of a plate or a sentence about their day, and get an answer in your method — on WhatsApp, in the thread they already have open all day. In the evening, one tap says how the day went.",
+    "They send a photo of a plate or a sentence about their day, and get an answer in your method — in their chat, in the thread that stays open all day. In the evening, one tap says how the day went.",
   "landing.how.space_when": "On their own time",
   "landing.how.space_title": "And a space of their own",
   "landing.how.space_body":

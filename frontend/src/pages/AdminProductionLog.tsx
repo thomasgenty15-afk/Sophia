@@ -63,7 +63,7 @@ const SOURCE_LABELS: Record<string, string> = {
   safety: "Safety",
   stripe: "Stripe",
   web: "Web",
-  whatsapp: "WhatsApp",
+  whatsapp: "WhatsApp (historique)",
 };
 
 const SEVERITY_OPTIONS: Array<{ label: string; value: SeverityFilter }> = [
@@ -130,7 +130,7 @@ function eventFamily(row: ProductionLogRow) {
   if (row.event_type.includes("retry")) return "Retry";
   if (row.event_type.includes("cost")) return "Cost";
   if (row.source === "runtime") return "Runtime";
-  if (row.source === "whatsapp") return "WhatsApp";
+  if (row.source === "whatsapp") return "WhatsApp (historique)";
   if (row.source === "llm") return "LLM";
   if (row.source === "edge") return "Backend";
   if (row.source === "stripe") return "Billing";
@@ -150,7 +150,7 @@ function meaningFor(row: ProductionLogRow): string | null {
     return "Retry LLM traité.";
   }
   if (row.event_type === "chat_message") {
-    const ch = row.source === "whatsapp" ? "WhatsApp" : "Web";
+    const ch = row.source === "whatsapp" ? "WhatsApp (historique)" : "Web";
     const role = row.details?.role;
     if (row.severity === "error") return `Erreur détectée dans un message ${ch}.`;
     if (role === "user") return `Message utilisateur ${ch}.`;
@@ -168,21 +168,20 @@ function meaningFor(row: ProductionLogRow): string | null {
   }
   if (row.event_type === "whatsapp_pending_action") {
     const st = row.details?.status;
-    if (st === "expired") return "Action WhatsApp expirée.";
-    if (st === "cancelled") return "Action WhatsApp annulée.";
-    return "Action WhatsApp en attente.";
+    if (st === "expired") return "Action en attente expirée.";
+    if (st === "cancelled") return "Action en attente annulée.";
+    return "Action en attente.";
   }
   if (row.event_type === "whatsapp_outbound_message") {
-    if (row.severity === "error") return "Envoi WhatsApp échoué côté outbound/provider.";
-    if (row.severity === "warn") return "Envoi WhatsApp en file, annulé, ignoré ou à surveiller.";
-    return "Tentative d’envoi WhatsApp enregistrée.";
+    if (row.severity === "error") return "Livraison échouée côté sortant.";
+    if (row.severity === "warn") return "Livraison en file, annulée, ignorée ou à surveiller.";
+    return "Tentative de livraison enregistrée.";
   }
-  if (row.event_type === "whatsapp_status_event") return "Statut Meta reçu pour un message WhatsApp.";
-  if (row.event_type === "whatsapp_cost_event") return "Coût WhatsApp enregistré.";
-  if (row.event_type === "whatsapp_inbound_dedup") return "Message WhatsApp inbound dédupliqué.";
-  if (row.event_type === "whatsapp_link_request") return "Parcours liaison WhatsApp/email.";
-  if (row.event_type === "whatsapp_optin_recovery") return "Récupération opt-in WhatsApp.";
-  if (row.event_type === "whatsapp_unlinked_inbound") return "Message WhatsApp depuis un numéro non lié.";
+  // DE-WHATSAPP: cinq branches retirées avec leurs tables (statuts Meta,
+  // dedup entrant, liaison, récupération d'opt-in, entrants non liés).
+  // `whatsapp_cost_event` RESTE: la table est gelée, pas droppée, et son
+  // historique de coûts est ce qui justifie l'abandon du canal.
+  if (row.event_type === "whatsapp_cost_event") return "Coût WhatsApp enregistré (historique gelé).";
   if (row.event_type === "edge_function_error") return "Erreur Edge Function persistée.";
   if (row.event_type === "edge_function_log") return "Événement backend persisté.";
   if (row.event_type.startsWith("runtime_") || row.event_type === "turn_summary") return "Trace runtime détaillée.";
@@ -383,7 +382,7 @@ export default function AdminProductionLog() {
     <AdminShell
       active="production-log"
       title="Production log"
-      description="Journal de production agrege pour verifier rapidement les erreurs, warnings, paiements, WhatsApp, runtime et appels Edge."
+      description="Journal de production agrege pour verifier rapidement les erreurs, warnings, paiements, conversation, runtime et appels Edge."
       icon={Terminal}
       actions={
         <button

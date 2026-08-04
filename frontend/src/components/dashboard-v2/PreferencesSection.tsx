@@ -172,9 +172,9 @@ export function PreferencesSection({ isLocked = false, onUnlockRequest }: Prefer
               <Lock className="w-4 h-4" />
             </div>
             <div>
-              <p className="text-sm font-bold text-amber-900">Fonctionnalité WhatsApp verrouillée</p>
+              <p className="text-sm font-bold text-amber-900">Préférences de coaching verrouillées</p>
               <p className="text-xs text-amber-700">
-                Les préférences du coach WhatsApp sont disponibles avec le plan Alliance ou Architecte.
+                Les préférences de coaching sont disponibles avec le plan Alliance ou Architecte.
               </p>
             </div>
           </div>

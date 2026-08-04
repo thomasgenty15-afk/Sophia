@@ -222,7 +222,7 @@ const Legal = () => {
                 When you use Sophia, we collect the following data:
               </p>
               <ul>
-                <li><strong>Identity data:</strong> surname, first name, email, phone number (for WhatsApp).</li>
+                <li><strong>Identity data:</strong> surname, first name, email, phone number (account identifier).</li>
                 <li><strong>Life &amp; goal data:</strong> questionnaire answers, personal goals, generated action plans.</li>
                 <li><strong>Conversation data:</strong> the history of exchanges with the Sophia assistant.</li>
                 <li><strong>Technical data:</strong> sign-in logs, IP address, browser type.</li>
@@ -234,7 +234,7 @@ const Legal = () => {
               </p>
               <ul>
                 <li>Providing and personalising the Service (legal basis: performance of the contract).</li>
-                <li>Sending notifications and reminders over WhatsApp (legal basis: consent).</li>
+                <li>Sending notifications and reminders inside the app (legal basis: consent).</li>
                 <li>Continuous improvement of the AI algorithms (legal basis: legitimate interest).</li>
                 <li>Handling billing and customer support.</li>
               </ul>
@@ -260,7 +260,7 @@ const Legal = () => {
               </p>
               <ul>
                 <li>
-                  <strong>Immediately:</strong> your access is disabled, WhatsApp messages stop and your subscription is cancelled with no further charge.
+                  <strong>Immediately:</strong> your access is disabled, Sophia stops writing to you and your subscription is cancelled with no further charge.
                 </li>
                 <li>
                   <strong>Within 7 days:</strong> all of your data (profile, plans, conversations, memories) is permanently and irreversibly deleted from our databases. During that period you can cancel the deletion by signing in again.

@@ -73,7 +73,7 @@ export default function DeletionPendingScreen() {
           <p className="mt-4 text-sm leading-6 text-stone-600">
             All your data will be <strong>permanently deleted on {formatFrenchDate(purgeAt)}</strong>.
             Until then, you can restore your account in one click: everything is put back
-            (plans, conversations, souvenirs, rappels WhatsApp).
+            (plans, conversations, souvenirs, rappels).
           </p>
           <p className="mt-3 text-sm leading-6 text-stone-600">
             If you had a subscription, it has been cancelled and will not be reactivated

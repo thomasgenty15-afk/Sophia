@@ -286,7 +286,7 @@ export default function StudentProgressPage() {
           <SectionLabel>{range === "week" ? "Your week in food" : "Your month in food"}</SectionLabel>
           {food.meals === 0 ? (
             <p className="mt-2 text-sm text-gray-600">
-              No photos read in this period yet. Send a plate on WhatsApp and
+              No photos read in this period yet. Send a plate in Chat and
               it starts adding up here.
             </p>
           ) : (

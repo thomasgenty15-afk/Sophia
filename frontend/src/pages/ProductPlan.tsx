@@ -16,7 +16,7 @@ const ProductPlan = () => {
   const navigate = useNavigate();
   const { startSession } = useOnboardingAmbientAudio();
   const seoDescription =
-    "Découvre le plan Sophia : un coach IA personnel sur WhatsApp qui transforme ce que tu veux changer en plan clair et t'aide à tenir dans la vraie vie.";
+    "Découvre le plan Sophia : un coach IA personnel qui transforme ce que tu veux changer en plan clair et t'aide à tenir dans la vraie vie.";
 
   const handleStartOnboarding = () => {
     startSession();
@@ -26,7 +26,7 @@ const ProductPlan = () => {
   return (
     <div className="min-h-screen bg-[#fbf7ef] text-[#17211d] font-sans selection:bg-[#cfe8d7] selection:text-[#17211d]">
       <SEO
-        title="Plan d'action IA sur WhatsApp"
+        title="Plan d'action IA"
         description={seoDescription}
         canonical="https://sophia-coach.ai/le-plan"
         structuredData={{
@@ -86,14 +86,14 @@ const ProductPlan = () => {
               <div>
                 <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/50 bg-white/36 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.18em] text-[#002d21] shadow-sm backdrop-blur-md">
                   <MessageCircle className="h-3.5 w-3.5" />
-                  Le plan qui vit sur WhatsApp
+                  Le plan qui vit avec toi
                 </div>
                 <h1 className="text-5xl font-bold leading-[0.95] tracking-tight md:text-7xl">
                   Un plan clair,
                   <span className="block text-[#002d21]">qui revient vers toi.</span>
                 </h1>
                 <p className="mt-7 max-w-2xl text-lg leading-8 text-[#405148] md:text-2xl md:leading-10">
-                  Sophia transforme ce que tu veux changer en prochaines étapes simples, puis te rejoint sur WhatsApp pour t'aider à garder le fil sans pression inutile.
+                  Sophia transforme ce que tu veux changer en prochaines étapes simples, puis te rejoint chaque jour dans ta conversation pour t'aider à garder le fil sans pression inutile.
                 </p>
                 <div className="mt-9 flex flex-col gap-3 sm:flex-row">
                   <button
@@ -162,7 +162,7 @@ const ProductPlan = () => {
                 },
                 {
                   icon: MessageCircle,
-                  title: "Elle revient sur WhatsApp",
+                  title: "Elle revient vers toi",
                   copy: "Le plan ne reste pas dans un espace oublié. Sophia te rejoint là où tu réponds déjà.",
                 },
                 {
@@ -191,7 +191,7 @@ const ProductPlan = () => {
         <section className="bg-[#f4eee4] px-4 py-20 md:px-6 md:py-28">
           <div className="mx-auto grid max-w-6xl gap-8 md:grid-cols-3">
             {[
-              ["Moins de friction", "Pas une app de plus à ouvrir. Sophia vient vers toi sur WhatsApp."],
+              ["Moins de friction", "Un seul endroit. Sophia vient vers toi dans ta conversation."],
               ["Moins de culpabilité", "Une journée imparfaite devient un ajustement, pas un abandon."],
               ["Plus de continuité", "Tu ne repars pas de zéro : Sophia garde le contexte avec toi."],
             ].map(([title, copy]) => (

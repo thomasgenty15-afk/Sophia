@@ -936,7 +936,9 @@ const Auth = () => {
                   </div>
                 </div>
 
-                {/* KEEL W6.1 — the phone field is the WhatsApp consumer path.
+                {/* KEEL W6.1 — le téléphone reste la CLÉ D'IDENTITÉ élève
+                    (décision P0.0), mais ce n'est plus un canal: la
+                    conversation vit dans l'app depuis le chantier de-whatsapp.
                     A coach is never messaged by Sophia, so the field is not
                     rendered at all: an optional-but-visible phone box would
                     still be answered with a French number by half the coaches
@@ -944,7 +946,7 @@ const Auth = () => {
                 {!coachSignup && (
                 <div>
                   <label className="block text-sm font-bold text-slate-700 mb-1">
-                    WhatsApp number
+                    Phone number
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">

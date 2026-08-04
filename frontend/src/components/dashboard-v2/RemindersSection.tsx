@@ -458,10 +458,10 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({
             </div>
             <div>
               <p className="text-sm font-bold text-amber-900">
-                Fonctionnalité WhatsApp verrouillée
+                Relances verrouillées
               </p>
               <p className="text-xs text-amber-700">
-                Les initiatives WhatsApp sont disponibles avec le plan Alliance ou Architecte.
+                Les initiatives de Sophia sont disponibles avec le plan Alliance ou Architecte.
               </p>
             </div>
           </div>
