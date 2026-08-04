@@ -909,6 +909,23 @@ export const en = {
   "app.nav.today": "Today",
   "app.nav.meals": "Meals",
   "app.nav.progress": "Progress",
+  "app.nav.chat": "Chat",
+
+  // DE-WHATSAPP — la bulle. C'est LE canal, plus un simulateur: la
+  // conversation quotidienne avec Sophia vit ici, dans l'app.
+  "chat.title": "Sophia",
+  "chat.subtitle": "Your day-to-day, with your coach's method behind it.",
+  "chat.empty": "Nothing here yet. Say hello, or send a photo of your next meal.",
+  "chat.input.placeholder": "Write to Sophia",
+  "chat.send": "Send",
+  "chat.thinking": "Sophia is writing…",
+  "chat.history.more": "Load earlier messages",
+  "chat.history.loading": "Loading…",
+  "chat.error.send": "That didn't go through. Try again.",
+  // Honnête plutôt que rassurant: on dit que la livraison instantanée est
+  // tombée ET que rien n'est perdu, parce que les deux sont vrais.
+  "chat.status.offline":
+    "Live updates are off right now — messages still arrive, just more slowly.",
   "app.plan_untitled": "Your plan",
   "app.guard.checking": "Checking your access...",
   "app.guard.not_student_title": "This space is for students",

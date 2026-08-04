@@ -21,6 +21,10 @@ export type ShellVariant = "student" | "coach";
 const NAV: Record<ShellVariant, { to: string; label: () => string; end?: boolean }[]> = {
   student: [
     { to: "/app/today", label: () => t("app.nav.today") },
+    // DE-WHATSAPP — la conversation doit être à ≤1 tap depuis tout l'espace
+    // élève. Elle est en deuxième position, pas en dernière: c'est le canal,
+    // pas une annexe.
+    { to: "/app/chat", label: () => t("app.nav.chat") },
     // PIVOT N3 — une route sans lien est une fonctionnalité que personne n'a
     // (voir la note en tête de ce fichier): l'écran plan arrive avec son
     // entrée de nav dans le même changement.

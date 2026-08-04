@@ -413,6 +413,14 @@ verify_jwt = false
 [functions.send-welcome-email]
 verify_jwt = false
 
+# DE-WHATSAPP — l'entrée de la conversation in-app.
+# `verify_jwt = true`: contrairement à un webhook Meta, l'appelant EST l'élève.
+# La fonction re-vérifie le jeton elle-même (elle a besoin de l'identité, pas
+# seulement d'un feu vert), mais laisser la passerelle refuser en amont évite
+# de réveiller le runtime pour une requête anonyme.
+[functions.chat-inbound-v1]
+verify_jwt = true
+
 # Public webhooks / internal senders (no JWT)
 [functions.whatsapp-webhook]
 verify_jwt = false

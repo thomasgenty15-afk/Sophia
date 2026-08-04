@@ -29,6 +29,7 @@ import { OnboardingAmbientAudioProvider } from "./context/OnboardingAmbientAudio
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import PlanImportPage from "./keel/pages/PlanImportPage";
 import TodayPage from "./keel/pages/TodayPage";
+import KeelChatPage from "./keel/pages/ChatPage";
 import CardsPage from "./keel/pages/CardsPage";
 import JoinPage from "./keel/pages/JoinPage";
 import CoachStudentPage from "./keel/pages/CoachStudentPage";
@@ -120,6 +121,18 @@ function App() {
                   PLAN-NUIT.md). La décision P0.0(a) — auth.users fantôme —
                   avait été prise pour garder ce chemin ouvert : il suffit de
                   poser un mot de passe sur la même ligne. */}
+              {/* DE-WHATSAPP — LA BULLE. C'est le canal de conversation, plus
+                  un simulateur: `/app/chat` remplace le couple
+                  ChatPage+whatsapp-sim-inbound, qui meurt en P5. Même garde que
+                  les autres écrans élève. */}
+              <Route
+                path="/app/chat"
+                element={
+                  <KeelStudentRoute>
+                    <KeelChatPage />
+                  </KeelStudentRoute>
+                }
+              />
               <Route
                 path="/app/plan"
                 element={

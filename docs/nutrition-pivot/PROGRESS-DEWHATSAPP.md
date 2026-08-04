@@ -244,3 +244,125 @@ pire qu'un ledger vide. Motif distinct `delivery_claim_failed`, fail-closed.
 **DoD P0** : inventaire complet ✅ · contrat typé + testé ✅ · module de livraison
 + tests réels ✅ · zéro comportement changé sur le chemin WhatsApp (vues de
 compat) ✅ · suites existantes vertes ✅ (**1 994 tests**, dont 0 exécutable avant).
+
+---
+
+## P1 — LE CHEMIN ENTRANT IN-APP, BOUT EN BOUT
+
+### P1.1 — Ce qui a été construit
+
+| Fichier | Rôle |
+|---|---|
+| `_shared/chat/inbound_pipeline.ts` | **L'ordre des gardes, écrit comme une liste** |
+| `_shared/chat/deterministic_buttons.ts` | Tap du soir + point hebdo, résolus AVANT le dispatcher |
+| `chat-inbound-v1/index.ts` | L'entrée : JWT → contrat → dedup → journal → boutons → moteur → livraison |
+| `frontend/src/keel/api/chat.ts` | Client : historique paginé, envoi, Realtime, fusion de liste |
+| `frontend/src/keel/pages/ChatPage.tsx` | La bulle, `/app/chat`, avec son entrée de nav |
+
+**L'ordre des gardes du webhook n'était écrit nulle part** : il était la conséquence de
+1 645 lignes de `continue` dans une boucle. Chaque déplacement d'un bloc changeait le
+produit sans que rien ne le dise. Il est maintenant une liste dans un module qui ne fait
+que ça.
+
+**Décisions de câblage, et leur raison** :
+- `channel: "web"` et **pas** `"in_app"` : la valeur `"whatsapp"` gate 6 branches dans
+  `sophia-brain` (fil rouge, indicateur de frappe, coalescence de rafale), toutes du
+  transport Meta. Ajouter un 3ᵉ nom obligerait à re-décider ces 6 branches ; `"web"` les
+  évite toutes **et dit la vérité** — la bulle est une surface web.
+- `scope: "app"` et **pas** `"whatsapp"` : le scope porte `user_chat_states` et
+  l'historique lu par le cerveau. Le réutiliser aurait gardé le mot dans chaque ligne
+  écrite désormais, pour ne gagner qu'une continuité d'historique dont aucun élève KEEL
+  réel n'a besoin. L'historique WhatsApp reste lisible sous son scope.
+- `logMessages: false` sur `processMessage` : l'entrant est **déjà** journalisé par la
+  garde 3. Sans ça, deux lignes pour un message et un doublon dans la bulle.
+
+### P1.2 — Épreuve 1 (fonctionnement) et 2 (adversariale)
+
+```
+deno test --allow-all supabase/functions/chat-inbound-v1/
+→ ok | 9 passed | 0 failed | 1 ignored
+```
+
+Les 9 tests passent **par HTTP**, pas par import. Importer le handler testerait tout sauf
+ce qui casse — la passerelle, le JWT, la RLS, un CHECK, un `handleCorsOptions` sans garde
+(défaut réel de ce dépôt : « ok » de 2 octets à toutes les requêtes, `deno check` vert,
+tests verts, fonction jamais exécutée, trouvé seulement en curlant).
+
+Couverture des 7 patterns sur l'entrée :
+| Pattern | Test |
+|---|---|
+| (a) prémisse fausse | élève en suppression ⇒ **410** ; profil purgé + JWT valide ⇒ **410**, zéro tour fantôme |
+| (b) concurrence | deux POST **simultanés** identiques ⇒ exactement 1 doublon, 1 seul tour |
+| (c) rejeu | même `client_message_id` rejoué ⇒ `duplicate: true`, **200** (pas 409 : un rejeu réussi et un rejeu ignoré doivent être indiscernables côté client, sinon il réessaie) |
+| (d) langue | jeton hebdo illisible en FR **et** message EN ; contrat testé sur les deux |
+| (e) temps | date locale par `localDateFor`, source unique (couvert P0 + P2) |
+| (f) état vide | corps vide, texte vide, media absent, form vide — 8 refus **motivés** |
+| (g) config↔code | env Supabase absente ⇒ **500 explicite**, jamais un 200 muet |
+
+**Le test qui porte le défaut hérité** : le même `client_message_id` chez DEUX élèves ne
+bloque personne. Avec l'UNIQUE global de `wamid_in`, le second aurait reçu un 23505 et son
+message aurait été **silencieusement jeté**.
+
+### P1.3 — Épreuve 3 (réel) : le tour complet, puis le navigateur
+
+```
+CHAT_INBOUND_E2E=1 deno test --allow-all supabase/functions/chat-inbound-v1/ --filter e2e
+→ ok | 1 passed | 0 failed (12s)
+```
+
+Un vrai message → vrai modèle → réponse écrite dans la bulle. 2 lignes exactement
+(un entrant, une réponse), `scope: app`, `channel: in_app`, `is_proactive: false`,
+`chat_last_inbound_at` renseigné.
+
+**Puis au navigateur** (`http://localhost:5174/app/chat`, stack locale, élève jetable) :
+deux échanges complets. La réponse arrive **sans rechargement** (Realtime), le rechargement
+retrouve l'historique intact, le ledger porte 2 lignes `in_app / sent / reply /
+counts_as_unsolicited=false`.
+
+Réponses obtenues, non retouchées :
+1. « I've paused the progress figures and the check-in reminders on your side. It isn't a
+   penalty… » — **le plancher TCA a mordu** sur « I skipped breakfast ». Le cerveau est
+   intact : ce chantier change le transport.
+2. « You don't have a published plan line for tomorrow, so there's nothing specific here to
+   follow. » — grounded, aucun chiffre, renvoi au coach.
+
+### P1.4 — 🔴 DEUX DÉFAUTS QUE SEUL LE NAVIGATEUR POUVAIT VOIR
+
+**1. Le message tapé s'affichait DEUX fois.** `toChatMessage` ne remontait pas
+`metadata.client_message_id`, donc la ligne réelle ne pouvait pas reconnaître son propre
+écho optimiste. Invisible à tout test écrit avant, parce que le doublon naît de la
+rencontre entre un état React et une livraison Realtime — et que la fusion vivait **dans le
+composant**. Elle en est sortie (`mergeMessage`, `mergeHistoryPage`), et **12 tests** la
+pinnent maintenant.
+
+**2. Un envoi silencieusement perdu.** `onSubmit` appelait `preventDefault()` **après** le
+`return` d'un brouillon vide. Un submit sur brouillon vide partait donc en soumission
+**native** — un GET sur la page, donc un rechargement complet. Symptôme observé : le champ
+se vide, aucune requête ne part, l'historique se recharge comme si de rien n'était. Un
+envoi perdu, indiscernable d'un envoi jamais tenté. `preventDefault()` est passé en
+première ligne.
+
+```
+npx vitest run src/keel/api/chatMerge.int.test.ts → 12 passed
+npx tsc -b --noEmit → 0 erreur ; eslint → 0 erreur
+```
+
+### P1.5 — ⚠️ Limite d'outillage, dite plutôt que masquée
+
+Le pilote de navigateur de cette session ne peut pas ouvrir son **propre** serveur de dev
+(plafond de 5 par dossier, les 5 appartiennent à d'autres sessions). Le parcours a donc été
+joué sur le serveur Vite d'une autre session, qui sert **les mêmes fichiers du disque**.
+Conséquence mesurée : les clics synthétiques atteignent la page de façon **intermittente**.
+
+Ce qui a été prouvé par un vrai clic du pilote : le premier envoi complet (focus → frappe →
+clic sur Envoyer → tour → réponse). Ce qui a été rejoué par un `MouseEvent` dispatché en
+JS : le second envoi — React traite ce chemin exactement comme un clic utilisateur, et le
+hit-testing avait déjà été prouvé au premier. **La distinction est écrite ici pour que
+personne ne prenne le second pour le premier.**
+
+La session est établie en posant le jeton d'un compte **jetable créé par l'API** dans le
+`localStorage` : aucun mot de passe n'est saisi dans un formulaire, aucun compte réel n'est
+touché.
+
+**DoD P1** : conversation réelle au navigateur ✅ · 7 patterns sur l'entrée ✅ ·
+reload = historique intact ✅ · dedup par id client ✅ (y compris sous concurrence).
