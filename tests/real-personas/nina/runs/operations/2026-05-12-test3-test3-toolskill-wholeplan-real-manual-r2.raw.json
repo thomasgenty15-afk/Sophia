@@ -1,0 +1,83 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-wholeplan-real-manual-r2-t01",
+    "auth_method": "get-jwt.sh",
+    "user": "Je crois que ce n est pas seulement ce niveau. Avec mon boulot qui se charge pour plusieurs semaines, toute la trajectoire du plan est trop optimiste.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-wholeplan-real-manual-r2-t01",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-wholeplan-real-manual-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ah je vois le souci… si ton taf te “mange” plusieurs semaines, c’est normal que la trajectoire du plan te paraisse trop optimiste. 😅\n\nOn peut faire simple et réaliste : on ne casse pas ton objectif, on baisse la charge au bon endroit, pour que ça reste jouable même en mode marathon.\n\nDis-moi juste : aujourd’hui, ce qui te bloque le plus c’est le manque de temps, ou le manque d’énergie/mental ?",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-wholeplan-real-manual-r2-t02",
+    "auth_method": "get-jwt.sh",
+    "user": "Le manque de temps surtout, et ca va durer plusieurs semaines. Je veux revoir le plan global, pas juste alleger une action.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-wholeplan-real-manual-r2-t02",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-wholeplan-real-manual-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je comprends que votre plan global est devenu trop lourd et que vous manquez de temps pour plusieurs semaines. Pour y remédier, je vous propose d'alléger la charge globale de votre plan. L'idée est de le rendre plus tenable dans votre contexte actuel, tout en conservant sa direction principale.\n\nPar exemple, l'action 'Nettoyer ton environnement direct' serait remplacée temporairement par une version mini de 5 minutes, pour vous permettre de garder le mouvement sans la contrainte de l'action complète. De même, l'action 'Préparer tes alternatives d'avance' serait simplifiée pour être moins exigeante.\n\nCes ajustements visent à réduire la pression sans modifier l'objectif principal de votre plan ni les jours où vos actions sont prévues.\n\nRien n'est encore appliqué. Souhaitez-vous valider cette proposition ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-wholeplan-real-manual-r2-t03",
+    "auth_method": "get-jwt.sh",
+    "user": "Avant de valider, donne moi ton niveau de confiance, ce qui change pour plusieurs semaines, et ce qui ne bouge pas.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-wholeplan-real-manual-r2-t03",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-wholeplan-real-manual-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Avant de toucher au plan global, quel est le vrai reason_change et quelle cible faut-il modifier: nombre de missions, intensite/frequence, ordre, ou charge globale ? Qu'est-ce qu'il faut absolument preserver ? Je vois notamment dans le plan: Nettoyer ton environnement direct, Version mini - Nettoyer ton environnement direct, Version mini - Nettoyer ton environnement direct, Version mini - Nettoyer ton environnement direct.",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  }
+]

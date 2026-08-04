@@ -1,0 +1,235 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r1-t01",
+    "auth_method": "get-jwt.sh",
+    "user": "Franchement le truc du plan autour de mon environnement, la, je sens que ca me bloque avant meme de commencer. Je ne veux pas abandonner, mais tel quel ca fait trop gros.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r1-t01",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je comprends tout à fait, voir cette accumulation de petites étapes pour l'environnement peut donner l'impression d'une montagne insurmontable. Pour que ce soit plus digeste, est-ce que tu préférerais qu'on regroupe tout ça en une seule action très simple (comme juste s'occuper d'un seul placard), ou qu'on en supprime une partie pour ne garder que l'essentiel ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r1-t02",
+    "auth_method": "get-jwt.sh",
+    "user": "Je prefererais une version beaucoup plus petite, mais sans supprimer le vrai sujet. Genre quelque chose qui me mette juste en mouvement, et le reste peut venir apres.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r1-t02",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je comprends parfaitement : on cherche l'étincelle pour démarrer sans perdre de vue l'objectif final. Pour que je puisse ajuster ton niveau actuel, quelle action (par exemple le nettoyage de l'environnement ou le choix du brut) souhaites-tu transformer en cette version 'ultra-mini' ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r1-t03",
+    "auth_method": "get-jwt.sh",
+    "user": "Je parle surtout de Nettoyer ton environnement direct. Je veux le garder, mais la marche d entree doit etre vraiment minuscule.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r1-t03",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ok, on garde “Nettoyer ton environnement direct”, mais on le rend minuscule pour que ça démarre direct. 🔥\n\nJe te propose une marche d’entrée ultra simple :\n1 minute pour enlever juste une seule “zone sale” visible (ex: un coin, une chaise, le dessus d’une table), sans chercher à finir.\n\nTu veux que ta mini-action vise plutôt le sol, la table, ou un placard ? 🙂",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r1-t04",
+    "auth_method": "get-jwt.sh",
+    "user": "La table, mais je veux que ce soit vraiment modifie dans mon plan, pas juste un conseil dans le chat. Avant que tu touches au plan, montre moi exactement ce que tu proposes.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r1-t04",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C'est entendu, je te montrerai le brouillon avant toute modification. Peux-tu me préciser ce que tu entends par 'la table' (est-ce une action spécifique ou tes habitudes de repas ?) et quel changement tu souhaites y apporter ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r1-t05",
+    "auth_method": "get-jwt.sh",
+    "user": "Je veux remplacer l entree de Nettoyer ton environnement direct par une version table en 1 minute, juste pour demarrer. Le nettoyage complet doit rester juste apres.",
+    "status": 500,
+    "body": {
+      "error": "Cannot read properties of undefined (reading 'includes')",
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r1-t05"
+    }
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r1-t05",
+    "auth_method": "get-jwt.sh",
+    "user": "Je veux remplacer l entree de Nettoyer ton environnement direct par une version table en 1 minute, juste pour demarrer. Le nettoyage complet doit rester juste apres.",
+    "status": 500,
+    "body": {
+      "error": "((intermediate value) ?? []).includes is not a function",
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r1-t05"
+    }
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r1-t05",
+    "auth_method": "get-jwt.sh",
+    "user": "Je veux remplacer l entree de Nettoyer ton environnement direct par une version table en 1 minute, juste pour demarrer. Le nettoyage complet doit rester juste apres.",
+    "status": 500,
+    "body": {
+      "error": "((intermediate value) ?? []).includes is not a function",
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r1-t05"
+    }
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r1-t05",
+    "auth_method": "get-jwt.sh",
+    "user": "Je veux remplacer l entree de Nettoyer ton environnement direct par une version table en 1 minute, juste pour demarrer. Le nettoyage complet doit rester juste apres.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r1-t05",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je te propose d'ajuster l'action 'Nettoyer ton environnement direct' qui te semble trop lourde pour le moment. L'idée est de créer une version mini de 5 minutes pour lancer le mouvement sans te décourager. Rien n'est encore appliqué à ton plan pour l'instant. Si tu valides cette proposition, je vais insérer cette étape intermédiaire tout en conservant l'action complète pour plus tard. Le reste de tes activités, comme 'Faire le choix du brut' ou 'Décoder ton envie de grignoter', ne sera pas impacté.",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 6,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r1-t06",
+    "auth_method": "get-jwt.sh",
+    "user": "Pas 5 minutes : je veux vraiment 1 minute, centree sur la table visible, et seulement comme pont avant le nettoyage complet.",
+    "status": 500,
+    "body": {
+      "error": "((intermediate value) ?? []).includes is not a function",
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r1-t06"
+    }
+  },
+  {
+    "turn": 6,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r1-t06",
+    "auth_method": "get-jwt.sh",
+    "user": "Pas 5 minutes : je veux vraiment 1 minute, centree sur la table visible, et seulement comme pont avant le nettoyage complet.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r1-t06",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je te propose de modifier l'action de nettoyage pour la rendre beaucoup plus accessible. Rien n'est encore appliqué à ton plan. L'idée est de créer une version 'pont' d'une minute seulement, focalisée sur ta table visible, pour relancer ton élan sans pression. Par exemple, au lieu de faire le tour de tous tes placards, tu te concentreras uniquement sur l'espace immédiatement sous tes yeux. Un autre changement concret : on remplace la recherche exhaustive de produits transformés par un simple rangement rapide de la surface de travail. Cela permet de garder ton intention de départ tout en rendant le premier pas minuscule. L'action complète restera prévue pour plus tard et le reste de ton plan ne sera pas touché. Est-ce que cela te convient ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 7,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r1-t07",
+    "auth_method": "get-jwt.sh",
+    "user": "Le passage sur les produits transformes ne va pas, ca n a rien a voir avec cette action. Garde seulement la table visible en 1 minute, puis l action complete apres.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r1-t07",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je te propose d'ajuster l'action sur le nettoyage de ton environnement en créant une version 'mini' de 5 minutes. Ce changement servirait de pont pour relancer ton élan sans la lourdeur de l'étape complète, qui resterait prévue pour plus tard. Rien n'est encore appliqué, j'attends ton accord pour valider cette proposition. Les autres éléments de ton parcours, comme le choix des aliments bruts, ne seront pas modifiés.",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  }
+]

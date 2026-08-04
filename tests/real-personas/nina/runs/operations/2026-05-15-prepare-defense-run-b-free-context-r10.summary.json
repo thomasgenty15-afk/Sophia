@@ -1,0 +1,26 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r10-t01",
+    "status": 502,
+    "ok": null,
+    "user": "Ce soir je vois un moment à protéger, même si ce n’est pas dans mon plan officiel : en rentrant, le téléphone finit près du canapé, je scrolle, puis l’envie de snack arrive. J’aimerais juste éviter que ça démarre.",
+    "assistant": "",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": true,
+    "response_tool_execution": null,
+    "response_executed_tools": [],
+    "response_owner": null,
+    "selected_handler": null,
+    "route_reason_code": null,
+    "operation_flow_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": null,
+    "direct_effects": null,
+    "memory_plan": null,
+    "trace_id": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r10-t01",
+    "trace_error": null
+  }
+]

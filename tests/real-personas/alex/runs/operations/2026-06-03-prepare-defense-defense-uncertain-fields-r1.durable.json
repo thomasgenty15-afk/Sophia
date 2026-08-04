@@ -1,0 +1,230 @@
+{
+  "user_defense_cards": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_plan_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "2fb8fdf8-d005-4993-b833-adbc0ce8431c",
+        "role": "user",
+        "content": "Je ne sais pas si je dois faire une carte d'attaque ou de défense, ni quels champs remplir. Demain j'ai mes mails du soir à faire et je veux éviter de finir sur YouTube après. Tu me guides ?",
+        "scope": "qa-prepare-defense-card-alex-2026-06-03-defense-uncertain-fields-r1",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-alex-2026-06-03-defense-uncertain-fields-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-03T15:44:16.733876+00:00"
+      },
+      {
+        "id": "a65d0a18-296b-4edc-98ae-c97e68ee4fa3",
+        "role": "assistant",
+        "content": "Est-ce que tu veux une explication sur le fonctionnement des cartes, ou est-ce qu'on prépare ton démarrage pour tes mails de demain ? 🙂",
+        "scope": "qa-prepare-defense-card-alex-2026-06-03-defense-uncertain-fields-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-alex-2026-06-03-defense-uncertain-fields-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-03T15:44:26.757642+00:00"
+      },
+      {
+        "id": "daa4adb6-586c-4ef4-a429-0bb2ec47fb9b",
+        "role": "user",
+        "content": "Je veux plutôt une défense pour éviter YouTube après les mails du soir, mais je ne sais pas quels champs la plateforme va me demander.",
+        "scope": "qa-prepare-defense-card-alex-2026-06-03-defense-uncertain-fields-r1",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-alex-2026-06-03-defense-uncertain-fields-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-03T15:44:39.389606+00:00"
+      },
+      {
+        "id": "6e1fff8b-5923-4b2a-9c58-eaae79dc5eda",
+        "role": "assistant",
+        "content": "Est-ce que tu veux une explication sur les champs d'une carte de défense, ou est-ce que tu veux préparer ton démarrage pour tes mails ? 🙂",
+        "scope": "qa-prepare-defense-card-alex-2026-06-03-defense-uncertain-fields-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-alex-2026-06-03-defense-uncertain-fields-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-03T15:45:06.533202+00:00"
+      },
+      {
+        "id": "5870832a-8931-4093-b1d5-286c4d568d05",
+        "role": "user",
+        "content": "Non, prépare une carte de défense pour éviter YouTube après mes mails. Je ne veux pas une carte d'attaque. Je connais seulement le risque, pas les champs.",
+        "scope": "qa-prepare-defense-card-alex-2026-06-03-defense-uncertain-fields-r1",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-alex-2026-06-03-defense-uncertain-fields-r1-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-03T15:45:16.76337+00:00"
+      },
+      {
+        "id": "b7ba929c-ad8a-479b-a0d1-8cf21d3aa44c",
+        "role": "assistant",
+        "content": "C'est noté, on part sur une carte de défense pour protéger ta soirée.\n\nPour les champs, la plateforme va te demander trois choses simples :\n\n1. Le déclencheur : c'est le moment précis où tu bascules (ex: quand tu fermes ton dernier mail).\n2. L'action de défense : ce que tu fais à la place pour couper court (ex: fermer l'ordi direct ou lancer un podcast).\n3. La promesse : pourquoi c'est important pour toi de ne pas finir sur YouTube.\n\nOn commence par le déclencheur : c'est quoi le signal exact qui te donne envie d'aller sur YouTube d'habitude ? 🛡️",
+        "scope": "qa-prepare-defense-card-alex-2026-06-03-defense-uncertain-fields-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-alex-2026-06-03-defense-uncertain-fields-r1-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gemini-3-flash-preview",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "standard",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_standard",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-03T15:45:49.287529+00:00"
+      },
+      {
+        "id": "7bc0ab79-183a-4f23-8a82-d455624351a9",
+        "role": "user",
+        "content": "Le moment c'est quand je ferme les mails vers 22h30. Le signal c'est que j'ouvre YouTube en me disant juste cinq minutes. Le geste ce serait poser le téléphone dans l'entrée et préparer une tisane.",
+        "scope": "qa-prepare-defense-card-alex-2026-06-03-defense-uncertain-fields-r1",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-alex-2026-06-03-defense-uncertain-fields-r1-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-03T15:46:01.069928+00:00"
+      },
+      {
+        "id": "0acb9362-a825-4c75-b55d-6425214ca5f0",
+        "role": "assistant",
+        "content": "Parfait, là t’as déjà les 3 blocs d’une carte de défense bien claire 😄\n\nDéclencheur (moment) : quand tu fermes les mails du soir vers 22h30.\nSignal (tentation) : quand tu ouvres YouTube en te disant “juste cinq minutes”.\nGeste de défense : poser le téléphone dans l’entrée + préparer une tisane.\n\nIl te reste juste à écrire la “promesse” en 1 phrase. Tu veux que ça sonne plutôt “santé/sommeil” ou plutôt “discipline/temps gagné” ? 🌿",
+        "scope": "qa-prepare-defense-card-alex-2026-06-03-defense-uncertain-fields-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-alex-2026-06-03-defense-uncertain-fields-r1-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-03T15:46:58.39806+00:00"
+      }
+    ]
+  }
+}

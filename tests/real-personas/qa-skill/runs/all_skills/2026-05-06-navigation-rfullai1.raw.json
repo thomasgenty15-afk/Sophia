@@ -1,0 +1,463 @@
+[
+  {
+    "turn": 1,
+    "request_id": "qa-all-skills-navigation-2026-05-06-rfullai1-t01",
+    "user": "Dans Sophia, le dashboard sert a quoi exactement quand j'ai deja un plan ?",
+    "status": 200,
+    "response_content": "Ton plan, c’est la stratégie (les objectifs + les actions/habitudes à suivre). Le dashboard sert à faire vivre ce plan au quotidien. 🧭\n\nConcrètement, il sert à :\n- suivre ta progression (tu vois ce que tu avances, et ça se met à jour avec tes saisies)\n- garder une vue claire de tes objectifs et de tes “dimensions” (habitudes, missions, soutien)\n- t’aider à agir sans te perdre (bref rappel de ce que tu as à faire maintenant)\n- éventuellement ajuster ce que tu veux modifier dans ton plan (mais ça, c’est dans le dashboard, pas “en direct” dans le chat)\n\nL’idée : le chat accompagne et te cale mentalement, le dashboard matérialise et tracke l’exécution. 😉\n\nTu veux plutôt comprendre le côté “suivi/progression” ou le côté “modifier/ajuster” ton plan ?",
+    "tool_execution": "none",
+    "executed_tools": [],
+    "response_owner": "product_help",
+    "selected_handler": "product_help",
+    "reason_code": "product_signal",
+    "safety_risk_band": "none",
+    "allow_side_effects": true,
+    "empty_response": false,
+    "aborted": false,
+    "trace_error": null,
+    "error": null,
+    "raw": {
+      "ok": true,
+      "request_id": "qa-all-skills-navigation-2026-05-06-rfullai1-t01",
+      "user_id": "441bd30c-0e9a-4363-9595-d7b713961611",
+      "channel": "web",
+      "scope": "qa-all-skills-navigation-2026-05-06-rfullai1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ton plan, c’est la stratégie (les objectifs + les actions/habitudes à suivre). Le dashboard sert à faire vivre ce plan au quotidien. 🧭\n\nConcrètement, il sert à :\n- suivre ta progression (tu vois ce que tu avances, et ça se met à jour avec tes saisies)\n- garder une vue claire de tes objectifs et de tes “dimensions” (habitudes, missions, soutien)\n- t’aider à agir sans te perdre (bref rappel de ce que tu as à faire maintenant)\n- éventuellement ajuster ce que tu veux modifier dans ton plan (mais ça, c’est dans le dashboard, pas “en direct” dans le chat)\n\nL’idée : le chat accompagne et te cale mentalement, le dashboard matérialise et tracke l’exécution. 😉\n\nTu veux plutôt comprendre le côté “suivi/progression” ou le côté “modifier/ajuster” ton plan ?",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-all-skills-navigation-2026-05-06-rfullai1-t01",
+        "user_id": "441bd30c-0e9a-4363-9595-d7b713961611",
+        "source_message_id": "37336b54-1e39-47d0-ae3b-02ffb94063b6",
+        "ts": "2026-05-06T13:15:29.122+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 512,
+          "latency_ms": 10666,
+          "tokens_out": 274,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "routing": {
+            "reasoning": "Question de type meta-produit ne correspondant à aucune action spécifique du plan actuel.",
+            "target_id": null,
+            "confidence": 1
+          },
+          "signals": [
+            {
+              "type": "intent",
+              "value": "product_explanation",
+              "evidence": "L'utilisateur demande la valeur ajoutée du dashboard par rapport au plan."
+            },
+            {
+              "type": "topic",
+              "value": "navigation_dashboard",
+              "evidence": "dashboard"
+            }
+          ],
+          "turn_id": "qa-all-skills-navigation-2026-05-06-rfullai1-t01",
+          "user_id": "441bd30c-0e9a-4363-9595-d7b713961611",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "skill_signals": {},
+          "direct_effects": [],
+          "product_signal": {
+            "kind": "how_to",
+            "detected": true,
+            "explicitness": "explicit",
+            "surface_hints": [
+              "plan.adjust"
+            ],
+            "confidence_band": "high"
+          },
+          "safety_pregate": {
+            "evidence": "Question informative sur les fonctionnalités de l'interface Sophia.",
+            "risk_band": "low"
+          },
+          "tool_skill_intents": [],
+          "source_message_id": "37336b54-1e39-47d0-ae3b-02ffb94063b6",
+          "pending_operation_response": null,
+          "operation_intake_classification": null
+        },
+        "route_decision": {
+          "reason_code": "product_signal",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "product_help",
+          "memory_use_kind": "none",
+          "selected_handler": "product_help",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "product_help",
+        "total_latency_ms": 14827,
+        "created_at": "2026-05-06T13:15:29.123805+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "request_id": "qa-all-skills-navigation-2026-05-06-rfullai1-t02",
+    "user": "Ok, donc si je veux ajuster une action sans refaire tout mon plan, je dois passer par quelle partie du dashboard ?",
+    "status": 200,
+    "response_content": "Oui : tu passes par la partie de gestion de l’action, pas par la stratégie globale. Concrètement, ça se fait depuis la section “Habitudes” (si c’est une habitude récurrente) ou “Missions” (si c’est une action ponctuelle), puis tu ouvres l’action elle-même pour l’ajuster. 🧩\n\nTu veux ajuster une habitude régulière ou une mission ponctuelle (A/B) ?",
+    "tool_execution": "none",
+    "executed_tools": [],
+    "response_owner": "product_help",
+    "selected_handler": "product_help",
+    "reason_code": "product_signal",
+    "safety_risk_band": "none",
+    "allow_side_effects": true,
+    "empty_response": false,
+    "aborted": false,
+    "trace_error": null,
+    "error": null,
+    "raw": {
+      "ok": true,
+      "request_id": "qa-all-skills-navigation-2026-05-06-rfullai1-t02",
+      "user_id": "441bd30c-0e9a-4363-9595-d7b713961611",
+      "channel": "web",
+      "scope": "qa-all-skills-navigation-2026-05-06-rfullai1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Oui : tu passes par la partie de gestion de l’action, pas par la stratégie globale. Concrètement, ça se fait depuis la section “Habitudes” (si c’est une habitude récurrente) ou “Missions” (si c’est une action ponctuelle), puis tu ouvres l’action elle-même pour l’ajuster. 🧩\n\nTu veux ajuster une habitude régulière ou une mission ponctuelle (A/B) ?",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-all-skills-navigation-2026-05-06-rfullai1-t02",
+        "user_id": "441bd30c-0e9a-4363-9595-d7b713961611",
+        "source_message_id": "3c47e761-8719-44be-a38a-588fb4075632",
+        "ts": "2026-05-06T13:17:42.318+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 747,
+          "latency_ms": 5572,
+          "tokens_out": 227,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "routing": {
+            "intent": "qa_product",
+            "skill_id": "sophia_qa",
+            "target_id": null,
+            "confidence": 0.98
+          },
+          "turn_id": "qa-all-skills-navigation-2026-05-06-rfullai1-t02",
+          "user_id": "441bd30c-0e9a-4363-9595-d7b713961611",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "skill_signals": {},
+          "direct_effects": [],
+          "product_signal": {
+            "kind": "how_to",
+            "detected": true,
+            "explicitness": "explicit",
+            "surface_hints": [
+              "plan.adjust"
+            ],
+            "confidence_band": "high"
+          },
+          "safety_pregate": {
+            "evidence": "L'utilisateur demande une précision technique sur l'utilisation de l'interface (dashboard).",
+            "risk_band": "low"
+          },
+          "topic_analysis": {
+            "topic_switch": false,
+            "current_topic": "dashboard_navigation"
+          },
+          "tool_skill_intents": [],
+          "source_message_id": "3c47e761-8719-44be-a38a-588fb4075632",
+          "operation_analysis": null,
+          "confirmation_analysis": null
+        },
+        "route_decision": {
+          "reason_code": "product_signal",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "product_help",
+          "memory_use_kind": "none",
+          "selected_handler": "product_help",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "product_help",
+        "total_latency_ms": 7320,
+        "created_at": "2026-05-06T13:17:42.319718+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "request_id": "qa-all-skills-navigation-2026-05-06-rfullai1-t03",
+    "user": "C'est une mission ponctuelle admin : ouvrir mon dossier mutuelle et envoyer une piece manquante. Je ne sais pas si je dois modifier la mission ou juste la traiter avec toi ici.",
+    "status": 200,
+    "response_content": "Ok, dans ton cas c’est une mission ponctuelle “admin” (ouvrir le dossier mutuelle + envoyer une pièce). 👍🙂\n\nTu as deux options, et elles dépendent de ce que tu veux faire :\n- Si ta mission est déjà correctement formulée (juste à faire), tu peux la traiter ici avec moi, sans modifier la mission.\n- Si tu veux changer quelque chose (date cible, intitulé plus clair, étapes, “qui fait quoi”, temps estimé), là tu modifies la mission dans la partie “Missions” du dashboard.\n\nLe plus simple en général: on traite ici pour avancer, et on modifie seulement si tu te rends compte que la mission ne colle pas à la réalité.\n\nTu veux juste la faire maintenant, ou tu sens qu’elle n’est pas assez précise (étapes / pièce exacte / deadline) ?",
+    "tool_execution": "none",
+    "executed_tools": [],
+    "response_owner": "conversation_handler",
+    "selected_handler": "execution_breakdown",
+    "reason_code": "skill_entry_signal",
+    "safety_risk_band": "none",
+    "allow_side_effects": true,
+    "empty_response": false,
+    "aborted": false,
+    "trace_error": null,
+    "error": null,
+    "raw": {
+      "ok": true,
+      "request_id": "qa-all-skills-navigation-2026-05-06-rfullai1-t03",
+      "user_id": "441bd30c-0e9a-4363-9595-d7b713961611",
+      "channel": "web",
+      "scope": "qa-all-skills-navigation-2026-05-06-rfullai1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ok, dans ton cas c’est une mission ponctuelle “admin” (ouvrir le dossier mutuelle + envoyer une pièce). 👍🙂\n\nTu as deux options, et elles dépendent de ce que tu veux faire :\n- Si ta mission est déjà correctement formulée (juste à faire), tu peux la traiter ici avec moi, sans modifier la mission.\n- Si tu veux changer quelque chose (date cible, intitulé plus clair, étapes, “qui fait quoi”, temps estimé), là tu modifies la mission dans la partie “Missions” du dashboard.\n\nLe plus simple en général: on traite ici pour avancer, et on modifie seulement si tu te rends compte que la mission ne colle pas à la réalité.\n\nTu veux juste la faire maintenant, ou tu sens qu’elle n’est pas assez précise (étapes / pièce exacte / deadline) ?",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-all-skills-navigation-2026-05-06-rfullai1-t03",
+        "user_id": "441bd30c-0e9a-4363-9595-d7b713961611",
+        "source_message_id": "22eab02d-7f41-45a1-b2e3-e5936f8fc72d",
+        "ts": "2026-05-06T13:18:03.899+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [
+            "bounded_context_lowers_risk"
+          ],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 894,
+          "latency_ms": 7529,
+          "tokens_out": 257,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "intent": "process_guidance",
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [
+              "bounded_context_lowers_risk"
+            ]
+          },
+          "channel": "web",
+          "signals": [
+            {
+              "type": "admin_task_identified",
+              "evidence": "ouvrir mon dossier mutuelle et envoyer une piece manquante"
+            },
+            {
+              "type": "workflow_uncertainty",
+              "evidence": "Je ne sais pas si je dois modifier la mission ou juste la traiter avec toi ici"
+            }
+          ],
+          "turn_id": "qa-all-skills-navigation-2026-05-06-rfullai1-t03",
+          "user_id": "441bd30c-0e9a-4363-9595-d7b713961611",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "skill_routing": {
+            "skill_id": "skill_sophia_qa",
+            "target_id": null
+          },
+          "skill_signals": {
+            "entry": {
+              "execution_breakdown": {
+                "reason": "execution_blocked",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "topic_routing": {
+            "status": "active",
+            "topic_id": "topic_sophia_usage"
+          },
+          "direct_effects": [],
+          "operation_intake": null,
+          "safety_risk_band": "low",
+          "tool_skill_intents": [],
+          "source_message_id": "22eab02d-7f41-45a1-b2e3-e5936f8fc72d",
+          "pending_tool_skill_confirmation": null
+        },
+        "route_decision": {
+          "reason_code": "skill_entry_signal",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "memory_use_kind": "none",
+          "selected_handler": "execution_breakdown",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "output": {
+            "reply": "On ne cherche pas encore la solution parfaite. On cherche le point exact ou ca bloque: demarrage, energie, flou, peur, ou environnement.",
+            "status": "continue",
+            "skill_id": "execution_breakdown",
+            "diagnosis": {
+              "stage": "diagnosis",
+              "blocker_candidates": [
+                "flou",
+                "energie",
+                "friction_demarrage"
+              ]
+            },
+            "state_patch": {
+              "summary": "Execution blocker diagnosis in progress."
+            },
+            "memory_trace": {
+              "correction_detected": false,
+              "memory_item_ids_used": [],
+              "memory_used_for_response": false,
+              "correction_target_item_ids": []
+            },
+            "response_intent": "diagnose_blocker",
+            "recommendation_need": {
+              "type": "execution_repair",
+              "needed": true,
+              "urgency": "medium",
+              "constraints": [
+                "understand_before_solution"
+              ]
+            },
+            "memory_write_candidates": [
+              {
+                "kind": "statement",
+                "scope_hint": "session",
+                "content_text": "C'est une mission ponctuelle admin : ouvrir mon dossier mutuelle et envoyer une piece manquante. Je ne sais pas si je dois modifier la mission ou juste la traiter avec toi ici.",
+                "confidence_band": "medium",
+                "sensitivity_level": 1,
+                "evidence_source_ids": [
+                  "22eab02d-7f41-45a1-b2e3-e5936f8fc72d"
+                ],
+                "persistence_rationale": "Conversation skill observation; memorizer decides durable persistence.",
+                "should_persist_default": false,
+                "anti_identity_freeze_checked": true
+              }
+            ]
+          },
+          "reason_code": "skill_entry_signal",
+          "selected_skill_id": "execution_breakdown"
+        },
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "conversation_handler",
+        "total_latency_ms": 9810,
+        "created_at": "2026-05-06T13:18:03.900293+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 4,
+    "request_id": "qa-all-skills-navigation-2026-05-06-rfullai1-t04",
+    "user": "Je veux juste la faire avancer maintenant. Le probleme c'est que des que j'ouvre le site de la mutuelle je me perds dans les onglets et je ferme au bout de deux minutes.",
+    "status": 502,
+    "response_content": "",
+    "tool_execution": null,
+    "executed_tools": [],
+    "response_owner": null,
+    "selected_handler": null,
+    "reason_code": null,
+    "safety_risk_band": null,
+    "allow_side_effects": null,
+    "empty_response": true,
+    "aborted": false,
+    "trace_error": null,
+    "error": "An invalid response was received from the upstream server",
+    "raw": {
+      "message": "An invalid response was received from the upstream server"
+    }
+  }
+]

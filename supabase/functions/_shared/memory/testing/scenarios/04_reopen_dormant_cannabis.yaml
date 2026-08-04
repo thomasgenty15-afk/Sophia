@@ -1,0 +1,84 @@
+{
+  "id": "04_reopen_dormant_cannabis",
+  "description": "Reopen a dormant cannabis topic with a statement and dated event.",
+  "scenario_version": 1,
+  "initial_state": {
+    "topics": [
+      {
+        "slug": "arret_cannabis",
+        "title": "Arret cannabis",
+        "lifecycle_stage": "dormant",
+      },
+    ],
+  },
+  "turns": [
+    {
+      "user": "Je veux arreter le cannabis, mais j'ai peur de perdre mes potes.",
+      "expect": {
+        "retrieval_mode": "topic_continuation",
+        "topic_decision": "switch",
+        "created_items": [
+          {
+            "kind": "statement",
+            "contains": ["peur de perdre mes potes"],
+            "domain_keys_any_of": ["addictions.cannabis"],
+            "sensitivity_level": "sensitive",
+            "linked_topic_slug": "arret_cannabis",
+          },
+        ],
+        "forbidden_items": [
+          { "kind": "fact", "contains": ["perdra ses amis"] },
+        ],
+      },
+    },
+    {
+      "user": "Hier soir c'etait dur, ils fumaient tous.",
+      "expect": {
+        "retrieval_mode": "topic_continuation",
+        "retrieval_hints": ["dated_reference"],
+        "topic_decision": "stay",
+        "created_items": [
+          {
+            "kind": "event",
+            "contains": ["hier soir", "ils fumaient tous"],
+            "domain_keys_any_of": ["addictions.cannabis"],
+            "sensitivity_level": "sensitive",
+            "linked_topic_slug": "arret_cannabis",
+          },
+        ],
+        "payload_contains": [
+          {
+            "kind": "statement",
+            "contains": "peur de perdre",
+            "topic_slug": "arret_cannabis",
+          },
+        ],
+      },
+    },
+    {
+      "user": "Je reparle de mon arret cannabis.",
+      "after_days": 5,
+      "expect": {
+        "retrieval_mode": "topic_continuation",
+        "topic_decision": "switch",
+        "payload_contains": [
+          {
+            "kind": "event",
+            "contains": "ils fumaient tous",
+            "topic_slug": "arret_cannabis",
+          },
+        ],
+      },
+    },
+  ],
+  "global_assertions": [
+    {
+      "no_invalid_injection": true,
+      "no_deleted_in_payload": true,
+      "no_statement_as_fact": true,
+      "no_cross_user_data": true,
+      "no_duplicate_extraction_on_retry": true,
+      "no_message_double_processing": true,
+    },
+  ],
+}

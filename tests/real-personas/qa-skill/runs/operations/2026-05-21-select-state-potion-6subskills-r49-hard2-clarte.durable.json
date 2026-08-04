@@ -1,0 +1,255 @@
+[
+  {
+    "potion": "clarte",
+    "user_id": "252602f2-6121-43f8-8b63-c0317f41a987",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r49_hard2_clarte_clarte",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [
+        {
+          "id": "daf2e595-6be1-45dd-9a51-c587120d176a",
+          "potion_type": "clarte",
+          "status": "completed",
+          "source": "system",
+          "scope_kind": "out_of_plan",
+          "cycle_id": "bb2a85d7-79fb-4493-95f1-ffaf6ffdd47c",
+          "transformation_id": null,
+          "content": {
+            "title": "Retrouver le premier fil",
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Choisir la priorité du matin",
+              "evidence": [
+                "Choisir entre trois pistes pour demain matin",
+                "Le vrai flou c'est demain matin: je dois choisir entre trois pistes",
+                "Mets le soutien demain a 09h, et ensuite garde le matin si tu penses que ca aide."
+              ],
+              "recurrence_hint": "le matin",
+              "date_or_window_hint": "demain matin",
+              "target_plan_item_id": "5162423f-e272-412f-9ee1-7753a66a1ca8",
+              "related_plan_item_id": null,
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "operation_draft": {
+              "title": "Retrouver le premier fil",
+              "follow_up": {
+                "duration_days": 7,
+                "schedule_plan": {
+                  "mode": "daily_series",
+                  "reason": "Le soutien commence demain à 09h, puis reste le matin pour accompagner le choix sans surcharge.",
+                  "local_dates": [],
+                  "duration_days": 7,
+                  "scheduled_days": [],
+                  "local_time_hhmm": "09:00",
+                  "timing_relation": "daily"
+                },
+                "local_time_hhmm": "09:00",
+                "reason_for_time": "Le plan du matin est à 09h, et le user préfère garder un appui le matin pour ne pas se re-perdre quand la pression monte.",
+                "reminder_instruction": "Te ramener au choix le plus net pour demain matin, sans chercher à tout optimiser."
+              },
+              "potion_type": "clarte",
+              "opening_prompt": "Entre ces trois pistes, laquelle te paraît la plus simple à prendre en main demain matin, sans chercher la version parfaite ?",
+              "target_binding": {
+                "kind": "plan_item",
+                "label": "Choisir la priorité du matin",
+                "evidence": [
+                  "Choisir entre trois pistes pour demain matin",
+                  "Le vrai flou c'est demain matin: je dois choisir entre trois pistes",
+                  "Mets le soutien demain a 09h, et ensuite garde le matin si tu penses que ca aide."
+                ],
+                "recurrence_hint": "le matin",
+                "date_or_window_hint": "demain matin",
+                "target_plan_item_id": "5162423f-e272-412f-9ee1-7753a66a1ca8",
+                "related_plan_item_id": null,
+                "target_action_family_key": null,
+                "target_generated_temp_id": null
+              },
+              "why_this_potion": "Tu veux éviter de passer à côté de la bonne piste par peur de te tromper, et retrouver un repère simple au moment où le flou monte.",
+              "expected_duration": "short",
+              "potion_info_message": "Cette clarté sert à remettre de l'ordre quand ça se brouille. Le soutien est calé demain à 09h, puis le matin au même moment pendant quelques jours pour t'aider à revenir au bon choix sans surcharge.",
+              "instant_support_message": "On reste simple : pas besoin de tout démêler, juste retrouver le point le plus clair pour avancer sans te perdre."
+            },
+            "why_this_potion": "Tu veux éviter de passer à côté de la bonne piste par peur de te tromper, et retrouver un repère simple au moment où le flou monte.",
+            "potion_info_message": "Cette clarté sert à remettre de l'ordre quand ça se brouille. Le soutien est calé demain à 09h, puis le matin au même moment pendant quelques jours pour t'aider à revenir au bon choix sans surcharge.",
+            "instant_support_message": "On reste simple : pas besoin de tout démêler, juste retrouver le point le plus clair pour avancer sans te perdre."
+          },
+          "follow_up_strategy": {
+            "duration_days": 7,
+            "schedule_plan": {
+              "mode": "daily_series",
+              "reason": "Le soutien commence demain à 09h, puis reste le matin pour accompagner le choix sans surcharge.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [],
+              "local_time_hhmm": "09:00",
+              "timing_relation": "daily"
+            },
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Choisir la priorité du matin",
+              "evidence": [
+                "Choisir entre trois pistes pour demain matin",
+                "Le vrai flou c'est demain matin: je dois choisir entre trois pistes",
+                "Mets le soutien demain a 09h, et ensuite garde le matin si tu penses que ca aide."
+              ],
+              "recurrence_hint": "le matin",
+              "date_or_window_hint": "demain matin",
+              "target_plan_item_id": "5162423f-e272-412f-9ee1-7753a66a1ca8",
+              "related_plan_item_id": null,
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "local_time_hhmm": "09:00",
+            "reason_for_time": "Le plan du matin est à 09h, et le user préfère garder un appui le matin pour ne pas se re-perdre quand la pression monte.",
+            "reminder_instruction": "Te ramener au choix le plus net pour demain matin, sans chercher à tout optimiser."
+          },
+          "metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r49_hard2_clarte-clarte-t05-a1",
+            "operation_id": "be73c7f0-fe4f-4cfc-8450-331791a1c016",
+            "operation_type": "select_state_potion",
+            "source_message_id": "5efc1a2a-b997-4ede-9506-69f8390c80a4"
+          },
+          "generated_at": "2026-05-21T16:22:19.084+00:00",
+          "last_updated_at": "2026-05-21T16:22:19.084+00:00"
+        }
+      ],
+      "reminders": [
+        {
+          "id": "52532be4-7702-49c7-af0b-a2483840688d",
+          "message_instruction": "Te ramener au choix le plus net pour demain matin, sans chercher à tout optimiser.",
+          "rationale": "Le soutien commence demain à 09h, puis reste le matin pour accompagner le choix sans surcharge.",
+          "local_time_hhmm": "09:00",
+          "scheduled_days": [
+            "fri",
+            "sat",
+            "sun",
+            "mon",
+            "tue",
+            "wed",
+            "thu"
+          ],
+          "status": "active",
+          "initiative_kind": "potion_follow_up",
+          "source_kind": "potion_generated",
+          "source_potion_session_id": "daf2e595-6be1-45dd-9a51-c587120d176a",
+          "initiative_metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r49_hard2_clarte-clarte-t05-a1",
+            "operation_id": "be73c7f0-fe4f-4cfc-8450-331791a1c016",
+            "schedule_plan": {
+              "mode": "daily_series",
+              "reason": "Le soutien commence demain à 09h, puis reste le matin pour accompagner le choix sans surcharge.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [],
+              "local_time_hhmm": "09:00",
+              "timing_relation": "daily"
+            },
+            "operation_type": "select_state_potion",
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Choisir la priorité du matin",
+              "evidence": [
+                "Choisir entre trois pistes pour demain matin",
+                "Le vrai flou c'est demain matin: je dois choisir entre trois pistes",
+                "Mets le soutien demain a 09h, et ensuite garde le matin si tu penses que ca aide."
+              ],
+              "recurrence_hint": "le matin",
+              "date_or_window_hint": "demain matin",
+              "target_plan_item_id": "5162423f-e272-412f-9ee1-7753a66a1ca8",
+              "related_plan_item_id": null,
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            }
+          },
+          "target_kind": "plan_item",
+          "target_plan_item_id": "5162423f-e272-412f-9ee1-7753a66a1ca8",
+          "target_action_family_key": null,
+          "target_binding_policy": "live_action",
+          "target_lifecycle_policy": "while_target_active",
+          "starts_at": "2026-05-21T16:22:19.084+00:00",
+          "created_at": "2026-05-21T16:22:19.091821+00:00",
+          "updated_at": "2026-05-21T16:22:19.091821+00:00"
+        }
+      ],
+      "checkins": [
+        {
+          "id": "177258a7-395d-4083-834f-08d7e00ed4df",
+          "recurring_reminder_id": "52532be4-7702-49c7-af0b-a2483840688d",
+          "event_context": "recurring_reminder:52532be4-7702-49c7-af0b-a2483840688d:potion:daf2e595-6be1-45dd-9a51-c587120d176a:2026-05-22",
+          "draft_message": "Te ramener au choix le plus net pour demain matin, sans chercher à tout optimiser.",
+          "scheduled_for": "2026-05-22T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T16:22:19.098656+00:00"
+        },
+        {
+          "id": "853252b2-b162-44d9-a9c9-98c8cc0f272f",
+          "recurring_reminder_id": "52532be4-7702-49c7-af0b-a2483840688d",
+          "event_context": "recurring_reminder:52532be4-7702-49c7-af0b-a2483840688d:potion:daf2e595-6be1-45dd-9a51-c587120d176a:2026-05-23",
+          "draft_message": "Te ramener au choix le plus net pour demain matin, sans chercher à tout optimiser.",
+          "scheduled_for": "2026-05-23T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T16:22:19.098656+00:00"
+        },
+        {
+          "id": "87cf653d-cd53-411d-9726-b3533e83bd68",
+          "recurring_reminder_id": "52532be4-7702-49c7-af0b-a2483840688d",
+          "event_context": "recurring_reminder:52532be4-7702-49c7-af0b-a2483840688d:potion:daf2e595-6be1-45dd-9a51-c587120d176a:2026-05-24",
+          "draft_message": "Te ramener au choix le plus net pour demain matin, sans chercher à tout optimiser.",
+          "scheduled_for": "2026-05-24T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T16:22:19.098656+00:00"
+        },
+        {
+          "id": "df864cee-a1b4-4a37-a6ef-7341c119b3f6",
+          "recurring_reminder_id": "52532be4-7702-49c7-af0b-a2483840688d",
+          "event_context": "recurring_reminder:52532be4-7702-49c7-af0b-a2483840688d:potion:daf2e595-6be1-45dd-9a51-c587120d176a:2026-05-25",
+          "draft_message": "Te ramener au choix le plus net pour demain matin, sans chercher à tout optimiser.",
+          "scheduled_for": "2026-05-25T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T16:22:19.098656+00:00"
+        },
+        {
+          "id": "288c20eb-b555-4746-9efd-fa24b329f0ac",
+          "recurring_reminder_id": "52532be4-7702-49c7-af0b-a2483840688d",
+          "event_context": "recurring_reminder:52532be4-7702-49c7-af0b-a2483840688d:potion:daf2e595-6be1-45dd-9a51-c587120d176a:2026-05-26",
+          "draft_message": "Te ramener au choix le plus net pour demain matin, sans chercher à tout optimiser.",
+          "scheduled_for": "2026-05-26T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T16:22:19.098656+00:00"
+        },
+        {
+          "id": "0ec3b82f-0f40-48c3-bcde-bdd0843d2e9f",
+          "recurring_reminder_id": "52532be4-7702-49c7-af0b-a2483840688d",
+          "event_context": "recurring_reminder:52532be4-7702-49c7-af0b-a2483840688d:potion:daf2e595-6be1-45dd-9a51-c587120d176a:2026-05-27",
+          "draft_message": "Te ramener au choix le plus net pour demain matin, sans chercher à tout optimiser.",
+          "scheduled_for": "2026-05-27T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T16:22:19.098656+00:00"
+        },
+        {
+          "id": "744b7f9e-951e-4e2d-a8fc-48e95990e3a9",
+          "recurring_reminder_id": "52532be4-7702-49c7-af0b-a2483840688d",
+          "event_context": "recurring_reminder:52532be4-7702-49c7-af0b-a2483840688d:potion:daf2e595-6be1-45dd-9a51-c587120d176a:2026-05-28",
+          "draft_message": "Te ramener au choix le plus net pour demain matin, sans chercher à tout optimiser.",
+          "scheduled_for": "2026-05-28T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T16:22:19.098656+00:00"
+        }
+      ]
+    }
+  }
+]

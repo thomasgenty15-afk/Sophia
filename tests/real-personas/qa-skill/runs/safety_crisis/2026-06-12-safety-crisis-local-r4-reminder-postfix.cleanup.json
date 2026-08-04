@@ -1,0 +1,21 @@
+{
+  "run_id": "2026-06-12-safety-crisis-local-r4-reminder-postfix",
+  "user_id": "44511f55-2d5c-477c-8682-9b234379fef6",
+  "scope": "qa-safety-crisis-2026-06-12-safety-crisis-local-r4-reminder-postfix",
+  "deleted": {
+    "chat_messages": {
+      "status": 200,
+      "count": 11
+    },
+    "user_chat_states": {
+      "status": 200,
+      "count": 1
+    },
+    "scheduled_checkins": {
+      "status": 200,
+      "count": 1
+    }
+  },
+  "errors": [],
+  "connection_cleanup": "cleanup complete for qa-skill connection=safety_crisis_local_2026-06-12-safety-crisis-local-r4-reminder-postfix (44511f55-2d5c-477c-8682-9b234379fef6)"
+}

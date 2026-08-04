@@ -1,0 +1,1106 @@
+export type ProductHelpIntent = "explain" | "how_to" | "benefits";
+
+export type ProductHelpLocation = {
+  surface: string;
+  when_visible: string;
+  user_can_do: string[];
+};
+
+export type ProductHelpFeatureGuidance = {
+  feature_id:
+    | "adjust_plan"
+    | "attack_card"
+    | "defense_card"
+    | "state_potion"
+    | "initiative"
+    | "coach_preferences";
+  trigger_phrases: string[];
+  requires_confirmation: boolean;
+};
+
+export type ProductHelpFeature = {
+  id: string;
+  label: string;
+  aliases: string[];
+  explain: string;
+  how_to: string;
+  benefits: string[];
+  locations: ProductHelpLocation[];
+  limits: string[];
+  sophia_must_not_claim: string[];
+  feature_guidance?: ProductHelpFeatureGuidance;
+};
+
+export const PRODUCT_HELP_FEATURES: ProductHelpFeature[] = [
+  {
+    id: "dashboard.plan",
+    label: "Plan",
+    aliases: [
+      "plan",
+      "dashboard",
+      "tableau de bord",
+      "espace",
+      "mon espace",
+      "espace sophia",
+      "parcours",
+      "niveau",
+      "semaine",
+      "progression",
+      "bilan",
+      "bilans",
+      "saisie",
+      "ajouter une action",
+      "creer une action",
+      "suite verrouillee",
+      "suite verrouillée",
+      "semaines verrouillees",
+      "niveaux verrouilles",
+    ],
+    explain:
+      "Le Plan est l'espace principal d'execution d'une transformation active. Il montre les niveaux, les semaines, les elements du plan et l'avancement.",
+    how_to:
+      "Dans le dashboard, selectionne une transformation dans la colonne de gauche puis ouvre l'onglet Plan. Tu y vois le niveau actif, les semaines, les missions, habitudes, clarifications et elements a venir. Les bilans hebdomadaires ne se saisissent pas dans le Plan: ils se font par message WhatsApp le dimanche pour faire le point sur la semaine. Il n'existe pas d'endroit pour ajouter librement une action dans le dashboard.",
+    benefits: [
+      "Donne une vue claire de ce qui est a faire maintenant.",
+      "Evite de melanger les actions du moment avec toute la transformation.",
+      "Montre ce qui est termine, actif ou a venir, dont les semaines et niveaux futurs qui peuvent etre verrouilles.",
+    ],
+    locations: [{
+      surface: "Dashboard > Plan",
+      when_visible: "Quand une transformation active existe.",
+      user_can_do: [
+        "consulter le niveau actif",
+        "ouvrir les semaines",
+        "valider certains elements",
+        "acceder a l'ajustement du plan",
+      ],
+    }],
+    limits: [
+      "Ce n'est pas un journal libre d'actions ou de bilans.",
+      "Il n'existe pas d'endroit pour ajouter librement une action dans le dashboard.",
+      "Les bilans hebdomadaires se font par message WhatsApp le dimanche, pas par saisie libre dans le dashboard.",
+      "Les changements structurels passent par l'ajustement du plan.",
+      "Les verrouillages concernent les semaines ou niveaux a venir du Plan, pas un lancement de prochaine transformation.",
+    ],
+    sophia_must_not_claim: [
+      "Ne pas dire que le dashboard permet de saisir librement des actions ou bilans.",
+      "Ne pas mentionner d'ancien objectif global supprime.",
+      "Ne pas inventer une suite du parcours verrouillee.",
+    ],
+  },
+  {
+    id: "plan.weekly_planning_validation",
+    label: "Validation de la semaine",
+    aliases: [
+      "validation de la semaine",
+      "valider la semaine",
+      "validation semaine",
+      "validation du planning",
+      "valider le planning",
+      "planning de semaine",
+      "planning hebdo",
+      "semaine a valider",
+      "semaine à valider",
+      "premiere semaine",
+      "première semaine",
+      "semaine prochaine",
+      "pourquoi valider",
+    ],
+    explain:
+      "La validation de la semaine sert a confirmer l'organisation proposee pour la semaine a venir. Elle dit a Sophia quels jours et quelles actions sont vraiment acceptes, au lieu de laisser le planning comme une simple proposition. Elle permet ensuite aux rappels, bilans et suivis de s'appuyer sur un planning fiable.",
+    how_to:
+      "Dans le Plan, ouvre le niveau actif puis la semaine concernee. Pour la premiere semaine apres onboarding, la validation se trouve dans le niveau 2 du plan, tout en haut de la semaine actuelle. Pour les semaines suivantes, elle devient disponible apres le point weekly ou via le rappel prevu.",
+    benefits: [
+      "Confirme les jours et actions que le user accepte vraiment.",
+      "Evite que Sophia s'appuie sur un planning encore implicite.",
+      "Rend les rappels, bilans et suivis plus fiables.",
+    ],
+    locations: [{
+      surface: "Dashboard > Plan",
+      when_visible:
+        "Quand une semaine de plan est proposee et attend validation.",
+      user_can_do: [
+        "relire l'organisation de la semaine",
+        "confirmer le planning propose",
+        "modifier le planning depuis l'espace si necessaire",
+      ],
+    }],
+    limits: [
+      "Ce n'est pas un bilan de fin de semaine.",
+      "Ce n'est pas la validation d'une occurrence deja faite.",
+      "Sophia ne doit pas dire que la semaine est validee sans retour UI, outil ou check-in d'auto-validation.",
+    ],
+    sophia_must_not_claim: [
+      "Ne pas dire que le planning est valide sans source explicite.",
+      "Ne pas confondre validation de semaine et validation d'une action faite.",
+      "Ne pas dire que le user peut ajouter librement des actions depuis cette validation.",
+    ],
+  },
+  {
+    id: "plan.clarifications",
+    label: "Clarifications",
+    aliases: [
+      "clarification",
+      "clarifications",
+      "exercice",
+      "fiche guidee",
+      "comprendre",
+      "blocage",
+      "support",
+    ],
+    explain:
+      "Les clarifications sont des elements guides du plan pour comprendre une situation, poser un repere ou clarifier un blocage avant d'agir.",
+    how_to:
+      "Dans le Plan, ouvre une carte de type Clarification ou Exercice de clarification. Selon l'item, tu peux ouvrir une fiche guidee ou un exercice structure.",
+    benefits: [
+      "Aide a ne pas executer trop vite quand le probleme est encore flou.",
+      "Transforme une confusion en information exploitable.",
+      "Donne un support plus cadre qu'une simple discussion.",
+    ],
+    locations: [{
+      surface: "Dashboard > Plan",
+      when_visible:
+        "Quand le plan contient un item de dimension clarifications ou support.",
+      user_can_do: [
+        "lire l'objectif",
+        "ouvrir la fiche ou l'exercice",
+        "sauvegarder puis completer l'element",
+      ],
+    }],
+    limits: [
+      "Ne remplace pas un ajustement du plan si la structure globale ne convient plus.",
+      "Ne doit pas etre presente comme une action libre creee par le user.",
+    ],
+    sophia_must_not_claim: [
+      "Ne pas dire qu'une clarification a ete sauvegardee ou terminee sans confirmation UI ou outil.",
+    ],
+  },
+  {
+    id: "plan.missions",
+    label: "Missions",
+    aliases: [
+      "mission",
+      "missions",
+      "action ponctuelle",
+      "action du plan",
+      "faire une action",
+      "action trop grosse",
+      "action trop lourde",
+    ],
+    explain:
+      "Une mission est une action ponctuelle prevue par le plan pour faire avancer concretement la transformation.",
+    how_to:
+      "Dans le Plan, ouvre la semaine ou le niveau actif, trouve la mission, puis valide-la quand elle est faite.",
+    benefits: [
+      "Rend la transformation executable par petits gestes concrets.",
+      "Evite de transformer le plan en reflexion abstraite.",
+      "Permet de suivre l'avancement d'une action prevue.",
+    ],
+    locations: [{
+      surface: "Dashboard > Plan",
+      when_visible: "Quand le plan contient des items de dimension missions.",
+      user_can_do: [
+        "consulter la mission",
+        "voir les ressources liees si elles existent",
+        "marquer comme fait",
+      ],
+    }],
+    limits: [
+      "Le user ne cree pas ou ne supprime pas directement une mission depuis la carte.",
+      "Si la mission n'est plus adaptee, passer par l'ajustement du plan.",
+      "Si l'action est trop grosse, il faut passer par Ajuster le plan et expliquer ce qui ne va pas ou ce qu'il faut modifier; ne pas dire que le user peut ajuster directement au niveau de la carte action.",
+    ],
+    sophia_must_not_claim: [
+      "Ne pas dire qu'une mission a ete modifiee, supprimee ou remplacee sans flow d'ajustement confirme.",
+    ],
+  },
+  {
+    id: "plan.habits",
+    label: "Habitudes",
+    aliases: [
+      "habitude",
+      "habitudes",
+      "repetition",
+      "occurrence",
+      "ancrage",
+      "planning de semaine",
+    ],
+    explain:
+      "Une habitude est un element repetitif du plan. Elle sert a installer un changement dans le quotidien au lieu de faire une action une seule fois.",
+    how_to:
+      "Dans le Plan, ouvre l'habitude. Tu peux valider une occurrence, voir la progression d'ancrage et acceder au planning de semaine si disponible.",
+    benefits: [
+      "Transforme une intention en repetition concrete.",
+      "Suit les occurrences faites, ratees ou reportees.",
+      "Aide a installer la transformation dans le rythme reel du user.",
+    ],
+    locations: [{
+      surface: "Dashboard > Plan",
+      when_visible: "Quand le plan contient des items de dimension habits.",
+      user_can_do: [
+        "valider une occurrence",
+        "ouvrir le planning de semaine",
+        "voir l'ancrage",
+      ],
+    }],
+    limits: [
+      "Ce n'est pas un tracker libre d'habitudes hors plan.",
+      "Modifier la nature ou le rythme de l'habitude passe par l'ajustement du plan si le planning local ne suffit pas.",
+    ],
+    sophia_must_not_claim: [
+      "Ne pas dire qu'une habitude a ete validee, reportee ou replanifiee sans retour UI ou outil.",
+    ],
+  },
+  {
+    id: "plan.adjustment",
+    label: "Ajustement du plan",
+    aliases: [
+      "ajuster",
+      "ajustement",
+      "modifier le plan",
+      "adapter",
+      "trop lourd",
+      "trop facile",
+      "mauvais timing",
+      "changer une action",
+      "action trop grosse",
+      "action trop lourde",
+      "action est trop grosse",
+      "action trop floue",
+      "action floue",
+      "rendre une action concrete",
+      "rendre cette action concrete",
+      "transformer une action",
+      "transformer une action en quelque chose de concret",
+      "sans modifier le reste",
+      "trop grosse",
+    ],
+    explain:
+      "L'ajustement du plan sert quand le plan ne colle plus: trop lourd, trop leger, mal place, invalide par une nouvelle information ou plus adapte.",
+    how_to:
+      "Dans le Plan, utilise le panneau Ajuster le plan. Le user explique ce qui ne va pas ou ce qu'il faut modifier; j'analyse puis je propose une modification du plan. Le changement ne se fait pas directement au niveau de la carte action.",
+    benefits: [
+      "Corrige le plan sans repartir de zero.",
+      "Remplace les anciennes actions directes sur item comme supprimer, desactiver ou signaler blocage.",
+      "Garde une raison claire pour l'ajustement.",
+    ],
+    locations: [{
+      surface: "Dashboard > Plan",
+      when_visible: "Quand un plan actif V3 est ouvert.",
+      user_can_do: [
+        "decrire le probleme",
+        "demander une analyse",
+        "voir une proposition",
+        "valider ou clarifier selon le flow",
+      ],
+    }],
+    limits: [
+      "Ne sert pas a simplement executer une action.",
+      "Ne doit pas etre confondu avec une validation d'item.",
+      "Ne pas dire que le user peut ajuster la mission ou l'habitude directement depuis la carte d'action.",
+      "Ne doit pas promettre une modification si la proposition n'a pas ete validee ou appliquee.",
+    ],
+    sophia_must_not_claim: [
+      "Ne pas dire que le plan a ete ajuste sans confirmation d'application.",
+    ],
+    feature_guidance: {
+      feature_id: "adjust_plan",
+      trigger_phrases: [
+        "ajuste mon plan",
+        "modifie cette action",
+        "ce plan est trop lourd",
+        "cette mission ne colle plus",
+        "il faut adapter la suite",
+      ],
+      requires_confirmation: true,
+    },
+  },
+  {
+    id: "resources.overview",
+    label: "Ressources",
+    aliases: ["ressources", "labo", "appuis", "cartes", "potions", "outils"],
+    explain:
+      "Ressources regroupe les appuis concrets autour du plan: cartes de defense, cartes d'attaque, potions et cartes liees aux missions ou habitudes.",
+    how_to:
+      "Ouvre l'onglet Ressources depuis le dashboard. Les ressources liees au plan y sont rangees par niveau quand elles existent.",
+    benefits: [
+      "Centralise les appuis utiles au lieu de les disperser dans le chat.",
+      "Permet de retrouver une carte apres sa generation.",
+      "Separe les aides de preparation, de reaction et de regulation d'etat.",
+    ],
+    locations: [{
+      surface: "Dashboard > Ressources",
+      when_visible: "Quand une transformation active V3 est ouverte.",
+      user_can_do: [
+        "consulter les cartes",
+        "generer certaines ressources",
+        "activer certaines potions",
+        "exporter certains elements selon le type",
+      ],
+    }],
+    limits: [
+      "Ressources n'est pas le lieu pour modifier le plan.",
+      "Toutes les ressources ne sont pas toujours disponibles si elles n'ont pas ete generees.",
+    ],
+    sophia_must_not_claim: [
+      "Ne pas dire qu'une ressource existe si elle n'a pas ete creee.",
+    ],
+  },
+  {
+    id: "resources.attack_vs_defense_cards",
+    label: "Cartes d'attaque et de defense",
+    aliases: [
+      "difference entre une carte d'attaque et une carte de defense",
+      "difference carte attaque defense",
+      "difference entre attaque et defense",
+      "carte d'attaque et carte de defense",
+      "cartes d'attaque et de defense",
+      "attaque vs defense",
+      "attaque defense",
+      "attaque et defense",
+      "comparer les cartes",
+    ],
+    explain:
+      "Une carte d'attaque aide a demarrer ou preparer une action: elle reduit la friction avant de commencer, clarifie le premier geste, et sert aussi a se construire un cadre interne quand rien d'externe ne pousse (mantra a se repeter, texte a ecrire qui recadre les excuses). Une carte de defense protege un moment de risque: elle anticipe ce qui peut faire derailler l'action et prepare une reponse simple ou un plan B. En pratique, l'attaque repond a « comment je m'y mets, et pourquoi ca compte pour moi ? »; la defense repond a « qu'est-ce qui risque de me faire devier, et quoi faire a ce moment-la ? ».",
+    how_to:
+      "Utilise une carte d'attaque quand l'action est voulue mais difficile a lancer, quand il faut preparer le terrain avant le moment d'action, ou quand le vrai probleme est un manque de cadre: pas d'obligation externe, discipline a tenir seul, besoin de se rappeler pourquoi l'action compte. Utilise une carte de defense quand le probleme est un piege sur le moment, en plein mouvement: evitement, impulsion, pression, fatigue, reaction automatique ou risque de craquer. Les deux peuvent coexister pour une meme action: attaque pour entrer dans l'action et tenir le cap, defense pour tenir quand le contexte deraille.",
+    benefits: [
+      "Evite de confondre preparation de l'action et protection contre un risque.",
+      "Aide a choisir la bonne ressource selon le besoin actuel.",
+      "Permet de combiner les deux cartes sans les rendre interchangeables.",
+    ],
+    locations: [
+      {
+        surface: "Dashboard > Plan",
+        when_visible:
+          "Quand une mission ou une habitude propose des ressources liees.",
+        user_can_do: ["voir les cartes liees quand elles existent"],
+      },
+      {
+        surface: "Dashboard > Ressources",
+        when_visible: "Quand des cartes ont ete generees ou sont disponibles.",
+        user_can_do: [
+          "consulter les cartes",
+          "creer certaines cartes libres si l'option est disponible",
+        ],
+      },
+    ],
+    limits: [
+      "Cette comparaison n'execute pas de creation de carte.",
+      "Sophia ne doit pas affirmer qu'une carte existe sans source recente ou projection.",
+      "Pour creer ou preparer une carte depuis le chat, il faut passer par le flow adapte avec confirmation.",
+    ],
+    sophia_must_not_claim: [
+      "Ne pas dire qu'une carte d'attaque ou de defense a ete creee sans succes outil ou flow.",
+      "Ne pas presenter les deux cartes comme equivalentes ou interchangeables.",
+    ],
+  },
+  {
+    id: "resources.attack_card",
+    label: "Carte d'attaque",
+    aliases: [
+      "carte d'attaque",
+      "attaque",
+      "preparation",
+      "friction",
+      "technique",
+    ],
+    explain:
+      "Une carte d'attaque sert a preparer l'action en amont. Elle rend le bon geste plus simple, plus naturel et moins couteux au moment de passer a l'action. Elle peut s'appuyer sur 6 techniques: Le texte magique, une phrase courte qui recadre l'action; Mantra de force, une phrase d'appui a se repeter; Ancre visuelle, un repere visuel prepare; Meditation de 5 minutes, une visualisation calme du demarrage; Preparer le terrain, l'organisation de l'environnement avant l'action; Mot de bascule, un seul mot declencheur.",
+    how_to:
+      "Depuis une mission ou une habitude du Plan, tu peux preparer une carte d'attaque liee a cette action. La carte d'attaque se retrouve ensuite dans Ressources, rangee par niveau. Processus: choisir la technique adaptee, repondre a son mini-questionnaire, generer l'objet concret, puis l'utiliser selon son mode d'emploi.",
+    benefits: [
+      "Reduit la friction avant l'action.",
+      "Clarifie le premier geste et le mode d'emploi.",
+      "Aide a preparer le terrain avant le moment critique.",
+      "Permet de choisir entre 6 formats selon le besoin: texte de recadrage, mantra, repere visuel, visualisation, environnement prepare, ou mot-cle de bascule.",
+    ],
+    locations: [
+      {
+        surface: "Dashboard > Plan",
+        when_visible: "Depuis la mission ou l'habitude concernee.",
+        user_can_do: [
+          "preparer une carte d'attaque liee a l'action",
+          "voir un apercu de la carte generee",
+        ],
+      },
+      {
+        surface: "Dashboard > Ressources",
+        when_visible: "Quand une carte d'attaque du plan a ete generee.",
+        user_can_do: [
+          "consulter la carte rangee par niveau",
+          "gerer les cartes libres",
+        ],
+      },
+    ],
+    limits: [
+      "Ne remplace pas une carte de defense si le probleme est une impulsion ou un piege au moment meme.",
+      "Ne remplace pas l'ajustement du plan si l'action elle-meme est mauvaise.",
+      "Une carte d'attaque generee ne se modifie pas librement; seul le mot d'une carte Mot de bascule peut etre remplace depuis Ressources. Si le contexte, la technique ou le contenu ne convient plus, il faut preparer une nouvelle version apres confirmation.",
+    ],
+    sophia_must_not_claim: [
+      "Ne pas dire qu'une carte d'attaque a ete creee sans succes outil ou flow.",
+      "Ne pas dire qu'une carte d'attaque peut etre modifiee librement.",
+    ],
+    feature_guidance: {
+      feature_id: "attack_card",
+      trigger_phrases: [
+        "prepare une carte d'attaque",
+        "aide-moi a preparer cette action",
+        "rends cette mission plus facile a lancer",
+      ],
+      requires_confirmation: true,
+    },
+  },
+  {
+    id: "resources.defense_card",
+    label: "Carte de defense",
+    aliases: [
+      "carte de defense",
+      "defense",
+      "piege",
+      "impulsion",
+      "plan b",
+      "moment difficile",
+    ],
+    explain:
+      "Une carte de defense sert quand quelque chose risque de faire derailler l'action: impulsion, piege, pression, evitement ou reaction automatique.",
+    how_to:
+      "Une carte de defense peut etre generee librement depuis Ressources, ou etre liee au plan depuis une mission ou une habitude. Elle se retrouve ensuite dans Ressources, ou elle peut etre consultee et utilisee. Processus: identifier un moment concret, reperer le piege observable, definir mon geste faisable en moins de 30 secondes, puis prevoir un plan B simple.",
+    benefits: [
+      "Donne une reponse simple pour les moments de risque.",
+      "Anticipe les pieges concrets.",
+      "Propose un geste ou un plan B applicable sur le moment.",
+      "Structure la reponse en situation, signal/piege, mon geste et plan B.",
+    ],
+    locations: [
+      {
+        surface: "Dashboard > Plan",
+        when_visible:
+          "Quand une mission ou habitude a une carte de defense liee.",
+        user_can_do: ["voir un apercu", "retrouver la carte dans Ressources"],
+      },
+      {
+        surface: "Dashboard > Ressources",
+        when_visible:
+          "Quand une carte de defense existe, ou quand le user veut creer une carte libre.",
+        user_can_do: [
+          "creer une carte libre",
+          "consulter",
+          "exporter",
+          "ajuster la carte depuis la plateforme quand l'option est disponible",
+          "retirer un declencheur si la carte le permet",
+        ],
+      },
+    ],
+    limits: [
+      "Ne sert pas a modifier l'action du plan.",
+      "Ne doit pas etre presentee comme une solution globale.",
+      "Une carte de defense peut etre ajustee depuis la plateforme/Ressources quand l'option est disponible. Depuis le chat, Sophia ne modifie pas une carte existante; si son contenu ne convient plus, il faut en preparer une nouvelle version apres confirmation.",
+    ],
+    sophia_must_not_claim: [
+      "Ne pas dire qu'une carte de defense a ete creee ou modifiee sans succes outil ou flow.",
+      "Ne pas dire qu'une carte de defense peut etre modifiee directement depuis le chat.",
+    ],
+    feature_guidance: {
+      feature_id: "defense_card",
+      trigger_phrases: [
+        "prepare une carte de defense",
+        "j'ai besoin d'un plan b",
+        "aide-moi pour le moment ou je risque de craquer",
+      ],
+      requires_confirmation: true,
+    },
+  },
+  {
+    id: "resources.plan_cards",
+    label: "Cartes liees au plan",
+    aliases: [
+      "cartes du plan",
+      "cartes liees",
+      "carte liee",
+      "liee a une mission",
+      "liee au plan",
+      "apres generation",
+      "apres la generation",
+      "cartes de mission",
+      "cartes d'habitude",
+      "generer les cartes",
+    ],
+    explain:
+      "Les cartes liees au plan sont des cartes d'attaque et de defense creees pour une mission ou une habitude precise.",
+    how_to:
+      "Dans le Plan, ouvre la mission ou l'habitude concernee pour preparer une carte d'attaque ou de defense liee a cette action. Une fois generees, les cartes apparaissent sur l'item et dans Ressources par niveau.",
+    benefits: [
+      "Relie directement une ressource a une action concrete.",
+      "Evite de chercher une carte hors contexte.",
+      "Donne a la fois une aide de preparation et une aide de reaction.",
+    ],
+    locations: [
+      {
+        surface: "Dashboard > Plan",
+        when_visible: "Depuis la mission ou l'habitude concernee.",
+        user_can_do: ["preparer les cartes liees", "voir les apercus"],
+      },
+      {
+        surface: "Dashboard > Ressources",
+        when_visible: "Quand les cartes existent.",
+        user_can_do: ["retrouver les cartes par niveau"],
+      },
+    ],
+    limits: [
+      "Les clarifications ne sont pas le cas principal de generation de cartes.",
+    ],
+    sophia_must_not_claim: [
+      "Ne pas dire que toutes les actions ont automatiquement des cartes.",
+    ],
+  },
+  {
+    id: "resources.potions",
+    label: "Potions",
+    aliases: [
+      "potion",
+      "potions",
+      "etat interieur",
+      "suivi 7 jours",
+      "suivi de 7 jours",
+      "message quotidien",
+      "question quotidienne",
+      "conversation de soutien",
+      "relance potion",
+      "comment marche le suivi",
+      "reset",
+      "reguler",
+      "apaiser",
+      "perte de sens du plan",
+      "pression",
+      "peur",
+    ],
+    explain:
+      "Une potion aide a traverser un etat interieur quand il prend trop de place. Elle a deux temps: une reponse immediate personnalisee au moment de l'activation, puis un soutien conversationnel pouvant durer jusqu'a 7 jours. Sophia ne pousse pas une serie de phrases generiques preparees d'avance: chaque nouvelle ouverture s'appuie sur le contexte donne a l'activation et sur ce qui a evolue depuis, puis peut poser une question et ouvrir une vraie conversation de soutien si le user repond. Types: anti-decrochage quand le user sait quoi proteger mais laisse filer, courage quand la peur ou l'evitement bloquent, guerison apres un episode qui a fait mal, clarte quand le plan perd son lien avec le pourquoi profond, amour quand il manque de douceur envers lui-meme, apaisement quand la pression monte.",
+    how_to:
+      "Dans Dashboard > Ressources > Potions, choisis la potion qui correspond a l'etat du moment, reponds aux quelques questions de contexte, puis active-la. L'activation affiche d'abord un appui personnalise et ouvre un suivi pouvant aller jusqu'a 7 jours. Au maximum une ouverture de soutien est preparee par jour, au moment utile, depuis le contexte initial et les echanges intervenus depuis la precedente ouverture. Si le user repond, Sophia poursuit naturellement la conversation; elle peut rester tres courte ou durer davantage selon ce dont il a besoin.",
+    benefits: [
+      "Aide a redescendre ou se recentrer rapidement.",
+      "Repond a un etat du moment sans refaire tout le plan.",
+      "Capitalise sur le contexte recueilli a l'activation au lieu de demander au user de tout repeter.",
+      "Fait evoluer le soutien d'un jour a l'autre a partir des reponses et des echanges intermediaires.",
+      "Permet une vraie conversation de soutien, pas seulement la reception d'une phrase quotidienne.",
+      "Sert quand l'etat interieur global prend trop de place, sans etre d'abord rattache a une action concrete.",
+      "Aide a choisir la potion selon l'etat: decrochage, peur, honte/blessure, perte de sens du plan, durete envers soi, ou stress.",
+    ],
+    locations: [{
+      surface: "Dashboard > Ressources",
+      when_visible: "Quand les definitions de potions sont disponibles.",
+      user_can_do: [
+        "activer",
+        "reactiver",
+        "consulter l'usage",
+        "recevoir le soutien contextualise associe a l'activation",
+      ],
+    }],
+    limits: [
+      "Ce n'est pas une solution globale.",
+      "Ne remplace pas safety si le risque monte.",
+      "Ne remplace pas demotivation_repair quand le user a d'abord besoin de retrouver pourquoi il agit ou pourquoi ca compte.",
+      "Ne remplace pas emotional_repair quand honte, culpabilite, auto-attaque ou detresse dominent le tour.",
+      "La potion de clarte ne remplace pas les cartes d'action pour trouver un premier pas, prioriser une tache ou decouper une action.",
+      "Ne remplace pas les cartes d'attaque ou de defense quand l'emotion est liee a une action concrete.",
+      "Ne remplace pas l'ajustement du plan si le probleme est structurel.",
+      "Le suivi peut aller jusqu'a 7 jours, mais ne garantit pas 7 messages: Sophia respecte les conversations deja en cours et les autres rendez-vous Daily ou Weekly prioritaires.",
+      "Sophia attend une periode sans echange avant une ouverture proactive; elle ne coupe pas une conversation en cours pour envoyer la potion.",
+      "Hors de la fenetre WhatsApp de 24 h, un template demande d'abord si le user veut recevoir le message du jour; le contenu personnalise vient seulement apres sa reponse.",
+      "Mettre fin a une conversation du jour ne supprime pas automatiquement les jours suivants. Pour arreter toute la campagne, le user doit demander explicitement de ne plus etre relance pour cette potion.",
+      "Le suivi de la potion reste hors plan: il ne modifie aucune mission, habitude ou structure du Plan.",
+    ],
+    sophia_must_not_claim: [
+      "Ne pas dire qu'une potion est activee sans succes outil ou flow.",
+      // P8-B (rose-p7verify T12): a 0 session active, l'article defini
+      // impliquant une instance stockee est un over-claim.
+      "Ne pas employer l'article defini ('ta potion', 'la retrouver', 'la reactiver') pour un user sans potion active: decrire la FEATURE ('une potion se choisit et s'active dans Ressources'), jamais une instance qui n'existe pas. 'Reactiver' ne se dit que d'une potion deja activee auparavant.",
+      "Ne jamais dire qu'une potion peut etre activee, gardee ou sauvegardee depuis le chat: l'activation se fait dans l'app (Dashboard > Ressources).",
+      "Ne pas presenter un exercice ou un contenu de potion donne dans le chat comme une activation du suivi de 7 jours. Seule l'activation confirmee dans Dashboard > Ressources > Potions ouvre la campagne durable.",
+      "Ne pas promettre exactement 7 messages, une heure fixe quotidienne ou des textes prepares d'avance. Parler d'un soutien contextualise pouvant aller jusqu'a 7 jours.",
+      "Sur une co-demande 'active-moi une potion' + question mecanique ('je la retrouve ou ?'), repondre aux DEUX volets: l'honnetete d'activation (pas activable depuis le chat, chemin app) d'abord, puis la mecanique — ne jamais dropper le volet activation.",
+    ],
+    feature_guidance: {
+      feature_id: "state_potion",
+      trigger_phrases: [
+        "active une potion",
+        "j'ai besoin d'une potion",
+        "aide-moi a changer d'etat maintenant",
+      ],
+      requires_confirmation: true,
+    },
+  },
+  {
+    id: "inspirations",
+    label: "Inspirations",
+    aliases: [
+      "inspiration",
+      "inspirations",
+      "principes",
+      "histoire",
+      "recit",
+      "pourquoi profond",
+      "deep why",
+    ],
+    explain:
+      "Inspirations regroupe des reperes narratifs et des principes lies au parcours. Cet espace aide a retrouver du sens et relire l'histoire du parcours.",
+    how_to:
+      "Ouvre l'onglet Inspirations depuis le dashboard. Selon l'etat du parcours, tu peux consulter le recit, preparer l'histoire, travailler le pourquoi profond ou relire des principes.",
+    benefits: [
+      "Redonne du contexte quand l'execution devient trop mecanique.",
+      "Relie le plan a l'histoire et aux raisons du user.",
+      "Sert de support de sens, pas de todo operationnelle.",
+    ],
+    locations: [{
+      surface: "Dashboard > Inspirations",
+      when_visible: "Quand une transformation V3 est active.",
+      user_can_do: [
+        "consulter les contenus d'inspiration",
+        "preparer certaines briques de Phase 1 si disponibles",
+      ],
+    }],
+    limits: [
+      "Ce n'est pas l'endroit pour modifier le plan.",
+      "Ce n'est pas une action ou une initiative.",
+    ],
+    sophia_must_not_claim: [
+      "Ne pas renommer cet espace avec un ancien libelle.",
+      "Ne pas dire qu'une inspiration a ete generee ou sauvegardee sans retour outil ou UI.",
+    ],
+  },
+  {
+    id: "initiatives",
+    label: "Initiatives",
+    aliases: [
+      "initiative",
+      "initiatives",
+      "rendez-vous",
+      "rendez vous",
+      "rappel recurrent",
+      "initiative recurrente",
+      "initiative récurrente",
+      "message planifie",
+      "whatsapp",
+      "relance",
+    ],
+    explain:
+      "Une initiative est un message recurrent planifie que j'envoie. Elle contient une instruction, un contexte, une heure, des jours actifs et une destination: Plan actuel ou Base de vie.",
+    how_to:
+      "Ouvre l'onglet Initiatives. C'est le seul endroit pour creer une initiative independamment d'une potion. Cree ou modifie une initiative en precisant ce que je dois envoyer, pourquoi c'est important, l'heure et les jours actifs.",
+    benefits: [
+      "Installe une presence utile dans le temps.",
+      "Soutient une transformation sans obliger le user a revenir au dashboard.",
+      "Peut vivre dans le plan actif ou hors plan dans la Base de vie.",
+    ],
+    locations: [
+      {
+        surface: "Dashboard > Initiatives",
+        when_visible:
+          "Quand le user a acces aux fonctionnalites WhatsApp requises.",
+        user_can_do: [
+          "creer",
+          "modifier",
+          "activer ou desactiver",
+          "archiver une initiative recurrente",
+        ],
+      },
+      {
+        surface: "Base de vie > Initiatives",
+        when_visible: "Quand l'initiative vit hors plan.",
+        user_can_do: [
+          "gerer les initiatives libres hors transformation active",
+        ],
+      },
+    ],
+    limits: [
+      "Une initiative est recurrente, pas un outil conversationnel hors plateforme.",
+      "Une initiative ne se cree pas depuis Habitudes ou depuis le Plan: hors potion, elle se cree dans l'onglet Initiatives.",
+      "Certaines capacites peuvent etre verrouillees selon le plan d'acces.",
+      "Les instructions doivent rester dans les contraintes safety et ethique.",
+    ],
+    sophia_must_not_claim: [
+      "Ne pas dire qu'une initiative a ete programmee sans succes outil ou flow.",
+      "Ne pas confondre initiative dashboard et outil conversationnel hors plateforme.",
+    ],
+    feature_guidance: {
+      feature_id: "initiative",
+      trigger_phrases: [
+        "cree une initiative",
+        "programme un rendez-vous recurrent",
+        "modifie cette initiative",
+        "mets cette relance dans ma base de vie",
+      ],
+      requires_confirmation: true,
+    },
+  },
+  {
+    id: "one_shot_reminder",
+    label: "Rappel ponctuel",
+    aliases: [
+      "rappel",
+      "rappels",
+      "rappel ponctuel",
+      "rappel unique",
+      "rappelle-moi",
+      "mon rappel",
+      "rappel de ce soir",
+      "rappel prevu",
+    ],
+    explain:
+      "Un rappel ponctuel est un message unique que j'envoie a l'heure convenue (par exemple « rappelle-moi ce soir a 21h de couper les ecrans »). Il se cree directement en conversation avec moi et part une seule fois, contrairement a une initiative qui est recurrente. Matrice canal/surface (nina-untested R1-B04): PONCTUEL = creation, annulation, statut et remplacement DANS LE CHAT (gestion visuelle ensuite dans Dashboard > Initiatives) ; RECURRENT = Dashboard > Initiatives uniquement ; CANAL: si le compte WhatsApp du user est lie a Sophia, les rappels peuvent etre delivres sur WhatsApp, sinon ils vivent dans la conversation web.",
+    how_to:
+      "Demande-le moi simplement en conversation avec le moment et l'objet (« rappelle-moi demain a 8h30 d'appeler ma soeur »). Une fois cree, il apparait dans Dashboard > Initiatives, dans la section des rappels, ou tu peux le voir, le modifier, le mettre en pause ou le supprimer.",
+    benefits: [
+      "Zero configuration: il se cree en une phrase dans la conversation.",
+      "Visible et gerable ensuite dans Dashboard > Initiatives.",
+    ],
+    locations: [
+      {
+        surface: "Dashboard > Initiatives",
+        when_visible:
+          "Quand un rappel ponctuel a ete cree et n'est pas encore envoye.",
+        user_can_do: [
+          "consulter les rappels a venir",
+          "modifier",
+          "mettre en pause",
+          "supprimer",
+        ],
+      },
+    ],
+    limits: [
+      "Un rappel ponctuel part une seule fois: pour une recurrence (« tous les jours a 18h »), c'est une initiative.",
+      "L'annulation et la creation passent aussi par la conversation.",
+    ],
+    sophia_must_not_claim: [
+      "Ne pas dire qu'un rappel est programme sans commit prouve.",
+      "Ne pas dire que les rappels ponctuels ne sont pas visibles dans l'app: ils apparaissent dans Dashboard > Initiatives.",
+      "Ne pas confondre rappel ponctuel (unique) et initiative (recurrente).",
+      "Ne JAMAIS dire que les rappels ponctuels « se gerent dans Dashboard > Initiatives » comme reponse a « ou les creer »: ils se creent et s'annulent DANS LE CHAT (l'app sert a les consulter) — c'est l'erreur observee (nina-untested T1).",
+      "Ne pas rester evasive sur le canal WhatsApp: il existe (avec compte lie), dis-le honnetement avec sa condition.",
+    ],
+  },
+  {
+    id: "account.subscription",
+    label: "Abonnement",
+    aliases: [
+      "abonnement",
+      "formule",
+      "palier",
+      "offre",
+      "upgrade",
+      "passer a la formule au-dessus",
+      "changer de formule",
+      "facturation",
+      "paiement",
+      "prelevement",
+      "resilier",
+      "resiliation",
+      "portail de facturation",
+    ],
+    explain:
+      "L'abonnement Sophia a trois formules: System, Alliance et Architecte (facturation mensuelle ou annuelle), Architecte etant la plus complete. L'abonnement se gere depuis la plateforme via le portail de facturation Stripe: changement de formule (montee ou descente), factures, moyen de paiement. La page Upgrade permet de passer a une formule superieure et affiche le detail des fonctionnalites et des prix de chaque formule — le chat ne les detaille pas.",
+    how_to:
+      "Pour changer de formule: ouvre la page Compte puis « Gerer mon abonnement » (portail de facturation), ou la page Upgrade pour monter de palier. Avant toute confirmation, le portail affiche le detail exact du changement (montant, application immediate ou a la prochaine echeance, prorata eventuel calcule par Stripe): c'est cette page qui fait foi, pas le chat.",
+    benefits: [
+      "Changement de formule en autonomie, avec le detail chiffre affiche avant confirmation.",
+      "Factures et moyen de paiement centralises dans le portail.",
+    ],
+    locations: [
+      {
+        surface: "Compte > Gerer mon abonnement (portail Stripe)",
+        when_visible: "Quand le user a un abonnement actif.",
+        user_can_do: [
+          "changer de formule",
+          "voir les factures",
+          "mettre a jour le moyen de paiement",
+          "resilier",
+        ],
+      },
+      {
+        surface: "Page Upgrade",
+        when_visible: "Quand une formule superieure est disponible.",
+        user_can_do: ["passer a une formule superieure"],
+      },
+    ],
+    limits: [
+      "Rien ne se change depuis le chat: ni formule, ni paiement, ni resiliation.",
+      "Sophia ne connait pas les montants exacts, promotions ou dates de prelevement du compte: le portail de facturation fait foi.",
+      "En cas de suppression de compte, l'abonnement est annule immediatement sans remboursement au prorata (indique dans l'UI de suppression).",
+    ],
+    sophia_must_not_claim: [
+      "Ne jamais citer un montant, un prix, une date de prelevement ou un prorata chiffre: Sophia ne les connait pas (les NOMS de formules System/Alliance/Architecte, eux, peuvent etre cites).",
+      "Ne jamais inventer la liste des fonctionnalites incluses dans une formule: renvoyer a la page Upgrade qui les affiche.",
+      "Ne jamais promettre qu'un changement prend effet immediatement ou a l'echeance: le portail l'affiche au moment du changement.",
+      "Ne pas dire qu'un changement d'abonnement a ete fait depuis le chat.",
+    ],
+  },
+  {
+    // P7-F (rose-untested22 R1-B04): la suppression de compte etait confondue
+    // avec le portail d'abonnement Stripe — surface DISTINCTE, entree dediee.
+    id: "account.deletion",
+    label: "Suppression de compte",
+    aliases: [
+      "supprimer mon compte",
+      "suppression de compte",
+      "effacer mon compte",
+      "fermer mon compte",
+      "supprimer mes donnees",
+      "droit a l'effacement",
+      "clore mon compte",
+    ],
+    explain:
+      "La suppression de compte est definitive: elle passe par une UI de suppression dediee dans les parametres du Compte (distincte du portail d'abonnement Stripe). Elle declenche l'annulation immediate de l'abonnement (sans remboursement au prorata) et la purge des donnees apres un delai de grace; un export des donnees est propose avant.",
+    how_to:
+      "Ouvre la page Compte et cherche la section de suppression de compte (UI de suppression dediee). L'UI affiche les consequences exactes (abonnement, delai de purge, export) avant confirmation: c'est elle qui fait foi. Le portail « Gerer mon abonnement » (Stripe) sert a la facturation/resiliation d'abonnement, PAS a supprimer le compte.",
+    benefits: [
+      "Suppression en autonomie avec les consequences affichees avant confirmation.",
+      "Export des donnees propose avant la purge.",
+    ],
+    locations: [
+      {
+        surface: "Compte > section suppression de compte (UI dediee)",
+        when_visible: "Toujours, dans les parametres du compte.",
+        user_can_do: [
+          "exporter ses donnees",
+          "supprimer definitivement son compte",
+        ],
+      },
+    ],
+    limits: [
+      "Rien ne se supprime depuis le chat.",
+      "Sophia ne connait pas la position exacte du bouton ni le libelle precis de l'ecran: l'UI de suppression fait foi.",
+    ],
+    sophia_must_not_claim: [
+      "Ne jamais renvoyer la suppression de compte vers « Gerer mon abonnement » / le portail Stripe: c'est la surface d'abonnement, pas celle de suppression.",
+      "Ne jamais inventer le chemin exact, le delai de purge chiffre ou le contenu de l'export: l'UI de suppression les affiche.",
+      "Ne pas dire qu'une suppression ou un export a ete lance depuis le chat.",
+    ],
+  },
+  {
+    id: "coach_preferences",
+    label: "Preferences coach",
+    aliases: [
+      "preferences",
+      "preference",
+      "ton",
+      "challenge",
+      "questions",
+      "style",
+      "douceur",
+      "directif",
+    ],
+    explain:
+      "Les preferences coach reglent ma maniere d'accompagner. Ton global ajuste la couleur relationnelle de mes reponses, par exemple plus douce, bienveillante-ferme ou tres directe. Niveau de challenge ajuste l'exigence et la confrontation constructive: plus leger, equilibre ou plus eleve. Tendance a poser des questions ajuste la frequence des questions et demandes de precision: peu de questions, equilibre ou tres questionnant. Elles ne reglent pas les formats fins comme exactement trois lignes, zero emoji ou jamais de question finale.",
+    how_to:
+      "Ouvre Preferences depuis le dashboard, va dans Preferences coach, modifie les options visibles puis sauvegarde depuis la plateforme.",
+    benefits: [
+      "Rend l'accompagnement plus adapte au user.",
+      "Clarifie si je dois etre plus douce, plus directe, plus challengeante ou plus sobre en questions.",
+      "Separe le ton, le niveau de challenge et la tendance aux questions au lieu de melanger ces demandes.",
+      "Evite de repeter les memes preferences dans chaque conversation.",
+    ],
+    locations: [{
+      surface: "Dashboard > Preferences",
+      when_visible: "Quand le user ouvre Preferences depuis la sidebar.",
+      user_can_do: [
+        "modifier le ton",
+        "modifier le niveau de challenge",
+        "modifier la tendance aux questions",
+      ],
+    }],
+    limits: [
+      "Ne modifie pas le contenu du plan.",
+      "Ne regle pas les formats fins comme exactement trois lignes, zero emoji ou jamais de question finale.",
+      "Depuis le chat, Sophia peut expliquer ou preparer une recommandation, mais ne sauvegarde pas directement ces preferences.",
+      "Certaines preferences peuvent etre liees a des fonctionnalites verrouillees selon l'acces.",
+    ],
+    sophia_must_not_claim: [
+      "Ne pas dire qu'une preference est sauvegardee sans succes outil ou UI.",
+      "Ne pas dire que le chat a applique ou enregistre une preference coach.",
+    ],
+    feature_guidance: {
+      feature_id: "coach_preferences",
+      trigger_phrases: [
+        "change ton ton",
+        "sois plus directe",
+        "pose moins de questions",
+        "challenge-moi plus",
+      ],
+      requires_confirmation: true,
+    },
+  },
+  {
+    id: "base_de_vie",
+    label: "Base de vie",
+    aliases: [
+      "base de vie",
+      "hors plan",
+      "transformation terminee",
+      "ressources conservees",
+      "arsenal",
+      "ligne verte",
+      "ligne rouge",
+      "declics",
+    ],
+    explain:
+      "La Base de vie regroupe ce qui reste utile hors d'une transformation active: transformations terminees, lignes verte et rouge, declics de cloture et initiatives hors plan. Les ressources restent conservees dans l'historique de la transformation; elles ne sont pas deplacees directement dans la Base de vie.",
+    how_to:
+      "Dans la sidebar du dashboard, choisis Base de vie. Tu peux consulter les transformations terminees et les elements de cloture. Les lignes verte et rouge sont remplies a la fin de chaque plan via le questionnaire de cloture. Les ressources restent dans l'historique de la transformation; elles ne sont pas rangees directement dans la Base de vie.",
+    benefits: [
+      "Evite que tout disparaisse quand une transformation se termine.",
+      "Conserve les lignes verte et rouge et les declics issus du questionnaire de cloture.",
+      "Permet d'avoir des initiatives qui ne dependent pas d'une transformation active.",
+    ],
+    locations: [
+      {
+        surface: "Dashboard sidebar > Base de vie",
+        when_visible: "Quand le dashboard est accessible.",
+        user_can_do: [
+          "consulter les transformations terminees",
+          "ouvrir les details",
+          "gerer certaines informations de cloture",
+        ],
+      },
+      {
+        surface: "Base de vie > Initiatives",
+        when_visible:
+          "Quand des initiatives hors plan existent ou peuvent etre creees.",
+        user_can_do: ["gerer les initiatives libres si l'acces le permet"],
+      },
+    ],
+    limits: [
+      "Ce n'est pas un deuxieme plan actif.",
+      "Ce n'est pas l'endroit pour executer les missions du plan courant.",
+      "Les ressources sont conservees dans l'historique de transformation, pas directement dans la Base de vie.",
+    ],
+    sophia_must_not_claim: [
+      "Ne pas dire qu'un element est entre en Base de vie tant que la cloture n'est pas faite.",
+    ],
+  },
+  {
+    id: "plan.level_completion",
+    label: "Validation du prochain niveau",
+    aliases: [
+      "valider le prochain niveau",
+      "bilan de niveau",
+      "fin de niveau",
+      "finis un niveau",
+      "termine un niveau",
+      "quand je finis un niveau",
+      "passer au niveau suivant",
+    ],
+    explain:
+      "La validation du prochain niveau collecte un court bilan pour calibrer la suite sans regenerer toute la roadmap.",
+    how_to:
+      "Dans le Plan, quand la fenetre de review est ouverte, utilise le bloc de validation du prochain niveau et reponds aux questions.",
+    benefits: [
+      "Evite de passer trop vite au niveau suivant.",
+      "Me donne des informations pour ajuster la suite.",
+      "Marque clairement la transition entre deux niveaux.",
+    ],
+    locations: [{
+      surface: "Dashboard > Plan",
+      when_visible:
+        "Deux jours avant la fin du niveau, ou quand les actions du niveau sont terminees.",
+      user_can_do: [
+        "ouvrir le bilan",
+        "repondre aux questions",
+        "valider le prochain niveau",
+      ],
+    }],
+    limits: [
+      "Ne sert pas a cloturer toute la transformation.",
+      "Ne remplace pas l'ajustement du plan si le niveau n'est pas pret.",
+    ],
+    sophia_must_not_claim: [
+      "Ne pas dire que l'utilisateur a valide le prochain niveau si la validation a ete faite automatiquement.",
+    ],
+  },
+  {
+    id: "transformation.closure",
+    label: "Cloture de transformation",
+    aliases: [
+      "cloturer la transformation",
+      "terminer la transformation",
+      "ligne rouge",
+      "ligne verte",
+      "ligne rouge",
+      "declics",
+      "base de vie",
+    ],
+    explain:
+      "La cloture de transformation intervient quand le user a atteint l'objectif global ou termine la transformation. Elle permet de valider les apprentissages avant l'entree dans la Base de vie.",
+    how_to:
+      "Dans le Plan, le bloc Suite du parcours ouvre le parcours de cloture quand le user a atteint l'objectif global ou termine la transformation. Le questionnaire permet de remplir la Ligne Verte, la Ligne Rouge et les Declics.",
+    benefits: [
+      "Donne une fin propre a la transformation.",
+      "Transforme l'experience en reperes conservables.",
+      "Prepare l'entree dans la Base de vie.",
+    ],
+    locations: [{
+      surface: "Dashboard > Plan",
+      when_visible:
+        "Quand le user a atteint l'objectif global ou termine la transformation.",
+      user_can_do: [
+        "ouvrir le rituel de cloture",
+        "valider les informations",
+        "faire entrer la transformation dans la Base de vie",
+      ],
+    }],
+    limits: [
+      "Ne doit pas etre propose si l'objectif global n'est pas atteint et que la transformation n'est pas terminee.",
+      "Ne remplace pas le passage au niveau suivant si seuls certains niveaux sont termines.",
+    ],
+    sophia_must_not_claim: [
+      "Ne pas dire qu'une transformation est en Base de vie avant cloture confirmee.",
+    ],
+  },
+  {
+    id: "transformation.transition",
+    label: "Transition vers la suite",
+    aliases: [
+      "prochaine transformation",
+      "deuxieme transformation",
+      "suite du parcours",
+      "multi-part",
+      "relancer un parcours",
+      "ajouter une nouvelle transformation",
+      "nouvelle transformation",
+    ],
+    explain:
+      "La transition gere le passage a une nouvelle transformation apres la cloture. Quand une transformation est terminee, le parcours pour mettre en place une nouvelle transformation s'ouvre automatiquement et le user se laisse guider. Le user peut aussi cliquer sur Ajouter une nouvelle transformation si besoin.",
+    how_to:
+      "A la fin d'une transformation, suivre le parcours guide qui s'ouvre automatiquement pour mettre en place la nouvelle transformation. Pour ajouter manuellement une autre transformation, cliquer sur Ajouter une nouvelle transformation. Le maximum est de 2 transformations actives en meme temps.",
+    benefits: [
+      "Permet d'enchainer proprement apres une cloture.",
+      "Permet d'ajouter une autre transformation si un nouveau besoin doit passer devant.",
+      "Garde la limite de 2 transformations actives lisible.",
+    ],
+    locations: [{
+      surface:
+        "Parcours guide apres cloture / Ajouter une nouvelle transformation",
+      when_visible:
+        "Quand une transformation vient d'etre terminee, ou quand le user veut ajouter une transformation et n'a pas deja 2 transformations actives.",
+      user_can_do: [
+        "se laisser guider",
+        "choisir ou ajouter la prochaine transformation",
+        "voir si la limite de 2 transformations actives est atteinte",
+      ],
+    }],
+    limits: [
+      "Ne remplace pas la cloture de transformation.",
+      "Les verrouillages concernent seulement les semaines ou niveaux a venir dans le Plan.",
+      "Le bloc Suite du parcours sert a la cloture; il n'est pas le chemin de lancement d'une prochaine transformation.",
+      "Le lancement apres cloture passe par le parcours guide automatique, ou par Ajouter une nouvelle transformation.",
+    ],
+    sophia_must_not_claim: [
+      "Ne pas inventer un statut de suite de parcours verrouillee.",
+      "Ne pas dire que le bloc Suite du parcours peut etre verrouille.",
+      "Ne pas dire que le chemin est Dashboard > Plan > Suite du parcours pour demarrer la prochaine transformation apres cloture.",
+      "Ne pas depasser la limite de 2 transformations actives.",
+    ],
+  },
+];

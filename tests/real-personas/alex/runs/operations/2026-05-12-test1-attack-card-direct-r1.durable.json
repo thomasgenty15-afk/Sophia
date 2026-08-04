@@ -1,0 +1,58 @@
+{
+  "user_attack_cards": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_plan_items": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e",
+        "title": "Préparer ta zone de déchargement",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "active",
+        "cards_status": "not_started",
+        "attack_card_id": null,
+        "updated_at": "2026-05-06T13:45:51.10963+00:00"
+      },
+      {
+        "id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+        "title": "Faire le sas de déchargement",
+        "dimension": "habits",
+        "kind": "habit",
+        "status": "active",
+        "cards_status": "not_started",
+        "attack_card_id": null,
+        "updated_at": "2026-05-06T06:23:51.281+00:00"
+      },
+      {
+        "id": "8d321c6c-ce4b-440f-b7b1-69e1a17ff835",
+        "title": "Repérer les pièges de l'hypervigilance",
+        "dimension": "clarifications",
+        "kind": "exercise",
+        "status": "pending",
+        "cards_status": "not_required",
+        "attack_card_id": null,
+        "updated_at": "2026-05-06T06:23:51.281+00:00"
+      },
+      {
+        "id": "793bdd4a-c2fb-40fa-b972-e58b8659658f",
+        "title": "Bilan et ajustement du sas",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "pending",
+        "cards_status": "not_started",
+        "attack_card_id": null,
+        "updated_at": "2026-05-06T06:23:51.281+00:00"
+      }
+    ]
+  },
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  }
+}

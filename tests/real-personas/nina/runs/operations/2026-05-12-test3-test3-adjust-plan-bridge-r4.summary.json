@@ -1,0 +1,139 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-bridge-r4-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Le truc des placards dans mon plan est trop gros, je veux le rendre beaucoup plus petit.",
+    "assistant": "Je te propose de mettre une version mini de Nettoyer ton environnement direct maintenant, comme pont avant de reprendre l'action initiale. Tu veux que je l'applique ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "placards",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "difficulty": "low",
+            "duration_minutes": 5
+          },
+          "title": "Ajustement - Nettoyer ton environnement direct",
+          "scope_label": "Nettoyer ton environnement direct",
+          "why_it_helps": "La version mini sert de pont: elle allege l'entree sans effacer l'action de depart.",
+          "bridge_action": {
+            "title": "Version mini - Nettoyer ton environnement direct",
+            "description": "Action pont vers \"Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+            "source_relation": "bridge_to_original_action",
+            "resume_original_after_completion": true
+          },
+          "adjustment_type": "reduce",
+          "proposed_change": "creer une action pont plus petite avant de reprendre l'action initiale",
+          "execution_strategy": "bridge_action",
+          "allowed_patch_fields": [
+            "difficulty",
+            "duration_minutes",
+            "instruction",
+            "paused"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je te propose de mettre une version mini de Nettoyer ton environnement direct maintenant, comme pont avant de reprendre l'action initiale. Tu veux que je l'applique ?"
+      },
+      "status": "pending_confirmation",
+      "reason_code": "operation_intent_start",
+      "operation_id": "715f0f1f-d7ef-4e45-920f-13d2fad0f7b4",
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-bridge-r4-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-bridge-r4-t02",
+    "status": 200,
+    "ok": true,
+    "user": "oui allege-la, mais pas en mode ridicule",
+    "assistant": "C'est fait : j'ai mis \"Version mini - Nettoyer ton environnement direct\" à la place pour l'instant. C'est une action pont de 5 minutes, difficulté basse; \"Nettoyer ton environnement direct\" reste prévue juste après, quand cette version mini est faite.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "adjust_plan_item"
+    ],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "confirmation_correction_to_pending",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": null,
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "adjust_plan_item"
+      }
+    ],
+    "operation_flow_run": {
+      "status": "executed",
+      "reason_code": "confirmation_correction_to_pending",
+      "operation_id": "715f0f1f-d7ef-4e45-920f-13d2fad0f7b4",
+      "plan_patch_id": "ec6cb5af-eed9-45b4-bbb7-04a5f3735846",
+      "selected_handler": "adjust_plan_item",
+      "bridge_plan_item_id": "c26a7a69-8255-4be2-814d-a7160425d7a2"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-bridge-r4-t02",
+    "trace_error": null
+  }
+]

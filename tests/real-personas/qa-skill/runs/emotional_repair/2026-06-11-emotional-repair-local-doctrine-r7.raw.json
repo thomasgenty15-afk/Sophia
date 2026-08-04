@@ -1,0 +1,2375 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7-t01",
+    "auth_method": "refresh_token",
+    "user": "J'ai eu un blanc devant mon équipe ce matin, et je suis en train d'en faire une preuve que je ne suis pas légitime. Aide-moi à remettre ça à sa vraie taille, sans me brusquer.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7-t01",
+      "user_id": "13cf4b35-8cd4-4475-8330-f640d4905ced",
+      "channel": "web",
+      "scope": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C'est tout à fait compréhensible que ce moment t'ait bousculé. Ce blanc est un événement isolé, un simple court-circuit comme il en arrive à tout le monde. Il appartient au déroulement de la réunion, mais il ne définit pas ta valeur ni ta légitimité. On peut prendre le temps de regarder ce fait pour ce qu'il est, sans le laisser peser sur qui tu es.",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7-t01",
+            "source_message_id": "64d8e5ac-5aa3-42e4-beb7-c5d6f36abced",
+            "user_id": "13cf4b35-8cd4-4475-8330-f640d4905ced",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "flow_opportunity": null,
+            "note_information": {
+              "source_flow_id": "global_dispatcher",
+              "source_flow_presentation": "Global dispatcher selected a non-normal routing signal and is handing context to the target local dispatcher.",
+              "source_flow_state_summary": "signal=skill_signal; target=emotional_repair; confidence=high",
+              "handoff_reason": "explicit_user_request",
+              "target_dispatcher": "emotional_repair",
+              "handoff_context_for_next_dispatcher": "User is experiencing a shame spiral ('preuve que je ne suis pas légitime') after a social blank. Explicit request for perspective and emotional support ('remettre ça à sa vraie taille, sans me brusquer').",
+              "target_local_dispatcher_hint": "Run the local dispatcher for emotional_repair. Focus on validation and cognitive reframing as requested.",
+              "user_words": [
+                "blanc devant mon équipe",
+                "preuve que je ne suis pas légitime",
+                "remettre ça à sa vraie taille",
+                "sans me brusquer"
+              ],
+              "structured_context": {
+                "primary_signal_path": "skill_signals.entry.emotional_repair",
+                "target_kind": "skill",
+                "target_flow": "emotional_repair",
+                "confidence_band": "high",
+                "evidence": [
+                  "preuve que je ne suis pas légitime",
+                  "remettre ça à sa vraie taille"
+                ]
+              },
+              "risk_score": 0,
+              "no_chat_mutation": {
+                "db_write_committed": false,
+                "potion_session_created": false,
+                "scheduled_checkin_created": false,
+                "recurring_reminder_created": false,
+                "executable_confirmation_generated": false
+              }
+            },
+            "skill_signals": {
+              "entry": {
+                "emotional_repair": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "user_reports_imposter_syndrome_and_shame_after_social_blank"
+                }
+              },
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "domain_key",
+                  "key": "psychologie.estime_de_soi",
+                  "query_hint": "légitimité et syndrome de l'imposteur",
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "high",
+                  "entity_type": null
+                },
+                {
+                  "type": "domain_key",
+                  "key": "psychologie.emotions",
+                  "query_hint": "honte et auto-critique",
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "medium",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "skill_entry_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            },
+            "selected_handler": "emotional_repair",
+            "active_flow_debug": {
+              "version": "active_flow_debug_v1",
+              "snapshots": [
+                {
+                  "phase": "user_state_loaded",
+                  "scope": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 0,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "undefined"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_onboarding_and_reconcile",
+                  "scope": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "undefined"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "read_active_flow_state",
+                  "scope": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_pending_confirmation_reload",
+                  "scope": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "before_run_conversation_routers",
+                  "scope": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 3,
+                    "flow_keys": [
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_run_conversation_routers",
+                  "scope": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 3,
+                    "flow_keys": [
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": "skill_entry_signal",
+                  "route_active_flow_reason_code": "no_active_flow"
+                }
+              ]
+            }
+          },
+          "skill_run": {
+            "selected_skill_id": "emotional_repair",
+            "reason_code": "skill_entry_signal",
+            "output": {
+              "skill_id": "emotional_repair",
+              "status": "continue",
+              "response_intent": "separate_fact_from_identity",
+              "memory_trace": {
+                "memory_used_for_response": false,
+                "memory_item_ids_used": [],
+                "correction_detected": false,
+                "correction_target_item_ids": []
+              },
+              "reply": "C'est tout à fait compréhensible que ce moment t'ait bousculé. Ce blanc est un événement isolé, un simple court-circuit comme il en arrive à tout le monde. Il appartient au déroulement de la réunion, mais il ne définit pas ta valeur ni ta légitimité. On peut prendre le temps de regarder ce fait pour ce qu'il est, sans le laisser peser sur qui tu es.",
+              "diagnosis": {
+                "local_flow": true,
+                "flow_action": "answer_repair",
+                "visible_task": "de_shame",
+                "potion_bridge_status": "not_applicable",
+                "selected_potion": null,
+                "reason_code": "emotional_repair_local_continue",
+                "evidence": [
+                  "L'utilisateur utilise le mot 'preuve' pour lier un fait à son identité.",
+                  "Demande explicite de 'remettre à sa vraie taille' qui correspond à la phase separate_fact_from_identity.",
+                  "Demande de ne pas être 'brusqué' imposant un ton soft."
+                ]
+              },
+              "recommendation_need": {
+                "needed": false,
+                "type": "none",
+                "urgency": "none",
+                "constraints": [
+                  "no_chat_mutation",
+                  "soft_support_only",
+                  "do_not_persist_identity_attack",
+                  "relationship_context",
+                  "no_plan",
+                  "no_protocol",
+                  "no_technique",
+                  "no_questions",
+                  "no_tool",
+                  "no_potion"
+                ]
+              },
+              "operation_suggestions": [],
+              "memory_write_candidates": [],
+              "effects": {
+                "requested": [],
+                "allowed": [],
+                "blocked": [],
+                "committed": []
+              },
+              "state_patch": {
+                "emotional_repair_local_state": {
+                  "skill_id": "emotional_repair",
+                  "mode": "local_repair_flow",
+                  "status": "active",
+                  "repair_state": {
+                    "intent": "shame_or_guilt",
+                    "phase": "separate_fact_from_identity",
+                    "emotional_dominance": "high",
+                    "context_domain": "work",
+                    "summary": "L'utilisateur vit un sentiment d'illégitimité suite à un blanc en réunion d'équipe. Il demande explicitement de l'aide pour dé-zoomer et relativiser sans être brusqué.",
+                    "user_words": [
+                      "blanc devant mon équipe",
+                      "preuve que je ne suis pas légitime",
+                      "remettre ça à sa vraie taille",
+                      "sans me brusquer"
+                    ],
+                    "identity_freeze_risk": true,
+                    "emotion_stabilized_enough_for_tool": false
+                  },
+                  "last_visible_task": "de_shame",
+                  "last_potion_bridge_offer": null,
+                  "previous_repair_summary": "L'utilisateur vit un sentiment d'illégitimité suite à un blanc en réunion d'équipe. Il demande explicitement de l'aide pour dé-zoomer et relativiser sans être brusqué.",
+                  "turn_count": 1,
+                  "max_turns": 6,
+                  "created_at": "2026-06-11T18:06:46.943Z",
+                  "updated_at": "2026-06-11T18:06:46.943Z"
+                },
+                "emotional_repair_visible_task": {
+                  "kind": "de_shame",
+                  "conversation_context": {
+                    "state_summary": "L'utilisateur vit un sentiment d'illégitimité suite à un blanc en réunion d'équipe. Il demande explicitement de l'aide pour dé-zoomer et relativiser sans être brusqué.",
+                    "user_words": [
+                      "blanc devant mon équipe",
+                      "preuve que je ne suis pas légitime",
+                      "remettre ça à sa vraie taille",
+                      "sans me brusquer"
+                    ],
+                    "field_or_stage": "de_shame",
+                    "known_values": {
+                      "intent": "shame_or_guilt",
+                      "phase": "separate_fact_from_identity",
+                      "emotional_dominance": "high",
+                      "context_domain": "work",
+                      "identity_freeze_risk": true,
+                      "emotion_stabilized_enough_for_tool": false
+                    },
+                    "missing_or_weak_values": [
+                      "stabilisation émotionnelle",
+                      "consentement"
+                    ],
+                    "selected_candidate": {
+                      "potion": null,
+                      "potion_label": null,
+                      "durable_need_kind": null,
+                      "durable_need_summary": null
+                    },
+                    "handoff_data": {
+                      "bridge_context_summary": null,
+                      "target_dispatcher": null,
+                      "no_chat_mutation": true
+                    },
+                    "tone_constraints": [
+                      "soft",
+                      "soft_support_only",
+                      "do_not_persist_identity_attack",
+                      "relationship_context",
+                      "no_plan",
+                      "no_protocol",
+                      "no_technique",
+                      "no_questions",
+                      "no_tool",
+                      "no_potion"
+                    ],
+                    "do_not_say": [
+                      "Ne mentionne pas dispatcher, JSON, reducer, trace ou target_flow.",
+                      "Ne promets aucune creation, activation, session potion, rappel ou ecriture DB.",
+                      "Ne propose pas de potion dans ce message.",
+                      "Ne propose pas de protocole.",
+                      "Ne propose pas de technique ou exercice.",
+                      "Ne propose pas de potion."
+                    ],
+                    "context_summary": "L'utilisateur vit un sentiment d'illégitimité suite à un blanc en réunion d'équipe. Il demande explicitement de l'aide pour dé-zoomer et relativiser sans être brusqué.",
+                    "evidence_used": [
+                      "L'utilisateur utilise le mot 'preuve' pour lier un fait à son identité.",
+                      "Demande explicite de 'remettre à sa vraie taille' qui correspond à la phase separate_fact_from_identity.",
+                      "Demande de ne pas être 'brusqué' imposant un ton soft."
+                    ],
+                    "max_questions": 0
+                  }
+                },
+                "emotional_repair_potion_handoff": null,
+                "summary": "L'utilisateur vit un sentiment d'illégitimité suite à un blanc en réunion d'équipe. Il demande explicitement de l'aide pour dé-zoomer et relativiser sans être brusqué."
+              }
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "conversation_handler"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7-t01",
+          "source_message_id": "64d8e5ac-5aa3-42e4-beb7-c5d6f36abced",
+          "user_id": "13cf4b35-8cd4-4475-8330-f640d4905ced",
+          "channel": "web",
+          "safety": {
+            "risk_band": "low",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "flow_opportunity": null,
+          "note_information": {
+            "source_flow_id": "global_dispatcher",
+            "source_flow_presentation": "Global dispatcher selected a non-normal routing signal and is handing context to the target local dispatcher.",
+            "source_flow_state_summary": "signal=skill_signal; target=emotional_repair; confidence=high",
+            "handoff_reason": "explicit_user_request",
+            "target_dispatcher": "emotional_repair",
+            "handoff_context_for_next_dispatcher": "User is experiencing a shame spiral ('preuve que je ne suis pas légitime') after a social blank. Explicit request for perspective and emotional support ('remettre ça à sa vraie taille, sans me brusquer').",
+            "target_local_dispatcher_hint": "Run the local dispatcher for emotional_repair. Focus on validation and cognitive reframing as requested.",
+            "user_words": [
+              "blanc devant mon équipe",
+              "preuve que je ne suis pas légitime",
+              "remettre ça à sa vraie taille",
+              "sans me brusquer"
+            ],
+            "structured_context": {
+              "primary_signal_path": "skill_signals.entry.emotional_repair",
+              "target_kind": "skill",
+              "target_flow": "emotional_repair",
+              "confidence_band": "high",
+              "evidence": [
+                "preuve que je ne suis pas légitime",
+                "remettre ça à sa vraie taille"
+              ]
+            },
+            "risk_score": 0,
+            "no_chat_mutation": {
+              "db_write_committed": false,
+              "potion_session_created": false,
+              "scheduled_checkin_created": false,
+              "recurring_reminder_created": false,
+              "executable_confirmation_generated": false
+            }
+          },
+          "skill_signals": {
+            "entry": {
+              "emotional_repair": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "user_reports_imposter_syndrome_and_shame_after_social_blank"
+              }
+            },
+            "lifecycle": {},
+            "exit": {}
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "targeted",
+            "memory_mode": "light",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "small",
+            "targets": [
+              {
+                "type": "domain_key",
+                "key": "psychologie.estime_de_soi",
+                "query_hint": "légitimité et syndrome de l'imposteur",
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first",
+                "priority": "high",
+                "entity_type": null
+              },
+              {
+                "type": "domain_key",
+                "key": "psychologie.emotions",
+                "query_hint": "honte et auto-critique",
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first",
+                "priority": "medium",
+                "entity_type": null
+              }
+            ],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "active_handoff_action": null,
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "skill_entry_signal",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "none",
+            "active_owner": "none",
+            "selected_owner": "none",
+            "resume_policy": "none",
+            "reason_code": "no_active_flow"
+          },
+          "selected_handler": "emotional_repair",
+          "active_flow_debug": {
+            "version": "active_flow_debug_v1",
+            "snapshots": [
+              {
+                "phase": "user_state_loaded",
+                "scope": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 0,
+                  "flow_keys": [],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": null
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "undefined"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_onboarding_and_reconcile",
+                "scope": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 1,
+                  "flow_keys": [],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": null
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "undefined"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "read_active_flow_state",
+                "scope": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 1,
+                  "flow_keys": [],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": null
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_pending_confirmation_reload",
+                "scope": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 1,
+                  "flow_keys": [],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": null
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "before_run_conversation_routers",
+                "scope": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 3,
+                  "flow_keys": [
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_run_conversation_routers",
+                "scope": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 3,
+                  "flow_keys": [
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": "skill_entry_signal",
+                "route_active_flow_reason_code": "no_active_flow"
+              }
+            ]
+          }
+        },
+        "skill_run": {
+          "selected_skill_id": "emotional_repair",
+          "reason_code": "skill_entry_signal",
+          "output": {
+            "skill_id": "emotional_repair",
+            "status": "continue",
+            "response_intent": "separate_fact_from_identity",
+            "memory_trace": {
+              "memory_used_for_response": false,
+              "memory_item_ids_used": [],
+              "correction_detected": false,
+              "correction_target_item_ids": []
+            },
+            "reply": "C'est tout à fait compréhensible que ce moment t'ait bousculé. Ce blanc est un événement isolé, un simple court-circuit comme il en arrive à tout le monde. Il appartient au déroulement de la réunion, mais il ne définit pas ta valeur ni ta légitimité. On peut prendre le temps de regarder ce fait pour ce qu'il est, sans le laisser peser sur qui tu es.",
+            "diagnosis": {
+              "local_flow": true,
+              "flow_action": "answer_repair",
+              "visible_task": "de_shame",
+              "potion_bridge_status": "not_applicable",
+              "selected_potion": null,
+              "reason_code": "emotional_repair_local_continue",
+              "evidence": [
+                "L'utilisateur utilise le mot 'preuve' pour lier un fait à son identité.",
+                "Demande explicite de 'remettre à sa vraie taille' qui correspond à la phase separate_fact_from_identity.",
+                "Demande de ne pas être 'brusqué' imposant un ton soft."
+              ]
+            },
+            "recommendation_need": {
+              "needed": false,
+              "type": "none",
+              "urgency": "none",
+              "constraints": [
+                "no_chat_mutation",
+                "soft_support_only",
+                "do_not_persist_identity_attack",
+                "relationship_context",
+                "no_plan",
+                "no_protocol",
+                "no_technique",
+                "no_questions",
+                "no_tool",
+                "no_potion"
+              ]
+            },
+            "operation_suggestions": [],
+            "memory_write_candidates": [],
+            "effects": {
+              "requested": [],
+              "allowed": [],
+              "blocked": [],
+              "committed": []
+            },
+            "state_patch": {
+              "emotional_repair_local_state": {
+                "skill_id": "emotional_repair",
+                "mode": "local_repair_flow",
+                "status": "active",
+                "repair_state": {
+                  "intent": "shame_or_guilt",
+                  "phase": "separate_fact_from_identity",
+                  "emotional_dominance": "high",
+                  "context_domain": "work",
+                  "summary": "L'utilisateur vit un sentiment d'illégitimité suite à un blanc en réunion d'équipe. Il demande explicitement de l'aide pour dé-zoomer et relativiser sans être brusqué.",
+                  "user_words": [
+                    "blanc devant mon équipe",
+                    "preuve que je ne suis pas légitime",
+                    "remettre ça à sa vraie taille",
+                    "sans me brusquer"
+                  ],
+                  "identity_freeze_risk": true,
+                  "emotion_stabilized_enough_for_tool": false
+                },
+                "last_visible_task": "de_shame",
+                "last_potion_bridge_offer": null,
+                "previous_repair_summary": "L'utilisateur vit un sentiment d'illégitimité suite à un blanc en réunion d'équipe. Il demande explicitement de l'aide pour dé-zoomer et relativiser sans être brusqué.",
+                "turn_count": 1,
+                "max_turns": 6,
+                "created_at": "2026-06-11T18:06:46.943Z",
+                "updated_at": "2026-06-11T18:06:46.943Z"
+              },
+              "emotional_repair_visible_task": {
+                "kind": "de_shame",
+                "conversation_context": {
+                  "state_summary": "L'utilisateur vit un sentiment d'illégitimité suite à un blanc en réunion d'équipe. Il demande explicitement de l'aide pour dé-zoomer et relativiser sans être brusqué.",
+                  "user_words": [
+                    "blanc devant mon équipe",
+                    "preuve que je ne suis pas légitime",
+                    "remettre ça à sa vraie taille",
+                    "sans me brusquer"
+                  ],
+                  "field_or_stage": "de_shame",
+                  "known_values": {
+                    "intent": "shame_or_guilt",
+                    "phase": "separate_fact_from_identity",
+                    "emotional_dominance": "high",
+                    "context_domain": "work",
+                    "identity_freeze_risk": true,
+                    "emotion_stabilized_enough_for_tool": false
+                  },
+                  "missing_or_weak_values": [
+                    "stabilisation émotionnelle",
+                    "consentement"
+                  ],
+                  "selected_candidate": {
+                    "potion": null,
+                    "potion_label": null,
+                    "durable_need_kind": null,
+                    "durable_need_summary": null
+                  },
+                  "handoff_data": {
+                    "bridge_context_summary": null,
+                    "target_dispatcher": null,
+                    "no_chat_mutation": true
+                  },
+                  "tone_constraints": [
+                    "soft",
+                    "soft_support_only",
+                    "do_not_persist_identity_attack",
+                    "relationship_context",
+                    "no_plan",
+                    "no_protocol",
+                    "no_technique",
+                    "no_questions",
+                    "no_tool",
+                    "no_potion"
+                  ],
+                  "do_not_say": [
+                    "Ne mentionne pas dispatcher, JSON, reducer, trace ou target_flow.",
+                    "Ne promets aucune creation, activation, session potion, rappel ou ecriture DB.",
+                    "Ne propose pas de potion dans ce message.",
+                    "Ne propose pas de protocole.",
+                    "Ne propose pas de technique ou exercice.",
+                    "Ne propose pas de potion."
+                  ],
+                  "context_summary": "L'utilisateur vit un sentiment d'illégitimité suite à un blanc en réunion d'équipe. Il demande explicitement de l'aide pour dé-zoomer et relativiser sans être brusqué.",
+                  "evidence_used": [
+                    "L'utilisateur utilise le mot 'preuve' pour lier un fait à son identité.",
+                    "Demande explicite de 'remettre à sa vraie taille' qui correspond à la phase separate_fact_from_identity.",
+                    "Demande de ne pas être 'brusqué' imposant un ton soft."
+                  ],
+                  "max_questions": 0
+                }
+              },
+              "emotional_repair_potion_handoff": null,
+              "summary": "L'utilisateur vit un sentiment d'illégitimité suite à un blanc en réunion d'équipe. Il demande explicitement de l'aide pour dé-zoomer et relativiser sans être brusqué."
+            }
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7-t01",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "conversation_handler"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7-t02",
+    "auth_method": "refresh_token",
+    "user": "Oui. Donne-moi juste une phrase très courte à garder pour aujourd'hui, sans exercice, sans plan, et sans me poser de question.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7-t02",
+      "user_id": "13cf4b35-8cd4-4475-8330-f640d4905ced",
+      "channel": "web",
+      "scope": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "J'ai eu un blanc ce matin, c'est un incident de parcours, pas ma définition.",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7-t02",
+            "source_message_id": "fcf68ff9-7b7b-4bfa-a41a-354e468a94ee",
+            "user_id": "13cf4b35-8cd4-4475-8330-f640d4905ced",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0
+              ],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "flow_opportunity": null,
+            "skill_signals": {},
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "selected_handler": "emotional_repair",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "active_emotional_repair_uses_local_dispatcher"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_emotional_repair_local_dispatcher",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "tool_skill_run": {
+            "selected_handler": "emotional_repair",
+            "reason_code": "emotional_repair_local_continue",
+            "skill_id": "emotional_repair",
+            "mode": "conversation_skill_local_flow",
+            "status": "continue",
+            "response_intent": "separate_fact_from_identity",
+            "flow_action": "provide_concrete_phrase",
+            "visible_task": "concrete_phrase",
+            "global_dispatcher_skipped": true,
+            "source_dispatcher_local": "emotional_repair.local_dispatcher",
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "runtime_trace": [
+              {
+                "component": "emotional_repair",
+                "event": "local_dispatcher_turn",
+                "global_dispatcher_skipped": true,
+                "safety_handoff": false
+              }
+            ]
+          },
+          "effect_ledger": {
+            "turn_id": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7-t02",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "conversation_handler"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7-t02",
+          "source_message_id": "fcf68ff9-7b7b-4bfa-a41a-354e468a94ee",
+          "user_id": "13cf4b35-8cd4-4475-8330-f640d4905ced",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [
+              0
+            ],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "flow_opportunity": null,
+          "skill_signals": {},
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "selected_handler": "emotional_repair",
+          "blocked_paths": [
+            {
+              "path": "global_dispatcher",
+              "reason_code": "active_emotional_repair_uses_local_dispatcher"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "active_emotional_repair_local_dispatcher",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none"
+        },
+        "tool_skill_run": {
+          "selected_handler": "emotional_repair",
+          "reason_code": "emotional_repair_local_continue",
+          "skill_id": "emotional_repair",
+          "mode": "conversation_skill_local_flow",
+          "status": "continue",
+          "response_intent": "separate_fact_from_identity",
+          "flow_action": "provide_concrete_phrase",
+          "visible_task": "concrete_phrase",
+          "global_dispatcher_skipped": true,
+          "source_dispatcher_local": "emotional_repair.local_dispatcher",
+          "requested_effects": [],
+          "allowed_effects": [],
+          "committed_effects": [],
+          "blocked_effects": [],
+          "runtime_trace": [
+            {
+              "component": "emotional_repair",
+              "event": "local_dispatcher_turn",
+              "global_dispatcher_skipped": true,
+              "safety_handoff": false
+            }
+          ]
+        },
+        "effect_ledger": {
+          "turn_id": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7-t02",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "conversation_handler"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7-t03",
+    "auth_method": "refresh_token",
+    "user": "Je change de sujet : dans Sophia, où est-ce que je retrouve les cartes d'attaque que j'ai déjà créées ?",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7-t03",
+      "user_id": "13cf4b35-8cd4-4475-8330-f640d4905ced",
+      "channel": "web",
+      "scope": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Tu trouveras tes cartes d'attaque dans l'onglet **Ressources** de ton dashboard, rangées par niveau. Elles sont aussi visibles directement sur tes missions ou tes habitudes dans ton **Plan**.",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7-t03",
+            "source_message_id": "3edab89a-735f-4dae-9747-0b1cfd895ad9",
+            "user_id": "13cf4b35-8cd4-4475-8330-f640d4905ced",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0
+              ],
+              "matrix": [],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "flow_opportunity": null,
+            "note_information": {
+              "source_flow_id": "global_dispatcher",
+              "source_flow_presentation": "Global dispatcher selected a non-normal routing signal and is handing context to the target local dispatcher.",
+              "source_flow_state_summary": "signal=skill_signal; target=product_help; confidence=high",
+              "handoff_reason": "explicit_user_request",
+              "target_dispatcher": "product_help",
+              "handoff_context_for_next_dispatcher": "User explicitly asks where to find their already created 'attack cards' within the Sophia application. This is a product location/interface question.",
+              "target_local_dispatcher_hint": "Run the local dispatcher for product_help. Explain where attack cards are located in the interface.",
+              "user_words": [
+                "où est-ce que je retrouve les cartes d'attaque que j'ai déjà créées ?"
+              ],
+              "structured_context": {
+                "primary_signal_path": "skill_signals.entry.product_help",
+                "target_kind": "skill",
+                "target_flow": "product_help",
+                "confidence_band": "high",
+                "evidence": [
+                  "où est-ce que je retrouve les cartes d'attaque que j'ai déjà créées ?"
+                ]
+              },
+              "risk_score": 0,
+              "no_chat_mutation": {
+                "db_write_committed": false,
+                "potion_session_created": false,
+                "scheduled_checkin_created": false,
+                "recurring_reminder_created": false,
+                "executable_confirmation_generated": false
+              }
+            },
+            "skill_signals": {
+              "entry": {
+                "product_help": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "user_asks_app_location_for_durable_surface"
+                }
+              },
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "topic",
+                  "key": "attack_cards",
+                  "query_hint": "cartes d'attaque créées",
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first",
+                  "priority": "medium",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "product_help",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "skill_entry_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            },
+            "selected_handler": "product_help",
+            "active_flow_debug": {
+              "version": "active_flow_debug_v1",
+              "snapshots": [
+                {
+                  "phase": "user_state_loaded",
+                  "scope": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 6,
+                    "flow_keys": [
+                      "__active_skill_state",
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": "__active_skill_state",
+                    "raw_active_skill": {
+                      "present": true,
+                      "skill_id": "emotional_repair",
+                      "status": "active",
+                      "mode": null,
+                      "has_working_state": true,
+                      "state_keys": [
+                        "previous_skill_id",
+                        "skill_id",
+                        "started_at",
+                        "status",
+                        "turn_count",
+                        "updated_at",
+                        "version",
+                        "working_state"
+                      ],
+                      "working_state_keys": [
+                        "emotional_repair_local_state",
+                        "emotional_repair_potion_handoff",
+                        "emotional_repair_visible_task",
+                        "summary"
+                      ],
+                      "updated_at": "2026-06-11T18:07:19.577Z"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "undefined"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_onboarding_and_reconcile",
+                  "scope": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 6,
+                    "flow_keys": [
+                      "__active_skill_state",
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": "__active_skill_state",
+                    "raw_active_skill": {
+                      "present": true,
+                      "skill_id": "emotional_repair",
+                      "status": "active",
+                      "mode": null,
+                      "has_working_state": true,
+                      "state_keys": [
+                        "previous_skill_id",
+                        "skill_id",
+                        "started_at",
+                        "status",
+                        "turn_count",
+                        "updated_at",
+                        "version",
+                        "working_state"
+                      ],
+                      "working_state_keys": [
+                        "emotional_repair_local_state",
+                        "emotional_repair_potion_handoff",
+                        "emotional_repair_visible_task",
+                        "summary"
+                      ],
+                      "updated_at": "2026-06-11T18:07:19.577Z"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "undefined"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "read_active_flow_state",
+                  "scope": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 6,
+                    "flow_keys": [
+                      "__active_skill_state",
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": "__active_skill_state",
+                    "raw_active_skill": {
+                      "present": true,
+                      "skill_id": "emotional_repair",
+                      "status": "active",
+                      "mode": null,
+                      "has_working_state": true,
+                      "state_keys": [
+                        "previous_skill_id",
+                        "skill_id",
+                        "started_at",
+                        "status",
+                        "turn_count",
+                        "updated_at",
+                        "version",
+                        "working_state"
+                      ],
+                      "working_state_keys": [
+                        "emotional_repair_local_state",
+                        "emotional_repair_potion_handoff",
+                        "emotional_repair_visible_task",
+                        "summary"
+                      ],
+                      "updated_at": "2026-06-11T18:07:19.577Z"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": true,
+                    "skill_id": "emotional_repair",
+                    "status": "active",
+                    "mode": null,
+                    "has_working_state": true,
+                    "state_keys": [
+                      "previous_skill_id",
+                      "skill_id",
+                      "started_at",
+                      "status",
+                      "turn_count",
+                      "updated_at",
+                      "version",
+                      "working_state"
+                    ],
+                    "working_state_keys": [
+                      "emotional_repair_local_state",
+                      "emotional_repair_potion_handoff",
+                      "emotional_repair_visible_task",
+                      "summary"
+                    ],
+                    "updated_at": "2026-06-11T18:07:19.577Z"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_pending_confirmation_reload",
+                  "scope": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 6,
+                    "flow_keys": [
+                      "__active_skill_state",
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": "__active_skill_state",
+                    "raw_active_skill": {
+                      "present": true,
+                      "skill_id": "emotional_repair",
+                      "status": "active",
+                      "mode": null,
+                      "has_working_state": true,
+                      "state_keys": [
+                        "previous_skill_id",
+                        "skill_id",
+                        "started_at",
+                        "status",
+                        "turn_count",
+                        "updated_at",
+                        "version",
+                        "working_state"
+                      ],
+                      "working_state_keys": [
+                        "emotional_repair_local_state",
+                        "emotional_repair_potion_handoff",
+                        "emotional_repair_visible_task",
+                        "summary"
+                      ],
+                      "updated_at": "2026-06-11T18:07:19.577Z"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": true,
+                    "skill_id": "emotional_repair",
+                    "status": "active",
+                    "mode": null,
+                    "has_working_state": true,
+                    "state_keys": [
+                      "previous_skill_id",
+                      "skill_id",
+                      "started_at",
+                      "status",
+                      "turn_count",
+                      "updated_at",
+                      "version",
+                      "working_state"
+                    ],
+                    "working_state_keys": [
+                      "emotional_repair_local_state",
+                      "emotional_repair_potion_handoff",
+                      "emotional_repair_visible_task",
+                      "summary"
+                    ],
+                    "updated_at": "2026-06-11T18:07:19.577Z"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "before_run_conversation_routers",
+                  "scope": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 5,
+                    "flow_keys": [
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_run_conversation_routers",
+                  "scope": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 5,
+                    "flow_keys": [
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": "skill_entry_signal",
+                  "route_active_flow_reason_code": "no_active_flow"
+                }
+              ]
+            }
+          },
+          "skill_run": {
+            "selected_skill_id": "product_help",
+            "reason_code": "skill_entry_signal",
+            "output": {
+              "skill_id": "product_help",
+              "status": "continue",
+              "response_intent": "where_is_it",
+              "memory_trace": {
+                "memory_used_for_response": false,
+                "memory_item_ids_used": [],
+                "correction_detected": false,
+                "correction_target_item_ids": []
+              },
+              "reply": "Tu trouveras tes cartes d'attaque dans l'onglet **Ressources** de ton dashboard, rangées par niveau. Elles sont aussi visibles directement sur tes missions ou tes habitudes dans ton **Plan**.",
+              "diagnosis": {
+                "local_flow": true,
+                "flow_action": "answer_destination",
+                "mode": "standalone",
+                "target": {
+                  "kind": "feature_catalog",
+                  "feature_id": "resources.attack_card",
+                  "object_type": "attack_card",
+                  "object_ref": null,
+                  "confidence": "high"
+                },
+                "grounding": {
+                  "catalog_feature_ids": [
+                    "resources.attack_card",
+                    "resources.plan_cards",
+                    "resources.overview"
+                  ],
+                  "surface_ids": [],
+                  "db_sources_required": false,
+                  "db_sources_used": [],
+                  "active_flow_used": false,
+                  "missing_grounding_reason": "I am explaining the general location in the interface, not checking the user's specific database for existing cards."
+                },
+                "bridge": {
+                  "needed": false,
+                  "operation_type": null,
+                  "kind": null,
+                  "executable": false,
+                  "why": null
+                },
+                "visible_task": "answer_destination",
+                "return_to_parent_flow": false,
+                "exit_to_global_dispatcher": false,
+                "note_information": null,
+                "reason_code": "product_help_local_answer_destination",
+                "evidence": [
+                  "user asks for location of created attack cards",
+                  "catalog confirms locations: Plan and Resources"
+                ]
+              },
+              "recommendation_need": {
+                "needed": false,
+                "type": "none",
+                "urgency": "none",
+                "constraints": [
+                  "product_help_does_not_execute_operations",
+                  "operation_suggestions_always_empty",
+                  "requested_allowed_committed_effects_empty"
+                ]
+              },
+              "operation_suggestions": [],
+              "memory_write_candidates": [],
+              "effects": {
+                "requested": [],
+                "allowed": [],
+                "blocked": [],
+                "committed": []
+              },
+              "state_patch": {
+                "product_help_local_state": {
+                  "skill_id": "product_help",
+                  "status": "answered",
+                  "mode": "standalone",
+                  "product_help_state": {
+                    "stage": "answering",
+                    "last_intent": "where_is_it",
+                    "last_target": {
+                      "kind": "feature_catalog",
+                      "feature_id": "resources.attack_card",
+                      "object_type": "attack_card",
+                      "object_ref": null,
+                      "confidence": "high"
+                    },
+                    "last_answer_summary": "User asks where to find their already created attack cards.",
+                    "last_catalog_feature_ids": [
+                      "resources.attack_card",
+                      "resources.plan_cards",
+                      "resources.overview"
+                    ],
+                    "last_locations": [
+                      "Dashboard > Plan",
+                      "Dashboard > Plan",
+                      "Dashboard > Plan",
+                      "Dashboard > Plan",
+                      "Dashboard > Plan",
+                      "Dashboard > Ressources",
+                      "Dashboard > Plan",
+                      "Dashboard > Ressources"
+                    ],
+                    "parent_flow_context": null,
+                    "turn_count": 1,
+                    "max_turns": 3,
+                    "updated_at": "2026-06-11T18:08:16.502Z"
+                  }
+                },
+                "product_help_note_information": null,
+                "product_help_exit_memo": null,
+                "product_help_subskill_trace": null,
+                "summary": "User asks where to find their already created attack cards."
+              }
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7-t03",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "product_help"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7-t03",
+          "source_message_id": "3edab89a-735f-4dae-9747-0b1cfd895ad9",
+          "user_id": "13cf4b35-8cd4-4475-8330-f640d4905ced",
+          "channel": "web",
+          "safety": {
+            "risk_band": "low",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [
+              0
+            ],
+            "matrix": [],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "flow_opportunity": null,
+          "note_information": {
+            "source_flow_id": "global_dispatcher",
+            "source_flow_presentation": "Global dispatcher selected a non-normal routing signal and is handing context to the target local dispatcher.",
+            "source_flow_state_summary": "signal=skill_signal; target=product_help; confidence=high",
+            "handoff_reason": "explicit_user_request",
+            "target_dispatcher": "product_help",
+            "handoff_context_for_next_dispatcher": "User explicitly asks where to find their already created 'attack cards' within the Sophia application. This is a product location/interface question.",
+            "target_local_dispatcher_hint": "Run the local dispatcher for product_help. Explain where attack cards are located in the interface.",
+            "user_words": [
+              "où est-ce que je retrouve les cartes d'attaque que j'ai déjà créées ?"
+            ],
+            "structured_context": {
+              "primary_signal_path": "skill_signals.entry.product_help",
+              "target_kind": "skill",
+              "target_flow": "product_help",
+              "confidence_band": "high",
+              "evidence": [
+                "où est-ce que je retrouve les cartes d'attaque que j'ai déjà créées ?"
+              ]
+            },
+            "risk_score": 0,
+            "no_chat_mutation": {
+              "db_write_committed": false,
+              "potion_session_created": false,
+              "scheduled_checkin_created": false,
+              "recurring_reminder_created": false,
+              "executable_confirmation_generated": false
+            }
+          },
+          "skill_signals": {
+            "entry": {
+              "product_help": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "user_asks_app_location_for_durable_surface"
+              }
+            },
+            "lifecycle": {},
+            "exit": {}
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "targeted",
+            "memory_mode": "light",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "small",
+            "targets": [
+              {
+                "type": "topic",
+                "key": "attack_cards",
+                "query_hint": "cartes d'attaque créées",
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first",
+                "priority": "medium",
+                "entity_type": null
+              }
+            ],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "active_handoff_action": null,
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "product_help",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "skill_entry_signal",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "none",
+            "active_owner": "none",
+            "selected_owner": "none",
+            "resume_policy": "none",
+            "reason_code": "no_active_flow"
+          },
+          "selected_handler": "product_help",
+          "active_flow_debug": {
+            "version": "active_flow_debug_v1",
+            "snapshots": [
+              {
+                "phase": "user_state_loaded",
+                "scope": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 6,
+                  "flow_keys": [
+                    "__active_skill_state",
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": "__active_skill_state",
+                  "raw_active_skill": {
+                    "present": true,
+                    "skill_id": "emotional_repair",
+                    "status": "active",
+                    "mode": null,
+                    "has_working_state": true,
+                    "state_keys": [
+                      "previous_skill_id",
+                      "skill_id",
+                      "started_at",
+                      "status",
+                      "turn_count",
+                      "updated_at",
+                      "version",
+                      "working_state"
+                    ],
+                    "working_state_keys": [
+                      "emotional_repair_local_state",
+                      "emotional_repair_potion_handoff",
+                      "emotional_repair_visible_task",
+                      "summary"
+                    ],
+                    "updated_at": "2026-06-11T18:07:19.577Z"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "undefined"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_onboarding_and_reconcile",
+                "scope": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 6,
+                  "flow_keys": [
+                    "__active_skill_state",
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": "__active_skill_state",
+                  "raw_active_skill": {
+                    "present": true,
+                    "skill_id": "emotional_repair",
+                    "status": "active",
+                    "mode": null,
+                    "has_working_state": true,
+                    "state_keys": [
+                      "previous_skill_id",
+                      "skill_id",
+                      "started_at",
+                      "status",
+                      "turn_count",
+                      "updated_at",
+                      "version",
+                      "working_state"
+                    ],
+                    "working_state_keys": [
+                      "emotional_repair_local_state",
+                      "emotional_repair_potion_handoff",
+                      "emotional_repair_visible_task",
+                      "summary"
+                    ],
+                    "updated_at": "2026-06-11T18:07:19.577Z"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "undefined"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "read_active_flow_state",
+                "scope": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 6,
+                  "flow_keys": [
+                    "__active_skill_state",
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": "__active_skill_state",
+                  "raw_active_skill": {
+                    "present": true,
+                    "skill_id": "emotional_repair",
+                    "status": "active",
+                    "mode": null,
+                    "has_working_state": true,
+                    "state_keys": [
+                      "previous_skill_id",
+                      "skill_id",
+                      "started_at",
+                      "status",
+                      "turn_count",
+                      "updated_at",
+                      "version",
+                      "working_state"
+                    ],
+                    "working_state_keys": [
+                      "emotional_repair_local_state",
+                      "emotional_repair_potion_handoff",
+                      "emotional_repair_visible_task",
+                      "summary"
+                    ],
+                    "updated_at": "2026-06-11T18:07:19.577Z"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": true,
+                  "skill_id": "emotional_repair",
+                  "status": "active",
+                  "mode": null,
+                  "has_working_state": true,
+                  "state_keys": [
+                    "previous_skill_id",
+                    "skill_id",
+                    "started_at",
+                    "status",
+                    "turn_count",
+                    "updated_at",
+                    "version",
+                    "working_state"
+                  ],
+                  "working_state_keys": [
+                    "emotional_repair_local_state",
+                    "emotional_repair_potion_handoff",
+                    "emotional_repair_visible_task",
+                    "summary"
+                  ],
+                  "updated_at": "2026-06-11T18:07:19.577Z"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_pending_confirmation_reload",
+                "scope": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 6,
+                  "flow_keys": [
+                    "__active_skill_state",
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": "__active_skill_state",
+                  "raw_active_skill": {
+                    "present": true,
+                    "skill_id": "emotional_repair",
+                    "status": "active",
+                    "mode": null,
+                    "has_working_state": true,
+                    "state_keys": [
+                      "previous_skill_id",
+                      "skill_id",
+                      "started_at",
+                      "status",
+                      "turn_count",
+                      "updated_at",
+                      "version",
+                      "working_state"
+                    ],
+                    "working_state_keys": [
+                      "emotional_repair_local_state",
+                      "emotional_repair_potion_handoff",
+                      "emotional_repair_visible_task",
+                      "summary"
+                    ],
+                    "updated_at": "2026-06-11T18:07:19.577Z"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": true,
+                  "skill_id": "emotional_repair",
+                  "status": "active",
+                  "mode": null,
+                  "has_working_state": true,
+                  "state_keys": [
+                    "previous_skill_id",
+                    "skill_id",
+                    "started_at",
+                    "status",
+                    "turn_count",
+                    "updated_at",
+                    "version",
+                    "working_state"
+                  ],
+                  "working_state_keys": [
+                    "emotional_repair_local_state",
+                    "emotional_repair_potion_handoff",
+                    "emotional_repair_visible_task",
+                    "summary"
+                  ],
+                  "updated_at": "2026-06-11T18:07:19.577Z"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "before_run_conversation_routers",
+                "scope": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 5,
+                  "flow_keys": [
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_run_conversation_routers",
+                "scope": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 5,
+                  "flow_keys": [
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": "skill_entry_signal",
+                "route_active_flow_reason_code": "no_active_flow"
+              }
+            ]
+          }
+        },
+        "skill_run": {
+          "selected_skill_id": "product_help",
+          "reason_code": "skill_entry_signal",
+          "output": {
+            "skill_id": "product_help",
+            "status": "continue",
+            "response_intent": "where_is_it",
+            "memory_trace": {
+              "memory_used_for_response": false,
+              "memory_item_ids_used": [],
+              "correction_detected": false,
+              "correction_target_item_ids": []
+            },
+            "reply": "Tu trouveras tes cartes d'attaque dans l'onglet **Ressources** de ton dashboard, rangées par niveau. Elles sont aussi visibles directement sur tes missions ou tes habitudes dans ton **Plan**.",
+            "diagnosis": {
+              "local_flow": true,
+              "flow_action": "answer_destination",
+              "mode": "standalone",
+              "target": {
+                "kind": "feature_catalog",
+                "feature_id": "resources.attack_card",
+                "object_type": "attack_card",
+                "object_ref": null,
+                "confidence": "high"
+              },
+              "grounding": {
+                "catalog_feature_ids": [
+                  "resources.attack_card",
+                  "resources.plan_cards",
+                  "resources.overview"
+                ],
+                "surface_ids": [],
+                "db_sources_required": false,
+                "db_sources_used": [],
+                "active_flow_used": false,
+                "missing_grounding_reason": "I am explaining the general location in the interface, not checking the user's specific database for existing cards."
+              },
+              "bridge": {
+                "needed": false,
+                "operation_type": null,
+                "kind": null,
+                "executable": false,
+                "why": null
+              },
+              "visible_task": "answer_destination",
+              "return_to_parent_flow": false,
+              "exit_to_global_dispatcher": false,
+              "note_information": null,
+              "reason_code": "product_help_local_answer_destination",
+              "evidence": [
+                "user asks for location of created attack cards",
+                "catalog confirms locations: Plan and Resources"
+              ]
+            },
+            "recommendation_need": {
+              "needed": false,
+              "type": "none",
+              "urgency": "none",
+              "constraints": [
+                "product_help_does_not_execute_operations",
+                "operation_suggestions_always_empty",
+                "requested_allowed_committed_effects_empty"
+              ]
+            },
+            "operation_suggestions": [],
+            "memory_write_candidates": [],
+            "effects": {
+              "requested": [],
+              "allowed": [],
+              "blocked": [],
+              "committed": []
+            },
+            "state_patch": {
+              "product_help_local_state": {
+                "skill_id": "product_help",
+                "status": "answered",
+                "mode": "standalone",
+                "product_help_state": {
+                  "stage": "answering",
+                  "last_intent": "where_is_it",
+                  "last_target": {
+                    "kind": "feature_catalog",
+                    "feature_id": "resources.attack_card",
+                    "object_type": "attack_card",
+                    "object_ref": null,
+                    "confidence": "high"
+                  },
+                  "last_answer_summary": "User asks where to find their already created attack cards.",
+                  "last_catalog_feature_ids": [
+                    "resources.attack_card",
+                    "resources.plan_cards",
+                    "resources.overview"
+                  ],
+                  "last_locations": [
+                    "Dashboard > Plan",
+                    "Dashboard > Plan",
+                    "Dashboard > Plan",
+                    "Dashboard > Plan",
+                    "Dashboard > Plan",
+                    "Dashboard > Ressources",
+                    "Dashboard > Plan",
+                    "Dashboard > Ressources"
+                  ],
+                  "parent_flow_context": null,
+                  "turn_count": 1,
+                  "max_turns": 3,
+                  "updated_at": "2026-06-11T18:08:16.502Z"
+                }
+              },
+              "product_help_note_information": null,
+              "product_help_exit_memo": null,
+              "product_help_subskill_trace": null,
+              "summary": "User asks where to find their already created attack cards."
+            }
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "qa-emotional-repair-2026-06-11-emotional-repair-local-doctrine-r7-t03",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "product_help"
+      },
+      "trace_error": null
+    }
+  }
+]

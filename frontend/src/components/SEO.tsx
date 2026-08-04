@@ -7,6 +7,8 @@ interface SEOProps {
   image?: string;
   robots?: string;
   type?: string;
+  /** Document language. The product ships in English; pass a BCP-47 tag to override. */
+  lang?: string;
   structuredData?: Record<string, unknown> | Array<Record<string, unknown>>;
 }
 
@@ -20,11 +22,12 @@ const SEO = ({
   image = DEFAULT_IMAGE,
   robots = DEFAULT_ROBOTS,
   type = 'website',
+  lang = 'en',
   structuredData,
 }: SEOProps) => {
   useEffect(() => {
     const fullTitle = `${title} | Sophia Coach`;
-    document.documentElement.lang = 'fr';
+    document.documentElement.lang = lang;
     document.title = fullTitle;
 
     const ensureMeta = (attrs: Record<string, string>, content: string) => {
@@ -63,7 +66,10 @@ const SEO = ({
     ensureMeta({ property: 'og:description' }, description);
     ensureMeta({ property: 'og:type' }, type);
     ensureMeta({ property: 'og:site_name' }, 'Sophia Coach');
-    ensureMeta({ property: 'og:locale' }, 'fr_FR');
+    // Derived from `lang`, never hardcoded: a page that declares lang="en" and
+    // og:locale="fr_FR" tells crawlers and link previews two different things,
+    // and the preview is what a shared link shows.
+    ensureMeta({ property: 'og:locale' }, lang.toLowerCase().startsWith('fr') ? 'fr_FR' : 'en_GB');
     ensureMeta({ property: 'og:image' }, image);
     ensureMeta({ property: 'og:image:alt' }, fullTitle);
     if (canonical) ensureMeta({ property: 'og:url' }, canonical);
@@ -91,7 +97,7 @@ const SEO = ({
         document.head.appendChild(script);
       });
     }
-  }, [title, description, canonical, image, robots, type, structuredData]);
+  }, [title, description, canonical, image, robots, type, lang, structuredData]);
 
   return null;
 };

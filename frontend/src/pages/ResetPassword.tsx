@@ -57,13 +57,13 @@ const ResetPassword: React.FC = () => {
           setReady(hasSession);
           // If no session, it usually means the link is invalid/expired OR redirect URL not allowlisted.
           if (!hasSession) {
-            setError("Lien invalide ou expiré. Refais une demande de réinitialisation depuis la page connexion.");
+            setError("Invalid or expired link. Request a new reset from the sign-in page.");
           }
         }
       } catch (e) {
         if (!cancelled) {
           setReady(false);
-          setError(getErrorMessage(e, "Impossible d'ouvrir le lien de réinitialisation."));
+          setError(getErrorMessage(e, "Could not open the reset link."));
         }
       } finally {
         if (!cancelled) setInitializing(false);
@@ -84,9 +84,9 @@ const ResetPassword: React.FC = () => {
     try {
       const p1 = password.trim();
       const p2 = password2.trim();
-      if (!p1 || !p2) throw new Error("Merci de renseigner le mot de passe deux fois.");
-      if (p1.length < 8) throw new Error("Mot de passe trop court (min 8 caractères).");
-      if (p1 !== p2) throw new Error("Les deux mots de passe ne correspondent pas.");
+      if (!p1 || !p2) throw new Error("Please enter the password twice.");
+      if (p1.length < 8) throw new Error("Password too short (8 characters minimum).");
+      if (p1 !== p2) throw new Error("The two passwords do not match.");
 
       const { error: upErr } = await supabase.auth.updateUser({ password: p1 });
       if (upErr) throw upErr;
@@ -95,7 +95,7 @@ const ResetPassword: React.FC = () => {
       await supabase.auth.signOut();
       navigate("/auth?reset=1", { replace: true });
     } catch (e) {
-      setError(getErrorMessage(e, "Erreur lors de la mise à jour du mot de passe."));
+      setError(getErrorMessage(e, "Something went wrong while updating the password."));
     } finally {
       setLoading(false);
     }
@@ -111,9 +111,9 @@ const ResetPassword: React.FC = () => {
             <span className="text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase mt-1">Powered by IKIZEN</span>
           </div>
         </div>
-        <h2 className="text-3xl font-bold text-slate-900 mb-2">Réinitialisation</h2>
+        <h2 className="text-3xl font-bold text-slate-900 mb-2">Reset your password</h2>
         <p className="text-slate-600 max-w-sm mx-auto">
-          Choisis un nouveau mot de passe. Le lien est valable pour une courte durée.
+          Choose a new password. The link is valid for a short time only.
         </p>
       </div>
 
@@ -128,12 +128,12 @@ const ResetPassword: React.FC = () => {
         {initializing ? (
           <div className="flex items-center justify-center gap-2 text-sm text-gray-700 py-8">
             <Loader2 className="w-4 h-4 animate-spin" />
-            Vérification du lien…
+            Checking the link…
           </div>
         ) : (
           <form onSubmit={onSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1">Nouveau mot de passe</label>
+              <label className="block text-sm font-bold text-slate-700 mb-1">New password</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Lock className="h-5 w-5 text-slate-400" />
@@ -151,7 +151,7 @@ const ResetPassword: React.FC = () => {
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
                   className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
-                  aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                   disabled={!ready || loading}
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -160,7 +160,7 @@ const ResetPassword: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1">Confirmer le mot de passe</label>
+              <label className="block text-sm font-bold text-slate-700 mb-1">Confirm the password</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Lock className="h-5 w-5 text-slate-400" />
@@ -186,10 +186,10 @@ const ResetPassword: React.FC = () => {
                 {loading ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    Mise à jour…
+                    Updating…
                   </>
                 ) : (
-                  "Mettre à jour le mot de passe"
+                  "Update the password"
                 )}
               </button>
             </div>
@@ -200,7 +200,7 @@ const ResetPassword: React.FC = () => {
                 onClick={() => navigate("/auth", { replace: true })}
                 className="text-sm font-medium text-slate-500 hover:text-indigo-600"
               >
-                Retour à la connexion
+                Back to sign-in
               </button>
             </div>
           </form>

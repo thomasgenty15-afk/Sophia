@@ -1,14 +1,65 @@
-import { generateWithGemini, getGlobalAiModel } from "../../_shared/gemini.ts"
+import { generateWithGemini, getGlobalAiModel } from "../../_shared/gemini.ts";
+import {
+  crisisCountryFromLocale,
+  formatCrisisContacts,
+  LEGACY_FRENCH_BRANCH_COUNTRY,
+  resolveCrisisResources,
+} from "../../_shared/keel/crisis_resources.ts";
 
 /** Phase de la machine à état sentry */
-export type SentryPhase = "acute" | "confirming" | "resolved"
+export type SentryPhase = "acute" | "confirming" | "resolved";
+
+/**
+ * W3.3 — les numéros d'urgence de sentry sont RÉSOLUS PAR PAYS.
+ *
+ * Avant ce lot, 3114 / 15 / 112 étaient écrits en dur dans le prompt ET dans
+ * la réponse de secours : un utilisateur américain en crise se voyait donner
+ * un numéro qui n'existe pas chez lui. Ce n'est pas un défaut de traduction,
+ * c'est un défaut de sécurité.
+ *
+ * `numbersBlock` est construit depuis les libellés de la table
+ * `crisis_resources` (via le miroir compilé de `_shared/keel/crisis_resources.ts`)
+ * pour que le prompt n'énumère jamais de numéro qui ne vient pas du registre.
+ */
+export type SentryCrisisResources = {
+  /** Ex. "15 ou 112" */
+  emergency: string;
+  /** Ex. "3114" */
+  suicide: string;
+  /** Bloc de puces "• <contact> - <libellé>" */
+  numbersBlock: string;
+};
+
+export function buildSentryCrisisResources(input?: {
+  country?: string | null;
+  locale?: string | null;
+}): SentryCrisisResources {
+  // Priorité: pays explicite > région du locale > défaut DÉCLARÉ de la branche
+  // française. Un locale qui ne résout aucun pays semé (ex. 'de-DE') tombe sur
+  // le jeu international, bruyamment — jamais sur la France par défaut.
+  const country = input?.country
+    ? input.country
+    : input?.locale
+    ? crisisCountryFromLocale(input.locale)
+    : LEGACY_FRENCH_BRANCH_COUNTRY;
+  const emergency = resolveCrisisResources(country, "emergency");
+  const suicide = resolveCrisisResources(country, "suicide");
+  const numbersBlock = [...emergency.resources, ...suicide.resources]
+    .map((resource) => `• ${resource.contact} - ${resource.label}`)
+    .join("\n");
+  return {
+    emergency: formatCrisisContacts(emergency, "ou"),
+    suicide: formatCrisisContacts(suicide, "ou"),
+    numbersBlock,
+  };
+}
 
 /** Contexte de la machine à état sentry passé par le router */
 export interface SentryFlowContext {
-  phase: SentryPhase
-  turnCount: number
-  safetyConfirmed: boolean
-  externalHelpMentioned: boolean
+  phase: SentryPhase;
+  turnCount: number;
+  safetyConfirmed: boolean;
+  externalHelpMentioned: boolean;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -16,12 +67,15 @@ export interface SentryFlowContext {
 // Chaque phase a ses propres points d'attention, exemples, et bonnes pratiques
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function buildPhaseAddon(flowContext?: SentryFlowContext): string {
-  const phase = flowContext?.phase ?? "acute"
-  const turnCount = flowContext?.turnCount ?? 0
-  const safetyConfirmed = flowContext?.safetyConfirmed ?? false
-  const externalHelpMentioned = flowContext?.externalHelpMentioned ?? false
-  
+function buildPhaseAddon(
+  flowContext: SentryFlowContext | undefined,
+  resources: SentryCrisisResources,
+): string {
+  const phase = flowContext?.phase ?? "acute";
+  const turnCount = flowContext?.turnCount ?? 0;
+  const safetyConfirmed = flowContext?.safetyConfirmed ?? false;
+  const externalHelpMentioned = flowContext?.externalHelpMentioned ?? false;
+
   // ─────────────────────────────────────────────────────────────────────────────
   // PHASE 1: ACUTE - Danger potentiel actif
   // ─────────────────────────────────────────────────────────────────────────────
@@ -29,7 +83,9 @@ function buildPhaseAddon(flowContext?: SentryFlowContext): string {
     return `
 ═══════════════════════════════════════════════════════════════════════════════
 PHASE ACTUELLE: ACUTE (Danger potentiel actif)
-Tour ${turnCount + 1} sur cette phase | Sécurité confirmée: ${safetyConfirmed ? "OUI" : "NON"} | Aide externe: ${externalHelpMentioned ? "OUI" : "NON"}
+Tour ${turnCount + 1} sur cette phase | Sécurité confirmée: ${
+      safetyConfirmed ? "OUI" : "NON"
+    } | Aide externe: ${externalHelpMentioned ? "OUI" : "NON"}
 ═══════════════════════════════════════════════════════════════════════════════
 
 ⚠️ CECI EST UNE SITUATION DE CRISE VITALE POTENTIELLE ⚠️
@@ -48,10 +104,8 @@ QUESTIONS PRIORITAIRES:
 2. "Tu as un moyen de te faire du mal à portée ?" (si idées suicidaires)
 3. "Tu es seul(e) là tout de suite ?" (présence d'aide)
 
-NUMÉROS À DONNER:
-• 15 (SAMU) - urgence médicale
-• 112 - urgence européenne
-• 3114 - Prévention suicide (si idées suicidaires/automutilation)
+NUMÉROS À DONNER (résolus pour le pays de l'utilisateur — n'en invente aucun autre):
+${resources.numbersBlock}
 
 EXEMPLES DE BONNES RÉACTIONS:
 
@@ -60,7 +114,7 @@ User: "J'ai envie de me faire du mal"
 → MAUVAIS: "Je comprends que tu traverses un moment difficile. Qu'est-ce qui s'est passé ?"
 
 User: "J'ai des idées noires, je veux plus vivre"
-→ BON: "Je suis là. Tu es seul(e) là tout de suite ? Si tu te sens en danger de te faire du mal, appelle le 3114 maintenant."
+→ BON: "Je suis là. Tu es seul(e) là tout de suite ? Si tu te sens en danger de te faire du mal, appelle le ${resources.suicide} maintenant."
 → MAUVAIS: "Ces pensées sont temporaires, ça va passer. Essaie de penser à quelque chose de positif."
 
 User: "J'ai le couteau dans la main"
@@ -86,9 +140,9 @@ Cette phase peut durer 2-4 tours. On reste ici tant que :
 - L'utilisateur n'a pas confirmé être en sécurité physique
 - Un moyen de se faire du mal est potentiellement accessible
 - L'aide externe n'a pas été contactée ou quelqu'un n'est pas présent
-`
+`;
   }
-  
+
   // ─────────────────────────────────────────────────────────────────────────────
   // PHASE 2: CONFIRMING - Danger écarté, vérification sécurité
   // ─────────────────────────────────────────────────────────────────────────────
@@ -96,7 +150,9 @@ Cette phase peut durer 2-4 tours. On reste ici tant que :
     return `
 ═══════════════════════════════════════════════════════════════════════════════
 PHASE ACTUELLE: CONFIRMING (Vérification de sécurité)
-Tour ${turnCount + 1} sur cette phase | Sécurité confirmée: ${safetyConfirmed ? "OUI" : "NON"} | Aide externe: ${externalHelpMentioned ? "OUI" : "NON"}
+Tour ${turnCount + 1} sur cette phase | Sécurité confirmée: ${
+      safetyConfirmed ? "OUI" : "NON"
+    } | Aide externe: ${externalHelpMentioned ? "OUI" : "NON"}
 ═══════════════════════════════════════════════════════════════════════════════
 
 OBJECTIF DE CETTE PHASE:
@@ -127,7 +183,7 @@ BONNES PRATIQUES:
 • Proposer de rester en contact en attendant
 • Encourager à appeler un proche MAINTENANT
 • Valider le choix de ne pas passer à l'acte
-• Proposer des ressources (3114, médecin, etc.)
+• Proposer des ressources (${resources.suicide}, médecin, etc.)
 
 CE QU'IL FAUT ÉVITER:
 • Considérer que c'est fini trop vite
@@ -138,9 +194,9 @@ CE QU'IL FAUT ÉVITER:
 TRANSITION APRÈS SÉCURISATION:
 Si le danger vital est écarté mais qu'une détresse émotionnelle persiste,
 la conversation peut revenir vers un accompagnement conversationnel standard.
-`
+`;
   }
-  
+
   // ─────────────────────────────────────────────────────────────────────────────
   // PHASE 3: RESOLVED - Sécurisé, passation
   // ─────────────────────────────────────────────────────────────────────────────
@@ -166,7 +222,7 @@ User: "Ma sœur est là, ça va mieux"
 → BON: "Ok, content(e) qu'elle soit là. Prends soin de toi ce soir. N'hésite pas à revenir si tu as besoin."
 → MAUVAIS: "Super ! Bon alors, tu veux qu'on parle de ce qui s'est passé ?"
 
-User: "J'ai appelé le 3114, ils m'ont aidé"
+User: "J'ai appelé le ${resources.suicide}, ils m'ont aidé"
 → BON: "C'est bien que tu aies appelé. Comment tu te sens maintenant ?"
 
 BONNES PRATIQUES:
@@ -180,29 +236,45 @@ CE QU'IL FAUT ÉVITER:
 • Faire des recommandations non sollicitées
 • Être trop jovial
 • Disparaître brutalement
-`
+`;
   }
-  
+
   // Fallback
-  return ""
+  return "";
 }
 
 // SENTRY (Le Guetteur) - Safety escalation with a short, personalized message.
 export async function runSentry(
   message: string,
-  meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string },
-  flowContext?: SentryFlowContext
+  meta?: {
+    requestId?: string;
+    userId?: string | null;
+    forceRealAi?: boolean;
+    channel?: "web" | "whatsapp";
+    model?: string;
+    /** W3.3: ISO 3166-1 alpha-2, quand l'appelant en connaît un. */
+    country?: string | null;
+    /** W3.3: BCP-47; sa région nomme le pays quand `country` est absent. */
+    locale?: string | null;
+  },
+  flowContext?: SentryFlowContext,
 ): Promise<string> {
-  const m = (message ?? "").toString().trim()
-  
-  // Build phase-specific addon
-  const phaseAddon = buildPhaseAddon(flowContext)
+  const m = (message ?? "").toString().trim();
 
-  const fallback =
-    "Là, je veux pas prendre de risque.\n\n" +
-    "Si tu as du mal à respirer, une douleur dans la poitrine, un malaise, ou si tu te sens en danger: appelle le 15 (SAMU) ou le 112 maintenant.\n\n" +
-    "Si tu te sens en danger de te faire du mal: appelle le 3114 (Prévention Suicide) ou le 112.\n\n" +
-    "Tu es seul là tout de suite ?"
+  // W3.3: une seule résolution par tour, partagée par le prompt ET par la
+  // réponse de secours — les deux ne peuvent plus diverger.
+  const resources = buildSentryCrisisResources({
+    country: meta?.country ?? null,
+    locale: meta?.locale ?? null,
+  });
+
+  // Build phase-specific addon
+  const phaseAddon = buildPhaseAddon(flowContext, resources);
+
+  const fallback = "Là, je veux pas prendre de risque.\n\n" +
+    `Si tu as du mal à respirer, une douleur dans la poitrine, un malaise, ou si tu te sens en danger: appelle le ${resources.emergency} maintenant.\n\n` +
+    `Si tu te sens en danger de te faire du mal: appelle le ${resources.suicide}.\n\n` +
+    "Tu es seul là tout de suite ?";
 
   try {
     const systemPrompt = `
@@ -221,28 +293,40 @@ OBJECTIF GÉNÉRAL:
 
 FORMAT:
 - Français, tutoiement.
+- Tu tutoies toujours l'utilisateur. N'utilise "vous", "votre" ou "vos" que si tu parles explicitement du couple ou de plusieurs personnes, jamais pour t'adresser directement à l'utilisateur.
+- Quand tu parles de toi-même, utilise la première personne du singulier ("je", "me", "moi"). N'écris jamais "Sophia" pour te désigner.
+- Sophia est féminine: quand tu parles de toi-même, accorde les adjectifs et participes au féminin ("contente", "prête", "désolée", "ravie", etc.).
 - Texte brut uniquement (pas de **).
 - 4 à 8 lignes max.
 - 1 question max à la fin.
-- Emojis: 0 à 2 emojis max par message, placés naturellement; pas une ligne entière d'emojis. Tu peux utiliser n'importe quel emoji Unicode.
+- Emojis: au moins 1 emoji naturel et sobre par message visible; 2 max; pas une ligne entière d'emojis. Tu peux utiliser n'importe quel emoji Unicode.
 - N'invente JAMAIS de limitations techniques fictives. Si tu ne sais pas, dis-le simplement.
 
 RÈGLES ABSOLUES:
-- Si difficulté à respirer / douleur thoracique / malaise / réaction allergique sévère: recommande d'appeler 15 ou 112 maintenant.
-- Si intention de suicide / automutilation: recommande 3114 ou 112 maintenant.
+- Si difficulté à respirer / douleur thoracique / malaise / réaction allergique sévère: recommande d'appeler ${resources.emergency} maintenant.
+- Si intention de suicide / automutilation: recommande ${resources.suicide} ou ${resources.emergency} maintenant.
 - Ne JAMAIS minimiser, ne JAMAIS promettre.
 - Évite "je suis une IA".
-  `.trim()
+  `.trim();
 
-    const out = await generateWithGemini(systemPrompt, m || "Aide-moi.", 0.2, false, [], "auto", {
-      requestId: meta?.requestId,
-      model: meta?.model ?? getGlobalAiModel("gemini-2.5-flash"),
-      source: "sophia-brain:sentry",
-      forceRealAi: meta?.forceRealAi,
-    })
-    if (typeof out !== "string" || !out.trim()) return fallback
-    return out.replace(/\*\*/g, "").trim()
+    const out = await generateWithGemini(
+      systemPrompt,
+      m || "Aide-moi.",
+      0.2,
+      false,
+      [],
+      "auto",
+      {
+        requestId: meta?.requestId,
+        userId: meta?.userId ?? undefined,
+        model: meta?.model ?? getGlobalAiModel(),
+        source: "sophia-brain:sentry",
+        forceRealAi: meta?.forceRealAi,
+      },
+    );
+    if (typeof out !== "string" || !out.trim()) return fallback;
+    return out.replace(/\*\*/g, "").trim();
   } catch {
-    return fallback
+    return fallback;
   }
 }

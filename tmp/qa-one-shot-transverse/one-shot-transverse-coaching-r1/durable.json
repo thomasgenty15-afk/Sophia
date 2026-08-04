@@ -1,0 +1,98 @@
+{
+  "scheduled_checkins": [
+    {
+      "id": "b3ac8b4c-fa79-49e6-a5d4-096036aae931",
+      "status": "pending",
+      "scheduled_for": "2026-06-18T14:24:05.364+00:00",
+      "event_context": "one_shot_reminder:rouvrir_le_dossier_banque_et_aide_moi_aussi_a_comprendre_pou",
+      "message_payload": {
+        "source": "one_shot_reminder_executor",
+        "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Objet du rappel utilisateur: rouvrir le dossier banque, et aide-moi aussi a comprendre pourquoi je bloque a ecrire le mail a Camille.",
+        "parse_source": "local_parser",
+        "request_text": "Dans 40 minutes, rappelle-moi de rouvrir le dossier banque, et aide-moi aussi a comprendre pourquoi je bloque a ecrire le mail a Camille.",
+        "reminder_kind": "one_shot",
+        "user_timezone": "Europe/Paris",
+        "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: rouvrir le dossier banque, et aide-moi aussi a comprendre pourquoi je bloque a ecrire le mail a Camille.",
+        "source_message_id": null,
+        "reminder_instruction": "rouvrir le dossier banque, et aide-moi aussi a comprendre pourquoi je bloque a ecrire le mail a Camille"
+      },
+      "created_at": "2026-06-18T13:44:05.371203+00:00"
+    }
+  ],
+  "chat_messages_count": 6,
+  "chat_messages": [
+    {
+      "role": "user",
+      "content": "Dans 40 minutes, rappelle-moi de rouvrir le dossier banque, et aide-moi aussi a comprendre pourquoi je bloque a ecrire le mail a Camille.",
+      "created_at": "2026-06-18T13:44:00.677018+00:00",
+      "metadata": {
+        "request_id": "qa-one-shot-transverse-coaching-r1-t01",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "C'est programmé pour jeudi 18 juin à 16:24: je te ferai un rappel pour rouvrir le dossier banque, et aide-moi aussi a comprendre pourquoi je bloque a ecrire le mail a Camille.",
+      "created_at": "2026-06-18T13:44:11.967325+00:00",
+      "metadata": {
+        "request_id": "qa-one-shot-transverse-coaching-r1-t01",
+        "route_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "user",
+      "content": "Ok pour le rappel. Mais pour le mail a Camille, ce qui me bloque c'est que je ne sais pas par quelle premiere phrase commencer et je repousse depuis trois jours.",
+      "created_at": "2026-06-18T13:44:36.230775+00:00",
+      "metadata": {
+        "request_id": "qa-one-shot-transverse-coaching-r1-t02",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "La carte d’attaque est la bonne option ici : ton blocage vient surtout du démarrage, pas du fond du mail. Elle t’aide à trouver une première phrase simple pour lancer le message à Camille, puis à enchaîner sans rester coincé.",
+      "created_at": "2026-06-18T13:44:49.696238+00:00",
+      "metadata": {
+        "request_id": "qa-one-shot-transverse-coaching-r1-t02",
+        "route_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "user",
+      "content": "Ok, et si je veux preparer cette carte d'attaque moi-meme, je la trouve ou dans Sophia ? Ne cree rien depuis le chat.",
+      "created_at": "2026-06-18T13:45:49.408917+00:00",
+      "metadata": {
+        "request_id": "qa-one-shot-transverse-coaching-r1-t03",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Tu la trouves dans Dashboard > Ressources. Les cartes d’attaque y sont rangées par niveau quand elles existent. Si tu veux, je peux aussi te dire où regarder dans le Plan pour voir l’aperçu lié à une mission ou une habitude.",
+      "created_at": "2026-06-18T13:46:00.243106+00:00",
+      "metadata": {
+        "request_id": "qa-one-shot-transverse-coaching-r1-t03",
+        "route_owner": "product_help",
+        "selected_handler": "product_help",
+        "tool_execution": null
+      }
+    }
+  ],
+  "user_chat_state": {
+    "user_id": "50692100-2166-4da5-81e4-7ae8c28e5187",
+    "current_mode": "companion",
+    "risk_level": 0,
+    "temp_memory": {},
+    "updated_at": "2026-06-18T13:46:00.238121+00:00"
+  }
+}

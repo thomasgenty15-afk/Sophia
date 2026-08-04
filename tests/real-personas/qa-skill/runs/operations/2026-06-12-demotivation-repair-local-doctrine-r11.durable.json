@@ -1,0 +1,235 @@
+{
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "cdcbdbb4-1380-4685-ae2e-6bdbe3b98211",
+        "role": "user",
+        "content": "Je suis devant la présentation que je dois finir et je n’arrive plus à m’y mettre. Je sais que c’est important, mais là tout me paraît lourd et inutile.",
+        "scope": "qa-demotivation-repair-2026-06-12-demotivation-repair-local-doctrine-r11",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-2026-06-12-demotivation-repair-local-doctrine-r11-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-11T23:01:52.548838+00:00"
+      },
+      {
+        "id": "f55ead8f-3270-4898-8545-a392eee1ae75",
+        "role": "assistant",
+        "content": "C'est épuisant de ramer quand on ne voit plus la rive. Cette sensation de lourdeur n'est pas de la fatigue physique, c'est le signe que le lien entre tes actions et tes priorités s'est rompu.\n\nAu-delà de la contrainte, qu'est-ce qui rendait ce projet important pour toi quand tu l'as commencé ?",
+        "scope": "qa-demotivation-repair-2026-06-12-demotivation-repair-local-doctrine-r11",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-2026-06-12-demotivation-repair-local-doctrine-r11-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-11T23:02:56.328763+00:00"
+      },
+      {
+        "id": "9b3d0e54-a642-420f-a464-8225844bac2c",
+        "role": "user",
+        "content": "Je crois que ça devait aider mon équipe à choisir plus vite. Mais là je ne vois qu’un gros bloc à produire. Pas de carte ni de potion pour l’instant, je veux juste retrouver ce lien.",
+        "scope": "qa-demotivation-repair-2026-06-12-demotivation-repair-local-doctrine-r11",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-2026-06-12-demotivation-repair-local-doctrine-r11-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-11T23:03:16.657694+00:00"
+      },
+      {
+        "id": "8028cfa5-25a4-44e2-b3a0-db76c7a51c79",
+        "role": "assistant",
+        "content": "C'est souvent là que l'énergie se perd : quand l'envie d'aider ton équipe se transforme en une corvée qui semble déconnectée de l'humain. Ce gros bloc à produire est censé être leur boussole pour décider plus vite. \n\nAu-delà de la tâche elle-même, quel impact concret espères-tu voir sur leur quotidien une fois qu'ils auront cet outil en main ?",
+        "scope": "qa-demotivation-repair-2026-06-12-demotivation-repair-local-doctrine-r11",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-2026-06-12-demotivation-repair-local-doctrine-r11-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": null,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-11T23:03:31.072724+00:00"
+      },
+      {
+        "id": "8525540a-c93e-49f4-8847-2fab16a8e189",
+        "role": "user",
+        "content": "S’ils l’ont, ils pourront arrêter de refaire la même discussion chaque semaine. En fait, je crois que je dois juste poser les trois décisions à trancher, pas faire une belle présentation.",
+        "scope": "qa-demotivation-repair-2026-06-12-demotivation-repair-local-doctrine-r11",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-2026-06-12-demotivation-repair-local-doctrine-r11-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-11T23:03:45.889587+00:00"
+      },
+      {
+        "id": "27f78b4e-26df-4621-9c97-ea4030f11d96",
+        "role": "assistant",
+        "content": "C'est une excellente approche pour libérer l'équipe de ce cercle vicieux. Pour lancer le mouvement, note simplement la toute première de ces trois décisions sur un brouillon ou un post-it.",
+        "scope": "qa-demotivation-repair-2026-06-12-demotivation-repair-local-doctrine-r11",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-2026-06-12-demotivation-repair-local-doctrine-r11-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": null,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-11T23:04:02.949751+00:00"
+      },
+      {
+        "id": "4678457b-0b91-4062-af5e-2154f53afb4e",
+        "role": "user",
+        "content": "Ok, je note juste la première décision et je m’arrête là pour aujourd’hui. Ne rajoute rien d’autre, je veux garder ça simple.",
+        "scope": "qa-demotivation-repair-2026-06-12-demotivation-repair-local-doctrine-r11",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-2026-06-12-demotivation-repair-local-doctrine-r11-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-11T23:04:19.991657+00:00"
+      },
+      {
+        "id": "c9b73944-5bb5-462e-85ce-6932b063aa8b",
+        "role": "assistant",
+        "content": "Parfait. ✅ Tu as noté la première décision, et c’est tout pour aujourd’hui. Repose-toi, sans rien ajouter. 🌙",
+        "scope": "qa-demotivation-repair-2026-06-12-demotivation-repair-local-doctrine-r11",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-2026-06-12-demotivation-repair-local-doctrine-r11-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": null,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-11T23:05:24.184874+00:00"
+      }
+    ]
+  },
+  "memory_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "scheduled_checkins": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_recurring_reminders": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  }
+}

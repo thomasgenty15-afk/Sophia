@@ -1,0 +1,30 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-r76-whole-plan-level4-vague-t01",
+    "status": 500,
+    "ok": null,
+    "user": "J'ai lu le niveau 4 du plan et franchement j'ai l'impression qu'il ne fait pas trop de sens pour moi. Je ne sais pas exactement quoi changer, mais la suite me parait bizarre.",
+    "assistant": "",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": true,
+    "response_tool_execution": null,
+    "response_executed_tools": [],
+    "response_owner": null,
+    "selected_handler": null,
+    "route_selected_handler": null,
+    "route_reason_code": null,
+    "operation_flow_run": null,
+    "tool_skill_run": null,
+    "coaching_guidance_audit": null,
+    "coaching_guidance": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": null,
+    "direct_effects": null,
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-r76-whole-plan-level4-vague-t01",
+    "trace_error": null
+  }
+]

@@ -1,0 +1,293 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-level-contract-r1-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je veux alléger le bloc de l'après-midi : un seul moment fixe pour remplacer les petits rappels autour, sans changer tout le plan.",
+    "assistant": "Avant de modifier ce niveau, qu'est-ce qui le rend trop lourd concretement, et quoi faut-il changer en premier: nombre d'actions, intensite, timing, ou priorite ? Je vois notamment dans le plan: Nettoyer ton environnement direct, Version mini - Nettoyer ton environnement direct, Version mini - Nettoyer ton environnement direct, Version mini - Nettoyer ton environnement direct.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "bloc de l'après-midi",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "status": "ask_question",
+      "reason_code": "operation_intent_start",
+      "plan_item_id": null,
+      "target_title": "niveau actuel",
+      "missing_slots": [
+        "current_level.reason_change",
+        "current_level.change_target"
+      ],
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-level-contract-r1-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-level-contract-r1-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Nombre d'actions et timing. Trop de micro-décisions dans l'après-midi ; je veux que tu appliques ça au niveau actuel.",
+    "assistant": "Je propose d'alléger ton programme actuel pour le rendre plus digeste, surtout l'après-midi. L'idée est de transformer certaines tâches complexes en versions plus courtes et de simplifier tes préparatifs pour garder l'essentiel sans te surcharger. Est-ce que cela te convient ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "confidence": "medium",
+            "scope_kind": "current_level",
+            "constraints": [
+              "no_pressure",
+              "minimal_patch",
+              "preserve_plan_intent",
+              "no_schedule_day_change",
+              "ask_confirmation_before_write"
+            ],
+            "reason_type": "too_heavy",
+            "change_target": "number_of_actions",
+            "reason_change": "too_many_actions",
+            "load_adjustment": "lighter",
+            "level_adjustment": "reduce_load"
+          },
+          "title": "Ajustement - niveau actuel",
+          "confidence": "medium",
+          "ack_summary": {
+            "changed": [
+              "niveau actuel: charge ajustée vers \"lighter\"",
+              "cible de changement: number_of_actions"
+            ],
+            "unchanged": [
+              "le cœur du niveau reste préservé",
+              "chaque action n'est pas réécrite automatiquement"
+            ],
+            "confidence": "medium",
+            "why_it_helps": "La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale.",
+            "follow_up_needed": "identifier ensuite les actions exactes à alléger si tu veux une modification fine"
+          },
+          "scope_label": "niveau actuel",
+          "why_it_helps": "Le changement agit au niveau du bloc courant, sans pretendre modifier une seule action.",
+          "decision_basis": {
+            "evidence": [
+              "Nombre d'actions et timing. Trop de micro-décisions dans l'après-midi ; je veux que tu appliques ça au niveau actuel.",
+              "operation_input.scope",
+              "message.reduce_load",
+              "adjustment_type.reduce_load_default",
+              "message.too_many_actions",
+              "message.number_of_actions"
+            ],
+            "confidence": "medium",
+            "uncertainty": [
+              "actions exactes du niveau a choisir pour une modification fine"
+            ],
+            "user_problem": "Le niveau actuel est trop lourd ou mal calibre pour le contexte de l'utilisateur.",
+            "inferred_need": "preserver le coeur du niveau et reduire la charge ciblee autour",
+            "must_preserve": [
+              "intention du plan",
+              "coeur du niveau"
+            ]
+          },
+          "adjustment_type": "reduce",
+          "proposed_change": "alleger la charge du niveau actuel sans supprimer l'intention",
+          "change_rationale": {
+            "why_this_change": "Alléger number_of_actions répond au problème \"too_many_actions\" tout en gardant le cœur du niveau.",
+            "success_condition": "Le niveau peut être repris avec moins de friction, puis réaugmenté seulement si l'énergie et le contexte suivent.",
+            "expected_mechanism": "La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale."
+          },
+          "adjust_plan_result": {
+            "scope": "level",
+            "rationale": {
+              "confidence": "medium",
+              "missing_info": [
+                "Le moment exact de la journée où la fatigue décisionnelle est la plus forte."
+              ],
+              "user_problem": "Le niveau actuel comporte trop d'actions et génère trop de micro-décisions, particulièrement durant l'après-midi.",
+              "expected_effect": "Une reprise de l'élan avec moins de friction et une meilleure exécution des habitudes clés.",
+              "why_this_change": "Réduire la complexité des tâches permet de maintenir l'engagement de l'utilisateur sans provoquer de découragement face à une charge trop lourde."
+            },
+            "boundaries": {
+              "explanation": "Les modifications sont confinées aux actions de l'étape en cours pour répondre à une surcharge temporaire sans dévier de la trajectoire finale.",
+              "affected_scope": "niveau actuel uniquement",
+              "global_plan_impact": "none",
+              "explicitly_not_affected": [
+                "objectif global",
+                "structure complète du plan",
+                "niveaux futurs"
+              ]
+            },
+            "applied_change": {
+              "summary": "Allègement de la charge du niveau actuel par simplification d'actions et création de versions mini pour réduire la fatigue décisionnelle.",
+              "changed_items": [
+                {
+                  "id": "a751731a-3832-4bea-a707-c72170fd15a0",
+                  "kind": "action",
+                  "after": "Faire une version de 5 minutes pour relancer le mouvement et désencombrer l'espace immédiat sans fatigue.",
+                  "title": "Nettoyer ton environnement direct",
+                  "before": "Fais le tour de tes placards et de ton espace de travail. Retire ou cache les produits transformés qui te tentent le plus en cas de stress.",
+                  "reason": "Création d'une version mini pour servir de pont et réduire la friction immédiate.",
+                  "capability": "create_bridge_action"
+                },
+                {
+                  "id": "23f34398-87ae-4388-80b4-786989faac97",
+                  "kind": "action",
+                  "after": "Se concentrer uniquement sur l'achat d'un fruit ou d'oléagineux lors des courses, sans phase de préparation complexe.",
+                  "title": "Préparer tes alternatives d'avance",
+                  "before": "Achète et prépare des collations saines (fruits lavés, oléagineux en petits pots) pour qu'elles soient plus faciles à attraper que les produits industriels.",
+                  "reason": "Simplification de l'action pour limiter le nombre de micro-décisions nécessaires l'après-midi.",
+                  "capability": "modify_existing_action"
+                }
+              ],
+              "preserved_items": [
+                {
+                  "id": "7ed21c74-e2ad-4ffb-85d9-5d204d72bbcf",
+                  "kind": "action",
+                  "title": "Décoder ton envie de grignoter",
+                  "reason": "Cette action courte de 2 minutes est essentielle pour la compréhension des mécanismes et ne surcharge pas l'emploi du temps."
+                }
+              ]
+            },
+            "user_message_brief": "J'ai simplifié ton niveau actuel pour le rendre plus léger et facile à suivre.",
+            "user_message_detailed": "Pour t'aider avec la charge de cet après-midi, j'ai transformé certaines actions en versions plus courtes. Par exemple, le nettoyage de ton environnement est devenu une micro-tâche de 5 minutes. Ces ajustements ne concernent que ton étape actuelle et ne changent pas ton objectif final."
+          },
+          "execution_strategy": "level_adjustment",
+          "allowed_patch_fields": [
+            "scope_kind",
+            "level_adjustment",
+            "load_adjustment",
+            "focus_adjustment",
+            "reason_type",
+            "reason_change",
+            "change_target",
+            "confidence",
+            "constraints"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "J'ai ajusté ton étape actuelle pour réduire la pression. Le plan d'ensemble reste le même, mais tes actions immédiates sont maintenant plus accessibles. Par exemple, le nettoyage de ton environnement devient une micro-action de 5 minutes pour servir de pont avant de reprendre l'action complète plus tard. De même, la préparation de tes collations est simplifiée pour éviter trop de micro-décisions. Cela permet de maintenir ton élan sans t'épuiser. Je suis assez sereine sur le fait que cette version plus légère t'aidera à rester régulier aujourd'hui, tout en restant limitée à cette phase de ton parcours.",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je propose d'alléger ton programme actuel pour le rendre plus digeste, surtout l'après-midi. L'idée est de transformer certaines tâches complexes en versions plus courtes et de simplifier tes préparatifs pour garder l'essentiel sans te surcharger. Est-ce que cela te convient ?"
+      },
+      "status": "pending_confirmation",
+      "reason_code": "active_tool_skill_continue",
+      "operation_id": "976fc699-951b-4acd-8c33-6ee1ce5f8cd2",
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-level-contract-r1-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-level-contract-r1-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, applique.",
+    "assistant": "J'ai ajusté ton étape actuelle pour réduire la pression. Le plan d'ensemble reste le même, mais tes actions immédiates sont maintenant plus accessibles. Par exemple, le nettoyage de ton environnement devient une micro-action de 5 minutes pour servir de pont avant de reprendre l'action complète plus tard. De même, la préparation de tes collations est simplifiée pour éviter trop de micro-décisions. Cela permet de maintenir ton élan sans t'épuiser. Je suis assez sereine sur le fait que cette version plus légère t'aidera à rester régulier aujourd'hui, tout en restant limitée à cette phase de ton parcours.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "adjust_plan_item"
+    ],
+    "response_owner": "pending_confirmation",
+    "selected_handler": "execute_confirmed",
+    "route_reason_code": "confirmation_yes",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": null,
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "adjust_plan_item"
+      }
+    ],
+    "operation_flow_run": {
+      "status": "executed",
+      "reason_code": "confirmation_yes",
+      "operation_id": "976fc699-951b-4acd-8c33-6ee1ce5f8cd2",
+      "plan_patch_id": "5fc2adcd-bb76-4837-bc1f-d13ecd0faf22",
+      "selected_handler": "adjust_plan_item",
+      "bridge_plan_item_id": null
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-level-contract-r1-t03",
+    "trace_error": null
+  }
+]

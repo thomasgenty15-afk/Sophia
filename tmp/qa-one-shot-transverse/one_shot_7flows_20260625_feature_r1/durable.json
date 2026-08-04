@@ -1,0 +1,128 @@
+{
+  "scheduled_checkins": [
+    {
+      "id": "5816e9d0-b310-4911-b2be-85fbdbde645e",
+      "status": "pending",
+      "scheduled_for": "2026-06-25T14:44:29.218+00:00",
+      "event_context": "one_shot_reminder:noter_cette_idee_dans_initiatives",
+      "message_payload": {
+        "source": "one_shot_reminder_executor",
+        "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Objet du rappel utilisateur: noter cette idée dans Initiatives.",
+        "local_label": "dans 31 minutes",
+        "parse_source": "payload_utc_time",
+        "request_text": "rappelle-moi dans 31 minutes de noter cette idée dans Initiatives",
+        "reminder_kind": "one_shot",
+        "user_timezone": "Europe/Paris",
+        "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: noter cette idée dans Initiatives.",
+        "source_message_id": "b82c9651-1fce-434f-a1f7-2daaf9e7d507",
+        "reminder_instruction": "noter cette idée dans Initiatives"
+      },
+      "created_at": "2026-06-25T14:13:33.448008+00:00"
+    }
+  ],
+  "chat_messages_count": 4,
+  "chat_messages": [
+    {
+      "role": "user",
+      "content": "Chaque dimanche soir, je finis par improviser ma semaine et je perds le rythme. J’ai l’impression que Sophia devrait avoir une fonctionnalité pour préparer ce moment récurrent, mais je ne sais pas laquelle.",
+      "created_at": "2026-06-25T14:12:31.023543+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_7flows_20260625_feature_r1-t01",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Oui : ça ressemble à une bonne opportunité pour des initiatives.\n\nL’idée serait de préparer ce moment récurrent du dimanche soir avec un message planifié qui t’aide à lancer ta semaine avant que tu improvises. Tu pourrais définir quoi dire, à quel moment le dire, et à quel rythme il revient.\n\nSi tu veux, je peux t’aider à formuler l’initiative la plus utile pour ce rituel.",
+      "created_at": "2026-06-25T14:12:43.873833+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_7flows_20260625_feature_r1-t01",
+        "route_owner": "feature_opportunity",
+        "selected_handler": "feature_opportunity",
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "user",
+      "content": "Oui, et rappelle-moi dans 31 minutes de noter cette idée dans Initiatives pendant que tu m’aides à la formuler.",
+      "created_at": "2026-06-25T14:13:29.188199+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_7flows_20260625_feature_r1-t02",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Le rappel ponctuel dans 31 minutes pour noter cette idée dans Initiatives est déjà pris en compte. Pour ton dimanche soir, une initiative utile serait un message récurrent du type : « Prépare ta semaine » juste avant la fin de journée, pour t’aider à cadrer ce moment avant que tu improvises. Tu veux que je t’aide à la formuler plus précisément ?",
+      "created_at": "2026-06-25T14:13:36.575963+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_7flows_20260625_feature_r1-t02",
+        "route_owner": "feature_opportunity",
+        "selected_handler": "feature_opportunity",
+        "tool_execution": null
+      }
+    }
+  ],
+  "user_chat_state": {
+    "user_id": "852a465f-3e57-4d62-b974-283e4d6b8eeb",
+    "current_mode": "companion",
+    "risk_level": 0,
+    "temp_memory": {
+      "__active_skill_state": {
+        "status": "active",
+        "version": 1,
+        "skill_id": "feature_opportunity",
+        "started_at": "2026-06-25T14:12:43.868Z",
+        "turn_count": 2,
+        "updated_at": "2026-06-25T14:13:36.566Z",
+        "working_state": {
+          "feature_opportunity_local_state": {
+            "feature": "initiatives",
+            "max_turns": 3,
+            "turn_count": 2,
+            "trigger_context": "Chaque dimanche soir",
+            "opportunity_kind": "recurring_context",
+            "user_problem_summary": "Le user improvise sa semaine chaque dimanche soir et perd le rythme; il cherche une fonctionnalité Sophia pour préparer ce moment récurrent.",
+            "dispatcher_signal_context": {
+              "feature": "initiatives",
+              "priority_reason": "Repeated weekly context fits initiatives.",
+              "trigger_context": "Chaque dimanche soir",
+              "opportunity_kind": "recurring_context",
+              "user_problem_summary": "The user improvises their week every Sunday evening and loses rhythm; they think Sophia should help prepare this recurring moment."
+            }
+          }
+        }
+      },
+      "__active_conversation_skill_v1": {
+        "status": "active",
+        "version": 1,
+        "skill_id": "feature_opportunity",
+        "started_at": "2026-06-25T14:12:43.868Z",
+        "turn_count": 2,
+        "updated_at": "2026-06-25T14:13:36.566Z",
+        "working_state": {
+          "feature_opportunity_local_state": {
+            "feature": "initiatives",
+            "max_turns": 3,
+            "turn_count": 2,
+            "trigger_context": "Chaque dimanche soir",
+            "opportunity_kind": "recurring_context",
+            "user_problem_summary": "Le user improvise sa semaine chaque dimanche soir et perd le rythme; il cherche une fonctionnalité Sophia pour préparer ce moment récurrent.",
+            "dispatcher_signal_context": {
+              "feature": "initiatives",
+              "priority_reason": "Repeated weekly context fits initiatives.",
+              "trigger_context": "Chaque dimanche soir",
+              "opportunity_kind": "recurring_context",
+              "user_problem_summary": "The user improvises their week every Sunday evening and loses rhythm; they think Sophia should help prepare this recurring moment."
+            }
+          }
+        }
+      }
+    },
+    "updated_at": "2026-06-25T14:13:36.57143+00:00"
+  }
+}

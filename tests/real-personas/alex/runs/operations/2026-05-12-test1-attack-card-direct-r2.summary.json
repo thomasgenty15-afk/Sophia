@@ -1,0 +1,25 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-direct-r2-t01",
+    "status": 401,
+    "ok": null,
+    "user": "Fais-moi une carte d attaque pour lancer mon sas de dechargement ce soir.",
+    "assistant": "",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": true,
+    "response_tool_execution": null,
+    "response_executed_tools": [],
+    "response_owner": null,
+    "selected_handler": null,
+    "route_reason_code": null,
+    "safety_pregate": null,
+    "direct_effects": null,
+    "operation_flow_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  }
+]

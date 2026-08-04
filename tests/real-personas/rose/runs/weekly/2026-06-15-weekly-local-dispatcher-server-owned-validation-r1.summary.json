@@ -1,0 +1,80 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-06-15-weekly-local-dispatcher-server-owned-validation-r1-t01",
+    "status": 200,
+    "ok": true,
+    "user": "La semaine a ete mitigée : j'ai bien rangé le matériel trois jours, mais j'ai relâché en fin de semaine avec la fatigue.",
+    "assistant": "Je note que la fatigue a pesé sur tes habitudes cette semaine, notamment pour le rangement du matériel. Malgré ces moments plus difficiles, as-tu le sentiment d'avoir progressé vers ton objectif de libération du cannabis ?",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "weekly_adaptive_review_v1",
+      "route_reason_code": "active_weekly_review_local_dispatcher",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "direct_effects": [],
+      "operation": {
+        "selected_handler": "weekly_adaptive_review_v1",
+        "status": "answered",
+        "reason_code": "weekly_review_local_confirm_weekly_diagnostic",
+        "flow_action": "confirm_weekly_diagnostic",
+        "visible_task": "ask_global_progress_feeling",
+        "toolExecution": "none",
+        "executedTools": [],
+        "platform_handoff": null,
+        "committed_effects": [],
+        "blocked_effects": []
+      },
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "trace_id": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-06-15-weekly-local-dispatcher-server-owned-validation-r1-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Je ne sais pas, peut-être qu'une carte pourrait aider, mais surtout je veux comprendre pourquoi je décroche le soir.",
+    "assistant": "Je suis attentive à ce décrochage du soir que tu mentionnes. Est-ce que c'est la fatigue qui rend l'effort trop lourd à ce moment-là, ou un signal précis qui déclenche l'envie ? On peut explorer cela pour voir si une carte de défense t'aiderait, avant de terminer ton bilan.",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "trace": {
+      "response_owner": "tool_skill",
+      "selected_handler": "weekly_adaptive_review_v1",
+      "route_reason_code": "active_weekly_review_local_dispatcher",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "direct_effects": [],
+      "operation": {
+        "selected_handler": "weekly_adaptive_review_v1",
+        "status": "answered",
+        "reason_code": "weekly_review_local_answer_weekly_question",
+        "flow_action": "answer_weekly_question",
+        "visible_task": "explore_action_blocker",
+        "toolExecution": "none",
+        "executedTools": [],
+        "platform_handoff": null,
+        "committed_effects": [],
+        "blocked_effects": []
+      },
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "trace_id": null
+    }
+  }
+]

@@ -1,0 +1,15 @@
+{
+  "qaPhone": "+336938894516",
+  "planIds": [],
+  "itemIds": [],
+  "occurrenceIds": [],
+  "checkinId": null,
+  "pendingIds": [],
+  "entryIds": [],
+  "dedupWamids": [],
+  "chatMessageIds": [],
+  "deferredDueCheckinIds": [
+    "8363fc9a-540b-4756-945b-eafdd7fc0f0f",
+    "666976c4-762d-4014-8eb0-c00a6b75f951"
+  ]
+}

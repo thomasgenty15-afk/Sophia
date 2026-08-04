@@ -1,0 +1,38 @@
+{
+  "restoredDueRows": [
+    "8363fc9a-540b-4756-945b-eafdd7fc0f0f",
+    "666976c4-762d-4014-8eb0-c00a6b75f951"
+  ],
+  "deleted": {
+    "chat_messages": 1,
+    "whatsapp_pending_actions": 1,
+    "scheduled_checkins": 1
+  },
+  "profileRestored": true,
+  "verification": {
+    "qaCheckins": 0,
+    "qaPendings": 0,
+    "qaMessages": 0,
+    "profile": {
+      "phone_number": null,
+      "phone_verified_at": null,
+      "phone_invalid": false,
+      "whatsapp_opted_in": true,
+      "whatsapp_last_inbound_at": null,
+      "whatsapp_last_outbound_at": null
+    },
+    "dueRows": [
+      {
+        "id": "666976c4-762d-4014-8eb0-c00a6b75f951",
+        "scheduled_for": "2026-06-09T20:42:01.669+00:00",
+        "status": "pending"
+      },
+      {
+        "id": "8363fc9a-540b-4756-945b-eafdd7fc0f0f",
+        "scheduled_for": "2026-06-08T16:14:17.309+00:00",
+        "status": "pending"
+      }
+    ]
+  },
+  "errors": []
+}

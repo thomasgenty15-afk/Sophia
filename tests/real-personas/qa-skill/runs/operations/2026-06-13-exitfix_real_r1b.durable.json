@@ -1,0 +1,182 @@
+{
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "9f87bb72-1789-4db3-b847-d96e78a071a5",
+        "role": "user",
+        "content": "Depuis ce matin je sens que l’envie est tombée d’un coup. Je sais que le dossier compte, mais dès que j’y pense j’ai l’impression que tout devient lourd et que je vais encore lâcher.",
+        "scope": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-13T13:12:59.022197+00:00"
+      },
+      {
+        "id": "e6c21206-1f8e-497e-9be2-24036193ad04",
+        "role": "assistant",
+        "content": "C’est épuisant quand l’élan se coupe net et que la peur de lâcher refait surface. Pour mieux comprendre ce qui se joue, est-ce que cette lourdeur vient de la complexité du dossier lui-même ou plutôt de l'appréhension de ne pas réussir à aller au bout ?",
+        "scope": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-13T13:13:21.300775+00:00"
+      },
+      {
+        "id": "6d8c6186-06d7-4f2f-ad94-e5cbcc534748",
+        "role": "user",
+        "content": "C’est plutôt l’appréhension. J’ai déjà eu deux moments où j’ai tenté de relancer et où je me suis retrouvé bloqué, du coup maintenant mon corps anticipe l’échec avant même que je commence.",
+        "scope": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-13T13:13:34.581596+00:00"
+      },
+      {
+        "id": "4c214574-cd58-4685-a5f7-85676fdc0049",
+        "role": "assistant",
+        "content": "C'est une réaction de protection tout à fait normale : ton corps se souvient des blocages passés et cherche à t'éviter une nouvelle frustration. Pour l'instant, l'idée n'est pas de réussir ou de produire, mais juste de désamorcer cette alerte. Est-ce que tu pourrais simplement ouvrir ton espace de travail ou ton document, juste pour une minute, sans aucune obligation d'y toucher ?",
+        "scope": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": null,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-13T13:13:43.68726+00:00"
+      },
+      {
+        "id": "3e927d74-0385-455e-b363-bb02fb7652b8",
+        "role": "user",
+        "content": "Non, pas de carte et pas de micro-action maintenant. Je veux rester sur ce qui se passe dedans : comprendre pourquoi l’envie s’éteint aussi vite et pourquoi ça me coupe avant même d’essayer.",
+        "scope": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-13T13:14:01.422362+00:00"
+      },
+      {
+        "id": "88d69a12-83bd-4bd6-8496-0e85afb42075",
+        "role": "assistant",
+        "content": "Ton corps cherche simplement à te protéger. Cette appréhension que tu ressens est une réaction réflexe pour t'éviter de revivre la frustration de tes précédents blocages. Il n'y a aucune pression pour agir tout de suite, on peut juste laisser cette tension redescendre doucement.",
+        "scope": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-2026-06-13-exitfix_real_r1b-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": null,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-13T13:14:56.909594+00:00"
+      }
+    ]
+  },
+  "memory_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "scheduled_checkins": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_recurring_reminders": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  }
+}

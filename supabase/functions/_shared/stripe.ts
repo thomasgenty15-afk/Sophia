@@ -2,6 +2,21 @@ function isRecord(v: unknown): v is Record<string, unknown> {
   return Boolean(v) && typeof v === "object" && !Array.isArray(v);
 }
 
+// True only when the Edge Runtime talks to a local Supabase instance. Used to
+// keep MEGA_TEST_MODE (deterministic Stripe stub / signature bypass) strictly
+// local — see SEC-08.
+function isLocalSupabaseEnv(): boolean {
+  const url = (Deno.env.get("SUPABASE_URL") ?? "").trim();
+  if (!url) return false;
+  try {
+    const host = new URL(url).hostname.toLowerCase();
+    return host === "127.0.0.1" || host === "localhost" || host === "kong" ||
+      host.startsWith("supabase_");
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Convert a nested JS object into Stripe-compatible x-www-form-urlencoded fields.
  * - Objects use bracket notation: a[b][c]=x
@@ -47,6 +62,8 @@ export async function stripeRequest<T = any>(
     secretKey: string;
     body?: Record<string, unknown>;
     stripeVersion?: string;
+    // Stripe-side idempotency (e.g. balance credits triggered by replayable webhooks).
+    idempotencyKey?: string;
   },
 ): Promise<T> {
   // Mega test runner / local deterministic mode:
@@ -54,7 +71,9 @@ export async function stripeRequest<T = any>(
   // - Controlled via MEGA_TEST_MODE=1 (already used elsewhere in Edge functions).
   try {
     const mega = (Deno.env.get("MEGA_TEST_MODE") ?? "").trim();
-    if (mega === "1") {
+    // SEC-08: the deterministic Stripe stub must only ever run locally, never
+    // against a deployed environment (where it would fabricate active subscriptions).
+    if (mega === "1" && isLocalSupabaseEnv()) {
       if (opts.method === "POST" && opts.path === "/v1/customers") {
         return { id: "cus_MEGA_TEST" } as T;
       }
@@ -101,6 +120,15 @@ export async function stripeRequest<T = any>(
           items: { data: [{ id: "si_MEGA_TEST", price: { id: String(newPrice) } }] },
         } as T;
       }
+      if (opts.method === "DELETE" && opts.path.startsWith("/v1/subscriptions/")) {
+        // Simulate an immediate cancellation (account deletion flow).
+        return {
+          id: opts.path.split("/").pop() ?? "sub_MEGA_TEST",
+          status: "canceled",
+          cancel_at_period_end: false,
+          canceled_at: Math.floor(Date.now() / 1000),
+        } as T;
+      }
       if (opts.method === "POST" && opts.path === "/v1/subscription_schedules") {
         return { id: "subsch_MEGA_TEST" } as T;
       }
@@ -114,6 +142,32 @@ export async function stripeRequest<T = any>(
       if (opts.method === "POST" && opts.path === "/v1/billing_portal/sessions") {
         return { url: "https://billing.stripe.test/portal/session/bps_MEGA_TEST" } as T;
       }
+      if (opts.method === "GET" && opts.path.startsWith("/v1/prices/")) {
+        // Deterministic monthly amounts per tier for referral-credit tests.
+        const priceId = opts.path.slice("/v1/prices/".length);
+        const unitAmount = priceId.includes("architecte")
+          ? 4990
+          : priceId.includes("alliance")
+          ? 2990
+          : 1990;
+        return {
+          id: priceId,
+          unit_amount: unitAmount,
+          currency: "eur",
+          recurring: { interval: "month" },
+        } as T;
+      }
+      if (
+        opts.method === "POST" &&
+        /^\/v1\/customers\/[^/]+\/balance_transactions$/.test(opts.path)
+      ) {
+        // Simulate a customer balance credit (referral reward).
+        return {
+          id: `cbtxn_MEGA_TEST_${crypto.randomUUID().slice(0, 8)}`,
+          amount: Number((opts.body as any)?.amount ?? 0),
+          currency: String((opts.body as any)?.currency ?? "eur"),
+        } as T;
+      }
       throw new Error(`Stripe stub (MEGA_TEST_MODE) does not support: ${opts.method} ${opts.path}`);
     }
   } catch {
@@ -125,6 +179,7 @@ export async function stripeRequest<T = any>(
     Authorization: `Bearer ${opts.secretKey}`,
   };
   if (opts.stripeVersion) headers["Stripe-Version"] = opts.stripeVersion;
+  if (opts.idempotencyKey) headers["Idempotency-Key"] = opts.idempotencyKey;
 
   let res: Response;
   if (opts.method === "GET") {

@@ -1,5 +1,22 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
+/**
+ * W2.D-2 — integration gate for the vitest suite.
+ *
+ * `getTestEnv` / `getServiceRoleEnv` throw when the env is absent, which is right: a test that
+ * silently talks to nothing is worse than one that stops. But a suite that is permanently red
+ * because no stack is running is a net nobody reads. Files whose cases need a live Supabase
+ * therefore gate their `describe` on this flag and SKIP, and only run for real when the env is
+ * there (`npm run test:mega`, or exporting the two variables against a local stack).
+ *
+ * See docs/keel/TESTING.md.
+ */
+export const HAS_SUPABASE_TEST_ENV = Boolean(
+  process.env.VITE_SUPABASE_URL &&
+    process.env.SUPABASE_SERVICE_ROLE_KEY &&
+    process.env.VITE_SUPABASE_ANON_KEY,
+);
+
 export function getTestEnv() {
   const url = process.env.VITE_SUPABASE_URL;
   const anonKey = process.env.VITE_SUPABASE_ANON_KEY;

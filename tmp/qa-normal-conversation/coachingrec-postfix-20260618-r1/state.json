@@ -1,0 +1,2468 @@
+{
+  "run_id": "coachingrec-postfix-20260618-r1",
+  "scope": "qa-normal-conversation-coachingrec-postfix-20260618-r1",
+  "base_url": "http://127.0.0.1:54321",
+  "email": "qa-normal-coachingrec-postfix-20260618-r1-1781819684897@example.com",
+  "user_id": "f7558b72-30cb-4268-9eaa-a870d3e66aa6",
+  "anon_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0",
+  "service_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU",
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjU0MzIxL2F1dGgvdjEiLCJzdWIiOiJmNzU1OGI3Mi0zMGNiLTQyNjgtOWVhYS1hODcwZDNlNjZhYTYiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzgxODIzMjg1LCJpYXQiOjE3ODE4MTk2ODUsImVtYWlsIjoicWEtbm9ybWFsLWNvYWNoaW5ncmVjLXBvc3RmaXgtMjAyNjA2MTgtcjEtMTc4MTgxOTY4NDg5N0BleGFtcGxlLmNvbSIsInBob25lIjoiIiwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiZW1haWwiLCJwcm92aWRlcnMiOlsiZW1haWwiXX0sInVzZXJfbWV0YWRhdGEiOnsiZW1haWwiOiJxYS1ub3JtYWwtY29hY2hpbmdyZWMtcG9zdGZpeC0yMDI2MDYxOC1yMS0xNzgxODE5Njg0ODk3QGV4YW1wbGUuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImlzX3Rlc3RfcGVyc29uYSI6dHJ1ZSwicGhvbmVfdmVyaWZpZWQiOmZhbHNlLCJxYV9ydW5faWQiOiJjb2FjaGluZ3JlYy1wb3N0Zml4LTIwMjYwNjE4LXIxIiwic3ViIjoiZjc1NThiNzItMzBjYi00MjY4LTllYWEtYTg3MGQzZTY2YWE2In0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3ODE4MTk2ODV9XSwic2Vzc2lvbl9pZCI6IjFmNTQ4NjZkLWU1YzItNDE2OC1iYjY4LTgzNTdhMjY1MzA4ZCIsImlzX2Fub255bW91cyI6ZmFsc2V9.KUhPLh73r8Nxrl6r0zYAK88SFOH8rZd0M6-hGGfBdFQ",
+  "auth_check": {
+    "status": 200,
+    "ok": true
+  },
+  "force_full_ai": true,
+  "created_at": "2026-06-18T21:54:45.251Z",
+  "turns": [
+    {
+      "turn": 1,
+      "sent_at": "2026-06-18T21:55:30.079Z",
+      "user": "Je bloque sur l'action Préparer le dossier mutuelle dans mon plan. Quand j'ouvre les justificatifs, je repousse. Je ne sais pas si je dois préparer une carte d'attaque ou changer l'action.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Vu le blocage, je penche plutôt pour changer l’action, pas pour une carte d’attaque. Là, le vrai problème c’est que “préparer le dossier mutuelle” est encore trop large et te fait buter dès l’ouverture des justificatifs.\n\nLe plus utile, c’est de la découper en une entrée plus simple, du style : “ouvrir 1 justificatif et le poser devant moi”. 🙂",
+      "trace_short": {
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "route_reason": "coaching_recommendation_exit_to_global",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": null,
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "companion_question_rhythm": {
+                  "preference": "normal",
+                  "recent_turns": [
+                    0
+                  ],
+                  "last_updated_at": "2026-06-18T21:55:30.018Z",
+                  "last_turn_had_question": false,
+                  "turns_since_last_question": 1
+                }
+              },
+              "updated_at": "2026-06-18T21:55:30.038219+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-postfix-20260618-r1-t01",
+        "user_id": "f7558b72-30cb-4268-9eaa-a870d3e66aa6",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-postfix-20260618-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Vu le blocage, je penche plutôt pour changer l’action, pas pour une carte d’attaque. Là, le vrai problème c’est que “préparer le dossier mutuelle” est encore trop large et te fait buter dès l’ouverture des justificatifs.\n\nLe plus utile, c’est de la découper en une entrée plus simple, du style : “ouvrir 1 justificatif et le poser devant moi”. 🙂",
+          "mode": "companion",
+          "delivery": {
+            "mode": "text_reply"
+          },
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-postfix-20260618-r1-t01",
+              "source_message_id": "5f234c60-ff7f-4e55-a18c-a2b8dae43ae7",
+              "user_id": "f7558b72-30cb-4268-9eaa-a870d3e66aa6",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {
+                "coaching_recommendation": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "user_requests_choice_between_coaching_levers_for_blocked_plan_action",
+                  "context": {
+                    "category": "plan_action_coaching",
+                    "failure_mode": "avoidance",
+                    "action_context": {
+                      "source": "plan",
+                      "plan_item_id": "50be014a-d55c-497d-9d03-84f128b6f266",
+                      "action_title": "Préparer le dossier mutuelle",
+                      "plan_id": null,
+                      "plan_title": null,
+                      "action_type": "mission"
+                    },
+                    "emotional_state_context": null,
+                    "priority_features": [
+                      "attack_card"
+                    ],
+                    "reason": "Blocked on an active plan action with procrastination/avoidance when opening the documents; this favors attack_card over adjust_plan."
+                  }
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "clarify_best_coaching_lever_for_blocked_plan_action",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "taxonomy_first",
+                "plan_confidence": 0.88
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "normal_reply",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "coaching_recommendation_exit_to_global",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "minimal_global_dispatcher",
+                "active_owner": "none",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "none",
+                "reason_code": "coaching_recommendation_signal"
+              }
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-postfix-20260618-r1-t01",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "normal_reply"
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-postfix-20260618-r1-t01",
+            "source_message_id": "5f234c60-ff7f-4e55-a18c-a2b8dae43ae7",
+            "user_id": "f7558b72-30cb-4268-9eaa-a870d3e66aa6",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "coaching_recommendation": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "user_requests_choice_between_coaching_levers_for_blocked_plan_action",
+                "context": {
+                  "category": "plan_action_coaching",
+                  "failure_mode": "avoidance",
+                  "action_context": {
+                    "source": "plan",
+                    "plan_item_id": "50be014a-d55c-497d-9d03-84f128b6f266",
+                    "action_title": "Préparer le dossier mutuelle",
+                    "plan_id": null,
+                    "plan_title": null,
+                    "action_type": "mission"
+                  },
+                  "emotional_state_context": null,
+                  "priority_features": [
+                    "attack_card"
+                  ],
+                  "reason": "Blocked on an active plan action with procrastination/avoidance when opening the documents; this favors attack_card over adjust_plan."
+                }
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "clarify_best_coaching_lever_for_blocked_plan_action",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "taxonomy_first",
+              "plan_confidence": 0.88
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "normal_reply",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "coaching_recommendation_exit_to_global",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "minimal_global_dispatcher",
+              "active_owner": "none",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "none",
+              "reason_code": "coaching_recommendation_signal"
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-postfix-20260618-r1-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "normal_reply"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 2,
+      "sent_at": "2026-06-18T21:55:49.739Z",
+      "user": "Ok, si je veux ajuster cette action moi-même dans Sophia, je vais où exactement ? Ne modifie rien depuis le chat.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Dans le Dashboard > Plan, ouvre le panneau Ajuster le plan. C’est là que tu peux décrire ce qui ne va plus dans l’action.",
+      "trace_short": {
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason": "product_help_signal",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "product_help",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "companion_question_rhythm": {
+                  "preference": "normal",
+                  "recent_turns": [
+                    0
+                  ],
+                  "last_updated_at": "2026-06-18T21:55:30.018Z",
+                  "last_turn_had_question": false,
+                  "turns_since_last_question": 1
+                }
+              },
+              "updated_at": "2026-06-18T21:55:49.694365+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-postfix-20260618-r1-t02",
+        "user_id": "f7558b72-30cb-4268-9eaa-a870d3e66aa6",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-postfix-20260618-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Dans le Dashboard > Plan, ouvre le panneau Ajuster le plan. C’est là que tu peux décrire ce qui ne va plus dans l’action.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-postfix-20260618-r1-t02",
+              "source_message_id": "e9c737ba-ea62-4985-a814-8a1e86924530",
+              "user_id": "f7558b72-30cb-4268-9eaa-a870d3e66aa6",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {
+                "product_help": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "product_help_question"
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "answer_where_to_adjust_action_in_product",
+                "reasoning_complexity": "low",
+                "context_need": "targeted",
+                "memory_mode": "light",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "taxonomy_first",
+                "plan_confidence": 0.81
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "product_help",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "product_help_signal",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "minimal_global_dispatcher",
+                "active_owner": "none",
+                "selected_owner": "product_help",
+                "resume_policy": "none",
+                "reason_code": "product_help_signal"
+              },
+              "selected_handler": "product_help"
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-postfix-20260618-r1-t02",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "product_help",
+            "skill_run": {
+              "selected_skill_id": "product_help",
+              "reason_code": "product_help_signal",
+              "status": "complete"
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-postfix-20260618-r1-t02",
+            "source_message_id": "e9c737ba-ea62-4985-a814-8a1e86924530",
+            "user_id": "f7558b72-30cb-4268-9eaa-a870d3e66aa6",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "product_help": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "product_help_question"
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "answer_where_to_adjust_action_in_product",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "taxonomy_first",
+              "plan_confidence": 0.81
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "product_help",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "product_help_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "minimal_global_dispatcher",
+              "active_owner": "none",
+              "selected_owner": "product_help",
+              "resume_policy": "none",
+              "reason_code": "product_help_signal"
+            },
+            "selected_handler": "product_help"
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-postfix-20260618-r1-t02",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "product_help",
+          "skill_run": {
+            "selected_skill_id": "product_help",
+            "reason_code": "product_help_signal",
+            "status": "complete"
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 3,
+      "sent_at": "2026-06-18T21:56:16.758Z",
+      "user": "Autre cas : le mail à Camille n'est pas dans mon plan. Est-ce que je peux quand même préparer une carte d'attaque libre, ou ce n'est pas possible ?",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Oui, tu peux partir sur une carte d’attaque libre pour ce mail. Vise un seul geste simple : ouvrir le brouillon et écrire juste la première phrase.",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "coaching_recommendation_signal",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-18T21:56:16.703Z",
+                  "turn_count": 1,
+                  "updated_at": "2026-06-18T21:56:16.703Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user demande si une carte d'attaque libre est possible pour un mail qui n'est pas dans le plan.",
+                        "target_kind": "free_action",
+                        "action_title": "le mail à Camille",
+                        "action_source": "free"
+                      },
+                      "turn_count": 1,
+                      "coaching_type": "no_plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Le mail à Camille est une action hors plan, donc une carte d'attaque libre est possible en coaching no_plan_action. Les cartes d'attaque libres servent justement à préparer une action en amont quand elle n'appartient pas au plan."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user demande si une carte d'attaque libre est possible pour un mail qui n'est pas dans le plan.",
+                      "candidate_features": [],
+                      "last_answer_summary": "Le mail à Camille est une action hors plan, donc une carte d'attaque libre est possible en coaching no_plan_action. Les cartes d'attaque libres servent justement à préparer une action en amont quand elle n'appartient pas au plan.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "Free action, likely launch/help on a non-plan task; ask is about whether the lever is possible."
+                      ],
+                      "current_recommendation": null,
+                      "last_visible_task_kind": "no_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le mail à Camille est une action hors plan, donc une carte d'attaque libre est possible en coaching no_plan_action. Les cartes d'attaque libres servent justement à préparer une action en amont quand elle n'appartient pas au plan.",
+                        "why_not_others": {},
+                        "primary_feature": "attack_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte d'attaque",
+                          "surface_hint": "Cartes d'attaque",
+                          "user_facing_destination": "dans l'espace des cartes d'attaque"
+                        },
+                        "user_facing_next_step": "Choisis le premier geste concret et fais seulement celui-la."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "Free action, likely launch/help on a non-plan task; ask is about whether the lever is possible.",
+                        "category": "free_action_coaching",
+                        "failure_mode": "unclear",
+                        "action_context": {
+                          "source": "free",
+                          "plan_id": null,
+                          "action_title": "le mail à Camille",
+                          "plan_item_id": null
+                        },
+                        "priority_features": [
+                          "attack_card"
+                        ],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                },
+                "companion_question_rhythm": {
+                  "preference": "normal",
+                  "recent_turns": [
+                    0
+                  ],
+                  "last_updated_at": "2026-06-18T21:55:30.018Z",
+                  "last_turn_had_question": false,
+                  "turns_since_last_question": 1
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-18T21:56:16.703Z",
+                  "turn_count": 1,
+                  "updated_at": "2026-06-18T21:56:16.703Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user demande si une carte d'attaque libre est possible pour un mail qui n'est pas dans le plan.",
+                        "target_kind": "free_action",
+                        "action_title": "le mail à Camille",
+                        "action_source": "free"
+                      },
+                      "turn_count": 1,
+                      "coaching_type": "no_plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Le mail à Camille est une action hors plan, donc une carte d'attaque libre est possible en coaching no_plan_action. Les cartes d'attaque libres servent justement à préparer une action en amont quand elle n'appartient pas au plan."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user demande si une carte d'attaque libre est possible pour un mail qui n'est pas dans le plan.",
+                      "candidate_features": [],
+                      "last_answer_summary": "Le mail à Camille est une action hors plan, donc une carte d'attaque libre est possible en coaching no_plan_action. Les cartes d'attaque libres servent justement à préparer une action en amont quand elle n'appartient pas au plan.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "Free action, likely launch/help on a non-plan task; ask is about whether the lever is possible."
+                      ],
+                      "current_recommendation": null,
+                      "last_visible_task_kind": "no_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le mail à Camille est une action hors plan, donc une carte d'attaque libre est possible en coaching no_plan_action. Les cartes d'attaque libres servent justement à préparer une action en amont quand elle n'appartient pas au plan.",
+                        "why_not_others": {},
+                        "primary_feature": "attack_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte d'attaque",
+                          "surface_hint": "Cartes d'attaque",
+                          "user_facing_destination": "dans l'espace des cartes d'attaque"
+                        },
+                        "user_facing_next_step": "Choisis le premier geste concret et fais seulement celui-la."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "Free action, likely launch/help on a non-plan task; ask is about whether the lever is possible.",
+                        "category": "free_action_coaching",
+                        "failure_mode": "unclear",
+                        "action_context": {
+                          "source": "free",
+                          "plan_id": null,
+                          "action_title": "le mail à Camille",
+                          "plan_item_id": null
+                        },
+                        "priority_features": [
+                          "attack_card"
+                        ],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-18T21:56:16.709444+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-postfix-20260618-r1-t03",
+        "user_id": "f7558b72-30cb-4268-9eaa-a870d3e66aa6",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-postfix-20260618-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Oui, tu peux partir sur une carte d’attaque libre pour ce mail. Vise un seul geste simple : ouvrir le brouillon et écrire juste la première phrase.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-postfix-20260618-r1-t03",
+              "source_message_id": "88f86952-d6f7-4ca3-812a-24acbf91297f",
+              "user_id": "f7558b72-30cb-4268-9eaa-a870d3e66aa6",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {
+                "coaching_recommendation": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "The user asks whether a free attack card can be prepared for an action that is not in the plan, which is guidance on the right coaching lever rather than execution.",
+                  "context": {
+                    "category": "free_action_coaching",
+                    "failure_mode": "unclear",
+                    "action_context": {
+                      "source": "free",
+                      "plan_item_id": null,
+                      "action_title": "le mail à Camille",
+                      "plan_id": null,
+                      "plan_title": null,
+                      "action_type": "other"
+                    },
+                    "emotional_state_context": null,
+                    "priority_features": [
+                      "attack_card"
+                    ],
+                    "reason": "Free action, likely launch/help on a non-plan task; ask is about whether the lever is possible."
+                  }
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "answer_question_about_free_attack_card_for_non_plan_action",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "force_taxonomy",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "coaching_recommendation_signal",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "minimal_global_dispatcher",
+                "active_owner": "none",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "none",
+                "reason_code": "coaching_recommendation_signal"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-postfix-20260618-r1-t03",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "coaching_recommendation_signal",
+              "status": "continue"
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-postfix-20260618-r1-t03",
+            "source_message_id": "88f86952-d6f7-4ca3-812a-24acbf91297f",
+            "user_id": "f7558b72-30cb-4268-9eaa-a870d3e66aa6",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "coaching_recommendation": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "The user asks whether a free attack card can be prepared for an action that is not in the plan, which is guidance on the right coaching lever rather than execution.",
+                "context": {
+                  "category": "free_action_coaching",
+                  "failure_mode": "unclear",
+                  "action_context": {
+                    "source": "free",
+                    "plan_item_id": null,
+                    "action_title": "le mail à Camille",
+                    "plan_id": null,
+                    "plan_title": null,
+                    "action_type": "other"
+                  },
+                  "emotional_state_context": null,
+                  "priority_features": [
+                    "attack_card"
+                  ],
+                  "reason": "Free action, likely launch/help on a non-plan task; ask is about whether the lever is possible."
+                }
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "answer_question_about_free_attack_card_for_non_plan_action",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "force_taxonomy",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "coaching_recommendation_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "minimal_global_dispatcher",
+              "active_owner": "none",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "none",
+              "reason_code": "coaching_recommendation_signal"
+            },
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-postfix-20260618-r1-t03",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "coaching_recommendation_signal",
+            "status": "continue"
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 4,
+      "sent_at": "2026-06-18T21:56:42.882Z",
+      "user": "Et si je veux la préparer moi-même dans Sophia, je vais où ? Toujours sans rien créer depuis le chat.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Va dans l’espace des cartes d’attaque, puis choisis une technique simple pour préparer ton premier geste. Pour le mail à Camille, vise un début très concret, par exemple ouvrir le mail et écrire juste l’objet.",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "active_coaching_recommendation",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-18T21:56:16.703Z",
+                  "turn_count": 2,
+                  "updated_at": "2026-06-18T21:56:42.822Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user demande si une carte d'attaque libre est possible pour un mail qui n'est pas dans le plan.",
+                        "target_kind": "free_action",
+                        "action_title": "le mail à Camille",
+                        "action_source": "free"
+                      },
+                      "turn_count": 2,
+                      "coaching_type": "no_plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Le mail à Camille est une action hors plan, donc une carte d'attaque libre est possible en coaching no_plan_action. Les cartes d'attaque libres servent justement à préparer une action en amont quand elle n'appartient pas au plan."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user veut savoir où préparer lui-même une carte d’attaque dans Sophia, sans rien créer depuis le chat.",
+                      "candidate_features": [],
+                      "last_answer_summary": "Pour une action hors plan, la carte d’attaque se prépare côté Sophia, dans Ressources, après avoir choisi la technique adaptée.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "Free action, likely launch/help on a non-plan task; ask is about whether the lever is possible."
+                      ],
+                      "current_recommendation": null,
+                      "last_visible_task_kind": "no_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le mail à Camille est une action hors plan, donc une carte d'attaque libre est possible en coaching no_plan_action. Les cartes d'attaque libres servent justement à préparer une action en amont quand elle n'appartient pas au plan.",
+                        "why_not_others": {},
+                        "primary_feature": "attack_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte d'attaque",
+                          "surface_hint": "Cartes d'attaque",
+                          "user_facing_destination": "dans l'espace des cartes d'attaque"
+                        },
+                        "user_facing_next_step": "Choisis le premier geste concret et fais seulement celui-la."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "Free action, likely launch/help on a non-plan task; ask is about whether the lever is possible.",
+                        "category": "free_action_coaching",
+                        "failure_mode": "unclear",
+                        "action_context": {
+                          "source": "free",
+                          "plan_id": null,
+                          "action_title": "le mail à Camille",
+                          "plan_item_id": null
+                        },
+                        "priority_features": [
+                          "attack_card"
+                        ],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                },
+                "companion_question_rhythm": {
+                  "preference": "normal",
+                  "recent_turns": [
+                    0
+                  ],
+                  "last_updated_at": "2026-06-18T21:55:30.018Z",
+                  "last_turn_had_question": false,
+                  "turns_since_last_question": 1
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-18T21:56:16.703Z",
+                  "turn_count": 2,
+                  "updated_at": "2026-06-18T21:56:42.822Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user demande si une carte d'attaque libre est possible pour un mail qui n'est pas dans le plan.",
+                        "target_kind": "free_action",
+                        "action_title": "le mail à Camille",
+                        "action_source": "free"
+                      },
+                      "turn_count": 2,
+                      "coaching_type": "no_plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Le mail à Camille est une action hors plan, donc une carte d'attaque libre est possible en coaching no_plan_action. Les cartes d'attaque libres servent justement à préparer une action en amont quand elle n'appartient pas au plan."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user veut savoir où préparer lui-même une carte d’attaque dans Sophia, sans rien créer depuis le chat.",
+                      "candidate_features": [],
+                      "last_answer_summary": "Pour une action hors plan, la carte d’attaque se prépare côté Sophia, dans Ressources, après avoir choisi la technique adaptée.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "Free action, likely launch/help on a non-plan task; ask is about whether the lever is possible."
+                      ],
+                      "current_recommendation": null,
+                      "last_visible_task_kind": "no_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le mail à Camille est une action hors plan, donc une carte d'attaque libre est possible en coaching no_plan_action. Les cartes d'attaque libres servent justement à préparer une action en amont quand elle n'appartient pas au plan.",
+                        "why_not_others": {},
+                        "primary_feature": "attack_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte d'attaque",
+                          "surface_hint": "Cartes d'attaque",
+                          "user_facing_destination": "dans l'espace des cartes d'attaque"
+                        },
+                        "user_facing_next_step": "Choisis le premier geste concret et fais seulement celui-la."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "Free action, likely launch/help on a non-plan task; ask is about whether the lever is possible.",
+                        "category": "free_action_coaching",
+                        "failure_mode": "unclear",
+                        "action_context": {
+                          "source": "free",
+                          "plan_id": null,
+                          "action_title": "le mail à Camille",
+                          "plan_item_id": null
+                        },
+                        "priority_features": [
+                          "attack_card"
+                        ],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-18T21:56:42.832294+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-postfix-20260618-r1-t04",
+        "user_id": "f7558b72-30cb-4268-9eaa-a870d3e66aa6",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-postfix-20260618-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Va dans l’espace des cartes d’attaque, puis choisis une technique simple pour préparer ton premier geste. Pour le mail à Camille, vise un début très concret, par exemple ouvrir le mail et écrire juste l’objet.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-postfix-20260618-r1-t04",
+              "source_message_id": "80bcb40d-c8f5-4934-b1dd-fab4a39ff9ca",
+              "user_id": "f7558b72-30cb-4268-9eaa-a870d3e66aa6",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {
+                "product_help": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "product_help_question"
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "answer_product_usage_location",
+                "reasoning_complexity": "low",
+                "context_need": "targeted",
+                "memory_mode": "light",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "force_taxonomy",
+                "plan_confidence": 0.78
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "active_coaching_recommendation",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "coaching_recommendation",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "resume_active",
+                "reason_code": "active_coaching_recommendation"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-postfix-20260618-r1-t04",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "active_coaching_recommendation",
+              "status": "continue"
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-postfix-20260618-r1-t04",
+            "source_message_id": "80bcb40d-c8f5-4934-b1dd-fab4a39ff9ca",
+            "user_id": "f7558b72-30cb-4268-9eaa-a870d3e66aa6",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "product_help": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "product_help_question"
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "answer_product_usage_location",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "force_taxonomy",
+              "plan_confidence": 0.78
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "active_coaching_recommendation",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "coaching_recommendation",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "resume_active",
+              "reason_code": "active_coaching_recommendation"
+            },
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-postfix-20260618-r1-t04",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "active_coaching_recommendation",
+            "status": "continue"
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 5,
+      "sent_at": "2026-06-18T21:57:12.416Z",
+      "user": "Là ce n'est plus l'action, c'est surtout que je me sens tendu et agacé. Je devrais choisir quel type de potion ?",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Tu veux qu’on traite ça comme une action de ton plan, une action hors plan, ou plutôt comme un état émotionnel ?",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "active_coaching_recommendation",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-18T21:56:16.703Z",
+                  "turn_count": 3,
+                  "updated_at": "2026-06-18T21:57:12.359Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "recommend",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user se sent tendu et agacé et demande quelle potion choisir pour cet état émotionnel.",
+                        "target_kind": "emotional_state",
+                        "action_title": null,
+                        "action_source": "ambiguous"
+                      },
+                      "turn_count": 3,
+                      "coaching_type": "emotional",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "emotional_overload",
+                        "why_it_exists": "Free action, likely launch/help on a non-plan task; ask is about whether the lever is possible."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user se sent tendu et agacé et demande quelle potion choisir pour cet état émotionnel.",
+                      "candidate_features": [],
+                      "last_answer_summary": "Le user se sent tendu et agacé et demande quelle potion choisir pour cet état émotionnel.",
+                      "parent_return_focus": null,
+                      "pending_type_change": {
+                        "reason": "Free action, likely launch/help on a non-plan task; ask is about whether the lever is possible.",
+                        "candidate_coaching_type": "unclear"
+                      },
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "Free action, likely launch/help on a non-plan task; ask is about whether the lever is possible."
+                      ],
+                      "current_recommendation": null,
+                      "last_visible_task_kind": "change_confirm_coaching_type",
+                      "recommendation_decision": {
+                        "why_primary": null,
+                        "why_not_others": {},
+                        "primary_feature": null,
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": null,
+                          "surface_hint": null,
+                          "user_facing_destination": null
+                        },
+                        "user_facing_next_step": null
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "Free action, likely launch/help on a non-plan task; ask is about whether the lever is possible.",
+                        "category": "emotional_state_coaching",
+                        "failure_mode": "unclear",
+                        "action_context": null,
+                        "priority_features": [
+                          "attack_card"
+                        ],
+                        "emotional_state_context": {
+                          "intensity": null,
+                          "state_hint": null
+                        }
+                      }
+                    }
+                  }
+                },
+                "companion_question_rhythm": {
+                  "preference": "normal",
+                  "recent_turns": [
+                    0
+                  ],
+                  "last_updated_at": "2026-06-18T21:55:30.018Z",
+                  "last_turn_had_question": false,
+                  "turns_since_last_question": 1
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-18T21:56:16.703Z",
+                  "turn_count": 3,
+                  "updated_at": "2026-06-18T21:57:12.359Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "recommend",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user se sent tendu et agacé et demande quelle potion choisir pour cet état émotionnel.",
+                        "target_kind": "emotional_state",
+                        "action_title": null,
+                        "action_source": "ambiguous"
+                      },
+                      "turn_count": 3,
+                      "coaching_type": "emotional",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "emotional_overload",
+                        "why_it_exists": "Free action, likely launch/help on a non-plan task; ask is about whether the lever is possible."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user se sent tendu et agacé et demande quelle potion choisir pour cet état émotionnel.",
+                      "candidate_features": [],
+                      "last_answer_summary": "Le user se sent tendu et agacé et demande quelle potion choisir pour cet état émotionnel.",
+                      "parent_return_focus": null,
+                      "pending_type_change": {
+                        "reason": "Free action, likely launch/help on a non-plan task; ask is about whether the lever is possible.",
+                        "candidate_coaching_type": "unclear"
+                      },
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "Free action, likely launch/help on a non-plan task; ask is about whether the lever is possible."
+                      ],
+                      "current_recommendation": null,
+                      "last_visible_task_kind": "change_confirm_coaching_type",
+                      "recommendation_decision": {
+                        "why_primary": null,
+                        "why_not_others": {},
+                        "primary_feature": null,
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": null,
+                          "surface_hint": null,
+                          "user_facing_destination": null
+                        },
+                        "user_facing_next_step": null
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "Free action, likely launch/help on a non-plan task; ask is about whether the lever is possible.",
+                        "category": "emotional_state_coaching",
+                        "failure_mode": "unclear",
+                        "action_context": null,
+                        "priority_features": [
+                          "attack_card"
+                        ],
+                        "emotional_state_context": {
+                          "intensity": null,
+                          "state_hint": null
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-18T21:57:12.366268+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-postfix-20260618-r1-t05",
+        "user_id": "f7558b72-30cb-4268-9eaa-a870d3e66aa6",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-postfix-20260618-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Tu veux qu’on traite ça comme une action de ton plan, une action hors plan, ou plutôt comme un état émotionnel ?",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-postfix-20260618-r1-t05",
+              "source_message_id": "aba6742a-4edd-4a78-80bf-a0fc30d2f6d9",
+              "user_id": "f7558b72-30cb-4268-9eaa-a870d3e66aa6",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {
+                "coaching_recommendation": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "emotional_state_feature_recommendation",
+                  "context": {
+                    "category": "emotional_state_coaching",
+                    "failure_mode": "unclear",
+                    "action_context": null,
+                    "emotional_state_context": {
+                      "state_hint": "tendu et agacé",
+                      "intensity": "medium"
+                    },
+                    "priority_features": [
+                      "state_potion"
+                    ],
+                    "reason": "The user says the issue is primarily an internal emotional state, not the action itself."
+                  }
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "clarify coaching lever for emotional tension and irritability",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_only",
+                "plan_confidence": 0.78
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "active_coaching_recommendation",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "coaching_recommendation",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "resume_active",
+                "reason_code": "active_coaching_recommendation"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-postfix-20260618-r1-t05",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "active_coaching_recommendation",
+              "status": "continue"
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-postfix-20260618-r1-t05",
+            "source_message_id": "aba6742a-4edd-4a78-80bf-a0fc30d2f6d9",
+            "user_id": "f7558b72-30cb-4268-9eaa-a870d3e66aa6",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "coaching_recommendation": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "emotional_state_feature_recommendation",
+                "context": {
+                  "category": "emotional_state_coaching",
+                  "failure_mode": "unclear",
+                  "action_context": null,
+                  "emotional_state_context": {
+                    "state_hint": "tendu et agacé",
+                    "intensity": "medium"
+                  },
+                  "priority_features": [
+                    "state_potion"
+                  ],
+                  "reason": "The user says the issue is primarily an internal emotional state, not the action itself."
+                }
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "clarify coaching lever for emotional tension and irritability",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_only",
+              "plan_confidence": 0.78
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "active_coaching_recommendation",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "coaching_recommendation",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "resume_active",
+              "reason_code": "active_coaching_recommendation"
+            },
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-postfix-20260618-r1-t05",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "active_coaching_recommendation",
+            "status": "continue"
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 6,
+      "sent_at": "2026-06-18T21:57:34.336Z",
+      "user": "Plutôt comme un état émotionnel.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Dans ton cas, la potion d’apaisement est la plus adaptée : elle aide quand la pression monte, que tu te sens tendu ou agacé. Si tu veux, je peux t’aider à vérifier si c’est plutôt apaisement ou amour.",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "active_coaching_recommendation",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-18T21:56:16.703Z",
+                  "turn_count": 4,
+                  "updated_at": "2026-06-18T21:57:34.275Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "recommend",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user se sent tendu et agacé et demande quelle potion choisir pour cet état émotionnel.",
+                        "target_kind": "emotional_state",
+                        "action_title": null,
+                        "action_source": "ambiguous"
+                      },
+                      "turn_count": 4,
+                      "coaching_type": "emotional",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "emotional_overload",
+                        "why_it_exists": "Free action, likely launch/help on a non-plan task; ask is about whether the lever is possible."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user indique clairement que son besoin relève d'un état émotionnel (tendu, agacé) et non d'une action de plan.",
+                      "candidate_features": [],
+                      "last_answer_summary": "Le besoin est principalement émotionnel : la potion est le levier canonique pour accompagner un état intérieur qui prend trop de place.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "Free action, likely launch/help on a non-plan task; ask is about whether the lever is possible."
+                      ],
+                      "current_recommendation": null,
+                      "last_visible_task_kind": "emotion_coaching",
+                      "recommendation_decision": {
+                        "why_primary": null,
+                        "why_not_others": {},
+                        "primary_feature": null,
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": null,
+                          "surface_hint": null,
+                          "user_facing_destination": null
+                        },
+                        "user_facing_next_step": null
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "Free action, likely launch/help on a non-plan task; ask is about whether the lever is possible.",
+                        "category": "emotional_state_coaching",
+                        "failure_mode": "unclear",
+                        "action_context": null,
+                        "priority_features": [
+                          "attack_card"
+                        ],
+                        "emotional_state_context": {
+                          "intensity": null,
+                          "state_hint": null
+                        }
+                      }
+                    }
+                  }
+                },
+                "companion_question_rhythm": {
+                  "preference": "normal",
+                  "recent_turns": [
+                    0
+                  ],
+                  "last_updated_at": "2026-06-18T21:55:30.018Z",
+                  "last_turn_had_question": false,
+                  "turns_since_last_question": 1
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-18T21:56:16.703Z",
+                  "turn_count": 4,
+                  "updated_at": "2026-06-18T21:57:34.275Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "recommend",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user se sent tendu et agacé et demande quelle potion choisir pour cet état émotionnel.",
+                        "target_kind": "emotional_state",
+                        "action_title": null,
+                        "action_source": "ambiguous"
+                      },
+                      "turn_count": 4,
+                      "coaching_type": "emotional",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "emotional_overload",
+                        "why_it_exists": "Free action, likely launch/help on a non-plan task; ask is about whether the lever is possible."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user indique clairement que son besoin relève d'un état émotionnel (tendu, agacé) et non d'une action de plan.",
+                      "candidate_features": [],
+                      "last_answer_summary": "Le besoin est principalement émotionnel : la potion est le levier canonique pour accompagner un état intérieur qui prend trop de place.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "Free action, likely launch/help on a non-plan task; ask is about whether the lever is possible."
+                      ],
+                      "current_recommendation": null,
+                      "last_visible_task_kind": "emotion_coaching",
+                      "recommendation_decision": {
+                        "why_primary": null,
+                        "why_not_others": {},
+                        "primary_feature": null,
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": null,
+                          "surface_hint": null,
+                          "user_facing_destination": null
+                        },
+                        "user_facing_next_step": null
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "Free action, likely launch/help on a non-plan task; ask is about whether the lever is possible.",
+                        "category": "emotional_state_coaching",
+                        "failure_mode": "unclear",
+                        "action_context": null,
+                        "priority_features": [
+                          "attack_card"
+                        ],
+                        "emotional_state_context": {
+                          "intensity": null,
+                          "state_hint": null
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-18T21:57:34.283587+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-postfix-20260618-r1-t06",
+        "user_id": "f7558b72-30cb-4268-9eaa-a870d3e66aa6",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-postfix-20260618-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Dans ton cas, la potion d’apaisement est la plus adaptée : elle aide quand la pression monte, que tu te sens tendu ou agacé. Si tu veux, je peux t’aider à vérifier si c’est plutôt apaisement ou amour.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-postfix-20260618-r1-t06",
+              "source_message_id": "474f7466-07de-495e-adca-c061aec64093",
+              "user_id": "f7558b72-30cb-4268-9eaa-a870d3e66aa6",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {
+                "coaching_recommendation": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "emotional_state_feature_recommendation",
+                  "context": {
+                    "category": "emotional_state_coaching",
+                    "failure_mode": "unclear",
+                    "action_context": null,
+                    "emotional_state_context": {
+                      "state_hint": "tendu et agacé",
+                      "intensity": "medium"
+                    },
+                    "priority_features": [
+                      "state_potion"
+                    ],
+                    "reason": "Le besoin porte principalement sur un état émotionnel, pas sur une action ou un ajustement de plan."
+                  }
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "clarify_emotional_state_coaching",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "taxonomy_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "active_coaching_recommendation",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "coaching_recommendation",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "resume_active",
+                "reason_code": "active_coaching_recommendation"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-postfix-20260618-r1-t06",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "active_coaching_recommendation",
+              "status": "continue"
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-postfix-20260618-r1-t06",
+            "source_message_id": "474f7466-07de-495e-adca-c061aec64093",
+            "user_id": "f7558b72-30cb-4268-9eaa-a870d3e66aa6",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "coaching_recommendation": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "emotional_state_feature_recommendation",
+                "context": {
+                  "category": "emotional_state_coaching",
+                  "failure_mode": "unclear",
+                  "action_context": null,
+                  "emotional_state_context": {
+                    "state_hint": "tendu et agacé",
+                    "intensity": "medium"
+                  },
+                  "priority_features": [
+                    "state_potion"
+                  ],
+                  "reason": "Le besoin porte principalement sur un état émotionnel, pas sur une action ou un ajustement de plan."
+                }
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "clarify_emotional_state_coaching",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "taxonomy_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "active_coaching_recommendation",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "coaching_recommendation",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "resume_active",
+              "reason_code": "active_coaching_recommendation"
+            },
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-postfix-20260618-r1-t06",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "active_coaching_recommendation",
+            "status": "continue"
+          }
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "seeded_plan": {
+    "cycle_id": "4c9beeb4-18dc-44ac-bc13-119eeb831bd6",
+    "transformation_id": "24405007-0825-42f8-a83c-b3a56fb16e54",
+    "plan_id": "67d6f9f9-99cd-46a9-b835-1d1916584936",
+    "item_id": "50be014a-d55c-497d-9d03-84f128b6f266"
+  },
+  "updated_at": "2026-06-18T21:57:34.338Z",
+  "seeded_plan_cleanup": "2026-06-18T21:57:47.083Z",
+  "cleanup": [
+    {
+      "table": "chat_messages",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "scheduled_checkins",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_chat_states",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_memories",
+      "status": 404,
+      "ok": false
+    },
+    {
+      "table": "user_topic_memories",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "memory_items",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "auth.users",
+      "status": 200,
+      "ok": true
+    }
+  ],
+  "cleaned_at": "2026-06-18T21:57:58.312Z"
+}

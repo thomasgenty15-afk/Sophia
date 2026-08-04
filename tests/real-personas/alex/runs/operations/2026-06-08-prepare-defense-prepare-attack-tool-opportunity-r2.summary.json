@@ -1,0 +1,35 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-prepare-defense-local-rerun-alex-2026-06-08-prepare-attack-tool-opportunity-r2-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Ce soir, quand arrive l’heure de faire le sas de déchargement, je tourne autour du carnet et je repousse le moment de commencer. Je veux couper ce flottement avant qu’il m’embarque.",
+    "assistant": "C'est ce flottement juste avant de s'y mettre qui est souvent le plus coûteux en énergie. Pour briser cette résistance et lancer ton sas de déchargement sans plus attendre, on peut préparer une carte d'attaque ensemble. On fait ça ? 🙂",
+    "response_owner": "tool_skill",
+    "selected_handler": "flow_opportunity_verification",
+    "route_reason_code": "normal_reply_default",
+    "tool_skill_intents": [],
+    "tool_skill_opportunity": {
+      "type": "attack_card",
+      "operation_type": "prepare_attack_card",
+      "surface_id": "attack_card",
+      "suggested_question_intent": "offer_attack_card",
+      "confidence_band": "high",
+      "should_offer": true,
+      "prop_reason": "startup_friction_on_planned_action",
+      "source_span": "je tourne autour du carnet et je repousse le moment de commencer. Je veux couper ce flottement",
+      "target_hint": "sas de déchargement",
+      "target_status": "identified",
+      "offer_timing": "now",
+      "must_not_execute": true
+    },
+    "operation_status": null,
+    "operation_reason": null,
+    "local_dispatcher": null,
+    "ai_call_count": null,
+    "executed_tools": [],
+    "tool_execution": "none",
+    "direct_effects": []
+  }
+]

@@ -1,7 +1,6 @@
 import { assertEquals } from "jsr:@std/assert";
 
 import { buildMomentumStateObservabilityEvents } from "./momentum-observability.ts";
-import { readMomentumState } from "../sophia-brain/momentum_state.ts";
 
 function stateWith(args: {
   current_state?: string;
@@ -9,7 +8,12 @@ function stateWith(args: {
   pending_target?: string;
   confirmations?: number;
 }) {
-  const base = readMomentumState({});
+  const base = {
+    current_state: "friction_legere",
+    state_reason: null,
+    stability: {},
+    updated_at: "2026-03-19T10:00:00.000Z",
+  };
   return {
     ...base,
     current_state: args.current_state as any,

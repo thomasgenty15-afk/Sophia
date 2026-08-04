@@ -1,0 +1,55 @@
+{
+  "completed": true,
+  "deleted": [
+    {
+      "table": "scheduled_checkins",
+      "count": 0
+    },
+    {
+      "table": "user_recurring_reminders",
+      "count": 0
+    },
+    {
+      "table": "user_potion_sessions",
+      "count": 0
+    },
+    {
+      "table": "chat_messages",
+      "count": 0
+    },
+    {
+      "table": "conversation_turn_traces",
+      "count": 0
+    },
+    {
+      "table": "user_chat_states",
+      "count": 0
+    },
+    {
+      "table": "user_plan_items",
+      "count": 0
+    },
+    {
+      "table": "user_plans_v2",
+      "count": 0
+    },
+    {
+      "table": "user_transformations",
+      "count": 0
+    },
+    {
+      "table": "user_cycles",
+      "count": 0
+    },
+    {
+      "table": "profiles",
+      "count": 0
+    },
+    {
+      "table": "auth.users",
+      "count": 1
+    }
+  ],
+  "cleanup_path": "/Users/ahmedamara/Dev/Sophia 2/tests/real-personas/qa-skill/runs/operations/2026-05-22-select-state-potion-manual-qa-potions-manual-n7-clarte.cleanup.json",
+  "at": "2026-05-22T11:16:48.264Z"
+}

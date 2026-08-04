@@ -1,0 +1,45 @@
+{
+  "generated_at": "2026-06-26T12:30:48.882Z",
+  "window": {
+    "from": "2026-06-21T00:00:00.000Z",
+    "to": "2026-06-24T23:59:59.999Z",
+    "week_start": "2026-06-22"
+  },
+  "counts": {
+    "users_seen": 5,
+    "users_with_week_plans": 5,
+    "scheduled_checkins": 8,
+    "outbounds": 57,
+    "week_plans": 14,
+    "occurrences": 33
+  },
+  "checkins_by_event_and_status": {
+    "weekly_progress_review_v2:sent": 4,
+    "morning_light_greeting_v2:sent": 4
+  },
+  "outbounds_by_purpose_status": {
+    "action_morning_followup_v2:cancelled": 1,
+    "morning_light_greeting_v2:cancelled": 27,
+    "weekly_progress_review_v2:read": 4,
+    "scheduled_checkin:read": 3,
+    "whatsapp_default_brain_reply:read": 15,
+    "morning_light_greeting_v2:read": 4,
+    "whatsapp_image_not_supported:read": 1,
+    "scheduled_checkin:delivered": 1,
+    "whatsapp_default_brain_reply:sent": 1
+  },
+  "week_plans_by_status": {
+    "pending_confirmation": 14
+  },
+  "users_missing_weekly_review_checkin": [
+    "779092ad-93a2-4497-95de-01ddf5f32b86"
+  ],
+  "users_missing_planning_confirmation_checkin": [
+    "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+    "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+    "dcd8eece-2994-4982-9121-c500301d193b",
+    "f3bd26a5-581e-4630-8550-77dd5c75387a",
+    "779092ad-93a2-4497-95de-01ddf5f32b86"
+  ],
+  "users_with_weekly_review_cancelled_no_confirmed_occurrences": []
+}

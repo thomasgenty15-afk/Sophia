@@ -1,0 +1,27 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-prepare-defense-card-alex-2026-06-08-prepare-defense-local-r1d-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je veux une carte de défense, je suis en vrac.",
+    "assistant": "Ok, tu es en vrac. Je te fais une carte de défense simple et solide, pour te remettre en contrôle tout de suite 🧯\n\nCarte de défense (mode “je tiens”)\n1) Stop immédiat (30 secondes)\nJe respire long + je relâche les épaules. Là, maintenant, je ne règle rien d’important. Je stabilise.\n\n2) Réalité brute\nJe note 3 mots max : ce qui m’envahit. (ex: “stress”, “fatigue”, “peur”)\n\n3) Micro-action anti-vrac (2 minutes)\nJe fais une seule chose physique :\n- boire un verre d’eau\nOU\n- ranger 5 objets visibles\nOU\n- ouvrir une fenêtre 2 minutes\n\n4) Phrase d’ancrage (à répéter)\n“En ce moment, mon job c’est de stabiliser. Le reste attend.”\n\n5) Fin de session (1 minute)\nJe me promets : “dans 20-30 min je reviens au cerveau clair”, même si c’est juste pour réévaluer.\n\nDis-moi juste: tu veux la version “stress” ou la version “fatigue” ? 😊",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "operation_flow_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": null,
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-prepare-defense-card-alex-2026-06-08-prepare-defense-local-r1d-t01",
+    "trace_error": null
+  }
+]

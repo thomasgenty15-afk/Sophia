@@ -1,0 +1,733 @@
+import { assertEquals, assertStringIncludes } from "jsr:@std/assert@1";
+
+import {
+  addDaysYmd,
+  buildWeeklyPlanningValidationMessage,
+  buildWeeklyProgressReviewFromRows,
+  buildWeeklyProgressReviewInstruction,
+  nextWeekStartForLocalDate,
+  planContentHasPlanifiableWeekStart,
+  weekEndForWeekStart,
+} from "./weekly_progress_review.ts";
+import { DAILY_ACTION_REVIEW_SOURCE } from "./daily_action_review.ts";
+
+Deno.test("weekly date helpers derive week boundaries", () => {
+  assertEquals(addDaysYmd("2026-04-27", 6), "2026-05-03");
+  assertEquals(weekEndForWeekStart("2026-04-27"), "2026-05-03");
+  assertEquals(nextWeekStartForLocalDate("2026-05-02"), "2026-05-04");
+});
+
+Deno.test("weekly planning validation message announces planning availability", () => {
+  const message = buildWeeklyPlanningValidationMessage({
+    nextWeekStartDate: "2026-05-04",
+    dashboardUrl: "https://example.test/dashboard",
+  });
+
+  assertStringIncludes(message, "Ta planification de la semaine est disponible");
+  assertStringIncludes(message, "https://example.test/dashboard");
+  assertStringIncludes(message, "confirmer");
+});
+
+Deno.test("planContentHasPlanifiableWeekStart requires an existing assigned week", () => {
+  const content = {
+    metadata: {
+      schedule_anchor: {
+        anchor_week_start: "2026-04-27",
+      },
+    },
+    phases: [
+      {
+        phase_id: "phase-1",
+        weeks: [
+          {
+            week_order: 1,
+            item_assignments: [{ temp_id: "habit-1" }],
+          },
+          {
+            week_order: 2,
+            item_assignments: [{ temp_id: "habit-1" }],
+          },
+          {
+            week_order: 3,
+            item_assignments: [],
+          },
+        ],
+      },
+    ],
+  };
+
+  assertEquals(
+    planContentHasPlanifiableWeekStart(content, "2026-05-04"),
+    true,
+  );
+  assertEquals(
+    planContentHasPlanifiableWeekStart(content, "2026-05-11"),
+    false,
+  );
+  assertEquals(
+    planContentHasPlanifiableWeekStart(content, "2026-05-18"),
+    false,
+  );
+});
+
+Deno.test("buildWeeklyProgressReviewFromRows groups by transformation", () => {
+  const review = buildWeeklyProgressReviewFromRows({
+    userId: "user-1",
+    timezone: "Europe/Paris",
+    weekStartDate: "2026-04-27",
+    generatedAt: "2026-05-03T18:00:00.000Z",
+    dashboardUrl: "https://example.test/dashboard",
+    transformations: [
+      { id: "transformation-1", title: "Sport", priority_order: 1 },
+      { id: "transformation-2", title: "Focus", priority_order: 2 },
+    ],
+    plans: [
+      {
+        id: "plan-1",
+        cycle_id: "cycle-1",
+        transformation_id: "transformation-1",
+        title: "Plan sport",
+      },
+      {
+        id: "plan-2",
+        cycle_id: "cycle-1",
+        transformation_id: "transformation-2",
+        title: "Plan focus",
+      },
+    ],
+    planItems: [
+      {
+        id: "item-1",
+        cycle_id: "cycle-1",
+        transformation_id: "transformation-1",
+        plan_id: "plan-1",
+        title: "Marche",
+        dimension: "habits",
+        kind: "habit",
+        status: "active",
+      },
+      {
+        id: "item-2",
+        cycle_id: "cycle-1",
+        transformation_id: "transformation-2",
+        plan_id: "plan-2",
+        title: "Deep work",
+        dimension: "missions",
+        kind: "mission",
+        status: "active",
+      },
+    ],
+    weekPlans: [
+      { plan_item_id: "item-1", status: "confirmed" },
+      { plan_item_id: "item-2", status: "confirmed" },
+    ],
+    occurrences: [
+      {
+        id: "occ-1",
+        cycle_id: "cycle-1",
+        transformation_id: "transformation-1",
+        plan_id: "plan-1",
+        plan_item_id: "item-1",
+        week_start_date: "2026-04-27",
+        ordinal: 1,
+        planned_day: "mon",
+        status: "done",
+        source: "weekly_confirmed",
+      },
+      {
+        id: "occ-2",
+        cycle_id: "cycle-1",
+        transformation_id: "transformation-2",
+        plan_id: "plan-2",
+        plan_item_id: "item-2",
+        week_start_date: "2026-04-27",
+        ordinal: 1,
+        planned_day: "tue",
+        status: "missed",
+        source: "weekly_confirmed",
+      },
+    ],
+    entries: [
+      {
+        id: "entry-1",
+        cycle_id: "cycle-1",
+        transformation_id: "transformation-1",
+        plan_id: "plan-1",
+        plan_item_id: "item-1",
+        entry_kind: "checkin",
+        outcome: "completed",
+        effective_at: "2026-04-27T12:00:00.000Z",
+        created_at: "2026-04-27T18:00:00.000Z",
+      },
+    ],
+  });
+
+  assertEquals(review.transformations.length, 2);
+  assertEquals(review.transformations[0].summary.done_count, 1);
+  assertEquals(review.transformations[1].summary.missed_count, 1);
+  assertEquals(
+    review.global_synthesis.dashboard_cta?.url,
+    "https://example.test/dashboard",
+  );
+  assertStringIncludes(
+    buildWeeklyProgressReviewInstruction(review),
+    "weekly_progress_review_v2",
+  );
+});
+
+Deno.test("weekly_projection_uses_daily_evidence_by_occurrence_id", () => {
+  const review = buildWeeklyProgressReviewFromRows({
+    userId: "user-1",
+    timezone: "Europe/Paris",
+    weekStartDate: "2026-04-27",
+    generatedAt: "2026-05-03T18:00:00.000Z",
+    transformations: [{ id: "transformation-1", title: "Sport" }],
+    plans: [{
+      id: "plan-1",
+      cycle_id: "cycle-1",
+      transformation_id: "transformation-1",
+      title: "Plan sport",
+    }],
+    planItems: [{
+      id: "item-1",
+      cycle_id: "cycle-1",
+      transformation_id: "transformation-1",
+      plan_id: "plan-1",
+      title: "Marche",
+      dimension: "habits",
+      kind: "habit",
+      status: "active",
+    }],
+    weekPlans: [{ plan_item_id: "item-1", status: "confirmed" }],
+    occurrences: [
+      {
+        id: "occ-1",
+        cycle_id: "cycle-1",
+        transformation_id: "transformation-1",
+        plan_id: "plan-1",
+        plan_item_id: "item-1",
+        week_start_date: "2026-04-27",
+        ordinal: 1,
+        planned_day: "mon",
+        status: "missed",
+        source: "weekly_confirmed",
+      },
+      {
+        id: "occ-2",
+        cycle_id: "cycle-1",
+        transformation_id: "transformation-1",
+        plan_id: "plan-1",
+        plan_item_id: "item-1",
+        week_start_date: "2026-04-27",
+        ordinal: 2,
+        planned_day: "tue",
+        status: "missed",
+        source: "weekly_confirmed",
+      },
+    ],
+    entries: [{
+      id: "entry-1",
+      cycle_id: "cycle-1",
+      transformation_id: "transformation-1",
+      plan_id: "plan-1",
+      plan_item_id: "item-1",
+      entry_kind: "skip",
+      outcome: "missed",
+      value_text: "trop dur",
+      effective_at: "2026-04-27T12:00:00.000Z",
+      created_at: "2026-04-27T18:00:00.000Z",
+      metadata: {
+        source: DAILY_ACTION_REVIEW_SOURCE,
+        occurrence_id: "occ-2",
+        reason_category: "too_hard",
+        reason_text: "trop dur",
+        evidence_text: "Je n'ai pas marche, c'etait trop dur.",
+        matched_user_text: "Je n'ai pas marche, c'etait trop dur.",
+        still_relevant: true,
+        confidence: "high",
+      },
+    }],
+  });
+
+  const actions = review.transformations[0].actions;
+  assertEquals(actions[0].daily_evidence, null);
+  assertEquals(actions[1].daily_evidence?.reason_category, "too_hard");
+  assertEquals(
+    actions[1].daily_evidence?.evidence_text,
+    "Je n'ai pas marche, c'etait trop dur.",
+  );
+  assertEquals(actions[1].daily_evidence?.reason_text, "trop dur");
+  assertEquals(actions[1].daily_evidence?.confidence, "high");
+});
+
+Deno.test("weekly_projection_counts_done_occurrence_on_pending_week", () => {
+  const review = buildWeeklyProgressReviewFromRows({
+    userId: "user-1",
+    timezone: "Europe/Paris",
+    weekStartDate: "2026-04-27",
+    generatedAt: "2026-05-03T18:00:00.000Z",
+    transformations: [{ id: "transformation-1", title: "Sport" }],
+    plans: [{
+      id: "plan-1",
+      cycle_id: "cycle-1",
+      transformation_id: "transformation-1",
+      title: "Plan sport",
+    }],
+    planItems: [{
+      id: "item-1",
+      cycle_id: "cycle-1",
+      transformation_id: "transformation-1",
+      plan_id: "plan-1",
+      title: "Marche",
+      dimension: "habits",
+      kind: "habit",
+      status: "active",
+    }],
+    weekPlans: [{ plan_item_id: "item-1", status: "pending_confirmation" }],
+    occurrences: [{
+      id: "occ-1",
+      cycle_id: "cycle-1",
+      transformation_id: "transformation-1",
+      plan_id: "plan-1",
+      plan_item_id: "item-1",
+      week_start_date: "2026-04-27",
+      ordinal: 1,
+      planned_day: "mon",
+      status: "done",
+      source: "weekly_pending",
+    }],
+    entries: [],
+  });
+
+  // A pending week must not hide real activity: the checked occurrence counts.
+  assertEquals(review.transformations.length, 1);
+  assertEquals(review.transformations[0].summary.planned_count, 1);
+  assertEquals(review.transformations[0].summary.done_count, 1);
+});
+
+Deno.test("weekly_projection_counts_week_entry_on_pending_week_other_day", () => {
+  const review = buildWeeklyProgressReviewFromRows({
+    userId: "user-1",
+    timezone: "Europe/Paris",
+    weekStartDate: "2026-04-27",
+    generatedAt: "2026-05-03T18:00:00.000Z",
+    transformations: [{ id: "transformation-1", title: "Sport" }],
+    plans: [{
+      id: "plan-1",
+      cycle_id: "cycle-1",
+      transformation_id: "transformation-1",
+      title: "Plan sport",
+    }],
+    planItems: [{
+      id: "item-1",
+      cycle_id: "cycle-1",
+      transformation_id: "transformation-1",
+      plan_id: "plan-1",
+      title: "Marche",
+      dimension: "habits",
+      kind: "habit",
+      status: "active",
+    }],
+    weekPlans: [{ plan_item_id: "item-1", status: "pending_confirmation" }],
+    occurrences: [{
+      id: "occ-1",
+      cycle_id: "cycle-1",
+      transformation_id: "transformation-1",
+      plan_id: "plan-1",
+      plan_item_id: "item-1",
+      week_start_date: "2026-04-27",
+      ordinal: 1,
+      planned_day: "mon",
+      status: "planned",
+      source: "default_generated",
+    }],
+    // Completed on Saturday while the occurrence was planned Monday: the
+    // same-week fallback must still credit the action.
+    entries: [{
+      id: "entry-1",
+      cycle_id: "cycle-1",
+      transformation_id: "transformation-1",
+      plan_id: "plan-1",
+      plan_item_id: "item-1",
+      entry_kind: "checkin",
+      outcome: "completed",
+      effective_at: "2026-05-02T09:12:00.000Z",
+      created_at: "2026-05-02T09:12:00.000Z",
+    }],
+  });
+
+  assertEquals(review.transformations.length, 1);
+  assertEquals(review.transformations[0].summary.planned_count, 1);
+  assertEquals(review.transformations[0].summary.done_count, 1);
+  assertEquals(review.transformations[0].actions[0].deviation, "on_plan");
+});
+
+Deno.test("weekly_projection_hides_pending_week_without_activity", () => {
+  const review = buildWeeklyProgressReviewFromRows({
+    userId: "user-1",
+    timezone: "Europe/Paris",
+    weekStartDate: "2026-04-27",
+    generatedAt: "2026-05-03T18:00:00.000Z",
+    transformations: [{ id: "transformation-1", title: "Sport" }],
+    plans: [{
+      id: "plan-1",
+      cycle_id: "cycle-1",
+      transformation_id: "transformation-1",
+      title: "Plan sport",
+    }],
+    planItems: [{
+      id: "item-1",
+      cycle_id: "cycle-1",
+      transformation_id: "transformation-1",
+      plan_id: "plan-1",
+      title: "Marche",
+      dimension: "habits",
+      kind: "habit",
+      status: "active",
+    }],
+    weekPlans: [{ plan_item_id: "item-1", status: "pending_confirmation" }],
+    occurrences: [{
+      id: "occ-1",
+      cycle_id: "cycle-1",
+      transformation_id: "transformation-1",
+      plan_id: "plan-1",
+      plan_item_id: "item-1",
+      week_start_date: "2026-04-27",
+      ordinal: 1,
+      planned_day: "mon",
+      status: "planned",
+      source: "default_generated",
+    }],
+    entries: [],
+  });
+
+  // Never-validated planning with zero activity must not be reproached: the
+  // review stays empty and the weekly opens on the "no action tracked" scenario.
+  assertEquals(review.transformations.length, 0);
+  assertEquals(review.global_synthesis.message_intent, "encourage");
+});
+
+Deno.test("weekly_projection_week_fallback_consumes_entry_once", () => {
+  const review = buildWeeklyProgressReviewFromRows({
+    userId: "user-1",
+    timezone: "Europe/Paris",
+    weekStartDate: "2026-04-27",
+    generatedAt: "2026-05-03T18:00:00.000Z",
+    transformations: [{ id: "transformation-1", title: "Sport" }],
+    plans: [{
+      id: "plan-1",
+      cycle_id: "cycle-1",
+      transformation_id: "transformation-1",
+      title: "Plan sport",
+    }],
+    planItems: [{
+      id: "item-1",
+      cycle_id: "cycle-1",
+      transformation_id: "transformation-1",
+      plan_id: "plan-1",
+      title: "Marche",
+      dimension: "habits",
+      kind: "habit",
+      status: "active",
+    }],
+    weekPlans: [{ plan_item_id: "item-1", status: "confirmed" }],
+    occurrences: [
+      {
+        id: "occ-1",
+        cycle_id: "cycle-1",
+        transformation_id: "transformation-1",
+        plan_id: "plan-1",
+        plan_item_id: "item-1",
+        week_start_date: "2026-04-27",
+        ordinal: 1,
+        planned_day: "mon",
+        status: "planned",
+        source: "weekly_confirmed",
+      },
+      {
+        id: "occ-2",
+        cycle_id: "cycle-1",
+        transformation_id: "transformation-1",
+        plan_id: "plan-1",
+        plan_item_id: "item-1",
+        week_start_date: "2026-04-27",
+        ordinal: 2,
+        planned_day: "thu",
+        status: "planned",
+        source: "weekly_confirmed",
+      },
+    ],
+    // One Saturday completion, two open occurrences: exactly one is credited.
+    entries: [{
+      id: "entry-1",
+      cycle_id: "cycle-1",
+      transformation_id: "transformation-1",
+      plan_id: "plan-1",
+      plan_item_id: "item-1",
+      entry_kind: "checkin",
+      outcome: "completed",
+      effective_at: "2026-05-02T09:12:00.000Z",
+      created_at: "2026-05-02T09:12:00.000Z",
+    }],
+  });
+
+  assertEquals(review.transformations[0].summary.planned_count, 2);
+  assertEquals(review.transformations[0].summary.done_count, 1);
+  const deviations = review.transformations[0].actions.map((action) =>
+    action.deviation
+  );
+  assertEquals(deviations.filter((value) => value === "on_plan").length, 1);
+  assertEquals(deviations.filter((value) => value === "not_answered").length, 1);
+});
+
+Deno.test("weekly_projection_done_partial_missed_unanswered_rescheduled", () => {
+  const review = buildWeeklyProgressReviewFromRows({
+    userId: "user-1",
+    timezone: "Europe/Paris",
+    weekStartDate: "2026-04-27",
+    generatedAt: "2026-05-03T18:00:00.000Z",
+    transformations: [{ id: "transformation-1", title: "Sport" }],
+    plans: [{
+      id: "plan-1",
+      cycle_id: "cycle-1",
+      transformation_id: "transformation-1",
+      title: "Plan sport",
+    }],
+    planItems: ["done", "partial", "missed", "planned", "rescheduled"].map((
+      status,
+      index,
+    ) => ({
+      id: `item-${index}`,
+      cycle_id: "cycle-1",
+      transformation_id: "transformation-1",
+      plan_id: "plan-1",
+      title: status,
+      dimension: "habits",
+      kind: "habit",
+      status: "active",
+    })),
+    weekPlans: [0, 1, 2, 3, 4].map((index) => ({
+      plan_item_id: `item-${index}`,
+      status: "confirmed" as const,
+    })),
+    occurrences:
+      (["done", "partial", "missed", "planned", "rescheduled"] as const)
+        .map((status, index) => ({
+          id: `occ-${index}`,
+          cycle_id: "cycle-1",
+          transformation_id: "transformation-1",
+          plan_id: "plan-1",
+          plan_item_id: `item-${index}`,
+          week_start_date: "2026-04-27",
+          ordinal: index + 1,
+          planned_day: "mon" as const,
+          status,
+          source: "weekly_confirmed",
+        })),
+    entries: [],
+  });
+
+  assertEquals(review.transformations[0].summary.done_count, 1);
+  assertEquals(review.transformations[0].summary.partial_count, 1);
+  assertEquals(review.transformations[0].summary.missed_count, 1);
+  assertEquals(review.transformations[0].summary.unanswered_count, 1);
+  assertEquals(review.transformations[0].summary.rescheduled_count, 1);
+});
+
+// ---------------------------------------------------------------------------
+// Complétions hors-planning (21/07): une action réellement faite compte au
+// bilan hebdo même sans occurrence absorbante.
+// ---------------------------------------------------------------------------
+
+function makeOffPlanFixtureBase() {
+  return {
+    userId: "user-1",
+    timezone: "Europe/Paris",
+    weekStartDate: "2026-04-27",
+    generatedAt: "2026-05-03T18:00:00.000Z",
+    transformations: [{ id: "transformation-1", title: "Sport" }],
+    plans: [{
+      id: "plan-1",
+      cycle_id: "cycle-1",
+      transformation_id: "transformation-1",
+      title: "Plan sport",
+    }],
+    planItems: [
+      {
+        id: "item-1",
+        cycle_id: "cycle-1",
+        transformation_id: "transformation-1",
+        plan_id: "plan-1",
+        title: "Marche",
+        dimension: "habits",
+        kind: "habit",
+        status: "active",
+      },
+      {
+        id: "item-2",
+        cycle_id: "cycle-1",
+        transformation_id: "transformation-1",
+        plan_id: "plan-1",
+        title: "Etirements",
+        dimension: "habits",
+        kind: "habit",
+        status: "active",
+      },
+    ],
+    weekPlans: [
+      { plan_item_id: "item-1", status: "confirmed" as const },
+      { plan_item_id: "item-2", status: "confirmed" as const },
+    ],
+  };
+}
+
+Deno.test("weekly_off_plan_completion_counted_when_item_has_no_occurrence", () => {
+  const review = buildWeeklyProgressReviewFromRows({
+    ...makeOffPlanFixtureBase(),
+    occurrences: [
+      {
+        id: "occ-1",
+        cycle_id: "cycle-1",
+        transformation_id: "transformation-1",
+        plan_id: "plan-1",
+        plan_item_id: "item-1",
+        week_start_date: "2026-04-27",
+        ordinal: 1,
+        planned_day: "mon",
+        status: "done",
+        source: "weekly_confirmed",
+      },
+    ],
+    entries: [
+      {
+        id: "entry-1",
+        cycle_id: "cycle-1",
+        transformation_id: "transformation-1",
+        plan_id: "plan-1",
+        plan_item_id: "item-1",
+        entry_kind: "checkin",
+        outcome: "completed",
+        effective_at: "2026-04-27T12:00:00.000Z",
+        created_at: "2026-04-27T18:00:00.000Z",
+      },
+      // item-2 fait mercredi alors qu'il n'a AUCUNE occurrence cette semaine.
+      {
+        id: "entry-2",
+        cycle_id: "cycle-1",
+        transformation_id: "transformation-1",
+        plan_id: "plan-1",
+        plan_item_id: "item-2",
+        entry_kind: "checkin",
+        outcome: "completed",
+        effective_at: "2026-04-29T12:00:00.000Z",
+        created_at: "2026-04-29T18:00:00.000Z",
+        metadata: { source: "router_parallel_tracking_v2" },
+      },
+    ],
+  });
+
+  const block = review.transformations[0];
+  assertEquals(block.summary.off_plan_completed_count, 1);
+  assertEquals(block.off_plan_completions.length, 1);
+  assertEquals(block.off_plan_completions[0].plan_item_id, "item-2");
+  assertEquals(block.off_plan_completions[0].effective_date, "2026-04-29");
+  assertEquals(block.off_plan_completions[0].source, "router_parallel_tracking_v2");
+  assertStringIncludes(
+    review.global_synthesis.short_observation,
+    "hors planning",
+  );
+});
+
+Deno.test("weekly_off_plan_extra_completion_counted_when_occurrences_saturated", () => {
+  const review = buildWeeklyProgressReviewFromRows({
+    ...makeOffPlanFixtureBase(),
+    occurrences: [
+      {
+        id: "occ-1",
+        cycle_id: "cycle-1",
+        transformation_id: "transformation-1",
+        plan_id: "plan-1",
+        plan_item_id: "item-1",
+        week_start_date: "2026-04-27",
+        ordinal: 1,
+        planned_day: "mon",
+        status: "done",
+        source: "weekly_confirmed",
+      },
+    ],
+    entries: [
+      // Entrée exacte lundi → consommée par la Pass 1.
+      {
+        id: "entry-1",
+        cycle_id: "cycle-1",
+        transformation_id: "transformation-1",
+        plan_id: "plan-1",
+        plan_item_id: "item-1",
+        entry_kind: "checkin",
+        outcome: "completed",
+        effective_at: "2026-04-27T12:00:00.000Z",
+        created_at: "2026-04-27T18:00:00.000Z",
+      },
+      // Complétion supplémentaire jeudi: aucune occurrence ouverte restante.
+      {
+        id: "entry-2",
+        cycle_id: "cycle-1",
+        transformation_id: "transformation-1",
+        plan_id: "plan-1",
+        plan_item_id: "item-1",
+        entry_kind: "checkin",
+        outcome: "completed",
+        effective_at: "2026-04-30T12:00:00.000Z",
+        created_at: "2026-04-30T18:00:00.000Z",
+      },
+    ],
+  });
+
+  const block = review.transformations[0];
+  assertEquals(block.summary.done_count, 1);
+  assertEquals(block.summary.off_plan_completed_count, 1);
+  assertEquals(block.off_plan_completions[0].effective_date, "2026-04-30");
+});
+
+Deno.test("weekly_off_plan_only_block_exists_without_any_occurrence", () => {
+  const review = buildWeeklyProgressReviewFromRows({
+    ...makeOffPlanFixtureBase(),
+    occurrences: [],
+    entries: [
+      {
+        id: "entry-1",
+        cycle_id: "cycle-1",
+        transformation_id: "transformation-1",
+        plan_id: "plan-1",
+        plan_item_id: "item-2",
+        entry_kind: "checkin",
+        outcome: "completed",
+        effective_at: "2026-04-29T12:00:00.000Z",
+        created_at: "2026-04-29T18:00:00.000Z",
+      },
+      // Dédupe: 2e entry même item même jour → une seule complétion listée.
+      {
+        id: "entry-2",
+        cycle_id: "cycle-1",
+        transformation_id: "transformation-1",
+        plan_id: "plan-1",
+        plan_item_id: "item-2",
+        entry_kind: "checkin",
+        outcome: "completed",
+        effective_at: "2026-04-29T14:00:00.000Z",
+        created_at: "2026-04-29T19:00:00.000Z",
+      },
+    ],
+  });
+
+  assertEquals(review.transformations.length, 1);
+  const block = review.transformations[0];
+  assertEquals(block.summary.planned_count, 0);
+  assertEquals(block.summary.off_plan_completed_count, 1);
+  assertEquals(block.actions.length, 0);
+  assertEquals(review.global_synthesis.message_intent, "celebrate");
+  assertStringIncludes(
+    review.global_synthesis.whatsapp_message,
+    "quand meme fait 1 action",
+  );
+});

@@ -1,0 +1,58 @@
+{
+  "run_id": "weekly-process-20260703-r8-safetyreesc-partial_habits_mission_partial",
+  "variant": "partial_habits_mission_partial",
+  "user_id": "cab7c89b-336b-4394-ac32-947d4630c84d",
+  "email": "qa-weekly-process-weekly-process-20260703-r8-safetyreesc-partial_habits_mission_partial@example.com",
+  "scope": "whatsapp",
+  "connection_file": "tmp/weekly-real-conversation-qa/connections/weekly-process-20260703-r8-safetyreesc-partial_habits_mission_partial.json",
+  "week_start_date": "2026-06-29",
+  "week_end_date": "2026-07-05",
+  "scheduled_checkin_id": "dee77e1a-c3c7-47bb-9ae3-758e89193043",
+  "cycle_id": "caaf54e6-efa3-4aa4-af92-2faa20529c2e",
+  "transformation_id": "f4dc0b38-be40-4c5e-8e32-d35cade6b8ea",
+  "plan_id": "136bb0de-3366-4229-979e-ce37b7c79082",
+  "item_ids": {
+    "habit_positive": "6e26d625-5323-430c-bd87-08dc6cef6d62",
+    "habit_breath": "9a23da3c-a299-48c1-a102-4b525f21c641",
+    "mission_signal": "c4bb8627-c087-4552-937f-b7a6025fc057",
+    "support_context": "2bb10aa1-48d6-4f46-94b1-d956b562ba13"
+  },
+  "seeded_actions": [
+    {
+      "item": "habit_positive",
+      "day": "mon",
+      "outcome": "completed",
+      "reason": "none"
+    },
+    {
+      "item": "habit_positive",
+      "day": "wed",
+      "outcome": "partial",
+      "reason": "fatigue"
+    },
+    {
+      "item": "habit_positive",
+      "day": "fri",
+      "outcome": "missed",
+      "reason": "too_hard"
+    },
+    {
+      "item": "habit_breath",
+      "day": "tue",
+      "outcome": "completed",
+      "reason": "none"
+    },
+    {
+      "item": "habit_breath",
+      "day": "thu",
+      "outcome": "missed",
+      "reason": "fatigue"
+    },
+    {
+      "item": "mission_signal",
+      "day": "fri",
+      "outcome": "partial",
+      "reason": "context"
+    }
+  ]
+}

@@ -1,0 +1,227 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-emotional-repair-2026-06-03-select-state-potion-r2-courage-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je veux preparer une potion de courage. J evite d envoyer un message important a mon associe, et je crois que c est surtout la peur du conflit.",
+    "assistant": "Est-ce que ce qui bloque le plus est la peur du conflit ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "tool_skill",
+    "selected_handler": "select_state_potion",
+    "route_reason": "tool_skill_intent_start",
+    "safety_pregate": null,
+    "tone_adjustment": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_write_candidates_emitted": null,
+    "memory_plan": null,
+    "response_executed_tools": [],
+    "tool_execution": "platform_handoff",
+    "trace_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-courage-t01",
+    "trace_error": null,
+    "operation_flow_run": {
+      "selected_handler": "select_state_potion",
+      "reason_code": "state_potion_handoff_clarifying",
+      "operation_type": "select_state_potion",
+      "mode": "platform_handoff",
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "status": "clarifying",
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "constraints": [],
+      "handoff": null,
+      "platform_handoff": {
+        "operation_type": "select_state_potion",
+        "status": "delivered",
+        "surface_id": "state_potions",
+        "reason_code": "state_potion_handoff_clarifying",
+        "no_chat_mutation": true,
+        "draft": null
+      }
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-emotional-repair-2026-06-03-select-state-potion-r2-courage-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, c est bien la peur du conflit. Ce que j evite, c est ce message a mon associe pour poser une limite.",
+    "assistant": "Ce que je comprends : envoyer un message important à ton associé ; conflit\n\nJe te conseille de choisir une potion de courage. Le shift recommandé est de franchir un passage évité avec un appui court.\n\nPourquoi cette potion : Pour t'aider à faire face à la peur du conflit et à trouver le courage d'envoyer ce message important à ton associé.\nPetit pas immédiat : Prends un instant. C'est tout à fait humain de ressentir cette appréhension face à un conflit potentiel. Cette potion est là pour t'offrir un soutien doux et t'aider à avancer, sans te brusquer.\n\nÀ mettre dans la plateforme :\nPotion : Potion de courage\n- Qu'est-ce que tu evites en ce moment ? envoyer un message important à ton associé\n- Qu'est-ce qui bloque le plus ? La peur du conflit\nDans la plateforme, tu pourras aussi préciser si c'est lié à ton plan ou hors plan.\n\nDans la plateforme, dans la section État / Potions, puis choisis la potion recommandée, active-la depuis la plateforme si elle te convient.\n\nJe ne lance pas de potion depuis le chat. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "tool_skill",
+    "selected_handler": "select_state_potion",
+    "route_reason": "active_handoff_turn_unclear",
+    "safety_pregate": null,
+    "tone_adjustment": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_write_candidates_emitted": null,
+    "memory_plan": null,
+    "response_executed_tools": [],
+    "tool_execution": "platform_handoff",
+    "trace_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-courage-t02",
+    "trace_error": null,
+    "operation_flow_run": {
+      "selected_handler": "select_state_potion",
+      "reason_code": "state_potion_platform_handoff_delivered",
+      "operation_type": "select_state_potion",
+      "mode": "platform_handoff",
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "status": "handoff_delivered",
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "constraints": [],
+      "handoff": null,
+      "platform_handoff": {
+        "operation_type": "select_state_potion",
+        "status": "delivered",
+        "surface_id": "state_potions",
+        "reason_code": "state_potion_platform_handoff_delivered",
+        "no_chat_mutation": true,
+        "draft": {
+          "operation_type": "select_state_potion",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "user_state_summary": "envoyer un message important à ton associé ; conflit",
+          "desired_shift_summary": "Le shift recommandé est de franchir un passage évité avec un appui court.",
+          "recommendation": {
+            "potion_label": "une potion de courage",
+            "why_this_potion": "Pour t'aider à faire face à la peur du conflit et à trouver le courage d'envoyer ce message important à ton associé.",
+            "immediate_step": "Prends un instant. C'est tout à fait humain de ressentir cette appréhension face à un conflit potentiel. Cette potion est là pour t'offrir un soutien doux et t'aider à avancer, sans te brusquer.",
+            "preserve": [],
+            "avoid": [],
+            "platform_destination": "dans la section État / Potions",
+            "platform_steps": [
+              "ouvre la section État / Potions",
+              "choisis la potion recommandée",
+              "active-la depuis la plateforme si elle te convient"
+            ],
+            "platform_inputs": {
+              "potion_type": "courage",
+              "potion_title": "Potion de courage",
+              "answers": [
+                {
+                  "question_id": "avoidance_target",
+                  "question_label": "Qu'est-ce que tu evites en ce moment ?",
+                  "value": "envoyer un message important à ton associé",
+                  "option_value": null,
+                  "option_label": null
+                },
+                {
+                  "question_id": "blocker_kind",
+                  "question_label": "Qu'est-ce qui bloque le plus ?",
+                  "value": "La peur du conflit",
+                  "option_value": "conflit",
+                  "option_label": "La peur du conflit"
+                }
+              ],
+              "optional_free_text": null
+            }
+          },
+          "missing_decisions": []
+        }
+      }
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-emotional-repair-2026-06-03-select-state-potion-r2-courage-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Redis-moi juste quoi mettre dans la plateforme.",
+    "assistant": "Ce que je comprends : envoyer un message important à ton associé ; conflit\n\nJe te conseille de choisir une potion de courage. Le shift recommandé est de franchir un passage évité avec un appui court.\n\nPourquoi cette potion : Pour t'aider à faire face à la peur du conflit et à trouver le courage d'envoyer ce message important à ton associé.\nPetit pas immédiat : Prends un instant. C'est tout à fait humain de ressentir cette appréhension face à un conflit potentiel. Cette potion est là pour t'offrir un soutien doux et t'aider à avancer, sans te brusquer.\n\nÀ mettre dans la plateforme :\nPotion : Potion de courage\n- Qu'est-ce que tu evites en ce moment ? envoyer un message important à ton associé\n- Qu'est-ce qui bloque le plus ? La peur du conflit\nDans la plateforme, tu pourras aussi préciser si c'est lié à ton plan ou hors plan.\n\nDans la plateforme, dans la section État / Potions, puis choisis la potion recommandée, active-la depuis la plateforme si elle te convient.\n\nJe ne lance pas de potion depuis le chat. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "tool_skill",
+    "selected_handler": "select_state_potion",
+    "route_reason": "active_handoff_repeat_handoff",
+    "safety_pregate": null,
+    "tone_adjustment": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_write_candidates_emitted": null,
+    "memory_plan": null,
+    "response_executed_tools": [],
+    "tool_execution": "platform_handoff",
+    "trace_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-courage-t03",
+    "trace_error": null,
+    "operation_flow_run": {
+      "selected_handler": "select_state_potion",
+      "reason_code": "state_potion_repeat_handoff",
+      "operation_type": "select_state_potion",
+      "mode": "platform_handoff",
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "status": "repeat_handoff",
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "constraints": [],
+      "handoff": null,
+      "platform_handoff": {
+        "operation_type": "select_state_potion",
+        "status": "delivered",
+        "surface_id": "state_potions",
+        "reason_code": "state_potion_repeat_handoff",
+        "no_chat_mutation": true,
+        "draft": {
+          "mode": "platform_handoff",
+          "operation_type": "select_state_potion",
+          "recommendation": {
+            "avoid": [],
+            "preserve": [],
+            "potion_label": "une potion de courage",
+            "immediate_step": "Prends un instant. C'est tout à fait humain de ressentir cette appréhension face à un conflit potentiel. Cette potion est là pour t'offrir un soutien doux et t'aider à avancer, sans te brusquer.",
+            "platform_steps": [
+              "ouvre la section État / Potions",
+              "choisis la potion recommandée",
+              "active-la depuis la plateforme si elle te convient"
+            ],
+            "platform_inputs": {
+              "answers": [
+                {
+                  "value": "envoyer un message important à ton associé",
+                  "question_id": "avoidance_target",
+                  "option_label": null,
+                  "option_value": null,
+                  "question_label": "Qu'est-ce que tu evites en ce moment ?"
+                },
+                {
+                  "value": "La peur du conflit",
+                  "question_id": "blocker_kind",
+                  "option_label": "La peur du conflit",
+                  "option_value": "conflit",
+                  "question_label": "Qu'est-ce qui bloque le plus ?"
+                }
+              ],
+              "potion_type": "courage",
+              "potion_title": "Potion de courage",
+              "optional_free_text": null
+            },
+            "why_this_potion": "Pour t'aider à faire face à la peur du conflit et à trouver le courage d'envoyer ce message important à ton associé.",
+            "platform_destination": "dans la section État / Potions"
+          },
+          "no_chat_mutation": true,
+          "missing_decisions": [],
+          "user_state_summary": "envoyer un message important à ton associé ; conflit",
+          "executable_from_chat": false,
+          "desired_shift_summary": "Le shift recommandé est de franchir un passage évité avec un appui court."
+        }
+      }
+    }
+  }
+]

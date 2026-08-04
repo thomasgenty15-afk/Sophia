@@ -1,0 +1,122 @@
+{
+  "run_id": "one_shot_7flows_20260626_daily_r1",
+  "user_id": "3b51bd83-74b6-4d38-9443-8769e464a7f5",
+  "deleted": [
+    {
+      "table": "whatsapp_pending_actions",
+      "status": 200,
+      "count": 0,
+      "body": []
+    },
+    {
+      "table": "chat_messages",
+      "status": 200,
+      "count": 1,
+      "body": [
+        "729e29ad-cfc0-4791-89d4-b3424d575bda"
+      ]
+    },
+    {
+      "table": "scheduled_checkins",
+      "status": 200,
+      "count": 4,
+      "body": [
+        "ec835ad4-e7d0-48d8-b739-2c7c0b30341b",
+        "e7bdb6d0-7b44-417c-bb08-6e528a859894",
+        "5ee7c013-1e7f-4058-a413-e8d3077f78e8",
+        "be07525e-cf51-4059-9c4b-6d7a6a140b54"
+      ]
+    },
+    {
+      "table": "user_plan_item_entries",
+      "status": 200,
+      "count": 0,
+      "body": []
+    },
+    {
+      "table": "user_habit_week_occurrences",
+      "status": 200,
+      "count": 2,
+      "body": [
+        "7370ef18-d43d-41fb-b341-1f544a5e4912",
+        "5556bbde-1d08-4e1c-8775-4b212bd60597"
+      ]
+    },
+    {
+      "table": "user_habit_week_plans",
+      "status": 200,
+      "count": 2,
+      "body": [
+        "34df9076-5a3f-48fb-a798-591cc971a670",
+        "3ecb8033-6cb1-4dcc-b9eb-fd962c77148a"
+      ]
+    },
+    {
+      "table": "user_plan_items",
+      "status": 200,
+      "count": 2,
+      "body": [
+        "c7f8c2c7-b3f6-483e-bad9-d8cef16ba483",
+        "8b162c8b-8f4a-4e97-b02f-ffa6384683da"
+      ]
+    },
+    {
+      "table": "user_plans_v2",
+      "status": 200,
+      "count": 1,
+      "body": [
+        "eac0d4b2-c61f-4826-8a57-015dd11906b9"
+      ]
+    },
+    {
+      "table": "user_transformations",
+      "status": 409,
+      "count": null,
+      "body": {
+        "code": "23503",
+        "details": "Key (cycle_id, id)=(6fcf26c1-2581-426a-8573-54e6c2cdaa9d, 859f00ed-e08b-47e8-bb1d-a060a5b59f94) is still referenced from table \"user_cycles\".",
+        "hint": null,
+        "message": "update or delete on table \"user_transformations\" violates foreign key constraint \"user_cycles_active_transformation_fk\" on table \"user_cycles\""
+      }
+    },
+    {
+      "table": "user_cycles",
+      "status": 200,
+      "count": 1,
+      "body": [
+        "6fcf26c1-2581-426a-8573-54e6c2cdaa9d"
+      ]
+    },
+    {
+      "table": "profiles",
+      "status": 200,
+      "count": 1,
+      "body": [
+        "3b51bd83-74b6-4d38-9443-8769e464a7f5"
+      ]
+    }
+  ],
+  "auth_user_delete": {
+    "status": 200,
+    "ok": true,
+    "body": "{}"
+  },
+  "remaining": [
+    {
+      "table": "scheduled_checkins",
+      "count": 0
+    },
+    {
+      "table": "chat_messages",
+      "count": 0
+    },
+    {
+      "table": "whatsapp_pending_actions",
+      "count": 0
+    },
+    {
+      "table": "profiles",
+      "count": 0
+    }
+  ]
+}

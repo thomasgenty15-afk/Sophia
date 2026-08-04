@@ -1,0 +1,183 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-only-r4-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je ne veux pas modifier une seule action, et je ne veux pas reconstruire tout mon plan. C'est vraiment le niveau actuel Reprendre le controle sur le grignotage qui est trop dense cette semaine : entre nettoyer l'environnement, choisir du brut 6 jours sur 7 et gerer les envies apres le travail, ca me fait trop. Je veux garder l'objectif global et les niveaux suivants, mais alléger ce niveau actuel pour qu'il soit tenable.",
+    "assistant": "Souhaitez-vous que j'allège la charge de votre programme pour le rendre plus gérable ? L'idée est de réduire la pression quotidienne tout en conservant votre objectif de fond.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "Reprendre le controle sur le grignotage",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "confidence": "medium",
+            "scope_kind": "whole_plan",
+            "constraints": [
+              "no_pressure",
+              "minimal_patch",
+              "preserve_plan_intent",
+              "no_schedule_day_change",
+              "ask_confirmation_before_write"
+            ],
+            "reason_type": "too_heavy",
+            "change_target": "global_load",
+            "reason_change": "time_or_capacity_changed",
+            "load_adjustment": "lighter",
+            "plan_adjustment": "reduce_global_load"
+          },
+          "title": "Ajustement - plan global",
+          "confidence": "medium",
+          "ack_summary": {
+            "changed": [
+              "plan global: reduce_global_load",
+              "cible de changement: global_load"
+            ],
+            "unchanged": [
+              "l'objectif/direction reste préservé sauf demande contraire explicite",
+              "le plan canonique n'est pas reconstruit automatiquement"
+            ],
+            "confidence": "medium",
+            "why_it_helps": "Le plan garde ses rails, mais la charge baisse pour redevenir compatible avec le contexte actuel.",
+            "follow_up_needed": "identifier ensuite les semaines ou blocs les plus lourds pour affiner"
+          },
+          "scope_label": "plan global",
+          "why_it_helps": "Le changement traite la trajectoire globale du plan au lieu de forcer une cible action.",
+          "decision_basis": {
+            "evidence": [
+              "Je ne veux pas modifier une seule action, et je ne veux pas reconstruire tout mon plan. C'est vraiment le niveau actuel Reprendre le controle sur le grignotage qui est trop dense cette semaine : entre nettoyer l'environnement, choisir du brut 6 jours sur 7 et gerer les envies apres le travail, ca me fait trop. Je veux garder l'objectif global et les niveaux suivants, mais alléger ce niveau actuel pour qu'il soit tenable.",
+              "operation_input.scope",
+              "message.reduce_global_load",
+              "adjustment_type.reduce_global_load_default",
+              "message.time_or_capacity_changed",
+              "message.load_or_intensity"
+            ],
+            "confidence": "medium",
+            "uncertainty": [
+              "semaines ou blocs exacts a affiner ensuite"
+            ],
+            "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+            "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+            "must_preserve": [
+              "intention du plan",
+              "direction globale du plan"
+            ]
+          },
+          "adjustment_type": "reduce",
+          "proposed_change": "reduire la charge globale du plan",
+          "change_rationale": {
+            "why_this_change": "Réduire global_load répond au problème \"time_or_capacity_changed\" sans changer la direction du plan.",
+            "success_condition": "Le plan paraît tenable sans reconstruction complète ni changement d'objectif implicite.",
+            "expected_mechanism": "Le plan garde ses rails, mais la charge baisse pour redevenir compatible avec le contexte actuel."
+          },
+          "adjust_plan_result": {
+            "scope": "whole_plan",
+            "rationale": {
+              "confidence": "medium",
+              "missing_info": [
+                "Identification précise des blocs de temps les plus problématiques"
+              ],
+              "user_problem": "Le plan actuel est trop lourd à porter, créant un risque de découragement face à la densité des tâches.",
+              "expected_effect": "Une meilleure adhésion au programme et une réduction du stress lié au suivi.",
+              "why_this_change": "Réduire la charge permet de maintenir la régularité sans changer la destination finale."
+            },
+            "boundaries": {
+              "explanation": "La structure et les étapes restent identiques, seule l'exigence de réalisation est revue à la baisse.",
+              "affected_scope": "L'ensemble de la progression du plan.",
+              "global_plan_impact": "indirect",
+              "explicitly_not_affected": [
+                "Objectif principal",
+                "Identité du plan"
+              ]
+            },
+            "applied_change": {
+              "summary": "Allègement de la charge globale du plan pour le rendre plus tenable.",
+              "changed_items": [
+                {
+                  "id": null,
+                  "kind": "plan_setting",
+                  "after": "Allégée",
+                  "title": "Intensité du programme",
+                  "before": "Standard",
+                  "reason": "Le rythme actuel est trop dense par rapport aux capacités actuelles."
+                }
+              ],
+              "preserved_items": [
+                {
+                  "id": null,
+                  "kind": "plan",
+                  "title": "Objectif final et direction",
+                  "reason": "L'intention de fond reste pertinente et ne doit pas être modifiée."
+                }
+              ]
+            },
+            "user_message_brief": "J'ai réduit l'intensité globale pour que votre plan soit plus facile à suivre au quotidien.",
+            "user_message_detailed": "J'ai ajusté la charge de votre programme pour qu'elle soit plus compatible avec votre situation actuelle. L'objectif reste le même, mais le rythme est désormais plus souple, ce qui devrait vous aider à rester constant sans vous sentir submergé."
+          },
+          "execution_strategy": "whole_plan_adjustment",
+          "allowed_patch_fields": [
+            "scope_kind",
+            "plan_adjustment",
+            "load_adjustment",
+            "goal_adjustment",
+            "sequence_adjustment",
+            "reason_type",
+            "reason_change",
+            "change_target",
+            "confidence",
+            "constraints"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "C'est fait, j'ai assoupli l'intensité de votre parcours. Les étapes clés sont préservées, mais les exigences quotidiennes sont désormais moins lourdes. Cela devrait vous permettre de mieux gérer vos journées, notamment pour le choix des aliments bruts et la gestion des envies après le travail, sans vous sentir débordé. Je pense que ce rythme plus calme est la clé pour rester constant sans s'épuiser.",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Souhaitez-vous que j'allège la charge de votre programme pour le rendre plus gérable ? L'idée est de réduire la pression quotidienne tout en conservant votre objectif de fond."
+      },
+      "status": "pending_confirmation",
+      "reason_code": "operation_intent_start",
+      "operation_id": "dab270b0-56d9-4414-965c-dc23fa60f8af",
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-only-r4-t01",
+    "trace_error": null
+  }
+]

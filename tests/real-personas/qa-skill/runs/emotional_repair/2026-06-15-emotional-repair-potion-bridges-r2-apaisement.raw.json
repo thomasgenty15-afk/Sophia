@@ -1,0 +1,1444 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement-t01",
+    "auth_method": "refresh_token",
+    "user": "Je suis à cran depuis ce matin. J'ai l'impression que tout appuie sur moi, même les petits messages, et mon corps reste tendu comme si je devais encaisser encore.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement-t01",
+      "user_id": "156b0c93-1d94-4abd-b08b-6eb53de6fdb0",
+      "channel": "web",
+      "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je sens à quel point c'est pesant pour toi. C'est épuisant d'avoir cette sensation que tout appuie sur tes épaules et que ton corps reste ainsi sous tension. Je suis simplement là, à tes côtés, pour t'accompagner dans ce moment.",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement-t01",
+            "source_message_id": "10a7ce91-d83a-4582-85ec-01e6d954c3cf",
+            "user_id": "156b0c93-1d94-4abd-b08b-6eb53de6fdb0",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "flow_opportunity": null,
+            "note_information": {
+              "source_flow_id": "global_dispatcher",
+              "handoff_reason": "explicit_user_request",
+              "target_dispatcher": "emotional_repair",
+              "handoff_context_for_next_dispatcher": "L'utilisateur exprime un état de tension nerveuse et physique intense ('à cran', 'corps tendu'). Le besoin immédiat est l'apaisement et la régulation émotionnelle avant toute autre action produit.",
+              "user_words": [
+                "Je suis à cran depuis ce matin",
+                "tout appuie sur moi",
+                "mon corps reste tendu comme si je devais encaisser encore"
+              ],
+              "structured_context": {
+                "primary_signal_path": "skill_signals.entry.emotional_repair",
+                "target_kind": "skill",
+                "target_flow": "emotional_repair",
+                "confidence_band": "high",
+                "evidence": [
+                  "à cran",
+                  "corps tendu",
+                  "encaisser encore"
+                ],
+                "recommended_next_focus": "Prioriser l'apaisement immédiat et la validation du ressenti physique. Ne pas proposer de potion ou de carte d'action avant d'avoir stabilisé l'état émotionnel."
+              },
+              "confidence": "high"
+            },
+            "skill_signals": {
+              "entry": {
+                "emotional_repair": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "score": 0.95,
+                  "reason": "user_expresses_acute_emotional_tension_and_physical_stress"
+                }
+              },
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "domain_key",
+                  "key": "psychologie.emotions",
+                  "query_hint": "gestion du stress et tension physique",
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "high",
+                  "entity_type": null
+                },
+                {
+                  "type": "runtime_snapshot",
+                  "key": "daily_conversation_pulse:current_week",
+                  "query_hint": "état émotionnel récent",
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first",
+                  "priority": "medium",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "taxonomy_first",
+              "plan_confidence": 0.7
+            },
+            "normal_reply_fit_score": 0.15,
+            "normal_reply_fit_evidence": [
+              "Le message exprime une tension physique et émotionnelle aiguë ('à cran', 'corps tendu', 'encaisser') qui nécessite une prise en charge spécialisée plutôt qu'une simple conversation."
+            ],
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "skill_entry_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            },
+            "selected_handler": "emotional_repair",
+            "active_flow_debug": {
+              "version": "active_flow_debug_v1",
+              "snapshots": [
+                {
+                  "phase": "user_state_loaded",
+                  "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 0,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "undefined"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_onboarding_and_reconcile",
+                  "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "undefined"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "read_active_flow_state",
+                  "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_pending_confirmation_reload",
+                  "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 1,
+                    "flow_keys": [],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": null
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "before_run_conversation_routers",
+                  "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 3,
+                    "flow_keys": [
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": null,
+                  "route_active_flow_reason_code": null
+                },
+                {
+                  "phase": "after_run_conversation_routers",
+                  "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement",
+                  "temp_memory": {
+                    "temp_memory_type": "object",
+                    "has_temp_memory": true,
+                    "temp_memory_key_count": 3,
+                    "flow_keys": [
+                      "__conversation_risk_history",
+                      "__conversation_risk_last"
+                    ],
+                    "raw_active_key": null,
+                    "raw_active_skill": {
+                      "present": false,
+                      "value_type": "null"
+                    },
+                    "conversation_risk_last": {
+                      "should_exit_flows": false,
+                      "score": 0,
+                      "reason_codes": []
+                    }
+                  },
+                  "active_skill_state": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "active_tool_skill_id": null,
+                  "pending_confirmation_id": null,
+                  "route_reason_code": "skill_entry_signal",
+                  "route_active_flow_reason_code": "no_active_flow"
+                }
+              ]
+            }
+          },
+          "skill_run": {
+            "selected_skill_id": "emotional_repair",
+            "reason_code": "skill_entry_signal",
+            "output": {
+              "skill_id": "emotional_repair",
+              "status": "continue",
+              "response_intent": "stabilize",
+              "memory_trace": {
+                "memory_used_for_response": false,
+                "memory_item_ids_used": [],
+                "correction_detected": false,
+                "correction_target_item_ids": []
+              },
+              "reply": "Je sens à quel point c'est pesant pour toi. C'est épuisant d'avoir cette sensation que tout appuie sur tes épaules et que ton corps reste ainsi sous tension. Je suis simplement là, à tes côtés, pour t'accompagner dans ce moment.",
+              "diagnosis": {
+                "local_flow": true,
+                "flow_action": "regulation_without_potion",
+                "visible_task": "stabilize_anxiety",
+                "potion_bridge_status": "blocked",
+                "selected_potion": null,
+                "reason_code": "emotional_repair_local_continue",
+                "evidence": [
+                  "Tension et pression corporelle explicites",
+                  "État actuel dominant sur une aide stabilisante, sans demande de technique ni de sortie du flow"
+                ]
+              },
+              "recommendation_need": {
+                "needed": false,
+                "type": "none",
+                "urgency": "none",
+                "constraints": [
+                  "no_potion",
+                  "no_tool",
+                  "no_plan",
+                  "no_protocol",
+                  "no_technique",
+                  "no_questions",
+                  "soft_support_only",
+                  "short_reply"
+                ]
+              },
+              "operation_suggestions": [],
+              "memory_write_candidates": [],
+              "effects": {
+                "requested": [],
+                "allowed": [],
+                "blocked": [],
+                "committed": []
+              },
+              "state_patch": {
+                "emotional_repair_local_state": {
+                  "skill_id": "emotional_repair",
+                  "mode": "local_repair_flow",
+                  "status": "active",
+                  "repair_state": {
+                    "intent": "asks_regulation_without_potion",
+                    "phase": "stabilize",
+                    "emotional_dominance": "high",
+                    "context_domain": "body",
+                    "summary": "Tension nerveuse et physique élevée depuis ce matin, avec sensation d'être sous pression même face à de petits stimuli. Le besoin immédiat est l'apaisement et la validation du ressenti corporel avant toute autre étape.",
+                    "user_words": [
+                      "à cran depuis ce matin",
+                      "tout appuie sur moi",
+                      "corps reste tendu"
+                    ],
+                    "identity_freeze_risk": false,
+                    "emotion_stabilized_enough_for_tool": false
+                  },
+                  "last_visible_task": "stabilize_anxiety",
+                  "last_potion_bridge_offer": null,
+                  "previous_repair_summary": "Tension nerveuse et physique élevée depuis ce matin, avec sensation d'être sous pression même face à de petits stimuli. Le besoin immédiat est l'apaisement et la validation du ressenti corporel avant toute autre étape.",
+                  "turn_count": 1,
+                  "max_turns": 6,
+                  "created_at": "2026-06-15T15:27:47.786Z",
+                  "updated_at": "2026-06-15T15:27:47.786Z"
+                },
+                "emotional_repair_visible_task": {
+                  "kind": "stabilize_anxiety",
+                  "conversation_context": {
+                    "state_summary": "Tension nerveuse et physique élevée depuis ce matin, avec sensation d'être sous pression même face à de petits stimuli. Le besoin immédiat est l'apaisement et la validation du ressenti corporel avant toute autre étape.",
+                    "user_words": [
+                      "à cran depuis ce matin",
+                      "tout appuie sur moi",
+                      "corps reste tendu"
+                    ],
+                    "field_or_stage": "stabilize_anxiety",
+                    "known_values": {
+                      "intent": "asks_regulation_without_potion",
+                      "phase": "stabilize",
+                      "emotional_dominance": "high",
+                      "context_domain": "body",
+                      "identity_freeze_risk": false,
+                      "emotion_stabilized_enough_for_tool": false
+                    },
+                    "missing_or_weak_values": [
+                      "stabilisation émotionnelle suffisante",
+                      "absence de domination de la tension actuelle"
+                    ],
+                    "selected_candidate": {
+                      "potion": null,
+                      "potion_label": null,
+                      "durable_need_kind": "pressure_relief",
+                      "durable_need_summary": "Soulagement de la pression ressentie et apaisement du corps."
+                    },
+                    "handoff_data": {
+                      "bridge_context_summary": null,
+                      "target_dispatcher": null
+                    },
+                    "tone_constraints": [
+                      "soft",
+                      "no_potion",
+                      "no_tool",
+                      "no_plan",
+                      "no_protocol",
+                      "no_technique",
+                      "no_questions",
+                      "soft_support_only",
+                      "short_reply"
+                    ],
+                    "do_not_say": [
+                      "Ne mentionne pas dispatcher, JSON, reducer, trace ou target_flow.",
+                      "Ne promets aucune creation, activation, session potion, rappel ou ecriture DB.",
+                      "Ne propose pas de potion dans ce message.",
+                      "Ne propose pas de protocole.",
+                      "Ne propose pas de technique ou exercice.",
+                      "Ne propose pas de potion."
+                    ],
+                    "context_summary": "Tension nerveuse et physique élevée depuis ce matin, avec sensation d'être sous pression même face à de petits stimuli. Le besoin immédiat est l'apaisement et la validation du ressenti corporel avant toute autre étape.",
+                    "evidence_used": [
+                      "Tension et pression corporelle explicites",
+                      "État actuel dominant sur une aide stabilisante, sans demande de technique ni de sortie du flow"
+                    ],
+                    "max_questions": 0
+                  }
+                },
+                "emotional_repair_potion_handoff": null,
+                "summary": "Tension nerveuse et physique élevée depuis ce matin, avec sensation d'être sous pression même face à de petits stimuli. Le besoin immédiat est l'apaisement et la validation du ressenti corporel avant toute autre étape."
+              }
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "conversation_handler"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement-t01",
+          "source_message_id": "10a7ce91-d83a-4582-85ec-01e6d954c3cf",
+          "user_id": "156b0c93-1d94-4abd-b08b-6eb53de6fdb0",
+          "channel": "web",
+          "safety": {
+            "risk_band": "low",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "flow_opportunity": null,
+          "note_information": {
+            "source_flow_id": "global_dispatcher",
+            "handoff_reason": "explicit_user_request",
+            "target_dispatcher": "emotional_repair",
+            "handoff_context_for_next_dispatcher": "L'utilisateur exprime un état de tension nerveuse et physique intense ('à cran', 'corps tendu'). Le besoin immédiat est l'apaisement et la régulation émotionnelle avant toute autre action produit.",
+            "user_words": [
+              "Je suis à cran depuis ce matin",
+              "tout appuie sur moi",
+              "mon corps reste tendu comme si je devais encaisser encore"
+            ],
+            "structured_context": {
+              "primary_signal_path": "skill_signals.entry.emotional_repair",
+              "target_kind": "skill",
+              "target_flow": "emotional_repair",
+              "confidence_band": "high",
+              "evidence": [
+                "à cran",
+                "corps tendu",
+                "encaisser encore"
+              ],
+              "recommended_next_focus": "Prioriser l'apaisement immédiat et la validation du ressenti physique. Ne pas proposer de potion ou de carte d'action avant d'avoir stabilisé l'état émotionnel."
+            },
+            "confidence": "high"
+          },
+          "skill_signals": {
+            "entry": {
+              "emotional_repair": {
+                "detected": true,
+                "confidence_band": "high",
+                "score": 0.95,
+                "reason": "user_expresses_acute_emotional_tension_and_physical_stress"
+              }
+            },
+            "lifecycle": {},
+            "exit": {}
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "targeted",
+            "memory_mode": "light",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "small",
+            "targets": [
+              {
+                "type": "domain_key",
+                "key": "psychologie.emotions",
+                "query_hint": "gestion du stress et tension physique",
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first",
+                "priority": "high",
+                "entity_type": null
+              },
+              {
+                "type": "runtime_snapshot",
+                "key": "daily_conversation_pulse:current_week",
+                "query_hint": "état émotionnel récent",
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first",
+                "priority": "medium",
+                "entity_type": null
+              }
+            ],
+            "retrieval_policy": "taxonomy_first",
+            "plan_confidence": 0.7
+          },
+          "normal_reply_fit_score": 0.15,
+          "normal_reply_fit_evidence": [
+            "Le message exprime une tension physique et émotionnelle aiguë ('à cran', 'corps tendu', 'encaisser') qui nécessite une prise en charge spécialisée plutôt qu'une simple conversation."
+          ],
+          "active_handoff_action": null,
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "skill_entry_signal",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "none",
+            "active_owner": "none",
+            "selected_owner": "none",
+            "resume_policy": "none",
+            "reason_code": "no_active_flow"
+          },
+          "selected_handler": "emotional_repair",
+          "active_flow_debug": {
+            "version": "active_flow_debug_v1",
+            "snapshots": [
+              {
+                "phase": "user_state_loaded",
+                "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 0,
+                  "flow_keys": [],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": null
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "undefined"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_onboarding_and_reconcile",
+                "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 1,
+                  "flow_keys": [],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": null
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "undefined"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "read_active_flow_state",
+                "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 1,
+                  "flow_keys": [],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": null
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_pending_confirmation_reload",
+                "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 1,
+                  "flow_keys": [],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": null
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "before_run_conversation_routers",
+                "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 3,
+                  "flow_keys": [
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_run_conversation_routers",
+                "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 3,
+                  "flow_keys": [
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": "skill_entry_signal",
+                "route_active_flow_reason_code": "no_active_flow"
+              }
+            ]
+          }
+        },
+        "skill_run": {
+          "selected_skill_id": "emotional_repair",
+          "reason_code": "skill_entry_signal",
+          "output": {
+            "skill_id": "emotional_repair",
+            "status": "continue",
+            "response_intent": "stabilize",
+            "memory_trace": {
+              "memory_used_for_response": false,
+              "memory_item_ids_used": [],
+              "correction_detected": false,
+              "correction_target_item_ids": []
+            },
+            "reply": "Je sens à quel point c'est pesant pour toi. C'est épuisant d'avoir cette sensation que tout appuie sur tes épaules et que ton corps reste ainsi sous tension. Je suis simplement là, à tes côtés, pour t'accompagner dans ce moment.",
+            "diagnosis": {
+              "local_flow": true,
+              "flow_action": "regulation_without_potion",
+              "visible_task": "stabilize_anxiety",
+              "potion_bridge_status": "blocked",
+              "selected_potion": null,
+              "reason_code": "emotional_repair_local_continue",
+              "evidence": [
+                "Tension et pression corporelle explicites",
+                "État actuel dominant sur une aide stabilisante, sans demande de technique ni de sortie du flow"
+              ]
+            },
+            "recommendation_need": {
+              "needed": false,
+              "type": "none",
+              "urgency": "none",
+              "constraints": [
+                "no_potion",
+                "no_tool",
+                "no_plan",
+                "no_protocol",
+                "no_technique",
+                "no_questions",
+                "soft_support_only",
+                "short_reply"
+              ]
+            },
+            "operation_suggestions": [],
+            "memory_write_candidates": [],
+            "effects": {
+              "requested": [],
+              "allowed": [],
+              "blocked": [],
+              "committed": []
+            },
+            "state_patch": {
+              "emotional_repair_local_state": {
+                "skill_id": "emotional_repair",
+                "mode": "local_repair_flow",
+                "status": "active",
+                "repair_state": {
+                  "intent": "asks_regulation_without_potion",
+                  "phase": "stabilize",
+                  "emotional_dominance": "high",
+                  "context_domain": "body",
+                  "summary": "Tension nerveuse et physique élevée depuis ce matin, avec sensation d'être sous pression même face à de petits stimuli. Le besoin immédiat est l'apaisement et la validation du ressenti corporel avant toute autre étape.",
+                  "user_words": [
+                    "à cran depuis ce matin",
+                    "tout appuie sur moi",
+                    "corps reste tendu"
+                  ],
+                  "identity_freeze_risk": false,
+                  "emotion_stabilized_enough_for_tool": false
+                },
+                "last_visible_task": "stabilize_anxiety",
+                "last_potion_bridge_offer": null,
+                "previous_repair_summary": "Tension nerveuse et physique élevée depuis ce matin, avec sensation d'être sous pression même face à de petits stimuli. Le besoin immédiat est l'apaisement et la validation du ressenti corporel avant toute autre étape.",
+                "turn_count": 1,
+                "max_turns": 6,
+                "created_at": "2026-06-15T15:27:47.786Z",
+                "updated_at": "2026-06-15T15:27:47.786Z"
+              },
+              "emotional_repair_visible_task": {
+                "kind": "stabilize_anxiety",
+                "conversation_context": {
+                  "state_summary": "Tension nerveuse et physique élevée depuis ce matin, avec sensation d'être sous pression même face à de petits stimuli. Le besoin immédiat est l'apaisement et la validation du ressenti corporel avant toute autre étape.",
+                  "user_words": [
+                    "à cran depuis ce matin",
+                    "tout appuie sur moi",
+                    "corps reste tendu"
+                  ],
+                  "field_or_stage": "stabilize_anxiety",
+                  "known_values": {
+                    "intent": "asks_regulation_without_potion",
+                    "phase": "stabilize",
+                    "emotional_dominance": "high",
+                    "context_domain": "body",
+                    "identity_freeze_risk": false,
+                    "emotion_stabilized_enough_for_tool": false
+                  },
+                  "missing_or_weak_values": [
+                    "stabilisation émotionnelle suffisante",
+                    "absence de domination de la tension actuelle"
+                  ],
+                  "selected_candidate": {
+                    "potion": null,
+                    "potion_label": null,
+                    "durable_need_kind": "pressure_relief",
+                    "durable_need_summary": "Soulagement de la pression ressentie et apaisement du corps."
+                  },
+                  "handoff_data": {
+                    "bridge_context_summary": null,
+                    "target_dispatcher": null
+                  },
+                  "tone_constraints": [
+                    "soft",
+                    "no_potion",
+                    "no_tool",
+                    "no_plan",
+                    "no_protocol",
+                    "no_technique",
+                    "no_questions",
+                    "soft_support_only",
+                    "short_reply"
+                  ],
+                  "do_not_say": [
+                    "Ne mentionne pas dispatcher, JSON, reducer, trace ou target_flow.",
+                    "Ne promets aucune creation, activation, session potion, rappel ou ecriture DB.",
+                    "Ne propose pas de potion dans ce message.",
+                    "Ne propose pas de protocole.",
+                    "Ne propose pas de technique ou exercice.",
+                    "Ne propose pas de potion."
+                  ],
+                  "context_summary": "Tension nerveuse et physique élevée depuis ce matin, avec sensation d'être sous pression même face à de petits stimuli. Le besoin immédiat est l'apaisement et la validation du ressenti corporel avant toute autre étape.",
+                  "evidence_used": [
+                    "Tension et pression corporelle explicites",
+                    "État actuel dominant sur une aide stabilisante, sans demande de technique ni de sortie du flow"
+                  ],
+                  "max_questions": 0
+                }
+              },
+              "emotional_repair_potion_handoff": null,
+              "summary": "Tension nerveuse et physique élevée depuis ce matin, avec sensation d'être sous pression même face à de petits stimuli. Le besoin immédiat est l'apaisement et la validation du ressenti corporel avant toute autre étape."
+            }
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement-t01",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "conversation_handler"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement-t02",
+    "auth_method": "refresh_token",
+    "user": "Merci, ça baisse un peu. J'aimerais garder un soutien pour les prochains jours, surtout pour relâcher cette pression qui revient dès que je vois une notification.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement-t02",
+      "user_id": "156b0c93-1d94-4abd-b08b-6eb53de6fdb0",
+      "channel": "web",
+      "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je suis contente que la tension commence à baisser. Pour t'aider à relâcher durablement la pression liée aux notifications ces prochains jours, je te propose la Potion d'apaisement. Est-ce que tu veux qu'on l'utilise ?",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement-t02",
+            "source_message_id": "865fe0e6-22e6-4265-9b3b-1a26ad0fed28",
+            "user_id": "156b0c93-1d94-4abd-b08b-6eb53de6fdb0",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0
+              ],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "flow_opportunity": null,
+            "skill_signals": {},
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "selected_handler": "emotional_repair",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "active_emotional_repair_uses_local_dispatcher"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_emotional_repair_local_dispatcher",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "tool_skill_run": {
+            "selected_handler": "emotional_repair",
+            "reason_code": "emotional_repair_local_continue",
+            "skill_id": "emotional_repair",
+            "mode": "conversation_skill_local_flow",
+            "status": "continue",
+            "response_intent": "action_card_ready",
+            "flow_action": "potion_bridge_offer",
+            "visible_task": "potion_bridge_offer",
+            "global_dispatcher_skipped": true,
+            "source_dispatcher_local": "emotional_repair.local_dispatcher",
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "runtime_trace": [
+              {
+                "component": "emotional_repair",
+                "event": "local_dispatcher_turn",
+                "global_dispatcher_skipped": true,
+                "safety_handoff": false
+              }
+            ]
+          },
+          "effect_ledger": {
+            "turn_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement-t02",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "conversation_handler"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement-t02",
+          "source_message_id": "865fe0e6-22e6-4265-9b3b-1a26ad0fed28",
+          "user_id": "156b0c93-1d94-4abd-b08b-6eb53de6fdb0",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [
+              0
+            ],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "flow_opportunity": null,
+          "skill_signals": {},
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "selected_handler": "emotional_repair",
+          "blocked_paths": [
+            {
+              "path": "global_dispatcher",
+              "reason_code": "active_emotional_repair_uses_local_dispatcher"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "active_emotional_repair_local_dispatcher",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none"
+        },
+        "tool_skill_run": {
+          "selected_handler": "emotional_repair",
+          "reason_code": "emotional_repair_local_continue",
+          "skill_id": "emotional_repair",
+          "mode": "conversation_skill_local_flow",
+          "status": "continue",
+          "response_intent": "action_card_ready",
+          "flow_action": "potion_bridge_offer",
+          "visible_task": "potion_bridge_offer",
+          "global_dispatcher_skipped": true,
+          "source_dispatcher_local": "emotional_repair.local_dispatcher",
+          "requested_effects": [],
+          "allowed_effects": [],
+          "committed_effects": [],
+          "blocked_effects": [],
+          "runtime_trace": [
+            {
+              "component": "emotional_repair",
+              "event": "local_dispatcher_turn",
+              "global_dispatcher_skipped": true,
+              "safety_handoff": false
+            }
+          ]
+        },
+        "effect_ledger": {
+          "turn_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement-t02",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "conversation_handler"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement-t03",
+    "auth_method": "refresh_token",
+    "user": "Oui, je veux qu'on l'utilise. La pression des notifications est exactement le sujet.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement-t03",
+      "user_id": "156b0c93-1d94-4abd-b08b-6eb53de6fdb0",
+      "channel": "web",
+      "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je comprends. Est-ce que cette pression te donne le sentiment d'être toujours sur le qui-vive ?",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement-t03",
+            "source_message_id": "a35cc6d8-e678-4dbe-9659-2e38fc996752",
+            "user_id": "156b0c93-1d94-4abd-b08b-6eb53de6fdb0",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0
+              ],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "flow_opportunity": null,
+            "skill_signals": {},
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "selected_handler": "emotional_repair",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "active_emotional_repair_uses_local_dispatcher"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_emotional_repair_local_dispatcher",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "tool_skill_run": {
+            "selected_handler": "emotional_repair",
+            "reason_code": "emotional_repair_potion_bridge_blocked",
+            "skill_id": "emotional_repair",
+            "mode": "conversation_skill_local_flow",
+            "status": "continue",
+            "response_intent": "exit",
+            "flow_action": "confirm_potion_bridge",
+            "visible_task": "ask_gentle_clarification",
+            "global_dispatcher_skipped": true,
+            "source_dispatcher_local": "emotional_repair.local_dispatcher",
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [
+              {
+                "type": "select_state_potion",
+                "reason_code": "missing_previous_potion_offer"
+              }
+            ],
+            "runtime_trace": [
+              {
+                "component": "emotional_repair",
+                "event": "local_dispatcher_turn",
+                "global_dispatcher_skipped": true,
+                "safety_handoff": false
+              }
+            ]
+          },
+          "effect_ledger": {
+            "turn_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement-t03",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 1,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement-t03:blocked:select_state_potion:0",
+                "kind": "durable_effect",
+                "effect_type": "select_state_potion",
+                "operation_type": null,
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": null,
+                "status": "blocked",
+                "reason_code": "missing_previous_potion_offer",
+                "source": "executor",
+                "payload_summary": {
+                  "preference_keys": []
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": null,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "conversation_handler"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement-t03",
+          "source_message_id": "a35cc6d8-e678-4dbe-9659-2e38fc996752",
+          "user_id": "156b0c93-1d94-4abd-b08b-6eb53de6fdb0",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [
+              0
+            ],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "flow_opportunity": null,
+          "skill_signals": {},
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "selected_handler": "emotional_repair",
+          "blocked_paths": [
+            {
+              "path": "global_dispatcher",
+              "reason_code": "active_emotional_repair_uses_local_dispatcher"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "active_emotional_repair_local_dispatcher",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none"
+        },
+        "tool_skill_run": {
+          "selected_handler": "emotional_repair",
+          "reason_code": "emotional_repair_potion_bridge_blocked",
+          "skill_id": "emotional_repair",
+          "mode": "conversation_skill_local_flow",
+          "status": "continue",
+          "response_intent": "exit",
+          "flow_action": "confirm_potion_bridge",
+          "visible_task": "ask_gentle_clarification",
+          "global_dispatcher_skipped": true,
+          "source_dispatcher_local": "emotional_repair.local_dispatcher",
+          "requested_effects": [],
+          "allowed_effects": [],
+          "committed_effects": [],
+          "blocked_effects": [
+            {
+              "type": "select_state_potion",
+              "reason_code": "missing_previous_potion_offer"
+            }
+          ],
+          "runtime_trace": [
+            {
+              "component": "emotional_repair",
+              "event": "local_dispatcher_turn",
+              "global_dispatcher_skipped": true,
+              "safety_handoff": false
+            }
+          ]
+        },
+        "effect_ledger": {
+          "turn_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement-t03",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 1,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": [
+            {
+              "effect_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-apaisement-t03:blocked:select_state_potion:0",
+              "kind": "durable_effect",
+              "effect_type": "select_state_potion",
+              "operation_type": null,
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": null,
+              "status": "blocked",
+              "reason_code": "missing_previous_potion_offer",
+              "source": "executor",
+              "payload_summary": {
+                "preference_keys": []
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": null,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            }
+          ]
+        },
+        "response_owner": "conversation_handler"
+      },
+      "trace_error": null
+    }
+  }
+]

@@ -1,0 +1,582 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-clarification-local-clarif_state_qa_20260615_r2b-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je veux créer une carte d'attaque et une carte de défense pour demain matin, mais je ne sais pas par laquelle commencer.",
+    "assistant": "On commence par laquelle pour demain : la carte d'attaque ou la carte de défense ?",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_owner": "orientation_clarification",
+    "selected_handler": "orientation_clarification",
+    "route_reason_code": "clarification_required",
+    "active_flow_arbitration": null,
+    "clarification_flow_run": null,
+    "clarification_status": null,
+    "clarification_flow_action": null,
+    "clarification_visible_task": null,
+    "selected_candidate_id": null,
+    "candidate_signals": null,
+    "note_information": null,
+    "tool_skill_run": null,
+    "tool_selected_handler": null,
+    "tool_flow_action": null,
+    "tool_visible_task_kind": null,
+    "safety": {
+      "risk_band": "low",
+      "reason_codes": [],
+      "evidence": []
+    },
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "effect_ledger": {
+      "turn_id": "qa-clarification-local-clarif_state_qa_20260615_r2b-t01",
+      "counts": {
+        "requested": 0,
+        "allowed": 0,
+        "blocked": 0,
+        "committed": 0,
+        "failed": 0,
+        "proposed": 0,
+        "delivered": 0,
+        "cancelled": 0,
+        "superseded": 0,
+        "asked": 0,
+        "resolved": 0,
+        "topic_change": 0
+      },
+      "entries": []
+    },
+    "memory_plan": {
+      "response_intent": "reflection",
+      "reasoning_complexity": "low",
+      "context_need": "targeted",
+      "memory_mode": "light",
+      "model_tier_hint": "lite",
+      "context_budget_tier": "small",
+      "targets": [
+        {
+          "type": "runtime_snapshot",
+          "key": "daily_conversation_pulse:current_week",
+          "query_hint": "recent actions or risks mentioned this week",
+          "expansion_policy": null,
+          "retrieval_policy": "semantic_first",
+          "priority": "medium",
+          "entity_type": null
+        }
+      ],
+      "retrieval_policy": "semantic_first",
+      "plan_confidence": 0.7
+    },
+    "raw_keys": [
+      "turn_frame",
+      "route_decision",
+      "effect_ledger",
+      "response_owner"
+    ]
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-clarification-local-clarif_state_qa_20260615_r2b-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Je ne sais pas trop, les deux me semblent utiles, mais le téléphone me fait vraiment perdre du temps.",
+    "assistant": "On commence par laquelle : la carte d'attaque ou la carte de défense ?",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_owner": "orientation_clarification",
+    "selected_handler": "orientation_clarification",
+    "route_reason_code": "clarification_required",
+    "active_flow_arbitration": null,
+    "clarification_flow_run": null,
+    "clarification_status": null,
+    "clarification_flow_action": null,
+    "clarification_visible_task": null,
+    "selected_candidate_id": null,
+    "candidate_signals": null,
+    "note_information": null,
+    "tool_skill_run": null,
+    "tool_selected_handler": null,
+    "tool_flow_action": null,
+    "tool_visible_task_kind": null,
+    "safety": {
+      "risk_band": "low",
+      "reason_codes": [],
+      "evidence": []
+    },
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "effect_ledger": {
+      "turn_id": "qa-clarification-local-clarif_state_qa_20260615_r2b-t02",
+      "counts": {
+        "requested": 0,
+        "allowed": 0,
+        "blocked": 0,
+        "committed": 0,
+        "failed": 0,
+        "proposed": 0,
+        "delivered": 0,
+        "cancelled": 0,
+        "superseded": 0,
+        "asked": 0,
+        "resolved": 0,
+        "topic_change": 0
+      },
+      "entries": []
+    },
+    "memory_plan": {
+      "response_intent": "reflection",
+      "reasoning_complexity": "low",
+      "context_need": "targeted",
+      "memory_mode": "light",
+      "model_tier_hint": "lite",
+      "context_budget_tier": "small",
+      "targets": [
+        {
+          "type": "topic",
+          "key": "addictions.ecrans",
+          "query_hint": "usage du téléphone et perte de temps",
+          "expansion_policy": null,
+          "retrieval_policy": "semantic_first",
+          "priority": "medium",
+          "entity_type": null
+        }
+      ],
+      "retrieval_policy": "semantic_first",
+      "plan_confidence": 0.7
+    },
+    "raw_keys": [
+      "turn_frame",
+      "route_decision",
+      "effect_ledger",
+      "response_owner"
+    ]
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-clarification-local-clarif_state_qa_20260615_r2b-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Carte de défense, je veux gérer le réflexe téléphone au réveil.",
+    "assistant": "C'est une excellente idée de s'attaquer à ce réflexe. Quel est le tout premier signal ou l'élément déclencheur qui te pousse à attraper ton téléphone dès le réveil ?",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_defense_card",
+    "route_reason_code": "orientation_clarification_resolved_tool_skill",
+    "active_flow_arbitration": {
+      "decision": "none",
+      "active_owner": "none",
+      "selected_owner": "none",
+      "resume_policy": "none",
+      "reason_code": "no_active_flow"
+    },
+    "clarification_flow_run": null,
+    "clarification_status": null,
+    "clarification_flow_action": null,
+    "clarification_visible_task": null,
+    "selected_candidate_id": null,
+    "candidate_signals": null,
+    "note_information": null,
+    "tool_skill_run": {
+      "selected_handler": "prepare_defense_card",
+      "reason_code": "prepare_defense_card_local_collecting",
+      "operation_type": "prepare_defense_card",
+      "mode": "platform_handoff",
+      "executable_from_chat": false,
+      "status": "collecting",
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "pending_confirmation": null,
+      "handoff_state": {
+        "skill_id": "prepare_defense_card",
+        "mode": "platform_handoff",
+        "status": "collecting",
+        "draft": null,
+        "local_state": {
+          "flow_id": "prepare_defense_card",
+          "route_kind": "free_card",
+          "platform_destination": "dans Ressources / Défense / Cartes de défense libres",
+          "tool_fit_state": {
+            "status": "defense",
+            "reason": "L'utilisateur veut gérer un réflexe automatique (téléphone au réveil), ce qui correspond à une protection contre une impulsion.",
+            "needs_user_confirmation": false,
+            "why_status": "Choix explicite de l'utilisateur après clarification."
+          },
+          "attachment_state": {
+            "status": "missing",
+            "kind": "unknown",
+            "plan_item_id": null,
+            "candidate_value": null,
+            "locked_value": null,
+            "candidate_options": [],
+            "needs_user_confirmation": false,
+            "why_status": "Attache manquante."
+          },
+          "risk_state": {
+            "status": "proposed",
+            "label": "réflexe téléphone au réveil",
+            "description": "L'automatisme de prendre son téléphone dès le matin.",
+            "timing_hint": "réveil",
+            "context_hint": "matin",
+            "needs_user_confirmation": true,
+            "why_status": "Situation de risque identifiée dans le message."
+          },
+          "trigger_state": {
+            "status": "proposed",
+            "type": null,
+            "candidate_value": "ouvrir les yeux / être au lit le matin",
+            "locked_value": null,
+            "needs_user_confirmation": true,
+            "why_status": "Signal déclencheur probable."
+          },
+          "defense_goal_state": {
+            "status": "proposed",
+            "value": "interrupt_impulse",
+            "candidate_value": "ne pas scroller dès le réveil",
+            "locked_value": null,
+            "needs_user_confirmation": true,
+            "why_status": "Objectif déduit du besoin de 'gérer le réflexe'."
+          },
+          "defense_response_hint_state": {
+            "status": "missing",
+            "strategy_hint": null,
+            "candidate_value": null,
+            "locked_value": null,
+            "needs_user_confirmation": false,
+            "why_status": "Réponse défensive non fournie."
+          },
+          "support_need_state": {
+            "field_id": "support_need",
+            "question_label": "Avec quelle situation / contexte / environnement / pulsion as-tu besoin d'aide ?",
+            "status": "missing",
+            "candidate_value": null,
+            "locked_value": null,
+            "previous_value": null,
+            "needs_user_confirmation": false,
+            "why_status": "Champ support_need manquant."
+          },
+          "last_visible_task": "ask_trigger_or_signal",
+          "last_handoff_delivered": false,
+          "subskill_history": []
+        },
+        "turn_count": 1,
+        "max_turns": 8,
+        "created_at": "2026-06-15T20:06:20.262Z",
+        "updated_at": "2026-06-15T20:06:20.262Z",
+        "executable_from_chat": false
+      },
+      "risk_assessment": {
+        "risk_score": 0,
+        "risk_band": "none",
+        "safety_preempt": false,
+        "reason_codes": []
+      },
+      "state_mutation_audit": {
+        "server_owned_fields": [
+          "route_kind",
+          "platform_destination",
+          "tool_fit_state",
+          "attachment_state",
+          "risk_state",
+          "trigger_state",
+          "defense_goal_state",
+          "defense_response_hint_state",
+          "support_need_state",
+          "last_visible_task",
+          "last_handoff_delivered",
+          "subskill_history"
+        ],
+        "modified_fields_declared": [
+          "tool_fit",
+          "risk_state"
+        ],
+        "clear_fields_declared": [],
+        "applied_fields": [
+          "tool_fit_state",
+          "risk_state",
+          "trigger_state",
+          "defense_goal_state"
+        ],
+        "preserved_fields": [
+          "route_kind",
+          "platform_destination"
+        ],
+        "restored_fields": [],
+        "cleared_fields": [],
+        "rejected_changes": []
+      },
+      "runtime_trace": [
+        {
+          "component": "prepare_defense_card.local_flow",
+          "event": "active flow entry",
+          "flow_action": null,
+          "visible_task_kind": null,
+          "tool_fit": "ambiguous",
+          "support_need_status": "missing",
+          "handoff_ready": false,
+          "slots_modified": [],
+          "exit_to_global_dispatcher": false,
+          "ai_call_count": 0,
+          "risk_assessment": null,
+          "state_mutation_audit": null,
+          "selected_handler": "prepare_defense_card"
+        },
+        {
+          "component": "prepare_defense_card.local_flow",
+          "event": "local_dispatcher called",
+          "flow_action": null,
+          "visible_task_kind": null,
+          "tool_fit": "ambiguous",
+          "support_need_status": "missing",
+          "handoff_ready": false,
+          "slots_modified": [],
+          "exit_to_global_dispatcher": false,
+          "ai_call_count": 0,
+          "risk_assessment": null,
+          "state_mutation_audit": null,
+          "selected_handler": "prepare_defense_card"
+        },
+        {
+          "component": "prepare_defense_card.local_flow",
+          "event": "note_information_consumed",
+          "note_information": {
+            "source_flow_id": "global_dispatcher",
+            "handoff_reason": "explicit_user_request",
+            "target_dispatcher": "prepare_defense_card",
+            "handoff_context_for_next_dispatcher": "User explicitly selected 'Carte de défense' to address the 'phone reflex upon waking up'. This follows a clarification loop where the user hesitated between attack and defense.",
+            "user_words": [
+              "Carte de défense",
+              "gérer le réflexe téléphone au réveil",
+              "Carte de défense, je veux gérer le réflexe téléphone au réveil."
+            ],
+            "structured_context": {
+              "primary_signal_path": "tool_skill_intents[0]",
+              "target_kind": "tool_skill",
+              "target_flow": "prepare_defense_card",
+              "confidence_band": "high",
+              "evidence": [
+                "Carte de défense",
+                "réflexe téléphone au réveil"
+              ],
+              "recommended_next_focus": "Run the local dispatcher for prepare_defense_card with the identified target."
+            },
+            "confidence": "high"
+          },
+          "source_flow_id": "global_dispatcher",
+          "target_dispatcher": "prepare_defense_card",
+          "selected_handler": "prepare_defense_card"
+        },
+        {
+          "component": "prepare_defense_card.local_flow",
+          "event": "local_dispatcher decision",
+          "flow_action": "answer_current_field",
+          "visible_task_kind": "ask_trigger_or_signal",
+          "tool_fit": "defense",
+          "support_need_status": "missing",
+          "handoff_ready": false,
+          "slots_modified": [
+            "tool_fit",
+            "risk_state"
+          ],
+          "exit_to_global_dispatcher": false,
+          "ai_call_count": 1,
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "state_mutation_audit": null,
+          "selected_handler": "prepare_defense_card"
+        },
+        {
+          "component": "prepare_defense_card.local_flow",
+          "event": "reducer reduced",
+          "flow_action": "answer_current_field",
+          "visible_task_kind": "ask_trigger_or_signal",
+          "tool_fit": "defense",
+          "support_need_status": "missing",
+          "handoff_ready": false,
+          "slots_modified": [
+            "tool_fit",
+            "attachment",
+            "risk_situation",
+            "trigger",
+            "defense_goal"
+          ],
+          "exit_to_global_dispatcher": false,
+          "ai_call_count": 1,
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "state_mutation_audit": {
+            "server_owned_fields": [
+              "route_kind",
+              "platform_destination",
+              "tool_fit_state",
+              "attachment_state",
+              "risk_state",
+              "trigger_state",
+              "defense_goal_state",
+              "defense_response_hint_state",
+              "support_need_state",
+              "last_visible_task",
+              "last_handoff_delivered",
+              "subskill_history"
+            ],
+            "modified_fields_declared": [
+              "tool_fit",
+              "risk_state"
+            ],
+            "clear_fields_declared": [],
+            "applied_fields": [
+              "tool_fit_state",
+              "risk_state",
+              "trigger_state",
+              "defense_goal_state"
+            ],
+            "preserved_fields": [
+              "route_kind",
+              "platform_destination"
+            ],
+            "restored_fields": [],
+            "cleared_fields": [],
+            "rejected_changes": []
+          },
+          "selected_handler": "prepare_defense_card"
+        },
+        {
+          "component": "prepare_defense_card.local_flow",
+          "event": "visible_prompt called",
+          "flow_action": "answer_current_field",
+          "visible_task_kind": "ask_trigger_or_signal",
+          "tool_fit": "defense",
+          "support_need_status": "missing",
+          "handoff_ready": false,
+          "slots_modified": [
+            "tool_fit",
+            "attachment",
+            "risk_situation",
+            "trigger",
+            "defense_goal"
+          ],
+          "exit_to_global_dispatcher": false,
+          "ai_call_count": 1,
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "state_mutation_audit": null,
+          "selected_handler": "prepare_defense_card"
+        },
+        {
+          "component": "prepare_defense_card.visible_agent",
+          "stage": "ask_trigger_or_signal",
+          "accepted": true,
+          "issues": []
+        },
+        {
+          "component": "prepare_defense_card.local_flow",
+          "event": "visible_prompt complete",
+          "flow_action": "answer_current_field",
+          "visible_task_kind": "ask_trigger_or_signal",
+          "tool_fit": "defense",
+          "support_need_status": "missing",
+          "handoff_ready": false,
+          "slots_modified": [
+            "tool_fit",
+            "attachment",
+            "risk_situation",
+            "trigger",
+            "defense_goal"
+          ],
+          "exit_to_global_dispatcher": false,
+          "ai_call_count": 2,
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "state_mutation_audit": null,
+          "selected_handler": "prepare_defense_card"
+        }
+      ],
+      "ai_call_count": 2
+    },
+    "tool_selected_handler": "prepare_defense_card",
+    "tool_flow_action": null,
+    "tool_visible_task_kind": null,
+    "safety": {
+      "risk_band": "low",
+      "reason_codes": [],
+      "evidence": []
+    },
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "effect_ledger": {
+      "turn_id": "qa-clarification-local-clarif_state_qa_20260615_r2b-t03",
+      "counts": {
+        "requested": 0,
+        "allowed": 0,
+        "blocked": 0,
+        "committed": 0,
+        "failed": 0,
+        "proposed": 0,
+        "delivered": 0,
+        "cancelled": 0,
+        "superseded": 0,
+        "asked": 0,
+        "resolved": 0,
+        "topic_change": 0
+      },
+      "entries": []
+    },
+    "memory_plan": {
+      "response_intent": "reflection",
+      "reasoning_complexity": "low",
+      "context_need": "targeted",
+      "memory_mode": "light",
+      "model_tier_hint": "lite",
+      "context_budget_tier": "small",
+      "targets": [
+        {
+          "type": "domain_key",
+          "key": "addictions.ecrans",
+          "query_hint": "téléphone réveil",
+          "expansion_policy": null,
+          "retrieval_policy": "taxonomy_first",
+          "priority": "medium",
+          "entity_type": null
+        }
+      ],
+      "retrieval_policy": "semantic_first",
+      "plan_confidence": 0.7
+    },
+    "raw_keys": [
+      "turn_frame",
+      "route_decision",
+      "tool_skill_run",
+      "effect_ledger",
+      "response_owner"
+    ]
+  }
+]

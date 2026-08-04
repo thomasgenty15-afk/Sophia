@@ -1,0 +1,425 @@
+[
+  {
+    "potion": "guerison",
+    "state": "shame_guilt",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r47_hard2_guerison_guerison",
+    "user_id": "c40257bb-f5e6-41d7-9a74-cc6c885d8837",
+    "fixture": {
+      "cycle": {
+        "id": "c47576f9-0e41-41dc-8258-8e78c44ef17a",
+        "user_id": "c40257bb-f5e6-41d7-9a74-cc6c885d8837",
+        "status": "active",
+        "raw_intake_text": "QA potions: l'utilisateur veut retrouver une relation plus calme a son quotidien tout en gardant une action simple.",
+        "intake_language": "fr",
+        "duration_months": 1,
+        "birth_date_snapshot": null,
+        "gender_snapshot": null,
+        "active_transformation_id": null,
+        "version": 1,
+        "created_at": "2026-05-21T16:13:37.40067+00:00",
+        "updated_at": "2026-05-21T16:13:37.40067+00:00",
+        "completed_at": null,
+        "archived_at": null,
+        "validated_structure": null,
+        "requested_pace": null
+      },
+      "transformation": {
+        "id": "48af885e-39d4-4db9-aa6b-2372927bb114",
+        "cycle_id": "c47576f9-0e41-41dc-8258-8e78c44ef17a",
+        "priority_order": 1,
+        "status": "active",
+        "title": "Reparer apres les rechutes",
+        "internal_summary": "Fixture QA pour tester la potion guerison.",
+        "user_summary": "Le user cherche un accompagnement doux, concret, sans pression supplementaire.",
+        "success_definition": "Avoir un appui simple qui ramene au bon geste sans surcharge.",
+        "main_constraint": "Quand la charge monte, le user se perd dans la pression et l'auto-jugement.",
+        "questionnaire_schema": null,
+        "questionnaire_answers": {
+          "potion_qa": "guerison",
+          "ton_prefere": "doux et direct",
+          "rythme_prefere": "matin"
+        },
+        "completion_summary": null,
+        "handoff_payload": {
+          "phase_1": {
+            "deep_why": {
+              "answers": [
+                {
+                  "answer": "Je veux arreter de me disperser et me sentir plus present a ce que je choisis.",
+                  "question_id": "why_1"
+                },
+                {
+                  "answer": "Je veux proteger mon energie et ma confiance au lieu de les depenser en tension.",
+                  "question_id": "why_2"
+                }
+              ],
+              "questions": [
+                {
+                  "id": "why_1",
+                  "label": "Pourquoi est-ce important pour toi ?"
+                },
+                {
+                  "id": "why_2",
+                  "label": "Qu'est-ce que tu veux proteger ?"
+                }
+              ]
+            }
+          }
+        },
+        "created_at": "2026-05-21T16:13:37.405078+00:00",
+        "updated_at": "2026-05-21T16:13:37.405078+00:00",
+        "activated_at": "2026-05-21T16:13:37.166+00:00",
+        "completed_at": null,
+        "ordering_rationale": null,
+        "unlocked_principles": {
+          "kaizen": true
+        },
+        "base_de_vie_payload": null
+      },
+      "plan": {
+        "id": "8a78aaac-3d38-4355-9406-9a7fc6ca38c9",
+        "user_id": "c40257bb-f5e6-41d7-9a74-cc6c885d8837",
+        "cycle_id": "c47576f9-0e41-41dc-8258-8e78c44ef17a",
+        "transformation_id": "48af885e-39d4-4db9-aa6b-2372927bb114",
+        "status": "active",
+        "version": 1,
+        "title": "Plan QA guerison",
+        "content": {
+          "source": "qa_state_potion_6subskills",
+          "strategy": {
+            "core_principle": "Un seul appui juste vaut mieux qu'une pression de plus.",
+            "identity_shift": "Je deviens quelqu'un qui avance avec plus de douceur.",
+            "main_constraint": "La surcharge transforme les petits pas en montagne.",
+            "success_definition": "Revenir a un geste simple au bon moment."
+          }
+        },
+        "generation_attempts": 0,
+        "last_generation_reason": null,
+        "activated_at": "2026-05-21T16:13:37.166+00:00",
+        "completed_at": null,
+        "archived_at": null,
+        "created_at": "2026-05-21T16:13:37.414479+00:00",
+        "updated_at": "2026-05-21T16:13:37.414479+00:00",
+        "generation_feedback": null,
+        "generation_input_snapshot": null
+      },
+      "item": {
+        "id": "271a45e8-693b-41ed-b725-e14f70a58054",
+        "user_id": "c40257bb-f5e6-41d7-9a74-cc6c885d8837",
+        "cycle_id": "c47576f9-0e41-41dc-8258-8e78c44ef17a",
+        "transformation_id": "48af885e-39d4-4db9-aa6b-2372927bb114",
+        "plan_id": "8a78aaac-3d38-4355-9406-9a7fc6ca38c9",
+        "dimension": "habits",
+        "kind": "habit",
+        "status": "active",
+        "title": "Reprendre doucement apres un ratage",
+        "description": "Action QA active visible par le skill potion.",
+        "tracking_type": "boolean",
+        "activation_order": 1,
+        "activation_condition": null,
+        "current_habit_state": "active_building",
+        "support_mode": null,
+        "support_function": null,
+        "target_reps": 1,
+        "current_reps": 0,
+        "cadence_label": "quotidien",
+        "scheduled_days": [
+          "thu"
+        ],
+        "time_of_day": "09:00",
+        "start_after_item_id": null,
+        "payload": {
+          "source": "qa_state_potion_6subskills",
+          "potion_type": "guerison"
+        },
+        "created_at": "2026-05-21T16:13:37.418018+00:00",
+        "updated_at": "2026-05-21T16:13:37.418018+00:00",
+        "activated_at": "2026-05-21T16:13:37.166+00:00",
+        "completed_at": null,
+        "phase_id": null,
+        "phase_order": null,
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "cards_status": "not_required",
+        "cards_generated_at": null
+      }
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r47_hard2_guerison-guerison-t01-a1",
+        "user": "Je veux une potion de guerison. J'ai rate mon bloc hier et je me suis parle vraiment durement.",
+        "assistant": "C'est dur de se parler comme ça après un échec. Tu ressens surtout quoi là tout de suite ? 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "emotional_repair",
+          "route_selected_handler": "emotional_repair",
+          "route_reason": "skill_entry_signal",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r47_hard2_guerison-guerison-t01-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 2,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r47_hard2_guerison-guerison-t02-a1",
+        "user": "Le moment qui reste, c'est quand j'ai ferme le document et que j'ai fait comme si ce n'etait rien.",
+        "assistant": "C'est souvent là que ça pèse le plus, quand on essaie de passer à autre chose en faisant semblant. Tu ressens quoi au fond de toi quand tu repenses à ce moment ? 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r47_hard2_guerison-guerison-t02-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 3,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r47_hard2_guerison-guerison-t03-a1",
+        "user": "Ce qui pese, c'est honte plus fatigue. Je veux que le message m'aide a ne pas transformer ca en identite.",
+        "assistant": "On va s'assurer que ce qui s'est passé hier reste un simple événement et ne devienne pas un poids. Je t'enverrai un message de soutien chaque matin à 09:00 pendant une semaine pour t'aider à reprendre tes activités avec plus de douceur. Dis-moi si ce rythme te semble juste pour la suite. 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r47_hard2_guerison-guerison-t03-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 4,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r47_hard2_guerison-guerison-t04-a1",
+        "user": "Le matin me va, avec un ton adulte, pas trop consolant.",
+        "assistant": "Ce qui reste de hier, je le garde comme un ratage isolé, pas comme une vérité sur toi. Le rappel partira chaque matin à 09:00 pendant une semaine, avec un ton direct et sobre pour t'aider à revenir au bon geste sans t'enfoncer. Je garde ce cadre comme ça. 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r47_hard2_guerison-guerison-t04-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 5,
+        "attempt": 2,
+        "requestId": "qa-state-potion-state_potion_6subskills_r47_hard2_guerison-guerison-t05-a2",
+        "user": "Oui, active cette potion de guerison.",
+        "assistant": "Là, l'idée n'est pas de te pousser. Juste de faire retomber la charge et de t'aider à repartir sans te durcir encore plus. 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [
+            {
+              "outcome": "success",
+              "tool_id": "select_state_potion"
+            }
+          ],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [
+            "select_state_potion"
+          ],
+          "tool_execution": "success",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r47_hard2_guerison-guerison-t05-a2"
+        },
+        "durable_after": {
+          "sessions": [
+            {
+              "id": "2f863a63-99b5-4e82-b2ca-30c38a59e70e",
+              "potion_type": "guerison",
+              "status": "completed"
+            }
+          ],
+          "reminders": [
+            {
+              "id": "24f04267-e813-4dae-a97d-7ad4a7f6c259",
+              "initiative_kind": "potion_follow_up",
+              "source_kind": "potion_generated"
+            }
+          ],
+          "checkins": [
+            {
+              "id": "d3739157-b1a1-4292-9943-378ae01f0b37",
+              "status": "pending",
+              "scheduled_for": "2026-05-22T09:00:00+00:00"
+            },
+            {
+              "id": "6a9d0a44-9203-44e0-bfa0-163e8c8307d4",
+              "status": "pending",
+              "scheduled_for": "2026-05-23T09:00:00+00:00"
+            },
+            {
+              "id": "08b43fb6-a817-4036-ab71-f4fbad977e63",
+              "status": "pending",
+              "scheduled_for": "2026-05-24T09:00:00+00:00"
+            },
+            {
+              "id": "1ed82dff-0132-4df3-8ba3-661578f15fb5",
+              "status": "pending",
+              "scheduled_for": "2026-05-25T09:00:00+00:00"
+            },
+            {
+              "id": "ac66a4e0-7d82-4987-b830-7aa1e742a71c",
+              "status": "pending",
+              "scheduled_for": "2026-05-26T09:00:00+00:00"
+            },
+            {
+              "id": "b8795576-5261-4c37-b793-7c364e045fa7",
+              "status": "pending",
+              "scheduled_for": "2026-05-27T09:00:00+00:00"
+            },
+            {
+              "id": "e27a8dc4-3b46-4bbe-b785-57b5866edebb",
+              "status": "pending",
+              "scheduled_for": "2026-05-28T09:00:00+00:00"
+            }
+          ]
+        }
+      }
+    ]
+  }
+]

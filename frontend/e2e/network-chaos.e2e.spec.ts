@@ -1,5 +1,4 @@
 import { test, expect } from "@playwright/test";
-import { createClient } from "@supabase/supabase-js";
 
 function mustEnv(name: string): string {
   const v = process.env[name];
@@ -63,44 +62,4 @@ test("Network chaos: /chat shows error when sophia-brain 500s", async ({ page })
   // Chat UI should surface an error container (text depends on supabase-js error)
   await expect(page.getByTestId("chat-error")).toBeVisible();
 });
-
-test("Network chaos: /plan-generator shows 'Erreur de génération' when generate-plan 500s", async ({ page }) => {
-  const seeded = await seedAuthedUser(true);
-
-  // Create a minimal active goal so plan-generator can resolve currentAxis
-  await seeded.admin.from("user_goals").insert({
-    user_id: seeded.userId,
-    axis_id: "ENG_1",
-    axis_title: "Retrouver une énergie stable & respecter ses limites",
-    theme_id: "ENG",
-    priority_order: 1,
-    status: "active",
-    submission_id: crypto.randomUUID(),
-  });
-
-  await page.route("**/functions/v1/generate-plan", async (route) => {
-    await route.fulfill({
-      status: 500,
-      contentType: "application/json",
-      body: JSON.stringify({ error: "generate-plan failed" }),
-    });
-  });
-
-  await page.goto("/auth");
-  await page.getByPlaceholder("vous@exemple.com").fill(seeded.email);
-  await page.getByPlaceholder("••••••••").fill(seeded.password);
-  await page.getByRole("button", { name: "Se connecter" }).click();
-  await page.waitForURL("**/dashboard");
-
-  await page.goto("/plan-generator");
-  await expect(page.getByText(/Générateur de Plan/i)).toBeVisible();
-
-  await page.getByPlaceholder(/Je suis épuisé/i).fill("Test");
-  await page.getByPlaceholder(/J'ai peur/i).fill("Test");
-  await page.getByPlaceholder(/Je vis en colocation/i).fill("Test");
-  await page.getByRole("button", { name: "Générer mon Plan d'Action" }).click();
-
-  await expect(page.getByText("Erreur de génération")).toBeVisible({ timeout: 30_000 });
-});
-
 

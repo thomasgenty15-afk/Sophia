@@ -1,0 +1,803 @@
+{
+  "run_id": "attack-switch-20260613-r1",
+  "connection_name": "attack-switch_20260613-r1",
+  "user_id": "94b4f5d3-30dd-47c6-a228-9d341cfc9db6",
+  "email": "qa-qa-skill-attack-switch-20260613-r1@example.com",
+  "scope": "attack-switch-20260613-r1-trigger",
+  "anon_key": "[redacted]",
+  "service_key": "[redacted]",
+  "access_token": "[redacted]",
+  "force_full_ai": true,
+  "auth_check": {
+    "status": 200,
+    "ok": true
+  },
+  "incidents": [
+    {
+      "stage": "pre-run",
+      "issue": "initial runner syntax error before HTTP call",
+      "resolution": "rerun with async wrapper"
+    }
+  ],
+  "turns": [
+    {
+      "turn": 1,
+      "request_id": "attack-switch-20260613-r1-t01",
+      "user": "J'ai un vrai point de rupture demain à 9h: je dois ouvrir le dossier URSSAF, mais dès que je vois le portail je pars ranger mon bureau. Prépare-moi une carte d'attaque avec un mot de bascule très court que je pourrai t'envoyer tel quel quand je décroche.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "On part donc sur un Mot de bascule pour t'aider à rester concentré sur l'ouverture de ton dossier URSSAF. Est-ce que c'est bien la technique que tu veux utiliser ?",
+      "trace_short": {
+        "response_owner": "tool_skill",
+        "selected_handler": "prepare_attack_card",
+        "route_reason": "tool_skill_intent_start",
+        "safety": "low",
+        "direct_effects": [],
+        "operation": null,
+        "pending_confirmation": null,
+        "memory_plan": null,
+        "executed_tools": [],
+        "tool_status": null,
+        "selected_skill_id": null
+      },
+      "raw_path": "/Users/ahmedamara/Dev/Sophia 2/tmp/attack-switch-20260613-r1/turn-01.raw.json"
+    },
+    {
+      "turn": 2,
+      "request_id": "attack-switch-20260613-r1-t02",
+      "user": "Oui, c'est bien Mot de bascule. Mets le mot: URSSAF. Je veux que la carte me ramène juste à ouvrir le portail, puis cliquer sur le dossier, rien de plus.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "Quand tu tiens bon face à l'envie de fuir pour ouvrir ce dossier, qu'est-ce que tu protèges de vraiment important chez toi ?",
+      "trace_short": {
+        "response_owner": "tool_skill",
+        "selected_handler": "prepare_attack_card",
+        "route_reason": "active_prepare_attack_card_local_dispatcher",
+        "safety": "none",
+        "direct_effects": [],
+        "operation": null,
+        "pending_confirmation": null,
+        "memory_plan": null,
+        "executed_tools": [],
+        "tool_status": null,
+        "selected_skill_id": null
+      },
+      "raw_path": "/Users/ahmedamara/Dev/Sophia 2/tmp/attack-switch-20260613-r1/turn-02.raw.json"
+    },
+    {
+      "turn": 3,
+      "request_id": "attack-switch-20260613-r1-t03",
+      "user": "Je protège ma tranquillité: si je règle ce dossier, je n'aurai plus ce poids en arrière-plan toute la journée.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "Tout est prêt pour ta carte. Rends-toi dans la section Cartes d'attaque pour la finaliser avec ces éléments :\n\nTechnique : Mot de bascule\nDans quelle situation precise tu sens que tu vas craquer ou perdre le controle ? : dès que je vois le portail URSSAF\nQuand tu tiens bon dans ce moment-la, qu'est-ce que tu proteges de vraiment important chez toi ? : ma tranquillité (ne plus avoir ce poids en arrière-plan toute la journée)\nMot d'activation : URSSAF\nObjectif : ouvrir le dossier URSSAF (portail puis clic dossier)\n\nEst-ce que tu sais comment y accéder ?",
+      "trace_short": {
+        "response_owner": "tool_skill",
+        "selected_handler": "prepare_attack_card",
+        "route_reason": "active_prepare_attack_card_local_dispatcher",
+        "safety": "none",
+        "direct_effects": [],
+        "operation": null,
+        "pending_confirmation": null,
+        "memory_plan": null,
+        "executed_tools": [],
+        "tool_status": null,
+        "selected_skill_id": null
+      },
+      "raw_path": "/Users/ahmedamara/Dev/Sophia 2/tmp/attack-switch-20260613-r1/turn-03.raw.json"
+    },
+    {
+      "turn": 4,
+      "request_id": "attack-switch-20260613-r1-t04",
+      "user": "Je ne veux pas passer par la section. Crée-la ici avec ces éléments. Je confirme: mot URSSAF, situation portail URSSAF, action ouvrir le portail puis cliquer sur le dossier.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "Je ne peux pas créer ta carte directement ici dans notre discussion. Pour qu'elle soit opérationnelle, tu dois la valider dans tes **Cartes d'attaque**. C'est très rapide : ouvre la section Cartes, choisis Carte d’attaque et reprends le brouillon proposé. Utilise ta technique **Mot de bascule** avec le mot-clé **URSSAF**. Ton objectif est d'**ouvrir le dossier URSSAF (portail puis clic dossier)** au lieu de **partir ranger ton bureau dès que tu vois le portail**.",
+      "trace_short": {
+        "response_owner": "tool_skill",
+        "selected_handler": "prepare_attack_card",
+        "route_reason": "active_prepare_attack_card_local_dispatcher",
+        "safety": "none",
+        "direct_effects": [],
+        "operation": null,
+        "pending_confirmation": null,
+        "memory_plan": null,
+        "executed_tools": [],
+        "tool_status": null,
+        "selected_skill_id": null
+      },
+      "raw_path": "/Users/ahmedamara/Dev/Sophia 2/tmp/attack-switch-20260613-r1/turn-04.raw.json"
+    },
+    {
+      "turn": 5,
+      "request_id": "attack-switch-20260613-r1-t05",
+      "user": "URSSAF",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "C'est exactement ça pour ton mot de bascule URSSAF. Pour que tout soit prêt, tu dois maintenant finaliser l'opération dans la section Cartes d’attaque : ouvre la section Cartes, choisis Carte d’attaque et reprends le brouillon proposé. Est-ce que tu arrives à y accéder ?",
+      "trace_short": {
+        "response_owner": "tool_skill",
+        "selected_handler": "prepare_attack_card",
+        "route_reason": "active_prepare_attack_card_local_dispatcher",
+        "safety": "none",
+        "direct_effects": [],
+        "operation": null,
+        "pending_confirmation": null,
+        "memory_plan": null,
+        "executed_tools": [],
+        "tool_status": null,
+        "selected_skill_id": null
+      },
+      "raw_path": "/Users/ahmedamara/Dev/Sophia 2/tmp/attack-switch-20260613-r1/turn-05.raw.json"
+    },
+    {
+      "turn": 6,
+      "request_id": "attack-switch-20260613-r1-t06",
+      "user": "URSSAF",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "On cible l'URSSAF, c'est bien ça ? Dis-moi ce qui te bloque ou te freine le plus quand tu dois t'en occuper.",
+      "trace_short": {
+        "response_owner": "tool_skill",
+        "selected_handler": "prepare_attack_card",
+        "route_reason": "tool_skill_intent_start",
+        "safety": "low",
+        "direct_effects": [],
+        "operation": null,
+        "pending_confirmation": null,
+        "memory_plan": null,
+        "executed_tools": [],
+        "tool_status": null,
+        "selected_skill_id": null
+      },
+      "raw_path": "/Users/ahmedamara/Dev/Sophia 2/tmp/attack-switch-20260613-r1/turn-06.raw.json"
+    }
+  ],
+  "created_at": "2026-06-13T12:36:28.578Z",
+  "updated_at": "2026-06-13T12:41:38.544Z",
+  "db_after_turn": {
+    "attackCards": {
+      "status": 200,
+      "ok": true,
+      "body": [
+        {
+          "id": "feeaf689-cadf-4e05-a3f9-73b3ff2f5602",
+          "status": "active",
+          "scope_kind": "transformation",
+          "content": {
+            "summary": "Carte d'attaque QA pour tester le mot de bascule URSSAF.",
+            "techniques": [
+              {
+                "title": "Mot de bascule",
+                "pour_quoi": "Aider à tenir au moment où l'utilisateur risque d'esquiver.",
+                "questions": [
+                  "Dans quelle situation precise tu sens que tu vas craquer ou perdre le controle ?",
+                  "Quand tu tiens bon dans ce moment-la, qu'est-ce que tu proteges de vraiment important chez toi ?"
+                ],
+                "mode_emploi": "Envoie seulement URSSAF quand la tension monte.",
+                "objet_genere": "Un mot-clé et un mini protocole de reprise.",
+                "technique_key": "pre_engagement",
+                "generated_result": {
+                  "mode_emploi": "Envoie seulement URSSAF quand tu sens l'esquive vers le rangement.",
+                  "output_title": "Mot de bascule - URSSAF",
+                  "generated_asset": "URSSAF -> ouvrir le portail, cliquer sur le dossier, puis s'arrêter là.",
+                  "keyword_trigger": {
+                    "risk_situation": "Dès que je vois le portail URSSAF, je pars ranger mon bureau au lieu d'ouvrir le dossier.",
+                    "strength_anchor": "Je protège ma tranquillité et je retire ce poids de l'arrière-plan.",
+                    "assistant_prompt": "Réponds brièvement comme soutien immédiat. Ramène l'utilisateur au premier geste: ouvrir le portail URSSAF et cliquer sur le dossier. Ne demande pas d'explication longue.",
+                    "activation_keyword": "URSSAF",
+                    "first_response_intent": "Aider à rester dans la fenêtre courte: ouvrir le portail, cliquer sur le dossier, ne rien élargir.",
+                    "activation_keyword_normalized": "urssaf"
+                  },
+                  "supporting_points": []
+                }
+              }
+            ]
+          },
+          "metadata": {
+            "qa_run_id": "attack-switch-20260613-r1",
+            "created_by": "qa_attack_switch_runner",
+            "connection_name": "attack-switch_20260613-r1"
+          },
+          "generated_at": "2026-06-13T12:40:12.393+00:00"
+        }
+      ]
+    },
+    "chatState": {
+      "status": 200,
+      "ok": true,
+      "body": [
+        {
+          "current_mode": "companion",
+          "temp_memory": {
+            "__conversation_risk_last": {
+              "at": "2026-06-13T12:41:20.110Z",
+              "score": 0,
+              "threshold": 8,
+              "reason_codes": [],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "__conversation_risk_history": [
+              0
+            ],
+            "__active_attack_card_handoff": {
+              "mode": "platform_handoff",
+              "draft": {
+                "mode": "platform_handoff",
+                "operation_type": "prepare_attack_card",
+                "recommendation": {
+                  "avoid": [],
+                  "preserve": [],
+                  "platform_steps": [
+                    "ouvre la section Cartes",
+                    "choisis Carte d’attaque",
+                    "reprends le brouillon proposé"
+                  ],
+                  "technique_label": "",
+                  "card_draft_summary": "",
+                  "why_this_technique": "Technique selection follows target and blocker identification.",
+                  "platform_destination": "dans la section Cartes d’attaque"
+                },
+                "target_summary": "URSSAF",
+                "blocker_summary": "",
+                "no_chat_mutation": true,
+                "missing_decisions": [],
+                "executable_from_chat": false
+              },
+              "status": "collecting",
+              "target": {
+                "kind": "personal_action",
+                "title": "URSSAF",
+                "plan_item_id": null
+              },
+              "skill_id": "prepare_attack_card",
+              "max_turns": 8,
+              "created_at": "2026-06-13T12:41:38.499Z",
+              "turn_count": 1,
+              "updated_at": "2026-06-13T12:41:38.499Z",
+              "local_state": {
+                "flow_id": "prepare_attack_card",
+                "flow_kind": "free_attack_card",
+                "target_state": {
+                  "kind": "personal_action",
+                  "status": "proposed",
+                  "why_status": "User provided the keyword as the target action.",
+                  "locked_value": null,
+                  "plan_item_id": null,
+                  "candidate_value": "URSSAF",
+                  "needs_user_confirmation": true
+                },
+                "blocker_state": {
+                  "status": "missing",
+                  "why_status": "Piège manquant.",
+                  "blocker_type": null,
+                  "locked_value": null,
+                  "candidate_value": null,
+                  "needs_user_confirmation": false
+                },
+                "technique_state": {
+                  "status": "missing",
+                  "why_status": "Technique selection follows target and blocker identification.",
+                  "fit_warning": null,
+                  "technique_key": null,
+                  "technique_label": null,
+                  "candidate_options": [],
+                  "explicitly_requested": false,
+                  "needs_user_confirmation": false
+                },
+                "current_field_id": null,
+                "subskill_history": [],
+                "last_visible_task": "confirm_target_candidate",
+                "platform_destination": "dans la section Cartes d’attaque",
+                "platform_field_order": [],
+                "platform_field_states": {},
+                "last_handoff_delivered": false,
+                "activation_keyword_state": {
+                  "status": "not_applicable",
+                  "why_status": "Not applicable at this stage.",
+                  "locked_value": null,
+                  "candidate_value": null,
+                  "needs_user_confirmation": false
+                }
+              },
+              "source_draft": null,
+              "no_chat_mutation": true
+            },
+            "__coaching_intervention_history": []
+          },
+          "updated_at": "2026-06-13T12:41:38.50178+00:00"
+        }
+      ]
+    },
+    "messages": {
+      "status": 200,
+      "ok": true,
+      "body": [
+        {
+          "id": "b4d50f6b-3a78-49b8-ba50-6c8d6d59f340",
+          "role": "user",
+          "content": "URSSAF",
+          "created_at": "2026-06-13T12:41:07.955895+00:00"
+        },
+        {
+          "id": "08e3775e-d8fd-4b9a-9a3e-80d09bbbc2bd",
+          "role": "assistant",
+          "content": "On cible l'URSSAF, c'est bien ça ? Dis-moi ce qui te bloque ou te freine le plus quand tu dois t'en occuper.",
+          "created_at": "2026-06-13T12:41:38.506016+00:00"
+        }
+      ]
+    }
+  },
+  "fixture": {
+    "cycle_id": "b81b92aa-a31b-48af-87f0-b94fa5cb823c",
+    "transformation_id": "8711acd4-878c-4fce-8562-ddc7dd0fb8bf",
+    "plan_id": "07f45aea-1a55-4836-b34d-ec4f363fcca9",
+    "attack_card_id": "feeaf689-cadf-4e05-a3f9-73b3ff2f5602",
+    "metadata": {
+      "qa_run_id": "attack-switch-20260613-r1",
+      "connection_name": "attack-switch_20260613-r1",
+      "created_by": "qa_attack_switch_runner"
+    },
+    "created_at": "2026-06-13T12:40:12.393Z"
+  },
+  "db_after_fixture": {
+    "attackCards": {
+      "status": 200,
+      "ok": true,
+      "body": [
+        {
+          "id": "feeaf689-cadf-4e05-a3f9-73b3ff2f5602",
+          "status": "active",
+          "scope_kind": "transformation",
+          "content": {
+            "summary": "Carte d'attaque QA pour tester le mot de bascule URSSAF.",
+            "techniques": [
+              {
+                "title": "Mot de bascule",
+                "pour_quoi": "Aider à tenir au moment où l'utilisateur risque d'esquiver.",
+                "questions": [
+                  "Dans quelle situation precise tu sens que tu vas craquer ou perdre le controle ?",
+                  "Quand tu tiens bon dans ce moment-la, qu'est-ce que tu proteges de vraiment important chez toi ?"
+                ],
+                "mode_emploi": "Envoie seulement URSSAF quand la tension monte.",
+                "objet_genere": "Un mot-clé et un mini protocole de reprise.",
+                "technique_key": "pre_engagement",
+                "generated_result": {
+                  "mode_emploi": "Envoie seulement URSSAF quand tu sens l'esquive vers le rangement.",
+                  "output_title": "Mot de bascule - URSSAF",
+                  "generated_asset": "URSSAF -> ouvrir le portail, cliquer sur le dossier, puis s'arrêter là.",
+                  "keyword_trigger": {
+                    "risk_situation": "Dès que je vois le portail URSSAF, je pars ranger mon bureau au lieu d'ouvrir le dossier.",
+                    "strength_anchor": "Je protège ma tranquillité et je retire ce poids de l'arrière-plan.",
+                    "assistant_prompt": "Réponds brièvement comme soutien immédiat. Ramène l'utilisateur au premier geste: ouvrir le portail URSSAF et cliquer sur le dossier. Ne demande pas d'explication longue.",
+                    "activation_keyword": "URSSAF",
+                    "first_response_intent": "Aider à rester dans la fenêtre courte: ouvrir le portail, cliquer sur le dossier, ne rien élargir.",
+                    "activation_keyword_normalized": "urssaf"
+                  },
+                  "supporting_points": []
+                }
+              }
+            ]
+          },
+          "metadata": {
+            "qa_run_id": "attack-switch-20260613-r1",
+            "created_by": "qa_attack_switch_runner",
+            "connection_name": "attack-switch_20260613-r1"
+          },
+          "generated_at": "2026-06-13T12:40:12.393+00:00"
+        }
+      ]
+    },
+    "chatState": {
+      "status": 200,
+      "ok": true,
+      "body": [
+        {
+          "current_mode": "companion",
+          "temp_memory": {
+            "__conversation_risk_last": {
+              "at": "2026-06-13T12:36:34.948Z",
+              "score": 0,
+              "threshold": 8,
+              "reason_codes": [],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "__conversation_risk_history": [
+              0
+            ],
+            "__active_attack_card_handoff": {
+              "mode": "platform_handoff",
+              "draft": {
+                "mode": "platform_handoff",
+                "operation_type": "prepare_attack_card",
+                "recommendation": {
+                  "avoid": [],
+                  "preserve": [],
+                  "platform_steps": [
+                    "ouvre la section Cartes",
+                    "choisis Carte d’attaque",
+                    "reprends le brouillon proposé"
+                  ],
+                  "technique_label": "Mot de bascule",
+                  "card_draft_summary": "",
+                  "why_this_technique": "previously locked",
+                  "platform_destination": "dans la section Cartes d’attaque"
+                },
+                "target_summary": "ouvrir le dossier URSSAF (portail puis clic dossier)",
+                "blocker_summary": "partir ranger mon bureau dès que je vois le portail",
+                "no_chat_mutation": true,
+                "platform_handoff": {
+                  "steps": [
+                    "ouvre la section Cartes",
+                    "choisis Carte d’attaque",
+                    "reprends le brouillon proposé"
+                  ],
+                  "inputs": [
+                    {
+                      "value": "dès que je vois le portail URSSAF",
+                      "status": "locked",
+                      "field_id": "risk_situation",
+                      "question": "Dans quelle situation precise tu sens que tu vas craquer ou perdre le controle ?",
+                      "suggested_answer": "dès que je vois le portail URSSAF"
+                    },
+                    {
+                      "value": "ma tranquillité (ne plus avoir ce poids en arrière-plan toute la journée)",
+                      "status": "locked",
+                      "field_id": "protected_value",
+                      "question": "Quand tu tiens bon dans ce moment-la, qu'est-ce que tu proteges de vraiment important chez toi ?",
+                      "suggested_answer": "ma tranquillité (ne plus avoir ce poids en arrière-plan toute la journée)"
+                    }
+                  ],
+                  "flow_kind": "free_attack_card",
+                  "destination": "dans la section Cartes d’attaque",
+                  "surface_label": "Cartes d'attaque",
+                  "technique_key": "pre_engagement",
+                  "expected_result": {
+                    "mode_emploi": "",
+                    "output_title": "",
+                    "generated_asset": "",
+                    "keyword_trigger": {
+                      "risk_situation": "partir ranger mon bureau dès que je vois le portail",
+                      "strength_anchor": "ouvrir le dossier URSSAF (portail puis clic dossier)",
+                      "assistant_prompt": "Quand j'envoie URSSAF, aide-moi a tenir le choix protege sans creer de carte depuis le chat.",
+                      "activation_keyword": "URSSAF",
+                      "first_response_intent": "Revenir au choix protege avant la reaction automatique."
+                    },
+                    "supporting_points": []
+                  },
+                  "technique_label": "Mot de bascule",
+                  "plan_action_note": null
+                },
+                "missing_decisions": [],
+                "executable_from_chat": false
+              },
+              "status": "apply_attempt",
+              "target": {
+                "kind": "personal_action",
+                "title": "ouvrir le dossier URSSAF (portail puis clic dossier)",
+                "plan_item_id": null
+              },
+              "skill_id": "prepare_attack_card",
+              "max_turns": 8,
+              "created_at": "2026-06-13T12:36:46.171Z",
+              "turn_count": 4,
+              "updated_at": "2026-06-13T12:38:50.149Z",
+              "local_state": {
+                "flow_id": "prepare_attack_card",
+                "flow_kind": "free_attack_card",
+                "target_state": {
+                  "kind": "personal_action",
+                  "status": "locked",
+                  "why_status": "previously locked",
+                  "locked_value": "ouvrir le dossier URSSAF (portail puis clic dossier)",
+                  "plan_item_id": null,
+                  "candidate_value": null,
+                  "needs_user_confirmation": false
+                },
+                "blocker_state": {
+                  "status": "locked",
+                  "why_status": "previously locked",
+                  "blocker_type": "avoidance",
+                  "locked_value": "partir ranger mon bureau dès que je vois le portail",
+                  "candidate_value": null,
+                  "needs_user_confirmation": false
+                },
+                "technique_state": {
+                  "status": "locked",
+                  "why_status": "previously locked",
+                  "fit_warning": null,
+                  "technique_key": "pre_engagement",
+                  "technique_label": "Mot de bascule",
+                  "candidate_options": [],
+                  "explicitly_requested": true,
+                  "needs_user_confirmation": false
+                },
+                "current_field_id": null,
+                "subskill_history": [],
+                "last_visible_task": "apply_attempt",
+                "platform_destination": "dans la section Cartes d’attaque",
+                "platform_field_order": [
+                  "risk_situation",
+                  "protected_value"
+                ],
+                "platform_field_states": {
+                  "risk_situation": {
+                    "status": "locked",
+                    "field_id": "risk_situation",
+                    "why_status": "previously locked",
+                    "field_label": "Dans quelle situation precise tu sens que tu vas craquer ou perdre le controle ?",
+                    "locked_value": "dès que je vois le portail URSSAF",
+                    "technique_key": "pre_engagement",
+                    "previous_value": "dès que je vois le portail URSSAF",
+                    "candidate_value": null,
+                    "needs_user_confirmation": false
+                  },
+                  "protected_value": {
+                    "status": "locked",
+                    "field_id": "protected_value",
+                    "why_status": "previously locked",
+                    "field_label": "Quand tu tiens bon dans ce moment-la, qu'est-ce que tu proteges de vraiment important chez toi ?",
+                    "locked_value": "ma tranquillité (ne plus avoir ce poids en arrière-plan toute la journée)",
+                    "technique_key": "pre_engagement",
+                    "previous_value": "ma tranquillité (ne plus avoir ce poids en arrière-plan toute la journée)",
+                    "candidate_value": null,
+                    "needs_user_confirmation": false
+                  }
+                },
+                "last_handoff_delivered": true,
+                "activation_keyword_state": {
+                  "status": "locked",
+                  "why_status": "previously locked",
+                  "locked_value": "URSSAF",
+                  "candidate_value": null,
+                  "needs_user_confirmation": false
+                }
+              },
+              "source_draft": null,
+              "no_chat_mutation": true
+            },
+            "__coaching_intervention_history": []
+          },
+          "updated_at": "2026-06-13T12:38:50.155767+00:00"
+        }
+      ]
+    },
+    "messages": {
+      "status": 200,
+      "ok": true,
+      "body": [
+        {
+          "id": "35995fa4-2e65-40f9-a283-603a7147e0c0",
+          "role": "user",
+          "content": "J'ai un vrai point de rupture demain à 9h: je dois ouvrir le dossier URSSAF, mais dès que je vois le portail je pars ranger mon bureau. Prépare-moi une carte d'attaque avec un mot de bascule très court que je pourrai t'envoyer tel quel quand je décroche.",
+          "created_at": "2026-06-13T12:36:29.244266+00:00"
+        },
+        {
+          "id": "21989a1d-de54-483f-b58a-66635a396cbe",
+          "role": "assistant",
+          "content": "On part donc sur un Mot de bascule pour t'aider à rester concentré sur l'ouverture de ton dossier URSSAF. Est-ce que c'est bien la technique que tu veux utiliser ?",
+          "created_at": "2026-06-13T12:36:46.179539+00:00"
+        },
+        {
+          "id": "a6507bd8-5b04-48ae-9f1b-aefaafddbb6f",
+          "role": "user",
+          "content": "Oui, c'est bien Mot de bascule. Mets le mot: URSSAF. Je veux que la carte me ramène juste à ouvrir le portail, puis cliquer sur le dossier, rien de plus.",
+          "created_at": "2026-06-13T12:37:33.436147+00:00"
+        },
+        {
+          "id": "77c9ca9e-a4f2-4e24-8ff6-9fb9e9388a19",
+          "role": "assistant",
+          "content": "Quand tu tiens bon face à l'envie de fuir pour ouvrir ce dossier, qu'est-ce que tu protèges de vraiment important chez toi ?",
+          "created_at": "2026-06-13T12:37:50.97924+00:00"
+        },
+        {
+          "id": "a02685cd-ed1c-4c7d-8b72-66bcffa57fd2",
+          "role": "user",
+          "content": "Je protège ma tranquillité: si je règle ce dossier, je n'aurai plus ce poids en arrière-plan toute la journée.",
+          "created_at": "2026-06-13T12:38:04.210058+00:00"
+        },
+        {
+          "id": "ea5088c9-4a88-44cd-b427-1250c4ac8f2c",
+          "role": "assistant",
+          "content": "Tout est prêt pour ta carte. Rends-toi dans la section Cartes d'attaque pour la finaliser avec ces éléments :\n\nTechnique : Mot de bascule\nDans quelle situation precise tu sens que tu vas craquer ou perdre le controle ? : dès que je vois le portail URSSAF\nQuand tu tiens bon dans ce moment-la, qu'est-ce que tu proteges de vraiment important chez toi ? : ma tranquillité (ne plus avoir ce poids en arrière-plan toute la journée)\nMot d'activation : URSSAF\nObjectif : ouvrir le dossier URSSAF (portail puis clic dossier)\n\nEst-ce que tu sais comment y accéder ?",
+          "created_at": "2026-06-13T12:38:28.758647+00:00"
+        },
+        {
+          "id": "2374985c-42ac-49e5-ba7a-ddfd2c705a10",
+          "role": "user",
+          "content": "Je ne veux pas passer par la section. Crée-la ici avec ces éléments. Je confirme: mot URSSAF, situation portail URSSAF, action ouvrir le portail puis cliquer sur le dossier.",
+          "created_at": "2026-06-13T12:38:37.836162+00:00"
+        },
+        {
+          "id": "1e393506-eb02-4b67-a48c-c03c85a66848",
+          "role": "assistant",
+          "content": "Je ne peux pas créer ta carte directement ici dans notre discussion. Pour qu'elle soit opérationnelle, tu dois la valider dans tes **Cartes d'attaque**. C'est très rapide : ouvre la section Cartes, choisis Carte d’attaque et reprends le brouillon proposé. Utilise ta technique **Mot de bascule** avec le mot-clé **URSSAF**. Ton objectif est d'**ouvrir le dossier URSSAF (portail puis clic dossier)** au lieu de **partir ranger ton bureau dès que tu vois le portail**.",
+          "created_at": "2026-06-13T12:38:50.160137+00:00"
+        }
+      ]
+    }
+  },
+  "previous_scope": "attack-switch-20260613-r1",
+  "scope_switched_for_trigger_test": {
+    "from": "attack-switch-20260613-r1",
+    "to": "attack-switch-20260613-r1-trigger",
+    "reason": "clean conversation after active attack card fixture exists",
+    "at": "2026-06-13T12:40:59.562Z"
+  },
+  "db_final": {
+    "attackCards": {
+      "status": 200,
+      "ok": true,
+      "body": [
+        {
+          "id": "feeaf689-cadf-4e05-a3f9-73b3ff2f5602",
+          "status": "active",
+          "scope_kind": "transformation",
+          "content": {
+            "summary": "Carte d'attaque QA pour tester le mot de bascule URSSAF.",
+            "techniques": [
+              {
+                "title": "Mot de bascule",
+                "pour_quoi": "Aider à tenir au moment où l'utilisateur risque d'esquiver.",
+                "questions": [
+                  "Dans quelle situation precise tu sens que tu vas craquer ou perdre le controle ?",
+                  "Quand tu tiens bon dans ce moment-la, qu'est-ce que tu proteges de vraiment important chez toi ?"
+                ],
+                "mode_emploi": "Envoie seulement URSSAF quand la tension monte.",
+                "objet_genere": "Un mot-clé et un mini protocole de reprise.",
+                "technique_key": "pre_engagement",
+                "generated_result": {
+                  "mode_emploi": "Envoie seulement URSSAF quand tu sens l'esquive vers le rangement.",
+                  "output_title": "Mot de bascule - URSSAF",
+                  "generated_asset": "URSSAF -> ouvrir le portail, cliquer sur le dossier, puis s'arrêter là.",
+                  "keyword_trigger": {
+                    "risk_situation": "Dès que je vois le portail URSSAF, je pars ranger mon bureau au lieu d'ouvrir le dossier.",
+                    "strength_anchor": "Je protège ma tranquillité et je retire ce poids de l'arrière-plan.",
+                    "assistant_prompt": "Réponds brièvement comme soutien immédiat. Ramène l'utilisateur au premier geste: ouvrir le portail URSSAF et cliquer sur le dossier. Ne demande pas d'explication longue.",
+                    "activation_keyword": "URSSAF",
+                    "first_response_intent": "Aider à rester dans la fenêtre courte: ouvrir le portail, cliquer sur le dossier, ne rien élargir.",
+                    "activation_keyword_normalized": "urssaf"
+                  },
+                  "supporting_points": []
+                }
+              }
+            ]
+          },
+          "metadata": {
+            "qa_run_id": "attack-switch-20260613-r1",
+            "created_by": "qa_attack_switch_runner",
+            "connection_name": "attack-switch_20260613-r1"
+          },
+          "generated_at": "2026-06-13T12:40:12.393+00:00"
+        }
+      ]
+    },
+    "chatState": {
+      "status": 200,
+      "ok": true,
+      "body": [
+        {
+          "current_mode": "companion",
+          "temp_memory": {
+            "__conversation_risk_last": {
+              "at": "2026-06-13T12:41:20.110Z",
+              "score": 0,
+              "threshold": 8,
+              "reason_codes": [],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "__conversation_risk_history": [
+              0
+            ],
+            "__active_attack_card_handoff": {
+              "mode": "platform_handoff",
+              "draft": {
+                "mode": "platform_handoff",
+                "operation_type": "prepare_attack_card",
+                "recommendation": {
+                  "avoid": [],
+                  "preserve": [],
+                  "platform_steps": [
+                    "ouvre la section Cartes",
+                    "choisis Carte d’attaque",
+                    "reprends le brouillon proposé"
+                  ],
+                  "technique_label": "",
+                  "card_draft_summary": "",
+                  "why_this_technique": "Technique selection follows target and blocker identification.",
+                  "platform_destination": "dans la section Cartes d’attaque"
+                },
+                "target_summary": "URSSAF",
+                "blocker_summary": "",
+                "no_chat_mutation": true,
+                "missing_decisions": [],
+                "executable_from_chat": false
+              },
+              "status": "collecting",
+              "target": {
+                "kind": "personal_action",
+                "title": "URSSAF",
+                "plan_item_id": null
+              },
+              "skill_id": "prepare_attack_card",
+              "max_turns": 8,
+              "created_at": "2026-06-13T12:41:38.499Z",
+              "turn_count": 1,
+              "updated_at": "2026-06-13T12:41:38.499Z",
+              "local_state": {
+                "flow_id": "prepare_attack_card",
+                "flow_kind": "free_attack_card",
+                "target_state": {
+                  "kind": "personal_action",
+                  "status": "proposed",
+                  "why_status": "User provided the keyword as the target action.",
+                  "locked_value": null,
+                  "plan_item_id": null,
+                  "candidate_value": "URSSAF",
+                  "needs_user_confirmation": true
+                },
+                "blocker_state": {
+                  "status": "missing",
+                  "why_status": "Piège manquant.",
+                  "blocker_type": null,
+                  "locked_value": null,
+                  "candidate_value": null,
+                  "needs_user_confirmation": false
+                },
+                "technique_state": {
+                  "status": "missing",
+                  "why_status": "Technique selection follows target and blocker identification.",
+                  "fit_warning": null,
+                  "technique_key": null,
+                  "technique_label": null,
+                  "candidate_options": [],
+                  "explicitly_requested": false,
+                  "needs_user_confirmation": false
+                },
+                "current_field_id": null,
+                "subskill_history": [],
+                "last_visible_task": "confirm_target_candidate",
+                "platform_destination": "dans la section Cartes d’attaque",
+                "platform_field_order": [],
+                "platform_field_states": {},
+                "last_handoff_delivered": false,
+                "activation_keyword_state": {
+                  "status": "not_applicable",
+                  "why_status": "Not applicable at this stage.",
+                  "locked_value": null,
+                  "candidate_value": null,
+                  "needs_user_confirmation": false
+                }
+              },
+              "source_draft": null,
+              "no_chat_mutation": true
+            },
+            "__coaching_intervention_history": []
+          },
+          "updated_at": "2026-06-13T12:41:38.50178+00:00"
+        }
+      ]
+    },
+    "messages": {
+      "status": 200,
+      "ok": true,
+      "body": [
+        {
+          "id": "b4d50f6b-3a78-49b8-ba50-6c8d6d59f340",
+          "role": "user",
+          "content": "URSSAF",
+          "created_at": "2026-06-13T12:41:07.955895+00:00"
+        },
+        {
+          "id": "08e3775e-d8fd-4b9a-9a3e-80d09bbbc2bd",
+          "role": "assistant",
+          "content": "On cible l'URSSAF, c'est bien ça ? Dis-moi ce qui te bloque ou te freine le plus quand tu dois t'en occuper.",
+          "created_at": "2026-06-13T12:41:38.506016+00:00"
+        }
+      ]
+    }
+  }
+}

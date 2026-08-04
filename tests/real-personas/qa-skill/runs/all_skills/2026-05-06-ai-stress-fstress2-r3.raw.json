@@ -1,0 +1,290 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-all-skills-ai-stress-2026-05-06-fstress2-r3-t01",
+    "user": "Programme-moi un rappel récurrent chaque lundi à 9h, message 'Quelle est la prochaine petite action ?'. Demande-moi confirmation avant de le créer.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-all-skills-ai-stress-2026-05-06-fstress2-r3-t01",
+      "user_id": "aa6a24a2-f9ff-4486-a9f1-dfbbe98dbee0",
+      "channel": "web",
+      "scope": "qa-all-skills-ai-stress-2026-05-06-fstress2-r3",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je te propose de créer ce rappel récurrent : \"Quelle est la prochaine petite action ?\", chaque semaine à 09:00. Tu veux que je le crée ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-all-skills-ai-stress-2026-05-06-fstress2-r3-t01",
+        "user_id": "aa6a24a2-f9ff-4486-a9f1-dfbbe98dbee0",
+        "source_message_id": "573bf8e0-c547-4bc4-b460-1ea9f981337f",
+        "ts": "2026-05-06T14:24:30.726+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 530,
+          "latency_ms": 11534,
+          "tokens_out": 379,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "routing": {
+            "reasoning": "L'utilisateur souhaite programmer un rappel récurrent. Tous les paramètres sont fournis, mais une confirmation explicite est demandée avant exécution.",
+            "target_id": null,
+            "routing_logic": "skill_routing"
+          },
+          "signals": [
+            {
+              "type": "explicit_confirmation_requested",
+              "evidence": "Demande-moi confirmation avant de le créer."
+            }
+          ],
+          "turn_id": "qa-all-skills-ai-stress-2026-05-06-fstress2-r3-t01",
+          "user_id": "aa6a24a2-f9ff-4486-a9f1-dfbbe98dbee0",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "skill_signals": {},
+          "direct_effects": [],
+          "safety_pregate": {
+            "evidence": "Demande de création d'un rappel récurrent avec message spécifique.",
+            "risk_band": "low"
+          },
+          "operation_intake": {
+            "status": "intake_complete",
+            "parameters": {
+              "day": "Monday",
+              "time": "09:00",
+              "message": "Quelle est la prochaine petite action ?",
+              "frequency": "weekly",
+              "require_confirmation": true
+            },
+            "operation_type": "create_reminder"
+          },
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "Programme-moi un rappel récurrent chaque lundi à 9h, message 'Quelle est la prochaine petite action ?'. Demande-moi confirmation avant de le créer.",
+              "user_intent": "create",
+              "explicitness": "explicit",
+              "operation_type": "create_recurring_reminder",
+              "confidence_band": "high"
+            }
+          ],
+          "source_message_id": "573bf8e0-c547-4bc4-b460-1ea9f981337f",
+          "intent_classification": {
+            "confidence": 0.98,
+            "primary_intent": "action_request",
+            "secondary_intent": "reminder_management"
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "create_recurring_reminder",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "draft": {
+            "draft": {
+              "days": [
+                "lundi"
+              ],
+              "time": "09:00",
+              "title": "Rappel récurrent : Quelle est la prochaine petite action ?",
+              "message": "Quelle est la prochaine petite action ?",
+              "timezone": "Europe/Paris",
+              "frequency": "weekly",
+              "destination": "base_de_vie",
+              "related_plan_item_id": null
+            },
+            "output_schema": "recurring_reminder_draft_v1",
+            "operation_type": "create_recurring_reminder",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je te propose de créer ce rappel récurrent : \"Quelle est la prochaine petite action ?\", chaque semaine à 09:00. Tu veux que je le crée ?"
+          },
+          "status": "pending_confirmation",
+          "reason_code": "tool_skill_intent_start",
+          "operation_id": "4c5db41e-677a-4096-b5ca-7adb0ecbb51e",
+          "selected_handler": "create_recurring_reminder"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 11580,
+        "created_at": "2026-05-06T14:24:30.727911+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-all-skills-ai-stress-2026-05-06-fstress2-r3-t02",
+    "user": "Oui.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-all-skills-ai-stress-2026-05-06-fstress2-r3-t02",
+      "user_id": "aa6a24a2-f9ff-4486-a9f1-dfbbe98dbee0",
+      "channel": "web",
+      "scope": "qa-all-skills-ai-stress-2026-05-06-fstress2-r3",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C'est fait. J'ai créé le rappel récurrent: \"Quelle est la prochaine petite action ?\" à 09:00, lundi.",
+        "mode": "companion",
+        "tool_execution": "success",
+        "executed_tools": [
+          "create_recurring_reminder"
+        ]
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-all-skills-ai-stress-2026-05-06-fstress2-r3-t02",
+        "user_id": "aa6a24a2-f9ff-4486-a9f1-dfbbe98dbee0",
+        "source_message_id": "dd457d2a-dc9f-44ce-a0c7-01fc0258e66d",
+        "ts": "2026-05-06T14:24:55.096+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 792,
+          "latency_ms": 4473,
+          "tokens_out": 309,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-all-skills-ai-stress-2026-05-06-fstress2-r3-t02",
+          "user_id": "aa6a24a2-f9ff-4486-a9f1-dfbbe98dbee0",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "skill_signals": {},
+          "turn_frame_v1": {
+            "routing": {
+              "reasoning": "L'utilisateur a répondu 'Oui' à la demande de confirmation pour la création d'un rappel récurrent.",
+              "target_skill": "reminder_manager",
+              "routing_decision": "execute_pending_operation"
+            },
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 1,
+              "response_intent": "execution_feedback",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "intent_analysis": {
+              "user_intent": "confirmation",
+              "detected_signals": [
+                "confirmation_yes"
+              ],
+              "target_operation_id": "4c5db41e-677a-4096-b5ca-7adb0ecbb51e",
+              "confirmation_classification": "yes"
+            },
+            "safety_assessment": {
+              "evidence": "L'utilisateur confirme simplement une opération de rappel précédemment proposée.",
+              "risk_band": "low"
+            }
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "source_message_id": "dd457d2a-dc9f-44ce-a0c7-01fc0258e66d",
+          "confirmation_response": {
+            "kind": "yes",
+            "confidence_band": "high"
+          }
+        },
+        "route_decision": {
+          "reason_code": "confirmation_yes",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "pending_confirmation",
+          "memory_use_kind": "none",
+          "selected_handler": "execute_confirmed",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [
+          {
+            "outcome": "success",
+            "tool_id": "create_recurring_reminder"
+          }
+        ],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "executed",
+          "reason_code": "confirmation_yes",
+          "operation_id": "4c5db41e-677a-4096-b5ca-7adb0ecbb51e",
+          "selected_handler": "create_recurring_reminder",
+          "recurring_reminder_id": "5fb34992-575c-4009-85e8-24c3be9bf5cf"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "pending_confirmation",
+        "total_latency_ms": 4516,
+        "created_at": "2026-05-06T14:24:55.097672+00:00"
+      },
+      "trace_error": null
+    }
+  }
+]

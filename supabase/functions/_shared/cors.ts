@@ -4,19 +4,34 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { logHttpErrorEvent } from "./error-log.ts";
 
-const DEFAULT_ALLOWED_ORIGINS = [
-  // Production web
+const PROD_ALLOWED_ORIGINS = [
   "https://sophia-coach.ai",
   "https://www.sophia-coach.ai",
-  "http://localhost:5173",
-  "http://127.0.0.1:5173",
-  "http://localhost:3000",
-  "http://127.0.0.1:3000",
 ];
 
 function isProdEnv(): boolean {
   const env = (Deno.env.get("APP_ENV") ?? Deno.env.get("NODE_ENV") ?? "").toLowerCase();
   return env === "production";
+}
+
+// True when the Edge Runtime is talking to a local Supabase instance (127.0.0.1 / kong).
+// More reliable than APP_ENV for CORS purposes because APP_ENV=production is often kept
+// in local .env files to test production behaviour, while the Supabase URL reveals the
+// actual runtime environment.
+function isLocalSupabase(): boolean {
+  const url = (Deno.env.get("SUPABASE_URL") ?? "").trim();
+  if (!url) return false;
+  try {
+    const host = new URL(url).hostname.toLowerCase();
+    return (
+      host === "127.0.0.1" ||
+      host === "localhost" ||
+      host === "kong" ||
+      host.startsWith("supabase_")
+    );
+  } catch {
+    return false;
+  }
 }
 
 function isCorsAllowlistConfigured(): boolean {
@@ -25,7 +40,7 @@ function isCorsAllowlistConfigured(): boolean {
 
 function parseAllowedOrigins(): Set<string> {
   const raw = Deno.env.get("CORS_ALLOWED_ORIGINS");
-  if (!raw) return new Set(DEFAULT_ALLOWED_ORIGINS);
+  if (!raw) return new Set(PROD_ALLOWED_ORIGINS);
   return new Set(
     raw
       .split(",")
@@ -34,7 +49,20 @@ function parseAllowedOrigins(): Set<string> {
   );
 }
 
+function isLocalOrigin(origin: string): boolean {
+  try {
+    const { hostname } = new URL(origin);
+    return hostname === "localhost" || hostname === "127.0.0.1";
+  } catch {
+    return false;
+  }
+}
+
 function isAllowedOrigin(origin: string): boolean {
+  // When connected to a local Supabase instance: accept any localhost/127.0.0.1 origin
+  // regardless of port (Vite can pick 5173, 5174, 5175… depending on availability).
+  if (isLocalSupabase() && isLocalOrigin(origin)) return true;
+  // Custom allowlist (env var) or production hard-coded list.
   const allowed = parseAllowedOrigins();
   return allowed.has(origin);
 }

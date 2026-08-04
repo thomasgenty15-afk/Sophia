@@ -1,0 +1,11 @@
+[
+  {
+    "turn": 1,
+    "request_id": "2026-05-19-select-state-potion-courage-oneoff-r2-t01",
+    "user": "Sophia, je veux une potion de courage pour mon appel client de mercredi 20 mai 2026 à 10h. J'ai peur d'être jugé et la première marche c'est juste d'appuyer sur appeler puis dire la première phrase.",
+    "http_status": 504,
+    "body": {
+      "message": "The upstream server is timing out"
+    }
+  }
+]

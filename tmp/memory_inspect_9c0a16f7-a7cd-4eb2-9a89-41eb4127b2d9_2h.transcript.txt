@@ -1,0 +1,12 @@
+[2026-05-06T05:55:33.391609+00:00] [web] user (request_id=c4860632-5c87-41d0-96ae-cff87f80441b):
+Pour la suite, retiens que je préfère qu’on m’aide à démarrer par une version brouillon de 4 minutes quand je bloque sur une présentation.
+
+[2026-05-06T05:55:45.600962+00:00] [web] assistant (request_id=c4860632-5c87-41d0-96ae-cff87f80441b):
+C'est bien noté ! Je garde précieusement cette technique du brouillon de 4 minutes en réserve pour tes prochains blocages. C'est une super parade contre la page blanche 🚀
+
+[2026-05-06T05:58:24.312706+00:00] [web] user (request_id=937b69fb-c4e5-4808-b8a1-0d78d9a75c2f):
+Pour la suite, retiens aussi que quand je prépare une présentation client, je préfère qu’on m’aide à formuler le résultat attendu avant de parler mise en page.
+
+[2026-05-06T05:58:38.323105+00:00] [web] assistant (request_id=937b69fb-c4e5-4808-b8a1-0d78d9a75c2f):
+Message reçu ! Le fond avant la forme, c'est de loin la meilleure stratégie pour ne pas se perdre dans les détails. On attaquera systématiquement par le résultat attendu pour tes prochaines présentations 🎯
+

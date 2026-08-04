@@ -1,8 +1,8 @@
 export type SurfaceFamily = "utility" | "transformational";
 
+// to be evolved into ProductSurfaceRegistry v2 in S4
 export type SurfaceId =
   | "dashboard.personal_actions"
-  | "dashboard.north_star"
   | "dashboard.reminders"
   | "dashboard.preferences"
   | "architect.coaching"
@@ -14,7 +14,6 @@ export type SurfaceId =
 export type SurfaceContentSource =
   | "none"
   | "personal_actions"
-  | "north_star"
   | "reminders"
   | "preferences"
   | "wishlist"
@@ -40,7 +39,8 @@ export const SURFACE_REGISTRY: SurfaceDefinition[] = [
     id: "dashboard.personal_actions",
     family: "utility",
     label: "Actions Personnelles",
-    goal: "Aider le user à installer ou suivre des habitudes personnelles hors plan principal.",
+    goal:
+      "Aider le user à installer ou suivre des habitudes personnelles hors plan principal.",
     whenRelevant:
       "Comportements récurrents, auto-discipline, petites routines, action à répéter soi-même.",
     antiNoise:
@@ -61,33 +61,6 @@ export const SURFACE_REGISTRY: SurfaceDefinition[] = [
       "habitude",
       "discipline quotidienne",
       "répéter",
-    ],
-  },
-  {
-    id: "dashboard.north_star",
-    family: "utility",
-    label: "Étoile Polaire",
-    goal:
-      "Aider le user à clarifier un cap long terme via un indicateur unique et suivi dans le temps.",
-    whenRelevant:
-      "Direction, cap, trajectoire, indicateur, métrique long terme, sentiment d'avancer sans boussole.",
-    antiNoise:
-      "Ne pas pousser pour un simple problème ponctuel sans enjeu de direction ou de mesure.",
-    defaultLevelCap: 4,
-    contentSource: "north_star",
-    aliases: [
-      "étoile polaire",
-      "etoile polaire",
-      "north star",
-    ],
-    triggerKeywords: [
-      "cap",
-      "direction",
-      "trajectoire",
-      "indicateur",
-      "mesurer",
-      "long terme",
-      "boussole",
     ],
   },
   {
@@ -158,7 +131,6 @@ export const SURFACE_REGISTRY: SurfaceDefinition[] = [
     aliases: ["atelier", "l'atelier", "coaching", "temple"],
     triggerKeywords: [
       "forge",
-      "table ronde",
       "transformation",
       "identité",
       "blocage profond",

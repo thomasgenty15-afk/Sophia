@@ -1,0 +1,93 @@
+{
+  "run_id": "product_help_canonical_20260620_r1",
+  "turn": 4,
+  "user_message": "Je reviens juste à une question produit : quand Sophia propose une carte d'attaque, est-ce qu'elle modifie mon plan ou c'est séparé ?",
+  "http_status": 200,
+  "ok": true,
+  "reply_content": "C’est séparé.\n\nUne carte d’attaque sert à préparer une action précise, sans modifier ton plan en lui-même. Le plan reste le cadre ; la carte d’attaque est un appui autour d’une action ou d’un blocage particulier 🙂",
+  "response_owner": "normal_reply",
+  "reason_code": "coaching_recommendation_exit_to_global",
+  "direct_effects": [],
+  "skill_run": {
+    "selected_skill_id": "coaching_recommendation",
+    "reason_code": "active_coaching_recommendation",
+    "status": "exit",
+    "latency_ms": 12777,
+    "exit_target": "global",
+    "exit_note_information": {
+      "source_flow_id": "coaching_recommendation",
+      "handoff_reason": "topic_change",
+      "target_dispatcher": "global",
+      "handoff_context_for_next_dispatcher": "{\"user_message_summary\":\"Question produit autonome sur la carte d'attaque : le user veut savoir si elle modifie le plan ou si c'est séparé.\",\"active_flow_summary\":\"coaching_recommendation helps choose a Sophia feature and never executes tools.\",\"collected_state\":{\"user_need_summary\":\"Le user veut se débloquer maintenant sans toucher au plan; il demande quel levier choisir.\",\"candidate_features\":[],\"current_recommendation\":null,\"parent_context\":null,\"dispatcher_signal_context\":{\"reason\":\"The user wants a coaching lever now, but the action vs state framing is not explicit.\",\"confidence\":0.84,\"coaching_type\":\"ambiguous\",\"action_context\":{\"source\":\"ambiguous\",\"plan_id\":null,\"plan_title\":null,\"action_type\":\"other\",\"action_title\":null,\"plan_item_id\":null},\"activation_checks\":{\"is_coaching_need\":true,\"is_about_plan_action\":false,\"needs_type_confirmation\":true,\"has_concrete_plan_action\":false,\"is_about_emotional_state\":false,\"is_about_non_plan_action\":false},\"emotional_state_context\":{\"intensity\":\"medium\",\"state_hint\":null}}},\"unresolved_questions\":[],\"recommended_next_focus\":\"global\",\"constraints\":[\"coaching_recommendation_never_executes_tools\",\"recommendation_only\"],\"evidence\":[\"The user asks a standalone product question about attack card vs plan.\",\"No concrete plan action or coaching lever request is being made.\"]}",
+      "user_words": [
+        "Je reviens juste à une question produit : quand Sophia propose une carte d'attaque, est-ce qu'elle modifie mon plan ou c'est séparé ?",
+        "The user asks a standalone product question about attack card vs plan.",
+        "No concrete plan action or coaching lever request is being made."
+      ],
+      "structured_context": {
+        "user_message_summary": "Question produit autonome sur la carte d'attaque : le user veut savoir si elle modifie le plan ou si c'est séparé.",
+        "active_flow_summary": "coaching_recommendation helps choose a Sophia feature and never executes tools.",
+        "collected_state": {
+          "user_need_summary": "Le user veut se débloquer maintenant sans toucher au plan; il demande quel levier choisir.",
+          "candidate_features": [],
+          "current_recommendation": null,
+          "parent_context": null,
+          "dispatcher_signal_context": {
+            "reason": "The user wants a coaching lever now, but the action vs state framing is not explicit.",
+            "confidence": 0.84,
+            "coaching_type": "ambiguous",
+            "action_context": {
+              "source": "ambiguous",
+              "plan_id": null,
+              "plan_title": null,
+              "action_type": "other",
+              "action_title": null,
+              "plan_item_id": null
+            },
+            "activation_checks": {
+              "is_coaching_need": true,
+              "is_about_plan_action": false,
+              "needs_type_confirmation": true,
+              "has_concrete_plan_action": false,
+              "is_about_emotional_state": false,
+              "is_about_non_plan_action": false
+            },
+            "emotional_state_context": {
+              "intensity": "medium",
+              "state_hint": null
+            }
+          }
+        },
+        "unresolved_questions": [],
+        "recommended_next_focus": "global",
+        "constraints": [
+          "coaching_recommendation_never_executes_tools",
+          "recommendation_only"
+        ],
+        "evidence": [
+          "The user asks a standalone product question about attack card vs plan.",
+          "No concrete plan action or coaching lever request is being made."
+        ]
+      },
+      "confidence": "high"
+    }
+  },
+  "effect_ledger": {
+    "turn_id": "0ca45ff5-7cbe-487f-bf16-cba9605d343c",
+    "counts": {
+      "requested": 0,
+      "allowed": 0,
+      "blocked": 0,
+      "committed": 0,
+      "failed": 0,
+      "proposed": 0,
+      "delivered": 0,
+      "cancelled": 0,
+      "superseded": 0,
+      "asked": 0,
+      "resolved": 0,
+      "topic_change": 0
+    },
+    "entries": []
+  }
+}

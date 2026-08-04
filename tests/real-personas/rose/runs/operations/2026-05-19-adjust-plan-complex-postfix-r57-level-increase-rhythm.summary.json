@@ -1,0 +1,715 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r57-level-increase-rhythm-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Finalement je me sens plus solide cette semaine. J'aimerais augmenter un peu le rythme du niveau actuel, mais sans sauter d'étape ni accélérer tout le plan.",
+    "assistant": "Super ! Pour augmenter le rythme de ce niveau, tu penses à quoi concrètement ? Est-ce que tu voudrais faire une action plus souvent, passer plus de temps sur une autre, ou aborder une nouvelle action plus tôt ? Et concernant l'habitude \"Partager un point positif\", qui a été récemment simplifiée, te sens-tu prêt à en augmenter la fréquence ou la profondeur ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "tool_skill_intent_start",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "current_level.affected_items"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer des changements qui remettent en question la pertinence des ajustements récents sans une demande claire du user.",
+          "Formuler des propositions qui pourraient être interprétées comme une pression à 'performer' plutôt qu'à 'apprendre et intégrer'.",
+          "Utiliser un langage qui suggère que le rythme précédent était insuffisant ou que le nouveau rythme est 'meilleur'."
+        ],
+        "scope": "level",
+        "preserve": [
+          "L'objectif fondamental du niveau 'Désamorcer et recréer de la sécurité' et ses étapes clés.",
+          "La nature progressive et séquentielle des actions pour construire des fondations solides.",
+          "La mission 'Convenir d'un signal de pause' comme mécanisme essentiel de désamorçage.",
+          "Le cadre 'Cartographier les déclencheurs' pour l'observation sans jugement."
+        ],
+        "warnings": [
+          "Éviter de proposer de sauter des étapes ou des actions, ce qui irait à l'encontre de la demande explicite du user et risquerait de fragiliser les fondations du plan.",
+          "Ne pas suggérer d'accélérer l'ensemble du plan, car cela pourrait générer une surcharge future ou diluer l'apprentissage progressif.",
+          "Ne pas introduire de nouvelles actions complexes ou des objectifs qui ne sont pas directement liés au cœur du niveau 'Désamorcer et recréer de la sécurité'.",
+          "Prendre en compte l'ajustement récent de l'habitude 'Partager un point positif' : une augmentation immédiate de sa fréquence pourrait être perçue comme un retour en arrière si le user n'est pas prêt."
+        ],
+        "confidence": "medium",
+        "guidelines": [
+          "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+          "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+          "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+          "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+          "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+          "Guidelines action: Toute modification d'action doit préserver son intention initiale et son rôle dans le niveau. Si un pont mini a été créé, s'assurer que le user est prêt à le dépasser avant de proposer une intensification. Ne pas changer la nature d'une action sans demande explicite.",
+          "Guidelines niveau: L'augmentation du rythme doit se faire à l'intérieur des frontières du niveau actuel, sans empiéter sur les niveaux futurs. Le cœur du niveau (désamorçage, sécurité) doit rester intact. L'augmentation doit être temporaire et réversible si nécessaire.",
+          "Guidelines whole_plan: La trajectoire globale du plan et la cohérence entre les phases doivent être maintenues. Les prérequis des niveaux futurs ne doivent pas être compromis par une accélération locale. L'objectif global et le questionnaire de suivi restent les balises de la progression."
+        ],
+        "observation": "Le user exprime un regain d'énergie et de solidité, souhaitant capitaliser sur cet élan pour intensifier son engagement dans le niveau actuel. Il est crucial de canaliser cette motivation de manière constructive, en respectant les fondations posées et les limites qu'il a lui-même fixées (pas de saut d'étape, pas d'accélération globale du plan). La demande est une opportunité d'approfondir l'apprentissage sans compromettre la progression progressive.",
+        "recommendation": "Explorer les modalités d'augmentation du rythme qui renforcent les acquis du niveau actuel sans en altérer la nature ni la séquence. L'accent doit être mis sur l'intensification ou la fréquence des actions existantes, ou l'intégration anticipée de tâches mineures et complémentaires au sein du même niveau, plutôt que sur l'introduction de nouvelles complexités ou le saut d'étapes.",
+        "options_to_discuss": [
+          "Augmenter la fréquence d'une habitude récurrente du niveau actuel, comme 'Partager un point positif', en s'assurant que le user est prêt à revenir sur l'ajustement récent.",
+          "Approfondir l'exécution d'une mission ou d'un cadre de réflexion en cours, comme 'Cartographier les déclencheurs', en y consacrant plus de temps ou en ajoutant une dimension de réflexion supplémentaire.",
+          "Anticiper une mission ponctuelle prévue pour une semaine ultérieure *au sein du même niveau*, si elle est complémentaire et ne dépend pas de prérequis non encore acquis (ex: 'Faire le point sur le signal de pause' si le signal a été utilisé)."
+        ],
+        "questions_to_clarify": [
+          "Quand tu dis 'augmenter un peu le rythme', penses-tu à passer plus de temps sur les actions actuelles, à les faire plus souvent, ou à aborder de nouvelles actions plus tôt ?",
+          "Concernant l'habitude 'Partager un point positif', qui a été récemment ajustée, te sens-tu prêt(e) à en augmenter la fréquence ou la profondeur, ou préférerais-tu intensifier d'autres aspects du niveau ?",
+          "As-tu déjà eu l'occasion d'utiliser le 'signal de pause' convenu en semaine 1 ? Si oui, comment cela s'est-il passé ?"
+        ]
+      },
+      "coaching_guidance_audit": {
+        "scope": "level",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "level",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer des changements qui remettent en question la pertinence des ajustements récents sans une demande claire du user.",
+        "Formuler des propositions qui pourraient être interprétées comme une pression à 'performer' plutôt qu'à 'apprendre et intégrer'.",
+        "Utiliser un langage qui suggère que le rythme précédent était insuffisant ou que le nouveau rythme est 'meilleur'."
+      ],
+      "scope": "level",
+      "preserve": [
+        "L'objectif fondamental du niveau 'Désamorcer et recréer de la sécurité' et ses étapes clés.",
+        "La nature progressive et séquentielle des actions pour construire des fondations solides.",
+        "La mission 'Convenir d'un signal de pause' comme mécanisme essentiel de désamorçage.",
+        "Le cadre 'Cartographier les déclencheurs' pour l'observation sans jugement."
+      ],
+      "warnings": [
+        "Éviter de proposer de sauter des étapes ou des actions, ce qui irait à l'encontre de la demande explicite du user et risquerait de fragiliser les fondations du plan.",
+        "Ne pas suggérer d'accélérer l'ensemble du plan, car cela pourrait générer une surcharge future ou diluer l'apprentissage progressif.",
+        "Ne pas introduire de nouvelles actions complexes ou des objectifs qui ne sont pas directement liés au cœur du niveau 'Désamorcer et recréer de la sécurité'.",
+        "Prendre en compte l'ajustement récent de l'habitude 'Partager un point positif' : une augmentation immédiate de sa fréquence pourrait être perçue comme un retour en arrière si le user n'est pas prêt."
+      ],
+      "confidence": "medium",
+      "guidelines": [
+        "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+        "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+        "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+        "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+        "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+        "Guidelines action: Toute modification d'action doit préserver son intention initiale et son rôle dans le niveau. Si un pont mini a été créé, s'assurer que le user est prêt à le dépasser avant de proposer une intensification. Ne pas changer la nature d'une action sans demande explicite.",
+        "Guidelines niveau: L'augmentation du rythme doit se faire à l'intérieur des frontières du niveau actuel, sans empiéter sur les niveaux futurs. Le cœur du niveau (désamorçage, sécurité) doit rester intact. L'augmentation doit être temporaire et réversible si nécessaire.",
+        "Guidelines whole_plan: La trajectoire globale du plan et la cohérence entre les phases doivent être maintenues. Les prérequis des niveaux futurs ne doivent pas être compromis par une accélération locale. L'objectif global et le questionnaire de suivi restent les balises de la progression."
+      ],
+      "observation": "Le user exprime un regain d'énergie et de solidité, souhaitant capitaliser sur cet élan pour intensifier son engagement dans le niveau actuel. Il est crucial de canaliser cette motivation de manière constructive, en respectant les fondations posées et les limites qu'il a lui-même fixées (pas de saut d'étape, pas d'accélération globale du plan). La demande est une opportunité d'approfondir l'apprentissage sans compromettre la progression progressive.",
+      "recommendation": "Explorer les modalités d'augmentation du rythme qui renforcent les acquis du niveau actuel sans en altérer la nature ni la séquence. L'accent doit être mis sur l'intensification ou la fréquence des actions existantes, ou l'intégration anticipée de tâches mineures et complémentaires au sein du même niveau, plutôt que sur l'introduction de nouvelles complexités ou le saut d'étapes.",
+      "options_to_discuss": [
+        "Augmenter la fréquence d'une habitude récurrente du niveau actuel, comme 'Partager un point positif', en s'assurant que le user est prêt à revenir sur l'ajustement récent.",
+        "Approfondir l'exécution d'une mission ou d'un cadre de réflexion en cours, comme 'Cartographier les déclencheurs', en y consacrant plus de temps ou en ajoutant une dimension de réflexion supplémentaire.",
+        "Anticiper une mission ponctuelle prévue pour une semaine ultérieure *au sein du même niveau*, si elle est complémentaire et ne dépend pas de prérequis non encore acquis (ex: 'Faire le point sur le signal de pause' si le signal a été utilisé)."
+      ],
+      "questions_to_clarify": [
+        "Quand tu dis 'augmenter un peu le rythme', penses-tu à passer plus de temps sur les actions actuelles, à les faire plus souvent, ou à aborder de nouvelles actions plus tôt ?",
+        "Concernant l'habitude 'Partager un point positif', qui a été récemment ajustée, te sens-tu prêt(e) à en augmenter la fréquence ou la profondeur, ou préférerais-tu intensifier d'autres aspects du niveau ?",
+        "As-tu déjà eu l'occasion d'utiliser le 'signal de pause' convenu en semaine 1 ? Si oui, comment cela s'est-il passé ?"
+      ]
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r57-level-increase-rhythm-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r57-level-increase-rhythm-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Je pense surtout à Partager un point positif : passer de 3 à 4 jours cette semaine. Je veux garder la version mini, juste dire merci pour un truc concret, pas écrire une grande phrase.",
+    "assistant": "Je comprends que tu souhaites augmenter la fréquence de l'habitude \"Partager un point positif\" à 4 jours cette semaine, en gardant la version mini. Je peux te préparer une proposition pour ça, qu'en penses-tu ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "active_tool_skill_continue",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "draft_generation_confirmation"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer d'autres modifications au plan qui n'ont pas été explicitement demandées.",
+          "Utiliser un langage qui pourrait être interprété comme une pression à 'performer' ou à 'faire plus'."
+        ],
+        "scope": "action",
+        "preserve": [
+          "La consigne simplifiée de l'habitude 'Partager un point positif' ('juste dire merci pour un truc concret, pas écrire une grande phrase').",
+          "L'intention fondamentale de l'habitude : favoriser la communication positive et la gratitude.",
+          "L'intégrité des autres actions et missions du plan, qui ne sont pas concernées par cette demande."
+        ],
+        "warnings": [
+          "Ne pas modifier ou complexifier l'instruction de l'habitude 'Partager un point positif', le user ayant clairement demandé de 'garder la version mini'.",
+          "Éviter de suggérer des augmentations de fréquence ou des changements pour d'autres actions, car la demande est très ciblée sur cette habitude spécifique.",
+          "Ne pas formuler la proposition de manière à laisser entendre que la fréquence précédente était insuffisante ou que le user 'rattrape' un retard, mais plutôt comme une capitalisation sur un regain d'énergie."
+        ],
+        "confidence": "high",
+        "guidelines": [
+          "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+          "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+          "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+          "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+          "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+          "Guidelines action: Le rôle de l'action 'Partager un point positif' (foster positive communication) et son intention (gratitude) doivent être préservés. Le 'pont mini' (version simplifiée) doit être maintenu. Aucun changement de nature de l'action ne doit être proposé sans demande explicite.",
+          "Guidelines niveau: L'ajustement de fréquence doit rester dans le cadre du rythme et de la charge du niveau courant. Il s'agit d'une augmentation temporaire et ciblée, non d'une accélération globale du niveau.",
+          "Guidelines whole_plan: La trajectoire globale du plan, la cohérence entre les phases, les prérequis des niveaux futurs, l'objectif global et le questionnaire de suivi doivent rester intacts."
+        ],
+        "observation": "Le user, se sentant plus solide, souhaite augmenter la fréquence de l'habitude 'Partager un point positif' de 3 à 4 jours cette semaine. Il insiste explicitement pour maintenir la version 'mini' de l'action, qui a été récemment simplifiée pour réduire la pression. Cela montre une volonté d'engagement accru tout en étant conscient des limites et des ajustements passés.",
+        "recommendation": "Accompagner l'élan positif du user en ajustant la fréquence de l'habitude 'Partager un point positif' comme demandé, tout en réaffirmant l'importance de conserver la consigne simplifiée pour éviter de recréer la pression précédemment ressentie. Il est crucial de s'assurer que cette augmentation est perçue comme un renforcement et non comme une réintroduction de la difficulté.",
+        "options_to_discuss": [
+          "Confirmer que cette augmentation de fréquence à 4 jours est perçue comme durable et ne risque pas de réintroduire la pression qui avait mené à la réduction initiale de cette même habitude."
+        ],
+        "questions_to_clarify": [
+          "Étant donné que l'habitude 'Partager un point positif' a été récemment ajustée pour en réduire la fréquence et en simplifier la consigne, est-ce que cette augmentation à 4 jours te semble durable et ne risque pas de recréer la pression que tu avais ressentie ?"
+        ]
+      },
+      "coaching_guidance_audit": {
+        "scope": "action",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "action",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer d'autres modifications au plan qui n'ont pas été explicitement demandées.",
+        "Utiliser un langage qui pourrait être interprété comme une pression à 'performer' ou à 'faire plus'."
+      ],
+      "scope": "action",
+      "preserve": [
+        "La consigne simplifiée de l'habitude 'Partager un point positif' ('juste dire merci pour un truc concret, pas écrire une grande phrase').",
+        "L'intention fondamentale de l'habitude : favoriser la communication positive et la gratitude.",
+        "L'intégrité des autres actions et missions du plan, qui ne sont pas concernées par cette demande."
+      ],
+      "warnings": [
+        "Ne pas modifier ou complexifier l'instruction de l'habitude 'Partager un point positif', le user ayant clairement demandé de 'garder la version mini'.",
+        "Éviter de suggérer des augmentations de fréquence ou des changements pour d'autres actions, car la demande est très ciblée sur cette habitude spécifique.",
+        "Ne pas formuler la proposition de manière à laisser entendre que la fréquence précédente était insuffisante ou que le user 'rattrape' un retard, mais plutôt comme une capitalisation sur un regain d'énergie."
+      ],
+      "confidence": "high",
+      "guidelines": [
+        "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+        "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+        "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+        "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+        "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+        "Guidelines action: Le rôle de l'action 'Partager un point positif' (foster positive communication) et son intention (gratitude) doivent être préservés. Le 'pont mini' (version simplifiée) doit être maintenu. Aucun changement de nature de l'action ne doit être proposé sans demande explicite.",
+        "Guidelines niveau: L'ajustement de fréquence doit rester dans le cadre du rythme et de la charge du niveau courant. Il s'agit d'une augmentation temporaire et ciblée, non d'une accélération globale du niveau.",
+        "Guidelines whole_plan: La trajectoire globale du plan, la cohérence entre les phases, les prérequis des niveaux futurs, l'objectif global et le questionnaire de suivi doivent rester intacts."
+      ],
+      "observation": "Le user, se sentant plus solide, souhaite augmenter la fréquence de l'habitude 'Partager un point positif' de 3 à 4 jours cette semaine. Il insiste explicitement pour maintenir la version 'mini' de l'action, qui a été récemment simplifiée pour réduire la pression. Cela montre une volonté d'engagement accru tout en étant conscient des limites et des ajustements passés.",
+      "recommendation": "Accompagner l'élan positif du user en ajustant la fréquence de l'habitude 'Partager un point positif' comme demandé, tout en réaffirmant l'importance de conserver la consigne simplifiée pour éviter de recréer la pression précédemment ressentie. Il est crucial de s'assurer que cette augmentation est perçue comme un renforcement et non comme une réintroduction de la difficulté.",
+      "options_to_discuss": [
+        "Confirmer que cette augmentation de fréquence à 4 jours est perçue comme durable et ne risque pas de réintroduire la pression qui avait mené à la réduction initiale de cette même habitude."
+      ],
+      "questions_to_clarify": [
+        "Étant donné que l'habitude 'Partager un point positif' a été récemment ajustée pour en réduire la fréquence et en simplifier la consigne, est-ce que cette augmentation à 4 jours te semble durable et ne risque pas de recréer la pression que tu avais ressentie ?"
+      ]
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r57-level-increase-rhythm-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r57-level-increase-rhythm-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, prépare la proposition, mais je veux aussi ton avis coaching : est-ce que 4 jours reste cohérent ou est-ce que ça risque de remettre de la pression ?",
+    "assistant": "Je comprends que tu te sens plus solide cette semaine et que tu souhaites capitaliser sur cette énergie en augmentant la fréquence de l'habitude 'Partager un point positif'.\nJe te propose d'ajuster ton plan pour cette semaine en faisant passer l'habitude 'Partager un point positif' de 3 jours à 4 jours par semaine.\nL'instruction simplifiée de l'habitude, 'juste dire merci pour un truc concret, pas écrire une grande phrase', sera bien sûr maintenue pour éviter toute pression supplémentaire.\nConcernant ta question sur la cohérence et le risque de pression, je pense que c'est une excellente idée de capitaliser sur ton élan. Cependant, il est important de rester attentif à tes sensations. Si tu sens que cela redevient une contrainte, nous pourrons réajuster.\nCet ajustement est ciblé uniquement sur cette habitude pour cette semaine. Le reste de ton plan, y compris tes autres actions et l'objectif global, ne sera pas touché, et nous ne sauterons aucune étape ni n'accélérerons le plan global.\nQu'en penses-tu ? Rien n'est encore appliqué. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "execution_breakdown_absorbed_by_active_tool_skill",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "difficulty": "medium",
+            "instruction": "garder la version mini, juste dire merci pour un truc concret, pas écrire une grande phrase",
+            "target_reps": 4,
+            "cadence_label": "4 jours / semaine"
+          },
+          "title": "Ajustement - Partager un point positif",
+          "confidence": "high",
+          "ack_summary": {
+            "changed": [
+              "ajustement de \"Partager un point positif\""
+            ],
+            "unchanged": [
+              "le reste du plan n'est pas touché"
+            ],
+            "confidence": "high",
+            "why_it_helps": "Le changement réduit la friction locale tout en gardant l'intention.",
+            "follow_up_needed": null
+          },
+          "scope_label": "Partager un point positif",
+          "why_it_helps": "Le changement reste minimal et preserve l'intention du plan.",
+          "decision_basis": {
+            "evidence": [
+              "Oui, prépare la proposition, mais je veux aussi ton avis coaching : est-ce que 4 jours reste cohérent ou est-ce que ça risque de remettre de la pression ?",
+              "Partager un point positif",
+              "passer de 3 à 4 jours cette semaine",
+              "je me sens plus solide cette semaine",
+              "passer de 3 à 4 jours cette semaine"
+            ],
+            "confidence": "high",
+            "uncertainty": [],
+            "user_problem": "Partager un point positif bloque parce que l'entree est trop lourde.",
+            "inferred_need": "creer un pont plus petit sans supprimer l'action complete",
+            "must_preserve": [
+              "reprendre Partager un point positif apres la version mini"
+            ]
+          },
+          "adjustment_type": "rebalance",
+          "proposed_change": "ajuster le plan de facon minimale",
+          "change_rationale": {
+            "why_this_change": "Ajuster \"Partager un point positif\" traite le blocage identifié sans changer le reste du plan.",
+            "success_condition": "L'action redevient faisable.",
+            "expected_mechanism": "Le changement réduit la friction locale tout en gardant l'intention."
+          },
+          "adjust_plan_result": {
+            "scope": "action",
+            "rationale": {
+              "confidence": "high",
+              "missing_info": [],
+              "user_problem": "Tu te sens plus solide cette semaine et souhaites augmenter la fréquence de l'habitude 'Partager un point positif' de 3 à 4 jours.",
+              "expected_effect": "Capitaliser sur ton regain d'énergie et renforcer l'habitude sans réintroduire de pression, grâce à la version simplifiée.",
+              "why_this_change": "Accompagner ton élan positif en ajustant la fréquence de l'habitude 'Partager un point positif' comme demandé, tout en réaffirmant l'importance de conserver la consigne simplifiée."
+            },
+            "boundaries": {
+              "explanation": "L'ajustement est temporaire et ciblé sur une seule habitude pour la semaine en cours, sans impacter la trajectoire globale du plan.",
+              "affected_scope": "l'habitude 'Partager un point positif' pour cette semaine",
+              "global_plan_impact": "none",
+              "explicitly_not_affected": [
+                "objectif global",
+                "autres actions du plan",
+                "structure complète du plan"
+              ]
+            },
+            "applied_change": {
+              "summary": "Augmentation de la fréquence de l'habitude 'Partager un point positif' pour cette semaine.",
+              "changed_items": [
+                {
+                  "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                  "kind": "habit",
+                  "after": "4 jours / semaine",
+                  "title": "Partager un point positif",
+                  "before": "3 jours / semaine",
+                  "reason": "Pour capitaliser sur ton regain d'énergie cette semaine, tout en conservant la version simplifiée de l'habitude.",
+                  "capability": "change_action_frequency"
+                }
+              ],
+              "preserved_items": [
+                {
+                  "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                  "kind": "habit",
+                  "title": "Partager un point positif",
+                  "reason": "La consigne simplifiée de l'habitude ('juste dire merci pour un truc concret, pas écrire une grande phrase') est maintenue pour éviter de recréer de la pression."
+                },
+                {
+                  "id": null,
+                  "kind": "plan",
+                  "title": "L'intention fondamentale de l'habitude",
+                  "reason": "L'intention de favoriser la communication positive et la gratitude est préservée."
+                },
+                {
+                  "id": null,
+                  "kind": "plan",
+                  "title": "Les autres actions et missions du plan",
+                  "reason": "L'intégrité des autres actions et missions du plan n'est pas affectée par cet ajustement ciblé."
+                },
+                {
+                  "id": null,
+                  "kind": "plan",
+                  "title": "Le principe de progression du plan",
+                  "reason": "Le principe de ne pas 'sauter d'étape ni accélérer tout le plan' est respecté."
+                }
+              ]
+            },
+            "user_message_brief": "J'ai bien noté que tu te sens plus solide cette semaine et que tu souhaites passer l'habitude 'Partager un point positif' à 4 jours. Je te propose d'ajuster cela pour cette semaine, en gardant la version mini.",
+            "user_message_detailed": "Je comprends que tu te sens plus solide cette semaine et que tu souhaites capitaliser sur cette énergie en augmentant la fréquence de l'habitude 'Partager un point positif'.\n\nVoici ce que je te propose d'ajuster pour cette semaine :\n\n*   **Changement proposé** : L'habitude 'Partager un point positif'\n    *   **Avant** : 3 jours par semaine\n    *   **Après** : 4 jours par semaine\n    *   **Pourquoi cela aide** : Cela te permet de capitaliser sur ton regain d'énergie et de renforcer cette habitude positive, sans la rendre plus lourde grâce à la version simplifiée.\n\n**Ce qui ne changera pas** :\n*   La consigne simplifiée de l'habitude 'Partager un point positif' ('juste dire merci pour un truc concret, pas écrire une grande phrase') sera maintenue pour éviter toute pression supplémentaire.\n*   Le reste de ton plan, y compris tes autres actions et l'objectif global, ne sera pas touché.\n*   Nous ne sauterons aucune étape ni n'accélérerons le plan global.\n\n**Mon avis coaching sur ta question** :\nC'est une excellente idée de capitaliser sur ton élan. Cependant, il est important de rester attentif à tes sensations. Si tu sens que cela redevient une contrainte, nous pourrons réajuster. L'objectif est de renforcer l'habitude sans réintroduire la pression que tu avais ressentie.\n\nCet ajustement est ciblé uniquement sur cette habitude pour cette semaine.\n\nQu'en penses-tu ? Rien n'est encore appliqué."
+          },
+          "execution_strategy": "patch_existing",
+          "allowed_patch_fields": [
+            "difficulty",
+            "duration_minutes",
+            "instruction",
+            "paused",
+            "target_reps",
+            "cadence_label"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "C'est fait ! J'ai ajusté ton plan pour cette semaine.\nL'habitude 'Partager un point positif' est maintenant prévue 4 jours par semaine, au lieu de 3.\nJ'ai veillé à ce que la consigne simplifiée 'juste dire merci pour un truc concret, pas écrire une grande phrase' soit bien conservée. L'idée est de capitaliser sur ton regain d'énergie sans réintroduire de pression.\nLe reste de ton plan reste inchangé, et nous continuons à avancer sans sauter d'étapes.\nN'oublie pas de rester à l'écoute de tes sensations cette semaine. Si tu sens que cette augmentation de fréquence redevient une source de pression, n'hésite pas à me le dire pour que nous puissions réajuster.",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je comprends que tu te sens plus solide cette semaine et que tu souhaites capitaliser sur cette énergie en augmentant la fréquence de l'habitude 'Partager un point positif'.\nJe te propose d'ajuster ton plan pour cette semaine en faisant passer l'habitude 'Partager un point positif' de 3 jours à 4 jours par semaine.\nL'instruction simplifiée de l'habitude, 'juste dire merci pour un truc concret, pas écrire une grande phrase', sera bien sûr maintenue pour éviter toute pression supplémentaire.\nConcernant ta question sur la cohérence et le risque de pression, je pense que c'est une excellente idée de capitaliser sur ton élan. Cependant, il est important de rester attentif à tes sensations. Si tu sens que cela redevient une contrainte, nous pourrons réajuster.\nCet ajustement est ciblé uniquement sur cette habitude pour cette semaine. Le reste de ton plan, y compris tes autres actions et l'objectif global, ne sera pas touché, et nous ne sauterons aucune étape ni n'accélérerons le plan global.\nQu'en penses-tu ? Rien n'est encore appliqué."
+      },
+      "status": "draft_review",
+      "reason_code": "execution_breakdown_absorbed_by_active_tool_skill",
+      "operation_id": "6e8b574e-047d-4d6a-932f-c8106bd64589",
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer d'autres modifications au plan qui n'ont pas été explicitement demandées.",
+          "Utiliser un langage qui pourrait être interprété comme une pression à 'performer' ou à 'faire plus'.",
+          "Ignorer la question du user sur le risque de pression."
+        ],
+        "scope": "action",
+        "preserve": [
+          "La consigne simplifiée de l'habitude 'Partager un point positif' ('juste dire merci pour un truc concret, pas écrire une grande phrase').",
+          "L'intention fondamentale de l'habitude : favoriser la communication positive et la gratitude.",
+          "L'intégrité des autres actions et missions du plan, qui ne sont pas concernées par cette demande.",
+          "Le principe de ne pas 'sauter d'étape ni accélérer tout le plan'."
+        ],
+        "warnings": [
+          "Ne pas modifier ou complexifier l'instruction de l'habitude 'Partager un point positif', le user ayant clairement demandé de 'garder la version mini'.",
+          "Éviter de suggérer des augmentations de fréquence ou des changements pour d'autres actions, car la demande est très ciblée sur cette habitude spécifique.",
+          "Ne pas formuler la proposition de manière à laisser entendre que la fréquence précédente était insuffisante ou que le user 'rattrape' un retard, mais plutôt comme une capitalisation sur un regain d'énergie.",
+          "Ne pas valider l'augmentation sans une invitation à la réflexion sur le risque de pression, car c'est la question explicite du user."
+        ],
+        "confidence": "high",
+        "guidelines": [
+          "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+          "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+          "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+          "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+          "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+          "Guidelines action: Le rôle de l'action 'Partager un point positif' (foster positive communication) et son intention (gratitude) doivent être préservés. Le 'pont mini' (version simplifiée) doit être maintenu. Aucun changement de nature de l'action ne doit être proposé sans demande explicite.",
+          "Guidelines niveau: L'ajustement de fréquence doit rester dans le cadre du rythme et de la charge du niveau courant. Il s'agit d'une augmentation temporaire et ciblée, non d'une accélération globale du niveau. L'impact sur la charge mentale globale doit être considéré.",
+          "Guidelines whole_plan: La trajectoire globale du plan, la cohérence entre les phases, les prérequis des niveaux futurs, l'objectif global et le questionnaire de suivi doivent rester intacts."
+        ],
+        "observation": "Le user, se sentant plus solide, souhaite augmenter la fréquence de l'habitude 'Partager un point positif' de 3 à 4 jours cette semaine. Il insiste explicitement pour maintenir la version 'mini' de l'action, qui a été récemment simplifiée pour réduire la pression. Cela montre une volonté d'engagement accru tout en étant conscient des limites et des ajustements passés. La question du user est une demande directe d'avis coaching sur la cohérence et le risque de pression.",
+        "recommendation": "Accompagner l'élan positif du user en ajustant la fréquence de l'habitude 'Partager un point positif' comme demandé, tout en réaffirmant l'importance de conserver la consigne simplifiée pour éviter de recréer la pression précédemment ressentie. Il est crucial de s'assurer que cette augmentation est perçue comme un renforcement et non comme une réintroduction de la difficulté. La réponse doit inviter à la réflexion sur la durabilité de ce changement.",
+        "options_to_discuss": [
+          "Explorer les raisons profondes de ce regain d'énergie et comment il pourrait être appliqué de manière durable, au-delà de cette seule augmentation de fréquence.",
+          "Discuter de la possibilité d'une augmentation progressive de la fréquence sur plusieurs semaines, plutôt qu'un saut direct, si le user exprime des doutes sur la durabilité."
+        ],
+        "questions_to_clarify": [
+          "Étant donné que l'habitude 'Partager un point positif' a été récemment ajustée pour en réduire la fréquence et en simplifier la consigne, est-ce que cette augmentation à 4 jours te semble durable et ne risque pas de recréer la pression que tu avais ressentie ?"
+        ]
+      },
+      "coaching_guidance_audit": {
+        "scope": "action",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "action",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer d'autres modifications au plan qui n'ont pas été explicitement demandées.",
+        "Utiliser un langage qui pourrait être interprété comme une pression à 'performer' ou à 'faire plus'.",
+        "Ignorer la question du user sur le risque de pression."
+      ],
+      "scope": "action",
+      "preserve": [
+        "La consigne simplifiée de l'habitude 'Partager un point positif' ('juste dire merci pour un truc concret, pas écrire une grande phrase').",
+        "L'intention fondamentale de l'habitude : favoriser la communication positive et la gratitude.",
+        "L'intégrité des autres actions et missions du plan, qui ne sont pas concernées par cette demande.",
+        "Le principe de ne pas 'sauter d'étape ni accélérer tout le plan'."
+      ],
+      "warnings": [
+        "Ne pas modifier ou complexifier l'instruction de l'habitude 'Partager un point positif', le user ayant clairement demandé de 'garder la version mini'.",
+        "Éviter de suggérer des augmentations de fréquence ou des changements pour d'autres actions, car la demande est très ciblée sur cette habitude spécifique.",
+        "Ne pas formuler la proposition de manière à laisser entendre que la fréquence précédente était insuffisante ou que le user 'rattrape' un retard, mais plutôt comme une capitalisation sur un regain d'énergie.",
+        "Ne pas valider l'augmentation sans une invitation à la réflexion sur le risque de pression, car c'est la question explicite du user."
+      ],
+      "confidence": "high",
+      "guidelines": [
+        "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+        "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+        "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+        "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+        "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+        "Guidelines action: Le rôle de l'action 'Partager un point positif' (foster positive communication) et son intention (gratitude) doivent être préservés. Le 'pont mini' (version simplifiée) doit être maintenu. Aucun changement de nature de l'action ne doit être proposé sans demande explicite.",
+        "Guidelines niveau: L'ajustement de fréquence doit rester dans le cadre du rythme et de la charge du niveau courant. Il s'agit d'une augmentation temporaire et ciblée, non d'une accélération globale du niveau. L'impact sur la charge mentale globale doit être considéré.",
+        "Guidelines whole_plan: La trajectoire globale du plan, la cohérence entre les phases, les prérequis des niveaux futurs, l'objectif global et le questionnaire de suivi doivent rester intacts."
+      ],
+      "observation": "Le user, se sentant plus solide, souhaite augmenter la fréquence de l'habitude 'Partager un point positif' de 3 à 4 jours cette semaine. Il insiste explicitement pour maintenir la version 'mini' de l'action, qui a été récemment simplifiée pour réduire la pression. Cela montre une volonté d'engagement accru tout en étant conscient des limites et des ajustements passés. La question du user est une demande directe d'avis coaching sur la cohérence et le risque de pression.",
+      "recommendation": "Accompagner l'élan positif du user en ajustant la fréquence de l'habitude 'Partager un point positif' comme demandé, tout en réaffirmant l'importance de conserver la consigne simplifiée pour éviter de recréer la pression précédemment ressentie. Il est crucial de s'assurer que cette augmentation est perçue comme un renforcement et non comme une réintroduction de la difficulté. La réponse doit inviter à la réflexion sur la durabilité de ce changement.",
+      "options_to_discuss": [
+        "Explorer les raisons profondes de ce regain d'énergie et comment il pourrait être appliqué de manière durable, au-delà de cette seule augmentation de fréquence.",
+        "Discuter de la possibilité d'une augmentation progressive de la fréquence sur plusieurs semaines, plutôt qu'un saut direct, si le user exprime des doutes sur la durabilité."
+      ],
+      "questions_to_clarify": [
+        "Étant donné que l'habitude 'Partager un point positif' a été récemment ajustée pour en réduire la fréquence et en simplifier la consigne, est-ce que cette augmentation à 4 jours te semble durable et ne risque pas de recréer la pression que tu avais ressentie ?"
+      ]
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r57-level-increase-rhythm-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r57-level-increase-rhythm-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Ça me va. Avant application, résume-moi le brouillon final : 4 jours cette semaine, version mini conservée, signal de pause inchangé.",
+    "assistant": "OK, je te résume le brouillon final 🙂 :\n\n- Partager un point positif : 4 jours cette semaine, version mini conservée (juste dire merci pour un truc concret, sans grande phrase)\n- Signal de pause : inchangé (même logique, pas touché)\n\nTu veux que je te propose aussi 4 modèles de formulations ultra-courtes à copier-coller ? 😊",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "operation_flow_run": null,
+    "tool_skill_run": null,
+    "coaching_guidance_audit": null,
+    "coaching_guidance": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r57-level-increase-rhythm-t04",
+    "trace_error": null
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r57-level-increase-rhythm-t05",
+    "status": 200,
+    "ok": true,
+    "user": "Non merci pour les modèles. Oui, applique ce brouillon maintenant.",
+    "assistant": "C'est fait ! J'ai ajusté ton plan pour cette semaine.\nL'habitude 'Partager un point positif' est maintenant prévue 4 jours par semaine, au lieu de 3.\nJ'ai veillé à ce que la consigne simplifiée 'juste dire merci pour un truc concret, pas écrire une grande phrase' soit bien conservée. L'idée est de capitaliser sur ton regain d'énergie sans réintroduire de pression.\nLe reste de ton plan reste inchangé, et nous continuons à avancer sans sauter d'étapes.\nN'oublie pas de rester à l'écoute de tes sensations cette semaine. Si tu sens que cette augmentation de fréquence redevient une source de pression, n'hésite pas à me le dire pour que nous puissions réajuster. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "adjust_plan_item"
+    ],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "executed",
+      "reason_code": "tool_skill_intent_start",
+      "operation_id": "6e8b574e-047d-4d6a-932f-c8106bd64589",
+      "plan_patch_id": "dd67acca-4854-4540-922d-69022bd30916",
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer d'autres modifications au plan qui n'ont pas été explicitement demandées.",
+          "Utiliser un langage qui pourrait être interprété comme une pression à 'performer' ou à 'faire plus'.",
+          "Ignorer la question du user sur le risque de pression."
+        ],
+        "scope": "action",
+        "preserve": [
+          "La consigne simplifiée de l'habitude 'Partager un point positif' ('juste dire merci pour un truc concret, pas écrire une grande phrase').",
+          "L'intention fondamentale de l'habitude : favoriser la communication positive et la gratitude.",
+          "L'intégrité des autres actions et missions du plan, qui ne sont pas concernées par cette demande.",
+          "Le principe de ne pas 'sauter d'étape ni accélérer tout le plan'."
+        ],
+        "warnings": [
+          "Ne pas modifier ou complexifier l'instruction de l'habitude 'Partager un point positif', le user ayant clairement demandé de 'garder la version mini'.",
+          "Éviter de suggérer des augmentations de fréquence ou des changements pour d'autres actions, car la demande est très ciblée sur cette habitude spécifique.",
+          "Ne pas formuler la proposition de manière à laisser entendre que la fréquence précédente était insuffisante ou que le user 'rattrape' un retard, mais plutôt comme une capitalisation sur un regain d'énergie.",
+          "Ne pas valider l'augmentation sans une invitation à la réflexion sur le risque de pression, car c'est la question explicite du user."
+        ],
+        "confidence": "high",
+        "guidelines": [
+          "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+          "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+          "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+          "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+          "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+          "Guidelines action: Le rôle de l'action 'Partager un point positif' (foster positive communication) et son intention (gratitude) doivent être préservés. Le 'pont mini' (version simplifiée) doit être maintenu. Aucun changement de nature de l'action ne doit être proposé sans demande explicite.",
+          "Guidelines niveau: L'ajustement de fréquence doit rester dans le cadre du rythme et de la charge du niveau courant. Il s'agit d'une augmentation temporaire et ciblée, non d'une accélération globale du niveau. L'impact sur la charge mentale globale doit être considéré.",
+          "Guidelines whole_plan: La trajectoire globale du plan, la cohérence entre les phases, les prérequis des niveaux futurs, l'objectif global et le questionnaire de suivi doivent rester intacts."
+        ],
+        "observation": "Le user, se sentant plus solide, souhaite augmenter la fréquence de l'habitude 'Partager un point positif' de 3 à 4 jours cette semaine. Il insiste explicitement pour maintenir la version 'mini' de l'action, qui a été récemment simplifiée pour réduire la pression. Cela montre une volonté d'engagement accru tout en étant conscient des limites et des ajustements passés. La question du user est une demande directe d'avis coaching sur la cohérence et le risque de pression.",
+        "recommendation": "Accompagner l'élan positif du user en ajustant la fréquence de l'habitude 'Partager un point positif' comme demandé, tout en réaffirmant l'importance de conserver la consigne simplifiée pour éviter de recréer la pression précédemment ressentie. Il est crucial de s'assurer que cette augmentation est perçue comme un renforcement et non comme une réintroduction de la difficulté. La réponse doit inviter à la réflexion sur la durabilité de ce changement.",
+        "options_to_discuss": [
+          "Explorer les raisons profondes de ce regain d'énergie et comment il pourrait être appliqué de manière durable, au-delà de cette seule augmentation de fréquence.",
+          "Discuter de la possibilité d'une augmentation progressive de la fréquence sur plusieurs semaines, plutôt qu'un saut direct, si le user exprime des doutes sur la durabilité."
+        ],
+        "questions_to_clarify": [
+          "Étant donné que l'habitude 'Partager un point positif' a été récemment ajustée pour en réduire la fréquence et en simplifier la consigne, est-ce que cette augmentation à 4 jours te semble durable et ne risque pas de recréer la pression que tu avais ressentie ?"
+        ]
+      },
+      "bridge_plan_item_id": null,
+      "coaching_guidance_audit": {
+        "scope": "action",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "action",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer d'autres modifications au plan qui n'ont pas été explicitement demandées.",
+        "Utiliser un langage qui pourrait être interprété comme une pression à 'performer' ou à 'faire plus'.",
+        "Ignorer la question du user sur le risque de pression."
+      ],
+      "scope": "action",
+      "preserve": [
+        "La consigne simplifiée de l'habitude 'Partager un point positif' ('juste dire merci pour un truc concret, pas écrire une grande phrase').",
+        "L'intention fondamentale de l'habitude : favoriser la communication positive et la gratitude.",
+        "L'intégrité des autres actions et missions du plan, qui ne sont pas concernées par cette demande.",
+        "Le principe de ne pas 'sauter d'étape ni accélérer tout le plan'."
+      ],
+      "warnings": [
+        "Ne pas modifier ou complexifier l'instruction de l'habitude 'Partager un point positif', le user ayant clairement demandé de 'garder la version mini'.",
+        "Éviter de suggérer des augmentations de fréquence ou des changements pour d'autres actions, car la demande est très ciblée sur cette habitude spécifique.",
+        "Ne pas formuler la proposition de manière à laisser entendre que la fréquence précédente était insuffisante ou que le user 'rattrape' un retard, mais plutôt comme une capitalisation sur un regain d'énergie.",
+        "Ne pas valider l'augmentation sans une invitation à la réflexion sur le risque de pression, car c'est la question explicite du user."
+      ],
+      "confidence": "high",
+      "guidelines": [
+        "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+        "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+        "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+        "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+        "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+        "Guidelines action: Le rôle de l'action 'Partager un point positif' (foster positive communication) et son intention (gratitude) doivent être préservés. Le 'pont mini' (version simplifiée) doit être maintenu. Aucun changement de nature de l'action ne doit être proposé sans demande explicite.",
+        "Guidelines niveau: L'ajustement de fréquence doit rester dans le cadre du rythme et de la charge du niveau courant. Il s'agit d'une augmentation temporaire et ciblée, non d'une accélération globale du niveau. L'impact sur la charge mentale globale doit être considéré.",
+        "Guidelines whole_plan: La trajectoire globale du plan, la cohérence entre les phases, les prérequis des niveaux futurs, l'objectif global et le questionnaire de suivi doivent rester intacts."
+      ],
+      "observation": "Le user, se sentant plus solide, souhaite augmenter la fréquence de l'habitude 'Partager un point positif' de 3 à 4 jours cette semaine. Il insiste explicitement pour maintenir la version 'mini' de l'action, qui a été récemment simplifiée pour réduire la pression. Cela montre une volonté d'engagement accru tout en étant conscient des limites et des ajustements passés. La question du user est une demande directe d'avis coaching sur la cohérence et le risque de pression.",
+      "recommendation": "Accompagner l'élan positif du user en ajustant la fréquence de l'habitude 'Partager un point positif' comme demandé, tout en réaffirmant l'importance de conserver la consigne simplifiée pour éviter de recréer la pression précédemment ressentie. Il est crucial de s'assurer que cette augmentation est perçue comme un renforcement et non comme une réintroduction de la difficulté. La réponse doit inviter à la réflexion sur la durabilité de ce changement.",
+      "options_to_discuss": [
+        "Explorer les raisons profondes de ce regain d'énergie et comment il pourrait être appliqué de manière durable, au-delà de cette seule augmentation de fréquence.",
+        "Discuter de la possibilité d'une augmentation progressive de la fréquence sur plusieurs semaines, plutôt qu'un saut direct, si le user exprime des doutes sur la durabilité."
+      ],
+      "questions_to_clarify": [
+        "Étant donné que l'habitude 'Partager un point positif' a été récemment ajustée pour en réduire la fréquence et en simplifier la consigne, est-ce que cette augmentation à 4 jours te semble durable et ne risque pas de recréer la pression que tu avais ressentie ?"
+      ]
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [
+        "maintenant"
+      ],
+      "risk_band": "none",
+      "reason_codes": [
+        "immediacy_now"
+      ],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": true,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "adjust_plan_item"
+      }
+    ],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r57-level-increase-rhythm-t05",
+    "trace_error": null
+  }
+]

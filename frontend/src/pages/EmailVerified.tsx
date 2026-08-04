@@ -13,17 +13,17 @@ export default function EmailVerified() {
           <CheckCircle2 className="w-10 h-10" />
         </div>
 
-        <h1 className="text-4xl font-extrabold text-slate-900 mb-4 tracking-tight">Email confirmé !</h1>
+        <h1 className="text-4xl font-extrabold text-slate-900 mb-4 tracking-tight">Email confirmed!</h1>
         <p className="text-lg text-slate-600 mb-10 max-w-md mx-auto leading-relaxed">
-          Merci d’avoir pris le temps de confirmer ton adresse.
+          Thank you for taking the time to confirm your address.
           <br />
-          <span className="font-medium text-slate-900">Tu peux maintenant retourner sur l’onglet d’origine</span> pour continuer ton parcours.
+          <span className="font-medium text-slate-900">You can go back to the original tab</span> to carry on.
         </p>
 
         <p className="text-xs text-slate-400 mt-8 font-medium">
           {hasCode
-            ? "Tu peux fermer cet onglet."
-            : "Si tu viens de cliquer sur le lien, tu peux fermer cet onglet."}
+            ? "You can close this tab."
+            : "If you have just clicked the link, you can close this tab."}
         </p>
       </div>
     </div>

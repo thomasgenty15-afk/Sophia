@@ -1,0 +1,329 @@
+{
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "53f315ec-b3e1-45c4-b730-9f6ad4283845",
+        "role": "user",
+        "content": "J ai rate un message important au travail et la honte monte fort. Reste doux avec moi, sans plan, sans technique, sans question.",
+        "scope": "qa-emotional-repair-2026-06-03-emotional-repair-20260603-r5",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-03-emotional-repair-20260603-r5-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-03T18:43:12.663521+00:00"
+      },
+      {
+        "id": "e0743b8a-ef01-4f19-a5d8-6a8cba48117c",
+        "role": "assistant",
+        "content": "Je reste avec toi sur ce qui est là, sans lancer d'outil ni conclure quoi que ce soit sur toi. 🙂",
+        "scope": "qa-emotional-repair-2026-06-03-emotional-repair-20260603-r5",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-03-emotional-repair-20260603-r5-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-03T18:43:25.279325+00:00"
+      },
+      {
+        "id": "b4968db6-a81b-4a27-9d78-a422dec7d1a5",
+        "role": "user",
+        "content": "Ca redescend un peu. Donne-moi une seule micro-action pour rouvrir ce mail, sans outil.",
+        "scope": "qa-emotional-repair-2026-06-03-emotional-repair-20260603-r5",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-03-emotional-repair-20260603-r5-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-03T18:43:53.530247+00:00"
+      },
+      {
+        "id": "35558bd0-4622-4488-8465-a412a6429f87",
+        "role": "assistant",
+        "content": "Est-ce que tu veux rester sur l'apaisement ou est-ce qu'on prépare ton démarrage pour rouvrir ce mail ? 🙂",
+        "scope": "qa-emotional-repair-2026-06-03-emotional-repair-20260603-r5",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-03-emotional-repair-20260603-r5-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 1,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-03T18:44:25.978376+00:00"
+      },
+      {
+        "id": "6abade74-aba4-4395-8ae0-0abe204839e2",
+        "role": "user",
+        "content": "Le demarrage pour rouvrir le mail, une seule micro-action.",
+        "scope": "qa-emotional-repair-2026-06-03-emotional-repair-20260603-r5",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-03-emotional-repair-20260603-r5-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-03T18:44:45.810094+00:00"
+      },
+      {
+        "id": "1a218252-e426-4d60-931f-2a741b6904d7",
+        "role": "assistant",
+        "content": "Quelles excuses ou pensées reviennent quand tu sens que tu glisses, et dans quel état tu veux te remettre en écrivant ce texte ? 🙂",
+        "scope": "qa-emotional-repair-2026-06-03-emotional-repair-20260603-r5",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-03-emotional-repair-20260603-r5-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "status": "ask_question",
+              "slot_state": {
+                "slot": "platform_field",
+                "needed": true,
+                "reason": "structured_ai_missing_platform_field:recurring_excuse",
+                "status": "missing",
+                "question": "Quelles excuses ou pensées reviennent quand tu sens que tu glisses, et dans quel état tu veux te remettre en écrivant ce texte ?",
+                "known_slots": {
+                  "target": {
+                    "kind": "personal_action",
+                    "title": "rouvrir le mail",
+                    "plan_item_id": null
+                  },
+                  "technique": "texte_recadrage",
+                  "intake_state": {
+                    "target": {
+                      "kind": "personal_action",
+                      "title": "rouvrir le mail",
+                      "status": "identified",
+                      "evidence": [
+                        "Le demarrage pour rouvrir le mail"
+                      ],
+                      "confidence": "high",
+                      "plan_item_id": null
+                    },
+                    "blocker": {
+                      "type": "mixed",
+                      "evidence": [],
+                      "confidence": 0.5
+                    },
+                    "skill_id": "prepare_attack_card",
+                    "technique": {
+                      "value": "texte_recadrage",
+                      "status": "identified",
+                      "options": [],
+                      "evidence": [
+                        "recommended_by_attack_card_intake"
+                      ],
+                      "confidence": "medium",
+                      "fit_warning": null,
+                      "explicitly_requested": false
+                    },
+                    "confidence": "high",
+                    "constraints": [],
+                    "user_intent": "create",
+                    "current_step": "platform_field_intake",
+                    "missing_slots": [
+                      "platform_field:recurring_excuse",
+                      "platform_field:desired_reframe_state"
+                    ],
+                    "platform_fields": {
+                      "fields": [
+                        {
+                          "status": "locked",
+                          "evidence": [],
+                          "field_id": "negotiated_action",
+                          "question": "Quelle action tu sais que tu dois faire, mais que tu commences souvent a negocier ?",
+                          "required": true,
+                          "locked_value": "rouvrir le mail",
+                          "technique_key": "texte_recadrage",
+                          "user_evidence": [
+                            "Le demarrage pour rouvrir le mail"
+                          ],
+                          "proposed_value": null,
+                          "needs_user_confirmation": false
+                        },
+                        {
+                          "status": "missing",
+                          "evidence": [],
+                          "field_id": "recurring_excuse",
+                          "question": "Quelles excuses ou pensees reviennent quand tu sens que tu glisses ?",
+                          "required": true,
+                          "locked_value": null,
+                          "technique_key": "texte_recadrage",
+                          "user_evidence": [],
+                          "proposed_value": null,
+                          "needs_user_confirmation": false
+                        },
+                        {
+                          "status": "missing",
+                          "evidence": [],
+                          "field_id": "desired_reframe_state",
+                          "question": "Dans quel etat tu veux te remettre en ecrivant ce texte ?",
+                          "required": true,
+                          "locked_value": null,
+                          "technique_key": "texte_recadrage",
+                          "user_evidence": [],
+                          "proposed_value": null,
+                          "needs_user_confirmation": false
+                        }
+                      ],
+                      "status": "partial",
+                      "technique_key": "texte_recadrage",
+                      "missing_field_ids": [
+                        "recurring_excuse",
+                        "desired_reframe_state"
+                      ]
+                    },
+                    "activation_keyword": {
+                      "value": null,
+                      "status": "not_applicable",
+                      "options": [],
+                      "evidence": [],
+                      "confidence": "low",
+                      "rejected_value": null
+                    },
+                    "generated_user_message": "Quelles excuses ou pensées reviennent quand tu sens que tu glisses, et dans quel état tu veux te remettre en écrivant ce texte ?"
+                  },
+                  "platform_fields": {
+                    "fields": [
+                      {
+                        "status": "locked",
+                        "evidence": [],
+                        "field_id": "negotiated_action",
+                        "question": "Quelle action tu sais que tu dois faire, mais que tu commences souvent a negocier ?",
+                        "required": true,
+                        "locked_value": "rouvrir le mail",
+                        "technique_key": "texte_recadrage",
+                        "user_evidence": [
+                          "Le demarrage pour rouvrir le mail"
+                        ],
+                        "proposed_value": null,
+                        "needs_user_confirmation": false
+                      },
+                      {
+                        "status": "missing",
+                        "evidence": [],
+                        "field_id": "recurring_excuse",
+                        "question": "Quelles excuses ou pensees reviennent quand tu sens que tu glisses ?",
+                        "required": true,
+                        "locked_value": null,
+                        "technique_key": "texte_recadrage",
+                        "user_evidence": [],
+                        "proposed_value": null,
+                        "needs_user_confirmation": false
+                      },
+                      {
+                        "status": "missing",
+                        "evidence": [],
+                        "field_id": "desired_reframe_state",
+                        "question": "Dans quel etat tu veux te remettre en ecrivant ce texte ?",
+                        "required": true,
+                        "locked_value": null,
+                        "technique_key": "texte_recadrage",
+                        "user_evidence": [],
+                        "proposed_value": null,
+                        "needs_user_confirmation": false
+                      }
+                    ],
+                    "status": "partial",
+                    "technique_key": "texte_recadrage",
+                    "missing_field_ids": [
+                      "recurring_excuse",
+                      "desired_reframe_state"
+                    ]
+                  }
+                }
+              },
+              "missing_slots": [
+                "platform_field:recurring_excuse",
+                "platform_field:desired_reframe_state"
+              ],
+              "selected_handler": "prepare_attack_card"
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-03T18:45:08.281857+00:00"
+      }
+    ]
+  },
+  "memory_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "scheduled_checkins": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_recurring_reminders": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  }
+}

@@ -1,0 +1,56 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-level-ai-only-r4-t01",
+    "auth_method": "get-jwt.sh",
+    "user": "Le bloc du soir sur les grignotages ne tient pas trop en ce moment. Je ne parle pas d'une action isolée, c'est plutôt l'ensemble de ce niveau qui devient lourd quand je rentre fatiguée.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-level-ai-only-r4-t01",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-level-ai-only-r4",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C'est noté, on va adapter ce niveau pour qu'il soit plus digeste quand tu rentres fatiguée. Pour alléger ce bloc, préfères-tu qu'on simplifie les actions actuelles (comme la préparation d'avance) ou qu'on en mette certaines de côté pour l'instant ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-level-ai-only-r4-t02",
+    "auth_method": "get-jwt.sh",
+    "user": "Je veux simplifier, pas mettre de côté. Le plus pénible c'est devoir décider quoi manger et préparer un truc alors que je suis déjà crevée.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-level-ai-only-r4-t02",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-level-ai-only-r4",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C'est très clair : on cherche le 'zéro effort' pour le soir. Pour l'action 'Préparer tes alternatives', est-ce que des options sans aucune cuisine (comme des amandes ou des fruits déjà lavés) te conviendraient pour supprimer totalement cette corvée ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  }
+]

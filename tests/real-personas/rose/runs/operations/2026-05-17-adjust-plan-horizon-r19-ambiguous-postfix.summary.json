@@ -1,0 +1,134 @@
+[
+  {
+    "turn": 1,
+    "request_id": "qa-rose-2026-05-17-adjust-plan-horizon-r19-ambiguous-postfix-t01",
+    "user": "Cette semaine j'ai tenu seulement une partie du plan. Une partie de moi se dit qu'il faudrait tout baisser à 1, voire laisser tomber, mais je ne suis pas sûre. Est-ce que c'est vraiment une bonne idée ou juste une réaction de fatigue ?",
+    "status": 200,
+    "sophia": "Ah je vois très bien le mécanisme. Quand t’es rincé, ton cerveau te dit “coupe tout” pour retrouver un peu de contrôle et d’énergie. Sauf que souvent, baisser à 1 voire tout lâcher, c’est une décision prise par la fatigue, pas par la réalité de ce que tu veux vraiment. 😮‍💨\n\nJe te propose un repère simple (et très action) :\n1) Si tu as quand même avancé, même “seulement une partie”, alors réduire un peu oui, tout arrêter non.\n2) “Laisser tomber” est une option uniquement si tu confirmes un signal clair : tu n’as plus du tout d’élan ET tu ne peux pas tenir même une version mini. Sinon, c’est juste la vague.\n\nConcrètement, pour ta semaine actuelle, ton plan se compose de 2 choses :\n- Convenir d’un signal de pause (mission ponctuelle)\n- Partager un point positif (habitude, 3 jours cette semaine)\n\nDonc, au lieu de tout baisser, je viserais plutôt une règle de survie intelligente :\n- Tu gardes les 2 items, mais tu diminues la charge mentale : tu fais “le plus petit format qui compte” pour chaque.\n  Exemple : pour le signal de pause, tu fais juste une version simple et reproductible (pas “parfait”).\n  Pour le point positif, tu ajustes pour atteindre au moins un minimum réaliste sur la fin de semaine (sans viser l’exploit).\n\nLe vrai test : si demain tu te sens un peu mieux, est-ce que tu veux encore tout lâcher, ou est-ce que tu veux juste respirer ?  \n\nTu veux qu’on tranche avec une version ultra-pratique : tu préfères réduire de façon minimale (continuer les 2 items, mais en format light) ou tu préfères couper franchement un seul des deux ? (A/B) 🙂",
+    "trace": {
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "response_owner": "tool_skill",
+      "selected_handler": null,
+      "route_reason": null,
+      "safety": "none",
+      "memory_mode": "light",
+      "operation_flow_status": null,
+      "operation_type": null,
+      "pending_confirmation": null,
+      "tool_execution": "none",
+      "executed_tools": []
+    }
+  },
+  {
+    "turn": 2,
+    "request_id": "qa-rose-2026-05-17-adjust-plan-horizon-r19-ambiguous-postfix-t02",
+    "user": "Aide-moi plutôt à réfléchir, sans modifier le plan pour l'instant. J'ai peur de confondre fatigue et vrai besoin d'alléger.",
+    "status": 200,
+    "sophia": "Oui, ta peur est logique. Fatigue et vrai besoin d’allègement se ressemblent, mais tu peux les départager sans toucher au plan pour l’instant. 😮‍💨\n\nFais ce mini-diagnostic (dans ta tête, 2 minutes) :\n1) Si tu “voulais vraiment” alléger parce que ce n’est plus aligné, tu le ressens plutôt comme une baisse de motivation vers le sens, pas juste une baisse d’énergie.\n2) Si c’est la fatigue, tes actions te paraîtront impossibles au départ, mais dès que tu as “démarré un peu”, ça revient (même partiellement).\n3) Si c’est un besoin réel, tu vas sentir un critère clair : trop de charge, trop de friction, ou une contrainte extérieure qui s’est vraiment installée.\n\nPour trancher doucement, on peut aussi prendre un repère simple : “est-ce que j’ai tenu même un peu du plan cette semaine ?” Si oui, c’est souvent un signal que l’énergie est bancale, pas que tout doit disparaître.\n\nTu préfères qu’on parte de ce que tu ressens maintenant (fatigue vs sens), ou d’un exemple concret de journée où tu as hésité ? 🙂",
+    "trace": {
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "response_owner": "conversation_handler",
+      "selected_handler": null,
+      "route_reason": null,
+      "safety": "none",
+      "memory_mode": "light",
+      "operation_flow_status": null,
+      "operation_type": null,
+      "pending_confirmation": null,
+      "tool_execution": "none",
+      "executed_tools": []
+    }
+  },
+  {
+    "turn": 3,
+    "request_id": "qa-rose-2026-05-17-adjust-plan-horizon-r19-ambiguous-postfix-t03",
+    "user": "Ok, là c'est plus clair: je ne veux pas toucher à tout le niveau. Prépare seulement un brouillon pour alléger Partager un point positif à 2 fois cette semaine, sans l'appliquer.",
+    "status": 200,
+    "sophia": "Parfait : je te prépare juste un brouillon pour alléger “Partager un point positif” à 2 fois cette semaine, sans l’appliquer. 👍🙂\n\nTu préfères un allègement plutôt “format rapide” (moins de temps) ou “moins d’intensité” (moins de réflexion à chaque fois) ?",
+    "trace": {
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "response_owner": "tool_skill",
+      "selected_handler": null,
+      "route_reason": null,
+      "safety": "none",
+      "memory_mode": "light",
+      "operation_flow_status": null,
+      "operation_type": null,
+      "pending_confirmation": null,
+      "tool_execution": "none",
+      "executed_tools": []
+    }
+  },
+  {
+    "turn": 4,
+    "request_id": "qa-rose-2026-05-17-adjust-plan-horizon-r19-ambiguous-postfix-t04",
+    "user": "Moins d'intensité: juste une phrase simple, même imparfaite. Et toujours seulement 2 fois.",
+    "status": 200,
+    "sophia": "C'est entendu. Je note qu'on réduit encore l'intensité pour 'Partager un point positif' : on passe à 2 fois par semaine avec pour seule consigne d'écrire une phrase simple, même imparfaite. Rien n'est encore modifié, est-ce que je peux préparer cette proposition concrète pour ton plan ?",
+    "trace": {
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "response_owner": "tool_skill",
+      "selected_handler": null,
+      "route_reason": null,
+      "safety": "none",
+      "memory_mode": "light",
+      "operation_flow_status": null,
+      "operation_type": null,
+      "pending_confirmation": null,
+      "tool_execution": "blocked",
+      "executed_tools": []
+    }
+  },
+  {
+    "turn": 5,
+    "request_id": "qa-rose-2026-05-17-adjust-plan-horizon-r19-ambiguous-postfix-t05",
+    "user": "Oui, prépare le brouillon concret, mais n'applique pas encore.",
+    "status": 200,
+    "sophia": "Je te propose d'ajuster l'habitude 'Partager un point positif' pour qu'elle soit plus légère et moins stressante. Rien n'est encore appliqué, c'est une proposition avant validation. Je prévois de passer la fréquence à 2 fois par semaine et de simplifier l'attendu : il s'agira d'écrire juste une phrase simple, même imparfaite. Tes autres actions, comme convenir d'un signal de pause ou cartographier les déclencheurs, resteront inchangées. Est-ce que cela te convient ?",
+    "trace": {
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "response_owner": "tool_skill",
+      "selected_handler": null,
+      "route_reason": null,
+      "safety": "none",
+      "memory_mode": "light",
+      "operation_flow_status": null,
+      "operation_type": null,
+      "pending_confirmation": null,
+      "tool_execution": "blocked",
+      "executed_tools": []
+    }
+  },
+  {
+    "turn": 6,
+    "request_id": "qa-rose-2026-05-17-adjust-plan-horizon-r19-ambiguous-postfix-t06",
+    "user": "Non, finalement ne l'applique pas. Je garde le plan tel quel et je vais juste observer encore une journée.",
+    "status": 200,
+    "sophia": "Ok, je n'applique pas cet ajustement.",
+    "trace": {
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "response_owner": "tool_skill",
+      "selected_handler": null,
+      "route_reason": null,
+      "safety": "none",
+      "memory_mode": "none",
+      "operation_flow_status": null,
+      "operation_type": null,
+      "pending_confirmation": null,
+      "tool_execution": "blocked",
+      "executed_tools": []
+    }
+  }
+]

@@ -1,0 +1,555 @@
+{
+  "run_id": "daily-paul-done-plus-open-20260516-r1",
+  "persona": "paul",
+  "user_id": "3b2d22cd-3c57-4c43-a035-941c014f8165",
+  "run_started_at": "2026-05-16T17:12:53.849Z",
+  "setup": {
+    "process_response": {
+      "status": 200,
+      "body": {
+        "success": true,
+        "processed": 1,
+        "flushed_deferred": 0,
+        "delivered_rendez_vous": 0,
+        "processed_access_notifications": 0,
+        "processed_proactive_candidates": 0,
+        "request_id": "daily-paul-done-plus-open-20260516-r1-process-checkins"
+      }
+    },
+    "scheduled_after": {
+      "id": "ce3c693f-8662-44a6-8782-5d30c323cf76",
+      "status": "awaiting_user",
+      "draft_message": "J'ai vu que « Créer ton Parking à idées » est déjà validée aujourd'hui. Bien joué.\n\nTu en es où avec “Bloquer tes créneaux de la semaine” ?",
+      "processed_at": "2026-05-16T17:12:57.535+00:00",
+      "delivery_last_error": null,
+      "delivery_last_request_id": "7090a9e6-c69e-4b5b-a6f1-568a80ca6dfb",
+      "message_payload": {
+        "run_id": "daily-paul-done-plus-open-20260516-r1",
+        "source": "qa_daily_done_plus_open_dynamic_fixture",
+        "version": 2,
+        "weekday": "sat",
+        "timezone": "Europe/Paris",
+        "local_date": "2026-05-16",
+        "generated_at": "2026-05-16T17:12:53.862Z",
+        "plan_item_ids": [
+          "6c013507-fbb4-4ab0-9542-5568a11ec172",
+          "89a1ccf2-2751-463e-97c0-94213551631d"
+        ],
+        "occurrence_ids": [
+          "b6587c3e-fd12-49a6-a7b8-0789e8106d8a",
+          "9d490e32-9971-4a89-9387-6ce1a8362985"
+        ],
+        "week_start_date": "2026-05-11",
+        "reviewed_local_date": "2026-05-16"
+      }
+    },
+    "pending": {
+      "id": "5d18d514-34f9-4c4b-8588-b45b8cab7ead",
+      "status": "pending",
+      "payload": {
+        "targets": [
+          {
+            "kind": "task",
+            "title": "Bloquer tes créneaux de la semaine",
+            "plan_id": "55f505b5-e0b4-450b-a0a2-bc2656933181",
+            "cycle_id": "06e58ed9-8669-4d2a-a881-99509e993c34",
+            "dimension": "missions",
+            "planned_day": "sat",
+            "time_of_day": "anytime",
+            "plan_item_id": "89a1ccf2-2751-463e-97c0-94213551631d",
+            "occurrence_id": "9d490e32-9971-4a89-9387-6ce1a8362985",
+            "tracking_type": "boolean",
+            "week_start_date": "2026-05-11",
+            "transformation_id": "72a16a18-3370-464a-8296-80f3398fc76a",
+            "reviewed_local_date": "2026-05-16",
+            "original_planned_day": "sat"
+          }
+        ],
+        "timezone": "Europe/Paris",
+        "local_date": "2026-05-16",
+        "message_mode": "conversation",
+        "review_state": {
+          "items": {
+            "9d490e32-9971-4a89-9387-6ce1a8362985": {
+              "title": "Bloquer tes créneaux de la semaine",
+              "outcome": null,
+              "plan_id": "55f505b5-e0b4-450b-a0a2-bc2656933181",
+              "confidence": "low",
+              "plan_label": null,
+              "action_type": "mission",
+              "reason_text": null,
+              "plan_item_id": "89a1ccf2-2751-463e-97c0-94213551631d",
+              "evidence_text": null,
+              "missing_slots": [
+                "outcome"
+              ],
+              "occurrence_id": "9d490e32-9971-4a89-9387-6ce1a8362985",
+              "still_relevant": "unknown",
+              "reason_category": null,
+              "matched_user_text": null
+            }
+          },
+          "source": "daily_action_review_v1",
+          "status": "collecting",
+          "skill_id": "daily_action_review_v1",
+          "stop_reason": null,
+          "next_question": null,
+          "should_apply_effects": false,
+          "next_question_targets": [
+            "9d490e32-9971-4a89-9387-6ce1a8362985"
+          ],
+          "generated_user_message": null,
+          "remaining_occurrence_ids": [],
+          "asked_occurrence_ids_history": [
+            [
+              "9d490e32-9971-4a89-9387-6ce1a8362985"
+            ]
+          ],
+          "current_focus_occurrence_ids": [
+            "9d490e32-9971-4a89-9387-6ce1a8362985"
+          ],
+          "action_intelligence_by_occurrence_id": {}
+        },
+        "draft_message": "J'ai vu que « Créer ton Parking à idées » est déjà validée aujourd'hui. Bien joué.\n\nTu en es où avec “Bloquer tes créneaux de la semaine” ?",
+        "event_context": "action_evening_review_v2",
+        "occurrence_ids": [
+          "9d490e32-9971-4a89-9387-6ce1a8362985"
+        ],
+        "chat_capability": "daily_action_review",
+        "grouping_reason": "single_action",
+        "week_start_date": "2026-05-11",
+        "asked_occurrence_ids": [
+          "9d490e32-9971-4a89-9387-6ce1a8362985"
+        ],
+        "action_evening_review": true,
+        "already_resolved_targets": [
+          {
+            "kind": "task",
+            "title": "Créer ton Parking à idées",
+            "plan_id": "55f505b5-e0b4-450b-a0a2-bc2656933181",
+            "cycle_id": "06e58ed9-8669-4d2a-a881-99509e993c34",
+            "dimension": "missions",
+            "planned_day": "sat",
+            "time_of_day": "anytime",
+            "plan_item_id": "6c013507-fbb4-4ab0-9542-5568a11ec172",
+            "occurrence_id": "b6587c3e-fd12-49a6-a7b8-0789e8106d8a",
+            "tracking_type": "boolean",
+            "resolved_source": "entry_and_occurrence",
+            "resolved_status": "completed",
+            "week_start_date": "2026-05-11",
+            "transformation_id": "72a16a18-3370-464a-8296-80f3398fc76a",
+            "reviewed_local_date": "2026-05-16",
+            "original_planned_day": "sat"
+          }
+        ],
+        "not_yet_asked_occurrence_ids": []
+      },
+      "created_at": "2026-05-16T17:12:57.53201+00:00"
+    },
+    "assistant": [
+      {
+        "id": "96f12a70-225b-4894-a08d-f59481fab50b",
+        "content": "J'ai vu que « Créer ton Parking à idées » est déjà validée aujourd'hui. Bien joué.\n\nTu en es où avec “Bloquer tes créneaux de la semaine” ?",
+        "metadata": {
+          "to": "+33601020304",
+          "source": "scheduled_checkin",
+          "channel": "whatsapp",
+          "purpose": "action_evening_review",
+          "request_id": "7090a9e6-c69e-4b5b-a6f1-568a80ca6dfb",
+          "is_proactive": false,
+          "event_context": "action_evening_review_v2",
+          "plan_item_ids": [
+            "89a1ccf2-2751-463e-97c0-94213551631d"
+          ],
+          "occurrence_ids": [
+            "9d490e32-9971-4a89-9387-6ce1a8362985"
+          ],
+          "require_opted_in": true,
+          "whatsapp_buttons": [],
+          "whatsapp_template": null,
+          "simulated_whatsapp": true,
+          "original_checkin_id": "ce3c693f-8662-44a6-8782-5d30c323cf76",
+          "outbound_tracking_id": "8df5cdd9-10eb-4339-8523-2f9a7633db6f",
+          "wa_outbound_message_id": "wamid_WEB_SIM_7090a9e6-c69e-4b5b-a6f1-568a80ca6dfb",
+          "simulation_bypassed_phone": false,
+          "simulation_bypassed_opt_in": null,
+          "already_resolved_occurrence_ids": [
+            "b6587c3e-fd12-49a6-a7b8-0789e8106d8a"
+          ]
+        },
+        "created_at": "2026-05-16T17:12:57.522208+00:00"
+      }
+    ],
+    "already_done_item": {
+      "id": "6c013507-fbb4-4ab0-9542-5568a11ec172",
+      "cycle_id": "06e58ed9-8669-4d2a-a881-99509e993c34",
+      "transformation_id": "72a16a18-3370-464a-8296-80f3398fc76a",
+      "plan_id": "55f505b5-e0b4-450b-a0a2-bc2656933181",
+      "dimension": "missions",
+      "kind": "task",
+      "status": "active",
+      "title": "Créer ton Parking à idées",
+      "tracking_type": "boolean",
+      "time_of_day": "anytime",
+      "scheduled_days": null,
+      "activation_order": 1,
+      "phase_id": "phase-1",
+      "phase_order": 1,
+      "defense_card_id": null,
+      "attack_card_id": null,
+      "cards_status": "not_started"
+    },
+    "open_item": {
+      "id": "89a1ccf2-2751-463e-97c0-94213551631d",
+      "cycle_id": "06e58ed9-8669-4d2a-a881-99509e993c34",
+      "transformation_id": "72a16a18-3370-464a-8296-80f3398fc76a",
+      "plan_id": "55f505b5-e0b4-450b-a0a2-bc2656933181",
+      "dimension": "missions",
+      "kind": "task",
+      "status": "active",
+      "title": "Bloquer tes créneaux de la semaine",
+      "tracking_type": "boolean",
+      "time_of_day": "anytime",
+      "scheduled_days": null,
+      "activation_order": 3,
+      "phase_id": "phase-1",
+      "phase_order": 1,
+      "defense_card_id": null,
+      "attack_card_id": null,
+      "cards_status": "not_started"
+    }
+  },
+  "turns": [
+    {
+      "turn": 0,
+      "role": "assistant",
+      "text": "J'ai vu que « Créer ton Parking à idées » est déjà validée aujourd'hui. Bien joué.\n\nTu en es où avec “Bloquer tes créneaux de la semaine” ?",
+      "trace": {
+        "source": "process-checkins",
+        "scheduled_checkin_status": "awaiting_user",
+        "pending_id": "5d18d514-34f9-4c4b-8588-b45b8cab7ead",
+        "already_resolved_count": 1,
+        "targets_count": 1
+      }
+    },
+    {
+      "turn": 1,
+      "role": "user",
+      "text": "Pour les créneaux, j'ai calé lundi et mardi dans le calendrier. Par contre j'ai laissé le reste en vrac, j'étais rincé et je n'ai pas eu la tête pour finir toute la semaine.",
+      "response": {
+        "status": 200,
+        "body": {
+          "ok": true,
+          "request_id": "daily-paul-done-plus-open-20260516-r1-webhook"
+        }
+      }
+    },
+    {
+      "turn": 1,
+      "role": "assistant",
+      "text": "",
+      "trace": {
+        "http_status": 200,
+        "selected_handler": "whatsapp-webhook",
+        "pending_status": "pending",
+        "assistant_count": 0,
+        "entries": [
+          {
+            "plan_item_id": "6c013507-fbb4-4ab0-9542-5568a11ec172",
+            "outcome": "completed",
+            "metadata": {
+              "run_id": "daily-paul-done-plus-open-20260516-r1",
+              "source": "qa_prevalidated_before_daily",
+              "occurrence_id": "b6587c3e-fd12-49a6-a7b8-0789e8106d8a"
+            }
+          }
+        ],
+        "occurrences": [
+          {
+            "id": "b6587c3e-fd12-49a6-a7b8-0789e8106d8a",
+            "plan_item_id": "6c013507-fbb4-4ab0-9542-5568a11ec172",
+            "planned_day": "sat",
+            "original_planned_day": "sat",
+            "status": "done",
+            "source": "manual_change",
+            "validated_at": "2026-05-16T17:12:53.862+00:00",
+            "updated_at": "2026-05-16T17:12:53.862+00:00"
+          },
+          {
+            "id": "9d490e32-9971-4a89-9387-6ce1a8362985",
+            "plan_item_id": "89a1ccf2-2751-463e-97c0-94213551631d",
+            "planned_day": "sat",
+            "original_planned_day": "sat",
+            "status": "planned",
+            "source": "manual_change",
+            "validated_at": null,
+            "updated_at": "2026-05-16T17:12:53.862+00:00"
+          }
+        ],
+        "continuation_items": [
+          {
+            "id": "84437c9a-930a-4993-9431-19bf6109a130",
+            "title": "Terminer Bloquer tes créneaux de la semaine (2e partie)",
+            "dimension": "missions",
+            "kind": "task",
+            "status": "active",
+            "plan_id": "55f505b5-e0b4-450b-a0a2-bc2656933181",
+            "defense_card_id": null,
+            "attack_card_id": null,
+            "cards_status": "not_started",
+            "payload": {
+              "_generation": {
+                "temp_id": "gen-p1-missions-002"
+              },
+              "daily_split_part": "2e_partie",
+              "daily_split_created_at": "2026-05-16T17:14:41.311Z",
+              "daily_split_planned_day": "sun",
+              "daily_split_continuation": true,
+              "daily_split_from_plan_item_id": "89a1ccf2-2751-463e-97c0-94213551631d",
+              "daily_split_from_occurrence_id": "9d490e32-9971-4a89-9387-6ce1a8362985"
+            },
+            "created_at": "2026-05-16T17:14:41.311+00:00"
+          }
+        ],
+        "continuation_occurrences": []
+      }
+    }
+  ],
+  "final_snapshot": {
+    "pending": [
+      {
+        "id": "5d18d514-34f9-4c4b-8588-b45b8cab7ead",
+        "status": "pending",
+        "payload": {
+          "targets": [
+            {
+              "kind": "task",
+              "title": "Bloquer tes créneaux de la semaine",
+              "plan_id": "55f505b5-e0b4-450b-a0a2-bc2656933181",
+              "cycle_id": "06e58ed9-8669-4d2a-a881-99509e993c34",
+              "dimension": "missions",
+              "planned_day": "sat",
+              "time_of_day": "anytime",
+              "plan_item_id": "89a1ccf2-2751-463e-97c0-94213551631d",
+              "occurrence_id": "9d490e32-9971-4a89-9387-6ce1a8362985",
+              "tracking_type": "boolean",
+              "week_start_date": "2026-05-11",
+              "transformation_id": "72a16a18-3370-464a-8296-80f3398fc76a",
+              "reviewed_local_date": "2026-05-16",
+              "original_planned_day": "sat"
+            }
+          ],
+          "timezone": "Europe/Paris",
+          "local_date": "2026-05-16",
+          "message_mode": "conversation",
+          "review_state": {
+            "items": {
+              "9d490e32-9971-4a89-9387-6ce1a8362985": {
+                "title": "Bloquer tes créneaux de la semaine",
+                "outcome": null,
+                "plan_id": "55f505b5-e0b4-450b-a0a2-bc2656933181",
+                "confidence": "low",
+                "plan_label": null,
+                "action_type": "mission",
+                "reason_text": null,
+                "plan_item_id": "89a1ccf2-2751-463e-97c0-94213551631d",
+                "evidence_text": null,
+                "missing_slots": [
+                  "outcome"
+                ],
+                "occurrence_id": "9d490e32-9971-4a89-9387-6ce1a8362985",
+                "still_relevant": "unknown",
+                "reason_category": null,
+                "matched_user_text": null
+              }
+            },
+            "source": "daily_action_review_v1",
+            "status": "collecting",
+            "skill_id": "daily_action_review_v1",
+            "stop_reason": null,
+            "next_question": null,
+            "should_apply_effects": false,
+            "next_question_targets": [
+              "9d490e32-9971-4a89-9387-6ce1a8362985"
+            ],
+            "generated_user_message": null,
+            "remaining_occurrence_ids": [],
+            "asked_occurrence_ids_history": [
+              [
+                "9d490e32-9971-4a89-9387-6ce1a8362985"
+              ]
+            ],
+            "current_focus_occurrence_ids": [
+              "9d490e32-9971-4a89-9387-6ce1a8362985"
+            ],
+            "action_intelligence_by_occurrence_id": {}
+          },
+          "draft_message": "J'ai vu que « Créer ton Parking à idées » est déjà validée aujourd'hui. Bien joué.\n\nTu en es où avec “Bloquer tes créneaux de la semaine” ?",
+          "event_context": "action_evening_review_v2",
+          "occurrence_ids": [
+            "9d490e32-9971-4a89-9387-6ce1a8362985"
+          ],
+          "chat_capability": "daily_action_review",
+          "grouping_reason": "single_action",
+          "week_start_date": "2026-05-11",
+          "asked_occurrence_ids": [
+            "9d490e32-9971-4a89-9387-6ce1a8362985"
+          ],
+          "action_evening_review": true,
+          "already_resolved_targets": [
+            {
+              "kind": "task",
+              "title": "Créer ton Parking à idées",
+              "plan_id": "55f505b5-e0b4-450b-a0a2-bc2656933181",
+              "cycle_id": "06e58ed9-8669-4d2a-a881-99509e993c34",
+              "dimension": "missions",
+              "planned_day": "sat",
+              "time_of_day": "anytime",
+              "plan_item_id": "6c013507-fbb4-4ab0-9542-5568a11ec172",
+              "occurrence_id": "b6587c3e-fd12-49a6-a7b8-0789e8106d8a",
+              "tracking_type": "boolean",
+              "resolved_source": "entry_and_occurrence",
+              "resolved_status": "completed",
+              "week_start_date": "2026-05-11",
+              "transformation_id": "72a16a18-3370-464a-8296-80f3398fc76a",
+              "reviewed_local_date": "2026-05-16",
+              "original_planned_day": "sat"
+            }
+          ],
+          "not_yet_asked_occurrence_ids": []
+        },
+        "processed_at": null
+      }
+    ],
+    "scheduled": [
+      {
+        "id": "ce3c693f-8662-44a6-8782-5d30c323cf76",
+        "status": "awaiting_user",
+        "draft_message": "J'ai vu que « Créer ton Parking à idées » est déjà validée aujourd'hui. Bien joué.\n\nTu en es où avec “Bloquer tes créneaux de la semaine” ?",
+        "processed_at": "2026-05-16T17:12:57.535+00:00",
+        "delivery_last_error": null,
+        "delivery_last_request_id": "7090a9e6-c69e-4b5b-a6f1-568a80ca6dfb",
+        "message_payload": {
+          "run_id": "daily-paul-done-plus-open-20260516-r1",
+          "source": "qa_daily_done_plus_open_dynamic_fixture",
+          "version": 2,
+          "weekday": "sat",
+          "timezone": "Europe/Paris",
+          "local_date": "2026-05-16",
+          "generated_at": "2026-05-16T17:12:53.862Z",
+          "plan_item_ids": [
+            "6c013507-fbb4-4ab0-9542-5568a11ec172",
+            "89a1ccf2-2751-463e-97c0-94213551631d"
+          ],
+          "occurrence_ids": [
+            "b6587c3e-fd12-49a6-a7b8-0789e8106d8a",
+            "9d490e32-9971-4a89-9387-6ce1a8362985"
+          ],
+          "week_start_date": "2026-05-11",
+          "reviewed_local_date": "2026-05-16"
+        }
+      }
+    ],
+    "entries": [
+      {
+        "id": "fba58587-5280-4b84-938e-459d30161237",
+        "plan_item_id": "6c013507-fbb4-4ab0-9542-5568a11ec172",
+        "entry_kind": "checkin",
+        "outcome": "completed",
+        "value_text": "Pré-validé avant le daily pour le run QA.",
+        "blocker_hint": null,
+        "difficulty_level": null,
+        "metadata": {
+          "run_id": "daily-paul-done-plus-open-20260516-r1",
+          "source": "qa_prevalidated_before_daily",
+          "occurrence_id": "b6587c3e-fd12-49a6-a7b8-0789e8106d8a"
+        },
+        "effective_at": "2026-05-16T10:00:00+00:00",
+        "created_at": "2026-05-16T17:12:53.862+00:00"
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "b6587c3e-fd12-49a6-a7b8-0789e8106d8a",
+        "plan_item_id": "6c013507-fbb4-4ab0-9542-5568a11ec172",
+        "planned_day": "sat",
+        "original_planned_day": "sat",
+        "status": "done",
+        "source": "manual_change",
+        "validated_at": "2026-05-16T17:12:53.862+00:00",
+        "created_at": "2026-05-16T17:12:53.862+00:00",
+        "updated_at": "2026-05-16T17:12:53.862+00:00"
+      },
+      {
+        "id": "9d490e32-9971-4a89-9387-6ce1a8362985",
+        "plan_item_id": "89a1ccf2-2751-463e-97c0-94213551631d",
+        "planned_day": "sat",
+        "original_planned_day": "sat",
+        "status": "planned",
+        "source": "manual_change",
+        "validated_at": null,
+        "created_at": "2026-05-16T17:12:53.862+00:00",
+        "updated_at": "2026-05-16T17:12:53.862+00:00"
+      }
+    ],
+    "continuation_plan_items": [
+      {
+        "id": "84437c9a-930a-4993-9431-19bf6109a130",
+        "title": "Terminer Bloquer tes créneaux de la semaine (2e partie)",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "active",
+        "plan_id": "55f505b5-e0b4-450b-a0a2-bc2656933181",
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "cards_status": "not_started",
+        "payload": {
+          "_generation": {
+            "temp_id": "gen-p1-missions-002"
+          },
+          "daily_split_part": "2e_partie",
+          "daily_split_created_at": "2026-05-16T17:14:41.311Z",
+          "daily_split_planned_day": "sun",
+          "daily_split_continuation": true,
+          "daily_split_from_plan_item_id": "89a1ccf2-2751-463e-97c0-94213551631d",
+          "daily_split_from_occurrence_id": "9d490e32-9971-4a89-9387-6ce1a8362985"
+        },
+        "created_at": "2026-05-16T17:14:41.311+00:00"
+      }
+    ],
+    "assistant_messages": [
+      {
+        "id": "96f12a70-225b-4894-a08d-f59481fab50b",
+        "content": "J'ai vu que « Créer ton Parking à idées » est déjà validée aujourd'hui. Bien joué.\n\nTu en es où avec “Bloquer tes créneaux de la semaine” ?",
+        "metadata": {
+          "to": "+33601020304",
+          "source": "scheduled_checkin",
+          "channel": "whatsapp",
+          "purpose": "action_evening_review",
+          "request_id": "7090a9e6-c69e-4b5b-a6f1-568a80ca6dfb",
+          "is_proactive": false,
+          "event_context": "action_evening_review_v2",
+          "plan_item_ids": [
+            "89a1ccf2-2751-463e-97c0-94213551631d"
+          ],
+          "occurrence_ids": [
+            "9d490e32-9971-4a89-9387-6ce1a8362985"
+          ],
+          "require_opted_in": true,
+          "whatsapp_buttons": [],
+          "whatsapp_template": null,
+          "simulated_whatsapp": true,
+          "original_checkin_id": "ce3c693f-8662-44a6-8782-5d30c323cf76",
+          "outbound_tracking_id": "8df5cdd9-10eb-4339-8523-2f9a7633db6f",
+          "wa_outbound_message_id": "wamid_WEB_SIM_7090a9e6-c69e-4b5b-a6f1-568a80ca6dfb",
+          "simulation_bypassed_phone": false,
+          "simulation_bypassed_opt_in": null,
+          "already_resolved_occurrence_ids": [
+            "b6587c3e-fd12-49a6-a7b8-0789e8106d8a"
+          ]
+        },
+        "created_at": "2026-05-16T17:12:57.522208+00:00"
+      }
+    ]
+  }
+}

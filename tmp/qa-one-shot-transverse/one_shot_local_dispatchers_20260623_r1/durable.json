@@ -1,0 +1,139 @@
+{
+  "scheduled_checkins": [
+    {
+      "id": "2a87971a-745d-41d1-ab77-65e03c3d45a5",
+      "status": "pending",
+      "scheduled_for": "2026-06-23T17:37:49.144+00:00",
+      "event_context": "one_shot_reminder:du_dimanche_soir_et_dis_moi_aussi_ou_je_regle_la_destination",
+      "message_payload": {
+        "source": "one_shot_reminder_executor",
+        "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Objet du rappel utilisateur: du dimanche soir, et dis-moi aussi ou je regle la destination Plan actuel ou Base de vie sans le faire a ma place.",
+        "parse_source": "local_parser",
+        "request_text": "Initiative, ok. Rappelle-moi dans 30 minutes de noter le message du dimanche soir, et dis-moi aussi ou je regle la destination Plan actuel ou Base de vie sans le faire a ma place.",
+        "reminder_kind": "one_shot",
+        "user_timezone": "Europe/Paris",
+        "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: du dimanche soir, et dis-moi aussi ou je regle la destination Plan actuel ou Base de vie sans le faire a ma place.",
+        "source_message_id": null,
+        "reminder_instruction": "du dimanche soir, et dis-moi aussi ou je regle la destination Plan actuel ou Base de vie sans le faire a ma place"
+      },
+      "created_at": "2026-06-23T17:07:49.148215+00:00"
+    },
+    {
+      "id": "47261206-a214-42ff-82fa-9ea2bde6402d",
+      "status": "pending",
+      "scheduled_for": "2026-06-24T07:00:00+00:00",
+      "event_context": "one_shot_reminder:verifier_mon_agenda",
+      "message_payload": {
+        "source": "one_shot_reminder_executor",
+        "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Objet du rappel utilisateur: verifier mon agenda.",
+        "parse_source": "payload",
+        "request_text": "rappelle-moi demain matin a 9h de verifier mon agenda",
+        "reminder_kind": "one_shot",
+        "user_timezone": "Europe/Paris",
+        "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: verifier mon agenda.",
+        "source_message_id": null,
+        "reminder_instruction": "verifier mon agenda"
+      },
+      "created_at": "2026-06-23T17:11:34.856663+00:00"
+    }
+  ],
+  "chat_messages_count": 6,
+  "chat_messages": [
+    {
+      "role": "user",
+      "content": "Chaque dimanche soir, je finis par improviser ma semaine et je perds le rythme. J ai l impression que Sophia devrait avoir une fonctionnalite pour preparer ce moment recurrent, mais je ne sais pas laquelle.",
+      "created_at": "2026-06-23T17:07:30.636484+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_local_dispatchers_20260623_r1-t01",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "La bonne surface ici, c’est initiatives. Ça sert בדיוק pour un moment récurrent comme ton dimanche soir, quand tu veux préparer un rituel avant que ça déraille.\n\nProchain pas simple : pense à quoi Sophia devrait te dire, à quel moment exact le dimanche soir, et si ça doit aller dans Plan actuel ou Base de vie.",
+      "created_at": "2026-06-23T17:07:39.879916+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_local_dispatchers_20260623_r1-t01",
+        "route_owner": "feature_opportunity",
+        "selected_handler": "feature_opportunity",
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "user",
+      "content": "Initiative, ok. Rappelle-moi dans 30 minutes de noter le message du dimanche soir, et dis-moi aussi ou je regle la destination Plan actuel ou Base de vie sans le faire a ma place.",
+      "created_at": "2026-06-23T17:07:49.1209+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_local_dispatchers_20260623_r1-t02",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "C'est programmé pour mardi 23 juin à 19:37: je te ferai un rappel pour du dimanche soir, et dis-moi aussi ou je regle la destination Plan actuel ou Base de vie sans le faire a ma place.",
+      "created_at": "2026-06-23T17:07:55.42738+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_local_dispatchers_20260623_r1-t02",
+        "route_owner": "normal_reply",
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "user",
+      "content": "Autre chose, hors initiative : rappelle-moi demain matin a 9h de verifier mon agenda.",
+      "created_at": "2026-06-23T17:11:30.189471+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_local_dispatchers_20260623_r1-t03",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Oui, c’est noté pour demain matin à 9h : vérifier ton agenda 📅",
+      "created_at": "2026-06-23T17:11:36.089813+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_local_dispatchers_20260623_r1-t03",
+        "route_owner": "normal_reply",
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    }
+  ],
+  "user_chat_state": {
+    "user_id": "4c3c96da-1749-4766-9b37-cdd2f1fe65cb",
+    "current_mode": "companion",
+    "risk_level": 0,
+    "temp_memory": {
+      "__memory_payload_state_v2": {
+        "items": [],
+        "budget": {
+          "max_items": 12,
+          "max_entities": 5,
+          "tokens_target": 1800
+        },
+        "modules": {},
+        "version": 2,
+        "entities": [],
+        "last_turn_id": "qa-one_shot_local_dispatchers_20260623_r1-t02",
+        "active_topic_id": null
+      },
+      "companion_question_rhythm": {
+        "preference": "normal",
+        "recent_turns": [
+          0
+        ],
+        "last_updated_at": "2026-06-23T17:11:36.069Z",
+        "last_turn_had_question": false,
+        "turns_since_last_question": 1
+      }
+    },
+    "updated_at": "2026-06-23T17:11:36.085959+00:00"
+  }
+}

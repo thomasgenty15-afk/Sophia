@@ -13,11 +13,32 @@ import type {
   CoachingInterventionHistoryEntry,
   CoachingInterventionPendingState,
 } from "./coaching_intervention_tracking.ts";
-import type { WeeklyCoachingInterventionState } from "../trigger-weekly-bilan/payload.ts";
 
 type CoachingMemorySnapshot = {
   history: CoachingInterventionHistoryEntry[];
   pending: CoachingInterventionPendingState | null;
+};
+
+type WeeklyCoachingInterventionState = {
+  recommendation: string;
+  summary?: string | null;
+  proposed_count_7d: number;
+  resolved_count_7d: number;
+  helpful_count_7d: number;
+  not_helpful_count_7d: number;
+  behavior_change_count_7d: number;
+  pending_technique_id?: string | null;
+  pending_blocker_type?: string | null;
+  top_helpful_technique?: string | null;
+  top_unhelpful_technique?: string | null;
+  recent_resolved?: Array<{
+    technique_id: string;
+    blocker_type?: string | null;
+    outcome: string;
+    target_action_title?: string | null;
+    helpful?: boolean | null;
+    last_used_at?: string | null;
+  }>;
 };
 
 type RenderConfidence = "low" | "medium" | "high";
@@ -42,31 +63,6 @@ function latestTechniqueEntry(
     .filter((item) => item.technique_id === techniqueId)
     .sort((a, b) => parseIsoMs(b.last_used_at ?? null) - parseIsoMs(a.last_used_at ?? null))[0] ??
     null;
-}
-
-function techniqueSignalPattern(techniqueId: CoachingTechniqueId): RegExp {
-  switch (techniqueId) {
-    case "three_second_rule":
-      return /\b3 secondes\b|premier geste|tout de suite|maintenant/i;
-    case "minimum_version":
-      return /version minimale|minimale|une ligne|2 minutes|juste commencer/i;
-    case "ten_minute_sprint":
-      return /\b10 minutes\b|\bdix minutes\b|pendant 10 minutes/i;
-    case "if_then_plan":
-      return /\bsi\b.{0,40}\balors\b/i;
-    case "environment_shift":
-      return /change.*piece|change.*pi[eè]ce|change d'environnement|sors de la piece|bouge de place/i;
-    case "urge_delay":
-      return /attends? 10 minutes|reporte.*10 minutes|repousse juste la decision/i;
-    case "immediate_replacement":
-      return /remplace|a la place|substitut|autre geste tout de suite/i;
-    case "contrast_visualization":
-      return /visualis|ce que tu gagnes|ce que tu paies|cout de ne pas/i;
-    case "precommitment":
-      return /prepare.*maintenant|a l'avance|pre-engage|rendre plus facile plus tard/i;
-    case "relapse_protocol":
-      return /prochaine repetition|prochain geste|ce n'est pas foutu|on repart/i;
-  }
 }
 
 export function buildCoachingHistorySnapshot(
@@ -169,15 +165,12 @@ export function detectCoachingInterventionRender(args: {
   const labelMentioned = technique
     ? response.toLowerCase().includes(technique.label.toLowerCase())
     : false;
-  const keywordHit = addon.recommended_technique
-    ? techniqueSignalPattern(addon.recommended_technique).test(response)
-    : false;
 
-  if (labelMentioned || keywordHit) {
+  if (labelMentioned) {
     return {
       rendered: true,
-      render_confidence: labelMentioned ? "high" : "medium",
-      render_signal: labelMentioned ? "technique_label_detected" : "technique_pattern_detected",
+      render_confidence: "high",
+      render_signal: "technique_label_detected",
       technique_signal_detected: true,
       response_excerpt: truncate(response, 220),
     };

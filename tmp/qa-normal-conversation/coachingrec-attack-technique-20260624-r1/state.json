@@ -1,0 +1,2451 @@
+{
+  "run_id": "coachingrec-attack-technique-20260624-r1",
+  "scope": "qa-normal-conversation-coachingrec-attack-technique-20260624-r1",
+  "base_url": "http://127.0.0.1:54321",
+  "email": "qa-normal-coachingrec-attack-technique-20260624-r1-1782314486121@example.com",
+  "user_id": "f66f0a45-55ae-4ac1-ac11-70efc7277a85",
+  "anon_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0",
+  "service_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU",
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjU0MzIxL2F1dGgvdjEiLCJzdWIiOiJmNjZmMGE0NS01NWFlLTRhYzEtYWMxMS03MGVmYzcyNzdhODUiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzgyMzE4MDg2LCJpYXQiOjE3ODIzMTQ0ODYsImVtYWlsIjoicWEtbm9ybWFsLWNvYWNoaW5ncmVjLWF0dGFjay10ZWNobmlxdWUtMjAyNjA2MjQtcjEtMTc4MjMxNDQ4NjEyMUBleGFtcGxlLmNvbSIsInBob25lIjoiIiwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiZW1haWwiLCJwcm92aWRlcnMiOlsiZW1haWwiXX0sInVzZXJfbWV0YWRhdGEiOnsiZW1haWwiOiJxYS1ub3JtYWwtY29hY2hpbmdyZWMtYXR0YWNrLXRlY2huaXF1ZS0yMDI2MDYyNC1yMS0xNzgyMzE0NDg2MTIxQGV4YW1wbGUuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImlzX3Rlc3RfcGVyc29uYSI6dHJ1ZSwicGhvbmVfdmVyaWZpZWQiOmZhbHNlLCJxYV9ydW5faWQiOiJjb2FjaGluZ3JlYy1hdHRhY2stdGVjaG5pcXVlLTIwMjYwNjI0LXIxIiwic3ViIjoiZjY2ZjBhNDUtNTVhZS00YWMxLWFjMTEtNzBlZmM3Mjc3YTg1In0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3ODIzMTQ0ODZ9XSwic2Vzc2lvbl9pZCI6IjE3MzQyYWFhLTZlNjgtNGIxOS05NDMzLWU3MGU1ZTk2NTZkMSIsImlzX2Fub255bW91cyI6ZmFsc2V9.5-cUiTFWytCR1y2iiV3q2UiBWCQoiwiZMBKzqkVSOX8",
+  "auth_check": {
+    "status": 200,
+    "ok": true
+  },
+  "force_full_ai": true,
+  "created_at": "2026-06-24T15:21:26.701Z",
+  "turns": [
+    {
+      "turn": 1,
+      "sent_at": "2026-06-24T15:22:17.123Z",
+      "user": "Dans mon plan, j'ai l'action Préparer le dossier mutuelle. Je bloque parce que je me dis que je vais forcément oublier un papier et je repousse. Dans Sophia, tu me conseillerais quoi ?",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Je partirais sur une carte d’attaque, technique Le texte magique : une phrase courte du style “Je rassemble juste ce que j’ai, le reste viendra après”, pour casser la peur d’oublier et te remettre en mouvement.",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "coaching_recommendation_signal",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-24T15:22:17.007Z",
+                  "turn_count": 1,
+                  "updated_at": "2026-06-24T15:22:17.007Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "recommend",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user est sur une action concrète du plan et bloque par peur d'oublier un papier, ce qui le fait repousser.",
+                        "target_kind": "plan_action",
+                        "action_title": "Préparer le dossier mutuelle",
+                        "action_source": "plan"
+                      },
+                      "turn_count": 1,
+                      "coaching_type": "plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Le blocage vient d'une appréhension de l'oubli avant de démarrer une action du plan. Une carte d'attaque est la bonne aide pour préparer le départ, rendre le geste plus simple et réduire la charge mentale liée aux papiers."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user est sur une action concrète du plan et bloque par peur d'oublier un papier, ce qui le fait repousser.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "Le blocage vient d’une pensée d’oubli qui te fait repousser le démarrage d’une action concrète du plan. Une carte d’attaque avec Le texte magique recadre cette peur et facilite le premier geste.",
+                          "feature": "attack_card",
+                          "destination_hint": "Dashboard > Plan"
+                        }
+                      ],
+                      "last_answer_summary": "Le blocage vient d’une pensée d’oubli qui te fait repousser le démarrage d’une action concrète du plan. Une carte d’attaque avec Le texte magique recadre cette peur et facilite le premier geste.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "attack_card",
+                        "reason": "Le blocage vient d’une pensée d’oubli qui te fait repousser le démarrage d’une action concrète du plan. Une carte d’attaque avec Le texte magique recadre cette peur et facilite le premier geste.",
+                        "variant": "texte_magique",
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "The user identifies a concrete plan action and asks what Sophia would recommend to handle the block. The emotional friction is attached to that action, so this is plan_action coaching, not global emotional coaching."
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "Le blocage vient d’une pensée d’oubli qui te fait repousser le démarrage d’une action concrète du plan. Une carte d’attaque avec Le texte magique recadre cette peur et facilite le premier geste.",
+                        "feature": "attack_card",
+                        "destination_hint": "Dashboard > Plan"
+                      },
+                      "last_visible_task_kind": "action_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le blocage vient d’une pensée d’oubli qui te fait repousser le démarrage d’une action concrète du plan. Une carte d’attaque avec Le texte magique recadre cette peur et facilite le premier geste.",
+                        "why_not_others": {},
+                        "primary_feature": "attack_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte d'attaque",
+                          "surface_hint": "Dashboard > Plan",
+                          "user_facing_destination": "surface=Dashboard > Plan; anchor=action_concernee; object_type=carte d'attaque liee au Plan; user_action=ouvrir l'action concernee puis preparer la carte"
+                        },
+                        "user_facing_next_step": "Préparer une carte d'attaque pour cette mission, par exemple une mini-checklist ou une phrase de bascule qui t'aide à démarrer sans ruminer le risque d'oublier."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "The user identifies a concrete plan action and asks what Sophia would recommend to handle the block. The emotional friction is attached to that action, so this is plan_action coaching, not global emotional coaching.",
+                        "category": "plan_action_coaching",
+                        "confidence": 0.87,
+                        "failure_mode": "unclear",
+                        "coaching_type": "plan_action",
+                        "action_context": {
+                          "source": "plan",
+                          "plan_id": null,
+                          "plan_title": null,
+                          "action_type": "mission",
+                          "action_title": "Préparer le dossier mutuelle",
+                          "plan_item_id": "f228cdd2-9633-4035-a797-9a7d404cc112"
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": true,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": true,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": false
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-24T15:22:17.007Z",
+                  "turn_count": 1,
+                  "updated_at": "2026-06-24T15:22:17.007Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "recommend",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user est sur une action concrète du plan et bloque par peur d'oublier un papier, ce qui le fait repousser.",
+                        "target_kind": "plan_action",
+                        "action_title": "Préparer le dossier mutuelle",
+                        "action_source": "plan"
+                      },
+                      "turn_count": 1,
+                      "coaching_type": "plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Le blocage vient d'une appréhension de l'oubli avant de démarrer une action du plan. Une carte d'attaque est la bonne aide pour préparer le départ, rendre le geste plus simple et réduire la charge mentale liée aux papiers."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user est sur une action concrète du plan et bloque par peur d'oublier un papier, ce qui le fait repousser.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "Le blocage vient d’une pensée d’oubli qui te fait repousser le démarrage d’une action concrète du plan. Une carte d’attaque avec Le texte magique recadre cette peur et facilite le premier geste.",
+                          "feature": "attack_card",
+                          "destination_hint": "Dashboard > Plan"
+                        }
+                      ],
+                      "last_answer_summary": "Le blocage vient d’une pensée d’oubli qui te fait repousser le démarrage d’une action concrète du plan. Une carte d’attaque avec Le texte magique recadre cette peur et facilite le premier geste.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "attack_card",
+                        "reason": "Le blocage vient d’une pensée d’oubli qui te fait repousser le démarrage d’une action concrète du plan. Une carte d’attaque avec Le texte magique recadre cette peur et facilite le premier geste.",
+                        "variant": "texte_magique",
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "The user identifies a concrete plan action and asks what Sophia would recommend to handle the block. The emotional friction is attached to that action, so this is plan_action coaching, not global emotional coaching."
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "Le blocage vient d’une pensée d’oubli qui te fait repousser le démarrage d’une action concrète du plan. Une carte d’attaque avec Le texte magique recadre cette peur et facilite le premier geste.",
+                        "feature": "attack_card",
+                        "destination_hint": "Dashboard > Plan"
+                      },
+                      "last_visible_task_kind": "action_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le blocage vient d’une pensée d’oubli qui te fait repousser le démarrage d’une action concrète du plan. Une carte d’attaque avec Le texte magique recadre cette peur et facilite le premier geste.",
+                        "why_not_others": {},
+                        "primary_feature": "attack_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte d'attaque",
+                          "surface_hint": "Dashboard > Plan",
+                          "user_facing_destination": "surface=Dashboard > Plan; anchor=action_concernee; object_type=carte d'attaque liee au Plan; user_action=ouvrir l'action concernee puis preparer la carte"
+                        },
+                        "user_facing_next_step": "Préparer une carte d'attaque pour cette mission, par exemple une mini-checklist ou une phrase de bascule qui t'aide à démarrer sans ruminer le risque d'oublier."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "The user identifies a concrete plan action and asks what Sophia would recommend to handle the block. The emotional friction is attached to that action, so this is plan_action coaching, not global emotional coaching.",
+                        "category": "plan_action_coaching",
+                        "confidence": 0.87,
+                        "failure_mode": "unclear",
+                        "coaching_type": "plan_action",
+                        "action_context": {
+                          "source": "plan",
+                          "plan_id": null,
+                          "plan_title": null,
+                          "action_type": "mission",
+                          "action_title": "Préparer le dossier mutuelle",
+                          "plan_item_id": "f228cdd2-9633-4035-a797-9a7d404cc112"
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": true,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": true,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": false
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-24T15:22:17.023506+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-attack-technique-20260624-r1-t01",
+        "user_id": "f66f0a45-55ae-4ac1-ac11-70efc7277a85",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-attack-technique-20260624-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je partirais sur une carte d’attaque, technique Le texte magique : une phrase courte du style “Je rassemble juste ce que j’ai, le reste viendra après”, pour casser la peur d’oublier et te remettre en mouvement.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-attack-technique-20260624-r1-t01",
+              "source_message_id": "d4ae64c4-0157-4abc-9deb-e7a75171e0ff",
+              "user_id": "f66f0a45-55ae-4ac1-ac11-70efc7277a85",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {
+                "coaching_recommendation": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "plan_action_coaching_need",
+                  "context": {
+                    "coaching_type": "plan_action",
+                    "confidence": 0.87,
+                    "activation_checks": {
+                      "is_coaching_need": true,
+                      "is_about_plan_action": true,
+                      "is_about_non_plan_action": false,
+                      "is_about_emotional_state": false,
+                      "has_concrete_plan_action": true,
+                      "needs_type_confirmation": false
+                    },
+                    "action_context": {
+                      "source": "plan",
+                      "plan_item_id": "f228cdd2-9633-4035-a797-9a7d404cc112",
+                      "action_title": "Préparer le dossier mutuelle",
+                      "plan_id": null,
+                      "plan_title": null,
+                      "action_type": "mission"
+                    },
+                    "emotional_state_context": null,
+                    "reason": "The user identifies a concrete plan action and asks what Sophia would recommend to handle the block. The emotional friction is attached to that action, so this is plan_action coaching, not global emotional coaching."
+                  }
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "coaching_recommendation_for_blocked_plan_action",
+                "reasoning_complexity": "medium",
+                "context_need": "targeted",
+                "memory_mode": "light",
+                "model_tier_hint": "standard",
+                "context_budget_tier": "small",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.96
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "coaching_recommendation_signal",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-attack-technique-20260624-r1-t01",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "coaching_recommendation_signal",
+              "status": "continue",
+              "latency_ms": 23395
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-attack-technique-20260624-r1-t01",
+            "source_message_id": "d4ae64c4-0157-4abc-9deb-e7a75171e0ff",
+            "user_id": "f66f0a45-55ae-4ac1-ac11-70efc7277a85",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "coaching_recommendation": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "plan_action_coaching_need",
+                "context": {
+                  "coaching_type": "plan_action",
+                  "confidence": 0.87,
+                  "activation_checks": {
+                    "is_coaching_need": true,
+                    "is_about_plan_action": true,
+                    "is_about_non_plan_action": false,
+                    "is_about_emotional_state": false,
+                    "has_concrete_plan_action": true,
+                    "needs_type_confirmation": false
+                  },
+                  "action_context": {
+                    "source": "plan",
+                    "plan_item_id": "f228cdd2-9633-4035-a797-9a7d404cc112",
+                    "action_title": "Préparer le dossier mutuelle",
+                    "plan_id": null,
+                    "plan_title": null,
+                    "action_type": "mission"
+                  },
+                  "emotional_state_context": null,
+                  "reason": "The user identifies a concrete plan action and asks what Sophia would recommend to handle the block. The emotional friction is attached to that action, so this is plan_action coaching, not global emotional coaching."
+                }
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "coaching_recommendation_for_blocked_plan_action",
+              "reasoning_complexity": "medium",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "standard",
+              "context_budget_tier": "small",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.96
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "coaching_recommendation_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-attack-technique-20260624-r1-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "coaching_recommendation_signal",
+            "status": "continue",
+            "latency_ms": 23395
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 2,
+      "sent_at": "2026-06-24T15:22:50.237Z",
+      "user": "Ok, c'est quoi exactement Le texte magique dans ce cas ? Je ne connais pas trop les cartes.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Le texte magique, c’est une phrase courte pour recadrer ta pensée au moment où tu bloques. Là, au lieu de rester sur “je vais forcément oublier un papier”, tu te donnes une phrase qui te remet dans l’action, par exemple: “Je commence avec ce que j’ai, le reste viendra ensuite.”\n\nJe partirais sur une carte d’attaque, technique texte magique : elle répond bien à ton blocage parce que c’est surtout la peur d’oublier qui te fait repousser le démarrage.",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "active_coaching_recommendation",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-24T15:22:17.007Z",
+                  "turn_count": 2,
+                  "updated_at": "2026-06-24T15:22:50.163Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user est sur une action concrète du plan et bloque par peur d'oublier un papier, ce qui le fait repousser.",
+                        "target_kind": "plan_action",
+                        "action_title": "Préparer le dossier mutuelle",
+                        "action_source": "plan"
+                      },
+                      "turn_count": 2,
+                      "coaching_type": "plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Le blocage vient d'une appréhension de l'oubli avant de démarrer une action du plan. Une carte d'attaque est la bonne aide pour préparer le départ, rendre le geste plus simple et réduire la charge mentale liée aux papiers."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user demande ce qu'est précisément la technique \"Le texte magique\" dans une carte d'attaque, sans changer de cible.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "Le blocage vient d’une pensée d’oubli qui freine le démarrage d’une action concrète du plan. Le texte magique recadre cette croyance et facilite le premier geste.",
+                          "feature": "attack_card",
+                          "destination_hint": "Dashboard > Plan"
+                        }
+                      ],
+                      "last_answer_summary": "Le blocage vient d’une pensée d’oubli qui freine le démarrage d’une action concrète du plan. Le texte magique recadre cette croyance et facilite le premier geste.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "attack_card",
+                        "reason": "Le blocage vient d’une pensée d’oubli qui freine le démarrage d’une action concrète du plan. Le texte magique recadre cette croyance et facilite le premier geste.",
+                        "variant": "texte_magique",
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "The user identifies a concrete plan action and asks what Sophia would recommend to handle the block. The emotional friction is attached to that action, so this "
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "Le blocage vient d’une pensée d’oubli qui freine le démarrage d’une action concrète du plan. Le texte magique recadre cette croyance et facilite le premier geste.",
+                        "feature": "attack_card",
+                        "destination_hint": "Dashboard > Plan"
+                      },
+                      "last_visible_task_kind": "action_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le blocage vient d’une pensée d’oubli qui freine le démarrage d’une action concrète du plan. Le texte magique recadre cette croyance et facilite le premier geste.",
+                        "why_not_others": {},
+                        "primary_feature": "attack_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte d'attaque",
+                          "surface_hint": "Dashboard > Plan",
+                          "user_facing_destination": "surface=Dashboard > Plan; anchor=action_concernee; object_type=carte d'attaque liee au Plan; user_action=ouvrir l'action concernee puis preparer la carte"
+                        },
+                        "user_facing_next_step": "Préparer une carte d'attaque pour cette mission, par exemple une mini-checklist ou une phrase de bascule qui t'aide à démarrer sans ruminer le risque d'oublier."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "The user identifies a concrete plan action and asks what Sophia would recommend to handle the block. The emotional friction is attached to that action, so this is plan_action coaching, not global emotional coaching.",
+                        "category": "plan_action_coaching",
+                        "confidence": 0.87,
+                        "failure_mode": "unclear",
+                        "coaching_type": "plan_action",
+                        "action_context": {
+                          "source": "plan",
+                          "plan_id": null,
+                          "plan_title": null,
+                          "action_type": "mission",
+                          "action_title": "Préparer le dossier mutuelle",
+                          "plan_item_id": "f228cdd2-9633-4035-a797-9a7d404cc112"
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": true,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": true,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": false
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-24T15:22:17.007Z",
+                  "turn_count": 2,
+                  "updated_at": "2026-06-24T15:22:50.163Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user est sur une action concrète du plan et bloque par peur d'oublier un papier, ce qui le fait repousser.",
+                        "target_kind": "plan_action",
+                        "action_title": "Préparer le dossier mutuelle",
+                        "action_source": "plan"
+                      },
+                      "turn_count": 2,
+                      "coaching_type": "plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Le blocage vient d'une appréhension de l'oubli avant de démarrer une action du plan. Une carte d'attaque est la bonne aide pour préparer le départ, rendre le geste plus simple et réduire la charge mentale liée aux papiers."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user demande ce qu'est précisément la technique \"Le texte magique\" dans une carte d'attaque, sans changer de cible.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "Le blocage vient d’une pensée d’oubli qui freine le démarrage d’une action concrète du plan. Le texte magique recadre cette croyance et facilite le premier geste.",
+                          "feature": "attack_card",
+                          "destination_hint": "Dashboard > Plan"
+                        }
+                      ],
+                      "last_answer_summary": "Le blocage vient d’une pensée d’oubli qui freine le démarrage d’une action concrète du plan. Le texte magique recadre cette croyance et facilite le premier geste.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "attack_card",
+                        "reason": "Le blocage vient d’une pensée d’oubli qui freine le démarrage d’une action concrète du plan. Le texte magique recadre cette croyance et facilite le premier geste.",
+                        "variant": "texte_magique",
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "The user identifies a concrete plan action and asks what Sophia would recommend to handle the block. The emotional friction is attached to that action, so this "
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "Le blocage vient d’une pensée d’oubli qui freine le démarrage d’une action concrète du plan. Le texte magique recadre cette croyance et facilite le premier geste.",
+                        "feature": "attack_card",
+                        "destination_hint": "Dashboard > Plan"
+                      },
+                      "last_visible_task_kind": "action_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le blocage vient d’une pensée d’oubli qui freine le démarrage d’une action concrète du plan. Le texte magique recadre cette croyance et facilite le premier geste.",
+                        "why_not_others": {},
+                        "primary_feature": "attack_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte d'attaque",
+                          "surface_hint": "Dashboard > Plan",
+                          "user_facing_destination": "surface=Dashboard > Plan; anchor=action_concernee; object_type=carte d'attaque liee au Plan; user_action=ouvrir l'action concernee puis preparer la carte"
+                        },
+                        "user_facing_next_step": "Préparer une carte d'attaque pour cette mission, par exemple une mini-checklist ou une phrase de bascule qui t'aide à démarrer sans ruminer le risque d'oublier."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "The user identifies a concrete plan action and asks what Sophia would recommend to handle the block. The emotional friction is attached to that action, so this is plan_action coaching, not global emotional coaching.",
+                        "category": "plan_action_coaching",
+                        "confidence": 0.87,
+                        "failure_mode": "unclear",
+                        "coaching_type": "plan_action",
+                        "action_context": {
+                          "source": "plan",
+                          "plan_id": null,
+                          "plan_title": null,
+                          "action_type": "mission",
+                          "action_title": "Préparer le dossier mutuelle",
+                          "plan_item_id": "f228cdd2-9633-4035-a797-9a7d404cc112"
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": true,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": true,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": false
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-24T15:22:50.174635+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-attack-technique-20260624-r1-t02",
+        "user_id": "f66f0a45-55ae-4ac1-ac11-70efc7277a85",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-attack-technique-20260624-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Le texte magique, c’est une phrase courte pour recadrer ta pensée au moment où tu bloques. Là, au lieu de rester sur “je vais forcément oublier un papier”, tu te donnes une phrase qui te remet dans l’action, par exemple: “Je commence avec ce que j’ai, le reste viendra ensuite.”\n\nJe partirais sur une carte d’attaque, technique texte magique : elle répond bien à ton blocage parce que c’est surtout la peur d’oublier qui te fait repousser le démarrage.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-attack-technique-20260624-r1-t02",
+              "source_message_id": "8c497af2-5bad-4fe5-b5d0-7055a92855c9",
+              "user_id": "f66f0a45-55ae-4ac1-ac11-70efc7277a85",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {},
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "active_coaching_recommendation",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "coaching_recommendation",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "resume_active",
+                "reason_code": "active_coaching_recommendation"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-attack-technique-20260624-r1-t02",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "active_coaching_recommendation",
+              "status": "continue",
+              "latency_ms": 18548
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-attack-technique-20260624-r1-t02",
+            "source_message_id": "8c497af2-5bad-4fe5-b5d0-7055a92855c9",
+            "user_id": "f66f0a45-55ae-4ac1-ac11-70efc7277a85",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {},
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "active_coaching_recommendation",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "coaching_recommendation",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "resume_active",
+              "reason_code": "active_coaching_recommendation"
+            },
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-attack-technique-20260624-r1-t02",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "active_coaching_recommendation",
+            "status": "continue",
+            "latency_ms": 18548
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 3,
+      "sent_at": "2026-06-24T15:23:19.026Z",
+      "user": "Si je veux la préparer moi-même dans Sophia, je vais où ? Ne la crée pas depuis le chat.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Je partirais sur une carte d'attaque, technique Le texte magique : Tu peux la préparer dans Dashboard > Plan, en ouvrant l’action « Préparer le dossier mutuelle », puis en lançant une carte d’attaque. Ici, je partirais sur la technique texte magique, parce que le blocage vient surtout de la pensée « je vais forcément oublier un papier » : une phrase courte peut recadrer cette idée et t’aider à démarrer.",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "active_coaching_recommendation",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-24T15:22:17.007Z",
+                  "turn_count": 3,
+                  "updated_at": "2026-06-24T15:23:18.945Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user est sur une action concrète du plan et bloque par peur d'oublier un papier, ce qui le fait repousser.",
+                        "target_kind": "plan_action",
+                        "action_title": "Préparer le dossier mutuelle",
+                        "action_source": "plan"
+                      },
+                      "turn_count": 3,
+                      "coaching_type": "plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Le blocage vient d'une appréhension de l'oubli avant de démarrer une action du plan. Une carte d'attaque est la bonne aide pour préparer le départ, rendre le geste plus simple et réduire la charge mentale liée aux papiers."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user demande où préparer lui-même la carte dans Sophia, sans la créer depuis le chat.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "Le user demande où préparer lui-même la carte et refuse qu’elle soit créée depuis le chat. Le blocage est une pensée d’oubli qui freine le démarrage d’une action concrète du plan, donc une carte d’attaque technique texte magique est le bon levier.",
+                          "feature": "attack_card",
+                          "destination_hint": "Dashboard > Plan"
+                        }
+                      ],
+                      "last_answer_summary": "Le user demande où préparer lui-même la carte et refuse qu’elle soit créée depuis le chat. Le blocage est une pensée d’oubli qui freine le démarrage d’une action concrète du plan, donc une carte d’attaque technique texte magique est le bon levier.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "attack_card",
+                        "reason": "Le user demande où préparer lui-même la carte et refuse qu’elle soit créée depuis le chat. Le blocage est une pensée d’oubli qui freine le démarrage d’une action concrète du plan, donc une carte d’attaque technique texte magique est le bon levier.",
+                        "variant": "texte_magique",
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "The user identifies a concrete plan action and asks what Sophia would recommend to handle the block. The emotional friction is attached to that action, so this"
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "Le user demande où préparer lui-même la carte et refuse qu’elle soit créée depuis le chat. Le blocage est une pensée d’oubli qui freine le démarrage d’une action concrète du plan, donc une carte d’attaque technique texte magique est le bon levier.",
+                        "feature": "attack_card",
+                        "destination_hint": "Dashboard > Plan"
+                      },
+                      "last_visible_task_kind": "action_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le user demande où préparer lui-même la carte et refuse qu’elle soit créée depuis le chat. Le blocage est une pensée d’oubli qui freine le démarrage d’une action concrète du plan, donc une carte d’attaque technique texte magique est le bon levier.",
+                        "why_not_others": {},
+                        "primary_feature": "attack_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte d'attaque",
+                          "surface_hint": "Dashboard > Plan",
+                          "user_facing_destination": "surface=Dashboard > Plan; anchor=action_concernee; object_type=carte d'attaque liee au Plan; user_action=ouvrir l'action concernee puis preparer la carte"
+                        },
+                        "user_facing_next_step": "Préparer une carte d'attaque pour cette mission, par exemple une mini-checklist ou une phrase de bascule qui t'aide à démarrer sans ruminer le risque d'oublier."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "The user identifies a concrete plan action and asks what Sophia would recommend to handle the block. The emotional friction is attached to that action, so this is plan_action coaching, not global emotional coaching.",
+                        "category": "plan_action_coaching",
+                        "confidence": 0.87,
+                        "failure_mode": "unclear",
+                        "coaching_type": "plan_action",
+                        "action_context": {
+                          "source": "plan",
+                          "plan_id": null,
+                          "plan_title": null,
+                          "action_type": "mission",
+                          "action_title": "Préparer le dossier mutuelle",
+                          "plan_item_id": "f228cdd2-9633-4035-a797-9a7d404cc112"
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": true,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": true,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": false
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-24T15:22:17.007Z",
+                  "turn_count": 3,
+                  "updated_at": "2026-06-24T15:23:18.945Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user est sur une action concrète du plan et bloque par peur d'oublier un papier, ce qui le fait repousser.",
+                        "target_kind": "plan_action",
+                        "action_title": "Préparer le dossier mutuelle",
+                        "action_source": "plan"
+                      },
+                      "turn_count": 3,
+                      "coaching_type": "plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Le blocage vient d'une appréhension de l'oubli avant de démarrer une action du plan. Une carte d'attaque est la bonne aide pour préparer le départ, rendre le geste plus simple et réduire la charge mentale liée aux papiers."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user demande où préparer lui-même la carte dans Sophia, sans la créer depuis le chat.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "Le user demande où préparer lui-même la carte et refuse qu’elle soit créée depuis le chat. Le blocage est une pensée d’oubli qui freine le démarrage d’une action concrète du plan, donc une carte d’attaque technique texte magique est le bon levier.",
+                          "feature": "attack_card",
+                          "destination_hint": "Dashboard > Plan"
+                        }
+                      ],
+                      "last_answer_summary": "Le user demande où préparer lui-même la carte et refuse qu’elle soit créée depuis le chat. Le blocage est une pensée d’oubli qui freine le démarrage d’une action concrète du plan, donc une carte d’attaque technique texte magique est le bon levier.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "attack_card",
+                        "reason": "Le user demande où préparer lui-même la carte et refuse qu’elle soit créée depuis le chat. Le blocage est une pensée d’oubli qui freine le démarrage d’une action concrète du plan, donc une carte d’attaque technique texte magique est le bon levier.",
+                        "variant": "texte_magique",
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "The user identifies a concrete plan action and asks what Sophia would recommend to handle the block. The emotional friction is attached to that action, so this"
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "Le user demande où préparer lui-même la carte et refuse qu’elle soit créée depuis le chat. Le blocage est une pensée d’oubli qui freine le démarrage d’une action concrète du plan, donc une carte d’attaque technique texte magique est le bon levier.",
+                        "feature": "attack_card",
+                        "destination_hint": "Dashboard > Plan"
+                      },
+                      "last_visible_task_kind": "action_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le user demande où préparer lui-même la carte et refuse qu’elle soit créée depuis le chat. Le blocage est une pensée d’oubli qui freine le démarrage d’une action concrète du plan, donc une carte d’attaque technique texte magique est le bon levier.",
+                        "why_not_others": {},
+                        "primary_feature": "attack_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte d'attaque",
+                          "surface_hint": "Dashboard > Plan",
+                          "user_facing_destination": "surface=Dashboard > Plan; anchor=action_concernee; object_type=carte d'attaque liee au Plan; user_action=ouvrir l'action concernee puis preparer la carte"
+                        },
+                        "user_facing_next_step": "Préparer une carte d'attaque pour cette mission, par exemple une mini-checklist ou une phrase de bascule qui t'aide à démarrer sans ruminer le risque d'oublier."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "The user identifies a concrete plan action and asks what Sophia would recommend to handle the block. The emotional friction is attached to that action, so this is plan_action coaching, not global emotional coaching.",
+                        "category": "plan_action_coaching",
+                        "confidence": 0.87,
+                        "failure_mode": "unclear",
+                        "coaching_type": "plan_action",
+                        "action_context": {
+                          "source": "plan",
+                          "plan_id": null,
+                          "plan_title": null,
+                          "action_type": "mission",
+                          "action_title": "Préparer le dossier mutuelle",
+                          "plan_item_id": "f228cdd2-9633-4035-a797-9a7d404cc112"
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": true,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": true,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": false
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-24T15:23:18.951944+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-attack-technique-20260624-r1-t03",
+        "user_id": "f66f0a45-55ae-4ac1-ac11-70efc7277a85",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-attack-technique-20260624-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je partirais sur une carte d'attaque, technique Le texte magique : Tu peux la préparer dans Dashboard > Plan, en ouvrant l’action « Préparer le dossier mutuelle », puis en lançant une carte d’attaque. Ici, je partirais sur la technique texte magique, parce que le blocage vient surtout de la pensée « je vais forcément oublier un papier » : une phrase courte peut recadrer cette idée et t’aider à démarrer.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-attack-technique-20260624-r1-t03",
+              "source_message_id": "6ae95e5f-65e1-4d0e-80a5-b56266c7f0df",
+              "user_id": "f66f0a45-55ae-4ac1-ac11-70efc7277a85",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {},
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "active_coaching_recommendation",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "coaching_recommendation",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "resume_active",
+                "reason_code": "active_coaching_recommendation"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-attack-technique-20260624-r1-t03",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "active_coaching_recommendation",
+              "status": "continue",
+              "latency_ms": 20325
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-attack-technique-20260624-r1-t03",
+            "source_message_id": "6ae95e5f-65e1-4d0e-80a5-b56266c7f0df",
+            "user_id": "f66f0a45-55ae-4ac1-ac11-70efc7277a85",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {},
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "active_coaching_recommendation",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "coaching_recommendation",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "resume_active",
+              "reason_code": "active_coaching_recommendation"
+            },
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-attack-technique-20260624-r1-t03",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "active_coaching_recommendation",
+            "status": "continue",
+            "latency_ms": 20325
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 4,
+      "sent_at": "2026-06-24T15:24:01.915Z",
+      "user": "Autre nuance sur le même dossier : si le souci c'est surtout que je n'ai pas les papiers au même endroit et que je perds du temps à tout chercher, là tu garderais Le texte magique ?",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Non, là je ne garderais pas Le texte magique. Si le souci, c’est surtout que les papiers sont dispersés et que tu perds du temps à les chercher, la bonne technique est plutôt une carte d’attaque, technique Préparer le terrain : tu ranges les documents, tu poses les pièces nécessaires au même endroit, et tu enlèves la friction concrète avant de démarrer.",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "active_coaching_recommendation",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-24T15:22:17.007Z",
+                  "turn_count": 4,
+                  "updated_at": "2026-06-24T15:24:01.873Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user est sur une action concrète du plan et bloque par peur d'oublier un papier, ce qui le fait repousser.",
+                        "target_kind": "plan_action",
+                        "action_title": "Préparer le dossier mutuelle",
+                        "action_source": "plan"
+                      },
+                      "turn_count": 4,
+                      "coaching_type": "plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Le blocage vient d'une appréhension de l'oubli avant de démarrer une action du plan. Une carte d'attaque est la bonne aide pour préparer le départ, rendre le geste plus simple et réduire la charge mentale liée aux papiers."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user précise un autre blocage sur la même action du plan: les papiers ne sont pas regroupés et il perd du temps à les chercher.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "Le blocage est surtout logistique et lié au contexte concret de l’action, pas à une pensée à recadrer. Préparer le terrain répond mieux que Le texte magique.",
+                          "feature": "attack_card",
+                          "destination_hint": "Dashboard > Plan"
+                        }
+                      ],
+                      "last_answer_summary": "Le blocage est surtout logistique et lié au contexte concret de l’action, pas à une pensée à recadrer. Préparer le terrain répond mieux que Le texte magique.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "attack_card",
+                        "reason": "Le blocage est surtout logistique et lié au contexte concret de l’action, pas à une pensée à recadrer. Préparer le terrain répond mieux que Le texte magique.",
+                        "variant": "preparer_terrain",
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "The user identifies a concrete plan action and asks what Sophia would recommend to handle the block. The emotional friction is attached to that action, so this"
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "Le blocage est surtout logistique et lié au contexte concret de l’action, pas à une pensée à recadrer. Préparer le terrain répond mieux que Le texte magique.",
+                        "feature": "attack_card",
+                        "destination_hint": "Dashboard > Plan"
+                      },
+                      "last_visible_task_kind": "action_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le blocage est surtout logistique et lié au contexte concret de l’action, pas à une pensée à recadrer. Préparer le terrain répond mieux que Le texte magique.",
+                        "why_not_others": {},
+                        "primary_feature": "attack_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte d'attaque",
+                          "surface_hint": "Dashboard > Plan",
+                          "user_facing_destination": "surface=Dashboard > Plan; anchor=action_concernee; object_type=carte d'attaque liee au Plan; user_action=ouvrir l'action concernee puis preparer la carte"
+                        },
+                        "user_facing_next_step": "Préparer une carte d'attaque pour cette mission, par exemple une mini-checklist ou une phrase de bascule qui t'aide à démarrer sans ruminer le risque d'oublier."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "The user identifies a concrete plan action and asks what Sophia would recommend to handle the block. The emotional friction is attached to that action, so this is plan_action coaching, not global emotional coaching.",
+                        "category": "plan_action_coaching",
+                        "confidence": 0.87,
+                        "failure_mode": "unclear",
+                        "coaching_type": "plan_action",
+                        "action_context": {
+                          "source": "plan",
+                          "plan_id": null,
+                          "plan_title": null,
+                          "action_type": "mission",
+                          "action_title": "Préparer le dossier mutuelle",
+                          "plan_item_id": "f228cdd2-9633-4035-a797-9a7d404cc112"
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": true,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": true,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": false
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-24T15:22:17.007Z",
+                  "turn_count": 4,
+                  "updated_at": "2026-06-24T15:24:01.873Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user est sur une action concrète du plan et bloque par peur d'oublier un papier, ce qui le fait repousser.",
+                        "target_kind": "plan_action",
+                        "action_title": "Préparer le dossier mutuelle",
+                        "action_source": "plan"
+                      },
+                      "turn_count": 4,
+                      "coaching_type": "plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Le blocage vient d'une appréhension de l'oubli avant de démarrer une action du plan. Une carte d'attaque est la bonne aide pour préparer le départ, rendre le geste plus simple et réduire la charge mentale liée aux papiers."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user précise un autre blocage sur la même action du plan: les papiers ne sont pas regroupés et il perd du temps à les chercher.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "Le blocage est surtout logistique et lié au contexte concret de l’action, pas à une pensée à recadrer. Préparer le terrain répond mieux que Le texte magique.",
+                          "feature": "attack_card",
+                          "destination_hint": "Dashboard > Plan"
+                        }
+                      ],
+                      "last_answer_summary": "Le blocage est surtout logistique et lié au contexte concret de l’action, pas à une pensée à recadrer. Préparer le terrain répond mieux que Le texte magique.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "attack_card",
+                        "reason": "Le blocage est surtout logistique et lié au contexte concret de l’action, pas à une pensée à recadrer. Préparer le terrain répond mieux que Le texte magique.",
+                        "variant": "preparer_terrain",
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "The user identifies a concrete plan action and asks what Sophia would recommend to handle the block. The emotional friction is attached to that action, so this"
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "Le blocage est surtout logistique et lié au contexte concret de l’action, pas à une pensée à recadrer. Préparer le terrain répond mieux que Le texte magique.",
+                        "feature": "attack_card",
+                        "destination_hint": "Dashboard > Plan"
+                      },
+                      "last_visible_task_kind": "action_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le blocage est surtout logistique et lié au contexte concret de l’action, pas à une pensée à recadrer. Préparer le terrain répond mieux que Le texte magique.",
+                        "why_not_others": {},
+                        "primary_feature": "attack_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte d'attaque",
+                          "surface_hint": "Dashboard > Plan",
+                          "user_facing_destination": "surface=Dashboard > Plan; anchor=action_concernee; object_type=carte d'attaque liee au Plan; user_action=ouvrir l'action concernee puis preparer la carte"
+                        },
+                        "user_facing_next_step": "Préparer une carte d'attaque pour cette mission, par exemple une mini-checklist ou une phrase de bascule qui t'aide à démarrer sans ruminer le risque d'oublier."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "The user identifies a concrete plan action and asks what Sophia would recommend to handle the block. The emotional friction is attached to that action, so this is plan_action coaching, not global emotional coaching.",
+                        "category": "plan_action_coaching",
+                        "confidence": 0.87,
+                        "failure_mode": "unclear",
+                        "coaching_type": "plan_action",
+                        "action_context": {
+                          "source": "plan",
+                          "plan_id": null,
+                          "plan_title": null,
+                          "action_type": "mission",
+                          "action_title": "Préparer le dossier mutuelle",
+                          "plan_item_id": "f228cdd2-9633-4035-a797-9a7d404cc112"
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": true,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": true,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": false
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-24T15:24:01.879657+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-attack-technique-20260624-r1-t04",
+        "user_id": "f66f0a45-55ae-4ac1-ac11-70efc7277a85",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-attack-technique-20260624-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Non, là je ne garderais pas Le texte magique. Si le souci, c’est surtout que les papiers sont dispersés et que tu perds du temps à les chercher, la bonne technique est plutôt une carte d’attaque, technique Préparer le terrain : tu ranges les documents, tu poses les pièces nécessaires au même endroit, et tu enlèves la friction concrète avant de démarrer.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-attack-technique-20260624-r1-t04",
+              "source_message_id": "29793562-67bc-427f-9e68-4beaf5a374e5",
+              "user_id": "f66f0a45-55ae-4ac1-ac11-70efc7277a85",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {},
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "active_coaching_recommendation",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "coaching_recommendation",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "resume_active",
+                "reason_code": "active_coaching_recommendation"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-attack-technique-20260624-r1-t04",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "active_coaching_recommendation",
+              "status": "continue",
+              "latency_ms": 31276
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-attack-technique-20260624-r1-t04",
+            "source_message_id": "29793562-67bc-427f-9e68-4beaf5a374e5",
+            "user_id": "f66f0a45-55ae-4ac1-ac11-70efc7277a85",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {},
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "active_coaching_recommendation",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "coaching_recommendation",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "resume_active",
+              "reason_code": "active_coaching_recommendation"
+            },
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-attack-technique-20260624-r1-t04",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "active_coaching_recommendation",
+            "status": "continue",
+            "latency_ms": 31276
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 5,
+      "sent_at": "2026-06-24T15:24:41.893Z",
+      "user": "Et hors Plan, j'ai un mail à Camille que je repousse parce que je ne sais pas comment commencer la première phrase. Tu me conseillerais quoi sans l'ajouter au Plan ?",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Je partirais sur une carte d'attaque, technique Le texte magique : Je partirais sur une carte d’attaque libre, technique texte magique : une phrase courte pour te faire démarrer sans te prendre la tête sur la première ligne. Pour ton mail, on peut viser un début simple et naturel, du style “Je te recontacte au sujet de…” ou “Je t’écris pour…”.",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "active_coaching_recommendation",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-24T15:22:17.007Z",
+                  "turn_count": 4,
+                  "updated_at": "2026-06-24T15:24:41.838Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "recommend",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user parle d'un mail hors Plan qu'il repousse parce qu'il ne sait pas comment commencer la première phrase.",
+                        "target_kind": "free_action",
+                        "action_title": "Mail à Camille",
+                        "action_source": "free"
+                      },
+                      "turn_count": 4,
+                      "coaching_type": "no_plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Le blocage porte sur le démarrage d'un mail hors Plan, avec une difficulté à trouver la première phrase. Une carte d'attaque est adaptée pour préparer l'entrée en action et réduire la friction au moment de commencer."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user parle d'un mail hors Plan qu'il repousse parce qu'il ne sait pas comment commencer la première phrase.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "Le blocage porte sur le démarrage du mail hors Plan, avec une difficulté à trouver la première phrase. Le texte magique est le plus adapté quand la friction est surtout mentale ou narrative.",
+                          "feature": "attack_card",
+                          "destination_hint": "Dashboard > Ressources"
+                        }
+                      ],
+                      "last_answer_summary": "Le blocage porte sur le démarrage du mail hors Plan, avec une difficulté à trouver la première phrase. Le texte magique est le plus adapté quand la friction est surtout mentale ou narrative.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "free_attack_card",
+                        "reason": "Le blocage porte sur le démarrage du mail hors Plan, avec une difficulté à trouver la première phrase. Le texte magique est le plus adapté quand la friction est surtout mentale ou narrative.",
+                        "variant": "texte_magique",
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "Le user dit explicitement que le mail est hors Plan.",
+                        "Le user demande quoi faire sans l'ajouter au Plan.",
+                        "Le blocage est un launch_blocker sur une action libre.",
+                        "explicit target switch to no_plan_action: Mail à Camille"
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "Le blocage porte sur le démarrage du mail hors Plan, avec une difficulté à trouver la première phrase. Le texte magique est le plus adapté quand la friction est surtout mentale ou narrative.",
+                        "feature": "attack_card",
+                        "destination_hint": "Dashboard > Ressources"
+                      },
+                      "last_visible_task_kind": "no_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le blocage porte sur le démarrage du mail hors Plan, avec une difficulté à trouver la première phrase. Le texte magique est le plus adapté quand la friction est surtout mentale ou narrative.",
+                        "why_not_others": {},
+                        "primary_feature": "attack_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte d'attaque libre",
+                          "surface_hint": "Dashboard > Ressources",
+                          "user_facing_destination": "surface=Dashboard > Ressources; object_type=carte d'attaque libre; relation_to_plan=hors_plan; user_action=ouvrir Ressources puis choisir ou creer ce type de carte"
+                        },
+                        "user_facing_next_step": "Préparer une carte d'attaque hors Plan pour ce mail, par exemple une phrase de bascule ou un texte magique pour lancer la première phrase sans te bloquer."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "explicit target switch to no_plan_action: Mail à Camille",
+                        "category": "free_action_coaching",
+                        "confidence": 0.9,
+                        "failure_mode": "unclear",
+                        "coaching_type": "no_plan_action",
+                        "action_context": {
+                          "source": "free",
+                          "action_title": "Mail à Camille",
+                          "plan_item_id": null
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": false,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": false,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": true
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-24T15:22:17.007Z",
+                  "turn_count": 4,
+                  "updated_at": "2026-06-24T15:24:41.838Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "recommend",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user parle d'un mail hors Plan qu'il repousse parce qu'il ne sait pas comment commencer la première phrase.",
+                        "target_kind": "free_action",
+                        "action_title": "Mail à Camille",
+                        "action_source": "free"
+                      },
+                      "turn_count": 4,
+                      "coaching_type": "no_plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Le blocage porte sur le démarrage d'un mail hors Plan, avec une difficulté à trouver la première phrase. Une carte d'attaque est adaptée pour préparer l'entrée en action et réduire la friction au moment de commencer."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user parle d'un mail hors Plan qu'il repousse parce qu'il ne sait pas comment commencer la première phrase.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "Le blocage porte sur le démarrage du mail hors Plan, avec une difficulté à trouver la première phrase. Le texte magique est le plus adapté quand la friction est surtout mentale ou narrative.",
+                          "feature": "attack_card",
+                          "destination_hint": "Dashboard > Ressources"
+                        }
+                      ],
+                      "last_answer_summary": "Le blocage porte sur le démarrage du mail hors Plan, avec une difficulté à trouver la première phrase. Le texte magique est le plus adapté quand la friction est surtout mentale ou narrative.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "free_attack_card",
+                        "reason": "Le blocage porte sur le démarrage du mail hors Plan, avec une difficulté à trouver la première phrase. Le texte magique est le plus adapté quand la friction est surtout mentale ou narrative.",
+                        "variant": "texte_magique",
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "Le user dit explicitement que le mail est hors Plan.",
+                        "Le user demande quoi faire sans l'ajouter au Plan.",
+                        "Le blocage est un launch_blocker sur une action libre.",
+                        "explicit target switch to no_plan_action: Mail à Camille"
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "Le blocage porte sur le démarrage du mail hors Plan, avec une difficulté à trouver la première phrase. Le texte magique est le plus adapté quand la friction est surtout mentale ou narrative.",
+                        "feature": "attack_card",
+                        "destination_hint": "Dashboard > Ressources"
+                      },
+                      "last_visible_task_kind": "no_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le blocage porte sur le démarrage du mail hors Plan, avec une difficulté à trouver la première phrase. Le texte magique est le plus adapté quand la friction est surtout mentale ou narrative.",
+                        "why_not_others": {},
+                        "primary_feature": "attack_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte d'attaque libre",
+                          "surface_hint": "Dashboard > Ressources",
+                          "user_facing_destination": "surface=Dashboard > Ressources; object_type=carte d'attaque libre; relation_to_plan=hors_plan; user_action=ouvrir Ressources puis choisir ou creer ce type de carte"
+                        },
+                        "user_facing_next_step": "Préparer une carte d'attaque hors Plan pour ce mail, par exemple une phrase de bascule ou un texte magique pour lancer la première phrase sans te bloquer."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "explicit target switch to no_plan_action: Mail à Camille",
+                        "category": "free_action_coaching",
+                        "confidence": 0.9,
+                        "failure_mode": "unclear",
+                        "coaching_type": "no_plan_action",
+                        "action_context": {
+                          "source": "free",
+                          "action_title": "Mail à Camille",
+                          "plan_item_id": null
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": false,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": false,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": true
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-24T15:24:41.844302+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-attack-technique-20260624-r1-t05",
+        "user_id": "f66f0a45-55ae-4ac1-ac11-70efc7277a85",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-attack-technique-20260624-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je partirais sur une carte d'attaque, technique Le texte magique : Je partirais sur une carte d’attaque libre, technique texte magique : une phrase courte pour te faire démarrer sans te prendre la tête sur la première ligne. Pour ton mail, on peut viser un début simple et naturel, du style “Je te recontacte au sujet de…” ou “Je t’écris pour…”.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-attack-technique-20260624-r1-t05",
+              "source_message_id": "eae4ccbc-5ffd-406b-b1ce-fe24d86b5aec",
+              "user_id": "f66f0a45-55ae-4ac1-ac11-70efc7277a85",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {},
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "active_coaching_recommendation",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "coaching_recommendation",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "resume_active",
+                "reason_code": "active_coaching_recommendation"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-attack-technique-20260624-r1-t05",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "active_coaching_recommendation",
+              "status": "continue",
+              "latency_ms": 26408
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-attack-technique-20260624-r1-t05",
+            "source_message_id": "eae4ccbc-5ffd-406b-b1ce-fe24d86b5aec",
+            "user_id": "f66f0a45-55ae-4ac1-ac11-70efc7277a85",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {},
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "active_coaching_recommendation",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "coaching_recommendation",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "resume_active",
+              "reason_code": "active_coaching_recommendation"
+            },
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-attack-technique-20260624-r1-t05",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "active_coaching_recommendation",
+            "status": "continue",
+            "latency_ms": 26408
+          }
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "seeded_plan": {
+    "cycle_id": "a8cb395d-0472-4dcc-bfbf-65e2efab8027",
+    "transformation_id": "2d49ac7c-d321-49fe-993f-b9515285e3eb",
+    "plan_id": "5950dfbd-d7b8-4119-9924-eaf77bfe3535",
+    "item_id": "f228cdd2-9633-4035-a797-9a7d404cc112"
+  },
+  "updated_at": "2026-06-24T15:24:41.894Z",
+  "seeded_plan_cleanup": "2026-06-24T15:25:07.130Z",
+  "cleanup": [
+    {
+      "table": "chat_messages",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "scheduled_checkins",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_chat_states",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_memories",
+      "status": 404,
+      "ok": false
+    },
+    {
+      "table": "user_topic_memories",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "memory_items",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "auth.users",
+      "status": 200,
+      "ok": true
+    }
+  ],
+  "cleaned_at": "2026-06-24T15:25:14.929Z"
+}

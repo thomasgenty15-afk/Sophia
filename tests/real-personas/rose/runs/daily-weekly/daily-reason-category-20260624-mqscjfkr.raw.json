@@ -1,0 +1,2954 @@
+{
+  "run": {
+    "run_id": "daily-reason-category-20260624-mqscjfkr",
+    "persona": "rose",
+    "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+    "auth_user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+    "start_iso": "2026-06-24T17:27:46.192Z",
+    "turns": [
+      {
+        "turn": 0,
+        "role": "assistant",
+        "text": "Je fais le point sur aujourd’hui : Faire cinq minutes de respiration calme et Ranger deux papiers administratifs.\nTu en es où sur ces actions ?",
+        "trace_short": {
+          "http_status": 200,
+          "pending_status": "pending",
+          "targets_count": 2
+        }
+      },
+      {
+        "turn": 1,
+        "role": "user",
+        "text": "La respiration calme, pas faite : j’ai craqué dans l’après-midi et j’ai fumé. Pour les papiers, je n’ai pas encore répondu.",
+        "request_id": "daily-reason-category-20260624-mqscjfkr-t01"
+      },
+      {
+        "turn": 1,
+        "role": "assistant",
+        "text": "Je te recommande une carte d'attaque avec une méditation de 5 minutes pour relancer le démarrage sans forcer. Les papiers, c'est bien une action du plan, ou un autre cas hors plan ?",
+        "trace_short": {
+          "http_status": 200,
+          "ok": true,
+          "request_id": "daily-reason-category-20260624-mqscjfkr-t01",
+          "response_owner": "coaching_recommendation",
+          "selected_handler": null,
+          "route_reason": null,
+          "pending_status": "pending",
+          "review_status": "collecting",
+          "entries": [],
+          "occurrence_statuses": [
+            {
+              "plan_item_id": "68cac437-781c-4b66-a6a6-b28a9501492c",
+              "status": "planned"
+            },
+            {
+              "plan_item_id": "006a0804-97e4-4ae1-ab9e-8a668a7af4e1",
+              "status": "planned"
+            }
+          ]
+        },
+        "raw_body": {
+          "ok": true,
+          "request_id": "daily-reason-category-20260624-mqscjfkr-t01",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "channel": "whatsapp",
+          "scope": "whatsapp",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "Je te recommande une carte d'attaque avec une méditation de 5 minutes pour relancer le démarrage sans forcer. Les papiers, c'est bien une action du plan, ou un autre cas hors plan ?",
+            "mode": "companion",
+            "delivery": null,
+            "tool_execution": "none",
+            "executed_tools": [],
+            "conversation_turn_trace": {
+              "turn_frame": {
+                "turn_id": "daily-reason-category-20260624-mqscjfkr-t01",
+                "source_message_id": "eb98c4b2-a2d0-4b16-b76a-9a19a6882b35",
+                "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+                "channel": "whatsapp",
+                "safety": {
+                  "risk_band": "none",
+                  "reason_codes": [],
+                  "evidence": []
+                },
+                "conversation_risk": {
+                  "score": 0,
+                  "threshold": 8,
+                  "should_exit_flows": false,
+                  "reason_codes": [],
+                  "previous_scores": [],
+                  "matrix": [],
+                  "context_summary": null
+                },
+                "direct_effects": [],
+                "direct_effect_time_context": {
+                  "now_utc": "2026-06-24T17:27:46.192Z",
+                  "user_timezone": "Europe/Paris",
+                  "user_locale": "fr-FR",
+                  "user_local_datetime": "2026-06-24T19:27:46",
+                  "user_local_human": "mercredi 24 juin 2026 à 19:27"
+                },
+                "note_information": null,
+                "skill_signals": {},
+                "needs_research": {
+                  "detected": false,
+                  "value": false,
+                  "query": null,
+                  "domain_hint": null,
+                  "confidence": 0,
+                  "reason": null
+                },
+                "action_reference": {
+                  "detected": false,
+                  "status": "none",
+                  "expansion_policy": "none",
+                  "reason": "semantic_inference_unavailable"
+                },
+                "level_reference": {
+                  "detected": false,
+                  "status": "none",
+                  "expansion_policy": "none",
+                  "reason": "semantic_inference_unavailable"
+                },
+                "memory_plan": {
+                  "response_intent": "reflection",
+                  "reasoning_complexity": "low",
+                  "context_need": "minimal",
+                  "memory_mode": "none",
+                  "model_tier_hint": "lite",
+                  "context_budget_tier": "tiny",
+                  "targets": [],
+                  "retrieval_policy": "semantic_first",
+                  "plan_confidence": 0.7
+                }
+              },
+              "route_decision": {
+                "route_version": "v1",
+                "response_owner": "coaching_recommendation",
+                "blocked_paths": [],
+                "direct_effects_to_run": [],
+                "reason_code": "active_coaching_recommendation",
+                "memory_used_for_route": false,
+                "memory_item_ids_used_for_route": [],
+                "memory_use_kind": "none",
+                "active_flow_arbitration": {
+                  "decision": "continue_active",
+                  "active_owner": "coaching_recommendation",
+                  "selected_owner": "coaching_recommendation",
+                  "resume_policy": "resume_active",
+                  "reason_code": "active_coaching_recommendation"
+                },
+                "selected_handler": "coaching_recommendation"
+              },
+              "effect_ledger": {
+                "turn_id": "daily-reason-category-20260624-mqscjfkr-t01",
+                "counts": {
+                  "requested": 0,
+                  "allowed": 0,
+                  "blocked": 0,
+                  "committed": 0,
+                  "failed": 0,
+                  "proposed": 0,
+                  "delivered": 0,
+                  "cancelled": 0,
+                  "superseded": 0,
+                  "asked": 0,
+                  "resolved": 0,
+                  "topic_change": 0
+                },
+                "entries": []
+              },
+              "response_owner": "coaching_recommendation",
+              "skill_run": {
+                "selected_skill_id": "coaching_recommendation",
+                "reason_code": "active_coaching_recommendation",
+                "status": "complete",
+                "latency_ms": 26595
+              }
+            }
+          },
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "daily-reason-category-20260624-mqscjfkr-t01",
+              "source_message_id": "eb98c4b2-a2d0-4b16-b76a-9a19a6882b35",
+              "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+              "channel": "whatsapp",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "direct_effect_time_context": {
+                "now_utc": "2026-06-24T17:27:46.192Z",
+                "user_timezone": "Europe/Paris",
+                "user_locale": "fr-FR",
+                "user_local_datetime": "2026-06-24T19:27:46",
+                "user_local_human": "mercredi 24 juin 2026 à 19:27"
+              },
+              "note_information": null,
+              "skill_signals": {},
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "active_coaching_recommendation",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "coaching_recommendation",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "resume_active",
+                "reason_code": "active_coaching_recommendation"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "daily-reason-category-20260624-mqscjfkr-t01",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "active_coaching_recommendation",
+              "status": "complete",
+              "latency_ms": 26595
+            }
+          },
+          "trace_error": null
+        }
+      },
+      {
+        "turn": 2,
+        "role": "user",
+        "text": "Les papiers administratifs, pas faits non plus : j’étais épuisée et je n’avais plus d’énergie.",
+        "request_id": "daily-reason-category-20260624-mqscjfkr-t02"
+      },
+      {
+        "turn": 2,
+        "role": "assistant",
+        "text": "Je partirais sur une carte d’attaque, technique préparer le terrain : tu allèges au maximum le démarrage des papiers en préparant juste ce qu’il faut autour de toi, pour que le premier geste te coûte moins d’énergie.",
+        "trace_short": {
+          "http_status": 200,
+          "ok": true,
+          "request_id": "daily-reason-category-20260624-mqscjfkr-t02",
+          "response_owner": "coaching_recommendation",
+          "selected_handler": null,
+          "route_reason": null,
+          "pending_status": "pending",
+          "review_status": "collecting",
+          "entries": [],
+          "occurrence_statuses": [
+            {
+              "plan_item_id": "68cac437-781c-4b66-a6a6-b28a9501492c",
+              "status": "planned"
+            },
+            {
+              "plan_item_id": "006a0804-97e4-4ae1-ab9e-8a668a7af4e1",
+              "status": "planned"
+            }
+          ]
+        },
+        "raw_body": {
+          "ok": true,
+          "request_id": "daily-reason-category-20260624-mqscjfkr-t02",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "channel": "whatsapp",
+          "scope": "whatsapp",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "Je partirais sur une carte d’attaque, technique préparer le terrain : tu allèges au maximum le démarrage des papiers en préparant juste ce qu’il faut autour de toi, pour que le premier geste te coûte moins d’énergie.",
+            "mode": "companion",
+            "delivery": null,
+            "tool_execution": "none",
+            "executed_tools": [],
+            "conversation_turn_trace": {
+              "turn_frame": {
+                "turn_id": "daily-reason-category-20260624-mqscjfkr-t02",
+                "source_message_id": "5f96906c-e6cb-456f-b80c-c1be297aa741",
+                "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+                "channel": "whatsapp",
+                "safety": {
+                  "risk_band": "none",
+                  "reason_codes": [],
+                  "evidence": []
+                },
+                "conversation_risk": {
+                  "score": 0,
+                  "threshold": 8,
+                  "should_exit_flows": false,
+                  "reason_codes": [],
+                  "previous_scores": [],
+                  "matrix": [],
+                  "context_summary": null
+                },
+                "direct_effects": [],
+                "direct_effect_time_context": {
+                  "now_utc": "2026-06-24T17:27:46.192Z",
+                  "user_timezone": "Europe/Paris",
+                  "user_locale": "fr-FR",
+                  "user_local_datetime": "2026-06-24T19:27:46",
+                  "user_local_human": "mercredi 24 juin 2026 à 19:27"
+                },
+                "note_information": null,
+                "skill_signals": {
+                  "coaching_recommendation": {
+                    "detected": true,
+                    "confidence_band": "high",
+                    "reason": "plan_action_coaching_need",
+                    "context": {
+                      "coaching_type": "plan_action",
+                      "confidence": 0.83,
+                      "activation_checks": {
+                        "is_coaching_need": true,
+                        "is_about_plan_action": true,
+                        "is_about_non_plan_action": false,
+                        "is_about_emotional_state": false,
+                        "has_concrete_plan_action": true,
+                        "needs_type_confirmation": false
+                      },
+                      "action_context": {
+                        "source": "plan",
+                        "plan_item_id": "d62d828a-d744-4fc6-a7ed-fdccb195447a",
+                        "action_title": "Journée 100% sans cannabis",
+                        "plan_id": null,
+                        "plan_title": null,
+                        "action_type": "habit"
+                      },
+                      "emotional_state_context": {
+                        "state_hint": "épuisée / plus d'énergie",
+                        "intensity": "medium"
+                      },
+                      "reason": "The user reports a specific plan action not done and explains the blocker as exhaustion/low energy, which fits coaching on a plan action."
+                    }
+                  }
+                },
+                "needs_research": {
+                  "detected": false,
+                  "value": false,
+                  "query": null,
+                  "domain_hint": null,
+                  "confidence": 0,
+                  "reason": null
+                },
+                "action_reference": {
+                  "detected": false,
+                  "status": "none",
+                  "expansion_policy": "none",
+                  "reason": "semantic_inference_unavailable"
+                },
+                "level_reference": {
+                  "detected": false,
+                  "status": "none",
+                  "expansion_policy": "none",
+                  "reason": "semantic_inference_unavailable"
+                },
+                "memory_plan": {
+                  "response_intent": "identify the relevant plan action and user blocker to answer now",
+                  "reasoning_complexity": "low",
+                  "context_need": "targeted",
+                  "memory_mode": "light",
+                  "model_tier_hint": "standard",
+                  "context_budget_tier": "small",
+                  "targets": [],
+                  "retrieval_policy": "taxonomy_first",
+                  "plan_confidence": 0.86
+                }
+              },
+              "route_decision": {
+                "route_version": "v1",
+                "response_owner": "coaching_recommendation",
+                "blocked_paths": [],
+                "direct_effects_to_run": [],
+                "reason_code": "coaching_recommendation_signal",
+                "memory_used_for_route": false,
+                "memory_item_ids_used_for_route": [],
+                "memory_use_kind": "none",
+                "selected_handler": "coaching_recommendation"
+              },
+              "effect_ledger": {
+                "turn_id": "daily-reason-category-20260624-mqscjfkr-t02",
+                "counts": {
+                  "requested": 0,
+                  "allowed": 0,
+                  "blocked": 0,
+                  "committed": 0,
+                  "failed": 0,
+                  "proposed": 0,
+                  "delivered": 0,
+                  "cancelled": 0,
+                  "superseded": 0,
+                  "asked": 0,
+                  "resolved": 0,
+                  "topic_change": 0
+                },
+                "entries": []
+              },
+              "response_owner": "coaching_recommendation",
+              "skill_run": {
+                "selected_skill_id": "coaching_recommendation",
+                "reason_code": "coaching_recommendation_signal",
+                "status": "continue",
+                "latency_ms": 22767
+              }
+            }
+          },
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "daily-reason-category-20260624-mqscjfkr-t02",
+              "source_message_id": "5f96906c-e6cb-456f-b80c-c1be297aa741",
+              "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+              "channel": "whatsapp",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "direct_effect_time_context": {
+                "now_utc": "2026-06-24T17:27:46.192Z",
+                "user_timezone": "Europe/Paris",
+                "user_locale": "fr-FR",
+                "user_local_datetime": "2026-06-24T19:27:46",
+                "user_local_human": "mercredi 24 juin 2026 à 19:27"
+              },
+              "note_information": null,
+              "skill_signals": {
+                "coaching_recommendation": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "plan_action_coaching_need",
+                  "context": {
+                    "coaching_type": "plan_action",
+                    "confidence": 0.83,
+                    "activation_checks": {
+                      "is_coaching_need": true,
+                      "is_about_plan_action": true,
+                      "is_about_non_plan_action": false,
+                      "is_about_emotional_state": false,
+                      "has_concrete_plan_action": true,
+                      "needs_type_confirmation": false
+                    },
+                    "action_context": {
+                      "source": "plan",
+                      "plan_item_id": "d62d828a-d744-4fc6-a7ed-fdccb195447a",
+                      "action_title": "Journée 100% sans cannabis",
+                      "plan_id": null,
+                      "plan_title": null,
+                      "action_type": "habit"
+                    },
+                    "emotional_state_context": {
+                      "state_hint": "épuisée / plus d'énergie",
+                      "intensity": "medium"
+                    },
+                    "reason": "The user reports a specific plan action not done and explains the blocker as exhaustion/low energy, which fits coaching on a plan action."
+                  }
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "identify the relevant plan action and user blocker to answer now",
+                "reasoning_complexity": "low",
+                "context_need": "targeted",
+                "memory_mode": "light",
+                "model_tier_hint": "standard",
+                "context_budget_tier": "small",
+                "targets": [],
+                "retrieval_policy": "taxonomy_first",
+                "plan_confidence": 0.86
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "coaching_recommendation_signal",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "daily-reason-category-20260624-mqscjfkr-t02",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "coaching_recommendation_signal",
+              "status": "continue",
+              "latency_ms": 22767
+            }
+          },
+          "trace_error": null
+        }
+      },
+      {
+        "turn": 3,
+        "role": "user",
+        "text": "Les papiers administratifs, pas faits non plus : j’étais épuisée et je n’avais plus d’énergie.",
+        "request_id": "daily-reason-category-20260624-mqscjfkr-t03"
+      },
+      {
+        "turn": 3,
+        "role": "assistant",
+        "text": "Je partirais sur une carte d’attaque, technique préparer le terrain : pour les papiers, le blocage semble surtout venir du manque d’énergie, donc on simplifie le contexte et les premières étapes pour rendre le démarrage beaucoup moins coûteux.",
+        "trace_short": {
+          "http_status": 200,
+          "ok": true,
+          "request_id": "daily-reason-category-20260624-mqscjfkr-t03",
+          "response_owner": "coaching_recommendation",
+          "selected_handler": null,
+          "route_reason": null,
+          "pending_status": "pending",
+          "review_status": "collecting",
+          "entries": [],
+          "occurrence_statuses": [
+            {
+              "plan_item_id": "68cac437-781c-4b66-a6a6-b28a9501492c",
+              "status": "planned"
+            },
+            {
+              "plan_item_id": "006a0804-97e4-4ae1-ab9e-8a668a7af4e1",
+              "status": "planned"
+            }
+          ]
+        },
+        "raw_body": {
+          "ok": true,
+          "request_id": "daily-reason-category-20260624-mqscjfkr-t03",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "channel": "whatsapp",
+          "scope": "whatsapp",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "Je partirais sur une carte d’attaque, technique préparer le terrain : pour les papiers, le blocage semble surtout venir du manque d’énergie, donc on simplifie le contexte et les premières étapes pour rendre le démarrage beaucoup moins coûteux.",
+            "mode": "companion",
+            "delivery": null,
+            "tool_execution": "none",
+            "executed_tools": [],
+            "conversation_turn_trace": {
+              "turn_frame": {
+                "turn_id": "daily-reason-category-20260624-mqscjfkr-t03",
+                "source_message_id": "044cb347-b80d-4fb1-9fff-ef95938da912",
+                "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+                "channel": "whatsapp",
+                "safety": {
+                  "risk_band": "none",
+                  "reason_codes": [],
+                  "evidence": []
+                },
+                "conversation_risk": {
+                  "score": 0,
+                  "threshold": 8,
+                  "should_exit_flows": false,
+                  "reason_codes": [],
+                  "previous_scores": [],
+                  "matrix": [],
+                  "context_summary": null
+                },
+                "direct_effects": [],
+                "direct_effect_time_context": {
+                  "now_utc": "2026-06-24T17:27:46.192Z",
+                  "user_timezone": "Europe/Paris",
+                  "user_locale": "fr-FR",
+                  "user_local_datetime": "2026-06-24T19:27:46",
+                  "user_local_human": "mercredi 24 juin 2026 à 19:27"
+                },
+                "note_information": null,
+                "skill_signals": {},
+                "needs_research": {
+                  "detected": false,
+                  "value": false,
+                  "query": null,
+                  "domain_hint": null,
+                  "confidence": 0,
+                  "reason": null
+                },
+                "action_reference": {
+                  "detected": false,
+                  "status": "none",
+                  "expansion_policy": "none",
+                  "reason": "semantic_inference_unavailable"
+                },
+                "level_reference": {
+                  "detected": false,
+                  "status": "none",
+                  "expansion_policy": "none",
+                  "reason": "semantic_inference_unavailable"
+                },
+                "memory_plan": {
+                  "response_intent": "reflection",
+                  "reasoning_complexity": "low",
+                  "context_need": "minimal",
+                  "memory_mode": "none",
+                  "model_tier_hint": "lite",
+                  "context_budget_tier": "tiny",
+                  "targets": [],
+                  "retrieval_policy": "semantic_first",
+                  "plan_confidence": 0.7
+                }
+              },
+              "route_decision": {
+                "route_version": "v1",
+                "response_owner": "coaching_recommendation",
+                "blocked_paths": [],
+                "direct_effects_to_run": [],
+                "reason_code": "active_coaching_recommendation",
+                "memory_used_for_route": false,
+                "memory_item_ids_used_for_route": [],
+                "memory_use_kind": "none",
+                "active_flow_arbitration": {
+                  "decision": "continue_active",
+                  "active_owner": "coaching_recommendation",
+                  "selected_owner": "coaching_recommendation",
+                  "resume_policy": "resume_active",
+                  "reason_code": "active_coaching_recommendation"
+                },
+                "selected_handler": "coaching_recommendation"
+              },
+              "effect_ledger": {
+                "turn_id": "daily-reason-category-20260624-mqscjfkr-t03",
+                "counts": {
+                  "requested": 0,
+                  "allowed": 0,
+                  "blocked": 0,
+                  "committed": 0,
+                  "failed": 0,
+                  "proposed": 0,
+                  "delivered": 0,
+                  "cancelled": 0,
+                  "superseded": 0,
+                  "asked": 0,
+                  "resolved": 0,
+                  "topic_change": 0
+                },
+                "entries": []
+              },
+              "response_owner": "coaching_recommendation",
+              "skill_run": {
+                "selected_skill_id": "coaching_recommendation",
+                "reason_code": "active_coaching_recommendation",
+                "status": "continue",
+                "latency_ms": 28277
+              }
+            }
+          },
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "daily-reason-category-20260624-mqscjfkr-t03",
+              "source_message_id": "044cb347-b80d-4fb1-9fff-ef95938da912",
+              "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+              "channel": "whatsapp",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "direct_effect_time_context": {
+                "now_utc": "2026-06-24T17:27:46.192Z",
+                "user_timezone": "Europe/Paris",
+                "user_locale": "fr-FR",
+                "user_local_datetime": "2026-06-24T19:27:46",
+                "user_local_human": "mercredi 24 juin 2026 à 19:27"
+              },
+              "note_information": null,
+              "skill_signals": {},
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "active_coaching_recommendation",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "coaching_recommendation",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "resume_active",
+                "reason_code": "active_coaching_recommendation"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "daily-reason-category-20260624-mqscjfkr-t03",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "active_coaching_recommendation",
+              "status": "continue",
+              "latency_ms": 28277
+            }
+          },
+          "trace_error": null
+        }
+      },
+      {
+        "turn": 4,
+        "role": "user",
+        "text": "Les papiers administratifs, pas faits non plus : j’étais épuisée et je n’avais plus d’énergie.",
+        "request_id": "daily-reason-category-20260624-mqscjfkr-t04"
+      },
+      {
+        "turn": 4,
+        "role": "assistant",
+        "text": "Je partirais sur une carte d’attaque, technique préparer le terrain : tu allèges l’environnement avant le moment fragile, pour que tenir ta journée sans cannabis te demande moins d’énergie au départ.",
+        "trace_short": {
+          "http_status": 200,
+          "ok": true,
+          "request_id": "daily-reason-category-20260624-mqscjfkr-t04",
+          "response_owner": "coaching_recommendation",
+          "selected_handler": null,
+          "route_reason": null,
+          "pending_status": "pending",
+          "review_status": "collecting",
+          "entries": [],
+          "occurrence_statuses": [
+            {
+              "plan_item_id": "68cac437-781c-4b66-a6a6-b28a9501492c",
+              "status": "planned"
+            },
+            {
+              "plan_item_id": "006a0804-97e4-4ae1-ab9e-8a668a7af4e1",
+              "status": "planned"
+            }
+          ]
+        },
+        "raw_body": {
+          "ok": true,
+          "request_id": "daily-reason-category-20260624-mqscjfkr-t04",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "channel": "whatsapp",
+          "scope": "whatsapp",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "Je partirais sur une carte d’attaque, technique préparer le terrain : tu allèges l’environnement avant le moment fragile, pour que tenir ta journée sans cannabis te demande moins d’énergie au départ.",
+            "mode": "companion",
+            "delivery": null,
+            "tool_execution": "none",
+            "executed_tools": [],
+            "conversation_turn_trace": {
+              "turn_frame": {
+                "turn_id": "daily-reason-category-20260624-mqscjfkr-t04",
+                "source_message_id": "074a5547-6fd3-45bc-b35b-b43017caf911",
+                "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+                "channel": "whatsapp",
+                "safety": {
+                  "risk_band": "none",
+                  "reason_codes": [],
+                  "evidence": []
+                },
+                "conversation_risk": {
+                  "score": 0,
+                  "threshold": 8,
+                  "should_exit_flows": false,
+                  "reason_codes": [],
+                  "previous_scores": [],
+                  "matrix": [],
+                  "context_summary": null
+                },
+                "direct_effects": [],
+                "direct_effect_time_context": {
+                  "now_utc": "2026-06-24T17:27:46.192Z",
+                  "user_timezone": "Europe/Paris",
+                  "user_locale": "fr-FR",
+                  "user_local_datetime": "2026-06-24T19:27:46",
+                  "user_local_human": "mercredi 24 juin 2026 à 19:27"
+                },
+                "note_information": null,
+                "skill_signals": {},
+                "needs_research": {
+                  "detected": false,
+                  "value": false,
+                  "query": null,
+                  "domain_hint": null,
+                  "confidence": 0,
+                  "reason": null
+                },
+                "action_reference": {
+                  "detected": false,
+                  "status": "none",
+                  "expansion_policy": "none",
+                  "reason": "semantic_inference_unavailable"
+                },
+                "level_reference": {
+                  "detected": false,
+                  "status": "none",
+                  "expansion_policy": "none",
+                  "reason": "semantic_inference_unavailable"
+                },
+                "memory_plan": {
+                  "response_intent": "reflection",
+                  "reasoning_complexity": "low",
+                  "context_need": "minimal",
+                  "memory_mode": "none",
+                  "model_tier_hint": "lite",
+                  "context_budget_tier": "tiny",
+                  "targets": [],
+                  "retrieval_policy": "semantic_first",
+                  "plan_confidence": 0.7
+                }
+              },
+              "route_decision": {
+                "route_version": "v1",
+                "response_owner": "coaching_recommendation",
+                "blocked_paths": [],
+                "direct_effects_to_run": [],
+                "reason_code": "active_coaching_recommendation",
+                "memory_used_for_route": false,
+                "memory_item_ids_used_for_route": [],
+                "memory_use_kind": "none",
+                "active_flow_arbitration": {
+                  "decision": "continue_active",
+                  "active_owner": "coaching_recommendation",
+                  "selected_owner": "coaching_recommendation",
+                  "resume_policy": "resume_active",
+                  "reason_code": "active_coaching_recommendation"
+                },
+                "selected_handler": "coaching_recommendation"
+              },
+              "effect_ledger": {
+                "turn_id": "daily-reason-category-20260624-mqscjfkr-t04",
+                "counts": {
+                  "requested": 0,
+                  "allowed": 0,
+                  "blocked": 0,
+                  "committed": 0,
+                  "failed": 0,
+                  "proposed": 0,
+                  "delivered": 0,
+                  "cancelled": 0,
+                  "superseded": 0,
+                  "asked": 0,
+                  "resolved": 0,
+                  "topic_change": 0
+                },
+                "entries": []
+              },
+              "response_owner": "coaching_recommendation",
+              "skill_run": {
+                "selected_skill_id": "coaching_recommendation",
+                "reason_code": "active_coaching_recommendation",
+                "status": "continue",
+                "latency_ms": 29868
+              }
+            }
+          },
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "daily-reason-category-20260624-mqscjfkr-t04",
+              "source_message_id": "074a5547-6fd3-45bc-b35b-b43017caf911",
+              "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+              "channel": "whatsapp",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "direct_effect_time_context": {
+                "now_utc": "2026-06-24T17:27:46.192Z",
+                "user_timezone": "Europe/Paris",
+                "user_locale": "fr-FR",
+                "user_local_datetime": "2026-06-24T19:27:46",
+                "user_local_human": "mercredi 24 juin 2026 à 19:27"
+              },
+              "note_information": null,
+              "skill_signals": {},
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "active_coaching_recommendation",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "coaching_recommendation",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "resume_active",
+                "reason_code": "active_coaching_recommendation"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "daily-reason-category-20260624-mqscjfkr-t04",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "active_coaching_recommendation",
+              "status": "continue",
+              "latency_ms": 29868
+            }
+          },
+          "trace_error": null
+        }
+      },
+      {
+        "turn": 5,
+        "role": "user",
+        "text": "Pour clôturer le daily : respiration pas faite à cause du craquage, papiers pas faits à cause de la fatigue, et les deux restent pertinents.",
+        "request_id": "daily-reason-category-20260624-mqscjfkr-t05"
+      },
+      {
+        "turn": 5,
+        "role": "assistant",
+        "text": "Je partirais sur une carte d’attaque, technique préparer le terrain : pour les papiers administratifs, tu simplifies le démarrage en mettant tout à portée de main et en ne gardant qu’une première étape ultra courte.",
+        "trace_short": {
+          "http_status": 200,
+          "ok": true,
+          "request_id": "daily-reason-category-20260624-mqscjfkr-t05",
+          "response_owner": "coaching_recommendation",
+          "selected_handler": null,
+          "route_reason": null,
+          "pending_status": "pending",
+          "review_status": "collecting",
+          "entries": [],
+          "occurrence_statuses": [
+            {
+              "plan_item_id": "68cac437-781c-4b66-a6a6-b28a9501492c",
+              "status": "planned"
+            },
+            {
+              "plan_item_id": "006a0804-97e4-4ae1-ab9e-8a668a7af4e1",
+              "status": "planned"
+            }
+          ]
+        },
+        "raw_body": {
+          "ok": true,
+          "request_id": "daily-reason-category-20260624-mqscjfkr-t05",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "channel": "whatsapp",
+          "scope": "whatsapp",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "Je partirais sur une carte d’attaque, technique préparer le terrain : pour les papiers administratifs, tu simplifies le démarrage en mettant tout à portée de main et en ne gardant qu’une première étape ultra courte.",
+            "mode": "companion",
+            "delivery": null,
+            "tool_execution": "none",
+            "executed_tools": [],
+            "conversation_turn_trace": {
+              "turn_frame": {
+                "turn_id": "daily-reason-category-20260624-mqscjfkr-t05",
+                "source_message_id": "ae1b8793-7b0a-442a-be24-ec91e9ba9f21",
+                "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+                "channel": "whatsapp",
+                "safety": {
+                  "risk_band": "none",
+                  "reason_codes": [],
+                  "evidence": []
+                },
+                "conversation_risk": {
+                  "score": 0,
+                  "threshold": 8,
+                  "should_exit_flows": false,
+                  "reason_codes": [],
+                  "previous_scores": [],
+                  "matrix": [],
+                  "context_summary": null
+                },
+                "direct_effects": [],
+                "direct_effect_time_context": {
+                  "now_utc": "2026-06-24T17:27:46.192Z",
+                  "user_timezone": "Europe/Paris",
+                  "user_locale": "fr-FR",
+                  "user_local_datetime": "2026-06-24T19:27:46",
+                  "user_local_human": "mercredi 24 juin 2026 à 19:27"
+                },
+                "note_information": null,
+                "skill_signals": {},
+                "needs_research": {
+                  "detected": false,
+                  "value": false,
+                  "query": null,
+                  "domain_hint": null,
+                  "confidence": 0,
+                  "reason": null
+                },
+                "action_reference": {
+                  "detected": false,
+                  "status": "none",
+                  "expansion_policy": "none",
+                  "reason": "semantic_inference_unavailable"
+                },
+                "level_reference": {
+                  "detected": false,
+                  "status": "none",
+                  "expansion_policy": "none",
+                  "reason": "semantic_inference_unavailable"
+                },
+                "memory_plan": {
+                  "response_intent": "reflection",
+                  "reasoning_complexity": "low",
+                  "context_need": "minimal",
+                  "memory_mode": "none",
+                  "model_tier_hint": "lite",
+                  "context_budget_tier": "tiny",
+                  "targets": [],
+                  "retrieval_policy": "semantic_first",
+                  "plan_confidence": 0.7
+                }
+              },
+              "route_decision": {
+                "route_version": "v1",
+                "response_owner": "coaching_recommendation",
+                "blocked_paths": [],
+                "direct_effects_to_run": [],
+                "reason_code": "active_coaching_recommendation",
+                "memory_used_for_route": false,
+                "memory_item_ids_used_for_route": [],
+                "memory_use_kind": "none",
+                "active_flow_arbitration": {
+                  "decision": "continue_active",
+                  "active_owner": "coaching_recommendation",
+                  "selected_owner": "coaching_recommendation",
+                  "resume_policy": "resume_active",
+                  "reason_code": "active_coaching_recommendation"
+                },
+                "selected_handler": "coaching_recommendation"
+              },
+              "effect_ledger": {
+                "turn_id": "daily-reason-category-20260624-mqscjfkr-t05",
+                "counts": {
+                  "requested": 0,
+                  "allowed": 0,
+                  "blocked": 0,
+                  "committed": 0,
+                  "failed": 0,
+                  "proposed": 0,
+                  "delivered": 0,
+                  "cancelled": 0,
+                  "superseded": 0,
+                  "asked": 0,
+                  "resolved": 0,
+                  "topic_change": 0
+                },
+                "entries": []
+              },
+              "response_owner": "coaching_recommendation",
+              "skill_run": {
+                "selected_skill_id": "coaching_recommendation",
+                "reason_code": "active_coaching_recommendation",
+                "status": "continue",
+                "latency_ms": 28652
+              }
+            }
+          },
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "daily-reason-category-20260624-mqscjfkr-t05",
+              "source_message_id": "ae1b8793-7b0a-442a-be24-ec91e9ba9f21",
+              "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+              "channel": "whatsapp",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "direct_effect_time_context": {
+                "now_utc": "2026-06-24T17:27:46.192Z",
+                "user_timezone": "Europe/Paris",
+                "user_locale": "fr-FR",
+                "user_local_datetime": "2026-06-24T19:27:46",
+                "user_local_human": "mercredi 24 juin 2026 à 19:27"
+              },
+              "note_information": null,
+              "skill_signals": {},
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "active_coaching_recommendation",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "coaching_recommendation",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "resume_active",
+                "reason_code": "active_coaching_recommendation"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "daily-reason-category-20260624-mqscjfkr-t05",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "active_coaching_recommendation",
+              "status": "continue",
+              "latency_ms": 28652
+            }
+          },
+          "trace_error": null
+        }
+      },
+      {
+        "turn": 6,
+        "role": "user",
+        "text": "Les papiers administratifs, pas faits non plus : j’étais épuisée et je n’avais plus d’énergie.",
+        "request_id": "daily-reason-category-20260624-mqscjfkr-t06"
+      },
+      {
+        "turn": 6,
+        "role": "assistant",
+        "text": "Je partirais sur une carte d’attaque, technique texte magique : une phrase très courte pour couper la pensée “je suis trop épuisée” et te faire démarrer les papiers par un tout petit premier geste. Surface: Dashboard > Plan, depuis l’action “Journée 100% sans cannabis”, puis tu prépares la carte d’attaque liée à cette action.",
+        "trace_short": {
+          "http_status": 200,
+          "ok": true,
+          "request_id": "daily-reason-category-20260624-mqscjfkr-t06",
+          "response_owner": "coaching_recommendation",
+          "selected_handler": null,
+          "route_reason": null,
+          "pending_status": "pending",
+          "review_status": "collecting",
+          "entries": [],
+          "occurrence_statuses": [
+            {
+              "plan_item_id": "68cac437-781c-4b66-a6a6-b28a9501492c",
+              "status": "planned"
+            },
+            {
+              "plan_item_id": "006a0804-97e4-4ae1-ab9e-8a668a7af4e1",
+              "status": "planned"
+            }
+          ]
+        },
+        "raw_body": {
+          "ok": true,
+          "request_id": "daily-reason-category-20260624-mqscjfkr-t06",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "channel": "whatsapp",
+          "scope": "whatsapp",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "Je partirais sur une carte d’attaque, technique texte magique : une phrase très courte pour couper la pensée “je suis trop épuisée” et te faire démarrer les papiers par un tout petit premier geste. Surface: Dashboard > Plan, depuis l’action “Journée 100% sans cannabis”, puis tu prépares la carte d’attaque liée à cette action.",
+            "mode": "companion",
+            "delivery": null,
+            "tool_execution": "none",
+            "executed_tools": [],
+            "conversation_turn_trace": {
+              "turn_frame": {
+                "turn_id": "daily-reason-category-20260624-mqscjfkr-t06",
+                "source_message_id": "e3fe1c7d-08ea-4984-9940-fbaceb53b009",
+                "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+                "channel": "whatsapp",
+                "safety": {
+                  "risk_band": "none",
+                  "reason_codes": [],
+                  "evidence": []
+                },
+                "conversation_risk": {
+                  "score": 0,
+                  "threshold": 8,
+                  "should_exit_flows": false,
+                  "reason_codes": [],
+                  "previous_scores": [],
+                  "matrix": [],
+                  "context_summary": null
+                },
+                "direct_effects": [],
+                "direct_effect_time_context": {
+                  "now_utc": "2026-06-24T17:27:46.192Z",
+                  "user_timezone": "Europe/Paris",
+                  "user_locale": "fr-FR",
+                  "user_local_datetime": "2026-06-24T19:27:46",
+                  "user_local_human": "mercredi 24 juin 2026 à 19:27"
+                },
+                "note_information": null,
+                "skill_signals": {},
+                "needs_research": {
+                  "detected": false,
+                  "value": false,
+                  "query": null,
+                  "domain_hint": null,
+                  "confidence": 0,
+                  "reason": null
+                },
+                "action_reference": {
+                  "detected": false,
+                  "status": "none",
+                  "expansion_policy": "none",
+                  "reason": "semantic_inference_unavailable"
+                },
+                "level_reference": {
+                  "detected": false,
+                  "status": "none",
+                  "expansion_policy": "none",
+                  "reason": "semantic_inference_unavailable"
+                },
+                "memory_plan": {
+                  "response_intent": "reflection",
+                  "reasoning_complexity": "low",
+                  "context_need": "minimal",
+                  "memory_mode": "none",
+                  "model_tier_hint": "lite",
+                  "context_budget_tier": "tiny",
+                  "targets": [],
+                  "retrieval_policy": "semantic_first",
+                  "plan_confidence": 0.7
+                }
+              },
+              "route_decision": {
+                "route_version": "v1",
+                "response_owner": "coaching_recommendation",
+                "blocked_paths": [],
+                "direct_effects_to_run": [],
+                "reason_code": "active_coaching_recommendation",
+                "memory_used_for_route": false,
+                "memory_item_ids_used_for_route": [],
+                "memory_use_kind": "none",
+                "active_flow_arbitration": {
+                  "decision": "continue_active",
+                  "active_owner": "coaching_recommendation",
+                  "selected_owner": "coaching_recommendation",
+                  "resume_policy": "resume_active",
+                  "reason_code": "active_coaching_recommendation"
+                },
+                "selected_handler": "coaching_recommendation"
+              },
+              "effect_ledger": {
+                "turn_id": "daily-reason-category-20260624-mqscjfkr-t06",
+                "counts": {
+                  "requested": 0,
+                  "allowed": 0,
+                  "blocked": 0,
+                  "committed": 0,
+                  "failed": 0,
+                  "proposed": 0,
+                  "delivered": 0,
+                  "cancelled": 0,
+                  "superseded": 0,
+                  "asked": 0,
+                  "resolved": 0,
+                  "topic_change": 0
+                },
+                "entries": []
+              },
+              "response_owner": "coaching_recommendation",
+              "skill_run": {
+                "selected_skill_id": "coaching_recommendation",
+                "reason_code": "active_coaching_recommendation",
+                "status": "continue",
+                "latency_ms": 29075
+              }
+            }
+          },
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "daily-reason-category-20260624-mqscjfkr-t06",
+              "source_message_id": "e3fe1c7d-08ea-4984-9940-fbaceb53b009",
+              "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+              "channel": "whatsapp",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "direct_effect_time_context": {
+                "now_utc": "2026-06-24T17:27:46.192Z",
+                "user_timezone": "Europe/Paris",
+                "user_locale": "fr-FR",
+                "user_local_datetime": "2026-06-24T19:27:46",
+                "user_local_human": "mercredi 24 juin 2026 à 19:27"
+              },
+              "note_information": null,
+              "skill_signals": {},
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "active_coaching_recommendation",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "coaching_recommendation",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "resume_active",
+                "reason_code": "active_coaching_recommendation"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "daily-reason-category-20260624-mqscjfkr-t06",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "active_coaching_recommendation",
+              "status": "continue",
+              "latency_ms": 29075
+            }
+          },
+          "trace_error": null
+        }
+      },
+      {
+        "turn": 7,
+        "role": "user",
+        "text": "Les papiers administratifs, pas faits non plus : j’étais épuisée et je n’avais plus d’énergie.",
+        "request_id": "daily-reason-category-20260624-mqscjfkr-t07"
+      },
+      {
+        "turn": 7,
+        "role": "assistant",
+        "text": "Je partirais sur une carte d’attaque, technique texte magique : une phrase courte pour recadrer le blocage et rendre le démarrage des papiers plus léger malgré la fatigue.",
+        "trace_short": {
+          "http_status": 200,
+          "ok": true,
+          "request_id": "daily-reason-category-20260624-mqscjfkr-t07",
+          "response_owner": "coaching_recommendation",
+          "selected_handler": null,
+          "route_reason": null,
+          "pending_status": "pending",
+          "review_status": "collecting",
+          "entries": [],
+          "occurrence_statuses": [
+            {
+              "plan_item_id": "68cac437-781c-4b66-a6a6-b28a9501492c",
+              "status": "planned"
+            },
+            {
+              "plan_item_id": "006a0804-97e4-4ae1-ab9e-8a668a7af4e1",
+              "status": "planned"
+            }
+          ]
+        },
+        "raw_body": {
+          "ok": true,
+          "request_id": "daily-reason-category-20260624-mqscjfkr-t07",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "channel": "whatsapp",
+          "scope": "whatsapp",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "Je partirais sur une carte d’attaque, technique texte magique : une phrase courte pour recadrer le blocage et rendre le démarrage des papiers plus léger malgré la fatigue.",
+            "mode": "companion",
+            "delivery": null,
+            "tool_execution": "none",
+            "executed_tools": [],
+            "conversation_turn_trace": {
+              "turn_frame": {
+                "turn_id": "daily-reason-category-20260624-mqscjfkr-t07",
+                "source_message_id": "96211fa9-b269-42e7-9801-01c5eeda597c",
+                "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+                "channel": "whatsapp",
+                "safety": {
+                  "risk_band": "none",
+                  "reason_codes": [],
+                  "evidence": []
+                },
+                "conversation_risk": {
+                  "score": 0,
+                  "threshold": 8,
+                  "should_exit_flows": false,
+                  "reason_codes": [],
+                  "previous_scores": [],
+                  "matrix": [],
+                  "context_summary": null
+                },
+                "direct_effects": [],
+                "direct_effect_time_context": {
+                  "now_utc": "2026-06-24T17:27:46.192Z",
+                  "user_timezone": "Europe/Paris",
+                  "user_locale": "fr-FR",
+                  "user_local_datetime": "2026-06-24T19:27:46",
+                  "user_local_human": "mercredi 24 juin 2026 à 19:27"
+                },
+                "note_information": null,
+                "skill_signals": {},
+                "needs_research": {
+                  "detected": false,
+                  "value": false,
+                  "query": null,
+                  "domain_hint": null,
+                  "confidence": 0,
+                  "reason": null
+                },
+                "action_reference": {
+                  "detected": false,
+                  "status": "none",
+                  "expansion_policy": "none",
+                  "reason": "semantic_inference_unavailable"
+                },
+                "level_reference": {
+                  "detected": false,
+                  "status": "none",
+                  "expansion_policy": "none",
+                  "reason": "semantic_inference_unavailable"
+                },
+                "memory_plan": {
+                  "response_intent": "reflection",
+                  "reasoning_complexity": "low",
+                  "context_need": "minimal",
+                  "memory_mode": "none",
+                  "model_tier_hint": "lite",
+                  "context_budget_tier": "tiny",
+                  "targets": [],
+                  "retrieval_policy": "semantic_first",
+                  "plan_confidence": 0.7
+                }
+              },
+              "route_decision": {
+                "route_version": "v1",
+                "response_owner": "coaching_recommendation",
+                "blocked_paths": [],
+                "direct_effects_to_run": [],
+                "reason_code": "active_coaching_recommendation",
+                "memory_used_for_route": false,
+                "memory_item_ids_used_for_route": [],
+                "memory_use_kind": "none",
+                "active_flow_arbitration": {
+                  "decision": "continue_active",
+                  "active_owner": "coaching_recommendation",
+                  "selected_owner": "coaching_recommendation",
+                  "resume_policy": "resume_active",
+                  "reason_code": "active_coaching_recommendation"
+                },
+                "selected_handler": "coaching_recommendation"
+              },
+              "effect_ledger": {
+                "turn_id": "daily-reason-category-20260624-mqscjfkr-t07",
+                "counts": {
+                  "requested": 0,
+                  "allowed": 0,
+                  "blocked": 0,
+                  "committed": 0,
+                  "failed": 0,
+                  "proposed": 0,
+                  "delivered": 0,
+                  "cancelled": 0,
+                  "superseded": 0,
+                  "asked": 0,
+                  "resolved": 0,
+                  "topic_change": 0
+                },
+                "entries": []
+              },
+              "response_owner": "coaching_recommendation",
+              "skill_run": {
+                "selected_skill_id": "coaching_recommendation",
+                "reason_code": "active_coaching_recommendation",
+                "status": "continue",
+                "latency_ms": 28000
+              }
+            }
+          },
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "daily-reason-category-20260624-mqscjfkr-t07",
+              "source_message_id": "96211fa9-b269-42e7-9801-01c5eeda597c",
+              "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+              "channel": "whatsapp",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "direct_effect_time_context": {
+                "now_utc": "2026-06-24T17:27:46.192Z",
+                "user_timezone": "Europe/Paris",
+                "user_locale": "fr-FR",
+                "user_local_datetime": "2026-06-24T19:27:46",
+                "user_local_human": "mercredi 24 juin 2026 à 19:27"
+              },
+              "note_information": null,
+              "skill_signals": {},
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "active_coaching_recommendation",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "coaching_recommendation",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "resume_active",
+                "reason_code": "active_coaching_recommendation"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "daily-reason-category-20260624-mqscjfkr-t07",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "active_coaching_recommendation",
+              "status": "continue",
+              "latency_ms": 28000
+            }
+          },
+          "trace_error": null
+        }
+      },
+      {
+        "turn": 8,
+        "role": "user",
+        "text": "Les papiers administratifs, pas faits non plus : j’étais épuisée et je n’avais plus d’énergie.",
+        "request_id": "daily-reason-category-20260624-mqscjfkr-t08"
+      },
+      {
+        "turn": 8,
+        "role": "assistant",
+        "text": "Je partirais sur une carte d’attaque, technique texte magique : une phrase très courte pour recadrer l’idée “je n’ai pas d’énergie” et te remettre juste sur le premier geste des papiers.",
+        "trace_short": {
+          "http_status": 200,
+          "ok": true,
+          "request_id": "daily-reason-category-20260624-mqscjfkr-t08",
+          "response_owner": "coaching_recommendation",
+          "selected_handler": null,
+          "route_reason": null,
+          "pending_status": "pending",
+          "review_status": "collecting",
+          "entries": [],
+          "occurrence_statuses": [
+            {
+              "plan_item_id": "68cac437-781c-4b66-a6a6-b28a9501492c",
+              "status": "planned"
+            },
+            {
+              "plan_item_id": "006a0804-97e4-4ae1-ab9e-8a668a7af4e1",
+              "status": "planned"
+            }
+          ]
+        },
+        "raw_body": {
+          "ok": true,
+          "request_id": "daily-reason-category-20260624-mqscjfkr-t08",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "channel": "whatsapp",
+          "scope": "whatsapp",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "Je partirais sur une carte d’attaque, technique texte magique : une phrase très courte pour recadrer l’idée “je n’ai pas d’énergie” et te remettre juste sur le premier geste des papiers.",
+            "mode": "companion",
+            "delivery": null,
+            "tool_execution": "none",
+            "executed_tools": [],
+            "conversation_turn_trace": {
+              "turn_frame": {
+                "turn_id": "daily-reason-category-20260624-mqscjfkr-t08",
+                "source_message_id": "39ab44f3-3ca8-4a26-8870-8e3e6785fd93",
+                "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+                "channel": "whatsapp",
+                "safety": {
+                  "risk_band": "none",
+                  "reason_codes": [],
+                  "evidence": []
+                },
+                "conversation_risk": {
+                  "score": 0,
+                  "threshold": 8,
+                  "should_exit_flows": false,
+                  "reason_codes": [],
+                  "previous_scores": [],
+                  "matrix": [],
+                  "context_summary": null
+                },
+                "direct_effects": [],
+                "direct_effect_time_context": {
+                  "now_utc": "2026-06-24T17:27:46.192Z",
+                  "user_timezone": "Europe/Paris",
+                  "user_locale": "fr-FR",
+                  "user_local_datetime": "2026-06-24T19:27:46",
+                  "user_local_human": "mercredi 24 juin 2026 à 19:27"
+                },
+                "note_information": null,
+                "skill_signals": {},
+                "needs_research": {
+                  "detected": false,
+                  "value": false,
+                  "query": null,
+                  "domain_hint": null,
+                  "confidence": 0,
+                  "reason": null
+                },
+                "action_reference": {
+                  "detected": false,
+                  "status": "none",
+                  "expansion_policy": "none",
+                  "reason": "semantic_inference_unavailable"
+                },
+                "level_reference": {
+                  "detected": false,
+                  "status": "none",
+                  "expansion_policy": "none",
+                  "reason": "semantic_inference_unavailable"
+                },
+                "memory_plan": {
+                  "response_intent": "reflection",
+                  "reasoning_complexity": "low",
+                  "context_need": "minimal",
+                  "memory_mode": "none",
+                  "model_tier_hint": "lite",
+                  "context_budget_tier": "tiny",
+                  "targets": [],
+                  "retrieval_policy": "semantic_first",
+                  "plan_confidence": 0.7
+                }
+              },
+              "route_decision": {
+                "route_version": "v1",
+                "response_owner": "coaching_recommendation",
+                "blocked_paths": [],
+                "direct_effects_to_run": [],
+                "reason_code": "active_coaching_recommendation",
+                "memory_used_for_route": false,
+                "memory_item_ids_used_for_route": [],
+                "memory_use_kind": "none",
+                "active_flow_arbitration": {
+                  "decision": "continue_active",
+                  "active_owner": "coaching_recommendation",
+                  "selected_owner": "coaching_recommendation",
+                  "resume_policy": "resume_active",
+                  "reason_code": "active_coaching_recommendation"
+                },
+                "selected_handler": "coaching_recommendation"
+              },
+              "effect_ledger": {
+                "turn_id": "daily-reason-category-20260624-mqscjfkr-t08",
+                "counts": {
+                  "requested": 0,
+                  "allowed": 0,
+                  "blocked": 0,
+                  "committed": 0,
+                  "failed": 0,
+                  "proposed": 0,
+                  "delivered": 0,
+                  "cancelled": 0,
+                  "superseded": 0,
+                  "asked": 0,
+                  "resolved": 0,
+                  "topic_change": 0
+                },
+                "entries": []
+              },
+              "response_owner": "coaching_recommendation",
+              "skill_run": {
+                "selected_skill_id": "coaching_recommendation",
+                "reason_code": "active_coaching_recommendation",
+                "status": "continue",
+                "latency_ms": 13704
+              }
+            }
+          },
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "daily-reason-category-20260624-mqscjfkr-t08",
+              "source_message_id": "39ab44f3-3ca8-4a26-8870-8e3e6785fd93",
+              "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+              "channel": "whatsapp",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "direct_effect_time_context": {
+                "now_utc": "2026-06-24T17:27:46.192Z",
+                "user_timezone": "Europe/Paris",
+                "user_locale": "fr-FR",
+                "user_local_datetime": "2026-06-24T19:27:46",
+                "user_local_human": "mercredi 24 juin 2026 à 19:27"
+              },
+              "note_information": null,
+              "skill_signals": {},
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "active_coaching_recommendation",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "coaching_recommendation",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "resume_active",
+                "reason_code": "active_coaching_recommendation"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "daily-reason-category-20260624-mqscjfkr-t08",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "active_coaching_recommendation",
+              "status": "continue",
+              "latency_ms": 13704
+            }
+          },
+          "trace_error": null
+        }
+      }
+    ],
+    "target_titles": [
+      "Faire cinq minutes de respiration calme",
+      "Ranger deux papiers administratifs"
+    ],
+    "process_checkins": {
+      "status": 200,
+      "body": {
+        "fixture": "direct_daily_pending",
+        "reason": "process-checkins local did not pick the QA checkin in previous attempts"
+      }
+    },
+    "pending_initial": {
+      "id": "174bdc78-0bc6-4469-a03e-9d596cbc0dc9",
+      "kind": "scheduled_checkin",
+      "status": "pending",
+      "scheduled_checkin_id": "8635b817-8b2a-4190-9c51-e38a92189309",
+      "payload": {
+        "targets": [
+          {
+            "kind": "task",
+            "title": "Faire cinq minutes de respiration calme",
+            "plan_id": "ec1c5c96-f38c-409f-9c29-8fbf597e991d",
+            "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+            "dimension": "missions",
+            "plan_label": null,
+            "description": "S'asseoir, respirer lentement cinq minutes et traverser l'envie de fumer sans allumer de joint.",
+            "planned_day": "wed",
+            "time_of_day": "anytime",
+            "plan_item_id": "006a0804-97e4-4ae1-ab9e-8a668a7af4e1",
+            "occurrence_id": "1b58d92e-01c1-464b-9b08-0c0bf2f79c3d",
+            "tracking_type": "boolean",
+            "week_start_date": "2026-06-22",
+            "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+            "reviewed_local_date": "2026-06-24",
+            "original_planned_day": null
+          },
+          {
+            "kind": "task",
+            "title": "Ranger deux papiers administratifs",
+            "plan_id": "ec1c5c96-f38c-409f-9c29-8fbf597e991d",
+            "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+            "dimension": "missions",
+            "plan_label": null,
+            "description": "Choisir deux courriers, les trier puis les ranger ou les jeter.",
+            "planned_day": "wed",
+            "time_of_day": "anytime",
+            "plan_item_id": "68cac437-781c-4b66-a6a6-b28a9501492c",
+            "occurrence_id": "4103ea2d-29ee-47e4-b57f-f4ea124bff70",
+            "tracking_type": "boolean",
+            "week_start_date": "2026-06-22",
+            "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+            "reviewed_local_date": "2026-06-24",
+            "original_planned_day": null
+          }
+        ],
+        "timezone": "Europe/Paris",
+        "qa_run_id": "daily-reason-category-20260624-mqscjfkr",
+        "local_date": "2026-06-24",
+        "message_mode": "conversation",
+        "review_state": {
+          "items": {
+            "1b58d92e-01c1-464b-9b08-0c0bf2f79c3d": {
+              "title": "Faire cinq minutes de respiration calme",
+              "outcome": null,
+              "plan_id": "ec1c5c96-f38c-409f-9c29-8fbf597e991d",
+              "confidence": "low",
+              "plan_label": null,
+              "action_type": "mission",
+              "reason_text": null,
+              "plan_item_id": "006a0804-97e4-4ae1-ab9e-8a668a7af4e1",
+              "evidence_text": null,
+              "missing_slots": [
+                "outcome"
+              ],
+              "occurrence_id": "1b58d92e-01c1-464b-9b08-0c0bf2f79c3d",
+              "still_relevant": "unknown",
+              "reason_category": null,
+              "matched_user_text": null
+            },
+            "4103ea2d-29ee-47e4-b57f-f4ea124bff70": {
+              "title": "Ranger deux papiers administratifs",
+              "outcome": null,
+              "plan_id": "ec1c5c96-f38c-409f-9c29-8fbf597e991d",
+              "confidence": "low",
+              "plan_label": null,
+              "action_type": "mission",
+              "reason_text": null,
+              "plan_item_id": "68cac437-781c-4b66-a6a6-b28a9501492c",
+              "evidence_text": null,
+              "missing_slots": [
+                "outcome"
+              ],
+              "occurrence_id": "4103ea2d-29ee-47e4-b57f-f4ea124bff70",
+              "still_relevant": "unknown",
+              "reason_category": null,
+              "matched_user_text": null
+            }
+          },
+          "intent": "open_review",
+          "source": "daily_action_review_v1",
+          "status": "collecting",
+          "skill_id": "daily_action_review_v1",
+          "constraints": [],
+          "effect_plan": {
+            "allowed": false,
+            "effects": []
+          },
+          "stop_reason": null,
+          "next_question": null,
+          "should_apply_effects": false,
+          "next_question_targets": [
+            "1b58d92e-01c1-464b-9b08-0c0bf2f79c3d",
+            "4103ea2d-29ee-47e4-b57f-f4ea124bff70"
+          ],
+          "generated_user_message": null,
+          "remaining_occurrence_ids": [],
+          "asked_occurrence_ids_history": [
+            [
+              "1b58d92e-01c1-464b-9b08-0c0bf2f79c3d",
+              "4103ea2d-29ee-47e4-b57f-f4ea124bff70"
+            ]
+          ],
+          "current_focus_occurrence_ids": [
+            "1b58d92e-01c1-464b-9b08-0c0bf2f79c3d",
+            "4103ea2d-29ee-47e4-b57f-f4ea124bff70"
+          ],
+          "action_intelligence_by_occurrence_id": {}
+        },
+        "draft_message": "Je fais le point sur aujourd’hui : Faire cinq minutes de respiration calme et Ranger deux papiers administratifs.\nTu en es où sur ces actions ?",
+        "event_context": "action_evening_review_v2",
+        "occurrence_ids": [
+          "1b58d92e-01c1-464b-9b08-0c0bf2f79c3d",
+          "4103ea2d-29ee-47e4-b57f-f4ea124bff70"
+        ],
+        "chat_capability": "daily_action_review",
+        "grouping_reason": "qa_reason_category_fixture",
+        "week_start_date": "2026-06-22",
+        "asked_occurrence_ids": [
+          "1b58d92e-01c1-464b-9b08-0c0bf2f79c3d",
+          "4103ea2d-29ee-47e4-b57f-f4ea124bff70"
+        ],
+        "action_evening_review": true,
+        "already_resolved_targets": [],
+        "initial_note_information": {
+          "evidence": [
+            "qa direct pending fixture"
+          ],
+          "confidence": "high",
+          "source_flow": "qa_direct_pending_fixture",
+          "handoff_reason": "bridge",
+          "source_flow_id": "process_checkins.action_evening_review_v2",
+          "collected_state": {
+            "timezone": "Europe/Paris",
+            "local_date": "2026-06-24",
+            "event_context": "action_evening_review_v2",
+            "target_titles": [
+              "Faire cinq minutes de respiration calme",
+              "Ranger deux papiers administratifs"
+            ],
+            "week_start_date": "2026-06-22",
+            "scheduled_checkin_id": "8635b817-8b2a-4190-9c51-e38a92189309",
+            "target_occurrence_ids": [
+              "1b58d92e-01c1-464b-9b08-0c0bf2f79c3d",
+              "4103ea2d-29ee-47e4-b57f-f4ea124bff70"
+            ],
+            "already_resolved_occurrence_ids": []
+          },
+          "target_dispatcher": "daily_action_review_v1",
+          "structured_context": {
+            "targets": [
+              {
+                "kind": "task",
+                "title": "Faire cinq minutes de respiration calme",
+                "dimension": "missions",
+                "description": "S'asseoir, respirer lentement cinq minutes et traverser l'envie de fumer sans allumer de joint.",
+                "plan_item_id": "006a0804-97e4-4ae1-ab9e-8a668a7af4e1",
+                "occurrence_id": "1b58d92e-01c1-464b-9b08-0c0bf2f79c3d"
+              },
+              {
+                "kind": "task",
+                "title": "Ranger deux papiers administratifs",
+                "dimension": "missions",
+                "description": "Choisir deux courriers, les trier puis les ranger ou les jeter.",
+                "plan_item_id": "68cac437-781c-4b66-a6a6-b28a9501492c",
+                "occurrence_id": "4103ea2d-29ee-47e4-b57f-f4ea124bff70"
+              }
+            ],
+            "source_flow": "qa_direct_pending_fixture",
+            "event_context": "action_evening_review_v2",
+            "chat_capability": "daily_action_review",
+            "pending_action_kind": "scheduled_checkin"
+          },
+          "active_flow_summary": "QA opened daily review for selected action targets.",
+          "unresolved_questions": [
+            "Which selected actions were done or not done today.",
+            "If not done, the reason and whether the action remains relevant."
+          ],
+          "recommended_next_focus": "Classify the current user reply against selected daily targets.",
+          "handoff_context_for_next_dispatcher": "Consume the user's reply as the first active daily review turn."
+        },
+        "not_yet_asked_occurrence_ids": []
+      },
+      "created_at": "2026-06-24T17:27:46.496043+00:00",
+      "processed_at": null
+    },
+    "opening_text": "Je fais le point sur aujourd’hui : Faire cinq minutes de respiration calme et Ranger deux papiers administratifs.\nTu en es où sur ces actions ?",
+    "checkin": {
+      "id": "8635b817-8b2a-4190-9c51-e38a92189309"
+    },
+    "latest": {
+      "label": "after_t8",
+      "pending": [
+        {
+          "id": "174bdc78-0bc6-4469-a03e-9d596cbc0dc9",
+          "kind": "scheduled_checkin",
+          "status": "pending",
+          "scheduled_checkin_id": "8635b817-8b2a-4190-9c51-e38a92189309",
+          "payload": {
+            "targets": [
+              {
+                "kind": "task",
+                "title": "Faire cinq minutes de respiration calme",
+                "plan_id": "ec1c5c96-f38c-409f-9c29-8fbf597e991d",
+                "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+                "dimension": "missions",
+                "plan_label": null,
+                "description": "S'asseoir, respirer lentement cinq minutes et traverser l'envie de fumer sans allumer de joint.",
+                "planned_day": "wed",
+                "time_of_day": "anytime",
+                "plan_item_id": "006a0804-97e4-4ae1-ab9e-8a668a7af4e1",
+                "occurrence_id": "1b58d92e-01c1-464b-9b08-0c0bf2f79c3d",
+                "tracking_type": "boolean",
+                "week_start_date": "2026-06-22",
+                "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+                "reviewed_local_date": "2026-06-24",
+                "original_planned_day": null
+              },
+              {
+                "kind": "task",
+                "title": "Ranger deux papiers administratifs",
+                "plan_id": "ec1c5c96-f38c-409f-9c29-8fbf597e991d",
+                "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+                "dimension": "missions",
+                "plan_label": null,
+                "description": "Choisir deux courriers, les trier puis les ranger ou les jeter.",
+                "planned_day": "wed",
+                "time_of_day": "anytime",
+                "plan_item_id": "68cac437-781c-4b66-a6a6-b28a9501492c",
+                "occurrence_id": "4103ea2d-29ee-47e4-b57f-f4ea124bff70",
+                "tracking_type": "boolean",
+                "week_start_date": "2026-06-22",
+                "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+                "reviewed_local_date": "2026-06-24",
+                "original_planned_day": null
+              }
+            ],
+            "timezone": "Europe/Paris",
+            "qa_run_id": "daily-reason-category-20260624-mqscjfkr",
+            "local_date": "2026-06-24",
+            "message_mode": "conversation",
+            "review_state": {
+              "items": {
+                "1b58d92e-01c1-464b-9b08-0c0bf2f79c3d": {
+                  "title": "Faire cinq minutes de respiration calme",
+                  "outcome": null,
+                  "plan_id": "ec1c5c96-f38c-409f-9c29-8fbf597e991d",
+                  "confidence": "low",
+                  "plan_label": null,
+                  "action_type": "mission",
+                  "reason_text": null,
+                  "plan_item_id": "006a0804-97e4-4ae1-ab9e-8a668a7af4e1",
+                  "evidence_text": null,
+                  "missing_slots": [
+                    "outcome"
+                  ],
+                  "occurrence_id": "1b58d92e-01c1-464b-9b08-0c0bf2f79c3d",
+                  "still_relevant": "unknown",
+                  "reason_category": null,
+                  "matched_user_text": null
+                },
+                "4103ea2d-29ee-47e4-b57f-f4ea124bff70": {
+                  "title": "Ranger deux papiers administratifs",
+                  "outcome": null,
+                  "plan_id": "ec1c5c96-f38c-409f-9c29-8fbf597e991d",
+                  "confidence": "low",
+                  "plan_label": null,
+                  "action_type": "mission",
+                  "reason_text": null,
+                  "plan_item_id": "68cac437-781c-4b66-a6a6-b28a9501492c",
+                  "evidence_text": null,
+                  "missing_slots": [
+                    "outcome"
+                  ],
+                  "occurrence_id": "4103ea2d-29ee-47e4-b57f-f4ea124bff70",
+                  "still_relevant": "unknown",
+                  "reason_category": null,
+                  "matched_user_text": null
+                }
+              },
+              "intent": "open_review",
+              "source": "daily_action_review_v1",
+              "status": "collecting",
+              "skill_id": "daily_action_review_v1",
+              "constraints": [],
+              "effect_plan": {
+                "allowed": false,
+                "effects": []
+              },
+              "stop_reason": null,
+              "next_question": null,
+              "should_apply_effects": false,
+              "next_question_targets": [
+                "1b58d92e-01c1-464b-9b08-0c0bf2f79c3d",
+                "4103ea2d-29ee-47e4-b57f-f4ea124bff70"
+              ],
+              "generated_user_message": null,
+              "remaining_occurrence_ids": [],
+              "asked_occurrence_ids_history": [
+                [
+                  "1b58d92e-01c1-464b-9b08-0c0bf2f79c3d",
+                  "4103ea2d-29ee-47e4-b57f-f4ea124bff70"
+                ]
+              ],
+              "current_focus_occurrence_ids": [
+                "1b58d92e-01c1-464b-9b08-0c0bf2f79c3d",
+                "4103ea2d-29ee-47e4-b57f-f4ea124bff70"
+              ],
+              "action_intelligence_by_occurrence_id": {}
+            },
+            "draft_message": "Je fais le point sur aujourd’hui : Faire cinq minutes de respiration calme et Ranger deux papiers administratifs.\nTu en es où sur ces actions ?",
+            "event_context": "action_evening_review_v2",
+            "occurrence_ids": [
+              "1b58d92e-01c1-464b-9b08-0c0bf2f79c3d",
+              "4103ea2d-29ee-47e4-b57f-f4ea124bff70"
+            ],
+            "chat_capability": "daily_action_review",
+            "grouping_reason": "qa_reason_category_fixture",
+            "week_start_date": "2026-06-22",
+            "asked_occurrence_ids": [
+              "1b58d92e-01c1-464b-9b08-0c0bf2f79c3d",
+              "4103ea2d-29ee-47e4-b57f-f4ea124bff70"
+            ],
+            "action_evening_review": true,
+            "already_resolved_targets": [],
+            "initial_note_information": {
+              "evidence": [
+                "qa direct pending fixture"
+              ],
+              "confidence": "high",
+              "source_flow": "qa_direct_pending_fixture",
+              "handoff_reason": "bridge",
+              "source_flow_id": "process_checkins.action_evening_review_v2",
+              "collected_state": {
+                "timezone": "Europe/Paris",
+                "local_date": "2026-06-24",
+                "event_context": "action_evening_review_v2",
+                "target_titles": [
+                  "Faire cinq minutes de respiration calme",
+                  "Ranger deux papiers administratifs"
+                ],
+                "week_start_date": "2026-06-22",
+                "scheduled_checkin_id": "8635b817-8b2a-4190-9c51-e38a92189309",
+                "target_occurrence_ids": [
+                  "1b58d92e-01c1-464b-9b08-0c0bf2f79c3d",
+                  "4103ea2d-29ee-47e4-b57f-f4ea124bff70"
+                ],
+                "already_resolved_occurrence_ids": []
+              },
+              "target_dispatcher": "daily_action_review_v1",
+              "structured_context": {
+                "targets": [
+                  {
+                    "kind": "task",
+                    "title": "Faire cinq minutes de respiration calme",
+                    "dimension": "missions",
+                    "description": "S'asseoir, respirer lentement cinq minutes et traverser l'envie de fumer sans allumer de joint.",
+                    "plan_item_id": "006a0804-97e4-4ae1-ab9e-8a668a7af4e1",
+                    "occurrence_id": "1b58d92e-01c1-464b-9b08-0c0bf2f79c3d"
+                  },
+                  {
+                    "kind": "task",
+                    "title": "Ranger deux papiers administratifs",
+                    "dimension": "missions",
+                    "description": "Choisir deux courriers, les trier puis les ranger ou les jeter.",
+                    "plan_item_id": "68cac437-781c-4b66-a6a6-b28a9501492c",
+                    "occurrence_id": "4103ea2d-29ee-47e4-b57f-f4ea124bff70"
+                  }
+                ],
+                "source_flow": "qa_direct_pending_fixture",
+                "event_context": "action_evening_review_v2",
+                "chat_capability": "daily_action_review",
+                "pending_action_kind": "scheduled_checkin"
+              },
+              "active_flow_summary": "QA opened daily review for selected action targets.",
+              "unresolved_questions": [
+                "Which selected actions were done or not done today.",
+                "If not done, the reason and whether the action remains relevant."
+              ],
+              "recommended_next_focus": "Classify the current user reply against selected daily targets.",
+              "handoff_context_for_next_dispatcher": "Consume the user's reply as the first active daily review turn."
+            },
+            "not_yet_asked_occurrence_ids": []
+          },
+          "created_at": "2026-06-24T17:27:46.496043+00:00",
+          "processed_at": null
+        }
+      ],
+      "messages": [
+        {
+          "id": "5cc84f76-cf55-4624-b4a8-ec3958b9d642",
+          "role": "assistant",
+          "content": "Je fais le point sur aujourd’hui : Faire cinq minutes de respiration calme et Ranger deux papiers administratifs.\nTu en es où sur ces actions ?",
+          "metadata": {
+            "source": "scheduled_checkin",
+            "qa_run_id": "daily-reason-category-20260624-mqscjfkr",
+            "event_context": "action_evening_review_v2",
+            "chat_capability": "daily_action_review",
+            "original_checkin_id": "8635b817-8b2a-4190-9c51-e38a92189309"
+          },
+          "created_at": "2026-06-24T17:27:46.506435+00:00",
+          "agent_used": "companion"
+        },
+        {
+          "id": "eb98c4b2-a2d0-4b16-b76a-9a19a6882b35",
+          "role": "user",
+          "content": "La respiration calme, pas faite : j’ai craqué dans l’après-midi et j’ai fumé. Pour les papiers, je n’ai pas encore répondu.",
+          "metadata": {
+            "request_id": "daily-reason-category-20260624-mqscjfkr-t01",
+            "test_persona": true,
+            "force_full_ai": true,
+            "test_endpoint": "test-send-message"
+          },
+          "created_at": "2026-06-24T17:27:47.036865+00:00",
+          "agent_used": null
+        },
+        {
+          "id": "14ea30ff-0c81-4b8d-9d11-4cf4c4926784",
+          "role": "assistant",
+          "content": "Je te recommande une carte d'attaque avec une méditation de 5 minutes pour relancer le démarrage sans forcer. Les papiers, c'est bien une action du plan, ou un autre cas hors plan ?",
+          "metadata": {
+            "request_id": "daily-reason-category-20260624-mqscjfkr-t01",
+            "route_owner": "coaching_recommendation",
+            "agent_latency_ms": 26595,
+            "selected_handler": "coaching_recommendation",
+            "context_latency_ms": 0,
+            "dispatcher_latency_ms": 0,
+            "runtime_safety_risk_band": "none"
+          },
+          "created_at": "2026-06-24T17:28:13.689319+00:00",
+          "agent_used": "companion"
+        },
+        {
+          "id": "5f96906c-e6cb-456f-b80c-c1be297aa741",
+          "role": "user",
+          "content": "Les papiers administratifs, pas faits non plus : j’étais épuisée et je n’avais plus d’énergie.",
+          "metadata": {
+            "request_id": "daily-reason-category-20260624-mqscjfkr-t02",
+            "test_persona": true,
+            "force_full_ai": true,
+            "test_endpoint": "test-send-message"
+          },
+          "created_at": "2026-06-24T17:28:13.786916+00:00",
+          "agent_used": null
+        },
+        {
+          "id": "3fc6949e-7c3c-41ae-a51c-4fc8233c7991",
+          "role": "assistant",
+          "content": "Je partirais sur une carte d’attaque, technique préparer le terrain : tu allèges au maximum le démarrage des papiers en préparant juste ce qu’il faut autour de toi, pour que le premier geste te coûte moins d’énergie.",
+          "metadata": {
+            "request_id": "daily-reason-category-20260624-mqscjfkr-t02",
+            "route_owner": "coaching_recommendation",
+            "agent_latency_ms": 22767,
+            "selected_handler": "coaching_recommendation",
+            "context_latency_ms": 0,
+            "dispatcher_latency_ms": 2826,
+            "runtime_safety_risk_band": "none"
+          },
+          "created_at": "2026-06-24T17:28:39.428998+00:00",
+          "agent_used": "companion"
+        },
+        {
+          "id": "044cb347-b80d-4fb1-9fff-ef95938da912",
+          "role": "user",
+          "content": "Les papiers administratifs, pas faits non plus : j’étais épuisée et je n’avais plus d’énergie.",
+          "metadata": {
+            "request_id": "daily-reason-category-20260624-mqscjfkr-t03",
+            "test_persona": true,
+            "force_full_ai": true,
+            "test_endpoint": "test-send-message"
+          },
+          "created_at": "2026-06-24T17:28:39.497698+00:00",
+          "agent_used": null
+        },
+        {
+          "id": "bbebcec7-8e15-4668-a792-6bde59c128f5",
+          "role": "assistant",
+          "content": "Je partirais sur une carte d’attaque, technique préparer le terrain : pour les papiers, le blocage semble surtout venir du manque d’énergie, donc on simplifie le contexte et les premières étapes pour rendre le démarrage beaucoup moins coûteux.",
+          "metadata": {
+            "request_id": "daily-reason-category-20260624-mqscjfkr-t03",
+            "route_owner": "coaching_recommendation",
+            "agent_latency_ms": 28277,
+            "selected_handler": "coaching_recommendation",
+            "context_latency_ms": 0,
+            "dispatcher_latency_ms": 0,
+            "runtime_safety_risk_band": "none"
+          },
+          "created_at": "2026-06-24T17:29:07.816945+00:00",
+          "agent_used": "companion"
+        },
+        {
+          "id": "074a5547-6fd3-45bc-b35b-b43017caf911",
+          "role": "user",
+          "content": "Les papiers administratifs, pas faits non plus : j’étais épuisée et je n’avais plus d’énergie.",
+          "metadata": {
+            "request_id": "daily-reason-category-20260624-mqscjfkr-t04",
+            "test_persona": true,
+            "force_full_ai": true,
+            "test_endpoint": "test-send-message"
+          },
+          "created_at": "2026-06-24T17:29:07.947113+00:00",
+          "agent_used": null
+        },
+        {
+          "id": "814c7e5e-a9fc-427b-a7e7-de41564bb98f",
+          "role": "assistant",
+          "content": "Je partirais sur une carte d’attaque, technique préparer le terrain : tu allèges l’environnement avant le moment fragile, pour que tenir ta journée sans cannabis te demande moins d’énergie au départ.",
+          "metadata": {
+            "request_id": "daily-reason-category-20260624-mqscjfkr-t04",
+            "route_owner": "coaching_recommendation",
+            "agent_latency_ms": 29868,
+            "selected_handler": "coaching_recommendation",
+            "context_latency_ms": 0,
+            "dispatcher_latency_ms": 0,
+            "runtime_safety_risk_band": "none"
+          },
+          "created_at": "2026-06-24T17:29:37.865456+00:00",
+          "agent_used": "companion"
+        },
+        {
+          "id": "ae1b8793-7b0a-442a-be24-ec91e9ba9f21",
+          "role": "user",
+          "content": "Pour clôturer le daily : respiration pas faite à cause du craquage, papiers pas faits à cause de la fatigue, et les deux restent pertinents.",
+          "metadata": {
+            "request_id": "daily-reason-category-20260624-mqscjfkr-t05",
+            "test_persona": true,
+            "force_full_ai": true,
+            "test_endpoint": "test-send-message"
+          },
+          "created_at": "2026-06-24T17:29:37.916674+00:00",
+          "agent_used": null
+        },
+        {
+          "id": "2345d203-ecb6-4c1e-b23e-416e015c770c",
+          "role": "assistant",
+          "content": "Je partirais sur une carte d’attaque, technique préparer le terrain : pour les papiers administratifs, tu simplifies le démarrage en mettant tout à portée de main et en ne gardant qu’une première étape ultra courte.",
+          "metadata": {
+            "request_id": "daily-reason-category-20260624-mqscjfkr-t05",
+            "route_owner": "coaching_recommendation",
+            "agent_latency_ms": 28652,
+            "selected_handler": "coaching_recommendation",
+            "context_latency_ms": 0,
+            "dispatcher_latency_ms": 0,
+            "runtime_safety_risk_band": "none"
+          },
+          "created_at": "2026-06-24T17:30:06.60789+00:00",
+          "agent_used": "companion"
+        },
+        {
+          "id": "e3fe1c7d-08ea-4984-9940-fbaceb53b009",
+          "role": "user",
+          "content": "Les papiers administratifs, pas faits non plus : j’étais épuisée et je n’avais plus d’énergie.",
+          "metadata": {
+            "request_id": "daily-reason-category-20260624-mqscjfkr-t06",
+            "test_persona": true,
+            "force_full_ai": true,
+            "test_endpoint": "test-send-message"
+          },
+          "created_at": "2026-06-24T17:30:06.693921+00:00",
+          "agent_used": null
+        },
+        {
+          "id": "58faa0c9-4c52-4313-808c-e4be687d7d89",
+          "role": "assistant",
+          "content": "Je partirais sur une carte d’attaque, technique texte magique : une phrase très courte pour couper la pensée “je suis trop épuisée” et te faire démarrer les papiers par un tout petit premier geste. Surface: Dashboard > Plan, depuis l’action “Journée 100% sans cannabis”, puis tu prépares la carte d’attaque liée à cette action.",
+          "metadata": {
+            "request_id": "daily-reason-category-20260624-mqscjfkr-t06",
+            "route_owner": "coaching_recommendation",
+            "agent_latency_ms": 29075,
+            "selected_handler": "coaching_recommendation",
+            "context_latency_ms": 0,
+            "dispatcher_latency_ms": 0,
+            "runtime_safety_risk_band": "none"
+          },
+          "created_at": "2026-06-24T17:30:35.853027+00:00",
+          "agent_used": "companion"
+        },
+        {
+          "id": "96211fa9-b269-42e7-9801-01c5eeda597c",
+          "role": "user",
+          "content": "Les papiers administratifs, pas faits non plus : j’étais épuisée et je n’avais plus d’énergie.",
+          "metadata": {
+            "request_id": "daily-reason-category-20260624-mqscjfkr-t07",
+            "test_persona": true,
+            "force_full_ai": true,
+            "test_endpoint": "test-send-message"
+          },
+          "created_at": "2026-06-24T17:30:35.922882+00:00",
+          "agent_used": null
+        },
+        {
+          "id": "b7a36830-af84-4c08-8069-35a3931c0e66",
+          "role": "assistant",
+          "content": "Je partirais sur une carte d’attaque, technique texte magique : une phrase courte pour recadrer le blocage et rendre le démarrage des papiers plus léger malgré la fatigue.",
+          "metadata": {
+            "request_id": "daily-reason-category-20260624-mqscjfkr-t07",
+            "route_owner": "coaching_recommendation",
+            "agent_latency_ms": 28000,
+            "selected_handler": "coaching_recommendation",
+            "context_latency_ms": 0,
+            "dispatcher_latency_ms": 0,
+            "runtime_safety_risk_band": "none"
+          },
+          "created_at": "2026-06-24T17:31:03.968452+00:00",
+          "agent_used": "companion"
+        },
+        {
+          "id": "39ab44f3-3ca8-4a26-8870-8e3e6785fd93",
+          "role": "user",
+          "content": "Les papiers administratifs, pas faits non plus : j’étais épuisée et je n’avais plus d’énergie.",
+          "metadata": {
+            "request_id": "daily-reason-category-20260624-mqscjfkr-t08",
+            "test_persona": true,
+            "force_full_ai": true,
+            "test_endpoint": "test-send-message"
+          },
+          "created_at": "2026-06-24T17:31:04.082758+00:00",
+          "agent_used": null
+        },
+        {
+          "id": "4936f11a-5ef1-4604-a262-cfe73eb788fd",
+          "role": "assistant",
+          "content": "Je partirais sur une carte d’attaque, technique texte magique : une phrase très courte pour recadrer l’idée “je n’ai pas d’énergie” et te remettre juste sur le premier geste des papiers.",
+          "metadata": {
+            "request_id": "daily-reason-category-20260624-mqscjfkr-t08",
+            "route_owner": "coaching_recommendation",
+            "agent_latency_ms": 13704,
+            "selected_handler": "coaching_recommendation",
+            "context_latency_ms": 0,
+            "dispatcher_latency_ms": 0,
+            "runtime_safety_risk_band": "none"
+          },
+          "created_at": "2026-06-24T17:31:17.840133+00:00",
+          "agent_used": "companion"
+        }
+      ],
+      "entries": [],
+      "occurrences": [
+        {
+          "id": "4103ea2d-29ee-47e4-b57f-f4ea124bff70",
+          "plan_item_id": "68cac437-781c-4b66-a6a6-b28a9501492c",
+          "planned_day": "wed",
+          "status": "planned",
+          "source": "manual_change",
+          "validated_at": null,
+          "updated_at": "2026-06-24T17:27:46.482947+00:00"
+        },
+        {
+          "id": "1b58d92e-01c1-464b-9b08-0c0bf2f79c3d",
+          "plan_item_id": "006a0804-97e4-4ae1-ab9e-8a668a7af4e1",
+          "planned_day": "wed",
+          "status": "planned",
+          "source": "manual_change",
+          "validated_at": null,
+          "updated_at": "2026-06-24T17:27:46.456641+00:00"
+        }
+      ],
+      "traces": []
+    }
+  },
+  "cleanup": {
+    "deleted": {
+      "user_plan_item_entries": 0,
+      "whatsapp_pending_actions": 1,
+      "chat_messages": 17,
+      "scheduled_checkins": 1,
+      "user_habit_week_occurrences": 2,
+      "user_plan_items": 2,
+      "user_plans_v2": 1
+    },
+    "restored": [
+      "user_chat_states.temp_memory"
+    ],
+    "verification": {
+      "pending": [],
+      "entries": [],
+      "checkin": []
+    }
+  },
+  "touched": {
+    "planIds": [
+      "ec1c5c96-f38c-409f-9c29-8fbf597e991d"
+    ],
+    "itemIds": [
+      "006a0804-97e4-4ae1-ab9e-8a668a7af4e1",
+      "68cac437-781c-4b66-a6a6-b28a9501492c"
+    ],
+    "occurrenceIds": [
+      "1b58d92e-01c1-464b-9b08-0c0bf2f79c3d",
+      "4103ea2d-29ee-47e4-b57f-f4ea124bff70"
+    ],
+    "targets": [
+      {
+        "occurrence_id": "1b58d92e-01c1-464b-9b08-0c0bf2f79c3d",
+        "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+        "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+        "plan_id": "ec1c5c96-f38c-409f-9c29-8fbf597e991d",
+        "plan_label": null,
+        "plan_item_id": "006a0804-97e4-4ae1-ab9e-8a668a7af4e1",
+        "title": "Faire cinq minutes de respiration calme",
+        "description": "S'asseoir, respirer lentement cinq minutes et traverser l'envie de fumer sans allumer de joint.",
+        "dimension": "missions",
+        "kind": "task",
+        "tracking_type": "boolean",
+        "planned_day": "wed",
+        "original_planned_day": null,
+        "week_start_date": "2026-06-22",
+        "time_of_day": "anytime",
+        "reviewed_local_date": "2026-06-24"
+      },
+      {
+        "occurrence_id": "4103ea2d-29ee-47e4-b57f-f4ea124bff70",
+        "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+        "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+        "plan_id": "ec1c5c96-f38c-409f-9c29-8fbf597e991d",
+        "plan_label": null,
+        "plan_item_id": "68cac437-781c-4b66-a6a6-b28a9501492c",
+        "title": "Ranger deux papiers administratifs",
+        "description": "Choisir deux courriers, les trier puis les ranger ou les jeter.",
+        "dimension": "missions",
+        "kind": "task",
+        "tracking_type": "boolean",
+        "planned_day": "wed",
+        "original_planned_day": null,
+        "week_start_date": "2026-06-22",
+        "time_of_day": "anytime",
+        "reviewed_local_date": "2026-06-24"
+      }
+    ],
+    "checkinId": "8635b817-8b2a-4190-9c51-e38a92189309",
+    "pendingIds": [
+      "174bdc78-0bc6-4469-a03e-9d596cbc0dc9"
+    ],
+    "entryIds": [],
+    "chatMessageIds": [
+      "5cc84f76-cf55-4624-b4a8-ec3958b9d642",
+      "eb98c4b2-a2d0-4b16-b76a-9a19a6882b35",
+      "14ea30ff-0c81-4b8d-9d11-4cf4c4926784",
+      "5f96906c-e6cb-456f-b80c-c1be297aa741",
+      "3fc6949e-7c3c-41ae-a51c-4fc8233c7991",
+      "044cb347-b80d-4fb1-9fff-ef95938da912",
+      "bbebcec7-8e15-4668-a792-6bde59c128f5",
+      "074a5547-6fd3-45bc-b35b-b43017caf911",
+      "814c7e5e-a9fc-427b-a7e7-de41564bb98f",
+      "ae1b8793-7b0a-442a-be24-ec91e9ba9f21",
+      "2345d203-ecb6-4c1e-b23e-416e015c770c",
+      "e3fe1c7d-08ea-4984-9940-fbaceb53b009",
+      "58faa0c9-4c52-4313-808c-e4be687d7d89",
+      "96211fa9-b269-42e7-9801-01c5eeda597c",
+      "b7a36830-af84-4c08-8069-35a3931c0e66",
+      "39ab44f3-3ca8-4a26-8870-8e3e6785fd93",
+      "4936f11a-5ef1-4604-a262-cfe73eb788fd"
+    ],
+    "deferredCheckins": []
+  }
+}

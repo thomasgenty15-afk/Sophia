@@ -1,5 +1,6 @@
 import { BarChart3, LayoutDashboard, Loader2, ShieldAlert, Terminal } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import AdminShell from "../components/admin/AdminShell";
 
 const ADMIN_LINKS = [
   {
@@ -11,7 +12,7 @@ const ADMIN_LINKS = [
   {
     href: "/admin/production-log",
     label: "Production log",
-    description: "Journal de production agrege pour le web, WhatsApp, Stripe et les Edge Functions.",
+    description: "Journal de production agrege pour le web, la conversation, Stripe et les Edge Functions.",
     icon: Terminal,
   },
 ] as const;
@@ -67,45 +68,48 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-neutral-100 font-sans selection:bg-indigo-500/30">
-      <header className="sticky top-0 z-10 bg-neutral-950/80 backdrop-blur border-b border-neutral-800">
-        <div className="max-w-5xl mx-auto px-6 h-16 flex items-center gap-3">
-          <div className="w-8 h-8 bg-indigo-500/10 rounded-lg flex items-center justify-center border border-indigo-500/20">
-            <LayoutDashboard className="w-4 h-4 text-indigo-400" />
-          </div>
-          <div>
-            <h1 className="font-semibold text-white leading-none">Sophia Admin</h1>
-            <p className="text-xs text-neutral-500 mt-1 font-mono">SYS.ADMIN</p>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-5xl mx-auto px-6 py-10 space-y-8">
-        <section className="bg-neutral-900/30 border border-neutral-800 rounded-2xl p-6">
-          <p className="text-sm uppercase tracking-[0.2em] text-neutral-500 mb-3">Status</p>
-          <h2 className="text-2xl font-semibold text-white mb-3">Les outils d&apos;eval ont ete retires du produit.</h2>
-          <p className="text-neutral-400 max-w-3xl">
-            Les routes et fonctions liees a `run-evals` et `simulate-user` ont ete supprimees.
-            Cette page sert desormais de point d&apos;entree pour les autres outils d&apos;administration encore actifs.
-          </p>
-        </section>
-
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <AdminShell
+      active="overview"
+      title="Sophia Admin"
+      description="Point d'entree des outils de production: couts, qualite des donnees et journal operationnel."
+      icon={LayoutDashboard}
+      width="standard"
+    >
+      <div className="space-y-6">
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {ADMIN_LINKS.map(({ href, label, description, icon: Icon }) => (
             <a
               key={href}
               href={href}
-              className="group bg-neutral-900/30 border border-neutral-800 rounded-2xl p-6 hover:border-neutral-700 hover:bg-neutral-900/50 transition-colors"
+              className="group bg-neutral-900/30 border border-neutral-800 rounded-xl p-5 hover:border-neutral-700 hover:bg-neutral-900/50 transition-colors"
             >
-              <div className="w-11 h-11 rounded-xl bg-neutral-900 border border-neutral-800 flex items-center justify-center mb-4">
+              <div className="w-11 h-11 rounded-xl bg-neutral-950 border border-neutral-800 flex items-center justify-center mb-4">
                 <Icon className="w-5 h-5 text-indigo-400" />
               </div>
               <h3 className="text-lg font-semibold text-white mb-2">{label}</h3>
-              <p className="text-sm text-neutral-400">{description}</p>
+              <p className="text-sm leading-6 text-neutral-400">{description}</p>
             </a>
           ))}
         </section>
-      </main>
-    </div>
+
+        <section className="rounded-xl border border-neutral-800 bg-neutral-900/30 p-5">
+          <p className="text-xs uppercase tracking-[0.18em] text-neutral-500 mb-3">Structure</p>
+          <div className="grid gap-3 md:grid-cols-3">
+            <div className="rounded-lg border border-neutral-800 bg-neutral-950/50 p-3">
+              <div className="text-sm font-medium text-neutral-200">Overview</div>
+              <div className="mt-1 text-xs leading-5 text-neutral-500">Navigation et acces rapides.</div>
+            </div>
+            <div className="rounded-lg border border-neutral-800 bg-neutral-950/50 p-3">
+              <div className="text-sm font-medium text-neutral-200">Costs</div>
+              <div className="mt-1 text-xs leading-5 text-neutral-500">Couts par periode, user, operation et qualite.</div>
+            </div>
+            <div className="rounded-lg border border-neutral-800 bg-neutral-950/50 p-3">
+              <div className="text-sm font-medium text-neutral-200">Logs</div>
+              <div className="mt-1 text-xs leading-5 text-neutral-500">Evenements de production inspectables.</div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </AdminShell>
   );
 }

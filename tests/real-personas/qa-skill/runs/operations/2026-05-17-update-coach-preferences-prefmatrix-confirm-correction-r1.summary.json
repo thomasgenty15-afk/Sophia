@@ -1,0 +1,78 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-update-coach-preferences-2026-05-17-prefmatrix-confirm-correction-r1-t01",
+    "user": "Finalement j'aimerais que tu sois plus directe avec moi.",
+    "assistant": "Je peux régler ma façon de répondre: j'utiliserai un ton plus direct. Tu veux que je l'applique ?",
+    "status": 200,
+    "trace": {
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "response_owner": "tool_skill",
+      "selected_handler": "update_coach_preferences",
+      "route_selected_handler": "update_coach_preferences",
+      "route_reason": "tool_skill_intent_start",
+      "safety": {
+        "detected": false,
+        "evidence": [],
+        "risk_band": "none",
+        "reason_codes": [],
+        "allow_side_effects": true,
+        "layer_contributions": {
+          "lexical": false,
+          "heuristic": false,
+          "dispatcher_llm": false
+        }
+      },
+      "direct_effects": [],
+      "operation": null,
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "executed_tools": [],
+      "tool_execution": "blocked",
+      "trace_error": null,
+      "trace_id": "qa-update-coach-preferences-2026-05-17-prefmatrix-confirm-correction-r1-t01"
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-update-coach-preferences-2026-05-17-prefmatrix-confirm-correction-r1-t02",
+    "user": "En fait non, garde le ton comme avant, mais pose-moi moins de questions.",
+    "assistant": "D'accord, je garde mon ton habituel mais je ferai attention à te poser moins de questions à l'avenir. Je prépare cette modification pour toi.",
+    "status": 200,
+    "trace": {
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "response_owner": "tool_skill",
+      "selected_handler": "update_coach_preferences",
+      "route_selected_handler": "update_coach_preferences",
+      "route_reason": "tool_skill_intent_start",
+      "safety": {
+        "detected": false,
+        "evidence": [],
+        "risk_band": "none",
+        "reason_codes": [],
+        "allow_side_effects": true,
+        "layer_contributions": {
+          "lexical": false,
+          "heuristic": false,
+          "dispatcher_llm": false
+        }
+      },
+      "direct_effects": [],
+      "operation": null,
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "executed_tools": [],
+      "tool_execution": "blocked",
+      "trace_error": null,
+      "trace_id": "qa-update-coach-preferences-2026-05-17-prefmatrix-confirm-correction-r1-t02"
+    }
+  }
+]

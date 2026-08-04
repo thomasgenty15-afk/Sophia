@@ -1,0 +1,11 @@
+[
+  {
+    "turn": 1,
+    "request_id": "qa-one-shot-reminder-oneshotreminder-r3c-t01",
+    "user": "Dis-moi demain à 6h30 qu'il faut que je me bouge les fesses.",
+    "status": 504,
+    "body": {
+      "message": "The upstream server is timing out"
+    }
+  }
+]

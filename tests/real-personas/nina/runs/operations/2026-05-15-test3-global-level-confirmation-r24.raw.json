@@ -1,0 +1,2749 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-adjust-plan-nina-test3-global-level-confirmation-r24-t01-330d667b-88ce-4ad3-beab-bda634f23a9d",
+    "user": "Je reviens sur le bloc grignotage. Ce n'est pas une action isolée qui coince, c'est plutôt le niveau en entier : le soir je me retrouve avec trop de petits choix à faire, et ça me donne envie de laisser tomber.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-adjust-plan-nina-test3-global-level-confirmation-r24-t01-330d667b-88ce-4ad3-beab-bda634f23a9d",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-adjust-plan-nina-2026-05-15-test3-global-level-confirmation-r24",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je comprends parfaitement : c'est la multiplication des micro-décisions le soir qui sature ton énergie et te donne envie de lâcher. L'idée serait donc de simplifier l'ensemble du niveau 'Grignotage' pour réduire cette charge mentale. Rien n'est encore appliqué, est-ce que tu veux que je prépare une proposition concrète pour rendre tes soirées plus fluides ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-adjust-plan-nina-test3-global-level-confirmation-r24-t01-330d667b-88ce-4ad3-beab-bda634f23a9d",
+        "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+        "source_message_id": "af0c5714-9a73-4958-8b9d-22614953ef71",
+        "ts": "2026-05-15T18:36:41.797+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 51177,
+          "latency_ms": 5124,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 802,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "Reprendre le contrôle sur le grignotage",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "contexte du bloc grignotage et fatigue du soir",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Je reviens sur le bloc grignotage. Ce n'est pas une action isolée qui coince, c'est plutôt le niveau en entier : le soir je me retrouve avec trop de petits choi",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s13"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-adjust-plan-nina-test3-global-level-confirmation-r24-t01-330d667b-88ce-4ad3-beab-bda634f23a9d",
+          "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "Reprendre le contrôle sur le grignotage",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "contexte du bloc grignotage et fatigue du soir",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Je reviens sur le bloc grignotage. Ce n'est pas une action isolée qui coince, c'est plutôt le niveau en entier : le soir je me retrouve avec trop de petits choi",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": "level_reference",
+            "status": "current_level",
+            "detected": true,
+            "expansion_policy": "include_level_execution_handoff"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "af0c5714-9a73-4958-8b9d-22614953ef71",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "bloc grignotage",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "current_level",
+                  "label": "bloc grignotage",
+                  "status": "identified",
+                  "evidence": [
+                    "bloc grignotage"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "current_level",
+                  "status": "identified",
+                  "evidence": [
+                    "ce n'est pas une action isolée qui coince, c'est plutôt le niveau en entier"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "current_level"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": {
+          "status": "ask_question",
+          "reason_code": "tool_skill_intent_start",
+          "plan_item_id": null,
+          "target_title": null,
+          "missing_slots": [
+            "draft_generation_confirmation"
+          ],
+          "selected_handler": "adjust_plan_item"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 24991,
+        "created_at": "2026-05-15T18:36:41.800373+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-adjust-plan-nina-test3-global-level-confirmation-r24-t02-e3dc233a-1007-467f-8dca-8484b5ab1fd5",
+    "user": "Oui, prépare une proposition, mais ne l'applique pas. Les deux endroits qui me pèsent le plus sont Faire le choix du brut et Décoder ton envie de grignoter. Je veux garder le niveau et les actions, juste enlever les décisions du soir.",
+    "status": 502,
+    "body": {
+      "message": "An invalid response was received from the upstream server"
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-adjust-plan-nina-test3-global-level-confirmation-r24-t02-eb8b2a7d-9a30-4225-ae6c-bc6ef909acde",
+    "user": "Oui, prépare une proposition, mais ne l'applique pas. Les deux endroits qui me pèsent le plus sont Faire le choix du brut et Décoder ton envie de grignoter. Je veux garder le niveau et les actions, juste enlever les décisions du soir.",
+    "status": 502,
+    "body": {
+      "message": "An invalid response was received from the upstream server"
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-adjust-plan-nina-test3-global-level-confirmation-r24-t02-8115a8bb-aa3c-419b-8de8-c2ebf7357d3c",
+    "user": "Oui, prépare une proposition, mais ne l'applique pas. Les deux endroits qui me pèsent le plus sont Faire le choix du brut et Décoder ton envie de grignoter. Je veux garder le niveau et les actions, juste enlever les décisions du soir.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-adjust-plan-nina-test3-global-level-confirmation-r24-t02-8115a8bb-aa3c-419b-8de8-c2ebf7357d3c",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-adjust-plan-nina-2026-05-15-test3-global-level-confirmation-r24",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je te propose d'ajuster ton niveau actuel pour réduire la fatigue décisionnelle en fin de journée, sans rien changer à ton objectif global. Rien n'est encore appliqué. Pour t'alléger le soir, je prévois de simplifier 'Faire le choix du brut' en fixant une option unique à l'avance et de réduire 'Décoder ton envie de grignoter' à une seule question rapide. Cela permet de garder le cap sans avoir à trop réfléchir quand tu es fatigué. Les autres actions, comme la préparation du dimanche, restent inchangées. Est-ce que cela te convient ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-adjust-plan-nina-test3-global-level-confirmation-r24-t02-8115a8bb-aa3c-419b-8de8-c2ebf7357d3c",
+        "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+        "source_message_id": "9a17eef4-db2f-4d74-be6e-6ad58dd22b5a",
+        "ts": "2026-05-15T18:40:42.266+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 52211,
+          "latency_ms": 17173,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 1049,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "eb9df535-b6e9-40d9-af57-effafdc2f662",
+                "type": "action",
+                "priority": "high",
+                "query_hint": null,
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": null
+              },
+              {
+                "key": "7ed21c74-e2ad-4ffb-85d9-5d204d72bbcf",
+                "type": "action",
+                "priority": "high",
+                "query_hint": null,
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": null
+              },
+              {
+                "key": "habitudes.nutrition",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": null,
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": null
+              },
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Oui, prépare une proposition, mais ne l'applique pas. Les deux endroits qui me pèsent le plus sont Faire le choix du brut et Décoder ton envie de grignoter. Je ",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s13"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-adjust-plan-nina-test3-global-level-confirmation-r24-t02-8115a8bb-aa3c-419b-8de8-c2ebf7357d3c",
+          "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "eb9df535-b6e9-40d9-af57-effafdc2f662",
+                "type": "action",
+                "priority": "high",
+                "query_hint": null,
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": null
+              },
+              {
+                "key": "7ed21c74-e2ad-4ffb-85d9-5d204d72bbcf",
+                "type": "action",
+                "priority": "high",
+                "query_hint": null,
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": null
+              },
+              {
+                "key": "habitudes.nutrition",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": null,
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": null
+              },
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Oui, prépare une proposition, mais ne l'applique pas. Les deux endroits qui me pèsent le plus sont Faire le choix du brut et Décoder ton envie de grignoter. Je ",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {
+              "adjust_plan_item": {
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": "level_reference",
+            "status": "current_level",
+            "detected": true,
+            "expansion_policy": "include_level_execution_handoff"
+          },
+          "action_reference": {
+            "reason": "multiple_plan_items_match",
+            "status": "ambiguous",
+            "detected": true,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 1,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0;decay=0.55;recovery=1.5",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "9a17eef4-db2f-4d74-be6e-6ad58dd22b5a",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "niveau grignotage",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "current_level",
+                  "label": "Reprendre le contrôle sur le grignotage",
+                  "status": "identified",
+                  "evidence": [
+                    "le bloc grignotage",
+                    "le niveau en entier"
+                  ]
+                },
+                "payload": {
+                  "constraints": {
+                    "status": "identified",
+                    "values": [
+                      "ne pas appliquer tout de suite",
+                      "garder le niveau et les actions"
+                    ],
+                    "evidence": [
+                      "ne l'applique pas",
+                      "Je veux garder le niveau et les actions"
+                    ]
+                  },
+                  "change_target": {
+                    "status": "identified",
+                    "evidence": [
+                      "enlever les décisions du soir"
+                    ]
+                  },
+                  "affected_items": {
+                    "status": "identified",
+                    "values": [
+                      "Faire le choix du brut",
+                      "Décoder ton envie de grignoter"
+                    ],
+                    "evidence": [
+                      "Les deux endroits qui me pèsent le plus sont Faire le choix du brut et Décoder ton envie de grignoter"
+                    ]
+                  }
+                },
+                "target_granularity": {
+                  "value": "current_level",
+                  "status": "identified",
+                  "evidence": [
+                    "Je veux garder le niveau et les actions"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "current_level"
+            }
+          ],
+          "confirmation_response": {
+            "kind": "yes",
+            "confidence_band": "high"
+          },
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "active_tool_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "continue_active",
+            "reason_code": "active_tool_skill_continue",
+            "active_owner": "tool_skill",
+            "resume_policy": "none",
+            "selected_owner": "tool_skill"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": {
+          "draft": {
+            "draft": {
+              "patch": {
+                "confidence": "medium",
+                "scope_kind": "current_level",
+                "constraints": [
+                  "no_pressure",
+                  "minimal_patch",
+                  "preserve_plan_intent",
+                  "no_schedule_day_change",
+                  "ask_confirmation_before_write",
+                  "le soir",
+                  "affected_item:Reprendre le contrôle sur le grignotage"
+                ],
+                "reason_type": "context_changed",
+                "change_target": "global_load",
+                "reason_change": "context_changed",
+                "load_adjustment": "same",
+                "level_adjustment": "rebalance"
+              },
+              "title": "Ajustement - Reprendre le contrôle sur le grignotage",
+              "confidence": "medium",
+              "ack_summary": {
+                "changed": [
+                  "niveau actuel: charge ajustée vers \"same\"",
+                  "cible de changement: global_load"
+                ],
+                "unchanged": [
+                  "le cœur du niveau reste préservé",
+                  "chaque action n'est pas réécrite automatiquement"
+                ],
+                "confidence": "medium",
+                "why_it_helps": "La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale.",
+                "follow_up_needed": "identifier ensuite les actions exactes à alléger si tu veux une modification fine"
+              },
+              "scope_label": "Reprendre le contrôle sur le grignotage",
+              "why_it_helps": "Le changement agit au niveau du bloc courant, sans pretendre modifier une seule action.",
+              "decision_basis": {
+                "evidence": [
+                  "Oui, prépare une proposition, mais ne l'applique pas. Les deux endroits qui me pèsent le plus sont Faire le choix du brut et Décoder ton envie de grignoter. Je veux garder le niveau et les actions, juste enlever les décisions du soir.",
+                  "le bloc grignotage",
+                  "le niveau en entier",
+                  "trop de petits choix à faire",
+                  "trop de petits choix à faire",
+                  "ça me donne envie de laisser tomber",
+                  "trop de petits choix à faire"
+                ],
+                "confidence": "medium",
+                "uncertainty": [
+                  "actions exactes du niveau a choisir pour une modification fine"
+                ],
+                "user_problem": "Le niveau actuel est trop lourd ou mal calibre pour le contexte de l'utilisateur.",
+                "inferred_need": "preserver le coeur du niveau et reduire la charge ciblee autour",
+                "must_preserve": [
+                  "coeur du niveau"
+                ]
+              },
+              "adjustment_type": "rebalance",
+              "proposed_change": "reequilibrer le niveau actuel",
+              "change_rationale": {
+                "why_this_change": "Alléger global_load répond au problème \"context_changed\" tout en gardant le cœur du niveau.",
+                "success_condition": "Le niveau peut être repris avec moins de friction, puis réaugmenté seulement si l'énergie et le contexte suivent.",
+                "expected_mechanism": "La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale."
+              },
+              "adjust_plan_result": {
+                "scope": "level",
+                "rationale": {
+                  "confidence": "medium",
+                  "missing_info": [
+                    "L'aliment brut spécifique que l'utilisateur préfère automatiser."
+                  ],
+                  "user_problem": "Le niveau actuel génère trop de petits choix le soir, ce qui crée une surcharge et un risque d'abandon.",
+                  "expected_effect": "Une meilleure adhérence au programme car l'effort demandé en fin de journée est minimal.",
+                  "why_this_change": "En automatisant le choix du brut et en simplifiant l'analyse émotionnelle, on retire les points de friction majeurs cités."
+                },
+                "boundaries": {
+                  "explanation": "L'ajustement se concentre exclusivement sur la réduction de la charge mentale du soir au sein du niveau actuel.",
+                  "affected_scope": "niveau actuel uniquement",
+                  "global_plan_impact": "none",
+                  "explicitly_not_affected": [
+                    "objectif global",
+                    "structure complète du plan",
+                    "autres niveaux"
+                  ]
+                },
+                "applied_change": {
+                  "summary": "Rééquilibrage du niveau pour supprimer les décisions complexes en soirée tout en préservant l'intention initiale.",
+                  "changed_items": [
+                    {
+                      "id": "eb9df535-b6e9-40d9-af57-effafdc2f662",
+                      "kind": "action",
+                      "after": "Limiter le choix à une seule option brute prédéfinie (ex: toujours une pomme) pour éliminer la fatigue décisionnelle.",
+                      "title": "Faire le choix du brut",
+                      "before": "Choisir un aliment brut parmi plusieurs options au moment du grignotage.",
+                      "reason": "Réduit le nombre de petits choix à faire le soir quand la volonté est plus basse.",
+                      "capability": "modify_existing_action"
+                    },
+                    {
+                      "id": "7ed21c74-e2ad-4ffb-85d9-5d204d72bbcf",
+                      "kind": "action",
+                      "after": "Se poser uniquement la question : 'Est-ce de la faim ou une émotion ?'",
+                      "title": "Décoder ton envie de grignoter",
+                      "before": "Analyser en détail les causes de l'envie de grignoter.",
+                      "reason": "Simplifie l'exercice pour qu'il reste réalisable même en cas de fatigue émotionnelle.",
+                      "capability": "modify_existing_action"
+                    }
+                  ],
+                  "preserved_items": [
+                    {
+                      "id": "23f34398-87ae-4388-80b4-786989faac97",
+                      "kind": "action",
+                      "title": "Préparer tes alternatives d'avance",
+                      "reason": "Cette action se déroule le dimanche après-midi et ne surcharge pas tes soirées."
+                    }
+                  ]
+                },
+                "user_message_brief": "J'ai simplifié deux actions du soir pour réduire ta fatigue décisionnelle.",
+                "user_message_detailed": "Voici les détails de la proposition pour ton niveau 'Reprendre le contrôle sur le grignotage' :\n1. Pour 'Faire le choix du brut', on passe d'une réflexion quotidienne à une option unique prédéfinie pour supprimer l'hésitation.\n2. Pour 'Décoder ton envie de grignoter', on se concentre sur une question unique ('Faim ou émotion ?') au lieu d'une analyse plus longue.\nLe reste du plan, notamment tes préparations du dimanche, ne bouge pas. Cela réduit la charge mentale le soir tout en restant dans la continuité de ton objectif."
+              },
+              "execution_strategy": "level_adjustment",
+              "allowed_patch_fields": [
+                "scope_kind",
+                "level_adjustment",
+                "load_adjustment",
+                "focus_adjustment",
+                "reason_type",
+                "reason_change",
+                "change_target",
+                "confidence",
+                "constraints"
+              ]
+            },
+            "output_schema": "plan_adjustment_draft_v1",
+            "operation_type": "adjust_plan_item",
+            "execution_message": "C'est fait, j'ai allégé ton niveau pour qu'il soit plus facile à suivre le soir. J'ai simplifié 'Faire le choix du brut' en automatisant le choix et réduit 'Décoder ton envie de grignoter' à une question flash. Ces ajustements enlèvent la pression des petits choix quotidiens tout en gardant l'essentiel de ta démarche. Je suis assez confiante sur le fait que cela t'aidera à ne pas lâcher prise car la structure reste la même, mais avec moins de friction.",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je te propose d'ajuster ton niveau actuel pour réduire la fatigue décisionnelle en fin de journée, sans rien changer à ton objectif global. Rien n'est encore appliqué. Pour t'alléger le soir, je prévois de simplifier 'Faire le choix du brut' en fixant une option unique à l'avance et de réduire 'Décoder ton envie de grignoter' à une seule question rapide. Cela permet de garder le cap sans avoir à trop réfléchir quand tu es fatigué. Les autres actions, comme la préparation du dimanche, restent inchangées. Est-ce que cela te convient ?"
+          },
+          "status": "draft_review",
+          "reason_code": "active_tool_skill_continue",
+          "operation_id": "91e9ba15-77cd-4b1e-96f9-483630dad39a",
+          "selected_handler": "adjust_plan_item"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 31545,
+        "created_at": "2026-05-15T18:40:42.270648+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-adjust-plan-nina-test3-global-level-confirmation-r24-t03-afb06d36-bdaa-4491-af93-1a2bed873735",
+    "user": "Je corrige avant validation. Pour Faire le choix du brut, je ne veux pas juste une option vague déjà définie : je veux que l'option brute soit décidée pendant la préparation du dimanche. Pour Décoder ton envie de grignoter, garde l'action au moment où l'envie arrive, avec cette question exacte : « est-ce que j’ai vraiment faim, ou est-ce que je cherche à calmer ma fatigue ou mon stress ? ».",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-adjust-plan-nina-test3-global-level-confirmation-r24-t03-afb06d36-bdaa-4491-af93-1a2bed873735",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-adjust-plan-nina-2026-05-15-test3-global-level-confirmation-r24",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Voici ce que je propose pour alléger ton niveau actuel sans en perdre l'objectif. Rien n'est encore modifié. L'idée est de supprimer les micro-décisions qui te pèsent le soir pour éviter que tu ne lâches prise. Par exemple, pour l'action « Faire le choix du brut », l'option sera désormais décidée lors de ta préparation du dimanche plutôt qu'au moment de manger. Pour « Décoder ton envie de grignoter », nous utiliserons ta question précise : « est-ce que j’ai vraiment faim, ou est-ce que je cherche à calmer ma fatigue ou mon stress ? ». Les autres actions comme le nettoyage de ton environnement restent inchangées. Est-ce que cela te convient ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-adjust-plan-nina-test3-global-level-confirmation-r24-t03-afb06d36-bdaa-4491-af93-1a2bed873735",
+        "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+        "source_message_id": "6e417606-294f-4182-9617-98ee1e954c94",
+        "ts": "2026-05-15T18:41:35.018+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 51589,
+          "latency_ms": 5952,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 958,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "eb9df535-b6e9-40d9-af57-effafdc2f662",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "Faire le choix du brut",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "7ed21c74-e2ad-4ffb-85d9-5d204d72bbcf",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "Décoder ton envie de grignoter",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "action_observation",
+                "type": "action",
+                "query_hint": "Je corrige avant validation. Pour Faire le choix du brut, je ne veux pas juste une option vague déjà définie : je veux que l'option brute soit décidée pendant l",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "standard",
+            "plan_confidence": 0.7,
+            "response_intent": "problem_solving",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "medium"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s13"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-adjust-plan-nina-test3-global-level-confirmation-r24-t03-afb06d36-bdaa-4491-af93-1a2bed873735",
+          "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "eb9df535-b6e9-40d9-af57-effafdc2f662",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "Faire le choix du brut",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "7ed21c74-e2ad-4ffb-85d9-5d204d72bbcf",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "Décoder ton envie de grignoter",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "action_observation",
+                "type": "action",
+                "query_hint": "Je corrige avant validation. Pour Faire le choix du brut, je ne veux pas juste une option vague déjà définie : je veux que l'option brute soit décidée pendant l",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "standard",
+            "plan_confidence": 0.7,
+            "response_intent": "problem_solving",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "medium"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "product_help": {
+                "reason": "product_question",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": "multiple_plan_items_match",
+            "status": "ambiguous",
+            "detected": true,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0.6,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": true,
+                "evidence": "0,1;decay=0.55;recovery=0",
+                "contribution": 0.6
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "previous_risk"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              1
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "6e417606-294f-4182-9617-98ee1e954c94",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "Reprendre le contrôle sur le grignotage",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "current_level",
+                  "label": "Reprendre le contrôle sur le grignotage",
+                  "status": "identified",
+                  "evidence": [
+                    "bloc grignotage",
+                    "niveau en entier"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "current_level",
+                  "status": "identified",
+                  "evidence": [
+                    "Je corrige avant validation",
+                    "Je veux que l'option brute soit décidée pendant la préparation du dimanche",
+                    "garde l'action au moment où l'envie arrive"
+                  ],
+                  "confidence": "high",
+                  "negative_evidence": []
+                }
+              },
+              "adjust_plan_scope": "current_level"
+            }
+          ],
+          "confirmation_response": {
+            "kind": "correction_to_pending",
+            "evidence": [
+              "Je corrige avant validation",
+              "je ne veux pas juste une option vague déjà définie",
+              "je veux que l'option brute soit décidée pendant la préparation du dimanche"
+            ],
+            "confidence_band": "high"
+          },
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": {
+          "draft": {
+            "draft": {
+              "patch": {
+                "confidence": "medium",
+                "scope_kind": "current_level",
+                "constraints": [
+                  "no_pressure",
+                  "minimal_patch",
+                  "preserve_plan_intent",
+                  "no_schedule_day_change",
+                  "ask_confirmation_before_write",
+                  "exact_text:est-ce que j’ai vraiment faim, ou est-ce que je cherche à calmer ma fatigue ou mon stress ?",
+                  "option brute décidée pendant la préparation du dimanche",
+                  "affected_item:Faire le choix du brut",
+                  "affected_item:Décoder ton envie de grignoter"
+                ],
+                "reason_type": "context_changed",
+                "change_target": "global_load",
+                "reason_change": "context_changed",
+                "load_adjustment": "same",
+                "level_adjustment": "rebalance"
+              },
+              "title": "Ajustement - Reprendre le contrôle sur le grignotage",
+              "confidence": "medium",
+              "ack_summary": {
+                "changed": [
+                  "niveau actuel: charge ajustée vers \"same\"",
+                  "cible de changement: global_load"
+                ],
+                "unchanged": [
+                  "le cœur du niveau reste préservé",
+                  "chaque action n'est pas réécrite automatiquement"
+                ],
+                "confidence": "medium",
+                "why_it_helps": "La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale.",
+                "follow_up_needed": "identifier ensuite les actions exactes à alléger si tu veux une modification fine"
+              },
+              "scope_label": "Reprendre le contrôle sur le grignotage",
+              "why_it_helps": "Le changement agit au niveau du bloc courant, sans pretendre modifier une seule action.",
+              "decision_basis": {
+                "evidence": [
+                  "Je corrige avant validation. Pour Faire le choix du brut, je ne veux pas juste une option vague déjà définie : je veux que l'option brute soit décidée pendant la préparation du dimanche. Pour Décoder ton envie de grignoter, garde l'action au moment où l'envie arrive, avec cette question exacte : « est-ce que j’ai vraiment faim, ou est-ce que je cherche à calmer ma fatigue ou mon stress ? ».",
+                  "le bloc grignotage",
+                  "le niveau en entier",
+                  "enlever les décisions du soir",
+                  "garder le niveau et les actions",
+                  "trop de petits choix à faire",
+                  "ça me donne envie de laisser tomber",
+                  "enlever les décisions du soir"
+                ],
+                "confidence": "medium",
+                "uncertainty": [
+                  "actions exactes du niveau a choisir pour une modification fine"
+                ],
+                "user_problem": "Le niveau actuel est trop lourd ou mal calibre pour le contexte de l'utilisateur.",
+                "inferred_need": "preserver le coeur du niveau et reduire la charge ciblee autour",
+                "must_preserve": [
+                  "coeur du niveau"
+                ]
+              },
+              "adjustment_type": "rebalance",
+              "proposed_change": "reequilibrer le niveau actuel",
+              "change_rationale": {
+                "why_this_change": "Alléger global_load répond au problème \"context_changed\" tout en gardant le cœur du niveau.",
+                "success_condition": "Le niveau peut être repris avec moins de friction, puis réaugmenté seulement si l'énergie et le contexte suivent.",
+                "expected_mechanism": "La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale."
+              },
+              "adjust_plan_result": {
+                "scope": "level",
+                "rationale": {
+                  "confidence": "medium",
+                  "missing_info": [],
+                  "user_problem": "Le niveau actuel génère trop de petits choix le soir, ce qui crée une fatigue décisionnelle et un risque d'abandon.",
+                  "expected_effect": "Une meilleure adhésion au niveau car l'utilisateur n'a plus qu'à exécuter ce qui a été prévu calmement à l'avance.",
+                  "why_this_change": "En déplaçant la décision du choix alimentaire au dimanche et en clarifiant la question d'introspection, on réduit la friction mentale quotidienne."
+                },
+                "boundaries": {
+                  "explanation": "Les modifications sont strictement limitées aux modalités d'exécution de deux actions du niveau en cours pour répondre à la fatigue décisionnelle.",
+                  "affected_scope": "Niveau actuel : Reprendre le contrôle sur le grignotage",
+                  "global_plan_impact": "none",
+                  "explicitly_not_affected": [
+                    "Objectif global de santé",
+                    "Structure complète du plan",
+                    "Autres niveaux thématiques"
+                  ]
+                },
+                "applied_change": {
+                  "summary": "Rééquilibrage du niveau pour supprimer les décisions du soir et personnaliser le questionnement d'introspection.",
+                  "changed_items": [
+                    {
+                      "id": "eb9df535-b6e9-40d9-af57-effafdc2f662",
+                      "kind": "action",
+                      "after": "option brute décidée pendant la préparation du dimanche",
+                      "title": "Faire le choix du brut",
+                      "before": "Limiter le choix à une seule option brute prédéfinie (ex: toujours une pomme) pour éliminer la fatigue décisionnelle.",
+                      "reason": "Déplacer le choix au dimanche permet d'éliminer la fatigue décisionnelle le soir quand l'énergie est basse.",
+                      "capability": "modify_existing_action"
+                    },
+                    {
+                      "id": "7ed21c74-e2ad-4ffb-85d9-5d204d72bbcf",
+                      "kind": "action",
+                      "after": "est-ce que j’ai vraiment faim, ou est-ce que je cherche à calmer ma fatigue ou mon stress ?",
+                      "title": "Décoder ton envie de grignoter",
+                      "before": "Question unique : 'Est-ce de la faim ou une émotion ?'",
+                      "reason": "L'utilisation d'une question plus personnelle et précise permet de mieux identifier le besoin réel au moment de l'envie.",
+                      "capability": "modify_existing_action"
+                    }
+                  ],
+                  "preserved_items": [
+                    {
+                      "id": "a751731a-3832-4bea-a707-c72170fd15a0",
+                      "kind": "action",
+                      "title": "Nettoyer ton environnement direct",
+                      "reason": "Cette action de structure ne nécessite pas de prise de décision immédiate et soutient l'objectif sans surcharge."
+                    },
+                    {
+                      "id": "23f34398-87ae-4388-80b4-786989faac97",
+                      "kind": "action",
+                      "title": "Préparer tes alternatives d'avance",
+                      "reason": "Déjà fixée au dimanche, elle est cohérente avec la volonté de réduire la charge en semaine."
+                    }
+                  ]
+                },
+                "user_message_brief": "J'ai allégé ton niveau en déplaçant le choix de l'option brute au dimanche et en intégrant ta question précise pour décoder tes envies.",
+                "user_message_detailed": "Pour répondre à ton besoin d'alléger les décisions du soir, voici les détails des changements proposés :\n\n1. **Faire le choix du brut** : Au lieu d'une option vague, celle-ci sera désormais **décidée pendant la préparation du dimanche**. Cela élimine l'hésitation au moment où tu es fatigué.\n2. **Décoder ton envie de grignoter** : J'ai remplacé la question générique par ton texte exact : **« est-ce que j’ai vraiment faim, ou est-ce que je cherche à calmer ma fatigue ou mon stress ? »**. Cela t'aidera à mieux cibler l'origine de ton envie.\n\nLe reste du niveau, comme le nettoyage de ton environnement, reste stable. Ces ajustements sont limités à ton niveau actuel et ne modifient pas ton plan global. Je suis assez confiante car cela réduit directement la friction que tu as identifiée."
+              },
+              "execution_strategy": "level_adjustment",
+              "allowed_patch_fields": [
+                "scope_kind",
+                "level_adjustment",
+                "load_adjustment",
+                "focus_adjustment",
+                "reason_type",
+                "reason_change",
+                "change_target",
+                "confidence",
+                "constraints"
+              ]
+            },
+            "output_schema": "plan_adjustment_draft_v1",
+            "operation_type": "adjust_plan_item",
+            "execution_message": "C'est fait, j'ai ajusté ton niveau pour réduire la charge mentale. Désormais, le choix de ton option brute est intégré à ta préparation du dimanche pour t'éviter de devoir décider le soir. J'ai aussi mis à jour l'action de décodage avec ta question exacte : « est-ce que j’ai vraiment faim, ou est-ce que je cherche à calmer ma fatigue ou mon stress ? ». Le reste de ton plan reste stable pour garder le cap. Je suis assez confiante sur le fait que cela va t'aider à maintenir tes efforts sans pression inutile.",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Voici ce que je propose pour alléger ton niveau actuel sans en perdre l'objectif. Rien n'est encore modifié. L'idée est de supprimer les micro-décisions qui te pèsent le soir pour éviter que tu ne lâches prise. Par exemple, pour l'action « Faire le choix du brut », l'option sera désormais décidée lors de ta préparation du dimanche plutôt qu'au moment de manger. Pour « Décoder ton envie de grignoter », nous utiliserons ta question précise : « est-ce que j’ai vraiment faim, ou est-ce que je cherche à calmer ma fatigue ou mon stress ? ». Les autres actions comme le nettoyage de ton environnement restent inchangées. Est-ce que cela te convient ?"
+          },
+          "status": "draft_review_updated",
+          "reason_code": "tool_skill_intent_start",
+          "operation_id": "466487c1-bce4-4911-9084-b06d916c6c09",
+          "selected_handler": "adjust_plan_item",
+          "draft_review_decision": {
+            "decision": "revise",
+            "evidence": [
+              "Je corrige avant validation",
+              "Pour Faire le choix du brut, je ne veux pas juste une option vague déjà définie",
+              "Pour Décoder ton envie de grignoter, garde l'action au moment où l'envie arrive"
+            ],
+            "confidence": "high",
+            "apply_after_revision": false
+          },
+          "previous_operation_id": "91e9ba15-77cd-4b1e-96f9-483630dad39a"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 41880,
+        "created_at": "2026-05-15T18:41:35.022938+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-adjust-plan-nina-test3-global-level-confirmation-r24-t04-3df6f42d-ad16-4187-9ddd-6804f3694609",
+    "user": "Avant que je dise oui, montre-moi clairement ce qui change et ce qui ne change pas, avec deux exemples avant/après/pourquoi.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-adjust-plan-nina-test3-global-level-confirmation-r24-t04-3df6f42d-ad16-4187-9ddd-6804f3694609",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-adjust-plan-nina-2026-05-15-test3-global-level-confirmation-r24",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je n'ai encore rien appliqué. Le brouillon actuel prévoit:\n\n1. Faire le choix du brut: avant, Limiter le choix à une seule option brute prédéfinie (ex: toujours une pomme) pour éliminer la fatigue décisionnelle.; maintenant, option brute décidée pendant la préparation du dimanche. Pourquoi: Déplacer le choix au dimanche permet d'éliminer la fatigue décisionnelle le soir quand l'énergie est basse.\n2. Décoder ton envie de grignoter: avant, Question unique : 'Est-ce de la faim ou une émotion ?'; maintenant, est-ce que j’ai vraiment faim, ou est-ce que je cherche à calmer ma fatigue ou mon stress ?. Pourquoi: L'utilisation d'une question plus personnelle et précise permet de mieux identifier le besoin réel au moment de l'envie. Ce qui ne change pas: Nettoyer ton environnement direct.\n\nSi ça te va, dis-moi clairement de l'appliquer. Sinon, dis-moi ce que tu veux modifier dans ce brouillon.",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-adjust-plan-nina-test3-global-level-confirmation-r24-t04-3df6f42d-ad16-4187-9ddd-6804f3694609",
+        "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+        "source_message_id": "47a0f4e1-9fb7-4a9c-88dc-adcf42340f40",
+        "ts": "2026-05-15T18:42:01.017+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 51798,
+          "latency_ms": 5636,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 806,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "Reprendre le contrôle sur le grignotage",
+                "type": "level",
+                "priority": "high",
+                "query_hint": null,
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "eb9df535-b6e9-40d9-af57-effafdc2f662",
+                "type": "action",
+                "priority": "medium",
+                "query_hint": null,
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s13"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-adjust-plan-nina-test3-global-level-confirmation-r24-t04-3df6f42d-ad16-4187-9ddd-6804f3694609",
+          "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "Reprendre le contrôle sur le grignotage",
+                "type": "level",
+                "priority": "high",
+                "query_hint": null,
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "eb9df535-b6e9-40d9-af57-effafdc2f662",
+                "type": "action",
+                "priority": "medium",
+                "query_hint": null,
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0,1,0.6;decay=0.55;recovery=1.5",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              1,
+              0.6
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "47a0f4e1-9fb7-4a9c-88dc-adcf42340f40",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "Reprendre le contrôle sur le grignotage",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "current_level",
+                  "label": "Reprendre le contrôle sur le grignotage",
+                  "status": "identified",
+                  "evidence": [
+                    "Reprendre le contrôle sur le grignotage"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "current_level",
+                  "status": "identified",
+                  "evidence": [
+                    "le user parle du niveau en entier",
+                    "ça doit rester limité à ce niveau"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "current_level"
+            }
+          ],
+          "confirmation_response": {
+            "kind": "correction_to_pending",
+            "evidence": "Avant que je dise oui, montre-moi clairement ce qui change et ce qui ne change pas",
+            "confidence_band": "high"
+          },
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": {
+          "status": "draft_review_details",
+          "reason_code": "tool_skill_intent_start",
+          "operation_id": "466487c1-bce4-4911-9084-b06d916c6c09",
+          "selected_handler": "adjust_plan_item",
+          "draft_review_decision": {
+            "decision": "explain",
+            "evidence": [
+              "Avant que je dise oui, montre-moi clairement ce qui change et ce qui ne change pas, avec deux exemples avant/après/pourquoi."
+            ],
+            "confidence": "high",
+            "apply_after_revision": false
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 15097,
+        "created_at": "2026-05-15T18:42:01.019711+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-adjust-plan-nina-test3-global-level-confirmation-r24-t05-d5a0082f-01bd-463b-a922-37aa4dff89f0",
+    "user": "Ok. Confirme-moi aussi que Préparer tes alternatives d'avance ne bouge pas, que Nettoyer ton environnement direct ne bouge pas, et que ça ne modifie pas le plan global.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-adjust-plan-nina-test3-global-level-confirmation-r24-t05-d5a0082f-01bd-463b-a922-37aa4dff89f0",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-adjust-plan-nina-2026-05-15-test3-global-level-confirmation-r24",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je te propose d'ajuster ton niveau actuel pour réduire la fatigue décisionnelle le soir, sans toucher au reste de ton plan. Rien n'est encore appliqué. Voici ce que je suggère : pour l'action 'Faire le choix du brut', on se baserait uniquement sur l'option brute décidée pendant la préparation du dimanche pour éviter de choisir le soir même. Pour 'Décoder ton envie de grignoter', on utiliserait ta question précise : 'est-ce que j’ai vraiment faim, ou est-ce que je cherche à calmer ma fatigue ou mon stress ?'. Les actions 'Préparer tes alternatives d'avance' et 'Nettoyer ton environnement direct' resteront inchangées. Est-ce que cela te convient ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-adjust-plan-nina-test3-global-level-confirmation-r24-t05-d5a0082f-01bd-463b-a922-37aa4dff89f0",
+        "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+        "source_message_id": "6887cd82-2bb4-4934-bc79-f03d5732420e",
+        "ts": "2026-05-15T18:42:59.955+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 52081,
+          "latency_ms": 6638,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 950,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "structure du niveau grignotage",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "23f34398-87ae-4388-80b4-786989faac97",
+                "type": "action",
+                "priority": "medium",
+                "query_hint": "Préparer tes alternatives d'avance",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Ok. Confirme-moi aussi que Préparer tes alternatives d'avance ne bouge pas, que Nettoyer ton environnement direct ne bouge pas, et que ça ne modifie pas le plan",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s13"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-adjust-plan-nina-test3-global-level-confirmation-r24-t05-d5a0082f-01bd-463b-a922-37aa4dff89f0",
+          "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "structure du niveau grignotage",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "23f34398-87ae-4388-80b4-786989faac97",
+                "type": "action",
+                "priority": "medium",
+                "query_hint": "Préparer tes alternatives d'avance",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Ok. Confirme-moi aussi que Préparer tes alternatives d'avance ne bouge pas, que Nettoyer ton environnement direct ne bouge pas, et que ça ne modifie pas le plan",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": "level_reference",
+            "status": "current_level",
+            "detected": true,
+            "expansion_policy": "include_level_execution_handoff"
+          },
+          "action_reference": {
+            "reason": "multiple_plan_items_match",
+            "status": "ambiguous",
+            "detected": true,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0,1,0.6,0;decay=0.55;recovery=1.5",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              1,
+              0.6,
+              0
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "6887cd82-2bb4-4934-bc79-f03d5732420e",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "niveau grignotage",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "current_level",
+                  "label": "Reprendre le contrôle sur le grignotage",
+                  "status": "identified",
+                  "evidence": [
+                    "bloc grignotage"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "current_level",
+                  "status": "identified",
+                  "evidence": [
+                    "Ce n'est pas une action isolée qui coince, c'est plutôt le niveau en entier",
+                    "ça ne modifie pas le plan global"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "current_level"
+            }
+          ],
+          "confirmation_response": {
+            "kind": "correction_to_pending",
+            "payload": {
+              "source_span": "Confirme-moi aussi que Préparer tes alternatives d'avance ne bouge pas, que Nettoyer ton environnement direct ne bouge pas, et que ça ne modifie pas le plan global.",
+              "correction_type": "constraint_clarification"
+            },
+            "confidence_band": "high"
+          },
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": {
+          "draft": {
+            "draft": {
+              "patch": {
+                "confidence": "medium",
+                "scope_kind": "current_level",
+                "constraints": [
+                  "no_pressure",
+                  "minimal_patch",
+                  "preserve_plan_intent",
+                  "no_schedule_day_change",
+                  "ask_confirmation_before_write",
+                  "est-ce que j’ai vraiment faim, ou est-ce que je cherche à calmer ma fatigue ou mon stress ?",
+                  "option brute décidée pendant la préparation du dimanche",
+                  "Préparer tes alternatives d'avance ne bouge pas",
+                  "Nettoyer ton environnement direct ne bouge pas",
+                  "pas de modification du plan global",
+                  "affected_item:Faire le choix du brut",
+                  "affected_item:Décoder ton envie de grignoter"
+                ],
+                "reason_type": "context_changed",
+                "change_target": "global_load",
+                "reason_change": "context_changed",
+                "load_adjustment": "same",
+                "level_adjustment": "rebalance"
+              },
+              "title": "Ajustement - Reprendre le contrôle sur le grignotage",
+              "confidence": "medium",
+              "ack_summary": {
+                "changed": [
+                  "niveau actuel: charge ajustée vers \"same\"",
+                  "cible de changement: global_load"
+                ],
+                "unchanged": [
+                  "le cœur du niveau reste préservé",
+                  "chaque action n'est pas réécrite automatiquement"
+                ],
+                "confidence": "medium",
+                "why_it_helps": "La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale.",
+                "follow_up_needed": "identifier ensuite les actions exactes à alléger si tu veux une modification fine"
+              },
+              "scope_label": "Reprendre le contrôle sur le grignotage",
+              "why_it_helps": "Le changement agit au niveau du bloc courant, sans pretendre modifier une seule action.",
+              "decision_basis": {
+                "evidence": [
+                  "Ok. Confirme-moi aussi que Préparer tes alternatives d'avance ne bouge pas, que Nettoyer ton environnement direct ne bouge pas, et que ça ne modifie pas le plan global.",
+                  "le bloc grignotage",
+                  "le niveau en entier",
+                  "enlever les décisions du soir",
+                  "garder le niveau et les actions",
+                  "trop de petits choix à faire",
+                  "ça me donne envie de laisser tomber",
+                  "enlever les décisions du soir"
+                ],
+                "confidence": "medium",
+                "uncertainty": [
+                  "actions exactes du niveau a choisir pour une modification fine"
+                ],
+                "user_problem": "Le niveau actuel est trop lourd ou mal calibre pour le contexte de l'utilisateur.",
+                "inferred_need": "preserver le coeur du niveau et reduire la charge ciblee autour",
+                "must_preserve": [
+                  "coeur du niveau"
+                ]
+              },
+              "adjustment_type": "rebalance",
+              "proposed_change": "reequilibrer le niveau actuel",
+              "change_rationale": {
+                "why_this_change": "Alléger global_load répond au problème \"context_changed\" tout en gardant le cœur du niveau.",
+                "success_condition": "Le niveau peut être repris avec moins de friction, puis réaugmenté seulement si l'énergie et le contexte suivent.",
+                "expected_mechanism": "La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale."
+              },
+              "adjust_plan_result": {
+                "scope": "level",
+                "rationale": {
+                  "confidence": "medium",
+                  "missing_info": [
+                    "actions exactes du niveau à choisir pour une modification fine"
+                  ],
+                  "user_problem": "Le niveau actuel génère trop de petits choix le soir, ce qui crée une fatigue décisionnelle et une envie d'abandonner.",
+                  "expected_effect": "Une meilleure adhésion au niveau car les actions demandent moins d'effort de volonté immédiat.",
+                  "why_this_change": "En automatisant le choix de l'aliment et en précisant la question de réflexion, on diminue la charge mentale nécessaire pour réussir l'action."
+                },
+                "boundaries": {
+                  "explanation": "L'ajustement se concentre sur la réduction de la friction au sein du niveau actuel sans modifier la direction long terme du plan.",
+                  "affected_scope": "niveau actuel uniquement",
+                  "global_plan_impact": "none",
+                  "explicitly_not_affected": [
+                    "objectif global",
+                    "structure complète du plan",
+                    "autres niveaux"
+                  ]
+                },
+                "applied_change": {
+                  "summary": "Simplification des actions du soir pour réduire la fatigue décisionnelle et préserver l'énergie de l'utilisateur.",
+                  "changed_items": [
+                    {
+                      "id": "eb9df535-b6e9-40d9-af57-effafdc2f662",
+                      "kind": "action",
+                      "after": "Utiliser l'option brute décidée pendant la préparation du dimanche.",
+                      "title": "Faire le choix du brut",
+                      "before": "Limiter le choix à une seule option brute prédéfinie (ex: toujours une pomme) pour éliminer la fatigue décisionnelle.",
+                      "reason": "Supprime le besoin de prendre une décision le soir en se reposant sur ce qui a été prévu à l'avance.",
+                      "capability": "modify_existing_action"
+                    },
+                    {
+                      "id": "7ed21c74-e2ad-4ffb-85d9-5d204d72bbcf",
+                      "kind": "action",
+                      "after": "Se demander : est-ce que j’ai vraiment faim, ou est-ce que je cherche à calmer ma fatigue ou mon stress ?",
+                      "title": "Décoder ton envie de grignoter",
+                      "before": "Question unique : 'Est-ce de la faim ou une émotion ?'",
+                      "reason": "Remplace une question générique par une interrogation plus ciblée sur le contexte de fatigue exprimé par l'utilisateur.",
+                      "capability": "modify_existing_action"
+                    }
+                  ],
+                  "preserved_items": []
+                },
+                "user_message_brief": "J'ai simplifié deux actions de ton niveau pour supprimer les choix difficiles le soir.",
+                "user_message_detailed": "Pour t'aider à reprendre le contrôle sans pression, j'ai préparé deux ajustements précis dans ton niveau actuel :\n1. Faire le choix du brut : Avant, tu devais limiter ton choix. Maintenant, tu appliques simplement l'option brute décidée pendant la préparation du dimanche. Cela élimine la fatigue de devoir choisir le soir.\n2. Décoder ton envie de grignoter : Avant, la question était générique. Maintenant, on utilise : 'est-ce que j’ai vraiment faim, ou est-ce que je cherche à calmer ma fatigue ou mon stress ?'. C'est plus parlant pour toi.\nLe reste, comme la préparation du dimanche ou le nettoyage de ton environnement, reste identique. Je suis assez sûre que cela va t'aider. Le plan global n'est pas impacté."
+              },
+              "execution_strategy": "level_adjustment",
+              "allowed_patch_fields": [
+                "scope_kind",
+                "level_adjustment",
+                "load_adjustment",
+                "focus_adjustment",
+                "reason_type",
+                "reason_change",
+                "change_target",
+                "confidence",
+                "constraints"
+              ]
+            },
+            "output_schema": "plan_adjustment_draft_v1",
+            "operation_type": "adjust_plan_item",
+            "execution_message": "C'est fait, j'ai allégé ton niveau actuel pour supprimer les décisions difficiles en fin de journée. J'ai mis à jour 'Faire le choix du brut' pour n'utiliser que l'option brute décidée pendant la préparation du dimanche, et 'Décoder ton envie de grignoter' intègre maintenant ta question sur le stress et la fatigue. Tes habitudes de préparation et de nettoyage de l'environnement ne bougent pas. Cela devrait rendre tes soirées plus simples et réduire l'envie d'abandonner. Je suis assez sûre que cette simplification va t'aider à garder le cap.",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je te propose d'ajuster ton niveau actuel pour réduire la fatigue décisionnelle le soir, sans toucher au reste de ton plan. Rien n'est encore appliqué. Voici ce que je suggère : pour l'action 'Faire le choix du brut', on se baserait uniquement sur l'option brute décidée pendant la préparation du dimanche pour éviter de choisir le soir même. Pour 'Décoder ton envie de grignoter', on utiliserait ta question précise : 'est-ce que j’ai vraiment faim, ou est-ce que je cherche à calmer ma fatigue ou mon stress ?'. Les actions 'Préparer tes alternatives d'avance' et 'Nettoyer ton environnement direct' resteront inchangées. Est-ce que cela te convient ?"
+          },
+          "status": "draft_review_updated",
+          "reason_code": "tool_skill_intent_start",
+          "operation_id": "5bf3233e-8edd-4fa1-b93c-aad4b045e25c",
+          "selected_handler": "adjust_plan_item",
+          "draft_review_decision": {
+            "decision": "revise",
+            "evidence": [
+              "Ok. Confirme-moi aussi que Préparer tes alternatives d'avance ne bouge pas, que Nettoyer ton environnement direct ne bouge pas, et que ça ne modifie pas le plan global."
+            ],
+            "confidence": "high",
+            "apply_after_revision": false
+          },
+          "previous_operation_id": "466487c1-bce4-4911-9084-b06d916c6c09"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 49507,
+        "created_at": "2026-05-15T18:42:59.959712+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 6,
+    "requestId": "qa-adjust-plan-nina-test3-global-level-confirmation-r24-t06-3901b5c1-a49f-4a6b-8b27-f276ddee0de8",
+    "user": "Garde explicitement Préparer tes alternatives d'avance et Nettoyer ton environnement direct dans ce qui ne bouge pas, puis montre-moi le brouillon final sans l'appliquer.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-adjust-plan-nina-test3-global-level-confirmation-r24-t06-3901b5c1-a49f-4a6b-8b27-f276ddee0de8",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-adjust-plan-nina-2026-05-15-test3-global-level-confirmation-r24",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Voici une proposition pour rééquilibrer ton niveau actuel sans modifier la direction de ton plan. Rien n'est encore appliqué, c'est une proposition avant validation.\n\nPour limiter la fatigue décisionnelle qui te pèse le soir, je suggère de simplifier deux actions :\n1. Pour 'Faire le choix du brut', on utiliserait l'**option brute décidée pendant la préparation du dimanche** pour supprimer le choix immédiat.\n2. Pour 'Décoder ton envie de grignoter', la question deviendrait : '**est-ce que j’ai vraiment faim, ou est-ce que je cherche à calmer ma fatigue ou mon stress ?**' pour mieux cibler ton besoin.\n\nTes actions 'Préparer tes alternatives d'avance' et 'Nettoyer ton environnement direct' ne seront pas touchées. Est-ce que ce brouillon te convient ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-adjust-plan-nina-test3-global-level-confirmation-r24-t06-3901b5c1-a49f-4a6b-8b27-f276ddee0de8",
+        "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+        "source_message_id": "2f7e4544-29bb-4e66-afa8-4bab20619af7",
+        "ts": "2026-05-15T18:44:37.05+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 52145,
+          "latency_ms": 5741,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 733,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "ajustements en cours grignotage",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s13"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-adjust-plan-nina-test3-global-level-confirmation-r24-t06-3901b5c1-a49f-4a6b-8b27-f276ddee0de8",
+          "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "ajustements en cours grignotage",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": "multiple_plan_items_match",
+            "status": "ambiguous",
+            "detected": true,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0.1,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": true,
+                "evidence": "0,1,0.6,0,0;decay=0.55;recovery=0",
+                "contribution": 0.1
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "previous_risk"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              1,
+              0.6,
+              0,
+              0
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "2f7e4544-29bb-4e66-afa8-4bab20619af7",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "niveau actuel",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "current_level",
+                  "label": "Reprendre le contrôle sur le grignotage",
+                  "status": "identified",
+                  "evidence": [
+                    "Reprendre le contrôle sur le grignotage"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "current_level",
+                  "status": "identified",
+                  "evidence": [
+                    "montre-moi le brouillon final sans l'appliquer",
+                    "ne modifie pas le plan global"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "current_level"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": {
+          "draft": {
+            "draft": {
+              "patch": {
+                "confidence": "medium",
+                "scope_kind": "current_level",
+                "constraints": [
+                  "no_pressure",
+                  "minimal_patch",
+                  "preserve_plan_intent",
+                  "no_schedule_day_change",
+                  "ask_confirmation_before_write",
+                  "est-ce que j’ai vraiment faim, ou est-ce que je cherche à calmer ma fatigue ou mon stress ?",
+                  "option brute décidée pendant la préparation du dimanche",
+                  "Préparer tes alternatives d'avance ne bouge pas",
+                  "Nettoyer ton environnement direct ne bouge pas",
+                  "pas de modification du plan global",
+                  "montrer le brouillon final sans l'appliquer",
+                  "affected_item:Faire le choix du brut",
+                  "affected_item:Décoder ton envie de grignoter"
+                ],
+                "reason_type": "context_changed",
+                "change_target": "global_load",
+                "reason_change": "context_changed",
+                "load_adjustment": "same",
+                "level_adjustment": "rebalance"
+              },
+              "title": "Ajustement - Reprendre le contrôle sur le grignotage",
+              "confidence": "medium",
+              "ack_summary": {
+                "changed": [
+                  "niveau actuel: charge ajustée vers \"same\"",
+                  "cible de changement: global_load"
+                ],
+                "unchanged": [
+                  "le cœur du niveau reste préservé",
+                  "chaque action n'est pas réécrite automatiquement"
+                ],
+                "confidence": "medium",
+                "why_it_helps": "La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale.",
+                "follow_up_needed": "identifier ensuite les actions exactes à alléger si tu veux une modification fine"
+              },
+              "scope_label": "Reprendre le contrôle sur le grignotage",
+              "why_it_helps": "Le changement agit au niveau du bloc courant, sans pretendre modifier une seule action.",
+              "decision_basis": {
+                "evidence": [
+                  "Garde explicitement Préparer tes alternatives d'avance et Nettoyer ton environnement direct dans ce qui ne bouge pas, puis montre-moi le brouillon final sans l'appliquer.",
+                  "le bloc grignotage",
+                  "le niveau en entier",
+                  "rebalance",
+                  "trop de petits choix à faire",
+                  "ça me donne envie de laisser tomber",
+                  "enlever les décisions du soir"
+                ],
+                "confidence": "medium",
+                "uncertainty": [
+                  "actions exactes du niveau a choisir pour une modification fine"
+                ],
+                "user_problem": "Le niveau actuel est trop lourd ou mal calibre pour le contexte de l'utilisateur.",
+                "inferred_need": "preserver le coeur du niveau et reduire la charge ciblee autour",
+                "must_preserve": [
+                  "coeur du niveau"
+                ]
+              },
+              "adjustment_type": "rebalance",
+              "proposed_change": "reequilibrer le niveau actuel",
+              "change_rationale": {
+                "why_this_change": "Alléger global_load répond au problème \"context_changed\" tout en gardant le cœur du niveau.",
+                "success_condition": "Le niveau peut être repris avec moins de friction, puis réaugmenté seulement si l'énergie et le contexte suivent.",
+                "expected_mechanism": "La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale."
+              },
+              "adjust_plan_result": {
+                "scope": "level",
+                "rationale": {
+                  "confidence": "medium",
+                  "missing_info": [],
+                  "user_problem": "Trop de petits choix à faire le soir, ce qui génère de la fatigue et l'envie d'abandonner.",
+                  "expected_effect": "Moins de friction pour maintenir les habitudes sans pression, rendant le niveau à nouveau faisable.",
+                  "why_this_change": "Simplifier les actions ciblées permet de réduire la charge mentale immédiate tout en gardant le cœur du niveau."
+                },
+                "boundaries": {
+                  "explanation": "L'ajustement se concentre sur la simplification des actions quotidiennes du niveau sans modifier la stratégie ou les objectifs à long terme.",
+                  "affected_scope": "niveau actuel uniquement",
+                  "global_plan_impact": "none",
+                  "explicitly_not_affected": [
+                    "objectif global",
+                    "structure complète du plan",
+                    "autres niveaux"
+                  ]
+                },
+                "applied_change": {
+                  "summary": "Rééquilibrage du niveau pour réduire la fatigue décisionnelle en simplifiant les choix du soir.",
+                  "changed_items": [
+                    {
+                      "id": "eb9df535-b6e9-40d9-af57-effafdc2f662",
+                      "kind": "action",
+                      "after": "option brute décidée pendant la préparation du dimanche",
+                      "title": "Faire le choix du brut",
+                      "before": "Limiter le choix à une seule option brute prédéfinie (ex: toujours une pomme) pour éliminer la fatigue décisionnelle.",
+                      "reason": "Supprimer la micro-décision du soir pour éviter de craquer par fatigue mentale.",
+                      "capability": "modify_existing_action"
+                    },
+                    {
+                      "id": "7ed21c74-e2ad-4ffb-85d9-5d204d72bbcf",
+                      "kind": "action",
+                      "after": "est-ce que j’ai vraiment faim, ou est-ce que je cherche à calmer ma fatigue ou mon stress ?",
+                      "title": "Décoder ton envie de grignoter",
+                      "before": "Question unique : 'Est-ce de la faim ou une émotion ?'",
+                      "reason": "Utiliser une question plus précise pour identifier immédiatement le déclencheur émotionnel ou physique.",
+                      "capability": "modify_existing_action"
+                    }
+                  ],
+                  "preserved_items": [
+                    {
+                      "id": "23f34398-87ae-4388-80b4-786989faac97",
+                      "kind": "action",
+                      "title": "Préparer tes alternatives d'avance",
+                      "reason": "La préparation du dimanche est conservée pour garantir la disponibilité des options saines."
+                    },
+                    {
+                      "id": "a751731a-3832-4bea-a707-c72170fd15a0",
+                      "kind": "action",
+                      "title": "Nettoyer ton environnement direct",
+                      "reason": "Le maintien d'un environnement sans tentation reste un pilier inchangé du niveau."
+                    }
+                  ]
+                },
+                "user_message_brief": "J'ai préparé un brouillon pour simplifier ton niveau actuel en supprimant les décisions du soir, tout en gardant tes habitudes de préparation intactes.",
+                "user_message_detailed": "Pour t'aider à reprendre le contrôle sans te sentir submergé, je propose de rééquilibrer ton niveau actuel. L'idée est de supprimer les micro-décisions qui pèsent le soir.\n\n- **Faire le choix du brut** (id: eb9df535-b6e9-40d9-af57-effafdc2f662) : Avant, tu devais choisir une option brute. Désormais, on utilise l'**option brute décidée pendant la préparation du dimanche**. Cela aide car tu n'as plus de choix à faire au moment où tu es le plus fatigué.\n- **Décoder ton envie de grignoter** (id: 7ed21c74-e2ad-4ffb-85d9-5d204d72bbcf) : La question devient '**est-ce que j’ai vraiment faim, ou est-ce que je cherche à calmer ma fatigue ou mon stress ?**'. Cela aide à identifier précisément le besoin derrière l'envie pour mieux y répondre.\n\nCe qui ne change pas : tes actions de préparation le dimanche et le nettoyage de ton environnement restent identiques. Le plan global n'est pas impacté. C'est un ajustement ciblé pour rendre le quotidien plus fluide et moins stressant."
+              },
+              "execution_strategy": "level_adjustment",
+              "allowed_patch_fields": [
+                "scope_kind",
+                "level_adjustment",
+                "load_adjustment",
+                "focus_adjustment",
+                "reason_type",
+                "reason_change",
+                "change_target",
+                "confidence",
+                "constraints"
+              ]
+            },
+            "output_schema": "plan_adjustment_draft_v1",
+            "operation_type": "adjust_plan_item",
+            "execution_message": "J'ai mis à jour ton niveau pour supprimer les décisions du soir et réduire la pression quotidienne.\n\nConcrètement :\n- L'action 'Faire le choix du brut' s'appuie maintenant sur l'**option brute décidée pendant la préparation du dimanche**.\n- L'action 'Décoder ton envie de grignoter' utilise désormais la question : '**est-ce que j’ai vraiment faim, ou est-ce que je cherche à calmer ma fatigue ou mon stress ?**'.\n\nCes changements permettent de garder l'intention de ton parcours tout en rendant les soirées plus simples. Tes habitudes de préparation et de rangement restent identiques. Je pense que cette version plus fluide sera plus facile à maintenir sur la durée.",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Voici une proposition pour rééquilibrer ton niveau actuel sans modifier la direction de ton plan. Rien n'est encore appliqué, c'est une proposition avant validation.\n\nPour limiter la fatigue décisionnelle qui te pèse le soir, je suggère de simplifier deux actions :\n1. Pour 'Faire le choix du brut', on utiliserait l'**option brute décidée pendant la préparation du dimanche** pour supprimer le choix immédiat.\n2. Pour 'Décoder ton envie de grignoter', la question deviendrait : '**est-ce que j’ai vraiment faim, ou est-ce que je cherche à calmer ma fatigue ou mon stress ?**' pour mieux cibler ton besoin.\n\nTes actions 'Préparer tes alternatives d'avance' et 'Nettoyer ton environnement direct' ne seront pas touchées. Est-ce que ce brouillon te convient ?"
+          },
+          "status": "draft_review_updated",
+          "reason_code": "tool_skill_intent_start",
+          "operation_id": "f5da1965-8ddc-4957-ad0a-2ab01c0bd7be",
+          "selected_handler": "adjust_plan_item",
+          "draft_review_decision": {
+            "decision": "revise",
+            "evidence": [
+              "Garde explicitement Préparer tes alternatives d'avance et Nettoyer ton environnement direct dans ce qui ne bouge pas",
+              "montre-moi le brouillon final sans l'appliquer",
+              "Confirme-moi aussi que [...] ça ne modifie pas le plan global"
+            ],
+            "confidence": "high",
+            "apply_after_revision": false
+          },
+          "previous_operation_id": "5bf3233e-8edd-4fa1-b93c-aad4b045e25c"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 39617,
+        "created_at": "2026-05-15T18:44:37.060247+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 7,
+    "requestId": "qa-adjust-plan-nina-test3-global-level-confirmation-r24-t07-6a8b3784-193e-4e8c-aed5-dc1554116c41",
+    "user": "Oui, ce brouillon me va. Applique cette version maintenant.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-adjust-plan-nina-test3-global-level-confirmation-r24-t07-6a8b3784-193e-4e8c-aed5-dc1554116c41",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-adjust-plan-nina-2026-05-15-test3-global-level-confirmation-r24",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "J'ai mis à jour ton niveau pour supprimer les décisions du soir et réduire la pression quotidienne.\n\nConcrètement :\n- L'action 'Faire le choix du brut' s'appuie maintenant sur l'**option brute décidée pendant la préparation du dimanche**.\n- L'action 'Décoder ton envie de grignoter' utilise désormais la question : '**est-ce que j’ai vraiment faim, ou est-ce que je cherche à calmer ma fatigue ou mon stress ?**'.\n\nCes changements permettent de garder l'intention de ton parcours tout en rendant les soirées plus simples. Tes habitudes de préparation et de rangement restent identiques. Je pense que cette version plus fluide sera plus facile à maintenir sur la durée.",
+        "mode": "companion",
+        "tool_execution": "success",
+        "executed_tools": [
+          "adjust_plan_item"
+        ]
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-adjust-plan-nina-test3-global-level-confirmation-r24-t07-6a8b3784-193e-4e8c-aed5-dc1554116c41",
+        "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+        "source_message_id": "beea3100-7b29-40fb-a497-1c7c9795abce",
+        "ts": "2026-05-15T18:44:55.985+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [
+            "maintenant"
+          ],
+          "risk_band": "none",
+          "reason_codes": [
+            "immediacy_now"
+          ],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": true,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 52157,
+          "latency_ms": 4956,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 702,
+          "memory_plan": {
+            "targets": [],
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s13"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-adjust-plan-nina-test3-global-level-confirmation-r24-t07-6a8b3784-193e-4e8c-aed5-dc1554116c41",
+          "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+          "memory_plan": {
+            "targets": [],
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "1,0.6,0,0,0.1;decay=0.55;recovery=1.5",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [
+              1,
+              0.6,
+              0,
+              0,
+              0.1
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "beea3100-7b29-40fb-a497-1c7c9795abce",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "niveau actuel",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "current_level",
+                  "label": "Reprendre le contrôle sur le grignotage",
+                  "status": "identified",
+                  "evidence": [
+                    "niveau actuel",
+                    "Reprendre le contrôle sur le grignotage"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "current_level",
+                  "status": "identified",
+                  "evidence": [
+                    "Applique cette version maintenant",
+                    "ce brouillon me va"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "current_level"
+            }
+          ],
+          "confirmation_response": {
+            "kind": "yes",
+            "evidence": "Oui, ce brouillon me va. Applique cette version maintenant.",
+            "confidence_band": "high"
+          },
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [
+          {
+            "outcome": "success",
+            "tool_id": "adjust_plan_item"
+          }
+        ],
+        "skill_run": null,
+        "operation_flow_run": {
+          "status": "executed",
+          "reason_code": "tool_skill_intent_start",
+          "operation_id": "f5da1965-8ddc-4957-ad0a-2ab01c0bd7be",
+          "plan_patch_id": "624ea002-300f-422a-8129-93649595b029",
+          "selected_handler": "adjust_plan_item",
+          "bridge_plan_item_id": null
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 9904,
+        "created_at": "2026-05-15T18:44:55.987309+00:00"
+      },
+      "trace_error": null
+    }
+  }
+]

@@ -1,0 +1,81 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-adjust-plan-nina-test3-global-level-confirmation-r15-t01-818d3331-a7ee-4d02-9e8c-49179feb27f3",
+    "status": 200,
+    "ok": true,
+    "user": "Je crois que le bloc grignotage me bloque surtout le soir. Ce n’est pas une action en particulier, c’est le niveau entier qui me donne l’impression d’avoir trop de petites décisions quand je suis déjà crevée.",
+    "assistant": "Je comprends parfaitement : quand la fatigue tombe le soir, chaque petite décision devient une montagne. Je vais préparer une proposition pour alléger l'ensemble de ce niveau sur le grignotage, en simplifiant ou en automatisant ce qui te pèse en fin de journée. Est-ce que je peux te montrer ce brouillon ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "tool_skill_intent_start",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "draft_generation_confirmation"
+      ],
+      "selected_handler": "adjust_plan_item"
+    },
+    "pending_tool_skill_confirmation": null,
+    "turn_frame_tool_skill_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "bloc grignotage",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high",
+        "operation_input": {
+          "scope": {
+            "kind": "current_level",
+            "label": "bloc grignotage",
+            "status": "identified",
+            "evidence": [
+              "bloc grignotage"
+            ]
+          },
+          "target_granularity": {
+            "value": "current_level",
+            "status": "identified",
+            "evidence": [
+              "Ce n’est pas une action en particulier, c’est le niveau entier"
+            ],
+            "confidence": "high"
+          }
+        },
+        "adjust_plan_scope": "current_level"
+      }
+    ],
+    "trace_id": "qa-adjust-plan-nina-test3-global-level-confirmation-r15-t01-818d3331-a7ee-4d02-9e8c-49179feb27f3",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-adjust-plan-nina-test3-global-level-confirmation-r15-t02-d8a513a9-814d-45f9-8ef4-00c078589347",
+    "status": 500,
+    "ok": null,
+    "user": "Oui, montre-moi le brouillon, mais ne l’applique pas. Je veux garder le niveau et la fréquence, juste déplacer la décision avant le soir et simplifier ce qui reste à faire.",
+    "assistant": "",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": true,
+    "response_tool_execution": null,
+    "response_executed_tools": [],
+    "response_owner": null,
+    "selected_handler": null,
+    "route_reason_code": null,
+    "tool_skill_run": null,
+    "pending_tool_skill_confirmation": null,
+    "turn_frame_tool_skill_intents": null,
+    "trace_id": "qa-adjust-plan-nina-test3-global-level-confirmation-r15-t02-d8a513a9-814d-45f9-8ef4-00c078589347",
+    "trace_error": null
+  }
+]

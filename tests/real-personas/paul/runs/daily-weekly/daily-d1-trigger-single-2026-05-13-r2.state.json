@@ -1,0 +1,576 @@
+{
+  "run_id": "daily-d1-trigger-single-2026-05-13-r2",
+  "persona": "paul",
+  "user_id": "3b2d22cd-3c57-4c43-a035-941c014f8165",
+  "connection_path": "tests/real-personas/paul/connection.json",
+  "created_at": "2026-05-13T13:51:12.253Z",
+  "qa_mode": "manual_adaptive_turn_by_turn",
+  "anti_hardcoding": {
+    "ids_discovered_at_runtime": true,
+    "user_replies_pre_scripted": false,
+    "dynamic_daily_generated_if_needed": true
+  },
+  "whatsapp": {
+    "from": "15556225359015",
+    "display_phone": "15559499965059",
+    "phone_number_id": "1f5047e76845bd7b"
+  },
+  "pending_initial": {
+    "id": "24d51850-6632-40fb-8774-64390c77764f",
+    "user_id": "3b2d22cd-3c57-4c43-a035-941c014f8165",
+    "kind": "scheduled_checkin",
+    "status": "pending",
+    "scheduled_checkin_id": null,
+    "payload": {
+      "targets": [
+        {
+          "kind": "habit",
+          "title": "Faire une session de travail focus (2h)",
+          "plan_id": "55f505b5-e0b4-450b-a0a2-bc2656933181",
+          "cycle_id": "06e58ed9-8669-4d2a-a881-99509e993c34",
+          "dimension": "habits",
+          "planned_day": "sun",
+          "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+          "occurrence_id": "f77106df-2119-479f-8819-2f4d91fa3975",
+          "tracking_type": null,
+          "week_start_date": "2026-05-11",
+          "transformation_id": "72a16a18-3370-464a-8296-80f3398fc76a",
+          "original_planned_day": "sun"
+        }
+      ],
+      "timezone": "Europe/Paris",
+      "qa_run_id": "daily-d1-trigger-single-2026-05-13-r2",
+      "local_date": "2026-05-17",
+      "message_mode": "conversation",
+      "qa_generated": true,
+      "draft_message": "Petit check du soir : est-ce que tu as fait \"Faire une session de travail focus (2h)\" ?\n\nReponds librement. Si ce n'est pas fait et que ca reste utile, je regarderai si ca peut etre decale demain.",
+      "event_context": "action_evening_review_v2",
+      "occurrence_ids": [
+        "f77106df-2119-479f-8819-2f4d91fa3975"
+      ],
+      "chat_capability": "daily_action_review",
+      "week_start_date": "2026-05-11",
+      "action_evening_review": true
+    },
+    "expires_at": "2026-05-14T07:51:12.225+00:00",
+    "created_at": "2026-05-13T13:51:12.229902+00:00",
+    "processed_at": null,
+    "not_before": null
+  },
+  "turns": [
+    {
+      "turn": 0,
+      "role": "assistant",
+      "text": "Petit check du soir : est-ce que tu as fait \"Faire une session de travail focus (2h)\" ?\n\nReponds librement. Si ce n'est pas fait et que ca reste utile, je regarderai si ca peut etre decale demain.",
+      "source": "dynamic_pending_fixture"
+    },
+    {
+      "turn": 1,
+      "role": "user",
+      "text": "Oui, je l'ai faite. J'ai tenu les deux heures complètes, même si le démarrage m'a demandé un effort."
+    },
+    {
+      "turn": 1,
+      "role": "assistant",
+      "text": "C'est note : Faire une session de travail focus (2h): faite.",
+      "trace_short": {
+        "http_status": 200,
+        "assistant_message_count": 1,
+        "assistant_metadata": [
+          {
+            "source": "daily_action_review",
+            "channel": "whatsapp",
+            "purpose": "action_evening_review",
+            "is_proactive": false,
+            "event_context": "action_evening_review_v2",
+            "outbound_tracking_id": "01d8bbaa-0914-4371-ada3-10ab8a1b1d31",
+            "wa_outbound_message_id": "wamid_DISABLED"
+          }
+        ],
+        "pending_status": "done",
+        "entries_count": 9,
+        "occurrence_statuses": [
+          {
+            "id": "f77106df-2119-479f-8819-2f4d91fa3975",
+            "status": "done"
+          }
+        ]
+      }
+    },
+    {
+      "turn": 2,
+      "role": "user",
+      "text": "Parfait. Pour le bilan, retiens surtout que l'action est faite, mais que j'ai perdu environ quinze minutes avant de vraiment lancer le focus."
+    },
+    {
+      "turn": 2,
+      "role": "assistant",
+      "text": "On ne cherche pas encore la solution parfaite. On cherche le point exact ou ca bloque: demarrage, energie, flou, peur, ou environnement.\n\nConcrètement, je parle d'une Carte d'attaque pour \"Faire une session de travail focus (2h)\", à préparer seulement si tu confirmes.",
+      "trace_short": {
+        "http_status": 200,
+        "assistant_message_count": 1,
+        "assistant_metadata": [
+          {
+            "channel": "whatsapp",
+            "purpose": "whatsapp_default_brain_reply",
+            "is_proactive": false,
+            "has_hidden_fil_rouge": false,
+            "outbound_tracking_id": "41dbce3f-d831-4746-8198-34d200f8a698",
+            "reply_to_wa_message_id": "wamid_daily-d1-trigger-single-2026-05-13-r2_2_0cedeed0-c010-405d-9004-a22578a8a6c0",
+            "wa_outbound_message_id": "wamid_DISABLED"
+          }
+        ],
+        "pending_status": "done",
+        "entries_count": 10,
+        "occurrence_statuses": [
+          {
+            "id": "f77106df-2119-479f-8819-2f4d91fa3975",
+            "status": "done"
+          }
+        ]
+      }
+    },
+    {
+      "turn": 3,
+      "role": "user",
+      "text": "Pas de carte ce soir. Je veux juste que ce soit noté comme info pour le bilan weekly : fait, mais démarrage coûteux."
+    },
+    {
+      "turn": 3,
+      "role": "assistant",
+      "text": "On ne cherche pas encore la solution parfaite. On cherche le point exact ou ca bloque: demarrage, energie, flou, peur, ou environnement.",
+      "trace_short": {
+        "http_status": 200,
+        "assistant_message_count": 1,
+        "assistant_metadata": [
+          {
+            "channel": "whatsapp",
+            "purpose": "whatsapp_default_brain_reply",
+            "is_proactive": false,
+            "has_hidden_fil_rouge": false,
+            "outbound_tracking_id": "d8a83e51-d358-49de-aad1-f09ff792af58",
+            "reply_to_wa_message_id": "wamid_daily-d1-trigger-single-2026-05-13-r2_3_b7d142fb-a961-4614-b4cc-f0f27c12e3bb",
+            "wa_outbound_message_id": "wamid_DISABLED"
+          }
+        ],
+        "pending_status": "done",
+        "entries_count": 11,
+        "occurrence_statuses": [
+          {
+            "id": "f77106df-2119-479f-8819-2f4d91fa3975",
+            "status": "done"
+          }
+        ]
+      }
+    },
+    {
+      "turn": 4,
+      "role": "user",
+      "text": "C'est vraiment le démarrage. Une fois lancé, je reste concentré. Le problème c'est le passage entre décider de m'y mettre et ouvrir le bon document."
+    },
+    {
+      "turn": 4,
+      "role": "assistant",
+      "text": "On ne cherche pas encore la solution parfaite. On cherche le point exact ou ca bloque: demarrage, energie, flou, peur, ou environnement.\n\nConcrètement, je parle d'une Carte d'attaque pour \"Faire une session de travail focus (2h)\", à préparer seulement si tu confirmes.",
+      "trace_short": {
+        "http_status": 200,
+        "assistant_message_count": 1,
+        "assistant_metadata": [
+          {
+            "channel": "whatsapp",
+            "purpose": "whatsapp_default_brain_reply",
+            "is_proactive": false,
+            "has_hidden_fil_rouge": false,
+            "outbound_tracking_id": "4beee294-df17-4bd4-88c7-90bd8987990a",
+            "reply_to_wa_message_id": "wamid_daily-d1-trigger-single-2026-05-13-r2_4_3d97900b-e9e2-4d64-985b-2fc059b2b871",
+            "wa_outbound_message_id": "wamid_DISABLED"
+          }
+        ],
+        "pending_status": "done",
+        "entries_count": 11,
+        "occurrence_statuses": [
+          {
+            "id": "f77106df-2119-479f-8819-2f4d91fa3975",
+            "status": "done"
+          }
+        ]
+      }
+    },
+    {
+      "turn": 5,
+      "role": "user",
+      "text": "Ok, dernière vérification : dans le daily, cette action est bien enregistrée comme faite, avec la note démarrage difficile ?"
+    },
+    {
+      "turn": 5,
+      "role": "assistant",
+      "text": "Je te propose cette carte d'attaque avant de la creer.\n\nPreparer le terrain\nPrepare l'environnement de \"Faire une session de travail focus (2h)\" pendant 2 minutes, sans obligation d'aller plus loin.\n\nMode d'emploi: Prepare le terrain avant le moment vise, puis laisse l'environnement t'aider a demarrer.\n\nTu veux que je cree cette carte ?",
+      "trace_short": {
+        "http_status": 200,
+        "assistant_message_count": 1,
+        "assistant_metadata": [
+          {
+            "channel": "whatsapp",
+            "purpose": "whatsapp_default_brain_reply",
+            "is_proactive": false,
+            "has_hidden_fil_rouge": false,
+            "outbound_tracking_id": "5eb64ab4-7b1b-4e13-a995-d2f4ce92bbb1",
+            "reply_to_wa_message_id": "wamid_daily-d1-trigger-single-2026-05-13-r2_5_a87e0e90-6cec-43af-ba9f-e0cd675e0296",
+            "wa_outbound_message_id": "wamid_DISABLED"
+          }
+        ],
+        "pending_status": "done",
+        "entries_count": 12,
+        "occurrence_statuses": [
+          {
+            "id": "f77106df-2119-479f-8819-2f4d91fa3975",
+            "status": "done"
+          }
+        ]
+      }
+    }
+  ],
+  "latest": {
+    "pending_after": [
+      {
+        "id": "24d51850-6632-40fb-8774-64390c77764f",
+        "status": "done",
+        "payload": {
+          "targets": [
+            {
+              "kind": "habit",
+              "title": "Faire une session de travail focus (2h)",
+              "plan_id": "55f505b5-e0b4-450b-a0a2-bc2656933181",
+              "cycle_id": "06e58ed9-8669-4d2a-a881-99509e993c34",
+              "dimension": "habits",
+              "planned_day": "sun",
+              "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+              "occurrence_id": "f77106df-2119-479f-8819-2f4d91fa3975",
+              "tracking_type": null,
+              "week_start_date": "2026-05-11",
+              "transformation_id": "72a16a18-3370-464a-8296-80f3398fc76a",
+              "original_planned_day": "sun"
+            }
+          ],
+          "timezone": "Europe/Paris",
+          "qa_run_id": "daily-d1-trigger-single-2026-05-13-r2",
+          "local_date": "2026-05-17",
+          "completed_at": "2026-05-13T13:51:30.694Z",
+          "message_mode": "conversation",
+          "qa_generated": true,
+          "review_state": {
+            "items": {
+              "f77106df-2119-479f-8819-2f4d91fa3975": {
+                "title": "Faire une session de travail focus (2h)",
+                "outcome": "completed",
+                "confidence": "medium",
+                "reason_text": null,
+                "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+                "occurrence_id": "f77106df-2119-479f-8819-2f4d91fa3975",
+                "reason_category": "none",
+                "matched_user_text": "Oui, je l'ai faite. J'ai tenu les deux heures complètes, même si le démarrage m'a demandé un effort."
+              }
+            },
+            "source": "daily_action_review_v1"
+          },
+          "draft_message": "Petit check du soir : est-ce que tu as fait \"Faire une session de travail focus (2h)\" ?\n\nReponds librement. Si ce n'est pas fait et que ca reste utile, je regarderai si ca peut etre decale demain.",
+          "event_context": "action_evening_review_v2",
+          "occurrence_ids": [
+            "f77106df-2119-479f-8819-2f4d91fa3975"
+          ],
+          "chat_capability": "daily_action_review",
+          "week_start_date": "2026-05-11",
+          "action_evening_review": true
+        },
+        "processed_at": "2026-05-13T13:51:30.719+00:00"
+      }
+    ],
+    "entries": [
+      {
+        "id": "d3d20b1c-0386-4a4d-b7b8-33180dae0870",
+        "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+        "entry_kind": "progress",
+        "outcome": "completed",
+        "value_text": null,
+        "blocker_hint": null,
+        "difficulty_level": null,
+        "metadata": {
+          "source": "router_parallel_tracking_v2",
+          "channel": "whatsapp",
+          "status_hint": "completed",
+          "source_message_id": null
+        },
+        "effective_at": "2026-05-13T13:52:53.288+00:00",
+        "created_at": "2026-05-13T13:52:53.288+00:00"
+      },
+      {
+        "id": "d1623809-7a77-4980-8d61-80d37facfb21",
+        "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+        "entry_kind": "progress",
+        "outcome": "completed",
+        "value_text": null,
+        "blocker_hint": null,
+        "difficulty_level": null,
+        "metadata": {
+          "source": "router_parallel_tracking_v2",
+          "channel": "whatsapp",
+          "status_hint": "completed",
+          "source_message_id": null
+        },
+        "effective_at": "2026-05-13T13:52:16.617+00:00",
+        "created_at": "2026-05-13T13:52:16.617+00:00"
+      },
+      {
+        "id": "7d50ba27-059e-44b4-bb02-e2c8e92b668c",
+        "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+        "entry_kind": "progress",
+        "outcome": "completed",
+        "value_text": null,
+        "blocker_hint": null,
+        "difficulty_level": null,
+        "metadata": {
+          "source": "router_parallel_tracking_v2",
+          "channel": "whatsapp",
+          "status_hint": "completed",
+          "source_message_id": null
+        },
+        "effective_at": "2026-05-13T13:51:55.127+00:00",
+        "created_at": "2026-05-13T13:51:55.127+00:00"
+      },
+      {
+        "id": "1892c78c-929d-4e89-8bd5-6476aebeb7c2",
+        "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+        "entry_kind": "checkin",
+        "outcome": "completed",
+        "value_text": null,
+        "blocker_hint": null,
+        "difficulty_level": null,
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "habits",
+          "confidence": "medium",
+          "local_date": "2026-05-17",
+          "reason_text": null,
+          "legacy_source": "action_evening_review_v2",
+          "occurrence_id": "f77106df-2119-479f-8819-2f4d91fa3975",
+          "outcome_source": "free_text",
+          "rescheduled_to": null,
+          "still_relevant": null,
+          "reason_category": "none",
+          "matched_user_text": "Oui, je l'ai faite. J'ai tenu les deux heures complètes, même si le démarrage m'a demandé un effort.",
+          "occurrence_status": "done",
+          "pending_action_id": "24d51850-6632-40fb-8774-64390c77764f",
+          "reschedule_decision": null,
+          "scheduled_checkin_id": null
+        },
+        "effective_at": "2026-05-17T12:00:00+00:00",
+        "created_at": "2026-05-13T13:51:30.694+00:00"
+      },
+      {
+        "id": "ad77ab45-3418-4ba9-9bdf-6efcef20883f",
+        "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+        "entry_kind": "progress",
+        "outcome": "completed",
+        "value_text": null,
+        "blocker_hint": null,
+        "difficulty_level": null,
+        "metadata": {
+          "source": "router_parallel_tracking_v2",
+          "channel": "whatsapp",
+          "status_hint": "completed",
+          "source_message_id": null
+        },
+        "effective_at": "2026-05-13T02:28:00.569+00:00",
+        "created_at": "2026-05-13T02:28:00.569+00:00"
+      },
+      {
+        "id": "3d0626aa-0d26-473a-97b4-09cf1404ecda",
+        "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+        "entry_kind": "progress",
+        "outcome": "completed",
+        "value_text": null,
+        "blocker_hint": null,
+        "difficulty_level": null,
+        "metadata": {
+          "source": "router_parallel_tracking_v2",
+          "channel": "whatsapp",
+          "status_hint": "completed",
+          "source_message_id": null
+        },
+        "effective_at": "2026-05-13T02:27:31.485+00:00",
+        "created_at": "2026-05-13T02:27:31.485+00:00"
+      },
+      {
+        "id": "6bfcd6ae-0a46-4dd0-8114-d8e44a4dd45a",
+        "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+        "entry_kind": "progress",
+        "outcome": "completed",
+        "value_text": null,
+        "blocker_hint": null,
+        "difficulty_level": null,
+        "metadata": {
+          "source": "router_parallel_tracking_v2",
+          "channel": "whatsapp",
+          "status_hint": "completed",
+          "source_message_id": null
+        },
+        "effective_at": "2026-05-13T02:27:11.429+00:00",
+        "created_at": "2026-05-13T02:27:11.429+00:00"
+      },
+      {
+        "id": "576c8b74-4fe1-477d-a2c7-626208c11e6c",
+        "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+        "entry_kind": "progress",
+        "outcome": "completed",
+        "value_text": null,
+        "blocker_hint": null,
+        "difficulty_level": null,
+        "metadata": {
+          "source": "router_parallel_tracking_v2",
+          "channel": "whatsapp",
+          "status_hint": "completed",
+          "source_message_id": null
+        },
+        "effective_at": "2026-05-13T02:26:48.76+00:00",
+        "created_at": "2026-05-13T02:26:48.76+00:00"
+      },
+      {
+        "id": "0c74ba4a-8d4f-4825-8e70-cfbf5e09e0bd",
+        "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+        "entry_kind": "partial",
+        "outcome": "partial",
+        "value_text": "Oui je l'ai fait, j'ai tenu les deux heures de focus. Le demarrage etait un peu laborieux mais apres c'etait bon.",
+        "blocker_hint": "unclear",
+        "difficulty_level": null,
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "habits",
+          "confidence": "medium",
+          "local_date": "2026-05-16",
+          "reason_text": "Oui je l'ai fait, j'ai tenu les deux heures de focus. Le demarrage etait un peu laborieux mais apres c'etait bon.",
+          "legacy_source": "action_evening_review_v2",
+          "occurrence_id": "83628d73-778d-4f9c-9898-6a9213d6fba0",
+          "outcome_source": "free_text",
+          "rescheduled_to": null,
+          "still_relevant": null,
+          "reason_category": "unclear",
+          "matched_user_text": "oui je l'ai fait j'ai tenu les deux heures de focus le demarrage etait un peu laborieux",
+          "occurrence_status": "partial",
+          "pending_action_id": "4746d76c-4f83-4969-87e3-c91eea956aed",
+          "reschedule_decision": null,
+          "scheduled_checkin_id": null
+        },
+        "effective_at": "2026-05-16T12:00:00+00:00",
+        "created_at": "2026-05-13T02:26:30.976+00:00"
+      },
+      {
+        "id": "3acb0573-cf81-4ee0-b82d-6a4ba3edbf2c",
+        "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+        "entry_kind": "progress",
+        "outcome": "completed",
+        "value_text": null,
+        "blocker_hint": null,
+        "difficulty_level": null,
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "habits",
+          "confidence": "medium",
+          "local_date": "2026-05-15",
+          "reason_text": null,
+          "legacy_source": "action_evening_review_v2",
+          "occurrence_id": "a3c1913e-1c8c-4b10-8e40-69074b51d0aa",
+          "outcome_source": "free_text",
+          "rescheduled_to": null,
+          "still_relevant": null,
+          "reason_category": "none",
+          "matched_user_text": "oui je l'ai faite j'ai bien tenu les deux heures de focus",
+          "occurrence_status": "done",
+          "pending_action_id": "df93268a-9610-4cbf-bba2-6f6639c22c21",
+          "reschedule_decision": null,
+          "scheduled_checkin_id": null
+        },
+        "effective_at": "2026-05-15T12:00:00+00:00",
+        "created_at": "2026-05-13T01:32:40.114+00:00"
+      },
+      {
+        "id": "63f355bc-f9c8-49b6-b1b9-233df6f9f405",
+        "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+        "entry_kind": "progress",
+        "outcome": "completed",
+        "value_text": null,
+        "blocker_hint": null,
+        "difficulty_level": null,
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "habits",
+          "confidence": "medium",
+          "local_date": "2026-05-14",
+          "reason_text": null,
+          "legacy_source": "action_evening_review_v2",
+          "occurrence_id": "053ad5c2-9d09-4b40-ad9d-f048c0b1d101",
+          "outcome_source": "free_text",
+          "rescheduled_to": null,
+          "still_relevant": null,
+          "reason_category": "none",
+          "matched_user_text": "j'ai fait la premiere la",
+          "occurrence_status": "done",
+          "pending_action_id": "2dd0b929-a06d-4df6-b6b6-70c73d42a0c9",
+          "reschedule_decision": null,
+          "scheduled_checkin_id": null
+        },
+        "effective_at": "2026-05-14T12:00:00+00:00",
+        "created_at": "2026-05-13T01:19:57.809+00:00"
+      },
+      {
+        "id": "355efaa4-4e71-4a95-8f70-e697133f6165",
+        "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+        "entry_kind": "progress",
+        "outcome": "completed",
+        "value_text": null,
+        "blocker_hint": null,
+        "difficulty_level": null,
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "habits",
+          "confidence": "medium",
+          "local_date": "2026-05-13",
+          "reason_text": null,
+          "legacy_source": "action_evening_review_v2",
+          "occurrence_id": "3fa7037d-69f1-47e5-b4ee-273a8b83703c",
+          "outcome_source": "free_text",
+          "rescheduled_to": null,
+          "still_relevant": null,
+          "reason_category": "none",
+          "matched_user_text": "j'ai fait la premiere la",
+          "occurrence_status": "done",
+          "pending_action_id": "c47f51e5-59dd-457e-93db-b078ef34d101",
+          "reschedule_decision": null,
+          "scheduled_checkin_id": null
+        },
+        "effective_at": "2026-05-13T12:00:00+00:00",
+        "created_at": "2026-05-13T01:10:56.023+00:00"
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "f77106df-2119-479f-8819-2f4d91fa3975",
+        "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+        "planned_day": "sun",
+        "status": "done",
+        "source": "default_generated",
+        "validated_at": "2026-05-13T13:51:30.694+00:00",
+        "updated_at": "2026-05-13T13:51:30.694+00:00"
+      }
+    ]
+  }
+}

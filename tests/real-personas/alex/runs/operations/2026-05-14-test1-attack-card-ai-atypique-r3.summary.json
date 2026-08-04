@@ -1,0 +1,22 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-atypique-r3-t01",
+    "status": 200,
+    "ok": true,
+    "user": "fais moi un truc d'attaque pour le machin du soir avec le carnet, j'ai pas d'idée de technique et j'ai pas envie d'un pavé",
+    "assistant": "Ok, on te fait un “machin du soir” simple, qui claque, sans technique compliquée. 😄\nPrends ton carnet et écris juste 3 lignes :\n1) Ce que j’ai fait aujourd’hui (1 phrase).\n2) Le plus utile / le plus important (1 phrase).\n3) La prochaine action mini (≤ 5 min) pour demain.\n\nTu veux que ce soit plutôt “calme” ou plutôt “focus productif” (A ou B) ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "operation_flow_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "trace_error": null
+  }
+]

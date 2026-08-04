@@ -1,0 +1,12 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r10-t01",
+    "auth_method": "get-jwt.sh",
+    "user": "Ce soir je vois un moment à protéger, même si ce n’est pas dans mon plan officiel : en rentrant, le téléphone finit près du canapé, je scrolle, puis l’envie de snack arrive. J’aimerais juste éviter que ça démarre.",
+    "status": 502,
+    "body": {
+      "message": "An invalid response was received from the upstream server"
+    }
+  }
+]

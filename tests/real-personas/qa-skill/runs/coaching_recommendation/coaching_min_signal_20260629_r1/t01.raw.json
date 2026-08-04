@@ -1,0 +1,252 @@
+{
+  "ok": true,
+  "request_id": "coaching_min_signal_20260629_r1-t01",
+  "user_id": "9c79220b-af32-4311-9572-c90a96b93baf",
+  "channel": "web",
+  "scope": "qa-coaching_min_signal_20260629_r1",
+  "empty_response": false,
+  "aborted": false,
+  "abort_reason": null,
+  "logged_message_id": null,
+  "latest_message_id": null,
+  "response": {
+    "content": "Je partirais sur une carte d’attaque, technique méditation de 5 minutes : comme tu figes dès l’ouverture du brouillon, l’idée est de te remettre mentalement dans le démarrage avant le premier geste, sans te forcer à froid.",
+    "mode": "companion",
+    "delivery": null,
+    "tool_execution": "none",
+    "executed_tools": [],
+    "conversation_turn_trace": {
+      "turn_frame": {
+        "turn_id": "coaching_min_signal_20260629_r1-t01",
+        "source_message_id": "2fec7d31-b83b-4ae5-941c-7fb7536c30f9",
+        "user_id": "9c79220b-af32-4311-9572-c90a96b93baf",
+        "channel": "web",
+        "safety": {
+          "risk_band": "none",
+          "reason_codes": [],
+          "evidence": []
+        },
+        "conversation_risk": {
+          "score": 0,
+          "threshold": 8,
+          "should_exit_flows": false,
+          "reason_codes": [],
+          "previous_scores": [],
+          "matrix": [],
+          "context_summary": null
+        },
+        "direct_effects": [],
+        "direct_effect_time_context": {
+          "now_utc": "2026-06-29T08:00:00.000Z",
+          "user_timezone": "Europe/Paris",
+          "user_locale": "fr-FR",
+          "user_local_datetime": "2026-06-29T10:00:00",
+          "user_local_human": "lundi 29 juin 2026 à 10:00"
+        },
+        "note_information": null,
+        "skill_signals": {
+          "coaching_recommendation": {
+            "detected": true,
+            "confidence_band": "high",
+            "reason": "plan_action_coaching_need",
+            "context": {
+              "coaching_type": "plan_action",
+              "confidence": 0.92,
+              "reason": "User is blocked on an identifiable active plan action and asks which coaching lever to use; the block is anchored to the plan item 'Envoyer le mail de cadrage'.",
+              "action_context": {
+                "source": "plan",
+                "plan_item_id": "dd3eb2e3-88c2-44c4-8e5f-7d1e8a918153",
+                "action_title": "Envoyer le mail de cadrage"
+              },
+              "needs_type_confirmation": true
+            }
+          }
+        },
+        "needs_research": {
+          "detected": false,
+          "value": false,
+          "query": null,
+          "domain_hint": null,
+          "confidence": 0,
+          "reason": null
+        },
+        "action_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_inference_unavailable"
+        },
+        "level_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_inference_unavailable"
+        },
+        "memory_plan": {
+          "response_intent": "coach on a blocked plan action and clarify lever choice",
+          "reasoning_complexity": "low",
+          "context_need": "targeted",
+          "memory_mode": "light",
+          "model_tier_hint": "lite",
+          "context_budget_tier": "small",
+          "targets": [],
+          "retrieval_policy": "taxonomy_first",
+          "plan_confidence": 0.92
+        }
+      },
+      "route_decision": {
+        "route_version": "v1",
+        "response_owner": "coaching_recommendation",
+        "blocked_paths": [],
+        "direct_effects_to_run": [],
+        "reason_code": "coaching_recommendation_signal",
+        "memory_used_for_route": false,
+        "memory_item_ids_used_for_route": [],
+        "memory_use_kind": "none",
+        "selected_handler": "coaching_recommendation"
+      },
+      "effect_ledger": {
+        "turn_id": "coaching_min_signal_20260629_r1-t01",
+        "counts": {
+          "requested": 0,
+          "allowed": 0,
+          "blocked": 0,
+          "committed": 0,
+          "failed": 0,
+          "proposed": 0,
+          "delivered": 0,
+          "cancelled": 0,
+          "superseded": 0,
+          "asked": 0,
+          "resolved": 0,
+          "topic_change": 0
+        },
+        "entries": []
+      },
+      "response_owner": "coaching_recommendation",
+      "skill_run": {
+        "selected_skill_id": "coaching_recommendation",
+        "reason_code": "coaching_recommendation_signal",
+        "status": "continue",
+        "latency_ms": 17622
+      }
+    }
+  },
+  "conversation_turn_trace": {
+    "turn_frame": {
+      "turn_id": "coaching_min_signal_20260629_r1-t01",
+      "source_message_id": "2fec7d31-b83b-4ae5-941c-7fb7536c30f9",
+      "user_id": "9c79220b-af32-4311-9572-c90a96b93baf",
+      "channel": "web",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "conversation_risk": {
+        "score": 0,
+        "threshold": 8,
+        "should_exit_flows": false,
+        "reason_codes": [],
+        "previous_scores": [],
+        "matrix": [],
+        "context_summary": null
+      },
+      "direct_effects": [],
+      "direct_effect_time_context": {
+        "now_utc": "2026-06-29T08:00:00.000Z",
+        "user_timezone": "Europe/Paris",
+        "user_locale": "fr-FR",
+        "user_local_datetime": "2026-06-29T10:00:00",
+        "user_local_human": "lundi 29 juin 2026 à 10:00"
+      },
+      "note_information": null,
+      "skill_signals": {
+        "coaching_recommendation": {
+          "detected": true,
+          "confidence_band": "high",
+          "reason": "plan_action_coaching_need",
+          "context": {
+            "coaching_type": "plan_action",
+            "confidence": 0.92,
+            "reason": "User is blocked on an identifiable active plan action and asks which coaching lever to use; the block is anchored to the plan item 'Envoyer le mail de cadrage'.",
+            "action_context": {
+              "source": "plan",
+              "plan_item_id": "dd3eb2e3-88c2-44c4-8e5f-7d1e8a918153",
+              "action_title": "Envoyer le mail de cadrage"
+            },
+            "needs_type_confirmation": true
+          }
+        }
+      },
+      "needs_research": {
+        "detected": false,
+        "value": false,
+        "query": null,
+        "domain_hint": null,
+        "confidence": 0,
+        "reason": null
+      },
+      "action_reference": {
+        "detected": false,
+        "status": "none",
+        "expansion_policy": "none",
+        "reason": "semantic_inference_unavailable"
+      },
+      "level_reference": {
+        "detected": false,
+        "status": "none",
+        "expansion_policy": "none",
+        "reason": "semantic_inference_unavailable"
+      },
+      "memory_plan": {
+        "response_intent": "coach on a blocked plan action and clarify lever choice",
+        "reasoning_complexity": "low",
+        "context_need": "targeted",
+        "memory_mode": "light",
+        "model_tier_hint": "lite",
+        "context_budget_tier": "small",
+        "targets": [],
+        "retrieval_policy": "taxonomy_first",
+        "plan_confidence": 0.92
+      }
+    },
+    "route_decision": {
+      "route_version": "v1",
+      "response_owner": "coaching_recommendation",
+      "blocked_paths": [],
+      "direct_effects_to_run": [],
+      "reason_code": "coaching_recommendation_signal",
+      "memory_used_for_route": false,
+      "memory_item_ids_used_for_route": [],
+      "memory_use_kind": "none",
+      "selected_handler": "coaching_recommendation"
+    },
+    "effect_ledger": {
+      "turn_id": "coaching_min_signal_20260629_r1-t01",
+      "counts": {
+        "requested": 0,
+        "allowed": 0,
+        "blocked": 0,
+        "committed": 0,
+        "failed": 0,
+        "proposed": 0,
+        "delivered": 0,
+        "cancelled": 0,
+        "superseded": 0,
+        "asked": 0,
+        "resolved": 0,
+        "topic_change": 0
+      },
+      "entries": []
+    },
+    "response_owner": "coaching_recommendation",
+    "skill_run": {
+      "selected_skill_id": "coaching_recommendation",
+      "reason_code": "coaching_recommendation_signal",
+      "status": "continue",
+      "latency_ms": 17622
+    }
+  },
+  "trace_error": null
+}

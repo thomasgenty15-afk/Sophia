@@ -1,0 +1,81 @@
+{
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "50c2ef9f-a1eb-44a4-8883-769fc32cc93b",
+        "role": "user",
+        "content": "Je veux une potion, mais je ne sais pas laquelle. Je suis tendu et je perds un peu l'élan, j'hésite entre me calmer et me remettre en route.",
+        "scope": "qa-emotional-repair-2026-06-05-select-state-potion-visible-agent-smoke-r1",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-05-select-state-potion-visible-agent-smoke-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-05T13:38:52.291096+00:00"
+      },
+      {
+        "id": "05be31ad-63aa-4628-ba3b-edcde9a2100f",
+        "role": "assistant",
+        "content": "Je comprends que tu te sentes tendu et que tu perdes l'élan. Entre te calmer et te remettre en route, laquelle de ces potions t'aiderait le mieux : une Potion d'apaisement ou une Potion anti-décrochage ? 🙂",
+        "scope": "qa-emotional-repair-2026-06-05-select-state-potion-visible-agent-smoke-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-05-select-state-potion-visible-agent-smoke-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "collecting",
+              "handoff": null,
+              "constraints": [],
+              "reason_code": "state_potion_handoff_collecting",
+              "operation_type": "select_state_potion",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "no_chat_mutation": true,
+              "platform_handoff": {
+                "draft": null,
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "state_potion_handoff_collecting",
+                "operation_type": "select_state_potion",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "select_state_potion",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-05T13:39:11.832293+00:00"
+      }
+    ]
+  },
+  "memory_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "scheduled_checkins": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_recurring_reminders": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  }
+}

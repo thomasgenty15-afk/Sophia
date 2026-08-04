@@ -1,0 +1,32 @@
+{
+  "apiUrl": "http://127.0.0.1:54321",
+  "anonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0",
+  "sessions": {
+    "alex": {
+      "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+      "email": "alex12@gmail.com",
+      "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjU0MzIxL2F1dGgvdjEiLCJzdWIiOiJhYWM3NmZkNi1hNjg4LTQwMjctOTUxYS1mYTc5YzYyOGZhYzUiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzgxMzAyNTc5LCJpYXQiOjE3ODEyOTg5NzksImVtYWlsIjoiYWxleDEyQGdtYWlsLmNvbSIsInBob25lIjoiIiwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiZW1haWwiLCJwcm92aWRlcnMiOlsiZW1haWwiXX0sInVzZXJfbWV0YWRhdGEiOnsiZW1haWxfdmVyaWZpZWQiOnRydWUsImlzX3Rlc3RfcGVyc29uYSI6dHJ1ZX0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3ODEyOTg5Nzl9XSwic2Vzc2lvbl9pZCI6IjVlZjNlZDM4LTNkZTEtNGU3YS04YmU3LWJkNmEzNGNiNjYyYyIsImlzX2Fub255bW91cyI6ZmFsc2V9.-CNmfZN1lsBGwqikufg7-0fTtQe-lgkqjNPKXSniijs",
+      "verify_status": 200,
+      "verified_user_id": "aac76fd6-a688-4027-951a-fa79c628fac5"
+    },
+    "rose": {
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "email": "rose@gmail.com",
+      "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjU0MzIxL2F1dGgvdjEiLCJzdWIiOiIwMmRjOWFlMi00MTI4LTQxMmItYjBiZS01NjcxMmJmNzc1YTgiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzgxMjg5MzE5LCJpYXQiOjE3ODEyODU3MTksImVtYWlsIjoicm9zZUBnbWFpbC5jb20iLCJwaG9uZSI6IiIsImFwcF9tZXRhZGF0YSI6eyJpc190ZXN0X3BlcnNvbmEiOnRydWUsInByb3ZpZGVyIjoiZW1haWwiLCJwcm92aWRlcnMiOlsiZW1haWwiXX0sInVzZXJfbWV0YWRhdGEiOnsiZW1haWxfdmVyaWZpZWQiOnRydWUsImlzX3Rlc3RfcGVyc29uYSI6dHJ1ZX0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3ODEyODU3MTl9XSwic2Vzc2lvbl9pZCI6ImU0MWY4NGVhLWI5MzctNDkwOS1hMWQwLWMwZGI3MmIyZDk4NiIsImlzX2Fub255bW91cyI6ZmFsc2V9.JW5lJfYDpoLBQPAYynw3Dm-hkDk2c0EnjJeha5ilCxs",
+      "verify_status": 200,
+      "verified_user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8"
+    }
+  },
+  "failures": {
+    "nina": {
+      "email": "nina@gmail.com",
+      "status": 400,
+      "error": "Invalid login credentials"
+    },
+    "paul": {
+      "email": "paul@gmail.com",
+      "status": 400,
+      "error": "Invalid login credentials"
+    }
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "scheduled_checkins": [
+    {
+      "id": "55808c4d-f704-4639-8eea-a0f12cda4510",
+      "status": "pending",
+      "scheduled_for": "2026-06-25T09:10:00+00:00",
+      "event_context": "one_shot_reminder:sortir_le_dossier_fiscal",
+      "message_payload": {
+        "source": "one_shot_reminder_executor",
+        "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Objet du rappel utilisateur: sortir le dossier fiscal.",
+        "parse_source": "payload_when_hint",
+        "request_text": "Rappelle-moi demain à 09h10 de sortir le dossier fiscal",
+        "reminder_kind": "one_shot",
+        "user_timezone": "UTC",
+        "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: sortir le dossier fiscal.",
+        "source_message_id": null,
+        "reminder_instruction": "sortir le dossier fiscal"
+      },
+      "created_at": "2026-06-24T13:54:42.69027+00:00"
+    }
+  ],
+  "chat_messages_count": 2,
+  "chat_messages": [
+    {
+      "role": "user",
+      "content": "Rappelle-moi demain à 09h10 de sortir le dossier fiscal, et pour le reste réponds juste normalement sans lancer un autre truc.",
+      "created_at": "2026-06-24T13:54:37.453431+00:00",
+      "metadata": {
+        "request_id": "qa-one-shot-reminder-seven-flows-r3-global-t01",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "C’est programmé pour demain à 09h10 : je te ferai un rappel pour sortir le dossier fiscal. 🙂\n\nEt c’est tout pour le reste.",
+      "created_at": "2026-06-24T13:54:43.784289+00:00",
+      "metadata": {
+        "request_id": "qa-one-shot-reminder-seven-flows-r3-global-t01",
+        "route_owner": "normal_reply",
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    }
+  ],
+  "user_chat_state": {
+    "user_id": "51706d9e-a1bc-496d-9a74-eb3a41596174",
+    "current_mode": "companion",
+    "risk_level": 0,
+    "temp_memory": {
+      "companion_question_rhythm": {
+        "preference": "normal",
+        "recent_turns": [
+          0
+        ],
+        "last_updated_at": "2026-06-24T13:54:43.767Z",
+        "last_turn_had_question": false,
+        "turns_since_last_question": 1
+      }
+    },
+    "updated_at": "2026-06-24T13:54:43.781088+00:00"
+  }
+}

@@ -1,0 +1,78 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-update-coach-preferences-2026-05-17-prefmatrix-multi-pref-r3-t01",
+    "user": "J'aimerais que tu sois plus directe avec moi, et aussi que tu me poses moins de questions quand je suis déjà clair.",
+    "assistant": "Tu aimerais que je sois plus directe et que je te pose moins de questions. Quelle préférence souhaites-tu que j'applique en priorité ?",
+    "status": 200,
+    "trace": {
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "response_owner": "tool_skill",
+      "selected_handler": "update_coach_preferences",
+      "route_selected_handler": "update_coach_preferences",
+      "route_reason": "tool_skill_intent_start",
+      "safety": {
+        "detected": false,
+        "evidence": [],
+        "risk_band": "none",
+        "reason_codes": [],
+        "allow_side_effects": true,
+        "layer_contributions": {
+          "lexical": false,
+          "heuristic": false,
+          "dispatcher_llm": false
+        }
+      },
+      "direct_effects": [],
+      "operation": null,
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "executed_tools": [],
+      "tool_execution": "blocked",
+      "trace_error": null,
+      "trace_id": "qa-update-coach-preferences-2026-05-17-prefmatrix-multi-pref-r3-t01"
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-update-coach-preferences-2026-05-17-prefmatrix-multi-pref-r3-t02",
+    "user": "Oui, applique celui-là.",
+    "assistant": "Lequel souhaites-tu que j'applique en premier : le ton plus direct ou moins de questions ?",
+    "status": 200,
+    "trace": {
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "response_owner": "tool_skill",
+      "selected_handler": "update_coach_preferences",
+      "route_selected_handler": "update_coach_preferences",
+      "route_reason": "active_tool_skill_continue",
+      "safety": {
+        "detected": false,
+        "evidence": [],
+        "risk_band": "none",
+        "reason_codes": [],
+        "allow_side_effects": true,
+        "layer_contributions": {
+          "lexical": false,
+          "heuristic": false,
+          "dispatcher_llm": false
+        }
+      },
+      "direct_effects": [],
+      "operation": null,
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "executed_tools": [],
+      "tool_execution": "blocked",
+      "trace_error": null,
+      "trace_id": "qa-update-coach-preferences-2026-05-17-prefmatrix-multi-pref-r3-t02"
+    }
+  }
+]

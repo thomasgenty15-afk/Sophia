@@ -1,0 +1,358 @@
+{
+  "ok": true,
+  "status": 200,
+  "count": "0-0/1",
+  "body": [
+    {
+      "id": "f46e7ce4-2ffb-43b7-b35a-34a724b59fb0",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "status": "active",
+      "title": "Dégager du temps pour ton projet entrepreneurial",
+      "created_at": "2026-06-14T21:42:59.218+00:00",
+      "updated_at": "2026-06-15T07:15:32.193333+00:00",
+      "activated_at": "2026-06-15T07:15:33.195+00:00",
+      "cycle_id": "140eb9a9-d2a6-482f-9347-0e9e1b618e1b",
+      "transformation_id": "f310bcec-385c-45c8-b201-a5e99118b902",
+      "content": {
+        "title": "Dégager du temps pour ton projet entrepreneurial",
+        "phases": [
+          {
+            "items": [
+              {
+                "kind": "task",
+                "title": "Bloquer tes deux créneaux dans l'agenda",
+                "payload": {},
+                "temp_id": "gen-p1-missions-001",
+                "dimension": "missions",
+                "description": "Ouvre ton agenda et choisis deux créneaux d'une heure pour cette semaine. Traite-les avec la même importance que tes séances avec ta coach sportive. Préviens ton entourage que tu ne seras pas disponible.",
+                "target_reps": null,
+                "time_of_day": "anytime",
+                "support_mode": null,
+                "cadence_label": null,
+                "tracking_type": "boolean",
+                "scheduled_days": null,
+                "activation_order": 1,
+                "support_function": null,
+                "activation_condition": null
+              },
+              {
+                "kind": "habit",
+                "title": "Faire une session de travail focus d'une heure",
+                "payload": {},
+                "temp_id": "gen-p1-habits-001",
+                "dimension": "habits",
+                "description": "Installe-toi sur ton projet pendant une heure chrono. Coupe les notifications, ferme les emails du travail salarié, et n'accepte aucune interruption.",
+                "target_reps": 2,
+                "time_of_day": "evening",
+                "support_mode": null,
+                "cadence_label": "2 sessions / semaine",
+                "tracking_type": "boolean",
+                "scheduled_days": null,
+                "activation_order": 1,
+                "support_function": null,
+                "activation_condition": null
+              },
+              {
+                "kind": "framework",
+                "title": "Créer ton sas de décompression",
+                "payload": {
+                  "clarification_details": {
+                    "type": "one_shot",
+                    "intro": "Le soir, l'énergie est basse. Pour éviter de replonger dans les urgences, il te faut un signal clair qui dit 'la journée pro est finie, mon projet commence'.",
+                    "sections": [
+                      {
+                        "id": "transition_action",
+                        "label": "Quelle petite action peut marquer cette coupure ?",
+                        "input_type": "list",
+                        "helper_text": "Choisis des gestes simples qui signalent à ton cerveau que tu changes de rôle.",
+                        "placeholder": "Prendre une douche, changer de tenue, boire un thé..."
+                      },
+                      {
+                        "id": "energy_check",
+                        "label": "À quel moment précis sens-tu que ton énergie chute le soir ?",
+                        "input_type": "text",
+                        "helper_text": "L'objectif sera de placer tes sessions avant cette chute.",
+                        "placeholder": "Ex: juste après le dîner"
+                      }
+                    ],
+                    "save_label": "Valider mon sas"
+                  }
+                },
+                "temp_id": "gen-p1-clarifications-001",
+                "dimension": "clarifications",
+                "description": "Passe 5 minutes à définir comment tu vas marquer la rupture entre ta journée de salariée/maman et ton temps d'entrepreneure.",
+                "target_reps": null,
+                "time_of_day": "anytime",
+                "support_mode": null,
+                "cadence_label": null,
+                "tracking_type": "boolean",
+                "scheduled_days": null,
+                "activation_order": 2,
+                "support_function": null,
+                "activation_condition": null
+              },
+              {
+                "kind": "task",
+                "title": "Préparer ton espace la veille",
+                "payload": {},
+                "temp_id": "gen-p1-missions-002",
+                "dimension": "missions",
+                "description": "Pour réduire la friction, prépare ton bureau, tes notes ou ton ordinateur la veille de ta session. Quand l'heure arrive, tu n'as plus qu'à t'asseoir et démarrer.",
+                "target_reps": null,
+                "time_of_day": "evening",
+                "support_mode": null,
+                "cadence_label": null,
+                "tracking_type": "boolean",
+                "scheduled_days": null,
+                "activation_order": 3,
+                "support_function": null,
+                "activation_condition": {
+                  "type": "after_item_completion",
+                  "depends_on": [
+                    "gen-p1-missions-001"
+                  ]
+                }
+              }
+            ],
+            "title": "Sanctuariser tes premiers créneaux",
+            "phase_id": "phase-1",
+            "heartbeat": {
+              "unit": "sessions/semaine",
+              "title": "Sessions de travail sanctuarisées",
+              "target": 2,
+              "current": null,
+              "tracking_mode": "inferred"
+            },
+            "rationale": "Avant de viser 5 heures, il faut prouver que tu peux bloquer et tenir du temps sans te laisser interrompre. On réduit la durée des sessions pour les rendre infaillibles.",
+            "phase_order": 1,
+            "why_this_now": "C'est le verrou principal : tant qu'un petit créneau n'est pas respecté, un grand créneau de 2 heures sera toujours voué à l'échec.",
+            "phase_objective": "Installer et tenir deux sessions de travail d'une heure par semaine, totalement protégées des distractions.",
+            "duration_guidance": "3 semaines",
+            "phase_metric_target": "Pas encore de cible directe de 5 heures ; ce niveau vise d'abord à sécuriser 2 sessions de 1 heure par semaine sans distraction.",
+            "how_this_phase_works": "On identifie les deux meilleurs moments de ta semaine pour placer une heure de travail, et on les bloque comme des rendez-vous officiels.",
+            "maintained_foundation": [],
+            "what_this_phase_targets": "La difficulté à protéger ton temps face aux sollicitations familiales et professionnelles."
+          }
+        ],
+        "version": 3,
+        "cycle_id": "140eb9a9-d2a6-482f-9347-0e9e1b618e1b",
+        "metadata": {
+          "phase_1_preview": {
+            "title": "Poser ton socle de départ",
+            "heartbeat": "Pourquoi clarifié",
+            "rationale": "Avant de bousculer ton agenda, on met au clair ce qui te motive profondément et ce que tu veux protéger.",
+            "phase_objective": "Te donner une base solide pour la suite : savoir pourquoi ce projet compte assez pour justifier de dire non à d'autres sollicitations."
+          },
+          "schedule_anchor": {
+            "version": 1,
+            "timezone": "Europe/Paris",
+            "week_starts_on": "monday",
+            "anchor_week_end": "2026-06-21",
+            "generated_at_utc": "2026-06-15T07:15:33.195Z",
+            "anchor_local_date": "2026-06-15",
+            "anchor_week_start": "2026-06-15",
+            "anchor_local_human": "lundi 15 juin 2026 à 09:15",
+            "anchor_display_start": "2026-06-15",
+            "is_partial_anchor_week": false,
+            "days_remaining_in_anchor_week": 7
+          },
+          "plan_adjustment_context": {
+            "phase_reasoning": [
+              {
+                "phase_id": "phase-1",
+                "phase_order": 1,
+                "role_in_plan": "Prouver qu'il est possible de bloquer du temps intouchable dans un agenda saturé.",
+                "why_before_next": "Tant qu'un petit créneau d'une heure n'est pas respecté, essayer d'en placer 5 sera voué à l'échec.",
+                "slowdown_signals": [
+                  "Impossibilité de trouver 2 heures dans la semaine",
+                  "Les sessions sont constamment interrompues"
+                ],
+                "user_signals_used": [
+                  "Difficulté à tenir des blocs de 2h",
+                  "Sollicitations constantes",
+                  "Discipline existante sur le sport (coach)"
+                ],
+                "acceleration_signals": [
+                  "Les créneaux sont respectés sans effort de volonté majeur",
+                  "L'entourage a compris et respecte la limite"
+                ],
+                "prerequisite_for_next_phase": "Avoir tenu 2 sessions d'une heure sur une semaine sans se laisser interrompre."
+              }
+            ],
+            "global_reasoning": {
+              "sequencing_logic": "Réduire la durée des blocs pour garantir leur exécution, sanctuariser comme un rdv médical/sportif, puis augmenter le volume.",
+              "slowdown_signals": [
+                "Même 1h est annulée pour cause de fatigue",
+                "Culpabilité vis-à-vis de la famille",
+                "Réunions tardives systématiques qui écrasent les créneaux"
+              ],
+              "main_problem_model": "L'utilisatrice essaie de caser des blocs trop longs (2h) dans des moments de basse énergie (soir), sans protéger ce temps des sollicitations.",
+              "acceleration_signals": [
+                "Les sessions d'une heure sont tenues facilement",
+                "L'énergie reste haute",
+                "L'envie de continuer après 1h est forte"
+              ],
+              "why_not_faster_initially": "Un agenda déjà saturé exploserait avec un objectif direct de 5h. Il faut d'abord prouver que 2h sont tenables sans sacrifier le sport ou la méditation."
+            }
+          }
+        },
+        "strategy": {
+          "core_principle": null,
+          "identity_shift": null,
+          "main_constraint": "Ne jamais sacrifier les routines de sport et de méditation qui maintiennent l'équilibre actuel.",
+          "success_definition": "Atteindre 5 heures de travail hebdomadaire sur le projet, réparties en sessions régulières et sans stress."
+        },
+        "user_summary": "Ton agenda est saturé et ton projet entrepreneurial en fait les frais. Cette transformation va t'aider à sanctuariser des créneaux intouchables, sans sacrifier ton équilibre personnel ni tes routines saines.",
+        "plan_blueprint": {
+          "levels": [
+            {
+              "title": "Optimiser l'énergie et allonger les sessions",
+              "phase_id": "phase-2",
+              "intention": "Passer de sessions d'une heure à des blocs d'une heure et demie, en gérant mieux la fatigue du soir.",
+              "level_order": 2,
+              "preview_summary": "Une fois les petits créneaux sécurisés, on augmente progressivement la durée sans créer d'épuisement.",
+              "estimated_duration_weeks": 4
+            },
+            {
+              "title": "Atteindre et stabiliser les 5 heures",
+              "phase_id": "phase-3",
+              "intention": "Ajouter les derniers créneaux pour atteindre l'objectif final et ancrer ce rythme dans la durée.",
+              "level_order": 3,
+              "preview_summary": "On consolide l'emploi du temps pour que tes 5 heures deviennent une norme intouchable.",
+              "estimated_duration_weeks": 4
+            }
+          ],
+          "global_objective": "Atteindre 5 heures de travail hebdomadaire sur ton projet entrepreneurial.",
+          "estimated_levels_count": 2
+        },
+        "primary_metric": {
+          "unit": "heures",
+          "label": "Heures dédiées au projet par semaine",
+          "baseline_value": "1 heure",
+          "success_target": "5 heures",
+          "measurement_mode": "absolute_value"
+        },
+        "duration_months": 3,
+        "journey_context": null,
+        "global_objective": "Atteindre 5 heures de travail hebdomadaire sur le projet, réparties en sessions régulières et sans stress.",
+        "internal_summary": "L'utilisatrice a une vie très remplie mais fait preuve d'une grande discipline (sport, méditation). Le blocage vient d'une mauvaise allocation de l'énergie (blocs de 2h le soir) et d'un manque de frontières avec les sollicitations. Le plan vise à réduire la taille des blocs initiaux pour garantir le succès, installer un sas de décompression, puis scaler progressivement vers 5h/semaine.",
+        "timeline_summary": "En 3 semaines, tu vas passer d'un temps résiduel subi à deux heures de travail sanctuarisées et protégées.",
+        "key_understanding": "Tu ne trouveras pas de temps libre par magie : tu dois le sanctuariser et le traiter avec le même niveau d'intransigeance que tes séances avec ta coach sportive, en commençant par des blocs plus courts.",
+        "progression_logic": "On commence par sécuriser deux petits blocs d'une heure par semaine pour recréer l'habitude de travailler sur le projet sans s'épuiser. Ensuite, on optimisera l'énergie, puis on augmentera progressivement la durée jusqu'aux 5 heures visées.",
+        "situation_context": "Tu as un emploi du temps déjà très dense entre ton travail salarié, ta famille, tes amis et tes routines sportives. Ton projet entrepreneurial passe en dernier, souvent le soir quand ton énergie est au plus bas, ce qui t'empêche de dépasser 1 heure par semaine.",
+        "transformation_id": "f310bcec-385c-45c8-b201-a5e99118b902",
+        "mechanism_analysis": "Essayer de caler des blocs de 2 heures en fin de journée, sans sas de décompression après le travail, te confronte directement à la fatigue et aux imprévus. Le temps n'est pas protégé comme l'est ton heure de sport, il sert de variable d'ajustement et saute à la moindre sollicitation.",
+        "current_level_runtime": {
+          "title": "Sanctuariser tes premiers créneaux",
+          "weeks": [
+            {
+              "focus": "La semaine se termine ce soir. On pose juste les bases pour la semaine prochaine.",
+              "title": "Préparer le terrain",
+              "week_order": 1,
+              "action_focus": [
+                "Bloquer les créneaux dans l'agenda pour la semaine à venir"
+              ],
+              "mission_days": [
+                "dimanche"
+              ],
+              "reps_summary": "1 micro-session",
+              "success_signal": "Tes deux créneaux de la semaine prochaine sont inscrits dans ton agenda.",
+              "item_assignments": [
+                {
+                  "temp_id": "gen-p1-habits-001",
+                  "weekly_reps": 1,
+                  "weekly_cadence_label": "1 micro-session",
+                  "weekly_description_override": "Ce soir, prends juste 15 minutes pour définir ce que tu feras lors de ta première vraie session."
+                },
+                {
+                  "temp_id": "gen-p1-missions-001"
+                }
+              ],
+              "progression_note": "Il est tard ce dimanche, on ne lance pas de grande session. On prépare juste le calendrier.",
+              "weekly_target_label": "1 micro-action de préparation ce soir",
+              "weekly_target_value": 1
+            },
+            {
+              "focus": "Tenir un premier créneau d'une heure sans aucune interruption.",
+              "title": "Lancer la première vraie session",
+              "week_order": 2,
+              "action_focus": [
+                "Faire une session d'une heure complète",
+                "Définir ton sas de décompression"
+              ],
+              "mission_days": [
+                "mercredi"
+              ],
+              "reps_summary": "1 session tenue",
+              "success_signal": "Tu as réussi à travailler une heure sans répondre à aucune sollicitation.",
+              "item_assignments": [
+                {
+                  "temp_id": "gen-p1-habits-001",
+                  "weekly_reps": 1,
+                  "weekly_cadence_label": "1 session cette semaine",
+                  "weekly_description_override": "Fais ta première session d'une heure complète, sans aucune distraction."
+                },
+                {
+                  "temp_id": "gen-p1-clarifications-001"
+                }
+              ],
+              "progression_note": "On commence doucement avec une seule vraie session d'une heure pour s'habituer à la coupure.",
+              "weekly_target_label": "1 session d'une heure sanctuarisée",
+              "weekly_target_value": 1
+            },
+            {
+              "focus": "Passer à deux sessions d'une heure et réduire la friction de démarrage.",
+              "title": "Installer le rythme de base",
+              "week_order": 3,
+              "action_focus": [
+                "Tenir tes deux sessions d'une heure",
+                "Préparer ton espace la veille pour faciliter le démarrage"
+              ],
+              "mission_days": [
+                "lundi"
+              ],
+              "reps_summary": "2 sessions tenues",
+              "success_signal": "Les deux sessions sont devenues des rendez-vous naturels dans ta semaine.",
+              "item_assignments": [
+                {
+                  "temp_id": "gen-p1-habits-001",
+                  "weekly_reps": 2,
+                  "weekly_cadence_label": "2 sessions cette semaine",
+                  "weekly_description_override": "Tiens tes deux sessions d'une heure cette semaine. Le rythme s'installe."
+                },
+                {
+                  "temp_id": "gen-p1-missions-002"
+                }
+              ],
+              "progression_note": "On atteint le rythme cible de ce niveau : deux sessions par semaine.",
+              "weekly_target_label": "2 sessions d'une heure sanctuarisées",
+              "weekly_target_value": 2
+            }
+          ],
+          "phase_id": "phase-1",
+          "heartbeat": {
+            "unit": "sessions/semaine",
+            "title": "Sessions de travail sanctuarisées",
+            "target": 2,
+            "current": null,
+            "tracking_mode": "inferred"
+          },
+          "rationale": "Avant de viser 5 heures, il faut prouver que tu peux bloquer et tenir du temps sans te laisser interrompre. On réduit la durée des sessions pour les rendre infaillibles.",
+          "level_order": 1,
+          "review_focus": [
+            "As-tu réussi à imposer ces créneaux à ton entourage ?",
+            "L'heure de travail t'a-t-elle semblé trop courte, ou juste bien pour démarrer ?"
+          ],
+          "why_this_now": "C'est le verrou principal : tant qu'un petit créneau n'est pas respecté, un grand créneau de 2 heures sera toujours voué à l'échec.",
+          "duration_weeks": 3,
+          "phase_objective": "Installer et tenir deux sessions de travail d'une heure par semaine, totalement protégées des distractions.",
+          "phase_metric_target": "Pas encore de cible directe de 5 heures ; ce niveau vise d'abord à sécuriser 2 sessions de 1 heure par semaine sans distraction.",
+          "how_this_phase_works": "On identifie les deux meilleurs moments de ta semaine pour placer une heure de travail, et on les bloque comme des rendez-vous officiels.",
+          "maintained_foundation": [],
+          "what_this_phase_targets": "La difficulté à protéger ton temps face aux sollicitations familiales et professionnelles."
+        },
+        "inspiration_narrative": "Tu as déjà prouvé ta capacité à tenir des engagements forts avec le sport et la méditation. Imagine appliquer cette même rigueur sereine à ton projet entrepreneurial. D'ici quelques mois, tes 5 heures hebdomadaires seront devenues aussi naturelles et intouchables que tes séances de coaching, te permettant de voir ton business décoller sans sacrifier ton équilibre."
+      }
+    }
+  ]
+}

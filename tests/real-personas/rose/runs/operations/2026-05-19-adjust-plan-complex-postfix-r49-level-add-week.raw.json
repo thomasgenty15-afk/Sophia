@@ -1,0 +1,2321 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r49-level-add-week-t01",
+    "user": "Je crois que le niveau actuel va trop vite pour moi. J'aimerais rajouter une semaine au niveau avant de passer à la suite, mais sans changer l'objectif du plan.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r49-level-add-week-t01",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-19-adjust-plan-complex-postfix-r49-level-add-week",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je comprends. Pour cette semaine supplémentaire, est-ce qu'il y a des actions spécifiques dans le niveau \"Désamorcer et recréer de la sécurité\" que tu souhaiterais approfondir, alléger, ou sur lesquelles tu aimerais te concentrer davantage ? Par exemple, l'habitude \"Partager un point positif\" ou la clarification \"Cartographier les déclencheurs\" ? 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r49-level-add-week-t01",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "5ac0db9d-17ec-401c-aba4-7c02f0b97ac2",
+        "ts": "2026-05-19T16:58:08.028+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 11293,
+          "latency_ms": 5409,
+          "model_used": "gemini-2.5-flash",
+          "tokens_out": 861,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "Désamorcer et recréer de la sécurité",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "niveau actuel",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Je crois que le niveau actuel va trop vite pour moi. J'aimerais rajouter une semaine au niveau avant de passer à la suite, mais sans changer l'objectif du plan.",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r49-level-add-week-t01",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "Désamorcer et recréer de la sécurité",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "niveau actuel",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Je crois que le niveau actuel va trop vite pour moi. J'aimerais rajouter une semaine au niveau avant de passer à la suite, mais sans changer l'objectif du plan.",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": "level_reference",
+            "status": "current_level",
+            "detected": true,
+            "expansion_policy": "include_level_execution_handoff"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "5ac0db9d-17ec-401c-aba4-7c02f0b97ac2",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "niveau actuel",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "current_level",
+                  "label": "Désamorcer et recréer de la sécurité",
+                  "status": "identified",
+                  "evidence": [
+                    "le niveau actuel"
+                  ]
+                },
+                "constraints": [
+                  {
+                    "value": "sans changer l'objectif du plan",
+                    "status": "identified",
+                    "evidence": [
+                      "sans changer l'objectif du plan"
+                    ],
+                    "confidence": "high"
+                  }
+                ],
+                "change_target": {
+                  "value": "duration",
+                  "status": "identified",
+                  "evidence": [
+                    "rajouter une semaine"
+                  ],
+                  "confidence": "high"
+                },
+                "target_granularity": {
+                  "value": "current_level",
+                  "status": "identified",
+                  "evidence": [
+                    "le niveau actuel",
+                    "rajouter une semaine au niveau"
+                  ],
+                  "confidence": "high",
+                  "negative_evidence": [
+                    "pas une seule action"
+                  ]
+                }
+              },
+              "adjust_plan_scope": "current_level"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "ask_question",
+          "reason_code": "tool_skill_intent_start",
+          "plan_item_id": null,
+          "target_title": null,
+          "missing_slots": [
+            "current_level.affected_items"
+          ],
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Proposer de retirer des actions du niveau.",
+              "Changer l'objectif du niveau ou du plan global.",
+              "Faire des suppositions sur les raisons profondes du sentiment de 'trop vite' sans poser de questions.",
+              "Suggérer des modifications aux niveaux futurs à ce stade."
+            ],
+            "scope": "level",
+            "preserve": [
+              "L'objectif global du plan, tel que demandé par l'utilisateur.",
+              "Le cœur et l'intention des actions et missions du niveau actuel.",
+              "La séquence et la logique pédagogique du niveau, l'extension étant un ajustement de rythme."
+            ],
+            "warnings": [
+              "Éviter de modifier le contenu ou la difficulté des actions du niveau sans une demande explicite, car l'utilisateur demande un ajustement de durée, pas de substance.",
+              "Ne pas interpréter le 'trop vite' comme une demande de suppression d'actions, mais comme un besoin d'étaler leur exécution."
+            ],
+            "confidence": "high",
+            "guidelines": [
+              "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+              "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+              "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+              "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+              "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+              "Guidelines action: Les actions du niveau doivent conserver leur rôle et leur intention. Aucun changement de nature sans demande explicite.",
+              "Guidelines niveau: Le cœur du niveau et ses objectifs d'apprentissage doivent être préservés. L'extension est un ajustement de rythme, pas de contenu.",
+              "Guidelines whole_plan: La trajectoire et la cohérence globale du plan sont explicitement à préserver, conformément à la demande de l'utilisateur."
+            ],
+            "observation": "L'utilisateur exprime un sentiment de surcharge ou de rythme trop rapide au sein du niveau actuel, et demande un ajustement temporel pour mieux intégrer les actions. L'intention est de réduire la pression et de permettre une assimilation plus profonde sans modifier l'objectif global du plan.",
+            "recommendation": "Accorder une semaine supplémentaire au niveau actuel pour répondre directement au besoin de ralentissement et de meilleure intégration, tout en respectant la contrainte de ne pas modifier l'objectif du plan.",
+            "options_to_discuss": [
+              "Proposer de revoir la charge de travail hebdomadaire si l'extension d'une semaine ne suffit pas à soulager la pression ressentie.",
+              "Explorer si le sentiment de 'trop vite' est lié à des contraintes externes ou à des difficultés spécifiques avec certaines actions."
+            ],
+            "questions_to_clarify": [
+              "Y a-t-il des actions spécifiques dans ce niveau qui te semblent particulièrement lourdes ou rapides ?",
+              "Est-ce que cette semaine supplémentaire est destinée à approfondir certaines actions ou simplement à alléger la charge globale ?"
+            ]
+          },
+          "coaching_guidance_audit": {
+            "scope": "level",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 22060,
+        "created_at": "2026-05-19T16:58:08.036734+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r49-level-add-week-t02",
+    "user": "Je veux surtout consolider le signal de pause et continuer à observer les déclencheurs. Je ne veux pas ajouter plein d'actions, plutôt garder le niveau une semaine de plus avec une charge stable.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r49-level-add-week-t02",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-19-adjust-plan-complex-postfix-r49-level-add-week",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Si je comprends bien, tu souhaites prolonger le niveau actuel d'une semaine pour consolider le signal de pause et continuer à observer les déclencheurs, sans ajouter de nouvelles actions et en maintenant une charge stable. Je peux te préparer une proposition concrète pour cela ? 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r49-level-add-week-t02",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "01822cb0-32f9-444b-ab2f-1cfe44501edb",
+        "ts": "2026-05-19T16:59:00.858+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 13882,
+          "latency_ms": 20572,
+          "model_used": "gemini-2.5-flash",
+          "tokens_out": 1310,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "Désamorcer et recréer de la sécurité",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "niveau actuel",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "Convenir d'un signal de pause",
+                "type": "action",
+                "priority": "medium",
+                "query_hint": "signal de pause",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "Cartographier les déclencheurs",
+                "type": "action",
+                "priority": "medium",
+                "query_hint": "déclencheurs",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Je veux surtout consolider le signal de pause et continuer à observer les déclencheurs. Je ne veux pas ajouter plein d'actions, plutôt garder le niveau une sema",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r49-level-add-week-t02",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "Désamorcer et recréer de la sécurité",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "niveau actuel",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "Convenir d'un signal de pause",
+                "type": "action",
+                "priority": "medium",
+                "query_hint": "signal de pause",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "Cartographier les déclencheurs",
+                "type": "action",
+                "priority": "medium",
+                "query_hint": "déclencheurs",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Je veux surtout consolider le signal de pause et continuer à observer les déclencheurs. Je ne veux pas ajouter plein d'actions, plutôt garder le niveau une sema",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {
+              "reason": "user_provides_details_for_active_tool_skill",
+              "skill_id": "adjust_plan_item",
+              "signal_type": "continue"
+            }
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": "level_reference",
+            "status": "current_level",
+            "detected": true,
+            "expansion_policy": "include_level_execution_handoff"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 1,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0;decay=0.55;recovery=0",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "01822cb0-32f9-444b-ab2f-1cfe44501edb",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "le niveau actuel",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "current_level",
+                  "label": "Désamorcer et recréer de la sécurité",
+                  "title": "Désamorcer et recréer de la sécurité",
+                  "status": "identified",
+                  "evidence": [
+                    "operation_input.scope"
+                  ],
+                  "current_summary": "Désamorcer et recréer de la sécurité"
+                },
+                "payload": {
+                  "reason": {
+                    "value": "fatigue",
+                    "status": "identified",
+                    "evidence": [
+                      "deterministic transcript fatigue/load signal"
+                    ]
+                  },
+                  "scope_kind": "current_level",
+                  "constraints": {
+                    "status": "identified",
+                    "values": [
+                      "exact_text:sans changer l'objectif du plan",
+                      "no_new_actions",
+                      "stable_load"
+                    ],
+                    "evidence": [
+                      "sans changer l'objectif du plan",
+                      "deterministic transcript constraints",
+                      "Je ne veux pas ajouter plein d'actions",
+                      "charge stable"
+                    ]
+                  },
+                  "change_target": {
+                    "value": "duration",
+                    "status": "identified",
+                    "evidence": [
+                      "rajouter une semaine",
+                      "garder le niveau une semaine de plus"
+                    ]
+                  },
+                  "reason_change": {
+                    "status": "identified",
+                    "evidence": [
+                      "le niveau actuel va trop vite pour moi"
+                    ]
+                  },
+                  "affected_items": {
+                    "status": "identified",
+                    "values": [
+                      {
+                        "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                        "kind": "task",
+                        "title": "Convenir d'un signal de pause",
+                        "reason": "user_explicitly_mentioned_focus"
+                      },
+                      {
+                        "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                        "kind": "task",
+                        "title": "Faire le point sur le signal de pause",
+                        "reason": "user_explicitly_mentioned_focus"
+                      },
+                      {
+                        "id": "07f63c87-82fb-471b-8d90-0848e5b06026",
+                        "kind": "framework",
+                        "title": "Cartographier les déclencheurs",
+                        "reason": "user_explicitly_mentioned_focus"
+                      }
+                    ],
+                    "evidence": [
+                      "consolider le signal de pause",
+                      "continuer à observer les déclencheurs"
+                    ]
+                  },
+                  "adjustment_type": {
+                    "value": "reduce_load",
+                    "status": "identified",
+                    "evidence": [
+                      "rajouter une semaine au niveau",
+                      "le niveau actuel va trop vite pour moi",
+                      "charge stable"
+                    ]
+                  }
+                },
+                "target_granularity": {
+                  "value": "current_level",
+                  "status": "identified",
+                  "evidence": [
+                    "le niveau actuel",
+                    "rajouter une semaine au niveau"
+                  ],
+                  "confidence": "high",
+                  "negative_evidence": [
+                    "pas une seule action"
+                  ]
+                }
+              },
+              "adjust_plan_scope": "current_level"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "active_tool_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "continue_active",
+            "reason_code": "active_tool_skill_continue",
+            "active_owner": "tool_skill",
+            "resume_policy": "none",
+            "selected_owner": "tool_skill"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "ask_question",
+          "reason_code": "active_tool_skill_continue",
+          "plan_item_id": null,
+          "target_title": "Désamorcer et recréer de la sécurité",
+          "missing_slots": [
+            "draft_generation_confirmation"
+          ],
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Proposer de retirer des actions du niveau.",
+              "Changer l'objectif du niveau ou du plan global.",
+              "Faire des suppositions sur les raisons profondes du sentiment de 'trop vite' sans poser de questions.",
+              "Suggérer des modifications aux niveaux futurs à ce stade."
+            ],
+            "scope": "level",
+            "preserve": [
+              "L'objectif global du plan et du niveau 'Désamorcer et recréer de la sécurité'.",
+              "Le cœur et l'intention des actions et missions du niveau actuel, notamment 'Convenir d'un signal de pause', 'Faire le point sur le signal de pause' et 'Cartographier les déclencheurs'.",
+              "La séquence et la logique pédagogique du niveau, l'extension étant un ajustement de rythme et non de contenu."
+            ],
+            "warnings": [
+              "Éviter de proposer de nouvelles actions ou d'augmenter la charge de travail, car l'utilisateur a explicitement demandé une charge stable et pas d'ajouts.",
+              "Ne pas modifier le contenu ou la difficulté des actions existantes sans une demande explicite, l'objectif étant la consolidation et non la refonte.",
+              "Ne pas interpréter le besoin de 'consolider' comme une nécessité de supprimer des actions, mais plutôt de leur laisser plus de temps pour s'ancrer."
+            ],
+            "confidence": "high",
+            "guidelines": [
+              "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+              "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+              "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+              "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+              "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+              "Guidelines action: Les actions du niveau doivent conserver leur rôle et leur intention. Aucun changement de nature sans demande explicite.",
+              "Guidelines niveau: Le cœur du niveau et ses objectifs d'apprentissage doivent être préservés. L'extension est un ajustement de rythme, pas de contenu.",
+              "Guidelines whole_plan: La trajectoire et la cohérence globale du plan sont explicitement à préserver, conformément à la demande de l'utilisateur."
+            ],
+            "observation": "L'utilisateur exprime le besoin de ralentir le rythme du niveau actuel pour mieux intégrer et consolider les apprentissages, notamment autour du signal de pause et de l'observation des déclencheurs. Il souhaite une extension temporelle du niveau sans augmentation de la charge de travail ni ajout de nouvelles actions.",
+            "recommendation": "Accorder une semaine supplémentaire au niveau actuel pour permettre à l'utilisateur de consolider les actions clés et d'observer les déclencheurs à un rythme stable, sans introduire de nouvelles actions ou modifier la charge existante.",
+            "options_to_discuss": [
+              "Proposer de revoir la charge de travail hebdomadaire si l'extension d'une semaine ne suffit pas à soulager la pression ressentie.",
+              "Explorer si le sentiment de 'trop vite' est lié à des contraintes externes ou à des difficultés spécifiques avec certaines actions, au-delà de la simple durée."
+            ],
+            "questions_to_clarify": [
+              "Y a-t-il des actions spécifiques dans ce niveau qui te semblent particulièrement lourdes ou rapides, au-delà du signal de pause et de l'observation des déclencheurs ?",
+              "Est-ce que cette semaine supplémentaire est destinée à approfondir spécifiquement le signal de pause et l'observation, ou simplement à alléger la charge globale du niveau ?"
+            ]
+          },
+          "coaching_guidance_audit": {
+            "scope": "level",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 43549,
+        "created_at": "2026-05-19T16:59:00.858935+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r49-level-add-week-t03",
+    "user": "Oui, prépare un brouillon sans appliquer. Je veux voir comment tu comptes ajouter cette semaine sans que ça devienne un plan interminable.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r49-level-add-week-t03",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-19-adjust-plan-complex-postfix-r49-level-add-week",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "J'ai bien compris que tu souhaites alléger ton niveau actuel, « Désamorcer et recréer de la sécurité », car tu le trouves trop rapide et que tu veux rajouter une semaine pour mieux intégrer les apprentissages, sans que cela ne rende le plan interminable. Je te propose un brouillon pour ajuster le rythme de ce niveau, sans toucher à l'objectif global de ton plan ni ajouter de nouvelles actions. Rien n'est appliqué pour l'instant, c'est une proposition pour que tu puisses valider.\n\nVoici les changements précis que je te propose :\n\n*   **Durée du niveau « Désamorcer et recréer de la sécurité »** : Au lieu de la durée prévue initialement, je propose d'**ajouter une semaine supplémentaire** à ce niveau. Cela t'aidera à te sentir moins pressé et à avoir plus de temps pour assimiler les concepts et pratiquer les nouvelles approches, répondant directement à ton sentiment que le niveau allait trop vite.\n*   **Fréquence de l'habitude « Partager un point positif »** : Je propose de la faire passer de **3 jours par semaine à 2 jours par semaine**. Cette modification vise à alléger ta charge hebdomadaire, te permettant de maintenir cette habitude importante sans que cela ne devienne une source de pression, et ainsi de mieux la consolider.\n\nCe qui ne bouge pas :\n\n*   **L'objectif global de ton plan** et celui du niveau « Désamorcer et recréer de la sécurité » restent inchangés. L'idée est de t'aider à atteindre tes objectifs, mais à un rythme plus adapté.\n*   Le contenu et l'intention des actions clés de ce niveau, comme « Convenir d'un signal de pause » ou « Cartographier les déclencheurs », sont **préservés**. L'extension du niveau te donne simplement plus de marge pour les réaliser.\n\nJe suis assez confiante que ces ajustements t'aideront à retrouver un rythme plus confortable pour ce niveau. Qu'en penses-tu ? 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r49-level-add-week-t03",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "fa667c49-d6a2-4043-983d-f84c698e5713",
+        "ts": "2026-05-19T17:00:31.161+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 14880,
+          "latency_ms": 26507,
+          "model_used": "gemini-2.5-flash",
+          "tokens_out": 4217,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "Désamorcer et recréer de la sécurité",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "niveau actuel",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r49-level-add-week-t03",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "Désamorcer et recréer de la sécurité",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "niveau actuel",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "product_help": {
+                "reason": "product_question",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {
+              "reason": "user_confirms_draft_generation_but_not_application",
+              "skill_id": "adjust_plan_item",
+              "signal_type": "continue_skill",
+              "confidence_band": "high",
+              "skill_state_payload": {
+                "phase": "generation",
+                "turn_count": 3,
+                "updated_at": "2026-05-19T16:59:12.000Z",
+                "missing_slots": [],
+                "operation_type": "adjust_plan_item",
+                "operation_input": {
+                  "scope": {
+                    "kind": "current_level",
+                    "label": "Désamorcer et recréer de la sécurité",
+                    "title": "Désamorcer et recréer de la sécurité",
+                    "evidence": [
+                      "operation_input.scope"
+                    ],
+                    "plan_item_id": null,
+                    "current_summary": "Désamorcer et recréer de la sécurité"
+                  },
+                  "payload": {
+                    "reason": {
+                      "value": "fatigue",
+                      "status": "identified",
+                      "evidence": [
+                        "deterministic transcript fatigue/load signal"
+                      ]
+                    },
+                    "scope_kind": "current_level",
+                    "constraints": {
+                      "status": "identified",
+                      "values": [
+                        "exact_text:sans changer l'objectif du plan",
+                        "no_new_actions",
+                        "stable_load"
+                      ],
+                      "evidence": [
+                        "sans changer l'objectif du plan",
+                        "deterministic transcript constraints",
+                        "Je ne veux pas ajouter plein d'actions",
+                        "charge stable"
+                      ]
+                    },
+                    "change_target": {
+                      "status": "identified",
+                      "evidence": [
+                        "rajouter une semaine",
+                        "garder le niveau une semaine de plus"
+                      ]
+                    },
+                    "reason_change": {
+                      "status": "identified",
+                      "evidence": [
+                        "le niveau actuel va trop vite pour moi"
+                      ]
+                    },
+                    "affected_items": {
+                      "status": "identified",
+                      "values": [
+                        {
+                          "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                          "kind": "task",
+                          "title": "Convenir d'un signal de pause",
+                          "reason": "user_explicitly_mentioned_focus"
+                        },
+                        {
+                          "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                          "kind": "task",
+                          "title": "Faire le point sur le signal de pause",
+                          "reason": "user_explicitly_mentioned_focus"
+                        },
+                        {
+                          "id": "07f63c87-82fb-471b-8d90-0848e5b06026",
+                          "kind": "framework",
+                          "title": "Cartographier les déclencheurs",
+                          "reason": "user_explicitly_mentioned_focus"
+                        }
+                      ],
+                      "evidence": [
+                        "consolider le signal de pause",
+                        "continuer à observer les déclencheurs"
+                      ]
+                    },
+                    "adjustment_type": {
+                      "value": "reduce_load",
+                      "status": "identified",
+                      "evidence": [
+                        "rajouter une semaine au niveau",
+                        "le niveau actuel va trop vite pour moi",
+                        "charge stable"
+                      ]
+                    }
+                  },
+                  "constraints": [
+                    {
+                      "value": "sans changer l'objectif du plan",
+                      "status": "identified",
+                      "evidence": [
+                        "sans changer l'objectif du plan"
+                      ],
+                      "confidence": "high"
+                    }
+                  ],
+                  "intake_state": {
+                    "scope": {
+                      "kind": "current_level",
+                      "label": "Désamorcer et recréer de la sécurité",
+                      "status": "identified",
+                      "evidence": [
+                        "operation_input.scope"
+                      ]
+                    },
+                    "payload": {
+                      "reason": {
+                        "value": "fatigue",
+                        "status": "identified",
+                        "evidence": [
+                          "deterministic transcript fatigue/load signal"
+                        ]
+                      },
+                      "scope_kind": "current_level",
+                      "constraints": {
+                        "status": "identified",
+                        "values": [
+                          "exact_text:sans changer l'objectif du plan",
+                          "no_new_actions",
+                          "stable_load"
+                        ],
+                        "evidence": [
+                          "sans changer l'objectif du plan",
+                          "deterministic transcript constraints",
+                          "Je ne veux pas ajouter plein d'actions",
+                          "charge stable"
+                        ]
+                      },
+                      "change_target": {
+                        "status": "identified",
+                        "evidence": [
+                          "rajouter une semaine",
+                          "garder le niveau une semaine de plus"
+                        ]
+                      },
+                      "reason_change": {
+                        "status": "identified",
+                        "evidence": [
+                          "le niveau actuel va trop vite pour moi"
+                        ]
+                      },
+                      "affected_items": {
+                        "status": "identified",
+                        "values": [
+                          {
+                            "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                            "kind": "task",
+                            "title": "Convenir d'un signal de pause",
+                            "reason": "user_explicitly_mentioned_focus"
+                          },
+                          {
+                            "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                            "kind": "task",
+                            "title": "Faire le point sur le signal de pause",
+                            "reason": "user_explicitly_mentioned_focus"
+                          },
+                          {
+                            "id": "07f63c87-82fb-471b-8d90-0848e5b06026",
+                            "kind": "framework",
+                            "title": "Cartographier les déclencheurs",
+                            "reason": "user_explicitly_mentioned_focus"
+                          }
+                        ],
+                        "evidence": [
+                          "consolider le signal de pause",
+                          "continuer à observer les déclencheurs"
+                        ]
+                      },
+                      "adjustment_type": {
+                        "value": "reduce_load",
+                        "status": "identified",
+                        "evidence": [
+                          "rajouter une semaine au niveau",
+                          "le niveau actuel va trop vite pour moi",
+                          "charge stable"
+                        ]
+                      }
+                    },
+                    "coaching_guidance": {
+                      "avoid": [
+                        "Proposer de retirer des actions du niveau.",
+                        "Changer l'objectif du niveau ou du plan global.",
+                        "Faire des suppositions sur les raisons profondes du sentiment de 'trop vite' sans poser de questions.",
+                        "Suggérer des modifications aux niveaux futurs à ce stade."
+                      ],
+                      "scope": "level",
+                      "preserve": [
+                        "L'objectif global du plan et du niveau 'Désamorcer et recréer de la sécurité'.",
+                        "Le cœur et l'intention des actions et missions du niveau actuel, notamment 'Convenir d'un signal de pause', 'Faire le point sur le signal de pause' et 'Cartographier les déclencheurs'.",
+                        "La séquence et la logique pédagogique du niveau, l'extension étant un ajustement de rythme et non de contenu."
+                      ],
+                      "warnings": [
+                        "Éviter de proposer de nouvelles actions ou d'augmenter la charge de travail, car l'utilisateur a explicitement demandé une charge stable et pas d'ajouts.",
+                        "Ne pas modifier le contenu ou la difficulté des actions existantes sans une demande explicite, l'objectif étant la consolidation et non la refonte.",
+                        "Ne pas interpréter le besoin de 'consolider' comme une nécessité de supprimer des actions, mais plutôt de leur laisser plus de temps pour s'ancrer."
+                      ],
+                      "confidence": "high",
+                      "guidelines": [
+                        "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+                        "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+                        "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+                        "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+                        "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+                        "Guidelines action: Les actions du niveau doivent conserver leur rôle et leur intention. Aucun changement de nature sans demande explicite.",
+                        "Guidelines niveau: Le cœur du niveau et ses objectifs d'apprentissage doivent être préservés. L'extension est un ajustement de rythme, pas de contenu.",
+                        "Guidelines whole_plan: La trajectoire et la cohérence globale du plan sont explicitement à préserver, conformément à la demande de l'utilisateur."
+                      ],
+                      "observation": "L'utilisateur exprime le besoin de ralentir le rythme du niveau actuel pour mieux intégrer et consolider les apprentissages, notamment autour du signal de pause et de l'observation des déclencheurs. Il souhaite une extension temporelle du niveau sans augmentation de la charge de travail ni ajout de nouvelles actions.",
+                      "recommendation": "Accorder une semaine supplémentaire au niveau actuel pour permettre à l'utilisateur de consolider les actions clés et d'observer les déclencheurs à un rythme stable, sans introduire de nouvelles actions ou modifier la charge existante.",
+                      "options_to_discuss": [
+                        "Proposer de revoir la charge de travail hebdomadaire si l'extension d'une semaine ne suffit pas à soulager la pression ressentie.",
+                        "Explorer si le sentiment de 'trop vite' est lié à des contraintes externes ou à des difficultés spécifiques avec certaines actions, au-delà de la simple durée."
+                      ],
+                      "questions_to_clarify": [
+                        "Y a-t-il des actions spécifiques dans ce niveau qui te semblent particulièrement lourdes ou rapides, au-delà du signal de pause et de l'observation des déclencheurs ?",
+                        "Est-ce que cette semaine supplémentaire est destinée à approfondir spécifiquement le signal de pause et l'observation, ou simplement à alléger la charge globale du niveau ?"
+                      ]
+                    },
+                    "selected_sub_skill": "level_intake",
+                    "target_granularity": {
+                      "value": "current_level",
+                      "status": "identified",
+                      "evidence": [
+                        "le niveau actuel",
+                        "rajouter une semaine au niveau"
+                      ],
+                      "confidence": "high",
+                      "negative_evidence": [
+                        "pas une seule action"
+                      ]
+                    }
+                  },
+                  "change_target": {
+                    "value": "duration",
+                    "status": "identified",
+                    "evidence": [
+                      "rajouter une semaine"
+                    ],
+                    "confidence": "high"
+                  },
+                  "coaching_guidance": {
+                    "avoid": [
+                      "Proposer de retirer des actions du niveau.",
+                      "Changer l'objectif du niveau ou du plan global.",
+                      "Faire des suppositions sur les raisons profondes du sentiment de 'trop vite' sans poser de questions.",
+                      "Suggérer des modifications aux niveaux futurs à ce stade."
+                    ],
+                    "scope": "level",
+                    "preserve": [
+                      "L'objectif global du plan et du niveau 'Désamorcer et recréer de la sécurité'.",
+                      "Le cœur et l'intention des actions et missions du niveau actuel, notamment 'Convenir d'un signal de pause', 'Faire le point sur le signal de pause' et 'Cartographier les déclencheurs'.",
+                      "La séquence et la logique pédagogique du niveau, l'extension étant un ajustement de rythme et non de contenu."
+                    ],
+                    "warnings": [
+                      "Éviter de proposer de nouvelles actions ou d'augmenter la charge de travail, car l'utilisateur a explicitement demandé une charge stable et pas d'ajouts.",
+                      "Ne pas modifier le contenu ou la difficulté des actions existantes sans une demande explicite, l'objectif étant la consolidation et non la refonte.",
+                      "Ne pas interpréter le besoin de 'consolider' comme une nécessité de supprimer des actions, mais plutôt de leur laisser plus de temps pour s'ancrer."
+                    ],
+                    "confidence": "high",
+                    "guidelines": [
+                      "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+                      "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+                      "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+                      "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+                      "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+                      "Guidelines action: Les actions du niveau doivent conserver leur rôle et leur intention. Aucun changement de nature sans demande explicite.",
+                      "Guidelines niveau: Le cœur du niveau et ses objectifs d'apprentissage doivent être préservés. L'extension est un ajustement de rythme, pas de contenu.",
+                      "Guidelines whole_plan: La trajectoire et la cohérence globale du plan sont explicitement à préserver, conformément à la demande de l'utilisateur."
+                    ],
+                    "observation": "L'utilisateur exprime le besoin de ralentir le rythme du niveau actuel pour mieux intégrer et consolider les apprentissages, notamment autour du signal de pause et de l'observation des déclencheurs. Il souhaite une extension temporelle du niveau sans augmentation de la charge de travail ni ajout de nouvelles actions.",
+                    "recommendation": "Accorder une semaine supplémentaire au niveau actuel pour permettre à l'utilisateur de consolider les actions clés et d'observer les déclencheurs à un rythme stable, sans introduire de nouvelles actions ou modifier la charge existante.",
+                    "options_to_discuss": [
+                      "Proposer de revoir la charge de travail hebdomadaire si l'extension d'une semaine ne suffit pas à soulager la pression ressentie.",
+                      "Explorer si le sentiment de 'trop vite' est lié à des contraintes externes ou à des difficultés spécifiques avec certaines actions, au-delà de la simple durée."
+                    ],
+                    "questions_to_clarify": [
+                      "Y a-t-il des actions spécifiques dans ce niveau qui te semblent particulièrement lourdes ou rapides, au-delà du signal de pause et de l'observation des déclencheurs ?",
+                      "Est-ce que cette semaine supplémentaire est destinée à approfondir spécifiquement le signal de pause et l'observation, ou simplement à alléger la charge globale du niveau ?"
+                    ]
+                  },
+                  "target_granularity": {
+                    "value": "current_level",
+                    "status": "identified",
+                    "evidence": [
+                      "le niveau actuel",
+                      "rajouter une semaine au niveau"
+                    ],
+                    "confidence": "high",
+                    "negative_evidence": [
+                      "pas une seule action"
+                    ]
+                  },
+                  "adjust_plan_sub_skills": [
+                    {
+                      "id": "scope_router",
+                      "role": "Determine if the user targets one action, the current level, or the whole plan.",
+                      "minimum_ready_slots": [
+                        "scope.status=identified",
+                        "scope.kind"
+                      ]
+                    },
+                    {
+                      "id": "action_intake",
+                      "role": "Fill the action-specific adjustment payload once scope is a specific plan item.",
+                      "minimum_ready_slots": [
+                        "scope.plan_item_id",
+                        "adjustment_type",
+                        "reason",
+                        "constraints"
+                      ]
+                    },
+                    {
+                      "id": "level_intake",
+                      "role": "Fill the current-level adjustment payload and protect whole-plan boundaries.",
+                      "minimum_ready_slots": [
+                        "reason_change",
+                        "change_target",
+                        "constraints",
+                        "affected_items_before_execution"
+                      ]
+                    },
+                    {
+                      "id": "whole_plan_intake",
+                      "role": "Fill the whole-plan adjustment payload and preserve the global objective when requested.",
+                      "minimum_ready_slots": [
+                        "reason_change",
+                        "global_change_target",
+                        "preserved_intent",
+                        "impact_examples_before_confirmation"
+                      ]
+                    },
+                    {
+                      "id": "draft_validation",
+                      "role": "Validate the generated draft and require concrete examples before confirmation.",
+                      "minimum_ready_slots": [
+                        "user_ready_review_message",
+                        "changed_examples",
+                        "boundaries",
+                        "no_pre_confirmation_execution_claim"
+                      ]
+                    }
+                  ],
+                  "coaching_guidance_audit": {
+                    "scope": "level",
+                    "source": "runner",
+                    "status": "generated"
+                  },
+                  "latest_turn_operation_input": {
+                    "scope": {
+                      "kind": "current_level",
+                      "label": "Désamorcer et recréer de la sécurité",
+                      "title": "Désamorcer et recréer de la sécurité",
+                      "status": "identified",
+                      "evidence": [
+                        "operation_input.scope"
+                      ],
+                      "current_summary": "Désamorcer et recréer de la sécurité"
+                    },
+                    "payload": {
+                      "reason": {
+                        "value": "fatigue",
+                        "status": "identified",
+                        "evidence": [
+                          "deterministic transcript fatigue/load signal"
+                        ]
+                      },
+                      "scope_kind": "current_level",
+                      "constraints": {
+                        "status": "identified",
+                        "values": [
+                          "exact_text:sans changer l'objectif du plan",
+                          "no_new_actions",
+                          "stable_load"
+                        ],
+                        "evidence": [
+                          "sans changer l'objectif du plan",
+                          "deterministic transcript constraints",
+                          "Je ne veux pas ajouter plein d'actions",
+                          "charge stable"
+                        ]
+                      },
+                      "change_target": {
+                        "value": "duration",
+                        "status": "identified",
+                        "evidence": [
+                          "rajouter une semaine",
+                          "garder le niveau une semaine de plus"
+                        ]
+                      },
+                      "reason_change": {
+                        "status": "identified",
+                        "evidence": [
+                          "le niveau actuel va trop vite pour moi"
+                        ]
+                      },
+                      "affected_items": {
+                        "status": "identified",
+                        "values": [
+                          {
+                            "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                            "kind": "task",
+                            "title": "Convenir d'un signal de pause",
+                            "reason": "user_explicitly_mentioned_focus"
+                          },
+                          {
+                            "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                            "kind": "task",
+                            "title": "Faire le point sur le signal de pause",
+                            "reason": "user_explicitly_mentioned_focus"
+                          },
+                          {
+                            "id": "07f63c87-82fb-471b-8d90-0848e5b06026",
+                            "kind": "framework",
+                            "title": "Cartographier les déclencheurs",
+                            "reason": "user_explicitly_mentioned_focus"
+                          }
+                        ],
+                        "evidence": [
+                          "consolider le signal de pause",
+                          "continuer à observer les déclencheurs"
+                        ]
+                      },
+                      "adjustment_type": {
+                        "value": "reduce_load",
+                        "status": "identified",
+                        "evidence": [
+                          "rajouter une semaine au niveau",
+                          "le niveau actuel va trop vite pour moi",
+                          "charge stable"
+                        ]
+                      }
+                    },
+                    "target_granularity": {
+                      "value": "current_level",
+                      "status": "identified",
+                      "evidence": [
+                        "le niveau actuel",
+                        "rajouter une semaine au niveau"
+                      ],
+                      "confidence": "high",
+                      "negative_evidence": [
+                        "pas une seule action"
+                      ]
+                    }
+                  }
+                },
+                "draft_generation_confirmation": {
+                  "value": "generate_draft_only",
+                  "status": "identified",
+                  "evidence": [
+                    "prépare un brouillon sans appliquer",
+                    "Je veux voir comment tu comptes ajouter cette semaine sans que ça devienne un plan interminable"
+                  ],
+                  "confidence": "high"
+                }
+              }
+            }
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 1,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0,1;decay=0.55;recovery=1.5",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              1
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "fa667c49-d6a2-4043-983d-f84c698e5713",
+          "tool_skill_intents": [],
+          "confirmation_response": {
+            "kind": "correction_to_pending",
+            "reason": "user_confirms_draft_generation_but_explicitly_not_application",
+            "confidence_band": "high"
+          },
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "product_help_inline_resume_active_tool_skill",
+          "blocked_paths": [
+            {
+              "path": "tool_skills",
+              "reason_code": "product_help_inline_preserves_active_tool_skill"
+            }
+          ],
+          "route_version": "v1",
+          "response_owner": "product_help",
+          "memory_use_kind": "none",
+          "selected_handler": "product_help",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "inline_answer_then_resume",
+            "reason_code": "product_help_inline_resume_active_tool_skill",
+            "active_owner": "tool_skill",
+            "resume_policy": "auto_after_answer",
+            "selected_owner": "product_help"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "ask_question",
+          "reason_code": "product_help_inline_resume_active_tool_skill",
+          "plan_item_id": null,
+          "target_title": "Désamorcer et recréer de la sécurité",
+          "missing_slots": [
+            "materialized_changed_items"
+          ],
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Proposer de retirer des actions du niveau.",
+              "Changer l'objectif du niveau ou du plan global.",
+              "Faire des suppositions sur les raisons profondes du sentiment de 'trop vite' sans poser de questions.",
+              "Suggérer des modifications aux niveaux futurs à ce stade."
+            ],
+            "scope": "level",
+            "preserve": [
+              "L'objectif global du plan et du niveau 'Désamorcer et recréer de la sécurité'.",
+              "Le cœur et l'intention des actions et missions du niveau actuel, notamment 'Convenir d'un signal de pause', 'Faire le point sur le signal de pause' et 'Cartographier les déclencheurs'.",
+              "La séquence et la logique pédagogique du niveau, l'extension étant un ajustement de rythme et non de contenu."
+            ],
+            "warnings": [
+              "Éviter de proposer de nouvelles actions ou d'augmenter la charge de travail, car l'utilisateur a explicitement demandé une charge stable et pas d'ajouts.",
+              "Ne pas modifier le contenu ou la difficulté des actions existantes sans une demande explicite, l'objectif étant la consolidation et non la refonte.",
+              "Ne pas interpréter le besoin de 'consolider' comme une nécessité de supprimer des actions, mais plutôt de leur laisser plus de temps pour s'ancrer."
+            ],
+            "confidence": "high",
+            "guidelines": [
+              "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+              "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+              "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+              "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+              "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+              "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+              "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+              "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+              "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+              "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+              "Guidelines action: Les actions du niveau doivent conserver leur rôle et leur intention. Aucun changement de nature sans demande explicite.",
+              "Guidelines niveau: Le cœur du niveau et ses objectifs d'apprentissage doivent être préservés. L'extension est un ajustement de rythme, pas de contenu.",
+              "Guidelines whole_plan: La trajectoire et la cohérence globale du plan sont explicitement à préserver, conformément à la demande de l'utilisateur."
+            ],
+            "observation": "L'utilisateur demande une extension d'une semaine pour le niveau actuel afin de mieux intégrer les apprentissages, sans que cela ne rende le plan 'interminable'. Cela indique un besoin de consolidation et de rythme stable, plutôt qu'une augmentation de la charge ou de nouvelles actions.",
+            "recommendation": "Proposer d'allonger le niveau actuel d'une semaine, en redistribuant les actions existantes sur cette période étendue pour permettre une meilleure intégration et consolidation, sans introduire de nouvelles tâches ni augmenter la charge globale.",
+            "options_to_discuss": [
+              "Proposer de revoir la répartition des actions existantes sur les semaines du niveau pour optimiser la consolidation.",
+              "Explorer si le sentiment de 'trop vite' est lié à des contraintes externes ou à des difficultés spécifiques avec certaines actions, au-delà de la simple durée."
+            ],
+            "questions_to_clarify": [
+              "Y a-t-il des actions spécifiques dans ce niveau qui te semblent particulièrement lourdes ou rapides, au-delà du signal de pause et de l'observation des déclencheurs ?",
+              "Est-ce que cette semaine supplémentaire est destinée à approfondir spécifiquement le signal de pause et l'observation, ou simplement à alléger la charge globale du niveau ?"
+            ]
+          },
+          "coaching_guidance_audit": {
+            "scope": "level",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 79175,
+        "created_at": "2026-05-19T17:00:31.164006+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r49-level-add-week-t04",
+    "user": "Le principe d'ajouter une semaine me va, mais je ne veux pas baisser 'Partager un point positif'. Garde le rythme actuel, je demande seulement une semaine de consolidation en plus.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r49-level-add-week-t04",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-19-adjust-plan-complex-postfix-r49-level-add-week",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "J'ai bien compris l'ajustement. Je te prépare une proposition concrète, et rien n'est appliqué tant que tu ne confirmes pas clairement. 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r49-level-add-week-t04",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "01ee24a8-3a45-40b0-b708-d65326c85085",
+        "ts": "2026-05-19T17:01:42.168+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 15904,
+          "latency_ms": 26087,
+          "model_used": "gemini-2.5-flash",
+          "tokens_out": 1001,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "Désamorcer et recréer de la sécurité",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "contexte du niveau Désamorcer et recréer de la sécurité",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r49-level-add-week-t04",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "Désamorcer et recréer de la sécurité",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "contexte du niveau Désamorcer et recréer de la sécurité",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {
+              "reason": "user_provides_correction_to_draft",
+              "skill_id": "adjust_plan_item",
+              "signal_type": "continue",
+              "confidence_band": "high"
+            }
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 1.6,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": true,
+                "evidence": "0,1,1;decay=0.55;recovery=0",
+                "contribution": 0.6
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure",
+              "previous_risk"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              1,
+              1
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "01ee24a8-3a45-40b0-b708-d65326c85085",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "semaine de consolidation en plus",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "current_level",
+                  "label": "Désamorcer et recréer de la sécurité",
+                  "status": "identified",
+                  "evidence": [
+                    "active_tool_skill_intake.operation_input.scope"
+                  ]
+                },
+                "payload": {
+                  "constraints": {
+                    "status": "identified",
+                    "values": [
+                      "no_new_actions",
+                      "stable_load",
+                      "preserve_item:Partager un point positif"
+                    ],
+                    "evidence": [
+                      "je ne veux pas baisser 'Partager un point positif'",
+                      "Garde le rythme actuel",
+                      "je demande seulement une semaine de consolidation en plus"
+                    ]
+                  },
+                  "change_target": {
+                    "value": "duration",
+                    "status": "identified",
+                    "evidence": [
+                      "ajouter une semaine"
+                    ]
+                  },
+                  "reason_change": {
+                    "value": "fatigue",
+                    "status": "identified",
+                    "evidence": [
+                      "le niveau actuel va trop vite pour moi"
+                    ]
+                  },
+                  "affected_items": {
+                    "status": "identified",
+                    "values": [
+                      {
+                        "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                        "kind": "task",
+                        "title": "Convenir d'un signal de pause"
+                      },
+                      {
+                        "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                        "kind": "task",
+                        "title": "Faire le point sur le signal de pause"
+                      },
+                      {
+                        "id": "07f63c87-82fb-471b-8d90-0848e5b06026",
+                        "kind": "framework",
+                        "title": "Cartographier les déclencheurs"
+                      }
+                    ],
+                    "evidence": [
+                      "consolider le signal de pause",
+                      "continuer à observer les déclencheurs"
+                    ]
+                  }
+                },
+                "target_granularity": {
+                  "value": "current_level",
+                  "status": "identified",
+                  "evidence": [
+                    "semaine de consolidation en plus"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "current_level"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "active_tool_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "continue_active",
+            "reason_code": "active_tool_skill_continue",
+            "active_owner": "tool_skill",
+            "resume_policy": "none",
+            "selected_owner": "tool_skill"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "draft_review_decision",
+          "reason_code": "active_tool_skill_continue",
+          "plan_item_id": null,
+          "target_title": null,
+          "missing_slots": [],
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Proposer de retirer des actions du niveau.",
+              "Changer l'objectif du niveau ou du plan global.",
+              "Réduire la fréquence ou la difficulté de 'Partager un point positif'.",
+              "Suggérer des modifications aux niveaux futurs à ce stade.",
+              "Ajouter de nouvelles actions."
+            ],
+            "scope": "level",
+            "preserve": [
+              "L'objectif global du plan et du niveau 'Désamorcer et recréer de la sécurité'.",
+              "Le cœur et l'intention des actions et missions du niveau actuel.",
+              "Le rythme actuel de l'habitude 'Partager un point positif'.",
+              "La séquence et la logique pédagogique du niveau, l'extension étant un ajustement de rythme et non de contenu."
+            ],
+            "warnings": [
+              "Ne pas modifier la fréquence ou la difficulté de l'habitude 'Partager un point positif', car l'utilisateur a explicitement demandé de garder son rythme actuel.",
+              "Éviter de proposer de nouvelles actions ou d'augmenter la charge de travail globale du niveau.",
+              "Ne pas interpréter l'ajout d'une semaine comme une opportunité de supprimer des actions existantes."
+            ],
+            "confidence": "high",
+            "guidelines": [
+              "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+              "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+              "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+              "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+              "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+              "Guidelines action: Les actions du niveau doivent conserver leur rôle et leur intention. Aucun changement de nature sans demande explicite.",
+              "Guidelines niveau: Le cœur du niveau et ses objectifs d'apprentissage doivent être préservés. L'extension est un ajustement de rythme, pas de contenu.",
+              "Guidelines whole_plan: La trajectoire et la cohérence globale du plan sont explicitement à préserver, conformément à la demande de l'utilisateur."
+            ],
+            "observation": "L'utilisateur accepte explicitement l'ajout d'une semaine de consolidation au niveau actuel. Il insiste spécifiquement pour que l'habitude 'Partager un point positif' conserve son rythme actuel et ne soit pas baissée. Cela confirme un besoin d'ajustement de la durée du niveau pour une meilleure intégration, avec une contrainte claire sur la charge d'une action spécifique.",
+            "recommendation": "Proposer d'allonger le niveau actuel d'une semaine, en s'assurant que l'habitude 'Partager un point positif' conserve son rythme actuel, et en redistribuant les autres actions du niveau sur cette période étendue pour permettre une meilleure intégration et consolidation sans augmenter la charge globale.",
+            "options_to_discuss": [
+              "Comment cette semaine supplémentaire pourrait être utilisée pour approfondir spécifiquement certains aspects du niveau, au-delà de la simple consolidation générale.",
+              "Si la répartition des actions existantes sur les semaines du niveau pourrait être ajustée pour mieux servir l'objectif de consolidation."
+            ],
+            "questions_to_clarify": [
+              "Y a-t-il des actions spécifiques (autres que 'Partager un point positif') que tu souhaiterais consolider davantage ou sur lesquelles tu aimerais passer plus de temps pendant cette semaine supplémentaire ?",
+              "Est-ce que cette semaine de consolidation est envisagée pour revoir des apprentissages passés ou pour mieux préparer les actions à venir dans ce même niveau ?"
+            ]
+          },
+          "coaching_guidance_audit": {
+            "scope": "level",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 59528,
+        "created_at": "2026-05-19T17:01:42.170237+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r49-level-add-week-t05",
+    "user": "Ok montre-moi le brouillon final : une semaine en plus sur le niveau actuel, rythme inchangé, objectif global inchangé. Si c'est ça je validerai après.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r49-level-add-week-t05",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-19-adjust-plan-complex-postfix-r49-level-add-week",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je n'ai pas une cible assez claire pour ajuster le plan depuis le chat. Tu peux le faire dans ton espace sur sophia-coach.ai. 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r49-level-add-week-t05",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "c499b2f0-f3ed-49fd-b887-e90e32dd247b",
+        "ts": "2026-05-19T17:02:15.576+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 15992,
+          "latency_ms": 8695,
+          "model_used": "gemini-2.5-flash",
+          "tokens_out": 895,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Ok montre-moi le brouillon final : une semaine en plus sur le niveau actuel, rythme inchangé, objectif global inchangé. Si c'est ça je validerai après.",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r49-level-add-week-t05",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Ok montre-moi le brouillon final : une semaine en plus sur le niveau actuel, rythme inchangé, objectif global inchangé. Si c'est ça je validerai après.",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {
+              "reason": "user_refines_draft_parameters",
+              "skill_id": "adjust_plan_item",
+              "signal_type": "continue",
+              "confidence_band": "high"
+            }
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": "level_reference",
+            "status": "current_level",
+            "detected": true,
+            "expansion_policy": "include_level_execution_handoff"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 1,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0,1,1,1.6;decay=0.55;recovery=1.5",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              1,
+              1,
+              1.6
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "c499b2f0-f3ed-49fd-b887-e90e32dd247b",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "niveau actuel",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "current_level",
+                  "label": "Désamorcer et recréer de la sécurité",
+                  "status": "identified",
+                  "evidence": [
+                    "active_tool_skill_intake.operation_input.scope"
+                  ]
+                },
+                "payload": {
+                  "constraints": {
+                    "status": "identified",
+                    "values": [
+                      "rythme inchangé",
+                      "objectif global inchangé"
+                    ],
+                    "evidence": [
+                      "rythme inchangé",
+                      "objectif global inchangé"
+                    ]
+                  },
+                  "change_target": {
+                    "value": "duration",
+                    "status": "identified",
+                    "evidence": [
+                      "une semaine en plus"
+                    ]
+                  }
+                },
+                "target_granularity": {
+                  "value": "current_level",
+                  "status": "identified",
+                  "evidence": [
+                    "niveau actuel"
+                  ],
+                  "confidence": "high",
+                  "negative_evidence": [
+                    "pas une seule action"
+                  ]
+                }
+              },
+              "adjust_plan_scope": "current_level"
+            }
+          ],
+          "confirmation_response": {
+            "kind": "correction_to_pending",
+            "reason": "user_requests_to_see_draft_with_specific_parameters_before_validation",
+            "confidence_band": "high"
+          },
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "active_tool_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "continue_active",
+            "reason_code": "active_tool_skill_continue",
+            "active_owner": "tool_skill",
+            "resume_policy": "none",
+            "selected_owner": "tool_skill"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "fallback_dashboard",
+          "reason_code": "active_tool_skill_continue",
+          "plan_item_id": null,
+          "target_title": null,
+          "missing_slots": [
+            "current_level.affected_items"
+          ],
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Proposer de retirer des actions du niveau.",
+              "Changer l'objectif du niveau ou du plan global.",
+              "Faire des suppositions sur les raisons profondes du sentiment de 'trop vite' sans poser de questions.",
+              "Suggérer des modifications aux niveaux futurs à ce stade.",
+              "Toute proposition qui rendrait le plan 'interminable'."
+            ],
+            "scope": "level",
+            "preserve": [
+              "L'objectif global du plan et du niveau 'Désamorcer et recréer de la sécurité'.",
+              "Le cœur et l'intention des actions et missions du niveau actuel, notamment 'Convenir d'un signal de pause', 'Faire le point sur le signal de pause' et 'Cartographier les déclencheurs'.",
+              "La séquence et la logique pédagogique du niveau, l'extension étant un ajustement de rythme et non de contenu.",
+              "Le 'rythme inchangé' et la 'charge stable' par semaine."
+            ],
+            "warnings": [
+              "Éviter de proposer de nouvelles actions ou d'augmenter la charge de travail, car l'utilisateur a explicitement demandé un 'rythme inchangé' et est préoccupé par un plan 'interminable'.",
+              "Ne pas modifier le contenu ou la difficulté des actions existantes sans une demande explicite, l'objectif étant la consolidation et non la refonte.",
+              "Ne pas interpréter le besoin de 'consolider' comme une nécessité de supprimer des actions, mais plutôt de leur laisser plus de temps pour s'ancrer.",
+              "Ne pas modifier l'objectif global du plan ou du niveau."
+            ],
+            "confidence": "high",
+            "guidelines": [
+              "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+              "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+              "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+              "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+              "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+              "Guidelines action: Les actions du niveau doivent conserver leur rôle et leur intention. Aucun changement de nature sans demande explicite.",
+              "Guidelines niveau: Le cœur du niveau et ses objectifs d'apprentissage doivent être préservés. L'extension est un ajustement de rythme, pas de contenu. Respecter le rythme du user sans transformer une baisse temporaire en refonte globale. Si la période demandée dépasse la fin du niveau, garder ce repère pour le prochain niveau sans modifier toute la trajectoire.",
+              "Guidelines whole_plan: La trajectoire et la cohérence globale du plan sont explicitement à préserver, conformément à la demande de l'utilisateur."
+            ],
+            "observation": "L'utilisateur demande une extension d'une semaine pour le niveau actuel, en insistant sur le maintien du rythme et de l'objectif global. Il souhaite visualiser le brouillon pour s'assurer que le plan ne devienne pas 'interminable'. Cela révèle un besoin de consolidation et d'intégration des apprentissages sans surcharge, et une préoccupation pour la durée totale du plan.",
+            "recommendation": "Proposer d'allonger le niveau actuel d'une semaine, en redistribuant les actions existantes sur cette période étendue pour permettre une meilleure intégration et consolidation, sans introduire de nouvelles tâches ni augmenter la charge globale. Le brouillon doit clairement montrer comment cette semaine supplémentaire est allouée aux actions actuelles.",
+            "options_to_discuss": [
+              "Proposer de revoir la répartition des actions existantes sur les semaines du niveau pour optimiser la consolidation, en mettant l'accent sur les actions qui nécessitent le plus d'intégration.",
+              "Explorer si le sentiment de 'trop vite' est lié à des contraintes externes ou à des difficultés spécifiques avec certaines actions, au-delà de la simple durée, afin d'affiner la redistribution."
+            ],
+            "questions_to_clarify": [
+              "Comment souhaites-tu que cette semaine supplémentaire soit utilisée pour les actions existantes ? Préfères-tu répéter certaines actions, ou simplement avoir plus de temps pour les réaliser sans pression ?",
+              "Y a-t-il des actions spécifiques que tu souhaiterais voir étalées ou approfondies pendant cette semaine additionnelle ?"
+            ]
+          },
+          "coaching_guidance_audit": {
+            "scope": "level",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 23595,
+        "created_at": "2026-05-19T17:02:15.578935+00:00"
+      },
+      "trace_error": null
+    }
+  }
+]

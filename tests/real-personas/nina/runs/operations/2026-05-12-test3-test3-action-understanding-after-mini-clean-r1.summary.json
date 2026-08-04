@@ -1,0 +1,76 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-action-understanding-after-mini-clean-r1-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je suis un peu perdue là. Cette semaine je suis censée faire quoi exactement ? Et nettoyer mon environnement direct, c'est un truc à refaire tous les jours ou c'est autre chose ?",
+    "assistant": "Ok je vois le flou… On va remettre ça au clair. 🧭\n\nPour cette semaine, dans le Dashboard tu peux vérifier exactement le niveau actif + les semaines + les missions/habitudes à faire: Dashboard > Plan (tu sélectionnes la transformation à gauche, puis onglet Plan). Ça te montre ce qui est “censé être fait” sur la semaine.\n\nEt pour ton ménage “environnement direct” (nettoyer ton espace autour de toi) : d’après les infos produit, le Dashboard “Plan” sert à consulter ce qui est prévu (niveau/semaines/missions/habitudes), mais il n’y a pas un endroit où tout est décrit comme “tous les jours” vs “autre chose” en mode journal libre. Donc pour te dire si c’est quotidien ou pas, il faut regarder l’item exact dans l’onglet Plan (ou l’habitude correspondante dans tes habitudes).\n\nConcrètement: tu peux m’indiquer le nom exact de la mission “nettoyer ton environnement direct” telle qu’elle apparaît chez toi dans le Plan, ou carrément me copier la ligne ? Comme ça je te dis tout de suite si c’est cadré en habitude quotidienne ou en action ponctuelle pour la semaine. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "product_help",
+    "selected_handler": "product_help",
+    "route_reason_code": "skill_entry_signal",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": {
+      "output": {
+        "reply": "Plan: Dans le dashboard, selectionne une transformation dans la colonne de gauche puis ouvre l'onglet Plan. Tu y vois le niveau actif, les semaines, les missions, habitudes, clarifications et elements a venir. Les bilans hebdomadaires ne se saisissent pas dans le Plan: ils se font par message WhatsApp le dimanche pour faire le point sur la semaine. Il n'existe pas d'endroit pour ajouter librement une action dans le dashboard.\n\nOu ca se trouve:\n- Dashboard > Plan: Quand une transformation active existe. Tu peux y consulter le niveau actif, ouvrir les semaines, valider certains elements.\n\nLimites importantes:\n- Ce n'est pas un journal libre d'actions ou de bilans.\n- Il n'existe pas d'endroit pour ajouter librement une action dans le dashboard.",
+        "status": "complete",
+        "skill_id": "product_help",
+        "diagnosis": {
+          "locations": [
+            "Dashboard > Plan"
+          ],
+          "feature_id": "dashboard.plan",
+          "feature_label": "Plan",
+          "operation_bridge": null
+        },
+        "state_patch": {
+          "summary": "Product help answered for dashboard.plan."
+        },
+        "memory_trace": {
+          "correction_detected": false,
+          "memory_item_ids_used": [],
+          "memory_used_for_response": false,
+          "correction_target_item_ids": []
+        },
+        "response_intent": "how_to",
+        "recommendation_need": {
+          "type": "none",
+          "needed": false,
+          "urgency": "none",
+          "constraints": [
+            "product_help_does_not_execute_operations",
+            "operation_bridge_requires_confirmation_when_present"
+          ]
+        },
+        "operation_suggestions": []
+      },
+      "reason_code": "skill_entry_signal",
+      "selected_skill_id": "product_help"
+    },
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-action-understanding-after-mini-clean-r1-t01",
+    "trace_error": null
+  }
+]

@@ -1,0 +1,109 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-opportunity-signal-10t-r14-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Hier j'ai fait le sas, mais j'ai tourné autour du carnet au lieu de commencer tout de suite. Ce soir je veux couper ce moment d'hésitation.",
+    "assistant": "Ah, je vois le genre… le “je vais commencer” qui fait une petite danse autour du carnet avant de se poser 😅\n\nOn va couper l’hésitation ce soir avec un sas minute, ultra concret :\n1) Tu lances le carnet 30 secondes (sans lire, sans décider).\n2) Tu écris juste une phrase : “Là, maintenant, je fais le sas.”\n3) Puis tu passes directement à l’étape suivante prévue du sas (sans repenser ton approche).\n\nTu es partant pour le faire en mode minute ce soir, oui ou non ? 🙂\n\nConcrètement, je parle d'une Carte d'attaque pour \"Faire le sas de déchargement\", à préparer seulement si tu confirmes.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "track_progress_plan_item"
+    ],
+    "response_owner": "conversation_handler",
+    "selected_handler": "execution_breakdown",
+    "route_reason_code": "skill_entry_signal",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [
+        "Ce soir"
+      ],
+      "risk_band": "none",
+      "reason_codes": [
+        "immediacy_tonight"
+      ],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": true,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "track_progress_plan_item"
+      }
+    ],
+    "operation_flow_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-opportunity-signal-10t-r14-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, prépare cette carte d'attaque pour le sas. Je choisis écrire la première phrase comme démarrage.",
+    "assistant": "Je te propose cette carte d'attaque avant de la creer.\n\nPreparer le terrain\nVersion minuscule : écrire la première phrase.\n\nMode d'emploi: Prepare le terrain avant le moment vise, puis laisse l'environnement t'aider a demarrer.\n\nTu veux que je cree cette carte ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "title": "Carte d'attaque - Faire le sas de déchargement",
+          "technique": "preparer_terrain",
+          "instruction": "Version minuscule : écrire la première phrase.",
+          "mode_emploi": "Prepare le terrain avant le moment vise, puis laisse l'environnement t'aider a demarrer.",
+          "target_label": "Faire le sas de déchargement",
+          "why_it_helps": "Retirer de la friction avant que le moment d'action arrive.",
+          "generated_asset": "Version minuscule : écrire la première phrase.",
+          "technique_title": "Preparer le terrain",
+          "supporting_points": [],
+          "activation_keyword": null
+        },
+        "output_schema": "attack_card_draft_v1",
+        "operation_type": "prepare_attack_card",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je te propose cette carte d'attaque avant de la creer.\n\nPreparer le terrain\nVersion minuscule : écrire la première phrase.\n\nMode d'emploi: Prepare le terrain avant le moment vise, puis laisse l'environnement t'aider a demarrer.\n\nTu veux que je cree cette carte ?"
+      },
+      "source": "recommendation_tool",
+      "status": "pending_confirmation",
+      "reason_code": "operation_intent_start",
+      "operation_id": "e51a4c12-4625-4148-b05f-2ceaa2fda209",
+      "selected_handler": "prepare_attack_card",
+      "recommendation_id": "dispatcher_opportunity:attack_card:qa-operation-suggestion-test1-alex-2026-05-13-attack-card-opportunity-signal-10t-r14-t01"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  }
+]

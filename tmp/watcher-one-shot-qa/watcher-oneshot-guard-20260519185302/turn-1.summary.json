@@ -1,0 +1,332 @@
+{
+  "turn": 1,
+  "request_id": "qa-watcher-one-shot-watcher-oneshot-guard-20260519185302-t01",
+  "status": 200,
+  "user": "Rappelle-moi demain à 9h10 de préparer le dossier client.",
+  "assistant": "C’est programmé pour mercredi 20 mai à 09:10 : préparer le dossier client. 🙂",
+  "response": {
+    "ok": true,
+    "request_id": "qa-watcher-one-shot-watcher-oneshot-guard-20260519185302-t01",
+    "user_id": "da17f65a-ad43-4ede-9614-9fc26bff66bc",
+    "channel": "web",
+    "scope": "qa-watcher-one-shot-watcher-oneshot-guard-20260519185302",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "logged_message_id": null,
+    "latest_message_id": null,
+    "response": {
+      "content": "C’est programmé pour mercredi 20 mai à 09:10 : préparer le dossier client. 🙂",
+      "mode": "companion",
+      "tool_execution": "success",
+      "executed_tools": [
+        "create_one_shot_reminder"
+      ]
+    },
+    "conversation_turn_trace": {
+      "turn_id": "qa-watcher-one-shot-watcher-oneshot-guard-20260519185302-t01",
+      "user_id": "da17f65a-ad43-4ede-9614-9fc26bff66bc",
+      "source_message_id": "da271e2e-09e8-4022-8dbf-8314c010933c",
+      "ts": "2026-05-19T16:53:07.419+00:00",
+      "safety_pregate": {
+        "detected": false,
+        "evidence": [
+          "demain"
+        ],
+        "risk_band": "none",
+        "reason_codes": [
+          "immediacy_tomorrow",
+          "bounded_context_lowers_risk"
+        ],
+        "allow_side_effects": true,
+        "layer_contributions": {
+          "lexical": false,
+          "heuristic": true,
+          "dispatcher_llm": false
+        }
+      },
+      "dispatcher_run": {
+        "tokens_in": 7104,
+        "latency_ms": 3662,
+        "model_used": "gemini-3-flash-preview",
+        "tokens_out": 603,
+        "memory_plan": {
+          "targets": [],
+          "memory_mode": "none",
+          "context_need": "minimal",
+          "model_tier_hint": "standard",
+          "plan_confidence": 0.7,
+          "response_intent": "inventory",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "tiny",
+          "reasoning_complexity": "medium"
+        },
+        "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+      },
+      "turn_frame": {
+        "safety": {
+          "evidence": [],
+          "risk_band": "low",
+          "reason_codes": []
+        },
+        "channel": "web",
+        "turn_id": "qa-watcher-one-shot-watcher-oneshot-guard-20260519185302-t01",
+        "user_id": "da17f65a-ad43-4ede-9614-9fc26bff66bc",
+        "memory_plan": {
+          "targets": [],
+          "memory_mode": "none",
+          "context_need": "minimal",
+          "model_tier_hint": "standard",
+          "plan_confidence": 0.7,
+          "response_intent": "inventory",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "tiny",
+          "reasoning_complexity": "medium"
+        },
+        "skill_signals": {
+          "exit": {},
+          "entry": {
+            "execution_breakdown": {
+              "reason": "execution_blocked",
+              "detected": true,
+              "confidence_band": "high"
+            }
+          },
+          "lifecycle": {}
+        },
+        "direct_effects": [
+          {
+            "effect_type": "create_one_shot_reminder",
+            "explicitness": "explicit",
+            "payload_hint": {
+              "raw_text": "préparer le dossier client",
+              "time_hint": "demain à 9h10",
+              "target_datetime": "2026-05-20T09:10:00"
+            },
+            "target_status": "identified",
+            "confidence_band": "high"
+          }
+        ],
+        "needs_research": {
+          "query": null,
+          "value": false,
+          "reason": null,
+          "detected": false,
+          "confidence": 0,
+          "domain_hint": null
+        },
+        "level_reference": {
+          "reason": null,
+          "status": "none",
+          "detected": false,
+          "expansion_policy": "none"
+        },
+        "action_reference": {
+          "reason": null,
+          "status": "none",
+          "detected": false,
+          "expansion_policy": "none"
+        },
+        "conversation_risk": {
+          "score": 0,
+          "matrix": [
+            {
+              "signal": "system_misunderstanding",
+              "weight": 3.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "explicit_stop_or_abandon",
+              "weight": 2.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "anger_or_profanity",
+              "weight": 2,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "repetition_or_correction",
+              "weight": 1.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "typographic_intensity",
+              "weight": 0.7,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "active_flow_pressure",
+              "weight": 1,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "previous_risk",
+              "weight": 10,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            }
+          ],
+          "threshold": 8,
+          "reason_codes": [],
+          "context_summary": null,
+          "previous_scores": [],
+          "flow_exit_context": null,
+          "should_exit_flows": false
+        },
+        "source_message_id": "da271e2e-09e8-4022-8dbf-8314c010933c",
+        "tool_skill_intents": [],
+        "confirmation_response": null,
+        "tool_skill_opportunity": {
+          "type": "none",
+          "surface_id": null,
+          "prop_reason": null,
+          "source_span": null,
+          "target_hint": null,
+          "offer_timing": "never",
+          "should_offer": false,
+          "target_status": "none",
+          "operation_type": null,
+          "confidence_band": "low",
+          "must_not_execute": true,
+          "suggested_question_intent": null
+        }
+      },
+      "route_decision": {
+        "reason_code": "skill_entry_signal",
+        "blocked_paths": [],
+        "route_version": "v1",
+        "response_owner": "conversation_handler",
+        "memory_use_kind": "none",
+        "selected_handler": "execution_breakdown",
+        "direct_effects_to_run": [
+          "create_one_shot_reminder"
+        ],
+        "memory_used_for_route": false,
+        "active_flow_arbitration": {
+          "decision": "none",
+          "reason_code": "no_active_flow",
+          "active_owner": "none",
+          "resume_policy": "none",
+          "selected_owner": "none"
+        },
+        "memory_item_ids_used_for_route": []
+      },
+      "direct_effects": [
+        {
+          "outcome": "success",
+          "tool_id": "create_one_shot_reminder"
+        }
+      ],
+      "skill_run": {
+        "output": {
+          "reply": "On ne cherche pas encore la solution parfaite. On cherche le point exact ou ca bloque: demarrage, energie, flou, peur, ou environnement.",
+          "status": "continue",
+          "skill_id": "execution_breakdown",
+          "diagnosis": {
+            "stage": "diagnosis",
+            "blocker_candidates": [
+              "flou",
+              "energie",
+              "friction_demarrage"
+            ]
+          },
+          "state_patch": {
+            "summary": "Execution blocker diagnosis in progress."
+          },
+          "memory_trace": {
+            "correction_detected": false,
+            "memory_item_ids_used": [],
+            "memory_used_for_response": false,
+            "correction_target_item_ids": []
+          },
+          "response_intent": "diagnose_blocker",
+          "recommendation_need": {
+            "type": "execution_repair",
+            "needed": true,
+            "urgency": "medium",
+            "constraints": [
+              "understand_before_solution"
+            ]
+          },
+          "operation_suggestions": [
+            {
+              "reason": "clear_execution_block_can_use_attack_card",
+              "urgency": "medium",
+              "operation_type": "prepare_attack_card",
+              "confidence_band": "medium",
+              "source_skill_id": "execution_breakdown",
+              "operation_input_hint": {
+                "blocker": {
+                  "type": "execution_block"
+                }
+              },
+              "requires_user_consent": true
+            }
+          ],
+          "memory_write_candidates": [
+            {
+              "kind": "statement",
+              "scope_hint": "session",
+              "content_text": "Rappelle-moi demain à 9h10 de préparer le dossier client.",
+              "confidence_band": "medium",
+              "sensitivity_level": 1,
+              "evidence_source_ids": [
+                "da271e2e-09e8-4022-8dbf-8314c010933c"
+              ],
+              "persistence_rationale": "Conversation skill observation; memorizer decides durable persistence.",
+              "should_persist_default": false,
+              "anti_identity_freeze_checked": true
+            }
+          ]
+        },
+        "reason_code": "skill_entry_signal",
+        "selected_skill_id": "execution_breakdown"
+      },
+      "tool_skill_run": null,
+      "recommendation_tool_run": {
+        "stats": null,
+        "recommendation": {
+          "reason": "clear_execution_block_can_use_attack_card",
+          "timing": "now",
+          "decision": "recommend_operation",
+          "cta_style": "soft",
+          "confidence": 0.72,
+          "surface_id": "attack_card",
+          "alternatives": [],
+          "operation_type": "prepare_attack_card",
+          "operation_input": {
+            "blocker": {
+              "type": "execution_block"
+            }
+          },
+          "do_not_recommend": [],
+          "executor_tool_id": "prepare_attack_card",
+          "requires_consent": true,
+          "recommendation_id": "skill:execution_breakdown:prepare_attack_card:qa-watcher-one-shot-watcher-oneshot-guard-20260519185302-t01",
+          "user_facing_offer": "Je peux te proposer Carte d'attaque si tu veux passer par le flow propre.",
+          "presentation_level": 2
+        }
+      },
+      "confirmation_token_outcomes": [],
+      "memory_write_candidates_emitted": 0,
+      "response_owner": "conversation_handler",
+      "total_latency_ms": 3732,
+      "created_at": "2026-05-19T16:53:07.420997+00:00"
+    },
+    "trace_error": null
+  }
+}

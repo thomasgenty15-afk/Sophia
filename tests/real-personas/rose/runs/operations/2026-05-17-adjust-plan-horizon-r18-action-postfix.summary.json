@@ -1,0 +1,92 @@
+[
+  {
+    "turn": 1,
+    "request_id": "qa-rose-2026-05-17-adjust-plan-horizon-r18-action-postfix-t01",
+    "user": "Je voudrais ajuster l'action Partager un point positif cette semaine: 3 fois ça me met trop la pression. Je préférerais 2 fois, sans créneau fixe, et juste une phrase neutre.",
+    "status": 200,
+    "sophia": "C'est entendu. Je vais ajuster ton action 'Partager un point positif' pour qu'elle ne te demande que 2 passages cette semaine, sans moment imposé, et avec une consigne simplifiée à une phrase neutre pour enlever cette pression. Est-ce que je prépare cette proposition ?",
+    "trace": {
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "response_owner": "tool_skill",
+      "selected_handler": null,
+      "route_reason": null,
+      "safety": "none",
+      "memory_mode": "light",
+      "operation_flow_status": null,
+      "operation_type": null,
+      "pending_confirmation": null,
+      "tool_execution": "blocked",
+      "executed_tools": []
+    }
+  },
+  {
+    "turn": 2,
+    "request_id": "qa-rose-2026-05-17-adjust-plan-horizon-r18-action-postfix-t02",
+    "user": "Oui, prépare la proposition, mais n'applique rien pour l'instant.",
+    "status": 200,
+    "sophia": "Je te propose d'ajuster l'habitude 'Partager un point positif' pour enlever la pression que tu ressens. Rien n'est encore appliqué, j'attends ton accord sur ce brouillon.\n\nConcrètement, je prévois de :\n1. Réduire la fréquence à 2 fois par semaine (au lieu de 3).\n2. Simplifier l'objectif : il s'agira d'écrire juste une phrase neutre, sans chercher forcément un point positif, pour lever le blocage.\n\nTes autres actions, comme 'Convenir d'un signal de pause', resteront inchangées. Est-ce que cela te convient ?",
+    "trace": {
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "response_owner": "tool_skill",
+      "selected_handler": null,
+      "route_reason": null,
+      "safety": "none",
+      "memory_mode": "light",
+      "operation_flow_status": null,
+      "operation_type": null,
+      "pending_confirmation": null,
+      "tool_execution": "blocked",
+      "executed_tools": []
+    }
+  },
+  {
+    "turn": 3,
+    "request_id": "qa-rose-2026-05-17-adjust-plan-horizon-r18-action-postfix-t03",
+    "user": "Avant que je valide, tu peux me confirmer précisément: 2 fois par semaine, pas de créneau horaire, et phrase neutre seulement ?",
+    "status": 200,
+    "sophia": "Je te propose d'ajuster l'habitude 'Partager un point positif' pour qu'elle soit plus légère et moins stressante. Je prévois de passer la fréquence à 2 fois par semaine au lieu de 3, et de préciser qu'il s'agit d'écrire une phrase neutre, sans aucun créneau horaire imposé. Rien n'est encore appliqué pour le moment, j'attends ton accord. Tes autres actions, comme celle sur le signal de pause, resteront inchangées.",
+    "trace": {
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "response_owner": "tool_skill",
+      "selected_handler": null,
+      "route_reason": null,
+      "safety": "none",
+      "memory_mode": "light",
+      "operation_flow_status": null,
+      "operation_type": null,
+      "pending_confirmation": null,
+      "tool_execution": "blocked",
+      "executed_tools": []
+    }
+  },
+  {
+    "turn": 4,
+    "request_id": "qa-rose-2026-05-17-adjust-plan-horizon-r18-action-postfix-t04",
+    "user": "Oui, applique cet ajustement maintenant.",
+    "status": 200,
+    "sophia": "C'est fait, j'ai ajusté ton habitude 'Partager un point positif'. Elle est maintenant fixée à 2 fois par semaine avec la consigne d'utiliser une phrase neutre, sans contrainte d'horaire. Ce changement réduit la pression immédiate tout en maintenant ton élan dans le plan. Tes autres missions, notamment sur le signal de pause, restent en place sans modification. Je suis très confiant sur le fait que cet allègement facilitera ton quotidien.",
+    "trace": {
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "response_owner": "tool_skill",
+      "selected_handler": null,
+      "route_reason": null,
+      "safety": "none",
+      "memory_mode": "light",
+      "operation_flow_status": null,
+      "operation_type": null,
+      "pending_confirmation": null,
+      "tool_execution": "success",
+      "executed_tools": [
+        "adjust_plan_item"
+      ]
+    }
+  }
+]

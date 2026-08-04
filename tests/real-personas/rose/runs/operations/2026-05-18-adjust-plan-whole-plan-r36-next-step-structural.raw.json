@@ -1,0 +1,1814 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-18-adjust-plan-whole-plan-r36-next-step-structural-t01",
+    "user": "Je pense que la prochaine étape du plan n'est pas la bonne. Après le signal de pause, je ne veux pas aller tout de suite vers des discussions difficiles; il faudrait peut-être une étape intermédiaire pour reconstruire de la confiance. Je veux revoir la trajectoire, pas seulement le niveau actuel.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-18-adjust-plan-whole-plan-r36-next-step-structural-t01",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-18-adjust-plan-whole-plan-r36-next-step-structural",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C'est très clair. Je vais retravailler la trajectoire globale pour insérer une phase de reconstruction de la confiance entre le signal de pause et les discussions plus sensibles. Rien n'est encore modifié, mais est-ce que je peux préparer une proposition concrète pour ce nouveau séquençage ? 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-18-adjust-plan-whole-plan-r36-next-step-structural-t01",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "f56f1ed6-f203-466b-b8da-fd26d451034e",
+        "ts": "2026-05-18T16:57:58.728+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [
+            "tout de suite"
+          ],
+          "risk_band": "none",
+          "reason_codes": [
+            "immediacy_now"
+          ],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": true,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 11328,
+          "latency_ms": 6031,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 910,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "structure du niveau actuel et transition",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "relations.conflit",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "reconstruire la confiance après signal de pause",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "action_observation",
+                "type": "action",
+                "query_hint": "Je pense que la prochaine étape du plan n'est pas la bonne. Après le signal de pause, je ne veux pas aller tout de suite vers des discussions difficiles; il fau",
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Je pense que la prochaine étape du plan n'est pas la bonne. Après le signal de pause, je ne veux pas aller tout de suite vers des discussions difficiles; il fau",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "standard",
+            "plan_confidence": 0.7,
+            "response_intent": "problem_solving",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "medium"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-18-adjust-plan-whole-plan-r36-next-step-structural-t01",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "structure du niveau actuel et transition",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "relations.conflit",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "reconstruire la confiance après signal de pause",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "action_observation",
+                "type": "action",
+                "query_hint": "Je pense que la prochaine étape du plan n'est pas la bonne. Après le signal de pause, je ne veux pas aller tout de suite vers des discussions difficiles; il fau",
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Je pense que la prochaine étape du plan n'est pas la bonne. Après le signal de pause, je ne veux pas aller tout de suite vers des discussions difficiles; il fau",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "standard",
+            "plan_confidence": 0.7,
+            "response_intent": "problem_solving",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "medium"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": "level_reference",
+            "status": "current_level",
+            "detected": true,
+            "expansion_policy": "include_level_execution_handoff"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "f56f1ed6-f203-466b-b8da-fd26d451034e",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "trajectoire globale et prochaine étape",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "whole_plan",
+                  "label": "trajectoire globale",
+                  "status": "identified",
+                  "evidence": [
+                    "revoir la trajectoire"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "whole_plan",
+                  "status": "identified",
+                  "evidence": [
+                    "Je veux revoir la trajectoire, pas seulement le niveau actuel"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "whole_plan"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "ask_question",
+          "reason_code": "tool_skill_intent_start",
+          "plan_item_id": null,
+          "target_title": null,
+          "missing_slots": [
+            "draft_generation_confirmation"
+          ],
+          "selected_handler": "adjust_plan_item"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 22262,
+        "created_at": "2026-05-18T16:57:58.731133+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-18-adjust-plan-whole-plan-r36-next-step-structural-t02",
+    "user": "Oui, prépare un brouillon sans appliquer. Je veux que la prochaine étape soit centrée sur des preuves de confiance simples: respecter le signal, garder deux ou trois interactions positives, puis seulement après ouvrir un sujet sensible.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-18-adjust-plan-whole-plan-r36-next-step-structural-t02",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-18-adjust-plan-whole-plan-r36-next-step-structural",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je te propose un brouillon pour rééquilibrer ta trajectoire globale. L'idée est de réduire la pression immédiate pour te permettre de reconstruire de la confiance avant d'aborder des sujets plus complexes. Pour l'instant, rien n'est encore appliqué ou enregistré. Je suggère notamment de simplifier l'action \"Convenir d'un signal de pause\" pour qu'elle ne te prenne que 5 minutes et de mettre en pause le bilan prévu sur ce signal afin de ne pas surcharger tes prochaines étapes. Tes interactions positives, comme le partage de points positifs, restent inchangées pour stabiliser votre relation. Est-ce que cette approche te convient ? 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-18-adjust-plan-whole-plan-r36-next-step-structural-t02",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "acc99aca-2f26-484b-b9b5-a1b5a4805417",
+        "ts": "2026-05-18T16:58:44.721+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 12345,
+          "latency_ms": 5419,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 877,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": null,
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "relations.limites",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "reconstruction de la confiance et signal de pause",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-18-adjust-plan-whole-plan-r36-next-step-structural-t02",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": null,
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "relations.limites",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "reconstruction de la confiance et signal de pause",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 1,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0;decay=0.55;recovery=1.5",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "acc99aca-2f26-484b-b9b5-a1b5a4805417",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "trajectoire globale",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "whole_plan",
+                  "label": "trajectoire globale",
+                  "status": "identified",
+                  "evidence": [
+                    "revoir la trajectoire"
+                  ]
+                },
+                "payload": {
+                  "constraints": {
+                    "status": "identified",
+                    "values": [
+                      "respecter le signal",
+                      "garder deux ou trois interactions positives",
+                      "ouvrir un sujet sensible seulement après"
+                    ],
+                    "evidence": [
+                      "respecter le signal, garder deux ou trois interactions positives, puis seulement après ouvrir un sujet sensible"
+                    ]
+                  },
+                  "reason_change": {
+                    "status": "identified",
+                    "evidence": [
+                      "reconstruire de la confiance"
+                    ]
+                  }
+                },
+                "target_granularity": {
+                  "value": "whole_plan",
+                  "status": "identified",
+                  "evidence": [
+                    "Je veux revoir la trajectoire, pas seulement le niveau actuel"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "whole_plan"
+            }
+          ],
+          "confirmation_response": {
+            "kind": "correction_to_pending",
+            "evidence": "Oui, prépare un brouillon sans appliquer.",
+            "confidence_band": "high"
+          },
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "active_tool_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "continue_active",
+            "reason_code": "active_tool_skill_continue",
+            "active_owner": "tool_skill",
+            "resume_policy": "none",
+            "selected_owner": "tool_skill"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "draft": {
+            "draft": {
+              "patch": {
+                "confidence": "medium",
+                "scope_kind": "whole_plan",
+                "constraints": [
+                  "no_pressure",
+                  "minimal_patch",
+                  "preserve_plan_intent",
+                  "no_schedule_day_change",
+                  "ask_confirmation_before_write",
+                  "reconstruire de la confiance",
+                  "étape intermédiaire avant les discussions difficiles",
+                  "affected_item:Convenir d'un signal de pause",
+                  "affected_item:discussions difficiles"
+                ],
+                "reason_type": "context_changed",
+                "change_target": "global_load",
+                "reason_change": "context_changed",
+                "load_adjustment": "review",
+                "plan_adjustment": "resequence"
+              },
+              "title": "Ajustement - trajectoire globale",
+              "confidence": "medium",
+              "ack_summary": {
+                "changed": [
+                  "plan global: resequence",
+                  "cible de changement: global_load"
+                ],
+                "unchanged": [
+                  "l'objectif/direction reste préservé sauf demande contraire explicite",
+                  "le plan canonique n'est pas reconstruit automatiquement"
+                ],
+                "confidence": "medium",
+                "why_it_helps": "Le plan garde ses rails, mais la charge baisse pour redevenir compatible avec le contexte actuel.",
+                "follow_up_needed": "identifier ensuite les semaines ou blocs les plus lourds pour affiner"
+              },
+              "scope_label": "trajectoire globale",
+              "why_it_helps": "Le changement traite la trajectoire globale du plan au lieu de forcer une cible action.",
+              "decision_basis": {
+                "evidence": [
+                  "Oui, prépare un brouillon sans appliquer. Je veux que la prochaine étape soit centrée sur des preuves de confiance simples: respecter le signal, garder deux ou trois interactions positives, puis seulement après ouvrir un sujet sensible.",
+                  "revoir la trajectoire"
+                ],
+                "confidence": "medium",
+                "uncertainty": [
+                  "semaines ou blocs exacts a affiner ensuite"
+                ],
+                "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+                "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+                "must_preserve": [
+                  "direction globale du plan"
+                ]
+              },
+              "adjustment_type": "rebalance",
+              "proposed_change": "reordonner le plan dans son ensemble",
+              "change_rationale": {
+                "why_this_change": "Réduire global_load répond au problème \"context_changed\" sans changer la direction du plan.",
+                "success_condition": "Le plan paraît tenable sans reconstruction complète ni changement d'objectif implicite.",
+                "expected_mechanism": "Le plan garde ses rails, mais la charge baisse pour redevenir compatible avec le contexte actuel."
+              },
+              "adjust_plan_result": {
+                "scope": "whole_plan",
+                "rationale": {
+                  "confidence": "medium",
+                  "missing_info": [
+                    "Le moment précis où tu te sentiras prêt à réintroduire les discussions difficiles."
+                  ],
+                  "user_problem": "Le plan global est devenu trop lourd et génère de la pression dans un contexte qui nécessite de la confiance.",
+                  "expected_effect": "Une baisse de la fatigue décisionnelle et une meilleure adhésion au plan grâce à des victoires rapides.",
+                  "why_this_change": "Simplifier les outils de sécurité (le signal) et différer les bilans permet de créer un espace sécurisant avant les étapes plus complexes."
+                },
+                "boundaries": {
+                  "explanation": "Le plan garde sa direction initiale mais les étapes sont réordonnées et simplifiées pour s'adapter au besoin de calme actuel.",
+                  "affected_scope": "L'enchaînement des étapes et la charge globale de la trajectoire.",
+                  "global_plan_impact": "indirect",
+                  "explicitly_not_affected": [
+                    "Objectif principal du plan",
+                    "Habitude de partage positif"
+                  ]
+                },
+                "applied_change": {
+                  "summary": "Rééquilibrage de la trajectoire globale pour réduire la charge et prioriser la sécurité émotionnelle.",
+                  "changed_items": [
+                    {
+                      "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                      "kind": "action",
+                      "after": "Prendre 5 minutes maximum pour convenir d'un signal de pause très simple (un mot ou un geste), sans chercher à approfondir la discussion.",
+                      "title": "Convenir d'un signal de pause",
+                      "before": "À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.",
+                      "reason": "Réduire la durée et l'enjeu pour garantir une réussite immédiate et sans pression.",
+                      "capability": "modify_existing_action"
+                    },
+                    {
+                      "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                      "kind": "action",
+                      "after": "Action mise en pause.",
+                      "title": "Faire le point sur le signal de pause",
+                      "before": "Discutez 10 minutes à froid pour voir si le signal de pause a été utile cette semaine et s'il est respecté par vous deux.",
+                      "reason": "Éviter d'ajouter une étape de bilan ou de 'méta-discussion' tant que le signal n'est pas encore pratiqué naturellement.",
+                      "capability": "pause_action"
+                    }
+                  ],
+                  "preserved_items": [
+                    {
+                      "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                      "kind": "habit",
+                      "title": "Partager un point positif",
+                      "reason": "Cette habitude est essentielle pour maintenir les interactions positives demandées."
+                    },
+                    {
+                      "id": null,
+                      "kind": "plan",
+                      "title": "Direction globale du plan",
+                      "reason": "L'intention de fond et l'objectif final du plan sont préservés malgré l'allègement du rythme."
+                    }
+                  ]
+                },
+                "user_message_brief": "J'ai allégé ton plan global pour prioriser la confiance et réduire la pression immédiate.",
+                "user_message_detailed": "Voici les détails de l'ajustement de ta trajectoire globale :\n1. Convenir d'un signal de pause : Avant, c'était une mission standard. Après, je propose une version de 5 minutes focalisée sur l'essentiel. Pourquoi ? Pour reconstruire de la confiance sans effort excessif.\n2. Faire le point sur le signal de pause : Avant, cette étape de bilan était prévue prochainement. Après, je l'ai mise en pause. Pourquoi ? Pour respecter ton besoin d'une étape intermédiaire avant toute analyse ou discussion difficile.\nTes interactions positives, comme 'Partager un point positif', restent inchangées pour servir de socle à cette nouvelle dynamique."
+              },
+              "execution_strategy": "whole_plan_adjustment",
+              "allowed_patch_fields": [
+                "scope_kind",
+                "plan_adjustment",
+                "load_adjustment",
+                "goal_adjustment",
+                "sequence_adjustment",
+                "reason_type",
+                "reason_change",
+                "change_target",
+                "confidence",
+                "constraints"
+              ]
+            },
+            "output_schema": "plan_adjustment_draft_v1",
+            "operation_type": "adjust_plan_item",
+            "execution_message": "J'ai ajusté ton plan global pour privilégier la sérénité et la reconstruction de la confiance. J'ai simplifié l'action \"Convenir d'un signal de pause\" en une version ultra-légère et j'ai mis en pause le suivi \"Faire le point sur le signal de pause\" pour éviter toute pression inutile cette semaine. Ces modifications permettent de créer des étapes intermédiaires faciles à réussir avant d'ouvrir des discussions plus difficiles. Je suis assez confiant sur le fait que cet allègement t'aidera à maintenir une dynamique positive sans te sentir submergé.",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je te propose un brouillon pour rééquilibrer ta trajectoire globale. L'idée est de réduire la pression immédiate pour te permettre de reconstruire de la confiance avant d'aborder des sujets plus complexes. Pour l'instant, rien n'est encore appliqué ou enregistré. Je suggère notamment de simplifier l'action \"Convenir d'un signal de pause\" pour qu'elle ne te prenne que 5 minutes et de mettre en pause le bilan prévu sur ce signal afin de ne pas surcharger tes prochaines étapes. Tes interactions positives, comme le partage de points positifs, restent inchangées pour stabiliser votre relation. Est-ce que cette approche te convient ?"
+          },
+          "status": "draft_review",
+          "reason_code": "active_tool_skill_continue",
+          "operation_id": "26ea6720-6faa-4ba4-962e-e785d6783744",
+          "selected_handler": "adjust_plan_item"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 30522,
+        "created_at": "2026-05-18T16:58:44.723675+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-05-18-adjust-plan-whole-plan-r36-next-step-structural-t03",
+    "user": "Pas exactement: je ne demande pas de rendre le signal en 5 minutes ni de mettre le bilan en pause. Je parle de la prochaine étape après ce bloc: ajouter une étape de confiance simple avant les sujets sensibles. Reformule le brouillon dans ce sens, sans appliquer.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-18-adjust-plan-whole-plan-r36-next-step-structural-t03",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-18-adjust-plan-whole-plan-r36-next-step-structural",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je vais reprendre le brouillon pour intégrer cette phase de confiance sans toucher à tes missions actuelles. Pour que je puisse caler la suite de la trajectoire, quel serait le premier 'sujet sensible' concret que tu voudrais traiter une fois cette étape de confiance validée ? 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-18-adjust-plan-whole-plan-r36-next-step-structural-t03",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "cd558e0b-66ae-4cf3-bbff-b9fbf11552e8",
+        "ts": "2026-05-18T17:01:02.577+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 11717,
+          "latency_ms": 4573,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 792,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "structure du niveau actuel et transition",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "relations.limites",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "confiance et sujets sensibles",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "standard",
+            "plan_confidence": 0.7,
+            "response_intent": "inventory",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "medium"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-18-adjust-plan-whole-plan-r36-next-step-structural-t03",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "structure du niveau actuel et transition",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "relations.limites",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "confiance et sujets sensibles",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "standard",
+            "plan_confidence": 0.7,
+            "response_intent": "inventory",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "medium"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0.6,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": true,
+                "evidence": "0,1;decay=0.55;recovery=0",
+                "contribution": 0.6
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "previous_risk"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              1
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "cd558e0b-66ae-4cf3-bbff-b9fbf11552e8",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "trajectoire globale",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "whole_plan",
+                  "label": "trajectoire globale",
+                  "status": "identified",
+                  "evidence": [
+                    "trajectoire globale"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "whole_plan",
+                  "status": "identified",
+                  "evidence": [
+                    "Je parle de la prochaine étape après ce bloc",
+                    "ajouter une étape de confiance simple avant les sujets sensibles",
+                    "revoir la trajectoire, pas seulement le niveau actuel"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "whole_plan"
+            }
+          ],
+          "confirmation_response": {
+            "kind": "correction_to_pending",
+            "confidence_band": "high"
+          },
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "ask_question",
+          "reason_code": "tool_skill_intent_start",
+          "draft_review": true,
+          "operation_id": "26ea6720-6faa-4ba4-962e-e785d6783744",
+          "missing_slots": [
+            "draft_generation_retry_needed"
+          ],
+          "selected_handler": "adjust_plan_item",
+          "draft_review_decision": {
+            "decision": "revise",
+            "evidence": [
+              "Pas exactement: je ne demande pas de rendre le signal en 5 minutes ni de mettre le bilan en pause.",
+              "Reformule le brouillon dans ce sens, sans appliquer."
+            ],
+            "confidence": "high",
+            "apply_after_revision": false
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 123214,
+        "created_at": "2026-05-18T17:01:02.579264+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-05-18-adjust-plan-whole-plan-r36-next-step-structural-t04",
+    "user": "Le premier sujet sensible serait l'argent, mais seulement après avoir vérifié pendant une semaine que le signal de pause est respecté et qu'on arrive à se dire des choses positives sans tension. C'est cette étape intermédiaire que je veux insérer dans le plan.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-18-adjust-plan-whole-plan-r36-next-step-structural-t04",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-18-adjust-plan-whole-plan-r36-next-step-structural",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je te propose de rééquilibrer ta trajectoire globale pour alléger la pression immédiate. L'idée est d'insérer une étape intermédiaire de reconstruction de la confiance avant d'aborder les sujets sensibles comme l'argent. Pour cela, je prévois de sanctuariser l'action « Convenir d'un signal de pause » et l'habitude « Partager un point positif » comme des prérequis indispensables. Rien n'est encore appliqué pour le moment, j'attends ta validation. Concrètement, je vais repositionner le signal de pause comme ta priorité absolue et m'assurer que le partage de points positifs serve de test de climat pendant une semaine avant d'aller plus loin. Le reste de tes objectifs et l'identité de ton plan ne seront pas touchés. 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-18-adjust-plan-whole-plan-r36-next-step-structural-t04",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "22412800-c105-49a2-a2ec-02b9aef354d5",
+        "ts": "2026-05-18T17:01:56.659+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 11868,
+          "latency_ms": 5227,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 763,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_trajectory",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "prochaines étapes du plan et sujets sensibles",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "relations.conflit",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "gestion des sujets sensibles argent",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-18-adjust-plan-whole-plan-r36-next-step-structural-t04",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_trajectory",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "prochaines étapes du plan et sujets sensibles",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "relations.conflit",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "gestion des sujets sensibles argent",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0.3,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": true,
+                "evidence": "0,1,0.6;decay=0.55;recovery=0",
+                "contribution": 0.3
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "previous_risk"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              1,
+              0.6
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "22412800-c105-49a2-a2ec-02b9aef354d5",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "trajectoire globale",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "whole_plan",
+                  "label": "trajectoire globale",
+                  "status": "identified",
+                  "evidence": [
+                    "trajectoire globale"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "whole_plan",
+                  "status": "identified",
+                  "evidence": [
+                    "Je veux revoir la trajectoire, pas seulement le niveau actuel",
+                    "insérer dans le plan"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "whole_plan"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "draft": {
+            "draft": {
+              "patch": {
+                "confidence": "medium",
+                "scope_kind": "whole_plan",
+                "constraints": [
+                  "no_pressure",
+                  "minimal_patch",
+                  "preserve_plan_intent",
+                  "no_schedule_day_change",
+                  "ask_confirmation_before_write",
+                  "l'argent",
+                  "vérifié pendant une semaine que le signal de pause est respecté",
+                  "qu'on arrive à se dire des choses positives sans tension",
+                  "étape intermédiaire avant les discussions difficiles",
+                  "affected_item:Convenir d'un signal de pause",
+                  "affected_item:Partager un point positif",
+                  "affected_item:Argent"
+                ],
+                "reason_type": "context_changed",
+                "change_target": "global_load",
+                "reason_change": "context_changed",
+                "load_adjustment": "review",
+                "plan_adjustment": "resequence"
+              },
+              "title": "Ajustement - trajectoire globale",
+              "confidence": "medium",
+              "ack_summary": {
+                "changed": [
+                  "plan global: resequence",
+                  "cible de changement: global_load"
+                ],
+                "unchanged": [
+                  "l'objectif/direction reste préservé sauf demande contraire explicite",
+                  "le plan canonique n'est pas reconstruit automatiquement"
+                ],
+                "confidence": "medium",
+                "why_it_helps": "Le plan garde ses rails, mais la charge baisse pour redevenir compatible avec le contexte actuel.",
+                "follow_up_needed": "identifier ensuite les semaines ou blocs les plus lourds pour affiner"
+              },
+              "scope_label": "trajectoire globale",
+              "why_it_helps": "Le changement traite la trajectoire globale du plan au lieu de forcer une cible action.",
+              "decision_basis": {
+                "evidence": [
+                  "Le premier sujet sensible serait l'argent, mais seulement après avoir vérifié pendant une semaine que le signal de pause est respecté et qu'on arrive à se dire des choses positives sans tension. C'est cette étape intermédiaire que je veux insérer dans le plan.",
+                  "revoir la trajectoire",
+                  "insérer dans le plan",
+                  "étape intermédiaire",
+                  "reconstruire de la confiance",
+                  "reconstruire de la confiance",
+                  "revoir la trajectoire"
+                ],
+                "confidence": "medium",
+                "uncertainty": [
+                  "semaines ou blocs exacts a affiner ensuite"
+                ],
+                "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+                "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+                "must_preserve": [
+                  "direction globale du plan"
+                ]
+              },
+              "adjustment_type": "rebalance",
+              "proposed_change": "reordonner le plan dans son ensemble",
+              "change_rationale": {
+                "why_this_change": "Réduire global_load répond au problème \"context_changed\" sans changer la direction du plan.",
+                "success_condition": "Le plan paraît tenable sans reconstruction complète ni changement d'objectif implicite.",
+                "expected_mechanism": "Le plan garde ses rails, mais la charge baisse pour redevenir compatible avec le contexte actuel."
+              },
+              "adjust_plan_result": {
+                "scope": "whole_plan",
+                "rationale": {
+                  "confidence": "medium",
+                  "missing_info": [
+                    "Le nombre exact de semaines avant de réintroduire le sujet de l'argent sera à affiner selon vos progrès."
+                  ],
+                  "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel et génère trop de pression.",
+                  "expected_effect": "Un climat plus propice à la discussion et une réduction de la fatigue décisionnelle immédiate.",
+                  "why_this_change": "Réduire la charge globale en insérant une étape intermédiaire de confiance avant les sujets difficiles."
+                },
+                "boundaries": {
+                  "explanation": "Le plan est réordonné pour prioriser la sécurité émotionnelle, mais la destination finale reste la même.",
+                  "affected_scope": "plan dans son ensemble",
+                  "global_plan_impact": "indirect",
+                  "explicitly_not_affected": [
+                    "objectif principal",
+                    "identité du plan"
+                  ]
+                },
+                "applied_change": {
+                  "summary": "Rééquilibrage de la trajectoire globale pour prioriser la sécurité émotionnelle avant les sujets financiers.",
+                  "changed_items": [
+                    {
+                      "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                      "kind": "action",
+                      "after": "Devient le prérequis prioritaire et indispensable de la trajectoire globale.",
+                      "title": "Convenir d'un signal de pause",
+                      "before": "Action de communication standard dans le plan.",
+                      "reason": "Garantir un filet de sécurité émotionnelle avant d'aborder toute discussion difficile.",
+                      "capability": "reorder_actions"
+                    },
+                    {
+                      "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                      "kind": "habit",
+                      "after": "Maintenue à 3 jours par semaine, mais utilisée comme indicateur de succès pour valider une semaine sans tension.",
+                      "title": "Partager un point positif",
+                      "before": "Habitude de partage 3 jours par semaine.",
+                      "reason": "Vérifier que vous arrivez à échanger positivement avant d'ouvrir le dossier de l'argent.",
+                      "capability": "modify_existing_action"
+                    },
+                    {
+                      "id": null,
+                      "kind": "plan_setting",
+                      "after": "Décalé après la validation d'une phase de stabilité et de confiance.",
+                      "title": "Sujet de l'argent",
+                      "before": "Prévu dans la trajectoire actuelle.",
+                      "reason": "Réduire la pression globale et respecter le besoin d'une étape intermédiaire.",
+                      "capability": null
+                    }
+                  ],
+                  "preserved_items": [
+                    {
+                      "id": null,
+                      "kind": "plan",
+                      "title": "Objectif principal du plan",
+                      "reason": "La direction globale et l'intention du plan doivent rester intactes malgré le changement de rythme."
+                    }
+                  ]
+                },
+                "user_message_brief": "J'ai réorganisé ton plan pour prioriser le signal de pause et les points positifs avant de parler d'argent.",
+                "user_message_detailed": "Voici les détails de l'ajustement de ton plan global :\n\n1. **Convenir d'un signal de pause** : Avant, c'était une mission parmi d'autres. Après cet ajustement, elle devient l'étape intermédiaire prioritaire. Pourquoi ? Pour vous assurer d'avoir un outil concret pour stopper les tensions avant d'attaquer les sujets lourds.\n\n2. **Partager un point positif** : Cette habitude est maintenue à 3 jours par semaine, mais elle a maintenant pour rôle explicite de valider que vous pouvez échanger sans tension pendant une semaine complète. C'est le signal vert nécessaire pour la suite.\n\n3. **Sujet de l'argent** : Ce thème est décalé plus loin dans ta trajectoire. Cela permet de respecter ta contrainte de ne pas avoir de pression immédiate tout en gardant l'objectif en vue pour plus tard.\n\nLe reste de ton plan et tes objectifs de fond ne changent pas, nous adaptons simplement le chemin pour qu'il soit plus sûr pour vous deux."
+              },
+              "execution_strategy": "whole_plan_adjustment",
+              "allowed_patch_fields": [
+                "scope_kind",
+                "plan_adjustment",
+                "load_adjustment",
+                "goal_adjustment",
+                "sequence_adjustment",
+                "reason_type",
+                "reason_change",
+                "change_target",
+                "confidence",
+                "constraints"
+              ]
+            },
+            "output_schema": "plan_adjustment_draft_v1",
+            "operation_type": "adjust_plan_item",
+            "execution_message": "C'est fait, j'ai réorganisé ton plan global pour qu'il soit plus tenable. J'ai repoussé les discussions sur l'argent afin de laisser place à une phase de mise en sécurité de votre communication. J'ai notamment défini l'action « Convenir d'un signal de pause » comme le socle prioritaire et j'ai ajusté l'habitude « Partager un point positif » pour qu'elle serve de validation d'un climat apaisé. Cette nouvelle séquence réduit ta charge mentale immédiate tout en gardant le cap sur tes objectifs de fond. Je suis assez confiante sur le fait que cet ordre respectera mieux votre rythme actuel sans créer de tension inutile.",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je te propose de rééquilibrer ta trajectoire globale pour alléger la pression immédiate. L'idée est d'insérer une étape intermédiaire de reconstruction de la confiance avant d'aborder les sujets sensibles comme l'argent. Pour cela, je prévois de sanctuariser l'action « Convenir d'un signal de pause » et l'habitude « Partager un point positif » comme des prérequis indispensables. Rien n'est encore appliqué pour le moment, j'attends ta validation. Concrètement, je vais repositionner le signal de pause comme ta priorité absolue et m'assurer que le partage de points positifs serve de test de climat pendant une semaine avant d'aller plus loin. Le reste de tes objectifs et l'identité de ton plan ne seront pas touchés."
+          },
+          "status": "draft_review_updated",
+          "reason_code": "tool_skill_intent_start",
+          "operation_id": "ce86c7c2-93f1-4754-98ec-e8e95b19e1ee",
+          "selected_handler": "adjust_plan_item",
+          "draft_review_decision": {
+            "decision": "revise",
+            "evidence": [
+              "Pas exactement",
+              "Le premier sujet sensible serait l'argent",
+              "après avoir vérifié pendant une semaine que le signal de pause est respecté",
+              "se dire des choses positives sans tension"
+            ],
+            "confidence": "high",
+            "apply_after_revision": false
+          },
+          "previous_operation_id": "26ea6720-6faa-4ba4-962e-e785d6783744"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 41675,
+        "created_at": "2026-05-18T17:01:56.668254+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-rose-2026-05-18-adjust-plan-whole-plan-r36-next-step-structural-t05",
+    "user": "Oui, je valide ce brouillon. Applique l'ajustement de trajectoire globale: insérer cette étape intermédiaire de confiance avant le sujet argent.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-18-adjust-plan-whole-plan-r36-next-step-structural-t05",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-18-adjust-plan-whole-plan-r36-next-step-structural",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je ne peux pas appliquer cet ajustement depuis le chat tant qu'il n'est pas rattaché proprement aux bonnes actions du plan. 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-18-adjust-plan-whole-plan-r36-next-step-structural-t05",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "cca9a8f7-ca10-438b-94ee-048554e50967",
+        "ts": "2026-05-18T17:02:23.279+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 12101,
+          "latency_ms": 4770,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 713,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "trajectoire_globale",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "objectifs et trajectoire globale",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-18-adjust-plan-whole-plan-r36-next-step-structural-t05",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "trajectoire_globale",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "objectifs et trajectoire globale",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0,1,0.6,0.3;decay=0.55;recovery=1.5",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              1,
+              0.6,
+              0.3
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "cca9a8f7-ca10-438b-94ee-048554e50967",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "trajectoire globale",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "whole_plan",
+                  "label": "trajectoire globale",
+                  "status": "identified",
+                  "evidence": [
+                    "trajectoire globale"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "whole_plan",
+                  "status": "identified",
+                  "evidence": [
+                    "ajustement de trajectoire globale",
+                    "insérer cette étape intermédiaire de confiance avant le sujet argent"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "whole_plan"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "blocked",
+          "reason_code": "level_capability_not_materializable:reorder_actions",
+          "operation_id": "ce86c7c2-93f1-4754-98ec-e8e95b19e1ee",
+          "selected_handler": "adjust_plan_item"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 13750,
+        "created_at": "2026-05-18T17:02:23.280588+00:00"
+      },
+      "trace_error": null
+    }
+  }
+]

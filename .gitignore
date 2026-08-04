@@ -35,6 +35,9 @@ playwright-report/**
 frontend/playwright-report
 frontend/playwright-report/**
 **/supabase_status.json
+tests/real-personas/*/connection.json
+tests/real-personas/*/connections/*.json
+tests/real-personas/*/connections/**/*.json
 
 # --- BUILD OUTPUTS ---
 dist
@@ -53,3 +56,6 @@ supabase/.temp
 supabase/.env.keys
 supabase/.env*
 feat/Commande sensibles
+
+# Local real-LLM env for QA runs — carries live API keys, never committed.
+supabase/functions/night_llm.env

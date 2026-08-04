@@ -1,0 +1,1391 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r93-whole-plan-split-merge-t01",
+    "user": "J ai relu la trajectoire du plan et je me demande si deux morceaux ne se marchent pas dessus : apprendre a exprimer mes besoins, puis ensuite aborder les sujets sensibles. J ai peur que ca fasse deux niveaux qui repetent la meme chose. Est-ce qu on devrait fusionner, ou separer autrement ?",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r93-whole-plan-split-merge-t01",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r93-whole-plan-split-merge",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: je clarifie la séparation entre deux étapes du plan, avec Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.\n\nCe qui reste stable: l'objectif global et l'idée de progresser par étapes. On rend surtout la frontière entre deux étapes plus nette.\n\nCe que ça implique: si tu valides, je régénère le plan dans ce sens. Rien n'est appliqué tant que tu ne valides pas clairement. 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r93-whole-plan-split-merge-t01",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "ea92a665-8150-4cba-b3d8-27c2270d0250",
+        "ts": "2026-05-20T18:31:52.854+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 12581,
+          "latency_ms": 7874,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 789,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "plan_trajectory",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "niveaux exprimer besoins et sujets sensibles",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "action_observation",
+                "type": "action",
+                "query_hint": "J ai relu la trajectoire du plan et je me demande si deux morceaux ne se marchent pas dessus : apprendre a exprimer mes besoins, puis ensuite aborder les sujets",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "standard",
+            "plan_confidence": 0.7,
+            "response_intent": "problem_solving",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "medium"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s15"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r93-whole-plan-split-merge-t01",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "plan_trajectory",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "niveaux exprimer besoins et sujets sensibles",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "action_observation",
+                "type": "action",
+                "query_hint": "J ai relu la trajectoire du plan et je me demande si deux morceaux ne se marchent pas dessus : apprendre a exprimer mes besoins, puis ensuite aborder les sujets",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "standard",
+            "plan_confidence": 0.7,
+            "response_intent": "problem_solving",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "medium"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "ea92a665-8150-4cba-b3d8-27c2270d0250",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "trajectoire du plan : fusionner ou séparer les niveaux 'exprimer mes besoins' et 'sujets sensibles'",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "whole_plan",
+                  "label": "trajectoire globale du plan",
+                  "status": "identified",
+                  "evidence": [
+                    "fusionner, ou séparer autrement"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "whole_plan",
+                  "status": "identified",
+                  "evidence": [
+                    "trajectoire du plan",
+                    "deux niveaux qui répètent la même chose"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "whole_plan"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "draft": {
+            "draft": {
+              "patch": {
+                "scope_kind": "whole_plan",
+                "constraints": [
+                  "no_pressure",
+                  "minimal_patch",
+                  "preserve_plan_intent",
+                  "no_schedule_day_change",
+                  "ask_confirmation_before_write",
+                  "preserve_global_intent: apprendre a exprimer ses besoins puis aborder les sujets sensibles sans repetition inutile",
+                  "whole_plan_change_family:split_merge_restructure",
+                  "whole_plan_candidate_operation:split_or_merge_phase",
+                  "whole_plan_readiness:draft_ready",
+                  "whole_plan_directional_draft_ready",
+                  "preserve_plan_intent",
+                  "avoid_repetitive_clarification_when_user_gives_solution",
+                  "coach_observation:La demande vise une restructuration de trajectoire: le passage « apprendre à exprimer mes besoins » puis « aborder les sujets sensibles » semble créer un doublon de niveau, alors que l’intention réelle est probablement de faire une montée en complexité plus nette, sans répétition inutile. Humainement, le point important n’est pas seulement de fusionner ou séparer, mais de préserver une progression lisible entre apprentissage de la forme et usage sur des sujets à enjeu.",
+                  "coach_recommendation:À ce stade, orienter le sous-skill vers une proposition de restructuration légère plutôt qu’une fusion automatique: clarifier la frontière entre compétence de base et mise en situation sensible, puis suggérer soit un pont intermédiaire, soit une séparation par rôle de chaque phase. Le bon angle coaching est de réduire la redondance perçue tout en gardant la montée en intensité et la sécurité du plan.",
+                  "coach_warning:Éviter de fusionner les deux blocs si cela efface la logique de progression: on perdrait le pont entre apprentissage et transfert.",
+                  "coach_warning:Éviter de proposer un simple renommage cosmétique si le problème est bien structurel.",
+                  "coach_warning:Éviter de supprimer la phase « sujets sensibles » au motif qu’elle ressemble à la précédente: elle peut jouer le rôle de test de transfert.",
+                  "coach_warning:Éviter d’ajouter de nouvelles clarifications longues alors que le user a déjà formulé une hypothèse concrète de chevauchement.",
+                  "coach_preserve:L’intention globale de montée en compétence progressive.",
+                  "coach_preserve:La sécurité émotionnelle avant l’exposition aux sujets sensibles.",
+                  "coach_preserve:La logique de transfert: apprendre une compétence puis l’utiliser sur un cas plus difficile.",
+                  "coach_preserve:Les éléments du plan déjà utiles comme les signaux de pause ou les structures de régulation, s’ils servent de support.",
+                  "coach_preserve:La frontière entre compétence de communication et contenu sensible à traiter.",
+                  "coach_avoid:Ne pas présenter la restructuration comme une correction obligatoire du plan actuel.",
+                  "coach_avoid:Ne pas promettre qu’une fusion supprimera tous les doublons sans vérifier le rôle de chaque phase.",
+                  "coach_avoid:Ne pas mélanger le problème de rythme avec le problème de structure: ici le signal principal est surtout structurel.",
+                  "coach_avoid:Ne pas proposer de réécrire tout le plan si une séparation plus nette suffit.",
+                  "coach_guideline:Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+                  "coach_guideline:Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+                  "coach_guideline:Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+                  "coach_guideline:Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+                  "coach_guideline:Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+                  "coach_guideline:Traiter cette demande comme une question de trajectoire globale, pas comme un simple ajustement local.",
+                  "coach_guideline:Distinguer clairement le rôle de chaque bloc: apprentissage de la forme, puis application sur contenu à enjeu.",
+                  "coach_guideline:S’il y a doublon apparent, chercher d’abord la fonction différente de chaque phase avant de fusionner.",
+                  "coach_guideline:Préserver une montée en intensité lisible et un pont de sécurité entre les niveaux.",
+                  "coach_guideline:Proposer des options de structure qui réduisent la répétition sans casser la progression.",
+                  "coach_guideline:Ne pas changer la nature du plan sans demande explicite: rester dans l’architecture de progression déjà installée.",
+                  "whole_plan_change_family:split_merge_restructure",
+                  "whole_plan_candidate_operation:split_or_merge_phase",
+                  "whole_plan_readiness:draft_ready",
+                  "coach_trajectory_hypothesis:La trajectoire actuelle ressemble à « apprendre la compétence » puis « l’appliquer sur des sujets sensibles » ; la trajectoire possible consiste à garder cette montée, mais en redécoupant les phases pour que la première forme le socle et la seconde serve d’application distincte au lieu de répéter le même niveau.",
+                  "whole_plan_change_family:split_merge_restructure",
+                  "whole_plan_candidate_operation:split_or_merge_phase",
+                  "whole_plan_readiness:draft_ready",
+                  "affected_item:apprendre a exprimer mes besoins",
+                  "affected_item:aborder les sujets sensibles",
+                  "affected_item:Convenir d'un signal de pause",
+                  "affected_item:Faire le point sur le signal de pause"
+                ],
+                "reason_type": "bad_fit",
+                "change_target": "global_load",
+                "reason_change": "context_changed"
+              },
+              "title": "Ajuster la trajectoire du plan",
+              "confidence": "medium",
+              "ack_summary": {
+                "changed": [
+                  "Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité."
+                ],
+                "unchanged": [
+                  "Objectif global du plan",
+                  "Actions de soutien existantes sauf changement explicitement validé"
+                ],
+                "confidence": "medium",
+                "why_it_helps": "Le user demande une structure plus lisible entre deux phases futures proches.",
+                "follow_up_needed": "Valider avant régénération; le détail exact sera produit dans le plan ajusté."
+              },
+              "scope_label": "plan global",
+              "why_it_helps": "Le user demande une structure plus lisible entre deux phases futures proches.",
+              "decision_basis": {
+                "evidence": [
+                  "J ai relu la trajectoire du plan et je me demande si deux morceaux ne se marchent pas dessus : apprendre a exprimer mes besoins, puis ensuite aborder les sujets sensibles. J ai peur que ca fasse deux niveaux qui repetent la meme chose. Est-ce qu on devrait fusionner, ou separer autrement ?",
+                  "fusionner, ou separer autrement",
+                  "deterministic whole-plan structural/family signal",
+                  "deterministic whole-plan fit/complexity signal",
+                  "apprendre a exprimer mes besoins",
+                  "puis ensuite aborder les sujets sensibles",
+                  "deux niveaux qui repetent la meme chose",
+                  "fusionner, ou separer autrement"
+                ],
+                "confidence": "medium",
+                "uncertainty": [
+                  "semaines ou blocs exacts a affiner ensuite"
+                ],
+                "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+                "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+                "must_preserve": [
+                  "intention du plan",
+                  "direction globale du plan"
+                ]
+              },
+              "adjustment_type": "rebalance",
+              "proposed_change": "je clarifie la séparation entre deux étapes du plan: Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.",
+              "change_rationale": {
+                "why_this_change": "Le user demande une modification structurelle de trajectoire, pas un simple patch d'action.",
+                "success_condition": "Le plan garde deux étapes distinctes, mais les différencie par la difficulté du contenu: besoins simples d'abord, sujets sensibles ensuite.",
+                "expected_mechanism": "Le user demande une structure plus lisible entre deux phases futures proches."
+              },
+              "adjust_plan_result": {
+                "scope": "whole_plan",
+                "rationale": {
+                  "confidence": "medium",
+                  "missing_info": [],
+                  "user_problem": "Deux étapes futures risquaient de se répéter ou de se chevaucher.",
+                  "expected_effect": "Le plan avance avec une trajectoire plus cohérente sans casser l'objectif global.",
+                  "why_this_change": "Le user demande une structure plus lisible entre deux phases futures proches."
+                },
+                "boundaries": {
+                  "explanation": "Le changement touche l'ordre et les prérequis de progression, donc il doit passer par une régénération contrôlée du plan.",
+                  "affected_scope": "trajectoire globale du plan",
+                  "global_plan_impact": "requires_review",
+                  "explicitly_not_affected": [
+                    "objectif global",
+                    "identité du plan",
+                    "demande de ne pas transformer cela en simple ajustement d'action"
+                  ]
+                },
+                "applied_change": {
+                  "summary": "je clarifie la séparation entre deux étapes du plan: Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.",
+                  "changed_items": [
+                    {
+                      "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                      "kind": "action",
+                      "after": "À replacer comme appui d'une marche claire: petits sujets du quotidien avant les sujets sensibles.",
+                      "title": "Convenir d'un signal de pause",
+                      "before": "À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.",
+                      "reason": "Le user demande une structure plus lisible entre deux phases futures proches.",
+                      "capability": "modify_existing_action"
+                    },
+                    {
+                      "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                      "kind": "action",
+                      "after": "À replacer comme appui d'une marche claire: petits sujets du quotidien avant les sujets sensibles.",
+                      "title": "Faire le point sur le signal de pause",
+                      "before": "Discutez 10 minutes à froid pour voir si le signal de pause a été utile cette semaine et s'il est respecté par vous deux.",
+                      "reason": "Le user demande une structure plus lisible entre deux phases futures proches.",
+                      "capability": "modify_existing_action"
+                    }
+                  ],
+                  "preserved_items": [
+                    {
+                      "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                      "kind": "habit",
+                      "title": "Partager un point positif",
+                      "reason": "L'action reste comme soutien; le changement concerne la trajectoire et l'ordre de progression."
+                    }
+                  ],
+                  "trajectory_change": {
+                    "after": "Le plan garde deux étapes distinctes, mais les différencie par la difficulté du contenu: besoins simples d'abord, sujets sensibles ensuite.",
+                    "before": "Deux étapes futures risquaient de se répéter ou de se chevaucher.",
+                    "inserted_step": "Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.",
+                    "coaching_reason": "Le user demande une structure plus lisible entre deux phases futures proches.",
+                    "reordered_steps": [
+                      "Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.",
+                      "Garder une marche claire avant d'aborder les sujets sensibles"
+                    ],
+                    "preserved_direction": "L'objectif global du plan reste stable, sauf demande explicite de le changer."
+                  }
+                },
+                "user_message_brief": "je clarifie la séparation entre deux étapes du plan: Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.",
+                "user_message_detailed": "je clarifie la séparation entre deux étapes du plan: Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité."
+              },
+              "execution_strategy": "whole_plan_adjustment",
+              "allowed_patch_fields": [
+                "scope_kind",
+                "plan_adjustment",
+                "load_adjustment",
+                "goal_adjustment",
+                "sequence_adjustment",
+                "reason_type",
+                "reason_change",
+                "change_target",
+                "confidence",
+                "constraints"
+              ]
+            },
+            "output_schema": "plan_adjustment_draft_v1",
+            "operation_type": "adjust_plan_item",
+            "execution_message": "C'est fait: j'ai ajusté la trajectoire du plan.\n\nLe plan garde le même objectif, mais la suite est régénérée pour le plan garde deux étapes distinctes, mais les différencie par la difficulté du contenu: besoins simples d'abord, sujets sensibles ensuite..",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: je clarifie la séparation entre deux étapes du plan, avec Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.\n\nCe qui reste stable: l'objectif global et l'idée de progresser par étapes. On rend surtout la frontière entre deux étapes plus nette.\n\nCe que ça implique: si tu valides, je régénère le plan dans ce sens. Rien n'est appliqué tant que tu ne valides pas clairement."
+          },
+          "status": "draft_review",
+          "reason_code": "tool_skill_intent_start",
+          "operation_id": "cb6ff7e9-c7d5-4fcb-b509-3a347e9854d2",
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Ne pas présenter la restructuration comme une correction obligatoire du plan actuel.",
+              "Ne pas promettre qu’une fusion supprimera tous les doublons sans vérifier le rôle de chaque phase.",
+              "Ne pas mélanger le problème de rythme avec le problème de structure: ici le signal principal est surtout structurel.",
+              "Ne pas proposer de réécrire tout le plan si une séparation plus nette suffit."
+            ],
+            "scope": "whole_plan",
+            "preserve": [
+              "L’intention globale de montée en compétence progressive.",
+              "La sécurité émotionnelle avant l’exposition aux sujets sensibles.",
+              "La logique de transfert: apprendre une compétence puis l’utiliser sur un cas plus difficile.",
+              "Les éléments du plan déjà utiles comme les signaux de pause ou les structures de régulation, s’ils servent de support.",
+              "La frontière entre compétence de communication et contenu sensible à traiter."
+            ],
+            "warnings": [
+              "Éviter de fusionner les deux blocs si cela efface la logique de progression: on perdrait le pont entre apprentissage et transfert.",
+              "Éviter de proposer un simple renommage cosmétique si le problème est bien structurel.",
+              "Éviter de supprimer la phase « sujets sensibles » au motif qu’elle ressemble à la précédente: elle peut jouer le rôle de test de transfert.",
+              "Éviter d’ajouter de nouvelles clarifications longues alors que le user a déjà formulé une hypothèse concrète de chevauchement."
+            ],
+            "readiness": "draft_ready",
+            "confidence": "high",
+            "guidelines": [
+              "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "Traiter cette demande comme une question de trajectoire globale, pas comme un simple ajustement local.",
+              "Distinguer clairement le rôle de chaque bloc: apprentissage de la forme, puis application sur contenu à enjeu.",
+              "S’il y a doublon apparent, chercher d’abord la fonction différente de chaque phase avant de fusionner.",
+              "Préserver une montée en intensité lisible et un pont de sécurité entre les niveaux.",
+              "Proposer des options de structure qui réduisent la répétition sans casser la progression.",
+              "Ne pas changer la nature du plan sans demande explicite: rester dans l’architecture de progression déjà installée."
+            ],
+            "observation": "La demande vise une restructuration de trajectoire: le passage « apprendre à exprimer mes besoins » puis « aborder les sujets sensibles » semble créer un doublon de niveau, alors que l’intention réelle est probablement de faire une montée en complexité plus nette, sans répétition inutile. Humainement, le point important n’est pas seulement de fusionner ou séparer, mais de préserver une progression lisible entre apprentissage de la forme et usage sur des sujets à enjeu.",
+            "change_family": "split_merge_restructure",
+            "recommendation": "À ce stade, orienter le sous-skill vers une proposition de restructuration légère plutôt qu’une fusion automatique: clarifier la frontière entre compétence de base et mise en situation sensible, puis suggérer soit un pont intermédiaire, soit une séparation par rôle de chaque phase. Le bon angle coaching est de réduire la redondance perçue tout en gardant la montée en intensité et la sécurité du plan.",
+            "next_best_question": null,
+            "options_to_discuss": [
+              "Fusionner partiellement les deux blocs en une phase unique avec deux sous-étapes: apprendre puis appliquer.",
+              "Garder deux phases distinctes mais les différencier nettement: la première sur la formulation, la seconde sur l’usage en contexte sensible.",
+              "Insérer une phase-pont entre les deux pour tester l’expression des besoins sur des sujets à faible enjeu avant les sujets sensibles.",
+              "Déplacer « sujets sensibles » plus tard si la phase actuelle est encore trop proche d’un apprentissage de base.",
+              "Transformer la seconde phase en phase de consolidation/entraînement sur cas réels plutôt qu’en répétition de la première."
+            ],
+            "candidate_operation": "split_or_merge_phase",
+            "questions_to_clarify": [],
+            "trajectory_hypothesis": "La trajectoire actuelle ressemble à « apprendre la compétence » puis « l’appliquer sur des sujets sensibles » ; la trajectoire possible consiste à garder cette montée, mais en redécoupant les phases pour que la première forme le socle et la seconde serve d’application distincte au lieu de répéter le même niveau.",
+            "must_not_execute_reason": null
+          },
+          "coaching_guidance_audit": {
+            "scope": "whole_plan",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 21590,
+        "created_at": "2026-05-20T18:31:52.856235+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r93-whole-plan-split-merge-t02",
+    "user": "Ca me va, mais je veux eviter une etape pont en plus si ce n est pas necessaire. Je prefere garder deux niveaux distincts : besoins simples du quotidien, puis sujets sensibles. Si tu penses qu un pont est vraiment utile, explique-le avant de l ajouter.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r93-whole-plan-split-merge-t02",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r93-whole-plan-split-merge",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: je clarifie la séparation entre deux étapes du plan, avec Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.\n\nCe qui reste stable: l'objectif global et l'idée de progresser par étapes. On rend surtout la frontière entre deux étapes plus nette.\n\nCe que ça implique: si tu valides, je régénère le plan dans ce sens. Rien n'est appliqué tant que tu ne valides pas clairement. 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r93-whole-plan-split-merge-t02",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "080d3101-e057-424e-89c8-f1ac66f778b5",
+        "ts": "2026-05-20T18:32:25.328+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 13054,
+          "latency_ms": 4268,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 728,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_plan_structure",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "structure des niveaux et trajectoire",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s15"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r93-whole-plan-split-merge-t02",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_plan_structure",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "structure des niveaux et trajectoire",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "product_help": {
+                "reason": "product_question",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 1,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0;decay=0.55;recovery=0",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "080d3101-e057-424e-89c8-f1ac66f778b5",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "trajectoire globale du plan",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "whole_plan",
+                  "label": "trajectoire globale du plan",
+                  "status": "identified"
+                },
+                "target_granularity": {
+                  "value": "whole_plan",
+                  "status": "identified",
+                  "evidence": [
+                    "garder deux niveaux distincts",
+                    "trajectoire du plan"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "whole_plan"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "draft": {
+            "draft": {
+              "patch": {
+                "scope_kind": "whole_plan",
+                "constraints": [
+                  "no_pressure",
+                  "minimal_patch",
+                  "preserve_plan_intent",
+                  "no_schedule_day_change",
+                  "ask_confirmation_before_write",
+                  "preserve_global_intent: apprendre a exprimer ses besoins puis aborder les sujets sensibles sans repetition inutile",
+                  "prefer_two_distinct_levels: besoins simples du quotidien puis sujets sensibles",
+                  "avoid_bridge_phase_unless_strictly_necessary",
+                  "if_bridge_is_kept_explain_before_adding_it",
+                  "whole_plan_change_family:split_merge_restructure",
+                  "whole_plan_candidate_operation:split_or_merge_phase",
+                  "whole_plan_readiness:draft_ready",
+                  "whole_plan_directional_draft_ready",
+                  "preserve_plan_intent",
+                  "avoid_repetitive_clarification_when_user_gives_solution",
+                  "coach_observation:La demande ne revient pas sur la direction générale; elle précise la forme souhaitée de la restructuration: conserver deux niveaux distincts, en évitant d’ajouter un pont intermédiaire sauf s’il a une fonction claire et explicable. Humainement, le vrai enjeu est de protéger la lisibilité du plan et le sentiment de progression, sans complexifier l’architecture pour résoudre un doublon qui peut peut-être être réglé par une séparation plus nette des rôles.",
+                  "coach_recommendation:Orienter la réponse vers une séparation renforcée en deux niveaux stables, avec une logique de rôle distinct plutôt qu’une étape-pont par défaut. Si un pont est envisagé, il doit être présenté comme un support fonctionnel, bref et justifié par un manque réel de transfert, pas comme une couche supplémentaire de structure.",
+                  "coach_warning:Éviter d’ajouter une phase-pont par réflexe: cela risquerait de confirmer une complexité que le user essaie justement de limiter.",
+                  "coach_warning:Éviter de fusionner à nouveau les deux niveaux si cela dilue la distinction entre besoins quotidiens et sujets sensibles.",
+                  "coach_warning:Éviter de présenter le pont comme une amélioration générale sans démontrer son utilité précise.",
+                  "coach_warning:Éviter de transformer ce point en débat abstrait sur la théorie du plan: le besoin est concret, centré sur la lisibilité et la charge.",
+                  "coach_preserve:La séparation voulue entre besoins simples du quotidien et sujets sensibles.",
+                  "coach_preserve:L’intention de progression par étapes sans répétition inutile.",
+                  "coach_preserve:La sécurité émotionnelle avant l’exposition aux sujets sensibles.",
+                  "coach_preserve:La logique de montée en complexité déjà installée.",
+                  "coach_preserve:Le refus implicite d’alourdir le plan sans bénéfice concret.",
+                  "coach_avoid:Ne pas proposer un pont intermédiaire comme si c’était la solution par défaut.",
+                  "coach_avoid:Ne pas reformuler la trajectoire comme une fusion si le user préfère deux niveaux distincts.",
+                  "coach_avoid:Ne pas multiplier les niveaux de transition ou les sous-phases pour compenser un problème de clarté.",
+                  "coach_avoid:Ne pas donner l’impression que le plan doit être réécrit entièrement.",
+                  "coach_guideline:Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+                  "coach_guideline:Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+                  "coach_guideline:Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+                  "coach_guideline:Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+                  "coach_guideline:Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+                  "coach_guideline:Traiter la demande comme une clarification de structure, pas comme une correction de fond.",
+                  "coach_guideline:Préserver deux niveaux distincts tant que leur fonction peut être rendue lisible sans couche supplémentaire.",
+                  "coach_guideline:Si un pont est proposé, le justifier par une nécessité de transfert identifiée, pas par prudence générique.",
+                  "coach_guideline:Distinguer nettement le rôle de chaque niveau: apprentissage simple puis application sur contenu sensible.",
+                  "coach_guideline:Éviter toute complexification qui ne réduit pas directement le chevauchement perçu.",
+                  "coach_guideline:Ne pas changer la nature du plan sans demande explicite; rester dans la logique de progression déjà installée.",
+                  "coach_guideline:Présenter toute étape-pont comme optionnelle, minimale et fonctionnelle, jamais comme une obligation.",
+                  "whole_plan_change_family:split_merge_restructure",
+                  "whole_plan_candidate_operation:split_or_merge_phase",
+                  "whole_plan_readiness:needs_confirmation",
+                  "coach_must_not_execute:Le user ne demande pas encore une application directe; il exprime une préférence structurelle et veut qu’un éventuel pont soit justifié avant d’être ajouté. Il faut donc rester au niveau du brouillon et de l’arbitrage de forme.",
+                  "coach_trajectory_hypothesis:La trajectoire peut rester en deux niveaux distincts, avec un premier bloc pour les besoins du quotidien et un second pour les sujets sensibles; si un pont apparaît, il doit seulement servir de support de transfert entre ces deux rôles sans devenir un niveau supplémentaire.",
+                  "whole_plan_change_family:split_merge_restructure",
+                  "whole_plan_candidate_operation:split_or_merge_phase",
+                  "whole_plan_readiness:draft_ready",
+                  "affected_item:Convenir d'un signal de pause",
+                  "affected_item:Faire le point sur le signal de pause"
+                ],
+                "reason_type": "bad_fit",
+                "change_target": "global_load",
+                "reason_change": "context_changed"
+              },
+              "title": "Ajuster la trajectoire du plan",
+              "confidence": "medium",
+              "ack_summary": {
+                "changed": [
+                  "Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité."
+                ],
+                "unchanged": [
+                  "Objectif global du plan",
+                  "Actions de soutien existantes sauf changement explicitement validé"
+                ],
+                "confidence": "medium",
+                "why_it_helps": "Le user demande une structure plus lisible entre deux phases futures proches.",
+                "follow_up_needed": "Valider avant régénération; le détail exact sera produit dans le plan ajusté."
+              },
+              "scope_label": "plan global",
+              "why_it_helps": "Le user demande une structure plus lisible entre deux phases futures proches.",
+              "decision_basis": {
+                "evidence": [
+                  "Ca me va, mais je veux eviter une etape pont en plus si ce n est pas necessaire. Je prefere garder deux niveaux distincts : besoins simples du quotidien, puis sujets sensibles. Si tu penses qu un pont est vraiment utile, explique-le avant de l ajouter.",
+                  "fusionner, ou separer autrement",
+                  "rebalance",
+                  "deterministic whole-plan fit/complexity signal",
+                  "apprendre a exprimer mes besoins",
+                  "puis ensuite aborder les sujets sensibles",
+                  "deux niveaux qui repetent la meme chose",
+                  "fusionner, ou separer autrement"
+                ],
+                "confidence": "medium",
+                "uncertainty": [
+                  "semaines ou blocs exacts a affiner ensuite"
+                ],
+                "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+                "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+                "must_preserve": [
+                  "intention du plan",
+                  "direction globale du plan"
+                ]
+              },
+              "adjustment_type": "rebalance",
+              "proposed_change": "je clarifie la séparation entre deux étapes du plan: Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.",
+              "change_rationale": {
+                "why_this_change": "Le user demande une modification structurelle de trajectoire, pas un simple patch d'action.",
+                "success_condition": "Le plan garde deux étapes distinctes, mais les différencie par la difficulté du contenu: besoins simples d'abord, sujets sensibles ensuite.",
+                "expected_mechanism": "Le user demande une structure plus lisible entre deux phases futures proches."
+              },
+              "adjust_plan_result": {
+                "scope": "whole_plan",
+                "rationale": {
+                  "confidence": "medium",
+                  "missing_info": [],
+                  "user_problem": "Deux étapes futures risquaient de se répéter ou de se chevaucher.",
+                  "expected_effect": "Le plan avance avec une trajectoire plus cohérente sans casser l'objectif global.",
+                  "why_this_change": "Le user demande une structure plus lisible entre deux phases futures proches."
+                },
+                "boundaries": {
+                  "explanation": "Le changement touche l'ordre et les prérequis de progression, donc il doit passer par une régénération contrôlée du plan.",
+                  "affected_scope": "trajectoire globale du plan",
+                  "global_plan_impact": "requires_review",
+                  "explicitly_not_affected": [
+                    "objectif global",
+                    "identité du plan",
+                    "demande de ne pas transformer cela en simple ajustement d'action"
+                  ]
+                },
+                "applied_change": {
+                  "summary": "je clarifie la séparation entre deux étapes du plan: Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.",
+                  "changed_items": [
+                    {
+                      "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                      "kind": "action",
+                      "after": "À replacer comme appui d'une marche claire: petits sujets du quotidien avant les sujets sensibles.",
+                      "title": "Convenir d'un signal de pause",
+                      "before": "À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.",
+                      "reason": "Le user demande une structure plus lisible entre deux phases futures proches.",
+                      "capability": "modify_existing_action"
+                    },
+                    {
+                      "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                      "kind": "action",
+                      "after": "À replacer comme appui d'une marche claire: petits sujets du quotidien avant les sujets sensibles.",
+                      "title": "Faire le point sur le signal de pause",
+                      "before": "Discutez 10 minutes à froid pour voir si le signal de pause a été utile cette semaine et s'il est respecté par vous deux.",
+                      "reason": "Le user demande une structure plus lisible entre deux phases futures proches.",
+                      "capability": "modify_existing_action"
+                    }
+                  ],
+                  "preserved_items": [
+                    {
+                      "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                      "kind": "habit",
+                      "title": "Partager un point positif",
+                      "reason": "L'action reste comme soutien; le changement concerne la trajectoire et l'ordre de progression."
+                    }
+                  ],
+                  "trajectory_change": {
+                    "after": "Le plan garde deux étapes distinctes, mais les différencie par la difficulté du contenu: besoins simples d'abord, sujets sensibles ensuite.",
+                    "before": "Deux étapes futures risquaient de se répéter ou de se chevaucher.",
+                    "inserted_step": "Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.",
+                    "coaching_reason": "Le user demande une structure plus lisible entre deux phases futures proches.",
+                    "reordered_steps": [
+                      "Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.",
+                      "Garder une marche claire avant d'aborder les sujets sensibles"
+                    ],
+                    "preserved_direction": "L'objectif global du plan reste stable, sauf demande explicite de le changer."
+                  }
+                },
+                "user_message_brief": "je clarifie la séparation entre deux étapes du plan: Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.",
+                "user_message_detailed": "je clarifie la séparation entre deux étapes du plan: Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité."
+              },
+              "execution_strategy": "whole_plan_adjustment",
+              "allowed_patch_fields": [
+                "scope_kind",
+                "plan_adjustment",
+                "load_adjustment",
+                "goal_adjustment",
+                "sequence_adjustment",
+                "reason_type",
+                "reason_change",
+                "change_target",
+                "confidence",
+                "constraints"
+              ]
+            },
+            "output_schema": "plan_adjustment_draft_v1",
+            "operation_type": "adjust_plan_item",
+            "execution_message": "C'est fait: j'ai ajusté la trajectoire du plan.\n\nLe plan garde le même objectif, mais la suite est régénérée pour le plan garde deux étapes distinctes, mais les différencie par la difficulté du contenu: besoins simples d'abord, sujets sensibles ensuite..",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: je clarifie la séparation entre deux étapes du plan, avec Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.\n\nCe qui reste stable: l'objectif global et l'idée de progresser par étapes. On rend surtout la frontière entre deux étapes plus nette.\n\nCe que ça implique: si tu valides, je régénère le plan dans ce sens. Rien n'est appliqué tant que tu ne valides pas clairement."
+          },
+          "status": "draft_review_updated",
+          "reason_code": "tool_skill_intent_start",
+          "operation_id": "7d4a4dfd-ffa8-4414-8326-7c21756f19b2",
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Ne pas proposer un pont intermédiaire comme si c’était la solution par défaut.",
+              "Ne pas reformuler la trajectoire comme une fusion si le user préfère deux niveaux distincts.",
+              "Ne pas multiplier les niveaux de transition ou les sous-phases pour compenser un problème de clarté.",
+              "Ne pas donner l’impression que le plan doit être réécrit entièrement."
+            ],
+            "scope": "whole_plan",
+            "preserve": [
+              "La séparation voulue entre besoins simples du quotidien et sujets sensibles.",
+              "L’intention de progression par étapes sans répétition inutile.",
+              "La sécurité émotionnelle avant l’exposition aux sujets sensibles.",
+              "La logique de montée en complexité déjà installée.",
+              "Le refus implicite d’alourdir le plan sans bénéfice concret."
+            ],
+            "warnings": [
+              "Éviter d’ajouter une phase-pont par réflexe: cela risquerait de confirmer une complexité que le user essaie justement de limiter.",
+              "Éviter de fusionner à nouveau les deux niveaux si cela dilue la distinction entre besoins quotidiens et sujets sensibles.",
+              "Éviter de présenter le pont comme une amélioration générale sans démontrer son utilité précise.",
+              "Éviter de transformer ce point en débat abstrait sur la théorie du plan: le besoin est concret, centré sur la lisibilité et la charge."
+            ],
+            "readiness": "needs_confirmation",
+            "confidence": "high",
+            "guidelines": [
+              "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "Traiter la demande comme une clarification de structure, pas comme une correction de fond.",
+              "Préserver deux niveaux distincts tant que leur fonction peut être rendue lisible sans couche supplémentaire.",
+              "Si un pont est proposé, le justifier par une nécessité de transfert identifiée, pas par prudence générique.",
+              "Distinguer nettement le rôle de chaque niveau: apprentissage simple puis application sur contenu sensible.",
+              "Éviter toute complexification qui ne réduit pas directement le chevauchement perçu.",
+              "Ne pas changer la nature du plan sans demande explicite; rester dans la logique de progression déjà installée.",
+              "Présenter toute étape-pont comme optionnelle, minimale et fonctionnelle, jamais comme une obligation."
+            ],
+            "observation": "La demande ne revient pas sur la direction générale; elle précise la forme souhaitée de la restructuration: conserver deux niveaux distincts, en évitant d’ajouter un pont intermédiaire sauf s’il a une fonction claire et explicable. Humainement, le vrai enjeu est de protéger la lisibilité du plan et le sentiment de progression, sans complexifier l’architecture pour résoudre un doublon qui peut peut-être être réglé par une séparation plus nette des rôles.",
+            "change_family": "split_merge_restructure",
+            "recommendation": "Orienter la réponse vers une séparation renforcée en deux niveaux stables, avec une logique de rôle distinct plutôt qu’une étape-pont par défaut. Si un pont est envisagé, il doit être présenté comme un support fonctionnel, bref et justifié par un manque réel de transfert, pas comme une couche supplémentaire de structure.",
+            "next_best_question": null,
+            "options_to_discuss": [
+              "Garder exactement deux niveaux, en renforçant leur mission respective: premier niveau = formulation simple au quotidien, second niveau = transfert vers sujets sensibles.",
+              "Introduire un pont uniquement si la transition entre les deux niveaux manque de preuve pratique; dans ce cas, le pont doit être court et explicite.",
+              "Rendre le second niveau plus clairement une phase d’application, de sorte qu’il ne fasse pas doublon avec l’apprentissage initial.",
+              "Déplacer le pont hors de la structure visible du plan, par exemple comme consigne de transition interne, si un appui est nécessaire sans créer un niveau supplémentaire.",
+              "Conserver la structure actuelle mais préciser la frontière entre niveaux dans les intitulés ou les objectifs, plutôt que d’ajouter une étape."
+            ],
+            "candidate_operation": "split_or_merge_phase",
+            "questions_to_clarify": [],
+            "trajectory_hypothesis": "La trajectoire peut rester en deux niveaux distincts, avec un premier bloc pour les besoins du quotidien et un second pour les sujets sensibles; si un pont apparaît, il doit seulement servir de support de transfert entre ces deux rôles sans devenir un niveau supplémentaire.",
+            "must_not_execute_reason": "Le user ne demande pas encore une application directe; il exprime une préférence structurelle et veut qu’un éventuel pont soit justifié avant d’être ajouté. Il faut donc rester au niveau du brouillon et de l’arbitrage de forme."
+          },
+          "draft_review_decision": {
+            "decision": "revise",
+            "evidence": [
+              "Le user accepte la trajectoire globale mais ajoute une contrainte explicite: pas de phase-pont si elle n'est pas nécessaire.",
+              "Le user demande une explication préalable si un pont devait être retenu.",
+              "La demande corrige la forme du brouillon sans demander l'application immédiate."
+            ],
+            "confidence": "high",
+            "apply_after_revision": false
+          },
+          "previous_operation_id": "cb6ff7e9-c7d5-4fcb-b509-3a347e9854d2",
+          "coaching_guidance_audit": {
+            "scope": "whole_plan",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 16911,
+        "created_at": "2026-05-20T18:32:25.33071+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r93-whole-plan-split-merge-t03",
+    "user": "Ok, valide cette version, mais sans ajouter de niveau pont. Je veux juste que la separation soit plus lisible : besoins simples avant, sujets sensibles apres.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r93-whole-plan-split-merge-t03",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r93-whole-plan-split-merge",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C'est fait: j'ai ajusté la trajectoire du plan.\n\nLe plan garde le même objectif, mais la suite est régénérée pour le plan garde deux étapes distinctes, mais les différencie par la difficulté du contenu: besoins simples d'abord, sujets sensibles ensuite.. 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "success",
+        "executed_tools": [
+          "adjust_plan_item"
+        ]
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r93-whole-plan-split-merge-t03",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "9d1bd0c4-8e19-4847-b051-ff5f70c200ee",
+        "ts": "2026-05-20T18:34:01.011+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 13249,
+          "latency_ms": 15142,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 688,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "trajectoire globale et niveaux du plan",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "trajectoire globale et niveaux du plan",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Ok, valide cette version, mais sans ajouter de niveau pont. Je veux juste que la separation soit plus lisible : besoins simples avant, sujets sensibles apres.",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s15"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r93-whole-plan-split-merge-t03",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "trajectoire globale et niveaux du plan",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "trajectoire globale et niveaux du plan",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Ok, valide cette version, mais sans ajouter de niveau pont. Je veux juste que la separation soit plus lisible : besoins simples avant, sujets sensibles apres.",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": "level_reference",
+            "status": "current_level",
+            "detected": true,
+            "expansion_policy": "include_level_execution_handoff"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 1,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0,1;decay=0.55;recovery=1.5",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              1
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "9d1bd0c4-8e19-4847-b051-ff5f70c200ee",
+          "tool_skill_intents": [],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "normal_reply_default",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "normal_reply",
+          "memory_use_kind": "none",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [
+          {
+            "outcome": "success",
+            "tool_id": "adjust_plan_item"
+          }
+        ],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "executed",
+          "reason_code": "normal_reply_default",
+          "operation_id": "7d4a4dfd-ffa8-4414-8326-7c21756f19b2",
+          "plan_patch_id": "ed733916-3b66-468c-8eb4-37e8358d9f9e",
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Ne pas proposer un pont intermédiaire comme si c’était la solution par défaut.",
+              "Ne pas reformuler la trajectoire comme une fusion si le user préfère deux niveaux distincts.",
+              "Ne pas multiplier les niveaux de transition ou les sous-phases pour compenser un problème de clarté.",
+              "Ne pas donner l’impression que le plan doit être réécrit entièrement."
+            ],
+            "scope": "whole_plan",
+            "preserve": [
+              "La séparation voulue entre besoins simples du quotidien et sujets sensibles.",
+              "L’intention de progression par étapes sans répétition inutile.",
+              "La sécurité émotionnelle avant l’exposition aux sujets sensibles.",
+              "La logique de montée en complexité déjà installée.",
+              "Le refus implicite d’alourdir le plan sans bénéfice concret."
+            ],
+            "warnings": [
+              "Éviter d’ajouter une phase-pont par réflexe: cela risquerait de confirmer une complexité que le user essaie justement de limiter.",
+              "Éviter de fusionner à nouveau les deux niveaux si cela dilue la distinction entre besoins quotidiens et sujets sensibles.",
+              "Éviter de présenter le pont comme une amélioration générale sans démontrer son utilité précise.",
+              "Éviter de transformer ce point en débat abstrait sur la théorie du plan: le besoin est concret, centré sur la lisibilité et la charge."
+            ],
+            "readiness": "needs_confirmation",
+            "confidence": "high",
+            "guidelines": [
+              "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "Traiter la demande comme une clarification de structure, pas comme une correction de fond.",
+              "Préserver deux niveaux distincts tant que leur fonction peut être rendue lisible sans couche supplémentaire.",
+              "Si un pont est proposé, le justifier par une nécessité de transfert identifiée, pas par prudence générique.",
+              "Distinguer nettement le rôle de chaque niveau: apprentissage simple puis application sur contenu sensible.",
+              "Éviter toute complexification qui ne réduit pas directement le chevauchement perçu.",
+              "Ne pas changer la nature du plan sans demande explicite; rester dans la logique de progression déjà installée.",
+              "Présenter toute étape-pont comme optionnelle, minimale et fonctionnelle, jamais comme une obligation."
+            ],
+            "observation": "La demande ne revient pas sur la direction générale; elle précise la forme souhaitée de la restructuration: conserver deux niveaux distincts, en évitant d’ajouter un pont intermédiaire sauf s’il a une fonction claire et explicable. Humainement, le vrai enjeu est de protéger la lisibilité du plan et le sentiment de progression, sans complexifier l’architecture pour résoudre un doublon qui peut peut-être être réglé par une séparation plus nette des rôles.",
+            "change_family": "split_merge_restructure",
+            "recommendation": "Orienter la réponse vers une séparation renforcée en deux niveaux stables, avec une logique de rôle distinct plutôt qu’une étape-pont par défaut. Si un pont est envisagé, il doit être présenté comme un support fonctionnel, bref et justifié par un manque réel de transfert, pas comme une couche supplémentaire de structure.",
+            "next_best_question": null,
+            "options_to_discuss": [
+              "Garder exactement deux niveaux, en renforçant leur mission respective: premier niveau = formulation simple au quotidien, second niveau = transfert vers sujets sensibles.",
+              "Introduire un pont uniquement si la transition entre les deux niveaux manque de preuve pratique; dans ce cas, le pont doit être court et explicite.",
+              "Rendre le second niveau plus clairement une phase d’application, de sorte qu’il ne fasse pas doublon avec l’apprentissage initial.",
+              "Déplacer le pont hors de la structure visible du plan, par exemple comme consigne de transition interne, si un appui est nécessaire sans créer un niveau supplémentaire.",
+              "Conserver la structure actuelle mais préciser la frontière entre niveaux dans les intitulés ou les objectifs, plutôt que d’ajouter une étape."
+            ],
+            "candidate_operation": "split_or_merge_phase",
+            "questions_to_clarify": [],
+            "trajectory_hypothesis": "La trajectoire peut rester en deux niveaux distincts, avec un premier bloc pour les besoins du quotidien et un second pour les sujets sensibles; si un pont apparaît, il doit seulement servir de support de transfert entre ces deux rôles sans devenir un niveau supplémentaire.",
+            "must_not_execute_reason": "Le user ne demande pas encore une application directe; il exprime une préférence structurelle et veut qu’un éventuel pont soit justifié avant d’être ajouté. Il faut donc rester au niveau du brouillon et de l’arbitrage de forme."
+          },
+          "bridge_plan_item_id": null,
+          "coaching_guidance_audit": {
+            "scope": "whole_plan",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 70073,
+        "created_at": "2026-05-20T18:34:01.012677+00:00"
+      },
+      "trace_error": null
+    }
+  }
+]

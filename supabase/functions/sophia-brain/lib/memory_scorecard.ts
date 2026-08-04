@@ -1,8 +1,5 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
-import type {
-  MemoryTraceTurn,
-  MemoryTraceWindow,
-} from "./memory_trace.ts";
+import type { MemoryTraceTurn, MemoryTraceWindow } from "./memory_trace.ts";
 
 export type MemoryEvalDimension =
   | "overall"
@@ -51,13 +48,26 @@ export type MemoryTraceScorecard = {
     runs_total: number;
     extracted: { topics: number; events: number; globals: number };
     accepted: { topics: number; events: number; globals: number };
-    acceptance_rate: { topics: number | null; events: number | null; globals: number | null };
+    acceptance_rate: {
+      topics: number | null;
+      events: number | null;
+      globals: number | null;
+    };
   };
   persistence: {
     topics: { created: number; enriched: number; noop: number };
     events: { created: number; updated: number; noop: number };
-    globals: { created: number; updated: number; noop: number; pending_compaction: number };
-    change_rate: { topics: number | null; events: number | null; globals: number | null };
+    globals: {
+      created: number;
+      updated: number;
+      noop: number;
+      pending_compaction: number;
+    };
+    change_rate: {
+      topics: number | null;
+      events: number | null;
+      globals: number | null;
+    };
   };
   retrieval: {
     turns_with_memory_plan: number;
@@ -85,7 +95,6 @@ export type MemoryTraceScorecard = {
     };
   };
   surface: {
-    turns_with_surface_plan: number;
     turns_with_surface_addon: number;
     push_rate: number | null;
     average_level: number | null;
@@ -181,23 +190,35 @@ function num(value: unknown): number {
 
 function arrayFromPayload(value: unknown): Array<Record<string, unknown>> {
   return Array.isArray(value)
-    ? value.filter((item) => item && typeof item === "object") as Array<Record<string, unknown>>
+    ? value.filter((item) => item && typeof item === "object") as Array<
+      Record<string, unknown>
+    >
     : [];
 }
 
 function extractMemoryMode(turn: MemoryTraceTurn): string {
-  return String((turn.dispatcher.memory_plan as any)?.memory_mode ?? "").trim() || "unknown";
+  return String((turn.dispatcher.memory_plan as any)?.memory_mode ?? "")
+    .trim() || "unknown";
 }
 
 function hasAnyRetrieval(turn: MemoryTraceTurn): boolean {
-  return Boolean(turn.retrieval.events || turn.retrieval.globals || turn.retrieval.topics);
+  return Boolean(
+    turn.retrieval.events || turn.retrieval.globals || turn.retrieval.topics,
+  );
 }
 
 function hasAnyRetrievalHit(turn: MemoryTraceTurn): boolean {
-  const eventResults = arrayFromPayload((turn.retrieval.events as any)?.results);
-  const globalResults = arrayFromPayload((turn.retrieval.globals as any)?.results);
-  const topicResults = arrayFromPayload((turn.retrieval.topics as any)?.results);
-  return eventResults.length > 0 || globalResults.length > 0 || topicResults.length > 0;
+  const eventResults = arrayFromPayload(
+    (turn.retrieval.events as any)?.results,
+  );
+  const globalResults = arrayFromPayload(
+    (turn.retrieval.globals as any)?.results,
+  );
+  const topicResults = arrayFromPayload(
+    (turn.retrieval.topics as any)?.results,
+  );
+  return eventResults.length > 0 || globalResults.length > 0 ||
+    topicResults.length > 0;
 }
 
 function hasAnyInjectedMemory(turn: MemoryTraceTurn): boolean {
@@ -230,11 +251,14 @@ export function buildMemoryTraceScorecard(params: {
   annotations?: MemoryEvalAnnotation[];
 }): MemoryTraceScorecard {
   const trace = params.trace;
-  const annotations = Array.isArray(params.annotations) ? params.annotations : [];
+  const annotations = Array.isArray(params.annotations)
+    ? params.annotations
+    : [];
   const durationHours = round2(
     Math.max(
       0,
-      (new Date(trace.window.to).getTime() - new Date(trace.window.from).getTime()) /
+      (new Date(trace.window.to).getTime() -
+        new Date(trace.window.from).getTime()) /
         (60 * 60 * 1000),
     ),
   );
@@ -268,9 +292,15 @@ export function buildMemoryTraceScorecard(params: {
     const validation = run.stages.validation ?? {};
     const persistence = run.stages.persistence ?? {};
 
-    extractedTopics += num((extraction as any)?.extracted_counts?.durable_topics);
-    extractedEvents += num((extraction as any)?.extracted_counts?.event_candidates);
-    extractedGlobals += num((extraction as any)?.extracted_counts?.global_memory_candidates);
+    extractedTopics += num(
+      (extraction as any)?.extracted_counts?.durable_topics,
+    );
+    extractedEvents += num(
+      (extraction as any)?.extracted_counts?.event_candidates,
+    );
+    extractedGlobals += num(
+      (extraction as any)?.extracted_counts?.global_memory_candidates,
+    );
 
     acceptedTopics += num((validation as any)?.accepted_counts?.topics);
     acceptedEvents += num((validation as any)?.accepted_counts?.events);
@@ -282,8 +312,12 @@ export function buildMemoryTraceScorecard(params: {
     eventsCreated += num((persistence as any)?.counts?.events_created);
     eventsUpdated += num((persistence as any)?.counts?.events_updated);
     eventsNoop += num((persistence as any)?.counts?.events_noop);
-    globalsCreated += num((persistence as any)?.counts?.global_memories_created);
-    globalsUpdated += num((persistence as any)?.counts?.global_memories_updated);
+    globalsCreated += num(
+      (persistence as any)?.counts?.global_memories_created,
+    );
+    globalsUpdated += num(
+      (persistence as any)?.counts?.global_memories_updated,
+    );
     globalsNoop += num((persistence as any)?.counts?.global_memories_noop);
     globalsPendingCompaction += num(
       (persistence as any)?.counts?.global_memories_pending_compaction,
@@ -291,25 +325,39 @@ export function buildMemoryTraceScorecard(params: {
 
     const persistedAt = new Date(run.started_at).getTime();
     if (Number.isFinite(persistedAt)) {
-      for (const topic of arrayFromPayload((persistence as any)?.outcomes?.topics)) {
+      for (
+        const topic of arrayFromPayload((persistence as any)?.outcomes?.topics)
+      ) {
         const slug = String(topic.slug ?? "").trim();
         const outcome = String(topic.outcome ?? "").trim();
         if (slug && outcome && outcome !== "noop" && outcome !== "error") {
-          if (!persistedTopicTimes.has(slug)) persistedTopicTimes.set(slug, persistedAt);
+          if (!persistedTopicTimes.has(slug)) {
+            persistedTopicTimes.set(slug, persistedAt);
+          }
         }
       }
-      for (const event of arrayFromPayload((persistence as any)?.outcomes?.events)) {
+      for (
+        const event of arrayFromPayload((persistence as any)?.outcomes?.events)
+      ) {
         const key = String(event.event_key ?? "").trim();
         const outcome = String(event.outcome ?? "").trim();
         if (key && outcome && outcome !== "noop" && outcome !== "error") {
-          if (!persistedEventTimes.has(key)) persistedEventTimes.set(key, persistedAt);
+          if (!persistedEventTimes.has(key)) {
+            persistedEventTimes.set(key, persistedAt);
+          }
         }
       }
-      for (const global of arrayFromPayload((persistence as any)?.outcomes?.globals)) {
+      for (
+        const global of arrayFromPayload(
+          (persistence as any)?.outcomes?.globals,
+        )
+      ) {
         const key = String(global.full_key ?? "").trim();
         const outcome = String(global.outcome ?? "").trim();
         if (key && outcome && outcome !== "noop" && outcome !== "error") {
-          if (!persistedGlobalTimes.has(key)) persistedGlobalTimes.set(key, persistedAt);
+          if (!persistedGlobalTimes.has(key)) {
+            persistedGlobalTimes.set(key, persistedAt);
+          }
         }
       }
     }
@@ -332,7 +380,6 @@ export function buildMemoryTraceScorecard(params: {
   let eventInjectedCount = 0;
   let globalInjectedCount = 0;
   let topicInjectedCount = 0;
-  let turnsWithSurfacePlan = 0;
   let turnsWithSurfaceAddon = 0;
   const surfaceLevels: number[] = [];
   let surfaceAcceptedEvents = 0;
@@ -345,16 +392,23 @@ export function buildMemoryTraceScorecard(params: {
     if (turn.dispatcher.memory_plan) {
       turnsWithMemoryPlan += 1;
       const memoryMode = extractMemoryMode(turn);
-      memoryModeDistribution[memoryMode] = (memoryModeDistribution[memoryMode] ?? 0) + 1;
+      memoryModeDistribution[memoryMode] =
+        (memoryModeDistribution[memoryMode] ?? 0) + 1;
       if (memoryMode !== "none") turnsRequestingMemory += 1;
     }
 
     if (hasAnyRetrieval(turn)) turnsWithAnyRetrieval += 1;
     if (hasAnyRetrievalHit(turn)) turnsWithAnyRetrievalHit += 1;
 
-    const eventResults = arrayFromPayload((turn.retrieval.events as any)?.results);
-    const globalResults = arrayFromPayload((turn.retrieval.globals as any)?.results);
-    const topicResults = arrayFromPayload((turn.retrieval.topics as any)?.results);
+    const eventResults = arrayFromPayload(
+      (turn.retrieval.events as any)?.results,
+    );
+    const globalResults = arrayFromPayload(
+      (turn.retrieval.globals as any)?.results,
+    );
+    const topicResults = arrayFromPayload(
+      (turn.retrieval.topics as any)?.results,
+    );
     if (turn.retrieval.events) {
       eventRetrievalTurns += 1;
       if (eventResults.length > 0) eventRetrievalHitTurns += 1;
@@ -378,13 +432,17 @@ export function buildMemoryTraceScorecard(params: {
     pushReuseMinutes(
       eventReuseMinutes,
       persistedEventTimes,
-      eventResults.map((row) => String(row.event_key ?? "").trim()).filter(Boolean),
+      eventResults.map((row) => String(row.event_key ?? "").trim()).filter(
+        Boolean,
+      ),
       retrievalAt,
     );
     pushReuseMinutes(
       globalReuseMinutes,
       persistedGlobalTimes,
-      globalResults.map((row) => String(row.full_key ?? "").trim()).filter(Boolean),
+      globalResults.map((row) => String(row.full_key ?? "").trim()).filter(
+        Boolean,
+      ),
       retrievalAt,
     );
 
@@ -394,8 +452,7 @@ export function buildMemoryTraceScorecard(params: {
       injectedTokenValues.push(Number(injection.estimated_tokens));
     }
     const memoryBlocks = injection.memory_blocks ?? {};
-    const memoryChars =
-      num(memoryBlocks.identity?.chars) +
+    const memoryChars = num(memoryBlocks.identity?.chars) +
       num(memoryBlocks.events?.chars) +
       num(memoryBlocks.globals?.chars) +
       num(memoryBlocks.topics?.chars);
@@ -405,7 +462,6 @@ export function buildMemoryTraceScorecard(params: {
     if (memoryBlocks.globals?.loaded) globalInjectedCount += 1;
     if (memoryBlocks.topics?.loaded) topicInjectedCount += 1;
 
-    if (turn.dispatcher.surface_plan) turnsWithSurfacePlan += 1;
     const surfaceTransition = (turn.surface.state_transition as any) ?? {};
     const addon = (turn.surface.addon as any) ?? null;
     if (addon?.surface_id) {
@@ -428,10 +484,12 @@ export function buildMemoryTraceScorecard(params: {
       const before = beforeEntries[surfaceId] ?? {};
       const after = afterEntries[surfaceId] ?? {};
       if (num(after.accepted_count) > num(before.accepted_count)) {
-        surfaceAcceptedEvents += num(after.accepted_count) - num(before.accepted_count);
+        surfaceAcceptedEvents += num(after.accepted_count) -
+          num(before.accepted_count);
       }
       if (num(after.ignored_count) > num(before.ignored_count)) {
-        surfaceIgnoredEvents += num(after.ignored_count) - num(before.ignored_count);
+        surfaceIgnoredEvents += num(after.ignored_count) -
+          num(before.ignored_count);
       }
     }
   }
@@ -441,11 +499,15 @@ export function buildMemoryTraceScorecard(params: {
   for (const annotation of annotations) {
     const dimension = String(annotation.dimension ?? "").trim() || "unknown";
     const label = String(annotation.label ?? "").trim() || "unknown";
-    annotationsByDimension[dimension] = (annotationsByDimension[dimension] ?? 0) + 1;
+    annotationsByDimension[dimension] =
+      (annotationsByDimension[dimension] ?? 0) + 1;
     annotationsByLabel[label] = (annotationsByLabel[label] ?? 0) + 1;
   }
 
-  const bySurface: Record<string, { shown: number; average_level: number | null }> = {};
+  const bySurface: Record<
+    string,
+    { shown: number; average_level: number | null }
+  > = {};
   for (const [surfaceId, shown] of bySurfaceShown.entries()) {
     bySurface[surfaceId] = {
       shown,
@@ -549,7 +611,6 @@ export function buildMemoryTraceScorecard(params: {
       },
     },
     surface: {
-      turns_with_surface_plan: turnsWithSurfacePlan,
       turns_with_surface_addon: turnsWithSurfaceAddon,
       push_rate: ratio(turnsWithSurfaceAddon, trace.summary.turns_total),
       average_level: avg(surfaceLevels),

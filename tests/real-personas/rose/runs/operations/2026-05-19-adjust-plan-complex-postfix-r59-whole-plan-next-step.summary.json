@@ -1,0 +1,336 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r59-whole-plan-next-step-t01",
+    "status": 200,
+    "ok": true,
+    "user": "En regardant la suite du plan, je ne pense pas que la prochaine étape soit la bonne. Avant d'aller vers plus de discussions, je voudrais une étape intermédiaire sur la sécurité émotionnelle et le retour au calme.",
+    "assistant": "Pour que je puisse bien intégrer cette étape sur la sécurité émotionnelle et le retour au calme, peux-tu me dire ce que tu imagines concrètement pour cette étape ? Et comment cela devrait s'articuler avec les actions actuelles comme \"Convenir d'un signal de pause\", \"Partager un point positif\" ou \"Faire le point sur le signal de pause\" ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "tool_skill_intent_start",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "whole_plan.affected_items"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer des actions qui pourraient être perçues comme une confrontation ou une discussion difficile avec le partenaire à ce stade.",
+          "Ignorer le besoin de l'utilisateur de se sentir personnellement plus stable avant d'engager des interactions plus profondes."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "L'objectif global de la Phase 1 : 'Désamorcer et recréer de la sécurité'.",
+          "La mission 'Convenir d'un signal de pause' comme outil essentiel de désamorçage.",
+          "L'habitude 'Partager un point positif' pour maintenir une dynamique constructive.",
+          "Le cadre 'Cartographier les déclencheurs' pour la prise de conscience."
+        ],
+        "warnings": [
+          "Éviter de proposer des actions qui impliquent directement le partenaire pour cette nouvelle étape, car l'utilisateur souhaite une préparation 'avant d'aller vers plus de discussions'.",
+          "Ne pas supprimer ou dévaloriser les actions existantes comme le 'signal de pause' ou le 'partager un point positif', car elles contribuent déjà à la sécurité et au désamorçage.",
+          "Ne pas surcharger le plan avec une étape trop complexe ou trop longue, car l'utilisateur demande une 'étape intermédiaire'."
+        ],
+        "confidence": "medium",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Guidelines action: La nouvelle action doit avoir un rôle clair dans la préparation individuelle à la sécurité émotionnelle. L'intention de désamorçage et de création de sécurité doit être préservée. Un pont minimal vers les discussions futures peut être envisagé, mais la nature de l'action ne doit pas changer sans demande explicite.",
+          "Guidelines niveau: La charge et le rythme du niveau courant doivent être pris en compte. La nouvelle étape doit être une baisse temporaire ou une consolidation non globale. Le cœur du niveau 'Désamorcer et recréer de la sécurité' doit être préservé.",
+          "Guidelines whole_plan: La trajectoire globale du plan doit rester cohérente avec l'objectif de désamorçage et de sécurité. Les prérequis pour les phases ultérieures doivent être maintenus. L'ordre des phases peut être ajusté pour insérer cette étape, mais l'objectif et le questionnaire initiaux doivent être préservés."
+        ],
+        "observation": "L'utilisateur exprime un besoin de renforcer sa propre capacité à gérer la sécurité émotionnelle et le retour au calme avant d'engager de nouvelles discussions avec son partenaire. Il perçoit la prochaine étape du plan comme prématurée pour cette consolidation interne, ce qui indique une priorité humaine sur la préparation personnelle avant l'interaction.",
+        "recommendation": "Accueillir le besoin de l'utilisateur de solidifier sa sécurité émotionnelle et son retour au calme. Proposer d'intégrer une étape dédiée à cette préparation personnelle, en la positionnant de manière cohérente avant les missions impliquant des discussions ou des bilans avec le partenaire.",
+        "options_to_discuss": [
+          "Explorer des pratiques de régulation émotionnelle individuelle (ex: respiration, pleine conscience, auto-compassion) qui pourraient constituer cette étape.",
+          "Considérer l'ajout d'un court exercice de journaling ou de réflexion personnelle pour identifier les propres besoins de l'utilisateur en matière de sécurité émotionnelle.",
+          "Discuter si cette étape devrait être une mission ponctuelle, un cadre de réflexion ou une habitude courte et quotidienne."
+        ],
+        "questions_to_clarify": [
+          "Qu'est-ce que 'sécurité émotionnelle et retour au calme' signifie concrètement pour vous dans ce contexte ? Quels types d'actions ou de réflexions vous aideraient le plus personnellement ?",
+          "Quel serait le format idéal pour cette étape : une nouvelle habitude quotidienne, une mission ponctuelle, ou un cadre de réflexion ?",
+          "Est-ce que cette étape devrait être quelque chose que vous faites seul(e) ou avec votre partenaire ?"
+        ]
+      },
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "whole_plan",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer des actions qui pourraient être perçues comme une confrontation ou une discussion difficile avec le partenaire à ce stade.",
+        "Ignorer le besoin de l'utilisateur de se sentir personnellement plus stable avant d'engager des interactions plus profondes."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "L'objectif global de la Phase 1 : 'Désamorcer et recréer de la sécurité'.",
+        "La mission 'Convenir d'un signal de pause' comme outil essentiel de désamorçage.",
+        "L'habitude 'Partager un point positif' pour maintenir une dynamique constructive.",
+        "Le cadre 'Cartographier les déclencheurs' pour la prise de conscience."
+      ],
+      "warnings": [
+        "Éviter de proposer des actions qui impliquent directement le partenaire pour cette nouvelle étape, car l'utilisateur souhaite une préparation 'avant d'aller vers plus de discussions'.",
+        "Ne pas supprimer ou dévaloriser les actions existantes comme le 'signal de pause' ou le 'partager un point positif', car elles contribuent déjà à la sécurité et au désamorçage.",
+        "Ne pas surcharger le plan avec une étape trop complexe ou trop longue, car l'utilisateur demande une 'étape intermédiaire'."
+      ],
+      "confidence": "medium",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Guidelines action: La nouvelle action doit avoir un rôle clair dans la préparation individuelle à la sécurité émotionnelle. L'intention de désamorçage et de création de sécurité doit être préservée. Un pont minimal vers les discussions futures peut être envisagé, mais la nature de l'action ne doit pas changer sans demande explicite.",
+        "Guidelines niveau: La charge et le rythme du niveau courant doivent être pris en compte. La nouvelle étape doit être une baisse temporaire ou une consolidation non globale. Le cœur du niveau 'Désamorcer et recréer de la sécurité' doit être préservé.",
+        "Guidelines whole_plan: La trajectoire globale du plan doit rester cohérente avec l'objectif de désamorçage et de sécurité. Les prérequis pour les phases ultérieures doivent être maintenus. L'ordre des phases peut être ajusté pour insérer cette étape, mais l'objectif et le questionnaire initiaux doivent être préservés."
+      ],
+      "observation": "L'utilisateur exprime un besoin de renforcer sa propre capacité à gérer la sécurité émotionnelle et le retour au calme avant d'engager de nouvelles discussions avec son partenaire. Il perçoit la prochaine étape du plan comme prématurée pour cette consolidation interne, ce qui indique une priorité humaine sur la préparation personnelle avant l'interaction.",
+      "recommendation": "Accueillir le besoin de l'utilisateur de solidifier sa sécurité émotionnelle et son retour au calme. Proposer d'intégrer une étape dédiée à cette préparation personnelle, en la positionnant de manière cohérente avant les missions impliquant des discussions ou des bilans avec le partenaire.",
+      "options_to_discuss": [
+        "Explorer des pratiques de régulation émotionnelle individuelle (ex: respiration, pleine conscience, auto-compassion) qui pourraient constituer cette étape.",
+        "Considérer l'ajout d'un court exercice de journaling ou de réflexion personnelle pour identifier les propres besoins de l'utilisateur en matière de sécurité émotionnelle.",
+        "Discuter si cette étape devrait être une mission ponctuelle, un cadre de réflexion ou une habitude courte et quotidienne."
+      ],
+      "questions_to_clarify": [
+        "Qu'est-ce que 'sécurité émotionnelle et retour au calme' signifie concrètement pour vous dans ce contexte ? Quels types d'actions ou de réflexions vous aideraient le plus personnellement ?",
+        "Quel serait le format idéal pour cette étape : une nouvelle habitude quotidienne, une mission ponctuelle, ou un cadre de réflexion ?",
+        "Est-ce que cette étape devrait être quelque chose que vous faites seul(e) ou avec votre partenaire ?"
+      ]
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r59-whole-plan-next-step-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r59-whole-plan-next-step-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Je garderais le signal de pause comme base, mais j'ajouterais une étape où on apprend à redescendre chacun de notre côté avant de reparler : respiration, pause de 20 minutes, puis revenir avec une phrase simple.",
+    "assistant": "Pour cette nouvelle étape de retour au calme, quel serait le format idéal pour toi : une nouvelle habitude quotidienne, une mission ponctuelle, ou un cadre de réflexion ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "execution_breakdown_absorbed_by_active_tool_skill",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "execution_breakdown_absorbed_by_active_tool_skill",
+      "plan_item_id": null,
+      "target_title": "la suite du plan",
+      "missing_slots": [
+        "draft_generation_confirmation"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer des actions qui impliquent une discussion immédiate ou une confrontation avec le partenaire juste après la pause, sans cette étape de régulation individuelle.",
+          "Ignorer les détails concrets fournis par l'utilisateur (respiration, 20 minutes, phrase simple) en proposant des alternatives trop génériques."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "Le rôle fondamental de 'Convenir d'un signal de pause' comme déclencheur initial de la mise en pause.",
+          "L'objectif global de la Phase 1 : 'Désamorcer et recréer de la sécurité'.",
+          "L'habitude 'Partager un point positif' pour maintenir une dynamique constructive.",
+          "Le cadre 'Cartographier les déclencheurs' pour la prise de conscience."
+        ],
+        "warnings": [
+          "Éviter de fusionner cette nouvelle étape avec la mission 'Faire le point sur le signal de pause', car elles ont des intentions différentes (préparation individuelle vs. bilan partagé).",
+          "Ne pas transformer la 'phrase simple' de réengagement en une invitation à une discussion complexe immédiate, mais la maintenir comme un pont minimal pour reprendre contact.",
+          "S'assurer que la charge de cette nouvelle étape reste gérable et ne surcharge pas le plan, en gardant à l'esprit qu'il s'agit d'une 'étape intermédiaire'."
+        ],
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Guidelines action: La nouvelle action doit avoir un rôle clair dans la préparation individuelle à la sécurité émotionnelle. L'intention de désamorçage et de création de sécurité doit être préservée. Un pont minimal vers les discussions futures peut être envisagé, mais la nature de l'action ne doit pas changer sans demande explicite.",
+          "Guidelines niveau: La charge et le rythme du niveau courant doivent être pris en compte. La nouvelle étape doit être une baisse temporaire ou une consolidation non globale. Le cœur du niveau 'Désamorcer et recréer de la sécurité' doit être préservé.",
+          "Guidelines whole_plan: La trajectoire globale du plan doit rester cohérente avec l'objectif de désamorçage et de sécurité. Les prérequis pour les phases ultérieures doivent être maintenus. L'ordre des phases peut être ajusté pour insérer cette étape, mais l'objectif et le questionnaire initiaux doivent être préservés."
+        ],
+        "observation": "L'utilisateur précise le contenu de l'étape intermédiaire souhaitée : une séquence de désamorçage individuelle (respiration, pause de 20 minutes) suivie d'une méthode de réengagement simple ('revenir avec une phrase simple'). Cela renforce le besoin de préparation personnelle avant toute interaction post-conflit et clarifie les actions concrètes attendues.",
+        "recommendation": "Intégrer la séquence de désamorçage individuelle proposée par l'utilisateur comme une étape distincte et essentielle. Positionner cette nouvelle étape logiquement après l'activation du 'signal de pause' et avant toute discussion ou bilan avec le partenaire, en soulignant son rôle de tampon et de préparation personnelle.",
+        "options_to_discuss": [
+          "Comment formaliser au mieux cette séquence (une seule mission en plusieurs étapes, ou des actions distinctes) pour qu'elle soit facile à suivre et à appliquer ?",
+          "Quel type de 'phrase simple' serait le plus aidant pour l'utilisateur et son partenaire pour signifier un retour au calme et une disponibilité à reparler ?",
+          "Comment l'utilisateur envisage-t-il d'introduire cette nouvelle 'règle' de désamorçage individuelle à son partenaire ?"
+        ],
+        "questions_to_clarify": [
+          "Quel serait le format idéal pour cette étape de désamorçage : une nouvelle habitude à pratiquer après chaque pause, une mission ponctuelle à mettre en place, ou un cadre de réflexion à utiliser ?",
+          "La 'phrase simple' de réengagement est-elle destinée à être prononcée par l'utilisateur seul(e), ou est-ce une attente mutuelle avec le partenaire ?"
+        ]
+      },
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "whole_plan",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer des actions qui impliquent une discussion immédiate ou une confrontation avec le partenaire juste après la pause, sans cette étape de régulation individuelle.",
+        "Ignorer les détails concrets fournis par l'utilisateur (respiration, 20 minutes, phrase simple) en proposant des alternatives trop génériques."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "Le rôle fondamental de 'Convenir d'un signal de pause' comme déclencheur initial de la mise en pause.",
+        "L'objectif global de la Phase 1 : 'Désamorcer et recréer de la sécurité'.",
+        "L'habitude 'Partager un point positif' pour maintenir une dynamique constructive.",
+        "Le cadre 'Cartographier les déclencheurs' pour la prise de conscience."
+      ],
+      "warnings": [
+        "Éviter de fusionner cette nouvelle étape avec la mission 'Faire le point sur le signal de pause', car elles ont des intentions différentes (préparation individuelle vs. bilan partagé).",
+        "Ne pas transformer la 'phrase simple' de réengagement en une invitation à une discussion complexe immédiate, mais la maintenir comme un pont minimal pour reprendre contact.",
+        "S'assurer que la charge de cette nouvelle étape reste gérable et ne surcharge pas le plan, en gardant à l'esprit qu'il s'agit d'une 'étape intermédiaire'."
+      ],
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Guidelines action: La nouvelle action doit avoir un rôle clair dans la préparation individuelle à la sécurité émotionnelle. L'intention de désamorçage et de création de sécurité doit être préservée. Un pont minimal vers les discussions futures peut être envisagé, mais la nature de l'action ne doit pas changer sans demande explicite.",
+        "Guidelines niveau: La charge et le rythme du niveau courant doivent être pris en compte. La nouvelle étape doit être une baisse temporaire ou une consolidation non globale. Le cœur du niveau 'Désamorcer et recréer de la sécurité' doit être préservé.",
+        "Guidelines whole_plan: La trajectoire globale du plan doit rester cohérente avec l'objectif de désamorçage et de sécurité. Les prérequis pour les phases ultérieures doivent être maintenus. L'ordre des phases peut être ajusté pour insérer cette étape, mais l'objectif et le questionnaire initiaux doivent être préservés."
+      ],
+      "observation": "L'utilisateur précise le contenu de l'étape intermédiaire souhaitée : une séquence de désamorçage individuelle (respiration, pause de 20 minutes) suivie d'une méthode de réengagement simple ('revenir avec une phrase simple'). Cela renforce le besoin de préparation personnelle avant toute interaction post-conflit et clarifie les actions concrètes attendues.",
+      "recommendation": "Intégrer la séquence de désamorçage individuelle proposée par l'utilisateur comme une étape distincte et essentielle. Positionner cette nouvelle étape logiquement après l'activation du 'signal de pause' et avant toute discussion ou bilan avec le partenaire, en soulignant son rôle de tampon et de préparation personnelle.",
+      "options_to_discuss": [
+        "Comment formaliser au mieux cette séquence (une seule mission en plusieurs étapes, ou des actions distinctes) pour qu'elle soit facile à suivre et à appliquer ?",
+        "Quel type de 'phrase simple' serait le plus aidant pour l'utilisateur et son partenaire pour signifier un retour au calme et une disponibilité à reparler ?",
+        "Comment l'utilisateur envisage-t-il d'introduire cette nouvelle 'règle' de désamorçage individuelle à son partenaire ?"
+      ],
+      "questions_to_clarify": [
+        "Quel serait le format idéal pour cette étape de désamorçage : une nouvelle habitude à pratiquer après chaque pause, une mission ponctuelle à mettre en place, ou un cadre de réflexion à utiliser ?",
+        "La 'phrase simple' de réengagement est-elle destinée à être prononcée par l'utilisateur seul(e), ou est-ce une attente mutuelle avec le partenaire ?"
+      ]
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r59-whole-plan-next-step-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r59-whole-plan-next-step-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Mission ponctuelle puis habitude légère : définir un protocole de pause, puis après une tension attendre 20 minutes et revenir avec une phrase calme pour reprendre.",
+    "assistant": "Je comprends l'idée de cette nouvelle étape intermédiaire. Pour que je puisse te proposer un brouillon précis, peux-tu me dire si la \"phrase calme\" est quelque chose que tu prononces seul(e) ou si c'est une attente mutuelle avec ton partenaire ? Et pour la \"mission ponctuelle\" de définir un protocole de pause, est-ce que tu formalises les étapes pour toi-même, ou est-ce que tu dois en discuter et l'acter avec ton partenaire ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "active_tool_skill_continue",
+      "plan_item_id": null,
+      "target_title": "la suite du plan",
+      "missing_slots": [
+        "draft_generation_retry_needed"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": null,
+      "coaching_guidance_audit": {
+        "error": "error sending request from [2a01:cb00:194a:e300:442c:58bd:daf7:2a22]:52505 for https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=AIzaSyBG4RkwgQ3qpLI_r6_GvitA5zoTgC-vGPs ([2a00:1450:4007:816::200a]:443): client error (SendRequest): connection error: connection reset",
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "error"
+      }
+    },
+    "coaching_guidance_audit": {
+      "error": "error sending request from [2a01:cb00:194a:e300:442c:58bd:daf7:2a22]:52505 for https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=AIzaSyBG4RkwgQ3qpLI_r6_GvitA5zoTgC-vGPs ([2a00:1450:4007:816::200a]:443): client error (SendRequest): connection error: connection reset",
+      "scope": "whole_plan",
+      "source": "runner",
+      "status": "error"
+    },
+    "coaching_guidance": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r59-whole-plan-next-step-t03",
+    "trace_error": null
+  }
+]

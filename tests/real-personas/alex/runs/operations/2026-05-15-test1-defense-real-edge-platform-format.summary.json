@@ -1,0 +1,112 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-15-defense-real-edge-platform-format-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Fais une carte de défense pour démarrer le sas, le problème c'est surtout que j'ai pas envie de m'y mettre.",
+    "assistant": "Tu veux une carte de défense pour éviter de craquer (reprendre les écrans par exemple) ou plutôt une carte d'attaque pour t'aider à vaincre la flemme et lancer ton sas ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_defense_card",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": {
+      "status": "ask_question",
+      "slot_state": {
+        "slot": "tool_fit",
+        "needed": true,
+        "reason": "structured_ai_missing_tool_fit",
+        "status": "missing",
+        "question": "Tu veux une carte de défense pour éviter de craquer (reprendre les écrans par exemple) ou plutôt une carte d'attaque pour t'aider à vaincre la flemme et lancer ton sas ?",
+        "known_slots": {
+          "attachment": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "intake_state": {
+            "trigger": {
+              "type": "avoidance",
+              "status": "identified",
+              "evidence": [
+                "pas envie de m'y mettre"
+              ],
+              "confidence": 0.8
+            },
+            "skill_id": "prepare_defense_card",
+            "tool_fit": {
+              "reason": "L'utilisateur demande une défense mais décrit un problème de démarrage (résistance), ce qui correspond normalement à une attaque.",
+              "status": "unclear",
+              "evidence": [
+                "Fais une carte de défense",
+                "j'ai pas envie de m'y mettre"
+              ],
+              "confidence": "high"
+            },
+            "attachment": {
+              "kind": "plan_item",
+              "title": "Faire le sas de déchargement",
+              "status": "identified",
+              "evidence": [
+                "démarrer le sas"
+              ],
+              "confidence": "high",
+              "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+            },
+            "confidence": "medium",
+            "constraints": [],
+            "current_step": "attachment_intake",
+            "defense_goal": {
+              "value": null,
+              "status": "missing",
+              "evidence": [],
+              "confidence": "low"
+            },
+            "missing_slots": [
+              "tool_fit",
+              "defense_goal"
+            ],
+            "risk_situation": {
+              "label": "Résistance au démarrage du sas",
+              "status": "identified",
+              "evidence": [
+                "j'ai pas envie de m'y mettre"
+              ],
+              "confidence": "medium",
+              "description": "L'utilisateur ressent un manque d'envie au moment de commencer son rituel.",
+              "timing_hint": "Au moment de démarrer le sas",
+              "context_hint": null
+            },
+            "defense_response_hint": {
+              "value": null,
+              "status": "missing",
+              "evidence": [],
+              "confidence": "low",
+              "strategy_hint": null
+            },
+            "generated_user_message": "Tu veux une carte de défense pour éviter de craquer (reprendre les écrans par exemple) ou plutôt une carte d'attaque pour t'aider à vaincre la flemme et lancer ton sas ?"
+          },
+          "risk_situation": {
+            "label": "Résistance au démarrage du sas",
+            "description": "L'utilisateur ressent un manque d'envie au moment de commencer son rituel.",
+            "timing_hint": "Au moment de démarrer le sas",
+            "context_hint": null
+          }
+        }
+      },
+      "reason_code": "tool_skill_intent_start",
+      "missing_slots": [
+        "tool_fit",
+        "defense_goal"
+      ],
+      "selected_handler": "prepare_defense_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "trace_error": null
+  }
+]

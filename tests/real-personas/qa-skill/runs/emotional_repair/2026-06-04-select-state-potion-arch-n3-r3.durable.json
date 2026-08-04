@@ -1,0 +1,36 @@
+{
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "2bb11b60-410d-48b3-a946-ed8c42c92e13",
+        "role": "user",
+        "content": "Je veux une potion de clarté. Je fais les actions, mais je ne sens plus pourquoi elles comptent.",
+        "scope": "qa-emotional-repair-2026-06-04-select-state-potion-arch-n3-r3",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-04-select-state-potion-arch-n3-r3-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-04T14:24:09.624937+00:00"
+      }
+    ]
+  },
+  "memory_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "scheduled_checkins": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_recurring_reminders": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  }
+}

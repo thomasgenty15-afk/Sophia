@@ -1,0 +1,17 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-simple-r3-t01",
+    "user": "J'aimerais préparer une carte d'attaque pour m'aider à faire mon sas de déchargement ce soir.",
+    "status": 200,
+    "response": {
+      "content": "C'est noté pour ton sas de déchargement. Pour t'aider ce soir, quelle approche préfères-tu ?\n\n1. Préparer le terrain (ex: carnet déjà prêt, téléphone loin)\n2. Un mot de bascule (un mot court à m'envoyer pour déclencher l'action)\n3. Un texte de recadrage (à relire si tu commences à négocier avec toi-même)",
+      "mode": "companion",
+      "tool_execution": "blocked",
+      "executed_tools": []
+    },
+    "trace": null,
+    "error": null,
+    "trace_error": null
+  }
+]

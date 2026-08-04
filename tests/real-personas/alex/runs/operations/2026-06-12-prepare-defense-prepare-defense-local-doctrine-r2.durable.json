@@ -1,0 +1,31 @@
+{
+  "user_defense_cards": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_plan_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "a6eedd15-003e-42aa-ad7a-fc9a848b93bd",
+        "role": "user",
+        "content": "J'aimerais préparer une carte de défense pour les retours de boulot où je suis éclaté, je passe devant les restos et je finis par prendre un truc au hasard au lieu de manger correctement.",
+        "scope": "qa-prepare-defense-card-alex-2026-06-12-prepare-defense-local-doctrine-r2",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-alex-2026-06-12-prepare-defense-local-doctrine-r2-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-12T00:57:39.482675+00:00"
+      }
+    ]
+  }
+}

@@ -1,0 +1,2286 @@
+{
+  "run_id": "coachingrec-potion-20260618-r1",
+  "scope": "qa-normal-conversation-coachingrec-potion-20260618-r1",
+  "base_url": "http://127.0.0.1:54321",
+  "email": "qa-normal-coachingrec-potion-20260618-r1-1781810517826@example.com",
+  "user_id": "c0c21c4b-d559-4ed3-8fc7-7bdb0c0bb54d",
+  "anon_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0",
+  "service_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU",
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjU0MzIxL2F1dGgvdjEiLCJzdWIiOiJjMGMyMWM0Yi1kNTU5LTRlZDMtOGZjNy03YmRiMGMwYmI1NGQiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzgxODE0MTE4LCJpYXQiOjE3ODE4MTA1MTgsImVtYWlsIjoicWEtbm9ybWFsLWNvYWNoaW5ncmVjLXBvdGlvbi0yMDI2MDYxOC1yMS0xNzgxODEwNTE3ODI2QGV4YW1wbGUuY29tIiwicGhvbmUiOiIiLCJhcHBfbWV0YWRhdGEiOnsicHJvdmlkZXIiOiJlbWFpbCIsInByb3ZpZGVycyI6WyJlbWFpbCJdfSwidXNlcl9tZXRhZGF0YSI6eyJlbWFpbCI6InFhLW5vcm1hbC1jb2FjaGluZ3JlYy1wb3Rpb24tMjAyNjA2MTgtcjEtMTc4MTgxMDUxNzgyNkBleGFtcGxlLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJpc190ZXN0X3BlcnNvbmEiOnRydWUsInBob25lX3ZlcmlmaWVkIjpmYWxzZSwicWFfcnVuX2lkIjoiY29hY2hpbmdyZWMtcG90aW9uLTIwMjYwNjE4LXIxIiwic3ViIjoiYzBjMjFjNGItZDU1OS00ZWQzLThmYzctN2JkYjBjMGJiNTRkIn0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3ODE4MTA1MTh9XSwic2Vzc2lvbl9pZCI6ImY1ODAyZjI4LTZhZmYtNGY3YS04MmYwLWQ0MTVkMmFlNzQ0OCIsImlzX2Fub255bW91cyI6ZmFsc2V9.Eg1DA3k3ruqTH8uCbTq9wO7i24WZcIYTpMOQGns-Ahc",
+  "auth_check": {
+    "status": 200,
+    "ok": true
+  },
+  "force_full_ai": true,
+  "created_at": "2026-06-18T19:21:58.146Z",
+  "turns": [
+    {
+      "turn": 1,
+      "sent_at": "2026-06-18T19:22:22.585Z",
+      "user": "Je suis dans un etat de stress tres fort, je tourne en boucle et je n'arrive pas a redescendre. Je ne cherche pas une action du plan, je veux savoir quel type de potion pourrait m'aider dans Sophia.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Dans ton cas, la potion d’apaisement est la plus adaptée : elle aide quand la pression monte, que ça tourne en boucle et que tu n’arrives pas à redescendre. Si tu veux, ouvre Ressources et choisis l’apaisement.",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "coaching_recommendation_signal",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-18T19:22:22.540Z",
+                  "turn_count": 1,
+                  "updated_at": "2026-06-18T19:22:22.540Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "recommend",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "L’utilisateur décrit un stress très fort, de la rumination et une difficulté à redescendre, et demande quel type de potion Sophia pourrait aider.",
+                        "user_words": [],
+                        "target_kind": "emotional_state",
+                        "action_title": null,
+                        "action_source": "ambiguous"
+                      },
+                      "turn_count": 1,
+                      "coaching_type": "emotional",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "emotional_overload",
+                        "why_it_exists": "Le besoin exprimé est d’abord un état intérieur intense avec rumination et montée de stress. Parmi les leviers autorisés, la potion est le bon appui pour accompagner un état émotionnel qui prend trop de place."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "L’utilisateur décrit un stress très fort, de la rumination et une difficulté à redescendre, et demande quel type de potion Sophia pourrait aider.",
+                      "candidate_features": [],
+                      "last_answer_summary": "Le besoin exprimé est d’abord un état intérieur intense avec rumination et montée de stress. Parmi les leviers autorisés, la potion est le bon appui pour accompagner un état émotionnel qui prend trop de place.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "L’utilisateur décrit d’abord un état interne intense et demande quel type de potion Sophia peut aider à utiliser, ce qui relève d’un levier de coaching émotionnel."
+                      ],
+                      "current_recommendation": null,
+                      "last_visible_task_kind": "emotion_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le besoin exprimé est d’abord un état intérieur intense avec rumination et montée de stress. Parmi les leviers autorisés, la potion est le bon appui pour accompagner un état émotionnel qui prend trop de place.",
+                        "why_not_others": {},
+                        "primary_feature": "state_potion",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "potion d'etat",
+                          "surface_hint": "Potions",
+                          "user_facing_destination": "dans les potions"
+                        },
+                        "user_facing_next_step": "Ouvrir Ressources et choisir une potion d’apaisement."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "L’utilisateur décrit d’abord un état interne intense et demande quel type de potion Sophia peut aider à utiliser, ce qui relève d’un levier de coaching émotionnel.",
+                        "category": "emotional_state_coaching",
+                        "failure_mode": "unclear",
+                        "action_context": null,
+                        "priority_features": [
+                          "state_potion"
+                        ],
+                        "emotional_state_context": {
+                          "intensity": "high",
+                          "state_hint": "stress très fort, rumination, difficulté à redescendre"
+                        }
+                      }
+                    }
+                  }
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-18T19:22:22.540Z",
+                  "turn_count": 1,
+                  "updated_at": "2026-06-18T19:22:22.540Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "recommend",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "L’utilisateur décrit un stress très fort, de la rumination et une difficulté à redescendre, et demande quel type de potion Sophia pourrait aider.",
+                        "user_words": [],
+                        "target_kind": "emotional_state",
+                        "action_title": null,
+                        "action_source": "ambiguous"
+                      },
+                      "turn_count": 1,
+                      "coaching_type": "emotional",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "emotional_overload",
+                        "why_it_exists": "Le besoin exprimé est d’abord un état intérieur intense avec rumination et montée de stress. Parmi les leviers autorisés, la potion est le bon appui pour accompagner un état émotionnel qui prend trop de place."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "L’utilisateur décrit un stress très fort, de la rumination et une difficulté à redescendre, et demande quel type de potion Sophia pourrait aider.",
+                      "candidate_features": [],
+                      "last_answer_summary": "Le besoin exprimé est d’abord un état intérieur intense avec rumination et montée de stress. Parmi les leviers autorisés, la potion est le bon appui pour accompagner un état émotionnel qui prend trop de place.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "L’utilisateur décrit d’abord un état interne intense et demande quel type de potion Sophia peut aider à utiliser, ce qui relève d’un levier de coaching émotionnel."
+                      ],
+                      "current_recommendation": null,
+                      "last_visible_task_kind": "emotion_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le besoin exprimé est d’abord un état intérieur intense avec rumination et montée de stress. Parmi les leviers autorisés, la potion est le bon appui pour accompagner un état émotionnel qui prend trop de place.",
+                        "why_not_others": {},
+                        "primary_feature": "state_potion",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "potion d'etat",
+                          "surface_hint": "Potions",
+                          "user_facing_destination": "dans les potions"
+                        },
+                        "user_facing_next_step": "Ouvrir Ressources et choisir une potion d’apaisement."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "L’utilisateur décrit d’abord un état interne intense et demande quel type de potion Sophia peut aider à utiliser, ce qui relève d’un levier de coaching émotionnel.",
+                        "category": "emotional_state_coaching",
+                        "failure_mode": "unclear",
+                        "action_context": null,
+                        "priority_features": [
+                          "state_potion"
+                        ],
+                        "emotional_state_context": {
+                          "intensity": "high",
+                          "state_hint": "stress très fort, rumination, difficulté à redescendre"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-18T19:22:22.544587+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-potion-20260618-r1-t01",
+        "user_id": "c0c21c4b-d559-4ed3-8fc7-7bdb0c0bb54d",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-potion-20260618-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Dans ton cas, la potion d’apaisement est la plus adaptée : elle aide quand la pression monte, que ça tourne en boucle et que tu n’arrives pas à redescendre. Si tu veux, ouvre Ressources et choisis l’apaisement.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-potion-20260618-r1-t01",
+              "source_message_id": "87dd4c13-8744-4889-ab2c-0b06a49a4621",
+              "user_id": "c0c21c4b-d559-4ed3-8fc7-7bdb0c0bb54d",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {
+                "coaching_recommendation": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "emotional_state_feature_recommendation",
+                  "context": {
+                    "category": "emotional_state_coaching",
+                    "failure_mode": "unclear",
+                    "action_context": null,
+                    "emotional_state_context": {
+                      "state_hint": "stress très fort, rumination, difficulté à redescendre",
+                      "intensity": "high"
+                    },
+                    "priority_features": [
+                      "state_potion"
+                    ],
+                    "reason": "L’utilisateur décrit d’abord un état interne intense et demande quel type de potion Sophia peut aider à utiliser, ce qui relève d’un levier de coaching émotionnel."
+                  }
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "orienter vers un levier de coaching adapté à un état émotionnel intense",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "taxonomy_first",
+                "plan_confidence": 0.92
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "coaching_recommendation_signal",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "minimal_global_dispatcher",
+                "active_owner": "none",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "none",
+                "reason_code": "coaching_recommendation_signal"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-potion-20260618-r1-t01",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "coaching_recommendation_signal",
+              "status": "continue"
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-potion-20260618-r1-t01",
+            "source_message_id": "87dd4c13-8744-4889-ab2c-0b06a49a4621",
+            "user_id": "c0c21c4b-d559-4ed3-8fc7-7bdb0c0bb54d",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "coaching_recommendation": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "emotional_state_feature_recommendation",
+                "context": {
+                  "category": "emotional_state_coaching",
+                  "failure_mode": "unclear",
+                  "action_context": null,
+                  "emotional_state_context": {
+                    "state_hint": "stress très fort, rumination, difficulté à redescendre",
+                    "intensity": "high"
+                  },
+                  "priority_features": [
+                    "state_potion"
+                  ],
+                  "reason": "L’utilisateur décrit d’abord un état interne intense et demande quel type de potion Sophia peut aider à utiliser, ce qui relève d’un levier de coaching émotionnel."
+                }
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "orienter vers un levier de coaching adapté à un état émotionnel intense",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "taxonomy_first",
+              "plan_confidence": 0.92
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "coaching_recommendation_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "minimal_global_dispatcher",
+              "active_owner": "none",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "none",
+              "reason_code": "coaching_recommendation_signal"
+            },
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-potion-20260618-r1-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "coaching_recommendation_signal",
+            "status": "continue"
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 2,
+      "sent_at": "2026-06-18T19:22:55.033Z",
+      "user": "Ok, et si je veux la trouver moi-meme dans Sophia, je vais ou exactement ? Ne lance rien depuis le chat.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Va dans Ressources, puis ouvre les Potions. Vu ton stress très fort, la potion d’apaisement est la plus adaptée pour t’aider à redescendre.",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "active_coaching_recommendation",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-18T19:22:22.540Z",
+                  "turn_count": 2,
+                  "updated_at": "2026-06-18T19:22:54.998Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "L’utilisateur décrit un stress très fort, de la rumination et une difficulté à redescendre, et demande quel type de potion Sophia pourrait aider.",
+                        "user_words": [],
+                        "target_kind": "emotional_state",
+                        "action_title": null,
+                        "action_source": "ambiguous"
+                      },
+                      "turn_count": 2,
+                      "coaching_type": "emotional",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "emotional_overload",
+                        "why_it_exists": "Le besoin exprimé est d’abord un état intérieur intense avec rumination et montée de stress. Parmi les leviers autorisés, la potion est le bon appui pour accompagner un état émotionnel qui prend trop de place."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "L’utilisateur veut savoir où retrouver lui-même dans Sophia la potion recommandée, sans la lancer depuis le chat.",
+                      "candidate_features": [],
+                      "last_answer_summary": "Le besoin reste un état émotionnel de stress très fort avec rumination et difficulté à redescendre. La potion d’apaisement est adaptée, et la question porte maintenant sur son emplacement dans Sophia.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "L’utilisateur décrit d’abord un état interne intense et demande quel type de potion Sophia peut aider à utiliser, ce qui relève d’un levier de coaching émotionn"
+                      ],
+                      "current_recommendation": null,
+                      "last_visible_task_kind": "emotion_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le besoin exprimé est d’abord un état intérieur intense avec rumination et montée de stress. Parmi les leviers autorisés, la potion est le bon appui pour accompagner un état émotionnel qui prend trop de place.",
+                        "why_not_others": {},
+                        "primary_feature": "state_potion",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "potion d'etat",
+                          "surface_hint": "Potions",
+                          "user_facing_destination": "dans les potions"
+                        },
+                        "user_facing_next_step": "Ouvrir Ressources et choisir une potion d’apaisement."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "L’utilisateur décrit d’abord un état interne intense et demande quel type de potion Sophia peut aider à utiliser, ce qui relève d’un levier de coaching émotionnel.",
+                        "category": "emotional_state_coaching",
+                        "failure_mode": "unclear",
+                        "action_context": null,
+                        "priority_features": [
+                          "state_potion"
+                        ],
+                        "emotional_state_context": {
+                          "intensity": "high",
+                          "state_hint": "stress très fort, rumination, difficulté à redescendre"
+                        }
+                      }
+                    }
+                  }
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-18T19:22:22.540Z",
+                  "turn_count": 2,
+                  "updated_at": "2026-06-18T19:22:54.998Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "L’utilisateur décrit un stress très fort, de la rumination et une difficulté à redescendre, et demande quel type de potion Sophia pourrait aider.",
+                        "user_words": [],
+                        "target_kind": "emotional_state",
+                        "action_title": null,
+                        "action_source": "ambiguous"
+                      },
+                      "turn_count": 2,
+                      "coaching_type": "emotional",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "emotional_overload",
+                        "why_it_exists": "Le besoin exprimé est d’abord un état intérieur intense avec rumination et montée de stress. Parmi les leviers autorisés, la potion est le bon appui pour accompagner un état émotionnel qui prend trop de place."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "L’utilisateur veut savoir où retrouver lui-même dans Sophia la potion recommandée, sans la lancer depuis le chat.",
+                      "candidate_features": [],
+                      "last_answer_summary": "Le besoin reste un état émotionnel de stress très fort avec rumination et difficulté à redescendre. La potion d’apaisement est adaptée, et la question porte maintenant sur son emplacement dans Sophia.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "L’utilisateur décrit d’abord un état interne intense et demande quel type de potion Sophia peut aider à utiliser, ce qui relève d’un levier de coaching émotionn"
+                      ],
+                      "current_recommendation": null,
+                      "last_visible_task_kind": "emotion_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le besoin exprimé est d’abord un état intérieur intense avec rumination et montée de stress. Parmi les leviers autorisés, la potion est le bon appui pour accompagner un état émotionnel qui prend trop de place.",
+                        "why_not_others": {},
+                        "primary_feature": "state_potion",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "potion d'etat",
+                          "surface_hint": "Potions",
+                          "user_facing_destination": "dans les potions"
+                        },
+                        "user_facing_next_step": "Ouvrir Ressources et choisir une potion d’apaisement."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "L’utilisateur décrit d’abord un état interne intense et demande quel type de potion Sophia peut aider à utiliser, ce qui relève d’un levier de coaching émotionnel.",
+                        "category": "emotional_state_coaching",
+                        "failure_mode": "unclear",
+                        "action_context": null,
+                        "priority_features": [
+                          "state_potion"
+                        ],
+                        "emotional_state_context": {
+                          "intensity": "high",
+                          "state_hint": "stress très fort, rumination, difficulté à redescendre"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-18T19:22:55.00225+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-potion-20260618-r1-t02",
+        "user_id": "c0c21c4b-d559-4ed3-8fc7-7bdb0c0bb54d",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-potion-20260618-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Va dans Ressources, puis ouvre les Potions. Vu ton stress très fort, la potion d’apaisement est la plus adaptée pour t’aider à redescendre.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-potion-20260618-r1-t02",
+              "source_message_id": "aa967971-7bac-47d1-9c3f-653bc5aaa6e0",
+              "user_id": "c0c21c4b-d559-4ed3-8fc7-7bdb0c0bb54d",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {
+                "product_help": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "product_help_question"
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "explain_where_to_find_feature_in_product",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "force_taxonomy",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "active_coaching_recommendation",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "coaching_recommendation",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "resume_active",
+                "reason_code": "active_coaching_recommendation"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-potion-20260618-r1-t02",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "active_coaching_recommendation",
+              "status": "continue"
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-potion-20260618-r1-t02",
+            "source_message_id": "aa967971-7bac-47d1-9c3f-653bc5aaa6e0",
+            "user_id": "c0c21c4b-d559-4ed3-8fc7-7bdb0c0bb54d",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "product_help": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "product_help_question"
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "explain_where_to_find_feature_in_product",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "force_taxonomy",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "active_coaching_recommendation",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "coaching_recommendation",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "resume_active",
+              "reason_code": "active_coaching_recommendation"
+            },
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-potion-20260618-r1-t02",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "active_coaching_recommendation",
+            "status": "continue"
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 3,
+      "sent_at": "2026-06-18T19:23:24.849Z",
+      "user": "Et si je preparais plutot une carte d'attaque pour me forcer a redescendre vite, ce serait mieux qu'une potion ?",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Pour ce que tu décris, la potion d’apaisement est la plus adaptée. Elle aide quand la pression monte, que la rumination tourne en boucle et que tu n’arrives pas à redescendre. Si tu veux, je peux aussi t’aider à voir si c’est plutôt apaisement ou guérison selon ce qui te pèse le plus.",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "active_coaching_recommendation",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-18T19:22:22.540Z",
+                  "turn_count": 3,
+                  "updated_at": "2026-06-18T19:23:24.800Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "L’utilisateur décrit un stress très fort, de la rumination et une difficulté à redescendre, et demande quel type de potion Sophia pourrait aider.",
+                        "user_words": [],
+                        "target_kind": "emotional_state",
+                        "action_title": null,
+                        "action_source": "ambiguous"
+                      },
+                      "turn_count": 3,
+                      "coaching_type": "emotional",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "emotional_overload",
+                        "why_it_exists": "Le besoin exprimé est d’abord un état intérieur intense avec rumination et montée de stress. Parmi les leviers autorisés, la potion est le bon appui pour accompagner un état émotionnel qui prend trop de place."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "L’utilisateur compare une carte d’attaque et une potion pour redescendre vite alors que le besoin reste un état émotionnel de stress intense.",
+                      "candidate_features": [],
+                      "last_answer_summary": "Le besoin reste de faire redescendre un état intérieur très fort. Parmi les leviers autorisés, la potion est l’appui adapté pour accompagner un stress intense et la rumination.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "L’utilisateur décrit d’abord un état interne intense et demande quel type de potion Sophia peut aider à utiliser, ce qui relève d’un levier de coaching émotionn"
+                      ],
+                      "current_recommendation": null,
+                      "last_visible_task_kind": "emotion_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le besoin exprimé est d’abord un état intérieur intense avec rumination et montée de stress. Parmi les leviers autorisés, la potion est le bon appui pour accompagner un état émotionnel qui prend trop de place.",
+                        "why_not_others": {},
+                        "primary_feature": "state_potion",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "potion d'etat",
+                          "surface_hint": "Potions",
+                          "user_facing_destination": "dans les potions"
+                        },
+                        "user_facing_next_step": "Ouvrir Ressources et choisir une potion d’apaisement."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "L’utilisateur décrit d’abord un état interne intense et demande quel type de potion Sophia peut aider à utiliser, ce qui relève d’un levier de coaching émotionnel.",
+                        "category": "emotional_state_coaching",
+                        "failure_mode": "unclear",
+                        "action_context": null,
+                        "priority_features": [
+                          "state_potion"
+                        ],
+                        "emotional_state_context": {
+                          "intensity": "high",
+                          "state_hint": "stress très fort, rumination, difficulté à redescendre"
+                        }
+                      }
+                    }
+                  }
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-18T19:22:22.540Z",
+                  "turn_count": 3,
+                  "updated_at": "2026-06-18T19:23:24.800Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "L’utilisateur décrit un stress très fort, de la rumination et une difficulté à redescendre, et demande quel type de potion Sophia pourrait aider.",
+                        "user_words": [],
+                        "target_kind": "emotional_state",
+                        "action_title": null,
+                        "action_source": "ambiguous"
+                      },
+                      "turn_count": 3,
+                      "coaching_type": "emotional",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "emotional_overload",
+                        "why_it_exists": "Le besoin exprimé est d’abord un état intérieur intense avec rumination et montée de stress. Parmi les leviers autorisés, la potion est le bon appui pour accompagner un état émotionnel qui prend trop de place."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "L’utilisateur compare une carte d’attaque et une potion pour redescendre vite alors que le besoin reste un état émotionnel de stress intense.",
+                      "candidate_features": [],
+                      "last_answer_summary": "Le besoin reste de faire redescendre un état intérieur très fort. Parmi les leviers autorisés, la potion est l’appui adapté pour accompagner un stress intense et la rumination.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "L’utilisateur décrit d’abord un état interne intense et demande quel type de potion Sophia peut aider à utiliser, ce qui relève d’un levier de coaching émotionn"
+                      ],
+                      "current_recommendation": null,
+                      "last_visible_task_kind": "emotion_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le besoin exprimé est d’abord un état intérieur intense avec rumination et montée de stress. Parmi les leviers autorisés, la potion est le bon appui pour accompagner un état émotionnel qui prend trop de place.",
+                        "why_not_others": {},
+                        "primary_feature": "state_potion",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "potion d'etat",
+                          "surface_hint": "Potions",
+                          "user_facing_destination": "dans les potions"
+                        },
+                        "user_facing_next_step": "Ouvrir Ressources et choisir une potion d’apaisement."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "L’utilisateur décrit d’abord un état interne intense et demande quel type de potion Sophia peut aider à utiliser, ce qui relève d’un levier de coaching émotionnel.",
+                        "category": "emotional_state_coaching",
+                        "failure_mode": "unclear",
+                        "action_context": null,
+                        "priority_features": [
+                          "state_potion"
+                        ],
+                        "emotional_state_context": {
+                          "intensity": "high",
+                          "state_hint": "stress très fort, rumination, difficulté à redescendre"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-18T19:23:24.808547+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-potion-20260618-r1-t03",
+        "user_id": "c0c21c4b-d559-4ed3-8fc7-7bdb0c0bb54d",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-potion-20260618-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Pour ce que tu décris, la potion d’apaisement est la plus adaptée. Elle aide quand la pression monte, que la rumination tourne en boucle et que tu n’arrives pas à redescendre. Si tu veux, je peux aussi t’aider à voir si c’est plutôt apaisement ou guérison selon ce qui te pèse le plus.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-potion-20260618-r1-t03",
+              "source_message_id": "635d77dd-74a7-42b3-936e-3804207c7097",
+              "user_id": "c0c21c4b-d559-4ed3-8fc7-7bdb0c0bb54d",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {
+                "coaching_recommendation": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "user_is_asking_which_coaching_lever_is_better_for_an_emotional_state_blocker",
+                  "context": {
+                    "category": "emotional_state_coaching",
+                    "failure_mode": "unclear",
+                    "action_context": {
+                      "source": "none",
+                      "plan_item_id": null,
+                      "action_title": null,
+                      "plan_id": null,
+                      "plan_title": null,
+                      "action_type": "other"
+                    },
+                    "emotional_state_context": {
+                      "state_hint": "stress intense / besoin de redescendre vite",
+                      "intensity": "high"
+                    },
+                    "priority_features": [
+                      "state_potion"
+                    ],
+                    "reason": "The primary need is to reduce an internal stress state, not to choose an action tool."
+                  }
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "active_coaching_recommendation",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "coaching_recommendation",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "resume_active",
+                "reason_code": "active_coaching_recommendation"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-potion-20260618-r1-t03",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "active_coaching_recommendation",
+              "status": "continue"
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-potion-20260618-r1-t03",
+            "source_message_id": "635d77dd-74a7-42b3-936e-3804207c7097",
+            "user_id": "c0c21c4b-d559-4ed3-8fc7-7bdb0c0bb54d",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "coaching_recommendation": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "user_is_asking_which_coaching_lever_is_better_for_an_emotional_state_blocker",
+                "context": {
+                  "category": "emotional_state_coaching",
+                  "failure_mode": "unclear",
+                  "action_context": {
+                    "source": "none",
+                    "plan_item_id": null,
+                    "action_title": null,
+                    "plan_id": null,
+                    "plan_title": null,
+                    "action_type": "other"
+                  },
+                  "emotional_state_context": {
+                    "state_hint": "stress intense / besoin de redescendre vite",
+                    "intensity": "high"
+                  },
+                  "priority_features": [
+                    "state_potion"
+                  ],
+                  "reason": "The primary need is to reduce an internal stress state, not to choose an action tool."
+                }
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "active_coaching_recommendation",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "coaching_recommendation",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "resume_active",
+              "reason_code": "active_coaching_recommendation"
+            },
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-potion-20260618-r1-t03",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "active_coaching_recommendation",
+            "status": "continue"
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 4,
+      "sent_at": "2026-06-18T19:23:51.876Z",
+      "user": "En fait il y a aussi une action: je dois appeler ma banque, et c'est surtout ca qui me bloque. On peut passer sur une solution pour cette action ?",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Tu veux qu’on traite ça comme une action du plan, une action hors plan, ou plutôt comme un état émotionnel ?",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "active_coaching_recommendation",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-18T19:22:22.540Z",
+                  "turn_count": 4,
+                  "updated_at": "2026-06-18T19:23:51.833Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "L’utilisateur décrit un stress très fort, de la rumination et une difficulté à redescendre, et demande quel type de potion Sophia pourrait aider.",
+                        "user_words": [],
+                        "target_kind": "emotional_state",
+                        "action_title": null,
+                        "action_source": "ambiguous"
+                      },
+                      "turn_count": 4,
+                      "coaching_type": "emotional",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "emotional_overload",
+                        "why_it_exists": "Le besoin exprimé est d’abord un état intérieur intense avec rumination et montée de stress. Parmi les leviers autorisés, la potion est le bon appui pour accompagner un état émotionnel qui prend trop de place."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "L’utilisateur indique désormais une action précise hors plan, appeler sa banque, et dit être bloqué au démarrage.",
+                      "candidate_features": [],
+                      "last_answer_summary": "L’utilisateur indique désormais une action précise hors plan, appeler sa banque, et dit être bloqué au démarrage.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "L’utilisateur décrit d’abord un état interne intense et demande quel type de potion Sophia peut aider à utiliser, ce qui relève d’un levier de coaching émotionn"
+                      ],
+                      "current_recommendation": null,
+                      "last_visible_task_kind": "change_confirm_coaching_type",
+                      "recommendation_decision": {
+                        "why_primary": "Le besoin exprimé est d’abord un état intérieur intense avec rumination et montée de stress. Parmi les leviers autorisés, la potion est le bon appui pour accompagner un état émotionnel qui prend trop de place.",
+                        "why_not_others": {},
+                        "primary_feature": "state_potion",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "potion d'etat",
+                          "surface_hint": "Potions",
+                          "user_facing_destination": "dans les potions"
+                        },
+                        "user_facing_next_step": "Ouvrir Ressources et choisir une potion d’apaisement."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "L’utilisateur décrit d’abord un état interne intense et demande quel type de potion Sophia peut aider à utiliser, ce qui relève d’un levier de coaching émotionnel.",
+                        "category": "emotional_state_coaching",
+                        "failure_mode": "unclear",
+                        "action_context": null,
+                        "priority_features": [
+                          "state_potion"
+                        ],
+                        "emotional_state_context": {
+                          "intensity": "high",
+                          "state_hint": "stress très fort, rumination, difficulté à redescendre"
+                        }
+                      }
+                    }
+                  }
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-18T19:22:22.540Z",
+                  "turn_count": 4,
+                  "updated_at": "2026-06-18T19:23:51.833Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "L’utilisateur décrit un stress très fort, de la rumination et une difficulté à redescendre, et demande quel type de potion Sophia pourrait aider.",
+                        "user_words": [],
+                        "target_kind": "emotional_state",
+                        "action_title": null,
+                        "action_source": "ambiguous"
+                      },
+                      "turn_count": 4,
+                      "coaching_type": "emotional",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "emotional_overload",
+                        "why_it_exists": "Le besoin exprimé est d’abord un état intérieur intense avec rumination et montée de stress. Parmi les leviers autorisés, la potion est le bon appui pour accompagner un état émotionnel qui prend trop de place."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "L’utilisateur indique désormais une action précise hors plan, appeler sa banque, et dit être bloqué au démarrage.",
+                      "candidate_features": [],
+                      "last_answer_summary": "L’utilisateur indique désormais une action précise hors plan, appeler sa banque, et dit être bloqué au démarrage.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "L’utilisateur décrit d’abord un état interne intense et demande quel type de potion Sophia peut aider à utiliser, ce qui relève d’un levier de coaching émotionn"
+                      ],
+                      "current_recommendation": null,
+                      "last_visible_task_kind": "change_confirm_coaching_type",
+                      "recommendation_decision": {
+                        "why_primary": "Le besoin exprimé est d’abord un état intérieur intense avec rumination et montée de stress. Parmi les leviers autorisés, la potion est le bon appui pour accompagner un état émotionnel qui prend trop de place.",
+                        "why_not_others": {},
+                        "primary_feature": "state_potion",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "potion d'etat",
+                          "surface_hint": "Potions",
+                          "user_facing_destination": "dans les potions"
+                        },
+                        "user_facing_next_step": "Ouvrir Ressources et choisir une potion d’apaisement."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "L’utilisateur décrit d’abord un état interne intense et demande quel type de potion Sophia peut aider à utiliser, ce qui relève d’un levier de coaching émotionnel.",
+                        "category": "emotional_state_coaching",
+                        "failure_mode": "unclear",
+                        "action_context": null,
+                        "priority_features": [
+                          "state_potion"
+                        ],
+                        "emotional_state_context": {
+                          "intensity": "high",
+                          "state_hint": "stress très fort, rumination, difficulté à redescendre"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-18T19:23:51.839547+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-potion-20260618-r1-t04",
+        "user_id": "c0c21c4b-d559-4ed3-8fc7-7bdb0c0bb54d",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-potion-20260618-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Tu veux qu’on traite ça comme une action du plan, une action hors plan, ou plutôt comme un état émotionnel ?",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-potion-20260618-r1-t04",
+              "source_message_id": "ae01bd1c-7a0b-4e1a-ae6f-b7e3dc562bcb",
+              "user_id": "c0c21c4b-d559-4ed3-8fc7-7bdb0c0bb54d",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {
+                "coaching_recommendation": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "free_action_coaching_feature_recommendation",
+                  "context": {
+                    "category": "free_action_coaching",
+                    "failure_mode": "launch_blocker",
+                    "action_context": {
+                      "source": "free",
+                      "plan_item_id": null,
+                      "action_title": "appeler ma banque",
+                      "plan_id": null,
+                      "plan_title": null,
+                      "action_type": "other"
+                    },
+                    "emotional_state_context": null,
+                    "priority_features": [
+                      "attack_card"
+                    ],
+                    "reason": "User has a specific free action and is blocked on starting it; attack_card is the priority lever."
+                  }
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "clarify_best_coaching_lever_for_free_action_blocker",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "taxonomy_first",
+                "plan_confidence": 0.86
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "active_coaching_recommendation",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "coaching_recommendation",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "resume_active",
+                "reason_code": "active_coaching_recommendation"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-potion-20260618-r1-t04",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "active_coaching_recommendation",
+              "status": "continue"
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-potion-20260618-r1-t04",
+            "source_message_id": "ae01bd1c-7a0b-4e1a-ae6f-b7e3dc562bcb",
+            "user_id": "c0c21c4b-d559-4ed3-8fc7-7bdb0c0bb54d",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "coaching_recommendation": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "free_action_coaching_feature_recommendation",
+                "context": {
+                  "category": "free_action_coaching",
+                  "failure_mode": "launch_blocker",
+                  "action_context": {
+                    "source": "free",
+                    "plan_item_id": null,
+                    "action_title": "appeler ma banque",
+                    "plan_id": null,
+                    "plan_title": null,
+                    "action_type": "other"
+                  },
+                  "emotional_state_context": null,
+                  "priority_features": [
+                    "attack_card"
+                  ],
+                  "reason": "User has a specific free action and is blocked on starting it; attack_card is the priority lever."
+                }
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "clarify_best_coaching_lever_for_free_action_blocker",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "taxonomy_first",
+              "plan_confidence": 0.86
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "active_coaching_recommendation",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "coaching_recommendation",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "resume_active",
+              "reason_code": "active_coaching_recommendation"
+            },
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-potion-20260618-r1-t04",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "active_coaching_recommendation",
+            "status": "continue"
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 5,
+      "sent_at": "2026-06-18T19:24:22.645Z",
+      "user": "Hors plan. L'appel a la banque n'est pas dans mon plan, je veux juste savoir comment demarrer sans paniquer.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Tu veux qu’on traite ça comme une action de ton plan, une action hors plan, ou plutôt comme un état émotionnel ?",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "active_coaching_recommendation",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-18T19:22:22.540Z",
+                  "turn_count": 4,
+                  "updated_at": "2026-06-18T19:24:22.605Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "L’utilisateur décrit un stress très fort, de la rumination et une difficulté à redescendre, et demande quel type de potion Sophia pourrait aider.",
+                        "user_words": [],
+                        "target_kind": "emotional_state",
+                        "action_title": null,
+                        "action_source": "ambiguous"
+                      },
+                      "turn_count": 4,
+                      "coaching_type": "emotional",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "emotional_overload",
+                        "why_it_exists": "Le besoin exprimé est d’abord un état intérieur intense avec rumination et montée de stress. Parmi les leviers autorisés, la potion est le bon appui pour accompagner un état émotionnel qui prend trop de place."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "L'utilisateur a une action hors plan précise à démarrer: appeler sa banque, et demande comment s'y mettre sans paniquer.",
+                      "candidate_features": [],
+                      "last_answer_summary": "L'utilisateur a une action hors plan précise à démarrer: appeler sa banque, et demande comment s'y mettre sans paniquer.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "L’utilisateur décrit d’abord un état interne intense et demande quel type de potion Sophia peut aider à utiliser, ce qui relève d’un levier de coaching émotionn"
+                      ],
+                      "current_recommendation": null,
+                      "last_visible_task_kind": "change_confirm_coaching_type",
+                      "recommendation_decision": {
+                        "why_primary": "Le besoin exprimé est d’abord un état intérieur intense avec rumination et montée de stress. Parmi les leviers autorisés, la potion est le bon appui pour accompagner un état émotionnel qui prend trop de place.",
+                        "why_not_others": {},
+                        "primary_feature": "state_potion",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "potion d'etat",
+                          "surface_hint": "Potions",
+                          "user_facing_destination": "dans les potions"
+                        },
+                        "user_facing_next_step": "Ouvrir Ressources et choisir une potion d’apaisement."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "L’utilisateur décrit d’abord un état interne intense et demande quel type de potion Sophia peut aider à utiliser, ce qui relève d’un levier de coaching émotionnel.",
+                        "category": "emotional_state_coaching",
+                        "failure_mode": "unclear",
+                        "action_context": null,
+                        "priority_features": [
+                          "state_potion"
+                        ],
+                        "emotional_state_context": {
+                          "intensity": "high",
+                          "state_hint": "stress très fort, rumination, difficulté à redescendre"
+                        }
+                      }
+                    }
+                  }
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-18T19:22:22.540Z",
+                  "turn_count": 4,
+                  "updated_at": "2026-06-18T19:24:22.605Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "L’utilisateur décrit un stress très fort, de la rumination et une difficulté à redescendre, et demande quel type de potion Sophia pourrait aider.",
+                        "user_words": [],
+                        "target_kind": "emotional_state",
+                        "action_title": null,
+                        "action_source": "ambiguous"
+                      },
+                      "turn_count": 4,
+                      "coaching_type": "emotional",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "emotional_overload",
+                        "why_it_exists": "Le besoin exprimé est d’abord un état intérieur intense avec rumination et montée de stress. Parmi les leviers autorisés, la potion est le bon appui pour accompagner un état émotionnel qui prend trop de place."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "L'utilisateur a une action hors plan précise à démarrer: appeler sa banque, et demande comment s'y mettre sans paniquer.",
+                      "candidate_features": [],
+                      "last_answer_summary": "L'utilisateur a une action hors plan précise à démarrer: appeler sa banque, et demande comment s'y mettre sans paniquer.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "L’utilisateur décrit d’abord un état interne intense et demande quel type de potion Sophia peut aider à utiliser, ce qui relève d’un levier de coaching émotionn"
+                      ],
+                      "current_recommendation": null,
+                      "last_visible_task_kind": "change_confirm_coaching_type",
+                      "recommendation_decision": {
+                        "why_primary": "Le besoin exprimé est d’abord un état intérieur intense avec rumination et montée de stress. Parmi les leviers autorisés, la potion est le bon appui pour accompagner un état émotionnel qui prend trop de place.",
+                        "why_not_others": {},
+                        "primary_feature": "state_potion",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "potion d'etat",
+                          "surface_hint": "Potions",
+                          "user_facing_destination": "dans les potions"
+                        },
+                        "user_facing_next_step": "Ouvrir Ressources et choisir une potion d’apaisement."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "L’utilisateur décrit d’abord un état interne intense et demande quel type de potion Sophia peut aider à utiliser, ce qui relève d’un levier de coaching émotionnel.",
+                        "category": "emotional_state_coaching",
+                        "failure_mode": "unclear",
+                        "action_context": null,
+                        "priority_features": [
+                          "state_potion"
+                        ],
+                        "emotional_state_context": {
+                          "intensity": "high",
+                          "state_hint": "stress très fort, rumination, difficulté à redescendre"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-18T19:24:22.609207+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-potion-20260618-r1-t05",
+        "user_id": "c0c21c4b-d559-4ed3-8fc7-7bdb0c0bb54d",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-potion-20260618-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Tu veux qu’on traite ça comme une action de ton plan, une action hors plan, ou plutôt comme un état émotionnel ?",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-potion-20260618-r1-t05",
+              "source_message_id": "2c07a7b7-bc91-44b1-9102-01cc999f54f8",
+              "user_id": "c0c21c4b-d559-4ed3-8fc7-7bdb0c0bb54d",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {
+                "coaching_recommendation": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "free_action_coaching_needed_for_launch_blocker",
+                  "context": {
+                    "category": "free_action_coaching",
+                    "failure_mode": "launch_blocker",
+                    "action_context": {
+                      "source": "free",
+                      "plan_item_id": null,
+                      "action_title": "appeler la banque",
+                      "plan_id": null,
+                      "plan_title": null,
+                      "action_type": "other"
+                    },
+                    "emotional_state_context": null,
+                    "priority_features": [
+                      "attack_card"
+                    ],
+                    "reason": "The user has a free action outside the plan and wants help starting without panic; the primary blocker is launching, so attack_card is the preferred lever."
+                  }
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "support_free_action_start_without_panic",
+                "reasoning_complexity": "medium",
+                "context_need": "targeted",
+                "memory_mode": "light",
+                "model_tier_hint": "standard",
+                "context_budget_tier": "small",
+                "targets": [],
+                "retrieval_policy": "taxonomy_first",
+                "plan_confidence": 0.86
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "active_coaching_recommendation",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "coaching_recommendation",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "resume_active",
+                "reason_code": "active_coaching_recommendation"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-potion-20260618-r1-t05",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "active_coaching_recommendation",
+              "status": "continue"
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-potion-20260618-r1-t05",
+            "source_message_id": "2c07a7b7-bc91-44b1-9102-01cc999f54f8",
+            "user_id": "c0c21c4b-d559-4ed3-8fc7-7bdb0c0bb54d",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "coaching_recommendation": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "free_action_coaching_needed_for_launch_blocker",
+                "context": {
+                  "category": "free_action_coaching",
+                  "failure_mode": "launch_blocker",
+                  "action_context": {
+                    "source": "free",
+                    "plan_item_id": null,
+                    "action_title": "appeler la banque",
+                    "plan_id": null,
+                    "plan_title": null,
+                    "action_type": "other"
+                  },
+                  "emotional_state_context": null,
+                  "priority_features": [
+                    "attack_card"
+                  ],
+                  "reason": "The user has a free action outside the plan and wants help starting without panic; the primary blocker is launching, so attack_card is the preferred lever."
+                }
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "support_free_action_start_without_panic",
+              "reasoning_complexity": "medium",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "standard",
+              "context_budget_tier": "small",
+              "targets": [],
+              "retrieval_policy": "taxonomy_first",
+              "plan_confidence": 0.86
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "active_coaching_recommendation",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "coaching_recommendation",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "resume_active",
+              "reason_code": "active_coaching_recommendation"
+            },
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-potion-20260618-r1-t05",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "active_coaching_recommendation",
+            "status": "continue"
+          }
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "updated_at": "2026-06-18T19:24:22.648Z",
+  "cleanup": [
+    {
+      "table": "chat_messages",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "scheduled_checkins",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_chat_states",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_memories",
+      "status": 404,
+      "ok": false
+    },
+    {
+      "table": "user_topic_memories",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "memory_items",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "auth.users",
+      "status": 200,
+      "ok": true
+    }
+  ],
+  "cleaned_at": "2026-06-18T19:25:08.014Z"
+}

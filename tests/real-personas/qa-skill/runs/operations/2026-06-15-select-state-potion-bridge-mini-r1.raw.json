@@ -1,0 +1,2165 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-demotivation-repair-2026-06-15-select-state-potion-bridge-mini-r1-t01",
+    "auth_method": "refresh_token",
+    "user": "Je ne vois plus pourquoi je fais ce dossier. Je fais les taches mais le plan n'a plus de sens pour moi.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-demotivation-repair-2026-06-15-select-state-potion-bridge-mini-r1-t01",
+      "user_id": "4ae18a86-ac24-4a19-8f47-61e56b18ba77",
+      "channel": "web",
+      "scope": "qa-demotivation-repair-2026-06-15-select-state-potion-bridge-mini-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je comprends, c'est frustrant quand on ne voit plus le lien entre les tâches et l'objectif global. Est-ce que tu veux qu'on ajuste ton plan ensemble pour qu'il retrouve du sens ?",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-demotivation-repair-2026-06-15-select-state-potion-bridge-mini-r1-t01",
+            "source_message_id": "af6e3353-a44a-4d43-a511-91516130858a",
+            "user_id": "4ae18a86-ac24-4a19-8f47-61e56b18ba77",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "flow_opportunity": {
+              "opportunity_id": "plan_adjustment.loss_of_meaning",
+              "target_kind": "tool_skill",
+              "target_flow": "adjust_plan_item",
+              "confidence": "high",
+              "score": 0.85,
+              "priority": 80,
+              "reason": "User reports the plan no longer makes sense and tasks feel disconnected from purpose.",
+              "evidence": [
+                "Je ne vois plus pourquoi je fais ce dossier",
+                "le plan n'a plus de sens pour moi"
+              ],
+              "seed_context": {
+                "target_hint": "dossier / plan global",
+                "surface": "plan"
+              }
+            },
+            "note_information": {
+              "source_flow_id": "global_dispatcher",
+              "handoff_reason": "bridge",
+              "target_dispatcher": "demotivation_repair",
+              "handoff_context_for_next_dispatcher": "User expresses a loss of purpose regarding a specific project ('dossier') and the overall plan. Prioritize emotional/motivational repair before suggesting structural plan adjustments.",
+              "user_words": [
+                "Je ne vois plus pourquoi je fais ce dossier",
+                "le plan n'a plus de sens pour moi",
+                "Je ne vois plus pourquoi je fais ce dossier. Je fais les taches mais le plan n'a plus de sens pour moi."
+              ],
+              "structured_context": {
+                "primary_signal_path": "skill_signals.entry.demotivation_repair",
+                "target_kind": "skill",
+                "target_flow": "demotivation_repair",
+                "confidence_band": "high",
+                "evidence": [
+                  "Je ne vois plus pourquoi je fais ce dossier",
+                  "le plan n'a plus de sens pour moi"
+                ],
+                "recommended_next_focus": "Address the loss of meaning and motivational fatigue. Keep adjust_plan_item as a secondary opportunity if the user confirms they want to change the structure."
+              },
+              "confidence": "high"
+            },
+            "skill_signals": {
+              "entry": {
+                "demotivation_repair": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "score": 0.9,
+                  "reason": "User explicitly mentions loss of 'why' and plan meaninglessness."
+                }
+              },
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "domain_key",
+                  "key": "psychologie.motivation",
+                  "query_hint": "perte de sens et pourquoi profond",
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "high",
+                  "entity_type": null
+                },
+                {
+                  "type": "level",
+                  "key": "current_level",
+                  "query_hint": "objectifs du niveau actuel",
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first",
+                  "priority": "medium",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "taxonomy_first",
+              "plan_confidence": 0.7
+            },
+            "normal_reply_fit_score": 0.2,
+            "normal_reply_fit_evidence": [
+              "Le message exprime une perte de sens structurelle profonde qui nécessite un skill spécialisé plutôt qu'une simple conversation."
+            ],
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "selected_handler": "flow_opportunity_verification",
+            "blocked_paths": [
+              {
+                "path": "tool_skill_router",
+                "reason_code": "clarification_required"
+              },
+              {
+                "path": "product_help",
+                "reason_code": "clarification_required"
+              },
+              {
+                "path": "operation_runtime_pipeline",
+                "reason_code": "clarification_required"
+              },
+              {
+                "path": "direct_effects",
+                "reason_code": "clarification_required"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "clarification_required",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "tool_skill_run": {
+            "selected_handler": "flow_opportunity_verification",
+            "reason_code": "flow_opportunity_verification_offer_opportunity",
+            "skill_id": "flow_opportunity_verification",
+            "mode": "local_verification_flow",
+            "status": "waiting_confirmation",
+            "flow_action": "offer_opportunity",
+            "visible_task": {
+              "kind": "offer_target_flow_generic",
+              "conversation_context": {
+                "state_summary": "Verification opportunity selected for adjust_plan_item.",
+                "user_words": [
+                  "Je ne vois plus pourquoi je fais ce dossier. Je fais les taches mais le plan n'a plus de sens pour moi."
+                ],
+                "field_or_stage": "offer_target_flow_generic",
+                "known_values": {
+                  "target_kind": "tool_skill",
+                  "target_flow": "adjust_plan_item",
+                  "target_context": {
+                    "target_hint": "dossier / plan global",
+                    "surface": "plan"
+                  },
+                  "opportunity_id": "plan_adjustment.loss_of_meaning",
+                  "confirmation_anchor": null
+                },
+                "missing_or_weak_values": [],
+                "selected_candidate": {
+                  "opportunity_id": "plan_adjustment.loss_of_meaning",
+                  "target_flow": "adjust_plan_item",
+                  "target_kind": "tool_skill",
+                  "reason": "User reports the plan no longer makes sense and tasks feel disconnected from purpose."
+                },
+                "handoff_data": {
+                  "target_dispatcher": "adjust_plan_item",
+                  "target_context": {
+                    "target_hint": "dossier / plan global",
+                    "surface": "plan"
+                  },
+                  "anchor_summary": "accept tool_skill target_flow adjust_plan_item"
+                },
+                "tone_constraints": [
+                  "court",
+                  "naturel"
+                ],
+                "do_not_say": [
+                  "Ne dis pas que le flow cible a deja execute quoi que ce soit.",
+                  "Ne mentionne pas JSON, dispatcher, reducer, DB ou outil interne.",
+                  "Ne mentionne pas JSON, dispatcher, reducer, DB, table ou outil interne.",
+                  "Ne dis pas qu'une mutation est faite sans commit du flow cible.",
+                  "Ne rends pas product_help ou status_recap a la place du flow cible."
+                ],
+                "context_summary": "surface=plan; hint=dossier / plan global",
+                "evidence_used": [
+                  "Je ne vois plus pourquoi je fais ce dossier",
+                  "le plan n'a plus de sens pour moi"
+                ]
+              }
+            },
+            "note_information": null,
+            "note_information_inbound": {
+              "source_flow_id": "global_dispatcher",
+              "handoff_reason": "bridge",
+              "target_dispatcher": "demotivation_repair",
+              "handoff_context_for_next_dispatcher": "User expresses a loss of purpose regarding a specific project ('dossier') and the overall plan. Prioritize emotional/motivational repair before suggesting structural plan adjustments.",
+              "user_words": [
+                "Je ne vois plus pourquoi je fais ce dossier",
+                "le plan n'a plus de sens pour moi",
+                "Je ne vois plus pourquoi je fais ce dossier. Je fais les taches mais le plan n'a plus de sens pour moi."
+              ],
+              "structured_context": {
+                "primary_signal_path": "skill_signals.entry.demotivation_repair",
+                "target_kind": "skill",
+                "target_flow": "demotivation_repair",
+                "confidence_band": "high",
+                "evidence": [
+                  "Je ne vois plus pourquoi je fais ce dossier",
+                  "le plan n'a plus de sens pour moi"
+                ],
+                "recommended_next_focus": "Address the loss of meaning and motivational fatigue. Keep adjust_plan_item as a secondary opportunity if the user confirms they want to change the structure."
+              },
+              "confidence": "high"
+            },
+            "db_context_pack_loaded": true,
+            "micro_memory_context_loaded": false,
+            "target_flow": "adjust_plan_item",
+            "target_flow_input": {
+              "focus": [],
+              "surface": "plan",
+              "seed_context": {
+                "target_hint": "dossier / plan global",
+                "surface": "plan"
+              },
+              "origin_evidence": [
+                "Je ne vois plus pourquoi je fais ce dossier",
+                "le plan n'a plus de sens pour moi"
+              ]
+            },
+            "local_flow_state": {
+              "skill_id": "flow_opportunity_verification",
+              "mode": "local_verification_flow",
+              "status": "waiting_confirmation",
+              "opportunity_id": "plan_adjustment.loss_of_meaning",
+              "target_kind": "tool_skill",
+              "target_flow": "adjust_plan_item",
+              "target_action": "run_adjust_plan_item",
+              "target_context": {
+                "target_hint": "dossier / plan global",
+                "surface": "plan"
+              },
+              "origin": {
+                "user_message": "Je ne vois plus pourquoi je fais ce dossier. Je fais les taches mais le plan n'a plus de sens pour moi.",
+                "evidence": [
+                  "Je ne vois plus pourquoi je fais ce dossier",
+                  "le plan n'a plus de sens pour moi"
+                ],
+                "created_at": "2026-06-15T18:21:43.783Z"
+              },
+              "confirmation_anchor": {
+                "meaning": "accept tool_skill target_flow adjust_plan_item",
+                "target_kind": "tool_skill",
+                "target_flow": "adjust_plan_item",
+                "target_context": {
+                  "target_hint": "dossier / plan global",
+                  "surface": "plan"
+                },
+                "must_not_reinterpret_acceptance_as": [
+                  "product_help",
+                  "normal_reply",
+                  "prepare_attack_card",
+                  "prepare_defense_card"
+                ]
+              },
+              "subskill_history": [],
+              "recent_user_messages": [
+                "Je ne vois plus pourquoi je fais ce dossier. Je fais les taches mais le plan n'a plus de sens pour moi."
+              ],
+              "turn_count": 1,
+              "max_turns": 6,
+              "created_at": "2026-06-15T18:21:43.783Z",
+              "updated_at": "2026-06-15T18:21:43.783Z"
+            },
+            "state_mutation_audit": {
+              "server_owned_fields": [
+                "opportunity_id",
+                "target_kind",
+                "target_flow",
+                "target_action",
+                "target_context",
+                "origin",
+                "confirmation_anchor",
+                "subskill_history",
+                "recent_user_messages",
+                "status",
+                "turn_count",
+                "max_turns",
+                "created_at",
+                "updated_at"
+              ],
+              "modified_fields_declared": [],
+              "clear_fields_declared": [],
+              "applied_fields": [],
+              "preserved_fields": [],
+              "restored_fields": [],
+              "cleared_fields": [],
+              "rejected_changes": []
+            },
+            "operation_suggestions": [],
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "toolExecution": "none",
+            "executedTools": [],
+            "prompt_version": "flow_opportunity_verification_local_dispatcher_v1_2026_06_08",
+            "runtime_trace": [
+              {
+                "component": "flow_opportunity_verification",
+                "event": "local_state_created",
+                "global_dispatcher_skipped_due_active_flow": false,
+                "db_context_pack_loaded": true,
+                "micro_memory_context_loaded": false,
+                "note_information_consumed": {
+                  "source_flow_id": "global_dispatcher",
+                  "target_dispatcher": "demotivation_repair",
+                  "handoff_reason": "bridge",
+                  "has_note_information": true,
+                  "confidence": "high"
+                }
+              },
+              {
+                "component": "flow_opportunity_verification",
+                "event": "local_dispatcher_result",
+                "flow_action": "offer_opportunity",
+                "visible_task_kind": "offer_target_flow_generic",
+                "risk_score": 0,
+                "note_information_created": {
+                  "source_flow_id": null,
+                  "target_dispatcher": null,
+                  "handoff_reason": null,
+                  "has_note_information": false,
+                  "confidence": null
+                },
+                "state_mutation_audit": {
+                  "server_owned_fields": [
+                    "opportunity_id",
+                    "target_kind",
+                    "target_flow",
+                    "target_action",
+                    "target_context",
+                    "origin",
+                    "confirmation_anchor",
+                    "subskill_history",
+                    "recent_user_messages",
+                    "status",
+                    "turn_count",
+                    "max_turns",
+                    "created_at",
+                    "updated_at"
+                  ],
+                  "modified_fields_declared": [],
+                  "clear_fields_declared": [],
+                  "applied_fields": [],
+                  "preserved_fields": [],
+                  "restored_fields": [],
+                  "cleared_fields": [],
+                  "rejected_changes": []
+                }
+              },
+              {
+                "component": "flow_opportunity_verification",
+                "event": "write_blocked_no_mutation_owner",
+                "no_db_write": true
+              }
+            ]
+          },
+          "effect_ledger": {
+            "turn_id": "qa-demotivation-repair-2026-06-15-select-state-potion-bridge-mini-r1-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "tool_skill"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-demotivation-repair-2026-06-15-select-state-potion-bridge-mini-r1-t01",
+          "source_message_id": "af6e3353-a44a-4d43-a511-91516130858a",
+          "user_id": "4ae18a86-ac24-4a19-8f47-61e56b18ba77",
+          "channel": "web",
+          "safety": {
+            "risk_band": "low",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "flow_opportunity": {
+            "opportunity_id": "plan_adjustment.loss_of_meaning",
+            "target_kind": "tool_skill",
+            "target_flow": "adjust_plan_item",
+            "confidence": "high",
+            "score": 0.85,
+            "priority": 80,
+            "reason": "User reports the plan no longer makes sense and tasks feel disconnected from purpose.",
+            "evidence": [
+              "Je ne vois plus pourquoi je fais ce dossier",
+              "le plan n'a plus de sens pour moi"
+            ],
+            "seed_context": {
+              "target_hint": "dossier / plan global",
+              "surface": "plan"
+            }
+          },
+          "note_information": {
+            "source_flow_id": "global_dispatcher",
+            "handoff_reason": "bridge",
+            "target_dispatcher": "demotivation_repair",
+            "handoff_context_for_next_dispatcher": "User expresses a loss of purpose regarding a specific project ('dossier') and the overall plan. Prioritize emotional/motivational repair before suggesting structural plan adjustments.",
+            "user_words": [
+              "Je ne vois plus pourquoi je fais ce dossier",
+              "le plan n'a plus de sens pour moi",
+              "Je ne vois plus pourquoi je fais ce dossier. Je fais les taches mais le plan n'a plus de sens pour moi."
+            ],
+            "structured_context": {
+              "primary_signal_path": "skill_signals.entry.demotivation_repair",
+              "target_kind": "skill",
+              "target_flow": "demotivation_repair",
+              "confidence_band": "high",
+              "evidence": [
+                "Je ne vois plus pourquoi je fais ce dossier",
+                "le plan n'a plus de sens pour moi"
+              ],
+              "recommended_next_focus": "Address the loss of meaning and motivational fatigue. Keep adjust_plan_item as a secondary opportunity if the user confirms they want to change the structure."
+            },
+            "confidence": "high"
+          },
+          "skill_signals": {
+            "entry": {
+              "demotivation_repair": {
+                "detected": true,
+                "confidence_band": "high",
+                "score": 0.9,
+                "reason": "User explicitly mentions loss of 'why' and plan meaninglessness."
+              }
+            },
+            "lifecycle": {},
+            "exit": {}
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "targeted",
+            "memory_mode": "light",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "small",
+            "targets": [
+              {
+                "type": "domain_key",
+                "key": "psychologie.motivation",
+                "query_hint": "perte de sens et pourquoi profond",
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first",
+                "priority": "high",
+                "entity_type": null
+              },
+              {
+                "type": "level",
+                "key": "current_level",
+                "query_hint": "objectifs du niveau actuel",
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first",
+                "priority": "medium",
+                "entity_type": null
+              }
+            ],
+            "retrieval_policy": "taxonomy_first",
+            "plan_confidence": 0.7
+          },
+          "normal_reply_fit_score": 0.2,
+          "normal_reply_fit_evidence": [
+            "Le message exprime une perte de sens structurelle profonde qui nécessite un skill spécialisé plutôt qu'une simple conversation."
+          ],
+          "active_handoff_action": null,
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "selected_handler": "flow_opportunity_verification",
+          "blocked_paths": [
+            {
+              "path": "tool_skill_router",
+              "reason_code": "clarification_required"
+            },
+            {
+              "path": "product_help",
+              "reason_code": "clarification_required"
+            },
+            {
+              "path": "operation_runtime_pipeline",
+              "reason_code": "clarification_required"
+            },
+            {
+              "path": "direct_effects",
+              "reason_code": "clarification_required"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "clarification_required",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none"
+        },
+        "tool_skill_run": {
+          "selected_handler": "flow_opportunity_verification",
+          "reason_code": "flow_opportunity_verification_offer_opportunity",
+          "skill_id": "flow_opportunity_verification",
+          "mode": "local_verification_flow",
+          "status": "waiting_confirmation",
+          "flow_action": "offer_opportunity",
+          "visible_task": {
+            "kind": "offer_target_flow_generic",
+            "conversation_context": {
+              "state_summary": "Verification opportunity selected for adjust_plan_item.",
+              "user_words": [
+                "Je ne vois plus pourquoi je fais ce dossier. Je fais les taches mais le plan n'a plus de sens pour moi."
+              ],
+              "field_or_stage": "offer_target_flow_generic",
+              "known_values": {
+                "target_kind": "tool_skill",
+                "target_flow": "adjust_plan_item",
+                "target_context": {
+                  "target_hint": "dossier / plan global",
+                  "surface": "plan"
+                },
+                "opportunity_id": "plan_adjustment.loss_of_meaning",
+                "confirmation_anchor": null
+              },
+              "missing_or_weak_values": [],
+              "selected_candidate": {
+                "opportunity_id": "plan_adjustment.loss_of_meaning",
+                "target_flow": "adjust_plan_item",
+                "target_kind": "tool_skill",
+                "reason": "User reports the plan no longer makes sense and tasks feel disconnected from purpose."
+              },
+              "handoff_data": {
+                "target_dispatcher": "adjust_plan_item",
+                "target_context": {
+                  "target_hint": "dossier / plan global",
+                  "surface": "plan"
+                },
+                "anchor_summary": "accept tool_skill target_flow adjust_plan_item"
+              },
+              "tone_constraints": [
+                "court",
+                "naturel"
+              ],
+              "do_not_say": [
+                "Ne dis pas que le flow cible a deja execute quoi que ce soit.",
+                "Ne mentionne pas JSON, dispatcher, reducer, DB ou outil interne.",
+                "Ne mentionne pas JSON, dispatcher, reducer, DB, table ou outil interne.",
+                "Ne dis pas qu'une mutation est faite sans commit du flow cible.",
+                "Ne rends pas product_help ou status_recap a la place du flow cible."
+              ],
+              "context_summary": "surface=plan; hint=dossier / plan global",
+              "evidence_used": [
+                "Je ne vois plus pourquoi je fais ce dossier",
+                "le plan n'a plus de sens pour moi"
+              ]
+            }
+          },
+          "note_information": null,
+          "note_information_inbound": {
+            "source_flow_id": "global_dispatcher",
+            "handoff_reason": "bridge",
+            "target_dispatcher": "demotivation_repair",
+            "handoff_context_for_next_dispatcher": "User expresses a loss of purpose regarding a specific project ('dossier') and the overall plan. Prioritize emotional/motivational repair before suggesting structural plan adjustments.",
+            "user_words": [
+              "Je ne vois plus pourquoi je fais ce dossier",
+              "le plan n'a plus de sens pour moi",
+              "Je ne vois plus pourquoi je fais ce dossier. Je fais les taches mais le plan n'a plus de sens pour moi."
+            ],
+            "structured_context": {
+              "primary_signal_path": "skill_signals.entry.demotivation_repair",
+              "target_kind": "skill",
+              "target_flow": "demotivation_repair",
+              "confidence_band": "high",
+              "evidence": [
+                "Je ne vois plus pourquoi je fais ce dossier",
+                "le plan n'a plus de sens pour moi"
+              ],
+              "recommended_next_focus": "Address the loss of meaning and motivational fatigue. Keep adjust_plan_item as a secondary opportunity if the user confirms they want to change the structure."
+            },
+            "confidence": "high"
+          },
+          "db_context_pack_loaded": true,
+          "micro_memory_context_loaded": false,
+          "target_flow": "adjust_plan_item",
+          "target_flow_input": {
+            "focus": [],
+            "surface": "plan",
+            "seed_context": {
+              "target_hint": "dossier / plan global",
+              "surface": "plan"
+            },
+            "origin_evidence": [
+              "Je ne vois plus pourquoi je fais ce dossier",
+              "le plan n'a plus de sens pour moi"
+            ]
+          },
+          "local_flow_state": {
+            "skill_id": "flow_opportunity_verification",
+            "mode": "local_verification_flow",
+            "status": "waiting_confirmation",
+            "opportunity_id": "plan_adjustment.loss_of_meaning",
+            "target_kind": "tool_skill",
+            "target_flow": "adjust_plan_item",
+            "target_action": "run_adjust_plan_item",
+            "target_context": {
+              "target_hint": "dossier / plan global",
+              "surface": "plan"
+            },
+            "origin": {
+              "user_message": "Je ne vois plus pourquoi je fais ce dossier. Je fais les taches mais le plan n'a plus de sens pour moi.",
+              "evidence": [
+                "Je ne vois plus pourquoi je fais ce dossier",
+                "le plan n'a plus de sens pour moi"
+              ],
+              "created_at": "2026-06-15T18:21:43.783Z"
+            },
+            "confirmation_anchor": {
+              "meaning": "accept tool_skill target_flow adjust_plan_item",
+              "target_kind": "tool_skill",
+              "target_flow": "adjust_plan_item",
+              "target_context": {
+                "target_hint": "dossier / plan global",
+                "surface": "plan"
+              },
+              "must_not_reinterpret_acceptance_as": [
+                "product_help",
+                "normal_reply",
+                "prepare_attack_card",
+                "prepare_defense_card"
+              ]
+            },
+            "subskill_history": [],
+            "recent_user_messages": [
+              "Je ne vois plus pourquoi je fais ce dossier. Je fais les taches mais le plan n'a plus de sens pour moi."
+            ],
+            "turn_count": 1,
+            "max_turns": 6,
+            "created_at": "2026-06-15T18:21:43.783Z",
+            "updated_at": "2026-06-15T18:21:43.783Z"
+          },
+          "state_mutation_audit": {
+            "server_owned_fields": [
+              "opportunity_id",
+              "target_kind",
+              "target_flow",
+              "target_action",
+              "target_context",
+              "origin",
+              "confirmation_anchor",
+              "subskill_history",
+              "recent_user_messages",
+              "status",
+              "turn_count",
+              "max_turns",
+              "created_at",
+              "updated_at"
+            ],
+            "modified_fields_declared": [],
+            "clear_fields_declared": [],
+            "applied_fields": [],
+            "preserved_fields": [],
+            "restored_fields": [],
+            "cleared_fields": [],
+            "rejected_changes": []
+          },
+          "operation_suggestions": [],
+          "requested_effects": [],
+          "allowed_effects": [],
+          "committed_effects": [],
+          "blocked_effects": [],
+          "toolExecution": "none",
+          "executedTools": [],
+          "prompt_version": "flow_opportunity_verification_local_dispatcher_v1_2026_06_08",
+          "runtime_trace": [
+            {
+              "component": "flow_opportunity_verification",
+              "event": "local_state_created",
+              "global_dispatcher_skipped_due_active_flow": false,
+              "db_context_pack_loaded": true,
+              "micro_memory_context_loaded": false,
+              "note_information_consumed": {
+                "source_flow_id": "global_dispatcher",
+                "target_dispatcher": "demotivation_repair",
+                "handoff_reason": "bridge",
+                "has_note_information": true,
+                "confidence": "high"
+              }
+            },
+            {
+              "component": "flow_opportunity_verification",
+              "event": "local_dispatcher_result",
+              "flow_action": "offer_opportunity",
+              "visible_task_kind": "offer_target_flow_generic",
+              "risk_score": 0,
+              "note_information_created": {
+                "source_flow_id": null,
+                "target_dispatcher": null,
+                "handoff_reason": null,
+                "has_note_information": false,
+                "confidence": null
+              },
+              "state_mutation_audit": {
+                "server_owned_fields": [
+                  "opportunity_id",
+                  "target_kind",
+                  "target_flow",
+                  "target_action",
+                  "target_context",
+                  "origin",
+                  "confirmation_anchor",
+                  "subskill_history",
+                  "recent_user_messages",
+                  "status",
+                  "turn_count",
+                  "max_turns",
+                  "created_at",
+                  "updated_at"
+                ],
+                "modified_fields_declared": [],
+                "clear_fields_declared": [],
+                "applied_fields": [],
+                "preserved_fields": [],
+                "restored_fields": [],
+                "cleared_fields": [],
+                "rejected_changes": []
+              }
+            },
+            {
+              "component": "flow_opportunity_verification",
+              "event": "write_blocked_no_mutation_owner",
+              "no_db_write": true
+            }
+          ]
+        },
+        "effect_ledger": {
+          "turn_id": "qa-demotivation-repair-2026-06-15-select-state-potion-bridge-mini-r1-t01",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "tool_skill"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-demotivation-repair-2026-06-15-select-state-potion-bridge-mini-r1-t02",
+    "auth_method": "refresh_token",
+    "user": "Pas ajuster le plan maintenant. Je veux plutot une potion de clarte pour retrouver pourquoi ce plan compte.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-demotivation-repair-2026-06-15-select-state-potion-bridge-mini-r1-t02",
+      "user_id": "4ae18a86-ac24-4a19-8f47-61e56b18ba77",
+      "channel": "web",
+      "scope": "qa-demotivation-repair-2026-06-15-select-state-potion-bridge-mini-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je comprends, on met la structure de côté pour l'instant. Tu as raison, c'est essentiel de retrouver du sens et cette fameuse potion de clarté avant d'avancer. On se penche sur le pourquoi de ce plan ?",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-demotivation-repair-2026-06-15-select-state-potion-bridge-mini-r1-t02",
+            "source_message_id": "86ed48f6-03bf-491d-a514-99d2d70bef56",
+            "user_id": "4ae18a86-ac24-4a19-8f47-61e56b18ba77",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0
+              ],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "flow_opportunity": null,
+            "skill_signals": {},
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "selected_handler": "flow_opportunity_verification",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "active_flow_opportunity_verification_uses_local_dispatcher"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_flow_opportunity_verification_local_dispatcher",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "tool_skill_run": {
+            "selected_handler": "flow_opportunity_verification",
+            "reason_code": "flow_opportunity_verification_correct_target_flow",
+            "skill_id": "flow_opportunity_verification",
+            "mode": "local_verification_flow",
+            "status": "waiting_confirmation",
+            "flow_action": "correct_target_flow",
+            "visible_task": {
+              "kind": "correct_target_flow_ack",
+              "conversation_context": {
+                "state_summary": "User redirected the verification from plan adjustment to finding meaning/clarity.",
+                "user_words": [
+                  "Pas ajuster le plan maintenant",
+                  "potion de clarte",
+                  "pourquoi ce plan compte"
+                ],
+                "field_or_stage": "correct_target_flow_ack",
+                "known_values": {
+                  "target_kind": "skill",
+                  "target_flow": "demotivation_repair",
+                  "target_context": {
+                    "focus": [
+                      "meaning",
+                      "clarity"
+                    ],
+                    "surface": "plan"
+                  },
+                  "opportunity_id": "plan_adjustment.loss_of_meaning",
+                  "confirmation_anchor": {
+                    "meaning": "accept tool_skill target_flow adjust_plan_item",
+                    "target_flow": "adjust_plan_item",
+                    "target_kind": "tool_skill",
+                    "target_context": {
+                      "surface": "plan",
+                      "target_hint": "dossier / plan global"
+                    },
+                    "must_not_reinterpret_acceptance_as": [
+                      "product_help",
+                      "normal_reply",
+                      "prepare_attack_card",
+                      "prepare_defense_card"
+                    ]
+                  },
+                  "previous_target": "adjust_plan_item",
+                  "new_target": "demotivation_repair"
+                },
+                "missing_or_weak_values": [],
+                "selected_candidate": {
+                  "target_flow": "demotivation_repair"
+                },
+                "handoff_data": {
+                  "target_dispatcher": "demotivation_repair",
+                  "target_context": {
+                    "focus": [
+                      "meaning",
+                      "clarity"
+                    ],
+                    "surface": "plan"
+                  },
+                  "anchor_summary": "accept tool_skill target_flow adjust_plan_item"
+                },
+                "tone_constraints": [
+                  "empathique",
+                  "validant",
+                  "compréhensif"
+                ],
+                "do_not_say": [
+                  "Ne mentionne pas JSON, dispatcher, reducer, DB ou outil interne.",
+                  "Ne mentionne pas JSON, dispatcher, reducer, DB, table ou outil interne.",
+                  "Ne dis pas qu'une mutation est faite sans commit du flow cible.",
+                  "Ne rends pas product_help ou status_recap a la place du flow cible."
+                ],
+                "context_summary": "The user wants to reconnect with the 'why' of the plan rather than changing its structure.",
+                "evidence_used": [
+                  "Pas ajuster le plan maintenant",
+                  "potion de clarte pour retrouver pourquoi ce plan compte"
+                ]
+              }
+            },
+            "note_information": null,
+            "note_information_inbound": null,
+            "db_context_pack_loaded": true,
+            "micro_memory_context_loaded": false,
+            "target_flow": "demotivation_repair",
+            "target_flow_input": {
+              "focus": [
+                "meaning",
+                "clarity",
+                "purpose"
+              ],
+              "surface": "plan",
+              "seed_context": {
+                "focus": [
+                  "meaning",
+                  "clarity"
+                ],
+                "surface": "plan"
+              },
+              "origin_evidence": [
+                "Pas ajuster le plan maintenant",
+                "potion de clarte pour retrouver pourquoi ce plan compte"
+              ]
+            },
+            "local_flow_state": {
+              "skill_id": "flow_opportunity_verification",
+              "mode": "local_verification_flow",
+              "status": "waiting_confirmation",
+              "opportunity_id": "plan_adjustment.loss_of_meaning",
+              "target_kind": "skill",
+              "target_flow": "demotivation_repair",
+              "target_action": "run_demotivation_repair",
+              "target_context": {
+                "focus": [
+                  "meaning",
+                  "clarity"
+                ],
+                "surface": "plan"
+              },
+              "origin": {
+                "evidence": [
+                  "Je ne vois plus pourquoi je fais ce dossier",
+                  "le plan n'a plus de sens pour moi"
+                ],
+                "created_at": "2026-06-15T18:21:43.783Z",
+                "user_message": "Je ne vois plus pourquoi je fais ce dossier. Je fais les taches mais le plan n'a plus de sens pour moi."
+              },
+              "confirmation_anchor": {
+                "meaning": "accept skill target_flow demotivation_repair with focus meaning, clarity",
+                "target_kind": "skill",
+                "target_flow": "demotivation_repair",
+                "target_context": {
+                  "focus": [
+                    "meaning",
+                    "clarity"
+                  ],
+                  "surface": "plan"
+                },
+                "must_not_reinterpret_acceptance_as": [
+                  "product_help",
+                  "normal_reply",
+                  "prepare_attack_card",
+                  "prepare_defense_card"
+                ]
+              },
+              "subskill_history": [],
+              "recent_user_messages": [
+                "Je ne vois plus pourquoi je fais ce dossier. Je fais les taches mais le plan n'a plus de sens pour moi.",
+                "Pas ajuster le plan maintenant. Je veux plutot une potion de clarte pour retrouver pourquoi ce plan compte."
+              ],
+              "turn_count": 2,
+              "max_turns": 6,
+              "created_at": "2026-06-15T18:21:43.783Z",
+              "updated_at": "2026-06-15T18:22:12.902Z"
+            },
+            "state_mutation_audit": {
+              "server_owned_fields": [
+                "opportunity_id",
+                "target_kind",
+                "target_flow",
+                "target_action",
+                "target_context",
+                "origin",
+                "confirmation_anchor",
+                "subskill_history",
+                "recent_user_messages",
+                "status",
+                "turn_count",
+                "max_turns",
+                "created_at",
+                "updated_at"
+              ],
+              "modified_fields_declared": [],
+              "clear_fields_declared": [],
+              "applied_fields": [
+                "target_kind",
+                "target_flow",
+                "target_action",
+                "target_context",
+                "confirmation_anchor"
+              ],
+              "preserved_fields": [
+                "opportunity_id",
+                "status",
+                "origin",
+                "subskill_history",
+                "recent_user_messages",
+                "turn_count",
+                "max_turns",
+                "created_at",
+                "updated_at"
+              ],
+              "restored_fields": [],
+              "cleared_fields": [],
+              "rejected_changes": []
+            },
+            "operation_suggestions": [],
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [],
+            "toolExecution": "none",
+            "executedTools": [],
+            "prompt_version": "flow_opportunity_verification_local_dispatcher_v1_2026_06_08",
+            "runtime_trace": [
+              {
+                "component": "flow_opportunity_verification",
+                "event": "local_dispatcher_called",
+                "global_dispatcher_skipped_due_active_flow": true,
+                "db_context_pack_loaded": true,
+                "micro_memory_context_loaded": false,
+                "note_information_consumed": {
+                  "source_flow_id": null,
+                  "target_dispatcher": null,
+                  "handoff_reason": null,
+                  "has_note_information": false,
+                  "confidence": null
+                }
+              },
+              {
+                "component": "flow_opportunity_verification",
+                "event": "local_dispatcher_result",
+                "flow_action": "correct_target_flow",
+                "visible_task_kind": "correct_target_flow_ack",
+                "risk_score": 0,
+                "note_information_created": {
+                  "source_flow_id": null,
+                  "target_dispatcher": null,
+                  "handoff_reason": null,
+                  "has_note_information": false,
+                  "confidence": null
+                },
+                "state_mutation_audit": {
+                  "server_owned_fields": [
+                    "opportunity_id",
+                    "target_kind",
+                    "target_flow",
+                    "target_action",
+                    "target_context",
+                    "origin",
+                    "confirmation_anchor",
+                    "subskill_history",
+                    "recent_user_messages",
+                    "status",
+                    "turn_count",
+                    "max_turns",
+                    "created_at",
+                    "updated_at"
+                  ],
+                  "modified_fields_declared": [],
+                  "clear_fields_declared": [],
+                  "applied_fields": [
+                    "target_kind",
+                    "target_flow",
+                    "target_action",
+                    "target_context",
+                    "confirmation_anchor"
+                  ],
+                  "preserved_fields": [
+                    "opportunity_id",
+                    "status",
+                    "origin",
+                    "subskill_history",
+                    "recent_user_messages",
+                    "turn_count",
+                    "max_turns",
+                    "created_at",
+                    "updated_at"
+                  ],
+                  "restored_fields": [],
+                  "cleared_fields": [],
+                  "rejected_changes": []
+                }
+              },
+              {
+                "component": "flow_opportunity_verification",
+                "event": "write_blocked_no_mutation_owner",
+                "no_db_write": true
+              }
+            ]
+          },
+          "effect_ledger": {
+            "turn_id": "qa-demotivation-repair-2026-06-15-select-state-potion-bridge-mini-r1-t02",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "tool_skill"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-demotivation-repair-2026-06-15-select-state-potion-bridge-mini-r1-t02",
+          "source_message_id": "86ed48f6-03bf-491d-a514-99d2d70bef56",
+          "user_id": "4ae18a86-ac24-4a19-8f47-61e56b18ba77",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [
+              0
+            ],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "flow_opportunity": null,
+          "skill_signals": {},
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "selected_handler": "flow_opportunity_verification",
+          "blocked_paths": [
+            {
+              "path": "global_dispatcher",
+              "reason_code": "active_flow_opportunity_verification_uses_local_dispatcher"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "active_flow_opportunity_verification_local_dispatcher",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none"
+        },
+        "tool_skill_run": {
+          "selected_handler": "flow_opportunity_verification",
+          "reason_code": "flow_opportunity_verification_correct_target_flow",
+          "skill_id": "flow_opportunity_verification",
+          "mode": "local_verification_flow",
+          "status": "waiting_confirmation",
+          "flow_action": "correct_target_flow",
+          "visible_task": {
+            "kind": "correct_target_flow_ack",
+            "conversation_context": {
+              "state_summary": "User redirected the verification from plan adjustment to finding meaning/clarity.",
+              "user_words": [
+                "Pas ajuster le plan maintenant",
+                "potion de clarte",
+                "pourquoi ce plan compte"
+              ],
+              "field_or_stage": "correct_target_flow_ack",
+              "known_values": {
+                "target_kind": "skill",
+                "target_flow": "demotivation_repair",
+                "target_context": {
+                  "focus": [
+                    "meaning",
+                    "clarity"
+                  ],
+                  "surface": "plan"
+                },
+                "opportunity_id": "plan_adjustment.loss_of_meaning",
+                "confirmation_anchor": {
+                  "meaning": "accept tool_skill target_flow adjust_plan_item",
+                  "target_flow": "adjust_plan_item",
+                  "target_kind": "tool_skill",
+                  "target_context": {
+                    "surface": "plan",
+                    "target_hint": "dossier / plan global"
+                  },
+                  "must_not_reinterpret_acceptance_as": [
+                    "product_help",
+                    "normal_reply",
+                    "prepare_attack_card",
+                    "prepare_defense_card"
+                  ]
+                },
+                "previous_target": "adjust_plan_item",
+                "new_target": "demotivation_repair"
+              },
+              "missing_or_weak_values": [],
+              "selected_candidate": {
+                "target_flow": "demotivation_repair"
+              },
+              "handoff_data": {
+                "target_dispatcher": "demotivation_repair",
+                "target_context": {
+                  "focus": [
+                    "meaning",
+                    "clarity"
+                  ],
+                  "surface": "plan"
+                },
+                "anchor_summary": "accept tool_skill target_flow adjust_plan_item"
+              },
+              "tone_constraints": [
+                "empathique",
+                "validant",
+                "compréhensif"
+              ],
+              "do_not_say": [
+                "Ne mentionne pas JSON, dispatcher, reducer, DB ou outil interne.",
+                "Ne mentionne pas JSON, dispatcher, reducer, DB, table ou outil interne.",
+                "Ne dis pas qu'une mutation est faite sans commit du flow cible.",
+                "Ne rends pas product_help ou status_recap a la place du flow cible."
+              ],
+              "context_summary": "The user wants to reconnect with the 'why' of the plan rather than changing its structure.",
+              "evidence_used": [
+                "Pas ajuster le plan maintenant",
+                "potion de clarte pour retrouver pourquoi ce plan compte"
+              ]
+            }
+          },
+          "note_information": null,
+          "note_information_inbound": null,
+          "db_context_pack_loaded": true,
+          "micro_memory_context_loaded": false,
+          "target_flow": "demotivation_repair",
+          "target_flow_input": {
+            "focus": [
+              "meaning",
+              "clarity",
+              "purpose"
+            ],
+            "surface": "plan",
+            "seed_context": {
+              "focus": [
+                "meaning",
+                "clarity"
+              ],
+              "surface": "plan"
+            },
+            "origin_evidence": [
+              "Pas ajuster le plan maintenant",
+              "potion de clarte pour retrouver pourquoi ce plan compte"
+            ]
+          },
+          "local_flow_state": {
+            "skill_id": "flow_opportunity_verification",
+            "mode": "local_verification_flow",
+            "status": "waiting_confirmation",
+            "opportunity_id": "plan_adjustment.loss_of_meaning",
+            "target_kind": "skill",
+            "target_flow": "demotivation_repair",
+            "target_action": "run_demotivation_repair",
+            "target_context": {
+              "focus": [
+                "meaning",
+                "clarity"
+              ],
+              "surface": "plan"
+            },
+            "origin": {
+              "evidence": [
+                "Je ne vois plus pourquoi je fais ce dossier",
+                "le plan n'a plus de sens pour moi"
+              ],
+              "created_at": "2026-06-15T18:21:43.783Z",
+              "user_message": "Je ne vois plus pourquoi je fais ce dossier. Je fais les taches mais le plan n'a plus de sens pour moi."
+            },
+            "confirmation_anchor": {
+              "meaning": "accept skill target_flow demotivation_repair with focus meaning, clarity",
+              "target_kind": "skill",
+              "target_flow": "demotivation_repair",
+              "target_context": {
+                "focus": [
+                  "meaning",
+                  "clarity"
+                ],
+                "surface": "plan"
+              },
+              "must_not_reinterpret_acceptance_as": [
+                "product_help",
+                "normal_reply",
+                "prepare_attack_card",
+                "prepare_defense_card"
+              ]
+            },
+            "subskill_history": [],
+            "recent_user_messages": [
+              "Je ne vois plus pourquoi je fais ce dossier. Je fais les taches mais le plan n'a plus de sens pour moi.",
+              "Pas ajuster le plan maintenant. Je veux plutot une potion de clarte pour retrouver pourquoi ce plan compte."
+            ],
+            "turn_count": 2,
+            "max_turns": 6,
+            "created_at": "2026-06-15T18:21:43.783Z",
+            "updated_at": "2026-06-15T18:22:12.902Z"
+          },
+          "state_mutation_audit": {
+            "server_owned_fields": [
+              "opportunity_id",
+              "target_kind",
+              "target_flow",
+              "target_action",
+              "target_context",
+              "origin",
+              "confirmation_anchor",
+              "subskill_history",
+              "recent_user_messages",
+              "status",
+              "turn_count",
+              "max_turns",
+              "created_at",
+              "updated_at"
+            ],
+            "modified_fields_declared": [],
+            "clear_fields_declared": [],
+            "applied_fields": [
+              "target_kind",
+              "target_flow",
+              "target_action",
+              "target_context",
+              "confirmation_anchor"
+            ],
+            "preserved_fields": [
+              "opportunity_id",
+              "status",
+              "origin",
+              "subskill_history",
+              "recent_user_messages",
+              "turn_count",
+              "max_turns",
+              "created_at",
+              "updated_at"
+            ],
+            "restored_fields": [],
+            "cleared_fields": [],
+            "rejected_changes": []
+          },
+          "operation_suggestions": [],
+          "requested_effects": [],
+          "allowed_effects": [],
+          "committed_effects": [],
+          "blocked_effects": [],
+          "toolExecution": "none",
+          "executedTools": [],
+          "prompt_version": "flow_opportunity_verification_local_dispatcher_v1_2026_06_08",
+          "runtime_trace": [
+            {
+              "component": "flow_opportunity_verification",
+              "event": "local_dispatcher_called",
+              "global_dispatcher_skipped_due_active_flow": true,
+              "db_context_pack_loaded": true,
+              "micro_memory_context_loaded": false,
+              "note_information_consumed": {
+                "source_flow_id": null,
+                "target_dispatcher": null,
+                "handoff_reason": null,
+                "has_note_information": false,
+                "confidence": null
+              }
+            },
+            {
+              "component": "flow_opportunity_verification",
+              "event": "local_dispatcher_result",
+              "flow_action": "correct_target_flow",
+              "visible_task_kind": "correct_target_flow_ack",
+              "risk_score": 0,
+              "note_information_created": {
+                "source_flow_id": null,
+                "target_dispatcher": null,
+                "handoff_reason": null,
+                "has_note_information": false,
+                "confidence": null
+              },
+              "state_mutation_audit": {
+                "server_owned_fields": [
+                  "opportunity_id",
+                  "target_kind",
+                  "target_flow",
+                  "target_action",
+                  "target_context",
+                  "origin",
+                  "confirmation_anchor",
+                  "subskill_history",
+                  "recent_user_messages",
+                  "status",
+                  "turn_count",
+                  "max_turns",
+                  "created_at",
+                  "updated_at"
+                ],
+                "modified_fields_declared": [],
+                "clear_fields_declared": [],
+                "applied_fields": [
+                  "target_kind",
+                  "target_flow",
+                  "target_action",
+                  "target_context",
+                  "confirmation_anchor"
+                ],
+                "preserved_fields": [
+                  "opportunity_id",
+                  "status",
+                  "origin",
+                  "subskill_history",
+                  "recent_user_messages",
+                  "turn_count",
+                  "max_turns",
+                  "created_at",
+                  "updated_at"
+                ],
+                "restored_fields": [],
+                "cleared_fields": [],
+                "rejected_changes": []
+              }
+            },
+            {
+              "component": "flow_opportunity_verification",
+              "event": "write_blocked_no_mutation_owner",
+              "no_db_write": true
+            }
+          ]
+        },
+        "effect_ledger": {
+          "turn_id": "qa-demotivation-repair-2026-06-15-select-state-potion-bridge-mini-r1-t02",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "tool_skill"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-demotivation-repair-2026-06-15-select-state-potion-bridge-mini-r1-t03",
+    "auth_method": "refresh_token",
+    "user": "Oui, transfere-moi vers la potion de clarte dans Etat / Potions. La raison a noter : je fais les actions mais je ne sens plus pourquoi elles comptent.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-demotivation-repair-2026-06-15-select-state-potion-bridge-mini-r1-t03",
+      "user_id": "4ae18a86-ac24-4a19-8f47-61e56b18ba77",
+      "channel": "web",
+      "scope": "qa-demotivation-repair-2026-06-15-select-state-potion-bridge-mini-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je comprends tout à fait. C'est épuisant d'enchaîner les tâches sans ressentir pourquoi elles sont importantes pour toi. Je suis prête à t'aider à retrouver ce lien avec ton projet.",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-demotivation-repair-2026-06-15-select-state-potion-bridge-mini-r1-t03",
+            "source_message_id": "8123ebf7-0f44-4b59-a8c4-71cbe3ee9e79",
+            "user_id": "4ae18a86-ac24-4a19-8f47-61e56b18ba77",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0
+              ],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "flow_opportunity": null,
+            "skill_signals": {},
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "selected_handler": "demotivation_repair",
+            "blocked_paths": [
+              {
+                "path": "global_dispatcher",
+                "reason_code": "active_flow_opportunity_verification_uses_local_dispatcher"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "active_flow_opportunity_verification_local_dispatcher",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "tool_skill_run": {
+            "selected_handler": "demotivation_repair",
+            "reason_code": "active_flow_opportunity_verification_local_dispatcher",
+            "skill_id": "demotivation_repair",
+            "mode": "conversation_skill",
+            "status": "continue",
+            "response_intent": "exit",
+            "diagnosis": {
+              "local_flow": true,
+              "potion_bridge_status": "confirmed_handoff",
+              "reason_code": "blocked_by_constraint",
+              "evidence": [
+                "L'utilisateur dit 'transfere-moi vers la potion de clarte'",
+                "L'utilisateur fournit la raison : 'je fais les actions mais je ne sens plus pourquoi elles comptent'",
+                "Consentement explicite au bridge"
+              ],
+              "note_information": null,
+              "flow_action": "confirm_potion_bridge",
+              "visible_task": "potion_bridge_handoff",
+              "selected_potion": "clarte",
+              "selected_target": null,
+              "pending_potion_offer_present": false,
+              "active_handoff_context_present": false,
+              "direct_handoff_flag_present": true,
+              "candidate_potions_summary": [],
+              "constraints": [
+                "no_questions",
+                "short_reply",
+                "do_not_modify_plan_yet",
+                "do_not_moralize",
+                "no_plan_edit"
+              ],
+              "motivation_source_diagnosed": true,
+              "action_readiness": "none",
+              "blocked_effects": [
+                {
+                  "type": "select_state_potion",
+                  "reason_code": "blocked_by_constraint"
+                }
+              ],
+              "state_mutation_audit": {
+                "server_owned_fields": [
+                  "repair_state",
+                  "selected_bridge_target",
+                  "last_potion_bridge_offer",
+                  "last_potion_bridge_offer.selected_potion",
+                  "last_potion_bridge_offer.note_information",
+                  "previous_repair_summary",
+                  "active_potion_handoff_context",
+                  "active_potion_handoff_context.note_information"
+                ],
+                "modified_fields_declared": [
+                  "repair_state.phase",
+                  "potion_bridge.status"
+                ],
+                "clear_fields_declared": [],
+                "applied_fields": [
+                  "repair_state",
+                  "previous_repair_summary"
+                ],
+                "preserved_fields": [],
+                "restored_fields": [],
+                "cleared_fields": [],
+                "rejected_changes": []
+              }
+            },
+            "requested_effects": [],
+            "allowed_effects": [],
+            "committed_effects": [],
+            "blocked_effects": [
+              {
+                "type": "select_state_potion",
+                "reason_code": "blocked_by_constraint"
+              }
+            ],
+            "note_information": {
+              "source_flow_id": "flow_opportunity_verification",
+              "handoff_reason": "explicit_user_request",
+              "target_dispatcher": "select_state_potion",
+              "handoff_context_for_next_dispatcher": "User is performing tasks but lacks clarity on why they matter. They specifically asked for the 'potion de clarté' from the 'Etat / Potions' menu.",
+              "user_words": [
+                "transfere-moi vers la potion de clarte",
+                "je ne sens plus pourquoi elles comptent",
+                "Oui, transfere-moi vers la potion de clarte dans Etat / Potions. La raison a noter : je fais les actions mais je ne sens plus pourquoi elles comptent."
+              ],
+              "structured_context": {
+                "confirmation_anchor": {
+                  "target_flow": "select_state_potion"
+                },
+                "target_flow": "select_state_potion",
+                "unresolved_questions": [],
+                "recommended_next_focus": "select_state_potion"
+              },
+              "confidence": "high"
+            },
+            "toolExecution": "none",
+            "executedTools": [],
+            "handoff_source_flow": "flow_opportunity_verification",
+            "original_opportunity_id": "plan_adjustment.loss_of_meaning",
+            "state_mutation_audit": {
+              "server_owned_fields": [
+                "opportunity_id",
+                "target_kind",
+                "target_flow",
+                "target_action",
+                "target_context",
+                "origin",
+                "confirmation_anchor",
+                "subskill_history",
+                "recent_user_messages",
+                "status",
+                "turn_count",
+                "max_turns",
+                "created_at",
+                "updated_at"
+              ],
+              "modified_fields_declared": [],
+              "clear_fields_declared": [],
+              "applied_fields": [
+                "status"
+              ],
+              "preserved_fields": [
+                "target_kind"
+              ],
+              "restored_fields": [
+                "opportunity_id",
+                "target_flow",
+                "target_action",
+                "target_context",
+                "confirmation_anchor"
+              ],
+              "cleared_fields": [
+                "opportunity_id",
+                "target_kind",
+                "target_flow",
+                "target_action",
+                "target_context",
+                "origin",
+                "confirmation_anchor",
+                "subskill_history",
+                "recent_user_messages",
+                "status",
+                "turn_count",
+                "max_turns",
+                "created_at",
+                "updated_at"
+              ],
+              "rejected_changes": [
+                {
+                  "field": "opportunity_id",
+                  "reason_code": "server_owned_field_change_not_allowed",
+                  "transition": "handoff_to_local_flow"
+                },
+                {
+                  "field": "target_flow",
+                  "reason_code": "server_owned_field_change_not_allowed",
+                  "transition": "handoff_to_local_flow"
+                },
+                {
+                  "field": "target_action",
+                  "reason_code": "server_owned_field_change_not_allowed",
+                  "transition": "handoff_to_local_flow"
+                },
+                {
+                  "field": "target_context",
+                  "reason_code": "server_owned_field_change_not_allowed",
+                  "transition": "handoff_to_local_flow"
+                },
+                {
+                  "field": "confirmation_anchor",
+                  "reason_code": "server_owned_field_change_not_allowed",
+                  "transition": "handoff_to_local_flow"
+                }
+              ]
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-demotivation-repair-2026-06-15-select-state-potion-bridge-mini-r1-t03",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 1,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-demotivation-repair-2026-06-15-select-state-potion-bridge-mini-r1-t03:blocked:select_state_potion:0",
+                "kind": "durable_effect",
+                "effect_type": "select_state_potion",
+                "operation_type": "demotivation_repair",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "demotivation_repair",
+                "status": "blocked",
+                "reason_code": "blocked_by_constraint",
+                "source": "executor",
+                "payload_summary": {
+                  "preference_keys": []
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": null,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-demotivation-repair-2026-06-15-select-state-potion-bridge-mini-r1-t03",
+          "source_message_id": "8123ebf7-0f44-4b59-a8c4-71cbe3ee9e79",
+          "user_id": "4ae18a86-ac24-4a19-8f47-61e56b18ba77",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [
+              0
+            ],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "flow_opportunity": null,
+          "skill_signals": {},
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "selected_handler": "demotivation_repair",
+          "blocked_paths": [
+            {
+              "path": "global_dispatcher",
+              "reason_code": "active_flow_opportunity_verification_uses_local_dispatcher"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "active_flow_opportunity_verification_local_dispatcher",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none"
+        },
+        "tool_skill_run": {
+          "selected_handler": "demotivation_repair",
+          "reason_code": "active_flow_opportunity_verification_local_dispatcher",
+          "skill_id": "demotivation_repair",
+          "mode": "conversation_skill",
+          "status": "continue",
+          "response_intent": "exit",
+          "diagnosis": {
+            "local_flow": true,
+            "potion_bridge_status": "confirmed_handoff",
+            "reason_code": "blocked_by_constraint",
+            "evidence": [
+              "L'utilisateur dit 'transfere-moi vers la potion de clarte'",
+              "L'utilisateur fournit la raison : 'je fais les actions mais je ne sens plus pourquoi elles comptent'",
+              "Consentement explicite au bridge"
+            ],
+            "note_information": null,
+            "flow_action": "confirm_potion_bridge",
+            "visible_task": "potion_bridge_handoff",
+            "selected_potion": "clarte",
+            "selected_target": null,
+            "pending_potion_offer_present": false,
+            "active_handoff_context_present": false,
+            "direct_handoff_flag_present": true,
+            "candidate_potions_summary": [],
+            "constraints": [
+              "no_questions",
+              "short_reply",
+              "do_not_modify_plan_yet",
+              "do_not_moralize",
+              "no_plan_edit"
+            ],
+            "motivation_source_diagnosed": true,
+            "action_readiness": "none",
+            "blocked_effects": [
+              {
+                "type": "select_state_potion",
+                "reason_code": "blocked_by_constraint"
+              }
+            ],
+            "state_mutation_audit": {
+              "server_owned_fields": [
+                "repair_state",
+                "selected_bridge_target",
+                "last_potion_bridge_offer",
+                "last_potion_bridge_offer.selected_potion",
+                "last_potion_bridge_offer.note_information",
+                "previous_repair_summary",
+                "active_potion_handoff_context",
+                "active_potion_handoff_context.note_information"
+              ],
+              "modified_fields_declared": [
+                "repair_state.phase",
+                "potion_bridge.status"
+              ],
+              "clear_fields_declared": [],
+              "applied_fields": [
+                "repair_state",
+                "previous_repair_summary"
+              ],
+              "preserved_fields": [],
+              "restored_fields": [],
+              "cleared_fields": [],
+              "rejected_changes": []
+            }
+          },
+          "requested_effects": [],
+          "allowed_effects": [],
+          "committed_effects": [],
+          "blocked_effects": [
+            {
+              "type": "select_state_potion",
+              "reason_code": "blocked_by_constraint"
+            }
+          ],
+          "note_information": {
+            "source_flow_id": "flow_opportunity_verification",
+            "handoff_reason": "explicit_user_request",
+            "target_dispatcher": "select_state_potion",
+            "handoff_context_for_next_dispatcher": "User is performing tasks but lacks clarity on why they matter. They specifically asked for the 'potion de clarté' from the 'Etat / Potions' menu.",
+            "user_words": [
+              "transfere-moi vers la potion de clarte",
+              "je ne sens plus pourquoi elles comptent",
+              "Oui, transfere-moi vers la potion de clarte dans Etat / Potions. La raison a noter : je fais les actions mais je ne sens plus pourquoi elles comptent."
+            ],
+            "structured_context": {
+              "confirmation_anchor": {
+                "target_flow": "select_state_potion"
+              },
+              "target_flow": "select_state_potion",
+              "unresolved_questions": [],
+              "recommended_next_focus": "select_state_potion"
+            },
+            "confidence": "high"
+          },
+          "toolExecution": "none",
+          "executedTools": [],
+          "handoff_source_flow": "flow_opportunity_verification",
+          "original_opportunity_id": "plan_adjustment.loss_of_meaning",
+          "state_mutation_audit": {
+            "server_owned_fields": [
+              "opportunity_id",
+              "target_kind",
+              "target_flow",
+              "target_action",
+              "target_context",
+              "origin",
+              "confirmation_anchor",
+              "subskill_history",
+              "recent_user_messages",
+              "status",
+              "turn_count",
+              "max_turns",
+              "created_at",
+              "updated_at"
+            ],
+            "modified_fields_declared": [],
+            "clear_fields_declared": [],
+            "applied_fields": [
+              "status"
+            ],
+            "preserved_fields": [
+              "target_kind"
+            ],
+            "restored_fields": [
+              "opportunity_id",
+              "target_flow",
+              "target_action",
+              "target_context",
+              "confirmation_anchor"
+            ],
+            "cleared_fields": [
+              "opportunity_id",
+              "target_kind",
+              "target_flow",
+              "target_action",
+              "target_context",
+              "origin",
+              "confirmation_anchor",
+              "subskill_history",
+              "recent_user_messages",
+              "status",
+              "turn_count",
+              "max_turns",
+              "created_at",
+              "updated_at"
+            ],
+            "rejected_changes": [
+              {
+                "field": "opportunity_id",
+                "reason_code": "server_owned_field_change_not_allowed",
+                "transition": "handoff_to_local_flow"
+              },
+              {
+                "field": "target_flow",
+                "reason_code": "server_owned_field_change_not_allowed",
+                "transition": "handoff_to_local_flow"
+              },
+              {
+                "field": "target_action",
+                "reason_code": "server_owned_field_change_not_allowed",
+                "transition": "handoff_to_local_flow"
+              },
+              {
+                "field": "target_context",
+                "reason_code": "server_owned_field_change_not_allowed",
+                "transition": "handoff_to_local_flow"
+              },
+              {
+                "field": "confirmation_anchor",
+                "reason_code": "server_owned_field_change_not_allowed",
+                "transition": "handoff_to_local_flow"
+              }
+            ]
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "qa-demotivation-repair-2026-06-15-select-state-potion-bridge-mini-r1-t03",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 1,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": [
+            {
+              "effect_id": "qa-demotivation-repair-2026-06-15-select-state-potion-bridge-mini-r1-t03:blocked:select_state_potion:0",
+              "kind": "durable_effect",
+              "effect_type": "select_state_potion",
+              "operation_type": "demotivation_repair",
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "demotivation_repair",
+              "status": "blocked",
+              "reason_code": "blocked_by_constraint",
+              "source": "executor",
+              "payload_summary": {
+                "preference_keys": []
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": null,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            }
+          ]
+        },
+        "response_owner": "tool_skill"
+      },
+      "trace_error": null
+    }
+  }
+]

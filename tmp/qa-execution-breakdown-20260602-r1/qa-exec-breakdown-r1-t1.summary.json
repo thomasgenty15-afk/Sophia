@@ -1,0 +1,20 @@
+{
+  "http_status": 200,
+  "ok": true,
+  "request_id": "qa-exec-breakdown-r1-t1",
+  "user_id": "bb8acb9c-9486-4432-b4fe-716b0f3ab567",
+  "scope": "qa-execution-breakdown-20260602-r1",
+  "content": "Je dois préparer mon dossier d'inscription ce soir, mais je bloque complètement parce que c'est trop gros et je ne sais pas par quoi commencer.",
+  "assistant": "Est-ce que tu veux que je t'aide à découper ce dossier en petites étapes ou est-ce que tu veux modifier ton planning ? 🙂",
+  "response_owner": "orientation_clarification",
+  "selected_handler": null,
+  "route_reason": null,
+  "safety": null,
+  "operation": null,
+  "pending_confirmation": null,
+  "executed_tools": [],
+  "direct_effects": [],
+  "memory_plan": null,
+  "trace_error": null,
+  "raw_path": "tmp/qa-execution-breakdown-20260602-r1/qa-exec-breakdown-r1-t1.raw.json"
+}

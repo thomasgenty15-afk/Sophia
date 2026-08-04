@@ -1,0 +1,270 @@
+{
+  "connection": {
+    "persona": "qa-skill",
+    "connection_name": "product_help_dashboard_dashhelp1_c4_initiatives-preferences-base",
+    "user_id": "e4cafb17-b2fe-429b-a3ed-fe658d4d71e0",
+    "scope": "qa-update-coach-preferences-2026-05-17-prefmatrix-questions-high-r2"
+  },
+  "target": {
+    "key": "coach.question_tendency",
+    "value": "high",
+    "user": "Quand je vais trop vite vers une conclusion, fais-moi davantage préciser mon raisonnement avant de me répondre."
+  },
+  "before": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "key": "coach.tone",
+        "value": {
+          "label": "Bienveillant ferme",
+          "value": "warm_direct"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-17T17:54:54.231548+00:00",
+        "last_source_message_id": null
+      },
+      {
+        "key": "coach.challenge_level",
+        "value": {
+          "label": "Équilibré",
+          "value": "balanced"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-17T17:54:54.231548+00:00",
+        "last_source_message_id": null
+      },
+      {
+        "key": "coach.question_tendency",
+        "value": {
+          "label": "Normale",
+          "value": "normal"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-17T17:54:54.231548+00:00",
+        "last_source_message_id": null
+      }
+    ]
+  },
+  "after": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "key": "coach.tone",
+        "value": {
+          "label": "Bienveillant ferme",
+          "value": "warm_direct"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-17T17:54:54.231548+00:00",
+        "last_source_message_id": null
+      },
+      {
+        "key": "coach.challenge_level",
+        "value": {
+          "label": "Équilibré",
+          "value": "balanced"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-17T17:54:54.231548+00:00",
+        "last_source_message_id": null
+      },
+      {
+        "key": "coach.question_tendency",
+        "value": {
+          "label": "Très questionnant",
+          "value": "high"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "explicit_user",
+        "reason": "Quand je vais trop vite vers une conclusion, fais-moi davantage préciser mon raisonnement avant de me répondre.",
+        "updated_at": "2026-05-17T17:55:12.926+00:00",
+        "last_source_message_id": "4ecae84b-30c6-429b-830a-8bb8c1268068"
+      }
+    ]
+  },
+  "restore": {
+    "status": 204,
+    "ok": true
+  },
+  "restored": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "key": "coach.tone",
+        "value": {
+          "label": "Bienveillant ferme",
+          "value": "warm_direct"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-17T17:54:54.231548+00:00",
+        "last_source_message_id": null
+      },
+      {
+        "key": "coach.challenge_level",
+        "value": {
+          "label": "Équilibré",
+          "value": "balanced"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-17T17:54:54.231548+00:00",
+        "last_source_message_id": null
+      },
+      {
+        "key": "coach.question_tendency",
+        "value": {
+          "label": "Normale",
+          "value": "normal"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-17T17:55:12.926+00:00",
+        "last_source_message_id": null
+      }
+    ]
+  },
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "6cdafbb8-004c-4b96-a2f5-0d7457749137",
+        "role": "user",
+        "content": "Quand je vais trop vite vers une conclusion, fais-moi davantage préciser mon raisonnement avant de me répondre.",
+        "metadata": {
+          "request_id": "qa-update-coach-preferences-2026-05-17-prefmatrix-questions-high-r2-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-17T17:54:54.981827+00:00"
+      },
+      {
+        "id": "d54bb779-2ef6-4d4e-ad53-ccb73caaa806",
+        "role": "assistant",
+        "content": "Je peux régler ma façon de répondre: j'utiliserai plus de questions. Tu veux que je l'applique ?",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-update-coach-preferences-2026-05-17-prefmatrix-questions-high-r2-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "draft": {
+                "draft": {
+                  "patch": {
+                    "coach.question_tendency": "high"
+                  },
+                  "reason": "Quand je vais trop vite vers une conclusion, fais-moi davantage préciser mon raisonnement avant de me répondre.",
+                  "summary": "j'utiliserai plus de questions."
+                },
+                "output_schema": "coach_preferences_patch_draft_v1",
+                "operation_type": "update_coach_preferences",
+                "confirmation_actions": [
+                  "yes",
+                  "no"
+                ],
+                "confirmation_message": "Je peux régler ma façon de répondre: j'utiliserai plus de questions. Tu veux que je l'applique ?"
+              },
+              "status": "pending_confirmation",
+              "operation_id": "14d90178-f32f-49ce-b8c3-4bb184506549",
+              "selected_handler": "update_coach_preferences"
+            }
+          }
+        },
+        "created_at": "2026-05-17T17:55:02.547641+00:00"
+      },
+      {
+        "id": "4ecae84b-30c6-429b-830a-8bb8c1268068",
+        "role": "user",
+        "content": "Oui, applique ce réglage.",
+        "metadata": {
+          "request_id": "qa-update-coach-preferences-2026-05-17-prefmatrix-questions-high-r2-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-17T17:55:02.613753+00:00"
+      },
+      {
+        "id": "7d8bee24-d01d-4b2c-8fb4-5382c95479d1",
+        "role": "assistant",
+        "content": "C'est fait. J'ai appliqué cette préférence : j'utiliserai plus de questions.",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-update-coach-preferences-2026-05-17-prefmatrix-questions-high-r2-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "status": "executed",
+              "operation_id": "14d90178-f32f-49ce-b8c3-4bb184506549",
+              "selected_handler": "update_coach_preferences",
+              "draft_review_decision": {
+                "decision": "approve",
+                "evidence": [
+                  "L'utilisateur confirme explicitement avec 'Oui'",
+                  "L'utilisateur demande l'exécution immédiate avec 'applique ce réglage'"
+                ],
+                "confidence": "high",
+                "generated_user_message": "C'est entendu, je mets à jour mes réglages pour te poser plus de questions dès maintenant."
+              },
+              "preferences_update_id": "coach.question_tendency"
+            }
+          }
+        },
+        "created_at": "2026-05-17T17:55:12.935953+00:00"
+      }
+    ]
+  },
+  "cleanup": {
+    "chat_messages": {
+      "status": 204,
+      "ok": true
+    },
+    "user_profile_facts": {
+      "status": 204,
+      "ok": true
+    },
+    "auth_user": {
+      "status": 200,
+      "ok": true
+    }
+  }
+}

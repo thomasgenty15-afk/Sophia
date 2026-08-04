@@ -1,0 +1,2501 @@
+{
+  "ok": true,
+  "run_id": "memory-real-eval-diverse-mp4448vn",
+  "scenario": "diverse",
+  "user": {
+    "id": "b7291dfe-79c8-43f9-a60f-9113370a674b",
+    "email": "memory-real-eval-diverse-mp4448vn@example.com"
+  },
+  "trigger_summary": {
+    "processed_count": 1,
+    "message_count": 24,
+    "memorizer": {
+      "status": "completed",
+      "reason": null,
+      "processed_message_count": 24,
+      "persisted_count": 19,
+      "extraction_run_id": "d691a98e-18af-490c-a740-5fd23d0572d7",
+      "batch_hash": "98ea43ab854823f109265694bfa7cb918a0d48320ac8d937e0493bf5296865f2",
+      "write_decision_count": 19,
+      "extraction_run": {
+        "id": "d691a98e-18af-490c-a740-5fd23d0572d7",
+        "status": "completed",
+        "trigger_type": "daily_batch",
+        "proposed_item_count": 19,
+        "accepted_item_count": 19,
+        "rejected_item_count": 8,
+        "proposed_entity_count": 5,
+        "accepted_entity_count": 0,
+        "duration_ms": 31698,
+        "error_message": null,
+        "durable_writes": {
+          "active_items": 17,
+          "memory_items": 19,
+          "candidate_items": 2
+        },
+        "pre_filter_skip_count": 4,
+        "statement_as_fact_violation_count": 0,
+        "rejection_reasons": {
+          "smart_pre_filter": 4,
+          "other": 2,
+          "event_missing_date": 1,
+          "missing_sensitive_tag": 1
+        },
+        "write_decision_statuses": {
+          "active": 17,
+          "candidate": 2
+        }
+      }
+    }
+  },
+  "extraction_run": {
+    "id": "d691a98e-18af-490c-a740-5fd23d0572d7",
+    "status": "completed",
+    "proposed_item_count": 19,
+    "accepted_item_count": 19,
+    "rejected_item_count": 8,
+    "proposed_entity_count": 5,
+    "accepted_entity_count": 0,
+    "duration_ms": 31698,
+    "error_message": null,
+    "rejected_observations": [
+      {
+        "text": "Avec Chloe, je veux garder une limite claire: pas de discussion logistique apres 22h.",
+        "reason": "smart_pre_filter"
+      },
+      {
+        "text": "J'apprends le japonais pour passer le JLPT N5 en decembre.",
+        "reason": "smart_pre_filter"
+      },
+      {
+        "text": "Je veux que les rappels budget soient factuels, sans ton moralisateur.",
+        "reason": "smart_pre_filter"
+      },
+      {
+        "text": "La facture d'assurance habitation doit etre payee avant le 20 de ce mois.",
+        "reason": "smart_pre_filter"
+      },
+      {
+        "text": "",
+        "reason": "other",
+        "metadata": {},
+        "source_message_ids": [],
+        "existing_memory_item_id": null
+      },
+      {
+        "text": "",
+        "reason": "other",
+        "metadata": {},
+        "source_message_ids": [],
+        "existing_memory_item_id": null
+      },
+      {
+        "text": "L'utilisateur a eu une migraine avec aura mardi après-midi et a dû annuler un rendez-vous.",
+        "reason": "event_missing_date",
+        "metadata": {
+          "issues": [
+            {
+              "code": "event_missing_date",
+              "message": "event requires event_start_at and time_precision",
+              "item_index": 3
+            }
+          ]
+        },
+        "source_message_ids": [
+          "c6ea9c60-ed9a-48b7-bef5-df2aefc5a141"
+        ]
+      },
+      {
+        "text": "L'utilisateur ne se considère pas comme intrinsèquement irresponsable avec l'argent ; ses propos à ce sujet sont des frustrations passagères.",
+        "reason": "missing_sensitive_tag",
+        "metadata": {
+          "issues": [
+            {
+              "code": "missing_sensitive_tag",
+              "message": "sensitive content must not be tagged normal",
+              "item_index": 12
+            }
+          ]
+        },
+        "source_message_ids": [
+          "d91e2e32-79e6-48c3-9542-e672c02f8552"
+        ]
+      }
+    ],
+    "write_decisions": [
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "fact",
+            "metadata": {},
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "habitudes.environnement"
+            ],
+            "content_text": "L'utilisateur vit désormais à Lyon.",
+            "event_end_at": null,
+            "canonical_key": "habitudes.environnement.fact.residence_actuelle_lyon",
+            "event_start_at": null,
+            "evidence_quote": "je vis maintenant a Lyon",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.6,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Résidence actuelle à Lyon",
+            "source_message_ids": [
+              "1616c012-e169-4bfc-9524-5ecf67af7aa7"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.environnement"
+              ],
+              "content_text": "L'utilisateur vit désormais à Lyon.",
+              "event_end_at": null,
+              "canonical_key": "habitudes.environnement.fact.residence_actuelle_lyon",
+              "event_start_at": null,
+              "evidence_quote": "je vis maintenant a Lyon",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.6,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Résidence actuelle à Lyon",
+              "source_message_ids": [
+                "1616c012-e169-4bfc-9524-5ecf67af7aa7"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.environnement"
+              ],
+              "content_text": "L'utilisateur vit désormais à Lyon.",
+              "event_end_at": null,
+              "canonical_key": "habitudes.environnement.fact.residence_actuelle_lyon",
+              "event_start_at": null,
+              "evidence_quote": "je vis maintenant a Lyon",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.6,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Résidence actuelle à Lyon",
+              "source_message_ids": [
+                "1616c012-e169-4bfc-9524-5ecf67af7aa7"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "mixed_topic_match",
+            "topic_id": "05afbb30-b357-44f2-9b0a-d833c5712f00",
+            "confidence": 0.92,
+            "topic_slug": "organisation_repas_logistique",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "statement",
+            "metadata": {
+              "statement_role": "goal"
+            },
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "objectifs.court_terme"
+            ],
+            "content_text": "L'objectif budgétaire pour ce trimestre est de maintenir les dépenses variables sous 350 euros par mois (hors loyer et factures fixes).",
+            "event_end_at": null,
+            "canonical_key": "objectifs.court_terme.statement.objectif_budget_variable_mensuel_350",
+            "event_start_at": null,
+            "evidence_quote": "Mon objectif ce trimestre est de garder mes depenses variables sous 350 euros par mois, hors loyer et factures fixes.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.8,
+            "sensitivity_level": "sensitive",
+            "canonical_key_hint": null,
+            "normalized_summary": "Objectif de budget variable mensuel < 350€",
+            "source_message_ids": [
+              "40bfc39e-f4c7-4ab8-b739-e1d2b6a0b127"
+            ],
+            "sensitivity_categories": [
+              "financial"
+            ],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "goal"
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "objectifs.court_terme"
+              ],
+              "content_text": "L'objectif budgétaire pour ce trimestre est de maintenir les dépenses variables sous 350 euros par mois (hors loyer et factures fixes).",
+              "event_end_at": null,
+              "canonical_key": "objectifs.court_terme.statement.objectif_budget_variable_mensuel_350",
+              "event_start_at": null,
+              "evidence_quote": "Mon objectif ce trimestre est de garder mes depenses variables sous 350 euros par mois, hors loyer et factures fixes.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.8,
+              "sensitivity_level": "sensitive",
+              "canonical_key_hint": null,
+              "normalized_summary": "Objectif de budget variable mensuel < 350€",
+              "source_message_ids": [
+                "40bfc39e-f4c7-4ab8-b739-e1d2b6a0b127"
+              ],
+              "sensitivity_categories": [
+                "financial"
+              ],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "goal"
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "objectifs.court_terme"
+              ],
+              "content_text": "L'objectif budgétaire pour ce trimestre est de maintenir les dépenses variables sous 350 euros par mois (hors loyer et factures fixes).",
+              "event_end_at": null,
+              "canonical_key": "objectifs.court_terme.statement.objectif_budget_variable_mensuel_350",
+              "event_start_at": null,
+              "evidence_quote": "Mon objectif ce trimestre est de garder mes depenses variables sous 350 euros par mois, hors loyer et factures fixes.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.8,
+              "sensitivity_level": "sensitive",
+              "canonical_key_hint": null,
+              "normalized_summary": "Objectif de budget variable mensuel < 350€",
+              "source_message_ids": [
+                "40bfc39e-f4c7-4ab8-b739-e1d2b6a0b127"
+              ],
+              "sensitivity_categories": [
+                "financial"
+              ],
+              "requires_user_initiated": false
+            },
+            "reason": "mixed_topic_match",
+            "topic_id": "3a00ba45-412d-458b-9a98-4c5e8ca2a136",
+            "confidence": 0.92,
+            "topic_slug": "budget_administratif",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "statement",
+            "metadata": {
+              "statement_role": "boundary"
+            },
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "psychologie.controle_impulsions"
+            ],
+            "content_text": "L'utilisateur souhaite attendre 24 heures avant d'effectuer des achats non essentiels, car le stress provoque des achats impulsifs d'accessoires photo.",
+            "event_end_at": null,
+            "canonical_key": "psychologie.controle_impulsions.statement.regle_des_24h_pour_les_achats_non_essentiels",
+            "event_start_at": null,
+            "evidence_quote": "aide-moi a attendre 24 heures avant les achats non essentiels.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.7,
+            "sensitivity_level": "sensitive",
+            "canonical_key_hint": null,
+            "normalized_summary": "Règle des 24h pour les achats non essentiels",
+            "source_message_ids": [
+              "4311d146-6ae4-4ffc-aee3-3ae1bbffc44b"
+            ],
+            "sensitivity_categories": [
+              "financial"
+            ],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "boundary"
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "psychologie.controle_impulsions"
+              ],
+              "content_text": "L'utilisateur souhaite attendre 24 heures avant d'effectuer des achats non essentiels, car le stress provoque des achats impulsifs d'accessoires photo.",
+              "event_end_at": null,
+              "canonical_key": "psychologie.controle_impulsions.statement.regle_des_24h_pour_les_achats_non_essentiels",
+              "event_start_at": null,
+              "evidence_quote": "aide-moi a attendre 24 heures avant les achats non essentiels.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.7,
+              "sensitivity_level": "sensitive",
+              "canonical_key_hint": null,
+              "normalized_summary": "Règle des 24h pour les achats non essentiels",
+              "source_message_ids": [
+                "4311d146-6ae4-4ffc-aee3-3ae1bbffc44b"
+              ],
+              "sensitivity_categories": [
+                "financial"
+              ],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "boundary"
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "psychologie.controle_impulsions"
+              ],
+              "content_text": "L'utilisateur souhaite attendre 24 heures avant d'effectuer des achats non essentiels, car le stress provoque des achats impulsifs d'accessoires photo.",
+              "event_end_at": null,
+              "canonical_key": "psychologie.controle_impulsions.statement.regle_des_24h_pour_les_achats_non_essentiels",
+              "event_start_at": null,
+              "evidence_quote": "aide-moi a attendre 24 heures avant les achats non essentiels.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.7,
+              "sensitivity_level": "sensitive",
+              "canonical_key_hint": null,
+              "normalized_summary": "Règle des 24h pour les achats non essentiels",
+              "source_message_ids": [
+                "4311d146-6ae4-4ffc-aee3-3ae1bbffc44b"
+              ],
+              "sensitivity_categories": [
+                "financial"
+              ],
+              "requires_user_initiated": false
+            },
+            "reason": "mixed_topic_match",
+            "topic_id": "3a00ba45-412d-458b-9a98-4c5e8ca2a136",
+            "confidence": 0.92,
+            "topic_slug": "budget_administratif",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "fact",
+            "metadata": {},
+            "confidence": 0.95,
+            "topic_hint": null,
+            "domain_keys": [
+              "sante.sommeil",
+              "sante.douleur"
+            ],
+            "content_text": "Les migraines surviennent principalement après deux nuits consécutives de moins de six heures de sommeil.",
+            "event_end_at": null,
+            "canonical_key": "sante.sommeil.fact.declencheur_migraine_manque_sommeil_prolonge",
+            "event_start_at": null,
+            "evidence_quote": "les migraines arrivent surtout quand je dors moins de six heures deux nuits de suite.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.8,
+            "sensitivity_level": "sensitive",
+            "canonical_key_hint": null,
+            "normalized_summary": "Déclencheur de migraine : manque de sommeil prolongé",
+            "source_message_ids": [
+              "1e7549b8-3267-43ea-be40-e8049008678f"
+            ],
+            "sensitivity_categories": [
+              "health"
+            ],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 0.95,
+              "topic_hint": null,
+              "domain_keys": [
+                "sante.sommeil",
+                "sante.douleur"
+              ],
+              "content_text": "Les migraines surviennent principalement après deux nuits consécutives de moins de six heures de sommeil.",
+              "event_end_at": null,
+              "canonical_key": "sante.sommeil.fact.declencheur_migraine_manque_sommeil_prolonge",
+              "event_start_at": null,
+              "evidence_quote": "les migraines arrivent surtout quand je dors moins de six heures deux nuits de suite.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.8,
+              "sensitivity_level": "sensitive",
+              "canonical_key_hint": null,
+              "normalized_summary": "Déclencheur de migraine : manque de sommeil prolongé",
+              "source_message_ids": [
+                "1e7549b8-3267-43ea-be40-e8049008678f"
+              ],
+              "sensitivity_categories": [
+                "health"
+              ],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 0.95,
+              "topic_hint": null,
+              "domain_keys": [
+                "sante.sommeil",
+                "sante.douleur"
+              ],
+              "content_text": "Les migraines surviennent principalement après deux nuits consécutives de moins de six heures de sommeil.",
+              "event_end_at": null,
+              "canonical_key": "sante.sommeil.fact.declencheur_migraine_manque_sommeil_prolonge",
+              "event_start_at": null,
+              "evidence_quote": "les migraines arrivent surtout quand je dors moins de six heures deux nuits de suite.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.8,
+              "sensitivity_level": "sensitive",
+              "canonical_key_hint": null,
+              "normalized_summary": "Déclencheur de migraine : manque de sommeil prolongé",
+              "source_message_ids": [
+                "1e7549b8-3267-43ea-be40-e8049008678f"
+              ],
+              "sensitivity_categories": [
+                "health"
+              ],
+              "requires_user_initiated": false
+            },
+            "reason": "mixed_topic_match",
+            "topic_id": "27c0ca60-3886-468f-9225-0088b70ab81f",
+            "confidence": 0.92,
+            "topic_slug": "sante_migraines",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "fact",
+            "metadata": {},
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "sante.medical"
+            ],
+            "content_text": "L'utilisateur prend du magnésium le soir.",
+            "event_end_at": null,
+            "canonical_key": "sante.medical.fact.prise_magnesium_soiree",
+            "event_start_at": null,
+            "evidence_quote": "Je prends du magnesium le soir",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.5,
+            "sensitivity_level": "sensitive",
+            "canonical_key_hint": null,
+            "normalized_summary": "Prise de magnésium en soirée",
+            "source_message_ids": [
+              "b4302617-2c5d-423e-bee2-f36d20015fa5"
+            ],
+            "sensitivity_categories": [
+              "health"
+            ],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "sante.medical"
+              ],
+              "content_text": "L'utilisateur prend du magnésium le soir.",
+              "event_end_at": null,
+              "canonical_key": "sante.medical.fact.prise_magnesium_soiree",
+              "event_start_at": null,
+              "evidence_quote": "Je prends du magnesium le soir",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.5,
+              "sensitivity_level": "sensitive",
+              "canonical_key_hint": null,
+              "normalized_summary": "Prise de magnésium en soirée",
+              "source_message_ids": [
+                "b4302617-2c5d-423e-bee2-f36d20015fa5"
+              ],
+              "sensitivity_categories": [
+                "health"
+              ],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "sante.medical"
+              ],
+              "content_text": "L'utilisateur prend du magnésium le soir.",
+              "event_end_at": null,
+              "canonical_key": "sante.medical.fact.prise_magnesium_soiree",
+              "event_start_at": null,
+              "evidence_quote": "Je prends du magnesium le soir",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.5,
+              "sensitivity_level": "sensitive",
+              "canonical_key_hint": null,
+              "normalized_summary": "Prise de magnésium en soirée",
+              "source_message_ids": [
+                "b4302617-2c5d-423e-bee2-f36d20015fa5"
+              ],
+              "sensitivity_categories": [
+                "health"
+              ],
+              "requires_user_initiated": false
+            },
+            "reason": "mixed_topic_match",
+            "topic_id": "27c0ca60-3886-468f-9225-0088b70ab81f",
+            "confidence": 0.92,
+            "topic_slug": "sante_migraines",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "statement",
+            "metadata": {
+              "statement_role": "boundary"
+            },
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "relations.limites"
+            ],
+            "content_text": "L'utilisateur ne souhaite pas recevoir de conseils médicaux non sollicités.",
+            "event_end_at": null,
+            "canonical_key": "relations.limites.statement.refus_des_conseils_medicaux_non_sollicites",
+            "event_start_at": null,
+            "evidence_quote": "je ne veux pas que tu me donnes de conseil medical non sollicite.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.9,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Refus des conseils médicaux non sollicités",
+            "source_message_ids": [
+              "b4302617-2c5d-423e-bee2-f36d20015fa5"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "boundary"
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "relations.limites"
+              ],
+              "content_text": "L'utilisateur ne souhaite pas recevoir de conseils médicaux non sollicités.",
+              "event_end_at": null,
+              "canonical_key": "relations.limites.statement.refus_des_conseils_medicaux_non_sollicites",
+              "event_start_at": null,
+              "evidence_quote": "je ne veux pas que tu me donnes de conseil medical non sollicite.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.9,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Refus des conseils médicaux non sollicités",
+              "source_message_ids": [
+                "b4302617-2c5d-423e-bee2-f36d20015fa5"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "boundary"
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "relations.limites"
+              ],
+              "content_text": "L'utilisateur ne souhaite pas recevoir de conseils médicaux non sollicités.",
+              "event_end_at": null,
+              "canonical_key": "relations.limites.statement.refus_des_conseils_medicaux_non_sollicites",
+              "event_start_at": null,
+              "evidence_quote": "je ne veux pas que tu me donnes de conseil medical non sollicite.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.9,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Refus des conseils médicaux non sollicités",
+              "source_message_ids": [
+                "b4302617-2c5d-423e-bee2-f36d20015fa5"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "mixed_topic_match",
+            "topic_id": "d85208a1-392e-4ae4-9405-ad1bd9bf89be",
+            "confidence": 0.92,
+            "topic_slug": "preferences_accompagnement",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "fact",
+            "metadata": {},
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "relations.amitie"
+            ],
+            "content_text": "Hugo est un ami proche avec qui l'utilisateur pratique la photographie de rue.",
+            "event_end_at": null,
+            "canonical_key": "relations.amitie.fact.hugo_ami_proche_partenaire_photographie",
+            "event_start_at": null,
+            "evidence_quote": "Hugo est un ami proche avec qui je fais parfois de la photo de rue",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.6,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Hugo : ami proche et partenaire de photographie",
+            "source_message_ids": [
+              "9bb742c2-ee4c-4ab5-aef0-7ce9b48c5daa"
+            ],
+            "sensitivity_categories": [
+              "relationship"
+            ],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "relations.amitie"
+              ],
+              "content_text": "Hugo est un ami proche avec qui l'utilisateur pratique la photographie de rue.",
+              "event_end_at": null,
+              "canonical_key": "relations.amitie.fact.hugo_ami_proche_partenaire_photographie",
+              "event_start_at": null,
+              "evidence_quote": "Hugo est un ami proche avec qui je fais parfois de la photo de rue",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.6,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Hugo : ami proche et partenaire de photographie",
+              "source_message_ids": [
+                "9bb742c2-ee4c-4ab5-aef0-7ce9b48c5daa"
+              ],
+              "sensitivity_categories": [
+                "relationship"
+              ],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "relations.amitie"
+              ],
+              "content_text": "Hugo est un ami proche avec qui l'utilisateur pratique la photographie de rue.",
+              "event_end_at": null,
+              "canonical_key": "relations.amitie.fact.hugo_ami_proche_partenaire_photographie",
+              "event_start_at": null,
+              "evidence_quote": "Hugo est un ami proche avec qui je fais parfois de la photo de rue",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.6,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Hugo : ami proche et partenaire de photographie",
+              "source_message_ids": [
+                "9bb742c2-ee4c-4ab5-aef0-7ce9b48c5daa"
+              ],
+              "sensitivity_categories": [
+                "relationship"
+              ],
+              "requires_user_initiated": false
+            },
+            "reason": "mixed_topic_match",
+            "topic_id": "a12d7c55-1b60-409a-9e4a-c23d78931577",
+            "confidence": 0.92,
+            "topic_slug": "relations_colocation_amis",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "fact",
+            "metadata": {},
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "relations.appartenance_sociale"
+            ],
+            "content_text": "Chloé est la colocataire de l'utilisateur.",
+            "event_end_at": null,
+            "canonical_key": "relations.appartenance_sociale.fact.chloe_colocataire",
+            "event_start_at": null,
+            "evidence_quote": "Chloe est ma colocataire",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.6,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Chloé : colocataire",
+            "source_message_ids": [
+              "65d041d6-414c-47cf-a57f-722425579bd5"
+            ],
+            "sensitivity_categories": [
+              "relationship"
+            ],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "relations.appartenance_sociale"
+              ],
+              "content_text": "Chloé est la colocataire de l'utilisateur.",
+              "event_end_at": null,
+              "canonical_key": "relations.appartenance_sociale.fact.chloe_colocataire",
+              "event_start_at": null,
+              "evidence_quote": "Chloe est ma colocataire",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.6,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Chloé : colocataire",
+              "source_message_ids": [
+                "65d041d6-414c-47cf-a57f-722425579bd5"
+              ],
+              "sensitivity_categories": [
+                "relationship"
+              ],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "relations.appartenance_sociale"
+              ],
+              "content_text": "Chloé est la colocataire de l'utilisateur.",
+              "event_end_at": null,
+              "canonical_key": "relations.appartenance_sociale.fact.chloe_colocataire",
+              "event_start_at": null,
+              "evidence_quote": "Chloe est ma colocataire",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.6,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Chloé : colocataire",
+              "source_message_ids": [
+                "65d041d6-414c-47cf-a57f-722425579bd5"
+              ],
+              "sensitivity_categories": [
+                "relationship"
+              ],
+              "requires_user_initiated": false
+            },
+            "reason": "mixed_topic_match",
+            "topic_id": "a12d7c55-1b60-409a-9e4a-c23d78931577",
+            "confidence": 0.92,
+            "topic_slug": "relations_colocation_amis",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "fact",
+            "metadata": {},
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "habitudes.execution"
+            ],
+            "content_text": "Pour l'apprentissage du japonais, l'utilisateur préfère des sessions de 20 minutes avec des flashcards.",
+            "event_end_at": null,
+            "canonical_key": "habitudes.execution.fact.methode_etude_japonais_min_flashcards",
+            "event_start_at": null,
+            "evidence_quote": "20 minutes avec des flashcards fonctionnent mieux qu'une grosse session floue.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.6,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Méthode d'étude du japonais : 20 min de flashcards",
+            "source_message_ids": [
+              "ab834fa6-68a4-4f6f-a78b-4311063d489c"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.execution"
+              ],
+              "content_text": "Pour l'apprentissage du japonais, l'utilisateur préfère des sessions de 20 minutes avec des flashcards.",
+              "event_end_at": null,
+              "canonical_key": "habitudes.execution.fact.methode_etude_japonais_min_flashcards",
+              "event_start_at": null,
+              "evidence_quote": "20 minutes avec des flashcards fonctionnent mieux qu'une grosse session floue.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.6,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Méthode d'étude du japonais : 20 min de flashcards",
+              "source_message_ids": [
+                "ab834fa6-68a4-4f6f-a78b-4311063d489c"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.execution"
+              ],
+              "content_text": "Pour l'apprentissage du japonais, l'utilisateur préfère des sessions de 20 minutes avec des flashcards.",
+              "event_end_at": null,
+              "canonical_key": "habitudes.execution.fact.methode_etude_japonais_min_flashcards",
+              "event_start_at": null,
+              "evidence_quote": "20 minutes avec des flashcards fonctionnent mieux qu'une grosse session floue.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.6,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Méthode d'étude du japonais : 20 min de flashcards",
+              "source_message_ids": [
+                "ab834fa6-68a4-4f6f-a78b-4311063d489c"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "mixed_topic_match",
+            "topic_id": "fe16d3fd-9662-48f5-8f2a-76b9d7ec92d0",
+            "confidence": 0.92,
+            "topic_slug": "apprentissage_japonais",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "event",
+            "metadata": {
+              "temporal_resolution_raw": "hier",
+              "temporal_resolution_timezone": "Europe/Paris",
+              "temporal_resolution_confidence": 0.9
+            },
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "habitudes.execution"
+            ],
+            "content_text": "L'utilisateur a révisé 18 minutes sur Anki hier matin.",
+            "event_end_at": "2026-05-12T22:00:00.000Z",
+            "canonical_key": "habitudes.execution.event.session_anki_minutes_mai_2026",
+            "event_start_at": "2026-05-12T08:00:00Z",
+            "evidence_quote": "Hier matin, j'ai fait 18 minutes d'Anki avant le travail",
+            "time_precision": "day",
+            "entity_mentions": [],
+            "importance_score": 0.5,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Session Anki de 18 minutes le 12 mai 2026",
+            "source_message_ids": [
+              "ad2145e3-3b40-4c2a-ac6f-449685ff6179"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "event",
+              "metadata": {
+                "temporal_resolution_raw": "hier",
+                "temporal_resolution_timezone": "Europe/Paris",
+                "temporal_resolution_confidence": 0.9
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.execution"
+              ],
+              "content_text": "L'utilisateur a révisé 18 minutes sur Anki hier matin.",
+              "event_end_at": "2026-05-12T22:00:00.000Z",
+              "canonical_key": "habitudes.execution.event.session_anki_minutes_mai_2026",
+              "event_start_at": "2026-05-12T08:00:00Z",
+              "evidence_quote": "Hier matin, j'ai fait 18 minutes d'Anki avant le travail",
+              "time_precision": "day",
+              "entity_mentions": [],
+              "importance_score": 0.5,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Session Anki de 18 minutes le 12 mai 2026",
+              "source_message_ids": [
+                "ad2145e3-3b40-4c2a-ac6f-449685ff6179"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "event",
+              "metadata": {
+                "temporal_resolution_raw": "hier",
+                "temporal_resolution_timezone": "Europe/Paris",
+                "temporal_resolution_confidence": 0.9
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.execution"
+              ],
+              "content_text": "L'utilisateur a révisé 18 minutes sur Anki hier matin.",
+              "event_end_at": "2026-05-12T22:00:00.000Z",
+              "canonical_key": "habitudes.execution.event.session_anki_minutes_mai_2026",
+              "event_start_at": "2026-05-12T08:00:00Z",
+              "evidence_quote": "Hier matin, j'ai fait 18 minutes d'Anki avant le travail",
+              "time_precision": "day",
+              "entity_mentions": [],
+              "importance_score": 0.5,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Session Anki de 18 minutes le 12 mai 2026",
+              "source_message_ids": [
+                "ad2145e3-3b40-4c2a-ac6f-449685ff6179"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "mixed_topic_match",
+            "topic_id": "fe16d3fd-9662-48f5-8f2a-76b9d7ec92d0",
+            "confidence": 0.92,
+            "topic_slug": "apprentissage_japonais",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "fact",
+            "metadata": {},
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "objectifs.long_terme"
+            ],
+            "content_text": "Mika est le professeur de japonais de l'utilisateur et se concentre sur la prononciation.",
+            "event_end_at": null,
+            "canonical_key": "objectifs.long_terme.fact.mika_professeur_japonais_prononciation",
+            "event_start_at": null,
+            "evidence_quote": "Mon professeur de japonais s'appelle Mika et il me corrige surtout sur la prononciation.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.6,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Mika : professeur de japonais (prononciation)",
+            "source_message_ids": [
+              "43f45b7c-12de-4f48-84c6-91c8f0113f1f"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "objectifs.long_terme"
+              ],
+              "content_text": "Mika est le professeur de japonais de l'utilisateur et se concentre sur la prononciation.",
+              "event_end_at": null,
+              "canonical_key": "objectifs.long_terme.fact.mika_professeur_japonais_prononciation",
+              "event_start_at": null,
+              "evidence_quote": "Mon professeur de japonais s'appelle Mika et il me corrige surtout sur la prononciation.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.6,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Mika : professeur de japonais (prononciation)",
+              "source_message_ids": [
+                "43f45b7c-12de-4f48-84c6-91c8f0113f1f"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "objectifs.long_terme"
+              ],
+              "content_text": "Mika est le professeur de japonais de l'utilisateur et se concentre sur la prononciation.",
+              "event_end_at": null,
+              "canonical_key": "objectifs.long_terme.fact.mika_professeur_japonais_prononciation",
+              "event_start_at": null,
+              "evidence_quote": "Mon professeur de japonais s'appelle Mika et il me corrige surtout sur la prononciation.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.6,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Mika : professeur de japonais (prononciation)",
+              "source_message_ids": [
+                "43f45b7c-12de-4f48-84c6-91c8f0113f1f"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "mixed_topic_match",
+            "topic_id": "fe16d3fd-9662-48f5-8f2a-76b9d7ec92d0",
+            "confidence": 0.92,
+            "topic_slug": "apprentissage_japonais",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "fact",
+            "metadata": {},
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "psychologie.controle_impulsions"
+            ],
+            "content_text": "La fatigue augmente la propension de l'utilisateur aux achats impulsifs.",
+            "event_end_at": null,
+            "canonical_key": "psychologie.controle_impulsions.fact.lien_entre_fatigue_achats_impulsifs",
+            "event_start_at": null,
+            "evidence_quote": "les achats impulsifs augmentent quand je suis fatigue.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.7,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Lien entre fatigue et achats impulsifs",
+            "source_message_ids": [
+              "8f1a54c7-2e01-4959-9b3f-5df3e2f657da"
+            ],
+            "sensitivity_categories": [
+              "financial"
+            ],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "psychologie.controle_impulsions"
+              ],
+              "content_text": "La fatigue augmente la propension de l'utilisateur aux achats impulsifs.",
+              "event_end_at": null,
+              "canonical_key": "psychologie.controle_impulsions.fact.lien_entre_fatigue_achats_impulsifs",
+              "event_start_at": null,
+              "evidence_quote": "les achats impulsifs augmentent quand je suis fatigue.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.7,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Lien entre fatigue et achats impulsifs",
+              "source_message_ids": [
+                "8f1a54c7-2e01-4959-9b3f-5df3e2f657da"
+              ],
+              "sensitivity_categories": [
+                "financial"
+              ],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "psychologie.controle_impulsions"
+              ],
+              "content_text": "La fatigue augmente la propension de l'utilisateur aux achats impulsifs.",
+              "event_end_at": null,
+              "canonical_key": "psychologie.controle_impulsions.fact.lien_entre_fatigue_achats_impulsifs",
+              "event_start_at": null,
+              "evidence_quote": "les achats impulsifs augmentent quand je suis fatigue.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.7,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Lien entre fatigue et achats impulsifs",
+              "source_message_ids": [
+                "8f1a54c7-2e01-4959-9b3f-5df3e2f657da"
+              ],
+              "sensitivity_categories": [
+                "financial"
+              ],
+              "requires_user_initiated": false
+            },
+            "reason": "mixed_topic_match",
+            "topic_id": "3a00ba45-412d-458b-9a98-4c5e8ca2a136",
+            "confidence": 0.92,
+            "topic_slug": "budget_administratif",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "event",
+            "metadata": {
+              "temporal_resolution_raw": "dimanche soir",
+              "temporal_resolution_timezone": "Europe/Paris",
+              "temporal_resolution_confidence": 0.84
+            },
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "habitudes.planification"
+            ],
+            "content_text": "L'utilisateur a trié ses papiers administratifs dimanche soir et a trouvé une facture d'assurance à payer avant le 20 mai.",
+            "event_end_at": "2026-05-10T22:00:00.000Z",
+            "canonical_key": "habitudes.planification.event.tri_administratif_decouverte_une_facture_assurance_mai_2026",
+            "event_start_at": "2026-05-10T18:00:00Z",
+            "evidence_quote": "Dimanche soir, j'ai trie mes papiers administratifs et retrouve une facture d'assurance a payer avant le 20.",
+            "time_precision": "part_of_day",
+            "entity_mentions": [],
+            "importance_score": 0.7,
+            "sensitivity_level": "sensitive",
+            "canonical_key_hint": null,
+            "normalized_summary": "Tri administratif et découverte d'une facture d'assurance le 10 mai 2026",
+            "source_message_ids": [
+              "808fe719-034e-46f2-a47c-8f27151da9b8"
+            ],
+            "sensitivity_categories": [
+              "financial"
+            ],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "event",
+              "metadata": {
+                "temporal_resolution_raw": "dimanche soir",
+                "temporal_resolution_timezone": "Europe/Paris",
+                "temporal_resolution_confidence": 0.84
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.planification"
+              ],
+              "content_text": "L'utilisateur a trié ses papiers administratifs dimanche soir et a trouvé une facture d'assurance à payer avant le 20 mai.",
+              "event_end_at": "2026-05-10T22:00:00.000Z",
+              "canonical_key": "habitudes.planification.event.tri_administratif_decouverte_une_facture_assurance_mai_2026",
+              "event_start_at": "2026-05-10T18:00:00Z",
+              "evidence_quote": "Dimanche soir, j'ai trie mes papiers administratifs et retrouve une facture d'assurance a payer avant le 20.",
+              "time_precision": "part_of_day",
+              "entity_mentions": [],
+              "importance_score": 0.7,
+              "sensitivity_level": "sensitive",
+              "canonical_key_hint": null,
+              "normalized_summary": "Tri administratif et découverte d'une facture d'assurance le 10 mai 2026",
+              "source_message_ids": [
+                "808fe719-034e-46f2-a47c-8f27151da9b8"
+              ],
+              "sensitivity_categories": [
+                "financial"
+              ],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "event",
+              "metadata": {
+                "temporal_resolution_raw": "dimanche soir",
+                "temporal_resolution_timezone": "Europe/Paris",
+                "temporal_resolution_confidence": 0.84
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.planification"
+              ],
+              "content_text": "L'utilisateur a trié ses papiers administratifs dimanche soir et a trouvé une facture d'assurance à payer avant le 20 mai.",
+              "event_end_at": "2026-05-10T22:00:00.000Z",
+              "canonical_key": "habitudes.planification.event.tri_administratif_decouverte_une_facture_assurance_mai_2026",
+              "event_start_at": "2026-05-10T18:00:00Z",
+              "evidence_quote": "Dimanche soir, j'ai trie mes papiers administratifs et retrouve une facture d'assurance a payer avant le 20.",
+              "time_precision": "part_of_day",
+              "entity_mentions": [],
+              "importance_score": 0.7,
+              "sensitivity_level": "sensitive",
+              "canonical_key_hint": null,
+              "normalized_summary": "Tri administratif et découverte d'une facture d'assurance le 10 mai 2026",
+              "source_message_ids": [
+                "808fe719-034e-46f2-a47c-8f27151da9b8"
+              ],
+              "sensitivity_categories": [
+                "financial"
+              ],
+              "requires_user_initiated": false
+            },
+            "reason": "mixed_topic_match",
+            "topic_id": "3a00ba45-412d-458b-9a98-4c5e8ca2a136",
+            "confidence": 0.92,
+            "topic_slug": "budget_administratif",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "fact",
+            "metadata": {},
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "habitudes.planification"
+            ],
+            "content_text": "L'utilisateur préfère préparer ses repas du midi le dimanche pour éviter d'acheter à manger à l'extérieur en semaine.",
+            "event_end_at": null,
+            "canonical_key": "habitudes.planification.fact.preparation_des_repas_dimanche_meal_prep",
+            "event_start_at": null,
+            "evidence_quote": "Je prefere preparer les repas du midi le dimanche, sinon je finis par acheter dehors trois fois dans la semaine.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.6,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Préparation des repas le dimanche (Meal Prep)",
+            "source_message_ids": [
+              "5b6e2059-3e34-4e3a-b220-817a259bab9c"
+            ],
+            "sensitivity_categories": [
+              "financial"
+            ],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.planification"
+              ],
+              "content_text": "L'utilisateur préfère préparer ses repas du midi le dimanche pour éviter d'acheter à manger à l'extérieur en semaine.",
+              "event_end_at": null,
+              "canonical_key": "habitudes.planification.fact.preparation_des_repas_dimanche_meal_prep",
+              "event_start_at": null,
+              "evidence_quote": "Je prefere preparer les repas du midi le dimanche, sinon je finis par acheter dehors trois fois dans la semaine.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.6,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Préparation des repas le dimanche (Meal Prep)",
+              "source_message_ids": [
+                "5b6e2059-3e34-4e3a-b220-817a259bab9c"
+              ],
+              "sensitivity_categories": [
+                "financial"
+              ],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.planification"
+              ],
+              "content_text": "L'utilisateur préfère préparer ses repas du midi le dimanche pour éviter d'acheter à manger à l'extérieur en semaine.",
+              "event_end_at": null,
+              "canonical_key": "habitudes.planification.fact.preparation_des_repas_dimanche_meal_prep",
+              "event_start_at": null,
+              "evidence_quote": "Je prefere preparer les repas du midi le dimanche, sinon je finis par acheter dehors trois fois dans la semaine.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.6,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Préparation des repas le dimanche (Meal Prep)",
+              "source_message_ids": [
+                "5b6e2059-3e34-4e3a-b220-817a259bab9c"
+              ],
+              "sensitivity_categories": [
+                "financial"
+              ],
+              "requires_user_initiated": false
+            },
+            "reason": "mixed_topic_match",
+            "topic_id": "05afbb30-b357-44f2-9b0a-d833c5712f00",
+            "confidence": 0.92,
+            "topic_slug": "organisation_repas_logistique",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "statement",
+            "metadata": {
+              "statement_role": "boundary"
+            },
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "relations.limites"
+            ],
+            "content_text": "L'utilisateur ne souhaite pas que ses dettes ou son budget soient mentionnés lors de conversations sur le japonais ou la photo.",
+            "event_end_at": null,
+            "canonical_key": "relations.limites.statement.separation_des_sujets_financiers_des_loisirs_etudes",
+            "event_start_at": null,
+            "evidence_quote": "Je ne veux pas que mes dettes ou mon budget ressortent dans une conversation neutre sur le japonais ou la photo.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.8,
+            "sensitivity_level": "sensitive",
+            "canonical_key_hint": null,
+            "normalized_summary": "Séparation des sujets financiers des loisirs et études",
+            "source_message_ids": [
+              "0cf99f32-0652-4097-a795-7d9edb142377"
+            ],
+            "sensitivity_categories": [
+              "financial"
+            ],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "boundary"
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "relations.limites"
+              ],
+              "content_text": "L'utilisateur ne souhaite pas que ses dettes ou son budget soient mentionnés lors de conversations sur le japonais ou la photo.",
+              "event_end_at": null,
+              "canonical_key": "relations.limites.statement.separation_des_sujets_financiers_des_loisirs_etudes",
+              "event_start_at": null,
+              "evidence_quote": "Je ne veux pas que mes dettes ou mon budget ressortent dans une conversation neutre sur le japonais ou la photo.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.8,
+              "sensitivity_level": "sensitive",
+              "canonical_key_hint": null,
+              "normalized_summary": "Séparation des sujets financiers des loisirs et études",
+              "source_message_ids": [
+                "0cf99f32-0652-4097-a795-7d9edb142377"
+              ],
+              "sensitivity_categories": [
+                "financial"
+              ],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "boundary"
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "relations.limites"
+              ],
+              "content_text": "L'utilisateur ne souhaite pas que ses dettes ou son budget soient mentionnés lors de conversations sur le japonais ou la photo.",
+              "event_end_at": null,
+              "canonical_key": "relations.limites.statement.separation_des_sujets_financiers_des_loisirs_etudes",
+              "event_start_at": null,
+              "evidence_quote": "Je ne veux pas que mes dettes ou mon budget ressortent dans une conversation neutre sur le japonais ou la photo.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.8,
+              "sensitivity_level": "sensitive",
+              "canonical_key_hint": null,
+              "normalized_summary": "Séparation des sujets financiers des loisirs et études",
+              "source_message_ids": [
+                "0cf99f32-0652-4097-a795-7d9edb142377"
+              ],
+              "sensitivity_categories": [
+                "financial"
+              ],
+              "requires_user_initiated": false
+            },
+            "reason": "mixed_topic_match",
+            "topic_id": "d85208a1-392e-4ae4-9405-ad1bd9bf89be",
+            "confidence": 0.9160714285714285,
+            "topic_slug": "preferences_accompagnement",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "event",
+            "metadata": {
+              "temporal_resolution_raw": "vendredi dernier",
+              "temporal_resolution_timezone": "Europe/Paris",
+              "temporal_resolution_confidence": 0.88
+            },
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "habitudes.execution"
+            ],
+            "content_text": "L'utilisateur a oublié ses clés chez Hugo vendredi dernier.",
+            "event_end_at": "2026-05-08T22:00:00.000Z",
+            "canonical_key": "habitudes.execution.event.oubli_cles_chez_hugo_mai_2026",
+            "event_start_at": "2026-05-08T12:00:00Z",
+            "evidence_quote": "Vendredi dernier, j'ai oublie mes clefs chez Hugo et ca m'a fait perdre une heure.",
+            "time_precision": "day",
+            "entity_mentions": [],
+            "importance_score": 0.4,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Oubli de clés chez Hugo le 8 mai 2026",
+            "source_message_ids": [
+              "3aa3dce9-2227-45d3-9ac3-b31d15bc718c"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "event",
+              "metadata": {
+                "temporal_resolution_raw": "vendredi dernier",
+                "temporal_resolution_timezone": "Europe/Paris",
+                "temporal_resolution_confidence": 0.88
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.execution"
+              ],
+              "content_text": "L'utilisateur a oublié ses clés chez Hugo vendredi dernier.",
+              "event_end_at": "2026-05-08T22:00:00.000Z",
+              "canonical_key": "habitudes.execution.event.oubli_cles_chez_hugo_mai_2026",
+              "event_start_at": "2026-05-08T12:00:00Z",
+              "evidence_quote": "Vendredi dernier, j'ai oublie mes clefs chez Hugo et ca m'a fait perdre une heure.",
+              "time_precision": "day",
+              "entity_mentions": [],
+              "importance_score": 0.4,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Oubli de clés chez Hugo le 8 mai 2026",
+              "source_message_ids": [
+                "3aa3dce9-2227-45d3-9ac3-b31d15bc718c"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "event",
+              "metadata": {
+                "temporal_resolution_raw": "vendredi dernier",
+                "temporal_resolution_timezone": "Europe/Paris",
+                "temporal_resolution_confidence": 0.88
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.execution"
+              ],
+              "content_text": "L'utilisateur a oublié ses clés chez Hugo vendredi dernier.",
+              "event_end_at": "2026-05-08T22:00:00.000Z",
+              "canonical_key": "habitudes.execution.event.oubli_cles_chez_hugo_mai_2026",
+              "event_start_at": "2026-05-08T12:00:00Z",
+              "evidence_quote": "Vendredi dernier, j'ai oublie mes clefs chez Hugo et ca m'a fait perdre une heure.",
+              "time_precision": "day",
+              "entity_mentions": [],
+              "importance_score": 0.4,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Oubli de clés chez Hugo le 8 mai 2026",
+              "source_message_ids": [
+                "3aa3dce9-2227-45d3-9ac3-b31d15bc718c"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "mixed_topic_match",
+            "topic_id": "fe16d3fd-9662-48f5-8f2a-76b9d7ec92d0",
+            "confidence": 0.9103448275862069,
+            "topic_slug": "apprentissage_japonais",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "ambiguous_link",
+        "status": "candidate",
+        "candidate": {
+          "item": {
+            "kind": "statement",
+            "metadata": {
+              "statement_role": "goal"
+            },
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "objectifs.identite"
+            ],
+            "content_text": "L'utilisateur souhaite que la photographie reste un loisir créatif et non un projet professionnel.",
+            "event_end_at": null,
+            "canonical_key": "objectifs.identite.statement.photographie_comme_loisir_uniquement",
+            "event_start_at": null,
+            "evidence_quote": "Pour la photo, je veux garder ca comme loisir creatif, pas comme nouveau projet pro.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.7,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "La photographie comme loisir uniquement",
+            "source_message_ids": [
+              "0cfb39d1-7d98-482a-82a9-e6cf3a891910"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "goal"
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "objectifs.identite"
+              ],
+              "content_text": "L'utilisateur souhaite que la photographie reste un loisir créatif et non un projet professionnel.",
+              "event_end_at": null,
+              "canonical_key": "objectifs.identite.statement.photographie_comme_loisir_uniquement",
+              "event_start_at": null,
+              "evidence_quote": "Pour la photo, je veux garder ca comme loisir creatif, pas comme nouveau projet pro.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.7,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "La photographie comme loisir uniquement",
+              "source_message_ids": [
+                "0cfb39d1-7d98-482a-82a9-e6cf3a891910"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "goal"
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "objectifs.identite"
+              ],
+              "content_text": "L'utilisateur souhaite que la photographie reste un loisir créatif et non un projet professionnel.",
+              "event_end_at": null,
+              "canonical_key": "objectifs.identite.statement.photographie_comme_loisir_uniquement",
+              "event_start_at": null,
+              "evidence_quote": "Pour la photo, je veux garder ca comme loisir creatif, pas comme nouveau projet pro.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.7,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "La photographie comme loisir uniquement",
+              "source_message_ids": [
+                "0cfb39d1-7d98-482a-82a9-e6cf3a891910"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_topic_link",
+            "topic_id": null,
+            "confidence": 0,
+            "topic_slug": null,
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "statement",
+            "metadata": {
+              "statement_role": "preference"
+            },
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "relations.limites"
+            ],
+            "content_text": "En cas de fatigue, l'utilisateur préfère des messages synthétiques en trois points maximum.",
+            "event_end_at": null,
+            "canonical_key": "relations.limites.statement.preference_communication_max_points_fatigue",
+            "event_start_at": null,
+            "evidence_quote": "Si je suis fatigue, les messages en trois points maximum m'aident plus qu'une longue analyse.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.7,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Préférence de communication : max 3 points si fatigué",
+            "source_message_ids": [
+              "be060aab-ea64-482a-808f-ccfc79aff365"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "preference"
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "relations.limites"
+              ],
+              "content_text": "En cas de fatigue, l'utilisateur préfère des messages synthétiques en trois points maximum.",
+              "event_end_at": null,
+              "canonical_key": "relations.limites.statement.preference_communication_max_points_fatigue",
+              "event_start_at": null,
+              "evidence_quote": "Si je suis fatigue, les messages en trois points maximum m'aident plus qu'une longue analyse.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.7,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Préférence de communication : max 3 points si fatigué",
+              "source_message_ids": [
+                "be060aab-ea64-482a-808f-ccfc79aff365"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "preference"
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "relations.limites"
+              ],
+              "content_text": "En cas de fatigue, l'utilisateur préfère des messages synthétiques en trois points maximum.",
+              "event_end_at": null,
+              "canonical_key": "relations.limites.statement.preference_communication_max_points_fatigue",
+              "event_start_at": null,
+              "evidence_quote": "Si je suis fatigue, les messages en trois points maximum m'aident plus qu'une longue analyse.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.7,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Préférence de communication : max 3 points si fatigué",
+              "source_message_ids": [
+                "be060aab-ea64-482a-808f-ccfc79aff365"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "mixed_topic_match",
+            "topic_id": "d85208a1-392e-4ae4-9405-ad1bd9bf89be",
+            "confidence": 0.92,
+            "topic_slug": "preferences_accompagnement",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "ambiguous_link",
+        "status": "candidate",
+        "candidate": {
+          "item": {
+            "kind": "event",
+            "metadata": {
+              "temporal_resolution_raw": "aujourd'hui",
+              "temporal_resolution_timezone": "Europe/Paris",
+              "temporal_resolution_confidence": 0.9
+            },
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "sante.douleur",
+              "habitudes.execution"
+            ],
+            "content_text": "L'utilisateur a annulé une sortie photo aujourd'hui à cause d'un début de migraine, mais a révisé ses flashcards.",
+            "event_end_at": "2026-05-13T22:00:00.000Z",
+            "canonical_key": "sante.douleur.event.annulation_sortie_photo_revision_flashcards_mai_2026",
+            "event_start_at": "2026-05-13T10:00:00Z",
+            "evidence_quote": "Aujourd'hui j'ai annule une sortie photo parce que la migraine commencait, mais j'ai quand meme fait mes flashcards.",
+            "time_precision": "day",
+            "entity_mentions": [],
+            "importance_score": 0.6,
+            "sensitivity_level": "sensitive",
+            "canonical_key_hint": null,
+            "normalized_summary": "Annulation sortie photo et révision flashcards le 13 mai 2026",
+            "source_message_ids": [
+              "e916cfb7-b5c5-45ef-95d8-8a04c32f8c1f"
+            ],
+            "sensitivity_categories": [
+              "health"
+            ],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "event",
+              "metadata": {
+                "temporal_resolution_raw": "aujourd'hui",
+                "temporal_resolution_timezone": "Europe/Paris",
+                "temporal_resolution_confidence": 0.9
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "sante.douleur",
+                "habitudes.execution"
+              ],
+              "content_text": "L'utilisateur a annulé une sortie photo aujourd'hui à cause d'un début de migraine, mais a révisé ses flashcards.",
+              "event_end_at": "2026-05-13T22:00:00.000Z",
+              "canonical_key": "sante.douleur.event.annulation_sortie_photo_revision_flashcards_mai_2026",
+              "event_start_at": "2026-05-13T10:00:00Z",
+              "evidence_quote": "Aujourd'hui j'ai annule une sortie photo parce que la migraine commencait, mais j'ai quand meme fait mes flashcards.",
+              "time_precision": "day",
+              "entity_mentions": [],
+              "importance_score": 0.6,
+              "sensitivity_level": "sensitive",
+              "canonical_key_hint": null,
+              "normalized_summary": "Annulation sortie photo et révision flashcards le 13 mai 2026",
+              "source_message_ids": [
+                "e916cfb7-b5c5-45ef-95d8-8a04c32f8c1f"
+              ],
+              "sensitivity_categories": [
+                "health"
+              ],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "event",
+              "metadata": {
+                "temporal_resolution_raw": "aujourd'hui",
+                "temporal_resolution_timezone": "Europe/Paris",
+                "temporal_resolution_confidence": 0.9
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "sante.douleur",
+                "habitudes.execution"
+              ],
+              "content_text": "L'utilisateur a annulé une sortie photo aujourd'hui à cause d'un début de migraine, mais a révisé ses flashcards.",
+              "event_end_at": "2026-05-13T22:00:00.000Z",
+              "canonical_key": "sante.douleur.event.annulation_sortie_photo_revision_flashcards_mai_2026",
+              "event_start_at": "2026-05-13T10:00:00Z",
+              "evidence_quote": "Aujourd'hui j'ai annule une sortie photo parce que la migraine commencait, mais j'ai quand meme fait mes flashcards.",
+              "time_precision": "day",
+              "entity_mentions": [],
+              "importance_score": 0.6,
+              "sensitivity_level": "sensitive",
+              "canonical_key_hint": null,
+              "normalized_summary": "Annulation sortie photo et révision flashcards le 13 mai 2026",
+              "source_message_ids": [
+                "e916cfb7-b5c5-45ef-95d8-8a04c32f8c1f"
+              ],
+              "sensitivity_categories": [
+                "health"
+              ],
+              "requires_user_initiated": false
+            },
+            "reason": "no_topic_link",
+            "topic_id": null,
+            "confidence": 0,
+            "topic_slug": null,
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      }
+    ]
+  },
+  "counts": {
+    "input_user_messages": 24,
+    "persisted_items": 19,
+    "active_items": 17,
+    "candidate_items": 2
+  },
+  "expectation_checks": {
+    "budget_cap": true,
+    "migraine_event": true,
+    "sleep_migraine_pattern": true,
+    "hugo_friend_not_brother": true,
+    "chloe_roommate_not_partner": false,
+    "japanese_goal": false,
+    "anki_event": true,
+    "budget_sensitive_boundary": true,
+    "self_blame_not_fact": true,
+    "budget_topic": true,
+    "health_topic": true,
+    "japanese_topic": true,
+    "relations_topic": true
+  },
+  "memory_items": [
+    {
+      "kind": "fact",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 1,
+      "domain_keys": [
+        "habitudes.environnement"
+      ],
+      "content_text": "L'utilisateur vit désormais à Lyon.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "organisation_repas_logistique",
+          "confidence": 0.92,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "je vis maintenant a Lyon"
+    },
+    {
+      "kind": "statement",
+      "status": "active",
+      "sensitivity_level": "sensitive",
+      "confidence": 1,
+      "domain_keys": [
+        "objectifs.court_terme"
+      ],
+      "content_text": "L'objectif budgétaire pour ce trimestre est de maintenir les dépenses variables sous 350 euros par mois (hors loyer et factures fixes).",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "budget_administratif",
+          "confidence": 0.92,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Mon objectif ce trimestre est de garder mes depenses variables sous 350 euros par mois, hors loyer et factures fixes."
+    },
+    {
+      "kind": "statement",
+      "status": "active",
+      "sensitivity_level": "sensitive",
+      "confidence": 1,
+      "domain_keys": [
+        "psychologie.controle_impulsions"
+      ],
+      "content_text": "L'utilisateur souhaite attendre 24 heures avant d'effectuer des achats non essentiels, car le stress provoque des achats impulsifs d'accessoires photo.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "budget_administratif",
+          "confidence": 0.92,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "aide-moi a attendre 24 heures avant les achats non essentiels."
+    },
+    {
+      "kind": "fact",
+      "status": "active",
+      "sensitivity_level": "sensitive",
+      "confidence": 0.95,
+      "domain_keys": [
+        "sante.sommeil",
+        "sante.douleur"
+      ],
+      "content_text": "Les migraines surviennent principalement après deux nuits consécutives de moins de six heures de sommeil.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "sante_migraines",
+          "confidence": 0.92,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "les migraines arrivent surtout quand je dors moins de six heures deux nuits de suite."
+    },
+    {
+      "kind": "fact",
+      "status": "active",
+      "sensitivity_level": "sensitive",
+      "confidence": 1,
+      "domain_keys": [
+        "sante.medical"
+      ],
+      "content_text": "L'utilisateur prend du magnésium le soir.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "sante_migraines",
+          "confidence": 0.92,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Je prends du magnesium le soir"
+    },
+    {
+      "kind": "statement",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 1,
+      "domain_keys": [
+        "relations.limites"
+      ],
+      "content_text": "L'utilisateur ne souhaite pas recevoir de conseils médicaux non sollicités.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "preferences_accompagnement",
+          "confidence": 0.92,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "je ne veux pas que tu me donnes de conseil medical non sollicite."
+    },
+    {
+      "kind": "fact",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 1,
+      "domain_keys": [
+        "relations.amitie"
+      ],
+      "content_text": "Hugo est un ami proche avec qui l'utilisateur pratique la photographie de rue.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "relations_colocation_amis",
+          "confidence": 0.92,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Hugo est un ami proche avec qui je fais parfois de la photo de rue"
+    },
+    {
+      "kind": "fact",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 1,
+      "domain_keys": [
+        "relations.appartenance_sociale"
+      ],
+      "content_text": "Chloé est la colocataire de l'utilisateur.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "relations_colocation_amis",
+          "confidence": 0.92,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Chloe est ma colocataire"
+    },
+    {
+      "kind": "fact",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 1,
+      "domain_keys": [
+        "habitudes.execution"
+      ],
+      "content_text": "Pour l'apprentissage du japonais, l'utilisateur préfère des sessions de 20 minutes avec des flashcards.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "apprentissage_japonais",
+          "confidence": 0.92,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "20 minutes avec des flashcards fonctionnent mieux qu'une grosse session floue."
+    },
+    {
+      "kind": "event",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 1,
+      "domain_keys": [
+        "habitudes.execution"
+      ],
+      "content_text": "L'utilisateur a révisé 18 minutes sur Anki hier matin.",
+      "event_start_at": "2026-05-12T08:00:00+00:00",
+      "time_precision": "day",
+      "topic_links": [
+        {
+          "slug": "apprentissage_japonais",
+          "confidence": 0.92,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Hier matin, j'ai fait 18 minutes d'Anki avant le travail"
+    },
+    {
+      "kind": "fact",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 1,
+      "domain_keys": [
+        "objectifs.long_terme"
+      ],
+      "content_text": "Mika est le professeur de japonais de l'utilisateur et se concentre sur la prononciation.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "apprentissage_japonais",
+          "confidence": 0.92,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Mon professeur de japonais s'appelle Mika et il me corrige surtout sur la prononciation."
+    },
+    {
+      "kind": "fact",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 1,
+      "domain_keys": [
+        "psychologie.controle_impulsions"
+      ],
+      "content_text": "La fatigue augmente la propension de l'utilisateur aux achats impulsifs.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "budget_administratif",
+          "confidence": 0.92,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "les achats impulsifs augmentent quand je suis fatigue."
+    },
+    {
+      "kind": "event",
+      "status": "active",
+      "sensitivity_level": "sensitive",
+      "confidence": 1,
+      "domain_keys": [
+        "habitudes.planification"
+      ],
+      "content_text": "L'utilisateur a trié ses papiers administratifs dimanche soir et a trouvé une facture d'assurance à payer avant le 20 mai.",
+      "event_start_at": "2026-05-10T18:00:00+00:00",
+      "time_precision": "part_of_day",
+      "topic_links": [
+        {
+          "slug": "budget_administratif",
+          "confidence": 0.92,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Dimanche soir, j'ai trie mes papiers administratifs et retrouve une facture d'assurance a payer avant le 20."
+    },
+    {
+      "kind": "fact",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 1,
+      "domain_keys": [
+        "habitudes.planification"
+      ],
+      "content_text": "L'utilisateur préfère préparer ses repas du midi le dimanche pour éviter d'acheter à manger à l'extérieur en semaine.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "organisation_repas_logistique",
+          "confidence": 0.92,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Je prefere preparer les repas du midi le dimanche, sinon je finis par acheter dehors trois fois dans la semaine."
+    },
+    {
+      "kind": "statement",
+      "status": "active",
+      "sensitivity_level": "sensitive",
+      "confidence": 1,
+      "domain_keys": [
+        "relations.limites"
+      ],
+      "content_text": "L'utilisateur ne souhaite pas que ses dettes ou son budget soient mentionnés lors de conversations sur le japonais ou la photo.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "preferences_accompagnement",
+          "confidence": 0.92,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Je ne veux pas que mes dettes ou mon budget ressortent dans une conversation neutre sur le japonais ou la photo."
+    },
+    {
+      "kind": "event",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 1,
+      "domain_keys": [
+        "habitudes.execution"
+      ],
+      "content_text": "L'utilisateur a oublié ses clés chez Hugo vendredi dernier.",
+      "event_start_at": "2026-05-08T12:00:00+00:00",
+      "time_precision": "day",
+      "topic_links": [
+        {
+          "slug": "apprentissage_japonais",
+          "confidence": 0.91,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Vendredi dernier, j'ai oublie mes clefs chez Hugo et ca m'a fait perdre une heure."
+    },
+    {
+      "kind": "statement",
+      "status": "candidate",
+      "sensitivity_level": "normal",
+      "confidence": 1,
+      "domain_keys": [
+        "objectifs.identite"
+      ],
+      "content_text": "L'utilisateur souhaite que la photographie reste un loisir créatif et non un projet professionnel.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [],
+      "evidence_quote": "Pour la photo, je veux garder ca comme loisir creatif, pas comme nouveau projet pro."
+    },
+    {
+      "kind": "statement",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 1,
+      "domain_keys": [
+        "relations.limites"
+      ],
+      "content_text": "En cas de fatigue, l'utilisateur préfère des messages synthétiques en trois points maximum.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "preferences_accompagnement",
+          "confidence": 0.92,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Si je suis fatigue, les messages en trois points maximum m'aident plus qu'une longue analyse."
+    },
+    {
+      "kind": "event",
+      "status": "candidate",
+      "sensitivity_level": "sensitive",
+      "confidence": 1,
+      "domain_keys": [
+        "sante.douleur",
+        "habitudes.execution"
+      ],
+      "content_text": "L'utilisateur a annulé une sortie photo aujourd'hui à cause d'un début de migraine, mais a révisé ses flashcards.",
+      "event_start_at": "2026-05-13T10:00:00+00:00",
+      "time_precision": "day",
+      "topic_links": [],
+      "evidence_quote": "Aujourd'hui j'ai annule une sortie photo parce que la migraine commencait, mais j'ai quand meme fait mes flashcards."
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "scheduled_checkins": [
+    {
+      "id": "bad69bad-50c9-4f84-91c4-2859afa97489",
+      "status": "pending",
+      "scheduled_for": "2026-06-26T11:13:40.453+00:00",
+      "event_context": "one_shot_reminder:verifier_la_reponse_de_lina",
+      "message_payload": {
+        "source": "one_shot_reminder_executor",
+        "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Objet du rappel utilisateur: vérifier la réponse de Lina.",
+        "local_label": "dans 24 minutes",
+        "parse_source": "payload_utc_time",
+        "request_text": "Rappelle-moi dans 24 minutes de vérifier la réponse de Lina.",
+        "reminder_kind": "one_shot",
+        "user_timezone": "Europe/Paris",
+        "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: vérifier la réponse de Lina.",
+        "source_message_id": "dd75131e-7ce4-4b3e-9ec6-25c68a8cf66a",
+        "reminder_instruction": "vérifier la réponse de Lina"
+      },
+      "created_at": "2026-06-26T10:49:43.162968+00:00"
+    }
+  ],
+  "chat_messages_count": 2,
+  "chat_messages": [
+    {
+      "role": "user",
+      "content": "Rappelle-moi dans 24 minutes de vérifier la réponse de Lina.",
+      "created_at": "2026-06-26T10:49:40.432305+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_7flows_20260626_global_r1-t01",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "C’est noté : je te le rappelle dans 24 minutes pour vérifier la réponse de Lina. ⏱️",
+      "created_at": "2026-06-26T10:49:44.504634+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_7flows_20260626_global_r1-t01",
+        "route_owner": "normal_reply",
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    }
+  ],
+  "user_chat_state": {
+    "user_id": "be0a3332-7135-4df9-8beb-9859d802620a",
+    "current_mode": "companion",
+    "risk_level": 0,
+    "temp_memory": {
+      "companion_question_rhythm": {
+        "preference": "normal",
+        "recent_turns": [
+          0
+        ],
+        "last_updated_at": "2026-06-26T10:49:44.492Z",
+        "last_turn_had_question": false,
+        "turns_since_last_question": 1
+      }
+    },
+    "updated_at": "2026-06-26T10:49:44.502603+00:00"
+  }
+}

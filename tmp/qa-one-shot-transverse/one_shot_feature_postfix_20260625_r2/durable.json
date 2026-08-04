@@ -1,0 +1,108 @@
+{
+  "scheduled_checkins": [],
+  "chat_messages_count": 4,
+  "chat_messages": [
+    {
+      "role": "user",
+      "content": "Chaque dimanche soir, je finis par improviser ma semaine et je perds le rythme. J’ai l’impression que Sophia devrait avoir une fonctionnalité pour préparer ce moment récurrent, mais je ne sais pas laquelle.",
+      "created_at": "2026-06-25T10:06:40.191425+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_feature_postfix_20260625_r2-t01",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Oui : ça correspond bien à des initiatives. \n\nUne initiative peut aider Sophia à te remettre dans le rythme chaque dimanche soir, avec un message récurrent, au bon moment, dans la section Initiatives.\n\nSi tu veux, je peux te dire quels réglages seraient les plus utiles : quoi dire, à quelle heure, et avec quel rythme.",
+      "created_at": "2026-06-25T10:07:02.720779+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_feature_postfix_20260625_r2-t01",
+        "route_owner": "feature_opportunity",
+        "selected_handler": "feature_opportunity",
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "user",
+      "content": "Oui, et rappelle-moi dans 31 minutes de noter cette idée dans Initiatives pendant que tu m’aides à la formuler.",
+      "created_at": "2026-06-25T10:07:10.46789+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_feature_postfix_20260625_r2-t02",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Tu es pile dans une bonne opportunité pour des initiatives : un message récurrent pour t’aider à préparer ton dimanche soir, avant que tu improvises ta semaine.\n\nTu peux la formuler avec : quoi dire, pourquoi/avant quel moment le dire, l’horaire, le rythme hebdo, et la destination Initiatives.\n\nSi tu veux, je peux te proposer une formulation simple pour cette initiative.",
+      "created_at": "2026-06-25T10:07:20.15172+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_feature_postfix_20260625_r2-t02",
+        "route_owner": "feature_opportunity",
+        "selected_handler": "feature_opportunity",
+        "tool_execution": null
+      }
+    }
+  ],
+  "user_chat_state": {
+    "user_id": "30ece44c-c3d5-4724-8824-63fe56f55c56",
+    "current_mode": "companion",
+    "risk_level": 0,
+    "temp_memory": {
+      "__active_skill_state": {
+        "status": "active",
+        "version": 1,
+        "skill_id": "feature_opportunity",
+        "started_at": "2026-06-25T10:07:02.688Z",
+        "turn_count": 2,
+        "updated_at": "2026-06-25T10:07:20.129Z",
+        "working_state": {
+          "feature_opportunity_local_state": {
+            "feature": "initiatives",
+            "max_turns": 3,
+            "turn_count": 2,
+            "trigger_context": "Chaque dimanche soir",
+            "opportunity_kind": "recurring_context",
+            "user_problem_summary": "Le user improvise sa semaine chaque dimanche soir et perd le rythme; il souhaite que Sophia l'aide à préparer ce moment récurrent.",
+            "dispatcher_signal_context": {
+              "feature": "initiatives",
+              "priority_reason": "Repeated weekly context with an explicit suggestion for product support.",
+              "trigger_context": "Chaque dimanche soir",
+              "opportunity_kind": "recurring_context",
+              "user_problem_summary": "The user regularly improvises their week on Sunday evening and loses rhythm; they suggest Sophia should support this recurring moment."
+            }
+          }
+        }
+      },
+      "__active_conversation_skill_v1": {
+        "status": "active",
+        "version": 1,
+        "skill_id": "feature_opportunity",
+        "started_at": "2026-06-25T10:07:02.688Z",
+        "turn_count": 2,
+        "updated_at": "2026-06-25T10:07:20.129Z",
+        "working_state": {
+          "feature_opportunity_local_state": {
+            "feature": "initiatives",
+            "max_turns": 3,
+            "turn_count": 2,
+            "trigger_context": "Chaque dimanche soir",
+            "opportunity_kind": "recurring_context",
+            "user_problem_summary": "Le user improvise sa semaine chaque dimanche soir et perd le rythme; il souhaite que Sophia l'aide à préparer ce moment récurrent.",
+            "dispatcher_signal_context": {
+              "feature": "initiatives",
+              "priority_reason": "Repeated weekly context with an explicit suggestion for product support.",
+              "trigger_context": "Chaque dimanche soir",
+              "opportunity_kind": "recurring_context",
+              "user_problem_summary": "The user regularly improvises their week on Sunday evening and loses rhythm; they suggest Sophia should support this recurring moment."
+            }
+          }
+        }
+      }
+    },
+    "updated_at": "2026-06-25T10:07:20.140482+00:00"
+  }
+}

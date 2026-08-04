@@ -1,0 +1,1280 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r1-t01",
+    "user": "Je veux ajuster mon plan, mais je ne sais pas trop quoi écrire. Ce qui bloque, c’est que ça me paraît trop lourd en ce moment.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r1-t01",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Est-ce que tu veux modifier le contenu de ton plan ou plutôt découper tes actions pour les rendre moins lourdes ? 🙂",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r1-t01",
+            "source_message_id": "6dc50bfa-6252-4e25-9805-1cf07b14af97",
+            "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "detected": false,
+                  "weight": 3.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "detected": false,
+                  "weight": 2.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "detected": false,
+                  "weight": 2,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "detected": false,
+                  "weight": 1.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "detected": false,
+                  "weight": 0.7,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "detected": false,
+                  "weight": 1,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "previous_risk",
+                  "detected": false,
+                  "weight": 10,
+                  "contribution": 0,
+                  "evidence": null
+                }
+              ],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {
+              "entry": {
+                "execution_breakdown": {
+                  "detected": true,
+                  "confidence_band": "medium",
+                  "reason": "user_mentions_feeling_overwhelmed_and_not_knowing_what_to_write"
+                }
+              },
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "level",
+                  "key": "current_level",
+                  "query_hint": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "high",
+                  "entity_type": null
+                },
+                {
+                  "type": "topic",
+                  "key": "habitudes.planification",
+                  "query_hint": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first",
+                  "priority": "medium",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "orientation_clarification",
+            "selected_handler": "orientation_clarification",
+            "blocked_paths": [
+              {
+                "path": "tool_skill_router",
+                "reason_code": "clarification_required"
+              },
+              {
+                "path": "product_help",
+                "reason_code": "clarification_required"
+              },
+              {
+                "path": "operation_runtime_pipeline",
+                "reason_code": "clarification_required"
+              },
+              {
+                "path": "direct_effects",
+                "reason_code": "clarification_required"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "clarification_required",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "turn_agenda_summary": {
+            "task_count": 1,
+            "owners": [
+              "dispatcher"
+            ],
+            "operation_types": [],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "clarification:dispatcher",
+                "kind": "clarification",
+                "owner": "dispatcher",
+                "operation_type": null,
+                "intent": "clarify",
+                "source": "dispatcher",
+                "status": "asked",
+                "reason_code": "clarification_required"
+              }
+            ]
+          },
+          "effect_ledger": {
+            "turn_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r1-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 1,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r1-t01:agenda:asked:clarification:dispatcher",
+                "kind": "clarification",
+                "effect_type": "clarification.handoff_readiness",
+                "operation_type": null,
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "dispatcher",
+                "status": "asked",
+                "reason_code": "clarification_required",
+                "source": "dispatcher",
+                "payload_summary": {
+                  "task_id": "clarification:dispatcher",
+                  "source": "dispatcher",
+                  "evidence": [
+                    "adjust_plan_item",
+                    "execution_breakdown"
+                  ]
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": null,
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": "dispatcher",
+                "ambiguity_kind": "handoff_readiness",
+                "candidate_ids": [
+                  "adjust_plan_item",
+                  "execution_breakdown"
+                ],
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "orientation_clarification"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r1-t01",
+          "source_message_id": "6dc50bfa-6252-4e25-9805-1cf07b14af97",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "channel": "web",
+          "safety": {
+            "risk_band": "low",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "detected": false,
+                "weight": 3.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "detected": false,
+                "weight": 2.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "anger_or_profanity",
+                "detected": false,
+                "weight": 2,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "repetition_or_correction",
+                "detected": false,
+                "weight": 1.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "typographic_intensity",
+                "detected": false,
+                "weight": 0.7,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "active_flow_pressure",
+                "detected": false,
+                "weight": 1,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "previous_risk",
+                "detected": false,
+                "weight": 10,
+                "contribution": 0,
+                "evidence": null
+              }
+            ],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "tool_skill_opportunity": {
+            "type": "none",
+            "operation_type": null,
+            "surface_id": null,
+            "confidence_band": "low",
+            "should_offer": false,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "target_status": "none",
+            "suggested_question_intent": null,
+            "offer_timing": "never",
+            "must_not_execute": true
+          },
+          "skill_signals": {
+            "entry": {
+              "execution_breakdown": {
+                "detected": true,
+                "confidence_band": "medium",
+                "reason": "user_mentions_feeling_overwhelmed_and_not_knowing_what_to_write"
+              }
+            },
+            "lifecycle": {},
+            "exit": {}
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "targeted",
+            "memory_mode": "light",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "small",
+            "targets": [
+              {
+                "type": "level",
+                "key": "current_level",
+                "query_hint": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first",
+                "priority": "high",
+                "entity_type": null
+              },
+              {
+                "type": "topic",
+                "key": "habitudes.planification",
+                "query_hint": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first",
+                "priority": "medium",
+                "entity_type": null
+              }
+            ],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "active_handoff_action": null,
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "orientation_clarification",
+          "selected_handler": "orientation_clarification",
+          "blocked_paths": [
+            {
+              "path": "tool_skill_router",
+              "reason_code": "clarification_required"
+            },
+            {
+              "path": "product_help",
+              "reason_code": "clarification_required"
+            },
+            {
+              "path": "operation_runtime_pipeline",
+              "reason_code": "clarification_required"
+            },
+            {
+              "path": "direct_effects",
+              "reason_code": "clarification_required"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "clarification_required",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none"
+        },
+        "turn_agenda_summary": {
+          "task_count": 1,
+          "owners": [
+            "dispatcher"
+          ],
+          "operation_types": [],
+          "constraints": {},
+          "tasks": [
+            {
+              "task_id": "clarification:dispatcher",
+              "kind": "clarification",
+              "owner": "dispatcher",
+              "operation_type": null,
+              "intent": "clarify",
+              "source": "dispatcher",
+              "status": "asked",
+              "reason_code": "clarification_required"
+            }
+          ]
+        },
+        "effect_ledger": {
+          "turn_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r1-t01",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 1,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": [
+            {
+              "effect_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r1-t01:agenda:asked:clarification:dispatcher",
+              "kind": "clarification",
+              "effect_type": "clarification.handoff_readiness",
+              "operation_type": null,
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "dispatcher",
+              "status": "asked",
+              "reason_code": "clarification_required",
+              "source": "dispatcher",
+              "payload_summary": {
+                "task_id": "clarification:dispatcher",
+                "source": "dispatcher",
+                "evidence": [
+                  "adjust_plan_item",
+                  "execution_breakdown"
+                ]
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": null,
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": "dispatcher",
+              "ambiguity_kind": "handoff_readiness",
+              "candidate_ids": [
+                "adjust_plan_item",
+                "execution_breakdown"
+              ],
+              "selected_candidate_id": null
+            }
+          ]
+        },
+        "response_owner": "orientation_clarification"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r1-t02",
+    "user": "Plutôt découper et alléger. Je veux garder l’objectif, mais que l’entrée soit moins intimidante cette semaine.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r1-t02",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ouvre juste l'endroit de l'action et fais une trace imparfaite de 2 minutes. Après, on ajuste. 🙂",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r1-t02",
+            "source_message_id": "c34dde13-93cc-454e-850e-88d1f35ad8dd",
+            "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [
+                0
+              ],
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "detected": false,
+                  "weight": 3.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "detected": false,
+                  "weight": 2.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "detected": false,
+                  "weight": 2,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "detected": false,
+                  "weight": 1.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "detected": false,
+                  "weight": 0.7,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "detected": false,
+                  "weight": 1,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "previous_risk",
+                  "detected": false,
+                  "weight": 10,
+                  "contribution": 0,
+                  "evidence": "0;decay=0.55;recovery=0"
+                }
+              ],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {
+              "entry": {
+                "execution_breakdown": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "user_confirms_need_to_break_down_intimidating_actions"
+                }
+              },
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "level",
+                  "key": "current_level",
+                  "query_hint": "current level structure and load",
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "high",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "blocked_paths": [
+              {
+                "path": "tool_skill_router",
+                "reason_code": "orientation_clarification_resolved_conversation_skill"
+              },
+              {
+                "path": "direct_effects",
+                "reason_code": "orientation_clarification_resolved_conversation_skill"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "orientation_clarification_resolved_conversation_skill",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            },
+            "selected_handler": "execution_breakdown"
+          },
+          "turn_agenda_summary": {
+            "task_count": 1,
+            "owners": [
+              "execution_breakdown"
+            ],
+            "operation_types": [],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "reply:fallback",
+                "kind": "reply",
+                "owner": "execution_breakdown",
+                "operation_type": null,
+                "intent": "reply",
+                "source": "route_decision",
+                "status": "pending",
+                "reason_code": "orientation_clarification_resolved_conversation_skill"
+              }
+            ]
+          },
+          "skill_run": {
+            "selected_skill_id": "execution_breakdown",
+            "reason_code": "orientation_clarification_resolved_conversation_skill",
+            "output": {
+              "skill_id": "execution_breakdown",
+              "status": "exit",
+              "response_intent": "exit",
+              "memory_trace": {
+                "memory_used_for_response": false,
+                "memory_item_ids_used": [],
+                "correction_detected": false,
+                "correction_target_item_ids": []
+              },
+              "reply": "Ouvre juste l'endroit de l'action et fais une trace imparfaite de 2 minutes. Après, on ajuste.",
+              "diagnosis": {
+                "stage": "diagnosis",
+                "target": {
+                  "kind": "unknown",
+                  "confidence_band": "high"
+                },
+                "blocker": "unknown",
+                "action_readiness": "blocked_after_first_step",
+                "emotional_dominance": "low",
+                "constraints": [
+                  "do_not_create_card_without_consent"
+                ],
+                "response_contract": {
+                  "max_questions": 1,
+                  "allow_tool_suggestion": true,
+                  "allow_plan_edit_suggestion": false,
+                  "allow_card_suggestion": true,
+                  "allow_exact_phrase": false,
+                  "must_start_with_concrete_action": false,
+                  "max_bullets": 2,
+                  "tone": "relationship_repair"
+                },
+                "execution_decision": {
+                  "skill_id": "execution_breakdown",
+                  "intent": "unclear",
+                  "phase": "exit",
+                  "target": {
+                    "kind": "unknown",
+                    "confidence_band": "high"
+                  },
+                  "blocker": "unknown",
+                  "action_readiness": "blocked_after_first_step",
+                  "emotional_dominance": "low",
+                  "constraints": [
+                    "do_not_create_card_without_consent"
+                  ],
+                  "response_contract": {
+                    "max_questions": 1,
+                    "allow_tool_suggestion": true,
+                    "allow_plan_edit_suggestion": false,
+                    "allow_card_suggestion": true,
+                    "allow_exact_phrase": false,
+                    "must_start_with_concrete_action": false,
+                    "max_bullets": 2,
+                    "tone": "relationship_repair"
+                  },
+                  "operation_suggestions": [],
+                  "memory_write_candidates": [],
+                  "reply": "Ouvre juste l'endroit de l'action et fais une trace imparfaite de 2 minutes. Après, on ajuste.",
+                  "state_patch": {}
+                },
+                "intake_status": "ok"
+              },
+              "recommendation_need": {
+                "needed": false,
+                "type": "execution_repair",
+                "urgency": "low",
+                "constraints": [
+                  "do_not_create_card_without_consent"
+                ]
+              },
+              "operation_suggestions": [],
+              "memory_write_candidates": [],
+              "effects": {
+                "requested": [],
+                "allowed": [],
+                "blocked": [],
+                "committed": []
+              },
+              "state_patch": {
+                "execution_decision": {
+                  "skill_id": "execution_breakdown",
+                  "intent": "unclear",
+                  "phase": "exit",
+                  "target": {
+                    "kind": "unknown",
+                    "confidence_band": "high"
+                  },
+                  "blocker": "unknown",
+                  "action_readiness": "blocked_after_first_step",
+                  "emotional_dominance": "low",
+                  "constraints": [
+                    "do_not_create_card_without_consent"
+                  ],
+                  "response_contract": {
+                    "max_questions": 1,
+                    "allow_tool_suggestion": true,
+                    "allow_plan_edit_suggestion": false,
+                    "allow_card_suggestion": true,
+                    "allow_exact_phrase": false,
+                    "must_start_with_concrete_action": false,
+                    "max_bullets": 2,
+                    "tone": "relationship_repair"
+                  },
+                  "operation_suggestions": [],
+                  "memory_write_candidates": [],
+                  "reply": "Ouvre juste l'endroit de l'action et fais une trace imparfaite de 2 minutes. Après, on ajuste.",
+                  "state_patch": {}
+                },
+                "intake_status": "ok"
+              }
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r1-t02",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 1,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r1-t02:guard:uncommitted_plan_adjust_claim",
+                "kind": "durable_effect",
+                "effect_type": "final_reply.claim",
+                "operation_type": null,
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": null,
+                "status": "blocked",
+                "reason_code": "uncommitted_plan_adjust_claim",
+                "source": "guard",
+                "payload_summary": {
+                  "reason_codes": [
+                    "uncommitted_plan_adjust_claim"
+                  ]
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": null,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "conversation_handler"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r1-t02",
+          "source_message_id": "c34dde13-93cc-454e-850e-88d1f35ad8dd",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [
+              0
+            ],
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "detected": false,
+                "weight": 3.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "detected": false,
+                "weight": 2.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "anger_or_profanity",
+                "detected": false,
+                "weight": 2,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "repetition_or_correction",
+                "detected": false,
+                "weight": 1.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "typographic_intensity",
+                "detected": false,
+                "weight": 0.7,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "active_flow_pressure",
+                "detected": false,
+                "weight": 1,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "previous_risk",
+                "detected": false,
+                "weight": 10,
+                "contribution": 0,
+                "evidence": "0;decay=0.55;recovery=0"
+              }
+            ],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "tool_skill_opportunity": {
+            "type": "none",
+            "operation_type": null,
+            "surface_id": null,
+            "confidence_band": "low",
+            "should_offer": false,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "target_status": "none",
+            "suggested_question_intent": null,
+            "offer_timing": "never",
+            "must_not_execute": true
+          },
+          "skill_signals": {
+            "entry": {
+              "execution_breakdown": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "user_confirms_need_to_break_down_intimidating_actions"
+              }
+            },
+            "lifecycle": {},
+            "exit": {}
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "targeted",
+            "memory_mode": "light",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "small",
+            "targets": [
+              {
+                "type": "level",
+                "key": "current_level",
+                "query_hint": "current level structure and load",
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first",
+                "priority": "high",
+                "entity_type": null
+              }
+            ],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "active_handoff_action": null,
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "blocked_paths": [
+            {
+              "path": "tool_skill_router",
+              "reason_code": "orientation_clarification_resolved_conversation_skill"
+            },
+            {
+              "path": "direct_effects",
+              "reason_code": "orientation_clarification_resolved_conversation_skill"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "orientation_clarification_resolved_conversation_skill",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "none",
+            "active_owner": "none",
+            "selected_owner": "none",
+            "resume_policy": "none",
+            "reason_code": "no_active_flow"
+          },
+          "selected_handler": "execution_breakdown"
+        },
+        "turn_agenda_summary": {
+          "task_count": 1,
+          "owners": [
+            "execution_breakdown"
+          ],
+          "operation_types": [],
+          "constraints": {},
+          "tasks": [
+            {
+              "task_id": "reply:fallback",
+              "kind": "reply",
+              "owner": "execution_breakdown",
+              "operation_type": null,
+              "intent": "reply",
+              "source": "route_decision",
+              "status": "pending",
+              "reason_code": "orientation_clarification_resolved_conversation_skill"
+            }
+          ]
+        },
+        "skill_run": {
+          "selected_skill_id": "execution_breakdown",
+          "reason_code": "orientation_clarification_resolved_conversation_skill",
+          "output": {
+            "skill_id": "execution_breakdown",
+            "status": "exit",
+            "response_intent": "exit",
+            "memory_trace": {
+              "memory_used_for_response": false,
+              "memory_item_ids_used": [],
+              "correction_detected": false,
+              "correction_target_item_ids": []
+            },
+            "reply": "Ouvre juste l'endroit de l'action et fais une trace imparfaite de 2 minutes. Après, on ajuste.",
+            "diagnosis": {
+              "stage": "diagnosis",
+              "target": {
+                "kind": "unknown",
+                "confidence_band": "high"
+              },
+              "blocker": "unknown",
+              "action_readiness": "blocked_after_first_step",
+              "emotional_dominance": "low",
+              "constraints": [
+                "do_not_create_card_without_consent"
+              ],
+              "response_contract": {
+                "max_questions": 1,
+                "allow_tool_suggestion": true,
+                "allow_plan_edit_suggestion": false,
+                "allow_card_suggestion": true,
+                "allow_exact_phrase": false,
+                "must_start_with_concrete_action": false,
+                "max_bullets": 2,
+                "tone": "relationship_repair"
+              },
+              "execution_decision": {
+                "skill_id": "execution_breakdown",
+                "intent": "unclear",
+                "phase": "exit",
+                "target": {
+                  "kind": "unknown",
+                  "confidence_band": "high"
+                },
+                "blocker": "unknown",
+                "action_readiness": "blocked_after_first_step",
+                "emotional_dominance": "low",
+                "constraints": [
+                  "do_not_create_card_without_consent"
+                ],
+                "response_contract": {
+                  "max_questions": 1,
+                  "allow_tool_suggestion": true,
+                  "allow_plan_edit_suggestion": false,
+                  "allow_card_suggestion": true,
+                  "allow_exact_phrase": false,
+                  "must_start_with_concrete_action": false,
+                  "max_bullets": 2,
+                  "tone": "relationship_repair"
+                },
+                "operation_suggestions": [],
+                "memory_write_candidates": [],
+                "reply": "Ouvre juste l'endroit de l'action et fais une trace imparfaite de 2 minutes. Après, on ajuste.",
+                "state_patch": {}
+              },
+              "intake_status": "ok"
+            },
+            "recommendation_need": {
+              "needed": false,
+              "type": "execution_repair",
+              "urgency": "low",
+              "constraints": [
+                "do_not_create_card_without_consent"
+              ]
+            },
+            "operation_suggestions": [],
+            "memory_write_candidates": [],
+            "effects": {
+              "requested": [],
+              "allowed": [],
+              "blocked": [],
+              "committed": []
+            },
+            "state_patch": {
+              "execution_decision": {
+                "skill_id": "execution_breakdown",
+                "intent": "unclear",
+                "phase": "exit",
+                "target": {
+                  "kind": "unknown",
+                  "confidence_band": "high"
+                },
+                "blocker": "unknown",
+                "action_readiness": "blocked_after_first_step",
+                "emotional_dominance": "low",
+                "constraints": [
+                  "do_not_create_card_without_consent"
+                ],
+                "response_contract": {
+                  "max_questions": 1,
+                  "allow_tool_suggestion": true,
+                  "allow_plan_edit_suggestion": false,
+                  "allow_card_suggestion": true,
+                  "allow_exact_phrase": false,
+                  "must_start_with_concrete_action": false,
+                  "max_bullets": 2,
+                  "tone": "relationship_repair"
+                },
+                "operation_suggestions": [],
+                "memory_write_candidates": [],
+                "reply": "Ouvre juste l'endroit de l'action et fais une trace imparfaite de 2 minutes. Après, on ajuste.",
+                "state_patch": {}
+              },
+              "intake_status": "ok"
+            }
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r1-t02",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 1,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": [
+            {
+              "effect_id": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r1-t02:guard:uncommitted_plan_adjust_claim",
+              "kind": "durable_effect",
+              "effect_type": "final_reply.claim",
+              "operation_type": null,
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": null,
+              "status": "blocked",
+              "reason_code": "uncommitted_plan_adjust_claim",
+              "source": "guard",
+              "payload_summary": {
+                "reason_codes": [
+                  "uncommitted_plan_adjust_claim"
+                ]
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": null,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            }
+          ]
+        },
+        "response_owner": "conversation_handler"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r1-t03",
+    "user": "Non, je veux surtout une phrase claire à mettre dans Plan pour demander l’ajustement.",
+    "status": 502,
+    "body": {
+      "message": "An invalid response was received from the upstream server"
+    }
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-06-03-adjust-plan-whole-plan-adjust-plan-input-coach-r1-t04",
+    "user": "Je reformule : aide-moi à écrire la demande à coller dans Plan, pas à faire l’action maintenant.",
+    "status": 502,
+    "body": {
+      "message": "An invalid response was received from the upstream server"
+    }
+  }
+]

@@ -1,0 +1,160 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-r71-whole-plan-natural-t01",
+    "status": 200,
+    "ok": true,
+    "user": "En regardant la suite du plan, je trouve que la prochaine etape arrive trop vite. Avant les conversations sensibles, je voudrais une etape intermediaire plus securisante.",
+    "assistant": "Je dois reprendre le brouillon proprement. Quelle étape intermédiaire concrète veux-tu insérer avant les conversations sensibles : une courte consolidation, une préparation légère, ou un critère de passage plus clair ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "tool_skill_intent_start",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "draft_generation_retry_needed"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Ne pas proposer une montée directe vers le dialogue sensible comme prochaine action.",
+          "Ne pas transformer l’étape tampon en thérapie de fond, en débrief exhaustif ou en confrontation déguisée.",
+          "Ne pas promettre qu’un simple ralentissement suffira sans préciser sa fonction de préparation.",
+          "Ne pas déplacer le centre de gravité du plan vers le problème global au détriment de la progressivité.",
+          "Ne pas casser la logique des phases existantes sans justification claire et explicite."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "La trajectoire globale du plan reste orientée vers des conversations plus sensibles, mais seulement après une préparation suffisante.",
+          "Le coeur de la phase actuelle : désamorcer, recréer de la sécurité, observer sans attaquer.",
+          "Les repères déjà posés sur le signal de pause et la cartographie des déclencheurs.",
+          "L’idée qu’un passage de niveau doit être mérité par la consolidation, pas forcé par le calendrier.",
+          "La cohérence entre sécurité émotionnelle, progressivité et maintien de l’objectif relationnel initial."
+        ],
+        "warnings": [
+          "Éviter de proposer directement une conversation sensible comme prochaine étape alors que la demande signale un trop-plein de vitesse.",
+          "Éviter de supprimer ou d’annuler la phase actuelle : le besoin exprimé est un ralentissement structuré, pas un abandon.",
+          "Éviter une étape intermédiaire trop vague ou purement rassurante sans fonction concrète de préparation.",
+          "Éviter de changer l’objectif du plan vers de la médiation, du dialogue approfondi ou du travail émotionnel intensif sans demande explicite.",
+          "Éviter de traiter cela comme un simple ajustement de charge locale : le point sensible est l’ordre des phases et la transition entre elles."
+        ],
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Action : garder le rôle de l’étape intermédiaire comme pont de sécurité avant l’entrée dans le sensible. Son intention doit rester la stabilisation, la préparation et la réduction de la pression, pas l’attaque du sujet difficile.",
+          "Action : si un pont mini est proposé, il doit être concret, court et réversible. Il doit faciliter le passage sans changer la nature du parcours.",
+          "Action : ne pas modifier la nature du plan vers une conversation plus intense ou plus profonde sans demande explicite ; la bonne direction est l’amorçage prudent.",
+          "Niveau : préserver la charge actuelle de la phase de sécurité et éviter toute hausse de rythme avant d’avoir une base suffisamment stable. Si baisse temporaire il y a, elle doit rester locale et transitoire, non globale.",
+          "Niveau : maintenir la frontière de fin de niveau claire : on ne quitte pas la phase de désamorçage tant que la consolidation n’est pas suffisamment installée et observable.",
+          "Niveau : le coeur du niveau actuel doit rester intact : sécurité, observation à froid, baisse de défensivité, construction de repères partagés.",
+          "Whole plan : respecter la trajectoire en séquences. La phase préparatoire doit précéder toute conversation sensible, avec un ordre lisible des étapes et des prérequis explicites.",
+          "Whole plan : l’objectif principal du plan est conservé ; seule l’entrée dans la phase suivante peut être reprogrammée ou amortie.",
+          "Whole plan : si une clarification manque, elle doit porter sur le seuil de passage, la fonction de l’étape tampon ou le degré de sécurité requis, pas sur le contenu intime du conflit."
+        ],
+        "observation": "La demande ne porte pas sur un exercice précis mais sur le tempo et l’architecture du plan : la personne ressent un décalage entre la phase actuelle et l’entrée dans des conversations sensibles. Le vrai enjeu est la sécurité émotionnelle et la lisibilité de la progression, pas une simple baisse de difficulté locale.",
+        "recommendation": "Orienter la prochaine réponse vers une réséquençation prudente du plan : insérer une étape tampon de consolidation avant toute montée vers le sensible, tout en conservant la trajectoire globale. Le sous-skill devrait privilégier un pont intermédiaire qui prépare, observe et stabilise, plutôt qu’une confrontation directe ou un changement de nature du plan.",
+        "options_to_discuss": [
+          "Ajouter une étape de consolidation courte avant les conversations sensibles, centrée sur l’observation à froid et la stabilisation.",
+          "Intercaler une mission de préparation légère qui renforce la sécurité, par exemple définir les conditions de reprise ou les signaux d’arrêt.",
+          "Prolonger temporairement la phase actuelle avec un objectif de consolidation avant de basculer vers la phase suivante.",
+          "Fragmenter l’entrée dans le sensible en micro-étapes : préparation, test à faible intensité, puis seulement conversation plus engagée.",
+          "Garder la séquence actuelle mais expliciter un critère de passage clair vers l’étape sensible afin de réduire la pression liée à l’incertitude."
+        ],
+        "questions_to_clarify": []
+      },
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "whole_plan",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Ne pas proposer une montée directe vers le dialogue sensible comme prochaine action.",
+        "Ne pas transformer l’étape tampon en thérapie de fond, en débrief exhaustif ou en confrontation déguisée.",
+        "Ne pas promettre qu’un simple ralentissement suffira sans préciser sa fonction de préparation.",
+        "Ne pas déplacer le centre de gravité du plan vers le problème global au détriment de la progressivité.",
+        "Ne pas casser la logique des phases existantes sans justification claire et explicite."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "La trajectoire globale du plan reste orientée vers des conversations plus sensibles, mais seulement après une préparation suffisante.",
+        "Le coeur de la phase actuelle : désamorcer, recréer de la sécurité, observer sans attaquer.",
+        "Les repères déjà posés sur le signal de pause et la cartographie des déclencheurs.",
+        "L’idée qu’un passage de niveau doit être mérité par la consolidation, pas forcé par le calendrier.",
+        "La cohérence entre sécurité émotionnelle, progressivité et maintien de l’objectif relationnel initial."
+      ],
+      "warnings": [
+        "Éviter de proposer directement une conversation sensible comme prochaine étape alors que la demande signale un trop-plein de vitesse.",
+        "Éviter de supprimer ou d’annuler la phase actuelle : le besoin exprimé est un ralentissement structuré, pas un abandon.",
+        "Éviter une étape intermédiaire trop vague ou purement rassurante sans fonction concrète de préparation.",
+        "Éviter de changer l’objectif du plan vers de la médiation, du dialogue approfondi ou du travail émotionnel intensif sans demande explicite.",
+        "Éviter de traiter cela comme un simple ajustement de charge locale : le point sensible est l’ordre des phases et la transition entre elles."
+      ],
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Action : garder le rôle de l’étape intermédiaire comme pont de sécurité avant l’entrée dans le sensible. Son intention doit rester la stabilisation, la préparation et la réduction de la pression, pas l’attaque du sujet difficile.",
+        "Action : si un pont mini est proposé, il doit être concret, court et réversible. Il doit faciliter le passage sans changer la nature du parcours.",
+        "Action : ne pas modifier la nature du plan vers une conversation plus intense ou plus profonde sans demande explicite ; la bonne direction est l’amorçage prudent.",
+        "Niveau : préserver la charge actuelle de la phase de sécurité et éviter toute hausse de rythme avant d’avoir une base suffisamment stable. Si baisse temporaire il y a, elle doit rester locale et transitoire, non globale.",
+        "Niveau : maintenir la frontière de fin de niveau claire : on ne quitte pas la phase de désamorçage tant que la consolidation n’est pas suffisamment installée et observable.",
+        "Niveau : le coeur du niveau actuel doit rester intact : sécurité, observation à froid, baisse de défensivité, construction de repères partagés.",
+        "Whole plan : respecter la trajectoire en séquences. La phase préparatoire doit précéder toute conversation sensible, avec un ordre lisible des étapes et des prérequis explicites.",
+        "Whole plan : l’objectif principal du plan est conservé ; seule l’entrée dans la phase suivante peut être reprogrammée ou amortie.",
+        "Whole plan : si une clarification manque, elle doit porter sur le seuil de passage, la fonction de l’étape tampon ou le degré de sécurité requis, pas sur le contenu intime du conflit."
+      ],
+      "observation": "La demande ne porte pas sur un exercice précis mais sur le tempo et l’architecture du plan : la personne ressent un décalage entre la phase actuelle et l’entrée dans des conversations sensibles. Le vrai enjeu est la sécurité émotionnelle et la lisibilité de la progression, pas une simple baisse de difficulté locale.",
+      "recommendation": "Orienter la prochaine réponse vers une réséquençation prudente du plan : insérer une étape tampon de consolidation avant toute montée vers le sensible, tout en conservant la trajectoire globale. Le sous-skill devrait privilégier un pont intermédiaire qui prépare, observe et stabilise, plutôt qu’une confrontation directe ou un changement de nature du plan.",
+      "options_to_discuss": [
+        "Ajouter une étape de consolidation courte avant les conversations sensibles, centrée sur l’observation à froid et la stabilisation.",
+        "Intercaler une mission de préparation légère qui renforce la sécurité, par exemple définir les conditions de reprise ou les signaux d’arrêt.",
+        "Prolonger temporairement la phase actuelle avec un objectif de consolidation avant de basculer vers la phase suivante.",
+        "Fragmenter l’entrée dans le sensible en micro-étapes : préparation, test à faible intensité, puis seulement conversation plus engagée.",
+        "Garder la séquence actuelle mais expliciter un critère de passage clair vers l’étape sensible afin de réduire la pression liée à l’incertitude."
+      ],
+      "questions_to_clarify": []
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-r71-whole-plan-natural-t01",
+    "trace_error": null
+  }
+]

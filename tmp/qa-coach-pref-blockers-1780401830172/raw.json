@@ -1,0 +1,278 @@
+[
+  {
+    "label": "attack",
+    "user_id": "bfb83b72-710a-42d8-b207-a798e74e6194",
+    "scope": "qa-coach-pref-blockers-1780401830172-attack",
+    "before_counts": {
+      "user_profile_facts": null,
+      "chat_messages": 0
+    },
+    "after_counts": {
+      "user_profile_facts": null,
+      "chat_messages": 6
+    },
+    "cleanup": {
+      "chat_messages": {
+        "status": 204,
+        "ok": true
+      },
+      "user_profile_facts": {
+        "status": 204,
+        "ok": true
+      },
+      "auth_user": {
+        "status": 200,
+        "ok": true
+      }
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "requestId": "qa-coach-pref-blockers-1780401830172-attack-t01",
+        "status": 200,
+        "user": "Prépare une carte d'attaque pour lancer mon dossier fiscal quand je repousse et que j'ouvre YouTube à la place.",
+        "assistant": "Cible/action comprise : Prépare une carte d'attaque pour lancer mon dossier fiscal quand je repousse et que j'ouvre YouTube à la place.\n\nObstacle ou piège identifié : quand je repousse et que j'ouvre YouTube à la place\n\nTechnique recommandée : Le texte magique\nPourquoi : Il court-circuite la négociation mentale en rappelant la réalité de l'évitement.\n\nBrouillon de carte :\nDossier Fiscal vs YouTube\nYouTube ne m'apportera rien de plus que du bruit. Mon dossier fiscal est ma priorité de l'instant. Je ferme cet onglet et j'ouvre le dossier maintenant.\nMode d'emploi : Lis ou recopie ce texte au moment où tu sens la résistance monter, puis fais le premier geste.\n\nÀ préserver :\n- YouTube ne m'apportera rien de plus que du bruit. Mon dossier fiscal est ma priorité de l'instant. Je ferme cet onglet et j'ouvre le dossier maintenant.\n- YouTube est une fuite temporaire\n- Le dossier fiscal ne va pas se faire seul\n\nÀ éviter :\n- Transformer ce brouillon en promesse trop longue.\n- Ajouter plusieurs techniques concurrentes dans la même carte.\n\nDestination plateforme : dans la section Cartes d’attaque\n1. ouvre la section Cartes\n2. choisis Carte d’attaque\n3. reprends le brouillon proposé\n\nJe ne crée pas la carte depuis le chat. Voici la version à reprendre dans la section Cartes d’attaque. 🙂",
+        "trace": {
+          "response_owner": "tool_skill",
+          "selected_handler": "prepare_attack_card",
+          "route_selected_handler": "prepare_attack_card",
+          "route_reason": "central_arbitrator_explicit_attack_card_creation",
+          "operation_status": null,
+          "operation_type": null,
+          "platform_handoff": null,
+          "direct_effects": [],
+          "pending_confirmation": null,
+          "executed_tools": [],
+          "committed_effects": [],
+          "tool_execution": "platform_handoff"
+        }
+      },
+      {
+        "turn": 2,
+        "requestId": "qa-coach-pref-blockers-1780401830172-attack-t02",
+        "status": 200,
+        "user": "Préférence coach très claire : pour la suite, sois plus direct et pose moins de questions.",
+        "assistant": "Ce que je comprends : Préférence coach très claire : pour la suite, sois plus direct et pose moins de questions.\n\nDurable ou ponctuel : préférence durable correspondant à un réglage supporté.\n\nRéglage supporté recommandé :\n- Ton global : Très direct (je serai plus directe, sans perdre le côté soutenant.)\n- Tendance à poser des questions : Peu de questions (je te poserai moins de questions, plus courtes, surtout quand tu es bloqué.)\n\nÀ préserver : garder les réponses utiles et concrètes.\nÀ éviter : transformer ça en règle trop rigide sur la longueur, les questions ou le format si ce n'est pas ton intention.\n\nDestination plateforme : dans les Préférences coach.\n- ouvre les Préférences coach\n- choisis le réglage correspondant\n- applique-le depuis la plateforme\n\nJe ne modifie pas tes préférences depuis le chat. 🙂",
+        "trace": {
+          "response_owner": "tool_skill",
+          "selected_handler": "update_coach_preferences",
+          "route_selected_handler": "update_coach_preferences",
+          "route_reason": "update_coach_preferences_interrupts_active_handoff",
+          "operation_status": null,
+          "operation_type": null,
+          "platform_handoff": null,
+          "direct_effects": [],
+          "pending_confirmation": null,
+          "executed_tools": [],
+          "committed_effects": [],
+          "tool_execution": "platform_handoff"
+        }
+      },
+      {
+        "turn": 3,
+        "requestId": "qa-coach-pref-blockers-1780401830172-attack-t03",
+        "status": 200,
+        "user": "Ok, on reprend la carte d'attaque d'avant.",
+        "assistant": "Cible/action comprise : Prépare une carte d'attaque pour lancer mon dossier fiscal quand je repousse et que j'ouvre YouTube à la place.\n\nObstacle ou piège identifié : quand je repousse et que j'ouvre YouTube à la place\n\nTechnique recommandée : Le texte magique\nPourquoi : Il court-circuite la négociation mentale en rappelant la réalité de l'évitement.\n\nBrouillon de carte :\nDossier Fiscal vs YouTube\nYouTube ne m'apportera rien de plus que du bruit. Mon dossier fiscal est ma priorité de l'instant. Je ferme cet onglet et j'ouvre le dossier maintenant.\nMode d'emploi : Lis ou recopie ce texte au moment où tu sens la résistance monter, puis fais le premier geste.\n\nÀ préserver :\n- YouTube ne m'apportera rien de plus que du bruit. Mon dossier fiscal est ma priorité de l'instant. Je ferme cet onglet et j'ouvre le dossier maintenant.\n- YouTube est une fuite temporaire\n- Le dossier fiscal ne va pas se faire seul\n\nÀ éviter :\n- Transformer ce brouillon en promesse trop longue.\n- Ajouter plusieurs techniques concurrentes dans la même carte.\n\nDestination plateforme : dans la section Cartes d’attaque\n1. ouvre la section Cartes\n2. choisis Carte d’attaque\n3. reprends le brouillon proposé\n\nJe ne crée pas la carte depuis le chat. Voici la version à reprendre dans la section Cartes d’attaque. 🙂",
+        "trace": {
+          "response_owner": "tool_skill",
+          "selected_handler": "prepare_attack_card",
+          "route_selected_handler": "prepare_attack_card",
+          "route_reason": "prepare_attack_card_interrupts_active_handoff",
+          "operation_status": null,
+          "operation_type": null,
+          "platform_handoff": null,
+          "direct_effects": [],
+          "pending_confirmation": null,
+          "executed_tools": [],
+          "committed_effects": [],
+          "tool_execution": "platform_handoff"
+        }
+      }
+    ]
+  },
+  {
+    "label": "recurring",
+    "user_id": "dc8fe3e5-5e8d-423f-b360-3eb121d4a3d3",
+    "scope": "qa-coach-pref-blockers-1780401830172-recurring",
+    "before_counts": {
+      "user_profile_facts": null,
+      "chat_messages": 0
+    },
+    "after_counts": {
+      "user_profile_facts": null,
+      "chat_messages": 6
+    },
+    "cleanup": {
+      "chat_messages": {
+        "status": 204,
+        "ok": true
+      },
+      "user_profile_facts": {
+        "status": 204,
+        "ok": true
+      },
+      "auth_user": {
+        "status": 200,
+        "ok": true
+      }
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "requestId": "qa-coach-pref-blockers-1780401830172-recurring-t01",
+        "status": 200,
+        "user": "Je veux mettre en place un rappel récurrent tous les lundis à 9h pour préparer ma semaine.",
+        "assistant": "Ok, je te prépare ça pour la section Rappels.\n\nPour le rappel, garde le message « Préparer ma semaine ». Il doit revenir chaque semaine, le lundi, à 09:00, Europe/Paris.\n\nDans la plateforme, va dans la section Rappels, puis crée un rappel récurrent avec ces éléments.\n\nJe ne crée pas de rappel récurrent depuis le chat. 🙂",
+        "trace": {
+          "response_owner": "tool_skill",
+          "selected_handler": "create_recurring_reminder",
+          "route_selected_handler": "create_recurring_reminder",
+          "route_reason": "central_arbitrator_recurring_reminder_intent_priority",
+          "operation_status": null,
+          "operation_type": null,
+          "platform_handoff": null,
+          "direct_effects": [],
+          "pending_confirmation": null,
+          "executed_tools": [],
+          "committed_effects": [],
+          "tool_execution": "platform_handoff"
+        }
+      },
+      {
+        "turn": 2,
+        "requestId": "qa-coach-pref-blockers-1780401830172-recurring-t02",
+        "status": 200,
+        "user": "Préférence coach explicite : pour la suite, challenge-moi plus mais garde peu de questions.",
+        "assistant": "Ce que je comprends : Préférence coach explicite : pour la suite, challenge-moi plus mais garde peu de questions.\n\nDurable ou ponctuel : préférence durable correspondant à un réglage supporté.\n\nRéglage supporté recommandé :\n- Niveau de challenge : Élevé (je te challengerai davantage quand tu demandes un vrai coup de lucidité.)\n- Tendance à poser des questions : Peu de questions (je te poserai moins de questions, plus courtes, surtout quand tu es bloqué.)\n\nÀ préserver : garder les réponses utiles et concrètes.\nÀ éviter : transformer ça en règle trop rigide sur la longueur, les questions ou le format si ce n'est pas ton intention.\n\nDestination plateforme : dans les Préférences coach.\n- ouvre les Préférences coach\n- choisis le réglage correspondant\n- applique-le depuis la plateforme\n\nJe ne modifie pas tes préférences depuis le chat. 🙂",
+        "trace": {
+          "response_owner": "tool_skill",
+          "selected_handler": "update_coach_preferences",
+          "route_selected_handler": "update_coach_preferences",
+          "route_reason": "update_coach_preferences_interrupts_active_handoff",
+          "operation_status": null,
+          "operation_type": null,
+          "platform_handoff": null,
+          "direct_effects": [],
+          "pending_confirmation": null,
+          "executed_tools": [],
+          "committed_effects": [],
+          "tool_execution": "platform_handoff"
+        }
+      },
+      {
+        "turn": 3,
+        "requestId": "qa-coach-pref-blockers-1780401830172-recurring-t03",
+        "status": 200,
+        "user": "Reprends le rappel récurrent d'avant, celui du lundi matin.",
+        "assistant": "Veux-tu que je te redonne les détails de ce rappel ou veux-tu modifier un élément ? 🙂",
+        "trace": {
+          "response_owner": "tool_skill",
+          "selected_handler": "create_recurring_reminder",
+          "route_selected_handler": "create_recurring_reminder",
+          "route_reason": "create_recurring_reminder_interrupts_active_handoff",
+          "operation_status": null,
+          "operation_type": null,
+          "platform_handoff": null,
+          "direct_effects": [],
+          "pending_confirmation": null,
+          "executed_tools": [],
+          "committed_effects": [],
+          "tool_execution": "platform_handoff"
+        }
+      }
+    ]
+  },
+  {
+    "label": "defense",
+    "user_id": "c62028b5-4b24-4f45-a7b2-94464401fa5a",
+    "scope": "qa-coach-pref-blockers-1780401830172-defense",
+    "before_counts": {
+      "user_profile_facts": null,
+      "chat_messages": 0
+    },
+    "after_counts": {
+      "user_profile_facts": null,
+      "chat_messages": 6
+    },
+    "cleanup": {
+      "chat_messages": {
+        "status": 204,
+        "ok": true
+      },
+      "user_profile_facts": {
+        "status": 204,
+        "ok": true
+      },
+      "auth_user": {
+        "status": 200,
+        "ok": true
+      }
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "requestId": "qa-coach-pref-blockers-1780401830172-defense-t01",
+        "status": 200,
+        "user": "Prépare une carte de défense pour éviter de scroller le soir quand je suis fatigué, mais ne crée rien sans me demander.",
+        "assistant": "Je ne crée pas la carte depuis le chat. Voici la version à reprendre dans la section Cartes de défense.\n\n1. Situation / action comprise : Sommeil\n2. Risque identifié : Le soir quand je suis fatigué (L'envie de scroller)\n3. Stratégie de défense recommandée : Réponse préparée avant le moment de risque\nPourquoi : Cela permet de rompre le cycle de la fatigue et de favoriser l'endormissement.\n\n4. Brouillon de carte : Titre : Scrolling du soir\nMoment : Le soir quand je suis fatigué\nSignal : L'envie de scroller\nGeste : Poser le téléphone\nPlan B : Lire un livre\n\n5. À préserver :\n- Le moment précis où le risque apparaît\n- Un geste court et faisable même avec peu d'énergie\n- Un plan B qui réduit les dégâts sans culpabiliser\n\n6. À éviter :\n- Transformer la défense en injonction trop dure\n- Créer une carte vague sans signal concret\n- Compter sur la motivation du moment fragile\n\n7. Destination plateforme : dans la section Cartes de défense\n- ouvre la section Cartes\n- choisis Carte de défense\n- reprends le brouillon proposé\n\nJe ne crée ni ne modifie aucune carte depuis ce chat. 🙂",
+        "trace": {
+          "response_owner": "tool_skill",
+          "selected_handler": "prepare_defense_card",
+          "route_selected_handler": "prepare_defense_card",
+          "route_reason": "tool_skill_intent_start",
+          "operation_status": null,
+          "operation_type": null,
+          "platform_handoff": null,
+          "direct_effects": [],
+          "pending_confirmation": null,
+          "executed_tools": [],
+          "committed_effects": [],
+          "tool_execution": "platform_handoff"
+        }
+      },
+      {
+        "turn": 2,
+        "requestId": "qa-coach-pref-blockers-1780401830172-defense-t02",
+        "status": 200,
+        "user": "Préférence coach très claire : pour la suite, parle-moi plus doucement et pose moins de questions.",
+        "assistant": "Ce que je comprends : Préférence coach très claire : pour la suite, parle-moi plus doucement et pose moins de questions.\n\nDurable ou ponctuel : préférence durable correspondant à un réglage supporté.\n\nRéglage supporté recommandé :\n- Ton global : Doux (je prendrai un ton plus doux quand je te réponds.)\n- Tendance à poser des questions : Peu de questions (je te poserai moins de questions, plus courtes, surtout quand tu es bloqué.)\n\nÀ préserver : garder les réponses utiles et concrètes.\nÀ éviter : transformer ça en règle trop rigide sur la longueur, les questions ou le format si ce n'est pas ton intention.\n\nDestination plateforme : dans les Préférences coach.\n- ouvre les Préférences coach\n- choisis le réglage correspondant\n- applique-le depuis la plateforme\n\nJe ne modifie pas tes préférences depuis le chat. 🙂",
+        "trace": {
+          "response_owner": "tool_skill",
+          "selected_handler": "update_coach_preferences",
+          "route_selected_handler": "update_coach_preferences",
+          "route_reason": "update_coach_preferences_interrupts_active_handoff",
+          "operation_status": null,
+          "operation_type": null,
+          "platform_handoff": null,
+          "direct_effects": [],
+          "pending_confirmation": null,
+          "executed_tools": [],
+          "committed_effects": [],
+          "tool_execution": "platform_handoff"
+        }
+      },
+      {
+        "turn": 3,
+        "requestId": "qa-coach-pref-blockers-1780401830172-defense-t03",
+        "status": 200,
+        "user": "Ok, maintenant reprends la carte de défense d'avant.",
+        "assistant": "Je ne crée pas la carte depuis le chat. Voici la version à reprendre dans la section Cartes de défense.\n\n1. Situation / action comprise : scroller le soir\n2. Risque identifié : Le soir quand je suis fatigué (L'envie de scroller)\n3. Stratégie de défense recommandée : Réponse préparée avant le moment de risque\nPourquoi : Interrompt l'automatisme de consultation.\n\n4. Brouillon de carte : Titre : Scrolling du soir\nMoment : Le soir quand je suis fatigué\nSignal : L'envie de scroller\nGeste : Poser le téléphone loin de moi\nPlan B : Fermer les yeux 2 minutes\n\n5. À préserver :\n- Le moment précis où le risque apparaît\n- Un geste court et faisable même avec peu d'énergie\n- Un plan B qui réduit les dégâts sans culpabiliser\n\n6. À éviter :\n- Transformer la défense en injonction trop dure\n- Créer une carte vague sans signal concret\n- Compter sur la motivation du moment fragile\n\n7. Destination plateforme : dans la section Cartes de défense\n- ouvre la section Cartes\n- choisis Carte de défense\n- reprends le brouillon proposé\n\nJe ne crée ni ne modifie aucune carte depuis ce chat. 🙂",
+        "trace": {
+          "response_owner": "tool_skill",
+          "selected_handler": "prepare_defense_card",
+          "route_selected_handler": "prepare_defense_card",
+          "route_reason": "prepare_defense_card_interrupts_active_handoff",
+          "operation_status": null,
+          "operation_type": null,
+          "platform_handoff": null,
+          "direct_effects": [],
+          "pending_confirmation": null,
+          "executed_tools": [],
+          "committed_effects": [],
+          "tool_execution": "platform_handoff"
+        }
+      }
+    ]
+  }
+]

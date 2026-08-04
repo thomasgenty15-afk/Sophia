@@ -1,0 +1,13 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-prepare-defense-card-alex-2026-06-12-prepare-defense-local-doctrine-r7-t01",
+    "auth_method": "get-jwt.sh",
+    "user": "Je veux préparer une carte de défense : quand je rentre rincé après le boulot, je me laisse happer par une commande au hasard au lieu de manger correctement.",
+    "status": 503,
+    "body": {
+      "code": "BOOT_ERROR",
+      "message": "Worker failed to boot (please check logs)"
+    }
+  }
+]

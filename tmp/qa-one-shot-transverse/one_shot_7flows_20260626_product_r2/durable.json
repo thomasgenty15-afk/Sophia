@@ -1,0 +1,168 @@
+{
+  "scheduled_checkins": [
+    {
+      "id": "8bbf06a8-9b47-4205-b0f6-47fd61efd430",
+      "status": "pending",
+      "scheduled_for": "2026-06-26T11:17:10.293+00:00",
+      "event_context": "one_shot_reminder:relire_cette_fiche",
+      "message_payload": {
+        "source": "one_shot_reminder_executor",
+        "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Objet du rappel utilisateur: relire cette fiche.",
+        "local_label": "dans 26 minutes",
+        "parse_source": "payload_utc_time",
+        "request_text": "Rappelle-moi dans 26 minutes de relire cette fiche",
+        "reminder_kind": "one_shot",
+        "user_timezone": "Europe/Paris",
+        "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: relire cette fiche.",
+        "source_message_id": "9d2e2570-9b8c-4b1b-8255-fd330bdbf3e5",
+        "reminder_instruction": "relire cette fiche"
+      },
+      "created_at": "2026-06-26T10:51:14.625305+00:00"
+    }
+  ],
+  "chat_messages_count": 4,
+  "chat_messages": [
+    {
+      "role": "user",
+      "content": "Je cherche où Sophia range les initiatives, surtout celles qui ne sont pas dans le plan actuel.",
+      "created_at": "2026-06-26T10:50:52.446421+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_7flows_20260626_product_r2-t01",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Les initiatives hors plan se rangent dans Base de vie > Initiatives. C’est l’endroit pour gérer les initiatives libres, pas le Plan.",
+      "created_at": "2026-06-26T10:50:59.169621+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_7flows_20260626_product_r2-t01",
+        "route_owner": "product_help",
+        "selected_handler": "product_help",
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "user",
+      "content": "Rappelle-moi dans 26 minutes de relire cette fiche, et confirme-moi juste l’endroit pour les initiatives hors plan.",
+      "created_at": "2026-06-26T10:51:10.282557+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_7flows_20260626_product_r2-t02",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Je te le rappellerai dans 26 minutes pour relire cette fiche. Pour les initiatives hors plan, c’est dans Base de vie > Initiatives.",
+      "created_at": "2026-06-26T10:51:20.835471+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_7flows_20260626_product_r2-t02",
+        "route_owner": "product_help",
+        "selected_handler": "product_help",
+        "tool_execution": null
+      }
+    }
+  ],
+  "user_chat_state": {
+    "user_id": "9a2ef595-1ddc-4bc4-8167-4995a9dec8c0",
+    "current_mode": "companion",
+    "risk_level": 0,
+    "temp_memory": {
+      "__active_skill_state": {
+        "status": "active",
+        "version": 1,
+        "skill_id": "product_help",
+        "started_at": "2026-06-26T10:51:20.824Z",
+        "turn_count": 1,
+        "updated_at": "2026-06-26T10:51:20.824Z",
+        "working_state": {
+          "product_help_local_state": {
+            "mode": "standalone",
+            "status": "open",
+            "skill_id": "product_help",
+            "product_help_state": {
+              "stage": "answering",
+              "max_turns": 3,
+              "turn_count": 1,
+              "updated_at": "2026-06-26T10:51:18.928Z",
+              "last_intent": "where_is_it",
+              "last_target": {
+                "kind": "feature_catalog",
+                "confidence": "high",
+                "feature_id": "base_de_vie",
+                "object_ref": null,
+                "object_type": "initiative"
+              },
+              "last_locations": [
+                "Dashboard > Plan",
+                "Dashboard > Plan",
+                "Dashboard > Plan",
+                "Dashboard > Plan",
+                "Dashboard > Plan",
+                "Dashboard > Plan",
+                "Dashboard > Ressources",
+                "Dashboard > Plan"
+              ],
+              "last_answer_summary": "Question sur l'endroit où se trouvent les initiatives hors plan.",
+              "parent_flow_context": null,
+              "last_catalog_feature_ids": [
+                "base_de_vie",
+                "initiatives"
+              ]
+            }
+          }
+        }
+      },
+      "__active_conversation_skill_v1": {
+        "status": "active",
+        "version": 1,
+        "skill_id": "product_help",
+        "started_at": "2026-06-26T10:51:20.824Z",
+        "turn_count": 1,
+        "updated_at": "2026-06-26T10:51:20.824Z",
+        "working_state": {
+          "product_help_local_state": {
+            "mode": "standalone",
+            "status": "open",
+            "skill_id": "product_help",
+            "product_help_state": {
+              "stage": "answering",
+              "max_turns": 3,
+              "turn_count": 1,
+              "updated_at": "2026-06-26T10:51:18.928Z",
+              "last_intent": "where_is_it",
+              "last_target": {
+                "kind": "feature_catalog",
+                "confidence": "high",
+                "feature_id": "base_de_vie",
+                "object_ref": null,
+                "object_type": "initiative"
+              },
+              "last_locations": [
+                "Dashboard > Plan",
+                "Dashboard > Plan",
+                "Dashboard > Plan",
+                "Dashboard > Plan",
+                "Dashboard > Plan",
+                "Dashboard > Plan",
+                "Dashboard > Ressources",
+                "Dashboard > Plan"
+              ],
+              "last_answer_summary": "Question sur l'endroit où se trouvent les initiatives hors plan.",
+              "parent_flow_context": null,
+              "last_catalog_feature_ids": [
+                "base_de_vie",
+                "initiatives"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "updated_at": "2026-06-26T10:51:20.829276+00:00"
+  }
+}

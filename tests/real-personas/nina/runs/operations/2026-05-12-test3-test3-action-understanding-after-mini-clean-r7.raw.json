@@ -1,0 +1,338 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-action-understanding-after-mini-clean-r7-t01",
+    "auth_method": "get-jwt.sh",
+    "user": "Je suis un peu perdue là. Cette semaine je suis censée faire quoi exactement ? Et nettoyer mon environnement direct, c'est un truc à refaire tous les jours ou c'est autre chose ?",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-action-understanding-after-mini-clean-r7-t01",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-action-understanding-after-mini-clean-r7",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ok, je te remets ça clair. 😊\n\nCette semaine, tu as une seule chose à faire: Décoder ton envie de grignoter.\n\nEt “Nettoyer ton environnement direct”, c’est autre chose: c’était une action ponctuelle, pas à refaire tous les jours (ça a été assigné à une semaine passée et c’était pour assainir l’espace en une seule fois).\n\nTu veux qu’on te traduise “Décoder ton envie de grignoter” en 1 mini-étape concrète pour aujourd’hui ?",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-action-understanding-after-mini-clean-r7-t01",
+        "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+        "source_message_id": "c0032afa-e78b-466e-bf35-3e29838ae9ec",
+        "ts": "2026-05-15T12:13:26.846+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 5852,
+          "latency_ms": 13280,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 624,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "a751731a-3832-4bea-a707-c72170fd15a0",
+                "type": "action",
+                "priority": null,
+                "query_hint": "Nettoyer ton environnement direct",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "plan_de_la_semaine",
+                "type": "topic",
+                "priority": null,
+                "query_hint": "contenu du plan cette semaine",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "habitudes.planification",
+                "type": "domain_key",
+                "priority": null,
+                "query_hint": "frequence des actions",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s10"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-action-understanding-after-mini-clean-r7-t01",
+          "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "a751731a-3832-4bea-a707-c72170fd15a0",
+                "type": "action",
+                "priority": null,
+                "query_hint": "Nettoyer ton environnement direct",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "plan_de_la_semaine",
+                "type": "topic",
+                "priority": null,
+                "query_hint": "contenu du plan cette semaine",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "habitudes.planification",
+                "type": "domain_key",
+                "priority": null,
+                "query_hint": "frequence des actions",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "execution_breakdown": {
+                "reason": "user_lost_and_requesting_plan_clarity",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "c0032afa-e78b-466e-bf35-3e29838ae9ec",
+          "tool_skill_intents": [],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "skill_entry_signal",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "memory_use_kind": "none",
+          "selected_handler": "execution_breakdown",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "output": {
+            "reply": "On ne cherche pas encore la solution parfaite. On cherche le point exact ou ca bloque: demarrage, energie, flou, peur, ou environnement.",
+            "status": "continue",
+            "skill_id": "execution_breakdown",
+            "diagnosis": {
+              "stage": "diagnosis",
+              "blocker_candidates": [
+                "flou",
+                "energie",
+                "friction_demarrage"
+              ]
+            },
+            "state_patch": {
+              "summary": "Execution blocker diagnosis in progress."
+            },
+            "memory_trace": {
+              "correction_detected": false,
+              "memory_item_ids_used": [],
+              "memory_used_for_response": false,
+              "correction_target_item_ids": []
+            },
+            "response_intent": "diagnose_blocker",
+            "recommendation_need": {
+              "type": "execution_repair",
+              "needed": true,
+              "urgency": "medium",
+              "constraints": [
+                "understand_before_solution"
+              ]
+            },
+            "operation_suggestions": [
+              {
+                "reason": "clear_execution_block_can_use_attack_card",
+                "urgency": "medium",
+                "operation_type": "prepare_attack_card",
+                "confidence_band": "medium",
+                "source_skill_id": "execution_breakdown",
+                "operation_input_hint": {
+                  "scope": {
+                    "kind": "plan_item",
+                    "title": "Nettoyer ton environnement direct",
+                    "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0"
+                  },
+                  "target": {
+                    "kind": "plan_item",
+                    "title": "Nettoyer ton environnement direct",
+                    "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0"
+                  },
+                  "blocker": {
+                    "type": "execution_block"
+                  }
+                },
+                "requires_user_consent": true
+              }
+            ],
+            "memory_write_candidates": [
+              {
+                "kind": "statement",
+                "scope_hint": "session",
+                "content_text": "Je suis un peu perdue là. Cette semaine je suis censée faire quoi exactement ? Et nettoyer mon environnement direct, c'est un truc à refaire tous les jours ou c'est autre chose ?",
+                "confidence_band": "medium",
+                "sensitivity_level": 1,
+                "evidence_source_ids": [
+                  "c0032afa-e78b-466e-bf35-3e29838ae9ec"
+                ],
+                "persistence_rationale": "Conversation skill observation; memorizer decides durable persistence.",
+                "should_persist_default": false,
+                "anti_identity_freeze_checked": true
+              }
+            ]
+          },
+          "reason_code": "skill_entry_signal",
+          "selected_skill_id": "execution_breakdown"
+        },
+        "operation_flow_run": null,
+        "recommendation_tool_run": {
+          "stats": null,
+          "recommendation": {
+            "reason": "cooldown_or_contraindications_exhausted_surfaces",
+            "timing": "later",
+            "decision": "defer",
+            "cta_style": "none",
+            "confidence": 0.7,
+            "alternatives": [],
+            "do_not_recommend": [],
+            "requires_consent": false,
+            "recommendation_id": "rec_qa-operation-suggestion-test3-nina-2026-05-12-test3-action-understanding-after-mini-clean-r7-t01_1778847205240",
+            "presentation_level": 0
+          }
+        },
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "conversation_handler",
+        "total_latency_ms": 14958,
+        "created_at": "2026-05-15T12:13:26.848404+00:00"
+      },
+      "trace_error": null
+    }
+  }
+]

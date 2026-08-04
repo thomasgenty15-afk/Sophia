@@ -1,0 +1,137 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-level-real-manual-r1-t01",
+    "auth_method": "get-jwt.sh",
+    "user": "Je sens que ce n est pas juste une action qui coince. C est tout le morceau actuel qui me demande trop de micro-decisions dans la journee, et du coup je finis par eviter.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-level-real-manual-r1-t01",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-level-real-manual-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ah oui, je vois très bien le piège : c’est pas “une tâche”, c’est tout un environnement mental qui te force à micro-décider toute la journée, donc ton cerveau choisit l’évitement. 😅\n\nOn va le traiter comme un système, pas comme un morceau. Le plus efficace, c’est de réduire le nombre de moments où tu dois décider :\n1) tu fige un seul “créneau” (même court) où tu fais le truc\n2) tu prépares tout une fois (un seul geste prêt à l’emploi)\n3) tu as une version “minimum vital” qui ne demande aucune réflexion\n\nPour qu’on verrouille ça proprement : c’est plutôt quoi qui te fait micro-décider en premier (quoi faire, quand le faire, ou comment le démarrer) ? 🙂",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-level-real-manual-r1-t02",
+    "auth_method": "get-jwt.sh",
+    "user": "C est surtout quoi faire et quand le faire. Mais je ne veux pas juste une astuce, j aimerais que tu regardes le niveau actuel du plan et que tu proposes un ajustement avant de l appliquer.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-level-real-manual-r1-t02",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-level-real-manual-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je vois que ton niveau actuel est très chargé en versions 'mini'. Pour que je puisse te proposer un ajustement précis sur le 'quoi' et le 'quand', as-tu des moments favoris dans la journée pour ces actions, ou une préférence sur le nombre de tâches à garder ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-level-real-manual-r1-t03",
+    "auth_method": "get-jwt.sh",
+    "user": "Je veux garder le coeur du niveau, mais pas plus de deux choses a faire dans une journee. Et plutot en fin de matinee, parce que le soir je suis deja vide.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-level-real-manual-r1-t03",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-level-real-manual-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C'est noté, on va limiter à deux actions en fin de matinée pour protéger ton énergie. Parmi tes actions actuelles (Nettoyer l'environnement, Choix du brut, Décoder le grignotage), lesquelles sont les deux plus importantes à tes yeux ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-level-real-manual-r1-t04",
+    "auth_method": "get-jwt.sh",
+    "user": "Choix du brut et decoder le grignotage. Le rangement peut rester, mais pas comme priorite du niveau cette semaine.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-level-real-manual-r1-t04",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-level-real-manual-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je te propose d'ajuster ton niveau actuel pour qu'il soit plus réaliste face à tes contraintes de temps, sans rien changer à ton objectif final. Rien n'est encore appliqué pour le moment. L'idée est de garder tes priorités comme le choix d'aliments bruts tout en allégeant les tâches périphériques. Par exemple, je suggère de remplacer le nettoyage complet de tes placards par une version flash de 5 minutes et de simplifier la préparation de tes alternatives. Est-ce que cela te convient ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-level-real-manual-r1-t05",
+    "auth_method": "get-jwt.sh",
+    "user": "Avant de valider, je ne vois pas exactement ce qui change. Donne moi deux changements precis, et confirme que decoder le grignotage reste dans les deux priorites.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-level-real-manual-r1-t05",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-level-real-manual-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je te propose d'ajuster ton niveau actuel pour qu'il soit plus réaliste face à tes contraintes de temps, sans rien changer à ton objectif final. Rien n'est encore appliqué pour le moment. L'idée est de garder tes priorités comme le choix d'aliments bruts tout en allégeant les tâches périphériques. Par exemple, je suggère de remplacer le nettoyage complet de tes placards par une version flash de 5 minutes et de simplifier la préparation de tes alternatives. Est-ce que cela te convient ?",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  }
+]

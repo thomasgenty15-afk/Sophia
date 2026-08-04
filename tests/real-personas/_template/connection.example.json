@@ -1,0 +1,8 @@
+{
+  "user_id": "USER_ID_LOCAL",
+  "email": "persona@example.com",
+  "password": "DO_NOT_COMMIT_REAL_PASSWORD",
+  "channel": "web",
+  "scope": "qa-persona-YYYY-MM-DD-run-id"
+}
+

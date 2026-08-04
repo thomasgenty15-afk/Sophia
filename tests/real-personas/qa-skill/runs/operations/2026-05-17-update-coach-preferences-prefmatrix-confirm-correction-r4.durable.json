@@ -1,0 +1,367 @@
+{
+  "connection": {
+    "persona": "qa-skill",
+    "connection_name": "product_help_dashboard_dashhelp1_c4_initiatives-preferences-base",
+    "user_id": "e8b5e4b0-5ce5-43aa-a99b-0c8cd2446fc0",
+    "scope": "qa-update-coach-preferences-2026-05-17-prefmatrix-confirm-correction-r4"
+  },
+  "target": {
+    "key": "coach.question_tendency",
+    "value": "low",
+    "user": "Finalement j'aimerais que tu sois plus directe avec moi."
+  },
+  "before": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "key": "coach.tone",
+        "value": {
+          "label": "Bienveillant ferme",
+          "value": "warm_direct"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-17T17:56:51.496225+00:00",
+        "last_source_message_id": null
+      },
+      {
+        "key": "coach.challenge_level",
+        "value": {
+          "label": "Équilibré",
+          "value": "balanced"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-17T17:56:51.496225+00:00",
+        "last_source_message_id": null
+      },
+      {
+        "key": "coach.question_tendency",
+        "value": {
+          "label": "Normale",
+          "value": "normal"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-17T17:56:51.496225+00:00",
+        "last_source_message_id": null
+      }
+    ]
+  },
+  "after": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "key": "coach.tone",
+        "value": {
+          "label": "Bienveillant ferme",
+          "value": "warm_direct"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-17T17:56:51.496225+00:00",
+        "last_source_message_id": null
+      },
+      {
+        "key": "coach.challenge_level",
+        "value": {
+          "label": "Équilibré",
+          "value": "balanced"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-17T17:56:51.496225+00:00",
+        "last_source_message_id": null
+      },
+      {
+        "key": "coach.question_tendency",
+        "value": {
+          "label": "Peu de questions",
+          "value": "low"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "explicit_user",
+        "reason": "Oui, applique plutôt le réglage avec moins de questions.",
+        "updated_at": "2026-05-17T17:57:20.166+00:00",
+        "last_source_message_id": "f9cced1d-9d9e-4cdc-a300-925c936c2ff8"
+      }
+    ]
+  },
+  "restore": {
+    "status": 204,
+    "ok": true
+  },
+  "restored": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "key": "coach.tone",
+        "value": {
+          "label": "Bienveillant ferme",
+          "value": "warm_direct"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-17T17:56:51.496225+00:00",
+        "last_source_message_id": null
+      },
+      {
+        "key": "coach.challenge_level",
+        "value": {
+          "label": "Équilibré",
+          "value": "balanced"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-17T17:56:51.496225+00:00",
+        "last_source_message_id": null
+      },
+      {
+        "key": "coach.question_tendency",
+        "value": {
+          "label": "Normale",
+          "value": "normal"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-17T17:57:20.166+00:00",
+        "last_source_message_id": null
+      }
+    ]
+  },
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "b1dcb40b-11ee-4a03-92e7-6cec010aaee4",
+        "role": "user",
+        "content": "Finalement j'aimerais que tu sois plus directe avec moi.",
+        "metadata": {
+          "request_id": "qa-update-coach-preferences-2026-05-17-prefmatrix-confirm-correction-r4-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-17T17:56:51.695138+00:00"
+      },
+      {
+        "id": "8cfa0032-d146-4c1f-ad09-d30ef638ba71",
+        "role": "assistant",
+        "content": "Je peux régler ma façon de répondre: j'utiliserai un ton plus direct. Tu veux que je l'applique ?",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-update-coach-preferences-2026-05-17-prefmatrix-confirm-correction-r4-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "draft": {
+                "draft": {
+                  "patch": {
+                    "coach.tone": "direct"
+                  },
+                  "reason": "Finalement j'aimerais que tu sois plus directe avec moi.",
+                  "summary": "j'utiliserai un ton plus direct."
+                },
+                "output_schema": "coach_preferences_patch_draft_v1",
+                "operation_type": "update_coach_preferences",
+                "confirmation_actions": [
+                  "yes",
+                  "no"
+                ],
+                "confirmation_message": "Je peux régler ma façon de répondre: j'utiliserai un ton plus direct. Tu veux que je l'applique ?"
+              },
+              "status": "pending_confirmation",
+              "operation_id": "ce510d47-9a54-4a6a-a751-0391f74ddd46",
+              "selected_handler": "update_coach_preferences"
+            }
+          }
+        },
+        "created_at": "2026-05-17T17:56:59.964134+00:00"
+      },
+      {
+        "id": "6f29edac-19f6-4536-8f50-a3f9d6b9de0e",
+        "role": "user",
+        "content": "En fait non, garde le ton comme avant, mais pose-moi moins de questions.",
+        "metadata": {
+          "request_id": "qa-update-coach-preferences-2026-05-17-prefmatrix-confirm-correction-r4-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-17T17:57:00.059127+00:00"
+      },
+      {
+        "id": "032600c2-3fa0-4a89-bcb5-38ea6688c24b",
+        "role": "assistant",
+        "content": "D'accord, je garde mon ton habituel mais je ferai attention à te poser moins de questions à l'avenir. Je prépare cette modification pour toi.",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-update-coach-preferences-2026-05-17-prefmatrix-confirm-correction-r4-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "status": "draft_review_revision_requested",
+              "operation_id": "ce510d47-9a54-4a6a-a751-0391f74ddd46",
+              "selected_handler": "update_coach_preferences",
+              "draft_review_decision": {
+                "decision": "revise",
+                "evidence": [
+                  "En fait non",
+                  "garde le ton comme avant",
+                  "pose-moi moins de questions"
+                ],
+                "confidence": "high",
+                "generated_user_message": "D'accord, je garde mon ton habituel mais je ferai attention à te poser moins de questions à l'avenir. Je prépare cette modification pour toi."
+              }
+            }
+          }
+        },
+        "created_at": "2026-05-17T17:57:06.361251+00:00"
+      },
+      {
+        "id": "4005e3a0-1558-4314-ad8f-cdd1472aaa3e",
+        "role": "user",
+        "content": "Oui, applique plutôt le réglage avec moins de questions.",
+        "metadata": {
+          "request_id": "qa-update-coach-preferences-2026-05-17-prefmatrix-confirm-correction-r4-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-17T17:57:06.403605+00:00"
+      },
+      {
+        "id": "eb646ca8-b871-4eca-a683-3336337574d7",
+        "role": "assistant",
+        "content": "Je peux régler ma façon de répondre: j'utiliserai moins de questions. Tu veux que je l'applique ?",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-update-coach-preferences-2026-05-17-prefmatrix-confirm-correction-r4-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "draft": {
+                "draft": {
+                  "patch": {
+                    "coach.question_tendency": "low"
+                  },
+                  "reason": "Oui, applique plutôt le réglage avec moins de questions.",
+                  "summary": "j'utiliserai moins de questions."
+                },
+                "output_schema": "coach_preferences_patch_draft_v1",
+                "operation_type": "update_coach_preferences",
+                "confirmation_actions": [
+                  "yes",
+                  "no"
+                ],
+                "confirmation_message": "Je peux régler ma façon de répondre: j'utiliserai moins de questions. Tu veux que je l'applique ?"
+              },
+              "status": "pending_confirmation",
+              "operation_id": "43e14ba0-4367-43c0-be55-43a117d54741",
+              "selected_handler": "update_coach_preferences"
+            }
+          }
+        },
+        "created_at": "2026-05-17T17:57:13.348432+00:00"
+      },
+      {
+        "id": "f9cced1d-9d9e-4cdc-a300-925c936c2ff8",
+        "role": "user",
+        "content": "Oui, applique celui-là.",
+        "metadata": {
+          "request_id": "qa-update-coach-preferences-2026-05-17-prefmatrix-confirm-correction-r4-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-17T17:57:13.393236+00:00"
+      },
+      {
+        "id": "a4217304-2bc4-4ee5-82d0-3ccba169a59c",
+        "role": "assistant",
+        "content": "C'est fait. J'ai appliqué cette préférence : j'utiliserai moins de questions.",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-update-coach-preferences-2026-05-17-prefmatrix-confirm-correction-r4-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "status": "executed",
+              "operation_id": "43e14ba0-4367-43c0-be55-43a117d54741",
+              "selected_handler": "update_coach_preferences",
+              "draft_review_decision": {
+                "decision": "approve",
+                "evidence": [
+                  "L'utilisateur répond par l'affirmative et demande explicitement l'exécution avec le verbe 'applique'."
+                ],
+                "confidence": "high",
+                "generated_user_message": null
+              },
+              "preferences_update_id": "coach.question_tendency"
+            }
+          }
+        },
+        "created_at": "2026-05-17T17:57:20.177666+00:00"
+      }
+    ]
+  },
+  "cleanup": {
+    "chat_messages": {
+      "status": 204,
+      "ok": true
+    },
+    "user_profile_facts": {
+      "status": 204,
+      "ok": true
+    },
+    "auth_user": {
+      "status": 200,
+      "ok": true
+    }
+  }
+}

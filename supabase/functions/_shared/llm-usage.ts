@@ -72,16 +72,47 @@ export function inferOperationFromSource(source: string | null | undefined): { o
 
   // Most specific mappings first.
   if (src.includes("embed")) return { operation_family: "embedding", operation_name: src };
-  if (src.includes("generate-plan") || src.includes("plan")) return { operation_family: "plan_generation", operation_name: src };
+  if (
+    src.includes("visible") ||
+    src.includes("direct_effect") ||
+    src.includes("defense-card") ||
+    src.includes("defense_card") ||
+    src.includes("attack-card") ||
+    src.includes("attack_card") ||
+    src.includes("inspiration") ||
+    src.includes("support-card") ||
+    src.includes("potion") ||
+    src.includes("bilan_stale") ||
+    src.includes("router_emergency")
+  ) return { operation_family: "message_generation", operation_name: src };
+  if (
+    src.includes("generate-plan-v2") || src.includes("intake-to-transformations-v2") ||
+    src.includes("questionnaire") || src.includes("plan") ||
+    src.includes("materialization") ||
+    src.includes("draft-transformation") ||
+    src.includes("intake-structuring")
+  ) return { operation_family: "plan_generation", operation_name: src };
   if (src.includes("dispatcher")) return { operation_family: "dispatcher", operation_name: src };
-  if (src.includes("sort-priorities")) return { operation_family: "sort_priorities", operation_name: src };
-  if (src.includes("summarize-context") || src.includes("summary")) return { operation_family: "summarize_context", operation_name: src };
+  if (
+    src.includes("conversation_pulse") ||
+    src.includes("weekly_conversation_digest") ||
+    src.includes("weekly_digest")
+  ) {
+    return { operation_family: "summary_generation", operation_name: src };
+  }
+  if (
+    src.includes("transformation_handoff") ||
+    src.includes("coaching_intervention_selector") ||
+    src.includes("morning_nudge")
+  ) {
+    return { operation_family: "message_generation", operation_name: src };
+  }
+  if (src.includes("summary") || src.includes("identity-manager") || src.includes("architect-memory")) return { operation_family: "summary_generation", operation_name: src };
   if (src.includes("ethical")) return { operation_family: "ethics_check", operation_name: src };
 
   // Sophia-brain conversational generators.
   if (
     src.includes("companion") ||
-    src.includes("investigator") ||
     src.includes("firefighter") ||
     src.includes("sentry")
   ) {
@@ -99,7 +130,8 @@ export function inferOperationFromSource(source: string | null | undefined): { o
   }
 
   if (src.includes("watcher")) return { operation_family: "watcher", operation_name: src };
-  if (src.includes("schedule") || src.includes("checkin") || src.includes("reminder")) return { operation_family: "scheduling", operation_name: src };
+  if (src.includes("schedule") || src.includes("checkin") || src.includes("reminder") || src.includes("future-events")) return { operation_family: "scheduling", operation_name: src };
+  if (src.includes("professional-support") || src.includes("level-tools")) return { operation_family: "classification", operation_name: src };
   if (src.includes("duplicate")) return { operation_family: "duplicate_check", operation_name: src };
   return { operation_family: "other", operation_name: src };
 }
@@ -243,5 +275,3 @@ export async function sumUsageByRequestId(requestId: string): Promise<{
   }
   return { prompt_tokens: p, output_tokens: o, total_tokens: t, cost_usd: c };
 }
-
-

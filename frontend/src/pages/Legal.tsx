@@ -1,12 +1,133 @@
 import React, { useEffect } from 'react';
-import { ArrowLeft, Shield, FileText, Lock, Scale, Mail, Eye, Briefcase } from 'lucide-react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import SEO from '../components/SEO';
+import { PublicFooter, PublicHeader } from '../keel/components/PublicHeader';
+import {
+  LEGAL_ENTITY,
+  organizationStructuredData,
+  registeredOfficeLine,
+} from '../lib/legalEntity';
+
+/**
+ * /legal — the one public legal surface: mentions légales, terms, privacy,
+ * terms of sale, referral.
+ *
+ * ── WHY THE IDENTITY BLOCK IS FIRST AND IS A TABLE ───────────────────────
+ * Under art. 6-III of the LCEN a company publishing a site must name itself,
+ * its legal form, its capital, its registered office and its publication
+ * director. That is the legal reason. The operational reason is that this
+ * block is the only place where the DOMAIN and the COMPANY REGISTRY entry are
+ * joined in public: a store reviewer holding a D&B record for "IKIZEN SAS"
+ * and an app declaring `sophia-coach.ai` needs one page that says both names
+ * in the same sentence, or the developer account cannot be verified. So it is
+ * a labelled table, not a paragraph — it is read by people scanning for a
+ * SIREN, not by people reading prose. The values live in `lib/legalEntity`
+ * because the same numbers are also emitted as JSON-LD for the machines.
+ *
+ * ── TWO TRAPS THIS FILE HAS ALREADY FALLEN INTO ──────────────────────────
+ * 1. NO `prose` CLASSES. This page used to lean on `prose prose-slate` and
+ *    `prose-headings:font-bold`. `@tailwindcss/typography` is NOT installed
+ *    (Tailwind v4, no `@plugin` line in index.css), so every one of those
+ *    classes was inert and the headings rendered at browser default inside a
+ *    grey body — a legal page whose structure was invisible. Style headings
+ *    explicitly here, or install the plugin; do not reintroduce bare `prose`.
+ * 2. NO `new Date()` IN "IN FORCE AS OF". The date used to be computed at
+ *    render, so the terms claimed to have been amended today, every day, for
+ *    anyone who loaded the page. A legal document's date is a fact, not a
+ *    clock reading: bump LAST_UPDATED by hand when the text actually changes.
+ *
+ * The chrome is the KEEL public header/footer. The previous one was the
+ * legacy consumer chrome and its nav pointed at /l-architecte and /formules,
+ * routes dismounted at the pivot — three links to a 404 on the page whose
+ * whole job is to look legitimate.
+ */
+
+/** Bump by hand when the text below actually changes. See trap 2 above. */
+const LAST_UPDATED = '4 August 2026';
+
+const SEO_DESCRIPTION =
+  'Legal notice for sophia-coach.ai: publisher, registered office, VAT number, ' +
+  'hosting, terms of use, privacy policy and terms of sale.';
+
+// Hoisted: SEO keeps `structuredData` in a useEffect dependency array, so an
+// inline literal would rebuild the <script> tags on every render.
+const STRUCTURED_DATA = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    name: 'Legal notice & Terms',
+    url: `${LEGAL_ENTITY.siteUrl}/legal`,
+    description: SEO_DESCRIPTION,
+    inLanguage: 'en-GB',
+    publisher: organizationStructuredData(),
+  },
+  organizationStructuredData(),
+];
+
+const SECTIONS = [
+  { id: 'mentions-legales', label: 'Legal notice' },
+  { id: 'cgu', label: 'Terms of use' },
+  { id: 'confidentialite', label: 'Privacy' },
+  { id: 'cgv', label: 'Terms of sale' },
+  { id: 'parrainage', label: 'Referral' },
+] as const;
+
+function Section({
+  id,
+  title,
+  subtitle,
+  children,
+}: {
+  id: string;
+  title: string;
+  subtitle: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section id={id} className="scroll-mt-20 border-t border-gray-200 pt-10">
+      <h2 className="text-2xl font-semibold tracking-tight text-gray-900">{title}</h2>
+      <p className="mt-1 text-sm text-gray-500">{subtitle}</p>
+      <div className="mt-6 space-y-4">{children}</div>
+    </section>
+  );
+}
+
+function H3({ children }: { children: React.ReactNode }) {
+  return (
+    <h3 className="pt-4 text-base font-semibold text-gray-900 first:pt-0">{children}</h3>
+  );
+}
+
+function P({ children }: { children: React.ReactNode }) {
+  return <p className="text-sm leading-6 text-gray-700">{children}</p>;
+}
+
+function UL({ children }: { children: React.ReactNode }) {
+  return (
+    <ul className="list-disc space-y-2 pl-5 text-sm leading-6 text-gray-700">{children}</ul>
+  );
+}
+
+function Note({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
+      {children}
+    </p>
+  );
+}
+
+/** One labelled row of the identity table. `value` may be a node (links). */
+function Row({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="grid gap-1 px-4 py-3 sm:grid-cols-[13rem_1fr] sm:gap-4">
+      <dt className="text-sm font-medium text-gray-500">{label}</dt>
+      <dd className="text-sm text-gray-900">{value}</dd>
+    </div>
+  );
+}
 
 const Legal = () => {
-  const navigate = useNavigate();
   const location = useLocation();
-  const seoDescription = "Consulte les mentions légales, CGU, politique de confidentialité et CGV de Sophia Coach.";
 
   // Scroll to section if hash is present
   useEffect(() => {
@@ -14,293 +135,468 @@ const Legal = () => {
       const element = document.getElementById(location.hash.replace('#', ''));
       if (element) {
         element.scrollIntoView({ behavior: 'smooth' });
+        return;
       }
-    } else {
-      window.scrollTo(0, 0);
     }
+    window.scrollTo(0, 0);
   }, [location]);
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-indigo-100 selection:text-indigo-900">
-      <SEO 
-        title="Mentions Légales & CGU"
-        description={seoDescription}
-        canonical="https://sophia-coach.ai/legal"
-        structuredData={{
-          "@context": "https://schema.org",
-          "@type": "WebPage",
-          "name": "Mentions Légales & CGU",
-          "url": "https://sophia-coach.ai/legal",
-          "description": seoDescription,
-          "inLanguage": "fr-FR"
-        }}
+    <div className="min-h-screen bg-white text-gray-900">
+      <SEO
+        title="Legal notice & Terms"
+        description={SEO_DESCRIPTION}
+        canonical={`${LEGAL_ENTITY.siteUrl}/legal`}
+        lang="en"
+        structuredData={STRUCTURED_DATA}
       />
-      {/* Header */}
-      <div className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          <button 
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors text-sm font-medium px-3 py-2 rounded-lg hover:bg-slate-50"
+
+      <PublicHeader />
+
+      <main className="mx-auto max-w-3xl px-4 py-12 sm:py-16">
+        <h1 className="text-3xl font-semibold tracking-tight text-gray-900 sm:text-4xl">
+          Legal notice &amp; terms
+        </h1>
+        <p className="mt-3 text-base leading-7 text-gray-600">
+          Who publishes {LEGAL_ENTITY.domain}, how to reach us, and the terms that
+          govern the service.
+        </p>
+        <p className="mt-2 text-sm text-gray-500">Last updated: {LAST_UPDATED}</p>
+
+        <nav className="mt-8 flex flex-wrap gap-2">
+          {SECTIONS.map((s) => (
+            <a
+              key={s.id}
+              href={`#${s.id}`}
+              className="rounded-full border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:border-gray-400 hover:bg-gray-50 hover:text-gray-900"
+            >
+              {s.label}
+            </a>
+          ))}
+        </nav>
+
+        <div className="mt-12 space-y-12">
+          {/* ── MENTIONS LÉGALES ────────────────────────────────────────── */}
+          <Section
+            id="mentions-legales"
+            title="Legal notice"
+            subtitle="Publisher identity, as required by article 6-III of the French LCEN"
           >
-            <ArrowLeft className="w-4 h-4" />
-            Retour
-          </button>
-          <div className="flex items-center gap-2">
-            <img src="/apple-touch-icon.png" alt="Sophia Logo" className="w-8 h-8 rounded-lg" />
-            <span className="font-bold text-xl tracking-tight text-slate-900 leading-none">Sophia</span>
-          </div>
-          <div className="w-20"></div> {/* Spacer for balance */}
+            <P>
+              The site <strong>{LEGAL_ENTITY.domain}</strong> and the Sophia service
+              are published by <strong>{LEGAL_ENTITY.legalName}</strong>,{' '}
+              {LEGAL_ENTITY.legalForm} with share capital of{' '}
+              {LEGAL_ENTITY.shareCapital}, registered with the French Trade and
+              Companies Register (RCS) under number{' '}
+              <strong>{LEGAL_ENTITY.rcsNumber}</strong>, whose registered office is at{' '}
+              {registeredOfficeLine()}.
+            </P>
+
+            <dl className="divide-y divide-gray-200 overflow-hidden rounded-xl border border-gray-200 bg-white">
+              <Row label="Publisher" value={`${LEGAL_ENTITY.legalName} (${LEGAL_ENTITY.legalForm})`} />
+              <Row label="Legal form" value="Société par actions simplifiée (SAS), France" />
+              <Row label="Share capital" value={LEGAL_ENTITY.shareCapital} />
+              <Row label="RCS number" value={LEGAL_ENTITY.rcsNumber} />
+              <Row label="Intra-EU VAT number" value={LEGAL_ENTITY.vatNumber} />
+              <Row label="Registered office" value={registeredOfficeLine()} />
+              <Row
+                label="Publication director"
+                value={
+                  <>
+                    {LEGAL_ENTITY.publicationDirector} —{' '}
+                    <a
+                      href={`mailto:${LEGAL_ENTITY.publicationDirectorEmail}`}
+                      className="font-medium text-gray-900 underline underline-offset-2 hover:text-gray-600"
+                    >
+                      {LEGAL_ENTITY.publicationDirectorEmail}
+                    </a>
+                  </>
+                }
+              />
+              <Row
+                label="Contact"
+                value={
+                  <a
+                    href={`mailto:${LEGAL_ENTITY.contactEmail}`}
+                    className="font-medium text-gray-900 underline underline-offset-2 hover:text-gray-600"
+                  >
+                    {LEGAL_ENTITY.contactEmail}
+                  </a>
+                }
+              />
+              <Row
+                label="Phone"
+                value={
+                  <a
+                    href={`tel:${LEGAL_ENTITY.phoneE164}`}
+                    className="font-medium text-gray-900 underline underline-offset-2 hover:text-gray-600"
+                  >
+                    {LEGAL_ENTITY.phone}
+                  </a>
+                }
+              />
+            </dl>
+
+            <H3>Hosting</H3>
+            <P>
+              The site is hosted by <strong>{LEGAL_ENTITY.host.name}</strong>,{' '}
+              {LEGAL_ENTITY.host.street}, {LEGAL_ENTITY.host.city},{' '}
+              {LEGAL_ENTITY.host.region} {LEGAL_ENTITY.host.postalCode},{' '}
+              {LEGAL_ENTITY.host.country}.
+            </P>
+
+            <H3>Intellectual property</H3>
+            <P>
+              This site as a whole is governed by French and international copyright
+              and intellectual property law. All reproduction rights are reserved,
+              including for downloadable documents and for iconographic and
+              photographic material.
+            </P>
+          </Section>
+
+          {/* ── CGU ─────────────────────────────────────────────────────── */}
+          <Section
+            id="cgu"
+            title="Terms of use"
+            subtitle="Rules for accessing and using the platform"
+          >
+            <H3>1. Purpose and acceptance</H3>
+            <P>
+              These Terms of Use (the "Terms") govern access to and use of the
+              "Sophia" SaaS platform (the "Service"), published by{' '}
+              <strong>{LEGAL_ENTITY.legalName}</strong> (the "Publisher").
+            </P>
+            <P>
+              Using the Service implies unreserved acceptance of these Terms. The user
+              acknowledges having read all of the conditions before ticking the "I
+              accept" box when signing up.
+            </P>
+
+            <H3>2. Description of the Service</H3>
+            <P>
+              Sophia is an intelligent virtual assistant (AI) for personal
+              development, productivity and life design. The Service allows you in
+              particular to:
+            </P>
+            <UL>
+              <li>
+                Generate personalised action plans to organise your days and reach
+                your goals.
+              </li>
+              <li>
+                Interact with a conversational AI for motivational support and habit
+                tracking.
+              </li>
+              <li>
+                Access tools for structuring identity and tracking progress.
+              </li>
+            </UL>
+            <Note>
+              <strong>AI notice:</strong> The advice and content generated by Sophia
+              are produced by artificial intelligence algorithms. They are provided
+              for information and decision support, and cannot replace human
+              professional judgement or constitute certified legal, medical or
+              financial advice.
+            </Note>
+
+            <H3>3. Access to the Service</H3>
+            <P>
+              The Service is available 24/7, except in cases of force majeure or
+              maintenance. The Publisher reserves the right to suspend, interrupt or
+              limit access to all or part of the Service for technical or security
+              reasons, without this giving rise to compensation.
+            </P>
+
+            <H3>4. User account</H3>
+            <P>
+              Registration is required to access the features. The User is solely
+              responsible for keeping their credentials confidential. Any action taken
+              from their account is deemed to have been taken by them. If credentials
+              are lost or stolen, the User must inform the Publisher without delay.
+            </P>
+
+            <H3>5. Intellectual property</H3>
+            <P>
+              <strong>Service content:</strong> All elements of the Service
+              (structure, design, code, algorithms, the "Sophia" trade marks) are the
+              exclusive property of {LEGAL_ENTITY.legalName}. Any reproduction is
+              prohibited without authorisation.
+            </P>
+            <P>
+              <strong>User content:</strong> The data, text and information provided
+              by the User remain their property. The User grants the Publisher a right
+              to use this content solely for operating and improving the Service
+              (including training AI models, in anonymised form).
+            </P>
+
+            <H3>6. Liability</H3>
+            <P>
+              The Publisher provides the Service under a best-efforts obligation. It
+              cannot be held liable for:
+            </P>
+            <UL>
+              <li>Indirect damages (loss of revenue, loss of opportunity, and so on).</li>
+              <li>AI advice being unsuited to the User's specific situation.</li>
+              <li>Problems related to the User's own internet connection.</li>
+              <li>
+                The consequences of a failure, security incident or hack occurring on
+                third-party providers' infrastructure (hosting, AI model providers,
+                messaging), where no proven fault of the Publisher in selecting or
+                configuring those services is established.
+              </li>
+            </UL>
+          </Section>
+
+          {/* ── CONFIDENTIALITÉ ─────────────────────────────────────────── */}
+          <Section
+            id="confidentialite"
+            title="Privacy policy"
+            subtitle="Protection of your personal data (GDPR)"
+          >
+            <H3>1. Data collected</H3>
+            <P>When you use Sophia, we collect the following data:</P>
+            <UL>
+              <li>
+                <strong>Identity data:</strong> surname, first name, email, phone
+                number (account identifier).
+              </li>
+              <li>
+                <strong>Life &amp; goal data:</strong> questionnaire answers, personal
+                goals, generated action plans.
+              </li>
+              <li>
+                <strong>Conversation data:</strong> the history of exchanges with the
+                Sophia assistant.
+              </li>
+              <li>
+                <strong>Technical data:</strong> sign-in logs, IP address, browser
+                type.
+              </li>
+            </UL>
+
+            <H3>2. Purposes of processing</H3>
+            <P>Your data is processed for the following reasons:</P>
+            <UL>
+              <li>
+                Providing and personalising the Service (legal basis: performance of
+                the contract).
+              </li>
+              <li>
+                Sending notifications and reminders inside the app (legal basis:
+                consent).
+              </li>
+              <li>
+                Continuous improvement of the AI algorithms (legal basis: legitimate
+                interest).
+              </li>
+              <li>Handling billing and customer support.</li>
+            </UL>
+
+            <H3>3. Data sharing</H3>
+            <P>
+              Your data is strictly confidential. It is passed only to the technical
+              sub-processors we cannot operate without (cloud hosting, AI API
+              provider, message delivery service), who are bound by the same security
+              obligations. <strong>We never sell your data to advertisers.</strong>
+            </P>
+
+            <H3>4. Security</H3>
+            <P>
+              We put in place technical security measures (SSL/TLS encryption, secured
+              databases) and organisational ones to protect your data against
+              unauthorised access, loss or alteration.
+            </P>
+
+            <H3>5. Your rights</H3>
+            <P>
+              Under the GDPR you have rights of access, rectification, erasure,
+              restriction and portability over your data. You can exercise the erasure
+              and portability rights directly in the app, without contacting us: menu{' '}
+              <strong>Account → Options → My data</strong> (export your data) and{' '}
+              <strong>Delete my account</strong>.
+            </P>
+
+            <H3>6. Data retention and deletion</H3>
+            <P>
+              <strong>Self-service account deletion:</strong> you can delete your
+              account at any time from the app. Deletion happens in two stages:
+            </P>
+            <UL>
+              <li>
+                <strong>Immediately:</strong> your access is disabled, Sophia stops
+                writing to you and your subscription is cancelled with no further
+                charge.
+              </li>
+              <li>
+                <strong>Within 7 days:</strong> all of your data (profile, plans,
+                conversations, memories) is permanently and irreversibly deleted from
+                our databases. During that period you can cancel the deletion by
+                signing in again.
+              </li>
+            </UL>
+            <P>
+              <strong>Data kept after deletion:</strong>
+            </P>
+            <UL>
+              <li>
+                The <strong>invoices</strong> relating to your payments, kept under
+                the statutory accounting retention obligation (article L.123-22 of the
+                French Commercial Code).
+              </li>
+              <li>
+                A <strong>minimal anonymised record</strong> of the deletion
+                (cryptographic hashes of the email and phone number, and the deletion
+                date), kept as proof of compliance. It cannot be used to identify you.
+              </li>
+              <li>
+                Technical usage measurements (volumes and compute costs),{' '}
+                <strong>anonymised</strong> at deletion time: they are no longer
+                attached to any person.
+              </li>
+            </UL>
+            <P>
+              <strong>Technical backups:</strong> backup copies of our databases may
+              remain temporarily after deletion. They expire automatically on their
+              rotation cycle and are never used to restore deleted data, except in a
+              major technical incident affecting the whole service.
+            </P>
+            <P>
+              <strong>Exporting your data:</strong> you can download a copy of your
+              data (profile, plans, conversations, memories) as JSON at any time from
+              the Account menu. For security, re-authentication is required, a
+              notification is sent to you for every request, and exports are limited
+              to one per 24 hours.
+            </P>
+            <p className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm leading-6 text-gray-700">
+              <strong className="text-gray-900">Exercising your rights.</strong> For
+              any request about your data, contact us at{' '}
+              <a
+                href={`mailto:${LEGAL_ENTITY.contactEmail}`}
+                className="font-medium text-gray-900 underline underline-offset-2 hover:text-gray-600"
+              >
+                {LEGAL_ENTITY.contactEmail}
+              </a>
+              .
+            </p>
+          </Section>
+
+          {/* ── CGV ─────────────────────────────────────────────────────── */}
+          <Section
+            id="cgv"
+            title="Terms of sale"
+            subtitle="Subscriptions, payments and withdrawal"
+          >
+            <H3>1. Plans and prices</H3>
+            <P>
+              Services are offered as subscriptions (monthly or annual) or as one-off
+              purchases. Prices are shown in Euros (€) including all taxes on the
+              "Pricing" page. {LEGAL_ENTITY.legalName} reserves the right to change
+              its prices at any time, but the Service is billed at the prices in force
+              when the order is confirmed.
+            </P>
+
+            <H3>2. Payment</H3>
+            <P>
+              Payment is made by card through our secure payment provider (Stripe).
+              Payment is due immediately on ordering. If payment fails, access to the
+              Service is suspended immediately.
+            </P>
+
+            <H3>3. Renewal and cancellation</H3>
+            <P>
+              <strong>Renewal:</strong> Subscriptions renew automatically for a period
+              identical to the one originally taken out, unless cancelled by the User.
+            </P>
+            <P>
+              <strong>Cancellation:</strong> The User can cancel their subscription at
+              any time from the "My Account" area. Cancellation takes effect at the
+              end of the current subscription period. No pro-rata refund is made for a
+              period already started.
+            </P>
+
+            <H3>4. No right of withdrawal</H3>
+            <Note>
+              Under article L.221-28 of the French Consumer Code, the right of
+              withdrawal cannot be exercised for contracts supplying digital content
+              not provided on a physical medium (SaaS) whose performance has begun
+              after the consumer's express prior agreement and express waiver of their
+              right of withdrawal.
+            </Note>
+            <P>
+              By subscribing to the Service and accessing the digital features
+              immediately, the User expressly waives their right of withdrawal.
+            </P>
+
+            <H3>5. Governing law</H3>
+            <P>
+              These Terms of Sale are governed by French law. In the event of a
+              dispute, jurisdiction is granted to the competent courts in the district
+              of {LEGAL_ENTITY.legalName}'s registered office, notwithstanding
+              multiple defendants or third-party proceedings.
+            </P>
+          </Section>
+
+          {/* ── PARRAINAGE ──────────────────────────────────────────────── */}
+          <Section
+            id="parrainage"
+            title="Referral programme"
+            subtitle="Programme conditions"
+          >
+            <H3>1. How it works</H3>
+            <P>
+              Every User has a personal referral code, shareable as a link or a code.
+              When someone (the "Referee") creates a Sophia account with that code,
+              their free trial is extended to 30 days (instead of 14). The code must
+              be entered at sign-up: it cannot be added later to an existing account.
+            </P>
+
+            <H3>2. Referrer reward</H3>
+            <P>
+              The Referrer receives one (1) free month of subscription, matching the
+              monthly price of their current plan, as a credit deducted from their
+              next invoices. This reward is credited{' '}
+              <strong>
+                only when the Referee pays a first invoice for an amount strictly
+                greater than zero
+              </strong>
+              . The Referee merely signing up, the trial period, or a €0 invoice give
+              no entitlement to a reward.
+            </P>
+            <P>
+              If the Referrer is not yet subscribed when their Referee converts, the
+              reward is held and applied automatically to their first invoices as soon
+              as they take out a subscription.
+            </P>
+
+            <H3>3. Cap</H3>
+            <P>
+              Free months are capped at twelve (12) months per rolling twelve (12)
+              month period per Referrer. Beyond that cap, referrals are still counted
+              but no longer give entitlement to a reward.
+            </P>
+
+            <H3>4. Anti-fraud reservation</H3>
+            <Note>
+              Self-referral (same person, same phone number, or multiple accounts) is
+              prohibited. The Referee must be a new user who does not already have a
+              Sophia account. {LEGAL_ENTITY.legalName} reserves the right to refuse,
+              suspend or cancel any reward obtained in breach of these conditions or
+              by any fraudulent or abusive means, and to suspend the accounts
+              involved.
+            </Note>
+
+            <H3>5. Nature of the reward</H3>
+            <P>
+              Free months have no monetary value: they are not refundable,
+              transferable or convertible into cash. {LEGAL_ENTITY.legalName} may
+              change or end the referral programme at any time; rewards already earned
+              remain due.
+            </P>
+          </Section>
         </div>
-      </div>
+      </main>
 
-      <div className="max-w-4xl mx-auto px-4 py-12">
-        <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-slate-900 tracking-tight">Mentions Légales</h1>
-          <p className="text-slate-500 text-lg max-w-2xl mx-auto">
-            Transparence, sécurité et conformité. Voici les règles du jeu pour bâtir votre empire avec Sophia.
-          </p>
-        </div>
-        
-        {/* Navigation Rapide */}
-        <div className="flex flex-wrap gap-4 justify-center mb-12">
-          <a href="#mentions-legales" className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-slate-200 text-sm font-bold text-slate-700 hover:text-slate-900 hover:border-slate-400 transition-all">
-            <Briefcase className="w-4 h-4" /> Mentions Légales
-          </a>
-          <a href="#cgu" className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-slate-200 text-sm font-bold text-slate-700 hover:text-indigo-600 hover:border-indigo-200 transition-all">
-            <FileText className="w-4 h-4" /> CGU
-          </a>
-          <a href="#confidentialite" className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-slate-200 text-sm font-bold text-slate-700 hover:text-emerald-600 hover:border-emerald-200 transition-all">
-            <Shield className="w-4 h-4" /> Confidentialité
-          </a>
-          <a href="#cgv" className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-slate-200 text-sm font-bold text-slate-700 hover:text-rose-600 hover:border-rose-200 transition-all">
-            <Scale className="w-4 h-4" /> CGV
-          </a>
-        </div>
-
-        <div className="grid gap-12">
-          
-          {/* Mentions Légales (Nouveau) */}
-          <section id="mentions-legales" className="bg-white p-8 md:p-12 rounded-3xl shadow-sm border border-slate-200 scroll-mt-24">
-            <div className="flex items-center gap-4 mb-8 pb-8 border-b border-slate-100">
-              <div className="p-3 bg-slate-100 rounded-2xl text-slate-600">
-                <Briefcase className="w-8 h-8" />
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold text-slate-900">Mentions Légales</h2>
-                <p className="text-slate-500 text-sm">Informations légales obligatoires</p>
-              </div>
-            </div>
-            
-            <div className="prose prose-slate max-w-none text-slate-600 prose-headings:font-bold prose-headings:text-slate-900">
-              <h3>1. Éditeur du site</h3>
-              <p>
-                Le site <strong>sophia-coach.ai</strong> est édité par la société <strong>IKIZEN</strong>.
-              </p>
-
-              <h3>2. Contact</h3>
-              <p>
-                Pour toute question ou demande, vous pouvez nous contacter à l'adresse suivante :<br/>
-                <a href="mailto:sophia@sophia-coach.ai" className="text-violet-600 hover:underline">sophia@sophia-coach.ai</a>
-              </p>
-
-              <h3>3. Hébergement</h3>
-              <p>
-                Le site est hébergé par :<br/>
-                <strong>Vercel Inc.</strong><br/>
-                440 N Barranca Ave #4133<br/>
-                Covina, CA 91723<br/>
-                États-Unis
-              </p>
-
-              <h3>4. Propriété intellectuelle</h3>
-              <p>
-                L'ensemble de ce site relève de la législation française et internationale sur le droit d'auteur et la propriété intellectuelle. Tous les droits de reproduction sont réservés, y compris pour les documents téléchargeables et les représentations iconographiques et photographiques.
-              </p>
-            </div>
-          </section>
-
-          {/* CGU */}
-          <section id="cgu" className="bg-white p-8 md:p-12 rounded-3xl shadow-sm border border-slate-200 scroll-mt-24">
-            <div className="flex items-center gap-4 mb-8 pb-8 border-b border-slate-100">
-              <div className="p-3 bg-indigo-50 rounded-2xl text-indigo-600">
-                <FileText className="w-8 h-8" />
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold text-slate-900">Conditions Générales d'Utilisation</h2>
-                <p className="text-slate-500 text-sm">Règles d'accès et d'usage de la plateforme</p>
-              </div>
-            </div>
-            
-            <div className="prose prose-slate max-w-none text-slate-600 prose-headings:font-bold prose-headings:text-slate-900 prose-a:text-indigo-600">
-              <p className="italic text-sm text-slate-400 mb-6">En vigueur au {new Date().toLocaleDateString('fr-FR')}</p>
-              
-              <h3>1. Objet et Acceptation</h3>
-              <p>
-                Les présentes Conditions Générales d'Utilisation (les "CGU") régissent l'accès et l'utilisation de la plateforme SaaS "Sophia" (ci-après le "Service"), éditée par la société <strong>IKIZEN</strong> (ci-après "l'Éditeur").
-              </p>
-              <p>
-                L'utilisation du Service implique l'acceptation sans réserve des présentes CGU. L'utilisateur reconnaît avoir pris connaissance de l'ensemble des conditions avant de cocher la case "J'accepte" lors de son inscription.
-              </p>
-
-              <h3>2. Description du Service</h3>
-              <p>
-                Sophia est un assistant virtuel intelligent (IA) dédié au développement personnel, à la productivité et à l'architecture de vie. Le Service permet notamment de :
-              </p>
-              <ul>
-                <li>Générer des plans d'actions personnalisés pour organiser son quotidien et atteindre ses objectifs.</li>
-                <li>Interagir avec une IA conversationnelle pour le soutien motivationnel et le suivi d'habitudes.</li>
-                <li>Accéder à des outils de structuration de l'identité et de suivi de progression.</li>
-              </ul>
-              <p className="bg-indigo-50 p-4 rounded-xl border border-indigo-100 text-indigo-800 text-sm">
-                <strong>Avertissement IA :</strong> Les conseils et contenus générés par Sophia sont produits par des algorithmes d'intelligence artificielle. Ils sont fournis à titre informatif et d'aide à la décision, mais ne sauraient remplacer le jugement professionnel humain, ni constituer un conseil juridique, médical ou financier certifié.
-              </p>
-
-              <h3>3. Accès au Service</h3>
-              <p>
-                Le Service est accessible 24h/24 et 7j/7, sauf cas de force majeure ou maintenance. L'Éditeur se réserve le droit de suspendre, d'interrompre ou de limiter l'accès à tout ou partie du Service pour des raisons techniques ou de sécurité, sans que cela n'ouvre droit à indemnisation.
-              </p>
-
-              <h3>4. Compte Utilisateur</h3>
-              <p>
-                L'inscription est obligatoire pour accéder aux fonctionnalités. L'Utilisateur est seul responsable de la confidentialité de ses identifiants. Toute action effectuée depuis son compte est réputée être effectuée par lui. En cas de perte ou de vol d'identifiants, l'Utilisateur doit en informer l'Éditeur sans délai.
-              </p>
-
-              <h3>5. Propriété Intellectuelle</h3>
-              <p>
-                <strong>Contenu du Service :</strong> L'ensemble des éléments du Service (structure, design, codes, algorithmes, marques "Sophia") est la propriété exclusive de IKIZEN. Toute reproduction est interdite sans autorisation.
-              </p>
-              <p>
-                <strong>Contenu Utilisateur :</strong> Les données, textes et informations fournis par l'Utilisateur restent sa propriété. L'Utilisateur concède à l'Éditeur un droit d'utilisation de ces contenus pour les seuls besoins de fonctionnement et d'amélioration du Service (notamment l'entraînement des modèles IA, sous forme anonymisée).
-              </p>
-
-              <h3>6. Responsabilité</h3>
-              <p>
-                L'Éditeur fournit le Service dans le cadre d'une obligation de moyens. Sa responsabilité ne saurait être engagée pour :
-              </p>
-              <ul>
-                <li>Les dommages indirects (perte de chiffre d'affaires, perte de chance, etc.).</li>
-                <li>L'inadéquation des conseils de l'IA à la situation spécifique de l'Utilisateur.</li>
-                <li>Les problèmes liés au réseau internet de l'Utilisateur.</li>
-                <li>Les conséquences d'une défaillance, d'un incident de sécurité ou d'un piratage (hacking) survenant sur les infrastructures des prestataires tiers (hébergeurs, fournisseurs de modèles IA, messagerie), dès lors que l'Éditeur n'a pas commis de faute prouvée dans la sélection ou la configuration de ces services.</li>
-              </ul>
-            </div>
-          </section>
-
-          {/* Politique de Confidentialité */}
-          <section id="confidentialite" className="bg-white p-8 md:p-12 rounded-3xl shadow-sm border border-slate-200 scroll-mt-24">
-            <div className="flex items-center gap-4 mb-8 pb-8 border-b border-slate-100">
-              <div className="p-3 bg-emerald-50 rounded-2xl text-emerald-600">
-                <Shield className="w-8 h-8" />
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold text-slate-900">Politique de Confidentialité</h2>
-                <p className="text-slate-500 text-sm">Protection de vos données personnelles (RGPD)</p>
-              </div>
-            </div>
-            
-            <div className="prose prose-slate max-w-none text-slate-600 prose-headings:font-bold prose-headings:text-slate-900">
-              <h3>1. Données Collectées</h3>
-              <p>
-                Dans le cadre de l'utilisation de Sophia, nous collectons les données suivantes :
-              </p>
-              <ul>
-                <li><strong>Données d'Identité :</strong> Nom, Prénom, Email, Numéro de téléphone (pour WhatsApp).</li>
-                <li><strong>Données de Vie & Objectifs :</strong> Réponses aux questionnaires, objectifs personnels, plans d'actions générés.</li>
-                <li><strong>Données Conversationnelles :</strong> Historique des échanges avec l'assistant Sophia.</li>
-                <li><strong>Données Techniques :</strong> Logs de connexion, adresse IP, type de navigateur.</li>
-              </ul>
-
-              <h3>2. Finalités du Traitement</h3>
-              <p>
-                Vos données sont traitées pour les raisons suivantes :
-              </p>
-              <ul>
-                <li>Fourniture et personnalisation du Service (Base légale : Exécution du contrat).</li>
-                <li>Envoi de notifications et rappels via WhatsApp (Base légale : Consentement).</li>
-                <li>Amélioration continue des algorithmes d'IA (Base légale : Intérêt légitime).</li>
-                <li>Gestion de la facturation et du support client.</li>
-              </ul>
-
-              <h3>3. Partage des Données</h3>
-              <p>
-                Vos données sont strictement confidentielles. Elles ne sont transmises qu'à nos sous-traitants techniques indispensables (hébergement cloud, fournisseur d'API d'IA, service d'envoi de messages) qui sont tenus aux mêmes obligations de sécurité. <strong>Nous ne vendons jamais vos données à des tiers publicitaires.</strong>
-              </p>
-
-              <h3>4. Sécurité</h3>
-              <p>
-                Nous mettons en œuvre des mesures de sécurité techniques (chiffrement SSL/TLS, bases de données sécurisées) et organisationnelles pour protéger vos données contre tout accès non autorisé, perte ou altération.
-              </p>
-
-              <h3>5. Vos Droits</h3>
-              <p>
-                Conformément au RGPD, vous disposez d'un droit d'accès, de rectification, d'effacement, de limitation et de portabilité de vos données.
-              </p>
-              <div className="bg-emerald-50 p-6 rounded-xl border border-emerald-100 flex items-start gap-4 not-prose mt-6">
-                <Mail className="w-6 h-6 text-emerald-600 mt-1 flex-shrink-0" />
-                <div>
-                  <h4 className="font-bold text-emerald-900 text-sm mb-1">Exercer vos droits</h4>
-                  <p className="text-emerald-800 text-sm">
-                    Pour toute demande concernant vos données, contactez-nous à : <a href="mailto:sophia@sophia-coach.ai" className="underline hover:text-emerald-950">sophia@sophia-coach.ai</a>
-                  </p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* CGV */}
-          <section id="cgv" className="bg-white p-8 md:p-12 rounded-3xl shadow-sm border border-slate-200 scroll-mt-24">
-             <div className="flex items-center gap-4 mb-8 pb-8 border-b border-slate-100">
-              <div className="p-3 bg-rose-50 rounded-2xl text-rose-600">
-                <Scale className="w-8 h-8" />
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold text-slate-900">Conditions Générales de Vente</h2>
-                <p className="text-slate-500 text-sm">Abonnements, paiements et rétractation</p>
-              </div>
-            </div>
-            
-            <div className="prose prose-slate max-w-none text-slate-600 prose-headings:font-bold prose-headings:text-slate-900">
-              <h3>1. Offres et Prix</h3>
-              <p>
-                Les services sont proposés sous forme d'abonnements (mensuels ou annuels) ou d'achats uniques. Les tarifs sont indiqués en Euros (€) toutes taxes comprises (TTC) sur la page "Tarifs". IKIZEN se réserve le droit de modifier ses prix à tout moment, mais le Service sera facturé sur la base des tarifs en vigueur au moment de la validation de la commande.
-              </p>
-
-              <h3>2. Paiement</h3>
-              <p>
-                Le règlement s'effectue par carte bancaire via notre prestataire de paiement sécurisé (Stripe). Le paiement est exigible immédiatement à la commande. En cas de défaut de paiement, l'accès au Service sera immédiatement suspendu.
-              </p>
-
-              <h3>3. Renouvellement et Résiliation</h3>
-              <p>
-                <strong>Renouvellement :</strong> Les abonnements sont renouvelés tacitement pour une durée identique à celle initialement souscrite, sauf dénonciation par l'Utilisateur.
-              </p>
-              <p>
-                <strong>Résiliation :</strong> L'Utilisateur peut résilier son abonnement à tout moment depuis son espace "Mon Compte". La résiliation prend effet à la fin de la période d'abonnement en cours. Aucun remboursement prorata temporis n'est effectué pour la période entamée.
-              </p>
-
-              <h3>4. Absence de Droit de Rétractation</h3>
-              <p className="bg-rose-50 p-4 rounded-xl border border-rose-100 text-rose-800 text-sm font-medium">
-                Conformément à l'article L.221-28 du Code de la consommation, le droit de rétractation ne peut être exercé pour les contrats de fourniture d'un contenu numérique non fourni sur un support matériel (SaaS) dont l'exécution a commencé après accord préalable exprès du consommateur et renoncement exprès à son droit de rétractation.
-              </p>
-              <p>
-                En souscrivant au Service et en accédant immédiatement aux fonctionnalités numériques, l'Utilisateur reconnaît renoncer expressément à son droit de rétractation.
-              </p>
-              
-              <h3>5. Loi Applicable</h3>
-              <p>
-                Les présentes CGV sont soumises à la loi française. En cas de litige, compétence est attribuée aux tribunaux compétents du ressort du siège social de IKIZEN, nonobstant pluralité de défendeurs ou appel en garantie.
-              </p>
-            </div>
-          </section>
-
-        </div>
-        
-        <div className="mt-16 pt-8 border-t border-slate-200 text-center">
-          <p className="text-slate-400 text-sm font-medium">
-            © {new Date().getFullYear()} IKIZEN • Fait avec <span className="text-rose-400">♥</span> et Intelligence Artificielle.
-          </p>
-        </div>
-      </div>
+      <PublicFooter />
     </div>
   );
 };

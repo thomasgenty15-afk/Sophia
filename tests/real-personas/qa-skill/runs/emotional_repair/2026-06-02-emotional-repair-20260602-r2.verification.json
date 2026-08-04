@@ -1,0 +1,535 @@
+{
+  "run": "2026-06-02-emotional-repair-20260602-r2",
+  "user_id": "7ff8ce9e-e5ae-4949-81b4-4bb81b7397b0",
+  "email": "qa-qa-skill-emotional-repair-emorepair-20260602-r2@example.com",
+  "tables": {
+    "chat_messages": {
+      "status": 200,
+      "ok": true,
+      "count": 12,
+      "body": [
+        {
+          "id": "3386328c-e8e3-4a32-8e25-19b3403fa04d",
+          "role": "user",
+          "content": "Je me sens vraiment nul ce soir. J'ai rate un truc simple au boulot et j'ai l'impression d'etre un poids pour tout le monde. Ne me donne pas un plan, parle-moi juste doucement.",
+          "metadata": {
+            "request_id": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r2-t01",
+            "test_persona": true,
+            "force_full_ai": true,
+            "test_endpoint": "test-send-message"
+          },
+          "created_at": "2026-06-02T14:42:42.592829+00:00"
+        },
+        {
+          "id": "d08c1eb6-23e0-4be4-a874-03f4e49a14fc",
+          "role": "assistant",
+          "content": "Ah merde… 🫠 Ça fait vraiment mal ce genre de soir où tout se met à te tomber dessus en même temps.\n\nDéjà, le fait que tu te sentes “nul” et “un poids”, là, c’est ton cerveau qui juge au lieu de regarder les faits. Une erreur au boulot, même bête, ça ne dit pas qui tu es, ni ta valeur. Souvent, ce qui paraît “simple” après coup ne se voit pas sur l’instant, et toi tu payes juste le prix mental du “et si”.\n\nLà, ce que je veux que tu fasses, c’est juste respirer un peu plus bas dans le corps. Pas pour “résoudre”, juste pour te ramener à toi. Imagine que tu parles à quelqu’un que tu aimes bien dans la même situation : tu lui dirais vraiment “tu es un poids” ? Non.\n\nSi tu veux, dis-moi juste un mot : c’était quoi “le truc simple” que tu as raté (sans te justifier, juste pour que je te suive) ? 💛",
+          "metadata": {
+            "channel": "web",
+            "request_id": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r2-t01",
+            "test_persona": true,
+            "force_full_ai": true,
+            "test_endpoint": "test-send-message",
+            "router_decision_v2": {
+              "next_mode": "companion",
+              "risk_score": 2,
+              "surface_id": null,
+              "agent_model": "gpt-5.4-nano",
+              "target_mode": "companion",
+              "outage_error": null,
+              "safety_level": "NONE",
+              "stop_checkup": false,
+              "surface_level": null,
+              "checkup_active": false,
+              "interrupt_kind": "NONE",
+              "research_query": null,
+              "outage_fallback": false,
+              "agent_model_tier": "lite",
+              "llm_retry_job_id": null,
+              "llm_retry_queued": false,
+              "research_executed": false,
+              "agent_model_source": "memory_plan_lite",
+              "outage_failed_mode": null,
+              "research_requested": false,
+              "research_sources_count": 0,
+              "conversation_risk_score": 0,
+              "conversation_risk_exit_flows": false,
+              "coaching_intervention_pending": null
+            }
+          },
+          "created_at": "2026-06-02T14:42:56.665335+00:00"
+        },
+        {
+          "id": "7da1de2b-bde8-447f-bc92-c554ba8e0e82",
+          "role": "user",
+          "content": "C'etait un mail que j'ai laisse passer. La je me tape dessus mentalement. Ramene-moi doucement, mais ne programme rien et ne transforme pas ca en rappel.",
+          "metadata": {
+            "request_id": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r2-t02",
+            "test_persona": true,
+            "force_full_ai": true,
+            "test_endpoint": "test-send-message"
+          },
+          "created_at": "2026-06-02T14:43:09.815473+00:00"
+        },
+        {
+          "id": "9797a72c-495e-413f-a1da-dbe73b4160f2",
+          "role": "assistant",
+          "content": "Ah merde… 😔 C’est vraiment injuste quand ton cerveau se met à t’écraser avec “t’aurais dû” juste après coup.\n\nLà, je te ramène doucement : t’as laissé passer un mail, point. Ça veut pas dire “tu es nul” ni “tu es un poids”. Quand on est en stress, le cerveau confond vitesse et valeur : il transforme une action (un oubli) en jugement global (ta personne). C’est ça qui fait si mal.\n\nJe veux que tu fasses une micro-pause avec moi :\n- Respire une fois, plus long que l’expiration.\n- Remplace dans ta tête “je suis nul” par “j’ai raté un mail”.\nJuste le mot. Pas le reste.\n\nEt si on redescend d’un cran : ce que tu peux faire maintenant, sans théâtre, c’est simplement te remettre en mouvement pour le prochain pas (même minuscule). Le but c’est pas de te “punir”, c’est de remettre la trajectoire.\n\nLà tout de suite, tu préfères que je t’aide à formuler un message à envoyer (simple et propre) ou juste qu’on reste sur le côté “te parler gentiment” ? 🙂",
+          "metadata": {
+            "channel": "web",
+            "request_id": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r2-t02",
+            "test_persona": true,
+            "force_full_ai": true,
+            "test_endpoint": "test-send-message",
+            "router_decision_v2": {
+              "next_mode": "companion",
+              "risk_score": 2,
+              "surface_id": null,
+              "agent_model": "gpt-5.4-nano",
+              "target_mode": "companion",
+              "outage_error": null,
+              "safety_level": "NONE",
+              "stop_checkup": false,
+              "surface_level": null,
+              "checkup_active": false,
+              "interrupt_kind": "NONE",
+              "research_query": null,
+              "outage_fallback": false,
+              "agent_model_tier": "lite",
+              "llm_retry_job_id": null,
+              "llm_retry_queued": false,
+              "research_executed": false,
+              "agent_model_source": "memory_plan_lite",
+              "outage_failed_mode": null,
+              "research_requested": false,
+              "research_sources_count": 0,
+              "conversation_risk_score": 2.5,
+              "conversation_risk_exit_flows": false,
+              "coaching_intervention_pending": null
+            }
+          },
+          "created_at": "2026-06-02T14:43:36.184925+00:00"
+        },
+        {
+          "id": "48c81aaf-f2f5-49a1-83f8-04c127c457b8",
+          "role": "user",
+          "content": "Pas de protocole maintenant. Une seule phrase douce, sans question, juste pour m'aider a arreter de me detester deux minutes.",
+          "metadata": {
+            "request_id": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r2-t03",
+            "test_persona": true,
+            "force_full_ai": true,
+            "test_endpoint": "test-send-message"
+          },
+          "created_at": "2026-06-02T14:43:50.274286+00:00"
+        },
+        {
+          "id": "66af0733-840e-4b45-8123-62740bbc9c83",
+          "role": "assistant",
+          "content": "Là tout de suite, tu n’es pas “nul” : tu as juste laissé passer un mail, et ton cerveau essaie de te punir plus fort que les faits. 🫶",
+          "metadata": {
+            "channel": "web",
+            "request_id": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r2-t03",
+            "test_persona": true,
+            "force_full_ai": true,
+            "test_endpoint": "test-send-message",
+            "router_decision_v2": {
+              "next_mode": "companion",
+              "risk_score": 2,
+              "surface_id": null,
+              "agent_model": "gpt-5.4-nano",
+              "target_mode": "companion",
+              "outage_error": null,
+              "safety_level": "NONE",
+              "stop_checkup": false,
+              "surface_level": null,
+              "checkup_active": false,
+              "interrupt_kind": "NONE",
+              "research_query": null,
+              "outage_fallback": false,
+              "agent_model_tier": "lite",
+              "llm_retry_job_id": null,
+              "llm_retry_queued": false,
+              "research_executed": false,
+              "agent_model_source": "memory_plan_lite",
+              "outage_failed_mode": null,
+              "research_requested": false,
+              "research_sources_count": 0,
+              "conversation_risk_score": 2.4,
+              "conversation_risk_exit_flows": false,
+              "coaching_intervention_pending": null
+            }
+          },
+          "created_at": "2026-06-02T14:44:01.12779+00:00"
+        },
+        {
+          "id": "ec0722d4-fc92-4c45-81b5-50e3784e2ac5",
+          "role": "user",
+          "content": "Ok ca baisse un peu. Donne-moi juste une micro-action pour reparer le mail, mais sans carte, sans rappel, et sans grand plan.",
+          "metadata": {
+            "request_id": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r2-t04",
+            "test_persona": true,
+            "force_full_ai": true,
+            "test_endpoint": "test-send-message"
+          },
+          "created_at": "2026-06-02T14:44:12.242799+00:00"
+        },
+        {
+          "id": "ae6678ec-7cc9-4c21-a7e2-a3c3d9a24c09",
+          "role": "assistant",
+          "content": "OK, prends 5 minutes maintenant : ouvre ta boîte mail et renvoie une réponse courte + polie au bon destinataire, en mode “désolé pour le retard, voici ce que je voulais dire”. 📩",
+          "metadata": {
+            "channel": "web",
+            "request_id": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r2-t04",
+            "test_persona": true,
+            "force_full_ai": true,
+            "test_endpoint": "test-send-message",
+            "router_decision_v2": {
+              "next_mode": "companion",
+              "risk_score": 2,
+              "surface_id": null,
+              "agent_model": "gpt-5.4-nano",
+              "target_mode": "companion",
+              "outage_error": null,
+              "safety_level": "NONE",
+              "stop_checkup": false,
+              "surface_level": null,
+              "checkup_active": false,
+              "interrupt_kind": "NONE",
+              "research_query": null,
+              "outage_fallback": false,
+              "agent_model_tier": "lite",
+              "llm_retry_job_id": null,
+              "llm_retry_queued": false,
+              "research_executed": false,
+              "agent_model_source": "memory_plan_lite",
+              "outage_failed_mode": null,
+              "research_requested": false,
+              "research_sources_count": 0,
+              "conversation_risk_score": 1,
+              "conversation_risk_exit_flows": false,
+              "coaching_intervention_pending": null
+            }
+          },
+          "created_at": "2026-06-02T14:44:31.094432+00:00"
+        },
+        {
+          "id": "de44f192-28d1-470b-8658-9bd53903658d",
+          "role": "user",
+          "content": "J'ai ouvert la boite mail et ca remonte. J'ai honte, je bloque. Ne me propose pas de technique, juste reste avec moi une minute.",
+          "metadata": {
+            "request_id": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r2-t05",
+            "test_persona": true,
+            "force_full_ai": true,
+            "test_endpoint": "test-send-message"
+          },
+          "created_at": "2026-06-02T14:44:46.010987+00:00"
+        },
+        {
+          "id": "e0011e38-1b36-4c8b-b756-24f976fee0f6",
+          "role": "assistant",
+          "content": "Ah merde… 😔 Viens, je reste là avec toi. Respire juste une fois, et rappelle-toi que honte ne veut pas dire “faute morale”, juste que ton cerveau panique après un truc banal. Tu as ouvert la boîte, tu as vu le message, et rien de tout ça ne définit ta valeur. Là, l’objectif c’est seulement de traverser cette minute sans te rajouter une seconde couche de haine. 🫶",
+          "metadata": {
+            "channel": "web",
+            "request_id": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r2-t05",
+            "test_persona": true,
+            "force_full_ai": true,
+            "test_endpoint": "test-send-message",
+            "router_decision_v2": {
+              "next_mode": "companion",
+              "risk_score": 2,
+              "surface_id": null,
+              "agent_model": "gpt-5.4-nano",
+              "target_mode": "companion",
+              "outage_error": null,
+              "safety_level": "NONE",
+              "stop_checkup": false,
+              "surface_level": null,
+              "checkup_active": false,
+              "interrupt_kind": "NONE",
+              "research_query": null,
+              "outage_fallback": false,
+              "agent_model_tier": "lite",
+              "llm_retry_job_id": null,
+              "llm_retry_queued": false,
+              "research_executed": false,
+              "agent_model_source": "memory_plan_lite",
+              "outage_failed_mode": null,
+              "research_requested": false,
+              "research_sources_count": 0,
+              "conversation_risk_score": 1.7,
+              "conversation_risk_exit_flows": false,
+              "coaching_intervention_pending": null
+            }
+          },
+          "created_at": "2026-06-02T14:45:23.59928+00:00"
+        },
+        {
+          "id": "9a58e759-1f0d-4bb8-b517-1b73c074beb1",
+          "role": "user",
+          "content": "Ok. Ecris-moi juste un brouillon tres simple pour le mail, sans enregistrer quoi que ce soit et sans me proposer une carte.",
+          "metadata": {
+            "request_id": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r2-t06",
+            "test_persona": true,
+            "force_full_ai": true,
+            "test_endpoint": "test-send-message"
+          },
+          "created_at": "2026-06-02T14:45:35.878058+00:00"
+        },
+        {
+          "id": "0f1384d4-5971-42e3-88f1-46f3af1bd153",
+          "role": "assistant",
+          "content": "Bien sûr. 🫶 Voilà un brouillon très simple :\n\nObjet : Suite à mon message\n\nBonjour [Prénom/Nom],  \nDésolé pour le retard, je fais suite à mon message.  \nVoici ce que je voulais dire : [une ou deux phrases].  \n\nMerci beaucoup,  \n[Votre nom]",
+          "metadata": {
+            "channel": "web",
+            "request_id": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r2-t06",
+            "test_persona": true,
+            "force_full_ai": true,
+            "test_endpoint": "test-send-message",
+            "router_decision_v2": {
+              "next_mode": "companion",
+              "risk_score": 2,
+              "surface_id": null,
+              "agent_model": "gpt-5.4-nano",
+              "target_mode": "companion",
+              "outage_error": null,
+              "safety_level": "NONE",
+              "stop_checkup": false,
+              "surface_level": null,
+              "checkup_active": false,
+              "interrupt_kind": "NONE",
+              "research_query": null,
+              "outage_fallback": false,
+              "agent_model_tier": "lite",
+              "llm_retry_job_id": null,
+              "llm_retry_queued": false,
+              "research_executed": false,
+              "agent_model_source": "memory_plan_lite",
+              "outage_failed_mode": null,
+              "research_requested": false,
+              "research_sources_count": 0,
+              "conversation_risk_score": 1,
+              "conversation_risk_exit_flows": false,
+              "coaching_intervention_pending": null
+            }
+          },
+          "created_at": "2026-06-02T14:46:02.412717+00:00"
+        }
+      ]
+    },
+    "memory_items": {
+      "status": 200,
+      "ok": true,
+      "count": 0,
+      "body": []
+    },
+    "scheduled_checkins": {
+      "status": 200,
+      "ok": true,
+      "count": 0,
+      "body": []
+    },
+    "user_recurring_reminders": {
+      "status": 200,
+      "ok": true,
+      "count": 0,
+      "body": []
+    },
+    "user_attack_cards": {
+      "status": 200,
+      "ok": true,
+      "count": 0,
+      "body": []
+    },
+    "user_defense_cards": {
+      "status": 200,
+      "ok": true,
+      "count": 0,
+      "body": []
+    },
+    "user_potion_sessions": {
+      "status": 200,
+      "ok": true,
+      "count": 0,
+      "body": []
+    },
+    "user_profile_facts": {
+      "status": 200,
+      "ok": true,
+      "count": 9,
+      "body": [
+        {
+          "user_id": "7ff8ce9e-e5ae-4949-81b4-4bb81b7397b0",
+          "scope": "global",
+          "key": "coach.tone",
+          "value": {
+            "label": "Bienveillant ferme",
+            "value": "warm_direct"
+          },
+          "status": "active",
+          "confidence": 1,
+          "source_type": "system_default",
+          "last_source_message_id": null,
+          "reason": "Default coach preferences (v4 canonical)",
+          "created_at": "2026-06-02T14:42:19.918024+00:00",
+          "updated_at": "2026-06-02T14:42:19.918024+00:00",
+          "last_confirmed_at": null,
+          "version": 1,
+          "previous_values": []
+        },
+        {
+          "user_id": "7ff8ce9e-e5ae-4949-81b4-4bb81b7397b0",
+          "scope": "global",
+          "key": "coach.challenge_level",
+          "value": {
+            "label": "Équilibré",
+            "value": "balanced"
+          },
+          "status": "active",
+          "confidence": 1,
+          "source_type": "system_default",
+          "last_source_message_id": null,
+          "reason": "Default coach preferences (v4 canonical)",
+          "created_at": "2026-06-02T14:42:19.918024+00:00",
+          "updated_at": "2026-06-02T14:42:19.918024+00:00",
+          "last_confirmed_at": null,
+          "version": 1,
+          "previous_values": []
+        },
+        {
+          "user_id": "7ff8ce9e-e5ae-4949-81b4-4bb81b7397b0",
+          "scope": "global",
+          "key": "coach.feedback_style",
+          "value": {
+            "label": "Positif puis amélioration",
+            "value": "positive_then_fix"
+          },
+          "status": "active",
+          "confidence": 1,
+          "source_type": "system_default",
+          "last_source_message_id": null,
+          "reason": "Default coach preferences (v4 canonical)",
+          "created_at": "2026-06-02T14:42:19.918024+00:00",
+          "updated_at": "2026-06-02T14:42:19.918024+00:00",
+          "last_confirmed_at": null,
+          "version": 1,
+          "previous_values": []
+        },
+        {
+          "user_id": "7ff8ce9e-e5ae-4949-81b4-4bb81b7397b0",
+          "scope": "global",
+          "key": "coach.talk_propensity",
+          "value": {
+            "label": "Équilibrée",
+            "value": "balanced"
+          },
+          "status": "active",
+          "confidence": 1,
+          "source_type": "system_default",
+          "last_source_message_id": null,
+          "reason": "Default coach preferences (v4 canonical)",
+          "created_at": "2026-06-02T14:42:19.918024+00:00",
+          "updated_at": "2026-06-02T14:42:19.918024+00:00",
+          "last_confirmed_at": null,
+          "version": 1,
+          "previous_values": []
+        },
+        {
+          "user_id": "7ff8ce9e-e5ae-4949-81b4-4bb81b7397b0",
+          "scope": "global",
+          "key": "coach.message_length",
+          "value": {
+            "label": "Courte",
+            "value": "short"
+          },
+          "status": "active",
+          "confidence": 1,
+          "source_type": "system_default",
+          "last_source_message_id": null,
+          "reason": "Default coach preferences (v4 canonical)",
+          "created_at": "2026-06-02T14:42:19.918024+00:00",
+          "updated_at": "2026-06-02T14:42:19.918024+00:00",
+          "last_confirmed_at": null,
+          "version": 1,
+          "previous_values": []
+        },
+        {
+          "user_id": "7ff8ce9e-e5ae-4949-81b4-4bb81b7397b0",
+          "scope": "global",
+          "key": "coach.message_format",
+          "value": {
+            "label": "Mix adaptatif",
+            "value": "adaptive"
+          },
+          "status": "active",
+          "confidence": 1,
+          "source_type": "system_default",
+          "last_source_message_id": null,
+          "reason": "Default coach preferences (v4 canonical)",
+          "created_at": "2026-06-02T14:42:19.918024+00:00",
+          "updated_at": "2026-06-02T14:42:19.918024+00:00",
+          "last_confirmed_at": null,
+          "version": 1,
+          "previous_values": []
+        },
+        {
+          "user_id": "7ff8ce9e-e5ae-4949-81b4-4bb81b7397b0",
+          "scope": "global",
+          "key": "coach.primary_focus",
+          "value": {
+            "label": "Discipline / action",
+            "value": "discipline"
+          },
+          "status": "active",
+          "confidence": 1,
+          "source_type": "system_default",
+          "last_source_message_id": null,
+          "reason": "Default coach preferences (v4 canonical)",
+          "created_at": "2026-06-02T14:42:19.918024+00:00",
+          "updated_at": "2026-06-02T14:42:19.918024+00:00",
+          "last_confirmed_at": null,
+          "version": 1,
+          "previous_values": []
+        },
+        {
+          "user_id": "7ff8ce9e-e5ae-4949-81b4-4bb81b7397b0",
+          "scope": "global",
+          "key": "coach.emotional_personalization",
+          "value": {
+            "label": "Chaleureux",
+            "value": "warm"
+          },
+          "status": "active",
+          "confidence": 1,
+          "source_type": "system_default",
+          "last_source_message_id": null,
+          "reason": "Default coach preferences (v4 canonical)",
+          "created_at": "2026-06-02T14:42:19.918024+00:00",
+          "updated_at": "2026-06-02T14:42:19.918024+00:00",
+          "last_confirmed_at": null,
+          "version": 1,
+          "previous_values": []
+        },
+        {
+          "user_id": "7ff8ce9e-e5ae-4949-81b4-4bb81b7397b0",
+          "scope": "global",
+          "key": "coach.question_tendency",
+          "value": {
+            "label": "Normale",
+            "value": "normal"
+          },
+          "status": "active",
+          "confidence": 1,
+          "source_type": "system_default",
+          "last_source_message_id": null,
+          "reason": "Default coach preferences (v4 canonical)",
+          "created_at": "2026-06-02T14:42:19.918024+00:00",
+          "updated_at": "2026-06-02T14:42:19.918024+00:00",
+          "last_confirmed_at": null,
+          "version": 1,
+          "previous_values": []
+        }
+      ]
+    }
+  },
+  "created_at": "2026-06-02T14:46:48.034Z"
+}

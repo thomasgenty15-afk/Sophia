@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "cardinality": {
+    "father": "usually_single",
+    "mother": "usually_single",
+    "step_father": "usually_single",
+    "step_mother": "usually_single",
+    "spouse": "time_scoped",
+    "current_partner": "time_scoped",
+    "sister": "multiple",
+    "brother": "multiple",
+    "child": "multiple",
+    "cousin": "multiple",
+    "uncle": "multiple",
+    "aunt": "multiple",
+    "grandparent": "multiple",
+    "friend": "multiple",
+    "ex_partner": "multiple",
+    "colleague": "multiple",
+    "manager": "time_scoped",
+    "coach": "time_scoped",
+    "therapist": "time_scoped",
+    "company": "time_scoped",
+    "current_company": "time_scoped"
+  }
+}

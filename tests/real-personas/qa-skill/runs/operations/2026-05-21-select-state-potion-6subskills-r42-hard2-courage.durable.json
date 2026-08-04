@@ -1,0 +1,191 @@
+[
+  {
+    "potion": "courage",
+    "user_id": "dde77208-5382-437d-8625-559eb13817ff",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r42_hard2_courage_courage",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [
+        {
+          "id": "b30a3aa3-2db0-4d01-b600-4ccc4caefbae",
+          "potion_type": "courage",
+          "status": "completed",
+          "source": "system",
+          "scope_kind": "out_of_plan",
+          "cycle_id": "c99577e7-8e9b-4da2-bd9b-a12f322bde72",
+          "transformation_id": null,
+          "content": {
+            "title": "Oser le premier mot",
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Envoyer le message difficile",
+              "evidence": [
+                "C'est pour parler a mon associe. Je dois envoyer une premiere phrase",
+                "Aide-moi uniquement demain matin avant que je l'ecrive, vers 08h15."
+              ],
+              "recurrence_hint": "quotidien",
+              "date_or_window_hint": "2026-05-22 08:15",
+              "target_plan_item_id": "6e2cd943-ee06-4e22-b1f5-ff4dcd5f41e8",
+              "related_plan_item_id": "6e2cd943-ee06-4e22-b1f5-ff4dcd5f41e8",
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "operation_draft": {
+              "title": "Oser le premier mot",
+              "follow_up": {
+                "duration_days": 1,
+                "schedule_plan": {
+                  "mode": "single_before_event",
+                  "reason": "Soutien ponctuel unique demandé pour demain matin avant l'écriture du message.",
+                  "local_dates": [
+                    "2026-05-22"
+                  ],
+                  "duration_days": null,
+                  "scheduled_days": [],
+                  "local_time_hhmm": "08:15",
+                  "timing_relation": "before"
+                },
+                "local_time_hhmm": "08:15",
+                "reason_for_time": "Le user a spécifiquement demandé un soutien demain matin à 08h15 avant de passer à l'action.",
+                "reminder_instruction": "Aider à dégonfler la peur d'être 'lourd' et encourager un message simple et factuel juste avant l'envoi pour éviter l'évitement lié au perfectionnisme."
+              },
+              "potion_type": "courage",
+              "opening_prompt": "Si tu veux, dis-moi ce qui te semble le plus 'lourd' dans ce que tu as à dire. Juste pour sortir ça de ta tête.",
+              "target_binding": {
+                "kind": "plan_item",
+                "label": "Envoyer le message difficile",
+                "evidence": [
+                  "C'est pour parler a mon associe. Je dois envoyer une premiere phrase",
+                  "Aide-moi uniquement demain matin avant que je l'ecrive, vers 08h15."
+                ],
+                "recurrence_hint": "quotidien",
+                "date_or_window_hint": "2026-05-22 08:15",
+                "target_plan_item_id": "6e2cd943-ee06-4e22-b1f5-ff4dcd5f41e8",
+                "related_plan_item_id": "6e2cd943-ee06-4e22-b1f5-ff4dcd5f41e8",
+                "target_action_family_key": null,
+                "target_generated_temp_id": null
+              },
+              "why_this_potion": "Le user craint d'être perçu comme lourd ou de déclencher un conflit. La potion courage aide à agir malgré cette peur de la réaction de l'autre et le perfectionnisme sur la formulation.",
+              "expected_duration": "short",
+              "potion_info_message": "C'est la potion de courage. Elle t'accompagne pour traverser cette appréhension. Je passerai te voir demain matin à 08h15, juste avant que tu n'envoies ton message.",
+              "instant_support_message": "C'est normal d'avoir peur de la réaction de l'autre ou de paraître pesant. On va juste chercher à poser les choses, sans forcer le ton, pour que tu te sentes plus léger."
+            },
+            "why_this_potion": "Le user craint d'être perçu comme lourd ou de déclencher un conflit. La potion courage aide à agir malgré cette peur de la réaction de l'autre et le perfectionnisme sur la formulation.",
+            "potion_info_message": "C'est la potion de courage. Elle t'accompagne pour traverser cette appréhension. Je passerai te voir demain matin à 08h15, juste avant que tu n'envoies ton message.",
+            "instant_support_message": "C'est normal d'avoir peur de la réaction de l'autre ou de paraître pesant. On va juste chercher à poser les choses, sans forcer le ton, pour que tu te sentes plus léger."
+          },
+          "follow_up_strategy": {
+            "duration_days": 1,
+            "schedule_plan": {
+              "mode": "single_before_event",
+              "reason": "Soutien ponctuel unique demandé pour demain matin avant l'écriture du message.",
+              "local_dates": [
+                "2026-05-22"
+              ],
+              "duration_days": null,
+              "scheduled_days": [],
+              "local_time_hhmm": "08:15",
+              "timing_relation": "before"
+            },
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Envoyer le message difficile",
+              "evidence": [
+                "C'est pour parler a mon associe. Je dois envoyer une premiere phrase",
+                "Aide-moi uniquement demain matin avant que je l'ecrive, vers 08h15."
+              ],
+              "recurrence_hint": "quotidien",
+              "date_or_window_hint": "2026-05-22 08:15",
+              "target_plan_item_id": "6e2cd943-ee06-4e22-b1f5-ff4dcd5f41e8",
+              "related_plan_item_id": "6e2cd943-ee06-4e22-b1f5-ff4dcd5f41e8",
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "local_time_hhmm": "08:15",
+            "reason_for_time": "Le user a spécifiquement demandé un soutien demain matin à 08h15 avant de passer à l'action.",
+            "reminder_instruction": "Aider à dégonfler la peur d'être 'lourd' et encourager un message simple et factuel juste avant l'envoi pour éviter l'évitement lié au perfectionnisme."
+          },
+          "metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r42_hard2_courage-courage-t05-a1",
+            "operation_id": "bfadbec0-05b4-4476-99ba-6a17b72d65f9",
+            "operation_type": "select_state_potion",
+            "source_message_id": "acd31535-b594-4c0e-821b-26712014b350"
+          },
+          "generated_at": "2026-05-21T16:04:24.808+00:00",
+          "last_updated_at": "2026-05-21T16:04:24.808+00:00"
+        }
+      ],
+      "reminders": [
+        {
+          "id": "e1b7cb42-02c7-463b-b0ef-59914869ef05",
+          "message_instruction": "Aider à dégonfler la peur d'être 'lourd' et encourager un message simple et factuel juste avant l'envoi pour éviter l'évitement lié au perfectionnisme.",
+          "rationale": "Soutien ponctuel unique demandé pour demain matin avant l'écriture du message.",
+          "local_time_hhmm": "08:15",
+          "scheduled_days": [
+            "fri"
+          ],
+          "status": "active",
+          "initiative_kind": "potion_follow_up",
+          "source_kind": "potion_generated",
+          "source_potion_session_id": "b30a3aa3-2db0-4d01-b600-4ccc4caefbae",
+          "initiative_metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r42_hard2_courage-courage-t05-a1",
+            "operation_id": "bfadbec0-05b4-4476-99ba-6a17b72d65f9",
+            "schedule_plan": {
+              "mode": "single_before_event",
+              "reason": "Soutien ponctuel unique demandé pour demain matin avant l'écriture du message.",
+              "local_dates": [
+                "2026-05-22"
+              ],
+              "duration_days": null,
+              "scheduled_days": [],
+              "local_time_hhmm": "08:15",
+              "timing_relation": "before"
+            },
+            "operation_type": "select_state_potion",
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Envoyer le message difficile",
+              "evidence": [
+                "C'est pour parler a mon associe. Je dois envoyer une premiere phrase",
+                "Aide-moi uniquement demain matin avant que je l'ecrive, vers 08h15."
+              ],
+              "recurrence_hint": "quotidien",
+              "date_or_window_hint": "2026-05-22 08:15",
+              "target_plan_item_id": "6e2cd943-ee06-4e22-b1f5-ff4dcd5f41e8",
+              "related_plan_item_id": "6e2cd943-ee06-4e22-b1f5-ff4dcd5f41e8",
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            }
+          },
+          "target_kind": "plan_item",
+          "target_plan_item_id": "6e2cd943-ee06-4e22-b1f5-ff4dcd5f41e8",
+          "target_action_family_key": null,
+          "target_binding_policy": "live_action",
+          "target_lifecycle_policy": "while_target_active",
+          "starts_at": "2026-05-21T16:04:24.808+00:00",
+          "created_at": "2026-05-21T16:04:24.811572+00:00",
+          "updated_at": "2026-05-21T16:04:24.811572+00:00"
+        }
+      ],
+      "checkins": [
+        {
+          "id": "a506dd24-0c09-42ad-afd1-3c6eb64b54a1",
+          "recurring_reminder_id": "e1b7cb42-02c7-463b-b0ef-59914869ef05",
+          "event_context": "recurring_reminder:e1b7cb42-02c7-463b-b0ef-59914869ef05:potion:b30a3aa3-2db0-4d01-b600-4ccc4caefbae:2026-05-22",
+          "draft_message": "Aider à dégonfler la peur d'être 'lourd' et encourager un message simple et factuel juste avant l'envoi pour éviter l'évitement lié au perfectionnisme.",
+          "scheduled_for": "2026-05-22T08:15:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T16:04:24.81662+00:00"
+        }
+      ]
+    }
+  }
+]

@@ -1,0 +1,261 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-keyword-ancre-r1-t01",
+    "auth_method": "get-jwt.sh",
+    "user": "ANCRE",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-keyword-ancre-r1-t01",
+      "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test1-alex-2026-05-13-attack-keyword-ancre-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ok. Respire une fois, pose ta main sur le lieu le plus “stable” (poitrine ou ventre), et dis-toi intérieurement: “Je reviens au repérage.” Ensuite, repère juste un piège d’hypervigilance là, maintenant. 😮‍💨\n\nTu sens plutôt: contrôle excessif A, ou sur-interprétation B ?",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-keyword-ancre-r1-t01",
+        "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+        "source_message_id": "4a21cb56-76e5-42b7-b7ae-4c2503e50ed5",
+        "ts": "2026-05-13T13:54:28.911+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 3431,
+          "latency_ms": 11841,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 310,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habitudes.execution",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "technique ancre",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s9"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-keyword-ancre-r1-t01",
+          "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habitudes.execution",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "technique ancre",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "execution_breakdown": {
+                "reason": "user_invoked_anchor_keyword_for_execution_support",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "operation_intents": [],
+          "source_message_id": "4a21cb56-76e5-42b7-b7ae-4c2503e50ed5",
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "skill_entry_signal",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "memory_use_kind": "none",
+          "selected_handler": "execution_breakdown",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "output": {
+            "reply": "On ne cherche pas encore la solution parfaite. On cherche le point exact ou ca bloque: demarrage, energie, flou, peur, ou environnement.",
+            "status": "continue",
+            "skill_id": "execution_breakdown",
+            "diagnosis": {
+              "stage": "diagnosis",
+              "blocker_candidates": [
+                "flou",
+                "energie",
+                "friction_demarrage"
+              ]
+            },
+            "state_patch": {
+              "summary": "Execution blocker diagnosis in progress."
+            },
+            "memory_trace": {
+              "correction_detected": false,
+              "memory_item_ids_used": [],
+              "memory_used_for_response": false,
+              "correction_target_item_ids": []
+            },
+            "response_intent": "diagnose_blocker",
+            "recommendation_need": {
+              "type": "execution_repair",
+              "needed": true,
+              "urgency": "medium",
+              "constraints": [
+                "understand_before_solution"
+              ]
+            },
+            "operation_suggestions": [
+              {
+                "reason": "clear_execution_block_can_use_attack_card",
+                "urgency": "medium",
+                "operation_type": "prepare_attack_card",
+                "confidence_band": "medium",
+                "source_skill_id": "execution_breakdown",
+                "operation_input_hint": {
+                  "scope": {
+                    "kind": "plan_item",
+                    "title": "Préparer ta zone de déchargement",
+                    "plan_item_id": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e"
+                  },
+                  "target": {
+                    "kind": "plan_item",
+                    "title": "Préparer ta zone de déchargement",
+                    "plan_item_id": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e"
+                  },
+                  "blocker": {
+                    "type": "execution_block"
+                  }
+                },
+                "requires_user_consent": true
+              }
+            ],
+            "memory_write_candidates": [
+              {
+                "kind": "statement",
+                "scope_hint": "session",
+                "content_text": "ANCRE",
+                "confidence_band": "medium",
+                "sensitivity_level": 1,
+                "evidence_source_ids": [
+                  "4a21cb56-76e5-42b7-b7ae-4c2503e50ed5"
+                ],
+                "persistence_rationale": "Conversation skill observation; memorizer decides durable persistence.",
+                "should_persist_default": false,
+                "anti_identity_freeze_checked": true
+              }
+            ]
+          },
+          "reason_code": "skill_entry_signal",
+          "selected_skill_id": "execution_breakdown"
+        },
+        "operation_flow_run": null,
+        "recommendation_tool_run": {
+          "stats": null,
+          "recommendation": {
+            "reason": "clear_execution_block_can_use_attack_card",
+            "timing": "now",
+            "decision": "recommend_operation",
+            "cta_style": "soft",
+            "confidence": 0.72,
+            "surface_id": "attack_card",
+            "alternatives": [],
+            "operation_type": "prepare_attack_card",
+            "operation_input": {
+              "scope": {
+                "kind": "plan_item",
+                "title": "Préparer ta zone de déchargement",
+                "plan_item_id": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e"
+              },
+              "target": {
+                "kind": "plan_item",
+                "title": "Préparer ta zone de déchargement",
+                "plan_item_id": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e"
+              },
+              "blocker": {
+                "type": "execution_block"
+              }
+            },
+            "do_not_recommend": [],
+            "executor_tool_id": "prepare_attack_card",
+            "requires_consent": true,
+            "recommendation_id": "skill:execution_breakdown:prepare_attack_card:qa-operation-suggestion-test1-alex-2026-05-13-attack-keyword-ancre-r1-t01",
+            "user_facing_offer": "Je peux te proposer Carte d'attaque si tu veux passer par le flow propre.",
+            "presentation_level": 2
+          }
+        },
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "conversation_handler",
+        "total_latency_ms": 13911,
+        "created_at": "2026-05-13T13:54:28.912238+00:00"
+      },
+      "trace_error": null
+    }
+  }
+]

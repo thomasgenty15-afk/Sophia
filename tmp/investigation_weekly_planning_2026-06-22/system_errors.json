@@ -1,0 +1,3 @@
+{
+  "__error": "system_errors 404: {\"code\":\"PGRST205\",\"details\":null,\"hint\":\"Perhaps you meant the table 'public.system_error_logs'\",\"message\":\"Could not find the table 'public.system_errors' in the schema cache\"}"
+}

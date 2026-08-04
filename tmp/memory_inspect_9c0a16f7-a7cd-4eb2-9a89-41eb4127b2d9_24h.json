@@ -1,0 +1,882 @@
+{
+  "ok": true,
+  "exported_at": "2026-05-06T05:45:33.438Z",
+  "source": {
+    "supabase_url": "http://127.0.0.1:54321",
+    "connection_type": "local"
+  },
+  "request": {
+    "user_id": "9c0a16f7-a7cd-4eb2-9a89-41eb4127b2d9",
+    "scope": null,
+    "from": "2026-05-05T05:45:33.445Z",
+    "to": "2026-05-06T05:45:33.438Z",
+    "used_hours": 24
+  },
+  "trace": {
+    "window": {
+      "from": "2026-05-05T05:45:33.445Z",
+      "to": "2026-05-06T05:45:33.438Z",
+      "scope": null,
+      "hours": 24
+    },
+    "summary": {
+      "messages_total": 18,
+      "user_messages": 9,
+      "assistant_messages": 9,
+      "retrieval_events_total": 31,
+      "persistence_events_total": 0,
+      "handoff_events_total": 0
+    },
+    "messages": [
+      {
+        "id": "baeeb05d-e9f6-4a52-aba2-0caa4731ac53",
+        "role": "user",
+        "content": "Tu peux me dire ce qu’il y a dans mon plan en ce moment ?",
+        "scope": "web",
+        "created_at": "2026-05-05T17:03:58.338062+00:00",
+        "metadata": {
+          "request_id": "c97f85dd-32dc-47a8-952d-bbe27eef9fd1",
+          "test_persona": true,
+          "test_endpoint": "test-send-message"
+        }
+      },
+      {
+        "id": "25536d4a-22a5-401f-8c2b-fabee800b6c6",
+        "role": "assistant",
+        "content": "Voici ce qui est actif dans ton plan en ce moment :\n\n- Préparer la présentation de cadrage client\n- Envoyer la version client jeudi soir pour revue interne\n- Ton bloc focus de 25 minutes sur le cadrage\n\nC'est un programme bien ciblé sur ton projet en cours 🎯",
+        "scope": "web",
+        "created_at": "2026-05-05T17:04:09.885389+00:00",
+        "metadata": {
+          "channel": "web",
+          "request_id": "c97f85dd-32dc-47a8-952d-bbe27eef9fd1",
+          "test_persona": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "coaching_intervention_pending": null
+          }
+        }
+      },
+      {
+        "id": "c27323c7-d7bf-4993-a8d8-489cb7fbbc07",
+        "role": "user",
+        "content": "Je bloque sur la présentation de cadrage client, je sais pas par où commencer.",
+        "scope": "web",
+        "created_at": "2026-05-05T17:04:15.474411+00:00",
+        "metadata": {
+          "request_id": "52d27bc5-a9d5-482d-8433-fb9c1f5b03bd",
+          "test_persona": true,
+          "test_endpoint": "test-send-message"
+        }
+      },
+      {
+        "id": "69c24938-7ede-42ac-b8a7-9a076358c718",
+        "role": "assistant",
+        "content": "Classique le coup de la page blanche, t'inquiète pas. On va débloquer ça ensemble. \n\nSi tu devais juste m'écrire ici l'idée principale que ton client doit retenir à la toute fin de ta présentation, en une seule phrase, tu dirais quoi ? 🎯",
+        "scope": "web",
+        "created_at": "2026-05-05T17:04:28.922827+00:00",
+        "metadata": {
+          "channel": "web",
+          "request_id": "52d27bc5-a9d5-482d-8433-fb9c1f5b03bd",
+          "test_persona": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "coaching_intervention_pending": null
+          }
+        }
+      },
+      {
+        "id": "45e1348f-12d1-4348-8088-ed7d825aa6d3",
+        "role": "user",
+        "content": "Est-ce que ça correspond à une action de mon plan ou c’est un truc à part ?",
+        "scope": "web",
+        "created_at": "2026-05-05T17:04:34.504286+00:00",
+        "metadata": {
+          "request_id": "8e0aafe4-5d00-4e3a-bd60-df63427248cf",
+          "test_persona": true,
+          "test_endpoint": "test-send-message"
+        }
+      },
+      {
+        "id": "8e768da2-0c25-4b26-9e21-01179254a63a",
+        "role": "assistant",
+        "content": "C'est complètement dans ton plan. Ça correspond direct à ta mission \"Préparer la présentation de cadrage client\". \n\nTe demander juste une phrase, c'est ma petite astuce pour te débloquer et t'aider à lancer la machine en douceur 🚀",
+        "scope": "web",
+        "created_at": "2026-05-05T17:04:47.754457+00:00",
+        "metadata": {
+          "channel": "web",
+          "request_id": "8e0aafe4-5d00-4e3a-bd60-df63427248cf",
+          "test_persona": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "coaching_intervention_pending": null
+          }
+        }
+      },
+      {
+        "id": "ec5514d2-5d55-4d8e-bc33-7f85be5dbb16",
+        "role": "user",
+        "content": "Ok, ajuste cette action : elle est trop vague pour moi.",
+        "scope": "web",
+        "created_at": "2026-05-05T17:04:53.329301+00:00",
+        "metadata": {
+          "request_id": "0015330d-8c1c-444c-a298-97fe576732f7",
+          "test_persona": true,
+          "test_endpoint": "test-send-message"
+        }
+      },
+      {
+        "id": "c242656b-e7b9-41a1-ab0b-eb6045f298a9",
+        "role": "assistant",
+        "content": "Ok, je garde la cible existante: Preparer la presentation de cadrage client. Pour la clarifier sans creer de nouvelle action, je la ramenerais a: resultat attendu, format livrable, critere \"c'est fini\", et prochaine etape minimale. Dis-moi juste le role principal de cette presentation: aligner, convaincre, ou obtenir un feu vert ?",
+        "scope": "web",
+        "created_at": "2026-05-05T17:04:56.919362+00:00",
+        "metadata": {
+          "channel": "web",
+          "request_id": "0015330d-8c1c-444c-a298-97fe576732f7",
+          "test_persona": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "operation_runtime": {
+              "status": "target_resolved",
+              "plan_item_id": "44444444-4444-4444-8444-444444444444",
+              "target_title": "Preparer la presentation de cadrage client",
+              "adjustment_hint": "clarify",
+              "selected_handler": "adjust_plan_item"
+            }
+          }
+        }
+      },
+      {
+        "id": "e3819408-27ee-49c5-94c2-ea9f0fb769c8",
+        "role": "user",
+        "content": "Non je ne veux pas une nouvelle action, je veux clarifier celle de la présentation de cadrage client.",
+        "scope": "web",
+        "created_at": "2026-05-05T17:05:02.50297+00:00",
+        "metadata": {
+          "request_id": "0fff7ea6-4ddb-4f1d-9d99-4f7c194d017a",
+          "test_persona": true,
+          "test_endpoint": "test-send-message"
+        }
+      },
+      {
+        "id": "9cf67a73-e045-4f8e-a18b-6dcd3c1ecbd3",
+        "role": "assistant",
+        "content": "On est 100% d'accord, on ne crée rien de nouveau, on garde exactement cette action-là. Dès qu'on aura trouvé la bonne formulation, tu pourras simplement aller modifier son texte dans ton tableau de bord 📝\n\nPour t'aider à la rendre moins vague : quelle est la toute première étape concrète que tu dois faire pour cette présentation ?",
+        "scope": "web",
+        "created_at": "2026-05-05T17:05:21.953728+00:00",
+        "metadata": {
+          "channel": "web",
+          "request_id": "0fff7ea6-4ddb-4f1d-9d99-4f7c194d017a",
+          "test_persona": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "coaching_intervention_pending": null
+          }
+        }
+      },
+      {
+        "id": "36a40294-3632-4770-806b-656072583405",
+        "role": "user",
+        "content": "Et l’envoi jeudi soir pour revue interne, c’est déjà dans mon plan ou pas ?",
+        "scope": "web",
+        "created_at": "2026-05-05T17:05:27.983942+00:00",
+        "metadata": {
+          "request_id": "7bab3b93-2822-4eff-a7e4-d760cb314b51",
+          "test_persona": true,
+          "test_endpoint": "test-send-message"
+        }
+      },
+      {
+        "id": "0e3759f6-9ec9-4620-9b29-f0dd8c6ef225",
+        "role": "assistant",
+        "content": "Oui, c'est bien dedans ! C'est déjà listé dans tes missions actuelles. Concentre-toi juste sur le début de la présentation pour l'instant, on gérera l'envoi après 👌",
+        "scope": "web",
+        "created_at": "2026-05-05T17:05:40.60808+00:00",
+        "metadata": {
+          "channel": "web",
+          "request_id": "7bab3b93-2822-4eff-a7e4-d760cb314b51",
+          "test_persona": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "coaching_intervention_pending": null
+          }
+        }
+      },
+      {
+        "id": "9f574baa-f072-4da3-a303-62f1f6e8e285",
+        "role": "user",
+        "content": "Fais-moi une carte d’attaque pour démarrer la présentation sans la refaire de zéro.",
+        "scope": "web",
+        "created_at": "2026-05-05T17:05:46.192006+00:00",
+        "metadata": {
+          "request_id": "8a21146b-ba98-4d48-a88c-a3d1f57f9074",
+          "test_persona": true,
+          "test_endpoint": "test-send-message"
+        }
+      },
+      {
+        "id": "c73a4b1f-c8e1-4ca9-9dc2-8f929309e428",
+        "role": "assistant",
+        "content": "Je te propose de creer une carte d'attaque courte pour Preparer la presentation de cadrage client: Fais la version 4 minutes de \"Preparer la presentation de cadrage client\", assez petite pour ne pas negocier. Tu veux que je la cree ?",
+        "scope": "web",
+        "created_at": "2026-05-05T17:05:49.745978+00:00",
+        "metadata": {
+          "channel": "web",
+          "request_id": "8a21146b-ba98-4d48-a88c-a3d1f57f9074",
+          "test_persona": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "operation_runtime": {
+              "draft": {
+                "draft": {
+                  "title": "Carte d'attaque - Preparer la presentation de cadrage client",
+                  "technique": "minimum_version",
+                  "instruction": "Fais la version 4 minutes de \"Preparer la presentation de cadrage client\", assez petite pour ne pas negocier.",
+                  "target_label": "Preparer la presentation de cadrage client",
+                  "why_it_helps": "La carte baisse la friction de demarrage sans augmenter la difficulte."
+                },
+                "output_schema": "attack_card_draft_v1",
+                "operation_type": "prepare_attack_card",
+                "confirmation_actions": [
+                  "yes",
+                  "no"
+                ],
+                "confirmation_message": "Je te propose de creer une carte d'attaque courte pour Preparer la presentation de cadrage client: Fais la version 4 minutes de \"Preparer la presentation de cadrage client\", assez petite pour ne pas negocier. Tu veux que je la cree ?"
+              },
+              "status": "pending_confirmation",
+              "operation_id": "eb7ad579-e90c-45d4-a661-082d3f1f7988",
+              "selected_handler": "prepare_attack_card"
+            }
+          }
+        }
+      },
+      {
+        "id": "6046ea5b-08dd-4938-8228-fe936bde42fd",
+        "role": "user",
+        "content": "Ok fais-le.",
+        "scope": "web",
+        "created_at": "2026-05-05T17:05:55.341397+00:00",
+        "metadata": {
+          "request_id": "789371e4-797b-429e-986f-723f4c8d02c5",
+          "test_persona": true,
+          "test_endpoint": "test-send-message"
+        }
+      },
+      {
+        "id": "72173e77-2499-4b8d-945e-788e9cde5a49",
+        "role": "assistant",
+        "content": "C'est fait. J'ai créé la carte d'attaque \"Carte d'attaque - Preparer la presentation de cadrage client\" : Fais la version 4 minutes de \"Preparer la presentation de cadrage client\", assez petite pour ne pas negocier.",
+        "scope": "web",
+        "created_at": "2026-05-05T17:05:58.921552+00:00",
+        "metadata": {
+          "channel": "web",
+          "request_id": "789371e4-797b-429e-986f-723f4c8d02c5",
+          "test_persona": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "operation_runtime": {
+              "status": "executed",
+              "operation_id": "eb7ad579-e90c-45d4-a661-082d3f1f7988",
+              "attack_card_id": "a5aaee33-928b-46a1-ab88-0fa9b6e93f38",
+              "selected_handler": "prepare_attack_card"
+            }
+          }
+        }
+      },
+      {
+        "id": "3c37bcb9-fe2f-4ff1-b03b-136691e09471",
+        "role": "user",
+        "content": "Résume-moi ce qui existe déjà dans mon plan et ce qu’on a ajusté ou préparé, sans inventer d’action.",
+        "scope": "web",
+        "created_at": "2026-05-05T17:06:04.492158+00:00",
+        "metadata": {
+          "request_id": "cb81fa51-4f2b-44e7-b72d-cc156f480bd7",
+          "test_persona": true,
+          "test_endpoint": "test-send-message"
+        }
+      },
+      {
+        "id": "7f368cfa-0fce-40a0-b8fa-3f6fca51a725",
+        "role": "assistant",
+        "content": "Voici exactement ce qui est dans ton plan :\n\n- Préparer la présentation de cadrage client : la mission est toujours là, et on vient de lui greffer une carte d'attaque de 4 minutes pour te débloquer.\n- Envoyer la version client jeudi soir pour revue interne.\n- Ton bloc focus de 25 minutes sur le cadrage.\n\nRien de plus, rien de moins. Tu te sens prêt à lancer tes 4 premières minutes maintenant ? ⏱️",
+        "scope": "web",
+        "created_at": "2026-05-05T17:06:23.325996+00:00",
+        "metadata": {
+          "channel": "web",
+          "request_id": "cb81fa51-4f2b-44e7-b72d-cc156f480bd7",
+          "test_persona": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "coaching_intervention_pending": null
+          }
+        }
+      }
+    ],
+    "retrieval_by_intent": [
+      {
+        "at": "2026-05-05T16:43:29.645872+00:00",
+        "intent": "answer_user_now",
+        "layers_loaded": [
+          "coaching"
+        ],
+        "budget_tier": "full",
+        "tokens_used": 0,
+        "hit_count": 0,
+        "cycle_id": "11111111-1111-4111-8111-111111111111",
+        "transformation_id": "22222222-2222-4222-8222-222222222222"
+      },
+      {
+        "at": "2026-05-05T16:43:50.723491+00:00",
+        "intent": "answer_user_now",
+        "layers_loaded": [
+          "coaching"
+        ],
+        "budget_tier": "full",
+        "tokens_used": 0,
+        "hit_count": 0,
+        "cycle_id": "11111111-1111-4111-8111-111111111111",
+        "transformation_id": "22222222-2222-4222-8222-222222222222"
+      },
+      {
+        "at": "2026-05-05T16:44:04.1555+00:00",
+        "intent": "answer_user_now",
+        "layers_loaded": [
+          "coaching"
+        ],
+        "budget_tier": "full",
+        "tokens_used": 0,
+        "hit_count": 0,
+        "cycle_id": "11111111-1111-4111-8111-111111111111",
+        "transformation_id": "22222222-2222-4222-8222-222222222222"
+      },
+      {
+        "at": "2026-05-05T16:44:25.848508+00:00",
+        "intent": "answer_user_now",
+        "layers_loaded": [
+          "coaching"
+        ],
+        "budget_tier": "full",
+        "tokens_used": 0,
+        "hit_count": 0,
+        "cycle_id": "11111111-1111-4111-8111-111111111111",
+        "transformation_id": "22222222-2222-4222-8222-222222222222"
+      },
+      {
+        "at": "2026-05-05T16:48:53.587016+00:00",
+        "intent": "answer_user_now",
+        "layers_loaded": [
+          "coaching"
+        ],
+        "budget_tier": "full",
+        "tokens_used": 0,
+        "hit_count": 0,
+        "cycle_id": "11111111-1111-4111-8111-111111111111",
+        "transformation_id": "22222222-2222-4222-8222-222222222222"
+      },
+      {
+        "at": "2026-05-05T16:49:07.658981+00:00",
+        "intent": "answer_user_now",
+        "layers_loaded": [
+          "coaching"
+        ],
+        "budget_tier": "full",
+        "tokens_used": 0,
+        "hit_count": 0,
+        "cycle_id": "11111111-1111-4111-8111-111111111111",
+        "transformation_id": "22222222-2222-4222-8222-222222222222"
+      },
+      {
+        "at": "2026-05-05T16:49:24.485056+00:00",
+        "intent": "answer_user_now",
+        "layers_loaded": [
+          "coaching"
+        ],
+        "budget_tier": "full",
+        "tokens_used": 0,
+        "hit_count": 0,
+        "cycle_id": "11111111-1111-4111-8111-111111111111",
+        "transformation_id": "22222222-2222-4222-8222-222222222222"
+      },
+      {
+        "at": "2026-05-05T16:49:53.6939+00:00",
+        "intent": "answer_user_now",
+        "layers_loaded": [
+          "coaching"
+        ],
+        "budget_tier": "full",
+        "tokens_used": 0,
+        "hit_count": 0,
+        "cycle_id": "11111111-1111-4111-8111-111111111111",
+        "transformation_id": "22222222-2222-4222-8222-222222222222"
+      },
+      {
+        "at": "2026-05-05T16:50:17.825876+00:00",
+        "intent": "answer_user_now",
+        "layers_loaded": [
+          "coaching"
+        ],
+        "budget_tier": "full",
+        "tokens_used": 0,
+        "hit_count": 0,
+        "cycle_id": "11111111-1111-4111-8111-111111111111",
+        "transformation_id": "22222222-2222-4222-8222-222222222222"
+      },
+      {
+        "at": "2026-05-05T16:52:45.238058+00:00",
+        "intent": "answer_user_now",
+        "layers_loaded": [
+          "coaching"
+        ],
+        "budget_tier": "full",
+        "tokens_used": 0,
+        "hit_count": 0,
+        "cycle_id": "11111111-1111-4111-8111-111111111111",
+        "transformation_id": "22222222-2222-4222-8222-222222222222"
+      },
+      {
+        "at": "2026-05-05T16:52:53.210113+00:00",
+        "intent": "answer_user_now",
+        "layers_loaded": [
+          "coaching"
+        ],
+        "budget_tier": "full",
+        "tokens_used": 0,
+        "hit_count": 0,
+        "cycle_id": "11111111-1111-4111-8111-111111111111",
+        "transformation_id": "22222222-2222-4222-8222-222222222222"
+      },
+      {
+        "at": "2026-05-05T16:53:08.320199+00:00",
+        "intent": "answer_user_now",
+        "layers_loaded": [
+          "coaching"
+        ],
+        "budget_tier": "full",
+        "tokens_used": 0,
+        "hit_count": 0,
+        "cycle_id": "11111111-1111-4111-8111-111111111111",
+        "transformation_id": "22222222-2222-4222-8222-222222222222"
+      },
+      {
+        "at": "2026-05-05T16:53:56.771374+00:00",
+        "intent": "answer_user_now",
+        "layers_loaded": [
+          "coaching"
+        ],
+        "budget_tier": "full",
+        "tokens_used": 0,
+        "hit_count": 0,
+        "cycle_id": "11111111-1111-4111-8111-111111111111",
+        "transformation_id": "22222222-2222-4222-8222-222222222222"
+      },
+      {
+        "at": "2026-05-05T16:54:16.911328+00:00",
+        "intent": "answer_user_now",
+        "layers_loaded": [
+          "coaching"
+        ],
+        "budget_tier": "full",
+        "tokens_used": 0,
+        "hit_count": 0,
+        "cycle_id": "11111111-1111-4111-8111-111111111111",
+        "transformation_id": "22222222-2222-4222-8222-222222222222"
+      },
+      {
+        "at": "2026-05-05T16:55:29.659637+00:00",
+        "intent": "answer_user_now",
+        "layers_loaded": [
+          "coaching"
+        ],
+        "budget_tier": "full",
+        "tokens_used": 0,
+        "hit_count": 0,
+        "cycle_id": "11111111-1111-4111-8111-111111111111",
+        "transformation_id": "22222222-2222-4222-8222-222222222222"
+      },
+      {
+        "at": "2026-05-05T16:55:47.682864+00:00",
+        "intent": "answer_user_now",
+        "layers_loaded": [
+          "coaching"
+        ],
+        "budget_tier": "full",
+        "tokens_used": 0,
+        "hit_count": 0,
+        "cycle_id": "11111111-1111-4111-8111-111111111111",
+        "transformation_id": "22222222-2222-4222-8222-222222222222"
+      },
+      {
+        "at": "2026-05-05T16:56:06.060276+00:00",
+        "intent": "answer_user_now",
+        "layers_loaded": [
+          "coaching"
+        ],
+        "budget_tier": "full",
+        "tokens_used": 0,
+        "hit_count": 0,
+        "cycle_id": "11111111-1111-4111-8111-111111111111",
+        "transformation_id": "22222222-2222-4222-8222-222222222222"
+      },
+      {
+        "at": "2026-05-05T16:56:36.51709+00:00",
+        "intent": "answer_user_now",
+        "layers_loaded": [
+          "coaching"
+        ],
+        "budget_tier": "full",
+        "tokens_used": 0,
+        "hit_count": 0,
+        "cycle_id": "11111111-1111-4111-8111-111111111111",
+        "transformation_id": "22222222-2222-4222-8222-222222222222"
+      },
+      {
+        "at": "2026-05-05T16:56:53.732393+00:00",
+        "intent": "answer_user_now",
+        "layers_loaded": [
+          "coaching"
+        ],
+        "budget_tier": "full",
+        "tokens_used": 0,
+        "hit_count": 0,
+        "cycle_id": "11111111-1111-4111-8111-111111111111",
+        "transformation_id": "22222222-2222-4222-8222-222222222222"
+      },
+      {
+        "at": "2026-05-05T16:59:06.236652+00:00",
+        "intent": "answer_user_now",
+        "layers_loaded": [
+          "coaching"
+        ],
+        "budget_tier": "full",
+        "tokens_used": 0,
+        "hit_count": 0,
+        "cycle_id": "11111111-1111-4111-8111-111111111111",
+        "transformation_id": "22222222-2222-4222-8222-222222222222"
+      },
+      {
+        "at": "2026-05-05T16:59:25.132323+00:00",
+        "intent": "answer_user_now",
+        "layers_loaded": [
+          "coaching"
+        ],
+        "budget_tier": "full",
+        "tokens_used": 0,
+        "hit_count": 0,
+        "cycle_id": "11111111-1111-4111-8111-111111111111",
+        "transformation_id": "22222222-2222-4222-8222-222222222222"
+      },
+      {
+        "at": "2026-05-05T16:59:45.751108+00:00",
+        "intent": "answer_user_now",
+        "layers_loaded": [
+          "coaching"
+        ],
+        "budget_tier": "full",
+        "tokens_used": 0,
+        "hit_count": 0,
+        "cycle_id": "11111111-1111-4111-8111-111111111111",
+        "transformation_id": "22222222-2222-4222-8222-222222222222"
+      },
+      {
+        "at": "2026-05-05T17:00:13.232769+00:00",
+        "intent": "answer_user_now",
+        "layers_loaded": [
+          "coaching"
+        ],
+        "budget_tier": "full",
+        "tokens_used": 0,
+        "hit_count": 0,
+        "cycle_id": "11111111-1111-4111-8111-111111111111",
+        "transformation_id": "22222222-2222-4222-8222-222222222222"
+      },
+      {
+        "at": "2026-05-05T17:00:34.431583+00:00",
+        "intent": "answer_user_now",
+        "layers_loaded": [
+          "coaching"
+        ],
+        "budget_tier": "full",
+        "tokens_used": 0,
+        "hit_count": 0,
+        "cycle_id": "11111111-1111-4111-8111-111111111111",
+        "transformation_id": "22222222-2222-4222-8222-222222222222"
+      },
+      {
+        "at": "2026-05-05T17:01:10.294314+00:00",
+        "intent": "answer_user_now",
+        "layers_loaded": [
+          "coaching"
+        ],
+        "budget_tier": "full",
+        "tokens_used": 0,
+        "hit_count": 0,
+        "cycle_id": "11111111-1111-4111-8111-111111111111",
+        "transformation_id": "22222222-2222-4222-8222-222222222222"
+      },
+      {
+        "at": "2026-05-05T17:04:01.997535+00:00",
+        "intent": "answer_user_now",
+        "layers_loaded": [
+          "coaching"
+        ],
+        "budget_tier": "full",
+        "tokens_used": 0,
+        "hit_count": 0,
+        "cycle_id": "11111111-1111-4111-8111-111111111111",
+        "transformation_id": "22222222-2222-4222-8222-222222222222"
+      },
+      {
+        "at": "2026-05-05T17:04:19.053175+00:00",
+        "intent": "answer_user_now",
+        "layers_loaded": [
+          "coaching"
+        ],
+        "budget_tier": "full",
+        "tokens_used": 0,
+        "hit_count": 0,
+        "cycle_id": "11111111-1111-4111-8111-111111111111",
+        "transformation_id": "22222222-2222-4222-8222-222222222222"
+      },
+      {
+        "at": "2026-05-05T17:04:38.076164+00:00",
+        "intent": "answer_user_now",
+        "layers_loaded": [
+          "coaching"
+        ],
+        "budget_tier": "full",
+        "tokens_used": 0,
+        "hit_count": 0,
+        "cycle_id": "11111111-1111-4111-8111-111111111111",
+        "transformation_id": "22222222-2222-4222-8222-222222222222"
+      },
+      {
+        "at": "2026-05-05T17:05:06.077846+00:00",
+        "intent": "answer_user_now",
+        "layers_loaded": [
+          "coaching"
+        ],
+        "budget_tier": "full",
+        "tokens_used": 0,
+        "hit_count": 0,
+        "cycle_id": "11111111-1111-4111-8111-111111111111",
+        "transformation_id": "22222222-2222-4222-8222-222222222222"
+      },
+      {
+        "at": "2026-05-05T17:05:31.54026+00:00",
+        "intent": "answer_user_now",
+        "layers_loaded": [
+          "coaching"
+        ],
+        "budget_tier": "full",
+        "tokens_used": 0,
+        "hit_count": 0,
+        "cycle_id": "11111111-1111-4111-8111-111111111111",
+        "transformation_id": "22222222-2222-4222-8222-222222222222"
+      },
+      {
+        "at": "2026-05-05T17:06:08.056684+00:00",
+        "intent": "answer_user_now",
+        "layers_loaded": [
+          "coaching"
+        ],
+        "budget_tier": "full",
+        "tokens_used": 0,
+        "hit_count": 0,
+        "cycle_id": "11111111-1111-4111-8111-111111111111",
+        "transformation_id": "22222222-2222-4222-8222-222222222222"
+      }
+    ],
+    "persistence_events": [],
+    "handoff_events": [],
+    "memory_snapshot": {
+      "globals_total": 0,
+      "globals_by_scope": {},
+      "topics_total": 0,
+      "topics": [],
+      "events_in_window": 0,
+      "events": [],
+      "identity": null
+    },
+    "unassigned_events": []
+  },
+  "scorecard": {
+    "coverage": {
+      "messages": 18,
+      "retrieval_events": 31,
+      "persistence_events": 0,
+      "handoff_events": 0
+    },
+    "identification": {
+      "total_persisted": 0,
+      "creates": 0,
+      "enriches": 0,
+      "updates": 0,
+      "noops": 0,
+      "acceptance_rate": null
+    },
+    "tagging": {
+      "scope_distribution": {}
+    },
+    "persistence": {
+      "action_distribution": {},
+      "layer_distribution": {}
+    },
+    "retrieval": {
+      "intent_distribution": {
+        "answer_user_now": 31
+      },
+      "avg_tokens_per_retrieval": 0,
+      "avg_hits_per_retrieval": 0,
+      "layer_load_distribution": {
+        "coaching": 31
+      },
+      "total_retrievals": 31
+    },
+    "handoff": {
+      "count": 0,
+      "total_volume": 0
+    },
+    "alerts": [
+      "layer_never_loaded: cycle, transformation, execution, relational, event"
+    ]
+  },
+  "annotations": []
+}

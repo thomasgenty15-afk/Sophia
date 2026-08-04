@@ -1,0 +1,64 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-update-coach-preferences-2026-05-16-prefarch2-challenge-r2-t01",
+    "user": "Je me rends compte que je decroche quand tu me menages trop. La prochaine fois que je floute mes excuses, j'aimerais que tu appuies un peu plus, meme si c'est moins confortable.",
+    "assistant": "",
+    "status": 502,
+    "body": {
+      "message": "An invalid response was received from the upstream server",
+      "__http_status": 502
+    },
+    "trace": {
+      "http_status": 502,
+      "ok": null,
+      "empty_response": null,
+      "aborted": false,
+      "abort_reason": null,
+      "response_owner": null,
+      "selected_handler": null,
+      "route_selected_handler": null,
+      "route_reason": null,
+      "safety": null,
+      "direct_effects": null,
+      "operation": null,
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "executed_tools": [],
+      "tool_execution": null,
+      "trace_error": null,
+      "trace_id": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-update-coach-preferences-2026-05-16-prefarch2-challenge-r2-t02",
+    "user": "Je parle surtout du challenge: quand je rationalise ou que je me planque, pousse-moi plus fort sur mes objectifs.",
+    "assistant": "",
+    "status": 502,
+    "body": {
+      "message": "An invalid response was received from the upstream server",
+      "__http_status": 502
+    },
+    "trace": {
+      "http_status": 502,
+      "ok": null,
+      "empty_response": null,
+      "aborted": false,
+      "abort_reason": null,
+      "response_owner": null,
+      "selected_handler": null,
+      "route_selected_handler": null,
+      "route_reason": null,
+      "safety": null,
+      "direct_effects": null,
+      "operation": null,
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "executed_tools": [],
+      "tool_execution": null,
+      "trace_error": null,
+      "trace_id": null
+    }
+  }
+]

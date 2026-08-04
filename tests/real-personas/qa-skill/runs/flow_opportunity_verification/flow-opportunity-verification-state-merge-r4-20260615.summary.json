@@ -1,0 +1,34 @@
+{
+  "run_id": "flow-opportunity-verification-state-merge-r4-20260615",
+  "persona": "qa-skill",
+  "connection_name": "flow-opportunity-verification_flow-opportunity-verification-state-merge-r4-20260615",
+  "user_id": "50322aee-ac8d-40e8-8432-92fbb019d8af",
+  "email": "qa-qa-skill-flow-opportunity-verification-flow-opportunity-verification-state-merge-r4-202@example.com",
+  "scope": "qa-flow-opportunity-verification-state-merge-r4-20260615",
+  "updated_at": "2026-06-15T19:27:44.580Z",
+  "raw_path": "/Users/ahmedamara/Dev/Sophia 2/tests/real-personas/qa-skill/runs/flow_opportunity_verification/flow-opportunity-verification-state-merge-r4-20260615.raw.json",
+  "turns": [
+    {
+      "turn": 1,
+      "request_id": "qa-flow-opportunity-verification-state-merge-r4-20260615-t01",
+      "user_message": "Je suis un peu perdu : j'ai l'impression qu'il y avait déjà quelque chose de prévu pour m'aider à reprendre mon dossier ce soir, mais je ne sais plus ce que Sophia avait repéré.",
+      "http_status": 200,
+      "assistant_message": "Je viens de regarder dans ton espace et, pour le moment, je n'ai aucune trace d'un rappel, d'une action de plan ou d'une carte d'attaque concernant ton dossier pour ce soir. Rien n'est programmé de mon côté.",
+      "short_trace": {
+        "response_owner": "tool_skill",
+        "selected_handler": "status_recap",
+        "selected_action": "answer_status",
+        "target_flow": null,
+        "reason_code": "status_recap_local_answer_status",
+        "active_skill_after": null,
+        "executed_tools": []
+      },
+      "flow_state_after": {
+        "row_exists": true,
+        "active_skill_state": null,
+        "flow_opportunity_state": null
+      },
+      "persisted_messages_count": 2
+    }
+  ]
+}

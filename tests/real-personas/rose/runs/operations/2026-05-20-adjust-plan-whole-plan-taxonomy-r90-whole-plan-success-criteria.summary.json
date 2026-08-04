@@ -1,0 +1,1021 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r90-whole-plan-success-criteria-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je me rends compte que mesurer le plan avec juste moins de disputes ou faire les actions ne me parle plus trop. J aimerais que la reussite du plan soit plutot autour de la qualite du lien : est-ce qu on arrive a se sentir proches apres un echange, meme si tout n est pas regle. Je ne sais pas si c est un ajustement global ou juste une note.",
+    "assistant": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: je change les critères de réussite du plan, avec Une mesure de réussite centrée sur la compréhension mutuelle et le lien qui reste présent après un échange.\n\nCe qui reste stable: l'objectif global, les actions actuelles et le signal de pause. On change surtout la façon de reconnaître le progrès.\n\nCe que ça implique: si tu valides, je régénère le plan dans ce sens. Rien n'est appliqué tant que tu ne valides pas clairement. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "scope_kind": "whole_plan",
+            "constraints": [
+              "no_pressure",
+              "minimal_patch",
+              "preserve_plan_intent",
+              "no_schedule_day_change",
+              "ask_confirmation_before_write",
+              "la réussite du plan soit plutôt autour de la qualité du lien",
+              "est-ce qu'on arrive à se sentir proches après un échange, même si tout n'est pas réglé",
+              "whole_plan_change_family:success_criteria_change",
+              "whole_plan_candidate_operation:change_success_criteria",
+              "whole_plan_readiness:draft_ready",
+              "whole_plan_directional_draft_ready",
+              "preserve_plan_intent",
+              "coach_observation:La demande ne porte pas sur une tâche précise mais sur le critère même qui définit la réussite du plan. Il y a un déplacement du résultat attendu : passer d’indicateurs centrés sur la réduction des disputes et l’exécution des actions vers un indicateur plus relationnel, la qualité du lien et la sensation de proximité après l’échange. Humainement, cela traduit un besoin de sens, de réajustement de la boussole, et possiblement une fatigue vis-à-vis d’un plan trop évalué en mode performance.",
+              "coach_recommendation:Traiter cela comme un changement de critères de réussite au niveau global, tout en préservant l’intention initiale du plan: soutenir la relation. La bonne direction coaching est de valider le déplacement de la mesure, puis d’aider à formuler un critère global plus relationnel sans effacer les repères comportementaux déjà utiles. Il vaut mieux proposer un cadrage souple qui relie les anciens indicateurs aux nouveaux, plutôt que présenter cela comme une simple note locale si le changement doit influencer toute la trajectoire.",
+              "coach_warning:Éviter de répondre comme s’il s’agissait seulement d’un ajustement de formulation sans impact sur le plan entier.",
+              "coach_warning:Éviter de remplacer brutalement les anciens critères par un critère flou ou impossible à observer.",
+              "coach_warning:Éviter de faire croire que la qualité du lien suffit à elle seule sans aucun repère d’action; il faut garder un pont entre vécu relationnel et pratiques concrètes.",
+              "coach_warning:Éviter de sur-techniciser la réponse en transformant immédiatement cela en métrique stricte, car le sens recherché est d’abord relationnel.",
+              "coach_preserve:L’intention de protéger et recréer de la sécurité dans le lien.",
+              "coach_preserve:Les actions déjà en place qui servent de moyens, pas de fins.",
+              "coach_preserve:Le fait de ne pas exiger que tout soit réglé pour considérer qu’un échange a été utile.",
+              "coach_preserve:La progression déjà construite dans le plan, sans repartir de zéro.",
+              "coach_avoid:Proposer uniquement une reformulation cosmétique sans impact sur le critère de réussite.",
+              "coach_avoid:Remplacer la réussite relationnelle par une mesure vague d’‘amélioration du couple’ sans définition.",
+              "coach_avoid:Supprimer les critères comportementaux existants sans les relier à la nouvelle boussole.",
+              "coach_avoid:Prétendre qu’il faut d’abord choisir définitivement entre global et note locale avant d’avancer.",
+              "coach_guideline:Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "coach_guideline:Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "coach_guideline:Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "coach_guideline:Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "coach_guideline:Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "coach_guideline:Cadre de l’action: partir du sens recherché, pas de la seule faisabilité technique.",
+              "coach_guideline:Intention préservée: garder le plan orienté vers la relation et la sécurité, même si le critère de succès change.",
+              "coach_guideline:Pont mini: relier le nouveau critère relationnel aux actions existantes au lieu de les opposer.",
+              "coach_guideline:Pas de changement de nature sans demande explicite: ne pas convertir ce changement de critères en changement de phase ou en annulation du plan.",
+              "coach_guideline:Niveau global: si la boussole change, elle doit rester stable pour tout le plan, pas seulement pour une semaine.",
+              "coach_guideline:Whole plan: reformuler la trajectoire de réussite en gardant l’ordre des phases, les prérequis et les objectifs sous-jacents.",
+              "coach_guideline:Humainement pertinent avant techniquement faisable: privilégier un critère qui reflète l’expérience vécue après échange.",
+              "coach_guideline:Préserver un ancrage observable: la proximité doit rester repérable dans des signes concrets, même simples.",
+              "whole_plan_change_family:success_criteria_change",
+              "whole_plan_candidate_operation:change_success_criteria",
+              "whole_plan_readiness:draft_ready",
+              "coach_trajectory_hypothesis:Le plan visait surtout à réduire les tensions et stabiliser les échanges; il peut maintenant être reframé pour viser en priorité des échanges qui laissent une sensation de proximité, tout en conservant les actions comme moyens de soutien.",
+              "whole_plan_change_family:success_criteria_change",
+              "whole_plan_candidate_operation:change_success_criteria",
+              "whole_plan_readiness:draft_ready",
+              "affected_item:Convenir d'un signal de pause",
+              "affected_item:Faire le point sur le signal de pause",
+              "affected_item:Partager un point positif"
+            ],
+            "reason_type": "bad_fit",
+            "change_target": "global_load",
+            "reason_change": "context_changed"
+          },
+          "title": "Ajuster la trajectoire du plan",
+          "confidence": "medium",
+          "ack_summary": {
+            "changed": [
+              "Une mesure de réussite centrée sur la compréhension mutuelle et le lien qui reste présent après un échange."
+            ],
+            "unchanged": [
+              "Objectif global du plan",
+              "Actions de soutien existantes sauf changement explicitement validé"
+            ],
+            "confidence": "medium",
+            "why_it_helps": "Le user demande de changer ce qui compte comme progrès, pas de réordonner les actions.",
+            "follow_up_needed": "Valider avant régénération; le détail exact sera produit dans le plan ajusté."
+          },
+          "scope_label": "plan global",
+          "why_it_helps": "Le user demande de changer ce qui compte comme progrès, pas de réordonner les actions.",
+          "decision_basis": {
+            "evidence": [
+              "Je me rends compte que mesurer le plan avec juste moins de disputes ou faire les actions ne me parle plus trop. J aimerais que la reussite du plan soit plutot autour de la qualite du lien : est-ce qu on arrive a se sentir proches apres un echange, meme si tout n est pas regle. Je ne sais pas si c est un ajustement global ou juste une note.",
+              "Je me rends compte que mesurer le plan avec juste moins de disputes ou faire les actions ne me parle plus trop.",
+              "J'aimerais que la réussite du plan soit plutôt autour de la qualité du lien : est-ce qu'on arrive à se sentir proches après un échange, même si tout n'est pas réglé.",
+              "deterministic whole-plan structural/family signal",
+              "deterministic whole-plan fit/complexity signal",
+              "moins de disputes",
+              "faire les actions",
+              "qualité du lien",
+              "se sentir proches après un échange",
+              "se sentir proches après un échange",
+              "même si tout n'est pas réglé"
+            ],
+            "confidence": "medium",
+            "uncertainty": [
+              "semaines ou blocs exacts a affiner ensuite"
+            ],
+            "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+            "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+            "must_preserve": [
+              "intention du plan",
+              "direction globale du plan"
+            ]
+          },
+          "adjustment_type": "rebalance",
+          "proposed_change": "je change les critères de réussite du plan: Une mesure de réussite centrée sur la compréhension mutuelle et le lien qui reste présent après un échange.",
+          "change_rationale": {
+            "why_this_change": "Le user demande une modification structurelle de trajectoire, pas un simple patch d'action.",
+            "success_condition": "Le plan garde l'apaisement comme base, mais mesure aussi si les échanges se terminent avec plus de compréhension mutuelle et un lien préservé.",
+            "expected_mechanism": "Le user demande de changer ce qui compte comme progrès, pas de réordonner les actions."
+          },
+          "adjust_plan_result": {
+            "scope": "whole_plan",
+            "rationale": {
+              "confidence": "medium",
+              "missing_info": [],
+              "user_problem": "Le plan mesurait surtout la baisse de l'escalade et l'exécution des actions.",
+              "expected_effect": "Le plan avance avec une trajectoire plus cohérente sans casser l'objectif global.",
+              "why_this_change": "Le user demande de changer ce qui compte comme progrès, pas de réordonner les actions."
+            },
+            "boundaries": {
+              "explanation": "Le changement touche l'ordre et les prérequis de progression, donc il doit passer par une régénération contrôlée du plan.",
+              "affected_scope": "trajectoire globale du plan",
+              "global_plan_impact": "requires_review",
+              "explicitly_not_affected": [
+                "objectif global",
+                "identité du plan",
+                "demande de ne pas transformer cela en simple ajustement d'action"
+              ]
+            },
+            "applied_change": {
+              "summary": "je change les critères de réussite du plan: Une mesure de réussite centrée sur la compréhension mutuelle et le lien qui reste présent après un échange.",
+              "changed_items": [
+                {
+                  "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                  "kind": "action",
+                  "after": "À conserver dans le plan, mais à évaluer avec un critère plus relationnel: compréhension mutuelle et lien préservé après l'échange.",
+                  "title": "Convenir d'un signal de pause",
+                  "before": "À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.",
+                  "reason": "Le user demande de changer ce qui compte comme progrès, pas de réordonner les actions.",
+                  "capability": "modify_existing_action"
+                },
+                {
+                  "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                  "kind": "action",
+                  "after": "À conserver dans le plan, mais à évaluer avec un critère plus relationnel: compréhension mutuelle et lien préservé après l'échange.",
+                  "title": "Faire le point sur le signal de pause",
+                  "before": "Discutez 10 minutes à froid pour voir si le signal de pause a été utile cette semaine et s'il est respecté par vous deux.",
+                  "reason": "Le user demande de changer ce qui compte comme progrès, pas de réordonner les actions.",
+                  "capability": "modify_existing_action"
+                }
+              ],
+              "preserved_items": [
+                {
+                  "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                  "kind": "habit",
+                  "title": "Partager un point positif",
+                  "reason": "L'action reste comme soutien; le changement concerne la trajectoire et l'ordre de progression."
+                }
+              ],
+              "trajectory_change": {
+                "after": "Le plan garde l'apaisement comme base, mais mesure aussi si les échanges se terminent avec plus de compréhension mutuelle et un lien préservé.",
+                "before": "Le plan mesurait surtout la baisse de l'escalade et l'exécution des actions.",
+                "inserted_step": "Une mesure de réussite centrée sur la compréhension mutuelle et le lien qui reste présent après un échange.",
+                "coaching_reason": "Le user demande de changer ce qui compte comme progrès, pas de réordonner les actions.",
+                "reordered_steps": [
+                  "Une mesure de réussite centrée sur la compréhension mutuelle et le lien qui reste présent après un échange.",
+                  "Utiliser ces critères comme repères pour les prochains niveaux"
+                ],
+                "preserved_direction": "L'objectif global du plan reste stable, sauf demande explicite de le changer."
+              }
+            },
+            "user_message_brief": "je change les critères de réussite du plan: Une mesure de réussite centrée sur la compréhension mutuelle et le lien qui reste présent après un échange.",
+            "user_message_detailed": "je change les critères de réussite du plan: Une mesure de réussite centrée sur la compréhension mutuelle et le lien qui reste présent après un échange."
+          },
+          "execution_strategy": "whole_plan_adjustment",
+          "allowed_patch_fields": [
+            "scope_kind",
+            "plan_adjustment",
+            "load_adjustment",
+            "goal_adjustment",
+            "sequence_adjustment",
+            "reason_type",
+            "reason_change",
+            "change_target",
+            "confidence",
+            "constraints"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "C'est fait: j'ai ajusté la trajectoire du plan.\n\nLe plan garde le même objectif, mais la suite est régénérée pour le plan garde l'apaisement comme base, mais mesure aussi si les échanges se terminent avec plus de compréhension mutuelle et un lien préservé..",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: je change les critères de réussite du plan, avec Une mesure de réussite centrée sur la compréhension mutuelle et le lien qui reste présent après un échange.\n\nCe qui reste stable: l'objectif global, les actions actuelles et le signal de pause. On change surtout la façon de reconnaître le progrès.\n\nCe que ça implique: si tu valides, je régénère le plan dans ce sens. Rien n'est appliqué tant que tu ne valides pas clairement."
+      },
+      "status": "draft_review",
+      "reason_code": "tool_skill_intent_start",
+      "operation_id": "feaf6127-59b2-468a-a633-6d8f67123217",
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer uniquement une reformulation cosmétique sans impact sur le critère de réussite.",
+          "Remplacer la réussite relationnelle par une mesure vague d’‘amélioration du couple’ sans définition.",
+          "Supprimer les critères comportementaux existants sans les relier à la nouvelle boussole.",
+          "Prétendre qu’il faut d’abord choisir définitivement entre global et note locale avant d’avancer."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "L’intention de protéger et recréer de la sécurité dans le lien.",
+          "Les actions déjà en place qui servent de moyens, pas de fins.",
+          "Le fait de ne pas exiger que tout soit réglé pour considérer qu’un échange a été utile.",
+          "La progression déjà construite dans le plan, sans repartir de zéro."
+        ],
+        "warnings": [
+          "Éviter de répondre comme s’il s’agissait seulement d’un ajustement de formulation sans impact sur le plan entier.",
+          "Éviter de remplacer brutalement les anciens critères par un critère flou ou impossible à observer.",
+          "Éviter de faire croire que la qualité du lien suffit à elle seule sans aucun repère d’action; il faut garder un pont entre vécu relationnel et pratiques concrètes.",
+          "Éviter de sur-techniciser la réponse en transformant immédiatement cela en métrique stricte, car le sens recherché est d’abord relationnel."
+        ],
+        "readiness": "draft_ready",
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Cadre de l’action: partir du sens recherché, pas de la seule faisabilité technique.",
+          "Intention préservée: garder le plan orienté vers la relation et la sécurité, même si le critère de succès change.",
+          "Pont mini: relier le nouveau critère relationnel aux actions existantes au lieu de les opposer.",
+          "Pas de changement de nature sans demande explicite: ne pas convertir ce changement de critères en changement de phase ou en annulation du plan.",
+          "Niveau global: si la boussole change, elle doit rester stable pour tout le plan, pas seulement pour une semaine.",
+          "Whole plan: reformuler la trajectoire de réussite en gardant l’ordre des phases, les prérequis et les objectifs sous-jacents.",
+          "Humainement pertinent avant techniquement faisable: privilégier un critère qui reflète l’expérience vécue après échange.",
+          "Préserver un ancrage observable: la proximité doit rester repérable dans des signes concrets, même simples."
+        ],
+        "observation": "La demande ne porte pas sur une tâche précise mais sur le critère même qui définit la réussite du plan. Il y a un déplacement du résultat attendu : passer d’indicateurs centrés sur la réduction des disputes et l’exécution des actions vers un indicateur plus relationnel, la qualité du lien et la sensation de proximité après l’échange. Humainement, cela traduit un besoin de sens, de réajustement de la boussole, et possiblement une fatigue vis-à-vis d’un plan trop évalué en mode performance.",
+        "change_family": "success_criteria_change",
+        "recommendation": "Traiter cela comme un changement de critères de réussite au niveau global, tout en préservant l’intention initiale du plan: soutenir la relation. La bonne direction coaching est de valider le déplacement de la mesure, puis d’aider à formuler un critère global plus relationnel sans effacer les repères comportementaux déjà utiles. Il vaut mieux proposer un cadrage souple qui relie les anciens indicateurs aux nouveaux, plutôt que présenter cela comme une simple note locale si le changement doit influencer toute la trajectoire.",
+        "next_best_question": null,
+        "options_to_discuss": [
+          "Faire de la proximité après échange le critère principal de réussite du plan.",
+          "Garder les actions comme supports, mais les évaluer à travers leur effet relationnel plutôt qu’à travers la seule réduction des tensions.",
+          "Définir un critère mixte: moins de disputes reste utile, mais n’est plus l’objectif final; il devient un signal secondaire.",
+          "Formuler une version plus concrète de la qualité du lien pour qu’elle reste observable sans devenir froide ou punitive."
+        ],
+        "candidate_operation": "change_success_criteria",
+        "questions_to_clarify": [],
+        "trajectory_hypothesis": "Le plan visait surtout à réduire les tensions et stabiliser les échanges; il peut maintenant être reframé pour viser en priorité des échanges qui laissent une sensation de proximité, tout en conservant les actions comme moyens de soutien.",
+        "must_not_execute_reason": null
+      },
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer uniquement une reformulation cosmétique sans impact sur le critère de réussite.",
+        "Remplacer la réussite relationnelle par une mesure vague d’‘amélioration du couple’ sans définition.",
+        "Supprimer les critères comportementaux existants sans les relier à la nouvelle boussole.",
+        "Prétendre qu’il faut d’abord choisir définitivement entre global et note locale avant d’avancer."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "L’intention de protéger et recréer de la sécurité dans le lien.",
+        "Les actions déjà en place qui servent de moyens, pas de fins.",
+        "Le fait de ne pas exiger que tout soit réglé pour considérer qu’un échange a été utile.",
+        "La progression déjà construite dans le plan, sans repartir de zéro."
+      ],
+      "warnings": [
+        "Éviter de répondre comme s’il s’agissait seulement d’un ajustement de formulation sans impact sur le plan entier.",
+        "Éviter de remplacer brutalement les anciens critères par un critère flou ou impossible à observer.",
+        "Éviter de faire croire que la qualité du lien suffit à elle seule sans aucun repère d’action; il faut garder un pont entre vécu relationnel et pratiques concrètes.",
+        "Éviter de sur-techniciser la réponse en transformant immédiatement cela en métrique stricte, car le sens recherché est d’abord relationnel."
+      ],
+      "readiness": "draft_ready",
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Cadre de l’action: partir du sens recherché, pas de la seule faisabilité technique.",
+        "Intention préservée: garder le plan orienté vers la relation et la sécurité, même si le critère de succès change.",
+        "Pont mini: relier le nouveau critère relationnel aux actions existantes au lieu de les opposer.",
+        "Pas de changement de nature sans demande explicite: ne pas convertir ce changement de critères en changement de phase ou en annulation du plan.",
+        "Niveau global: si la boussole change, elle doit rester stable pour tout le plan, pas seulement pour une semaine.",
+        "Whole plan: reformuler la trajectoire de réussite en gardant l’ordre des phases, les prérequis et les objectifs sous-jacents.",
+        "Humainement pertinent avant techniquement faisable: privilégier un critère qui reflète l’expérience vécue après échange.",
+        "Préserver un ancrage observable: la proximité doit rester repérable dans des signes concrets, même simples."
+      ],
+      "observation": "La demande ne porte pas sur une tâche précise mais sur le critère même qui définit la réussite du plan. Il y a un déplacement du résultat attendu : passer d’indicateurs centrés sur la réduction des disputes et l’exécution des actions vers un indicateur plus relationnel, la qualité du lien et la sensation de proximité après l’échange. Humainement, cela traduit un besoin de sens, de réajustement de la boussole, et possiblement une fatigue vis-à-vis d’un plan trop évalué en mode performance.",
+      "change_family": "success_criteria_change",
+      "recommendation": "Traiter cela comme un changement de critères de réussite au niveau global, tout en préservant l’intention initiale du plan: soutenir la relation. La bonne direction coaching est de valider le déplacement de la mesure, puis d’aider à formuler un critère global plus relationnel sans effacer les repères comportementaux déjà utiles. Il vaut mieux proposer un cadrage souple qui relie les anciens indicateurs aux nouveaux, plutôt que présenter cela comme une simple note locale si le changement doit influencer toute la trajectoire.",
+      "next_best_question": null,
+      "options_to_discuss": [
+        "Faire de la proximité après échange le critère principal de réussite du plan.",
+        "Garder les actions comme supports, mais les évaluer à travers leur effet relationnel plutôt qu’à travers la seule réduction des tensions.",
+        "Définir un critère mixte: moins de disputes reste utile, mais n’est plus l’objectif final; il devient un signal secondaire.",
+        "Formuler une version plus concrète de la qualité du lien pour qu’elle reste observable sans devenir froide ou punitive."
+      ],
+      "candidate_operation": "change_success_criteria",
+      "questions_to_clarify": [],
+      "trajectory_hypothesis": "Le plan visait surtout à réduire les tensions et stabiliser les échanges; il peut maintenant être reframé pour viser en priorité des échanges qui laissent une sensation de proximité, tout en conservant les actions comme moyens de soutien.",
+      "must_not_execute_reason": null
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r90-whole-plan-success-criteria-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r90-whole-plan-success-criteria-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Oui c est la bonne direction, mais je veux garder moins de disputes comme repere secondaire, pas comme critere principal. Et la formulation precise serait : apres une discussion tendue, chacun peut dire ce qu il a compris de l autre et je ne finis pas avec l impression d avoir perdu le lien. Ne l applique pas encore, montre-moi juste la version ajustee.",
+    "assistant": "Je dois reprendre le brouillon proprement avant de te le montrer. Tu veux que je garde ta formulation exacte telle quelle, ou tu préfères une version plus courte de ce critère ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "tool_skill_intent_start",
+      "draft_review": true,
+      "operation_id": "feaf6127-59b2-468a-a633-6d8f67123217",
+      "missing_slots": [
+        "draft_generation_retry_needed"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Ne pas proposer un plan entièrement réécrit comme si les actions devenaient inutiles.",
+          "Ne pas donner une formulation abstraite du type 'améliorer la relation' sans scène concrète.",
+          "Ne pas présenter le changement comme un abandon des anciens critères; il s’agit d’un recentrage.",
+          "Ne pas lancer d’application ou de patch opérationnel dans la réponse suivante."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "L’objectif de sécurité relationnelle déjà présent dans le plan.",
+          "Les actions en place qui servent de moyens, pas de fins.",
+          "Le repère secondaire de réduction des disputes, sans en faire l’axe central.",
+          "Le fait de ne pas exiger que tout soit résolu pour considérer l’échange comme réussi."
+        ],
+        "warnings": [
+          "Ne pas reformuler cela comme une simple retouche stylistique: le user change la définition du succès, pas seulement la phrase.",
+          "Ne pas effacer complètement le repère 'moins de disputes'; il doit rester présent mais subordonné.",
+          "Ne pas transformer le critère relationnel en formule vague ou trop générale; il doit rester ancré dans une situation concrète après discussion tendue.",
+          "Ne pas appliquer le changement maintenant: le user demande explicitement de voir la version ajustée avant toute exécution.",
+          "Ne pas opposer artificiellement lien et apaisement; le plan doit garder les deux, avec une priorité différente."
+        ],
+        "readiness": "draft_ready",
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Traiter la demande comme un changement de critères de réussite au niveau whole_plan.",
+          "Hiérarchiser explicitement les critères: relation et compréhension d’abord, disputes moins fréquentes ensuite.",
+          "Garder une formulation concrète et observable, centrée sur l’après-discussion tendue.",
+          "Préserver le lien entre la nouvelle boussole et les actions existantes, sans changer leur nature.",
+          "Ne pas convertir ce changement en changement de phase ou en annulation du plan sans demande explicite.",
+          "Respecter la demande de brouillon seulement: montrer la version ajustée, sans l’appliquer.",
+          "Raisonner en trajectoire globale: ce qui compte comme progrès doit rester cohérent sur tout le plan.",
+          "Éviter les formulations trop techniques ou métriques qui dénaturent le sens humain recherché."
+        ],
+        "observation": "La demande précise le déplacement de la boussole du plan: la réussite ne doit plus être définie principalement par la baisse des disputes, mais par la capacité à sortir d’une discussion tendue avec compréhension mutuelle et sentiment de lien préservé. Le user ne rejette pas l’ancienne logique; il veut la reléguer au rang de repère secondaire et obtenir un brouillon ajusté sans application immédiate.",
+        "change_family": "success_criteria_change",
+        "recommendation": "Garder le changement comme un ajustement global des critères de réussite, mais le formuler en hiérarchie claire: le critère principal devient le lien et la compréhension partagée après tension; moins de disputes reste un indicateur utile, mais secondaire. Le bon cadrage coaching consiste à préserver les actions existantes comme moyens au service de cette nouvelle boussole, et à produire une version ajustée qui reste observable, relationnelle et non punitive.",
+        "next_best_question": null,
+        "options_to_discuss": [
+          "Faire du lien préservé après tension le critère principal, avec moins de disputes comme signal secondaire de soutien.",
+          "Intégrer la compréhension mutuelle comme marqueur observable: chacun peut redire ce qu’il a compris de l’autre.",
+          "Conserver les actions actuelles comme supports pratiques, sans les confondre avec la définition du succès.",
+          "Ajouter un repère simple pour détecter le sentiment de lien perdu ou préservé après l’échange."
+        ],
+        "candidate_operation": "change_success_criteria",
+        "questions_to_clarify": [],
+        "trajectory_hypothesis": "Le plan passait d’un repère d’apaisement mesuré par la baisse des disputes à une boussole plus relationnelle; il peut maintenant garder l’apaisement comme repère secondaire tout en faisant du lien préservé et de la compréhension mutuelle le critère principal de réussite.",
+        "must_not_execute_reason": "Le user demande explicitement de ne pas appliquer le changement encore et seulement de voir la version ajustée."
+      },
+      "draft_review_decision": {
+        "decision": "revise",
+        "evidence": [
+          "Oui c est la bonne direction",
+          "je veux garder moins de disputes comme repere secondaire, pas comme critere principal",
+          "la formulation precise serait : apres une discussion tendue, chacun peut dire ce qu il a compris de l autre et je ne finis pas avec l impression d avoir perdu le lien",
+          "Ne l applique pas encore, montre-moi juste la version ajustee"
+        ],
+        "confidence": "high",
+        "apply_after_revision": false
+      },
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Ne pas proposer un plan entièrement réécrit comme si les actions devenaient inutiles.",
+        "Ne pas donner une formulation abstraite du type 'améliorer la relation' sans scène concrète.",
+        "Ne pas présenter le changement comme un abandon des anciens critères; il s’agit d’un recentrage.",
+        "Ne pas lancer d’application ou de patch opérationnel dans la réponse suivante."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "L’objectif de sécurité relationnelle déjà présent dans le plan.",
+        "Les actions en place qui servent de moyens, pas de fins.",
+        "Le repère secondaire de réduction des disputes, sans en faire l’axe central.",
+        "Le fait de ne pas exiger que tout soit résolu pour considérer l’échange comme réussi."
+      ],
+      "warnings": [
+        "Ne pas reformuler cela comme une simple retouche stylistique: le user change la définition du succès, pas seulement la phrase.",
+        "Ne pas effacer complètement le repère 'moins de disputes'; il doit rester présent mais subordonné.",
+        "Ne pas transformer le critère relationnel en formule vague ou trop générale; il doit rester ancré dans une situation concrète après discussion tendue.",
+        "Ne pas appliquer le changement maintenant: le user demande explicitement de voir la version ajustée avant toute exécution.",
+        "Ne pas opposer artificiellement lien et apaisement; le plan doit garder les deux, avec une priorité différente."
+      ],
+      "readiness": "draft_ready",
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Traiter la demande comme un changement de critères de réussite au niveau whole_plan.",
+        "Hiérarchiser explicitement les critères: relation et compréhension d’abord, disputes moins fréquentes ensuite.",
+        "Garder une formulation concrète et observable, centrée sur l’après-discussion tendue.",
+        "Préserver le lien entre la nouvelle boussole et les actions existantes, sans changer leur nature.",
+        "Ne pas convertir ce changement en changement de phase ou en annulation du plan sans demande explicite.",
+        "Respecter la demande de brouillon seulement: montrer la version ajustée, sans l’appliquer.",
+        "Raisonner en trajectoire globale: ce qui compte comme progrès doit rester cohérent sur tout le plan.",
+        "Éviter les formulations trop techniques ou métriques qui dénaturent le sens humain recherché."
+      ],
+      "observation": "La demande précise le déplacement de la boussole du plan: la réussite ne doit plus être définie principalement par la baisse des disputes, mais par la capacité à sortir d’une discussion tendue avec compréhension mutuelle et sentiment de lien préservé. Le user ne rejette pas l’ancienne logique; il veut la reléguer au rang de repère secondaire et obtenir un brouillon ajusté sans application immédiate.",
+      "change_family": "success_criteria_change",
+      "recommendation": "Garder le changement comme un ajustement global des critères de réussite, mais le formuler en hiérarchie claire: le critère principal devient le lien et la compréhension partagée après tension; moins de disputes reste un indicateur utile, mais secondaire. Le bon cadrage coaching consiste à préserver les actions existantes comme moyens au service de cette nouvelle boussole, et à produire une version ajustée qui reste observable, relationnelle et non punitive.",
+      "next_best_question": null,
+      "options_to_discuss": [
+        "Faire du lien préservé après tension le critère principal, avec moins de disputes comme signal secondaire de soutien.",
+        "Intégrer la compréhension mutuelle comme marqueur observable: chacun peut redire ce qu’il a compris de l’autre.",
+        "Conserver les actions actuelles comme supports pratiques, sans les confondre avec la définition du succès.",
+        "Ajouter un repère simple pour détecter le sentiment de lien perdu ou préservé après l’échange."
+      ],
+      "candidate_operation": "change_success_criteria",
+      "questions_to_clarify": [],
+      "trajectory_hypothesis": "Le plan passait d’un repère d’apaisement mesuré par la baisse des disputes à une boussole plus relationnelle; il peut maintenant garder l’apaisement comme repère secondaire tout en faisant du lien préservé et de la compréhension mutuelle le critère principal de réussite.",
+      "must_not_execute_reason": "Le user demande explicitement de ne pas appliquer le changement encore et seulement de voir la version ajustée."
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r90-whole-plan-success-criteria-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r90-whole-plan-success-criteria-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Garde une version courte, mais avec ces idees : lien preserve apres tension, comprehension mutuelle, et moins de disputes seulement comme indicateur secondaire.",
+    "assistant": "Je te propose de recentrer la boussole du plan pour qu’elle mesure d’abord si, après une tension, vous vous comprenez mieux et si le lien reste senti comme préservé, avec moins de disputes seulement comme repère secondaire. Rien n’est encore appliqué; c’est une proposition avant validation. Pour rendre ça concret sans toucher à la direction du plan, je suggère aussi de garder un signal simple pour faire pause quand le ton monte, et de conserver un point positif très simple comme soutien à l’échange. Le reste resterait inchangé: l’intention de sécurité dans le lien, le fait que tout ne soit pas réglé pour qu’un échange soit utile, et les autres actions déjà en place comme moyens, pas comme fin. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "confidence": "medium",
+            "scope_kind": "whole_plan",
+            "constraints": [
+              "no_pressure",
+              "minimal_patch",
+              "preserve_plan_intent",
+              "no_schedule_day_change",
+              "ask_confirmation_before_write",
+              "coach_observation:La demande reste un changement de boussole à l’échelle du plan entier, mais le user précise maintenant la hiérarchie: le lien préservé après une tension et la compréhension mutuelle deviennent centraux, tandis que la baisse des disputes reste un repère secondaire. Humainement, il ne s’agit pas d’abandonner la sécurité du plan, mais de recentrer ce qui compte comme réussite vécue.",
+              "coach_recommendation:Produire une version plus courte du critère global en gardant trois étages clairs: 1) après une discussion tendue, chacun peut dire ce qu’il a compris de l’autre; 2) le lien est perçu comme préservé, sans sentiment de rupture; 3) moins de disputes reste un indicateur secondaire, non le critère principal. Préserver le lien entre ce nouveau critère relationnel et les actions déjà en place, sans suggérer de changer la nature du plan.",
+              "coach_warning:Éviter de reformuler en mode purement psychologique ou vague; il faut garder des repères observables.",
+              "coach_warning:Éviter de remettre moins de disputes au centre alors que le user le relègue explicitement au second plan.",
+              "coach_warning:Éviter de transformer ce changement en modification d’action locale; c’est bien un critère de réussite global.",
+              "coach_warning:Éviter de rendre le critère trop long ou trop sophistiqué: le user demande une version courte.",
+              "coach_preserve:L’intention de sécurité relationnelle du plan.",
+              "coach_preserve:Le fait que tout ne soit pas réglé pour considérer un échange utile.",
+              "coach_preserve:Les actions existantes comme moyens de soutien et non comme fin en soi.",
+              "coach_preserve:La place secondaire mais conservée de la baisse des disputes.",
+              "coach_avoid:Proposer une simple note marginale sans effet sur la boussole globale.",
+              "coach_avoid:Supprimer totalement l’indicateur de disputes.",
+              "coach_avoid:Ajouter des formulations qui élargissent le critère à une amélioration générale trop floue.",
+              "coach_avoid:Suggérer une réorganisation des phases sans demande explicite.",
+              "coach_guideline:Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "coach_guideline:Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "coach_guideline:Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "coach_guideline:Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "coach_guideline:Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "coach_guideline:Garder le scope whole_plan et traiter la demande comme un changement de critères de réussite.",
+              "coach_guideline:Rédiger court, avec une hiérarchie explicite entre critère principal et indicateur secondaire.",
+              "coach_guideline:Conserver un ancrage relationnel observable: compréhension mutuelle, lien préservé, proximité après tension.",
+              "coach_guideline:Relier le nouveau critère aux actions existantes sans changer leur nature.",
+              "coach_guideline:Ne pas sur-techniciser la formulation; privilégier un langage humain et directement reconnaissable.",
+              "coach_guideline:Préserver la cohérence globale du plan et son objectif de sécurité dans le lien.",
+              "whole_plan_change_family:success_criteria_change",
+              "whole_plan_candidate_operation:change_success_criteria",
+              "whole_plan_readiness:draft_ready",
+              "coach_trajectory_hypothesis:Le plan gardait la réduction des disputes et l’exécution des actions comme critères centraux; il peut maintenant être reframé pour viser d’abord un lien préservé et une compréhension mutuelle après tension, avec moins de disputes comme signal secondaire.",
+              "whole_plan_change_family:cancel_or_reject",
+              "whole_plan_candidate_operation:cancel_or_revise",
+              "whole_plan_readiness:diagnose",
+              "affected_item:Convenir d'un signal de pause",
+              "affected_item:Faire le point sur le signal de pause"
+            ],
+            "reason_type": "bad_fit",
+            "change_target": "global_load",
+            "reason_change": "context_changed",
+            "load_adjustment": "review",
+            "plan_adjustment": "resequence"
+          },
+          "title": "Ajustement - critères de réussite du plan global",
+          "confidence": "medium",
+          "ack_summary": {
+            "changed": [
+              "plan global: resequence",
+              "cible de changement: global_load"
+            ],
+            "unchanged": [
+              "l'objectif/direction reste préservé sauf demande contraire explicite",
+              "le plan canonique n'est pas reconstruit automatiquement"
+            ],
+            "confidence": "medium",
+            "why_it_helps": "Le plan garde ses rails, mais la charge baisse pour redevenir compatible avec le contexte actuel.",
+            "follow_up_needed": "identifier ensuite les semaines ou blocs les plus lourds pour affiner"
+          },
+          "scope_label": "critères de réussite du plan global",
+          "why_it_helps": "Le changement traite la trajectoire globale du plan au lieu de forcer une cible action.",
+          "decision_basis": {
+            "evidence": [
+              "Garde une version courte, mais avec ces idees : lien preserve apres tension, comprehension mutuelle, et moins de disputes seulement comme indicateur secondaire.",
+              "Je me rends compte que mesurer le plan avec juste moins de disputes ou faire les actions ne me parle plus trop.",
+              "J'aimerais que la réussite du plan soit plutôt autour de la qualité du lien : est-ce qu'on arrive à se sentir proches après un échange, même si tout n'est pas réglé.",
+              "rebalance",
+              "deterministic whole-plan fit/complexity signal",
+              "moins de disputes",
+              "faire les actions",
+              "qualité du lien",
+              "se sentir proches après un échange",
+              "se sentir proches après un échange",
+              "même si tout n'est pas réglé"
+            ],
+            "confidence": "medium",
+            "uncertainty": [
+              "semaines ou blocs exacts a affiner ensuite"
+            ],
+            "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+            "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+            "must_preserve": [
+              "direction globale du plan"
+            ]
+          },
+          "adjustment_type": "rebalance",
+          "proposed_change": "reordonner le plan dans son ensemble",
+          "change_rationale": {
+            "why_this_change": "Réduire global_load répond au problème \"context_changed\" sans changer la direction du plan.",
+            "success_condition": "Le plan paraît tenable sans reconstruction complète ni changement d'objectif implicite.",
+            "expected_mechanism": "Le plan garde ses rails, mais la charge baisse pour redevenir compatible avec le contexte actuel."
+          },
+          "adjust_plan_result": {
+            "scope": "whole_plan",
+            "rationale": {
+              "confidence": "medium",
+              "missing_info": [
+                "Les repères pratiques exacts à affiner ensuite pour mesurer le lien préservé sur la durée.",
+                "La manière la plus simple de formuler ce critère si tu veux encore le raccourcir."
+              ],
+              "user_problem": "Le plan ne semblait plus assez tenable si sa réussite était mesurée surtout par moins de disputes ou par le simple fait d’exécuter les actions.",
+              "expected_effect": "Le plan devient plus cohérent, plus humain et plus facile à reconnaître comme utile même quand tout n’est pas réglé.",
+              "why_this_change": "En mettant au centre la compréhension mutuelle et le lien préservé après tension, le plan colle mieux à ce qui compte vraiment pour toi tout en gardant des repères observables."
+            },
+            "boundaries": {
+              "explanation": "Le plan change surtout dans la façon dont sa réussite est jugée: le lien préservé et la compréhension mutuelle passent devant la baisse des disputes, sans modifier la nature du plan ni ses appuis existants.",
+              "affected_scope": "Le plan dans son ensemble, avec un recentrage de la boussole de réussite.",
+              "global_plan_impact": "indirect",
+              "explicitly_not_affected": [
+                "L’objectif de sécurité relationnelle",
+                "L’identité du plan",
+                "La cadence de l’habitude",
+                "La nature des autres actions déjà en place"
+              ]
+            },
+            "applied_change": {
+              "summary": "Recentrer la réussite du plan sur le lien préservé et la compréhension mutuelle après tension, avec la baisse des disputes comme repère secondaire, tout en gardant les actions existantes comme appuis.",
+              "changed_items": [
+                {
+                  "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                  "kind": "action",
+                  "after": "Un signal simple pour faire pause quand le ton monte, afin de protéger le lien avant que la tension ne prenne le dessus.",
+                  "title": "Convenir d'un signal de pause",
+                  "before": "Un signal simple pour faire pause quand le ton monte.",
+                  "reason": "Ça garde un appui concret pour préserver le lien sans transformer le plan en simple baisse de disputes.",
+                  "capability": "modify_existing_action"
+                },
+                {
+                  "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                  "kind": "habit",
+                  "after": "écrire une phrase très simple, même imparfaite, pour nourrir un échange qui laisse le lien intact plutôt que chercher un vrai point positif",
+                  "title": "Partager un point positif",
+                  "before": "écrire une phrase très simple, même imparfaite, plutôt que chercher un vrai point positif",
+                  "reason": "Ça aligne l’habitude avec le nouveau critère de réussite: la qualité du lien après l’échange, sans changer sa cadence.",
+                  "capability": "modify_existing_action"
+                }
+              ],
+              "preserved_items": [
+                {
+                  "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                  "kind": "action",
+                  "title": "Faire le point sur le signal de pause",
+                  "reason": "À garder comme appui de suivi, sans en faire le critère principal du plan."
+                }
+              ],
+              "trajectory_change": {
+                "after": "Le plan est lu d’abord à travers la capacité à se comprendre après une tension et à sentir le lien préservé, puis seulement à travers la baisse des disputes comme repère secondaire.",
+                "before": "Le plan était lu surtout à travers la baisse des disputes et le fait de faire les actions prévues.",
+                "inserted_step": "Mettre au premier plan un repère simple de compréhension mutuelle après une tension avant d’évaluer le reste.",
+                "coaching_reason": "Ce recentrage rend le plan plus observable et plus fidèle à ce que tu considères comme une réussite vécue, sans changer son intention de fond ni sa cohérence relationnelle.",
+                "reordered_steps": [
+                  "Compréhension mutuelle après tension",
+                  "Lien préservé sans sentiment de rupture",
+                  "Moins de disputes comme indicateur secondaire"
+                ],
+                "preserved_direction": "La direction globale de sécurité dans le lien reste la même, et les actions déjà en place restent des moyens de soutien, pas une fin en soi."
+              }
+            },
+            "user_message_brief": "Je te propose de recentrer la réussite du plan sur le lien préservé après tension et la compréhension mutuelle, avec moins de disputes seulement comme repère secondaire. Rien n’est encore appliqué.",
+            "user_message_detailed": "Je te propose un recentrage du plan entier, pas une modification locale. Avant: la réussite était lue surtout avec moins de disputes et le fait de faire les actions. Après: la réussite est lue d’abord avec la compréhension mutuelle après une tension, puis avec le sentiment que le lien reste préservé, et seulement ensuite avec moins de disputes. Pourquoi ça aide: ça colle mieux à ce que tu considères comme une vraie réussite vécue, tout en gardant une version courte et observable. Deux appuis concrets suivent ce recentrage: \"Convenir d'un signal de pause\" sert à protéger le lien avant que la tension ne monte trop, et \"Partager un point positif\" reste un soutien simple pour des échanges qui laissent le lien intact. Ce qui ne bouge pas: l’intention de sécurité relationnelle, le fait que tout ne soit pas réglé pour qu’un échange soit utile, et le rôle des actions déjà en place comme moyens de soutien. Je suis sur une confiance moyenne, et il restera sans doute à préciser plus tard le repère pratique le plus simple pour dire que le lien est bien préservé."
+          },
+          "execution_strategy": "whole_plan_adjustment",
+          "allowed_patch_fields": [
+            "scope_kind",
+            "plan_adjustment",
+            "load_adjustment",
+            "goal_adjustment",
+            "sequence_adjustment",
+            "reason_type",
+            "reason_change",
+            "change_target",
+            "confidence",
+            "constraints"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "C’est en place: la réussite du plan est maintenant lue d’abord à travers la compréhension mutuelle après une tension et le sentiment que le lien reste préservé, tandis que moins de disputes reste un repère secondaire. Concrètement, j’ai aussi gardé un signal simple pour faire pause quand le ton monte, et un point positif très simple pour soutenir les échanges; ces deux appuis changent de place dans la lecture du plan, mais ils ne changent pas sa nature. Le plan garde sa sécurité relationnelle, et le fait que tout ne soit pas réglé reste compatible avec un échange utile. Je suis sur une confiance moyenne: la direction est claire, même si certains repères pratiques pourront encore être affinés ensuite.",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je te propose de recentrer la boussole du plan pour qu’elle mesure d’abord si, après une tension, vous vous comprenez mieux et si le lien reste senti comme préservé, avec moins de disputes seulement comme repère secondaire. Rien n’est encore appliqué; c’est une proposition avant validation. Pour rendre ça concret sans toucher à la direction du plan, je suggère aussi de garder un signal simple pour faire pause quand le ton monte, et de conserver un point positif très simple comme soutien à l’échange. Le reste resterait inchangé: l’intention de sécurité dans le lien, le fait que tout ne soit pas réglé pour qu’un échange soit utile, et les autres actions déjà en place comme moyens, pas comme fin."
+      },
+      "status": "draft_review_updated",
+      "reason_code": "tool_skill_intent_start",
+      "operation_id": "d4e04481-fa5b-4b95-b2de-0a110343b09f",
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer une simple note marginale sans effet sur la boussole globale.",
+          "Supprimer totalement l’indicateur de disputes.",
+          "Ajouter des formulations qui élargissent le critère à une amélioration générale trop floue.",
+          "Suggérer une réorganisation des phases sans demande explicite."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "L’intention de sécurité relationnelle du plan.",
+          "Le fait que tout ne soit pas réglé pour considérer un échange utile.",
+          "Les actions existantes comme moyens de soutien et non comme fin en soi.",
+          "La place secondaire mais conservée de la baisse des disputes."
+        ],
+        "warnings": [
+          "Éviter de reformuler en mode purement psychologique ou vague; il faut garder des repères observables.",
+          "Éviter de remettre moins de disputes au centre alors que le user le relègue explicitement au second plan.",
+          "Éviter de transformer ce changement en modification d’action locale; c’est bien un critère de réussite global.",
+          "Éviter de rendre le critère trop long ou trop sophistiqué: le user demande une version courte."
+        ],
+        "readiness": "draft_ready",
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Garder le scope whole_plan et traiter la demande comme un changement de critères de réussite.",
+          "Rédiger court, avec une hiérarchie explicite entre critère principal et indicateur secondaire.",
+          "Conserver un ancrage relationnel observable: compréhension mutuelle, lien préservé, proximité après tension.",
+          "Relier le nouveau critère aux actions existantes sans changer leur nature.",
+          "Ne pas sur-techniciser la formulation; privilégier un langage humain et directement reconnaissable.",
+          "Préserver la cohérence globale du plan et son objectif de sécurité dans le lien."
+        ],
+        "observation": "La demande reste un changement de boussole à l’échelle du plan entier, mais le user précise maintenant la hiérarchie: le lien préservé après une tension et la compréhension mutuelle deviennent centraux, tandis que la baisse des disputes reste un repère secondaire. Humainement, il ne s’agit pas d’abandonner la sécurité du plan, mais de recentrer ce qui compte comme réussite vécue.",
+        "change_family": "success_criteria_change",
+        "recommendation": "Produire une version plus courte du critère global en gardant trois étages clairs: 1) après une discussion tendue, chacun peut dire ce qu’il a compris de l’autre; 2) le lien est perçu comme préservé, sans sentiment de rupture; 3) moins de disputes reste un indicateur secondaire, non le critère principal. Préserver le lien entre ce nouveau critère relationnel et les actions déjà en place, sans suggérer de changer la nature du plan.",
+        "next_best_question": null,
+        "options_to_discuss": [
+          "Version courte axée sur la compréhension mutuelle et le lien préservé après tension.",
+          "Version mixte avec un critère principal relationnel et un repère secondaire de baisse des disputes.",
+          "Version encore plus concrète en ajoutant un signe simple de lien préservé après l’échange.",
+          "Version de formulation très concise à intégrer comme boussole globale du plan."
+        ],
+        "candidate_operation": "change_success_criteria",
+        "questions_to_clarify": [],
+        "trajectory_hypothesis": "Le plan gardait la réduction des disputes et l’exécution des actions comme critères centraux; il peut maintenant être reframé pour viser d’abord un lien préservé et une compréhension mutuelle après tension, avec moins de disputes comme signal secondaire.",
+        "must_not_execute_reason": null
+      },
+      "draft_review_decision": {
+        "decision": "revise",
+        "evidence": [
+          "Le user demande une version plus courte du brouillon",
+          "Il précise trois idées à garder: lien préservé après tension, compréhension mutuelle, moins de disputes comme indicateur secondaire",
+          "Il demande de montrer la version ajustée, sans application"
+        ],
+        "confidence": "high",
+        "apply_after_revision": false
+      },
+      "previous_operation_id": "feaf6127-59b2-468a-a633-6d8f67123217",
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer une simple note marginale sans effet sur la boussole globale.",
+        "Supprimer totalement l’indicateur de disputes.",
+        "Ajouter des formulations qui élargissent le critère à une amélioration générale trop floue.",
+        "Suggérer une réorganisation des phases sans demande explicite."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "L’intention de sécurité relationnelle du plan.",
+        "Le fait que tout ne soit pas réglé pour considérer un échange utile.",
+        "Les actions existantes comme moyens de soutien et non comme fin en soi.",
+        "La place secondaire mais conservée de la baisse des disputes."
+      ],
+      "warnings": [
+        "Éviter de reformuler en mode purement psychologique ou vague; il faut garder des repères observables.",
+        "Éviter de remettre moins de disputes au centre alors que le user le relègue explicitement au second plan.",
+        "Éviter de transformer ce changement en modification d’action locale; c’est bien un critère de réussite global.",
+        "Éviter de rendre le critère trop long ou trop sophistiqué: le user demande une version courte."
+      ],
+      "readiness": "draft_ready",
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Garder le scope whole_plan et traiter la demande comme un changement de critères de réussite.",
+        "Rédiger court, avec une hiérarchie explicite entre critère principal et indicateur secondaire.",
+        "Conserver un ancrage relationnel observable: compréhension mutuelle, lien préservé, proximité après tension.",
+        "Relier le nouveau critère aux actions existantes sans changer leur nature.",
+        "Ne pas sur-techniciser la formulation; privilégier un langage humain et directement reconnaissable.",
+        "Préserver la cohérence globale du plan et son objectif de sécurité dans le lien."
+      ],
+      "observation": "La demande reste un changement de boussole à l’échelle du plan entier, mais le user précise maintenant la hiérarchie: le lien préservé après une tension et la compréhension mutuelle deviennent centraux, tandis que la baisse des disputes reste un repère secondaire. Humainement, il ne s’agit pas d’abandonner la sécurité du plan, mais de recentrer ce qui compte comme réussite vécue.",
+      "change_family": "success_criteria_change",
+      "recommendation": "Produire une version plus courte du critère global en gardant trois étages clairs: 1) après une discussion tendue, chacun peut dire ce qu’il a compris de l’autre; 2) le lien est perçu comme préservé, sans sentiment de rupture; 3) moins de disputes reste un indicateur secondaire, non le critère principal. Préserver le lien entre ce nouveau critère relationnel et les actions déjà en place, sans suggérer de changer la nature du plan.",
+      "next_best_question": null,
+      "options_to_discuss": [
+        "Version courte axée sur la compréhension mutuelle et le lien préservé après tension.",
+        "Version mixte avec un critère principal relationnel et un repère secondaire de baisse des disputes.",
+        "Version encore plus concrète en ajoutant un signe simple de lien préservé après l’échange.",
+        "Version de formulation très concise à intégrer comme boussole globale du plan."
+      ],
+      "candidate_operation": "change_success_criteria",
+      "questions_to_clarify": [],
+      "trajectory_hypothesis": "Le plan gardait la réduction des disputes et l’exécution des actions comme critères centraux; il peut maintenant être reframé pour viser d’abord un lien préservé et une compréhension mutuelle après tension, avec moins de disputes comme signal secondaire.",
+      "must_not_execute_reason": null
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r90-whole-plan-success-criteria-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r90-whole-plan-success-criteria-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, cette version me va. Tu peux valider l ajustement du plan dans ce sens.",
+    "assistant": "C’est en place: la réussite du plan est maintenant lue d’abord à travers la compréhension mutuelle après une tension et le sentiment que le lien reste préservé, tandis que moins de disputes reste un repère secondaire. Concrètement, j’ai aussi gardé un signal simple pour faire pause quand le ton monte, et un point positif très simple pour soutenir les échanges; ces deux appuis changent de place dans la lecture du plan, mais ils ne changent pas sa nature. Le plan garde sa sécurité relationnelle, et le fait que tout ne soit pas réglé reste compatible avec un échange utile. Je suis sur une confiance moyenne: la direction est claire, même si certains repères pratiques pourront encore être affinés ensuite. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "adjust_plan_item"
+    ],
+    "response_owner": "tool_skill",
+    "selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "operation_intents": [],
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "adjust_plan_item"
+      }
+    ],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "executed",
+      "reason_code": "normal_reply_default",
+      "operation_id": "d4e04481-fa5b-4b95-b2de-0a110343b09f",
+      "plan_patch_id": "5accb8bf-3581-4ed2-99f1-84f286e7465c",
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer une simple note marginale sans effet sur la boussole globale.",
+          "Supprimer totalement l’indicateur de disputes.",
+          "Ajouter des formulations qui élargissent le critère à une amélioration générale trop floue.",
+          "Suggérer une réorganisation des phases sans demande explicite."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "L’intention de sécurité relationnelle du plan.",
+          "Le fait que tout ne soit pas réglé pour considérer un échange utile.",
+          "Les actions existantes comme moyens de soutien et non comme fin en soi.",
+          "La place secondaire mais conservée de la baisse des disputes."
+        ],
+        "warnings": [
+          "Éviter de reformuler en mode purement psychologique ou vague; il faut garder des repères observables.",
+          "Éviter de remettre moins de disputes au centre alors que le user le relègue explicitement au second plan.",
+          "Éviter de transformer ce changement en modification d’action locale; c’est bien un critère de réussite global.",
+          "Éviter de rendre le critère trop long ou trop sophistiqué: le user demande une version courte."
+        ],
+        "readiness": "draft_ready",
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Garder le scope whole_plan et traiter la demande comme un changement de critères de réussite.",
+          "Rédiger court, avec une hiérarchie explicite entre critère principal et indicateur secondaire.",
+          "Conserver un ancrage relationnel observable: compréhension mutuelle, lien préservé, proximité après tension.",
+          "Relier le nouveau critère aux actions existantes sans changer leur nature.",
+          "Ne pas sur-techniciser la formulation; privilégier un langage humain et directement reconnaissable.",
+          "Préserver la cohérence globale du plan et son objectif de sécurité dans le lien."
+        ],
+        "observation": "La demande reste un changement de boussole à l’échelle du plan entier, mais le user précise maintenant la hiérarchie: le lien préservé après une tension et la compréhension mutuelle deviennent centraux, tandis que la baisse des disputes reste un repère secondaire. Humainement, il ne s’agit pas d’abandonner la sécurité du plan, mais de recentrer ce qui compte comme réussite vécue.",
+        "change_family": "success_criteria_change",
+        "recommendation": "Produire une version plus courte du critère global en gardant trois étages clairs: 1) après une discussion tendue, chacun peut dire ce qu’il a compris de l’autre; 2) le lien est perçu comme préservé, sans sentiment de rupture; 3) moins de disputes reste un indicateur secondaire, non le critère principal. Préserver le lien entre ce nouveau critère relationnel et les actions déjà en place, sans suggérer de changer la nature du plan.",
+        "next_best_question": null,
+        "options_to_discuss": [
+          "Version courte axée sur la compréhension mutuelle et le lien préservé après tension.",
+          "Version mixte avec un critère principal relationnel et un repère secondaire de baisse des disputes.",
+          "Version encore plus concrète en ajoutant un signe simple de lien préservé après l’échange.",
+          "Version de formulation très concise à intégrer comme boussole globale du plan."
+        ],
+        "candidate_operation": "change_success_criteria",
+        "questions_to_clarify": [],
+        "trajectory_hypothesis": "Le plan gardait la réduction des disputes et l’exécution des actions comme critères centraux; il peut maintenant être reframé pour viser d’abord un lien préservé et une compréhension mutuelle après tension, avec moins de disputes comme signal secondaire.",
+        "must_not_execute_reason": null
+      },
+      "bridge_plan_item_id": null,
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer une simple note marginale sans effet sur la boussole globale.",
+        "Supprimer totalement l’indicateur de disputes.",
+        "Ajouter des formulations qui élargissent le critère à une amélioration générale trop floue.",
+        "Suggérer une réorganisation des phases sans demande explicite."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "L’intention de sécurité relationnelle du plan.",
+        "Le fait que tout ne soit pas réglé pour considérer un échange utile.",
+        "Les actions existantes comme moyens de soutien et non comme fin en soi.",
+        "La place secondaire mais conservée de la baisse des disputes."
+      ],
+      "warnings": [
+        "Éviter de reformuler en mode purement psychologique ou vague; il faut garder des repères observables.",
+        "Éviter de remettre moins de disputes au centre alors que le user le relègue explicitement au second plan.",
+        "Éviter de transformer ce changement en modification d’action locale; c’est bien un critère de réussite global.",
+        "Éviter de rendre le critère trop long ou trop sophistiqué: le user demande une version courte."
+      ],
+      "readiness": "draft_ready",
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Garder le scope whole_plan et traiter la demande comme un changement de critères de réussite.",
+        "Rédiger court, avec une hiérarchie explicite entre critère principal et indicateur secondaire.",
+        "Conserver un ancrage relationnel observable: compréhension mutuelle, lien préservé, proximité après tension.",
+        "Relier le nouveau critère aux actions existantes sans changer leur nature.",
+        "Ne pas sur-techniciser la formulation; privilégier un langage humain et directement reconnaissable.",
+        "Préserver la cohérence globale du plan et son objectif de sécurité dans le lien."
+      ],
+      "observation": "La demande reste un changement de boussole à l’échelle du plan entier, mais le user précise maintenant la hiérarchie: le lien préservé après une tension et la compréhension mutuelle deviennent centraux, tandis que la baisse des disputes reste un repère secondaire. Humainement, il ne s’agit pas d’abandonner la sécurité du plan, mais de recentrer ce qui compte comme réussite vécue.",
+      "change_family": "success_criteria_change",
+      "recommendation": "Produire une version plus courte du critère global en gardant trois étages clairs: 1) après une discussion tendue, chacun peut dire ce qu’il a compris de l’autre; 2) le lien est perçu comme préservé, sans sentiment de rupture; 3) moins de disputes reste un indicateur secondaire, non le critère principal. Préserver le lien entre ce nouveau critère relationnel et les actions déjà en place, sans suggérer de changer la nature du plan.",
+      "next_best_question": null,
+      "options_to_discuss": [
+        "Version courte axée sur la compréhension mutuelle et le lien préservé après tension.",
+        "Version mixte avec un critère principal relationnel et un repère secondaire de baisse des disputes.",
+        "Version encore plus concrète en ajoutant un signe simple de lien préservé après l’échange.",
+        "Version de formulation très concise à intégrer comme boussole globale du plan."
+      ],
+      "candidate_operation": "change_success_criteria",
+      "questions_to_clarify": [],
+      "trajectory_hypothesis": "Le plan gardait la réduction des disputes et l’exécution des actions comme critères centraux; il peut maintenant être reframé pour viser d’abord un lien préservé et une compréhension mutuelle après tension, avec moins de disputes comme signal secondaire.",
+      "must_not_execute_reason": null
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r90-whole-plan-success-criteria-t04",
+    "trace_error": null
+  }
+]

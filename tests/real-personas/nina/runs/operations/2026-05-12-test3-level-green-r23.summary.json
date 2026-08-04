@@ -1,0 +1,373 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r23-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je voudrais alléger le niveau du soir sans changer le plan global. En ce moment la difficulté, c'est que le soir je dois encore réfléchir et ça me fatigue.",
+    "assistant": "Je comprends, l'objectif est de supprimer cet effort de réflexion. Pour que je puisse ajuster le niveau, quelles actions te semblent encore trop lourdes le soir : le décodage de tes envies, ou la gestion de tes alternatives ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "status": "ask_question",
+      "reason_code": "tool_skill_intent_start",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "current_level.adjustment_type",
+        "current_level.reason",
+        "current_level.affected_items"
+      ],
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r23-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r23-t02",
+    "status": 200,
+    "ok": true,
+    "user": "La gestion des alternatives surtout, et aussi le choix du brut. Je veux que ce soit déjà décidé avant 18h. Garde le décodage seulement pour les envies fortes et ne change pas l'objectif général.",
+    "assistant": "C'est noté. Je vais simplifier ton programme du soir pour que la gestion des alternatives et le choix du brut soient fixés avant 18h, et limiter le décodage aux moments de forte envie, tout en préservant ton objectif global. Est-ce que je peux préparer cette proposition concrète ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "status": "ask_question",
+      "reason_code": "active_tool_skill_continue",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "draft_generation_confirmation"
+      ],
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r23-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r23-t03",
+    "status": 502,
+    "ok": null,
+    "user": "Oui, prépare-la.",
+    "assistant": "",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": true,
+    "response_tool_execution": null,
+    "response_executed_tools": [],
+    "response_owner": null,
+    "selected_handler": null,
+    "route_reason_code": null,
+    "safety_pregate": null,
+    "operation_intents": [],
+    "skill_run": null,
+    "direct_effects": null,
+    "operation_flow_run": null,
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r23-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r23-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, prépare cette proposition concrète.",
+    "assistant": "Je te propose d'alléger ton niveau du soir pour limiter la fatigue décisionnelle, comme tu l'as souhaité avant 18h. Rien n'est encore appliqué. Je suggère de passer à une version mini pour 'Préparer tes alternatives d'avance' (en utilisant des options déjà prêtes) et de simplifier 'Faire le choix du brut' à une seule option fixe : ces versions allégées servent de pont pour maintenir l'habitude sans effort, avant un retour aux actions complètes plus tard. L'exercice de décodage ne sera proposé que pour les envies fortes. Ton objectif général et le nettoyage de ton environnement ne seront pas touchés. Ce changement reste limité à ton niveau actuel et ne modifie pas ton plan global.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "confidence": "medium",
+            "scope_kind": "current_level",
+            "constraints": [
+              "no_pressure",
+              "minimal_patch",
+              "preserve_plan_intent",
+              "no_schedule_day_change",
+              "ask_confirmation_before_write",
+              "décidé avant 18h",
+              "préserver l'objectif général",
+              "décodage uniquement pour envies fortes",
+              "affected_item:Préparer tes alternatives d'avance",
+              "affected_item:Faire le choix du brut",
+              "affected_item:Décoder ton envie de grignoter"
+            ],
+            "reason_type": "context_changed",
+            "change_target": "global_load",
+            "reason_change": "context_changed",
+            "load_adjustment": "same",
+            "level_adjustment": "rebalance"
+          },
+          "title": "Ajustement - niveau du soir",
+          "confidence": "medium",
+          "ack_summary": {
+            "changed": [
+              "niveau actuel: charge ajustée vers \"same\"",
+              "cible de changement: global_load"
+            ],
+            "unchanged": [
+              "le cœur du niveau reste préservé",
+              "chaque action n'est pas réécrite automatiquement"
+            ],
+            "confidence": "medium",
+            "why_it_helps": "La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale.",
+            "follow_up_needed": "identifier ensuite les actions exactes à alléger si tu veux une modification fine"
+          },
+          "scope_label": "niveau du soir",
+          "why_it_helps": "Le changement agit au niveau du bloc courant, sans pretendre modifier une seule action.",
+          "decision_basis": {
+            "evidence": [
+              "Oui, prépare cette proposition concrète.",
+              "alléger le niveau du soir",
+              "décidé avant 18h",
+              "seulement pour les envies fortes",
+              "le soir je dois encore réfléchir et ça me fatigue",
+              "le soir je dois encore réfléchir et ça me fatigue",
+              "alléger le niveau du soir",
+              "décidé avant 18h"
+            ],
+            "confidence": "medium",
+            "uncertainty": [
+              "actions exactes du niveau a choisir pour une modification fine"
+            ],
+            "user_problem": "Le niveau actuel est trop lourd ou mal calibre pour le contexte de l'utilisateur.",
+            "inferred_need": "preserver le coeur du niveau et reduire la charge ciblee autour",
+            "must_preserve": [
+              "coeur du niveau"
+            ]
+          },
+          "adjustment_type": "rebalance",
+          "proposed_change": "reequilibrer le niveau actuel",
+          "change_rationale": {
+            "why_this_change": "Alléger global_load répond au problème \"context_changed\" tout en gardant le cœur du niveau.",
+            "success_condition": "Le niveau peut être repris avec moins de friction, puis réaugmenté seulement si l'énergie et le contexte suivent.",
+            "expected_mechanism": "La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale."
+          },
+          "adjust_plan_result": {
+            "scope": "level",
+            "rationale": {
+              "confidence": "medium",
+              "missing_info": [],
+              "user_problem": "Fatigue décisionnelle le soir rendant le niveau actuel trop lourd.",
+              "expected_effect": "Maintien de l'engagement sans épuisement et réduction de la friction le soir.",
+              "why_this_change": "Passer sur des versions mini et conditionnelles réduit la charge mentale tout en gardant l'habitude active."
+            },
+            "boundaries": {
+              "explanation": "Les ajustements sont confinés au niveau du soir pour gérer la fatigue immédiate sans dévier de la trajectoire long terme.",
+              "affected_scope": "niveau actuel du soir",
+              "global_plan_impact": "none",
+              "explicitly_not_affected": [
+                "objectif global",
+                "structure complète du plan",
+                "autres niveaux"
+              ]
+            },
+            "applied_change": {
+              "summary": "Rééquilibrage du niveau du soir pour réduire la fatigue décisionnelle via des versions mini et un ciblage des envies fortes.",
+              "changed_items": [
+                {
+                  "id": "23f34398-87ae-4388-80b4-786989faac97",
+                  "kind": "action",
+                  "after": "Version mini : Opter uniquement pour des alternatives prêtes à l'emploi (fruits lavés, oléagineux) pour supprimer toute préparation le soir. Cette version sert de pont pour maintenir l'habitude, l'action complète reviendra plus tard.",
+                  "title": "Préparer tes alternatives d'avance",
+                  "before": "Fais le tour de tes placards et de ton espace de travail. Retire ou cache les produits transformés qui te tentent le plus en cas de stress.",
+                  "reason": "Réduit la charge de préparation immédiate pour préserver l'énergie le soir.",
+                  "capability": "create_bridge_action"
+                },
+                {
+                  "id": "eb9df535-b6e9-40d9-af57-effafdc2f662",
+                  "kind": "action",
+                  "after": "Version mini : Limiter le choix à une seule option brute prédéfinie (ex: toujours une pomme) pour éliminer la fatigue décisionnelle. L'action d'origine reviendra quand ton énergie sera plus haute.",
+                  "title": "Faire le choix du brut",
+                  "before": "Limiter le choix à une seule option brute prédéfinie (ex: toujours une pomme) pour éliminer la fatigue décisionnelle.",
+                  "reason": "Supprime le besoin de réfléchir à un choix complexe en fin de journée.",
+                  "capability": "create_bridge_action"
+                },
+                {
+                  "id": "7ed21c74-e2ad-4ffb-85d9-5d204d72bbcf",
+                  "kind": "action",
+                  "after": "Prends 2 minutes uniquement lors d'une forte envie de sucre ou de gras pour identifier ce qui se joue vraiment.",
+                  "title": "Décoder ton envie de grignoter",
+                  "before": "Prends 2 minutes uniquement lors d'une forte envie de sucre ou de gras pour identifier ce qui se joue vraiment.",
+                  "reason": "Focalise l'effort uniquement sur les moments critiques pour éviter la lassitude.",
+                  "capability": "modify_existing_action"
+                }
+              ],
+              "preserved_items": [
+                {
+                  "id": "a751731a-3832-4bea-a707-c72170fd15a0",
+                  "kind": "action",
+                  "title": "Nettoyer ton environnement direct",
+                  "reason": "Action de maintenance simple qui ne demande pas de réflexion intense et soutient l'objectif."
+                }
+              ]
+            },
+            "user_message_brief": "Proposition d'allègement du soir : passage en versions mini pour les alternatives et le choix du brut, et décodage ciblé sur les envies fortes.",
+            "user_message_detailed": "Pour alléger ton soir, je propose deux changements précis : transformer 'Préparer tes alternatives d'avance' en version mini (fruits lavés) et fixer une option unique pour 'Faire le choix du brut'. L'action 'Nettoyer ton environnement' ne bouge pas. Mon niveau de confiance est moyen car cela dépend de tes stocks. Ce changement reste limité à ton niveau du soir pour la fin de journée."
+          },
+          "execution_strategy": "level_adjustment",
+          "allowed_patch_fields": [
+            "scope_kind",
+            "level_adjustment",
+            "load_adjustment",
+            "focus_adjustment",
+            "reason_type",
+            "reason_change",
+            "change_target",
+            "confidence",
+            "constraints"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "C'est fait, j'ai rééquilibré ton niveau du soir pour qu'il soit plus facile à suivre. J'ai créé une version mini pour 'Préparer tes alternatives d'avance' avec des produits déjà prêts et une version simplifiée pour 'Faire le choix du brut' avec une option unique. Ces versions servent de pont pour maintenir ton élan, et les actions complètes reviendront plus tard. Le décodage est désormais limité aux envies fortes. Ton objectif global et le nettoyage de l'environnement restent stables. Je suis assez convaincue que cela va t'aider à gérer la fatigue ce soir sans toucher au reste de ton plan.",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je te propose d'alléger ton niveau du soir pour limiter la fatigue décisionnelle, comme tu l'as souhaité avant 18h. Rien n'est encore appliqué. Je suggère de passer à une version mini pour 'Préparer tes alternatives d'avance' (en utilisant des options déjà prêtes) et de simplifier 'Faire le choix du brut' à une seule option fixe : ces versions allégées servent de pont pour maintenir l'habitude sans effort, avant un retour aux actions complètes plus tard. L'exercice de décodage ne sera proposé que pour les envies fortes. Ton objectif général et le nettoyage de ton environnement ne seront pas touchés. Ce changement reste limité à ton niveau actuel et ne modifie pas ton plan global."
+      },
+      "status": "draft_review",
+      "reason_code": "active_tool_skill_continue",
+      "operation_id": "1cd4ad33-5552-4808-9540-6ebfbe42e475",
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r23-t04",
+    "trace_error": null
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r23-t05",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, valide ça.",
+    "assistant": "C'est fait, j'ai rééquilibré ton niveau du soir pour qu'il soit plus facile à suivre. J'ai créé une version mini pour 'Préparer tes alternatives d'avance' avec des produits déjà prêts et une version simplifiée pour 'Faire le choix du brut' avec une option unique. Ces versions servent de pont pour maintenir ton élan, et les actions complètes reviendront plus tard. Le décodage est désormais limité aux envies fortes. Ton objectif global et le nettoyage de l'environnement restent stables. Je suis assez convaincue que cela va t'aider à gérer la fatigue ce soir sans toucher au reste de ton plan.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "adjust_plan_item"
+    ],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": null,
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "adjust_plan_item"
+      }
+    ],
+    "operation_flow_run": {
+      "status": "executed",
+      "reason_code": "tool_skill_intent_start",
+      "operation_id": "1cd4ad33-5552-4808-9540-6ebfbe42e475",
+      "plan_patch_id": "11f769ac-9c33-4295-a080-fa7915e9a358",
+      "selected_handler": "adjust_plan_item",
+      "bridge_plan_item_id": null
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r23-t05",
+    "trace_error": null
+  }
+]

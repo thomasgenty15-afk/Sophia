@@ -1,0 +1,23 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-attack-card-postfix-r2-t01",
+    "http_status": 200,
+    "ok": true,
+    "user": "Prépare-moi une carte d’attaque en Ancre visuelle pour poser ma tenue de sport sur la chaise ce soir. Le piège, c’est que je repousse en disant que je verrai demain. Ne la crée pas depuis le chat.",
+    "assistant": "Cible/action comprise : Poser ma tenue de sport sur la chaise ce soir\n\nObstacle ou piège identifié : je repousse en disant que je verrai demain\n\nTechnique recommandée : Ancre visuelle\nPourquoi : L'ancre visuelle transforme une intention floue en un signal physique impossible à ignorer.\n\nBrouillon de carte :\nLe signal du sport\nDemain commence ce soir.\nMode d'emploi : Pose ta tenue sur la chaise et place ce message bien en vue dessus pour sceller ton choix.\n\nÀ préserver :\n- Demain commence ce soir.\n- Casser le réflexe du 'je verrai demain'\n- Rendre l'engagement physique et visible\n\nÀ éviter :\n- Transformer ce brouillon en promesse trop longue.\n- Ajouter plusieurs techniques concurrentes dans la même carte.\n\nDestination plateforme : dans la section Cartes d’attaque\n1. ouvre la section Cartes\n2. choisis Carte d’attaque\n3. reprends le brouillon proposé\n\nJe ne crée pas la carte depuis le chat. Voici la version à reprendre dans la section Cartes d’attaque. 🙂",
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_reason": "tool_skill_intent_start",
+    "safety": null,
+    "direct_effects": null,
+    "response_tool_execution": "platform_handoff",
+    "response_executed_tools": [],
+    "operation_status": null,
+    "platform_handoff": null,
+    "pending_confirmation": null,
+    "committed_effects": null,
+    "memory_plan": null,
+    "trace_id": "qa-attack-card-postfix-r2-t01"
+  }
+]

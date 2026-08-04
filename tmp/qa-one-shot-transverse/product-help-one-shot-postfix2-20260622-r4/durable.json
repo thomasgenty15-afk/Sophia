@@ -1,0 +1,54 @@
+{
+  "scheduled_checkins": [
+    {
+      "id": "db3fccb2-a628-409b-a230-2919c7b23345",
+      "status": "pending",
+      "scheduled_for": "2026-06-23T09:00:00+00:00",
+      "event_context": "one_shot_reminder:revoir_cette_nuance",
+      "message_payload": {
+        "source": "one_shot_reminder_executor",
+        "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Objet du rappel utilisateur: revoir cette nuance.",
+        "parse_source": "payload",
+        "request_text": "Rappelle-moi demain a 11h de revoir cette nuance.",
+        "reminder_kind": "one_shot",
+        "user_timezone": "Europe/Paris",
+        "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: revoir cette nuance.",
+        "source_message_id": null,
+        "reminder_instruction": "revoir cette nuance"
+      },
+      "created_at": "2026-06-22T21:26:43.44045+00:00"
+    }
+  ],
+  "chat_messages_count": 2,
+  "chat_messages": [
+    {
+      "role": "user",
+      "content": "Dans Sophia, quand est-ce que je dois utiliser une carte d attaque plutot qu une carte de defense ? Rappelle-moi demain a 11h de revoir cette nuance.",
+      "created_at": "2026-06-22T21:26:40.519361+00:00",
+      "metadata": {
+        "request_id": "qa-product-help-one-shot-postfix2-20260622-r4-t01",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Utilise une carte d’attaque quand tu veux te lancer ou préparer le terrain. Utilise une carte de défense quand tu veux éviter de dérailler face à un risque, une impulsion ou un moment difficile. Les deux peuvent se compléter : attaque pour entrer, défense pour tenir.\n\nEt je te le rappelle mardi 23 juin à 11:00 pour revoir cette nuance.",
+      "created_at": "2026-06-22T21:26:49.149281+00:00",
+      "metadata": {
+        "request_id": "qa-product-help-one-shot-postfix2-20260622-r4-t01",
+        "route_owner": "product_help",
+        "selected_handler": "product_help",
+        "tool_execution": null
+      }
+    }
+  ],
+  "user_chat_state": {
+    "user_id": "d8589404-f6b3-40c2-a535-4f4f430da047",
+    "current_mode": "companion",
+    "risk_level": 0,
+    "temp_memory": {},
+    "updated_at": "2026-06-22T21:26:49.144724+00:00"
+  }
+}

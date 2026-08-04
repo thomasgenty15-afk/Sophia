@@ -1,0 +1,499 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-apaisement-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je suis tendu et à cran, j'ai l'impression que tout appuie sur moi. Aide-moi juste à faire baisser la pression avant de décider quoi que ce soit.",
+    "assistant": "Je t'entends et je sens cette pression qui t'écrase. Je suis là, tout près de toi, sans rien attendre et sans rien te demander. On s'arrête juste un instant, le temps que tu puisses souffler un peu.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "conversation_handler",
+    "selected_handler": "emotional_repair",
+    "route_reason": "skill_entry_signal",
+    "safety_pregate": null,
+    "tone_adjustment": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_write_candidates_emitted": null,
+    "memory_plan": null,
+    "response_executed_tools": [],
+    "tool_execution": "none",
+    "trace_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-apaisement-t01",
+    "trace_error": null,
+    "operation_flow_run": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-apaisement-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Je me sens un peu moins submergé. Je veux bien passer sur une potion d'apaisement pour travailler cette pression sans repartir dans tous les sens.",
+    "assistant": "Je suis ravie que tu te sentes un peu moins submergé. On se tourne maintenant vers la Potion d'apaisement pour t'aider à réguler cette pression.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "conversation_handler",
+    "selected_handler": "emotional_repair",
+    "route_reason": "active_emotional_repair_local_dispatcher",
+    "safety_pregate": null,
+    "tone_adjustment": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_write_candidates_emitted": null,
+    "memory_plan": null,
+    "response_executed_tools": [],
+    "tool_execution": "none",
+    "trace_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-apaisement-t02",
+    "trace_error": null,
+    "operation_flow_run": {
+      "selected_handler": "emotional_repair",
+      "reason_code": "emotional_repair_handoff_to_select_state_potion",
+      "skill_id": "emotional_repair",
+      "mode": "conversation_skill_local_flow",
+      "status": "handoff",
+      "response_intent": "handoff_to_select_state_potion",
+      "flow_action": "confirm_potion_bridge",
+      "visible_task": "potion_bridge_handoff",
+      "global_dispatcher_skipped": true,
+      "source_dispatcher_local": "emotional_repair.local_dispatcher",
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "runtime_trace": [
+        {
+          "component": "emotional_repair",
+          "event": "local_dispatcher_turn",
+          "global_dispatcher_skipped": true,
+          "safety_handoff": false
+        }
+      ]
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-apaisement-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, je continue avec cette potion. La pression vient surtout de trop de choses à porter en même temps, et je suis encore un peu à cran.",
+    "assistant": "Je suis prête à t'aider pour ta Potion d'apaisement. Est-ce que c'est bien ce poids d'avoir trop de choses à porter en même temps qui te met ainsi à cran ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "tool_skill",
+    "selected_handler": "select_state_potion.apaisement",
+    "route_reason": "active_apaisement_local_dispatcher",
+    "safety_pregate": null,
+    "tone_adjustment": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_write_candidates_emitted": null,
+    "memory_plan": null,
+    "response_executed_tools": [],
+    "tool_execution": "platform_handoff",
+    "trace_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-apaisement-t03",
+    "trace_error": null,
+    "operation_flow_run": {
+      "selected_handler": "select_state_potion.apaisement",
+      "reason_code": "apaisement_field_proposed",
+      "operation_type": "select_state_potion",
+      "mode": "platform_handoff",
+      "executable_from_chat": false,
+      "status": "clarifying",
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "constraints": [],
+      "risk_assessment": {
+        "risk_score": 1,
+        "risk_band": "none",
+        "safety_preempt": false,
+        "reason_codes": [
+          "no_safety_signal",
+          "routine_field_refinement"
+        ]
+      },
+      "runtime_trace": [
+        {
+          "component": "select_state_potion.apaisement",
+          "event": "active_apaisement_turn_start",
+          "global_dispatcher_available": false,
+          "previous_status": "clarifying"
+        },
+        {
+          "component": "select_state_potion",
+          "event": "origin_context_consumed",
+          "origin_flow": "emotional_repair",
+          "selected_potion": "apaisement",
+          "origin_flow_summary": null,
+          "target_flow": null
+        },
+        {
+          "component": "local_dispatcher",
+          "event": "decision",
+          "flow": "select_state_potion.apaisement",
+          "flow_action": "answer_current_field",
+          "confidence": "high",
+          "selected_potion": "apaisement",
+          "current_field_id": "pressure_source",
+          "visible_task": "ask_deeper",
+          "risk_assessment": {
+            "risk_score": 1,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": [
+              "no_safety_signal",
+              "routine_field_refinement"
+            ]
+          },
+          "exit_reason": null
+        },
+        {
+          "component": "local_reducer",
+          "event": "reduced",
+          "flow": "select_state_potion.apaisement",
+          "status": "clarifying",
+          "reason_code": "apaisement_field_proposed",
+          "visible_task": "confirm_proposal",
+          "current_field_id": "pressure_source",
+          "exit_to_global_dispatcher": false
+        },
+        {
+          "component": "local_reducer",
+          "event": "conversation_context_built",
+          "flow": "select_state_potion.apaisement",
+          "visible_task": "confirm_proposal",
+          "field_or_stage": "pressure_source"
+        },
+        {
+          "component": "visible_stage",
+          "event": "start",
+          "stage": "potion_subskill_task",
+          "clarte_visible_task": null,
+          "potion_subskill_visible_task": "confirm_proposal",
+          "handoff_status": "clarifying",
+          "conversation_context_provided": true
+        },
+        {
+          "component": "visible_agent",
+          "stage": "potion_subskill_task",
+          "attempt": 1,
+          "accepted": true,
+          "issues": []
+        },
+        {
+          "component": "visible_stage",
+          "event": "complete",
+          "stage": "potion_subskill_task"
+        }
+      ],
+      "note_information": null,
+      "handoff": {
+        "target": "state_potions"
+      },
+      "platform_handoff": {
+        "operation_type": "select_state_potion",
+        "status": "delivered",
+        "surface_id": "state_potions",
+        "reason_code": "apaisement_field_proposed",
+        "executable_from_chat": false,
+        "draft": null
+      }
+    }
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-apaisement-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, c'est exactement ça : trop de choses à porter en même temps, et ça me met à cran.",
+    "assistant": "Je sens que c'est vraiment pesant de tout porter de front. Pour affiner ta Potion d'apaisement, qu'est-ce qui s'accumule le plus pour toi en ce moment ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "tool_skill",
+    "selected_handler": "select_state_potion.apaisement",
+    "route_reason": "active_apaisement_local_dispatcher",
+    "safety_pregate": null,
+    "tone_adjustment": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_write_candidates_emitted": null,
+    "memory_plan": null,
+    "response_executed_tools": [],
+    "tool_execution": "platform_handoff",
+    "trace_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-apaisement-t04",
+    "trace_error": null,
+    "operation_flow_run": {
+      "selected_handler": "select_state_potion.apaisement",
+      "reason_code": "apaisement_field_needs_more_detail",
+      "operation_type": "select_state_potion",
+      "mode": "platform_handoff",
+      "executable_from_chat": false,
+      "status": "clarifying",
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "constraints": [],
+      "risk_assessment": {
+        "risk_score": 0,
+        "risk_band": "none",
+        "safety_preempt": false,
+        "reason_codes": []
+      },
+      "runtime_trace": [
+        {
+          "component": "select_state_potion.apaisement",
+          "event": "active_apaisement_turn_start",
+          "global_dispatcher_available": false,
+          "previous_status": "clarifying"
+        },
+        {
+          "component": "select_state_potion",
+          "event": "origin_context_consumed",
+          "origin_flow": "emotional_repair",
+          "selected_potion": "apaisement",
+          "origin_flow_summary": null,
+          "target_flow": null
+        },
+        {
+          "component": "local_dispatcher",
+          "event": "decision",
+          "flow": "select_state_potion.apaisement",
+          "flow_action": "confirm_proposed_field",
+          "confidence": "high",
+          "selected_potion": "apaisement",
+          "current_field_id": "pressure_source",
+          "visible_task": "ask_deeper",
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "exit_reason": null
+        },
+        {
+          "component": "local_reducer",
+          "event": "reduced",
+          "flow": "select_state_potion.apaisement",
+          "status": "clarifying",
+          "reason_code": "apaisement_field_needs_more_detail",
+          "visible_task": "ask_deeper",
+          "current_field_id": "pressure_source",
+          "exit_to_global_dispatcher": false
+        },
+        {
+          "component": "local_reducer",
+          "event": "conversation_context_built",
+          "flow": "select_state_potion.apaisement",
+          "visible_task": "ask_deeper",
+          "field_or_stage": "pressure_source"
+        },
+        {
+          "component": "visible_stage",
+          "event": "start",
+          "stage": "potion_subskill_task",
+          "clarte_visible_task": null,
+          "potion_subskill_visible_task": "ask_deeper",
+          "handoff_status": "clarifying",
+          "conversation_context_provided": true
+        },
+        {
+          "component": "visible_agent",
+          "stage": "potion_subskill_task",
+          "attempt": 1,
+          "accepted": true,
+          "issues": []
+        },
+        {
+          "component": "visible_stage",
+          "event": "complete",
+          "stage": "potion_subskill_task"
+        }
+      ],
+      "note_information": null,
+      "handoff": {
+        "target": "state_potions"
+      },
+      "platform_handoff": {
+        "operation_type": "select_state_potion",
+        "status": "delivered",
+        "surface_id": "state_potions",
+        "reason_code": "apaisement_field_needs_more_detail",
+        "executable_from_chat": false,
+        "draft": null
+      }
+    }
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-apaisement-t05",
+    "status": 200,
+    "ok": true,
+    "user": "Ce qui s'accumule le plus, c'est le travail en retard, les messages à traiter et la peur de ne pas tenir.",
+    "assistant": "Je sens que c'est pesant pour toi en ce moment. Ta Potion d'apaisement t'attend dans la section État / Potions. Voici ce que j'ai retenu pour ta session :\n\nQu'est-ce qui te met le plus sous pression la ? : trop de choses à porter en même temps : travail en retard, messages à traiter et peur de ne pas tenir\nTu te sens plutot comment ? : A cran",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "tool_skill",
+    "selected_handler": "select_state_potion.apaisement",
+    "route_reason": "active_apaisement_local_dispatcher",
+    "safety_pregate": null,
+    "tone_adjustment": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_write_candidates_emitted": null,
+    "memory_plan": null,
+    "response_executed_tools": [],
+    "tool_execution": "platform_handoff",
+    "trace_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r3-apaisement-t05",
+    "trace_error": null,
+    "operation_flow_run": {
+      "selected_handler": "select_state_potion.apaisement",
+      "reason_code": "apaisement_handoff_delivered",
+      "operation_type": "select_state_potion",
+      "mode": "platform_handoff",
+      "executable_from_chat": false,
+      "status": "handoff_delivered",
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "constraints": [],
+      "risk_assessment": {
+        "risk_score": 0,
+        "risk_band": "none",
+        "safety_preempt": false,
+        "reason_codes": []
+      },
+      "runtime_trace": [
+        {
+          "component": "select_state_potion.apaisement",
+          "event": "active_apaisement_turn_start",
+          "global_dispatcher_available": false,
+          "previous_status": "clarifying"
+        },
+        {
+          "component": "select_state_potion",
+          "event": "origin_context_consumed",
+          "origin_flow": "emotional_repair",
+          "selected_potion": "apaisement",
+          "origin_flow_summary": null,
+          "target_flow": null
+        },
+        {
+          "component": "local_dispatcher",
+          "event": "decision",
+          "flow": "select_state_potion.apaisement",
+          "flow_action": "answer_current_field",
+          "confidence": "high",
+          "selected_potion": "apaisement",
+          "current_field_id": null,
+          "visible_task": "handoff_ready",
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "exit_reason": null
+        },
+        {
+          "component": "local_reducer",
+          "event": "reduced",
+          "flow": "select_state_potion.apaisement",
+          "status": "handoff_delivered",
+          "reason_code": "apaisement_handoff_delivered",
+          "visible_task": "handoff_ready",
+          "current_field_id": null,
+          "exit_to_global_dispatcher": false
+        },
+        {
+          "component": "local_reducer",
+          "event": "conversation_context_built",
+          "flow": "select_state_potion.apaisement",
+          "visible_task": "handoff_ready",
+          "field_or_stage": "handoff_ready"
+        },
+        {
+          "component": "visible_stage",
+          "event": "start",
+          "stage": "potion_subskill_task",
+          "clarte_visible_task": null,
+          "potion_subskill_visible_task": "handoff_ready",
+          "handoff_status": "handoff_delivered",
+          "conversation_context_provided": true
+        },
+        {
+          "component": "visible_agent",
+          "stage": "potion_subskill_task",
+          "attempt": 1,
+          "accepted": true,
+          "issues": []
+        },
+        {
+          "component": "visible_stage",
+          "event": "complete",
+          "stage": "potion_subskill_task"
+        }
+      ],
+      "note_information": null,
+      "handoff": {
+        "target": "state_potions"
+      },
+      "platform_handoff": {
+        "operation_type": "select_state_potion",
+        "status": "delivered",
+        "surface_id": "state_potions",
+        "reason_code": "apaisement_handoff_delivered",
+        "executable_from_chat": false,
+        "draft": {
+          "operation_type": "select_state_potion",
+          "mode": "platform_handoff",
+          "executable_from_chat": false,
+          "user_state_summary": "trop de choses à porter en même temps : travail en retard, messages à traiter et peur de ne pas tenir ; A cran",
+          "desired_shift_summary": "redescendre, desserrer la pression, retrouver un peu d'espace interieur",
+          "recommendation": {
+            "potion_label": "Potion d'apaisement",
+            "why_this_potion": "Quand tu montes en pression, que tu es a cran ou trop stresse, elle t'aide a redescendre.",
+            "immediate_step": null,
+            "preserve": [],
+            "avoid": [],
+            "platform_destination": "section État / Potions",
+            "platform_steps": [
+              "va dans État / Potions",
+              "choisis Potion d'apaisement"
+            ],
+            "platform_inputs": {
+              "potion_type": "apaisement",
+              "potion_title": "Potion d'apaisement",
+              "answers": [
+                {
+                  "question_id": "pressure_source",
+                  "question_label": "Qu'est-ce qui te met le plus sous pression la ?",
+                  "value": "trop de choses à porter en même temps : travail en retard, messages à traiter et peur de ne pas tenir",
+                  "option_value": null,
+                  "option_label": null
+                },
+                {
+                  "question_id": "pressure_state",
+                  "question_label": "Tu te sens plutot comment ?",
+                  "value": "A cran",
+                  "option_value": "a_cran",
+                  "option_label": "A cran"
+                }
+              ],
+              "optional_free_text": null
+            }
+          },
+          "missing_decisions": []
+        }
+      }
+    }
+  }
+]

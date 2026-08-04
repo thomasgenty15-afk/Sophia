@@ -1,24 +1,25 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { 
-  X, 
-  User, 
-  CreditCard, 
-  Settings, 
-  LogOut, 
-  Shield, 
+import {
+  X,
+  User,
+  CreditCard,
+  Settings,
+  LogOut,
+  Shield,
   Zap,
   Mail,
   Bell,
   Check,
-  ChevronRight
+  ChevronRight,
+  Gift
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import { newRequestId, requestHeaders } from '../lib/requestId';
 import { useNavigate } from 'react-router-dom';
 
-import { getEffectiveTier } from '../lib/entitlements';
 import { DEFAULT_LOCALE, DEFAULT_TIMEZONE, detectBrowserTimezone, getAllSupportedTimezones } from '../lib/localization';
+import DataPrivacySection from './account/DataPrivacySection';
 
 interface UserProfileProps {
   isOpen: boolean;
@@ -29,19 +30,43 @@ interface UserProfileProps {
 
 type TabType = 'general' | 'subscription' | 'settings';
 
+type Profile = {
+  full_name: string | null;
+  phone_number?: string | null;
+  timezone?: string | null;
+  locale?: string | null;
+  tz_follow_device?: boolean | null;
+};
+
+type ProfilePhoneUpdate = {
+  phone_number: string | null;
+  phone_verified_at: null;
+  whatsapp_opted_in: boolean;
+  whatsapp_bilan_opted_in: boolean;
+  whatsapp_last_inbound_at: null;
+  whatsapp_last_outbound_at: null;
+  whatsapp_state: null;
+  whatsapp_state_updated_at: string;
+  phone_invalid: boolean;
+  whatsapp_optin_sent_at: null;
+  whatsapp_opted_out_at: null;
+  whatsapp_optout_reason: null;
+  whatsapp_optout_confirmed_at: null;
+};
+
+function getErrorMessage(err: unknown, fallback: string) {
+  if (err instanceof Error && err.message) return err.message;
+  if (typeof err === "string" && err) return err;
+  return fallback;
+}
+
 const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initialTab }) => {
   const { user, signOut, subscription, trialEnd, accessTier } = useAuth();
   const navigate = useNavigate();
   const shouldRender = isOpen;
 
   const [activeTab, setActiveTab] = useState<TabType>(initialTab ?? 'general');
-  const [profile, setProfile] = useState<{
-    full_name: string | null;
-    phone_number?: string | null;
-    timezone?: string | null;
-    locale?: string | null;
-    tz_follow_device?: boolean | null;
-  } | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [billingLoading, setBillingLoading] = useState<boolean>(false);
   const [billingError, setBillingError] = useState<string | null>(null);
   const [saveLoading, setSaveLoading] = useState<boolean>(false);
@@ -87,18 +112,19 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
           .single();
         
         if (data) {
-          setProfile(data);
-          setFullNameDraft((data as any)?.full_name || user?.user_metadata?.full_name || "");
-          const p = ((data as any)?.phone_number ?? "") as string;
+          const loadedProfile = data as Profile;
+          setProfile(loadedProfile);
+          setFullNameDraft(loadedProfile.full_name || user?.user_metadata?.full_name || "");
+          const p = loadedProfile.phone_number ?? "";
           // IMPORTANT: Ne pas écraser phoneDraft si l'utilisateur est en train d'éditer ?
           // Pour faire simple et éviter les conflits, on update le draft seulement si on vient d'ouvrir ou charger.
           // Ici c'est le fetch initial.
           setPhoneDraft(p);
           setOriginalPhone(p);
 
-          const tz = (((data as any)?.timezone ?? "") as string).trim();
+          const tz = (loadedProfile.timezone ?? "").trim();
           setTimezoneDraft(tz || detectBrowserTimezone() || DEFAULT_TIMEZONE);
-          setTzFollowDeviceDraft(Boolean((data as any)?.tz_follow_device));
+          setTzFollowDeviceDraft(Boolean(loadedProfile.tz_follow_device));
         }
       };
       fetchProfile();
@@ -139,7 +165,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
   // Get display values
   const displayName = useMemo(() => {
     const n = (profile?.full_name || user?.user_metadata?.full_name || "").trim();
-    return n || "Utilisateur";
+    return n || "User";
   }, [profile?.full_name, user?.user_metadata?.full_name]);
   const initials = displayName
     .split(' ')
@@ -159,7 +185,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
     if (/^0[67]\d{8}$/.test(cleaned)) return `+33${cleaned.slice(1)}`;
     if (cleaned.startsWith("00") && /^\d+$/.test(cleaned.slice(2))) return `+${cleaned.slice(2)}`;
     if (cleaned.startsWith("+") && /^\+\d{8,15}$/.test(cleaned)) return cleaned;
-    throw new Error("Numéro invalide. Utilise le format international, ex: +33612345678.");
+    throw new Error("Invalid number. Use the international format, e.g. +33612345678.");
   }
 
   const handleUpdatePhone = async () => {
@@ -175,7 +201,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
       const phoneChanged = (prevPhone || "") !== (nextPhoneStr || "");
 
       if (!phoneChanged) {
-        setPhoneSuccess("Numéro inchangé.");
+        setPhoneSuccess("Number unchanged.");
         setPhoneEditOpen(false);
         return;
       }
@@ -188,7 +214,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
         });
         if (inUseErr) throw inUseErr;
         if (inUse) {
-          throw new Error("Ce numéro est déjà utilisé par un autre compte.");
+          throw new Error("This number is already used by another account.");
         }
       } catch (precheckErr) {
         // Best-effort: if the precheck fails due to permissions/network, we don't hard-block,
@@ -197,7 +223,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
       }
 
       const nowIso = new Date().toISOString();
-      const updatePayload: any = {
+      const updatePayload: ProfilePhoneUpdate = {
         phone_number: nextPhone,
         // Reset phone verification marker (new number must be re-validated)
         phone_verified_at: null,
@@ -225,7 +251,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
       if (error) throw error;
 
       if (data) {
-        setProfile((prev: any) => ({ ...prev, phone_number: data.phone_number }));
+        setProfile((prev) => ({ ...(prev ?? { full_name: null }), phone_number: data.phone_number }));
         setOriginalPhone(data.phone_number ?? "");
         setPhoneDraft(data.phone_number ?? "");
       }
@@ -242,24 +268,16 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
         console.warn('Phone change notify failed (non-blocking):', e);
       }
 
-      // Best-effort: (re)send WhatsApp opt-in template for the new number.
-      try {
-        const waReqId = newRequestId();
-        // Force send: changing phone number is an explicit user action; we want to resend even if an opt-in was sent before.
-        const { data: waData, error: waErr } = await supabase.functions.invoke('whatsapp-optin', { body: { force: true }, headers: requestHeaders(waReqId) });
-        if (waErr) {
-          console.warn("WhatsApp opt-in send failed (non-blocking):", waErr, waData);
-        }
-      } catch (e) {
-        console.warn("WhatsApp opt-in send failed (non-blocking):", e);
-      }
+      // DE-WHATSAPP: le renvoi d'opt-in Meta disparaît. Il n'y a plus de canal
+      // à autoriser — le numéro reste la clé d'identité, mais la conversation
+      // vit dans l'app et n'a rien à demander à Meta.
 
-      setPhoneSuccess("Numéro modifié avec succès.");
+      setPhoneSuccess("Number updated.");
       setPhoneEditOpen(false);
-    } catch (err: any) {
-      const msg = err?.message || "Impossible d’enregistrer le numéro.";
+    } catch (err: unknown) {
+      const msg = getErrorMessage(err, "Could not save the number.");
       if (typeof msg === "string" && (msg.toLowerCase().includes("duplicate") || msg.toLowerCase().includes("unique"))) {
-        setPhoneError("Ce numéro est déjà utilisé par un autre compte.");
+        setPhoneError("This number is already used by another account.");
       } else {
         setPhoneError(msg);
       }
@@ -290,13 +308,13 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
       if (error) throw error;
 
       if (data) {
-        setProfile((prev: any) => ({ ...prev, full_name: data.full_name }));
+        setProfile((prev) => ({ ...(prev ?? { full_name: null }), full_name: data.full_name }));
         setFullNameDraft(data.full_name ?? "");
       }
 
-      setSaveSuccess("Informations enregistrées.");
-    } catch (err: any) {
-      setSaveError(err?.message || "Impossible d’enregistrer.");
+      setSaveSuccess("Details saved.");
+    } catch (err: unknown) {
+      setSaveError(getErrorMessage(err, "Could not save."));
     } finally {
       setSaveLoading(false);
     }
@@ -309,9 +327,9 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
     setEmailSuccess(null);
     try {
       const nextEmail = (emailDraft ?? "").trim().toLowerCase();
-      if (!nextEmail) throw new Error("Email requis.");
+      if (!nextEmail) throw new Error("Email is required.");
       if (nextEmail === (displayEmail || "").toLowerCase()) {
-        setEmailSuccess("Email inchangé.");
+        setEmailSuccess("Email unchanged.");
         setEmailEditOpen(false);
         return;
       }
@@ -331,10 +349,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
       } catch (e) {
         console.warn('Email change notify failed (non-blocking):', e);
       }
-      setEmailSuccess("Demande envoyée. Vérifie tes emails pour confirmer le changement.");
+      setEmailSuccess("Request sent. Check your email to confirm the change.");
       setEmailEditOpen(false);
-    } catch (err: any) {
-      setEmailError(err?.message || "Impossible de modifier l’email.");
+    } catch (err: unknown) {
+      setEmailError(getErrorMessage(err, "Could not change the email."));
     } finally {
       setEmailLoading(false);
     }
@@ -346,7 +364,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
     setPrefsError(null);
     setPrefsSuccess(null);
     try {
-      const nextTimezone = (timezoneDraft ?? "").trim() || DEFAULT_TIMEZONE;
+      const detectedTimezone = detectBrowserTimezone();
+      const nextTimezone = tzFollowDeviceDraft
+        ? detectedTimezone || (timezoneDraft ?? "").trim() || DEFAULT_TIMEZONE
+        : (timezoneDraft ?? "").trim() || DEFAULT_TIMEZONE;
       const { data, error } = await supabase
         .from("profiles")
         .update({
@@ -361,30 +382,31 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
 
       if (error) throw error;
       if (data) {
-        setProfile((prev: any) => ({ ...prev, ...data }));
-        setTimezoneDraft(((data as any)?.timezone ?? "") || nextTimezone);
-        setTzFollowDeviceDraft(Boolean((data as any)?.tz_follow_device));
+        const prefsProfile = data as Pick<Profile, "timezone" | "locale" | "tz_follow_device">;
+        setProfile((prev) => ({ ...(prev ?? { full_name: null }), ...prefsProfile }));
+        setTimezoneDraft((prefsProfile.timezone ?? "") || nextTimezone);
+        setTzFollowDeviceDraft(Boolean(prefsProfile.tz_follow_device));
       }
-      setPrefsSuccess("Préférences enregistrées.");
-    } catch (err: any) {
-      setPrefsError(err?.message || "Impossible d’enregistrer les préférences.");
+      setPrefsSuccess("Preferences saved.");
+    } catch (err: unknown) {
+      setPrefsError(getErrorMessage(err, "Could not save preferences."));
     } finally {
       setPrefsLoading(false);
     }
   };
 
   const accessTierToPlanLabel = (t: string): string => {
-    if (t === "architecte") return "L’Architecte";
-    if (t === "alliance") return "L’Alliance";
-    if (t === "system") return "Le Système";
-    if (t === "trial") return "Essai";
-    return "Lecture seule";
+    if (t === "architecte") return "The Architect";
+    if (t === "alliance") return "The Alliance";
+    if (t === "system") return "The System";
+    if (t === "trial") return "Trial";
+    return "Read-only";
   };
 
   const intervalLabel = (i: unknown): string | null => {
     const v = String(i ?? "").trim().toLowerCase();
-    if (v === "monthly") return "Mensuel";
-    if (v === "yearly") return "Annuel";
+    if (v === "monthly") return "Monthly";
+    if (v === "yearly") return "Yearly";
     return null;
   };
 
@@ -393,10 +415,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
   const now = Date.now();
   const trialActive = accessTier === "trial";
   const subActive = accessTier === "system" || accessTier === "alliance" || accessTier === "architecte";
-  const softLocked = accessTier === "none";
-  const currentTier = getEffectiveTier(subscription);
   const isMaxTier = accessTier === 'architecte';
-  const subInterval = ((subscription as any)?.interval as ('monthly' | 'yearly' | null | undefined)) ?? null;
+  const subInterval = subscription?.interval ?? null;
   const canSwitchArchitecteInterval = isMaxTier && subInterval === "monthly";
 
   const trialDaysLeft = trialEnd
@@ -409,7 +429,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
     try {
       const { data: sessData } = await supabase.auth.getSession();
       if (!sessData?.session?.access_token) {
-        throw new Error("Session expirée. Recharge la page et reconnecte-toi.");
+        throw new Error("Session expired. Reload the page and sign in again.");
       }
       const reqId = newRequestId();
       const { data, error } = await supabase.functions.invoke('stripe-create-portal-session', {
@@ -417,11 +437,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
         headers: requestHeaders(reqId),
       });
       if (error) throw error;
-      const url = (data as any)?.url as string | undefined;
-      if (!url) throw new Error("Portal URL manquante");
+      const url = (data as { url?: string } | null)?.url;
+      if (!url) throw new Error("Missing portal URL");
       window.location.href = url;
-    } catch (err: any) {
-      setBillingError(err?.message ?? "Erreur portail");
+    } catch (err: unknown) {
+      setBillingError(getErrorMessage(err, "Billing portal error"));
     } finally {
       setBillingLoading(false);
     }
@@ -486,13 +506,22 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
           {/* NAVIGATION TABS (Horizontal pour mobile/desktop) */}
           <div className={`px-6 py-4 flex flex-col min-[350px]:flex-row gap-2 border-b overflow-x-auto ${isArchitect ? "border-emerald-900" : "border-slate-100"}`}>
             <button onClick={() => setActiveTab('general')} className={`${styles.sidebarItem(activeTab === 'general')} justify-center min-[350px]:justify-start`}>
-              <User className="w-4 h-4" /> Compte
+              <User className="w-4 h-4" /> Account
             </button>
             <button onClick={() => setActiveTab('subscription')} className={`${styles.sidebarItem(activeTab === 'subscription')} justify-center min-[350px]:justify-start`}>
               <CreditCard className="w-4 h-4" /> Plan
             </button>
             <button onClick={() => setActiveTab('settings')} className={`${styles.sidebarItem(activeTab === 'settings')} justify-center min-[350px]:justify-start`}>
               <Settings className="w-4 h-4" /> Options
+            </button>
+            <button
+              onClick={() => {
+                onClose();
+                navigate('/parrainage');
+              }}
+              className={`${styles.sidebarItem(false)} justify-center min-[350px]:justify-start`}
+            >
+              <Gift className="w-4 h-4" /> Referral
             </button>
           </div>
 
@@ -502,17 +531,17 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
             {/* --- TAB: GENERAL --- */}
             {activeTab === 'general' && (
               <div className="animate-fade-in">
-                <h3 className={styles.sectionTitle}>Informations Personnelles</h3>
+                <h3 className={styles.sectionTitle}>Personal details</h3>
                 
                 <div className="space-y-4">
                   <div>
-                    <label className={`block text-xs font-medium mb-1.5 ${isArchitect ? "text-emerald-400" : "text-slate-500"}`}>Nom complet</label>
+                    <label className={`block text-xs font-medium mb-1.5 ${isArchitect ? "text-emerald-400" : "text-slate-500"}`}>Full name</label>
                     <input
                       type="text"
                       value={fullNameDraft}
                       onChange={(e) => setFullNameDraft(e.target.value)}
                       className={styles.input}
-                      placeholder="Ton nom"
+                      placeholder="Your name"
                     />
                   </div>
                   <div>
@@ -536,7 +565,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                           isArchitect ? "text-emerald-400 hover:text-emerald-300" : "text-slate-600 hover:text-slate-900"
                         }`}
                       >
-                        Modifier mon email
+                        Change my email
                       </button>
                       {emailSuccess && <div className={`text-xs ${successColor}`}>{emailSuccess}</div>}
                       {emailError && <div className={`text-xs ${errorColor}`}>{emailError}</div>}
@@ -560,7 +589,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                               }`}
                               disabled={emailLoading}
                             >
-                              Annuler
+                              Cancel
                             </button>
                             <button
                               type="button"
@@ -570,24 +599,24 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                               }`}
                               disabled={emailLoading}
                             >
-                              {emailLoading ? "Envoi..." : "Valider"}
+                              {emailLoading ? "Sending…" : "Confirm"}
                             </button>
                           </div>
                           <p className={`text-[11px] leading-snug ${isArchitect ? "text-emerald-500/80" : "text-slate-500"}`}>
-                            Si la confirmation email est activée, Sophia te demandera de confirmer via un lien envoyé sur ta boîte.
+                            If email confirmation is enabled, Sophia will ask you to confirm through a link sent to your inbox.
                           </p>
                         </div>
                       </div>
                     )}
                   </div>
                   <div>
-                    <label className={`block text-xs font-medium mb-1.5 ${isArchitect ? "text-emerald-400" : "text-slate-500"}`}>Téléphone (WhatsApp)</label>
+                    <label className={`block text-xs font-medium mb-1.5 ${isArchitect ? "text-emerald-400" : "text-slate-500"}`}>Phone</label>
                     
                     {!phoneEditOpen ? (
                        <div className="relative">
                           <input 
                             type="text" 
-                            value={originalPhone || "Aucun numéro"} 
+                            value={originalPhone || "No number"} 
                             className={`${styles.input} opacity-70`} 
                             readOnly 
                           />
@@ -611,7 +640,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                             isArchitect ? "text-emerald-400 hover:text-emerald-300" : "text-slate-600 hover:text-slate-900"
                           }`}
                         >
-                          Modifier mon numéro
+                          Change my number
                         </button>
                       )}
                       
@@ -639,7 +668,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                               }`}
                               disabled={phoneLoading}
                             >
-                              Annuler
+                              Cancel
                             </button>
                             <button
                               type="button"
@@ -649,12 +678,12 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                               }`}
                               disabled={phoneLoading}
                             >
-                              {phoneLoading ? "Enregistrement..." : "Valider"}
+                              {phoneLoading ? "Saving…" : "Confirm"}
                             </button>
                           </div>
                           
                           <p className={`text-[11px] leading-snug ${isArchitect ? "text-emerald-500/80" : "text-slate-500"}`}>
-                            Format demandé: international (E.164), ex: +33612345678. Si tu changes de numéro, on te redemandera l’opt-in WhatsApp.
+                            Required format: international (E.164), e.g. +33612345678. Your number identifies your account; the conversation itself lives in the app.
                           </p>
                         </div>
                       </div>
@@ -683,7 +712,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                         : "bg-slate-900 hover:bg-slate-800 text-white disabled:opacity-60"
                     }`}
                   >
-                    {saveLoading ? "Enregistrement..." : "Enregistrer"}
+                    {saveLoading ? "Saving…" : "Save"}
                   </button>
                 </div>
 
@@ -700,18 +729,18 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                         const createdAt = user?.created_at ? new Date(user.created_at) : new Date();
                         const daysSinceCreation = Math.floor((Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
 
-                        let level = "Initié";
-                        if (daysSinceCreation >= 365) level = "Maître d'Œuvre";
-                        else if (daysSinceCreation >= 180) level = "Architecte";
-                        else if (daysSinceCreation >= 90) level = "Bâtisseur";
-                        else if (daysSinceCreation >= 30) level = "Compagnon";
-                        else if (daysSinceCreation >= 15) level = "Apprenti";
+                        let level = "Initiate";
+                        if (daysSinceCreation >= 365) level = "Master Builder";
+                        else if (daysSinceCreation >= 180) level = "Architect";
+                        else if (daysSinceCreation >= 90) level = "Builder";
+                        else if (daysSinceCreation >= 30) level = "Journeyman";
+                        else if (daysSinceCreation >= 15) level = "Apprentice";
 
                         return (
                             <>
-                                <h4 className={`font-bold text-sm ${isArchitect ? "text-amber-200" : "text-amber-900"}`}>Niveau : {level}</h4>
+                                <h4 className={`font-bold text-sm ${isArchitect ? "text-amber-200" : "text-amber-900"}`}>Level: {level}</h4>
                                 <p className={`text-xs ${isArchitect ? "text-amber-500/80" : "text-amber-700/70"}`}>
-                                    Membre depuis {daysSinceCreation} jour{daysSinceCreation > 1 ? 's' : ''}
+                                    Member for {daysSinceCreation} day{daysSinceCreation > 1 ? 's' : ''}
                                 </p>
                             </>
                         );
@@ -724,7 +753,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
             {/* --- TAB: SUBSCRIPTION --- */}
             {activeTab === 'subscription' && (
               <div className="animate-fade-in">
-                <h3 className={styles.sectionTitle}>Plan & Accès</h3>
+                <h3 className={styles.sectionTitle}>Plan &amp; access</h3>
                 
                 <div className={`relative overflow-hidden rounded-2xl p-6 border ${
                   isArchitect ? "bg-gradient-to-br from-emerald-900 to-emerald-950 border-emerald-700" : "bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 text-white"
@@ -733,7 +762,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                     <div className="flex justify-between items-start mb-4">
                       <div>
                         <span className="px-2 py-1 rounded text-[10px] font-bold uppercase bg-white/10 backdrop-blur-md border border-white/20 text-white">
-                          {subActive ? "Actif" : trialActive ? "Essai" : "Lecture seule"}
+                          {subActive ? "Active" : trialActive ? "Trial" : "Read-only"}
                         </span>
                         <h2 className="text-2xl font-serif font-bold mt-2 text-white">
                           {accessTierToPlanLabel(accessTier)}
@@ -744,30 +773,30 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                     {subActive && (
                       <div className="text-xs text-slate-300 mb-2">
                         {accessTierToPlanLabel(accessTier)}
-                        {intervalLabel((subscription as any)?.interval) ? (
-                          <span className="opacity-70"> · {intervalLabel((subscription as any)?.interval)}</span>
+                        {intervalLabel(subscription?.interval) ? (
+                          <span className="opacity-70"> · {intervalLabel(subscription?.interval)}</span>
                         ) : null}
                       </div>
                     )}
 
                     {subActive ? (
                       <p className="text-sm text-slate-300 mb-6">
-                        Ton abonnement est actif{subscription?.cancel_at_period_end ? " (résiliation en fin de période)." : "."}
+                        Your subscription is active{subscription?.cancel_at_period_end ? " (cancels at the end of the period)." : "."}
                       </p>
                     ) : trialActive ? (
                       <p className="text-sm text-slate-300 mb-6">
-                        Essai gratuit en cours{trialDaysLeft !== null ? ` · ${trialDaysLeft}j restants` : ""}.
+                        Free trial running{trialDaysLeft !== null ? ` · ${trialDaysLeft} days left` : ""}.
                       </p>
                     ) : (
                       <p className="text-sm text-slate-300 mb-6">
-                        Ton essai est terminé. L’app est en lecture seule tant que tu n’es pas abonné.
+                        Your trial has ended. The app is read-only until you subscribe.
                       </p>
                     )}
                     
                     {subscription?.current_period_end && (
                       <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
                         <CreditCard className="w-3 h-3" />
-                        Renouvelle jusqu’au {new Date(subscription.current_period_end).toLocaleDateString("fr-FR")}
+                        Renews until {new Date(subscription.current_period_end).toLocaleDateString("en-GB")}
                       </div>
                     )}
                   </div>
@@ -797,7 +826,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                              isArchitect ? "bg-emerald-600 hover:bg-emerald-500 text-white" : "bg-violet-600 hover:bg-violet-500 text-white shadow-lg shadow-violet-200"
                           }`}
                         >
-                          {canSwitchArchitecteInterval ? "Passer en annuel" : "Passer à la vitesse supérieure"}
+                          {canSwitchArchitecteInterval ? "Switch to annual" : "Move up a tier"}
                         </button>
                       )}
 
@@ -810,7 +839,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                             : "bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-60"
                         }`}
                       >
-                        {billingLoading ? "Ouverture..." : "Gérer la facturation"}
+                        {billingLoading ? "Opening…" : "Manage billing"}
                       </button>
                       
                       {/* BOUTON SE DESABONNER */}
@@ -819,7 +848,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                         disabled={billingLoading}
                         className="w-full text-xs text-slate-400 hover:text-red-500 underline decoration-slate-300 hover:decoration-red-500 transition-all text-center"
                       >
-                        Annuler mon abonnement
+                        Cancel my subscription
                       </button>
                     </div>
                   ) : (
@@ -827,12 +856,12 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                       <div className={`text-xs font-bold uppercase tracking-widest ${
                         isArchitect ? "text-emerald-600" : "text-slate-400"
                       }`}>
-                        Choisir un plan
+                        Choose a plan
                       </div>
 
                       <div className="text-center py-6">
                         <p className="text-sm text-slate-500 mb-4">
-                          Débloque tout le potentiel de Sophia.
+                          Unlock everything Sophia can do.
                         </p>
                         <button
                           onClick={() => {
@@ -843,13 +872,13 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                              isArchitect ? "bg-emerald-600 hover:bg-emerald-500 text-white" : "bg-violet-600 hover:bg-violet-500 text-white shadow-lg shadow-violet-200"
                           }`}
                         >
-                          Passer à la vitesse supérieure
+                          Move up a tier
                         </button>
                       </div>
 
                       {billingLoading && (
                         <div className={`${isArchitect ? "text-emerald-500" : "text-slate-500"} text-xs`}>
-                          Redirection...
+                          Redirecting…
                         </div>
                       )}
                     </div>
@@ -861,28 +890,28 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
             {/* --- TAB: SETTINGS --- */}
             {activeTab === 'settings' && (
               <div className="animate-fade-in">
-                <h3 className={styles.sectionTitle}>Préférences</h3>
+                <h3 className={styles.sectionTitle}>Preferences</h3>
 
                 <div className={styles.card}>
                   <div className="space-y-4">
                     <div>
                       <label className={`block text-xs font-medium mb-1.5 ${isArchitect ? "text-emerald-400" : "text-slate-500"}`}>
-                        Langue
+                        Language
                       </label>
                       <input
                         type="text"
-                        value="Français"
+                        value="English"
                         readOnly
                         className={`${styles.input} opacity-80`}
                       />
                       <p className={`mt-1 text-[11px] ${isArchitect ? "text-emerald-500/80" : "text-slate-500"}`}>
-                        Langue verrouillée pour le moment.
+                        Language is locked for now.
                       </p>
                     </div>
 
                     <div>
                       <label className={`block text-xs font-medium mb-1.5 ${isArchitect ? "text-emerald-400" : "text-slate-500"}`}>
-                        Fuseau horaire (IANA)
+                        Time zone (IANA)
                       </label>
                       <select
                         value={(timezoneDraft || "").trim()}
@@ -896,30 +925,38 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                         ))}
                       </select>
                       <div className={`mt-1 text-[11px] ${isArchitect ? "text-emerald-500/80" : "text-slate-500"}`}>
-                        Actuel:{" "}
+                        Current:{" "}
                         {tzFollowDeviceDraft
-                          ? (detectBrowserTimezone() || timezoneDraft || DEFAULT_TIMEZONE) + " (appareil)"
-                          : (timezoneDraft || DEFAULT_TIMEZONE) + " (profil)"}
+                          ? (detectBrowserTimezone() || timezoneDraft || DEFAULT_TIMEZONE) + " (device)"
+                          : (timezoneDraft || DEFAULT_TIMEZONE) + " (profile)"}
                       </div>
                     </div>
 
                     <div className={`flex items-center justify-between gap-3 p-3 rounded-xl border ${isArchitect ? "border-emerald-800" : "border-slate-200"}`}>
                       <div>
-                        <div className="text-sm font-medium">Itinérance</div>
+                        <div className="text-sm font-medium">Roaming</div>
                         <div className={`text-[11px] ${isArchitect ? "text-emerald-500/80" : "text-slate-500"}`}>
-                          Suivre automatiquement le fuseau horaire de l’appareil.
+                          Follow the device time zone automatically.
                         </div>
                       </div>
                       <button
                         type="button"
-                        onClick={() => setTzFollowDeviceDraft((v) => !v)}
+                        onClick={() =>
+                          setTzFollowDeviceDraft((value) => {
+                            const next = !value;
+                            if (next) {
+                              const detectedTimezone = detectBrowserTimezone();
+                              if (detectedTimezone) setTimezoneDraft(detectedTimezone);
+                            }
+                            return next;
+                          })}
                         className={`w-10 h-5 rounded-full p-1 cursor-pointer transition-colors ${
                           tzFollowDeviceDraft
                             ? (isArchitect ? "bg-emerald-600" : "bg-blue-600")
                             : (isArchitect ? "bg-emerald-900 border border-emerald-700" : "bg-slate-200")
                         }`}
                         aria-pressed={tzFollowDeviceDraft}
-                        aria-label="Activer l'itinérance"
+                        aria-label="Enable roaming"
                       >
                         <div className={`w-3 h-3 bg-white rounded-full shadow-sm transform transition-transform ${tzFollowDeviceDraft ? "translate-x-5" : ""}`} />
                       </button>
@@ -945,7 +982,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                           : "bg-slate-900 hover:bg-slate-800 text-white disabled:opacity-60"
                       }`}
                     >
-                      {prefsLoading ? "Enregistrement..." : "Enregistrer"}
+                      {prefsLoading ? "Saving…" : "Save"}
                     </button>
                   </div>
                 </div>
@@ -954,7 +991,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <Bell className={`w-4 h-4 ${isArchitect ? "text-emerald-400" : "text-slate-400"}`} />
-                      <span className="text-sm font-medium">Notifications Email</span>
+                      <span className="text-sm font-medium">Email notifications</span>
                     </div>
                     <div className={`w-10 h-5 rounded-full p-1 cursor-pointer transition-colors ${isArchitect ? "bg-emerald-600" : "bg-blue-600"}`}>
                       <div className="w-3 h-3 bg-white rounded-full shadow-sm transform translate-x-5" />
@@ -963,7 +1000,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <Mail className={`w-4 h-4 ${isArchitect ? "text-emerald-400" : "text-slate-400"}`} />
-                      <span className="text-sm font-medium">Newsletter Hebdo</span>
+                      <span className="text-sm font-medium">Weekly newsletter</span>
                     </div>
                     <div className={`w-10 h-5 rounded-full p-1 cursor-pointer transition-colors ${isArchitect ? "bg-emerald-900 border border-emerald-700" : "bg-slate-200"}`}>
                       <div className="w-3 h-3 bg-white rounded-full shadow-sm" />
@@ -971,18 +1008,20 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                   </div>
                 </div>
 
-                <button 
+                <button
                   onClick={handleSignOut}
                   className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all ${
-                  isArchitect 
-                    ? "border-red-900/50 text-red-400 hover:bg-red-950/30" 
+                  isArchitect
+                    ? "border-red-900/50 text-red-400 hover:bg-red-950/30"
                     : "border-red-100 text-red-600 hover:bg-red-50"
                 }`}>
                   <span className="font-bold text-sm flex items-center gap-2">
-                    <LogOut className="w-4 h-4" /> Déconnexion
+                    <LogOut className="w-4 h-4" /> Sign out
                   </span>
                   <ChevronRight className="w-4 h-4" />
                 </button>
+
+                <DataPrivacySection isArchitect={isArchitect} />
               </div>
             )}
 

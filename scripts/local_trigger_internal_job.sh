@@ -5,8 +5,6 @@ set -euo pipefail
 # Usage:
 #   ./scripts/local_trigger_internal_job.sh detect-future-events
 #   ./scripts/local_trigger_internal_job.sh process-checkins
-#   ./scripts/local_trigger_internal_job.sh trigger-memory-echo
-#   ./scripts/local_trigger_internal_job.sh trigger-memory-echo '{"email":"thomas@example.com","force":true}'
 
 FN="${1:-}"
 if [[ -z "${FN}" ]]; then
@@ -77,14 +75,22 @@ if [[ -z "${SECRET}" ]]; then
   exit 1
 fi
 
+ANON_KEY="$(supabase status --output json 2>/dev/null \
+  | node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{try{process.stdout.write(JSON.parse(s).ANON_KEY||"")}catch{}})' \
+  || true)"
+
+AUTH_ARGS=()
+if [[ -n "${ANON_KEY}" ]]; then
+  AUTH_ARGS=(-H "Authorization: Bearer ${ANON_KEY}")
+fi
+
 HTTP_CODE="$(curl -s -o /tmp/sophia_internal_job_out.json -w "%{http_code}" \
   -X POST "http://127.0.0.1:54321/functions/v1/${FN}" \
   -H "Content-Type: application/json" \
+  "${AUTH_ARGS[@]}" \
   -H "X-Internal-Secret: ${SECRET}" \
   -d "${PAYLOAD}")"
 
 echo "HTTP ${HTTP_CODE}"
 cat /tmp/sophia_internal_job_out.json || true
 echo
-
-

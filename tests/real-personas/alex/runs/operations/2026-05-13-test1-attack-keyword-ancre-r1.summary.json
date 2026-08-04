@@ -1,0 +1,36 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-keyword-ancre-r1-t01",
+    "status": 200,
+    "ok": true,
+    "user": "ANCRE",
+    "assistant": "Ok. Respire une fois, pose ta main sur le lieu le plus “stable” (poitrine ou ventre), et dis-toi intérieurement: “Je reviens au repérage.” Ensuite, repère juste un piège d’hypervigilance là, maintenant. 😮‍💨\n\nTu sens plutôt: contrôle excessif A, ou sur-interprétation B ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "conversation_handler",
+    "selected_handler": "execution_breakdown",
+    "route_reason_code": "skill_entry_signal",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  }
+]

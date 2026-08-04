@@ -136,23 +136,7 @@ Deno.test("buildMemoryTraceScorecard aggregates memorizer, retrieval, injection,
         event_name: "dispatcher.memory_plan_generated",
         payload: {
           memory_plan: {
-            memory_mode: "targeted",
-          },
-        },
-      },
-      {
-        id: 11,
-        created_at: "2026-03-19T10:00:00.300Z",
-        request_id: "req-1",
-        turn_id: "msg-user-1",
-        channel: "web",
-        scope: "web",
-        source_component: "router",
-        event_name: "dispatcher.surface_plan_generated",
-        payload: {
-          surface_plan: {
-            surface_mode: "guided",
-            candidates: [{ surface_id: "dashboard.north_star" }],
+            memory_mode: "light",
           },
         },
       },
@@ -207,16 +191,16 @@ Deno.test("buildMemoryTraceScorecard aggregates memorizer, retrieval, injection,
         payload: {
           before: {
             entries: {
-              "dashboard.north_star": { accepted_count: 0, ignored_count: 0 },
+              "dashboard.reminders": { accepted_count: 0, ignored_count: 0 },
             },
           },
           after: {
             entries: {
-              "dashboard.north_star": { accepted_count: 1, ignored_count: 0 },
+              "dashboard.reminders": { accepted_count: 1, ignored_count: 0 },
             },
           },
           addon: {
-            surface_id: "dashboard.north_star",
+            surface_id: "dashboard.reminders",
             level: 3,
           },
         },
@@ -326,11 +310,10 @@ Deno.test("buildMemoryTraceScorecard aggregates memorizer, retrieval, injection,
   assertEquals(scorecard.injection.average_estimated_tokens, 240);
   assertEquals(scorecard.injection.average_memory_chars, 340);
   assertEquals(scorecard.injection.block_usage.globals, 1);
-  assertEquals(scorecard.surface.turns_with_surface_plan, 1);
   assertEquals(scorecard.surface.turns_with_surface_addon, 1);
   assertEquals(scorecard.surface.average_level, 3);
   assertEquals(scorecard.surface.accepted_events, 1);
-  assertEquals(scorecard.surface.by_surface["dashboard.north_star"]?.shown, 1);
+  assertEquals(scorecard.surface.by_surface["dashboard.reminders"]?.shown, 1);
   assertEquals(scorecard.reuse.topics.count, 1);
   assertEquals(scorecard.reuse.events.count, 1);
   assertEquals(scorecard.reuse.globals.count, 1);

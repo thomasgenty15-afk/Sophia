@@ -1,0 +1,64 @@
+{
+  "id": "10_forget_sensitive_item",
+  "description": "Forgetting a sensitive item must delete it from normal payloads.",
+  "scenario_version": 1,
+  "initial_state": {
+    "memory_items": [
+      {
+        "id": "sensitive_seed",
+        "kind": "statement",
+        "content_text": "Le user dit avoir tres honte d'une rechute.",
+        "status": "active",
+        "topic_slug": "honte_rechute",
+      },
+    ],
+    "payload_state": { "memory_item_ids": ["sensitive_seed"] },
+  },
+  "turns": [
+    {
+      "user": "Efface ce que je t'ai dit sur ma honte apres la rechute.",
+      "expect": {
+        "retrieval_mode": "topic_continuation",
+        "retrieval_hints": ["correction"],
+        "topic_decision": "stay",
+        "applied_operations": [
+          { "operation_type": "delete", "target_kind": "memory_item" },
+        ],
+        "payload_does_not_contain": [
+          { "kind": "statement", "contains": "honte" },
+        ],
+      },
+      "mock_observed": {
+        "applied_operations": [
+          {
+            "operation_type": "delete",
+            "target_kind": "memory_item",
+            "target_id": "sensitive_seed",
+          },
+        ],
+        "payload_item_ids": [],
+      },
+    },
+    {
+      "user": "On peut parler d'autre chose maintenant.",
+      "expect": {
+        "retrieval_mode": "topic_continuation",
+        "topic_decision": "switch",
+        "payload_does_not_contain": [
+          { "kind": "statement", "contains": "rechute" },
+        ],
+        "no_extraction": true,
+      },
+    },
+  ],
+  "global_assertions": [
+    {
+      "no_invalid_injection": true,
+      "no_deleted_in_payload": true,
+      "no_statement_as_fact": true,
+      "no_cross_user_data": true,
+      "no_duplicate_extraction_on_retry": true,
+      "no_message_double_processing": true,
+    },
+  ],
+}

@@ -1,0 +1,22 @@
+{
+  "memory_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "scheduled_checkins": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_recurring_reminders": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "system_runtime_snapshots": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  }
+}

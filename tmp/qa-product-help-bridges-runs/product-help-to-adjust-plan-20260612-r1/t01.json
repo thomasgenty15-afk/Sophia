@@ -1,0 +1,882 @@
+{
+  "requestId": "product-help-to-adjust-plan-20260612-r1-t01",
+  "status": 200,
+  "user": "Je suis un peu perdue dans Sophia : si une action de mon Plan est trop vague, comment je la modifie sans casser tout le plan ? Explique-moi juste le principe, sans rien changer.",
+  "body": {
+    "ok": true,
+    "request_id": "product-help-to-adjust-plan-20260612-r1-t01",
+    "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+    "channel": "web",
+    "scope": "qa-product-help-to-adjust-plan-20260612-r1",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "logged_message_id": null,
+    "latest_message_id": null,
+    "response": {
+      "content": "C'est tout simple : pour ne rien casser, on ne modifie jamais le plan directement. Le principe, c'est que tu m'expliques ce qui est flou ou inadapté, et je te prépare une proposition d'ajustement. Rien n'est appliqué tant que tu n'as pas validé la nouvelle version. Est-ce que cette idée de « proposition avant validation » te rassure pour la suite ?",
+      "mode": "companion",
+      "tool_execution": "none",
+      "executed_tools": [],
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "product-help-to-adjust-plan-20260612-r1-t01",
+          "source_message_id": "014ccdef-80d5-4d60-90b8-1b19f6375f29",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "channel": "web",
+          "safety": {
+            "risk_band": "low",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "flow_opportunity": {
+            "opportunity_id": "adjust_plan_item.understand_modification_principle",
+            "target_kind": "tool_skill",
+            "target_flow": "adjust_plan_item",
+            "confidence": "medium",
+            "priority": 50,
+            "reason": "user_asks_how_to_modify_vague_action_without_committing",
+            "evidence": [
+              "si une action de mon Plan est trop vague, comment je la modifie sans casser tout le plan ?",
+              "Explique-moi juste le principe, sans rien changer"
+            ],
+            "seed_context": {
+              "target_hint": "action trop vague",
+              "surface": "plan_adjustment"
+            }
+          },
+          "note_information": {
+            "source_flow_id": "global_dispatcher",
+            "handoff_reason": "bridge",
+            "target_dispatcher": "product_help",
+            "handoff_context_for_next_dispatcher": "User is asking for the principle of modifying a plan item without breaking the whole plan. They explicitly requested 'just the principle, without changing anything'. Route to product_help to explain the 'adjust_plan_item' logic and safety. Do not trigger the tool skill execution.",
+            "user_words": [
+              "comment je la modifie sans casser tout le plan ?",
+              "Explique-moi juste le principe, sans rien changer",
+              "Je suis un peu perdue dans Sophia : si une action de mon Plan est trop vague, comment je la modifie sans casser tout le plan ? Explique-moi juste le principe, sans rien changer."
+            ],
+            "structured_context": {
+              "primary_signal_path": "skill_signals.entry.product_help",
+              "target_kind": "skill",
+              "target_flow": "product_help",
+              "confidence_band": "high",
+              "evidence": [
+                "Explique-moi juste le principe",
+                "sans rien changer"
+              ],
+              "recommended_next_focus": "Explain how Sophia handles plan adjustments (local vs global) and the confirmation flow."
+            },
+            "confidence": "high"
+          },
+          "skill_signals": {
+            "entry": {
+              "product_help": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "user_asks_for_explanation_of_product_principle_and_interface_behavior"
+              }
+            },
+            "lifecycle": {},
+            "exit": {}
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "active_handoff_action": null,
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "product_help",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "skill_entry_signal",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "none",
+            "active_owner": "none",
+            "selected_owner": "none",
+            "resume_policy": "none",
+            "reason_code": "no_active_flow"
+          },
+          "selected_handler": "product_help",
+          "active_flow_debug": {
+            "version": "active_flow_debug_v1",
+            "snapshots": [
+              {
+                "phase": "user_state_loaded",
+                "scope": "qa-product-help-to-adjust-plan-20260612-r1",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 0,
+                  "flow_keys": [],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": null
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "undefined"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_onboarding_and_reconcile",
+                "scope": "qa-product-help-to-adjust-plan-20260612-r1",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 1,
+                  "flow_keys": [],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": null
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "undefined"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "read_active_flow_state",
+                "scope": "qa-product-help-to-adjust-plan-20260612-r1",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 1,
+                  "flow_keys": [],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": null
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_pending_confirmation_reload",
+                "scope": "qa-product-help-to-adjust-plan-20260612-r1",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 1,
+                  "flow_keys": [],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": null
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "before_run_conversation_routers",
+                "scope": "qa-product-help-to-adjust-plan-20260612-r1",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 3,
+                  "flow_keys": [
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": null,
+                "route_active_flow_reason_code": null
+              },
+              {
+                "phase": "after_run_conversation_routers",
+                "scope": "qa-product-help-to-adjust-plan-20260612-r1",
+                "temp_memory": {
+                  "temp_memory_type": "object",
+                  "has_temp_memory": true,
+                  "temp_memory_key_count": 3,
+                  "flow_keys": [
+                    "__conversation_risk_history",
+                    "__conversation_risk_last"
+                  ],
+                  "raw_active_key": null,
+                  "raw_active_skill": {
+                    "present": false,
+                    "value_type": "null"
+                  },
+                  "conversation_risk_last": {
+                    "should_exit_flows": false,
+                    "score": 0,
+                    "reason_codes": []
+                  }
+                },
+                "active_skill_state": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "active_tool_skill_id": null,
+                "pending_confirmation_id": null,
+                "route_reason_code": "skill_entry_signal",
+                "route_active_flow_reason_code": "no_active_flow"
+              }
+            ]
+          }
+        },
+        "skill_run": {
+          "selected_skill_id": "product_help",
+          "reason_code": "skill_entry_signal",
+          "output": {
+            "skill_id": "product_help",
+            "status": "continue",
+            "response_intent": "how_to",
+            "memory_trace": {
+              "memory_used_for_response": false,
+              "memory_item_ids_used": [],
+              "correction_detected": false,
+              "correction_target_item_ids": []
+            },
+            "reply": "C'est tout simple : pour ne rien casser, on ne modifie jamais le plan directement. Le principe, c'est que tu m'expliques ce qui est flou ou inadapté, et je te prépare une proposition d'ajustement. Rien n'est appliqué tant que tu n'as pas validé la nouvelle version. Est-ce que cette idée de « proposition avant validation » te rassure pour la suite ?",
+            "diagnosis": {
+              "local_flow": true,
+              "flow_action": "clarify_product_question",
+              "mode": "standalone",
+              "target": {
+                "kind": "feature_catalog",
+                "feature_id": "plan.adjustment",
+                "object_type": "plan_item",
+                "object_ref": null,
+                "confidence": "high"
+              },
+              "grounding": {
+                "catalog_feature_ids": [
+                  "plan.adjustment",
+                  "dashboard.plan",
+                  "plan.missions",
+                  "plan.habits"
+                ],
+                "surface_ids": [
+                  "plan_item.clarify"
+                ],
+                "db_sources_required": false,
+                "db_sources_used": [],
+                "active_flow_used": false,
+                "missing_grounding_reason": null
+              },
+              "bridge": {
+                "needed": false,
+                "operation_type": null,
+                "kind": "explain_only",
+                "executable": false,
+                "why": "User explicitly requested explanation only without making changes."
+              },
+              "visible_task": "clarify_product_question",
+              "return_to_parent_flow": false,
+              "exit_to_global_dispatcher": false,
+              "note_information": null,
+              "reason_code": "product_help_local_clarify_product_question",
+              "evidence": [
+                "user asks for principle of modification",
+                "explicit 'sans rien changer'",
+                "plan.adjustment catalog limits"
+              ]
+            },
+            "recommendation_need": {
+              "needed": false,
+              "type": "none",
+              "urgency": "none",
+              "constraints": [
+                "product_help_does_not_execute_operations",
+                "operation_suggestions_always_empty",
+                "requested_allowed_committed_effects_empty"
+              ]
+            },
+            "operation_suggestions": [],
+            "memory_write_candidates": [],
+            "effects": {
+              "requested": [],
+              "allowed": [],
+              "blocked": [],
+              "committed": []
+            },
+            "state_patch": {
+              "product_help_local_state": {
+                "skill_id": "product_help",
+                "status": "answered",
+                "mode": "standalone",
+                "product_help_state": {
+                  "stage": "answering",
+                  "last_intent": "how_to",
+                  "last_target": {
+                    "kind": "feature_catalog",
+                    "feature_id": "plan.adjustment",
+                    "object_type": "plan_item",
+                    "object_ref": null,
+                    "confidence": "high"
+                  },
+                  "last_answer_summary": "User wants to understand the principle of modifying a vague plan item without breaking the plan structure.",
+                  "last_catalog_feature_ids": [
+                    "plan.adjustment",
+                    "dashboard.plan",
+                    "plan.missions",
+                    "plan.habits"
+                  ],
+                  "last_locations": [
+                    "Dashboard > Plan",
+                    "Dashboard > Plan",
+                    "Dashboard > Plan",
+                    "Dashboard > Plan",
+                    "Dashboard > Plan",
+                    "Dashboard > Ressources",
+                    "Dashboard > Plan",
+                    "Dashboard > Ressources"
+                  ],
+                  "parent_flow_context": null,
+                  "turn_count": 1,
+                  "max_turns": 3,
+                  "updated_at": "2026-06-12T17:36:57.547Z"
+                }
+              },
+              "product_help_note_information": null,
+              "product_help_exit_memo": null,
+              "product_help_subskill_trace": null,
+              "summary": "User wants to understand the principle of modifying a vague plan item without breaking the plan structure."
+            }
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "product-help-to-adjust-plan-20260612-r1-t01",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "product_help"
+      }
+    },
+    "conversation_turn_trace": {
+      "turn_frame": {
+        "turn_id": "product-help-to-adjust-plan-20260612-r1-t01",
+        "source_message_id": "014ccdef-80d5-4d60-90b8-1b19f6375f29",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "channel": "web",
+        "safety": {
+          "risk_band": "low",
+          "reason_codes": [],
+          "evidence": []
+        },
+        "conversation_risk": {
+          "score": 0,
+          "threshold": 8,
+          "should_exit_flows": false,
+          "reason_codes": [],
+          "previous_scores": [],
+          "matrix": [],
+          "context_summary": null,
+          "flow_exit_context": null
+        },
+        "direct_effects": [],
+        "tool_skill_intents": [],
+        "flow_opportunity": {
+          "opportunity_id": "adjust_plan_item.understand_modification_principle",
+          "target_kind": "tool_skill",
+          "target_flow": "adjust_plan_item",
+          "confidence": "medium",
+          "priority": 50,
+          "reason": "user_asks_how_to_modify_vague_action_without_committing",
+          "evidence": [
+            "si une action de mon Plan est trop vague, comment je la modifie sans casser tout le plan ?",
+            "Explique-moi juste le principe, sans rien changer"
+          ],
+          "seed_context": {
+            "target_hint": "action trop vague",
+            "surface": "plan_adjustment"
+          }
+        },
+        "note_information": {
+          "source_flow_id": "global_dispatcher",
+          "handoff_reason": "bridge",
+          "target_dispatcher": "product_help",
+          "handoff_context_for_next_dispatcher": "User is asking for the principle of modifying a plan item without breaking the whole plan. They explicitly requested 'just the principle, without changing anything'. Route to product_help to explain the 'adjust_plan_item' logic and safety. Do not trigger the tool skill execution.",
+          "user_words": [
+            "comment je la modifie sans casser tout le plan ?",
+            "Explique-moi juste le principe, sans rien changer",
+            "Je suis un peu perdue dans Sophia : si une action de mon Plan est trop vague, comment je la modifie sans casser tout le plan ? Explique-moi juste le principe, sans rien changer."
+          ],
+          "structured_context": {
+            "primary_signal_path": "skill_signals.entry.product_help",
+            "target_kind": "skill",
+            "target_flow": "product_help",
+            "confidence_band": "high",
+            "evidence": [
+              "Explique-moi juste le principe",
+              "sans rien changer"
+            ],
+            "recommended_next_focus": "Explain how Sophia handles plan adjustments (local vs global) and the confirmation flow."
+          },
+          "confidence": "high"
+        },
+        "skill_signals": {
+          "entry": {
+            "product_help": {
+              "detected": true,
+              "confidence_band": "high",
+              "reason": "user_asks_for_explanation_of_product_principle_and_interface_behavior"
+            }
+          },
+          "lifecycle": {},
+          "exit": {}
+        },
+        "needs_research": {
+          "detected": false,
+          "value": false,
+          "query": null,
+          "domain_hint": null,
+          "confidence": 0,
+          "reason": null
+        },
+        "action_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_inference_unavailable"
+        },
+        "level_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_inference_unavailable"
+        },
+        "memory_plan": {
+          "response_intent": "reflection",
+          "reasoning_complexity": "low",
+          "context_need": "minimal",
+          "memory_mode": "none",
+          "model_tier_hint": "lite",
+          "context_budget_tier": "tiny",
+          "targets": [],
+          "retrieval_policy": "semantic_first",
+          "plan_confidence": 0.7
+        },
+        "active_handoff_action": null,
+        "confirmation_response": null
+      },
+      "route_decision": {
+        "route_version": "v1",
+        "response_owner": "product_help",
+        "blocked_paths": [],
+        "direct_effects_to_run": [],
+        "reason_code": "skill_entry_signal",
+        "memory_used_for_route": false,
+        "memory_item_ids_used_for_route": [],
+        "memory_use_kind": "none",
+        "active_flow_arbitration": {
+          "decision": "none",
+          "active_owner": "none",
+          "selected_owner": "none",
+          "resume_policy": "none",
+          "reason_code": "no_active_flow"
+        },
+        "selected_handler": "product_help",
+        "active_flow_debug": {
+          "version": "active_flow_debug_v1",
+          "snapshots": [
+            {
+              "phase": "user_state_loaded",
+              "scope": "qa-product-help-to-adjust-plan-20260612-r1",
+              "temp_memory": {
+                "temp_memory_type": "object",
+                "has_temp_memory": true,
+                "temp_memory_key_count": 0,
+                "flow_keys": [],
+                "raw_active_key": null,
+                "raw_active_skill": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "conversation_risk_last": null
+              },
+              "active_skill_state": {
+                "present": false,
+                "value_type": "undefined"
+              },
+              "active_tool_skill_id": null,
+              "pending_confirmation_id": null,
+              "route_reason_code": null,
+              "route_active_flow_reason_code": null
+            },
+            {
+              "phase": "after_onboarding_and_reconcile",
+              "scope": "qa-product-help-to-adjust-plan-20260612-r1",
+              "temp_memory": {
+                "temp_memory_type": "object",
+                "has_temp_memory": true,
+                "temp_memory_key_count": 1,
+                "flow_keys": [],
+                "raw_active_key": null,
+                "raw_active_skill": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "conversation_risk_last": null
+              },
+              "active_skill_state": {
+                "present": false,
+                "value_type": "undefined"
+              },
+              "active_tool_skill_id": null,
+              "pending_confirmation_id": null,
+              "route_reason_code": null,
+              "route_active_flow_reason_code": null
+            },
+            {
+              "phase": "read_active_flow_state",
+              "scope": "qa-product-help-to-adjust-plan-20260612-r1",
+              "temp_memory": {
+                "temp_memory_type": "object",
+                "has_temp_memory": true,
+                "temp_memory_key_count": 1,
+                "flow_keys": [],
+                "raw_active_key": null,
+                "raw_active_skill": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "conversation_risk_last": null
+              },
+              "active_skill_state": {
+                "present": false,
+                "value_type": "null"
+              },
+              "active_tool_skill_id": null,
+              "pending_confirmation_id": null,
+              "route_reason_code": null,
+              "route_active_flow_reason_code": null
+            },
+            {
+              "phase": "after_pending_confirmation_reload",
+              "scope": "qa-product-help-to-adjust-plan-20260612-r1",
+              "temp_memory": {
+                "temp_memory_type": "object",
+                "has_temp_memory": true,
+                "temp_memory_key_count": 1,
+                "flow_keys": [],
+                "raw_active_key": null,
+                "raw_active_skill": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "conversation_risk_last": null
+              },
+              "active_skill_state": {
+                "present": false,
+                "value_type": "null"
+              },
+              "active_tool_skill_id": null,
+              "pending_confirmation_id": null,
+              "route_reason_code": null,
+              "route_active_flow_reason_code": null
+            },
+            {
+              "phase": "before_run_conversation_routers",
+              "scope": "qa-product-help-to-adjust-plan-20260612-r1",
+              "temp_memory": {
+                "temp_memory_type": "object",
+                "has_temp_memory": true,
+                "temp_memory_key_count": 3,
+                "flow_keys": [
+                  "__conversation_risk_history",
+                  "__conversation_risk_last"
+                ],
+                "raw_active_key": null,
+                "raw_active_skill": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "conversation_risk_last": {
+                  "should_exit_flows": false,
+                  "score": 0,
+                  "reason_codes": []
+                }
+              },
+              "active_skill_state": {
+                "present": false,
+                "value_type": "null"
+              },
+              "active_tool_skill_id": null,
+              "pending_confirmation_id": null,
+              "route_reason_code": null,
+              "route_active_flow_reason_code": null
+            },
+            {
+              "phase": "after_run_conversation_routers",
+              "scope": "qa-product-help-to-adjust-plan-20260612-r1",
+              "temp_memory": {
+                "temp_memory_type": "object",
+                "has_temp_memory": true,
+                "temp_memory_key_count": 3,
+                "flow_keys": [
+                  "__conversation_risk_history",
+                  "__conversation_risk_last"
+                ],
+                "raw_active_key": null,
+                "raw_active_skill": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "conversation_risk_last": {
+                  "should_exit_flows": false,
+                  "score": 0,
+                  "reason_codes": []
+                }
+              },
+              "active_skill_state": {
+                "present": false,
+                "value_type": "null"
+              },
+              "active_tool_skill_id": null,
+              "pending_confirmation_id": null,
+              "route_reason_code": "skill_entry_signal",
+              "route_active_flow_reason_code": "no_active_flow"
+            }
+          ]
+        }
+      },
+      "skill_run": {
+        "selected_skill_id": "product_help",
+        "reason_code": "skill_entry_signal",
+        "output": {
+          "skill_id": "product_help",
+          "status": "continue",
+          "response_intent": "how_to",
+          "memory_trace": {
+            "memory_used_for_response": false,
+            "memory_item_ids_used": [],
+            "correction_detected": false,
+            "correction_target_item_ids": []
+          },
+          "reply": "C'est tout simple : pour ne rien casser, on ne modifie jamais le plan directement. Le principe, c'est que tu m'expliques ce qui est flou ou inadapté, et je te prépare une proposition d'ajustement. Rien n'est appliqué tant que tu n'as pas validé la nouvelle version. Est-ce que cette idée de « proposition avant validation » te rassure pour la suite ?",
+          "diagnosis": {
+            "local_flow": true,
+            "flow_action": "clarify_product_question",
+            "mode": "standalone",
+            "target": {
+              "kind": "feature_catalog",
+              "feature_id": "plan.adjustment",
+              "object_type": "plan_item",
+              "object_ref": null,
+              "confidence": "high"
+            },
+            "grounding": {
+              "catalog_feature_ids": [
+                "plan.adjustment",
+                "dashboard.plan",
+                "plan.missions",
+                "plan.habits"
+              ],
+              "surface_ids": [
+                "plan_item.clarify"
+              ],
+              "db_sources_required": false,
+              "db_sources_used": [],
+              "active_flow_used": false,
+              "missing_grounding_reason": null
+            },
+            "bridge": {
+              "needed": false,
+              "operation_type": null,
+              "kind": "explain_only",
+              "executable": false,
+              "why": "User explicitly requested explanation only without making changes."
+            },
+            "visible_task": "clarify_product_question",
+            "return_to_parent_flow": false,
+            "exit_to_global_dispatcher": false,
+            "note_information": null,
+            "reason_code": "product_help_local_clarify_product_question",
+            "evidence": [
+              "user asks for principle of modification",
+              "explicit 'sans rien changer'",
+              "plan.adjustment catalog limits"
+            ]
+          },
+          "recommendation_need": {
+            "needed": false,
+            "type": "none",
+            "urgency": "none",
+            "constraints": [
+              "product_help_does_not_execute_operations",
+              "operation_suggestions_always_empty",
+              "requested_allowed_committed_effects_empty"
+            ]
+          },
+          "operation_suggestions": [],
+          "memory_write_candidates": [],
+          "effects": {
+            "requested": [],
+            "allowed": [],
+            "blocked": [],
+            "committed": []
+          },
+          "state_patch": {
+            "product_help_local_state": {
+              "skill_id": "product_help",
+              "status": "answered",
+              "mode": "standalone",
+              "product_help_state": {
+                "stage": "answering",
+                "last_intent": "how_to",
+                "last_target": {
+                  "kind": "feature_catalog",
+                  "feature_id": "plan.adjustment",
+                  "object_type": "plan_item",
+                  "object_ref": null,
+                  "confidence": "high"
+                },
+                "last_answer_summary": "User wants to understand the principle of modifying a vague plan item without breaking the plan structure.",
+                "last_catalog_feature_ids": [
+                  "plan.adjustment",
+                  "dashboard.plan",
+                  "plan.missions",
+                  "plan.habits"
+                ],
+                "last_locations": [
+                  "Dashboard > Plan",
+                  "Dashboard > Plan",
+                  "Dashboard > Plan",
+                  "Dashboard > Plan",
+                  "Dashboard > Plan",
+                  "Dashboard > Ressources",
+                  "Dashboard > Plan",
+                  "Dashboard > Ressources"
+                ],
+                "parent_flow_context": null,
+                "turn_count": 1,
+                "max_turns": 3,
+                "updated_at": "2026-06-12T17:36:57.547Z"
+              }
+            },
+            "product_help_note_information": null,
+            "product_help_exit_memo": null,
+            "product_help_subskill_trace": null,
+            "summary": "User wants to understand the principle of modifying a vague plan item without breaking the plan structure."
+          }
+        }
+      },
+      "effect_ledger": {
+        "turn_id": "product-help-to-adjust-plan-20260612-r1-t01",
+        "counts": {
+          "requested": 0,
+          "allowed": 0,
+          "blocked": 0,
+          "committed": 0,
+          "failed": 0,
+          "proposed": 0,
+          "delivered": 0,
+          "cancelled": 0,
+          "superseded": 0,
+          "asked": 0,
+          "resolved": 0,
+          "topic_change": 0
+        },
+        "entries": []
+      },
+      "response_owner": "product_help"
+    },
+    "trace_error": null
+  }
+}

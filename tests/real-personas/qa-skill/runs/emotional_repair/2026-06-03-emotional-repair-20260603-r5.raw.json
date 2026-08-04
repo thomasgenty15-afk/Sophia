@@ -1,0 +1,2063 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-emotional-repair-2026-06-03-emotional-repair-20260603-r5-t01",
+    "auth_method": "refresh_token",
+    "user": "J ai rate un message important au travail et la honte monte fort. Reste doux avec moi, sans plan, sans technique, sans question.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-emotional-repair-2026-06-03-emotional-repair-20260603-r5-t01",
+      "user_id": "b097c1c4-a9c7-4f5e-9e1a-a573e476888a",
+      "channel": "web",
+      "scope": "qa-emotional-repair-2026-06-03-emotional-repair-20260603-r5",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je reste avec toi sur ce qui est là, sans lancer d'outil ni conclure quoi que ce soit sur toi. 🙂",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-emotional-repair-2026-06-03-emotional-repair-20260603-r5-t01",
+            "source_message_id": "53f315ec-b3e1-45c4-b730-9f6ad4283845",
+            "user_id": "b097c1c4-a9c7-4f5e-9e1a-a573e476888a",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": [
+                "détresse émotionnelle exprimée (honte forte)",
+                "pas de risque de mise en danger immédiate détecté"
+              ]
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "detected": false,
+                  "weight": 3.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "detected": false,
+                  "weight": 2.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "detected": false,
+                  "weight": 2,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "detected": false,
+                  "weight": 1.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "detected": false,
+                  "weight": 0.7,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "detected": false,
+                  "weight": 1,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "previous_risk",
+                  "detected": false,
+                  "weight": 10,
+                  "contribution": 0,
+                  "evidence": null
+                }
+              ],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {
+              "entry": {
+                "emotional_repair": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "le user exprime une honte forte suite à une erreur au travail et demande explicitement un soutien doux sans outils ni questions"
+                }
+              },
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "domain_key",
+                  "key": "psychologie.emotions",
+                  "query_hint": "gestion de la honte et auto-attaque",
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "high",
+                  "entity_type": null
+                },
+                {
+                  "type": "domain_key",
+                  "key": "travail.performance",
+                  "query_hint": "erreur au travail et impact émotionnel",
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "medium",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "skill_entry_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            },
+            "selected_handler": "emotional_repair"
+          },
+          "turn_agenda_summary": {
+            "task_count": 1,
+            "owners": [
+              "emotional_repair"
+            ],
+            "operation_types": [],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "reply:fallback",
+                "kind": "reply",
+                "owner": "emotional_repair",
+                "operation_type": null,
+                "intent": "reply",
+                "source": "route_decision",
+                "status": "pending",
+                "reason_code": "skill_entry_signal"
+              }
+            ]
+          },
+          "skill_run": {
+            "selected_skill_id": "emotional_repair",
+            "reason_code": "skill_entry_signal",
+            "output": {
+              "skill_id": "emotional_repair",
+              "status": "continue",
+              "response_intent": "technical_intake_failure",
+              "memory_trace": {
+                "memory_used_for_response": false,
+                "memory_item_ids_used": [],
+                "correction_detected": false,
+                "correction_target_item_ids": []
+              },
+              "reply": "Je reste avec toi sur ce qui est là, sans lancer d'outil ni conclure quoi que ce soit sur toi.",
+              "diagnosis": {
+                "intent": "unclear",
+                "phase": "de_shame",
+                "emotional_dominance": "medium",
+                "context_domain": "unknown",
+                "constraints": [
+                  "no_tool",
+                  "no_plan",
+                  "no_questions"
+                ],
+                "response_contract": {
+                  "max_questions": 0,
+                  "allow_plan": false,
+                  "allow_tool_suggestion": false,
+                  "allow_potion_suggestion": false,
+                  "allow_concrete_action": true,
+                  "tone": "grounded"
+                },
+                "intake_status": "technical_fallback",
+                "intake_errors": [
+                  "invalid_response_contract",
+                  "invalid_max_questions",
+                  "invalid_intent",
+                  "invalid_phase",
+                  "invalid_emotional_dominance",
+                  "invalid_context_domain",
+                  "invalid_constraints",
+                  "invalid_allow_plan",
+                  "invalid_allow_tool_suggestion",
+                  "invalid_allow_potion_suggestion",
+                  "invalid_allow_concrete_action",
+                  "invalid_tone",
+                  "invalid_reply",
+                  "invalid_state_patch",
+                  "invalid_skill_id"
+                ],
+                "intake_trace": {
+                  "raw_type": "object",
+                  "top_level_keys": [
+                    "output_contract"
+                  ],
+                  "has_decision_wrapper": false,
+                  "selected_envelope": "root"
+                }
+              },
+              "recommendation_need": {
+                "needed": false,
+                "type": "none",
+                "urgency": "none",
+                "constraints": [
+                  "no_tool",
+                  "no_plan",
+                  "no_questions"
+                ]
+              },
+              "operation_suggestions": [],
+              "memory_write_candidates": [],
+              "effects": {
+                "requested": [],
+                "allowed": [],
+                "blocked": [
+                  {
+                    "type": "durable_effect",
+                    "reason_code": "structured_intake_failed"
+                  }
+                ],
+                "committed": []
+              },
+              "state_patch": {
+                "summary": "Emotional repair safe fallback rendered a non-mutating reply.",
+                "fallback_reason": "intake_failure",
+                "intake_status": "technical_fallback",
+                "intake_errors": [
+                  "invalid_response_contract",
+                  "invalid_max_questions",
+                  "invalid_intent",
+                  "invalid_phase",
+                  "invalid_emotional_dominance",
+                  "invalid_context_domain",
+                  "invalid_constraints",
+                  "invalid_allow_plan",
+                  "invalid_allow_tool_suggestion",
+                  "invalid_allow_potion_suggestion",
+                  "invalid_allow_concrete_action",
+                  "invalid_tone",
+                  "invalid_reply",
+                  "invalid_state_patch",
+                  "invalid_skill_id"
+                ],
+                "intake_trace": {
+                  "raw_type": "object",
+                  "top_level_keys": [
+                    "output_contract"
+                  ],
+                  "has_decision_wrapper": false,
+                  "selected_envelope": "root"
+                },
+                "emotional_repair_decision": {
+                  "skill_id": "emotional_repair",
+                  "intent": "unclear",
+                  "phase": "de_shame",
+                  "emotional_dominance": "medium",
+                  "context_domain": "unknown",
+                  "constraints": [
+                    "no_tool",
+                    "no_plan",
+                    "no_questions"
+                  ],
+                  "response_contract": {
+                    "max_questions": 0,
+                    "allow_plan": false,
+                    "allow_tool_suggestion": false,
+                    "allow_potion_suggestion": false,
+                    "allow_concrete_action": true,
+                    "tone": "grounded"
+                  },
+                  "handoff_request": null
+                }
+              }
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-emotional-repair-2026-06-03-emotional-repair-20260603-r5-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "conversation_handler"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-emotional-repair-2026-06-03-emotional-repair-20260603-r5-t01",
+          "source_message_id": "53f315ec-b3e1-45c4-b730-9f6ad4283845",
+          "user_id": "b097c1c4-a9c7-4f5e-9e1a-a573e476888a",
+          "channel": "web",
+          "safety": {
+            "risk_band": "low",
+            "reason_codes": [],
+            "evidence": [
+              "détresse émotionnelle exprimée (honte forte)",
+              "pas de risque de mise en danger immédiate détecté"
+            ]
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "detected": false,
+                "weight": 3.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "detected": false,
+                "weight": 2.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "anger_or_profanity",
+                "detected": false,
+                "weight": 2,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "repetition_or_correction",
+                "detected": false,
+                "weight": 1.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "typographic_intensity",
+                "detected": false,
+                "weight": 0.7,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "active_flow_pressure",
+                "detected": false,
+                "weight": 1,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "previous_risk",
+                "detected": false,
+                "weight": 10,
+                "contribution": 0,
+                "evidence": null
+              }
+            ],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "tool_skill_opportunity": {
+            "type": "none",
+            "operation_type": null,
+            "surface_id": null,
+            "confidence_band": "low",
+            "should_offer": false,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "target_status": "none",
+            "suggested_question_intent": null,
+            "offer_timing": "never",
+            "must_not_execute": true
+          },
+          "skill_signals": {
+            "entry": {
+              "emotional_repair": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "le user exprime une honte forte suite à une erreur au travail et demande explicitement un soutien doux sans outils ni questions"
+              }
+            },
+            "lifecycle": {},
+            "exit": {}
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "targeted",
+            "memory_mode": "light",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "small",
+            "targets": [
+              {
+                "type": "domain_key",
+                "key": "psychologie.emotions",
+                "query_hint": "gestion de la honte et auto-attaque",
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first",
+                "priority": "high",
+                "entity_type": null
+              },
+              {
+                "type": "domain_key",
+                "key": "travail.performance",
+                "query_hint": "erreur au travail et impact émotionnel",
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first",
+                "priority": "medium",
+                "entity_type": null
+              }
+            ],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "active_handoff_action": null,
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "skill_entry_signal",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "none",
+            "active_owner": "none",
+            "selected_owner": "none",
+            "resume_policy": "none",
+            "reason_code": "no_active_flow"
+          },
+          "selected_handler": "emotional_repair"
+        },
+        "turn_agenda_summary": {
+          "task_count": 1,
+          "owners": [
+            "emotional_repair"
+          ],
+          "operation_types": [],
+          "constraints": {},
+          "tasks": [
+            {
+              "task_id": "reply:fallback",
+              "kind": "reply",
+              "owner": "emotional_repair",
+              "operation_type": null,
+              "intent": "reply",
+              "source": "route_decision",
+              "status": "pending",
+              "reason_code": "skill_entry_signal"
+            }
+          ]
+        },
+        "skill_run": {
+          "selected_skill_id": "emotional_repair",
+          "reason_code": "skill_entry_signal",
+          "output": {
+            "skill_id": "emotional_repair",
+            "status": "continue",
+            "response_intent": "technical_intake_failure",
+            "memory_trace": {
+              "memory_used_for_response": false,
+              "memory_item_ids_used": [],
+              "correction_detected": false,
+              "correction_target_item_ids": []
+            },
+            "reply": "Je reste avec toi sur ce qui est là, sans lancer d'outil ni conclure quoi que ce soit sur toi.",
+            "diagnosis": {
+              "intent": "unclear",
+              "phase": "de_shame",
+              "emotional_dominance": "medium",
+              "context_domain": "unknown",
+              "constraints": [
+                "no_tool",
+                "no_plan",
+                "no_questions"
+              ],
+              "response_contract": {
+                "max_questions": 0,
+                "allow_plan": false,
+                "allow_tool_suggestion": false,
+                "allow_potion_suggestion": false,
+                "allow_concrete_action": true,
+                "tone": "grounded"
+              },
+              "intake_status": "technical_fallback",
+              "intake_errors": [
+                "invalid_response_contract",
+                "invalid_max_questions",
+                "invalid_intent",
+                "invalid_phase",
+                "invalid_emotional_dominance",
+                "invalid_context_domain",
+                "invalid_constraints",
+                "invalid_allow_plan",
+                "invalid_allow_tool_suggestion",
+                "invalid_allow_potion_suggestion",
+                "invalid_allow_concrete_action",
+                "invalid_tone",
+                "invalid_reply",
+                "invalid_state_patch",
+                "invalid_skill_id"
+              ],
+              "intake_trace": {
+                "raw_type": "object",
+                "top_level_keys": [
+                  "output_contract"
+                ],
+                "has_decision_wrapper": false,
+                "selected_envelope": "root"
+              }
+            },
+            "recommendation_need": {
+              "needed": false,
+              "type": "none",
+              "urgency": "none",
+              "constraints": [
+                "no_tool",
+                "no_plan",
+                "no_questions"
+              ]
+            },
+            "operation_suggestions": [],
+            "memory_write_candidates": [],
+            "effects": {
+              "requested": [],
+              "allowed": [],
+              "blocked": [
+                {
+                  "type": "durable_effect",
+                  "reason_code": "structured_intake_failed"
+                }
+              ],
+              "committed": []
+            },
+            "state_patch": {
+              "summary": "Emotional repair safe fallback rendered a non-mutating reply.",
+              "fallback_reason": "intake_failure",
+              "intake_status": "technical_fallback",
+              "intake_errors": [
+                "invalid_response_contract",
+                "invalid_max_questions",
+                "invalid_intent",
+                "invalid_phase",
+                "invalid_emotional_dominance",
+                "invalid_context_domain",
+                "invalid_constraints",
+                "invalid_allow_plan",
+                "invalid_allow_tool_suggestion",
+                "invalid_allow_potion_suggestion",
+                "invalid_allow_concrete_action",
+                "invalid_tone",
+                "invalid_reply",
+                "invalid_state_patch",
+                "invalid_skill_id"
+              ],
+              "intake_trace": {
+                "raw_type": "object",
+                "top_level_keys": [
+                  "output_contract"
+                ],
+                "has_decision_wrapper": false,
+                "selected_envelope": "root"
+              },
+              "emotional_repair_decision": {
+                "skill_id": "emotional_repair",
+                "intent": "unclear",
+                "phase": "de_shame",
+                "emotional_dominance": "medium",
+                "context_domain": "unknown",
+                "constraints": [
+                  "no_tool",
+                  "no_plan",
+                  "no_questions"
+                ],
+                "response_contract": {
+                  "max_questions": 0,
+                  "allow_plan": false,
+                  "allow_tool_suggestion": false,
+                  "allow_potion_suggestion": false,
+                  "allow_concrete_action": true,
+                  "tone": "grounded"
+                },
+                "handoff_request": null
+              }
+            }
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "qa-emotional-repair-2026-06-03-emotional-repair-20260603-r5-t01",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "conversation_handler"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-emotional-repair-2026-06-03-emotional-repair-20260603-r5-t02",
+    "auth_method": "refresh_token",
+    "user": "Ca redescend un peu. Donne-moi une seule micro-action pour rouvrir ce mail, sans outil.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-emotional-repair-2026-06-03-emotional-repair-20260603-r5-t02",
+      "user_id": "b097c1c4-a9c7-4f5e-9e1a-a573e476888a",
+      "channel": "web",
+      "scope": "qa-emotional-repair-2026-06-03-emotional-repair-20260603-r5",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Est-ce que tu veux rester sur l'apaisement ou est-ce qu'on prépare ton démarrage pour rouvrir ce mail ? 🙂",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-emotional-repair-2026-06-03-emotional-repair-20260603-r5-t02",
+            "source_message_id": "b4968db6-a81b-4a27-9d78-a422dec7d1a5",
+            "user_id": "b097c1c4-a9c7-4f5e-9e1a-a573e476888a",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 1,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [
+                "active_flow_pressure"
+              ],
+              "previous_scores": [
+                0
+              ],
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "detected": false,
+                  "weight": 3.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "detected": false,
+                  "weight": 2.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "detected": false,
+                  "weight": 2,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "detected": false,
+                  "weight": 1.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "detected": false,
+                  "weight": 0.7,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "detected": true,
+                  "weight": 1,
+                  "contribution": 1,
+                  "evidence": "active_skill_or_operation_state"
+                },
+                {
+                  "signal": "previous_risk",
+                  "detected": false,
+                  "weight": 10,
+                  "contribution": 0,
+                  "evidence": "0;decay=0.55;recovery=0"
+                }
+              ],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {
+              "entry": {},
+              "lifecycle": {
+                "emotional_repair": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "user_reports_emotion_going_down_but_still_in_repair_context"
+                }
+              },
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "topic",
+                  "key": "travail.mail_important",
+                  "query_hint": "honte mail travail",
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first",
+                  "priority": "high",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "orientation_clarification",
+            "selected_handler": "orientation_clarification",
+            "blocked_paths": [
+              {
+                "path": "tool_skill_router",
+                "reason_code": "clarification_required"
+              },
+              {
+                "path": "product_help",
+                "reason_code": "clarification_required"
+              },
+              {
+                "path": "operation_runtime_pipeline",
+                "reason_code": "clarification_required"
+              },
+              {
+                "path": "direct_effects",
+                "reason_code": "clarification_required"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "clarification_required",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none"
+          },
+          "turn_agenda_summary": {
+            "task_count": 1,
+            "owners": [
+              "emotional_repair"
+            ],
+            "operation_types": [],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "clarification:dispatcher",
+                "kind": "clarification",
+                "owner": "emotional_repair",
+                "operation_type": null,
+                "intent": "clarify",
+                "source": "dispatcher",
+                "status": "asked",
+                "reason_code": "clarification_required"
+              }
+            ]
+          },
+          "recommendation_tool_run": {
+            "recommendation": {
+              "recommendation_id": "rec_qa-emotional-repair-2026-06-03-emotional-repair-20260603-r5-t02_1780512265936",
+              "decision": "defer",
+              "confidence": 0.7,
+              "timing": "later",
+              "presentation_level": 0,
+              "cta_style": "none",
+              "requires_consent": false,
+              "reason": "cooldown_or_contraindications_exhausted_surfaces",
+              "alternatives": [],
+              "do_not_recommend": []
+            },
+            "stats": null
+          },
+          "effect_ledger": {
+            "turn_id": "qa-emotional-repair-2026-06-03-emotional-repair-20260603-r5-t02",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 1,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "qa-emotional-repair-2026-06-03-emotional-repair-20260603-r5-t02:agenda:asked:clarification:dispatcher",
+                "kind": "clarification",
+                "effect_type": "clarification.target",
+                "operation_type": null,
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "emotional_repair",
+                "status": "asked",
+                "reason_code": "clarification_required",
+                "source": "dispatcher",
+                "payload_summary": {
+                  "task_id": "clarification:dispatcher",
+                  "source": "dispatcher",
+                  "evidence": [
+                    "emotional_repair",
+                    "prepare_attack_card"
+                  ]
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": null,
+                "no_chat_mutation": true,
+                "committed": false,
+                "executed_tool": false,
+                "owner": "emotional_repair",
+                "ambiguity_kind": "target",
+                "candidate_ids": [
+                  "emotional_repair",
+                  "prepare_attack_card"
+                ],
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "orientation_clarification"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-emotional-repair-2026-06-03-emotional-repair-20260603-r5-t02",
+          "source_message_id": "b4968db6-a81b-4a27-9d78-a422dec7d1a5",
+          "user_id": "b097c1c4-a9c7-4f5e-9e1a-a573e476888a",
+          "channel": "web",
+          "safety": {
+            "risk_band": "low",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 1,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [
+              "active_flow_pressure"
+            ],
+            "previous_scores": [
+              0
+            ],
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "detected": false,
+                "weight": 3.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "detected": false,
+                "weight": 2.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "anger_or_profanity",
+                "detected": false,
+                "weight": 2,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "repetition_or_correction",
+                "detected": false,
+                "weight": 1.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "typographic_intensity",
+                "detected": false,
+                "weight": 0.7,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "active_flow_pressure",
+                "detected": true,
+                "weight": 1,
+                "contribution": 1,
+                "evidence": "active_skill_or_operation_state"
+              },
+              {
+                "signal": "previous_risk",
+                "detected": false,
+                "weight": 10,
+                "contribution": 0,
+                "evidence": "0;decay=0.55;recovery=0"
+              }
+            ],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "tool_skill_opportunity": {
+            "type": "none",
+            "operation_type": null,
+            "surface_id": null,
+            "confidence_band": "low",
+            "should_offer": false,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "target_status": "none",
+            "suggested_question_intent": null,
+            "offer_timing": "never",
+            "must_not_execute": true
+          },
+          "skill_signals": {
+            "entry": {},
+            "lifecycle": {
+              "emotional_repair": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "user_reports_emotion_going_down_but_still_in_repair_context"
+              }
+            },
+            "exit": {}
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "targeted",
+            "memory_mode": "light",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "small",
+            "targets": [
+              {
+                "type": "topic",
+                "key": "travail.mail_important",
+                "query_hint": "honte mail travail",
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first",
+                "priority": "high",
+                "entity_type": null
+              }
+            ],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "active_handoff_action": null,
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "orientation_clarification",
+          "selected_handler": "orientation_clarification",
+          "blocked_paths": [
+            {
+              "path": "tool_skill_router",
+              "reason_code": "clarification_required"
+            },
+            {
+              "path": "product_help",
+              "reason_code": "clarification_required"
+            },
+            {
+              "path": "operation_runtime_pipeline",
+              "reason_code": "clarification_required"
+            },
+            {
+              "path": "direct_effects",
+              "reason_code": "clarification_required"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "clarification_required",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none"
+        },
+        "turn_agenda_summary": {
+          "task_count": 1,
+          "owners": [
+            "emotional_repair"
+          ],
+          "operation_types": [],
+          "constraints": {},
+          "tasks": [
+            {
+              "task_id": "clarification:dispatcher",
+              "kind": "clarification",
+              "owner": "emotional_repair",
+              "operation_type": null,
+              "intent": "clarify",
+              "source": "dispatcher",
+              "status": "asked",
+              "reason_code": "clarification_required"
+            }
+          ]
+        },
+        "recommendation_tool_run": {
+          "recommendation": {
+            "recommendation_id": "rec_qa-emotional-repair-2026-06-03-emotional-repair-20260603-r5-t02_1780512265936",
+            "decision": "defer",
+            "confidence": 0.7,
+            "timing": "later",
+            "presentation_level": 0,
+            "cta_style": "none",
+            "requires_consent": false,
+            "reason": "cooldown_or_contraindications_exhausted_surfaces",
+            "alternatives": [],
+            "do_not_recommend": []
+          },
+          "stats": null
+        },
+        "effect_ledger": {
+          "turn_id": "qa-emotional-repair-2026-06-03-emotional-repair-20260603-r5-t02",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 1,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": [
+            {
+              "effect_id": "qa-emotional-repair-2026-06-03-emotional-repair-20260603-r5-t02:agenda:asked:clarification:dispatcher",
+              "kind": "clarification",
+              "effect_type": "clarification.target",
+              "operation_type": null,
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "emotional_repair",
+              "status": "asked",
+              "reason_code": "clarification_required",
+              "source": "dispatcher",
+              "payload_summary": {
+                "task_id": "clarification:dispatcher",
+                "source": "dispatcher",
+                "evidence": [
+                  "emotional_repair",
+                  "prepare_attack_card"
+                ]
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": null,
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": "emotional_repair",
+              "ambiguity_kind": "target",
+              "candidate_ids": [
+                "emotional_repair",
+                "prepare_attack_card"
+              ],
+              "selected_candidate_id": null
+            }
+          ]
+        },
+        "response_owner": "orientation_clarification"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-emotional-repair-2026-06-03-emotional-repair-20260603-r5-t03",
+    "auth_method": "refresh_token",
+    "user": "Le demarrage pour rouvrir le mail, une seule micro-action.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-emotional-repair-2026-06-03-emotional-repair-20260603-r5-t03",
+      "user_id": "b097c1c4-a9c7-4f5e-9e1a-a573e476888a",
+      "channel": "web",
+      "scope": "qa-emotional-repair-2026-06-03-emotional-repair-20260603-r5",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Quelles excuses ou pensées reviennent quand tu sens que tu glisses, et dans quel état tu veux te remettre en écrivant ce texte ? 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": [],
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-emotional-repair-2026-06-03-emotional-repair-20260603-r5-t03",
+            "source_message_id": "6abade74-aba4-4395-8ae0-0abe204839e2",
+            "user_id": "b097c1c4-a9c7-4f5e-9e1a-a573e476888a",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 1.6,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [
+                "active_flow_pressure",
+                "previous_risk"
+              ],
+              "previous_scores": [
+                0,
+                1
+              ],
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "detected": false,
+                  "weight": 3.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "detected": false,
+                  "weight": 2.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "detected": false,
+                  "weight": 2,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "detected": false,
+                  "weight": 1.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "detected": false,
+                  "weight": 0.7,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "detected": true,
+                  "weight": 1,
+                  "contribution": 1,
+                  "evidence": "active_skill_or_operation_state"
+                },
+                {
+                  "signal": "previous_risk",
+                  "detected": true,
+                  "weight": 10,
+                  "contribution": 0.6,
+                  "evidence": "0,1;decay=0.55;recovery=0"
+                }
+              ],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {
+              "entry": {},
+              "lifecycle": {
+                "emotional_repair": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "continuing_emotional_support_while_transitioning_to_action"
+                }
+              },
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "topic",
+                  "key": "travail.mail_important",
+                  "query_hint": "honte mail important travail",
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first",
+                  "priority": "high",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "blocked_paths": [
+              {
+                "path": "tool_skill_opportunity",
+                "reason_code": "active_flow_blocks_tool_opportunity"
+              },
+              {
+                "path": "direct_effects",
+                "reason_code": "orientation_clarification_resolved_tool_skill"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "reason_code": "orientation_clarification_resolved_tool_skill",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "defer_incoming",
+              "active_owner": "conversation_skill",
+              "selected_owner": "conversation_skill",
+              "resume_policy": "none",
+              "reason_code": "active_flow_defers_tool_skill_opportunity"
+            },
+            "selected_handler": "prepare_attack_card"
+          },
+          "turn_agenda_summary": {
+            "task_count": 1,
+            "owners": [
+              "prepare_attack_card"
+            ],
+            "operation_types": [],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "reply:fallback",
+                "kind": "reply",
+                "owner": "prepare_attack_card",
+                "operation_type": null,
+                "intent": "reply",
+                "source": "route_decision",
+                "status": "pending",
+                "reason_code": "orientation_clarification_resolved_tool_skill"
+              }
+            ]
+          },
+          "tool_skill_run": {
+            "selected_handler": "prepare_attack_card",
+            "reason_code": "orientation_clarification_resolved_tool_skill",
+            "status": "ask_question",
+            "missing_slots": [
+              "platform_field:recurring_excuse",
+              "platform_field:desired_reframe_state"
+            ],
+            "slot_state": {
+              "needed": true,
+              "slot": "platform_field",
+              "status": "missing",
+              "reason": "structured_ai_missing_platform_field:recurring_excuse",
+              "question": "Quelles excuses ou pensées reviennent quand tu sens que tu glisses, et dans quel état tu veux te remettre en écrivant ce texte ?",
+              "known_slots": {
+                "target": {
+                  "kind": "personal_action",
+                  "plan_item_id": null,
+                  "title": "rouvrir le mail"
+                },
+                "technique": "texte_recadrage",
+                "platform_fields": {
+                  "technique_key": "texte_recadrage",
+                  "fields": [
+                    {
+                      "field_id": "negotiated_action",
+                      "technique_key": "texte_recadrage",
+                      "question": "Quelle action tu sais que tu dois faire, mais que tu commences souvent a negocier ?",
+                      "required": true,
+                      "status": "locked",
+                      "proposed_value": null,
+                      "locked_value": "rouvrir le mail",
+                      "user_evidence": [
+                        "Le demarrage pour rouvrir le mail"
+                      ],
+                      "needs_user_confirmation": false,
+                      "evidence": []
+                    },
+                    {
+                      "field_id": "recurring_excuse",
+                      "technique_key": "texte_recadrage",
+                      "question": "Quelles excuses ou pensees reviennent quand tu sens que tu glisses ?",
+                      "required": true,
+                      "status": "missing",
+                      "proposed_value": null,
+                      "locked_value": null,
+                      "user_evidence": [],
+                      "needs_user_confirmation": false,
+                      "evidence": []
+                    },
+                    {
+                      "field_id": "desired_reframe_state",
+                      "technique_key": "texte_recadrage",
+                      "question": "Dans quel etat tu veux te remettre en ecrivant ce texte ?",
+                      "required": true,
+                      "status": "missing",
+                      "proposed_value": null,
+                      "locked_value": null,
+                      "user_evidence": [],
+                      "needs_user_confirmation": false,
+                      "evidence": []
+                    }
+                  ],
+                  "missing_field_ids": [
+                    "recurring_excuse",
+                    "desired_reframe_state"
+                  ],
+                  "status": "partial"
+                },
+                "intake_state": {
+                  "skill_id": "prepare_attack_card",
+                  "current_step": "platform_field_intake",
+                  "target": {
+                    "status": "identified",
+                    "kind": "personal_action",
+                    "plan_item_id": null,
+                    "title": "rouvrir le mail",
+                    "confidence": "high",
+                    "evidence": [
+                      "Le demarrage pour rouvrir le mail"
+                    ]
+                  },
+                  "technique": {
+                    "status": "identified",
+                    "value": "texte_recadrage",
+                    "explicitly_requested": false,
+                    "fit_warning": null,
+                    "options": [],
+                    "confidence": "medium",
+                    "evidence": [
+                      "recommended_by_attack_card_intake"
+                    ]
+                  },
+                  "activation_keyword": {
+                    "status": "not_applicable",
+                    "value": null,
+                    "options": [],
+                    "rejected_value": null,
+                    "confidence": "low",
+                    "evidence": []
+                  },
+                  "blocker": {
+                    "type": "mixed",
+                    "confidence": 0.5,
+                    "evidence": []
+                  },
+                  "constraints": [],
+                  "user_intent": "create",
+                  "missing_slots": [
+                    "platform_field:recurring_excuse",
+                    "platform_field:desired_reframe_state"
+                  ],
+                  "confidence": "high",
+                  "generated_user_message": "Quelles excuses ou pensées reviennent quand tu sens que tu glisses, et dans quel état tu veux te remettre en écrivant ce texte ?",
+                  "platform_fields": {
+                    "technique_key": "texte_recadrage",
+                    "fields": [
+                      {
+                        "field_id": "negotiated_action",
+                        "technique_key": "texte_recadrage",
+                        "question": "Quelle action tu sais que tu dois faire, mais que tu commences souvent a negocier ?",
+                        "required": true,
+                        "status": "locked",
+                        "proposed_value": null,
+                        "locked_value": "rouvrir le mail",
+                        "user_evidence": [
+                          "Le demarrage pour rouvrir le mail"
+                        ],
+                        "needs_user_confirmation": false,
+                        "evidence": []
+                      },
+                      {
+                        "field_id": "recurring_excuse",
+                        "technique_key": "texte_recadrage",
+                        "question": "Quelles excuses ou pensees reviennent quand tu sens que tu glisses ?",
+                        "required": true,
+                        "status": "missing",
+                        "proposed_value": null,
+                        "locked_value": null,
+                        "user_evidence": [],
+                        "needs_user_confirmation": false,
+                        "evidence": []
+                      },
+                      {
+                        "field_id": "desired_reframe_state",
+                        "technique_key": "texte_recadrage",
+                        "question": "Dans quel etat tu veux te remettre en ecrivant ce texte ?",
+                        "required": true,
+                        "status": "missing",
+                        "proposed_value": null,
+                        "locked_value": null,
+                        "user_evidence": [],
+                        "needs_user_confirmation": false,
+                        "evidence": []
+                      }
+                    ],
+                    "missing_field_ids": [
+                      "recurring_excuse",
+                      "desired_reframe_state"
+                    ],
+                    "status": "partial"
+                  }
+                }
+              }
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-emotional-repair-2026-06-03-emotional-repair-20260603-r5-t03",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "tool_skill"
+        }
+      },
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-emotional-repair-2026-06-03-emotional-repair-20260603-r5-t03",
+          "source_message_id": "6abade74-aba4-4395-8ae0-0abe204839e2",
+          "user_id": "b097c1c4-a9c7-4f5e-9e1a-a573e476888a",
+          "channel": "web",
+          "safety": {
+            "risk_band": "low",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 1.6,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [
+              "active_flow_pressure",
+              "previous_risk"
+            ],
+            "previous_scores": [
+              0,
+              1
+            ],
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "detected": false,
+                "weight": 3.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "detected": false,
+                "weight": 2.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "anger_or_profanity",
+                "detected": false,
+                "weight": 2,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "repetition_or_correction",
+                "detected": false,
+                "weight": 1.5,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "typographic_intensity",
+                "detected": false,
+                "weight": 0.7,
+                "contribution": 0,
+                "evidence": null
+              },
+              {
+                "signal": "active_flow_pressure",
+                "detected": true,
+                "weight": 1,
+                "contribution": 1,
+                "evidence": "active_skill_or_operation_state"
+              },
+              {
+                "signal": "previous_risk",
+                "detected": true,
+                "weight": 10,
+                "contribution": 0.6,
+                "evidence": "0,1;decay=0.55;recovery=0"
+              }
+            ],
+            "context_summary": null,
+            "flow_exit_context": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "tool_skill_opportunity": {
+            "type": "none",
+            "operation_type": null,
+            "surface_id": null,
+            "confidence_band": "low",
+            "should_offer": false,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "target_status": "none",
+            "suggested_question_intent": null,
+            "offer_timing": "never",
+            "must_not_execute": true
+          },
+          "skill_signals": {
+            "entry": {},
+            "lifecycle": {
+              "emotional_repair": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "continuing_emotional_support_while_transitioning_to_action"
+              }
+            },
+            "exit": {}
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_fallback_disabled"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "targeted",
+            "memory_mode": "light",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "small",
+            "targets": [
+              {
+                "type": "topic",
+                "key": "travail.mail_important",
+                "query_hint": "honte mail important travail",
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first",
+                "priority": "high",
+                "entity_type": null
+              }
+            ],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "active_handoff_action": null,
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "blocked_paths": [
+            {
+              "path": "tool_skill_opportunity",
+              "reason_code": "active_flow_blocks_tool_opportunity"
+            },
+            {
+              "path": "direct_effects",
+              "reason_code": "orientation_clarification_resolved_tool_skill"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "orientation_clarification_resolved_tool_skill",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "defer_incoming",
+            "active_owner": "conversation_skill",
+            "selected_owner": "conversation_skill",
+            "resume_policy": "none",
+            "reason_code": "active_flow_defers_tool_skill_opportunity"
+          },
+          "selected_handler": "prepare_attack_card"
+        },
+        "turn_agenda_summary": {
+          "task_count": 1,
+          "owners": [
+            "prepare_attack_card"
+          ],
+          "operation_types": [],
+          "constraints": {},
+          "tasks": [
+            {
+              "task_id": "reply:fallback",
+              "kind": "reply",
+              "owner": "prepare_attack_card",
+              "operation_type": null,
+              "intent": "reply",
+              "source": "route_decision",
+              "status": "pending",
+              "reason_code": "orientation_clarification_resolved_tool_skill"
+            }
+          ]
+        },
+        "tool_skill_run": {
+          "selected_handler": "prepare_attack_card",
+          "reason_code": "orientation_clarification_resolved_tool_skill",
+          "status": "ask_question",
+          "missing_slots": [
+            "platform_field:recurring_excuse",
+            "platform_field:desired_reframe_state"
+          ],
+          "slot_state": {
+            "needed": true,
+            "slot": "platform_field",
+            "status": "missing",
+            "reason": "structured_ai_missing_platform_field:recurring_excuse",
+            "question": "Quelles excuses ou pensées reviennent quand tu sens que tu glisses, et dans quel état tu veux te remettre en écrivant ce texte ?",
+            "known_slots": {
+              "target": {
+                "kind": "personal_action",
+                "plan_item_id": null,
+                "title": "rouvrir le mail"
+              },
+              "technique": "texte_recadrage",
+              "platform_fields": {
+                "technique_key": "texte_recadrage",
+                "fields": [
+                  {
+                    "field_id": "negotiated_action",
+                    "technique_key": "texte_recadrage",
+                    "question": "Quelle action tu sais que tu dois faire, mais que tu commences souvent a negocier ?",
+                    "required": true,
+                    "status": "locked",
+                    "proposed_value": null,
+                    "locked_value": "rouvrir le mail",
+                    "user_evidence": [
+                      "Le demarrage pour rouvrir le mail"
+                    ],
+                    "needs_user_confirmation": false,
+                    "evidence": []
+                  },
+                  {
+                    "field_id": "recurring_excuse",
+                    "technique_key": "texte_recadrage",
+                    "question": "Quelles excuses ou pensees reviennent quand tu sens que tu glisses ?",
+                    "required": true,
+                    "status": "missing",
+                    "proposed_value": null,
+                    "locked_value": null,
+                    "user_evidence": [],
+                    "needs_user_confirmation": false,
+                    "evidence": []
+                  },
+                  {
+                    "field_id": "desired_reframe_state",
+                    "technique_key": "texte_recadrage",
+                    "question": "Dans quel etat tu veux te remettre en ecrivant ce texte ?",
+                    "required": true,
+                    "status": "missing",
+                    "proposed_value": null,
+                    "locked_value": null,
+                    "user_evidence": [],
+                    "needs_user_confirmation": false,
+                    "evidence": []
+                  }
+                ],
+                "missing_field_ids": [
+                  "recurring_excuse",
+                  "desired_reframe_state"
+                ],
+                "status": "partial"
+              },
+              "intake_state": {
+                "skill_id": "prepare_attack_card",
+                "current_step": "platform_field_intake",
+                "target": {
+                  "status": "identified",
+                  "kind": "personal_action",
+                  "plan_item_id": null,
+                  "title": "rouvrir le mail",
+                  "confidence": "high",
+                  "evidence": [
+                    "Le demarrage pour rouvrir le mail"
+                  ]
+                },
+                "technique": {
+                  "status": "identified",
+                  "value": "texte_recadrage",
+                  "explicitly_requested": false,
+                  "fit_warning": null,
+                  "options": [],
+                  "confidence": "medium",
+                  "evidence": [
+                    "recommended_by_attack_card_intake"
+                  ]
+                },
+                "activation_keyword": {
+                  "status": "not_applicable",
+                  "value": null,
+                  "options": [],
+                  "rejected_value": null,
+                  "confidence": "low",
+                  "evidence": []
+                },
+                "blocker": {
+                  "type": "mixed",
+                  "confidence": 0.5,
+                  "evidence": []
+                },
+                "constraints": [],
+                "user_intent": "create",
+                "missing_slots": [
+                  "platform_field:recurring_excuse",
+                  "platform_field:desired_reframe_state"
+                ],
+                "confidence": "high",
+                "generated_user_message": "Quelles excuses ou pensées reviennent quand tu sens que tu glisses, et dans quel état tu veux te remettre en écrivant ce texte ?",
+                "platform_fields": {
+                  "technique_key": "texte_recadrage",
+                  "fields": [
+                    {
+                      "field_id": "negotiated_action",
+                      "technique_key": "texte_recadrage",
+                      "question": "Quelle action tu sais que tu dois faire, mais que tu commences souvent a negocier ?",
+                      "required": true,
+                      "status": "locked",
+                      "proposed_value": null,
+                      "locked_value": "rouvrir le mail",
+                      "user_evidence": [
+                        "Le demarrage pour rouvrir le mail"
+                      ],
+                      "needs_user_confirmation": false,
+                      "evidence": []
+                    },
+                    {
+                      "field_id": "recurring_excuse",
+                      "technique_key": "texte_recadrage",
+                      "question": "Quelles excuses ou pensees reviennent quand tu sens que tu glisses ?",
+                      "required": true,
+                      "status": "missing",
+                      "proposed_value": null,
+                      "locked_value": null,
+                      "user_evidence": [],
+                      "needs_user_confirmation": false,
+                      "evidence": []
+                    },
+                    {
+                      "field_id": "desired_reframe_state",
+                      "technique_key": "texte_recadrage",
+                      "question": "Dans quel etat tu veux te remettre en ecrivant ce texte ?",
+                      "required": true,
+                      "status": "missing",
+                      "proposed_value": null,
+                      "locked_value": null,
+                      "user_evidence": [],
+                      "needs_user_confirmation": false,
+                      "evidence": []
+                    }
+                  ],
+                  "missing_field_ids": [
+                    "recurring_excuse",
+                    "desired_reframe_state"
+                  ],
+                  "status": "partial"
+                }
+              }
+            }
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "qa-emotional-repair-2026-06-03-emotional-repair-20260603-r5-t03",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "tool_skill"
+      },
+      "trace_error": null
+    }
+  }
+]

@@ -1,4 +1,26 @@
-export type ActionType = 'habitude' | 'mission' | 'framework';
+import type {
+  PlanDimension,
+  PlanItemKind,
+  PlanItemStatus,
+  SupportFunction,
+  SupportMode,
+  TrackingType,
+} from "./v2";
+
+export type ActionType = "habitude" | "mission" | "framework";
+
+export interface ActionHistoryEntry {
+  id: string;
+  createdAt: string;
+  effectiveAt: string;
+  entryKind: string;
+  outcome: string;
+  valueNumeric?: number | null;
+  valueText?: string | null;
+  difficultyLevel?: string | null;
+  blockerHint?: string | null;
+  metadata?: Record<string, unknown>;
+}
 
 export interface Action {
   id: string;
@@ -6,22 +28,22 @@ export interface Action {
   title: string;
   description: string;
   isCompleted: boolean;
-  // Méta
+  status?: PlanItemStatus;
+  dimension?: PlanDimension;
+  kind?: PlanItemKind;
+  trackingType?: TrackingType;
+  currentReps?: number | null;
   mantra?: string;
-  // Pour les Hypnoses (archivées ici aussi)
   isHypnosis?: boolean;
   media_duration?: string;
-  
-  // Technical fields for reactivation
-  originalActionId?: string; // The 'a1', 'a2' id from the original plan JSON
-  frameworkType?: string; // For frameworks
-  targetReps?: number; // For habits/frameworks
-}
-
-export interface Strategy {
-  identity: string;
-  bigWhy: string;
-  goldenRules: string;
+  targetReps?: number | null;
+  cadenceLabel?: string | null;
+  scheduledDays?: string[] | null;
+  timeOfDay?: string | null;
+  supportMode?: SupportMode | null;
+  supportFunction?: SupportFunction | null;
+  payload?: Record<string, unknown>;
+  history: ActionHistoryEntry[];
 }
 
 export interface CompletedTransformation {
@@ -29,8 +51,12 @@ export interface CompletedTransformation {
   title: string;
   theme: string;
   completedDate: string;
-  strategy: Strategy;
-  contextProblem?: string; // Résumé du problème initial
+  strategy: {
+    identity: string;
+    bigWhy: string;
+    goldenRules: string;
+  };
+  contextProblem?: string;
   actions: Action[];
-  status: 'completed' | 'archived' | 'active';
+  status: string;
 }

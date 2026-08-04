@@ -1,0 +1,794 @@
+{
+  "run_id": "coachingrec-exit-note-20260619-r1",
+  "scope": "qa-normal-conversation-coachingrec-exit-note-20260619-r1",
+  "base_url": "http://127.0.0.1:54321",
+  "email": "qa-normal-coachingrec-exit-note-20260619-r1-1781869302476@example.com",
+  "user_id": "921c7e2d-5932-4b26-bf05-6e2e1fa50ea4",
+  "anon_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0",
+  "service_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU",
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjU0MzIxL2F1dGgvdjEiLCJzdWIiOiI5MjFjN2UyZC01OTMyLTRiMjYtYmYwNS02ZTJlMWZhNTBlYTQiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzgxODcyOTAyLCJpYXQiOjE3ODE4NjkzMDIsImVtYWlsIjoicWEtbm9ybWFsLWNvYWNoaW5ncmVjLWV4aXQtbm90ZS0yMDI2MDYxOS1yMS0xNzgxODY5MzAyNDc2QGV4YW1wbGUuY29tIiwicGhvbmUiOiIiLCJhcHBfbWV0YWRhdGEiOnsicHJvdmlkZXIiOiJlbWFpbCIsInByb3ZpZGVycyI6WyJlbWFpbCJdfSwidXNlcl9tZXRhZGF0YSI6eyJlbWFpbCI6InFhLW5vcm1hbC1jb2FjaGluZ3JlYy1leGl0LW5vdGUtMjAyNjA2MTktcjEtMTc4MTg2OTMwMjQ3NkBleGFtcGxlLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJpc190ZXN0X3BlcnNvbmEiOnRydWUsInBob25lX3ZlcmlmaWVkIjpmYWxzZSwicWFfcnVuX2lkIjoiY29hY2hpbmdyZWMtZXhpdC1ub3RlLTIwMjYwNjE5LXIxIiwic3ViIjoiOTIxYzdlMmQtNTkzMi00YjI2LWJmMDUtNmUyZTFmYTUwZWE0In0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3ODE4NjkzMDJ9XSwic2Vzc2lvbl9pZCI6IjE4YTI0YzMzLWRjYjMtNDg4Ni1iMTJmLWJmYTJkODEyYTIyNiIsImlzX2Fub255bW91cyI6ZmFsc2V9.qxgTwkA8zEAxBTWJyo4RXSKnOjSDdwq-r19tBDscXFw",
+  "auth_check": {
+    "status": 200,
+    "ok": true
+  },
+  "force_full_ai": true,
+  "created_at": "2026-06-19T11:41:42.812Z",
+  "turns": [
+    {
+      "turn": 1,
+      "sent_at": "2026-06-19T11:42:29.194Z",
+      "user": "Je bloque sur l'action Préparer le dossier mutuelle dans mon plan. Dès que j'ouvre les justificatifs je repousse, et je ne sais pas si je dois préparer une carte d'attaque ou modifier l'action.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Prends plutôt une carte d’attaque. Le blocage ressemble à une résistance au démarrage, pas à un problème de plan en soi.\n\nPour l’action mutuelle, je la verrais comme ça :\n- objectif trop large → la découper\n- justificatifs anxiogènes → enlever la friction\n- démarrage difficile → prévoir une entrée ultra simple, genre “ouvrir 1 seul justificatif”\n\nSi tu veux, je peux te proposer une version d’action plus petite et plus facile à lancer 🙂",
+      "trace_short": {
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "route_reason": "coaching_recommendation_exit_to_global",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "companion_question_rhythm": {
+                  "preference": "normal",
+                  "recent_turns": [
+                    0
+                  ],
+                  "last_updated_at": "2026-06-19T11:42:29.127Z",
+                  "last_turn_had_question": false,
+                  "turns_since_last_question": 1
+                }
+              },
+              "updated_at": "2026-06-19T11:42:29.148579+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-exit-note-20260619-r1-t01",
+        "user_id": "921c7e2d-5932-4b26-bf05-6e2e1fa50ea4",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-exit-note-20260619-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Prends plutôt une carte d’attaque. Le blocage ressemble à une résistance au démarrage, pas à un problème de plan en soi.\n\nPour l’action mutuelle, je la verrais comme ça :\n- objectif trop large → la découper\n- justificatifs anxiogènes → enlever la friction\n- démarrage difficile → prévoir une entrée ultra simple, genre “ouvrir 1 seul justificatif”\n\nSi tu veux, je peux te proposer une version d’action plus petite et plus facile à lancer 🙂",
+          "mode": "companion",
+          "delivery": {
+            "mode": "text_reply"
+          },
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-exit-note-20260619-r1-t01",
+              "source_message_id": "8e6ea539-0777-4561-a5d5-d086fbd7f168",
+              "user_id": "921c7e2d-5932-4b26-bf05-6e2e1fa50ea4",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {
+                "coaching_recommendation": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "stuck_action_feature_recommendation",
+                  "context": {
+                    "category": "plan_action_coaching",
+                    "failure_mode": "avoidance",
+                    "action_context": {
+                      "source": "plan",
+                      "plan_item_id": "f56a18e8-c0b3-43a9-8c80-136ddb076da3",
+                      "action_title": "Préparer le dossier mutuelle",
+                      "plan_id": null,
+                      "plan_title": null,
+                      "action_type": "mission"
+                    },
+                    "emotional_state_context": null,
+                    "priority_features": [
+                      "attack_card"
+                    ],
+                    "reason": "L’action est identifiée dans le plan et le blocage vient d’une résistance au démarrage face aux justificatifs; on recommande d’abord une carte d’attaque plutôt qu’un ajustement du plan."
+                  }
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "coaching_recommendation on plan action blockage",
+                "reasoning_complexity": "low",
+                "context_need": "targeted",
+                "memory_mode": "light",
+                "model_tier_hint": "standard",
+                "context_budget_tier": "small",
+                "targets": [],
+                "retrieval_policy": "taxonomy_first",
+                "plan_confidence": 0.92
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "normal_reply",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "coaching_recommendation_exit_to_global",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "minimal_global_dispatcher",
+                "active_owner": "none",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "none",
+                "reason_code": "coaching_recommendation_signal"
+              }
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-exit-note-20260619-r1-t01",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "normal_reply",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "coaching_recommendation_signal",
+              "status": "exit",
+              "latency_ms": 18313,
+              "exit_target": "global",
+              "exit_note_information": {
+                "source_flow_id": "coaching_recommendation",
+                "handoff_reason": "topic_change",
+                "target_dispatcher": "global",
+                "handoff_context_for_next_dispatcher": "{\"user_message_summary\":\"L'action du plan est identifiée, mais le blocage vient d'une évitement au démarrage face aux justificatifs.\",\"active_flow_summary\":\"coaching_recommendation helps choose a Sophia feature and never executes tools.\",\"collected_state\":{\"user_need_summary\":\"L’action est identifiée dans le plan et le blocage vient d’une résistance au démarrage face aux justificatifs; on recommande d’abord une carte d’attaque plutôt qu’un ajustement du plan.\",\"candidate_features\":[{\"feature\":\"adjust_plan\",\"fit\":\"high\",\"why\":\"Le probleme vient du cadrage ou de la taille de l'action du plan; il faut ajuster l'action avant de chercher a la pousser.\",\"destination_hint\":\"Plan\"}],\"current_recommendation\":\"adjust_plan\",\"parent_context\":null,\"dispatcher_signal_context\":{\"category\":\"plan_action_coaching\",\"failure_mode\":\"avoidance\",\"action_context\":{\"source\":\"plan\",\"plan_item_id\":\"f56a18e8-c0b3-43a9-8c80-136ddb076da3\",\"action_title\":\"Préparer le dossier mutuelle\",\"plan_id\":null,\"plan_title\":null,\"action_type\":\"mission\"},\"emotional_state_context\":null,\"priority_features\":[\"attack_card\"],\"reason\":\"L’action est identifiée dans le plan et le blocage vient d’une résistance au démarrage face aux justificatifs; on recommande d’abord une carte d’attaque plutôt qu’un ajustement du plan.\"}},\"unresolved_questions\":[],\"recommended_next_focus\":\"global\",\"constraints\":[\"coaching_recommendation_never_executes_tools\",\"recommendation_only\"],\"evidence\":[\"Action de plan identifiée: Préparer le dossier mutuelle.\",\"Failure mode signalé: avoidance.\",\"Le user hésite entre carte d'attaque et ajustement du plan.\"]}",
+                "user_words": [
+                  "Je bloque sur l'action Préparer le dossier mutuelle dans mon plan. Dès que j'ouvre les justificatifs je repousse, et je ne sais pas si je dois préparer une carte d'attaque ou modifier l'action.",
+                  "Action de plan identifiée: Préparer le dossier mutuelle.",
+                  "Failure mode signalé: avoidance."
+                ],
+                "structured_context": {
+                  "user_message_summary": "L'action du plan est identifiée, mais le blocage vient d'une évitement au démarrage face aux justificatifs.",
+                  "active_flow_summary": "coaching_recommendation helps choose a Sophia feature and never executes tools.",
+                  "collected_state": {
+                    "user_need_summary": "L’action est identifiée dans le plan et le blocage vient d’une résistance au démarrage face aux justificatifs; on recommande d’abord une carte d’attaque plutôt qu’un ajustement du plan.",
+                    "candidate_features": [
+                      {
+                        "feature": "adjust_plan",
+                        "fit": "high",
+                        "why": "Le probleme vient du cadrage ou de la taille de l'action du plan; il faut ajuster l'action avant de chercher a la pousser.",
+                        "destination_hint": "Plan"
+                      }
+                    ],
+                    "current_recommendation": "adjust_plan",
+                    "parent_context": null,
+                    "dispatcher_signal_context": {
+                      "category": "plan_action_coaching",
+                      "failure_mode": "avoidance",
+                      "action_context": {
+                        "source": "plan",
+                        "plan_item_id": "f56a18e8-c0b3-43a9-8c80-136ddb076da3",
+                        "action_title": "Préparer le dossier mutuelle",
+                        "plan_id": null,
+                        "plan_title": null,
+                        "action_type": "mission"
+                      },
+                      "emotional_state_context": null,
+                      "priority_features": [
+                        "attack_card"
+                      ],
+                      "reason": "L’action est identifiée dans le plan et le blocage vient d’une résistance au démarrage face aux justificatifs; on recommande d’abord une carte d’attaque plutôt qu’un ajustement du plan."
+                    }
+                  },
+                  "unresolved_questions": [],
+                  "recommended_next_focus": "global",
+                  "constraints": [
+                    "coaching_recommendation_never_executes_tools",
+                    "recommendation_only"
+                  ],
+                  "evidence": [
+                    "Action de plan identifiée: Préparer le dossier mutuelle.",
+                    "Failure mode signalé: avoidance.",
+                    "Le user hésite entre carte d'attaque et ajustement du plan."
+                  ]
+                },
+                "confidence": "high"
+              }
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-exit-note-20260619-r1-t01",
+            "source_message_id": "8e6ea539-0777-4561-a5d5-d086fbd7f168",
+            "user_id": "921c7e2d-5932-4b26-bf05-6e2e1fa50ea4",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "coaching_recommendation": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "stuck_action_feature_recommendation",
+                "context": {
+                  "category": "plan_action_coaching",
+                  "failure_mode": "avoidance",
+                  "action_context": {
+                    "source": "plan",
+                    "plan_item_id": "f56a18e8-c0b3-43a9-8c80-136ddb076da3",
+                    "action_title": "Préparer le dossier mutuelle",
+                    "plan_id": null,
+                    "plan_title": null,
+                    "action_type": "mission"
+                  },
+                  "emotional_state_context": null,
+                  "priority_features": [
+                    "attack_card"
+                  ],
+                  "reason": "L’action est identifiée dans le plan et le blocage vient d’une résistance au démarrage face aux justificatifs; on recommande d’abord une carte d’attaque plutôt qu’un ajustement du plan."
+                }
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "coaching_recommendation on plan action blockage",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "standard",
+              "context_budget_tier": "small",
+              "targets": [],
+              "retrieval_policy": "taxonomy_first",
+              "plan_confidence": 0.92
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "normal_reply",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "coaching_recommendation_exit_to_global",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "minimal_global_dispatcher",
+              "active_owner": "none",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "none",
+              "reason_code": "coaching_recommendation_signal"
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-exit-note-20260619-r1-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "normal_reply",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "coaching_recommendation_signal",
+            "status": "exit",
+            "latency_ms": 18313,
+            "exit_target": "global",
+            "exit_note_information": {
+              "source_flow_id": "coaching_recommendation",
+              "handoff_reason": "topic_change",
+              "target_dispatcher": "global",
+              "handoff_context_for_next_dispatcher": "{\"user_message_summary\":\"L'action du plan est identifiée, mais le blocage vient d'une évitement au démarrage face aux justificatifs.\",\"active_flow_summary\":\"coaching_recommendation helps choose a Sophia feature and never executes tools.\",\"collected_state\":{\"user_need_summary\":\"L’action est identifiée dans le plan et le blocage vient d’une résistance au démarrage face aux justificatifs; on recommande d’abord une carte d’attaque plutôt qu’un ajustement du plan.\",\"candidate_features\":[{\"feature\":\"adjust_plan\",\"fit\":\"high\",\"why\":\"Le probleme vient du cadrage ou de la taille de l'action du plan; il faut ajuster l'action avant de chercher a la pousser.\",\"destination_hint\":\"Plan\"}],\"current_recommendation\":\"adjust_plan\",\"parent_context\":null,\"dispatcher_signal_context\":{\"category\":\"plan_action_coaching\",\"failure_mode\":\"avoidance\",\"action_context\":{\"source\":\"plan\",\"plan_item_id\":\"f56a18e8-c0b3-43a9-8c80-136ddb076da3\",\"action_title\":\"Préparer le dossier mutuelle\",\"plan_id\":null,\"plan_title\":null,\"action_type\":\"mission\"},\"emotional_state_context\":null,\"priority_features\":[\"attack_card\"],\"reason\":\"L’action est identifiée dans le plan et le blocage vient d’une résistance au démarrage face aux justificatifs; on recommande d’abord une carte d’attaque plutôt qu’un ajustement du plan.\"}},\"unresolved_questions\":[],\"recommended_next_focus\":\"global\",\"constraints\":[\"coaching_recommendation_never_executes_tools\",\"recommendation_only\"],\"evidence\":[\"Action de plan identifiée: Préparer le dossier mutuelle.\",\"Failure mode signalé: avoidance.\",\"Le user hésite entre carte d'attaque et ajustement du plan.\"]}",
+              "user_words": [
+                "Je bloque sur l'action Préparer le dossier mutuelle dans mon plan. Dès que j'ouvre les justificatifs je repousse, et je ne sais pas si je dois préparer une carte d'attaque ou modifier l'action.",
+                "Action de plan identifiée: Préparer le dossier mutuelle.",
+                "Failure mode signalé: avoidance."
+              ],
+              "structured_context": {
+                "user_message_summary": "L'action du plan est identifiée, mais le blocage vient d'une évitement au démarrage face aux justificatifs.",
+                "active_flow_summary": "coaching_recommendation helps choose a Sophia feature and never executes tools.",
+                "collected_state": {
+                  "user_need_summary": "L’action est identifiée dans le plan et le blocage vient d’une résistance au démarrage face aux justificatifs; on recommande d’abord une carte d’attaque plutôt qu’un ajustement du plan.",
+                  "candidate_features": [
+                    {
+                      "feature": "adjust_plan",
+                      "fit": "high",
+                      "why": "Le probleme vient du cadrage ou de la taille de l'action du plan; il faut ajuster l'action avant de chercher a la pousser.",
+                      "destination_hint": "Plan"
+                    }
+                  ],
+                  "current_recommendation": "adjust_plan",
+                  "parent_context": null,
+                  "dispatcher_signal_context": {
+                    "category": "plan_action_coaching",
+                    "failure_mode": "avoidance",
+                    "action_context": {
+                      "source": "plan",
+                      "plan_item_id": "f56a18e8-c0b3-43a9-8c80-136ddb076da3",
+                      "action_title": "Préparer le dossier mutuelle",
+                      "plan_id": null,
+                      "plan_title": null,
+                      "action_type": "mission"
+                    },
+                    "emotional_state_context": null,
+                    "priority_features": [
+                      "attack_card"
+                    ],
+                    "reason": "L’action est identifiée dans le plan et le blocage vient d’une résistance au démarrage face aux justificatifs; on recommande d’abord une carte d’attaque plutôt qu’un ajustement du plan."
+                  }
+                },
+                "unresolved_questions": [],
+                "recommended_next_focus": "global",
+                "constraints": [
+                  "coaching_recommendation_never_executes_tools",
+                  "recommendation_only"
+                ],
+                "evidence": [
+                  "Action de plan identifiée: Préparer le dossier mutuelle.",
+                  "Failure mode signalé: avoidance.",
+                  "Le user hésite entre carte d'attaque et ajustement du plan."
+                ]
+              },
+              "confidence": "high"
+            }
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 2,
+      "sent_at": "2026-06-19T11:43:02.886Z",
+      "user": "Ok, si je veux préparer cette carte d'attaque moi-même dans Sophia, je vais où exactement ? Ne crée rien depuis le chat.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Va dans Dashboard > Plan, ouvre la mission ou l’habitude concernée, puis passe à Dashboard > Ressources si l’option est disponible. La carte d’attaque se retrouve ensuite là, rangée par niveau.",
+      "trace_short": {
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason": "product_help_signal",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "product_help",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "companion_question_rhythm": {
+                  "preference": "normal",
+                  "recent_turns": [
+                    0
+                  ],
+                  "last_updated_at": "2026-06-19T11:42:29.127Z",
+                  "last_turn_had_question": false,
+                  "turns_since_last_question": 1
+                }
+              },
+              "updated_at": "2026-06-19T11:43:02.853511+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-exit-note-20260619-r1-t02",
+        "user_id": "921c7e2d-5932-4b26-bf05-6e2e1fa50ea4",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-exit-note-20260619-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Va dans Dashboard > Plan, ouvre la mission ou l’habitude concernée, puis passe à Dashboard > Ressources si l’option est disponible. La carte d’attaque se retrouve ensuite là, rangée par niveau.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-exit-note-20260619-r1-t02",
+              "source_message_id": "8bb11124-0316-4ce2-9528-ed87c76ca8e7",
+              "user_id": "921c7e2d-5932-4b26-bf05-6e2e1fa50ea4",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {
+                "product_help": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "product_help_question"
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "explain_where_to_find_attack_card_in_sophia_without_creating_it",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "force_taxonomy",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "product_help",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "product_help_signal",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "minimal_global_dispatcher",
+                "active_owner": "none",
+                "selected_owner": "product_help",
+                "resume_policy": "none",
+                "reason_code": "product_help_signal"
+              },
+              "selected_handler": "product_help"
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-exit-note-20260619-r1-t02",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "product_help",
+            "skill_run": {
+              "selected_skill_id": "product_help",
+              "reason_code": "product_help_signal",
+              "status": "complete",
+              "latency_ms": 8663
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-exit-note-20260619-r1-t02",
+            "source_message_id": "8bb11124-0316-4ce2-9528-ed87c76ca8e7",
+            "user_id": "921c7e2d-5932-4b26-bf05-6e2e1fa50ea4",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "product_help": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "product_help_question"
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "explain_where_to_find_attack_card_in_sophia_without_creating_it",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "force_taxonomy",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "product_help",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "product_help_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "minimal_global_dispatcher",
+              "active_owner": "none",
+              "selected_owner": "product_help",
+              "resume_policy": "none",
+              "reason_code": "product_help_signal"
+            },
+            "selected_handler": "product_help"
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-exit-note-20260619-r1-t02",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "product_help",
+          "skill_run": {
+            "selected_skill_id": "product_help",
+            "reason_code": "product_help_signal",
+            "status": "complete",
+            "latency_ms": 8663
+          }
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "seeded_plan": {
+    "cycle_id": "4bca5fa1-729b-4c92-9f2f-c25081f95c65",
+    "transformation_id": "8b531b65-8d3c-4f6a-853f-d896025286fa",
+    "plan_id": "1682d880-6b17-4fba-98b0-0148e6a90668",
+    "item_id": "f56a18e8-c0b3-43a9-8c80-136ddb076da3"
+  },
+  "updated_at": "2026-06-19T11:43:02.892Z",
+  "seeded_plan_cleanup": "2026-06-19T11:43:13.304Z",
+  "cleanup": [
+    {
+      "table": "chat_messages",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "scheduled_checkins",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_chat_states",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_memories",
+      "status": 404,
+      "ok": false
+    },
+    {
+      "table": "user_topic_memories",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "memory_items",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "auth.users",
+      "status": 200,
+      "ok": true
+    }
+  ],
+  "cleaned_at": "2026-06-19T11:43:22.026Z"
+}

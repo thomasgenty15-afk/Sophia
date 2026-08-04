@@ -1,0 +1,56 @@
+{
+  "user_id": "cfe425f6-654a-45b8-85ea-be4bf863aaf0",
+  "email": "qa-qa-skill-feature-opportunity-feature-opportunity-20260624-r2@example.com",
+  "tables": {
+    "chat_messages": {
+      "http_status": 200,
+      "count": 8,
+      "error": null
+    },
+    "user_chat_states": {
+      "http_status": 200,
+      "count": 1,
+      "error": null
+    },
+    "scheduled_checkins": {
+      "http_status": 200,
+      "count": 0,
+      "error": null
+    },
+    "user_initiatives": {
+      "http_status": 404,
+      "count": null,
+      "error": {
+        "code": "PGRST205",
+        "details": null,
+        "hint": "Perhaps you meant the table 'public.user_entities'",
+        "message": "Could not find the table 'public.user_initiatives' in the schema cache"
+      }
+    },
+    "user_coach_preferences": {
+      "http_status": 404,
+      "count": null,
+      "error": {
+        "code": "PGRST205",
+        "details": null,
+        "hint": "Perhaps you meant the table 'public.user_relation_preferences'",
+        "message": "Could not find the table 'public.user_coach_preferences' in the schema cache"
+      }
+    },
+    "user_plan_item_entries": {
+      "http_status": 200,
+      "count": 0,
+      "error": null
+    },
+    "system_runtime_snapshots": {
+      "http_status": 200,
+      "count": 0,
+      "error": null
+    },
+    "memory_items": {
+      "http_status": 200,
+      "count": 0,
+      "error": null
+    }
+  }
+}

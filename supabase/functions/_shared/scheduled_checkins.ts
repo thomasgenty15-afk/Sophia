@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3";
 import { generateWithGemini } from "./gemini.ts";
+import { filterFreshMessages } from "./message_freshness.ts";
 import {
   buildWatcherScopePromptBlock,
   fetchCheckinExclusionSnapshot,
@@ -8,19 +9,18 @@ import {
   watcherGeneratedTextViolatesScope,
 } from "./checkin_scope.ts";
 import { buildUserTimeContextFromValues } from "./user_time_context.ts";
+import { DEFAULT_TIMEZONE } from "./v2-constants.ts";
 import {
-  formatEventMemoriesForPrompt,
-  retrieveEventMemories,
-} from "../sophia-brain/event_memory.ts";
-import {
-  formatGlobalMemoriesForPrompt,
-  retrieveGlobalMemories,
-} from "../sophia-brain/global_memory.ts";
-import {
-  formatTopicMemoriesForPrompt,
-  retrieveTopicMemories,
-} from "../sophia-brain/topic_memory.ts";
+  formatMemoryV2PayloadForPrompt,
+} from "./memory/runtime/active_loader.ts";
+import { loadMemoryV2Payload } from "./memory/runtime/loader.ts";
 const RDV_GENERATION_MODEL = "gpt-5.2";
+const WEEKLY_ADAPTIVE_REVIEW_OPENING_MODEL = "gemini-3-flash-preview";
+const ACTION_MORNING_EVENT_CONTEXT = "action_morning_encouragement_v2";
+const ACTION_EVENING_REVIEW_EVENT_CONTEXT = "action_evening_review_v2";
+const MORNING_LIGHT_GREETING_EVENT_CONTEXT = "morning_light_greeting_v2";
+const MORNING_ACTIVE_ACTIONS_EVENT_CONTEXT = "morning_active_actions_nudge";
+const MORNING_NUDGE_V2_EVENT_CONTEXT = "morning_nudge_v2";
 
 function safeTrim(s: unknown): string {
   return String(s ?? "").trim();
@@ -96,6 +96,141 @@ function parseTimestampMs(value: unknown): number | null {
 
 function buildWatcherScopedFallbackMessage(): string {
   return "Je pense a ce moment important qui approche. Tu te sens comment a l'idee de le vivre ?";
+}
+
+function normalizeOpeningWords(text: string): string[] {
+  return stripLeadingContinuationStarter(
+    stripLeadingAcknowledgementStarter(
+      stripLeadingCheckinAnnouncement(stripLeadingGreeting(text)),
+    ),
+  )
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+}
+
+function openingSnippet(text: unknown): string {
+  const cleaned = stripLeadingContinuationStarter(
+    stripLeadingAcknowledgementStarter(
+      stripLeadingCheckinAnnouncement(stripLeadingGreeting(String(text ?? ""))),
+    ),
+  );
+  const firstLine = cleaned.split(/\n+/)[0] ?? "";
+  const sentenceEnd = firstLine.search(/[.!?]/);
+  const firstSentence = sentenceEnd >= 0
+    ? firstLine.slice(0, sentenceEnd + 1)
+    : firstLine;
+  return clampText(firstSentence || cleaned, 140);
+}
+
+function recentAssistantOpenings(
+  messages: Array<Record<string, unknown>>,
+): string[] {
+  const openings: string[] = [];
+  for (const message of messages) {
+    if (safeTrim(message.role).toLowerCase() !== "assistant") continue;
+    const opening = openingSnippet(message.content);
+    if (!opening) continue;
+    const words = normalizeOpeningWords(opening);
+    if (words.length < 3) continue;
+    if (
+      !openings.some((existing) =>
+        normalizeOpeningWords(existing).slice(0, 6).join(" ") ===
+          words.slice(0, 6).join(" ")
+      )
+    ) {
+      openings.push(opening);
+    }
+    if (openings.length >= 6) break;
+  }
+  return openings;
+}
+
+function openingLooksTooSimilar(
+  candidate: string,
+  recentOpenings: string[],
+): boolean {
+  const candidateWords = normalizeOpeningWords(candidate);
+  if (candidateWords.length < 4) return false;
+  const candidateFour = candidateWords.slice(0, 4).join(" ");
+  const candidateFive = candidateWords.slice(0, 5).join(" ");
+  return recentOpenings.some((opening) => {
+    const words = normalizeOpeningWords(opening);
+    if (words.length < 4) return false;
+    return words.slice(0, 4).join(" ") === candidateFour ||
+      (candidateWords.length >= 5 && words.slice(0, 5).join(" ") ===
+          candidateFive);
+  });
+}
+
+function buildSurfaceVariationPromptBlock(params: {
+  eventContext: string;
+  source: string;
+  recentOpenings: string[];
+}): string {
+  const isDailyActionReview =
+    params.eventContext === ACTION_EVENING_REVIEW_EVENT_CONTEXT ||
+    params.source.startsWith("process-checkins:daily_action_review");
+  const isActionMorningEncouragement =
+    params.eventContext === ACTION_MORNING_EVENT_CONTEXT ||
+    params.source.includes("action_morning_encouragement");
+  const isMorningLightGreeting =
+    params.eventContext === MORNING_LIGHT_GREETING_EVENT_CONTEXT ||
+    params.source.includes("morning_light_greeting");
+  const isMomentumMorningNudge =
+    params.eventContext === MORNING_NUDGE_V2_EVENT_CONTEXT ||
+    params.eventContext === MORNING_ACTIVE_ACTIONS_EVENT_CONTEXT ||
+    params.source.includes("momentum_morning_nudge");
+  if (
+    !isDailyActionReview &&
+    !isActionMorningEncouragement &&
+    !isMorningLightGreeting &&
+    !isMomentumMorningNudge
+  ) return "";
+
+  const surfaceLines = isActionMorningEncouragement
+    ? [
+      "Surface specifique: encouragement du matin pour les actions prevues aujourd'hui.",
+      "Angle attendu: aider a demarrer la journee avec un cap concret, pas demander un bilan ni verifier hier.",
+      "Le message doit etre oriente lancement: intention, facilite, premier pas, ancrage du jour.",
+      "Interdit: demander 'comment ca s'est passe', relancer une action de la veille, ou ouvrir comme un bilan.",
+    ]
+    : isMorningLightGreeting
+    ? [
+      "Surface specifique: presence legere du matin sans action prevue aujourd'hui.",
+      "Angle attendu: souhaiter simplement une bonne journee, court et sobre, sans suivi ni accountability.",
+      "Registre: pas de tendresse ni de soutien emotionnel ('je pense a toi', 'prends soin de toi', 'je suis la si') sans signal recent explicite qui le justifie.",
+      "Tu peux assumer qu'il n'y a rien de prevu aujourd'hui et que c'est juste un message de bonne journee.",
+      "Le message ne doit pas relancer un sujet exact de l'historique ni demander un bilan.",
+      "Preference: une phrase suffit; pas de question si possible.",
+    ]
+    : isMomentumMorningNudge
+    ? [
+      "Surface specifique: morning nudge momentum.",
+      "Angle attendu: adapter le ton a la posture fournie (cap, simplification, soutien, porte ouverte), pas faire un bilan d'action.",
+      "Le message doit avoir une intention proactive distincte: soutien emotionnel, simplification, focus ou elan selon le payload.",
+      "Interdit: demander si l'action d'hier a ete faite, reprendre une formule de bilan, ou sonner comme une relance administrative.",
+    ]
+    : [
+      "Surface specifique: ouverture de bilan daily action review.",
+      "Angle attendu: verifier le jour cible au moment present, pas lancer la journee ni faire un nudge momentum.",
+      "Evite une attaque generique du type 'Je repense a ton action' si l'historique a deja une formule proche.",
+      "Varie le premier groupe de mots, le verbe d'accroche et l'angle concret de la phrase.",
+    ];
+
+  const recentBlock = params.recentOpenings.length > 0
+    ? [
+      "Ouvertures recentes a ne PAS recopier ni paraphraser de trop pres:",
+      ...params.recentOpenings.map((opening) => `- ${opening}`),
+      "Contrainte dure: le message final ne doit pas commencer par les 4 memes mots normalises qu'une ouverture ci-dessus.",
+    ]
+    : [];
+
+  return [...surfaceLines, ...recentBlock].join("\n");
 }
 
 export function allowRelaunchGreetingFromLastMessage(params: {
@@ -187,12 +322,43 @@ export async function generateDynamicWhatsAppCheckinMessage(params: {
   eventGrounding?: string;
   source?: string;
   requestId?: string;
+  fallbackMessage?: string | null;
+  includeConversationContext?: boolean;
 }): Promise<string> {
   const { admin, userId } = params;
   const source = safeTrim(params.source);
-  const isWatcherCheckin = source === "trigger-watcher-batch";
   const eventContext = clampText(params.eventContext, 180);
-  const instruction = clampText(params.instruction ?? "", 500);
+  const isWatcherCheckin = source === "trigger-watcher-batch";
+  const isDailyActionReview = source.startsWith(
+    "process-checkins:daily_action_review",
+  );
+  const isWeeklyAdaptiveReview = source.startsWith(
+    "process-checkins:weekly_adaptive_review",
+  );
+  const isActionMorningEncouragement =
+    eventContext === ACTION_MORNING_EVENT_CONTEXT ||
+    source.includes("action_morning_encouragement");
+  const isMorningLightGreeting =
+    eventContext === MORNING_LIGHT_GREETING_EVENT_CONTEXT ||
+    source.includes("morning_light_greeting");
+  const isMomentumMorningNudge =
+    eventContext === MORNING_NUDGE_V2_EVENT_CONTEXT ||
+    eventContext === MORNING_ACTIVE_ACTIONS_EVENT_CONTEXT ||
+    source.includes("momentum_morning_nudge");
+  const needsOpeningVariation = isDailyActionReview ||
+    isActionMorningEncouragement ||
+    isMorningLightGreeting ||
+    isMomentumMorningNudge;
+  const instruction = clampText(
+    params.instruction ?? "",
+    isWeeklyAdaptiveReview
+      ? 3_600
+      : isDailyActionReview
+      ? 1_800
+      : needsOpeningVariation
+      ? 1_800
+      : 500,
+  );
   const watcherScopeSnapshot = isWatcherCheckin
     ? await fetchCheckinExclusionSnapshot({ admin, userId })
     : null;
@@ -203,7 +369,13 @@ export async function generateDynamicWhatsAppCheckinMessage(params: {
         watcherScopeSnapshot,
       )
       : (params.eventGrounding ?? ""),
-    320,
+    isWeeklyAdaptiveReview
+      ? 3_000
+      : isDailyActionReview
+      ? 1_600
+      : needsOpeningVariation
+      ? 1_200
+      : 320,
   );
 
   const { data: prof } = await admin
@@ -215,20 +387,32 @@ export async function generateDynamicWhatsAppCheckinMessage(params: {
     timezone: (prof as any)?.timezone ?? null,
     locale: (prof as any)?.locale ?? null,
   });
-
-  // Pull a compact WhatsApp history for local continuity.
-  const { data: msgs, error } = await admin
-    .from("chat_messages")
-    .select("role,content,created_at")
-    .eq("user_id", userId)
-    .eq("scope", "whatsapp")
-    .order("created_at", { ascending: false })
-    .limit(12);
+  const includeConversationContext = params.includeConversationContext !==
+    false;
+  // Pull a compact WhatsApp history for local continuity only when the current
+  // surface should behave as a continuation of the recent conversation.
+  const { data: msgs, error } = includeConversationContext
+    ? await admin
+      .from("chat_messages")
+      .select("role,content,created_at")
+      .eq("user_id", userId)
+      .eq("scope", "whatsapp")
+      .order("created_at", { ascending: false })
+      .limit(12)
+    : { data: [], error: null };
   if (error) throw error;
+  const recentOpenings = recentAssistantOpenings(
+    (msgs ?? []) as Array<Record<string, unknown>>,
+  );
+  const surfaceVariationBlock = buildSurfaceVariationPromptBlock({
+    eventContext,
+    source,
+    recentOpenings,
+  });
 
-  const transcript = (msgs ?? [])
-    .slice()
-    .reverse()
+  // Fraîcheur: seul le contexte injecté dans le prompt est filtré;
+  // recentOpenings garde l'historique complet (anti-répétition multi-jours).
+  const transcript = filterFreshMessages((msgs ?? []).slice().reverse())
     .map((m: any) =>
       `${m.created_at} ${m.role.toUpperCase()}: ${String(m.content ?? "")}`
     )
@@ -243,46 +427,78 @@ export async function generateDynamicWhatsAppCheckinMessage(params: {
         eventContext,
         eventGrounding,
         instruction,
-        transcript
-          .split("\n")
-          .slice(-4)
-          .join("\n"),
+        includeConversationContext
+          ? transcript
+            .split("\n")
+            .slice(-4)
+            .join("\n")
+          : "",
       ]
   ).filter(Boolean).join("\n");
   let memoryContextBlock = "";
   try {
-    const [events, topics, globals] = await Promise.all([
-      retrieveEventMemories({
-        supabase: admin as any,
-        userId,
-        message: retrievalQuery || eventContext,
-        maxResults: 2,
-        requestId: params.requestId,
-      }),
-      retrieveTopicMemories({
-        supabase: admin as any,
-        userId,
-        message: retrievalQuery || eventContext,
-        maxResults: 2,
-        meta: params.requestId ? { requestId: params.requestId } : undefined,
-      }),
-      retrieveGlobalMemories({
-        supabase: admin as any,
-        userId,
-        message: retrievalQuery || eventContext,
-        maxResults: 2,
-      }),
-    ]);
-    memoryContextBlock = [
-      formatEventMemoriesForPrompt(events),
-      formatTopicMemoriesForPrompt(topics),
-      formatGlobalMemoriesForPrompt(globals),
-    ].filter(Boolean).join("\n");
+    if (!includeConversationContext) {
+      throw new Error("conversation_context_disabled");
+    }
+    const payload = await loadMemoryV2Payload({
+      supabase: admin as any,
+      user_id: userId,
+      retrieval_mode: "cross_topic_lookup",
+      hints: ["dated_reference"],
+      message: retrievalQuery || eventContext,
+      limit: 6,
+      loader_plan: {
+        enabled: true,
+        reason: "scheduled_checkin_v2",
+        retrieval_mode: "cross_topic_lookup",
+        budget: {
+          max_items: 6,
+          max_entities: 0,
+          topic_items: 0,
+          event_items: isDailyActionReview || isWeeklyAdaptiveReview ? 0 : 2,
+          global_items: isDailyActionReview
+            ? 0
+            : isWeeklyAdaptiveReview
+            ? 2
+            : 4,
+          action_items: isDailyActionReview || isWeeklyAdaptiveReview ? 4 : 0,
+          level_items: isWeeklyAdaptiveReview ? 1 : 0,
+        },
+        requested_scopes: isDailyActionReview
+          ? ["action"]
+          : isWeeklyAdaptiveReview
+          ? ["action", "level", "global"]
+          : ["global", "event"],
+        topic_targets: [],
+        event_queries: [],
+        action_targets: isDailyActionReview || isWeeklyAdaptiveReview
+          ? retrievalQuery.split(/\s+/).slice(0, 80)
+          : [],
+        domain_keys: [],
+        domain_prefixes: [],
+        retrieval_policy: "semantic_first",
+        requires_topic_router: false,
+        dispatcher_memory_plan_applied: true,
+        dispatcher_memory_mode: isDailyActionReview || isWeeklyAdaptiveReview
+          ? "targeted"
+          : "broad",
+        dispatcher_context_need: isDailyActionReview
+          ? "daily_action_review"
+          : isWeeklyAdaptiveReview
+          ? "weekly_adaptive_review"
+          : "scheduled_checkin",
+      },
+    });
+    memoryContextBlock = formatMemoryV2PayloadForPrompt(payload);
   } catch (e) {
-    console.warn(
-      "[scheduled_checkins] semantic retrieval failed (non-blocking):",
-      e,
-    );
+    if (
+      !(e instanceof Error && e.message === "conversation_context_disabled")
+    ) {
+      console.warn(
+        "[scheduled_checkins] semantic retrieval failed (non-blocking):",
+        e,
+      );
+    }
   }
 
   const systemPrompt = [
@@ -292,15 +508,22 @@ export async function generateDynamicWhatsAppCheckinMessage(params: {
     "- 1 message court (2–6 lignes), texte brut, pas de markdown.",
     "- 1 question MAX.",
     "- Naturel, chaleureux, tutoiement.",
+    '- Tu tutoies toujours l\'utilisateur. N\'utilise "vous", "votre" ou "vos" que si tu parles explicitement du couple ou de plusieurs personnes, jamais pour t\'adresser directement à l\'utilisateur.',
+    '- Quand tu parles de toi-même, utilise la première personne du singulier ("je", "me", "moi"), jamais "Sophia".',
+    '- Sophia est féminine: quand tu parles de toi-même, accorde les adjectifs et participes au féminin ("contente", "prête", "désolée", "ravie", etc.).',
     "- N'annonce jamais que c'est un 'check-in' et ne commence jamais par 'Petit check-in', 'Mini check-in' ou équivalent.",
     "- Le corps du message doit rester naturel MEME si une courte salutation type 'Hello !' est ajoutée juste avant au moment de l'envoi.",
     "- Donc le message doit fonctionner aussi SANS salutation: commence par une phrase autonome, jamais par 'Toi,', 'Et', 'D'ailleurs', 'Du coup', ou un simple connecteur.",
     "- La première vraie lettre du message doit être en majuscule.",
     "- Ne promets pas d'autres relances automatiques.",
-    "- N'invente pas de contexte non présent dans le transcript.",
+    includeConversationContext
+      ? "- N'invente pas de contexte non présent dans le transcript."
+      : "- Aucun contexte conversationnel récent n'est fourni: n'infère rien depuis des échanges passés.",
     "- Si un vieux contexte contient une durée relative ('dans deux semaines', 'demain', etc.), ne la répète pas mécaniquement.",
     "- Si tu mentionnes le timing de l'événement, base-toi d'abord sur le repère absolu 'scheduled_for_local' ci-dessous.",
-    "- Si la mémoire DB et le transcript récent ne racontent pas exactement la même chose, fais confiance d'abord au transcript le plus récent, puis aux dates/heures absolues.",
+    includeConversationContext
+      ? "- Si la mémoire DB et le transcript récent ne racontent pas exactement la même chose, fais confiance d'abord au transcript le plus récent, puis aux dates/heures absolues."
+      : "- N'utilise pas la mémoire DB ou l'historique pour conclure qu'une action du jour est déjà faite.",
     isWatcherCheckin && watcherScopeSnapshot
       ? buildWatcherScopePromptBlock(watcherScopeSnapshot)
       : "",
@@ -325,26 +548,36 @@ export async function generateDynamicWhatsAppCheckinMessage(params: {
       ? `Contexte figé de l'événement (watcher): ${eventGrounding}`
       : "",
     instruction ? `Instruction additionnelle: ${instruction}` : "",
+    surfaceVariationBlock,
     memoryContextBlock
       ? `Mémoire DB pertinente pour ce sujet:\n${memoryContextBlock}`
       : "",
     "",
-    "Tu dois prendre en compte la conversation récente ci-dessous (si elle est vide, reste générique).",
+    includeConversationContext
+      ? "Tu dois prendre en compte la conversation récente ci-dessous (si elle est vide, reste générique)."
+      : "Conversation récente volontairement non injectée pour cette relance.",
   ]
     .filter(Boolean)
     .join("\n");
 
+  const generationTemperature = needsOpeningVariation ? 0.7 : 0.4;
+  const generationSource = needsOpeningVariation
+    ? "scheduled_checkins:dynamic_whatsapp_varied"
+    : "scheduled_checkins:dynamic_whatsapp";
+
   const out = await generateWithGemini(
     systemPrompt,
     transcript || "(pas d'historique)",
-    0.4,
+    generationTemperature,
     false,
     [],
     "auto",
     {
       requestId: params.requestId,
-      model: RDV_GENERATION_MODEL,
-      source: "scheduled_checkins:dynamic_whatsapp",
+      model: isWeeklyAdaptiveReview
+        ? WEEKLY_ADAPTIVE_REVIEW_OPENING_MODEL
+        : RDV_GENERATION_MODEL,
+      source: generationSource,
       forceRealAi: true,
       userId,
     },
@@ -353,7 +586,47 @@ export async function generateDynamicWhatsAppCheckinMessage(params: {
   const text = typeof out === "string"
     ? out
     : safeTrim((out as any)?.text ?? "");
-  const cleaned = clampText(text.replace(/\*\*/g, ""), 900);
+  let cleaned = clampText(text.replace(/\*\*/g, ""), 900);
+
+  if (
+    needsOpeningVariation &&
+    openingLooksTooSimilar(cleaned, recentOpenings)
+  ) {
+    const repairPrompt = [
+      systemPrompt,
+      "",
+      "Correction obligatoire: la tentative precedente commence trop comme une ouverture recente.",
+      `Tentative precedente: ${cleaned}`,
+      "Regenere le message complet avec un premier groupe de mots different, sans perdre la cible de l'evenement.",
+    ].join("\n");
+    const repaired = await generateWithGemini(
+      repairPrompt,
+      transcript || "(pas d'historique)",
+      generationTemperature,
+      false,
+      [],
+      "auto",
+      {
+        requestId: params.requestId,
+        model: isWeeklyAdaptiveReview
+          ? WEEKLY_ADAPTIVE_REVIEW_OPENING_MODEL
+          : RDV_GENERATION_MODEL,
+        source: "scheduled_checkins:dynamic_whatsapp_opening_repair",
+        forceRealAi: true,
+        userId,
+      },
+    );
+    const repairedText = typeof repaired === "string"
+      ? repaired
+      : safeTrim((repaired as any)?.text ?? "");
+    const repairedCleaned = clampText(repairedText.replace(/\*\*/g, ""), 900);
+    if (
+      repairedCleaned &&
+      !openingLooksTooSimilar(repairedCleaned, recentOpenings)
+    ) {
+      cleaned = repairedCleaned;
+    }
+  }
 
   if (
     isWatcherCheckin &&
@@ -363,7 +636,10 @@ export async function generateDynamicWhatsAppCheckinMessage(params: {
     return buildWatcherScopedFallbackMessage();
   }
 
-  return cleaned || "Comment ça va depuis tout à l'heure ?";
+  if (cleaned) return cleaned;
+  if (params.fallbackMessage === null) return "";
+  return safeTrim(params.fallbackMessage) ||
+    "Comment ça va depuis tout à l'heure ?";
 }
 
 // Convert a target local time in an IANA timezone to an ISO UTC timestamp.
@@ -374,7 +650,7 @@ export function computeScheduledForFromLocal(params: {
   localTimeHHMM: string;
   now?: Date;
 }): string {
-  const tz = safeTrim(params.timezone) || "Europe/Paris";
+  const tz = safeTrim(params.timezone) || DEFAULT_TIMEZONE;
   const dayOffset = Number.isFinite(Number(params.dayOffset))
     ? Math.max(0, Math.floor(Number(params.dayOffset)))
     : 1;

@@ -1,0 +1,218 @@
+{
+  "run_id": "feature-opportunity-local-real-20260623-r3",
+  "persona": "qa-skill",
+  "connection_name": "feature_opportunity_feature-opportunity-local-real-20260623-r3",
+  "user_id": "d62c8954-7deb-47d0-808f-b4f436d00923",
+  "email": "qa-qa-skill-feature-opportunity-feature-opportunity-local-real-20260623-r3@example.com",
+  "scope": "qa-feature-opportunity-local-real-20260623-r3",
+  "updated_at": "2026-06-23T13:46:19.734Z",
+  "raw_path": "tests/real-personas/qa-skill/runs/feature_opportunity/feature-opportunity-local-real-20260623-r3.raw.json",
+  "turns": [
+    {
+      "turn": 1,
+      "request_id": "qa-feature-opportunity-local-real-20260623-r3-t01",
+      "user_message": "Tous les soirs, après avoir fermé mon ordi, je perds le fil de la préparation du lendemain. Je me dis qu’un message récurrent de Sophia pourrait m’aider, mais je ne sais pas trop comment le poser.",
+      "http_status": 200,
+      "assistant_message": "Oui, ça colle bien à des initiatives : c’est un rituel du soir, juste après avoir fermé ton ordi.\n\nTu peux le formuler comme un message récurrent de fin de journée avec 3 points simples : quoi préparer pour demain, pourquoi c’est important ce soir, et à quelle heure l’envoyer. Si tu veux, je peux t’aider à le formuler en une phrase.",
+      "short_trace": {
+        "response_owner": "feature_opportunity",
+        "selected_handler": "feature_opportunity",
+        "selected_action": null,
+        "target_flow": null,
+        "reason_code": "feature_opportunity_signal",
+        "active_skill_after": null,
+        "executed_tools": []
+      },
+      "flow_state_after": {
+        "row_exists": true,
+        "active_skill_state": {
+          "status": "active",
+          "version": 1,
+          "skill_id": "feature_opportunity",
+          "started_at": "2026-06-23T13:44:54.921Z",
+          "turn_count": 1,
+          "updated_at": "2026-06-23T13:44:54.921Z",
+          "working_state": {
+            "feature_opportunity_local_state": {
+              "feature": "initiatives",
+              "max_turns": 3,
+              "turn_count": 1,
+              "trigger_context": "Tous les soirs, après avoir fermé mon ordi",
+              "opportunity_kind": "recurring_context",
+              "user_problem_summary": "User says they lose the thread of next-day preparation every evening after closing their computer, and think a recurring Sophia message could help.",
+              "dispatcher_signal_context": {
+                "feature": "initiatives",
+                "priority_reason": "Repeated evening context with explicit interest in a recurring Sophia message fits initiatives.",
+                "trigger_context": "Tous les soirs, après avoir fermé mon ordi",
+                "opportunity_kind": "recurring_context",
+                "user_problem_summary": "User says a recurring Sophia message could help them keep the thread of next-day preparation after closing the computer."
+              }
+            }
+          }
+        },
+        "flow_opportunity_state": null
+      },
+      "persisted_messages_count": 2
+    },
+    {
+      "turn": 2,
+      "request_id": "qa-feature-opportunity-local-real-20260623-r3-t02",
+      "user_message": "Oui, et concrètement quels réglages je dois prévoir pour cette initiative ? Je veux juste savoir quoi mettre dans la plateforme.",
+      "http_status": 200,
+      "assistant_message": "Pour cette initiative, mets simplement :\n- quoi dire : un message court pour préparer le lendemain\n- pourquoi / quand : juste après avoir fermé ton ordi, le soir\n- horaire : une heure fixe le soir, proche de ce moment\n- jours actifs : tous les soirs, ou seulement les jours où tu travailles\n- destination : Base de vie si c’est un rituel perso, Plan actuel si c’est lié à ta journée du moment\n- statut : actif si tu veux qu’elle parte, inactif si tu veux la garder en pause\n\nSi tu veux, je peux aussi te proposer une formulation très courte du message.",
+      "short_trace": {
+        "response_owner": "feature_opportunity",
+        "selected_handler": "feature_opportunity",
+        "selected_action": null,
+        "target_flow": null,
+        "reason_code": "active_feature_opportunity",
+        "active_skill_after": null,
+        "executed_tools": []
+      },
+      "flow_state_after": {
+        "row_exists": true,
+        "active_skill_state": {
+          "status": "active",
+          "version": 1,
+          "skill_id": "feature_opportunity",
+          "started_at": "2026-06-23T13:44:54.921Z",
+          "turn_count": 2,
+          "updated_at": "2026-06-23T13:45:15.888Z",
+          "working_state": {
+            "feature_opportunity_local_state": {
+              "feature": "initiatives",
+              "max_turns": 3,
+              "turn_count": 2,
+              "trigger_context": "Tous les soirs, après avoir fermé mon ordi",
+              "opportunity_kind": "recurring_context",
+              "user_problem_summary": "User wants to set up a recurring Sophia message for the evening moment after closing the computer to help prepare for the next day.",
+              "dispatcher_signal_context": {
+                "feature": "initiatives",
+                "priority_reason": "Repeated evening context with explicit interest in a recurring Sophia message fits initiatives.",
+                "trigger_context": "Tous les soirs, après avoir fermé mon ordi",
+                "opportunity_kind": "recurring_context",
+                "user_problem_summary": "User says a recurring Sophia message could help them keep the thread of next-day preparation after closing the computer."
+              }
+            }
+          }
+        },
+        "flow_opportunity_state": null
+      },
+      "persisted_messages_count": 4
+    },
+    {
+      "turn": 3,
+      "request_id": "qa-feature-opportunity-local-real-20260623-r3-t03",
+      "user_message": "Ok merci. Autre sujet : rappelle-moi juste la différence entre une carte d’attaque et une carte de défense.",
+      "http_status": 200,
+      "assistant_message": "Une carte d’attaque sert à aller vers un objectif concret, avec une action à pousser.  \nUne carte de défense sert à protéger ton énergie, éviter de déraper ou tenir un cadre. 🙂\n\nSi tu veux, je peux te donner un exemple de chaque en une ligne.",
+      "short_trace": {
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "selected_action": null,
+        "target_flow": null,
+        "reason_code": "feature_opportunity_exit_to_global",
+        "active_skill_after": null,
+        "executed_tools": []
+      },
+      "flow_state_after": {
+        "row_exists": true,
+        "active_skill_state": null,
+        "flow_opportunity_state": null
+      },
+      "persisted_messages_count": 6
+    },
+    {
+      "turn": 4,
+      "request_id": "qa-feature-opportunity-local-real-20260623-r3-t04",
+      "user_message": "Quand je bloque, ça me frustre que Sophia soit trop douce. J’aimerais qu’elle soit plus directe au lieu de tourner autour.",
+      "http_status": 200,
+      "assistant_message": "Le bon réglage ici, c’est les préférences de coaching, surtout le ton : passe Sophia sur “direct” pour qu’elle soit plus franche quand tu bloques. Si tu veux, je peux aussi t’indiquer le niveau de challenge le plus adapté.",
+      "short_trace": {
+        "response_owner": "feature_opportunity",
+        "selected_handler": "feature_opportunity",
+        "selected_action": null,
+        "target_flow": null,
+        "reason_code": "feature_opportunity_signal",
+        "active_skill_after": null,
+        "executed_tools": []
+      },
+      "flow_state_after": {
+        "row_exists": true,
+        "active_skill_state": {
+          "status": "active",
+          "version": 1,
+          "skill_id": "feature_opportunity",
+          "started_at": "2026-06-23T13:46:01.871Z",
+          "turn_count": 1,
+          "updated_at": "2026-06-23T13:46:01.871Z",
+          "working_state": {
+            "feature_opportunity_local_state": {
+              "feature": "coach_preferences",
+              "max_turns": 3,
+              "turn_count": 1,
+              "trigger_context": "Sophia trop douce / plus directe",
+              "opportunity_kind": "coach_style_feedback",
+              "user_problem_summary": "User is frustrated with Sophia's tone and wants a more direct coaching style.",
+              "dispatcher_signal_context": {
+                "feature": "coach_preferences",
+                "priority_reason": "Style feedback maps to supported coach.tone preferences.",
+                "trigger_context": "Sophia trop douce / plus directe",
+                "opportunity_kind": "coach_style_feedback",
+                "user_problem_summary": "User is frustrated with Sophia's tone and wants a more direct coaching style."
+              }
+            }
+          }
+        },
+        "flow_opportunity_state": null
+      },
+      "persisted_messages_count": 8
+    },
+    {
+      "turn": 5,
+      "request_id": "qa-feature-opportunity-local-real-20260623-r3-t05",
+      "user_message": "Et dans ces préférences, je peux régler quoi exactement ? Je veux juste savoir les options, pas que tu changes quelque chose.",
+      "http_status": 200,
+      "assistant_message": "Dans les préférences coach, tu peux régler 3 choses :\n- le ton global : plus doux, chaleureux/direct, ou direct\n- le niveau de challenge : faible, équilibré, ou élevé\n- la tendance à poser des questions : peu, normal, ou très questionnant\n\nSi tu veux, je peux aussi te dire lequel colle le mieux à ton besoin d’être plus direct.",
+      "short_trace": {
+        "response_owner": "feature_opportunity",
+        "selected_handler": "feature_opportunity",
+        "selected_action": null,
+        "target_flow": null,
+        "reason_code": "active_feature_opportunity",
+        "active_skill_after": null,
+        "executed_tools": []
+      },
+      "flow_state_after": {
+        "row_exists": true,
+        "active_skill_state": {
+          "status": "active",
+          "version": 1,
+          "skill_id": "feature_opportunity",
+          "started_at": "2026-06-23T13:46:01.871Z",
+          "turn_count": 2,
+          "updated_at": "2026-06-23T13:46:19.674Z",
+          "working_state": {
+            "feature_opportunity_local_state": {
+              "feature": "coach_preferences",
+              "max_turns": 3,
+              "turn_count": 2,
+              "trigger_context": "Sophia trop douce / plus directe",
+              "opportunity_kind": "coach_style_feedback",
+              "user_problem_summary": "User wants to know which coach preference options are available, without changing anything.",
+              "dispatcher_signal_context": {
+                "feature": "coach_preferences",
+                "priority_reason": "Style feedback maps to supported coach.tone preferences.",
+                "trigger_context": "Sophia trop douce / plus directe",
+                "opportunity_kind": "coach_style_feedback",
+                "user_problem_summary": "User is frustrated with Sophia's tone and wants a more direct coaching style."
+              }
+            }
+          }
+        },
+        "flow_opportunity_state": null
+      },
+      "persisted_messages_count": 10
+    }
+  ]
+}

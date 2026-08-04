@@ -1,0 +1,81 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r15-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je sens que le bloc du soir sur les grignotages est trop chargé pour moi. Je ne veux pas toucher à toute la trajectoire, juste l'alléger maintenant pour que ce soit tenable.",
+    "assistant": "Je comprends, on va simplifier ce bloc pour qu'il soit plus fluide. Pour l'alléger concrètement, sur quelle action préfères-tu réduire l'effort : le nettoyage de ton environnement, la préparation de tes alternatives ou le décodage de tes envies ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [
+        "maintenant"
+      ],
+      "risk_band": "none",
+      "reason_codes": [
+        "immediacy_now"
+      ],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": true,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "status": "ask_question",
+      "reason_code": "tool_skill_intent_start",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "current_level.adjustment_type",
+        "current_level.reason"
+      ],
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r15-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r15-t02",
+    "status": 500,
+    "ok": null,
+    "user": "Pas le nettoyage ni le décodage : garde-les comme ils sont. Ce qui me coûte, c'est préparer quoi manger et choisir au moment où j'ai faim. Donc allège Préparer tes alternatives d'avance et Faire le choix du brut : options déjà prêtes, choix décidé avant le soir.",
+    "assistant": "",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": true,
+    "response_tool_execution": null,
+    "response_executed_tools": [],
+    "response_owner": null,
+    "selected_handler": null,
+    "route_reason_code": null,
+    "safety_pregate": null,
+    "operation_intents": [],
+    "skill_run": null,
+    "direct_effects": null,
+    "operation_flow_run": null,
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r15-t02",
+    "trace_error": null
+  }
+]

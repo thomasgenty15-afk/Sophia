@@ -1,0 +1,444 @@
+{
+  "status": 200,
+  "ok": true,
+  "json": {
+    "ok": true,
+    "request_id": "product_help_local_skip_20260622_r1-t06",
+    "user_id": "ace4bf63-52ba-40af-b8c9-abdd43344e96",
+    "channel": "web",
+    "scope": "product_help_local_skip_20260622_r1",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "logged_message_id": null,
+    "latest_message_id": null,
+    "response": {
+      "content": "C'est programmé pour mardi 23 juin à 09:30: je te ferai un rappel pour choisir la carte, et sinon pour l'instant je garde cette piste.\n\nC’est programmé pour mardi 23 juin à 09:30 : je te ferai un rappel pour choisir la carte, et sinon pour l’instant je garde cette piste. Pour ta carte d’attaque libre, tu la retrouves dans Ressources.",
+      "mode": "companion",
+      "delivery": null,
+      "tool_execution": "success",
+      "executed_tools": [
+        "create_one_shot_reminder"
+      ],
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "product_help_local_skip_20260622_r1-t06",
+          "source_message_id": "29dd223a-bb5e-4511-b59c-0b7bf3d8f081",
+          "user_id": "ace4bf63-52ba-40af-b8c9-abdd43344e96",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [
+            {
+              "effect_type": "create_one_shot_reminder",
+              "explicitness": "explicit",
+              "target_status": "identified",
+              "confidence_band": "high",
+              "payload_hint": {
+                "raw_text": "Rappelle-moi demain à 9h30 de choisir la carte, et sinon pour l'instant je garde cette piste."
+              }
+            }
+          ],
+          "note_information": null,
+          "skill_signals": {},
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          },
+          "direct_effect_lane": {
+            "selected_handler": "create_one_shot_reminder",
+            "toolExecution": "success",
+            "executedTools": [
+              "create_one_shot_reminder"
+            ],
+            "requested_effects": [
+              {
+                "type": "create_one_shot_reminder",
+                "scheduled_for": "2026-06-23T07:30:00+00:00",
+                "local_label": "mardi 23 juin à 09:30",
+                "reminder_instruction": "choisir la carte, et sinon pour l'instant je garde cette piste",
+                "reason_code": "local_parser"
+              }
+            ],
+            "allowed_effects": [
+              {
+                "type": "create_one_shot_reminder",
+                "scheduled_for": "2026-06-23T07:30:00+00:00",
+                "local_label": "mardi 23 juin à 09:30",
+                "reminder_instruction": "choisir la carte, et sinon pour l'instant je garde cette piste",
+                "reason_code": "local_parser"
+              }
+            ],
+            "committed_effects": [
+              {
+                "type": "create_one_shot_reminder",
+                "id": "4e9b9684-1618-480f-85bc-3cdd790a3fa4",
+                "scheduled_for": "2026-06-23T07:30:00+00:00",
+                "local_label": "mardi 23 juin à 09:30",
+                "reminder_instruction": "choisir la carte, et sinon pour l'instant je garde cette piste"
+              }
+            ],
+            "blocked_effects": [],
+            "visible_confirmation_hint": "C'est programmé pour mardi 23 juin à 09:30: je te ferai un rappel pour choisir la carte, et sinon pour l'instant je garde cette piste."
+          },
+          "direct_effect_confirmation_context": {
+            "has_committed_one_shot_reminder": true,
+            "has_requested_one_shot_reminder": true,
+            "confirmation_text": "C'est programmé pour mardi 23 juin à 09:30: je te ferai un rappel pour choisir la carte, et sinon pour l'instant je garde cette piste.",
+            "committed_effects": [
+              {
+                "type": "create_one_shot_reminder",
+                "id": "4e9b9684-1618-480f-85bc-3cdd790a3fa4",
+                "scheduled_for": "2026-06-23T07:30:00+00:00",
+                "local_label": "mardi 23 juin à 09:30",
+                "reminder_instruction": "choisir la carte, et sinon pour l'instant je garde cette piste"
+              }
+            ],
+            "requested_effects": [
+              {
+                "type": "create_one_shot_reminder",
+                "scheduled_for": "2026-06-23T07:30:00+00:00",
+                "local_label": "mardi 23 juin à 09:30",
+                "reminder_instruction": "choisir la carte, et sinon pour l'instant je garde cette piste",
+                "reason_code": "local_parser"
+              }
+            ],
+            "blocked_effects": [],
+            "do_not_recreate": true,
+            "do_not_reroute": true,
+            "do_not_redemand": true,
+            "do_not_confirm_without_commit": true,
+            "remaining_user_need_must_continue": true
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "coaching_recommendation",
+          "blocked_paths": [],
+          "direct_effects_to_run": [
+            "create_one_shot_reminder"
+          ],
+          "reason_code": "direct_effect_lane_message_intake",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "continue_active",
+            "active_owner": "coaching_recommendation",
+            "selected_owner": "coaching_recommendation",
+            "resume_policy": "resume_active",
+            "reason_code": "active_coaching_recommendation"
+          },
+          "selected_handler": "coaching_recommendation"
+        },
+        "effect_ledger": {
+          "turn_id": "product_help_local_skip_20260622_r1-t06",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "coaching_recommendation",
+        "skill_run": {
+          "selected_skill_id": "coaching_recommendation",
+          "reason_code": "direct_effect_lane_message_intake",
+          "status": "complete",
+          "latency_ms": 18888
+        },
+        "tool_skill_run": {
+          "selected_handler": "create_one_shot_reminder",
+          "status": "success",
+          "reason": "local_parser",
+          "requested_effects": [
+            {
+              "type": "create_one_shot_reminder",
+              "scheduled_for": "2026-06-23T07:30:00+00:00",
+              "local_label": "mardi 23 juin à 09:30",
+              "reminder_instruction": "choisir la carte, et sinon pour l'instant je garde cette piste",
+              "reason_code": "local_parser"
+            }
+          ],
+          "allowed_effects": [
+            {
+              "type": "create_one_shot_reminder",
+              "scheduled_for": "2026-06-23T07:30:00+00:00",
+              "local_label": "mardi 23 juin à 09:30",
+              "reminder_instruction": "choisir la carte, et sinon pour l'instant je garde cette piste",
+              "reason_code": "local_parser"
+            }
+          ],
+          "committed_effects": [
+            {
+              "type": "create_one_shot_reminder",
+              "id": "4e9b9684-1618-480f-85bc-3cdd790a3fa4",
+              "scheduled_for": "2026-06-23T07:30:00+00:00",
+              "local_label": "mardi 23 juin à 09:30",
+              "reminder_instruction": "choisir la carte, et sinon pour l'instant je garde cette piste"
+            }
+          ],
+          "blocked_effects": []
+        }
+      }
+    },
+    "conversation_turn_trace": {
+      "turn_frame": {
+        "turn_id": "product_help_local_skip_20260622_r1-t06",
+        "source_message_id": "29dd223a-bb5e-4511-b59c-0b7bf3d8f081",
+        "user_id": "ace4bf63-52ba-40af-b8c9-abdd43344e96",
+        "channel": "web",
+        "safety": {
+          "risk_band": "none",
+          "reason_codes": [],
+          "evidence": []
+        },
+        "conversation_risk": {
+          "score": 0,
+          "threshold": 8,
+          "should_exit_flows": false,
+          "reason_codes": [],
+          "previous_scores": [],
+          "matrix": [],
+          "context_summary": null
+        },
+        "direct_effects": [
+          {
+            "effect_type": "create_one_shot_reminder",
+            "explicitness": "explicit",
+            "target_status": "identified",
+            "confidence_band": "high",
+            "payload_hint": {
+              "raw_text": "Rappelle-moi demain à 9h30 de choisir la carte, et sinon pour l'instant je garde cette piste."
+            }
+          }
+        ],
+        "note_information": null,
+        "skill_signals": {},
+        "needs_research": {
+          "detected": false,
+          "value": false,
+          "query": null,
+          "domain_hint": null,
+          "confidence": 0,
+          "reason": null
+        },
+        "action_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_inference_unavailable"
+        },
+        "level_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_inference_unavailable"
+        },
+        "memory_plan": {
+          "response_intent": "reflection",
+          "reasoning_complexity": "low",
+          "context_need": "minimal",
+          "memory_mode": "none",
+          "model_tier_hint": "lite",
+          "context_budget_tier": "tiny",
+          "targets": [],
+          "retrieval_policy": "semantic_first",
+          "plan_confidence": 0.7
+        },
+        "direct_effect_lane": {
+          "selected_handler": "create_one_shot_reminder",
+          "toolExecution": "success",
+          "executedTools": [
+            "create_one_shot_reminder"
+          ],
+          "requested_effects": [
+            {
+              "type": "create_one_shot_reminder",
+              "scheduled_for": "2026-06-23T07:30:00+00:00",
+              "local_label": "mardi 23 juin à 09:30",
+              "reminder_instruction": "choisir la carte, et sinon pour l'instant je garde cette piste",
+              "reason_code": "local_parser"
+            }
+          ],
+          "allowed_effects": [
+            {
+              "type": "create_one_shot_reminder",
+              "scheduled_for": "2026-06-23T07:30:00+00:00",
+              "local_label": "mardi 23 juin à 09:30",
+              "reminder_instruction": "choisir la carte, et sinon pour l'instant je garde cette piste",
+              "reason_code": "local_parser"
+            }
+          ],
+          "committed_effects": [
+            {
+              "type": "create_one_shot_reminder",
+              "id": "4e9b9684-1618-480f-85bc-3cdd790a3fa4",
+              "scheduled_for": "2026-06-23T07:30:00+00:00",
+              "local_label": "mardi 23 juin à 09:30",
+              "reminder_instruction": "choisir la carte, et sinon pour l'instant je garde cette piste"
+            }
+          ],
+          "blocked_effects": [],
+          "visible_confirmation_hint": "C'est programmé pour mardi 23 juin à 09:30: je te ferai un rappel pour choisir la carte, et sinon pour l'instant je garde cette piste."
+        },
+        "direct_effect_confirmation_context": {
+          "has_committed_one_shot_reminder": true,
+          "has_requested_one_shot_reminder": true,
+          "confirmation_text": "C'est programmé pour mardi 23 juin à 09:30: je te ferai un rappel pour choisir la carte, et sinon pour l'instant je garde cette piste.",
+          "committed_effects": [
+            {
+              "type": "create_one_shot_reminder",
+              "id": "4e9b9684-1618-480f-85bc-3cdd790a3fa4",
+              "scheduled_for": "2026-06-23T07:30:00+00:00",
+              "local_label": "mardi 23 juin à 09:30",
+              "reminder_instruction": "choisir la carte, et sinon pour l'instant je garde cette piste"
+            }
+          ],
+          "requested_effects": [
+            {
+              "type": "create_one_shot_reminder",
+              "scheduled_for": "2026-06-23T07:30:00+00:00",
+              "local_label": "mardi 23 juin à 09:30",
+              "reminder_instruction": "choisir la carte, et sinon pour l'instant je garde cette piste",
+              "reason_code": "local_parser"
+            }
+          ],
+          "blocked_effects": [],
+          "do_not_recreate": true,
+          "do_not_reroute": true,
+          "do_not_redemand": true,
+          "do_not_confirm_without_commit": true,
+          "remaining_user_need_must_continue": true
+        }
+      },
+      "route_decision": {
+        "route_version": "v1",
+        "response_owner": "coaching_recommendation",
+        "blocked_paths": [],
+        "direct_effects_to_run": [
+          "create_one_shot_reminder"
+        ],
+        "reason_code": "direct_effect_lane_message_intake",
+        "memory_used_for_route": false,
+        "memory_item_ids_used_for_route": [],
+        "memory_use_kind": "none",
+        "active_flow_arbitration": {
+          "decision": "continue_active",
+          "active_owner": "coaching_recommendation",
+          "selected_owner": "coaching_recommendation",
+          "resume_policy": "resume_active",
+          "reason_code": "active_coaching_recommendation"
+        },
+        "selected_handler": "coaching_recommendation"
+      },
+      "effect_ledger": {
+        "turn_id": "product_help_local_skip_20260622_r1-t06",
+        "counts": {
+          "requested": 0,
+          "allowed": 0,
+          "blocked": 0,
+          "committed": 0,
+          "failed": 0,
+          "proposed": 0,
+          "delivered": 0,
+          "cancelled": 0,
+          "superseded": 0,
+          "asked": 0,
+          "resolved": 0,
+          "topic_change": 0
+        },
+        "entries": []
+      },
+      "response_owner": "coaching_recommendation",
+      "skill_run": {
+        "selected_skill_id": "coaching_recommendation",
+        "reason_code": "direct_effect_lane_message_intake",
+        "status": "complete",
+        "latency_ms": 18888
+      },
+      "tool_skill_run": {
+        "selected_handler": "create_one_shot_reminder",
+        "status": "success",
+        "reason": "local_parser",
+        "requested_effects": [
+          {
+            "type": "create_one_shot_reminder",
+            "scheduled_for": "2026-06-23T07:30:00+00:00",
+            "local_label": "mardi 23 juin à 09:30",
+            "reminder_instruction": "choisir la carte, et sinon pour l'instant je garde cette piste",
+            "reason_code": "local_parser"
+          }
+        ],
+        "allowed_effects": [
+          {
+            "type": "create_one_shot_reminder",
+            "scheduled_for": "2026-06-23T07:30:00+00:00",
+            "local_label": "mardi 23 juin à 09:30",
+            "reminder_instruction": "choisir la carte, et sinon pour l'instant je garde cette piste",
+            "reason_code": "local_parser"
+          }
+        ],
+        "committed_effects": [
+          {
+            "type": "create_one_shot_reminder",
+            "id": "4e9b9684-1618-480f-85bc-3cdd790a3fa4",
+            "scheduled_for": "2026-06-23T07:30:00+00:00",
+            "local_label": "mardi 23 juin à 09:30",
+            "reminder_instruction": "choisir la carte, et sinon pour l'instant je garde cette piste"
+          }
+        ],
+        "blocked_effects": []
+      }
+    },
+    "trace_error": null
+  }
+}

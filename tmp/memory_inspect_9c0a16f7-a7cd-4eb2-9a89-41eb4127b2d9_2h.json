@@ -1,0 +1,211 @@
+{
+  "ok": true,
+  "exported_at": "2026-05-06T05:59:23.508Z",
+  "source": {
+    "supabase_url": "http://127.0.0.1:54321",
+    "connection_type": "local"
+  },
+  "request": {
+    "user_id": "9c0a16f7-a7cd-4eb2-9a89-41eb4127b2d9",
+    "scope": null,
+    "from": "2026-05-06T03:59:23.514Z",
+    "to": "2026-05-06T05:59:23.508Z",
+    "used_hours": 2
+  },
+  "trace": {
+    "window": {
+      "from": "2026-05-06T03:59:23.514Z",
+      "to": "2026-05-06T05:59:23.508Z",
+      "scope": null,
+      "hours": 2
+    },
+    "summary": {
+      "messages_total": 4,
+      "user_messages": 2,
+      "assistant_messages": 2,
+      "retrieval_events_total": 2,
+      "persistence_events_total": 0,
+      "handoff_events_total": 0
+    },
+    "messages": [
+      {
+        "id": "a34c29cc-6591-4f36-9154-4c64f519f750",
+        "role": "user",
+        "content": "Pour la suite, retiens que je préfère qu’on m’aide à démarrer par une version brouillon de 4 minutes quand je bloque sur une présentation.",
+        "scope": "web",
+        "created_at": "2026-05-06T05:55:33.391609+00:00",
+        "metadata": {
+          "request_id": "c4860632-5c87-41d0-96ae-cff87f80441b",
+          "test_persona": true,
+          "test_endpoint": "test-send-message"
+        }
+      },
+      {
+        "id": "f9c7c7ad-3965-4cdb-853e-ce27f9ad573b",
+        "role": "assistant",
+        "content": "C'est bien noté ! Je garde précieusement cette technique du brouillon de 4 minutes en réserve pour tes prochains blocages. C'est une super parade contre la page blanche 🚀",
+        "scope": "web",
+        "created_at": "2026-05-06T05:55:45.600962+00:00",
+        "metadata": {
+          "channel": "web",
+          "request_id": "c4860632-5c87-41d0-96ae-cff87f80441b",
+          "test_persona": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "coaching_intervention_pending": null
+          }
+        }
+      },
+      {
+        "id": "dca18658-b670-4ea2-bfe1-1f3f7e9cdb2e",
+        "role": "user",
+        "content": "Pour la suite, retiens aussi que quand je prépare une présentation client, je préfère qu’on m’aide à formuler le résultat attendu avant de parler mise en page.",
+        "scope": "web",
+        "created_at": "2026-05-06T05:58:24.312706+00:00",
+        "metadata": {
+          "request_id": "937b69fb-c4e5-4808-b8a1-0d78d9a75c2f",
+          "test_persona": true,
+          "test_endpoint": "test-send-message"
+        }
+      },
+      {
+        "id": "712db713-4ca2-4d9f-8ac7-48ac8b7f1729",
+        "role": "assistant",
+        "content": "Message reçu ! Le fond avant la forme, c'est de loin la meilleure stratégie pour ne pas se perdre dans les détails. On attaquera systématiquement par le résultat attendu pour tes prochaines présentations 🎯",
+        "scope": "web",
+        "created_at": "2026-05-06T05:58:38.323105+00:00",
+        "metadata": {
+          "channel": "web",
+          "request_id": "937b69fb-c4e5-4808-b8a1-0d78d9a75c2f",
+          "test_persona": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "coaching_intervention_pending": null
+          }
+        }
+      }
+    ],
+    "retrieval_by_intent": [
+      {
+        "at": "2026-05-06T05:55:37.116699+00:00",
+        "intent": "answer_user_now",
+        "layers_loaded": [
+          "coaching"
+        ],
+        "budget_tier": "full",
+        "tokens_used": 0,
+        "hit_count": 0,
+        "cycle_id": "11111111-1111-4111-8111-111111111111",
+        "transformation_id": "22222222-2222-4222-8222-222222222222"
+      },
+      {
+        "at": "2026-05-06T05:58:27.949693+00:00",
+        "intent": "answer_user_now",
+        "layers_loaded": [
+          "coaching"
+        ],
+        "budget_tier": "full",
+        "tokens_used": 0,
+        "hit_count": 0,
+        "cycle_id": "11111111-1111-4111-8111-111111111111",
+        "transformation_id": "22222222-2222-4222-8222-222222222222"
+      }
+    ],
+    "persistence_events": [],
+    "handoff_events": [],
+    "memory_snapshot": {
+      "globals_total": 0,
+      "globals_by_scope": {},
+      "topics_total": 0,
+      "topics": [],
+      "events_in_window": 0,
+      "events": [],
+      "identity": null
+    },
+    "unassigned_events": []
+  },
+  "scorecard": {
+    "coverage": {
+      "messages": 4,
+      "retrieval_events": 2,
+      "persistence_events": 0,
+      "handoff_events": 0
+    },
+    "identification": {
+      "total_persisted": 0,
+      "creates": 0,
+      "enriches": 0,
+      "updates": 0,
+      "noops": 0,
+      "acceptance_rate": null
+    },
+    "tagging": {
+      "scope_distribution": {}
+    },
+    "persistence": {
+      "action_distribution": {},
+      "layer_distribution": {}
+    },
+    "retrieval": {
+      "intent_distribution": {
+        "answer_user_now": 2
+      },
+      "avg_tokens_per_retrieval": 0,
+      "avg_hits_per_retrieval": 0,
+      "layer_load_distribution": {
+        "coaching": 2
+      },
+      "total_retrievals": 2
+    },
+    "handoff": {
+      "count": 0,
+      "total_volume": 0
+    },
+    "alerts": [
+      "layer_never_loaded: cycle, transformation, execution, relational, event"
+    ]
+  },
+  "annotations": []
+}

@@ -1,0 +1,27 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-prepare-defense-card-alex-2026-06-12-prepare-defense-local-doctrine-r7-t01",
+    "status": 503,
+    "ok": null,
+    "user": "Je veux préparer une carte de défense : quand je rentre rincé après le boulot, je me laisse happer par une commande au hasard au lieu de manger correctement.",
+    "assistant": "",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": true,
+    "response_tool_execution": null,
+    "response_executed_tools": [],
+    "response_owner": null,
+    "selected_handler": null,
+    "route_selected_handler": null,
+    "route_reason_code": null,
+    "operation_flow_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": null,
+    "direct_effects": null,
+    "memory_plan": null,
+    "trace_id": "qa-prepare-defense-card-alex-2026-06-12-prepare-defense-local-doctrine-r7-t01",
+    "trace_error": null
+  }
+]

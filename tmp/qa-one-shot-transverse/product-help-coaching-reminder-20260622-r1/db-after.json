@@ -1,0 +1,196 @@
+{
+  "user_id": "df0dde37-1cd2-4c7f-9478-09736f2a19de",
+  "email": "qa-qa-skill-ph-coach-reminder-product-help-coaching-reminder-20260622-r1@example.com",
+  "state": {
+    "status": 200,
+    "body": [
+      {
+        "user_id": "df0dde37-1cd2-4c7f-9478-09736f2a19de",
+        "current_mode": "companion",
+        "risk_level": 0,
+        "temp_memory": {},
+        "updated_at": "2026-06-22T17:12:48.949294+00:00"
+      }
+    ]
+  },
+  "scheduled_checkins": {
+    "status": 200,
+    "body": []
+  },
+  "chat_messages": {
+    "status": 200,
+    "body": [
+      {
+        "id": "29451a49-8bec-4630-8531-43d37cfc95af",
+        "role": "user",
+        "content": "Je mélange un peu les choses dans Sophia : ajuster une action de mon plan et préparer une carte d'attaque, ça change quoi concrètement ?",
+        "metadata": {
+          "request_id": "qa-product-help-coaching-reminder-20260622-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-22T17:10:52.439433+00:00"
+      },
+      {
+        "id": "cc6b47fb-f32f-4e7d-ab0d-4d03392b1080",
+        "role": "assistant",
+        "content": "Oui : l’ajustement du plan sert à corriger l’action elle-même si elle ne colle plus. La carte d’attaque, elle, sert à préparer le passage à l’action pour qu’il soit plus simple au bon moment.\n\nEn bref : si le problème est le fond, c’est l’ajustement ; si le problème est le démarrage, c’est la carte d’attaque.",
+        "metadata": {
+          "request_id": "qa-product-help-coaching-reminder-20260622-r1-t01",
+          "route_owner": "product_help",
+          "agent_latency_ms": 5567,
+          "selected_handler": "product_help",
+          "context_latency_ms": 0,
+          "dispatcher_latency_ms": 3819,
+          "runtime_safety_risk_band": "none"
+        },
+        "created_at": "2026-06-22T17:11:01.900196+00:00"
+      },
+      {
+        "id": "35c47e8f-abea-47c4-8115-402b9518f23a",
+        "role": "user",
+        "content": "D'accord. Si mon souci c'est surtout de réussir à commencer tout de suite, sans réécrire l'action du plan, je devrais partir sur quoi ?",
+        "metadata": {
+          "request_id": "qa-product-help-coaching-reminder-20260622-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-22T17:11:10.064035+00:00"
+      },
+      {
+        "id": "c034f8e0-69a3-43d8-bc8c-e05f11df7315",
+        "role": "assistant",
+        "content": "Pars sur une carte d’attaque. C’est l’option faite pour t’aider à démarrer tout de suite, sans réécrire l’action du plan. Tu la retrouves depuis Dashboard > Plan, sur la mission ou l’habitude concernée.",
+        "metadata": {
+          "request_id": "qa-product-help-coaching-reminder-20260622-r1-t02",
+          "route_owner": "product_help",
+          "agent_latency_ms": 6746,
+          "selected_handler": "product_help",
+          "context_latency_ms": 0,
+          "dispatcher_latency_ms": 2986,
+          "runtime_safety_risk_band": "none"
+        },
+        "created_at": "2026-06-22T17:11:19.849764+00:00"
+      },
+      {
+        "id": "ead11e18-07e8-45ef-aa46-492b0bb4d52c",
+        "role": "user",
+        "content": "Question produit : une carte d'attaque déjà préparée peut encore être retouchée après coup ? Et rappelle-moi demain à 9h de vérifier ça.",
+        "metadata": {
+          "request_id": "qa-product-help-coaching-reminder-20260622-r1-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-22T17:11:31.516889+00:00"
+      },
+      {
+        "id": "e9a16c5b-fce1-4af1-9743-dea065689ca6",
+        "role": "assistant",
+        "content": "Oui, mais pas librement : une carte d’attaque déjà générée ne se retouche pas comme tu veux. Si le contenu ne convient plus, il faut repartir sur une nouvelle version. Et si tu veux, je peux aussi t’aider à formuler le rappel de demain à 9h de façon claire.",
+        "metadata": {
+          "request_id": "qa-product-help-coaching-reminder-20260622-r1-t03",
+          "route_owner": "product_help",
+          "agent_latency_ms": 6336,
+          "selected_handler": "product_help",
+          "context_latency_ms": 0,
+          "dispatcher_latency_ms": 2768,
+          "runtime_safety_risk_band": "none"
+        },
+        "created_at": "2026-06-22T17:11:40.643957+00:00"
+      },
+      {
+        "id": "1ce9905e-d8cf-4b4c-8040-ffad45083cb6",
+        "role": "user",
+        "content": "Je reviens au fonctionnement : quand Sophia me propose une carte d'attaque, est-ce que mon plan est changé automatiquement ou la carte reste à part ?",
+        "metadata": {
+          "request_id": "qa-product-help-coaching-reminder-20260622-r1-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-22T17:12:00.666135+00:00"
+      },
+      {
+        "id": "ab1c10e9-2daa-404a-8341-9911a8de076e",
+        "role": "assistant",
+        "content": "La carte d’attaque reste à part : elle prépare le passage à l’action, sans changer ton plan. Si ton souci, c’est que l’action elle-même n’est plus adaptée, là il faut plutôt passer par l’ajustement du plan.",
+        "metadata": {
+          "request_id": "qa-product-help-coaching-reminder-20260622-r1-t04",
+          "route_owner": "product_help",
+          "agent_latency_ms": 5546,
+          "selected_handler": "product_help",
+          "context_latency_ms": 0,
+          "dispatcher_latency_ms": 2386,
+          "runtime_safety_risk_band": "none"
+        },
+        "created_at": "2026-06-22T17:12:08.61687+00:00"
+      },
+      {
+        "id": "a9adc2ad-b40d-498f-8e6c-99365d65fceb",
+        "role": "user",
+        "content": "Question produit seulement : après avoir préparé une carte d'attaque, je la retrouve dans quel endroit de Sophia ?",
+        "metadata": {
+          "request_id": "qa-product-help-coaching-reminder-20260622-r1-t05",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-22T17:12:16.606977+00:00"
+      },
+      {
+        "id": "c524b5da-c42f-4445-8d3e-3ab956166539",
+        "role": "assistant",
+        "content": "Tu la retrouves dans Dashboard > Ressources, rangée par niveau. Elle peut aussi apparaître en aperçu depuis la mission ou l’habitude concernée dans le Plan. Limite : si elle n’a pas été générée, elle n’est pas disponible là-bas.",
+        "metadata": {
+          "request_id": "qa-product-help-coaching-reminder-20260622-r1-t05",
+          "route_owner": "product_help",
+          "agent_latency_ms": 5341,
+          "selected_handler": "product_help",
+          "context_latency_ms": 0,
+          "dispatcher_latency_ms": 4649,
+          "runtime_safety_risk_band": "none"
+        },
+        "created_at": "2026-06-22T17:12:26.615227+00:00"
+      },
+      {
+        "id": "78c8fbad-27fd-4cdd-8e76-ab86a86369a2",
+        "role": "user",
+        "content": "Et si je veux juste consulter les cartes que j'ai déjà, ça crée une nouvelle carte ou c'est uniquement une vue ?",
+        "metadata": {
+          "request_id": "qa-product-help-coaching-reminder-20260622-r1-t06",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-22T17:12:35.280484+00:00"
+      },
+      {
+        "id": "f04eeca2-d018-40f9-b407-283531b6a051",
+        "role": "assistant",
+        "content": "C’est juste une vue : tu la retrouves dans Dashboard > Ressources. Si une carte liée au plan existe déjà, elle apparaît là, sans en créer une nouvelle.",
+        "metadata": {
+          "request_id": "qa-product-help-coaching-reminder-20260622-r1-t06",
+          "route_owner": "product_help",
+          "agent_latency_ms": 8464,
+          "selected_handler": "product_help",
+          "context_latency_ms": 0,
+          "dispatcher_latency_ms": 5188,
+          "runtime_safety_risk_band": "none"
+        },
+        "created_at": "2026-06-22T17:12:48.952417+00:00"
+      }
+    ]
+  },
+  "traces": {
+    "status": 400,
+    "body": {
+      "code": "42703",
+      "details": null,
+      "hint": null,
+      "message": "column conversation_turn_traces.effect_ledger does not exist"
+    }
+  }
+}

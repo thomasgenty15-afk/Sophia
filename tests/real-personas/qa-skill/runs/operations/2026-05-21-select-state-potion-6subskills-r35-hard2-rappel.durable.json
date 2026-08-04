@@ -1,0 +1,247 @@
+[
+  {
+    "potion": "rappel",
+    "user_id": "8d6bab5e-acfb-4b54-af0d-28bffc1e9d73",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r35_hard2_rappel_rappel",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [
+        {
+          "id": "d0224f40-2675-46a9-af4b-e13072cf38bf",
+          "potion_type": "rappel",
+          "status": "completed",
+          "source": "system",
+          "scope_kind": "out_of_plan",
+          "cycle_id": "397efb48-5a61-49ff-add0-9a8324d4f963",
+          "transformation_id": null,
+          "content": {
+            "title": "Le sas de 18h45",
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Marcher dix minutes puis ranger le bureau",
+              "evidence": [
+                "Le moment a proteger, c'est quand je ferme l'ordi: soit je sors marcher dix minutes, soit je range le bureau"
+              ],
+              "recurrence_hint": "quotidien",
+              "date_or_window_hint": "soir",
+              "target_plan_item_id": "a8a7841e-141b-4316-8265-7fe7bba9dbd2",
+              "related_plan_item_id": "a8a7841e-141b-4316-8265-7fe7bba9dbd2",
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "operation_draft": {
+              "title": "Le sas de 18h45",
+              "follow_up": {
+                "duration_days": 7,
+                "schedule_plan": {
+                  "mode": "daily_series",
+                  "reason": "Un suivi quotidien pendant une semaine permet de stabiliser le nouveau réflexe de transition sans pression.",
+                  "local_dates": [],
+                  "duration_days": 7,
+                  "scheduled_days": [],
+                  "local_time_hhmm": "18:45",
+                  "timing_relation": "daily"
+                },
+                "local_time_hhmm": "18:45",
+                "reason_for_time": "À 18h45, juste avant que tu ne t'installes, pour attraper l'élan du mouvement.",
+                "reminder_instruction": "C'est le moment de fermer l'ordi. On part marcher ou on range un peu avant de se poser ?"
+              },
+              "potion_type": "rappel",
+              "opening_prompt": "Qu'est-ce qui t'aiderait le plus pour basculer vers le mouvement dès que l'ordi est fermé ?",
+              "target_binding": {
+                "kind": "plan_item",
+                "label": "Marcher dix minutes puis ranger le bureau",
+                "evidence": [
+                  "Le moment a proteger, c'est quand je ferme l'ordi: soit je sors marcher dix minutes, soit je range le bureau"
+                ],
+                "recurrence_hint": "quotidien",
+                "date_or_window_hint": "soir",
+                "target_plan_item_id": "a8a7841e-141b-4316-8265-7fe7bba9dbd2",
+                "related_plan_item_id": "a8a7841e-141b-4316-8265-7fe7bba9dbd2",
+                "target_action_family_key": null,
+                "target_generated_temp_id": null
+              },
+              "why_this_potion": "Cette potion cible le moment critique de la transition pour éviter que le report ne s'installe avant l'action.",
+              "expected_duration": "short",
+              "potion_info_message": "La potion de rappel est là pour t'aider à ne pas laisser filer ce moment. Je t'enverrai un rappel à 18h45 pour t'aider à enchaîner sur ta marche ou le rangement du bureau.",
+              "instant_support_message": "C'est normal que l'énergie baisse en fin de journée. On va juste s'assurer que tu ne rates pas le coche avant de t'installer."
+            },
+            "why_this_potion": "Cette potion cible le moment critique de la transition pour éviter que le report ne s'installe avant l'action.",
+            "potion_info_message": "La potion de rappel est là pour t'aider à ne pas laisser filer ce moment. Je t'enverrai un rappel à 18h45 pour t'aider à enchaîner sur ta marche ou le rangement du bureau.",
+            "instant_support_message": "C'est normal que l'énergie baisse en fin de journée. On va juste s'assurer que tu ne rates pas le coche avant de t'installer."
+          },
+          "follow_up_strategy": {
+            "duration_days": 7,
+            "schedule_plan": {
+              "mode": "daily_series",
+              "reason": "Un suivi quotidien pendant une semaine permet de stabiliser le nouveau réflexe de transition sans pression.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [],
+              "local_time_hhmm": "18:45",
+              "timing_relation": "daily"
+            },
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Marcher dix minutes puis ranger le bureau",
+              "evidence": [
+                "Le moment a proteger, c'est quand je ferme l'ordi: soit je sors marcher dix minutes, soit je range le bureau"
+              ],
+              "recurrence_hint": "quotidien",
+              "date_or_window_hint": "soir",
+              "target_plan_item_id": "a8a7841e-141b-4316-8265-7fe7bba9dbd2",
+              "related_plan_item_id": "a8a7841e-141b-4316-8265-7fe7bba9dbd2",
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "local_time_hhmm": "18:45",
+            "reason_for_time": "À 18h45, juste avant que tu ne t'installes, pour attraper l'élan du mouvement.",
+            "reminder_instruction": "C'est le moment de fermer l'ordi. On part marcher ou on range un peu avant de se poser ?"
+          },
+          "metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r35_hard2_rappel-rappel-t05-a1",
+            "operation_id": "33be0eca-b87e-4041-a808-255d40d0d6bd",
+            "operation_type": "select_state_potion",
+            "source_message_id": "d7fbbe3d-2565-4dac-b661-cd13d4a4f14d"
+          },
+          "generated_at": "2026-05-21T14:27:45.004+00:00",
+          "last_updated_at": "2026-05-21T14:27:45.004+00:00"
+        }
+      ],
+      "reminders": [
+        {
+          "id": "94366149-acba-4dec-a856-5f792a5d0ad4",
+          "message_instruction": "C'est le moment de fermer l'ordi. On part marcher ou on range un peu avant de se poser ?",
+          "rationale": "Un suivi quotidien pendant une semaine permet de stabiliser le nouveau réflexe de transition sans pression.",
+          "local_time_hhmm": "18:45",
+          "scheduled_days": [
+            "fri",
+            "sat",
+            "sun",
+            "mon",
+            "tue",
+            "wed",
+            "thu"
+          ],
+          "status": "active",
+          "initiative_kind": "potion_follow_up",
+          "source_kind": "potion_generated",
+          "source_potion_session_id": "d0224f40-2675-46a9-af4b-e13072cf38bf",
+          "initiative_metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r35_hard2_rappel-rappel-t05-a1",
+            "operation_id": "33be0eca-b87e-4041-a808-255d40d0d6bd",
+            "schedule_plan": {
+              "mode": "daily_series",
+              "reason": "Un suivi quotidien pendant une semaine permet de stabiliser le nouveau réflexe de transition sans pression.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [],
+              "local_time_hhmm": "18:45",
+              "timing_relation": "daily"
+            },
+            "operation_type": "select_state_potion",
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Marcher dix minutes puis ranger le bureau",
+              "evidence": [
+                "Le moment a proteger, c'est quand je ferme l'ordi: soit je sors marcher dix minutes, soit je range le bureau"
+              ],
+              "recurrence_hint": "quotidien",
+              "date_or_window_hint": "soir",
+              "target_plan_item_id": "a8a7841e-141b-4316-8265-7fe7bba9dbd2",
+              "related_plan_item_id": "a8a7841e-141b-4316-8265-7fe7bba9dbd2",
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            }
+          },
+          "target_kind": "plan_item",
+          "target_plan_item_id": "a8a7841e-141b-4316-8265-7fe7bba9dbd2",
+          "target_action_family_key": null,
+          "target_binding_policy": "live_action",
+          "target_lifecycle_policy": "while_target_active",
+          "starts_at": "2026-05-21T14:27:45.004+00:00",
+          "created_at": "2026-05-21T14:27:45.018879+00:00",
+          "updated_at": "2026-05-21T14:27:45.018879+00:00"
+        }
+      ],
+      "checkins": [
+        {
+          "id": "7867bd9b-7884-416c-aeca-51e30d0f1f42",
+          "recurring_reminder_id": "94366149-acba-4dec-a856-5f792a5d0ad4",
+          "event_context": "recurring_reminder:94366149-acba-4dec-a856-5f792a5d0ad4:potion:d0224f40-2675-46a9-af4b-e13072cf38bf:2026-05-22",
+          "draft_message": "C'est le moment de fermer l'ordi. On part marcher ou on range un peu avant de se poser ?",
+          "scheduled_for": "2026-05-22T18:45:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:27:45.025256+00:00"
+        },
+        {
+          "id": "10d11551-7c10-4d8d-aef6-2a6ab1da7948",
+          "recurring_reminder_id": "94366149-acba-4dec-a856-5f792a5d0ad4",
+          "event_context": "recurring_reminder:94366149-acba-4dec-a856-5f792a5d0ad4:potion:d0224f40-2675-46a9-af4b-e13072cf38bf:2026-05-23",
+          "draft_message": "C'est le moment de fermer l'ordi. On part marcher ou on range un peu avant de se poser ?",
+          "scheduled_for": "2026-05-23T18:45:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:27:45.025256+00:00"
+        },
+        {
+          "id": "38ac485a-73f9-4758-81a0-323abe9f56bb",
+          "recurring_reminder_id": "94366149-acba-4dec-a856-5f792a5d0ad4",
+          "event_context": "recurring_reminder:94366149-acba-4dec-a856-5f792a5d0ad4:potion:d0224f40-2675-46a9-af4b-e13072cf38bf:2026-05-24",
+          "draft_message": "C'est le moment de fermer l'ordi. On part marcher ou on range un peu avant de se poser ?",
+          "scheduled_for": "2026-05-24T18:45:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:27:45.025256+00:00"
+        },
+        {
+          "id": "cbe35dfd-a295-43dc-b90c-5e6cfbfa5910",
+          "recurring_reminder_id": "94366149-acba-4dec-a856-5f792a5d0ad4",
+          "event_context": "recurring_reminder:94366149-acba-4dec-a856-5f792a5d0ad4:potion:d0224f40-2675-46a9-af4b-e13072cf38bf:2026-05-25",
+          "draft_message": "C'est le moment de fermer l'ordi. On part marcher ou on range un peu avant de se poser ?",
+          "scheduled_for": "2026-05-25T18:45:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:27:45.025256+00:00"
+        },
+        {
+          "id": "e8cb962b-20af-4c94-b752-1eeb1dd93748",
+          "recurring_reminder_id": "94366149-acba-4dec-a856-5f792a5d0ad4",
+          "event_context": "recurring_reminder:94366149-acba-4dec-a856-5f792a5d0ad4:potion:d0224f40-2675-46a9-af4b-e13072cf38bf:2026-05-26",
+          "draft_message": "C'est le moment de fermer l'ordi. On part marcher ou on range un peu avant de se poser ?",
+          "scheduled_for": "2026-05-26T18:45:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:27:45.025256+00:00"
+        },
+        {
+          "id": "eb6d3263-3dfa-4c40-91db-5c59385cd55e",
+          "recurring_reminder_id": "94366149-acba-4dec-a856-5f792a5d0ad4",
+          "event_context": "recurring_reminder:94366149-acba-4dec-a856-5f792a5d0ad4:potion:d0224f40-2675-46a9-af4b-e13072cf38bf:2026-05-27",
+          "draft_message": "C'est le moment de fermer l'ordi. On part marcher ou on range un peu avant de se poser ?",
+          "scheduled_for": "2026-05-27T18:45:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:27:45.025256+00:00"
+        },
+        {
+          "id": "3e9cf1b4-031e-43d8-8a9a-e8944c9fc974",
+          "recurring_reminder_id": "94366149-acba-4dec-a856-5f792a5d0ad4",
+          "event_context": "recurring_reminder:94366149-acba-4dec-a856-5f792a5d0ad4:potion:d0224f40-2675-46a9-af4b-e13072cf38bf:2026-05-28",
+          "draft_message": "C'est le moment de fermer l'ordi. On part marcher ou on range un peu avant de se poser ?",
+          "scheduled_for": "2026-05-28T18:45:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:27:45.025256+00:00"
+        }
+      ]
+    }
+  }
+]

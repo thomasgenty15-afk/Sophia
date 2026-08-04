@@ -90,14 +90,9 @@ export function normalizeChatText(
     }
     // Drop code fences and obvious tool invocations.
     if (l.startsWith("```")) continue;
-    if (/^print\s*\(/i.test(l)) continue;
-    if (/default_api\./i.test(l)) continue;
-    if (
-      /(track_progress|create_simple_action|create_framework|log_action_execution|break_down_action)\s*\(/i
-        .test(l)
-    ) {
-      continue;
-    }
+    const lowerLine = l.toLowerCase();
+    if (lowerLine.startsWith("print(")) continue;
+    if (lowerLine.includes("default_api.")) continue;
     cleaned.push(line);
   }
 
@@ -105,6 +100,54 @@ export function normalizeChatText(
   return collapseBlankLines ? out.replace(/\n{3,}/g, "\n\n").trim() : out;
 }
 
+const FIL_ROUGE_MARKERS = [
+  "fil_rouge_whatsapp",
+  "fil_rouge",
+];
 
+export function extractHiddenFilRougeNote(
+  text: unknown,
+): { visibleText: string; note: string | null; marker: string | null } {
+  let visibleText = String(text ?? "");
+  let note: string | null = null;
+  let marker: string | null = null;
+  for (const candidateMarker of FIL_ROUGE_MARKERS) {
+    const escapedMarker = candidateMarker.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const commentPattern = new RegExp(
+      `\\s*<!--\\s*${escapedMarker}\\s*:\\s*([\\s\\S]*?)\\s*-->\\s*`,
+      "gi",
+    );
+    visibleText = visibleText.replace(commentPattern, (_match, rawNote) => {
+      const cleanedNote = normalizeChatText(rawNote, {
+        collapseBlankLines: true,
+      });
+      if (!note && cleanedNote) {
+        note = cleanedNote;
+        marker = candidateMarker;
+      }
+      return "\n";
+    });
 
-
+    const loosePattern = new RegExp(
+      `\\s*${escapedMarker}\\s*:\\s*([^\\n<]+)`,
+      "i",
+    );
+    visibleText = visibleText.replace(loosePattern, (_match, rawNote) => {
+      const cleanedNote = normalizeChatText(rawNote, {
+        collapseBlankLines: true,
+      });
+      if (!note && cleanedNote) {
+        note = cleanedNote;
+        marker = candidateMarker;
+      }
+      return "";
+    });
+  }
+  return {
+    visibleText: normalizeChatText(visibleText, {
+      collapseBlankLines: true,
+    }),
+    note,
+    marker,
+  };
+}

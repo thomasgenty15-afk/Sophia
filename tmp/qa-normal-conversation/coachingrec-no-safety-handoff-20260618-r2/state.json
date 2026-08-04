@@ -1,0 +1,2633 @@
+{
+  "run_id": "coachingrec-no-safety-handoff-20260618-r2",
+  "scope": "qa-normal-conversation-coachingrec-no-safety-handoff-20260618-r2",
+  "base_url": "http://127.0.0.1:54321",
+  "email": "qa-normal-coachingrec-no-safety-handoff-20260618-r2-1781801602428@example.com",
+  "user_id": "00dbab4b-a2c9-4253-85e5-c9ece05aef7d",
+  "anon_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0",
+  "service_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU",
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjU0MzIxL2F1dGgvdjEiLCJzdWIiOiIwMGRiYWI0Yi1hMmM5LTQyNTMtODVlNS1jOWVjZTA1YWVmN2QiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzgxODA1MjAyLCJpYXQiOjE3ODE4MDE2MDIsImVtYWlsIjoicWEtbm9ybWFsLWNvYWNoaW5ncmVjLW5vLXNhZmV0eS1oYW5kb2ZmLTIwMjYwNjE4LXIyLTE3ODE4MDE2MDI0MjhAZXhhbXBsZS5jb20iLCJwaG9uZSI6IiIsImFwcF9tZXRhZGF0YSI6eyJwcm92aWRlciI6ImVtYWlsIiwicHJvdmlkZXJzIjpbImVtYWlsIl19LCJ1c2VyX21ldGFkYXRhIjp7ImVtYWlsIjoicWEtbm9ybWFsLWNvYWNoaW5ncmVjLW5vLXNhZmV0eS1oYW5kb2ZmLTIwMjYwNjE4LXIyLTE3ODE4MDE2MDI0MjhAZXhhbXBsZS5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiaXNfdGVzdF9wZXJzb25hIjp0cnVlLCJwaG9uZV92ZXJpZmllZCI6ZmFsc2UsInFhX3J1bl9pZCI6ImNvYWNoaW5ncmVjLW5vLXNhZmV0eS1oYW5kb2ZmLTIwMjYwNjE4LXIyIiwic3ViIjoiMDBkYmFiNGItYTJjOS00MjUzLTg1ZTUtYzllY2UwNWFlZjdkIn0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3ODE4MDE2MDJ9XSwic2Vzc2lvbl9pZCI6IjZiMmI3ZWE1LTYyMDYtNGJlOS05ZTIyLTc3YjgzZWQ5ODg0ZSIsImlzX2Fub255bW91cyI6ZmFsc2V9.3dKI6HSVnHE6rWwHN59Yuu_yk0Dk_xFiUGbQH_hFuOI",
+  "auth_check": {
+    "status": 200,
+    "ok": true
+  },
+  "force_full_ai": true,
+  "created_at": "2026-06-18T16:53:22.780Z",
+  "turns": [
+    {
+      "turn": 1,
+      "sent_at": "2026-06-18T16:53:59.978Z",
+      "user": "Depuis hier je repousse le mail pour Camille. Quand j'ouvre le brouillon, je bloque et je pars faire autre chose. Je ne sais pas si je dois preparer une carte d'attaque ou modifier l'action.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "La carte d’attaque est la plus adaptée ici : ton blocage ressemble surtout à une difficulté de démarrage sur un mail déjà identifié. Si, en relisant le brouillon, tu vois que le mail est mal cadré ou trop lourd, l’ajustement du plan peut venir ensuite.",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "coaching_recommendation_signal",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-18T16:53:59.938Z",
+                  "turn_count": 1,
+                  "updated_at": "2026-06-18T16:53:59.938Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "recommend",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user est bloque au demarrage d'un mail concret et repousse l'action des qu'il ouvre le brouillon.",
+                        "user_words": [
+                          "Depuis hier je repousse le mail pour Camille",
+                          "Quand j'ouvre le brouillon, je bloque et je pars faire autre chose",
+                          "Je ne sais pas si je dois preparer une carte d'attaque ou modifier l'action"
+                        ],
+                        "target_kind": "plan_action",
+                        "action_title": "mail pour Camille",
+                        "action_source": "ambiguous"
+                      },
+                      "turn_count": 1,
+                      "cause_analysis": {
+                        "confidence": "high",
+                        "missing_info": [
+                          "Savoir si le mail est mal defini, trop lourd ou simplement penible a demarrer."
+                        ],
+                        "primary_cause": "avoidance",
+                        "why_it_exists": "Le blocage apparait au moment de commencer une action faisable, ce qui ressemble davantage a une evitement ou un launch blocker qu'a un probleme structurel du plan."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user repousse un mail concret, bloque au moment d'ouvrir le brouillon et cherche s'il faut preparer une carte d'attaque ou modifier l'action.",
+                      "candidate_features": [],
+                      "last_answer_summary": "Le probleme visible est un blocage au demarrage d'une action faisable, avec evitement immediat quand le brouillon est ouvert. Une carte d'attaque est adaptee pour preparer le bon geste en amont et reduire la friction au moment de passer a l'action.",
+                      "parent_return_focus": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "parent_action_context": null,
+                      "current_recommendation": null,
+                      "last_visible_task_kind": "recommend_feature",
+                      "recommendation_decision": {
+                        "why_primary": "Le besoin principal est de reduire la friction de demarrage sur une action deja identifiee.",
+                        "why_not_others": {
+                          "adjust_plan": "Possible seulement si le mail est en lui-meme mal calibre; ce n'est pas encore etabli.",
+                          "defense_card": "Pas de craquage ou de risque moment dans le message.",
+                          "state_potion": "Pas d'etat emotionnel dominant exprime comme peur, honte ou detresse."
+                        },
+                        "primary_feature": "attack_card",
+                        "secondary_feature": "adjust_plan",
+                        "platform_destination": {
+                          "label": "Ressources",
+                          "surface_hint": "Depuis la mission ou l'habitude puis dans Ressources",
+                          "user_facing_destination": "Consulter ou preparer une carte d'attaque liee au mail."
+                        },
+                        "user_facing_next_step": "Choisir une carte d'attaque pour aider le demarrage du mail, puis la retrouver dans Ressources."
+                      },
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "The user is blocked on a task and explicitly asks whether to use an attack card or modify the action; the plan/action frame is unclear, so the skill should clarify the lever.",
+                        "category": "ambiguous_coaching_need",
+                        "failure_mode": "unclear",
+                        "action_context": {
+                          "source": "ambiguous",
+                          "plan_id": null,
+                          "plan_title": null,
+                          "action_type": "other",
+                          "action_title": null,
+                          "plan_item_id": null
+                        },
+                        "priority_features": [
+                          "attack_card"
+                        ],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-18T16:53:59.938Z",
+                  "turn_count": 1,
+                  "updated_at": "2026-06-18T16:53:59.938Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "recommend",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user est bloque au demarrage d'un mail concret et repousse l'action des qu'il ouvre le brouillon.",
+                        "user_words": [
+                          "Depuis hier je repousse le mail pour Camille",
+                          "Quand j'ouvre le brouillon, je bloque et je pars faire autre chose",
+                          "Je ne sais pas si je dois preparer une carte d'attaque ou modifier l'action"
+                        ],
+                        "target_kind": "plan_action",
+                        "action_title": "mail pour Camille",
+                        "action_source": "ambiguous"
+                      },
+                      "turn_count": 1,
+                      "cause_analysis": {
+                        "confidence": "high",
+                        "missing_info": [
+                          "Savoir si le mail est mal defini, trop lourd ou simplement penible a demarrer."
+                        ],
+                        "primary_cause": "avoidance",
+                        "why_it_exists": "Le blocage apparait au moment de commencer une action faisable, ce qui ressemble davantage a une evitement ou un launch blocker qu'a un probleme structurel du plan."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user repousse un mail concret, bloque au moment d'ouvrir le brouillon et cherche s'il faut preparer une carte d'attaque ou modifier l'action.",
+                      "candidate_features": [],
+                      "last_answer_summary": "Le probleme visible est un blocage au demarrage d'une action faisable, avec evitement immediat quand le brouillon est ouvert. Une carte d'attaque est adaptee pour preparer le bon geste en amont et reduire la friction au moment de passer a l'action.",
+                      "parent_return_focus": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "parent_action_context": null,
+                      "current_recommendation": null,
+                      "last_visible_task_kind": "recommend_feature",
+                      "recommendation_decision": {
+                        "why_primary": "Le besoin principal est de reduire la friction de demarrage sur une action deja identifiee.",
+                        "why_not_others": {
+                          "adjust_plan": "Possible seulement si le mail est en lui-meme mal calibre; ce n'est pas encore etabli.",
+                          "defense_card": "Pas de craquage ou de risque moment dans le message.",
+                          "state_potion": "Pas d'etat emotionnel dominant exprime comme peur, honte ou detresse."
+                        },
+                        "primary_feature": "attack_card",
+                        "secondary_feature": "adjust_plan",
+                        "platform_destination": {
+                          "label": "Ressources",
+                          "surface_hint": "Depuis la mission ou l'habitude puis dans Ressources",
+                          "user_facing_destination": "Consulter ou preparer une carte d'attaque liee au mail."
+                        },
+                        "user_facing_next_step": "Choisir une carte d'attaque pour aider le demarrage du mail, puis la retrouver dans Ressources."
+                      },
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "The user is blocked on a task and explicitly asks whether to use an attack card or modify the action; the plan/action frame is unclear, so the skill should clarify the lever.",
+                        "category": "ambiguous_coaching_need",
+                        "failure_mode": "unclear",
+                        "action_context": {
+                          "source": "ambiguous",
+                          "plan_id": null,
+                          "plan_title": null,
+                          "action_type": "other",
+                          "action_title": null,
+                          "plan_item_id": null
+                        },
+                        "priority_features": [
+                          "attack_card"
+                        ],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-18T16:53:59.943378+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-no-safety-handoff-20260618-r2-t01",
+        "user_id": "00dbab4b-a2c9-4253-85e5-c9ece05aef7d",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-no-safety-handoff-20260618-r2",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "La carte d’attaque est la plus adaptée ici : ton blocage ressemble surtout à une difficulté de démarrage sur un mail déjà identifié. Si, en relisant le brouillon, tu vois que le mail est mal cadré ou trop lourd, l’ajustement du plan peut venir ensuite.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-no-safety-handoff-20260618-r2-t01",
+              "source_message_id": "32507b11-82fc-4c57-a581-4a596c43859d",
+              "user_id": "00dbab4b-a2c9-4253-85e5-c9ece05aef7d",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {
+                "coaching_recommendation": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "ambiguous_choice_between_attack_card_and_adjust_plan",
+                  "context": {
+                    "category": "ambiguous_coaching_need",
+                    "failure_mode": "unclear",
+                    "action_context": {
+                      "source": "ambiguous",
+                      "plan_item_id": null,
+                      "action_title": null,
+                      "plan_id": null,
+                      "plan_title": null,
+                      "action_type": "other"
+                    },
+                    "emotional_state_context": null,
+                    "priority_features": [
+                      "attack_card"
+                    ],
+                    "reason": "The user is blocked on a task and explicitly asks whether to use an attack card or modify the action; the plan/action frame is unclear, so the skill should clarify the lever."
+                  }
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "clarify coaching lever for a blocked email task",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "taxonomy_first",
+                "plan_confidence": 0.86
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "coaching_recommendation_signal",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "minimal_global_dispatcher",
+                "active_owner": "none",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "none",
+                "reason_code": "coaching_recommendation_signal"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-no-safety-handoff-20260618-r2-t01",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "coaching_recommendation_signal",
+              "status": "continue"
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-no-safety-handoff-20260618-r2-t01",
+            "source_message_id": "32507b11-82fc-4c57-a581-4a596c43859d",
+            "user_id": "00dbab4b-a2c9-4253-85e5-c9ece05aef7d",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "coaching_recommendation": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "ambiguous_choice_between_attack_card_and_adjust_plan",
+                "context": {
+                  "category": "ambiguous_coaching_need",
+                  "failure_mode": "unclear",
+                  "action_context": {
+                    "source": "ambiguous",
+                    "plan_item_id": null,
+                    "action_title": null,
+                    "plan_id": null,
+                    "plan_title": null,
+                    "action_type": "other"
+                  },
+                  "emotional_state_context": null,
+                  "priority_features": [
+                    "attack_card"
+                  ],
+                  "reason": "The user is blocked on a task and explicitly asks whether to use an attack card or modify the action; the plan/action frame is unclear, so the skill should clarify the lever."
+                }
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "clarify coaching lever for a blocked email task",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "taxonomy_first",
+              "plan_confidence": 0.86
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "coaching_recommendation_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "minimal_global_dispatcher",
+              "active_owner": "none",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "none",
+              "reason_code": "coaching_recommendation_signal"
+            },
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-no-safety-handoff-20260618-r2-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "coaching_recommendation_signal",
+            "status": "continue"
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 2,
+      "sent_at": "2026-06-18T16:54:30.175Z",
+      "user": "Ok. Si je veux la preparer moi-meme dans Sophia, je vais ou exactement ? Ne cree rien depuis le chat.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Va dans **Dashboard > Plan**, ouvre ta mission ou ton habitude liée au mail, puis cherche l’option pour **préparer/générer une carte d’attaque** si elle est disponible. Une fois fait, tu la retrouves dans **Dashboard > Ressources**, rangée par niveau, pour la consulter. Je ne crée rien depuis le chat.",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "active_coaching_recommendation",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-18T16:53:59.938Z",
+                  "turn_count": 2,
+                  "updated_at": "2026-06-18T16:54:30.121Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user est bloque au demarrage d'un mail concret et repousse l'action des qu'il ouvre le brouillon.",
+                        "user_words": [
+                          "Depuis hier je repousse le mail pour Camille",
+                          "Quand j'ouvre le brouillon, je bloque et je pars faire autre chose",
+                          "Je ne sais pas si je dois preparer une carte d'attaque ou modifier l'action"
+                        ],
+                        "target_kind": "plan_action",
+                        "action_title": "mail pour Camille",
+                        "action_source": "ambiguous"
+                      },
+                      "turn_count": 2,
+                      "cause_analysis": {
+                        "confidence": "high",
+                        "missing_info": [
+                          "Savoir si le mail est mal defini, trop lourd ou simplement penible a demarrer."
+                        ],
+                        "primary_cause": "avoidance",
+                        "why_it_exists": "Le blocage apparait au moment de commencer une action faisable, ce qui ressemble davantage a une evitement ou un launch blocker qu'a un probleme structurel du plan."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user veut savoir où préparer lui-même la carte d'attaque dans Sophia, sans création depuis le chat.",
+                      "candidate_features": [],
+                      "last_answer_summary": "La carte d’attaque reste le bon levier pour préparer l’action en amont et réduire la friction de démarrage sur le mail.",
+                      "parent_return_focus": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "parent_action_context": null,
+                      "current_recommendation": null,
+                      "last_visible_task_kind": "explain_platform_destination",
+                      "recommendation_decision": {
+                        "why_primary": "Le besoin principal est de reduire la friction de demarrage sur une action deja identifiee.",
+                        "why_not_others": {
+                          "adjust_plan": "Possible seulement si le mail est en lui-meme mal calibre; ce n'est pas encore etabli.",
+                          "defense_card": "Pas de craquage ou de risque moment dans le message.",
+                          "state_potion": "Pas d'etat emotionnel dominant exprime comme peur, honte ou detresse."
+                        },
+                        "primary_feature": "attack_card",
+                        "secondary_feature": "adjust_plan",
+                        "platform_destination": {
+                          "label": "Ressources",
+                          "surface_hint": "Depuis la mission ou l'habitude puis dans Ressources",
+                          "user_facing_destination": "Consulter ou preparer une carte d'attaque liee au mail."
+                        },
+                        "user_facing_next_step": "Choisir une carte d'attaque pour aider le demarrage du mail, puis la retrouver dans Ressources."
+                      },
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "The user is blocked on a task and explicitly asks whether to use an attack card or modify the action; the plan/action frame is unclear, so the skill should clarify the lever.",
+                        "category": "ambiguous_coaching_need",
+                        "failure_mode": "unclear",
+                        "action_context": {
+                          "source": "ambiguous",
+                          "plan_id": null,
+                          "plan_title": null,
+                          "action_type": "other",
+                          "action_title": null,
+                          "plan_item_id": null
+                        },
+                        "priority_features": [
+                          "attack_card"
+                        ],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-18T16:53:59.938Z",
+                  "turn_count": 2,
+                  "updated_at": "2026-06-18T16:54:30.121Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user est bloque au demarrage d'un mail concret et repousse l'action des qu'il ouvre le brouillon.",
+                        "user_words": [
+                          "Depuis hier je repousse le mail pour Camille",
+                          "Quand j'ouvre le brouillon, je bloque et je pars faire autre chose",
+                          "Je ne sais pas si je dois preparer une carte d'attaque ou modifier l'action"
+                        ],
+                        "target_kind": "plan_action",
+                        "action_title": "mail pour Camille",
+                        "action_source": "ambiguous"
+                      },
+                      "turn_count": 2,
+                      "cause_analysis": {
+                        "confidence": "high",
+                        "missing_info": [
+                          "Savoir si le mail est mal defini, trop lourd ou simplement penible a demarrer."
+                        ],
+                        "primary_cause": "avoidance",
+                        "why_it_exists": "Le blocage apparait au moment de commencer une action faisable, ce qui ressemble davantage a une evitement ou un launch blocker qu'a un probleme structurel du plan."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user veut savoir où préparer lui-même la carte d'attaque dans Sophia, sans création depuis le chat.",
+                      "candidate_features": [],
+                      "last_answer_summary": "La carte d’attaque reste le bon levier pour préparer l’action en amont et réduire la friction de démarrage sur le mail.",
+                      "parent_return_focus": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "parent_action_context": null,
+                      "current_recommendation": null,
+                      "last_visible_task_kind": "explain_platform_destination",
+                      "recommendation_decision": {
+                        "why_primary": "Le besoin principal est de reduire la friction de demarrage sur une action deja identifiee.",
+                        "why_not_others": {
+                          "adjust_plan": "Possible seulement si le mail est en lui-meme mal calibre; ce n'est pas encore etabli.",
+                          "defense_card": "Pas de craquage ou de risque moment dans le message.",
+                          "state_potion": "Pas d'etat emotionnel dominant exprime comme peur, honte ou detresse."
+                        },
+                        "primary_feature": "attack_card",
+                        "secondary_feature": "adjust_plan",
+                        "platform_destination": {
+                          "label": "Ressources",
+                          "surface_hint": "Depuis la mission ou l'habitude puis dans Ressources",
+                          "user_facing_destination": "Consulter ou preparer une carte d'attaque liee au mail."
+                        },
+                        "user_facing_next_step": "Choisir une carte d'attaque pour aider le demarrage du mail, puis la retrouver dans Ressources."
+                      },
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "The user is blocked on a task and explicitly asks whether to use an attack card or modify the action; the plan/action frame is unclear, so the skill should clarify the lever.",
+                        "category": "ambiguous_coaching_need",
+                        "failure_mode": "unclear",
+                        "action_context": {
+                          "source": "ambiguous",
+                          "plan_id": null,
+                          "plan_title": null,
+                          "action_type": "other",
+                          "action_title": null,
+                          "plan_item_id": null
+                        },
+                        "priority_features": [
+                          "attack_card"
+                        ],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-18T16:54:30.129864+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-no-safety-handoff-20260618-r2-t02",
+        "user_id": "00dbab4b-a2c9-4253-85e5-c9ece05aef7d",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-no-safety-handoff-20260618-r2",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Va dans **Dashboard > Plan**, ouvre ta mission ou ton habitude liée au mail, puis cherche l’option pour **préparer/générer une carte d’attaque** si elle est disponible. Une fois fait, tu la retrouves dans **Dashboard > Ressources**, rangée par niveau, pour la consulter. Je ne crée rien depuis le chat.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-no-safety-handoff-20260618-r2-t02",
+              "source_message_id": "2b5182f1-b623-45ac-bde8-8e4ff0733bb6",
+              "user_id": "00dbab4b-a2c9-4253-85e5-c9ece05aef7d",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {
+                "product_help": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "product_help_question"
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "user_asks_where_to_find_or_prepare_feature_in_sophia",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "taxonomy_first",
+                "plan_confidence": 0.79
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "active_coaching_recommendation",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "coaching_recommendation",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "resume_active",
+                "reason_code": "active_coaching_recommendation"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-no-safety-handoff-20260618-r2-t02",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "active_coaching_recommendation",
+              "status": "continue"
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-no-safety-handoff-20260618-r2-t02",
+            "source_message_id": "2b5182f1-b623-45ac-bde8-8e4ff0733bb6",
+            "user_id": "00dbab4b-a2c9-4253-85e5-c9ece05aef7d",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "product_help": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "product_help_question"
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "user_asks_where_to_find_or_prepare_feature_in_sophia",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "taxonomy_first",
+              "plan_confidence": 0.79
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "active_coaching_recommendation",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "coaching_recommendation",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "resume_active",
+              "reason_code": "active_coaching_recommendation"
+            },
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-no-safety-handoff-20260618-r2-t02",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "active_coaching_recommendation",
+            "status": "continue"
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 3,
+      "sent_at": "2026-06-18T16:55:10.089Z",
+      "user": "En fait le brouillon est la, mais je ne sais meme pas quelle decision je dois demander a Camille. La carte d'attaque suffit ou la c'est plutot ajuster l'action ?",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "La carte d’attaque suffit si le blocage, c’est surtout de formuler et envoyer le mail.\n\nSi le vrai problème, c’est que le contenu du mail ou la cible a changé, alors il faut plutôt ajuster l’action.  \nLà, d’après ce que tu dis, je partirais sur carte d’attaque d’abord. 🙂",
+      "trace_short": {
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "route_reason": "coaching_recommendation_exit_to_global",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": null,
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-18T16:53:59.938Z",
+                  "turn_count": 2,
+                  "updated_at": "2026-06-18T16:54:30.121Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user est bloque au demarrage d'un mail concret et repousse l'action des qu'il ouvre le brouillon.",
+                        "user_words": [
+                          "Depuis hier je repousse le mail pour Camille",
+                          "Quand j'ouvre le brouillon, je bloque et je pars faire autre chose",
+                          "Je ne sais pas si je dois preparer une carte d'attaque ou modifier l'action"
+                        ],
+                        "target_kind": "plan_action",
+                        "action_title": "mail pour Camille",
+                        "action_source": "ambiguous"
+                      },
+                      "turn_count": 2,
+                      "cause_analysis": {
+                        "confidence": "high",
+                        "missing_info": [
+                          "Savoir si le mail est mal defini, trop lourd ou simplement penible a demarrer."
+                        ],
+                        "primary_cause": "avoidance",
+                        "why_it_exists": "Le blocage apparait au moment de commencer une action faisable, ce qui ressemble davantage a une evitement ou un launch blocker qu'a un probleme structurel du plan."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user veut savoir où préparer lui-même la carte d'attaque dans Sophia, sans création depuis le chat.",
+                      "candidate_features": [],
+                      "last_answer_summary": "La carte d’attaque reste le bon levier pour préparer l’action en amont et réduire la friction de démarrage sur le mail.",
+                      "parent_return_focus": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "parent_action_context": null,
+                      "current_recommendation": null,
+                      "last_visible_task_kind": "explain_platform_destination",
+                      "recommendation_decision": {
+                        "why_primary": "Le besoin principal est de reduire la friction de demarrage sur une action deja identifiee.",
+                        "why_not_others": {
+                          "adjust_plan": "Possible seulement si le mail est en lui-meme mal calibre; ce n'est pas encore etabli.",
+                          "defense_card": "Pas de craquage ou de risque moment dans le message.",
+                          "state_potion": "Pas d'etat emotionnel dominant exprime comme peur, honte ou detresse."
+                        },
+                        "primary_feature": "attack_card",
+                        "secondary_feature": "adjust_plan",
+                        "platform_destination": {
+                          "label": "Ressources",
+                          "surface_hint": "Depuis la mission ou l'habitude puis dans Ressources",
+                          "user_facing_destination": "Consulter ou preparer une carte d'attaque liee au mail."
+                        },
+                        "user_facing_next_step": "Choisir une carte d'attaque pour aider le demarrage du mail, puis la retrouver dans Ressources."
+                      },
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "The user is blocked on a task and explicitly asks whether to use an attack card or modify the action; the plan/action frame is unclear, so the skill should clarify the lever.",
+                        "category": "ambiguous_coaching_need",
+                        "failure_mode": "unclear",
+                        "action_context": {
+                          "source": "ambiguous",
+                          "plan_id": null,
+                          "plan_title": null,
+                          "action_type": "other",
+                          "action_title": null,
+                          "plan_item_id": null
+                        },
+                        "priority_features": [
+                          "attack_card"
+                        ],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                },
+                "companion_question_rhythm": {
+                  "preference": "normal",
+                  "recent_turns": [
+                    0
+                  ],
+                  "last_updated_at": "2026-06-18T16:55:10.048Z",
+                  "last_turn_had_question": false,
+                  "turns_since_last_question": 1
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-18T16:53:59.938Z",
+                  "turn_count": 2,
+                  "updated_at": "2026-06-18T16:54:30.121Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user est bloque au demarrage d'un mail concret et repousse l'action des qu'il ouvre le brouillon.",
+                        "user_words": [
+                          "Depuis hier je repousse le mail pour Camille",
+                          "Quand j'ouvre le brouillon, je bloque et je pars faire autre chose",
+                          "Je ne sais pas si je dois preparer une carte d'attaque ou modifier l'action"
+                        ],
+                        "target_kind": "plan_action",
+                        "action_title": "mail pour Camille",
+                        "action_source": "ambiguous"
+                      },
+                      "turn_count": 2,
+                      "cause_analysis": {
+                        "confidence": "high",
+                        "missing_info": [
+                          "Savoir si le mail est mal defini, trop lourd ou simplement penible a demarrer."
+                        ],
+                        "primary_cause": "avoidance",
+                        "why_it_exists": "Le blocage apparait au moment de commencer une action faisable, ce qui ressemble davantage a une evitement ou un launch blocker qu'a un probleme structurel du plan."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user veut savoir où préparer lui-même la carte d'attaque dans Sophia, sans création depuis le chat.",
+                      "candidate_features": [],
+                      "last_answer_summary": "La carte d’attaque reste le bon levier pour préparer l’action en amont et réduire la friction de démarrage sur le mail.",
+                      "parent_return_focus": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "parent_action_context": null,
+                      "current_recommendation": null,
+                      "last_visible_task_kind": "explain_platform_destination",
+                      "recommendation_decision": {
+                        "why_primary": "Le besoin principal est de reduire la friction de demarrage sur une action deja identifiee.",
+                        "why_not_others": {
+                          "adjust_plan": "Possible seulement si le mail est en lui-meme mal calibre; ce n'est pas encore etabli.",
+                          "defense_card": "Pas de craquage ou de risque moment dans le message.",
+                          "state_potion": "Pas d'etat emotionnel dominant exprime comme peur, honte ou detresse."
+                        },
+                        "primary_feature": "attack_card",
+                        "secondary_feature": "adjust_plan",
+                        "platform_destination": {
+                          "label": "Ressources",
+                          "surface_hint": "Depuis la mission ou l'habitude puis dans Ressources",
+                          "user_facing_destination": "Consulter ou preparer une carte d'attaque liee au mail."
+                        },
+                        "user_facing_next_step": "Choisir une carte d'attaque pour aider le demarrage du mail, puis la retrouver dans Ressources."
+                      },
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "The user is blocked on a task and explicitly asks whether to use an attack card or modify the action; the plan/action frame is unclear, so the skill should clarify the lever.",
+                        "category": "ambiguous_coaching_need",
+                        "failure_mode": "unclear",
+                        "action_context": {
+                          "source": "ambiguous",
+                          "plan_id": null,
+                          "plan_title": null,
+                          "action_type": "other",
+                          "action_title": null,
+                          "plan_item_id": null
+                        },
+                        "priority_features": [
+                          "attack_card"
+                        ],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-18T16:55:10.057737+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-no-safety-handoff-20260618-r2-t03",
+        "user_id": "00dbab4b-a2c9-4253-85e5-c9ece05aef7d",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-no-safety-handoff-20260618-r2",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "La carte d’attaque suffit si le blocage, c’est surtout de formuler et envoyer le mail.\n\nSi le vrai problème, c’est que le contenu du mail ou la cible a changé, alors il faut plutôt ajuster l’action.  \nLà, d’après ce que tu dis, je partirais sur carte d’attaque d’abord. 🙂",
+          "mode": "companion",
+          "delivery": {
+            "mode": "text_reply"
+          },
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-no-safety-handoff-20260618-r2-t03",
+              "source_message_id": "b5e6f652-ba37-4c34-9628-a23bdce08245",
+              "user_id": "00dbab4b-a2c9-4253-85e5-c9ece05aef7d",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {
+                "coaching_recommendation": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "ambiguous_choice_between_attack_and_adjust_plan_for_plan_action",
+                  "context": {
+                    "category": "ambiguous_coaching_need",
+                    "failure_mode": "unclear",
+                    "action_context": {
+                      "source": "plan",
+                      "plan_item_id": null,
+                      "action_title": "mail pour Camille",
+                      "plan_id": null,
+                      "plan_title": null,
+                      "action_type": "clarification"
+                    },
+                    "emotional_state_context": null,
+                    "priority_features": [
+                      "attack_card"
+                    ],
+                    "reason": "The user is asking which lever to use for a planned action, but the block is about deciding what to ask Camille, not clearly a structural mismatch."
+                  }
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "clarify coaching lever for a planned email decision block",
+                "reasoning_complexity": "low",
+                "context_need": "targeted",
+                "memory_mode": "light",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "small",
+                "targets": [],
+                "retrieval_policy": "taxonomy_first",
+                "plan_confidence": 0.83
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "normal_reply",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "coaching_recommendation_exit_to_global",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "coaching_recommendation",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "resume_active",
+                "reason_code": "active_coaching_recommendation"
+              }
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-no-safety-handoff-20260618-r2-t03",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "normal_reply"
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-no-safety-handoff-20260618-r2-t03",
+            "source_message_id": "b5e6f652-ba37-4c34-9628-a23bdce08245",
+            "user_id": "00dbab4b-a2c9-4253-85e5-c9ece05aef7d",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "coaching_recommendation": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "ambiguous_choice_between_attack_and_adjust_plan_for_plan_action",
+                "context": {
+                  "category": "ambiguous_coaching_need",
+                  "failure_mode": "unclear",
+                  "action_context": {
+                    "source": "plan",
+                    "plan_item_id": null,
+                    "action_title": "mail pour Camille",
+                    "plan_id": null,
+                    "plan_title": null,
+                    "action_type": "clarification"
+                  },
+                  "emotional_state_context": null,
+                  "priority_features": [
+                    "attack_card"
+                  ],
+                  "reason": "The user is asking which lever to use for a planned action, but the block is about deciding what to ask Camille, not clearly a structural mismatch."
+                }
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "clarify coaching lever for a planned email decision block",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [],
+              "retrieval_policy": "taxonomy_first",
+              "plan_confidence": 0.83
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "normal_reply",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "coaching_recommendation_exit_to_global",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "coaching_recommendation",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "resume_active",
+              "reason_code": "active_coaching_recommendation"
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-no-safety-handoff-20260618-r2-t03",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "normal_reply"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 4,
+      "sent_at": "2026-06-18T16:55:41.410Z",
+      "user": "Dans 20 minutes, rappelle-moi de relire ce brouillon, et aide-moi aussi a choisir le tout premier geste pour repartir dessus sans me disperser.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "C'est programmé pour vendredi 22 mai à 10:20: je te ferai un rappel pour relire ce brouillon.\n\nC'est programmé pour vendredi 22 mai à 10:20 : je te ferai un rappel pour relire ce brouillon.\n\nPour repartir sans te disperser, fais juste ça : ouvre le brouillon et relis uniquement la première phrase.",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "active_coaching_recommendation_with_direct_effects",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [
+          "create_one_shot_reminder"
+        ],
+        "direct_effects_to_run": [
+          "create_one_shot_reminder"
+        ],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [
+          "create_one_shot_reminder"
+        ],
+        "tool_execution": "success"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-18T16:53:59.938Z",
+                  "turn_count": 3,
+                  "updated_at": "2026-06-18T16:55:41.331Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user veut relire un brouillon concret et a besoin du tout premier geste pour redemarrer sans dispersion.",
+                        "user_words": [
+                          "Dans 20 minutes, rappelle-moi de relire ce brouillon",
+                          "aide-moi aussi a choisir le tout premier geste pour repartir dessus sans me disperser"
+                        ],
+                        "target_kind": "plan_action",
+                        "action_title": "relire ce brouillon",
+                        "action_source": "ambiguous"
+                      },
+                      "turn_count": 3,
+                      "cause_analysis": {
+                        "confidence": "high",
+                        "missing_info": [
+                          "Savoir si le mail est mal defini, trop lourd ou simplement penible a demarrer."
+                        ],
+                        "primary_cause": "launch_blocker",
+                        "why_it_exists": "Le blocage n'est pas une absence d'intention mais un probleme de démarrage sur une action faisable; un geste d'attaque aide à rendre le premier pas plus simple et moins dispersant."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user veut un rappel ponctuel déjà pris en charge et surtout le tout premier geste pour relire un brouillon sans se disperser.",
+                      "candidate_features": [],
+                      "last_answer_summary": "Le blocage porte sur le démarrage d'une action déjà identifiée; une carte d'attaque sert précisément à préparer le bon geste avant d'ouvrir le brouillon pour réduire la dispersion.",
+                      "parent_return_focus": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "parent_action_context": null,
+                      "current_recommendation": null,
+                      "last_visible_task_kind": "answer_followup",
+                      "recommendation_decision": {
+                        "why_primary": "Le besoin est de préparer le redémarrage sur une action déjà connue, pas de changer le plan.",
+                        "why_not_others": {
+                          "adjust_plan": "Pas d'indice clair que l'action elle-même soit mauvaise ou mal calibrée.",
+                          "defense_card": "Pas un moment de craquage ou de risque immédiat, plutôt un démarrage bloqué.",
+                          "state_potion": "Aucun état émotionnel dominant explicite à traiter en priorité."
+                        },
+                        "primary_feature": "attack_card",
+                        "secondary_feature": "adjust_plan",
+                        "platform_destination": {
+                          "label": "Ressources",
+                          "surface_hint": "Depuis la mission ou l'habitude, puis Ressources",
+                          "user_facing_destination": "Retrouver ou préparer une carte d'attaque liée au brouillon."
+                        },
+                        "user_facing_next_step": "Faire un seul premier geste: ouvrir le brouillon et relire uniquement la première phrase, sans chercher à tout corriger d'un coup."
+                      },
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "The user is blocked on a task and explicitly asks whether to use an attack card or modify the action; the plan/action frame is unclear, so the skill should clarify the lever.",
+                        "category": "ambiguous_coaching_need",
+                        "failure_mode": "unclear",
+                        "action_context": {
+                          "source": "ambiguous",
+                          "plan_id": null,
+                          "plan_title": null,
+                          "action_type": "other",
+                          "action_title": null,
+                          "plan_item_id": null
+                        },
+                        "priority_features": [
+                          "attack_card"
+                        ],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                },
+                "companion_question_rhythm": {
+                  "preference": "normal",
+                  "recent_turns": [
+                    0
+                  ],
+                  "last_updated_at": "2026-06-18T16:55:10.048Z",
+                  "last_turn_had_question": false,
+                  "turns_since_last_question": 1
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-18T16:53:59.938Z",
+                  "turn_count": 3,
+                  "updated_at": "2026-06-18T16:55:41.331Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user veut relire un brouillon concret et a besoin du tout premier geste pour redemarrer sans dispersion.",
+                        "user_words": [
+                          "Dans 20 minutes, rappelle-moi de relire ce brouillon",
+                          "aide-moi aussi a choisir le tout premier geste pour repartir dessus sans me disperser"
+                        ],
+                        "target_kind": "plan_action",
+                        "action_title": "relire ce brouillon",
+                        "action_source": "ambiguous"
+                      },
+                      "turn_count": 3,
+                      "cause_analysis": {
+                        "confidence": "high",
+                        "missing_info": [
+                          "Savoir si le mail est mal defini, trop lourd ou simplement penible a demarrer."
+                        ],
+                        "primary_cause": "launch_blocker",
+                        "why_it_exists": "Le blocage n'est pas une absence d'intention mais un probleme de démarrage sur une action faisable; un geste d'attaque aide à rendre le premier pas plus simple et moins dispersant."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user veut un rappel ponctuel déjà pris en charge et surtout le tout premier geste pour relire un brouillon sans se disperser.",
+                      "candidate_features": [],
+                      "last_answer_summary": "Le blocage porte sur le démarrage d'une action déjà identifiée; une carte d'attaque sert précisément à préparer le bon geste avant d'ouvrir le brouillon pour réduire la dispersion.",
+                      "parent_return_focus": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "parent_action_context": null,
+                      "current_recommendation": null,
+                      "last_visible_task_kind": "answer_followup",
+                      "recommendation_decision": {
+                        "why_primary": "Le besoin est de préparer le redémarrage sur une action déjà connue, pas de changer le plan.",
+                        "why_not_others": {
+                          "adjust_plan": "Pas d'indice clair que l'action elle-même soit mauvaise ou mal calibrée.",
+                          "defense_card": "Pas un moment de craquage ou de risque immédiat, plutôt un démarrage bloqué.",
+                          "state_potion": "Aucun état émotionnel dominant explicite à traiter en priorité."
+                        },
+                        "primary_feature": "attack_card",
+                        "secondary_feature": "adjust_plan",
+                        "platform_destination": {
+                          "label": "Ressources",
+                          "surface_hint": "Depuis la mission ou l'habitude, puis Ressources",
+                          "user_facing_destination": "Retrouver ou préparer une carte d'attaque liée au brouillon."
+                        },
+                        "user_facing_next_step": "Faire un seul premier geste: ouvrir le brouillon et relire uniquement la première phrase, sans chercher à tout corriger d'un coup."
+                      },
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "The user is blocked on a task and explicitly asks whether to use an attack card or modify the action; the plan/action frame is unclear, so the skill should clarify the lever.",
+                        "category": "ambiguous_coaching_need",
+                        "failure_mode": "unclear",
+                        "action_context": {
+                          "source": "ambiguous",
+                          "plan_id": null,
+                          "plan_title": null,
+                          "action_type": "other",
+                          "action_title": null,
+                          "plan_item_id": null
+                        },
+                        "priority_features": [
+                          "attack_card"
+                        ],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-18T16:55:41.343731+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "a0bab7d3-955f-4577-8c5d-b24f3cf8eb85",
+              "status": "pending",
+              "event_context": "one_shot_reminder:relire_ce_brouillon",
+              "draft_message": null,
+              "scheduled_for": "2026-05-22T08:20:00+00:00",
+              "created_at": "2026-06-18T16:55:24.339238+00:00"
+            }
+          ]
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-no-safety-handoff-20260618-r2-t04",
+        "user_id": "00dbab4b-a2c9-4253-85e5-c9ece05aef7d",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-no-safety-handoff-20260618-r2",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "C'est programmé pour vendredi 22 mai à 10:20: je te ferai un rappel pour relire ce brouillon.\n\nC'est programmé pour vendredi 22 mai à 10:20 : je te ferai un rappel pour relire ce brouillon.\n\nPour repartir sans te disperser, fais juste ça : ouvre le brouillon et relis uniquement la première phrase.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "success",
+          "executed_tools": [
+            "create_one_shot_reminder"
+          ],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-no-safety-handoff-20260618-r2-t04",
+              "source_message_id": "2bae4eb7-c6eb-48ad-8478-d7351b0d71cb",
+              "user_id": "00dbab4b-a2c9-4253-85e5-c9ece05aef7d",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [
+                {
+                  "effect_type": "create_one_shot_reminder",
+                  "explicitness": "explicit",
+                  "target_status": "identified",
+                  "confidence_band": "high",
+                  "payload_hint": {
+                    "raw_text": "Dans 20 minutes, rappelle-moi de relire ce brouillon",
+                    "when_hint": "dans 20 minutes",
+                    "instruction_hint": "relire ce brouillon"
+                  }
+                }
+              ],
+              "note_information": null,
+              "skill_signals": {
+                "coaching_recommendation": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "user requests a coaching lever for restarting a blocked task after a reminder clause is extracted",
+                  "context": {
+                    "category": "plan_action_coaching",
+                    "failure_mode": "launch_blocker",
+                    "action_context": {
+                      "source": "ambiguous",
+                      "plan_item_id": null,
+                      "action_title": "relire ce brouillon",
+                      "plan_id": null,
+                      "plan_title": null,
+                      "action_type": "other"
+                    },
+                    "emotional_state_context": null,
+                    "priority_features": [
+                      "attack_card"
+                    ],
+                    "reason": "The main remaining need is to choose the very first gesture to restart without dispersing; for a plan-related launch blocker, attack_card is the priority."
+                  }
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "handle reminder plus first-step coaching for resuming a draft without dispersion",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "force_taxonomy",
+                "plan_confidence": 0.82
+              },
+              "direct_effect_lane": {
+                "selected_handler": "create_one_shot_reminder",
+                "toolExecution": "success",
+                "executedTools": [
+                  "create_one_shot_reminder"
+                ],
+                "requested_effects": [
+                  {
+                    "type": "create_one_shot_reminder",
+                    "scheduled_for": "2026-05-22T08:20:00+00:00",
+                    "local_label": "vendredi 22 mai à 10:20",
+                    "reminder_instruction": "relire ce brouillon",
+                    "reason_code": "payload"
+                  }
+                ],
+                "allowed_effects": [
+                  {
+                    "type": "create_one_shot_reminder",
+                    "scheduled_for": "2026-05-22T08:20:00+00:00",
+                    "local_label": "vendredi 22 mai à 10:20",
+                    "reminder_instruction": "relire ce brouillon",
+                    "reason_code": "payload"
+                  }
+                ],
+                "committed_effects": [
+                  {
+                    "type": "create_one_shot_reminder",
+                    "id": "a0bab7d3-955f-4577-8c5d-b24f3cf8eb85",
+                    "scheduled_for": "2026-05-22T08:20:00+00:00",
+                    "local_label": "vendredi 22 mai à 10:20",
+                    "reminder_instruction": "relire ce brouillon"
+                  }
+                ],
+                "blocked_effects": [],
+                "visible_confirmation_hint": "C'est programmé pour vendredi 22 mai à 10:20: je te ferai un rappel pour relire ce brouillon."
+              },
+              "direct_effect_confirmation_context": {
+                "has_committed_one_shot_reminder": true,
+                "has_requested_one_shot_reminder": true,
+                "confirmation_text": "C'est programmé pour vendredi 22 mai à 10:20: je te ferai un rappel pour relire ce brouillon.",
+                "committed_effects": [
+                  {
+                    "type": "create_one_shot_reminder",
+                    "id": "a0bab7d3-955f-4577-8c5d-b24f3cf8eb85",
+                    "scheduled_for": "2026-05-22T08:20:00+00:00",
+                    "local_label": "vendredi 22 mai à 10:20",
+                    "reminder_instruction": "relire ce brouillon"
+                  }
+                ],
+                "requested_effects": [
+                  {
+                    "type": "create_one_shot_reminder",
+                    "scheduled_for": "2026-05-22T08:20:00+00:00",
+                    "local_label": "vendredi 22 mai à 10:20",
+                    "reminder_instruction": "relire ce brouillon",
+                    "reason_code": "payload"
+                  }
+                ],
+                "blocked_effects": [],
+                "do_not_recreate": true,
+                "do_not_reroute": true,
+                "do_not_redemand": true,
+                "do_not_confirm_without_commit": true,
+                "remaining_user_need_must_continue": true
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [
+                "create_one_shot_reminder"
+              ],
+              "reason_code": "active_coaching_recommendation_with_direct_effects",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "coaching_recommendation",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "resume_active",
+                "reason_code": "active_coaching_recommendation_with_direct_effects"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-no-safety-handoff-20260618-r2-t04",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "active_coaching_recommendation_with_direct_effects",
+              "status": "continue"
+            },
+            "tool_skill_run": {
+              "selected_handler": "create_one_shot_reminder",
+              "status": "success",
+              "reason": "payload",
+              "requested_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "scheduled_for": "2026-05-22T08:20:00+00:00",
+                  "local_label": "vendredi 22 mai à 10:20",
+                  "reminder_instruction": "relire ce brouillon",
+                  "reason_code": "payload"
+                }
+              ],
+              "allowed_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "scheduled_for": "2026-05-22T08:20:00+00:00",
+                  "local_label": "vendredi 22 mai à 10:20",
+                  "reminder_instruction": "relire ce brouillon",
+                  "reason_code": "payload"
+                }
+              ],
+              "committed_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "id": "a0bab7d3-955f-4577-8c5d-b24f3cf8eb85",
+                  "scheduled_for": "2026-05-22T08:20:00+00:00",
+                  "local_label": "vendredi 22 mai à 10:20",
+                  "reminder_instruction": "relire ce brouillon"
+                }
+              ],
+              "blocked_effects": []
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-no-safety-handoff-20260618-r2-t04",
+            "source_message_id": "2bae4eb7-c6eb-48ad-8478-d7351b0d71cb",
+            "user_id": "00dbab4b-a2c9-4253-85e5-c9ece05aef7d",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [
+              {
+                "effect_type": "create_one_shot_reminder",
+                "explicitness": "explicit",
+                "target_status": "identified",
+                "confidence_band": "high",
+                "payload_hint": {
+                  "raw_text": "Dans 20 minutes, rappelle-moi de relire ce brouillon",
+                  "when_hint": "dans 20 minutes",
+                  "instruction_hint": "relire ce brouillon"
+                }
+              }
+            ],
+            "note_information": null,
+            "skill_signals": {
+              "coaching_recommendation": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "user requests a coaching lever for restarting a blocked task after a reminder clause is extracted",
+                "context": {
+                  "category": "plan_action_coaching",
+                  "failure_mode": "launch_blocker",
+                  "action_context": {
+                    "source": "ambiguous",
+                    "plan_item_id": null,
+                    "action_title": "relire ce brouillon",
+                    "plan_id": null,
+                    "plan_title": null,
+                    "action_type": "other"
+                  },
+                  "emotional_state_context": null,
+                  "priority_features": [
+                    "attack_card"
+                  ],
+                  "reason": "The main remaining need is to choose the very first gesture to restart without dispersing; for a plan-related launch blocker, attack_card is the priority."
+                }
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "handle reminder plus first-step coaching for resuming a draft without dispersion",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "force_taxonomy",
+              "plan_confidence": 0.82
+            },
+            "direct_effect_lane": {
+              "selected_handler": "create_one_shot_reminder",
+              "toolExecution": "success",
+              "executedTools": [
+                "create_one_shot_reminder"
+              ],
+              "requested_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "scheduled_for": "2026-05-22T08:20:00+00:00",
+                  "local_label": "vendredi 22 mai à 10:20",
+                  "reminder_instruction": "relire ce brouillon",
+                  "reason_code": "payload"
+                }
+              ],
+              "allowed_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "scheduled_for": "2026-05-22T08:20:00+00:00",
+                  "local_label": "vendredi 22 mai à 10:20",
+                  "reminder_instruction": "relire ce brouillon",
+                  "reason_code": "payload"
+                }
+              ],
+              "committed_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "id": "a0bab7d3-955f-4577-8c5d-b24f3cf8eb85",
+                  "scheduled_for": "2026-05-22T08:20:00+00:00",
+                  "local_label": "vendredi 22 mai à 10:20",
+                  "reminder_instruction": "relire ce brouillon"
+                }
+              ],
+              "blocked_effects": [],
+              "visible_confirmation_hint": "C'est programmé pour vendredi 22 mai à 10:20: je te ferai un rappel pour relire ce brouillon."
+            },
+            "direct_effect_confirmation_context": {
+              "has_committed_one_shot_reminder": true,
+              "has_requested_one_shot_reminder": true,
+              "confirmation_text": "C'est programmé pour vendredi 22 mai à 10:20: je te ferai un rappel pour relire ce brouillon.",
+              "committed_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "id": "a0bab7d3-955f-4577-8c5d-b24f3cf8eb85",
+                  "scheduled_for": "2026-05-22T08:20:00+00:00",
+                  "local_label": "vendredi 22 mai à 10:20",
+                  "reminder_instruction": "relire ce brouillon"
+                }
+              ],
+              "requested_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "scheduled_for": "2026-05-22T08:20:00+00:00",
+                  "local_label": "vendredi 22 mai à 10:20",
+                  "reminder_instruction": "relire ce brouillon",
+                  "reason_code": "payload"
+                }
+              ],
+              "blocked_effects": [],
+              "do_not_recreate": true,
+              "do_not_reroute": true,
+              "do_not_redemand": true,
+              "do_not_confirm_without_commit": true,
+              "remaining_user_need_must_continue": true
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [
+              "create_one_shot_reminder"
+            ],
+            "reason_code": "active_coaching_recommendation_with_direct_effects",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "coaching_recommendation",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "resume_active",
+              "reason_code": "active_coaching_recommendation_with_direct_effects"
+            },
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-no-safety-handoff-20260618-r2-t04",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "active_coaching_recommendation_with_direct_effects",
+            "status": "continue"
+          },
+          "tool_skill_run": {
+            "selected_handler": "create_one_shot_reminder",
+            "status": "success",
+            "reason": "payload",
+            "requested_effects": [
+              {
+                "type": "create_one_shot_reminder",
+                "scheduled_for": "2026-05-22T08:20:00+00:00",
+                "local_label": "vendredi 22 mai à 10:20",
+                "reminder_instruction": "relire ce brouillon",
+                "reason_code": "payload"
+              }
+            ],
+            "allowed_effects": [
+              {
+                "type": "create_one_shot_reminder",
+                "scheduled_for": "2026-05-22T08:20:00+00:00",
+                "local_label": "vendredi 22 mai à 10:20",
+                "reminder_instruction": "relire ce brouillon",
+                "reason_code": "payload"
+              }
+            ],
+            "committed_effects": [
+              {
+                "type": "create_one_shot_reminder",
+                "id": "a0bab7d3-955f-4577-8c5d-b24f3cf8eb85",
+                "scheduled_for": "2026-05-22T08:20:00+00:00",
+                "local_label": "vendredi 22 mai à 10:20",
+                "reminder_instruction": "relire ce brouillon"
+              }
+            ],
+            "blocked_effects": []
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 5,
+      "sent_at": "2026-06-18T16:56:23.760Z",
+      "user": "Ok, donc pour ce cas je garde carte d'attaque tant que l'action est claire, et j'ajuste le plan seulement si la demande a Camille est mal definie, c'est bien ca ?",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Oui, c’est ça. Tant que l’action reste claire, je garde la carte d’attaque. Si la demande à Camille est vraiment mal définie ou mal calibrée, là on regarde l’ajustement du plan.",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "active_coaching_recommendation",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-18T16:53:59.938Z",
+                  "turn_count": 4,
+                  "updated_at": "2026-06-18T16:56:23.715Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user veut relire un brouillon concret et a besoin du tout premier geste pour redemarrer sans dispersion.",
+                        "user_words": [
+                          "Dans 20 minutes, rappelle-moi de relire ce brouillon",
+                          "aide-moi aussi a choisir le tout premier geste pour repartir dessus sans me disperser"
+                        ],
+                        "target_kind": "plan_action",
+                        "action_title": "relire ce brouillon",
+                        "action_source": "ambiguous"
+                      },
+                      "turn_count": 4,
+                      "cause_analysis": {
+                        "confidence": "high",
+                        "missing_info": [
+                          "Savoir si le mail est mal defini, trop lourd ou simplement penible a demarrer."
+                        ],
+                        "primary_cause": "launch_blocker",
+                        "why_it_exists": "Le blocage n'est pas une absence d'intention mais un probleme de démarrage sur une action faisable; un geste d'attaque aide à rendre le premier pas plus simple et moins dispersant."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user veut confirmer le bon levier entre carte d’attaque et ajustement du plan selon que la demande à Camille est encore claire ou devient mal définie.",
+                      "candidate_features": [],
+                      "last_answer_summary": "Oui : tant que l’action reste claire, la carte d’attaque est le bon levier pour préparer le premier geste et démarrer sans dispersion.",
+                      "parent_return_focus": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "parent_action_context": null,
+                      "current_recommendation": null,
+                      "last_visible_task_kind": "answer_followup",
+                      "recommendation_decision": {
+                        "why_primary": "Le besoin est de préparer le redémarrage sur une action déjà connue, pas de changer le plan.",
+                        "why_not_others": {
+                          "adjust_plan": "Pas d'indice clair que l'action elle-même soit mauvaise ou mal calibrée.",
+                          "defense_card": "Pas un moment de craquage ou de risque immédiat, plutôt un démarrage bloqué.",
+                          "state_potion": "Aucun état émotionnel dominant explicite à traiter en priorité."
+                        },
+                        "primary_feature": "attack_card",
+                        "secondary_feature": "adjust_plan",
+                        "platform_destination": {
+                          "label": "Ressources",
+                          "surface_hint": "Depuis la mission ou l'habitude, puis Ressources",
+                          "user_facing_destination": "Retrouver ou préparer une carte d'attaque liée au brouillon."
+                        },
+                        "user_facing_next_step": "Faire un seul premier geste: ouvrir le brouillon et relire uniquement la première phrase, sans chercher à tout corriger d'un coup."
+                      },
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "The user is blocked on a task and explicitly asks whether to use an attack card or modify the action; the plan/action frame is unclear, so the skill should clarify the lever.",
+                        "category": "ambiguous_coaching_need",
+                        "failure_mode": "unclear",
+                        "action_context": {
+                          "source": "ambiguous",
+                          "plan_id": null,
+                          "plan_title": null,
+                          "action_type": "other",
+                          "action_title": null,
+                          "plan_item_id": null
+                        },
+                        "priority_features": [
+                          "attack_card"
+                        ],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                },
+                "companion_question_rhythm": {
+                  "preference": "normal",
+                  "recent_turns": [
+                    0
+                  ],
+                  "last_updated_at": "2026-06-18T16:55:10.048Z",
+                  "last_turn_had_question": false,
+                  "turns_since_last_question": 1
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-18T16:53:59.938Z",
+                  "turn_count": 4,
+                  "updated_at": "2026-06-18T16:56:23.715Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user veut relire un brouillon concret et a besoin du tout premier geste pour redemarrer sans dispersion.",
+                        "user_words": [
+                          "Dans 20 minutes, rappelle-moi de relire ce brouillon",
+                          "aide-moi aussi a choisir le tout premier geste pour repartir dessus sans me disperser"
+                        ],
+                        "target_kind": "plan_action",
+                        "action_title": "relire ce brouillon",
+                        "action_source": "ambiguous"
+                      },
+                      "turn_count": 4,
+                      "cause_analysis": {
+                        "confidence": "high",
+                        "missing_info": [
+                          "Savoir si le mail est mal defini, trop lourd ou simplement penible a demarrer."
+                        ],
+                        "primary_cause": "launch_blocker",
+                        "why_it_exists": "Le blocage n'est pas une absence d'intention mais un probleme de démarrage sur une action faisable; un geste d'attaque aide à rendre le premier pas plus simple et moins dispersant."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user veut confirmer le bon levier entre carte d’attaque et ajustement du plan selon que la demande à Camille est encore claire ou devient mal définie.",
+                      "candidate_features": [],
+                      "last_answer_summary": "Oui : tant que l’action reste claire, la carte d’attaque est le bon levier pour préparer le premier geste et démarrer sans dispersion.",
+                      "parent_return_focus": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "parent_action_context": null,
+                      "current_recommendation": null,
+                      "last_visible_task_kind": "answer_followup",
+                      "recommendation_decision": {
+                        "why_primary": "Le besoin est de préparer le redémarrage sur une action déjà connue, pas de changer le plan.",
+                        "why_not_others": {
+                          "adjust_plan": "Pas d'indice clair que l'action elle-même soit mauvaise ou mal calibrée.",
+                          "defense_card": "Pas un moment de craquage ou de risque immédiat, plutôt un démarrage bloqué.",
+                          "state_potion": "Aucun état émotionnel dominant explicite à traiter en priorité."
+                        },
+                        "primary_feature": "attack_card",
+                        "secondary_feature": "adjust_plan",
+                        "platform_destination": {
+                          "label": "Ressources",
+                          "surface_hint": "Depuis la mission ou l'habitude, puis Ressources",
+                          "user_facing_destination": "Retrouver ou préparer une carte d'attaque liée au brouillon."
+                        },
+                        "user_facing_next_step": "Faire un seul premier geste: ouvrir le brouillon et relire uniquement la première phrase, sans chercher à tout corriger d'un coup."
+                      },
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "The user is blocked on a task and explicitly asks whether to use an attack card or modify the action; the plan/action frame is unclear, so the skill should clarify the lever.",
+                        "category": "ambiguous_coaching_need",
+                        "failure_mode": "unclear",
+                        "action_context": {
+                          "source": "ambiguous",
+                          "plan_id": null,
+                          "plan_title": null,
+                          "action_type": "other",
+                          "action_title": null,
+                          "plan_item_id": null
+                        },
+                        "priority_features": [
+                          "attack_card"
+                        ],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-18T16:56:23.721506+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "a0bab7d3-955f-4577-8c5d-b24f3cf8eb85",
+              "status": "pending",
+              "event_context": "one_shot_reminder:relire_ce_brouillon",
+              "draft_message": null,
+              "scheduled_for": "2026-05-22T08:20:00+00:00",
+              "created_at": "2026-06-18T16:55:24.339238+00:00"
+            }
+          ]
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-no-safety-handoff-20260618-r2-t05",
+        "user_id": "00dbab4b-a2c9-4253-85e5-c9ece05aef7d",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-no-safety-handoff-20260618-r2",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Oui, c’est ça. Tant que l’action reste claire, je garde la carte d’attaque. Si la demande à Camille est vraiment mal définie ou mal calibrée, là on regarde l’ajustement du plan.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-no-safety-handoff-20260618-r2-t05",
+              "source_message_id": "3e917874-d84b-4216-baad-792acd9eb914",
+              "user_id": "00dbab4b-a2c9-4253-85e5-c9ece05aef7d",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {
+                "coaching_recommendation": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "user_is_confirming_coaching_lever_choice_for_a_plan_blockage",
+                  "context": {
+                    "category": "plan_action_coaching",
+                    "failure_mode": "unclear",
+                    "action_context": {
+                      "source": "plan",
+                      "plan_item_id": null,
+                      "action_title": "demande a Camille",
+                      "plan_id": null,
+                      "plan_title": null,
+                      "action_type": "clarification"
+                    },
+                    "emotional_state_context": null,
+                    "priority_features": [
+                      "attack_card",
+                      "adjust_plan"
+                    ],
+                    "reason": "Attack card if the action remains clear; adjust plan only if the request to Camille is structurally unclear or misaligned."
+                  }
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "confirm_coaching_rule_for_plan_blockage",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "force_taxonomy",
+                "plan_confidence": 0.86
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "active_coaching_recommendation",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "coaching_recommendation",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "resume_active",
+                "reason_code": "active_coaching_recommendation"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-no-safety-handoff-20260618-r2-t05",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "active_coaching_recommendation",
+              "status": "continue"
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-no-safety-handoff-20260618-r2-t05",
+            "source_message_id": "3e917874-d84b-4216-baad-792acd9eb914",
+            "user_id": "00dbab4b-a2c9-4253-85e5-c9ece05aef7d",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "coaching_recommendation": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "user_is_confirming_coaching_lever_choice_for_a_plan_blockage",
+                "context": {
+                  "category": "plan_action_coaching",
+                  "failure_mode": "unclear",
+                  "action_context": {
+                    "source": "plan",
+                    "plan_item_id": null,
+                    "action_title": "demande a Camille",
+                    "plan_id": null,
+                    "plan_title": null,
+                    "action_type": "clarification"
+                  },
+                  "emotional_state_context": null,
+                  "priority_features": [
+                    "attack_card",
+                    "adjust_plan"
+                  ],
+                  "reason": "Attack card if the action remains clear; adjust plan only if the request to Camille is structurally unclear or misaligned."
+                }
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "confirm_coaching_rule_for_plan_blockage",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "force_taxonomy",
+              "plan_confidence": 0.86
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "active_coaching_recommendation",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "coaching_recommendation",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "resume_active",
+              "reason_code": "active_coaching_recommendation"
+            },
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-no-safety-handoff-20260618-r2-t05",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "active_coaching_recommendation",
+            "status": "continue"
+          }
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "updated_at": "2026-06-18T16:56:23.771Z",
+  "cleanup": [
+    {
+      "table": "chat_messages",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "scheduled_checkins",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_chat_states",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_memories",
+      "status": 404,
+      "ok": false
+    },
+    {
+      "table": "user_topic_memories",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "memory_items",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "auth.users",
+      "status": 200,
+      "ok": true
+    }
+  ],
+  "cleaned_at": "2026-06-18T16:56:45.187Z"
+}

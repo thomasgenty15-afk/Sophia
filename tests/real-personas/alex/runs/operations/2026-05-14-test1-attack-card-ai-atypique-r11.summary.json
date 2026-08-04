@@ -1,0 +1,532 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-atypique-r11-t01",
+    "status": 200,
+    "ok": true,
+    "user": "fais moi un truc d'attaque pour le machin du soir avec le carnet, j'ai pas d'idée de technique et j'ai pas envie d'un pavé",
+    "assistant": "C'est pour ton sas de déchargement ? Pour éviter le pavé, je te propose : 1. Un Mot de bascule (un mot à m'envoyer si tu bloques), 2. Un Mantra de force (une phrase courte), ou 3. Préparer le terrain. Qu'est-ce qui te tente ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": {
+      "status": "ask_question",
+      "slot_state": {
+        "slot": "technique",
+        "needed": true,
+        "reason": "structured_ai_missing_technique",
+        "status": "missing",
+        "question": "C'est pour ton sas de déchargement ? Pour éviter le pavé, je te propose : 1. Un Mot de bascule (un mot à m'envoyer si tu bloques), 2. Un Mantra de force (une phrase courte), ou 3. Préparer le terrain. Qu'est-ce qui te tente ?",
+        "known_slots": {
+          "target": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "intake_state": {
+            "target": {
+              "kind": "plan_item",
+              "title": "Faire le sas de déchargement",
+              "status": "identified",
+              "evidence": [
+                "machin du soir avec le carnet"
+              ],
+              "confidence": "high",
+              "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+            },
+            "blocker": {
+              "type": "avoidance",
+              "evidence": [
+                "pas envie d'un pavé",
+                "truc d'attaque"
+              ],
+              "confidence": 0.8
+            },
+            "skill_id": "prepare_attack_card",
+            "technique": {
+              "value": null,
+              "status": "ambiguous",
+              "options": [
+                {
+                  "title": "Mot de bascule",
+                  "reason": "C'est l'option la plus courte et directe, sans aucun pavé.",
+                  "example": "Envoyer 'GO' quand tu hésites à ouvrir le carnet.",
+                  "description": "Un mot simple à m'envoyer quand tu sens que tu vas esquiver ton sas.",
+                  "recommended": true,
+                  "technique_key": "pre_engagement"
+                },
+                {
+                  "title": "Mantra de force",
+                  "reason": "Très rapide à utiliser et efficace pour briser la résistance.",
+                  "example": "Une phrase comme 'Je vide, je respire'.",
+                  "description": "Une phrase courte à te répéter pour te mettre dans l'action.",
+                  "recommended": false,
+                  "technique_key": "mantra_force"
+                },
+                {
+                  "title": "Preparer le terrain",
+                  "reason": "Idéal pour réduire la friction sans avoir à réfléchir.",
+                  "example": "Poser le carnet ouvert sur l'oreiller.",
+                  "description": "Un micro-setup pour que le carnet t'appelle visuellement.",
+                  "recommended": false,
+                  "technique_key": "preparer_terrain"
+                }
+              ],
+              "evidence": [
+                "pas d'idée de technique",
+                "pas envie d'un pavé"
+              ],
+              "confidence": "high",
+              "fit_warning": null,
+              "explicitly_requested": false
+            },
+            "confidence": "high",
+            "constraints": [
+              "no_long_text"
+            ],
+            "current_step": "technique_selection",
+            "missing_slots": [
+              "technique"
+            ],
+            "activation_keyword": {
+              "value": null,
+              "status": "missing",
+              "options": [],
+              "evidence": [],
+              "confidence": "low",
+              "rejected_value": null
+            },
+            "generated_user_message": "C'est pour ton sas de déchargement ? Pour éviter le pavé, je te propose : 1. Un Mot de bascule (un mot à m'envoyer si tu bloques), 2. Un Mantra de force (une phrase courte), ou 3. Préparer le terrain. Qu'est-ce qui te tente ?"
+          },
+          "technique_options": [
+            {
+              "title": "Mot de bascule",
+              "reason": "C'est l'option la plus courte et directe, sans aucun pavé.",
+              "example": "Envoyer 'GO' quand tu hésites à ouvrir le carnet.",
+              "description": "Un mot simple à m'envoyer quand tu sens que tu vas esquiver ton sas.",
+              "recommended": true,
+              "technique_key": "pre_engagement"
+            },
+            {
+              "title": "Mantra de force",
+              "reason": "Très rapide à utiliser et efficace pour briser la résistance.",
+              "example": "Une phrase comme 'Je vide, je respire'.",
+              "description": "Une phrase courte à te répéter pour te mettre dans l'action.",
+              "recommended": false,
+              "technique_key": "mantra_force"
+            },
+            {
+              "title": "Preparer le terrain",
+              "reason": "Idéal pour réduire la friction sans avoir à réfléchir.",
+              "example": "Poser le carnet ouvert sur l'oreiller.",
+              "description": "Un micro-setup pour que le carnet t'appelle visuellement.",
+              "recommended": false,
+              "technique_key": "preparer_terrain"
+            }
+          ]
+        },
+        "technique_options": [
+          {
+            "title": "Mot de bascule",
+            "reason": "C'est l'option la plus courte et directe, sans aucun pavé.",
+            "example": "Envoyer 'GO' quand tu hésites à ouvrir le carnet.",
+            "description": "Un mot simple à m'envoyer quand tu sens que tu vas esquiver ton sas.",
+            "recommended": true,
+            "technique_key": "pre_engagement"
+          },
+          {
+            "title": "Mantra de force",
+            "reason": "Très rapide à utiliser et efficace pour briser la résistance.",
+            "example": "Une phrase comme 'Je vide, je respire'.",
+            "description": "Une phrase courte à te répéter pour te mettre dans l'action.",
+            "recommended": false,
+            "technique_key": "mantra_force"
+          },
+          {
+            "title": "Preparer le terrain",
+            "reason": "Idéal pour réduire la friction sans avoir à réfléchir.",
+            "example": "Poser le carnet ouvert sur l'oreiller.",
+            "description": "Un micro-setup pour que le carnet t'appelle visuellement.",
+            "recommended": false,
+            "technique_key": "preparer_terrain"
+          }
+        ],
+        "activation_keyword_options": []
+      },
+      "reason_code": "tool_skill_intent_start",
+      "missing_slots": [
+        "technique"
+      ],
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-atypique-r11-t02",
+    "status": 200,
+    "ok": true,
+    "user": "mot de bascule. propose un mot mais pas un truc nul",
+    "assistant": "Ça marche pour le Mot de bascule. Pour ton sas, je te propose : OFF, VIDE ou RESET. Lequel te parle le plus ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_flow_run": {
+      "status": "ask_question",
+      "slot_state": {
+        "slot": "activation_keyword",
+        "needed": true,
+        "reason": "structured_ai_missing_activation_keyword",
+        "status": "missing",
+        "question": "Ça marche pour le Mot de bascule. Pour ton sas, je te propose : OFF, VIDE ou RESET. Lequel te parle le plus ?",
+        "known_slots": {
+          "target": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "technique": "pre_engagement",
+          "intake_state": {
+            "target": {
+              "kind": "plan_item",
+              "title": "Faire le sas de déchargement",
+              "status": "identified",
+              "evidence": [
+                "structured_operation_input"
+              ],
+              "confidence": "high",
+              "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+            },
+            "blocker": {
+              "type": "avoidance",
+              "evidence": [
+                "pas envie d'un pavé",
+                "truc d'attaque"
+              ],
+              "confidence": 0.8
+            },
+            "skill_id": "prepare_attack_card",
+            "technique": {
+              "value": "pre_engagement",
+              "status": "identified",
+              "options": [
+                {
+                  "title": "Mot de bascule",
+                  "reason": "C'est l'option la plus courte et directe, sans aucun pavé.",
+                  "example": "Envoyer 'GO' quand tu hésites à ouvrir le carnet.",
+                  "description": "Un mot simple à m'envoyer quand tu sens que tu vas esquiver ton sas.",
+                  "recommended": true,
+                  "technique_key": "pre_engagement"
+                }
+              ],
+              "evidence": [
+                "mot de bascule"
+              ],
+              "confidence": "high",
+              "fit_warning": null,
+              "explicitly_requested": true
+            },
+            "confidence": "high",
+            "constraints": [
+              "no_long_text"
+            ],
+            "current_step": "keyword_intake",
+            "missing_slots": [
+              "activation_keyword"
+            ],
+            "activation_keyword": {
+              "value": null,
+              "status": "missing",
+              "options": [
+                "OFF",
+                "VIDE",
+                "RESET"
+              ],
+              "evidence": [
+                "propose un mot mais pas un truc nul"
+              ],
+              "confidence": "medium",
+              "rejected_value": null
+            },
+            "generated_user_message": "Ça marche pour le Mot de bascule. Pour ton sas, je te propose : OFF, VIDE ou RESET. Lequel te parle le plus ?"
+          },
+          "technique_options": [
+            {
+              "title": "Mot de bascule",
+              "reason": "C'est l'option la plus courte et directe, sans aucun pavé.",
+              "example": "Envoyer 'GO' quand tu hésites à ouvrir le carnet.",
+              "description": "Un mot simple à m'envoyer quand tu sens que tu vas esquiver ton sas.",
+              "recommended": true,
+              "technique_key": "pre_engagement"
+            }
+          ],
+          "activation_keyword_options": [
+            "OFF",
+            "VIDE",
+            "RESET"
+          ]
+        },
+        "technique_options": [
+          {
+            "title": "Mot de bascule",
+            "reason": "C'est l'option la plus courte et directe, sans aucun pavé.",
+            "example": "Envoyer 'GO' quand tu hésites à ouvrir le carnet.",
+            "description": "Un mot simple à m'envoyer quand tu sens que tu vas esquiver ton sas.",
+            "recommended": true,
+            "technique_key": "pre_engagement"
+          }
+        ],
+        "activation_keyword_options": [
+          "OFF",
+          "VIDE",
+          "RESET"
+        ]
+      },
+      "reason_code": "active_tool_skill_continue",
+      "missing_slots": [
+        "activation_keyword"
+      ],
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-atypique-r11-t03",
+    "status": 200,
+    "ok": true,
+    "user": "stop",
+    "assistant": "Tu veux utiliser 'STOP' comme mot de bascule, ou tu préfères qu'on s'arrête là ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_flow_run": {
+      "status": "ask_question",
+      "slot_state": {
+        "slot": "activation_keyword",
+        "needed": true,
+        "reason": "structured_ai_missing_activation_keyword",
+        "status": "missing",
+        "question": "Tu veux utiliser 'STOP' comme mot de bascule, ou tu préfères qu'on s'arrête là ?",
+        "known_slots": {
+          "target": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "technique": "pre_engagement",
+          "intake_state": {
+            "target": {
+              "kind": "plan_item",
+              "title": "Faire le sas de déchargement",
+              "status": "identified",
+              "evidence": [
+                "structured_operation_input"
+              ],
+              "confidence": "high",
+              "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+            },
+            "blocker": {
+              "type": "avoidance",
+              "evidence": [
+                "L'utilisateur interrompt le flux avec 'stop', signe d'évitement ou de frustration."
+              ],
+              "confidence": 0.9
+            },
+            "skill_id": "prepare_attack_card",
+            "technique": {
+              "value": "pre_engagement",
+              "status": "identified",
+              "options": [],
+              "evidence": [
+                "mot de bascule"
+              ],
+              "confidence": "high",
+              "fit_warning": null,
+              "explicitly_requested": true
+            },
+            "confidence": "high",
+            "constraints": [
+              "no_long_text"
+            ],
+            "current_step": "keyword_intake",
+            "missing_slots": [
+              "activation_keyword"
+            ],
+            "activation_keyword": {
+              "value": null,
+              "status": "ambiguous",
+              "options": [
+                "OFF",
+                "VIDE",
+                "RESET"
+              ],
+              "evidence": [
+                "L'utilisateur a répondu 'stop' suite à la proposition de mots-clés."
+              ],
+              "confidence": "low",
+              "rejected_value": null
+            },
+            "generated_user_message": "Tu veux utiliser 'STOP' comme mot de bascule, ou tu préfères qu'on s'arrête là ?"
+          },
+          "activation_keyword_options": [
+            "OFF",
+            "VIDE",
+            "RESET"
+          ]
+        },
+        "technique_options": [],
+        "activation_keyword_options": [
+          "OFF",
+          "VIDE",
+          "RESET"
+        ]
+      },
+      "reason_code": "active_tool_skill_continue",
+      "missing_slots": [
+        "activation_keyword"
+      ],
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-atypique-r11-t04",
+    "status": 200,
+    "ok": true,
+    "user": "oui stop comme mot",
+    "assistant": "Sas de déchargement : Le Mot de Bascule\nTechnique : Mot de bascule\nMot-clé : STOP\nEnvoie ce mot dès que tu sens que tu vas esquiver ton sas.\nOn valide ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "title": "Sas de déchargement : Le Mot de Bascule",
+          "technique": "pre_engagement",
+          "instruction": "Envoie 'STOP' dès que tu sens une hésitation à faire ton sas.",
+          "mode_emploi": "Envoie ce mot dès que tu sens que tu vas esquiver ton sas.",
+          "target_label": "Faire le sas de déchargement",
+          "why_it_helps": "Le mot de bascule court-circuite l'évitement en créant un engagement externe immédiat.",
+          "generated_asset": "STOP",
+          "technique_title": "Mot de bascule",
+          "supporting_points": [
+            "Coupe court à la négociation mentale.",
+            "Signal immédiat pour Sophia.",
+            "Engagement instantané."
+          ],
+          "activation_keyword": "STOP"
+        },
+        "output_schema": "attack_card_draft_v1",
+        "operation_type": "prepare_attack_card",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Sas de déchargement : Le Mot de Bascule\nTechnique : Mot de bascule\nMot-clé : STOP\nEnvoie ce mot dès que tu sens que tu vas esquiver ton sas.\nOn valide ?"
+      },
+      "status": "pending_confirmation",
+      "reason_code": "active_tool_skill_continue",
+      "operation_id": "8af29dea-985d-42a0-9bcd-5d34a32338cd",
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "trace_error": null
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-atypique-r11-t05",
+    "status": 200,
+    "ok": true,
+    "user": "vas-y",
+    "assistant": "C'est fait. J'ai créé cette carte d'attaque :\n\nSas de déchargement : Le Mot de Bascule\nTechnique : Mot de bascule\nSTOP\n\nMode d'emploi : Envoie ce mot dès que tu sens que tu vas esquiver ton sas.\n\nTu peux la retrouver dans Ressources > Cartes d'attaque du plan pour la relire et l'utiliser. Si c'est une carte Mot de bascule, le mot peut etre remplace depuis cette zone; pour changer le contexte, la technique ou le contenu, je peux preparer une nouvelle carte apres confirmation.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "prepare_attack_card"
+    ],
+    "response_owner": "pending_confirmation",
+    "selected_handler": "execute_confirmed",
+    "route_reason_code": "confirmation_yes",
+    "operation_flow_run": {
+      "status": "executed",
+      "reason_code": "confirmation_yes",
+      "operation_id": "8af29dea-985d-42a0-9bcd-5d34a32338cd",
+      "attack_card_id": "be812fdf-5dec-434b-a84b-955b8f95b163",
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "trace_error": null
+  },
+  {
+    "turn": 6,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-atypique-r11-t06",
+    "status": 200,
+    "ok": true,
+    "user": "STOP",
+    "assistant": "Ok, j'arrête là. Je ne crée rien d'autre.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "operation_flow_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "trace_error": null
+  },
+  {
+    "turn": 7,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-atypique-r11-t07",
+    "status": 200,
+    "ok": true,
+    "user": "STOP",
+    "assistant": "Ok. On coupe la négociation maintenant.\nPremier geste: Faire le sas de déchargement, juste 1 minute.\nPas besoin de finir; il faut juste lancer.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "operation_flow_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "trace_error": null
+  }
+]

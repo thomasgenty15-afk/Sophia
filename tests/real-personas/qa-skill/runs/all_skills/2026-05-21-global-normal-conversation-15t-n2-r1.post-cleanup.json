@@ -1,0 +1,128 @@
+{
+  "cleanup": [
+    {
+      "table": "memory_item_sources",
+      "query": "user_id=eq.2aae123e-cef2-4c5e-9aef-7a7c276a6ac7",
+      "ok": true,
+      "status": 204,
+      "body": null
+    },
+    {
+      "table": "memory_item_entities",
+      "query": "user_id=eq.2aae123e-cef2-4c5e-9aef-7a7c276a6ac7",
+      "ok": true,
+      "status": 204,
+      "body": null
+    },
+    {
+      "table": "memory_item_topics",
+      "query": "user_id=eq.2aae123e-cef2-4c5e-9aef-7a7c276a6ac7",
+      "ok": true,
+      "status": 204,
+      "body": null
+    },
+    {
+      "table": "memory_item_actions",
+      "query": "user_id=eq.2aae123e-cef2-4c5e-9aef-7a7c276a6ac7",
+      "ok": true,
+      "status": 204,
+      "body": null
+    },
+    {
+      "table": "memory_items",
+      "query": "user_id=eq.2aae123e-cef2-4c5e-9aef-7a7c276a6ac7",
+      "ok": true,
+      "status": 204,
+      "body": null
+    },
+    {
+      "table": "user_topic_memories",
+      "query": "user_id=eq.2aae123e-cef2-4c5e-9aef-7a7c276a6ac7",
+      "ok": true,
+      "status": 204,
+      "body": null
+    },
+    {
+      "table": "user_defense_wins",
+      "query": "user_id=eq.2aae123e-cef2-4c5e-9aef-7a7c276a6ac7",
+      "ok": false,
+      "status": 400,
+      "body": {
+        "code": "42703",
+        "details": null,
+        "hint": null,
+        "message": "column user_defense_wins.user_id does not exist"
+      }
+    },
+    {
+      "table": "user_defense_cards",
+      "query": "user_id=eq.2aae123e-cef2-4c5e-9aef-7a7c276a6ac7",
+      "ok": true,
+      "status": 204,
+      "body": null
+    },
+    {
+      "table": "user_attack_cards",
+      "query": "user_id=eq.2aae123e-cef2-4c5e-9aef-7a7c276a6ac7",
+      "ok": true,
+      "status": 204,
+      "body": null
+    },
+    {
+      "table": "user_profile_facts",
+      "query": "user_id=eq.2aae123e-cef2-4c5e-9aef-7a7c276a6ac7",
+      "ok": true,
+      "status": 204,
+      "body": null
+    },
+    {
+      "table": "scheduled_checkins",
+      "query": "user_id=eq.2aae123e-cef2-4c5e-9aef-7a7c276a6ac7",
+      "ok": true,
+      "status": 204,
+      "body": null
+    },
+    {
+      "table": "chat_messages",
+      "query": "user_id=eq.2aae123e-cef2-4c5e-9aef-7a7c276a6ac7&scope=eq.qa-global-normal-conversation-15t-20260521-n2-r1",
+      "ok": true,
+      "status": 204,
+      "body": null
+    },
+    {
+      "table": "conversation_turn_traces",
+      "query": "user_id=eq.2aae123e-cef2-4c5e-9aef-7a7c276a6ac7",
+      "ok": true,
+      "status": 204,
+      "body": null
+    },
+    {
+      "table": "user_chat_states",
+      "query": "user_id=eq.2aae123e-cef2-4c5e-9aef-7a7c276a6ac7&scope=eq.qa-global-normal-conversation-15t-20260521-n2-r1",
+      "ok": true,
+      "status": 204,
+      "body": null
+    },
+    {
+      "table": "auth.users",
+      "user_id": "2aae123e-cef2-4c5e-9aef-7a7c276a6ac7",
+      "ok": true,
+      "status": 200,
+      "body": {}
+    }
+  ],
+  "post": {
+    "scheduled_checkins": [],
+    "user_attack_cards": [],
+    "user_defense_cards": [],
+    "user_defense_wins": {
+      "code": "42703",
+      "details": null,
+      "hint": null,
+      "message": "column user_defense_wins.user_id does not exist"
+    },
+    "user_profile_facts": [],
+    "trace_count": null,
+    "chat_message_count": 0
+  }
+}

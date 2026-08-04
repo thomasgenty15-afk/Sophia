@@ -1,0 +1,251 @@
+[
+  {
+    "potion": "courage",
+    "user_id": "2ca63112-3abb-48fb-a781-21ed35f2d82c",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r37_hard2_courage_courage",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [
+        {
+          "id": "d7c14f6c-73ab-43cf-b80f-c466ad42690e",
+          "potion_type": "courage",
+          "status": "completed",
+          "source": "system",
+          "scope_kind": "out_of_plan",
+          "cycle_id": "ff1bdd35-aeaa-4e98-8c54-e66986c104ab",
+          "transformation_id": null,
+          "content": {
+            "title": "Potion de courage",
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Envoyer le message difficile",
+              "evidence": [
+                "C'est pour parler a mon associe. Je dois envoyer une premiere phrase",
+                "Envoyer le message difficile"
+              ],
+              "recurrence_hint": "hebdomadaire le jeudi",
+              "date_or_window_hint": "jeudi à 09:00",
+              "target_plan_item_id": "73272ff8-ef3d-4275-ba98-86922941a858",
+              "related_plan_item_id": "73272ff8-ef3d-4275-ba98-86922941a858",
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "operation_draft": {
+              "title": "Potion de courage",
+              "follow_up": {
+                "duration_days": 7,
+                "schedule_plan": {
+                  "mode": "daily_series",
+                  "reason": "Un soutien quotidien aide à ne pas laisser l'évitement s'installer avant le jour J.",
+                  "local_dates": [],
+                  "duration_days": 7,
+                  "scheduled_days": [],
+                  "local_time_hhmm": "08:30",
+                  "timing_relation": "daily"
+                },
+                "local_time_hhmm": "08:30",
+                "reason_for_time": "Pour te donner un élan de douceur juste avant l'heure prévue de ton action.",
+                "reminder_instruction": "Un message doux pour encourager l'envoi du message à l'associé en dépassant la peur du conflit."
+              },
+              "potion_type": "courage",
+              "opening_prompt": "Qu'est-ce qui te pèse le plus dans l'idée d'envoyer ce message à ton associé ?",
+              "target_binding": {
+                "kind": "plan_item",
+                "label": "Envoyer le message difficile",
+                "evidence": [
+                  "C'est pour parler a mon associe. Je dois envoyer une premiere phrase",
+                  "Envoyer le message difficile"
+                ],
+                "recurrence_hint": "hebdomadaire le jeudi",
+                "date_or_window_hint": "jeudi à 09:00",
+                "target_plan_item_id": "73272ff8-ef3d-4275-ba98-86922941a858",
+                "related_plan_item_id": "73272ff8-ef3d-4275-ba98-86922941a858",
+                "target_action_family_key": null,
+                "target_generated_temp_id": null
+              },
+              "why_this_potion": "Pour t'aider à dépasser la peur du conflit et l'appréhension d'être jugé 'lourd' par ton associé.",
+              "expected_duration": "short",
+              "potion_info_message": "Je vais t'envoyer un soutien quotidien pour t'aider à traverser cette appréhension et envoyer cette première phrase avec plus de sérénité.",
+              "instant_support_message": "C'est tout à fait normal de sentir cette résistance quand on craint le conflit ou le jugement. On va juste chercher à poser un geste simple, sans forcer la porte."
+            },
+            "why_this_potion": "Pour t'aider à dépasser la peur du conflit et l'appréhension d'être jugé 'lourd' par ton associé.",
+            "potion_info_message": "Je vais t'envoyer un soutien quotidien pour t'aider à traverser cette appréhension et envoyer cette première phrase avec plus de sérénité.",
+            "instant_support_message": "C'est tout à fait normal de sentir cette résistance quand on craint le conflit ou le jugement. On va juste chercher à poser un geste simple, sans forcer la porte."
+          },
+          "follow_up_strategy": {
+            "duration_days": 7,
+            "schedule_plan": {
+              "mode": "daily_series",
+              "reason": "Un soutien quotidien aide à ne pas laisser l'évitement s'installer avant le jour J.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [],
+              "local_time_hhmm": "08:30",
+              "timing_relation": "daily"
+            },
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Envoyer le message difficile",
+              "evidence": [
+                "C'est pour parler a mon associe. Je dois envoyer une premiere phrase",
+                "Envoyer le message difficile"
+              ],
+              "recurrence_hint": "hebdomadaire le jeudi",
+              "date_or_window_hint": "jeudi à 09:00",
+              "target_plan_item_id": "73272ff8-ef3d-4275-ba98-86922941a858",
+              "related_plan_item_id": "73272ff8-ef3d-4275-ba98-86922941a858",
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "local_time_hhmm": "08:30",
+            "reason_for_time": "Pour te donner un élan de douceur juste avant l'heure prévue de ton action.",
+            "reminder_instruction": "Un message doux pour encourager l'envoi du message à l'associé en dépassant la peur du conflit."
+          },
+          "metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r37_hard2_courage-courage-t06-a1",
+            "operation_id": "9490a178-0572-4415-bd48-f098a1419131",
+            "operation_type": "select_state_potion",
+            "source_message_id": "73581fd3-10be-427b-a066-fadb75888094"
+          },
+          "generated_at": "2026-05-21T14:50:55.225+00:00",
+          "last_updated_at": "2026-05-21T14:50:55.225+00:00"
+        }
+      ],
+      "reminders": [
+        {
+          "id": "7b0c228a-930c-4c30-bbe3-c41e46607f6f",
+          "message_instruction": "Un message doux pour encourager l'envoi du message à l'associé en dépassant la peur du conflit.",
+          "rationale": "Un soutien quotidien aide à ne pas laisser l'évitement s'installer avant le jour J.",
+          "local_time_hhmm": "08:30",
+          "scheduled_days": [
+            "fri",
+            "sat",
+            "sun",
+            "mon",
+            "tue",
+            "wed",
+            "thu"
+          ],
+          "status": "active",
+          "initiative_kind": "potion_follow_up",
+          "source_kind": "potion_generated",
+          "source_potion_session_id": "d7c14f6c-73ab-43cf-b80f-c466ad42690e",
+          "initiative_metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r37_hard2_courage-courage-t06-a1",
+            "operation_id": "9490a178-0572-4415-bd48-f098a1419131",
+            "schedule_plan": {
+              "mode": "daily_series",
+              "reason": "Un soutien quotidien aide à ne pas laisser l'évitement s'installer avant le jour J.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [],
+              "local_time_hhmm": "08:30",
+              "timing_relation": "daily"
+            },
+            "operation_type": "select_state_potion",
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Envoyer le message difficile",
+              "evidence": [
+                "C'est pour parler a mon associe. Je dois envoyer une premiere phrase",
+                "Envoyer le message difficile"
+              ],
+              "recurrence_hint": "hebdomadaire le jeudi",
+              "date_or_window_hint": "jeudi à 09:00",
+              "target_plan_item_id": "73272ff8-ef3d-4275-ba98-86922941a858",
+              "related_plan_item_id": "73272ff8-ef3d-4275-ba98-86922941a858",
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            }
+          },
+          "target_kind": "plan_item",
+          "target_plan_item_id": "73272ff8-ef3d-4275-ba98-86922941a858",
+          "target_action_family_key": null,
+          "target_binding_policy": "live_action",
+          "target_lifecycle_policy": "while_target_active",
+          "starts_at": "2026-05-21T14:50:55.225+00:00",
+          "created_at": "2026-05-21T14:50:55.238076+00:00",
+          "updated_at": "2026-05-21T14:50:55.238076+00:00"
+        }
+      ],
+      "checkins": [
+        {
+          "id": "7845ed96-bc0f-406e-b209-6f266e191d54",
+          "recurring_reminder_id": "7b0c228a-930c-4c30-bbe3-c41e46607f6f",
+          "event_context": "recurring_reminder:7b0c228a-930c-4c30-bbe3-c41e46607f6f:potion:d7c14f6c-73ab-43cf-b80f-c466ad42690e:2026-05-22",
+          "draft_message": "Un message doux pour encourager l'envoi du message à l'associé en dépassant la peur du conflit.",
+          "scheduled_for": "2026-05-22T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:50:55.245633+00:00"
+        },
+        {
+          "id": "1687e29a-f29c-4cf5-a09b-133af17aa1be",
+          "recurring_reminder_id": "7b0c228a-930c-4c30-bbe3-c41e46607f6f",
+          "event_context": "recurring_reminder:7b0c228a-930c-4c30-bbe3-c41e46607f6f:potion:d7c14f6c-73ab-43cf-b80f-c466ad42690e:2026-05-23",
+          "draft_message": "Un message doux pour encourager l'envoi du message à l'associé en dépassant la peur du conflit.",
+          "scheduled_for": "2026-05-23T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:50:55.245633+00:00"
+        },
+        {
+          "id": "171ed7c9-2c33-401c-be1b-a7e71a069eaa",
+          "recurring_reminder_id": "7b0c228a-930c-4c30-bbe3-c41e46607f6f",
+          "event_context": "recurring_reminder:7b0c228a-930c-4c30-bbe3-c41e46607f6f:potion:d7c14f6c-73ab-43cf-b80f-c466ad42690e:2026-05-24",
+          "draft_message": "Un message doux pour encourager l'envoi du message à l'associé en dépassant la peur du conflit.",
+          "scheduled_for": "2026-05-24T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:50:55.245633+00:00"
+        },
+        {
+          "id": "7d44b68f-4684-4ac2-8c0a-080e5d542498",
+          "recurring_reminder_id": "7b0c228a-930c-4c30-bbe3-c41e46607f6f",
+          "event_context": "recurring_reminder:7b0c228a-930c-4c30-bbe3-c41e46607f6f:potion:d7c14f6c-73ab-43cf-b80f-c466ad42690e:2026-05-25",
+          "draft_message": "Un message doux pour encourager l'envoi du message à l'associé en dépassant la peur du conflit.",
+          "scheduled_for": "2026-05-25T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:50:55.245633+00:00"
+        },
+        {
+          "id": "2bf60219-91d5-496d-ac1d-bcc17d86449a",
+          "recurring_reminder_id": "7b0c228a-930c-4c30-bbe3-c41e46607f6f",
+          "event_context": "recurring_reminder:7b0c228a-930c-4c30-bbe3-c41e46607f6f:potion:d7c14f6c-73ab-43cf-b80f-c466ad42690e:2026-05-26",
+          "draft_message": "Un message doux pour encourager l'envoi du message à l'associé en dépassant la peur du conflit.",
+          "scheduled_for": "2026-05-26T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:50:55.245633+00:00"
+        },
+        {
+          "id": "477411f8-8e6e-4d49-bc32-953aa757aed4",
+          "recurring_reminder_id": "7b0c228a-930c-4c30-bbe3-c41e46607f6f",
+          "event_context": "recurring_reminder:7b0c228a-930c-4c30-bbe3-c41e46607f6f:potion:d7c14f6c-73ab-43cf-b80f-c466ad42690e:2026-05-27",
+          "draft_message": "Un message doux pour encourager l'envoi du message à l'associé en dépassant la peur du conflit.",
+          "scheduled_for": "2026-05-27T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:50:55.245633+00:00"
+        },
+        {
+          "id": "e78a2c4f-641e-4156-a7dc-9c4bffaef25d",
+          "recurring_reminder_id": "7b0c228a-930c-4c30-bbe3-c41e46607f6f",
+          "event_context": "recurring_reminder:7b0c228a-930c-4c30-bbe3-c41e46607f6f:potion:d7c14f6c-73ab-43cf-b80f-c466ad42690e:2026-05-28",
+          "draft_message": "Un message doux pour encourager l'envoi du message à l'associé en dépassant la peur du conflit.",
+          "scheduled_for": "2026-05-28T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:50:55.245633+00:00"
+        }
+      ]
+    }
+  }
+]

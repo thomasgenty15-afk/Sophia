@@ -1,0 +1,553 @@
+{
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "cee80ac7-fb04-4f78-9578-572bc8120908",
+        "role": "user",
+        "content": "Je repousse un message important depuis une semaine. Ce n'est pas que la tâche est floue: je sais quoi écrire, mais je bloque parce que j'ai peur du regard et du conflit possible.",
+        "scope": "qa-demotivation-repair-2026-06-15-demotivation-bridge-courage-r1",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-2026-06-15-demotivation-bridge-courage-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-15T13:47:34.334227+00:00"
+      },
+      {
+        "id": "7f68991f-fbf5-4426-874e-cb60733702b9",
+        "role": "assistant",
+        "content": "Oh je te comprends… quand tu sais exactement quoi écrire mais que ton corps/ton cerveau te met en alerte “regard + conflit”, ça ne ressemble pas à de la paresse, ça ressemble à une protection. 😕🛡️  \nEt du coup, le vrai blocage n’est pas la tâche : c’est le risque perçu (être jugé, provoquer une tension, perdre le contrôle de la réaction de l’autre).\n\nLà, l’objectif c’est de rendre le “début” plus sûr que le “c’est important”. Par exemple (sans forcer, juste pour te donner une porte) :\n- écrire une version “sans réponse” : juste factuelle, courte, neutre, comme une note de travail\n- ou viser un format qui réduit le conflit : une proposition + un choix (“si tu es d’accord, on fait X ; sinon on ajuste”)\n- ou commencer par une phrase qui désamorce : “Je voulais te partager ceci…” / “Je comprends que ça puisse surprendre…”\n\nSi tu veux qu’on rende ça concret : quel est le message en une phrase (le sujet) et à qui tu l’envoies ? ✍️",
+        "scope": "qa-demotivation-repair-2026-06-15-demotivation-bridge-courage-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-2026-06-15-demotivation-bridge-courage-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-15T13:47:54.12877+00:00"
+      },
+      {
+        "id": "d1bfdd9e-fc09-4447-8c19-61491532c87c",
+        "role": "user",
+        "content": "Le message tient en une phrase, mais je ne veux pas le rédiger maintenant. Le vrai sujet, c'est que cette peur du regard me fait décrocher de tout mon plan: je perds l'élan dès qu'il y a un passage inconfortable à franchir.",
+        "scope": "qa-demotivation-repair-2026-06-15-demotivation-bridge-courage-r1",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-2026-06-15-demotivation-bridge-courage-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-15T13:48:05.578391+00:00"
+      },
+      {
+        "id": "9a9dac99-d03d-4435-8a98-f497129287db",
+        "role": "assistant",
+        "content": "Je comprends, c'est frustrant de sentir que cette peur bloque tout ton élan. Est-ce que tu veux qu'on ajuste ton plan pour le rendre plus abordable ?",
+        "scope": "qa-demotivation-repair-2026-06-15-demotivation-bridge-courage-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-2026-06-15-demotivation-bridge-courage-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "local_verification_flow",
+              "status": "waiting_confirmation",
+              "skill_id": "flow_opportunity_verification",
+              "flow_action": "offer_opportunity",
+              "reason_code": "flow_opportunity_verification_offer_opportunity",
+              "target_flow": "adjust_plan_item",
+              "visible_task": {
+                "kind": "offer_target_flow_generic",
+                "conversation_context": {
+                  "do_not_say": [
+                    "Ne dis pas que le flow cible a deja execute quoi que ce soit.",
+                    "Ne mentionne pas JSON, dispatcher, reducer, DB ou outil interne.",
+                    "Ne mentionne pas JSON, dispatcher, reducer, DB, table ou outil interne.",
+                    "Ne dis pas qu'une mutation est faite sans commit du flow cible.",
+                    "Ne rends pas product_help ou status_recap a la place du flow cible."
+                  ],
+                  "user_words": [
+                    "Le message tient en une phrase, mais je ne veux pas le rédiger maintenant. Le vrai sujet, c'est que cette peur du regard me fait décrocher de tout mon plan: je perds l'élan dès qu'il y a un passage inconfortable à franchir."
+                  ],
+                  "handoff_data": {
+                    "anchor_summary": "accept tool_skill target_flow adjust_plan_item",
+                    "target_context": {
+                      "surface": "plan_adjustment",
+                      "target_hint": "tout mon plan"
+                    },
+                    "target_dispatcher": "adjust_plan_item"
+                  },
+                  "known_values": {
+                    "target_flow": "adjust_plan_item",
+                    "target_kind": "tool_skill",
+                    "opportunity_id": "plan_adjustment.fear_of_judgment_impact",
+                    "target_context": {
+                      "surface": "plan_adjustment",
+                      "target_hint": "tout mon plan"
+                    },
+                    "confirmation_anchor": null
+                  },
+                  "evidence_used": [
+                    "cette peur du regard me fait décrocher de tout mon plan",
+                    "je perds l'élan dès qu'il y a un passage inconfortable à franchir"
+                  ],
+                  "state_summary": "Verification opportunity selected for adjust_plan_item.",
+                  "field_or_stage": "offer_target_flow_generic",
+                  "context_summary": "surface=plan_adjustment; hint=tout mon plan",
+                  "tone_constraints": [
+                    "court",
+                    "naturel"
+                  ],
+                  "selected_candidate": {
+                    "reason": "Le user signale que la peur du regard le fait décrocher de tout son plan, suggérant un besoin d'ajustement structurel ou de simplification de la charge.",
+                    "target_flow": "adjust_plan_item",
+                    "target_kind": "tool_skill",
+                    "opportunity_id": "plan_adjustment.fear_of_judgment_impact"
+                  },
+                  "missing_or_weak_values": []
+                }
+              },
+              "executedTools": [],
+              "runtime_trace": [
+                {
+                  "event": "local_state_created",
+                  "component": "flow_opportunity_verification",
+                  "db_context_pack_loaded": true,
+                  "note_information_consumed": {
+                    "confidence": "high",
+                    "handoff_reason": "bridge",
+                    "source_flow_id": "global_dispatcher",
+                    "target_dispatcher": "demotivation_repair",
+                    "has_note_information": true
+                  },
+                  "micro_memory_context_loaded": false,
+                  "global_dispatcher_skipped_due_active_flow": false
+                },
+                {
+                  "event": "local_dispatcher_result",
+                  "component": "flow_opportunity_verification",
+                  "risk_score": 0,
+                  "flow_action": "offer_opportunity",
+                  "visible_task_kind": "offer_target_flow_generic",
+                  "note_information_created": {
+                    "confidence": null,
+                    "handoff_reason": null,
+                    "source_flow_id": null,
+                    "target_dispatcher": null,
+                    "has_note_information": false
+                  }
+                },
+                {
+                  "event": "write_blocked_no_mutation_owner",
+                  "component": "flow_opportunity_verification",
+                  "no_db_write": true
+                }
+              ],
+              "toolExecution": "none",
+              "prompt_version": "flow_opportunity_verification_local_dispatcher_v1_2026_06_08",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "local_flow_state": {
+                "mode": "local_verification_flow",
+                "origin": {
+                  "evidence": [
+                    "cette peur du regard me fait décrocher de tout mon plan",
+                    "je perds l'élan dès qu'il y a un passage inconfortable à franchir"
+                  ],
+                  "created_at": "2026-06-15T13:48:29.990Z",
+                  "user_message": "Le message tient en une phrase, mais je ne veux pas le rédiger maintenant. Le vrai sujet, c'est que cette peur du regard me fait décrocher de tout mon plan: je perds l'élan dès qu'il y a un passage inconfortable à franchir."
+                },
+                "status": "waiting_confirmation",
+                "skill_id": "flow_opportunity_verification",
+                "max_turns": 6,
+                "created_at": "2026-06-15T13:48:29.990Z",
+                "turn_count": 1,
+                "updated_at": "2026-06-15T13:48:29.990Z",
+                "target_flow": "adjust_plan_item",
+                "target_kind": "tool_skill",
+                "target_action": "run_adjust_plan_item",
+                "opportunity_id": "plan_adjustment.fear_of_judgment_impact",
+                "target_context": {
+                  "surface": "plan_adjustment",
+                  "target_hint": "tout mon plan"
+                },
+                "subskill_history": [],
+                "confirmation_anchor": {
+                  "meaning": "accept tool_skill target_flow adjust_plan_item",
+                  "target_flow": "adjust_plan_item",
+                  "target_kind": "tool_skill",
+                  "target_context": {
+                    "surface": "plan_adjustment",
+                    "target_hint": "tout mon plan"
+                  },
+                  "must_not_reinterpret_acceptance_as": [
+                    "product_help",
+                    "normal_reply",
+                    "prepare_attack_card",
+                    "prepare_defense_card"
+                  ]
+                },
+                "recent_user_messages": [
+                  "Le message tient en une phrase, mais je ne veux pas le rédiger maintenant. Le vrai sujet, c'est que cette peur du regard me fait décrocher de tout mon plan: je perds l'élan dès qu'il y a un passage inconfortable à franchir."
+                ]
+              },
+              "note_information": null,
+              "selected_handler": "flow_opportunity_verification",
+              "committed_effects": [],
+              "requested_effects": [],
+              "target_flow_input": {
+                "focus": [],
+                "surface": "plan_adjustment",
+                "seed_context": {
+                  "surface": "plan_adjustment",
+                  "target_hint": "tout mon plan"
+                },
+                "origin_evidence": [
+                  "cette peur du regard me fait décrocher de tout mon plan",
+                  "je perds l'élan dès qu'il y a un passage inconfortable à franchir"
+                ]
+              },
+              "operation_suggestions": [],
+              "db_context_pack_loaded": true,
+              "note_information_inbound": {
+                "confidence": "high",
+                "user_words": [
+                  "je ne veux pas le rédiger maintenant",
+                  "cette peur du regard me fait décrocher de tout mon plan",
+                  "je perds l'élan dès qu'il y a un passage inconfortable"
+                ],
+                "handoff_reason": "bridge",
+                "source_flow_id": "global_dispatcher",
+                "target_dispatcher": "demotivation_repair",
+                "structured_context": {
+                  "evidence": [
+                    "décrocher de tout mon plan",
+                    "perds l'élan"
+                  ],
+                  "target_flow": "demotivation_repair",
+                  "target_kind": "skill",
+                  "confidence_band": "high",
+                  "primary_signal_path": "skill_signals.entry.demotivation_repair",
+                  "recommended_next_focus": "Traiter la perte d'élan et le mécanisme d'évitement lié à l'inconfort avant de proposer un ajustement de plan ou une carte."
+                },
+                "handoff_context_for_next_dispatcher": "L'utilisateur refuse de rédiger le message maintenant et identifie un problème plus large : la peur du regard qui paralyse tout son plan. Prioriser la réparation de la démotivation et le lien entre inconfort et décrochage."
+              },
+              "micro_memory_context_loaded": false
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-15T13:48:33.342816+00:00"
+      },
+      {
+        "id": "3d62dc0d-ad2c-497a-855c-ef9550e32e5b",
+        "role": "user",
+        "content": "Non, pas ajuster le plan. Je veux garder le plan tel quel et retrouver un appui pour traverser la peur de franchir ce passage, parce que sinon je vais encore abandonner dès que ça demande du courage.",
+        "scope": "qa-demotivation-repair-2026-06-15-demotivation-bridge-courage-r1",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-2026-06-15-demotivation-bridge-courage-r1-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-15T13:48:49.318082+00:00"
+      },
+      {
+        "id": "2ea703ea-eeb3-45ba-9194-e32a50822d07",
+        "role": "assistant",
+        "content": "Il me manque le moment exact pour programmer ce rappel.\n\nC'est courageux de vouloir affronter cette peur sans reculer sur tes objectifs. Je suis là pour t'épauler et t'aider à garder le cap. Pour que je puisse t'envoyer un message de soutien au moment opportun, quand est-ce que tu en auras le plus besoin ?",
+        "scope": "qa-demotivation-repair-2026-06-15-demotivation-bridge-courage-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-2026-06-15-demotivation-bridge-courage-r1-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "local_verification_flow",
+              "status": "waiting_confirmation",
+              "skill_id": "flow_opportunity_verification",
+              "flow_action": "correct_target_flow",
+              "reason_code": "flow_opportunity_verification_correct_target_flow",
+              "target_flow": "emotional_repair",
+              "visible_task": {
+                "kind": "offer_emotional_repair",
+                "conversation_context": {
+                  "do_not_say": [
+                    "Ne mentionne pas JSON, dispatcher, reducer, DB ou outil interne.",
+                    "Ne mentionne pas JSON, dispatcher, reducer, DB, table ou outil interne.",
+                    "Ne dis pas qu'une mutation est faite sans commit du flow cible.",
+                    "Ne rends pas product_help ou status_recap a la place du flow cible."
+                  ],
+                  "user_words": [
+                    "Non, pas ajuster le plan",
+                    "traverser la peur",
+                    "courage"
+                  ],
+                  "handoff_data": {
+                    "anchor_summary": "accept tool_skill target_flow adjust_plan_item",
+                    "target_context": {
+                      "focus": "fear_of_judgment",
+                      "surface": "emotional_support",
+                      "user_need": "overcome fear to avoid abandoning the plan",
+                      "target_hint": "tout mon plan",
+                      "emotional_trigger": "fear of judgment/discomfort"
+                    },
+                    "target_dispatcher": "emotional_repair"
+                  },
+                  "known_values": {
+                    "intent": "keep plan, handle fear",
+                    "target_flow": "emotional_repair",
+                    "target_kind": "skill",
+                    "opportunity_id": "emotional_repair.fear_of_judgment",
+                    "target_context": {
+                      "focus": "fear_of_judgment",
+                      "surface": "emotional_support",
+                      "user_need": "overcome fear to avoid abandoning the plan",
+                      "target_hint": "tout mon plan",
+                      "emotional_trigger": "fear of judgment/discomfort"
+                    },
+                    "confirmation_anchor": {
+                      "meaning": "accept tool_skill target_flow adjust_plan_item",
+                      "target_flow": "adjust_plan_item",
+                      "target_kind": "tool_skill",
+                      "target_context": {
+                        "surface": "plan_adjustment",
+                        "target_hint": "tout mon plan"
+                      },
+                      "must_not_reinterpret_acceptance_as": [
+                        "product_help",
+                        "normal_reply",
+                        "prepare_attack_card",
+                        "prepare_defense_card"
+                      ]
+                    }
+                  },
+                  "evidence_used": [
+                    "Non, pas ajuster le plan",
+                    "retrouver un appui pour traverser la peur"
+                  ],
+                  "state_summary": "User rejected plan adjustment; they want to keep the plan but need emotional support to face fear and stay committed.",
+                  "field_or_stage": "offer_emotional_repair",
+                  "context_summary": "The user is not looking to change their plan but to find the strength to execute it despite the fear of judgment.",
+                  "tone_constraints": [
+                    "empathique",
+                    "validant",
+                    "encourageant"
+                  ],
+                  "selected_candidate": {
+                    "target_flow": "emotional_repair"
+                  },
+                  "missing_or_weak_values": []
+                }
+              },
+              "executedTools": [],
+              "runtime_trace": [
+                {
+                  "event": "local_dispatcher_called",
+                  "component": "flow_opportunity_verification",
+                  "db_context_pack_loaded": true,
+                  "note_information_consumed": {
+                    "confidence": null,
+                    "handoff_reason": null,
+                    "source_flow_id": null,
+                    "target_dispatcher": null,
+                    "has_note_information": false
+                  },
+                  "micro_memory_context_loaded": false,
+                  "global_dispatcher_skipped_due_active_flow": true
+                },
+                {
+                  "event": "local_dispatcher_result",
+                  "component": "flow_opportunity_verification",
+                  "risk_score": 0,
+                  "flow_action": "correct_target_flow",
+                  "visible_task_kind": "offer_emotional_repair",
+                  "note_information_created": {
+                    "confidence": null,
+                    "handoff_reason": null,
+                    "source_flow_id": null,
+                    "target_dispatcher": null,
+                    "has_note_information": false
+                  }
+                },
+                {
+                  "event": "write_blocked_no_mutation_owner",
+                  "component": "flow_opportunity_verification",
+                  "no_db_write": true
+                }
+              ],
+              "toolExecution": "none",
+              "prompt_version": "flow_opportunity_verification_local_dispatcher_v1_2026_06_08",
+              "allowed_effects": [],
+              "blocked_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "reason_code": "missing_time"
+                }
+              ],
+              "local_flow_state": {
+                "mode": "local_verification_flow",
+                "origin": {
+                  "evidence": [
+                    "cette peur du regard me fait décrocher de tout mon plan",
+                    "je perds l'élan dès qu'il y a un passage inconfortable à franchir"
+                  ],
+                  "created_at": "2026-06-15T13:48:29.990Z",
+                  "user_message": "Le message tient en une phrase, mais je ne veux pas le rédiger maintenant. Le vrai sujet, c'est que cette peur du regard me fait décrocher de tout mon plan: je perds l'élan dès qu'il y a un passage inconfortable à franchir."
+                },
+                "status": "waiting_confirmation",
+                "skill_id": "flow_opportunity_verification",
+                "max_turns": 6,
+                "created_at": "2026-06-15T13:48:29.990Z",
+                "turn_count": 2,
+                "updated_at": "2026-06-15T13:49:02.264Z",
+                "target_flow": "emotional_repair",
+                "target_kind": "skill",
+                "target_action": "run_emotional_repair",
+                "opportunity_id": "emotional_repair.fear_of_judgment",
+                "target_context": {
+                  "focus": "fear_of_judgment",
+                  "surface": "emotional_support",
+                  "user_need": "overcome fear to avoid abandoning the plan",
+                  "target_hint": "tout mon plan",
+                  "emotional_trigger": "fear of judgment/discomfort"
+                },
+                "subskill_history": [],
+                "confirmation_anchor": {
+                  "meaning": "accept tool_skill target_flow adjust_plan_item",
+                  "target_flow": "adjust_plan_item",
+                  "target_kind": "tool_skill",
+                  "target_context": {
+                    "surface": "plan_adjustment",
+                    "target_hint": "tout mon plan"
+                  },
+                  "must_not_reinterpret_acceptance_as": [
+                    "product_help",
+                    "normal_reply",
+                    "prepare_attack_card",
+                    "prepare_defense_card"
+                  ]
+                },
+                "recent_user_messages": [
+                  "Le message tient en une phrase, mais je ne veux pas le rédiger maintenant. Le vrai sujet, c'est que cette peur du regard me fait décrocher de tout mon plan: je perds l'élan dès qu'il y a un passage inconfortable à franchir.",
+                  "Non, pas ajuster le plan. Je veux garder le plan tel quel et retrouver un appui pour traverser la peur de franchir ce passage, parce que sinon je vais encore abandonner dès que ça demande du courage."
+                ]
+              },
+              "note_information": null,
+              "selected_handler": "flow_opportunity_verification",
+              "committed_effects": [],
+              "requested_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "reason_code": "needs_clarify"
+                }
+              ],
+              "target_flow_input": {
+                "focus": [
+                  "fear of judgment",
+                  "courage to act",
+                  "maintaining commitment"
+                ],
+                "surface": "emotional_support",
+                "seed_context": {
+                  "user_need": "overcome fear to avoid abandoning the plan",
+                  "emotional_trigger": "fear of judgment/discomfort"
+                },
+                "origin_evidence": [
+                  "retrouver un appui pour traverser la peur",
+                  "sinon je vais encore abandonner dès que ça demande du courage"
+                ]
+              },
+              "direct_effect_lane": {
+                "reason": "needs_clarify",
+                "status": "needs_clarify",
+                "executedTools": [],
+                "toolExecution": "blocked",
+                "allowed_effects": [],
+                "blocked_effects": [
+                  {
+                    "type": "create_one_shot_reminder",
+                    "reason_code": "missing_time"
+                  }
+                ],
+                "selected_handler": "create_one_shot_reminder",
+                "committed_effects": [],
+                "requested_effects": [
+                  {
+                    "type": "create_one_shot_reminder",
+                    "reason_code": "needs_clarify"
+                  }
+                ]
+              },
+              "operation_suggestions": [],
+              "db_context_pack_loaded": true,
+              "note_information_inbound": null,
+              "micro_memory_context_loaded": false
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-15T13:49:06.363679+00:00"
+      }
+    ]
+  },
+  "memory_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "scheduled_checkins": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_recurring_reminders": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  }
+}

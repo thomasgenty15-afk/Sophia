@@ -1,0 +1,12 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-demotivation-repair-2026-06-12-select-state-potion-prompt-rules-r2-t01",
+    "auth_method": "refresh_token",
+    "user": "J'aimerais une potion d'état, mais je ne sais pas trop laquelle. Depuis mon échec de vendredi, je me parle hyper durement et j'ai besoin d'arrêter de m'écraser.",
+    "status": 502,
+    "body": {
+      "message": "An invalid response was received from the upstream server"
+    }
+  }
+]

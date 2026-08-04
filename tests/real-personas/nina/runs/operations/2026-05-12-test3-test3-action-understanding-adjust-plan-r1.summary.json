@@ -1,0 +1,49 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-action-understanding-adjust-plan-r1-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je me demande si on devrait alléger nettoyer mon environnement direct. Pas forcément changer tout le plan, mais cette action me paraît lourde. Avant de toucher quoi que ce soit, tu proposerais quoi ?",
+    "assistant": "C'est tout à fait possible d'alléger cette mission. Pour la rendre moins lourde, on peut soit réduire son périmètre (par exemple, se limiter à un seul placard stratégique), soit la transformer en une version 'mini' de 5 minutes chrono. Qu'est-ce qui te semblerait le plus simple pour toi ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "status": "ask_question",
+      "reason_code": "tool_skill_intent_start",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "draft_generation_confirmation"
+      ],
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-action-understanding-adjust-plan-r1-t01",
+    "trace_error": null
+  }
+]

@@ -1,0 +1,914 @@
+{
+  "user_defense_cards": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "4d8c29cb-d246-4eac-8818-1e7b99142edf",
+        "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+        "status": "active",
+        "source": "system",
+        "scope_kind": "transformation",
+        "transformation_id": null,
+        "cycle_id": "14c636ab-a639-47f6-afa1-a8733a80f625",
+        "content": {
+          "impulses": [
+            {
+              "label": "Vérifier le téléphone",
+              "triggers": [
+                {
+                  "label": "Faire le sas de déchargement",
+                  "plan_b": "Si telephone en main, le poser dans l'entree sans ouvrir d'appli, puis fermer le carnet.",
+                  "signal": "Si je ne regarde pas maintenant, je vais oublier un truc important",
+                  "situation": "Fin du sas de déchargement",
+                  "trigger_id": "5a9907e1-35f8-430a-b0ca-4beae2b7de6b",
+                  "illustration": null,
+                  "defense_response": "Ecrire une ligne max dans le carnet, puis poser le telephone dans l'entree.",
+                  "difficulty_preview": "Casse l'automatisme de consultation immédiate en éloignant l'objet."
+                }
+              ],
+              "impulse_id": "434af741-75f9-499f-9203-ebc6cf2b9d46",
+              "generic_defense": "Poser le téléphone."
+            }
+          ],
+          "difficulty_map_summary": null
+        },
+        "metadata": {
+          "draft": {
+            "draft": {
+              "title": "Faire le sas de déchargement",
+              "plan_b": "Si telephone en main, le poser dans l'entree sans ouvrir d'appli, puis fermer le carnet.",
+              "signal": "Si je ne regarde pas maintenant, je vais oublier un truc important",
+              "trigger": "Si je ne regarde pas maintenant, je vais oublier un truc important",
+              "situation": "Fin du sas de déchargement",
+              "target_label": "Faire le sas de déchargement",
+              "why_it_helps": "Casse l'automatisme de consultation immédiate en éloignant l'objet.",
+              "fallback_plan": "Si telephone en main, le poser dans l'entree sans ouvrir d'appli, puis fermer le carnet.",
+              "impulse_label": "Vérifier le téléphone",
+              "risk_situation": "Fin du sas de déchargement",
+              "generic_defense": "Poser le téléphone.",
+              "defense_response": "Ecrire une ligne max dans le carnet, puis poser le telephone dans l'entree."
+            },
+            "output_schema": "defense_card_draft_v1",
+            "operation_type": "prepare_defense_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Voici ta carte de défense :\nLe moment : Fin du sas de déchargement\nLe piège : Si je ne regarde pas maintenant, je vais oublier un truc important\nMon geste : Ecrire une ligne max dans le carnet, puis poser le telephone dans l'entree.\nPlan B : Si telephone en main, le poser dans l'entree sans ouvrir d'appli, puis fermer le carnet.\nOn valide ?"
+          },
+          "source": "sophia_brain_tool_skill",
+          "attachment": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "request_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-plan-action-r4-t08",
+          "operation_id": "66c5f624-f71f-4235-9836-9ab6c8124e0b",
+          "operation_type": "prepare_defense_card",
+          "risk_situation": {
+            "label": "Fin du sas de déchargement",
+            "description": "Le moment où le carnet est fermé et le téléphone à portée.",
+            "timing_hint": "immédiatement après le sas",
+            "context_hint": null
+          },
+          "source_message_id": "7c99e2a3-44c8-4d56-8a86-90de9062cbae"
+        },
+        "generated_at": "2026-05-15T17:51:57.23+00:00",
+        "last_updated_at": "2026-05-15T17:51:57.23+00:00"
+      },
+      {
+        "id": "b204897d-a245-464e-8f33-e234c6498242",
+        "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+        "status": "active",
+        "source": "system",
+        "scope_kind": "transformation",
+        "transformation_id": null,
+        "cycle_id": "14c636ab-a639-47f6-afa1-a8733a80f625",
+        "content": {
+          "title": "Sas de déchargement : Fin de session",
+          "trigger": "Peur d'avoir oublié un détail important.",
+          "techniques": [
+            {
+              "technique_key": "operation_defense_card",
+              "generated_result": {
+                "title": "Sas de déchargement : Fin de session",
+                "trigger": "Peur d'avoir oublié un détail important.",
+                "target_label": "Faire le sas de déchargement",
+                "why_it_helps": "Cela coupe les notifications et rend l'écran invisible, brisant le cycle de l'impulsion.",
+                "fallback_plan": "Prendre une grande inspiration et s'éloigner 1 minute.",
+                "risk_situation": "Au moment de fermer le carnet, l'envie de reprendre le téléphone surgit.",
+                "defense_response": "Je mets le téléphone en mode avion et je le pose écran contre table."
+              }
+            }
+          ],
+          "target_label": "Faire le sas de déchargement",
+          "why_it_helps": "Cela coupe les notifications et rend l'écran invisible, brisant le cycle de l'impulsion.",
+          "fallback_plan": "Prendre une grande inspiration et s'éloigner 1 minute.",
+          "risk_situation": "Au moment de fermer le carnet, l'envie de reprendre le téléphone surgit.",
+          "operation_draft": {
+            "title": "Sas de déchargement : Fin de session",
+            "trigger": "Peur d'avoir oublié un détail important.",
+            "target_label": "Faire le sas de déchargement",
+            "why_it_helps": "Cela coupe les notifications et rend l'écran invisible, brisant le cycle de l'impulsion.",
+            "fallback_plan": "Prendre une grande inspiration et s'éloigner 1 minute.",
+            "risk_situation": "Au moment de fermer le carnet, l'envie de reprendre le téléphone surgit.",
+            "defense_response": "Je mets le téléphone en mode avion et je le pose écran contre table."
+          },
+          "defense_response": "Je mets le téléphone en mode avion et je le pose écran contre table."
+        },
+        "metadata": {
+          "draft": {
+            "draft": {
+              "title": "Sas de déchargement : Fin de session",
+              "trigger": "Peur d'avoir oublié un détail important.",
+              "target_label": "Faire le sas de déchargement",
+              "why_it_helps": "Cela coupe les notifications et rend l'écran invisible, brisant le cycle de l'impulsion.",
+              "fallback_plan": "Prendre une grande inspiration et s'éloigner 1 minute.",
+              "risk_situation": "Au moment de fermer le carnet, l'envie de reprendre le téléphone surgit.",
+              "defense_response": "Je mets le téléphone en mode avion et je le pose écran contre table."
+            },
+            "output_schema": "defense_card_draft_v1",
+            "operation_type": "prepare_defense_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Voici ta carte de défense :\n\n🎯 Cible : Faire le sas de déchargement\n⚠️ Risque : Reprendre le téléphone par peur d'un oubli\n🛡️ Action : Je mets le téléphone en mode avion et je le pose écran contre table.\n\nOn valide cette version ?"
+          },
+          "source": "sophia_brain_tool_skill",
+          "attachment": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-15-defense-real-hard-t04",
+          "operation_id": "f5e7dcb7-b85a-4a25-956e-f48e3c224907",
+          "operation_type": "prepare_defense_card",
+          "risk_situation": {
+            "label": "Fermeture du carnet",
+            "description": "Reprendre le téléphone immédiatement après avoir fini de noter ses pensées par peur d'avoir oublié un détail.",
+            "timing_hint": "Fin du sas de déchargement",
+            "context_hint": "Juste après avoir fermé le carnet"
+          },
+          "source_message_id": "794b5aec-69f4-4b61-b54d-57c7cb20406c"
+        },
+        "generated_at": "2026-05-15T10:22:53.498+00:00",
+        "last_updated_at": "2026-05-15T10:22:53.498+00:00"
+      },
+      {
+        "id": "ae26fc60-9381-4960-8129-2ad4c85c3bc2",
+        "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+        "status": "active",
+        "source": "system",
+        "scope_kind": "transformation",
+        "transformation_id": null,
+        "cycle_id": "14c636ab-a639-47f6-afa1-a8733a80f625",
+        "content": {
+          "title": "Le piège des '2 minutes'",
+          "trigger": "La pensée : 'Allez, juste deux minutes de téléphone'.",
+          "techniques": [
+            {
+              "technique_key": "operation_defense_card",
+              "generated_result": {
+                "title": "Le piège des '2 minutes'",
+                "trigger": "La pensée : 'Allez, juste deux minutes de téléphone'.",
+                "target_label": "Faire le sas de déchargement",
+                "why_it_helps": "Cela casse l'automatisme et protège ton sommeil en évitant la stimulation visuelle.",
+                "fallback_plan": "Si j'ai déjà le téléphone en main, je lance un minuteur de 1 minute pour le poser immédiatement.",
+                "risk_situation": "Après le carnet, la tentation de regarder le téléphone 'juste deux minutes'.",
+                "defense_response": "Dès que je ferme mon carnet, je branche mon téléphone dans une autre pièce sans l'allumer."
+              }
+            }
+          ],
+          "target_label": "Faire le sas de déchargement",
+          "why_it_helps": "Cela casse l'automatisme et protège ton sommeil en évitant la stimulation visuelle.",
+          "fallback_plan": "Si j'ai déjà le téléphone en main, je lance un minuteur de 1 minute pour le poser immédiatement.",
+          "risk_situation": "Après le carnet, la tentation de regarder le téléphone 'juste deux minutes'.",
+          "operation_draft": {
+            "title": "Le piège des '2 minutes'",
+            "trigger": "La pensée : 'Allez, juste deux minutes de téléphone'.",
+            "target_label": "Faire le sas de déchargement",
+            "why_it_helps": "Cela casse l'automatisme et protège ton sommeil en évitant la stimulation visuelle.",
+            "fallback_plan": "Si j'ai déjà le téléphone en main, je lance un minuteur de 1 minute pour le poser immédiatement.",
+            "risk_situation": "Après le carnet, la tentation de regarder le téléphone 'juste deux minutes'.",
+            "defense_response": "Dès que je ferme mon carnet, je branche mon téléphone dans une autre pièce sans l'allumer."
+          },
+          "defense_response": "Dès que je ferme mon carnet, je branche mon téléphone dans une autre pièce sans l'allumer."
+        },
+        "metadata": {
+          "draft": {
+            "draft": {
+              "title": "Le piège des '2 minutes'",
+              "trigger": "La pensée : 'Allez, juste deux minutes de téléphone'.",
+              "target_label": "Faire le sas de déchargement",
+              "why_it_helps": "Cela casse l'automatisme et protège ton sommeil en évitant la stimulation visuelle.",
+              "fallback_plan": "Si j'ai déjà le téléphone en main, je lance un minuteur de 1 minute pour le poser immédiatement.",
+              "risk_situation": "Après le carnet, la tentation de regarder le téléphone 'juste deux minutes'.",
+              "defense_response": "Dès que je ferme mon carnet, je branche mon téléphone dans une autre pièce sans l'allumer."
+            },
+            "output_schema": "defense_card_draft_v1",
+            "operation_type": "prepare_defense_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Voici ton filet de sécurité :\n\n🚩 Risque : Juste 2 min de téléphone après le carnet.\n🛡️ Action : Dès que je ferme mon carnet, je branche mon téléphone dans une autre pièce sans l'allumer.\n💡 Pourquoi : Pour casser l'automatisme et protéger ton calme.\n\nOn valide cette carte ?"
+          },
+          "source": "sophia_brain_tool_skill",
+          "attachment": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-15-defense-real-medium-t02",
+          "operation_id": "a53203ee-e8a0-42ec-b27a-28f4f30e77e7",
+          "operation_type": "prepare_defense_card",
+          "risk_situation": {
+            "label": "Le piège du 'juste deux minutes' après le sas",
+            "description": "L'utilisateur finit son carnet de déchargement mais replonge dans son téléphone par automatisme ou tentation.",
+            "timing_hint": "Le soir, immédiatement après le rituel du carnet",
+            "context_hint": "Fin de journée, transition vers le sommeil"
+          },
+          "source_message_id": "adca663b-1e38-47f7-b126-f0403e37f1cb"
+        },
+        "generated_at": "2026-05-15T10:21:13.249+00:00",
+        "last_updated_at": "2026-05-15T10:21:13.249+00:00"
+      },
+      {
+        "id": "c75d96f6-abd4-4451-ac4d-a7d175469da6",
+        "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+        "status": "active",
+        "source": "system",
+        "scope_kind": "transformation",
+        "transformation_id": null,
+        "cycle_id": "14c636ab-a639-47f6-afa1-a8733a80f625",
+        "content": {
+          "title": "Protection du Sas du Soir",
+          "trigger": "Impulsion de vérifier une dernière info ou notification.",
+          "techniques": [
+            {
+              "technique_key": "operation_defense_card",
+              "generated_result": {
+                "title": "Protection du Sas du Soir",
+                "trigger": "Impulsion de vérifier une dernière info ou notification.",
+                "target_label": "Faire le sas de déchargement",
+                "why_it_helps": "Cela brise le cycle de la dopamine et protège ton endormissement.",
+                "fallback_plan": "Ouvrir un livre papier ou boire un verre d'eau.",
+                "risk_situation": "Rallumer le téléphone juste après avoir fermé le carnet.",
+                "defense_response": "Je pose immédiatement mon téléphone dans une autre pièce et je ferme les yeux 1 minute."
+              }
+            }
+          ],
+          "target_label": "Faire le sas de déchargement",
+          "why_it_helps": "Cela brise le cycle de la dopamine et protège ton endormissement.",
+          "fallback_plan": "Ouvrir un livre papier ou boire un verre d'eau.",
+          "risk_situation": "Rallumer le téléphone juste après avoir fermé le carnet.",
+          "operation_draft": {
+            "title": "Protection du Sas du Soir",
+            "trigger": "Impulsion de vérifier une dernière info ou notification.",
+            "target_label": "Faire le sas de déchargement",
+            "why_it_helps": "Cela brise le cycle de la dopamine et protège ton endormissement.",
+            "fallback_plan": "Ouvrir un livre papier ou boire un verre d'eau.",
+            "risk_situation": "Rallumer le téléphone juste après avoir fermé le carnet.",
+            "defense_response": "Je pose immédiatement mon téléphone dans une autre pièce et je ferme les yeux 1 minute."
+          },
+          "defense_response": "Je pose immédiatement mon téléphone dans une autre pièce et je ferme les yeux 1 minute."
+        },
+        "metadata": {
+          "draft": {
+            "draft": {
+              "title": "Protection du Sas du Soir",
+              "trigger": "Impulsion de vérifier une dernière info ou notification.",
+              "target_label": "Faire le sas de déchargement",
+              "why_it_helps": "Cela brise le cycle de la dopamine et protège ton endormissement.",
+              "fallback_plan": "Ouvrir un livre papier ou boire un verre d'eau.",
+              "risk_situation": "Rallumer le téléphone juste après avoir fermé le carnet.",
+              "defense_response": "Je pose immédiatement mon téléphone dans une autre pièce et je ferme les yeux 1 minute."
+            },
+            "output_schema": "defense_card_draft_v1",
+            "operation_type": "prepare_defense_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Voici ton projet de carte :\n\n🎯 Cible : Faire le sas de déchargement\n⚠️ Risque : Rallumer le téléphone après le carnet\n⚡ Réponse : Je pose immédiatement mon téléphone dans une autre pièce et je ferme les yeux 1 minute.\n\nEst-ce que cette stratégie te convient pour protéger ton sommeil ?"
+          },
+          "source": "sophia_brain_tool_skill",
+          "attachment": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-15-defense-real-simple-t02",
+          "operation_id": "598808b3-c0e2-443f-bb23-aa052b398446",
+          "operation_type": "prepare_defense_card",
+          "risk_situation": {
+            "label": "Rallumer le téléphone après le carnet",
+            "description": "Risque de rompre le sas de déchargement en reprenant l'écran juste après l'écriture.",
+            "timing_hint": "Soir, juste après le rituel du carnet",
+            "context_hint": "Fin du sas de déchargement"
+          },
+          "source_message_id": "655c7889-d58d-4fba-9648-96c38bf43e7f"
+        },
+        "generated_at": "2026-05-15T10:20:11.692+00:00",
+        "last_updated_at": "2026-05-15T10:20:11.692+00:00"
+      }
+    ]
+  },
+  "user_plan_items": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e",
+        "title": "Préparer ta zone de déchargement",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "active",
+        "cards_status": "ready",
+        "defense_card_id": null,
+        "attack_card_id": "aaca7b51-338a-4c74-809e-49df9a1e4ce9",
+        "description": "Choisis un carnet physique (pas de téléphone) et un stylo. Pose-les dans une autre pièce que ta chambre, ou sur un bureau éloigné du lit. Fixe-toi une heure de coupure, idéalement 45 minutes avant l'heure où tu aimerais dormir.",
+        "target_reps": null,
+        "current_reps": null,
+        "cadence_label": null,
+        "time_of_day": "evening",
+        "updated_at": "2026-05-13T16:20:46.839794+00:00"
+      },
+      {
+        "id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+        "title": "Faire le sas de déchargement",
+        "dimension": "habits",
+        "kind": "habit",
+        "status": "active",
+        "cards_status": "ready",
+        "defense_card_id": "4d8c29cb-d246-4eac-8818-1e7b99142edf",
+        "attack_card_id": "b183a27c-67c8-434d-b192-adb9f04776a6",
+        "description": "À ton heure de coupure, arrête les écrans stimulants. Prends 5 minutes avec ton carnet pour noter tout ce qui te passe par la tête : to-do du lendemain, idées de projets, choses à ne pas oublier. Une fois écrit, c'est sauvegardé, ton cerveau peut lâcher.",
+        "target_reps": 6,
+        "current_reps": 0,
+        "cadence_label": "6 soirs / semaine",
+        "time_of_day": "evening",
+        "updated_at": "2026-05-15T17:51:57.235216+00:00"
+      },
+      {
+        "id": "8d321c6c-ce4b-440f-b7b1-69e1a17ff835",
+        "title": "Repérer les pièges de l'hypervigilance",
+        "dimension": "clarifications",
+        "kind": "exercise",
+        "status": "pending",
+        "cards_status": "ready",
+        "defense_card_id": null,
+        "attack_card_id": "81340b70-49a0-45f4-a459-208557a1c3ea",
+        "description": "Prends 3 minutes pour identifier ce qui te donne envie de reprendre ton téléphone ou de retravailler après avoir fait ton sas.",
+        "target_reps": 1,
+        "current_reps": 0,
+        "cadence_label": null,
+        "time_of_day": "anytime",
+        "updated_at": "2026-05-13T13:47:44.277267+00:00"
+      },
+      {
+        "id": "793bdd4a-c2fb-40fa-b972-e58b8659658f",
+        "title": "Bilan et ajustement du sas",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "pending",
+        "cards_status": "not_started",
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "description": "Fais le point sur ton rituel. Est-ce que l'heure de coupure est réaliste ? Est-ce que le carnet suffit à te rassurer ? Ajuste l'heure ou le format pour que ce moment devienne naturel et sans friction.",
+        "target_reps": null,
+        "current_reps": null,
+        "cadence_label": null,
+        "time_of_day": "anytime",
+        "updated_at": "2026-05-06T06:23:51.281+00:00"
+      }
+    ]
+  },
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "e859ca72-bfa1-416d-be57-81daa5a7abe0",
+        "role": "user",
+        "content": "Ce soir je prépare le sas de déchargement, et je vois déjà le point fragile : la minute juste après le carnet. Je voulais juste t’en parler avant de le faire.",
+        "scope": "qa-prepare-defense-card-alex-2026-05-15-run-a-plan-action-r4",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-plan-action-r4-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-15T17:46:24.487037+00:00"
+      },
+      {
+        "id": "b7770d4b-fad4-4bbf-9a1a-5d2445ef378b",
+        "role": "assistant",
+        "content": "Oui, je vois exactement le genre de piège… la “minute après” quand le mental retombe d’un coup 😅\n\nPour que ça reste solide ce soir, fais simple :\n1) juste après le carnet, tu te donnes un micro-mouvement (eau, étirement 30 sec, ouvrir la fenêtre)\n2) puis tu notes une seule phrase “ce que je lâche maintenant” (pas plus)\n3) et tu clôtures par un repère concret (“je m’arrête là, prochaine étape demain”)\n\nTu veux que ton sas soit plutôt calme/respiration, ou plutôt “tri + rangement” ? 🌙",
+        "scope": "qa-prepare-defense-card-alex-2026-05-15-run-a-plan-action-r4",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-plan-action-r4-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-05-15T17:46:37.625615+00:00"
+      },
+      {
+        "id": "50b79f82-69b4-4fb3-9392-cd1614a4115f",
+        "role": "user",
+        "content": "Je veux plutôt une carte de défense pour l’action du sas de déchargement. Je veux protéger cette minute-là, mais construisons-la proprement.",
+        "scope": "qa-prepare-defense-card-alex-2026-05-15-run-a-plan-action-r4",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-plan-action-r4-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-15T17:46:46.453765+00:00"
+      },
+      {
+        "id": "0d4d2fbe-b174-4ac7-800c-d8cc7798093b",
+        "role": "assistant",
+        "content": "D'accord pour le sas de déchargement. Pour bien construire cette carte, dis-moi : qu'est-ce qui se passe exactement à ce moment-là qui risque de te faire déraper ou de te faire zapper l'exercice ?",
+        "scope": "qa-prepare-defense-card-alex-2026-05-15-run-a-plan-action-r4",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-plan-action-r4-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "status": "ask_question",
+              "slot_state": {
+                "slot": "risk_situation",
+                "needed": true,
+                "reason": "structured_ai_missing_risk_situation",
+                "status": "missing",
+                "question": "D'accord pour le sas de déchargement. Pour bien construire cette carte, dis-moi : qu'est-ce qui se passe exactement à ce moment-là qui risque de te faire déraper ou de te faire zapper l'exercice ?",
+                "known_slots": {
+                  "attachment": {
+                    "kind": "plan_item",
+                    "title": "Faire le sas de déchargement",
+                    "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+                  },
+                  "intake_state": {
+                    "trigger": {
+                      "type": null,
+                      "status": "missing",
+                      "evidence": [],
+                      "confidence": 0
+                    },
+                    "skill_id": "prepare_defense_card",
+                    "tool_fit": {
+                      "reason": "User explicitly requested a defense card for a specific action.",
+                      "status": "defense",
+                      "evidence": [
+                        "Je veux plutôt une carte de défense pour l’action du sas de déchargement"
+                      ],
+                      "confidence": "high"
+                    },
+                    "attachment": {
+                      "kind": "plan_item",
+                      "title": "Faire le sas de déchargement",
+                      "status": "identified",
+                      "evidence": [
+                        "l’action du sas de déchargement"
+                      ],
+                      "confidence": "high",
+                      "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+                    },
+                    "confidence": "high",
+                    "constraints": [],
+                    "current_step": "risk_intake",
+                    "defense_goal": {
+                      "value": null,
+                      "status": "missing",
+                      "evidence": [],
+                      "confidence": "low"
+                    },
+                    "missing_slots": [
+                      "risk_situation",
+                      "trigger",
+                      "defense_goal"
+                    ],
+                    "risk_situation": {
+                      "label": null,
+                      "status": "missing",
+                      "evidence": [],
+                      "confidence": "low",
+                      "description": null,
+                      "timing_hint": "cette minute-là",
+                      "context_hint": "sas de déchargement"
+                    },
+                    "defense_response_hint": {
+                      "value": null,
+                      "status": "missing",
+                      "evidence": [],
+                      "confidence": "low",
+                      "strategy_hint": null
+                    },
+                    "generated_user_message": "D'accord pour le sas de déchargement. Pour bien construire cette carte, dis-moi : qu'est-ce qui se passe exactement à ce moment-là qui risque de te faire déraper ou de te faire zapper l'exercice ?"
+                  }
+                }
+              },
+              "missing_slots": [
+                "risk_situation",
+                "trigger",
+                "defense_goal"
+              ],
+              "selected_handler": "prepare_defense_card"
+            }
+          }
+        },
+        "created_at": "2026-05-15T17:46:55.965159+00:00"
+      },
+      {
+        "id": "7208b84e-ab77-4fc4-b472-c3b77bf78da9",
+        "role": "user",
+        "content": "Ce n’est pas au démarrage. C’est vraiment à la fin : je ferme le carnet, je le pose, et là ma main part presque toute seule vers le téléphone sur la table basse.",
+        "scope": "qa-prepare-defense-card-alex-2026-05-15-run-a-plan-action-r4",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-plan-action-r4-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-15T17:48:30.862409+00:00"
+      },
+      {
+        "id": "f6313b4a-fcaf-4def-a9b5-bc8ac3cf557e",
+        "role": "assistant",
+        "content": "Voici ta carte de défense :\nLe moment : Quand je ferme mon carnet et que je le pose sur la table basse\nLe piège : Ma main part toute seule vers le téléphone\nMon geste : Je laisse mon téléphone dans une autre pièce avant de commencer\nPlan B : Je fais 3 respirations profondes les mains à plat sur la table\nOn valide ?",
+        "scope": "qa-prepare-defense-card-alex-2026-05-15-run-a-plan-action-r4",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-plan-action-r4-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "draft": {
+                "draft": {
+                  "title": "Fin du sas de déchargement",
+                  "plan_b": "Je fais 3 respirations profondes les mains à plat sur la table",
+                  "signal": "Ma main part toute seule vers le téléphone",
+                  "trigger": "Geste automatique après avoir fermé le carnet",
+                  "situation": "Quand je ferme mon carnet et que je le pose sur la table basse",
+                  "target_label": "Faire le sas de déchargement",
+                  "why_it_helps": "Casser le réflexe physique en supprimant la tentation de proximité",
+                  "fallback_plan": "Je quitte la pièce immédiatement sans toucher au téléphone",
+                  "impulse_label": "Prendre le téléphone",
+                  "risk_situation": "Quand je ferme mon carnet et que je le pose sur la table basse",
+                  "generic_defense": "Mettre de la distance physique",
+                  "defense_response": "Je laisse mon téléphone dans une autre pièce avant de commencer"
+                },
+                "output_schema": "defense_card_draft_v1",
+                "operation_type": "prepare_defense_card",
+                "confirmation_actions": [
+                  "yes",
+                  "no"
+                ],
+                "confirmation_message": "Voici ta carte de défense :\nLe moment : Quand je ferme mon carnet et que je le pose sur la table basse\nLe piège : Ma main part toute seule vers le téléphone\nMon geste : Je laisse mon téléphone dans une autre pièce avant de commencer\nPlan B : Je fais 3 respirations profondes les mains à plat sur la table\nOn valide ?"
+              },
+              "status": "pending_confirmation",
+              "operation_id": "9cb78095-585a-4667-b580-20a51b7836a7",
+              "selected_handler": "prepare_defense_card"
+            }
+          }
+        },
+        "created_at": "2026-05-15T17:48:56.683198+00:00"
+      },
+      {
+        "id": "dd69aace-9f9d-4ff1-9521-7c30c4405246",
+        "role": "user",
+        "content": "Le moment est bon, mais je ne veux pas “avant de commencer” ni respirations. Le piège précis, c’est la pensée : si je ne regarde pas maintenant, je vais oublier un truc important. Mon geste doit être une ligne max dans le carnet, puis téléphone dans l’entrée.",
+        "scope": "qa-prepare-defense-card-alex-2026-05-15-run-a-plan-action-r4",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-plan-action-r4-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-15T17:49:07.660208+00:00"
+      },
+      {
+        "id": "37cf5e1b-21f1-4f04-976c-358f622985a5",
+        "role": "assistant",
+        "content": "Voici ta carte de défense :\nLe moment : Fin du sas de déchargement\nLe piège : Si je ne regarde pas maintenant, je vais oublier un truc important\nMon geste : Noter l'idée en une ligne max dans le carnet, puis poser le téléphone dans l'entrée\nPlan B : Laisser le téléphone dans l'entrée et s'éloigner\nOn valide ?",
+        "scope": "qa-prepare-defense-card-alex-2026-05-15-run-a-plan-action-r4",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-plan-action-r4-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "draft": {
+                "draft": {
+                  "title": "Sas de déchargement",
+                  "plan_b": "Laisser le téléphone dans l'entrée et s'éloigner",
+                  "signal": "Si je ne regarde pas maintenant, je vais oublier un truc important",
+                  "trigger": "Si je ne regarde pas maintenant, je vais oublier un truc important",
+                  "situation": "Fin du sas de déchargement",
+                  "target_label": "Téléphone",
+                  "why_it_helps": "Libère l'esprit sans céder à l'impulsion immédiate.",
+                  "fallback_plan": "Laisser le téléphone dans l'entrée et s'éloigner",
+                  "impulse_label": "Regarder le téléphone",
+                  "risk_situation": "Fin du sas de déchargement",
+                  "generic_defense": "Noter et éloigner",
+                  "defense_response": "Noter l'idée en une ligne max dans le carnet, puis poser le téléphone dans l'entrée"
+                },
+                "output_schema": "defense_card_draft_v1",
+                "operation_type": "prepare_defense_card",
+                "confirmation_actions": [
+                  "yes",
+                  "no"
+                ],
+                "confirmation_message": "Voici ta carte de défense :\nLe moment : Fin du sas de déchargement\nLe piège : Si je ne regarde pas maintenant, je vais oublier un truc important\nMon geste : Noter l'idée en une ligne max dans le carnet, puis poser le téléphone dans l'entrée\nPlan B : Laisser le téléphone dans l'entrée et s'éloigner\nOn valide ?"
+              },
+              "status": "pending_confirmation_updated",
+              "operation_id": "543356aa-e8ba-4690-b72b-c3568647ff92",
+              "selected_handler": "prepare_defense_card",
+              "draft_review_decision": null,
+              "previous_operation_id": "9cb78095-585a-4667-b580-20a51b7836a7"
+            }
+          }
+        },
+        "created_at": "2026-05-15T17:49:25.490264+00:00"
+      },
+      {
+        "id": "cfc284b9-b432-4267-917b-ad6cdb86ac10",
+        "role": "user",
+        "content": "Plan B, je le veux plus réaliste : si j’ai déjà le téléphone en main, je le pose dans l’entrée sans ouvrir d’appli, puis je reviens fermer le carnet. Tu peux garder le reste.",
+        "scope": "qa-prepare-defense-card-alex-2026-05-15-run-a-plan-action-r4",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-plan-action-r4-t05",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-15T17:49:35.991085+00:00"
+      },
+      {
+        "id": "60d67409-74fd-41eb-b5e1-b1db11ad6718",
+        "role": "assistant",
+        "content": "Voici ta carte de défense :\nLe moment : Fin du sas de déchargement\nLe piège : Si je ne regarde pas maintenant, je vais oublier un truc important\nMon geste : Fermer le carnet et s'éloigner du téléphone\nPlan B : Si téléphone en main : le poser dans l'entrée sans ouvrir d'appli, puis revenir fermer le carnet.\nOn valide ?",
+        "scope": "qa-prepare-defense-card-alex-2026-05-15-run-a-plan-action-r4",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-plan-action-r4-t05",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "draft": {
+                "draft": {
+                  "title": "Faire le sas de déchargement",
+                  "plan_b": "Si téléphone en main : le poser dans l'entrée sans ouvrir d'appli, puis revenir fermer le carnet.",
+                  "signal": "Si je ne regarde pas maintenant, je vais oublier un truc important",
+                  "trigger": "Si je ne regarde pas maintenant, je vais oublier un truc important",
+                  "situation": "Fin du sas de déchargement",
+                  "target_label": "Faire le sas de déchargement",
+                  "why_it_helps": "Casser l'automatisme de consultation immédiate.",
+                  "fallback_plan": "Si téléphone en main : le poser dans l'entrée sans ouvrir d'appli, puis revenir fermer le carnet.",
+                  "impulse_label": "Regarder le téléphone",
+                  "risk_situation": "Fin du sas de déchargement",
+                  "generic_defense": "Fermer le carnet et s'éloigner.",
+                  "defense_response": "Fermer le carnet et s'éloigner du téléphone"
+                },
+                "output_schema": "defense_card_draft_v1",
+                "operation_type": "prepare_defense_card",
+                "confirmation_actions": [
+                  "yes",
+                  "no"
+                ],
+                "confirmation_message": "Voici ta carte de défense :\nLe moment : Fin du sas de déchargement\nLe piège : Si je ne regarde pas maintenant, je vais oublier un truc important\nMon geste : Fermer le carnet et s'éloigner du téléphone\nPlan B : Si téléphone en main : le poser dans l'entrée sans ouvrir d'appli, puis revenir fermer le carnet.\nOn valide ?"
+              },
+              "status": "pending_confirmation_updated",
+              "operation_id": "58d629f0-075a-4ed8-a1c0-2fd66718c35f",
+              "selected_handler": "prepare_defense_card",
+              "draft_review_decision": null,
+              "previous_operation_id": "543356aa-e8ba-4690-b72b-c3568647ff92"
+            }
+          }
+        },
+        "created_at": "2026-05-15T17:50:16.860248+00:00"
+      },
+      {
+        "id": "24edf67e-65ac-4628-a4a9-cb77bd4834bc",
+        "role": "user",
+        "content": "Pas encore : “s’éloigner du téléphone” est trop vague. Mon geste doit rester : j’écris une ligne max dans le carnet, puis je pose le téléphone dans l’entrée. Ensuite oui, on pourra valider.",
+        "scope": "qa-prepare-defense-card-alex-2026-05-15-run-a-plan-action-r4",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-plan-action-r4-t06",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-15T17:50:33.7358+00:00"
+      },
+      {
+        "id": "88af3f90-9c1f-4ea2-977a-6ee78ac1150a",
+        "role": "assistant",
+        "content": "Voici ta carte de défense :\nLe moment : Fin du sas de dechargement\nLe piège : Si je ne regarde pas maintenant, je vais oublier un truc important\nMon geste : Ecrire une ligne max dans le carnet puis poser le telephone dans l entree\nPlan B : Mettre le telephone dans une autre piece\nOn valide ?",
+        "scope": "qa-prepare-defense-card-alex-2026-05-15-run-a-plan-action-r4",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-plan-action-r4-t06",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "draft": {
+                "draft": {
+                  "title": "Sas de dechargement",
+                  "plan_b": "Mettre le telephone dans une autre piece",
+                  "signal": "Si je ne regarde pas maintenant, je vais oublier un truc important",
+                  "trigger": "Si je ne regarde pas maintenant, je vais oublier un truc important",
+                  "situation": "Fin du sas de dechargement",
+                  "target_label": "Faire le sas de dechargement",
+                  "why_it_helps": "Cree une barriere physique et mentale",
+                  "fallback_plan": "Mettre le telephone dans une autre piece",
+                  "impulse_label": "Verifier le telephone",
+                  "risk_situation": "Fin du sas de dechargement",
+                  "generic_defense": "Poser le telephone loin",
+                  "defense_response": "Ecrire une ligne max dans le carnet puis poser le telephone dans l entree"
+                },
+                "output_schema": "defense_card_draft_v1",
+                "operation_type": "prepare_defense_card",
+                "confirmation_actions": [
+                  "yes",
+                  "no"
+                ],
+                "confirmation_message": "Voici ta carte de défense :\nLe moment : Fin du sas de dechargement\nLe piège : Si je ne regarde pas maintenant, je vais oublier un truc important\nMon geste : Ecrire une ligne max dans le carnet puis poser le telephone dans l entree\nPlan B : Mettre le telephone dans une autre piece\nOn valide ?"
+              },
+              "status": "pending_confirmation_updated",
+              "operation_id": "81b3bdd0-ea18-47a0-82f4-90f97381952b",
+              "selected_handler": "prepare_defense_card",
+              "draft_review_decision": null,
+              "previous_operation_id": "58d629f0-075a-4ed8-a1c0-2fd66718c35f"
+            }
+          }
+        },
+        "created_at": "2026-05-15T17:50:48.721844+00:00"
+      },
+      {
+        "id": "f5b83446-f418-40bd-aadb-0eb37efa4090",
+        "role": "user",
+        "content": "Garde ce geste, mais remets le Plan B exact : si j’ai déjà le téléphone en main, je le pose dans l’entrée sans ouvrir d’appli, puis je reviens fermer le carnet. Après ça je valide.",
+        "scope": "qa-prepare-defense-card-alex-2026-05-15-run-a-plan-action-r4",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-plan-action-r4-t07",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-15T17:51:02.689227+00:00"
+      },
+      {
+        "id": "2cc89ee8-7551-4382-8131-18ee4eae9735",
+        "role": "assistant",
+        "content": "Voici ta carte de défense :\nLe moment : Fin du sas de déchargement\nLe piège : Si je ne regarde pas maintenant, je vais oublier un truc important\nMon geste : Ecrire une ligne max dans le carnet, puis poser le telephone dans l'entree.\nPlan B : Si telephone en main, le poser dans l'entree sans ouvrir d'appli, puis fermer le carnet.\nOn valide ?",
+        "scope": "qa-prepare-defense-card-alex-2026-05-15-run-a-plan-action-r4",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-plan-action-r4-t07",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "draft": {
+                "draft": {
+                  "title": "Faire le sas de déchargement",
+                  "plan_b": "Si telephone en main, le poser dans l'entree sans ouvrir d'appli, puis fermer le carnet.",
+                  "signal": "Si je ne regarde pas maintenant, je vais oublier un truc important",
+                  "trigger": "Si je ne regarde pas maintenant, je vais oublier un truc important",
+                  "situation": "Fin du sas de déchargement",
+                  "target_label": "Faire le sas de déchargement",
+                  "why_it_helps": "Casse l'automatisme de consultation immédiate en éloignant l'objet.",
+                  "fallback_plan": "Si telephone en main, le poser dans l'entree sans ouvrir d'appli, puis fermer le carnet.",
+                  "impulse_label": "Vérifier le téléphone",
+                  "risk_situation": "Fin du sas de déchargement",
+                  "generic_defense": "Poser le téléphone.",
+                  "defense_response": "Ecrire une ligne max dans le carnet, puis poser le telephone dans l'entree."
+                },
+                "output_schema": "defense_card_draft_v1",
+                "operation_type": "prepare_defense_card",
+                "confirmation_actions": [
+                  "yes",
+                  "no"
+                ],
+                "confirmation_message": "Voici ta carte de défense :\nLe moment : Fin du sas de déchargement\nLe piège : Si je ne regarde pas maintenant, je vais oublier un truc important\nMon geste : Ecrire une ligne max dans le carnet, puis poser le telephone dans l'entree.\nPlan B : Si telephone en main, le poser dans l'entree sans ouvrir d'appli, puis fermer le carnet.\nOn valide ?"
+              },
+              "status": "pending_confirmation_updated",
+              "operation_id": "66c5f624-f71f-4235-9836-9ab6c8124e0b",
+              "selected_handler": "prepare_defense_card",
+              "draft_review_decision": null,
+              "previous_operation_id": "81b3bdd0-ea18-47a0-82f4-90f97381952b"
+            }
+          }
+        },
+        "created_at": "2026-05-15T17:51:25.474492+00:00"
+      },
+      {
+        "id": "7c99e2a3-44c8-4d56-8a86-90de9062cbae",
+        "role": "user",
+        "content": "Oui, valide et crée cette carte de défense.",
+        "scope": "qa-prepare-defense-card-alex-2026-05-15-run-a-plan-action-r4",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-plan-action-r4-t08",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-15T17:51:47.11038+00:00"
+      },
+      {
+        "id": "83a922e4-c5b5-4992-977a-19c740c7d3d9",
+        "role": "assistant",
+        "content": "C'est fait. J'ai créé la carte de défense \"Faire le sas de déchargement\" : Ecrire une ligne max dans le carnet, puis poser le telephone dans l'entree.\n\nTu peux la retrouver dans Ressources > Cartes de defense pour la relire, l'utiliser et l'ajuster depuis la plateforme quand l'option est disponible. Depuis le chat, je ne modifie pas une carte existante; si elle ne convient plus, je peux aussi en preparer une nouvelle version apres confirmation.",
+        "scope": "qa-prepare-defense-card-alex-2026-05-15-run-a-plan-action-r4",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-plan-action-r4-t08",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "status": "executed",
+              "operation_id": "66c5f624-f71f-4235-9836-9ab6c8124e0b",
+              "defense_card_id": "4d8c29cb-d246-4eac-8818-1e7b99142edf",
+              "selected_handler": "prepare_defense_card"
+            }
+          }
+        },
+        "created_at": "2026-05-15T17:51:57.241014+00:00"
+      }
+    ]
+  }
+}

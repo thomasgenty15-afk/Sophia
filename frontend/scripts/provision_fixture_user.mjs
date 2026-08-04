@@ -99,100 +99,6 @@ async function upsertChatState(admin, userId, chatState) {
   if (error) throw error;
 }
 
-async function seedGoalPlanAndActions(admin, userId, planSeed) {
-  if (!planSeed) return { planId: null, submissionId: null, actionIdsByTitle: new Map() };
-
-  const submissionId = planSeed.submission_id ?? crypto.randomUUID();
-
-  // Goal
-  const { data: goalRow, error: goalErr } = await admin
-    .from("user_goals")
-    .insert({
-      user_id: userId,
-      submission_id: submissionId,
-      status: planSeed.goal?.status ?? "active",
-      axis_id: planSeed.goal?.axis_id ?? "axis_fixture",
-      axis_title: planSeed.goal?.axis_title ?? "Fixture Axis",
-      theme_id: planSeed.goal?.theme_id ?? "theme_fixture",
-      priority_order: planSeed.goal?.priority_order ?? 1,
-      role: planSeed.goal?.role ?? null,
-      reasoning: planSeed.goal?.reasoning ?? null,
-      sophia_knowledge: planSeed.goal?.sophia_knowledge ?? null,
-    })
-    .select("id")
-    .single();
-  if (goalErr) throw goalErr;
-
-  // Plan
-  const defaultContent = { phases: [{ id: "phase_1", title: "Phase 1", status: "active", actions: [] }] };
-  const planContent = planSeed.content ?? defaultContent;
-  const { data: planRow, error: planErr } = await admin
-    .from("user_plans")
-    .insert({
-      user_id: userId,
-      goal_id: goalRow.id,
-      submission_id: submissionId,
-      status: planSeed.status ?? "active",
-      current_phase: planSeed.current_phase ?? 1,
-      title: planSeed.title ?? "Fixture plan",
-      deep_why: planSeed.deep_why ?? null,
-      inputs_why: planSeed.inputs_why ?? null,
-      inputs_blockers: planSeed.inputs_blockers ?? null,
-      content: planContent,
-    })
-    .select("id,submission_id")
-    .single();
-  if (planErr) throw planErr;
-
-  const actionIdsByTitle = new Map();
-  const actions = Array.isArray(planSeed.actions) ? planSeed.actions : [];
-  for (const a of actions) {
-    const { data: actionRow, error: actionErr } = await admin
-      .from("user_actions")
-      .insert({
-        user_id: userId,
-        plan_id: planRow.id,
-        submission_id: planRow.submission_id,
-        type: a.type ?? "habit",
-        title: a.title ?? null,
-        description: a.description ?? "",
-        target_reps: typeof a.target_reps === "number" ? a.target_reps : 1,
-        current_reps: typeof a.current_reps === "number" ? a.current_reps : 0,
-        status: a.status ?? "active",
-        tracking_type: a.tracking_type ?? "boolean",
-        time_of_day: a.time_of_day ?? "any_time",
-        last_performed_at: a.last_performed_at ?? null,
-      })
-      .select("id,title")
-      .single();
-    if (actionErr) throw actionErr;
-    const titleKey = String(actionRow?.title ?? a.title ?? "").trim();
-    if (titleKey) actionIdsByTitle.set(titleKey, actionRow.id);
-  }
-
-  return { planId: planRow.id, submissionId: planRow.submission_id, actionIdsByTitle };
-}
-
-async function seedActionEntries(admin, userId, entries, actionIdsByTitle) {
-  if (!Array.isArray(entries) || entries.length === 0) return;
-  for (const e of entries) {
-    let actionId = e.action_id ?? null;
-    if (!actionId && e.action_title) {
-      actionId = actionIdsByTitle.get(String(e.action_title).trim()) ?? null;
-    }
-    if (!actionId) throw new Error(`seed_action_entries missing action_id (and couldn't resolve action_title="${e.action_title ?? ""}")`);
-    const { error } = await admin.from("user_action_entries").insert({
-      user_id: userId,
-      action_id: actionId,
-      status: e.status,
-      value: typeof e.value === "number" ? e.value : null,
-      note: e.note ?? null,
-      performed_at: e.performed_at ?? new Date().toISOString(),
-    });
-    if (error) throw error;
-  }
-}
-
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (!args.key) {
@@ -262,40 +168,8 @@ async function main() {
     if (ansErr) throw ansErr;
   }
 
-  // Seed plan/actions + optional action entries
-  const { actionIdsByTitle } = await seedGoalPlanAndActions(admin, userId, archetype?.plan);
-  await seedActionEntries(admin, userId, archetype?.seed_action_entries ?? [], actionIdsByTitle);
-
   // Chat state (optional)
-  let chatState = archetype?.chat_state ?? null;
-  if (chatState?.seed_investigation_state === true) {
-    // Build a simple investigator state from active actions (good enough for isolated checkup tests).
-    const { data: actions, error: actErr } = await admin
-      .from("user_actions")
-      .select("id,title,description,tracking_type,target_reps")
-      .eq("user_id", userId)
-      .eq("status", "active")
-      .limit(10);
-    if (actErr) throw actErr;
-    const pending = (actions ?? []).map((a) => ({
-      id: a.id,
-      type: "action",
-      title: a.title,
-      description: a.description,
-      tracking_type: a.tracking_type,
-      target: a.target_reps,
-    }));
-    chatState = {
-      ...chatState,
-      current_mode: "investigator",
-      investigation_state: {
-        status: "checking",
-        pending_items: pending,
-        current_item_index: 0,
-        temp_memory: { opening_done: false },
-      },
-    };
-  }
+  const chatState = archetype?.chat_state ?? null;
   await upsertChatState(admin, userId, chatState);
 
   // Optional: allow login in prelaunch mode (internal admins gate)

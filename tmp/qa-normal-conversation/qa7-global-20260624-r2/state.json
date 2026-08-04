@@ -1,0 +1,323 @@
+{
+  "run_id": "qa7-global-20260624-r2",
+  "scope": "qa-normal-conversation-qa7-global-20260624-r2",
+  "base_url": "http://127.0.0.1:54321",
+  "email": "qa-normal-qa7-global-20260624-r2-1782256562623@example.com",
+  "user_id": "eca6abc0-6d94-4324-93ee-b169f39baa0e",
+  "anon_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0",
+  "service_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU",
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjU0MzIxL2F1dGgvdjEiLCJzdWIiOiJlY2E2YWJjMC02ZDk0LTQzMjQtOTNlZS1iMTY5ZjM5YmFhMGUiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzgyMjYwMTYyLCJpYXQiOjE3ODIyNTY1NjIsImVtYWlsIjoicWEtbm9ybWFsLXFhNy1nbG9iYWwtMjAyNjA2MjQtcjItMTc4MjI1NjU2MjYyM0BleGFtcGxlLmNvbSIsInBob25lIjoiIiwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiZW1haWwiLCJwcm92aWRlcnMiOlsiZW1haWwiXX0sInVzZXJfbWV0YWRhdGEiOnsiZW1haWwiOiJxYS1ub3JtYWwtcWE3LWdsb2JhbC0yMDI2MDYyNC1yMi0xNzgyMjU2NTYyNjIzQGV4YW1wbGUuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImlzX3Rlc3RfcGVyc29uYSI6dHJ1ZSwicGhvbmVfdmVyaWZpZWQiOmZhbHNlLCJxYV9ydW5faWQiOiJxYTctZ2xvYmFsLTIwMjYwNjI0LXIyIiwic3ViIjoiZWNhNmFiYzAtNmQ5NC00MzI0LTkzZWUtYjE2OWYzOWJhYTBlIn0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3ODIyNTY1NjJ9XSwic2Vzc2lvbl9pZCI6IjJmZmU1ZTgxLThkNDAtNGRlZi1iMGJkLWVjNGFjMTAyNDM5OSIsImlzX2Fub255bW91cyI6ZmFsc2V9.hDmCMLlkAQBtti3xPkvY9zqUiMbQHb1hZY8cO_HkPXE",
+  "auth_check": {
+    "status": 200,
+    "ok": true
+  },
+  "force_full_ai": true,
+  "created_at": "2026-06-23T23:16:02.909Z",
+  "turns": [
+    {
+      "turn": 1,
+      "sent_at": "2026-06-23T23:16:05.808Z",
+      "user": "Salut Sophia, reponds-moi simplement: comment tu vas aujourd'hui ?",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Ça va bien aujourd’hui, merci 🙂  \nJe suis dispo et attentive.",
+      "trace_short": {
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "route_reason": "normal_reply_default",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": null,
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "companion_question_rhythm": {
+                  "preference": "normal",
+                  "recent_turns": [
+                    0
+                  ],
+                  "last_updated_at": "2026-06-23T23:16:05.750Z",
+                  "last_turn_had_question": false,
+                  "turns_since_last_question": 1
+                }
+              },
+              "updated_at": "2026-06-23T23:16:05.759751+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "qa7-global-20260624-r2-t01",
+        "user_id": "eca6abc0-6d94-4324-93ee-b169f39baa0e",
+        "channel": "web",
+        "scope": "qa-normal-conversation-qa7-global-20260624-r2",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Ça va bien aujourd’hui, merci 🙂  \nJe suis dispo et attentive.",
+          "mode": "companion",
+          "delivery": {
+            "mode": "text_reply"
+          },
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "qa7-global-20260624-r2-t01",
+              "source_message_id": "ebda794f-79ae-47f4-aee4-fefa7a10addf",
+              "user_id": "eca6abc0-6d94-4324-93ee-b169f39baa0e",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {},
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "Respond normally to a simple conversational greeting about Sophia's current state; no product, coaching, or feature signal.",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "taxonomy_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "normal_reply",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "normal_reply_default",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "minimal_global_dispatcher",
+                "active_owner": "none",
+                "selected_owner": "normal_reply",
+                "resume_policy": "none",
+                "reason_code": "normal_reply_default"
+              }
+            },
+            "effect_ledger": {
+              "turn_id": "qa7-global-20260624-r2-t01",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "normal_reply"
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa7-global-20260624-r2-t01",
+            "source_message_id": "ebda794f-79ae-47f4-aee4-fefa7a10addf",
+            "user_id": "eca6abc0-6d94-4324-93ee-b169f39baa0e",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {},
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "Respond normally to a simple conversational greeting about Sophia's current state; no product, coaching, or feature signal.",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "taxonomy_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "normal_reply",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "normal_reply_default",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "minimal_global_dispatcher",
+              "active_owner": "none",
+              "selected_owner": "normal_reply",
+              "resume_policy": "none",
+              "reason_code": "normal_reply_default"
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa7-global-20260624-r2-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "normal_reply"
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "updated_at": "2026-06-23T23:16:05.809Z",
+  "cleanup": [
+    {
+      "table": "chat_messages",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "scheduled_checkins",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_chat_states",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_memories",
+      "status": 404,
+      "ok": false
+    },
+    {
+      "table": "user_topic_memories",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "memory_items",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "auth.users",
+      "status": 200,
+      "ok": true
+    }
+  ],
+  "cleaned_at": "2026-06-23T23:20:06.178Z"
+}

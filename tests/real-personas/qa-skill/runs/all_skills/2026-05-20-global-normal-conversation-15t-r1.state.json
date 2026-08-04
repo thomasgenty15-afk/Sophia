@@ -1,0 +1,171 @@
+{
+  "run_id": "global15_20260520_r1",
+  "scope": "qa-global-normal-conversation-15t-20260520-r1",
+  "report_path": "/Users/ahmedamara/Dev/Sophia 2/tests/real-personas/qa-skill/runs/all_skills/2026-05-20-global-normal-conversation-15t-r1.md",
+  "raw_path": "/Users/ahmedamara/Dev/Sophia 2/tests/real-personas/qa-skill/runs/all_skills/2026-05-20-global-normal-conversation-15t-r1.raw.json",
+  "summary_path": "/Users/ahmedamara/Dev/Sophia 2/tests/real-personas/qa-skill/runs/all_skills/2026-05-20-global-normal-conversation-15t-r1.summary.json",
+  "connection": {
+    "user_id": "3cc23b63-8bfa-43a4-b05b-488b9d5973a0",
+    "email": "qa-qa-skill-all-skills-global15_20260520_r1@example.com",
+    "temporary": true,
+    "persona": "qa-skill",
+    "base_connection": "all_skills",
+    "connection_name": "all_skills_global15_20260520_r1",
+    "run_id": "global15_20260520_r1",
+    "created_at": "2026-05-20T13:01:26.080Z"
+  },
+  "history": [
+    {
+      "role": "user",
+      "content": "Salut Sophia, j'ai une journée assez banale mais chargée: un dossier client à avancer et zéro envie de m'y mettre. Je veux juste démarrer sans me faire un grand plan.",
+      "created_at": "2026-05-20T13:02:01.679Z"
+    },
+    {
+      "role": "assistant",
+      "content": "Je vois tout à fait, c'est souvent le démarrage qui coûte le plus cher en énergie. Pour te lancer sans faire de grand plan, je peux te préparer une Carte d'attaque. Ça permet de viser un micro-objectif immédiat pour briser la glace. Tu veux qu'on tente ça ? 🚀",
+      "created_at": "2026-05-20T13:02:01.680Z"
+    },
+    {
+      "role": "user",
+      "content": "Oui, tente, mais en version ultra légère. Le dossier c'est relire deux pages de notes client; mon blocage c'est que je veux tout comprendre avant d'écrire la moindre ligne.",
+      "created_at": "2026-05-20T13:02:26.642Z"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est le piège classique du perfectionnisme qui paralyse le mouvement. On va casser ça tout de suite avec un objectif minuscule : lis ces deux pages comme si c'était un simple article de blog, sans chercher à mémoriser ou structurer quoi que ce soit pour l'instant.\n\nJe te prépare une Carte d'attaque basée sur cette approche pour que tu puisses juste déclencher l'action sans pression. Tu es prêt à ce que je la génère ? ⚡️",
+      "created_at": "2026-05-20T13:02:26.643Z"
+    },
+    {
+      "role": "user",
+      "content": "Oui, génère-la. Et garde en tête que mon piège récurrent c'est l'envie de comprendre parfaitement avant de produire quoi que ce soit.",
+      "created_at": "2026-05-20T13:02:48.080Z"
+    },
+    {
+      "role": "assistant",
+      "content": "Ok, on y va. 🧠✍️\n\nCarte d’attaque ultra légère (dossier: relire 2 pages)\n\n1) 2 minutes de “lecture sans jugement”\nTu lis les 2 pages, point. Sans surligner, sans ré-écrire, sans “comprendre parfaitement”. Objectif: te familiariser.\n\n2) 5 minutes: uniquement de la restitution brute\nTu écris 3 puces maximum sur ce que tu as retenu (même si c’est incomplet). Style: notes “brouillon”, pas un texte final.\n\n3) Micro-frein à court-circuiter\nDès que tu sens “je dois tout comprendre avant d’écrire”, tu te dis: “Je peux comprendre en écrivant.” Et tu continues les 3 puces.\n\nRègle d’or: tu n’évalues pas la qualité, tu n’évalues que le fait d’avoir produit ces 3 puces.\n\nTu préfères commencer par lire (2 min) tout de suite, ou te caler 30 secondes de “préparation mentale” d’abord ? 🙂",
+      "created_at": "2026-05-20T13:02:48.081Z"
+    },
+    {
+      "role": "user",
+      "content": "Je vais lire directement. Je mets un minuteur deux minutes, mais j'ai déjà la petite voix qui dit que ça ne sert à rien si je ne comprends pas tout.",
+      "created_at": "2026-05-20T13:03:13.307Z"
+    },
+    {
+      "role": "assistant",
+      "content": "Parfait. Là, ton cerveau essaie juste de te protéger… mais il te bloque. 😅\n\nMini-contre (pendant les 2 minutes) :\n1) Tu acceptes “pas tout comprendre” comme règle du jeu (juste “me familiariser”).\n2) Si la voix revient, tu notes mentalement “plus tard” et tu continues la lecture.\n3) À la fin, tu ne relis pas: tu passes direct à la restitution brute.\n\nTu veux que je te donne une phrase “anti-voix” à te répéter exactement ? 😊",
+      "created_at": "2026-05-20T13:03:13.307Z"
+    },
+    {
+      "role": "user",
+      "content": "Oui, une phrase courte. Pas un mantra trop joli, juste un truc crédible que je peux me dire sans lever les yeux au ciel.",
+      "created_at": "2026-05-20T13:03:30.379Z"
+    },
+    {
+      "role": "assistant",
+      "content": "Ok. Dis-toi: “L’objectif, c’est d’avancer, pas de tout comprendre.” 🙂",
+      "created_at": "2026-05-20T13:03:30.380Z"
+    },
+    {
+      "role": "user",
+      "content": "Ok, j'ai lu les deux pages. J'ai compris 60%, pas plus, et j'ai envie de repartir dans la lecture au lieu d'écrire les trois puces.",
+      "created_at": "2026-05-20T13:03:59.980Z"
+    },
+    {
+      "role": "assistant",
+      "content": "Ah parfait, t’as déjà fait la partie “sans pression” ✅ (même si ça te laisse sur ta faim). 😄\n\nLà, on applique la règle anti-perfectionnisme: tu ne reviens pas en arrière tout de suite.\nFais juste ça, maintenant: écris 3 puces ultra moches, en mode “ce que je me souviens” même si c’est incomplet (pas plus de 2 minutes), puis seulement après tu reliras si tu as encore besoin.\n\nTu préfères A: 3 puces “idées principales”, ou B: 3 puces “questions / zones floues” ?",
+      "created_at": "2026-05-20T13:03:59.981Z"
+    },
+    {
+      "role": "user",
+      "content": "Je prends A, mais je sens monter un truc nul: j'ai honte de galérer sur une tâche aussi simple. On peut rester deux secondes là-dessus avant que je continue ?",
+      "created_at": "2026-05-20T13:04:23.067Z"
+    },
+    {
+      "role": "assistant",
+      "content": "Oui. Stop deux secondes là-dessus. 😕\n\nCe que tu décris ressemble à une auto-attaque, pas à “un vrai fait”. Tu galères, donc ton cerveau traduit ça en “je suis nul / je suis une honte” pour te juger plus vite… et ça te vole l’élan.\n\nLà, on retire la conclusion identitaire et on garde le signal utile : tu es sur une tâche simple, mais ton système est en mode blocage (parce que “tout comprendre avant d’écrire” te met une barrière). Ça veut dire que ton objectif doit être plus petit, pas que tu es nul.\n\nPose juste une main sur ton ventre ou ta poitrine 5 secondes, et dis-toi une phrase neutre : “Je bloque, c’est passager. Je peux faire le tout petit début.” 🙏\n\nTu veux que je te propose le tout premier micro-mouvement (encore plus léger que “relire”) pour casser la honte, oui ou non ?",
+      "created_at": "2026-05-20T13:04:23.068Z"
+    },
+    {
+      "role": "user",
+      "content": "Oui. Pas de morale, juste un micro-mouvement qui me remet devant le fichier.",
+      "created_at": "2026-05-20T13:04:41.670Z"
+    },
+    {
+      "role": "assistant",
+      "content": "OK, micro-mouvement, pas de morale. 😌\n\nFais juste ça maintenant:\n1) Ouvre le fichier\n2) Mets-toi sur la première ligne\n3) Lis 10 secondes, puis stop (même si c’est frustrant)\n4) Retourne sur la même ligne 2 secondes plus tard (juste pour “rester accroché”)\n\nQuand tu l’auras fait, tu fais quoi: tu me dis “fait” ou tu me dis où ça coince ?",
+      "created_at": "2026-05-20T13:04:41.671Z"
+    },
+    {
+      "role": "user",
+      "content": "Fait. Ça m'a débloqué un peu. Peux-tu me rappeler demain à 8h30 de reprendre ce dossier client par trois puces moches, pas plus ?",
+      "created_at": "2026-05-20T13:05:00.779Z"
+    },
+    {
+      "role": "assistant",
+      "content": "C’est programmé pour jeudi 21 mai à 08:30 : reprendre ce dossier client par trois puces moches, pas plus. 🙂",
+      "created_at": "2026-05-20T13:05:00.779Z"
+    },
+    {
+      "role": "user",
+      "content": "Cool. Au passage, dans l'app je retrouve ce rappel où ? Je ne sais jamais si c'est dans le dashboard ou ailleurs.",
+      "created_at": "2026-05-20T13:05:17.349Z"
+    },
+    {
+      "role": "assistant",
+      "content": "Dans l’app, tu le retrouves selon le type de rappel : souvent dans le coin “Rappels / Notifications” (ou “Rendez-vous” si c’est un truc planifié), et sinon dans “Dashboard” si c’est rangé côté suivi. 😊\n\nLà, comme tu parles d’un rappel spécifique “où je retrouve ce rappel”, dis-moi juste : c’est un rappel ponctuel (une date/heure) ou une habitude récurrente ? (A/B)",
+      "created_at": "2026-05-20T13:05:17.350Z"
+    },
+    {
+      "role": "user",
+      "content": "Ponctuel, celui que tu viens de programmer pour demain matin.",
+      "created_at": "2026-05-20T13:05:36.045Z"
+    },
+    {
+      "role": "assistant",
+      "content": "Yes ✅ Je te confirme juste le point pratique : pour demain matin, c’est bien un rappel ponctuel (pas un rendez-vous récurrent). ⏰\n\nDis-moi juste l’heure exacte demain matin (ex: 8h15), et dans quel format tu veux le message : court ou “motivations + action” ? 🙂",
+      "created_at": "2026-05-20T13:05:36.046Z"
+    },
+    {
+      "role": "user",
+      "content": "Non, tu l'as déjà mis à 8h30. Je demande juste où je peux le voir ou le modifier dans le produit.",
+      "created_at": "2026-05-20T13:05:52.546Z"
+    },
+    {
+      "role": "assistant",
+      "content": "OK, je vois ce que tu veux : savoir où consulter ou ajuster. 👌\n\nDans le produit, tu peux voir et ouvrir la vue Plan via Dashboard > Plan. Tu y retrouves le niveau actif, les semaines, missions/habitudes/clarifications et les éléments à venir.\n\nPar contre, pour ajouter librement une action ou pour saisir les bilans hebdos, ça ne se fait pas dans le Plan : les bilans se font par message WhatsApp le dimanche. Et il n’existe pas d’endroit “ajout libre” d’action dans le dashboard. 🙂\n\nTu parles de quoi exactement : un rappel ponctuel ou une habitude/missions dans le Plan ?",
+      "created_at": "2026-05-20T13:05:52.547Z"
+    },
+    {
+      "role": "user",
+      "content": "Laisse tomber pour l'interface. Tu te souviens du piège que je t'ai demandé de garder en tête tout à l'heure ?",
+      "created_at": "2026-05-20T13:06:44.530Z"
+    },
+    {
+      "role": "assistant",
+      "content": "Ouais je vois le piège que tu m’as demandé de garder en tête tout à l’heure 😄\n\nC’était celui du “tout comprendre avant d’écrire” : ton cerveau veut te mettre la barre trop haut, et dès que tu bloques, il transforme ça en jugement identitaire du style “je suis nul / j’ai honte”, ce qui te fait perdre l’élan.\n\nLe contre-mouvement, c’est : avançer avec des 3 puces moches, pas pour être “juste”, mais pour rester au contact du fichier.\n\nTu veux que je te reformule le piège en une phrase ultra-courte pour que tu l’aies sous les yeux ? 👌",
+      "created_at": "2026-05-20T13:06:44.531Z"
+    },
+    {
+      "role": "user",
+      "content": "Oui. Et pour la suite, préfère me poser une seule question courte à la fois. Les listes longues me font décrocher quand je suis déjà bloqué.",
+      "created_at": "2026-05-20T13:07:04.525Z"
+    },
+    {
+      "role": "assistant",
+      "content": "Bien noté 🙂 Une seule question courte à la fois, promis.  \n\nPour qu’on avance quand tu es bloqué: je te proposerai des micro-actions ultra petites en priorité, et je ne te demanderai une question que si c’est vraiment nécessaire. Quand tu veux, on reprend sur la suite du dossier client : tu préfères que je te fasse une prochaine micro-étape “à faire maintenant” ou une micro-étape “pour demain 8h30” ?",
+      "created_at": "2026-05-20T13:07:04.526Z"
+    },
+    {
+      "role": "user",
+      "content": "On s'arrête là. Fais-moi un récap très sobre: ce que j'ai fait, ce qui est prévu demain, et le piège à surveiller.",
+      "created_at": "2026-05-20T13:07:31.646Z"
+    },
+    {
+      "role": "assistant",
+      "content": "Ok, on stop là. 🙂 Voici le récap sobre, mais je n’ai pas assez de contenu dans ce chat pour dire précisément “ce que tu as fait” et “ce qui est prévu demain”.\n\n1) Ce que tu as fait : je n’ai pas les étapes/résultats sous les yeux ici.\n2) Ce qui est prévu demain : je n’ai pas les tâches/heure exacte dans ce chat.\n3) Piège à surveiller : je peux te proposer un piège générique, mais je préfère que tu me dises le contexte (projet/sujet) pour viser juste.\n\nTu veux me répondre juste en 3 lignes (fait / demain / piège), ou tu me dis le sujet et je te formule le piège le plus probable ?\n\nConcrètement, je parle d'une Preferences coach, à préparer seulement si tu confirmes.",
+      "created_at": "2026-05-20T13:07:31.647Z"
+    }
+  ],
+  "initialized_at": "2026-05-20T13:01:26.088Z",
+  "cleaned_up_at": "2026-05-20T13:08:53.167Z"
+}

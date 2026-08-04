@@ -1,0 +1,260 @@
+{
+  "ok": true,
+  "source": "local",
+  "user_id": "c197a42e-7eff-40c8-843a-f1dbcbff7ae9",
+  "scope": "web",
+  "since": null,
+  "until": null,
+  "request_ids": [
+    "planrealign-r3-t1",
+    "planrealign-r3-t2",
+    "planrealign-r3-t3",
+    "planrealign-r3-t4",
+    "planrealign-r3-t5"
+  ],
+  "counts": {
+    "chat_messages": 10,
+    "conversation_eval_events": 0,
+    "system_error_logs": 0,
+    "llm_usage_events": 2
+  },
+  "chat_messages": [
+    {
+      "id": "ab39fcb2-f612-4252-ae0a-a3d3e489f1dd",
+      "user_id": "c197a42e-7eff-40c8-843a-f1dbcbff7ae9",
+      "role": "user",
+      "content": "J’ai décroché de mon plan cette semaine. Je ne veux pas juste une phrase toute faite, mais je ne sais pas trop comment expliquer le problème dans Sophia.",
+      "agent_used": null,
+      "metadata": {
+        "request_id": "planrealign-r3-t1",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      },
+      "created_at": "2026-06-30T20:55:50.875591+00:00",
+      "scope": "web"
+    },
+    {
+      "id": "7c06c955-86ea-48e3-b812-9a0fa5d75f13",
+      "user_id": "c197a42e-7eff-40c8-843a-f1dbcbff7ae9",
+      "role": "assistant",
+      "content": "Oui, tu peux partir simple : va dans Dashboard > Plan > Ajuster mon plan, puis explique avec tes mots ce qui n’a pas tenu cette semaine, ce qui a coincé, et ce qui est devenu trop lourd. Le plus utile, c’est de préciser aussi ce que tu veux garder, ce que tu aimerais à la place, et si ton rythme ou ton contexte ont changé. Si tu veux, tu peux aussi dire le niveau de retard que tu ressens et ce que tu n’es plus capable de tenir en ce moment.",
+      "agent_used": "companion",
+      "metadata": {
+        "request_id": "planrealign-r3-t1",
+        "route_owner": "plan_realignment",
+        "agent_latency_ms": 6999,
+        "selected_handler": "plan_realignment",
+        "context_latency_ms": 0,
+        "dispatcher_latency_ms": 4063,
+        "runtime_safety_risk_band": "none"
+      },
+      "created_at": "2026-06-30T20:56:09.108788+00:00",
+      "scope": "web"
+    },
+    {
+      "id": "d1621b7d-dca4-46de-b699-f0eb05e3423f",
+      "user_id": "c197a42e-7eff-40c8-843a-f1dbcbff7ae9",
+      "role": "user",
+      "content": "Quand tu dis expliquer pourquoi, je dois parler de quoi concrètement ? J’ai peur de mal répondre.",
+      "agent_used": null,
+      "metadata": {
+        "request_id": "planrealign-r3-t2",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      },
+      "created_at": "2026-06-30T20:56:27.334214+00:00",
+      "scope": "web"
+    },
+    {
+      "id": "7a8544dc-f86f-4b83-ab65-8e9d43db556d",
+      "user_id": "c197a42e-7eff-40c8-843a-f1dbcbff7ae9",
+      "role": "assistant",
+      "content": "Tu peux rester très concret, sans chercher la “bonne” formulation.\n\nParle surtout de 4 choses :\n- ce qui n’a pas tenu cette semaine\n- pourquoi ça n’a pas tenu, même en version simple\n- ce qui est devenu trop lourd, irréaliste ou impossible\n- ce que tu aimerais avoir à la place pour que ce soit plus tenable\n\nTu n’as pas besoin d’être parfait : l’idée, c’est juste d’expliquer la situation réelle dans Dashboard > Plan > Ajuster mon plan.",
+      "agent_used": "companion",
+      "metadata": {
+        "request_id": "planrealign-r3-t2",
+        "route_owner": "plan_realignment",
+        "agent_latency_ms": 5293,
+        "selected_handler": "plan_realignment",
+        "context_latency_ms": 0,
+        "dispatcher_latency_ms": 0,
+        "runtime_safety_risk_band": "none"
+      },
+      "created_at": "2026-06-30T20:56:32.669861+00:00",
+      "scope": "web"
+    },
+    {
+      "id": "bebb3627-12ac-4dd0-bb2c-4657a80e49a2",
+      "user_id": "c197a42e-7eff-40c8-843a-f1dbcbff7ae9",
+      "role": "user",
+      "content": "Ok mais je veux pas que ça m’enferme dans tes catégories. Je veux juste comprendre tout ce que je peux raconter pour que l’IA adapte mieux.",
+      "agent_used": null,
+      "metadata": {
+        "request_id": "planrealign-r3-t3",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      },
+      "created_at": "2026-06-30T20:56:51.432553+00:00",
+      "scope": "web"
+    },
+    {
+      "id": "3bb8afa8-2ce5-4e16-8cbd-972feca70bd1",
+      "user_id": "c197a42e-7eff-40c8-843a-f1dbcbff7ae9",
+      "role": "assistant",
+      "content": "Tu n’as pas besoin de rentrer dans des catégories. Le plus utile, c’est de raconter simplement : ce qui a changé cette semaine, ce qui a coincé, ce qui est devenu trop lourd, ce que tu veux garder malgré tout, et ce que tu aimerais à la place pour que ça tienne mieux.\n\nTu peux aussi dire ton niveau de retard, ton énergie actuelle, les contraintes de temps, et ce que tu refuses de sacrifier. L’idée, c’est de donner assez de contexte pour que le plan se réaligne avec ta réalité.\n\nVa dans Dashboard > Plan > Ajuster mon plan, et écris-le en mots naturels, sans te censurer.",
+      "agent_used": "companion",
+      "metadata": {
+        "request_id": "planrealign-r3-t3",
+        "route_owner": "plan_realignment",
+        "agent_latency_ms": 5790,
+        "selected_handler": "plan_realignment",
+        "context_latency_ms": 0,
+        "dispatcher_latency_ms": 0,
+        "runtime_safety_risk_band": "none"
+      },
+      "created_at": "2026-06-30T20:56:57.247568+00:00",
+      "scope": "web"
+    },
+    {
+      "id": "759c03d0-5721-4d58-b49c-10b7d2a7ac94",
+      "user_id": "c197a42e-7eff-40c8-843a-f1dbcbff7ae9",
+      "role": "user",
+      "content": "Et je vais où exactement pour écrire ça ? Je suis pas sûr de trouver le bon endroit.",
+      "agent_used": null,
+      "metadata": {
+        "request_id": "planrealign-r3-t4",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      },
+      "created_at": "2026-06-30T20:57:15.796914+00:00",
+      "scope": "web"
+    },
+    {
+      "id": "e026c045-ae7a-4d80-8ae0-db9582dd5570",
+      "user_id": "c197a42e-7eff-40c8-843a-f1dbcbff7ae9",
+      "role": "assistant",
+      "content": "Va dans Dashboard > Plan > Ajuster mon plan.\n\nLà, écris simplement ce qui n’a pas tenu cette semaine, ce qui a changé, ce qui est devenu trop lourd, ton niveau de retard, et ce que tu aimerais garder ou retrouver comme rythme. Tu peux aussi dire les contraintes de temps, d’énergie, ou les arbitrages que tu acceptes ou refuses.\n\nTu n’as rien à reformuler parfaitement : plus tu racontes ton contexte réel, mieux ça aidera Sophia à t’aider.",
+      "agent_used": "companion",
+      "metadata": {
+        "request_id": "planrealign-r3-t4",
+        "route_owner": "plan_realignment",
+        "agent_latency_ms": 4834,
+        "selected_handler": "plan_realignment",
+        "context_latency_ms": 0,
+        "dispatcher_latency_ms": 0,
+        "runtime_safety_risk_band": "none"
+      },
+      "created_at": "2026-06-30T20:57:20.688389+00:00",
+      "scope": "web"
+    },
+    {
+      "id": "f0741286-ecd9-43b2-acea-e07cf410fc65",
+      "user_id": "c197a42e-7eff-40c8-843a-f1dbcbff7ae9",
+      "role": "user",
+      "content": "Ok là pour le coup donne-moi une trame, mais pas une réponse finale : juste un début que je peux modifier avec mes détails.",
+      "agent_used": null,
+      "metadata": {
+        "request_id": "planrealign-r3-t5",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      },
+      "created_at": "2026-06-30T20:57:41.249611+00:00",
+      "scope": "web"
+    },
+    {
+      "id": "0349ea0b-0fce-4267-810e-aacd64b853f9",
+      "user_id": "c197a42e-7eff-40c8-843a-f1dbcbff7ae9",
+      "role": "assistant",
+      "content": "Va dans Dashboard > Plan > Ajuster mon plan, puis pars d’un début comme celui-ci et remplace les crochets avec tes infos :\n\n« Cette semaine, je n’ai pas réussi à tenir [ce qui n’a pas tenu] parce que [ce qui a coincé / ce qui a changé]. J’ai surtout senti [fatigue / manque de temps / imprévu / surcharge]. Ce qui me paraît important de garder, c’est [ce que tu veux préserver]. Là, j’ai besoin d’un rythme plus [réaliste / léger / souple] avec [tes contraintes]. »\n\nTu peux aussi ajouter ce que tu ne veux pas perdre et ce qui est devenu trop lourd.",
+      "agent_used": "companion",
+      "metadata": {
+        "request_id": "planrealign-r3-t5",
+        "route_owner": "plan_realignment",
+        "agent_latency_ms": 6662,
+        "selected_handler": "plan_realignment",
+        "context_latency_ms": 0,
+        "dispatcher_latency_ms": 0,
+        "runtime_safety_risk_band": "none"
+      },
+      "created_at": "2026-06-30T20:57:47.934336+00:00",
+      "scope": "web"
+    }
+  ],
+  "conversation_eval_events": [],
+  "system_error_logs": [],
+  "llm_usage_events": [
+    {
+      "id": "c8de19ee-a453-4ba7-b28d-391dbb12fc68",
+      "created_at": "2026-06-30T20:55:55.017472+00:00",
+      "request_id": "planrealign-r3-t1",
+      "source": "dispatcher-v2-llm",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "kind": "generate",
+      "prompt_tokens": 5672,
+      "output_tokens": 396,
+      "total_tokens": 6068,
+      "cost_usd": 0.006036,
+      "metadata": {
+        "hasTools": false,
+        "jsonMode": true,
+        "openai_api": "responses",
+        "toolChoice": "auto",
+        "openai_response_id": "resp_0d94306cec4082f4006a442d5830288191820f173da8da504c",
+        "user_id_resolution": "provided"
+      },
+      "user_id": "c197a42e-7eff-40c8-843a-f1dbcbff7ae9",
+      "operation_family": "dispatcher",
+      "operation_name": "dispatcher-v2-llm",
+      "channel": "system",
+      "status": "success",
+      "latency_ms": 4045,
+      "provider_request_id": null,
+      "pricing_version": "openai_2026_06_12_standard",
+      "input_price_per_1k_tokens_usd": 0.00075,
+      "output_price_per_1k_tokens_usd": 0.0045,
+      "cost_unpriced": false,
+      "currency": "USD",
+      "step_index": null
+    },
+    {
+      "id": "773a6e2e-97e2-46bc-86c1-d2049c9ef40b",
+      "created_at": "2026-06-30T20:56:01.958241+00:00",
+      "request_id": "planrealign-r3-t1",
+      "source": "dispatcher-v2-llm",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "kind": "generate",
+      "prompt_tokens": 6164,
+      "output_tokens": 331,
+      "total_tokens": 6495,
+      "cost_usd": 0.0061125,
+      "metadata": {
+        "hasTools": false,
+        "jsonMode": true,
+        "openai_api": "responses",
+        "toolChoice": "auto",
+        "openai_response_id": "resp_031f04ef6187dc11006a442d5f9b3481a3ae780c9f7722926b",
+        "user_id_resolution": "provided"
+      },
+      "user_id": "c197a42e-7eff-40c8-843a-f1dbcbff7ae9",
+      "operation_family": "dispatcher",
+      "operation_name": "dispatcher-v2-llm",
+      "channel": "system",
+      "status": "success",
+      "latency_ms": 2617,
+      "provider_request_id": null,
+      "pricing_version": "openai_2026_06_12_standard",
+      "input_price_per_1k_tokens_usd": 0.00075,
+      "output_price_per_1k_tokens_usd": 0.0045,
+      "cost_unpriced": false,
+      "currency": "USD",
+      "step_index": null
+    }
+  ]
+}

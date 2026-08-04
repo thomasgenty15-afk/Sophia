@@ -10,16 +10,20 @@ import {
   fetchCheckinExclusionSnapshot,
   formatWatcherExclusionSnapshot,
   sanitizeWatcherGrounding,
+  watcherCandidateCoveredByExistingFollowUp,
   watcherEventContextTouchesExcludedScope,
 } from "../../_shared/checkin_scope.ts";
 import { logMomentumStateObservability } from "../../_shared/momentum-observability.ts";
 import { buildUserTimeContextFromValues } from "../../_shared/user_time_context.ts";
 import {
-  consolidateMomentumState,
-  readMomentumState,
+  consolidateMomentumStateV2,
+  readMomentumStateV2,
   summarizeMomentumStateForLog,
-  writeMomentumState,
+  writeMomentumStateV2,
 } from "../momentum_state.ts";
+import { listMorningNudgeEventContexts } from "../momentum_morning_nudge.ts";
+import { buildWatcherConversationPulse } from "../conversation_pulse_builder.ts";
+import { detectDefenseCardNewTriggers } from "./defense_card_watcher.ts";
 
 type ExistingCheckin = {
   scheduled_for: string;
@@ -91,8 +95,17 @@ function dayKeyInTimezone(isoOrMs: string | number, timezone: string): string {
 
 function isPlanObjectiveContext(eventContext: string): boolean {
   const text = String(eventContext ?? "").toLowerCase();
-  return /\b(plan|objectif|objectifs|habitude|routine|discipline|phase|north star|action du plan)\b/
-    .test(text);
+  return [
+    "plan",
+    "objectif",
+    "objectifs",
+    "habitude",
+    "routine",
+    "discipline",
+    "phase",
+    "north star",
+    "action du plan",
+  ].some((marker) => text.includes(marker));
 }
 
 function isInsideDailyBilanWindow(
@@ -230,26 +243,14 @@ async function applyCoachingPause(params: {
       processed_at: nowIso,
     } as any)
     .eq("user_id", params.userId)
-    .eq("event_context", "morning_active_actions_nudge")
+    .in("event_context", listMorningNudgeEventContexts())
     .in("status", ["pending", "retrying", "awaiting_user"])
     .gte("scheduled_for", nowIso)
     .lt("scheduled_for", params.pauseUntilIso);
   if (morningCancelErr) throw morningCancelErr;
 
-  const pendingKinds = ["weekly_bilan", "bilan_reschedule"] as const;
-  const { error: pendingErr } = await params.supabase
-    .from("whatsapp_pending_actions")
-    .update({
-      status: "cancelled",
-      processed_at: nowIso,
-    } as any)
-    .eq("user_id", params.userId)
-    .in("kind", [...pendingKinds])
-    .eq("status", "pending");
-  if (pendingErr) throw pendingErr;
-
   const { error: morningPendingErr } = await params.supabase
-    .from("whatsapp_pending_actions")
+    .from("pending_actions")
     .update({
       status: "cancelled",
       processed_at: nowIso,
@@ -257,7 +258,10 @@ async function applyCoachingPause(params: {
     .eq("user_id", params.userId)
     .eq("kind", "scheduled_checkin")
     .eq("status", "pending")
-    .filter("payload->>event_context", "eq", "morning_active_actions_nudge");
+    .in(
+      "payload->>event_context",
+      listMorningNudgeEventContexts(),
+    );
   if (morningPendingErr) throw morningPendingErr;
 }
 
@@ -268,6 +272,7 @@ async function aiValidateDayCoherence(params: {
   timezone: string;
   sameDayCheckins: ExistingCheckin[];
   requestId?: string;
+  userId?: string | null;
 }): Promise<boolean> {
   const dayList = params.sameDayCheckins
     .map((c, i) => {
@@ -354,7 +359,8 @@ ${dayList || "(aucun)"}
       "auto",
       {
         requestId: params.requestId,
-        model: getGlobalAiModel("gemini-2.5-flash"),
+        userId: params.userId ?? undefined,
+        model: getGlobalAiModel(),
         source: "trigger-watcher-batch:day-coherence",
       },
     );
@@ -373,6 +379,7 @@ export async function runWatcher(
   lastProcessedAt: string,
   meta?: {
     requestId?: string;
+    userId?: string | null;
     forceRealAi?: boolean;
     channel?: "web" | "whatsapp";
     model?: string;
@@ -423,7 +430,7 @@ export async function runWatcher(
   ).join("\n");
   void transcript;
 
-  // Deterministic mode (MEGA): keep behavior stable for integration tests.
+  // MEGA mode keeps behavior stable for integration tests.
   const megaRaw = (Deno.env.get("MEGA_TEST_MODE") ?? "").trim();
   const isLocalSupabase =
     (Deno.env.get("SUPABASE_INTERNAL_HOST_PORT") ?? "").trim() === "54321" ||
@@ -454,10 +461,11 @@ export async function runWatcher(
     userId,
   });
   const activeActionTitles = exclusionSnapshot.planActionTitles;
-  const activeActionsBlock = exclusionSnapshot.planActionTitles.length > 0
-    ? exclusionSnapshot.planActionTitles.map((t, i) => `${i + 1}. ${t}`).join(
-      "\n",
-    )
+  const activeActionPromptRows = exclusionSnapshot.planActionDetails.length > 0
+    ? exclusionSnapshot.planActionDetails
+    : exclusionSnapshot.planActionTitles;
+  const activeActionsBlock = activeActionPromptRows.length > 0
+    ? activeActionPromptRows.map((t, i) => `${i + 1}. ${t}`).join("\n")
     : "(aucune action active)";
   const exclusionSnapshotBlock = formatWatcherExclusionSnapshot(
     exclusionSnapshot,
@@ -538,7 +546,6 @@ Règles CRITIQUES :
   - le message de motivation du matin sur les actions actives
 - N'inclus PAS dans la pause coaching:
   - les rappels récurrents configurés par l'utilisateur
-  - les memory_echo
   - les check-ins ponctuels watcher d'événements
   - la simple volonté d'arrêter la conversation en cours
   - la pause d'une action précise
@@ -549,6 +556,9 @@ Règles CRITIQUES :
 - IGNORE les événements mineurs, routiniers, ou le fait que l'utilisateur dise simplement "à demain" ou "bonne nuit".
 - N'utilise PAS les actions actives du plan comme motif de check-in ponctuel watcher (elles sont déjà suivies ailleurs).
 - Si l'utilisateur demande explicitement un rappel ponctuel a Sophia ("rappelle-moi", "envoie-moi un rappel", etc.), renvoie []: ce cas est géré par le tool de reminder one-shot, pas par le watcher.
+- AVANT de retourner un element dans "events", compare-le aux suivis existants listes plus bas: rappels dashboard/chat, potions, one-shot reminders, check-ins deja planifies.
+- Si le besoin utilisateur est deja pris en charge par un autre flow, ne retourne PAS ce candidat dans "events". Le watcher ne doit pas recreer un check-in pour un element deja handle.
+- Raisonne candidat par candidat: un evenement non couvert peut etre retourne, mais tout element couvert par un one-shot reminder, un rappel recurrent, une potion ou un check-in existant doit etre exclu directement dans ta sortie JSON.
 - Si le sujet/rappel semble déjà pris en charge via le flux rendez-vous/dashboard (création/édition d'action, rappel récurrent, réglage de plan), ne crée PAS de future event watcher pour ce sujet.
 - Si l'échange montre qu'un rendez-vous couvre déjà le besoin, renvoie [] pour éviter les doublons.
 - event_context doit être une étiquette canonique et stable de l'événement, pas une formulation relative.
@@ -618,7 +628,8 @@ ${exclusionSnapshotBlock}
       "auto",
       {
         requestId: meta?.requestId,
-        model: getGlobalAiModel("gemini-2.5-flash"),
+        userId: meta?.userId ?? userId,
+        model: getGlobalAiModel(),
         source: "trigger-watcher-batch",
       },
     );
@@ -736,6 +747,30 @@ ${exclusionSnapshotBlock}
         String(candidate.eventGrounding ?? ""),
         exclusionSnapshot,
       );
+      const coverage = watcherCandidateCoveredByExistingFollowUp({
+        event_context: eventContext,
+        event_grounding: eventGrounding,
+        scheduled_for: scheduledFor,
+        now_iso: now,
+      }, exclusionSnapshot);
+      if (coverage.covered) {
+        console.log(JSON.stringify({
+          tag: "watcher_candidate_skipped_existing_followup",
+          request_id: meta?.requestId ?? null,
+          user_id: userId,
+          scope,
+          reason: coverage.reason,
+          candidate_event_context: eventContext,
+          scheduled_for: scheduledFor,
+          matched_source: coverage.matched_followup?.source ?? null,
+          matched_event_context: coverage.matched_followup?.event_context ??
+            null,
+          matched_label: coverage.matched_followup?.label ?? null,
+          matched_recurring_reminder_id:
+            coverage.matched_followup?.recurring_reminder_id ?? null,
+        }));
+        continue;
+      }
 
       // Hard product rule: avoid check-ins about plan objectives unless exceptional support need (>0.9).
       if (isPlanObjectiveContext(eventContext) && score <= 9) continue;
@@ -765,6 +800,7 @@ ${exclusionSnapshotBlock}
           timezone: tctx.user_timezone,
           sameDayCheckins,
           requestId: meta?.requestId,
+          userId,
         });
         if (!accepted) continue;
       }
@@ -778,7 +814,7 @@ ${exclusionSnapshotBlock}
         message_payload: {
           source: "trigger-watcher-batch",
           instruction:
-            "Relance courte liée à l'événement. Utilise le tutoiement. 1 question max. Pas de markdown.",
+            'Relance courte liée à l\'événement. Tutoie toujours l\'utilisateur. N\'utilise "vous", "votre" ou "vos" que si tu parles explicitement du couple ou de plusieurs personnes, jamais pour t\'adresser directement à l\'utilisateur. 1 question max. Pas de markdown.',
           event_grounding: eventGrounding || null,
         },
         scheduled_for: scheduledFor,
@@ -814,16 +850,36 @@ ${exclusionSnapshotBlock}
     );
   }
 
+  // Defense card: detect new triggers from recent conversation
   try {
-    const previousMomentum = readMomentumState(latestTempMemory);
-    const consolidatedMomentum = await consolidateMomentumState({
+    const dcResult = await detectDefenseCardNewTriggers({
+      supabase,
+      userId,
+      transcript: fullTranscript,
+      meta: { requestId: meta?.requestId },
+    });
+    if (dcResult.triggers_found > 0) {
+      console.log(
+        `[Veilleur] defense_card_triggers_detected=${dcResult.triggers_found} user=${userId} stored=${dcResult.stored}`,
+      );
+    }
+  } catch (e) {
+    console.warn(
+      `[Veilleur] defense_card_trigger_detection_error user=${userId}`,
+      e,
+    );
+  }
+
+  try {
+    const previousMomentum = readMomentumStateV2(latestTempMemory);
+    const consolidatedMomentum = await consolidateMomentumStateV2({
       supabase,
       userId,
       scope,
       tempMemory: latestTempMemory,
       nowIso: new Date().toISOString(),
     });
-    const nextTempMemory = writeMomentumState(
+    const nextTempMemory = writeMomentumStateV2(
       latestTempMemory,
       consolidatedMomentum,
     );
@@ -837,8 +893,8 @@ ${exclusionSnapshotBlock}
       channel: scope === "whatsapp" ? "whatsapp" : "web",
       scope,
       source: "watcher",
-      previous: previousMomentum,
-      next: consolidatedMomentum,
+      previous: previousMomentum as any,
+      next: consolidatedMomentum as any,
     });
     console.log(JSON.stringify({
       tag: "watcher_momentum_state_updated",
@@ -849,6 +905,34 @@ ${exclusionSnapshotBlock}
   } catch (e) {
     console.error(
       `[Veilleur] momentum_consolidation_error user=${userId} scope=${scope}`,
+      e,
+    );
+  }
+
+  try {
+    const result = await buildWatcherConversationPulse({
+      supabase,
+      userId,
+      requestId: meta?.requestId,
+      nowIso: now,
+      windowStartIso: new Date(windowStartMs).toISOString(),
+      timezone: tctx.user_timezone,
+      scope,
+    });
+    if (result?.snapshotId) {
+      console.log(JSON.stringify({
+        tag: "watcher_conversation_pulse_v2_generated",
+        user_id: userId,
+        scope,
+        snapshot_id: result.snapshotId,
+        pulse_kind: result.pulse.pulse_kind ?? "watcher_4h",
+        likely_need: result.pulse.signals.likely_need,
+        proactive_risk: result.pulse.signals.proactive_risk,
+      }));
+    }
+  } catch (e) {
+    console.error(
+      `[Veilleur] conversation_pulse_v2_error user=${userId} scope=${scope}`,
       e,
     );
   }

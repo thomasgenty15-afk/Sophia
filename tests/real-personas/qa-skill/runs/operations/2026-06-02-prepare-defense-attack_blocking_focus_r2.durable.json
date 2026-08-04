@@ -1,0 +1,172 @@
+{
+  "user_defense_cards": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_plan_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "5382a3a1-f7f5-479c-8d2c-406a3f2a8ded",
+        "role": "user",
+        "content": "Prépare-moi une carte d'attaque pour envoyer mon dossier administratif avant 16h. Je bloque parce que je veux que ce soit parfait avant d'envoyer. Ne la crée pas, donne-moi juste le brouillon à reprendre dans la plateforme.",
+        "scope": "qa-prepare-defense-card-qa-skill-2026-06-02-attack_blocking_focus_r2",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-qa-skill-2026-06-02-attack_blocking_focus_r2-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-02T12:06:59.61188+00:00"
+      },
+      {
+        "id": "1d554f54-0e3b-4c28-9382-c9f978429853",
+        "role": "assistant",
+        "content": "Cible/action comprise : Envoyer mon dossier administratif\n\nObstacle ou piège identifié : je veux que ce soit parfait avant d'envoyer\n\nTechnique recommandée : Le texte magique\nPourquoi : Il recadre ton besoin de perfection comme une simple résistance pour t'aider à passer à l'acte.\n\nBrouillon de carte :\nDossier : Fait vaut mieux que parfait\nCe dossier n'a pas besoin d'être parfait, il a besoin d'être envoyé. Mon perfectionnisme est une forme de fuite. Je choisis de cliquer sur envoyer maintenant pour me libérer l'esprit.\nMode d'emploi : Lis ce texte au moment où tu sens la résistance monter, puis fais le premier geste.\n\nÀ préserver :\n- Ce dossier n'a pas besoin d'être parfait, il a besoin d'être envoyé. Mon perfectionnisme est une forme de fuite. Je choisis de cliquer sur envoyer maintenant pour me libérer l'esprit.\n- Le perfectionnisme est une forme d'évitement\n- L'objectif est l'envoi avant 16h, pas la perfection\n\nÀ éviter :\n- Transformer ce brouillon en promesse trop longue.\n- Ajouter plusieurs techniques concurrentes dans la même carte.\n\nDestination plateforme : dans la section Cartes d’attaque\n1. ouvre la section Cartes\n2. choisis Carte d’attaque\n3. reprends le brouillon proposé\n\nJe ne crée pas la carte depuis le chat. Voici la version à reprendre dans la section Cartes d’attaque. 🙂",
+        "scope": "qa-prepare-defense-card-qa-skill-2026-06-02-attack_blocking_focus_r2",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-qa-skill-2026-06-02-attack_blocking_focus_r2-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "debug": {
+                "evidence": [
+                  "message_no_create"
+                ],
+                "reason_code": "draft_only_no_create"
+              },
+              "draft": {
+                "draft": {
+                  "title": "Dossier : Fait vaut mieux que parfait",
+                  "technique": "texte_recadrage",
+                  "instruction": "Lis ce texte dès que tu commences à peaufiner inutilement.",
+                  "mode_emploi": "Lis ce texte au moment où tu sens la résistance monter, puis fais le premier geste.",
+                  "target_label": "Envoyer mon dossier administratif",
+                  "why_it_helps": "Il recadre ton besoin de perfection comme une simple résistance pour t'aider à passer à l'acte.",
+                  "generated_asset": "Ce dossier n'a pas besoin d'être parfait, il a besoin d'être envoyé. Mon perfectionnisme est une forme de fuite. Je choisis de cliquer sur envoyer maintenant pour me libérer l'esprit.",
+                  "technique_title": "Le texte magique",
+                  "supporting_points": [
+                    "Le perfectionnisme est une forme d'évitement",
+                    "L'objectif est l'envoi avant 16h, pas la perfection",
+                    "Le soulagement immédiat après l'envoi"
+                  ],
+                  "activation_keyword": null
+                },
+                "output_schema": "attack_card_draft_v1",
+                "operation_type": "prepare_attack_card",
+                "confirmation_actions": [
+                  "yes",
+                  "no"
+                ],
+                "confirmation_message": "Voici le brouillon à reprendre dans Cartes / Attaque : « Dossier : Fait vaut mieux que parfait » (Le texte magique) : Ce dossier n'a pas besoin d'être parfait, il a besoin d'être envoyé. Mon perfectionnisme est une forme de fuite. Je choisis de cliquer sur envoyer maintenant pour me libérer l'esprit.. Je ne crée pas la carte depuis le chat."
+              },
+              "source": "direct_user_request",
+              "status": "handoff_delivered",
+              "user_intent": "draft_only",
+              "operation_id": "d2cff82a-be45-4968-a1f3-186d43f64f86",
+              "handoff_state": {
+                "mode": "platform_handoff",
+                "draft": {
+                  "mode": "platform_handoff",
+                  "operation_type": "prepare_attack_card",
+                  "recommendation": {
+                    "avoid": [
+                      "Transformer ce brouillon en promesse trop longue.",
+                      "Ajouter plusieurs techniques concurrentes dans la même carte."
+                    ],
+                    "preserve": [
+                      "Ce dossier n'a pas besoin d'être parfait, il a besoin d'être envoyé. Mon perfectionnisme est une forme de fuite. Je choisis de cliquer sur envoyer maintenant pour me libérer l'esprit.",
+                      "Le perfectionnisme est une forme d'évitement",
+                      "L'objectif est l'envoi avant 16h, pas la perfection"
+                    ],
+                    "platform_steps": [
+                      "ouvre la section Cartes",
+                      "choisis Carte d’attaque",
+                      "reprends le brouillon proposé"
+                    ],
+                    "technique_label": "Le texte magique",
+                    "card_draft_summary": "Dossier : Fait vaut mieux que parfait\nCe dossier n'a pas besoin d'être parfait, il a besoin d'être envoyé. Mon perfectionnisme est une forme de fuite. Je choisis de cliquer sur envoyer maintenant pour me libérer l'esprit.\nMode d'emploi : Lis ce texte au moment où tu sens la résistance monter, puis fais le premier geste.",
+                    "why_this_technique": "Il recadre ton besoin de perfection comme une simple résistance pour t'aider à passer à l'acte.",
+                    "platform_destination": "dans la section Cartes d’attaque"
+                  },
+                  "target_summary": "Envoyer mon dossier administratif",
+                  "blocker_summary": "je veux que ce soit parfait avant d'envoyer",
+                  "no_chat_mutation": true,
+                  "missing_decisions": [],
+                  "executable_from_chat": false
+                },
+                "status": "handoff_delivered",
+                "target": {
+                  "kind": "personal_action",
+                  "title": "Envoyer mon dossier administratif",
+                  "plan_item_id": null
+                },
+                "skill_id": "prepare_attack_card",
+                "max_turns": 8,
+                "created_at": "2026-06-02T12:07:21.836Z",
+                "turn_count": 1,
+                "updated_at": "2026-06-02T12:07:21.836Z",
+                "source_draft": {
+                  "draft": {
+                    "title": "Dossier : Fait vaut mieux que parfait",
+                    "technique": "texte_recadrage",
+                    "instruction": "Lis ce texte dès que tu commences à peaufiner inutilement.",
+                    "mode_emploi": "Lis ce texte au moment où tu sens la résistance monter, puis fais le premier geste.",
+                    "target_label": "Envoyer mon dossier administratif",
+                    "why_it_helps": "Il recadre ton besoin de perfection comme une simple résistance pour t'aider à passer à l'acte.",
+                    "generated_asset": "Ce dossier n'a pas besoin d'être parfait, il a besoin d'être envoyé. Mon perfectionnisme est une forme de fuite. Je choisis de cliquer sur envoyer maintenant pour me libérer l'esprit.",
+                    "technique_title": "Le texte magique",
+                    "supporting_points": [
+                      "Le perfectionnisme est une forme d'évitement",
+                      "L'objectif est l'envoi avant 16h, pas la perfection",
+                      "Le soulagement immédiat après l'envoi"
+                    ],
+                    "activation_keyword": null
+                  },
+                  "output_schema": "attack_card_draft_v1",
+                  "operation_type": "prepare_attack_card",
+                  "confirmation_actions": [
+                    "yes",
+                    "no"
+                  ],
+                  "confirmation_message": "Voici le brouillon à reprendre dans Cartes / Attaque : « Dossier : Fait vaut mieux que parfait » (Le texte magique) : Ce dossier n'a pas besoin d'être parfait, il a besoin d'être envoyé. Mon perfectionnisme est une forme de fuite. Je choisis de cliquer sur envoyer maintenant pour me libérer l'esprit.. Je ne crée pas la carte depuis le chat."
+                },
+                "no_chat_mutation": true
+              },
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "platform_handoff": {
+                "status": "delivered",
+                "surface_id": "attack_cards",
+                "reason_code": "attack_card_platform_handoff",
+                "operation_type": "prepare_attack_card",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "prepare_attack_card",
+              "committed_effects": [],
+              "requested_effects": [],
+              "pending_confirmation": null
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-02T12:07:21.845752+00:00"
+      }
+    ]
+  }
+}

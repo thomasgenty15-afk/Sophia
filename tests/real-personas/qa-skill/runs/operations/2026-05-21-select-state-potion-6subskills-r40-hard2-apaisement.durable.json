@@ -1,0 +1,251 @@
+[
+  {
+    "potion": "apaisement",
+    "user_id": "a6cd0369-db17-4570-9ac9-9334db787478",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r40_hard2_apaisement_apaisement",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [
+        {
+          "id": "fdc312cd-2f0a-4fd5-8c86-fff699764e39",
+          "potion_type": "apaisement",
+          "status": "completed",
+          "source": "system",
+          "scope_kind": "out_of_plan",
+          "cycle_id": "4ae01fc6-37d8-43a7-98b6-86e226179da1",
+          "transformation_id": null,
+          "content": {
+            "title": "Retrouver du souffle",
+            "target_binding": {
+              "kind": "one_off_action",
+              "label": "Réunion de cet après-midi",
+              "evidence": [
+                "La réunion de cet après-midi prend toute la place",
+                "mâchoire serrée, souffle court"
+              ],
+              "recurrence_hint": null,
+              "date_or_window_hint": "cet après-midi",
+              "target_plan_item_id": null,
+              "related_plan_item_id": null,
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "operation_draft": {
+              "title": "Retrouver du souffle",
+              "follow_up": {
+                "duration_days": 7,
+                "schedule_plan": {
+                  "mode": "daily_series",
+                  "reason": "Un suivi quotidien sur une semaine permet de stabiliser l'apaisement et de casser le cycle de la tension physique.",
+                  "local_dates": [],
+                  "duration_days": 7,
+                  "scheduled_days": [],
+                  "local_time_hhmm": "08:30",
+                  "timing_relation": "daily"
+                },
+                "local_time_hhmm": "08:30",
+                "reason_for_time": "Le matin est le moment idéal pour poser une intention de calme avant que la journée ne s'accélère.",
+                "reminder_instruction": "Un message pour t'aider à ralentir le matin et desserrer la pression sans culpabilité."
+              },
+              "potion_type": "apaisement",
+              "opening_prompt": "Qu'est-ce qui t'aiderait à desserrer un peu la mâchoire là maintenant ?",
+              "target_binding": {
+                "kind": "one_off_action",
+                "label": "Réunion de cet après-midi",
+                "evidence": [
+                  "La réunion de cet après-midi prend toute la place",
+                  "mâchoire serrée, souffle court"
+                ],
+                "recurrence_hint": null,
+                "date_or_window_hint": "cet après-midi",
+                "target_plan_item_id": null,
+                "related_plan_item_id": null,
+                "target_action_family_key": null,
+                "target_generated_temp_id": null
+              },
+              "why_this_potion": "Pour t'aider à calmer les tensions physiques et à aborder tes journées avec plus de douceur, sans culpabiliser de ralentir.",
+              "expected_duration": "short",
+              "potion_info_message": "Ta Potion d'apaisement est prête. Je vais t'accompagner chaque matin pour t'aider à ralentir et à retrouver de l'espace, sans ajouter de pression.",
+              "instant_support_message": "Prends une grande inspiration, et en expirant, essaie de laisser ta mâchoire se détendre un peu. Cette réunion et cette charge sont là, mais on va s'assurer qu'elles ne prennent pas tout ton air."
+            },
+            "why_this_potion": "Pour t'aider à calmer les tensions physiques et à aborder tes journées avec plus de douceur, sans culpabiliser de ralentir.",
+            "potion_info_message": "Ta Potion d'apaisement est prête. Je vais t'accompagner chaque matin pour t'aider à ralentir et à retrouver de l'espace, sans ajouter de pression.",
+            "instant_support_message": "Prends une grande inspiration, et en expirant, essaie de laisser ta mâchoire se détendre un peu. Cette réunion et cette charge sont là, mais on va s'assurer qu'elles ne prennent pas tout ton air."
+          },
+          "follow_up_strategy": {
+            "duration_days": 7,
+            "schedule_plan": {
+              "mode": "daily_series",
+              "reason": "Un suivi quotidien sur une semaine permet de stabiliser l'apaisement et de casser le cycle de la tension physique.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [],
+              "local_time_hhmm": "08:30",
+              "timing_relation": "daily"
+            },
+            "target_binding": {
+              "kind": "one_off_action",
+              "label": "Réunion de cet après-midi",
+              "evidence": [
+                "La réunion de cet après-midi prend toute la place",
+                "mâchoire serrée, souffle court"
+              ],
+              "recurrence_hint": null,
+              "date_or_window_hint": "cet après-midi",
+              "target_plan_item_id": null,
+              "related_plan_item_id": null,
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "local_time_hhmm": "08:30",
+            "reason_for_time": "Le matin est le moment idéal pour poser une intention de calme avant que la journée ne s'accélère.",
+            "reminder_instruction": "Un message pour t'aider à ralentir le matin et desserrer la pression sans culpabilité."
+          },
+          "metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r40_hard2_apaisement-apaisement-t05-a1",
+            "operation_id": "c87b8551-46f9-4458-b317-15b4aab648d8",
+            "operation_type": "select_state_potion",
+            "source_message_id": "10d96a61-b60a-4045-a0fb-61f3efcfcc27"
+          },
+          "generated_at": "2026-05-21T15:37:04.31+00:00",
+          "last_updated_at": "2026-05-21T15:37:04.31+00:00"
+        }
+      ],
+      "reminders": [
+        {
+          "id": "e2486102-30a1-464f-8ba5-a6a612a2b3fc",
+          "message_instruction": "Un message pour t'aider à ralentir le matin et desserrer la pression sans culpabilité.",
+          "rationale": "Un suivi quotidien sur une semaine permet de stabiliser l'apaisement et de casser le cycle de la tension physique.",
+          "local_time_hhmm": "08:30",
+          "scheduled_days": [
+            "fri",
+            "sat",
+            "sun",
+            "mon",
+            "tue",
+            "wed",
+            "thu"
+          ],
+          "status": "active",
+          "initiative_kind": "potion_follow_up",
+          "source_kind": "potion_generated",
+          "source_potion_session_id": "fdc312cd-2f0a-4fd5-8c86-fff699764e39",
+          "initiative_metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r40_hard2_apaisement-apaisement-t05-a1",
+            "operation_id": "c87b8551-46f9-4458-b317-15b4aab648d8",
+            "schedule_plan": {
+              "mode": "daily_series",
+              "reason": "Un suivi quotidien sur une semaine permet de stabiliser l'apaisement et de casser le cycle de la tension physique.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [],
+              "local_time_hhmm": "08:30",
+              "timing_relation": "daily"
+            },
+            "operation_type": "select_state_potion",
+            "target_binding": {
+              "kind": "one_off_action",
+              "label": "Réunion de cet après-midi",
+              "evidence": [
+                "La réunion de cet après-midi prend toute la place",
+                "mâchoire serrée, souffle court"
+              ],
+              "recurrence_hint": null,
+              "date_or_window_hint": "cet après-midi",
+              "target_plan_item_id": null,
+              "related_plan_item_id": null,
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            }
+          },
+          "target_kind": "transformation",
+          "target_plan_item_id": null,
+          "target_action_family_key": null,
+          "target_binding_policy": "snapshot",
+          "target_lifecycle_policy": "independent",
+          "starts_at": "2026-05-21T15:37:04.31+00:00",
+          "created_at": "2026-05-21T15:37:04.32271+00:00",
+          "updated_at": "2026-05-21T15:37:04.32271+00:00"
+        }
+      ],
+      "checkins": [
+        {
+          "id": "30454eef-3bda-4d96-9e4f-b8e9149e8c3c",
+          "recurring_reminder_id": "e2486102-30a1-464f-8ba5-a6a612a2b3fc",
+          "event_context": "recurring_reminder:e2486102-30a1-464f-8ba5-a6a612a2b3fc:potion:fdc312cd-2f0a-4fd5-8c86-fff699764e39:2026-05-22",
+          "draft_message": "Un message pour t'aider à ralentir le matin et desserrer la pression sans culpabilité.",
+          "scheduled_for": "2026-05-22T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T15:37:04.332099+00:00"
+        },
+        {
+          "id": "c2f1bdfb-8f1b-4117-9782-658511e9a3a8",
+          "recurring_reminder_id": "e2486102-30a1-464f-8ba5-a6a612a2b3fc",
+          "event_context": "recurring_reminder:e2486102-30a1-464f-8ba5-a6a612a2b3fc:potion:fdc312cd-2f0a-4fd5-8c86-fff699764e39:2026-05-23",
+          "draft_message": "Un message pour t'aider à ralentir le matin et desserrer la pression sans culpabilité.",
+          "scheduled_for": "2026-05-23T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T15:37:04.332099+00:00"
+        },
+        {
+          "id": "66521619-7a09-4846-812a-0a5c37c2a972",
+          "recurring_reminder_id": "e2486102-30a1-464f-8ba5-a6a612a2b3fc",
+          "event_context": "recurring_reminder:e2486102-30a1-464f-8ba5-a6a612a2b3fc:potion:fdc312cd-2f0a-4fd5-8c86-fff699764e39:2026-05-24",
+          "draft_message": "Un message pour t'aider à ralentir le matin et desserrer la pression sans culpabilité.",
+          "scheduled_for": "2026-05-24T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T15:37:04.332099+00:00"
+        },
+        {
+          "id": "02204e0d-54d4-43f3-97f9-f406b4470a62",
+          "recurring_reminder_id": "e2486102-30a1-464f-8ba5-a6a612a2b3fc",
+          "event_context": "recurring_reminder:e2486102-30a1-464f-8ba5-a6a612a2b3fc:potion:fdc312cd-2f0a-4fd5-8c86-fff699764e39:2026-05-25",
+          "draft_message": "Un message pour t'aider à ralentir le matin et desserrer la pression sans culpabilité.",
+          "scheduled_for": "2026-05-25T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T15:37:04.332099+00:00"
+        },
+        {
+          "id": "b6e62450-db8b-4dfe-afcd-7bbc0669306e",
+          "recurring_reminder_id": "e2486102-30a1-464f-8ba5-a6a612a2b3fc",
+          "event_context": "recurring_reminder:e2486102-30a1-464f-8ba5-a6a612a2b3fc:potion:fdc312cd-2f0a-4fd5-8c86-fff699764e39:2026-05-26",
+          "draft_message": "Un message pour t'aider à ralentir le matin et desserrer la pression sans culpabilité.",
+          "scheduled_for": "2026-05-26T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T15:37:04.332099+00:00"
+        },
+        {
+          "id": "3bbe99b4-e448-4d23-9782-837643f42113",
+          "recurring_reminder_id": "e2486102-30a1-464f-8ba5-a6a612a2b3fc",
+          "event_context": "recurring_reminder:e2486102-30a1-464f-8ba5-a6a612a2b3fc:potion:fdc312cd-2f0a-4fd5-8c86-fff699764e39:2026-05-27",
+          "draft_message": "Un message pour t'aider à ralentir le matin et desserrer la pression sans culpabilité.",
+          "scheduled_for": "2026-05-27T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T15:37:04.332099+00:00"
+        },
+        {
+          "id": "5a8bbe18-405f-4d71-b8b1-e155056f2df4",
+          "recurring_reminder_id": "e2486102-30a1-464f-8ba5-a6a612a2b3fc",
+          "event_context": "recurring_reminder:e2486102-30a1-464f-8ba5-a6a612a2b3fc:potion:fdc312cd-2f0a-4fd5-8c86-fff699764e39:2026-05-28",
+          "draft_message": "Un message pour t'aider à ralentir le matin et desserrer la pression sans culpabilité.",
+          "scheduled_for": "2026-05-28T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T15:37:04.332099+00:00"
+        }
+      ]
+    }
+  }
+]

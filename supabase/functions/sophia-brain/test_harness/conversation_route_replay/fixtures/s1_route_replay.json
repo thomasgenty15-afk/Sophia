@@ -1,0 +1,57 @@
+[
+  {
+    "fixture_id": "v1_safety_priority",
+    "input": {
+      "safety_risk_band": "critical",
+      "product_help": true
+    },
+    "expected": {
+      "response_owner": "safety",
+      "selected_handler": "safety_crisis",
+      "direct_effects_to_run": []
+    }
+  },
+  {
+    "fixture_id": "v1_product_help_question",
+    "input": {
+      "product_help": true
+    },
+    "expected": {
+      "response_owner": "product_help",
+      "selected_handler": "product_help",
+      "direct_effects_to_run": []
+    }
+  },
+  {
+    "fixture_id": "v1_active_coaching_continues",
+    "input": {
+      "active_skill_id": "coaching_recommendation"
+    },
+    "expected": {
+      "response_owner": "coaching_recommendation",
+      "selected_handler": "coaching_recommendation",
+      "direct_effects_to_run": []
+    }
+  },
+  {
+    "fixture_id": "v1_normal_reply_with_direct_effect",
+    "input": {
+      "direct_effects": [
+        {
+          "effect_type": "create_one_shot_reminder",
+          "explicitness": "explicit",
+          "target_status": "identified",
+          "confidence_band": "high",
+          "payload_hint": {
+            "raw_text": "demain 9h"
+          }
+        }
+      ]
+    },
+    "expected": {
+      "response_owner": "normal_reply",
+      "selected_handler": null,
+      "direct_effects_to_run": ["create_one_shot_reminder"]
+    }
+  }
+]

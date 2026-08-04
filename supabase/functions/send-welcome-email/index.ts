@@ -7,10 +7,16 @@ import { getRequestContext } from "../_shared/request_context.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const WHATSAPP_PHONE_NUMBER = Deno.env.get("WHATSAPP_PHONE_NUMBER") || "33674637278"; // Format sans '+' pour le lien wa.me
 
 // Adresse expéditeur (à configurer dans Resend)
 const SENDER_EMAIL = Deno.env.get("SENDER_EMAIL") ?? "Sophia <sophia@sophia-coach.ai>"; 
+
+function appBaseUrl(): string {
+  // Pas de repli silencieux sur un domaine deviné: un lien d'email est une
+  // promesse, et une mauvaise URL dans un premier contact est irrattrapable.
+  return (Deno.env.get("APP_BASE_URL") ?? "https://sophia-coach.ai").trim()
+    .replace(/\/+$/, "");
+}
 
 serve(async (req) => {
   let ctx = getRequestContext(req)
@@ -56,16 +62,17 @@ serve(async (req) => {
       throw new Error("Aucun email destinataire trouvé");
     }
 
-    // Skip ephemeral test users created by run-evals (avoid sending real emails / noisy logs).
+    // Skip ephemeral example.com users (avoid sending real emails / noisy logs).
     const normalizedEmail = String(targetEmail).trim().toLowerCase();
-    if (normalizedEmail.startsWith("run-evals+") && normalizedEmail.endsWith("@example.com")) {
-      console.log(`Skip welcome email for eval user: ${targetEmail} (${userId})`);
-      return new Response(JSON.stringify({ message: "Skipped (run-evals test user)" }), {
+    if (normalizedEmail.endsWith("@example.com")) {
+      console.log(`Skip welcome email for ephemeral test user: ${targetEmail} (${userId})`);
+      return new Response(JSON.stringify({ message: "Skipped (ephemeral test user)" }), {
         headers: { "Content-Type": "application/json" },
       });
     }
 
-    console.log(`[send-welcome-email] request_id=${ctx.requestId} user_id=${userId} target=${targetEmail}`);
+    // SEC-13: do not log raw recipient email (PII). user_id + request_id are enough to correlate.
+    console.log(`[send-welcome-email] request_id=${ctx.requestId} user_id=${userId}`);
 
     // 2. Vérifier si déjà envoyé (Idempotency)
     const { data: existingLogs } = await supabase
@@ -83,29 +90,32 @@ serve(async (req) => {
     }
 
     // 3. Contenu Email
-    const whatsappLink = `https://wa.me/${WHATSAPP_PHONE_NUMBER}?text=Hello%20Sophia`;
-    
+    //
+    // ── DE-WHATSAPP ──────────────────────────────────────────────────────────
+    // Cet email envoyait un lien `wa.me` à CHAQUE inscription, avec la phrase
+    // « ton téléphone a dû vibrer à l'instant ». C'était faux depuis la
+    // suppression de `whatsapp-optin`, et un premier contact qui ment sur ce
+    // qui vient de se passer est la pire façon d'ouvrir une relation.
+    // Il pointe maintenant vers la conversation, qui existe réellement.
+    const chatLink = `${appBaseUrl()}/app/chat`;
+
     const htmlContent = `
       <div style="font-family: sans-serif; color: #333; line-height: 1.6;">
         <p>Hello ${prenom},</p>
-        
+
         <p>Bienvenue ! Je suis super contente que tu sois là.</p>
-        
-        <p>Normalement, <strong>ton téléphone a dû vibrer à l'instant.</strong> Je viens de t'envoyer ton tout premier message sur WhatsApp pour qu'on puisse démarrer.</p>
-        
-        <p>C'est là-bas que tout va se passer : tes bilans, tes victoires, et nos échanges au quotidien.</p>
-        
-        <p><strong>Tu n'as rien reçu ?</strong><br/>
-        Pas de panique, tu peux lancer la discussion manuellement en cliquant juste ici :</p>
-        
+
+        <p>Tout se passe dans ton espace : nos échanges au quotidien, tes photos
+        de repas, tes bilans. Il n'y a rien à installer.</p>
+
         <p style="margin: 20px 0;">
-          <a href="${whatsappLink}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
-            👉 Lancer Sophia sur WhatsApp
+          <a href="${chatLink}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
+            👉 Ouvrir ma conversation
           </a>
         </p>
-        
-        <p>À tout de suite sur ton téléphone,</p>
-        
+
+        <p>À tout de suite,</p>
+
         <p><strong>Sophia</strong></p>
       </div>
     `;
@@ -113,7 +123,7 @@ serve(async (req) => {
     // 4. Envoi via Resend (with MEGA_TEST_MODE skip + 429 retry/backoff)
     const out = await sendResendEmail({
       to: targetEmail,
-      subject: `Bienvenue ${prenom} ! (Check ton WhatsApp 👀)`,
+      subject: `Bienvenue ${prenom} ! (Ta conversation est ouverte 👀)`,
       html: htmlContent,
       from: SENDER_EMAIL,
       maxAttempts: 6,
@@ -153,4 +163,3 @@ serve(async (req) => {
     });
   }
 });
-

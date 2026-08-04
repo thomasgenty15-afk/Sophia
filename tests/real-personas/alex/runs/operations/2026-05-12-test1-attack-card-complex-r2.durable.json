@@ -1,0 +1,177 @@
+{
+  "user_attack_cards": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "12972864-00f0-47ec-b030-98b659730ce5",
+        "plan_item_id": null,
+        "status": "active",
+        "content": {
+          "title": "Carte d'attaque - ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.",
+          "techniques": [
+            {
+              "technique_key": "operation_attack_card",
+              "generated_result": {
+                "title": "Carte d'attaque - ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.",
+                "technique": "minimum_version",
+                "instruction": "Fais la version 4 minutes de \"ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.\", assez petite pour ne pas negocier.",
+                "target_label": "ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.",
+                "why_it_helps": "La carte baisse la friction de demarrage sans augmenter la difficulte."
+              }
+            }
+          ],
+          "target_label": "ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.",
+          "operation_draft": {
+            "title": "Carte d'attaque - ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.",
+            "technique": "minimum_version",
+            "instruction": "Fais la version 4 minutes de \"ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.\", assez petite pour ne pas negocier.",
+            "target_label": "ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.",
+            "why_it_helps": "La carte baisse la friction de demarrage sans augmenter la difficulte."
+          }
+        },
+        "metadata": {
+          "draft": {
+            "draft": {
+              "title": "Carte d'attaque - ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.",
+              "technique": "minimum_version",
+              "instruction": "Fais la version 4 minutes de \"ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.\", assez petite pour ne pas negocier.",
+              "target_label": "ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.",
+              "why_it_helps": "La carte baisse la friction de demarrage sans augmenter la difficulte."
+            },
+            "output_schema": "attack_card_draft_v1",
+            "operation_type": "prepare_attack_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je te propose de creer une carte d'attaque courte pour ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.: Fais la version 4 minutes de \"ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.\", assez petite pour ne pas negocier. Tu veux que je la cree ?"
+          },
+          "source": "sophia_brain_operation_flow",
+          "target": {
+            "kind": "personal_action",
+            "title": "ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.",
+            "plan_item_id": null
+          },
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-complex-r1-t03",
+          "operation_id": "6f3961ea-305c-41eb-a739-0f1982a374dc",
+          "operation_type": "prepare_attack_card",
+          "source_message_id": "9de02f35-0b14-4f5e-a9ed-f6de0a268179"
+        },
+        "generated_at": "2026-05-12T21:17:15.741+00:00",
+        "last_updated_at": "2026-05-12T21:17:15.741+00:00"
+      }
+    ]
+  },
+  "user_plan_items": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e",
+        "title": "Préparer ta zone de déchargement",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "active",
+        "cards_status": "not_started",
+        "attack_card_id": null,
+        "updated_at": "2026-05-06T13:45:51.10963+00:00"
+      },
+      {
+        "id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+        "title": "Faire le sas de déchargement",
+        "dimension": "habits",
+        "kind": "habit",
+        "status": "active",
+        "cards_status": "not_started",
+        "attack_card_id": null,
+        "updated_at": "2026-05-06T06:23:51.281+00:00"
+      },
+      {
+        "id": "8d321c6c-ce4b-440f-b7b1-69e1a17ff835",
+        "title": "Repérer les pièges de l'hypervigilance",
+        "dimension": "clarifications",
+        "kind": "exercise",
+        "status": "pending",
+        "cards_status": "not_required",
+        "attack_card_id": null,
+        "updated_at": "2026-05-06T06:23:51.281+00:00"
+      },
+      {
+        "id": "793bdd4a-c2fb-40fa-b972-e58b8659658f",
+        "title": "Bilan et ajustement du sas",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "pending",
+        "cards_status": "not_started",
+        "attack_card_id": null,
+        "updated_at": "2026-05-06T06:23:51.281+00:00"
+      }
+    ]
+  },
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "9e15bce1-47d6-4a7b-8f51-0dd6cd7bc216",
+        "role": "user",
+        "content": "J'ai besoin que tu me fasses une carte d'attaque pour ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.",
+        "scope": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-complex-r2",
+        "metadata": {
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-complex-r2-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-13T00:10:40.672955+00:00"
+      },
+      {
+        "id": "8eace106-f82d-409f-a04f-3846d9d387e8",
+        "role": "assistant",
+        "content": "Il me manque l'action à viser. Donne-moi l'action ou décris-la en une phrase.",
+        "scope": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-complex-r2",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-complex-r2-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "operation_runtime": {
+              "status": "ask_question",
+              "slot_state": {
+                "slot": "target",
+                "needed": true,
+                "reason": "target_missing",
+                "status": "missing"
+              },
+              "missing_slots": [
+                "target"
+              ],
+              "selected_handler": "prepare_attack_card"
+            }
+          }
+        },
+        "created_at": "2026-05-13T00:10:47.677958+00:00"
+      },
+      {
+        "id": "13920672-4b86-4339-80c9-f62e24782542",
+        "role": "user",
+        "content": "Je parle du sas de dechargement, pas de preparer la zone; juste le moment ou je dois ouvrir le carnet. Et plus petit: deux minutes max, poser le telephone loin et ecrire une ligne.",
+        "scope": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-complex-r2",
+        "metadata": {
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-complex-r2-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-13T00:10:58.21661+00:00"
+      }
+    ]
+  }
+}

@@ -2,6 +2,47 @@
 -- This repo's local config (`supabase/config.toml`) references `./seed.sql`.
 -- Keep it empty (or add deterministic test fixtures later) so `supabase db reset` is stable.
 
+-- Local environment config used by DB triggers and pg_net/cron jobs.
+insert into public.app_config (key, value)
+values
+  ('edge_functions_base_url', 'http://host.docker.internal:54321'),
+  ('edge_functions_anon_key', 'sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH'),
+  ('supabase_project_ref', ''),
+  ('disable_write_gate', 'true')
+on conflict (key) do update
+  set value = excluded.value,
+      updated_at = now();
+
+-- Baseline model pricing rows. Values can be edited from admin after reset.
+insert into public.llm_pricing (
+  provider,
+  model,
+  input_per_1k_tokens_usd,
+  output_per_1k_tokens_usd,
+  currency,
+  pricing_version,
+  is_active
+)
+values
+  ('gemini', 'gemini-3-pro-preview', 0.002, 0.012, 'USD', 'v1', true),
+  ('gemini', 'gemini-3-flash-preview', 0.0005, 0.003, 'USD', 'v1', true),
+  ('gemini', 'text-embedding-004', 0.000025, 0, 'USD', 'v1', true),
+  ('gemini', 'gemini-2.5-flash', 0.0003, 0.0025, 'USD', 'v1', true),
+  ('gemini', 'gemini-embedding-001', 0, 0, 'USD', 'v1', true),
+  ('openai', 'gpt-5.4', 0, 0, 'USD', 'v1', true),
+  ('openai', 'gpt-5.4-nano', 0, 0, 'USD', 'v1', true),
+  ('openai', 'gpt-5', 0, 0, 'USD', 'v1', true),
+  ('openai', 'gpt-5-mini', 0, 0, 'USD', 'v1', true),
+  ('openai', 'gpt-5-nano', 0, 0, 'USD', 'v1', true)
+on conflict (provider, model) do update
+set
+  input_per_1k_tokens_usd = excluded.input_per_1k_tokens_usd,
+  output_per_1k_tokens_usd = excluded.output_per_1k_tokens_usd,
+  currency = excluded.currency,
+  pricing_version = excluded.pricing_version,
+  is_active = excluded.is_active,
+  updated_at = now();
+
 -- Local master admin seed (idempotent).
 -- Creates:
 -- - auth user: thomasgenty15@gmail.com
@@ -144,15 +185,3 @@ begin
   values (master_id)
   on conflict (user_id) do nothing;
 end $$;
-
-
--- Local-only convenience:
--- Disable write-gating (trial/subscription soft lock) so local development remains writable.
--- Comment this out if you want to test the read-only behavior locally.
-insert into public.app_config (key, value)
-values ('disable_write_gate', 'true')
-on conflict (key) do update
-  set value = excluded.value,
-      updated_at = now();
-
-

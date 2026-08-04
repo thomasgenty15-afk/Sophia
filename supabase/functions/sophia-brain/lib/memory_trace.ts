@@ -61,7 +61,6 @@ export type MemoryTraceTurn = {
   assistant_messages: ChatMessageRow[];
   dispatcher: {
     memory_plan?: Record<string, unknown> | null;
-    surface_plan?: Record<string, unknown> | null;
   };
   surface: {
     state_transition?: Record<string, unknown> | null;
@@ -191,23 +190,32 @@ type BuildWindowArgs = {
   turnSummaries: TurnSummaryRow[];
 };
 
-export function buildMemoryTraceWindow(args: BuildWindowArgs): MemoryTraceWindow {
+export function buildMemoryTraceWindow(
+  args: BuildWindowArgs,
+): MemoryTraceWindow {
   const scope = String(args.scope ?? "").trim() || null;
   const messages = sortByCreatedAt(
     (args.messages ?? []).filter((row) => !scope || row.scope === scope),
   );
   const observabilityEvents = sortByCreatedAt(
-    (args.observabilityEvents ?? []).filter((row) => shouldKeepScopedEvent(row, scope)),
+    (args.observabilityEvents ?? []).filter((row) =>
+      shouldKeepScopedEvent(row, scope)
+    ),
   );
   const turnSummaries = sortByCreatedAt(
-    (args.turnSummaries ?? []).filter((row) => !scope || !row.scope || row.scope === scope),
+    (args.turnSummaries ?? []).filter((row) =>
+      !scope || !row.scope || row.scope === scope
+    ),
   );
 
   const turnMap = new Map<string, MemoryTraceTurn>();
   const requestToTurnKey = new Map<string, string>();
   const unassignedEvents: TraceTurnEvent[] = [];
 
-  const ensureTurn = (key: string, seed?: Partial<MemoryTraceTurn>): MemoryTraceTurn => {
+  const ensureTurn = (
+    key: string,
+    seed?: Partial<MemoryTraceTurn>,
+  ): MemoryTraceTurn => {
     const existing = turnMap.get(key);
     if (existing) return existing;
     const turn: MemoryTraceTurn = {
@@ -285,7 +293,10 @@ export function buildMemoryTraceWindow(args: BuildWindowArgs): MemoryTraceWindow
 
     if (!turn.request_id && requestId) {
       turn.request_id = requestId;
-      requestToTurnKey.set(requestId, turnId ? `turn:${turnId}` : `request:${requestId}`);
+      requestToTurnKey.set(
+        requestId,
+        turnId ? `turn:${turnId}` : `request:${requestId}`,
+      );
     }
     if (!turn.channel && row.channel) turn.channel = row.channel;
     if (!turn.scope && row.scope) turn.scope = row.scope;
@@ -294,10 +305,8 @@ export function buildMemoryTraceWindow(args: BuildWindowArgs): MemoryTraceWindow
     const payload = traceEvent.payload;
     switch (row.event_name) {
       case "dispatcher.memory_plan_generated":
-        turn.dispatcher.memory_plan = payload.memory_plan as Record<string, unknown> ?? null;
-        break;
-      case "dispatcher.surface_plan_generated":
-        turn.dispatcher.surface_plan = payload.surface_plan as Record<string, unknown> ?? null;
+        turn.dispatcher.memory_plan =
+          payload.memory_plan as Record<string, unknown> ?? null;
         break;
       case "surface.state_transition":
         turn.surface.state_transition = payload;
@@ -327,14 +336,24 @@ export function buildMemoryTraceWindow(args: BuildWindowArgs): MemoryTraceWindow
     if (message.role === "user") continue;
     const requestId = parseRequestIdFromMetadata(message.metadata);
     if (requestId && requestToTurnKey.has(requestId)) {
-      ensureTurn(requestToTurnKey.get(requestId)!).assistant_messages.push(message);
+      ensureTurn(requestToTurnKey.get(requestId)!).assistant_messages.push(
+        message,
+      );
       continue;
     }
     const nearestUserTurn = [...turnMap.values()]
-      .filter((turn) => turn.user_message && turn.scope === (message.scope ?? scope))
+      .filter((turn) =>
+        turn.user_message && turn.scope === (message.scope ?? scope)
+      )
       .sort((a, b) =>
-        Math.abs(new Date(a.started_at).getTime() - new Date(message.created_at).getTime()) -
-        Math.abs(new Date(b.started_at).getTime() - new Date(message.created_at).getTime())
+        Math.abs(
+          new Date(a.started_at).getTime() -
+            new Date(message.created_at).getTime(),
+        ) -
+        Math.abs(
+          new Date(b.started_at).getTime() -
+            new Date(message.created_at).getTime(),
+        )
       )[0];
     if (nearestUserTurn) {
       nearestUserTurn.assistant_messages.push(message);
@@ -379,9 +398,11 @@ export function buildMemoryTraceWindow(args: BuildWindowArgs): MemoryTraceWindow
   for (const row of memorizerSourceEvents) {
     const traceEvent = toTraceEvent(row);
     const payload = traceEvent.payload;
-    const sourceType = String((payload.source_type ?? payload.kind ?? "")).trim() || null;
+    const sourceType =
+      String(payload.source_type ?? payload.kind ?? "").trim() || null;
     const requestId = String(row.request_id ?? "").trim() || null;
-    const isMemorizerExtraction = row.event_name === "memorizer.extraction_completed";
+    const isMemorizerExtraction =
+      row.event_name === "memorizer.extraction_completed";
     const canAttachToCurrent = Boolean(
       currentRun &&
         row.event_name.startsWith("memorizer.") &&
@@ -452,9 +473,12 @@ export function buildMemoryTraceWindow(args: BuildWindowArgs): MemoryTraceWindow
     messages,
     turns,
     memorizer_runs: memorizerRuns,
-    unassigned_events: uniqueStrings(unassignedEvents.map((evt) => String(evt.id))).length > 0
-      ? unassignedEvents.sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime())
-      : [],
+    unassigned_events:
+      uniqueStrings(unassignedEvents.map((evt) => String(evt.id))).length > 0
+        ? unassignedEvents.sort((a, b) =>
+          new Date(a.at).getTime() - new Date(b.at).getTime()
+        )
+        : [],
   };
 }
 
@@ -510,7 +534,8 @@ export async function loadMemoryTraceWindow(params: {
     to,
     scope,
     messages: (messagesRes.data ?? []) as ChatMessageRow[],
-    observabilityEvents: (eventsRes.data ?? []) as MemoryObservabilityEventRow[],
+    observabilityEvents:
+      (eventsRes.data ?? []) as MemoryObservabilityEventRow[],
     turnSummaries: (turnSummaryRes.data ?? []) as TurnSummaryRow[],
   });
 }

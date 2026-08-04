@@ -1,0 +1,10 @@
+{
+  "deleted": {
+    "scheduled_checkins": 204,
+    "user_profile_facts": 204,
+    "chat_messages": 204,
+    "user_chat_states": 204
+  },
+  "script_cleanup": "cleanup complete for qa-skill connection=status_recap_2026-06-08-status-recap-local-dispatcher-r1 (00e7984c-958d-4926-94b2-fd7b272c01ce)",
+  "errors": []
+}

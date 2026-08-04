@@ -1,0 +1,207 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-opportunity-signal-10t-r15-t01",
+    "auth_method": "get-jwt.sh",
+    "user": "Hier j'ai bien fait le sas, mais j'ai beaucoup hésité devant le carnet avant de démarrer. Ce soir je veux raccourcir ce passage.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-opportunity-signal-10t-r15-t01",
+      "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-opportunity-signal-10t-r15",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ah je vois très bien le truc : tu l’as fait, mais le “moment carnet” t’a aspiré au démarrage. Pas grave, ça veut juste dire qu’on va réduire la friction, pas l’éliminer. 😄\n\nCe soir, objectif simple : raccourcir l’entrée.\n1) Avant d’ouvrir le carnet, règle un temps : 2 minutes chrono.\n2) Tu écris juste un titre (pas de phrase) : “Aujourd’hui / Maintenant”.\n3) Ensuite, tu passes directement à 1 seule ligne de déchargement (la plus évidente), même moche.\n\nÇa te va comme format “2 minutes puis 1 ligne”, ou tu préfères “1 minute puis juste respirer et choisir une seule mission à faire ce soir” ? 🤝",
+        "mode": "companion",
+        "tool_execution": "success",
+        "executed_tools": [
+          "track_progress_plan_item"
+        ]
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-opportunity-signal-10t-r15-t01",
+        "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+        "source_message_id": "f8dd373d-73e0-4974-9ff0-3ec83ff69d87",
+        "ts": "2026-05-13T13:45:18.224+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [
+            "Ce soir"
+          ],
+          "risk_band": "none",
+          "reason_codes": [
+            "immediacy_tonight"
+          ],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": true,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 3466,
+          "latency_ms": 9724,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 458,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "sas de déchargement",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "historique sas de déchargement",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "habitudes.execution",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "difficultés démarrage",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s9"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-opportunity-signal-10t-r15-t01",
+          "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "sas de déchargement",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "historique sas de déchargement",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "habitudes.execution",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "difficultés démarrage",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "execution_breakdown": {
+                "reason": "friction_at_startup",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {}
+          },
+          "direct_effects": [
+            {
+              "effect_type": "track_progress_plan_item",
+              "explicitness": "explicit",
+              "payload_hint": {
+                "status_hint": "completed",
+                "temporal_hint": "yesterday",
+                "target_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+              },
+              "target_status": "identified",
+              "confidence_band": "high"
+            }
+          ],
+          "operation_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "sas de déchargement",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high"
+            }
+          ],
+          "source_message_id": "f8dd373d-73e0-4974-9ff0-3ec83ff69d87",
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "operation_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "operation_flow",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [
+          {
+            "outcome": "success",
+            "tool_id": "track_progress_plan_item"
+          }
+        ],
+        "skill_run": null,
+        "operation_flow_run": {
+          "reason_code": "operation_intent_start",
+          "selected_handler": "adjust_plan_item"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "operation_flow",
+        "total_latency_ms": 11518,
+        "created_at": "2026-05-13T13:45:18.224981+00:00"
+      },
+      "trace_error": null
+    }
+  }
+]

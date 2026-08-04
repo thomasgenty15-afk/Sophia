@@ -1,0 +1,689 @@
+{
+  "ok": true,
+  "request_id": "attack-switch-platform-20260613-r2-trigger-t01",
+  "user_id": "d616ea0e-7a48-4c65-a706-86da59dd2f8e",
+  "channel": "whatsapp",
+  "scope": "attack-switch-platform-20260613-r2-trigger",
+  "empty_response": false,
+  "aborted": false,
+  "abort_reason": null,
+  "logged_message_id": null,
+  "latest_message_id": null,
+  "response": {
+    "content": "Ok, on tient l’essentiel maintenant 🙂 Évite de toucher/“ranger” ton bureau : clique juste sur le portail URSSAF, puis ouvre ton dossier.  \nGo, tu y es. 🎯",
+    "mode": "companion",
+    "tool_execution": "none",
+    "executed_tools": [],
+    "conversation_turn_trace": {
+      "turn_frame": {
+        "turn_id": "attack-switch-platform-20260613-r2-trigger-t01",
+        "source_message_id": "5fb583f7-8f31-4d2f-b3f6-d41325478567",
+        "user_id": "d616ea0e-7a48-4c65-a706-86da59dd2f8e",
+        "channel": "whatsapp",
+        "safety": {
+          "risk_band": "low",
+          "reason_codes": [],
+          "evidence": []
+        },
+        "conversation_risk": {
+          "score": 0,
+          "threshold": 8,
+          "should_exit_flows": false,
+          "reason_codes": [],
+          "previous_scores": [],
+          "matrix": [],
+          "context_summary": null,
+          "flow_exit_context": null
+        },
+        "direct_effects": [],
+        "tool_skill_intents": [],
+        "flow_opportunity": {
+          "opportunity_id": "prepare_attack_card.keyword_trigger",
+          "target_kind": "tool_skill",
+          "target_flow": "prepare_attack_card",
+          "confidence": "medium",
+          "score": 0.7,
+          "priority": 50,
+          "reason": "User provides a task-related keyword in an attack-trigger context, suggesting a potential need for an attack card.",
+          "evidence": [
+            "URSSAF"
+          ],
+          "seed_context": {
+            "target_hint": "URSSAF",
+            "surface": "attack_card"
+          }
+        },
+        "note_information": {
+          "source_flow_id": "global_dispatcher",
+          "handoff_reason": "bridge",
+          "target_dispatcher": "verification_opportunities",
+          "handoff_context_for_next_dispatcher": "User sent a single keyword 'URSSAF'. In the context of the current attack-switch trigger flow, this is likely the action they want to address. Clarify if they want to prepare an attack card.",
+          "user_words": [
+            "URSSAF"
+          ],
+          "structured_context": {
+            "primary_signal_path": "flow_opportunity",
+            "target_kind": "tool_skill",
+            "target_flow": "prepare_attack_card",
+            "evidence": [
+              "URSSAF"
+            ],
+            "recommended_next_focus": "Clarify the user's intent regarding the 'URSSAF' task and offer to prepare an attack card if appropriate."
+          },
+          "confidence": "medium"
+        },
+        "skill_signals": {
+          "entry": {},
+          "lifecycle": {},
+          "exit": {}
+        },
+        "needs_research": {
+          "detected": false,
+          "value": false,
+          "query": null,
+          "domain_hint": null,
+          "confidence": 0,
+          "reason": null
+        },
+        "action_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_inference_unavailable"
+        },
+        "level_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_inference_unavailable"
+        },
+        "memory_plan": {
+          "response_intent": "reflection",
+          "reasoning_complexity": "low",
+          "context_need": "targeted",
+          "memory_mode": "light",
+          "model_tier_hint": "lite",
+          "context_budget_tier": "small",
+          "targets": [
+            {
+              "type": "topic",
+              "key": "URSSAF",
+              "query_hint": "URSSAF et tâches administratives",
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first",
+              "priority": "medium",
+              "entity_type": null
+            },
+            {
+              "type": "domain_key",
+              "key": "travail.performance",
+              "query_hint": "gestion des tâches administratives et procrastination",
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first",
+              "priority": "low",
+              "entity_type": null
+            }
+          ],
+          "retrieval_policy": "semantic_first",
+          "plan_confidence": 0.7
+        },
+        "normal_reply_fit_score": 0.9,
+        "normal_reply_fit_evidence": [
+          "Message composé d'un seul mot-clé, nécessite une clarification de l'intention avant toute action."
+        ],
+        "active_handoff_action": null,
+        "confirmation_response": null
+      },
+      "route_decision": {
+        "route_version": "v1",
+        "response_owner": "normal_reply",
+        "blocked_paths": [
+          {
+            "path": "flow_opportunity.prepare_attack_card",
+            "reason_code": "normal_reply_fit_dominates",
+            "raw_score": 0.7,
+            "adjusted_score": 0.7,
+            "normal_reply_fit_score": 0.9
+          },
+          {
+            "path": "flow_opportunity.prepare_attack_card",
+            "reason_code": "normal_reply_fit_dominates",
+            "raw_score": 0.7,
+            "adjusted_score": 0.7,
+            "normal_reply_fit_score": 0.9
+          }
+        ],
+        "direct_effects_to_run": [],
+        "reason_code": "normal_reply_default",
+        "memory_used_for_route": false,
+        "memory_item_ids_used_for_route": [],
+        "memory_use_kind": "none",
+        "active_flow_arbitration": {
+          "decision": "none",
+          "active_owner": "none",
+          "selected_owner": "none",
+          "resume_policy": "none",
+          "reason_code": "no_active_flow"
+        },
+        "active_flow_debug": {
+          "version": "active_flow_debug_v1",
+          "snapshots": [
+            {
+              "phase": "user_state_loaded",
+              "scope": "attack-switch-platform-20260613-r2-trigger",
+              "temp_memory": {
+                "temp_memory_type": "object",
+                "has_temp_memory": true,
+                "temp_memory_key_count": 0,
+                "flow_keys": [],
+                "raw_active_key": null,
+                "raw_active_skill": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "conversation_risk_last": null
+              },
+              "active_skill_state": {
+                "present": false,
+                "value_type": "undefined"
+              },
+              "active_tool_skill_id": null,
+              "pending_confirmation_id": null,
+              "route_reason_code": null,
+              "route_active_flow_reason_code": null
+            },
+            {
+              "phase": "after_onboarding_and_reconcile",
+              "scope": "attack-switch-platform-20260613-r2-trigger",
+              "temp_memory": {
+                "temp_memory_type": "object",
+                "has_temp_memory": true,
+                "temp_memory_key_count": 1,
+                "flow_keys": [],
+                "raw_active_key": null,
+                "raw_active_skill": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "conversation_risk_last": null
+              },
+              "active_skill_state": {
+                "present": false,
+                "value_type": "undefined"
+              },
+              "active_tool_skill_id": null,
+              "pending_confirmation_id": null,
+              "route_reason_code": null,
+              "route_active_flow_reason_code": null
+            },
+            {
+              "phase": "read_active_flow_state",
+              "scope": "attack-switch-platform-20260613-r2-trigger",
+              "temp_memory": {
+                "temp_memory_type": "object",
+                "has_temp_memory": true,
+                "temp_memory_key_count": 1,
+                "flow_keys": [],
+                "raw_active_key": null,
+                "raw_active_skill": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "conversation_risk_last": null
+              },
+              "active_skill_state": {
+                "present": false,
+                "value_type": "null"
+              },
+              "active_tool_skill_id": null,
+              "pending_confirmation_id": null,
+              "route_reason_code": null,
+              "route_active_flow_reason_code": null
+            },
+            {
+              "phase": "after_pending_confirmation_reload",
+              "scope": "attack-switch-platform-20260613-r2-trigger",
+              "temp_memory": {
+                "temp_memory_type": "object",
+                "has_temp_memory": true,
+                "temp_memory_key_count": 1,
+                "flow_keys": [],
+                "raw_active_key": null,
+                "raw_active_skill": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "conversation_risk_last": null
+              },
+              "active_skill_state": {
+                "present": false,
+                "value_type": "null"
+              },
+              "active_tool_skill_id": null,
+              "pending_confirmation_id": null,
+              "route_reason_code": null,
+              "route_active_flow_reason_code": null
+            },
+            {
+              "phase": "before_run_conversation_routers",
+              "scope": "attack-switch-platform-20260613-r2-trigger",
+              "temp_memory": {
+                "temp_memory_type": "object",
+                "has_temp_memory": true,
+                "temp_memory_key_count": 3,
+                "flow_keys": [
+                  "__conversation_risk_history",
+                  "__conversation_risk_last"
+                ],
+                "raw_active_key": null,
+                "raw_active_skill": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "conversation_risk_last": {
+                  "should_exit_flows": false,
+                  "score": 0,
+                  "reason_codes": []
+                }
+              },
+              "active_skill_state": {
+                "present": false,
+                "value_type": "null"
+              },
+              "active_tool_skill_id": null,
+              "pending_confirmation_id": null,
+              "route_reason_code": null,
+              "route_active_flow_reason_code": null
+            },
+            {
+              "phase": "after_run_conversation_routers",
+              "scope": "attack-switch-platform-20260613-r2-trigger",
+              "temp_memory": {
+                "temp_memory_type": "object",
+                "has_temp_memory": true,
+                "temp_memory_key_count": 3,
+                "flow_keys": [
+                  "__conversation_risk_history",
+                  "__conversation_risk_last"
+                ],
+                "raw_active_key": null,
+                "raw_active_skill": {
+                  "present": false,
+                  "value_type": "null"
+                },
+                "conversation_risk_last": {
+                  "should_exit_flows": false,
+                  "score": 0,
+                  "reason_codes": []
+                }
+              },
+              "active_skill_state": {
+                "present": false,
+                "value_type": "null"
+              },
+              "active_tool_skill_id": null,
+              "pending_confirmation_id": null,
+              "route_reason_code": "normal_reply_default",
+              "route_active_flow_reason_code": "no_active_flow"
+            }
+          ]
+        }
+      },
+      "effect_ledger": {
+        "turn_id": "attack-switch-platform-20260613-r2-trigger-t01",
+        "counts": {
+          "requested": 0,
+          "allowed": 0,
+          "blocked": 0,
+          "committed": 0,
+          "failed": 0,
+          "proposed": 0,
+          "delivered": 0,
+          "cancelled": 0,
+          "superseded": 0,
+          "asked": 0,
+          "resolved": 0,
+          "topic_change": 0
+        },
+        "entries": []
+      },
+      "response_owner": "normal_reply"
+    }
+  },
+  "conversation_turn_trace": {
+    "turn_frame": {
+      "turn_id": "attack-switch-platform-20260613-r2-trigger-t01",
+      "source_message_id": "5fb583f7-8f31-4d2f-b3f6-d41325478567",
+      "user_id": "d616ea0e-7a48-4c65-a706-86da59dd2f8e",
+      "channel": "whatsapp",
+      "safety": {
+        "risk_band": "low",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "conversation_risk": {
+        "score": 0,
+        "threshold": 8,
+        "should_exit_flows": false,
+        "reason_codes": [],
+        "previous_scores": [],
+        "matrix": [],
+        "context_summary": null,
+        "flow_exit_context": null
+      },
+      "direct_effects": [],
+      "tool_skill_intents": [],
+      "flow_opportunity": {
+        "opportunity_id": "prepare_attack_card.keyword_trigger",
+        "target_kind": "tool_skill",
+        "target_flow": "prepare_attack_card",
+        "confidence": "medium",
+        "score": 0.7,
+        "priority": 50,
+        "reason": "User provides a task-related keyword in an attack-trigger context, suggesting a potential need for an attack card.",
+        "evidence": [
+          "URSSAF"
+        ],
+        "seed_context": {
+          "target_hint": "URSSAF",
+          "surface": "attack_card"
+        }
+      },
+      "note_information": {
+        "source_flow_id": "global_dispatcher",
+        "handoff_reason": "bridge",
+        "target_dispatcher": "verification_opportunities",
+        "handoff_context_for_next_dispatcher": "User sent a single keyword 'URSSAF'. In the context of the current attack-switch trigger flow, this is likely the action they want to address. Clarify if they want to prepare an attack card.",
+        "user_words": [
+          "URSSAF"
+        ],
+        "structured_context": {
+          "primary_signal_path": "flow_opportunity",
+          "target_kind": "tool_skill",
+          "target_flow": "prepare_attack_card",
+          "evidence": [
+            "URSSAF"
+          ],
+          "recommended_next_focus": "Clarify the user's intent regarding the 'URSSAF' task and offer to prepare an attack card if appropriate."
+        },
+        "confidence": "medium"
+      },
+      "skill_signals": {
+        "entry": {},
+        "lifecycle": {},
+        "exit": {}
+      },
+      "needs_research": {
+        "detected": false,
+        "value": false,
+        "query": null,
+        "domain_hint": null,
+        "confidence": 0,
+        "reason": null
+      },
+      "action_reference": {
+        "detected": false,
+        "status": "none",
+        "expansion_policy": "none",
+        "reason": "semantic_inference_unavailable"
+      },
+      "level_reference": {
+        "detected": false,
+        "status": "none",
+        "expansion_policy": "none",
+        "reason": "semantic_inference_unavailable"
+      },
+      "memory_plan": {
+        "response_intent": "reflection",
+        "reasoning_complexity": "low",
+        "context_need": "targeted",
+        "memory_mode": "light",
+        "model_tier_hint": "lite",
+        "context_budget_tier": "small",
+        "targets": [
+          {
+            "type": "topic",
+            "key": "URSSAF",
+            "query_hint": "URSSAF et tâches administratives",
+            "expansion_policy": null,
+            "retrieval_policy": "semantic_first",
+            "priority": "medium",
+            "entity_type": null
+          },
+          {
+            "type": "domain_key",
+            "key": "travail.performance",
+            "query_hint": "gestion des tâches administratives et procrastination",
+            "expansion_policy": null,
+            "retrieval_policy": "taxonomy_first",
+            "priority": "low",
+            "entity_type": null
+          }
+        ],
+        "retrieval_policy": "semantic_first",
+        "plan_confidence": 0.7
+      },
+      "normal_reply_fit_score": 0.9,
+      "normal_reply_fit_evidence": [
+        "Message composé d'un seul mot-clé, nécessite une clarification de l'intention avant toute action."
+      ],
+      "active_handoff_action": null,
+      "confirmation_response": null
+    },
+    "route_decision": {
+      "route_version": "v1",
+      "response_owner": "normal_reply",
+      "blocked_paths": [
+        {
+          "path": "flow_opportunity.prepare_attack_card",
+          "reason_code": "normal_reply_fit_dominates",
+          "raw_score": 0.7,
+          "adjusted_score": 0.7,
+          "normal_reply_fit_score": 0.9
+        },
+        {
+          "path": "flow_opportunity.prepare_attack_card",
+          "reason_code": "normal_reply_fit_dominates",
+          "raw_score": 0.7,
+          "adjusted_score": 0.7,
+          "normal_reply_fit_score": 0.9
+        }
+      ],
+      "direct_effects_to_run": [],
+      "reason_code": "normal_reply_default",
+      "memory_used_for_route": false,
+      "memory_item_ids_used_for_route": [],
+      "memory_use_kind": "none",
+      "active_flow_arbitration": {
+        "decision": "none",
+        "active_owner": "none",
+        "selected_owner": "none",
+        "resume_policy": "none",
+        "reason_code": "no_active_flow"
+      },
+      "active_flow_debug": {
+        "version": "active_flow_debug_v1",
+        "snapshots": [
+          {
+            "phase": "user_state_loaded",
+            "scope": "attack-switch-platform-20260613-r2-trigger",
+            "temp_memory": {
+              "temp_memory_type": "object",
+              "has_temp_memory": true,
+              "temp_memory_key_count": 0,
+              "flow_keys": [],
+              "raw_active_key": null,
+              "raw_active_skill": {
+                "present": false,
+                "value_type": "null"
+              },
+              "conversation_risk_last": null
+            },
+            "active_skill_state": {
+              "present": false,
+              "value_type": "undefined"
+            },
+            "active_tool_skill_id": null,
+            "pending_confirmation_id": null,
+            "route_reason_code": null,
+            "route_active_flow_reason_code": null
+          },
+          {
+            "phase": "after_onboarding_and_reconcile",
+            "scope": "attack-switch-platform-20260613-r2-trigger",
+            "temp_memory": {
+              "temp_memory_type": "object",
+              "has_temp_memory": true,
+              "temp_memory_key_count": 1,
+              "flow_keys": [],
+              "raw_active_key": null,
+              "raw_active_skill": {
+                "present": false,
+                "value_type": "null"
+              },
+              "conversation_risk_last": null
+            },
+            "active_skill_state": {
+              "present": false,
+              "value_type": "undefined"
+            },
+            "active_tool_skill_id": null,
+            "pending_confirmation_id": null,
+            "route_reason_code": null,
+            "route_active_flow_reason_code": null
+          },
+          {
+            "phase": "read_active_flow_state",
+            "scope": "attack-switch-platform-20260613-r2-trigger",
+            "temp_memory": {
+              "temp_memory_type": "object",
+              "has_temp_memory": true,
+              "temp_memory_key_count": 1,
+              "flow_keys": [],
+              "raw_active_key": null,
+              "raw_active_skill": {
+                "present": false,
+                "value_type": "null"
+              },
+              "conversation_risk_last": null
+            },
+            "active_skill_state": {
+              "present": false,
+              "value_type": "null"
+            },
+            "active_tool_skill_id": null,
+            "pending_confirmation_id": null,
+            "route_reason_code": null,
+            "route_active_flow_reason_code": null
+          },
+          {
+            "phase": "after_pending_confirmation_reload",
+            "scope": "attack-switch-platform-20260613-r2-trigger",
+            "temp_memory": {
+              "temp_memory_type": "object",
+              "has_temp_memory": true,
+              "temp_memory_key_count": 1,
+              "flow_keys": [],
+              "raw_active_key": null,
+              "raw_active_skill": {
+                "present": false,
+                "value_type": "null"
+              },
+              "conversation_risk_last": null
+            },
+            "active_skill_state": {
+              "present": false,
+              "value_type": "null"
+            },
+            "active_tool_skill_id": null,
+            "pending_confirmation_id": null,
+            "route_reason_code": null,
+            "route_active_flow_reason_code": null
+          },
+          {
+            "phase": "before_run_conversation_routers",
+            "scope": "attack-switch-platform-20260613-r2-trigger",
+            "temp_memory": {
+              "temp_memory_type": "object",
+              "has_temp_memory": true,
+              "temp_memory_key_count": 3,
+              "flow_keys": [
+                "__conversation_risk_history",
+                "__conversation_risk_last"
+              ],
+              "raw_active_key": null,
+              "raw_active_skill": {
+                "present": false,
+                "value_type": "null"
+              },
+              "conversation_risk_last": {
+                "should_exit_flows": false,
+                "score": 0,
+                "reason_codes": []
+              }
+            },
+            "active_skill_state": {
+              "present": false,
+              "value_type": "null"
+            },
+            "active_tool_skill_id": null,
+            "pending_confirmation_id": null,
+            "route_reason_code": null,
+            "route_active_flow_reason_code": null
+          },
+          {
+            "phase": "after_run_conversation_routers",
+            "scope": "attack-switch-platform-20260613-r2-trigger",
+            "temp_memory": {
+              "temp_memory_type": "object",
+              "has_temp_memory": true,
+              "temp_memory_key_count": 3,
+              "flow_keys": [
+                "__conversation_risk_history",
+                "__conversation_risk_last"
+              ],
+              "raw_active_key": null,
+              "raw_active_skill": {
+                "present": false,
+                "value_type": "null"
+              },
+              "conversation_risk_last": {
+                "should_exit_flows": false,
+                "score": 0,
+                "reason_codes": []
+              }
+            },
+            "active_skill_state": {
+              "present": false,
+              "value_type": "null"
+            },
+            "active_tool_skill_id": null,
+            "pending_confirmation_id": null,
+            "route_reason_code": "normal_reply_default",
+            "route_active_flow_reason_code": "no_active_flow"
+          }
+        ]
+      }
+    },
+    "effect_ledger": {
+      "turn_id": "attack-switch-platform-20260613-r2-trigger-t01",
+      "counts": {
+        "requested": 0,
+        "allowed": 0,
+        "blocked": 0,
+        "committed": 0,
+        "failed": 0,
+        "proposed": 0,
+        "delivered": 0,
+        "cancelled": 0,
+        "superseded": 0,
+        "asked": 0,
+        "resolved": 0,
+        "topic_change": 0
+      },
+      "entries": []
+    },
+    "response_owner": "normal_reply"
+  },
+  "trace_error": null
+}

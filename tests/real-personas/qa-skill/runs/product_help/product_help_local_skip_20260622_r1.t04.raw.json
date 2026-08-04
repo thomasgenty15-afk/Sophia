@@ -1,0 +1,556 @@
+{
+  "run_id": "product_help_local_skip_20260622_r1",
+  "turn": 4,
+  "request_id": "product_help_local_skip_20260622_r1-t04",
+  "user": "Ok, si je veux juste me débloquer maintenant sans toucher au plan, tu m'orientes vers quoi ?",
+  "http_status": 200,
+  "ok": true,
+  "response": {
+    "content": "Je partirais sur une carte d’attaque libre, technique Preparer le terrain : tu aides le démarrage en rendant le contexte plus simple autour de toi, ce qui réduit la friction quand tu te lances. Si ton blocage vient plutôt d’un risque de déraper au dernier moment, je peux te guider vers une carte de défense.",
+    "mode": "companion",
+    "delivery": null,
+    "tool_execution": "none",
+    "executed_tools": [],
+    "conversation_turn_trace": {
+      "turn_frame": {
+        "turn_id": "product_help_local_skip_20260622_r1-t04",
+        "source_message_id": "5e47de85-4c26-4bcd-821e-49efa09b5913",
+        "user_id": "ace4bf63-52ba-40af-b8c9-abdd43344e96",
+        "channel": "web",
+        "safety": {
+          "risk_band": "none",
+          "reason_codes": [],
+          "evidence": []
+        },
+        "conversation_risk": {
+          "score": 0,
+          "threshold": 8,
+          "should_exit_flows": false,
+          "reason_codes": [],
+          "previous_scores": [],
+          "matrix": [],
+          "context_summary": null
+        },
+        "direct_effects": [],
+        "note_information": null,
+        "skill_signals": {
+          "coaching_recommendation": {
+            "detected": true,
+            "confidence_band": "high",
+            "reason": "user_requests_coaching_lever_without_touching_plan",
+            "context": {
+              "coaching_type": "no_plan_action",
+              "confidence": 0.86,
+              "activation_checks": {
+                "is_coaching_need": true,
+                "is_about_plan_action": false,
+                "is_about_non_plan_action": true,
+                "is_about_emotional_state": false,
+                "has_concrete_plan_action": false,
+                "needs_type_confirmation": false
+              },
+              "action_context": {
+                "source": "free",
+                "plan_item_id": null,
+                "action_title": null,
+                "plan_id": null,
+                "plan_title": null,
+                "action_type": "other"
+              },
+              "emotional_state_context": {
+                "state_hint": null,
+                "intensity": "medium"
+              },
+              "reason": "The user asks which lever to use to get unstuck now, explicitly without changing the plan; this is free-action coaching."
+            }
+          }
+        },
+        "needs_research": {
+          "detected": false,
+          "value": false,
+          "query": null,
+          "domain_hint": null,
+          "confidence": 0,
+          "reason": null
+        },
+        "action_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_inference_unavailable"
+        },
+        "level_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_inference_unavailable"
+        },
+        "memory_plan": {
+          "response_intent": "identify_coaching_need_without_plan_change",
+          "reasoning_complexity": "low",
+          "context_need": "minimal",
+          "memory_mode": "none",
+          "model_tier_hint": "lite",
+          "context_budget_tier": "tiny",
+          "targets": [],
+          "retrieval_policy": "taxonomy_first",
+          "plan_confidence": 0.7
+        }
+      },
+      "route_decision": {
+        "route_version": "v1",
+        "response_owner": "coaching_recommendation",
+        "blocked_paths": [],
+        "direct_effects_to_run": [],
+        "reason_code": "coaching_recommendation_signal",
+        "memory_used_for_route": false,
+        "memory_item_ids_used_for_route": [],
+        "memory_use_kind": "none",
+        "active_flow_arbitration": {
+          "decision": "minimal_global_dispatcher",
+          "active_owner": "none",
+          "selected_owner": "coaching_recommendation",
+          "resume_policy": "none",
+          "reason_code": "coaching_recommendation_signal"
+        },
+        "selected_handler": "coaching_recommendation"
+      },
+      "effect_ledger": {
+        "turn_id": "product_help_local_skip_20260622_r1-t04",
+        "counts": {
+          "requested": 0,
+          "allowed": 0,
+          "blocked": 0,
+          "committed": 0,
+          "failed": 0,
+          "proposed": 0,
+          "delivered": 0,
+          "cancelled": 0,
+          "superseded": 0,
+          "asked": 0,
+          "resolved": 0,
+          "topic_change": 0
+        },
+        "entries": []
+      },
+      "response_owner": "coaching_recommendation",
+      "skill_run": {
+        "selected_skill_id": "coaching_recommendation",
+        "reason_code": "coaching_recommendation_signal",
+        "status": "continue",
+        "latency_ms": 19447
+      }
+    }
+  },
+  "conversation_turn_trace": {
+    "turn_frame": {
+      "turn_id": "product_help_local_skip_20260622_r1-t04",
+      "source_message_id": "5e47de85-4c26-4bcd-821e-49efa09b5913",
+      "user_id": "ace4bf63-52ba-40af-b8c9-abdd43344e96",
+      "channel": "web",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "conversation_risk": {
+        "score": 0,
+        "threshold": 8,
+        "should_exit_flows": false,
+        "reason_codes": [],
+        "previous_scores": [],
+        "matrix": [],
+        "context_summary": null
+      },
+      "direct_effects": [],
+      "note_information": null,
+      "skill_signals": {
+        "coaching_recommendation": {
+          "detected": true,
+          "confidence_band": "high",
+          "reason": "user_requests_coaching_lever_without_touching_plan",
+          "context": {
+            "coaching_type": "no_plan_action",
+            "confidence": 0.86,
+            "activation_checks": {
+              "is_coaching_need": true,
+              "is_about_plan_action": false,
+              "is_about_non_plan_action": true,
+              "is_about_emotional_state": false,
+              "has_concrete_plan_action": false,
+              "needs_type_confirmation": false
+            },
+            "action_context": {
+              "source": "free",
+              "plan_item_id": null,
+              "action_title": null,
+              "plan_id": null,
+              "plan_title": null,
+              "action_type": "other"
+            },
+            "emotional_state_context": {
+              "state_hint": null,
+              "intensity": "medium"
+            },
+            "reason": "The user asks which lever to use to get unstuck now, explicitly without changing the plan; this is free-action coaching."
+          }
+        }
+      },
+      "needs_research": {
+        "detected": false,
+        "value": false,
+        "query": null,
+        "domain_hint": null,
+        "confidence": 0,
+        "reason": null
+      },
+      "action_reference": {
+        "detected": false,
+        "status": "none",
+        "expansion_policy": "none",
+        "reason": "semantic_inference_unavailable"
+      },
+      "level_reference": {
+        "detected": false,
+        "status": "none",
+        "expansion_policy": "none",
+        "reason": "semantic_inference_unavailable"
+      },
+      "memory_plan": {
+        "response_intent": "identify_coaching_need_without_plan_change",
+        "reasoning_complexity": "low",
+        "context_need": "minimal",
+        "memory_mode": "none",
+        "model_tier_hint": "lite",
+        "context_budget_tier": "tiny",
+        "targets": [],
+        "retrieval_policy": "taxonomy_first",
+        "plan_confidence": 0.7
+      }
+    },
+    "route_decision": {
+      "route_version": "v1",
+      "response_owner": "coaching_recommendation",
+      "blocked_paths": [],
+      "direct_effects_to_run": [],
+      "reason_code": "coaching_recommendation_signal",
+      "memory_used_for_route": false,
+      "memory_item_ids_used_for_route": [],
+      "memory_use_kind": "none",
+      "active_flow_arbitration": {
+        "decision": "minimal_global_dispatcher",
+        "active_owner": "none",
+        "selected_owner": "coaching_recommendation",
+        "resume_policy": "none",
+        "reason_code": "coaching_recommendation_signal"
+      },
+      "selected_handler": "coaching_recommendation"
+    },
+    "effect_ledger": {
+      "turn_id": "product_help_local_skip_20260622_r1-t04",
+      "counts": {
+        "requested": 0,
+        "allowed": 0,
+        "blocked": 0,
+        "committed": 0,
+        "failed": 0,
+        "proposed": 0,
+        "delivered": 0,
+        "cancelled": 0,
+        "superseded": 0,
+        "asked": 0,
+        "resolved": 0,
+        "topic_change": 0
+      },
+      "entries": []
+    },
+    "response_owner": "coaching_recommendation",
+    "skill_run": {
+      "selected_skill_id": "coaching_recommendation",
+      "reason_code": "coaching_recommendation_signal",
+      "status": "continue",
+      "latency_ms": 19447
+    }
+  },
+  "trace_error": null,
+  "raw_body": {
+    "ok": true,
+    "request_id": "product_help_local_skip_20260622_r1-t04",
+    "user_id": "ace4bf63-52ba-40af-b8c9-abdd43344e96",
+    "channel": "web",
+    "scope": "product_help_local_skip_20260622_r1",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "logged_message_id": null,
+    "latest_message_id": null,
+    "response": {
+      "content": "Je partirais sur une carte d’attaque libre, technique Preparer le terrain : tu aides le démarrage en rendant le contexte plus simple autour de toi, ce qui réduit la friction quand tu te lances. Si ton blocage vient plutôt d’un risque de déraper au dernier moment, je peux te guider vers une carte de défense.",
+      "mode": "companion",
+      "delivery": null,
+      "tool_execution": "none",
+      "executed_tools": [],
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "product_help_local_skip_20260622_r1-t04",
+          "source_message_id": "5e47de85-4c26-4bcd-821e-49efa09b5913",
+          "user_id": "ace4bf63-52ba-40af-b8c9-abdd43344e96",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [],
+            "evidence": []
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "note_information": null,
+          "skill_signals": {
+            "coaching_recommendation": {
+              "detected": true,
+              "confidence_band": "high",
+              "reason": "user_requests_coaching_lever_without_touching_plan",
+              "context": {
+                "coaching_type": "no_plan_action",
+                "confidence": 0.86,
+                "activation_checks": {
+                  "is_coaching_need": true,
+                  "is_about_plan_action": false,
+                  "is_about_non_plan_action": true,
+                  "is_about_emotional_state": false,
+                  "has_concrete_plan_action": false,
+                  "needs_type_confirmation": false
+                },
+                "action_context": {
+                  "source": "free",
+                  "plan_item_id": null,
+                  "action_title": null,
+                  "plan_id": null,
+                  "plan_title": null,
+                  "action_type": "other"
+                },
+                "emotional_state_context": {
+                  "state_hint": null,
+                  "intensity": "medium"
+                },
+                "reason": "The user asks which lever to use to get unstuck now, explicitly without changing the plan; this is free-action coaching."
+              }
+            }
+          },
+          "needs_research": {
+            "detected": false,
+            "value": false,
+            "query": null,
+            "domain_hint": null,
+            "confidence": 0,
+            "reason": null
+          },
+          "action_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "level_reference": {
+            "detected": false,
+            "status": "none",
+            "expansion_policy": "none",
+            "reason": "semantic_inference_unavailable"
+          },
+          "memory_plan": {
+            "response_intent": "identify_coaching_need_without_plan_change",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "taxonomy_first",
+            "plan_confidence": 0.7
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "coaching_recommendation",
+          "blocked_paths": [],
+          "direct_effects_to_run": [],
+          "reason_code": "coaching_recommendation_signal",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none",
+          "active_flow_arbitration": {
+            "decision": "minimal_global_dispatcher",
+            "active_owner": "none",
+            "selected_owner": "coaching_recommendation",
+            "resume_policy": "none",
+            "reason_code": "coaching_recommendation_signal"
+          },
+          "selected_handler": "coaching_recommendation"
+        },
+        "effect_ledger": {
+          "turn_id": "product_help_local_skip_20260622_r1-t04",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 0,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": []
+        },
+        "response_owner": "coaching_recommendation",
+        "skill_run": {
+          "selected_skill_id": "coaching_recommendation",
+          "reason_code": "coaching_recommendation_signal",
+          "status": "continue",
+          "latency_ms": 19447
+        }
+      }
+    },
+    "conversation_turn_trace": {
+      "turn_frame": {
+        "turn_id": "product_help_local_skip_20260622_r1-t04",
+        "source_message_id": "5e47de85-4c26-4bcd-821e-49efa09b5913",
+        "user_id": "ace4bf63-52ba-40af-b8c9-abdd43344e96",
+        "channel": "web",
+        "safety": {
+          "risk_band": "none",
+          "reason_codes": [],
+          "evidence": []
+        },
+        "conversation_risk": {
+          "score": 0,
+          "threshold": 8,
+          "should_exit_flows": false,
+          "reason_codes": [],
+          "previous_scores": [],
+          "matrix": [],
+          "context_summary": null
+        },
+        "direct_effects": [],
+        "note_information": null,
+        "skill_signals": {
+          "coaching_recommendation": {
+            "detected": true,
+            "confidence_band": "high",
+            "reason": "user_requests_coaching_lever_without_touching_plan",
+            "context": {
+              "coaching_type": "no_plan_action",
+              "confidence": 0.86,
+              "activation_checks": {
+                "is_coaching_need": true,
+                "is_about_plan_action": false,
+                "is_about_non_plan_action": true,
+                "is_about_emotional_state": false,
+                "has_concrete_plan_action": false,
+                "needs_type_confirmation": false
+              },
+              "action_context": {
+                "source": "free",
+                "plan_item_id": null,
+                "action_title": null,
+                "plan_id": null,
+                "plan_title": null,
+                "action_type": "other"
+              },
+              "emotional_state_context": {
+                "state_hint": null,
+                "intensity": "medium"
+              },
+              "reason": "The user asks which lever to use to get unstuck now, explicitly without changing the plan; this is free-action coaching."
+            }
+          }
+        },
+        "needs_research": {
+          "detected": false,
+          "value": false,
+          "query": null,
+          "domain_hint": null,
+          "confidence": 0,
+          "reason": null
+        },
+        "action_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_inference_unavailable"
+        },
+        "level_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_inference_unavailable"
+        },
+        "memory_plan": {
+          "response_intent": "identify_coaching_need_without_plan_change",
+          "reasoning_complexity": "low",
+          "context_need": "minimal",
+          "memory_mode": "none",
+          "model_tier_hint": "lite",
+          "context_budget_tier": "tiny",
+          "targets": [],
+          "retrieval_policy": "taxonomy_first",
+          "plan_confidence": 0.7
+        }
+      },
+      "route_decision": {
+        "route_version": "v1",
+        "response_owner": "coaching_recommendation",
+        "blocked_paths": [],
+        "direct_effects_to_run": [],
+        "reason_code": "coaching_recommendation_signal",
+        "memory_used_for_route": false,
+        "memory_item_ids_used_for_route": [],
+        "memory_use_kind": "none",
+        "active_flow_arbitration": {
+          "decision": "minimal_global_dispatcher",
+          "active_owner": "none",
+          "selected_owner": "coaching_recommendation",
+          "resume_policy": "none",
+          "reason_code": "coaching_recommendation_signal"
+        },
+        "selected_handler": "coaching_recommendation"
+      },
+      "effect_ledger": {
+        "turn_id": "product_help_local_skip_20260622_r1-t04",
+        "counts": {
+          "requested": 0,
+          "allowed": 0,
+          "blocked": 0,
+          "committed": 0,
+          "failed": 0,
+          "proposed": 0,
+          "delivered": 0,
+          "cancelled": 0,
+          "superseded": 0,
+          "asked": 0,
+          "resolved": 0,
+          "topic_change": 0
+        },
+        "entries": []
+      },
+      "response_owner": "coaching_recommendation",
+      "skill_run": {
+        "selected_skill_id": "coaching_recommendation",
+        "reason_code": "coaching_recommendation_signal",
+        "status": "continue",
+        "latency_ms": 19447
+      }
+    },
+    "trace_error": null
+  }
+}

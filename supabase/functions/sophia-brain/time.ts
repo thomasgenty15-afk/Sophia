@@ -1,6 +1,6 @@
 /**
  * Approximate "Paris local time" by shifting UTC by +1 hour.
- * Note: ignores DST (+2). This matches the existing behavior in router/investigator.
+ * Note: ignores DST (+2). This matches the existing router behavior.
  */
 export function approxParisTimeUtcPlusOne(now: Date = new Date()): Date {
   return new Date(now.getTime() + 1 * 60 * 60 * 1000);
@@ -23,7 +23,6 @@ export function buildParisTimeContextUtcPlusOne(now: Date = new Date()): string 
     minute: "2-digit",
   })}.`;
 }
-
 
 
 

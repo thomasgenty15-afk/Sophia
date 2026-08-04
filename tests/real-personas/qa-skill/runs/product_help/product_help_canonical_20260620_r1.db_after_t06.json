@@ -1,0 +1,377 @@
+{
+  "user_id": "ad612a87-041d-40e8-9a92-193deb7e8a51",
+  "user_chat_states": {
+    "status": 200,
+    "body": [
+      {
+        "user_id": "ad612a87-041d-40e8-9a92-193deb7e8a51",
+        "current_mode": "companion",
+        "risk_level": 0,
+        "investigation_state": null,
+        "short_term_context": "",
+        "last_interaction_at": "2026-06-19T23:09:58.451+00:00",
+        "updated_at": "2026-06-19T23:09:58.452547+00:00",
+        "unprocessed_msg_count": 0,
+        "last_processed_at": "2026-06-19T23:09:58.451+00:00",
+        "scope": "web",
+        "temp_memory": {
+          "__active_skill_state": {
+            "status": "active",
+            "version": 1,
+            "skill_id": "coaching_recommendation",
+            "started_at": "2026-06-19T23:07:15.055Z",
+            "turn_count": 2,
+            "updated_at": "2026-06-19T23:09:58.445Z",
+            "working_state": {
+              "coaching_recommendation_local_state": {
+                "stage": "followup",
+                "max_turns": 4,
+                "difficulty": {
+                  "summary": "Le user veut se débloquer maintenant sans toucher au plan; il demande quel levier choisir.",
+                  "target_kind": "unclear",
+                  "action_title": null,
+                  "action_source": "ambiguous"
+                },
+                "turn_count": 2,
+                "coaching_type": "unclear",
+                "cause_analysis": {
+                  "confidence": "medium",
+                  "missing_info": [],
+                  "primary_cause": "unclear",
+                  "why_it_exists": "The user wants a coaching lever now, but the action vs state framing is not explicit."
+                },
+                "parent_flow_id": null,
+                "user_need_summary": "Le user pose une question produit sur la carte d'attaque après préparation : où la retrouver dans Sophia.",
+                "candidate_features": [],
+                "last_answer_summary": "Le user pose une question produit sur la carte d'attaque après préparation : où la retrouver dans Sophia.",
+                "parent_return_focus": null,
+                "pending_type_change": {
+                  "reason": "The user wants a coaching lever now, but the action vs state framing is not explicit.",
+                  "candidate_coaching_type": "unclear"
+                },
+                "unresolved_question": null,
+                "parent_state_summary": null,
+                "parent_action_context": null,
+                "coaching_type_evidence": [
+                  "The user wants a coaching lever now, but the action vs state framing is not explicit."
+                ],
+                "current_recommendation": null,
+                "last_visible_task_kind": "change_confirm_coaching_type",
+                "recommendation_decision": {
+                  "why_primary": null,
+                  "why_not_others": {},
+                  "primary_feature": null,
+                  "secondary_feature": null,
+                  "platform_destination": {
+                    "label": null,
+                    "surface_hint": null,
+                    "user_facing_destination": null
+                  },
+                  "user_facing_next_step": null
+                },
+                "coaching_type_confidence": "high",
+                "secondary_recommendation": null,
+                "dispatcher_signal_context": {
+                  "reason": "The user wants a coaching lever now, but the action vs state framing is not explicit.",
+                  "confidence": 0.84,
+                  "coaching_type": "ambiguous",
+                  "action_context": {
+                    "source": "ambiguous",
+                    "plan_id": null,
+                    "plan_title": null,
+                    "action_type": "other",
+                    "action_title": null,
+                    "plan_item_id": null
+                  },
+                  "activation_checks": {
+                    "is_coaching_need": true,
+                    "is_about_plan_action": false,
+                    "needs_type_confirmation": true,
+                    "has_concrete_plan_action": false,
+                    "is_about_emotional_state": false,
+                    "is_about_non_plan_action": false
+                  },
+                  "emotional_state_context": {
+                    "intensity": "medium",
+                    "state_hint": null
+                  }
+                }
+              }
+            }
+          },
+          "companion_question_rhythm": {
+            "preference": "normal",
+            "recent_turns": [
+              0,
+              0,
+              0
+            ],
+            "last_updated_at": "2026-06-19T23:09:19.839Z",
+            "last_turn_had_question": false,
+            "turns_since_last_question": 3
+          },
+          "__active_conversation_skill_v1": {
+            "status": "active",
+            "version": 1,
+            "skill_id": "coaching_recommendation",
+            "started_at": "2026-06-19T23:07:15.055Z",
+            "turn_count": 2,
+            "updated_at": "2026-06-19T23:09:58.445Z",
+            "working_state": {
+              "coaching_recommendation_local_state": {
+                "stage": "followup",
+                "max_turns": 4,
+                "difficulty": {
+                  "summary": "Le user veut se débloquer maintenant sans toucher au plan; il demande quel levier choisir.",
+                  "target_kind": "unclear",
+                  "action_title": null,
+                  "action_source": "ambiguous"
+                },
+                "turn_count": 2,
+                "coaching_type": "unclear",
+                "cause_analysis": {
+                  "confidence": "medium",
+                  "missing_info": [],
+                  "primary_cause": "unclear",
+                  "why_it_exists": "The user wants a coaching lever now, but the action vs state framing is not explicit."
+                },
+                "parent_flow_id": null,
+                "user_need_summary": "Le user pose une question produit sur la carte d'attaque après préparation : où la retrouver dans Sophia.",
+                "candidate_features": [],
+                "last_answer_summary": "Le user pose une question produit sur la carte d'attaque après préparation : où la retrouver dans Sophia.",
+                "parent_return_focus": null,
+                "pending_type_change": {
+                  "reason": "The user wants a coaching lever now, but the action vs state framing is not explicit.",
+                  "candidate_coaching_type": "unclear"
+                },
+                "unresolved_question": null,
+                "parent_state_summary": null,
+                "parent_action_context": null,
+                "coaching_type_evidence": [
+                  "The user wants a coaching lever now, but the action vs state framing is not explicit."
+                ],
+                "current_recommendation": null,
+                "last_visible_task_kind": "change_confirm_coaching_type",
+                "recommendation_decision": {
+                  "why_primary": null,
+                  "why_not_others": {},
+                  "primary_feature": null,
+                  "secondary_feature": null,
+                  "platform_destination": {
+                    "label": null,
+                    "surface_hint": null,
+                    "user_facing_destination": null
+                  },
+                  "user_facing_next_step": null
+                },
+                "coaching_type_confidence": "high",
+                "secondary_recommendation": null,
+                "dispatcher_signal_context": {
+                  "reason": "The user wants a coaching lever now, but the action vs state framing is not explicit.",
+                  "confidence": 0.84,
+                  "coaching_type": "ambiguous",
+                  "action_context": {
+                    "source": "ambiguous",
+                    "plan_id": null,
+                    "plan_title": null,
+                    "action_type": "other",
+                    "action_title": null,
+                    "plan_item_id": null
+                  },
+                  "activation_checks": {
+                    "is_coaching_need": true,
+                    "is_about_plan_action": false,
+                    "needs_type_confirmation": true,
+                    "has_concrete_plan_action": false,
+                    "is_about_emotional_state": false,
+                    "is_about_non_plan_action": false
+                  },
+                  "emotional_state_context": {
+                    "intensity": "medium",
+                    "state_hint": null
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "recent_chat_messages": {
+    "status": 200,
+    "body": [
+      {
+        "id": "c452d945-13ef-4cbe-902c-54081b39927c",
+        "role": "assistant",
+        "content": "Tu veux qu’on voie ça comme une action de ton plan, une action hors plan, ou plutôt comme un état émotionnel ?",
+        "created_at": "2026-06-19T23:09:58.455808+00:00",
+        "metadata": {
+          "request_id": "cd01249d-19d0-4a3c-8044-a95a797ef981",
+          "route_owner": "coaching_recommendation",
+          "agent_latency_ms": 10237,
+          "selected_handler": "coaching_recommendation",
+          "context_latency_ms": 0,
+          "dispatcher_latency_ms": 2928,
+          "runtime_safety_risk_band": "none"
+        }
+      },
+      {
+        "id": "55734be4-8b5c-40a5-8ba0-1e0e293d85d4",
+        "role": "user",
+        "content": "Question produit seulement : où est-ce que je retrouve une carte d'attaque dans Sophia après l'avoir préparée ?",
+        "created_at": "2026-06-19T23:09:45.247372+00:00",
+        "metadata": {
+          "request_id": "cd01249d-19d0-4a3c-8044-a95a797ef981",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        }
+      },
+      {
+        "id": "f76cfe96-2aa5-4dc2-a1b4-6eaecb093be7",
+        "role": "assistant",
+        "content": "Compris, on revient à zéro. Rien à pousser de mon côté 🙂",
+        "created_at": "2026-06-19T23:09:19.858548+00:00",
+        "metadata": {
+          "request_id": "c0fb52e0-63ae-4cc0-9b46-ad9400a987cd",
+          "route_owner": "normal_reply",
+          "agent_latency_ms": 924,
+          "selected_handler": null,
+          "context_latency_ms": 34,
+          "dispatcher_latency_ms": 2184,
+          "runtime_safety_risk_band": "none"
+        }
+      },
+      {
+        "id": "53136834-3152-4ca2-a10d-1371051d0bd5",
+        "role": "user",
+        "content": "Stop, on arrête cette recommandation. Je veux juste revenir à zéro.",
+        "created_at": "2026-06-19T23:09:12.191359+00:00",
+        "metadata": {
+          "request_id": "c0fb52e0-63ae-4cc0-9b46-ad9400a987cd",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        }
+      },
+      {
+        "id": "f5b2056a-9363-489b-94ff-4ff412435c08",
+        "role": "assistant",
+        "content": "C’est séparé.\n\nUne carte d’attaque sert à préparer une action précise, sans modifier ton plan en lui-même. Le plan reste le cadre ; la carte d’attaque est un appui autour d’une action ou d’un blocage particulier 🙂",
+        "created_at": "2026-06-19T23:08:46.58298+00:00",
+        "metadata": {
+          "request_id": "0ca45ff5-7cbe-487f-bf16-cba9605d343c",
+          "route_owner": "normal_reply",
+          "agent_latency_ms": 1121,
+          "selected_handler": null,
+          "context_latency_ms": 78,
+          "dispatcher_latency_ms": 3980,
+          "runtime_safety_risk_band": "none"
+        }
+      },
+      {
+        "id": "5b8e50c1-ebd1-4694-8126-6b9a599f5202",
+        "role": "user",
+        "content": "Je reviens juste à une question produit : quand Sophia propose une carte d'attaque, est-ce qu'elle modifie mon plan ou c'est séparé ?",
+        "created_at": "2026-06-19T23:08:28.580427+00:00",
+        "metadata": {
+          "request_id": "0ca45ff5-7cbe-487f-bf16-cba9605d343c",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        }
+      },
+      {
+        "id": "afd8e32f-19e9-4a84-8f98-9797adc540cc",
+        "role": "assistant",
+        "content": "Oui, une carte d’attaque peut être modifiée après coup si elle existe encore et que tu veux l’ajuster.\n\nPour le rappel de demain à 9h : je ne peux pas le poser ici de façon fiable dans ce chat, donc pense à le programmer dans la plateforme si tu veux qu’il t’attende vraiment ⏰",
+        "created_at": "2026-06-19T23:08:00.819351+00:00",
+        "metadata": {
+          "request_id": "acccbc2f-e293-44eb-adee-41dfa21f7a6a",
+          "route_owner": "normal_reply",
+          "agent_latency_ms": 1315,
+          "selected_handler": null,
+          "context_latency_ms": 57,
+          "dispatcher_latency_ms": 2017,
+          "runtime_safety_risk_band": "none"
+        }
+      },
+      {
+        "id": "5814f4d2-68f0-457b-b414-3d5d5bd73404",
+        "role": "user",
+        "content": "Question produit : est-ce qu'une carte d'attaque peut être modifiée après coup ? Et rappelle-moi demain à 9h de vérifier ça.",
+        "created_at": "2026-06-19T23:07:43.322408+00:00",
+        "metadata": {
+          "request_id": "acccbc2f-e293-44eb-adee-41dfa21f7a6a",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        }
+      },
+      {
+        "id": "22ec5f0d-d9b6-47de-afa2-7f8c1f9cb0c9",
+        "role": "assistant",
+        "content": "Tu veux qu’on le prenne comme une action de ton plan, une action hors plan, ou plutôt comme un état émotionnel ?",
+        "created_at": "2026-06-19T23:07:15.066741+00:00",
+        "metadata": {
+          "request_id": "f62344e8-5d64-439c-ab8d-4c8433645e2c",
+          "route_owner": "coaching_recommendation",
+          "agent_latency_ms": 12356,
+          "selected_handler": "coaching_recommendation",
+          "context_latency_ms": 0,
+          "dispatcher_latency_ms": 2414,
+          "runtime_safety_risk_band": "none"
+        }
+      },
+      {
+        "id": "e02261f6-99b3-4799-b481-7eb1a897dab8",
+        "role": "user",
+        "content": "Et si je veux juste me débloquer maintenant sans toucher au plan, c'est lequel ?",
+        "created_at": "2026-06-19T23:07:00.258575+00:00",
+        "metadata": {
+          "request_id": "f62344e8-5d64-439c-ab8d-4c8433645e2c",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        }
+      },
+      {
+        "id": "ddcd88bc-bbd2-46ef-b60c-f03706169648",
+        "role": "assistant",
+        "content": "L’ajustement du plan sert quand le plan lui-même ne colle plus : trop lourd, mal placé, plus adapté ou invalidé par une nouvelle info.\nLa carte d’attaque sert à préparer le premier geste d’une action que tu veux faire, pour la rendre plus simple et plus fluide.\n\nEn bref : plan à corriger, carte d’attaque à préparer.",
+        "created_at": "2026-06-19T23:06:38.678481+00:00",
+        "metadata": {
+          "request_id": "567a4c0c-693e-4467-b4db-a2f9f43fc2a3",
+          "route_owner": "product_help",
+          "agent_latency_ms": 4466,
+          "selected_handler": "product_help",
+          "context_latency_ms": 0,
+          "dispatcher_latency_ms": 2082,
+          "runtime_safety_risk_band": "none"
+        }
+      },
+      {
+        "id": "52c9cdc3-d189-4f08-a804-8af9de431860",
+        "role": "user",
+        "content": "Je suis un peu perdu : c'est quoi la différence entre ajuster mon plan et préparer une carte d'attaque dans Sophia ?",
+        "created_at": "2026-06-19T23:06:32.081857+00:00",
+        "metadata": {
+          "request_id": "567a4c0c-693e-4467-b4db-a2f9f43fc2a3",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        }
+      }
+    ]
+  },
+  "recent_turn_traces": {
+    "status": 400,
+    "body": {
+      "code": "42703",
+      "details": null,
+      "hint": null,
+      "message": "column conversation_turn_traces.effect_ledger does not exist"
+    }
+  }
+}

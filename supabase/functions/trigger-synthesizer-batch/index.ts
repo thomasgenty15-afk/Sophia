@@ -84,7 +84,7 @@ Deno.serve(async (req) => {
     }
     if (rowsErr) throw rowsErr
 
-    const candidates: CandidateKey[] = ((rows ?? []) as any[])
+    const rawCandidates: CandidateKey[] = ((rows ?? []) as any[])
       .map((r) => ({
         user_id: String(r?.user_id ?? "").trim(),
         scope: String(r?.scope ?? "web").trim() || "web",
@@ -92,6 +92,20 @@ Deno.serve(async (req) => {
       }))
       .filter((r) => Boolean(r.user_id))
       .filter((r) => targetedUserId || r.unprocessed_msg_count >= MIN_NEW_MESSAGES)
+
+    // RGPD: accounts pending deletion are excluded from all proactive processing.
+    let candidates = rawCandidates
+    if (rawCandidates.length > 0) {
+      const candidateIds = [...new Set(rawCandidates.map((c) => c.user_id))]
+      const { data: activeProfiles, error: profilesErr } = await admin
+        .from("profiles")
+        .select("id")
+        .in("id", candidateIds)
+        .neq("account_status", "deletion_pending")
+      if (profilesErr) throw profilesErr
+      const activeIds = new Set((activeProfiles ?? []).map((p: any) => String(p.id)))
+      candidates = rawCandidates.filter((c) => activeIds.has(c.user_id))
+    }
 
     if (candidates.length === 0) {
       return jsonResponse(req, {

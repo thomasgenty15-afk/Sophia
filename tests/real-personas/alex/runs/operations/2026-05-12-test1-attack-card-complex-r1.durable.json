@@ -1,0 +1,262 @@
+{
+  "user_attack_cards": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "12972864-00f0-47ec-b030-98b659730ce5",
+        "plan_item_id": null,
+        "status": "active",
+        "content": {
+          "title": "Carte d'attaque - ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.",
+          "techniques": [
+            {
+              "technique_key": "operation_attack_card",
+              "generated_result": {
+                "title": "Carte d'attaque - ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.",
+                "technique": "minimum_version",
+                "instruction": "Fais la version 4 minutes de \"ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.\", assez petite pour ne pas negocier.",
+                "target_label": "ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.",
+                "why_it_helps": "La carte baisse la friction de demarrage sans augmenter la difficulte."
+              }
+            }
+          ],
+          "target_label": "ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.",
+          "operation_draft": {
+            "title": "Carte d'attaque - ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.",
+            "technique": "minimum_version",
+            "instruction": "Fais la version 4 minutes de \"ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.\", assez petite pour ne pas negocier.",
+            "target_label": "ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.",
+            "why_it_helps": "La carte baisse la friction de demarrage sans augmenter la difficulte."
+          }
+        },
+        "metadata": {
+          "draft": {
+            "draft": {
+              "title": "Carte d'attaque - ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.",
+              "technique": "minimum_version",
+              "instruction": "Fais la version 4 minutes de \"ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.\", assez petite pour ne pas negocier.",
+              "target_label": "ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.",
+              "why_it_helps": "La carte baisse la friction de demarrage sans augmenter la difficulte."
+            },
+            "output_schema": "attack_card_draft_v1",
+            "operation_type": "prepare_attack_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je te propose de creer une carte d'attaque courte pour ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.: Fais la version 4 minutes de \"ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.\", assez petite pour ne pas negocier. Tu veux que je la cree ?"
+          },
+          "source": "sophia_brain_operation_flow",
+          "target": {
+            "kind": "personal_action",
+            "title": "ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.",
+            "plan_item_id": null
+          },
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-complex-r1-t03",
+          "operation_id": "6f3961ea-305c-41eb-a739-0f1982a374dc",
+          "operation_type": "prepare_attack_card",
+          "source_message_id": "9de02f35-0b14-4f5e-a9ed-f6de0a268179"
+        },
+        "generated_at": "2026-05-12T21:17:15.741+00:00",
+        "last_updated_at": "2026-05-12T21:17:15.741+00:00"
+      }
+    ]
+  },
+  "user_plan_items": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e",
+        "title": "Préparer ta zone de déchargement",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "active",
+        "cards_status": "not_started",
+        "attack_card_id": null,
+        "updated_at": "2026-05-06T13:45:51.10963+00:00"
+      },
+      {
+        "id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+        "title": "Faire le sas de déchargement",
+        "dimension": "habits",
+        "kind": "habit",
+        "status": "active",
+        "cards_status": "not_started",
+        "attack_card_id": null,
+        "updated_at": "2026-05-06T06:23:51.281+00:00"
+      },
+      {
+        "id": "8d321c6c-ce4b-440f-b7b1-69e1a17ff835",
+        "title": "Repérer les pièges de l'hypervigilance",
+        "dimension": "clarifications",
+        "kind": "exercise",
+        "status": "pending",
+        "cards_status": "not_required",
+        "attack_card_id": null,
+        "updated_at": "2026-05-06T06:23:51.281+00:00"
+      },
+      {
+        "id": "793bdd4a-c2fb-40fa-b972-e58b8659658f",
+        "title": "Bilan et ajustement du sas",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "pending",
+        "cards_status": "not_started",
+        "attack_card_id": null,
+        "updated_at": "2026-05-06T06:23:51.281+00:00"
+      }
+    ]
+  },
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "c903d96a-579c-4da5-ab6f-00db1503d5f4",
+        "role": "user",
+        "content": "J'ai besoin que tu me fasses une carte d'attaque pour ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.",
+        "scope": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-complex-r1",
+        "metadata": {
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-complex-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-12T21:16:28.377447+00:00"
+      },
+      {
+        "id": "03848438-5f54-4a5c-a6b8-fce55151a35b",
+        "role": "assistant",
+        "content": "Je te propose de creer une carte d'attaque courte pour ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.: Fais la version 4 minutes de \"ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.\", assez petite pour ne pas negocier. Tu veux que je la cree ?",
+        "scope": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-complex-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-complex-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "operation_runtime": {
+              "draft": {
+                "draft": {
+                  "title": "Carte d'attaque - ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.",
+                  "technique": "minimum_version",
+                  "instruction": "Fais la version 4 minutes de \"ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.\", assez petite pour ne pas negocier.",
+                  "target_label": "ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.",
+                  "why_it_helps": "La carte baisse la friction de demarrage sans augmenter la difficulte."
+                },
+                "output_schema": "attack_card_draft_v1",
+                "operation_type": "prepare_attack_card",
+                "confirmation_actions": [
+                  "yes",
+                  "no"
+                ],
+                "confirmation_message": "Je te propose de creer une carte d'attaque courte pour ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.: Fais la version 4 minutes de \"ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.\", assez petite pour ne pas negocier. Tu veux que je la cree ?"
+              },
+              "status": "pending_confirmation",
+              "operation_id": "6f3961ea-305c-41eb-a739-0f1982a374dc",
+              "selected_handler": "prepare_attack_card"
+            }
+          }
+        },
+        "created_at": "2026-05-12T21:16:36.225839+00:00"
+      },
+      {
+        "id": "9f277ced-018b-4f6a-8cd6-e2c761acfc5e",
+        "role": "user",
+        "content": "Je parle du sas de dechargement, pas de preparer la zone; juste le moment ou je dois ouvrir le carnet. Et plus petit: deux minutes max, poser le telephone loin et ecrire une ligne.",
+        "scope": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-complex-r1",
+        "metadata": {
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-complex-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-12T21:16:46.879976+00:00"
+      },
+      {
+        "id": "7d4ef8ea-3ec2-4887-85ec-1d5472e2f805",
+        "role": "assistant",
+        "content": "Ok parfait : on oublie “zone”, et on vise juste le sas au moment où tu ouvres le carnet. 😄\n\nCarte d’attaque (2 minutes max) :\n1) Téléphone posé loin (hors de portée).\n2) Ouvre le carnet.\n3) Écris une seule ligne : “Là, maintenant, mon cerveau a besoin de ____.”\n\nTu la fais tout de suite après ça, ou plutôt dans 30 minutes ? 📱➡️📝",
+        "scope": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-complex-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-complex-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-05-12T21:16:57.873921+00:00"
+      },
+      {
+        "id": "9de02f35-0b14-4f5e-a9ed-f6de0a268179",
+        "role": "user",
+        "content": "Je veux que tu la crees dans Sophia avec ces trois etapes, pour ce soir. Pas un rappel, juste la carte d'attaque.",
+        "scope": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-complex-r1",
+        "metadata": {
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-complex-r1-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-12T21:17:09.431225+00:00"
+      },
+      {
+        "id": "acf145b3-1bd0-4756-b770-f1d5bec28006",
+        "role": "assistant",
+        "content": "C'est fait. J'ai créé la carte d'attaque \"Carte d'attaque - ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.\" : Fais la version 4 minutes de \"ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.\", assez petite pour ne pas negocier.",
+        "scope": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-complex-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-complex-r1-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "operation_runtime": {
+              "status": "executed",
+              "operation_id": "6f3961ea-305c-41eb-a739-0f1982a374dc",
+              "attack_card_id": "12972864-00f0-47ec-b030-98b659730ce5",
+              "selected_handler": "prepare_attack_card"
+            }
+          }
+        },
+        "created_at": "2026-05-12T21:17:15.773028+00:00"
+      }
+    ]
+  }
+}

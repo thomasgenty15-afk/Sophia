@@ -1,0 +1,48 @@
+{
+  "id": "08_strong_statement_self_blame",
+  "description": "Strong self-blame must remain a sensitive statement and never become an objective fact.",
+  "scenario_version": 1,
+  "turns": [
+    {
+      "user": "Je me sens nul, j'ai l'impression de tout gacher.",
+      "expect": {
+        "retrieval_mode": "topic_continuation",
+        "topic_decision": "create_candidate",
+        "created_items": [
+          {
+            "kind": "statement",
+            "contains": ["je me sens nul", "tout gacher"],
+            "domain_keys_any_of": ["psychologie.estime_de_soi"],
+            "sensitivity_level": "sensitive",
+          },
+        ],
+        "forbidden_items": [{ "kind": "fact", "contains": ["nul"] }],
+      },
+    },
+    {
+      "user": "En vrai c'est surtout quand je rate une action.",
+      "expect": {
+        "retrieval_mode": "topic_continuation",
+        "topic_decision": "stay",
+        "created_items": [
+          {
+            "kind": "statement",
+            "contains": ["quand je rate une action"],
+            "domain_keys_any_of": ["psychologie.peur_echec"],
+            "sensitivity_level": "sensitive",
+          },
+        ],
+      },
+    },
+  ],
+  "global_assertions": [
+    {
+      "no_invalid_injection": true,
+      "no_deleted_in_payload": true,
+      "no_statement_as_fact": true,
+      "no_cross_user_data": true,
+      "no_duplicate_extraction_on_retry": true,
+      "no_message_double_processing": true,
+    },
+  ],
+}

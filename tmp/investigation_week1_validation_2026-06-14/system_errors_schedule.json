@@ -1,0 +1,1550 @@
+{
+  "ok": true,
+  "status": 200,
+  "count": "0-57/58",
+  "body": [
+    {
+      "id": "5c0cfe80-3cad-40d1-9946-04cc7363269e",
+      "created_at": "2026-06-15T16:14:00.610473+00:00",
+      "severity": "error",
+      "source": "edge",
+      "function_name": "schedule-onboarding-week1-validation",
+      "title": "Error",
+      "message": "invalid input syntax for type uuid: \"1b7b4127-a0fd-4d3c-b33a1cc7c0e9\"",
+      "stack": null,
+      "request_id": "af68c85b-0dc0-460b-9e4f-91f6f0044a22",
+      "user_id": null,
+      "metadata": {
+        "source": "edge",
+        "error_name": "Error"
+      }
+    },
+    {
+      "id": "12ae5cc4-69f3-44fe-9fa9-ba992ef331b2",
+      "created_at": "2026-06-15T16:14:00.662762+00:00",
+      "severity": "error",
+      "source": "edge",
+      "function_name": "schedule-onboarding-week1-validation",
+      "title": "http_status_500",
+      "message": "[object Object]",
+      "stack": null,
+      "request_id": "af68c85b-0dc0-460b-9e4f-91f6f0044a22",
+      "user_id": null,
+      "metadata": {
+        "category": "http_response",
+        "http_path": "/schedule-onboarding-week1-validation",
+        "error_name": "Error",
+        "http_method": "POST",
+        "http_status": 500
+      }
+    },
+    {
+      "id": "c226a41c-8013-42ff-847b-b45e645d8291",
+      "created_at": "2026-06-18T07:12:07.041833+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"4cbf9cc5-9f2b-46c8-a7a3-2f051b57ff78\"}",
+      "stack": null,
+      "request_id": "536f082d-da07-4567-96fd-4dbf26212910",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "metadata": {
+        "checkin_id": "e35ae166-e289-4021-9191-51c4cd4fc6a1",
+        "error_name": "Error",
+        "event_context": "action_morning_followup_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "4cbf9cc5-9f2b-46c8-a7a3-2f051b57ff78",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "4cbf9cc5-9f2b-46c8-a7a3-2f051b57ff78"
+      }
+    },
+    {
+      "id": "362f141e-4fcd-451a-8807-bd0cf0ad5775",
+      "created_at": "2026-06-18T07:18:06.264173+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"0afc35af-3fdd-4358-b4a0-b25c4d35f5fd\"}",
+      "stack": null,
+      "request_id": "72168244-4986-4c10-9a19-ddfc792583fd",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "metadata": {
+        "checkin_id": "e35ae166-e289-4021-9191-51c4cd4fc6a1",
+        "error_name": "Error",
+        "event_context": "action_morning_followup_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "0afc35af-3fdd-4358-b4a0-b25c4d35f5fd",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "0afc35af-3fdd-4358-b4a0-b25c4d35f5fd"
+      }
+    },
+    {
+      "id": "788b564f-7dc8-4596-80fa-346f56b9ea68",
+      "created_at": "2026-06-18T07:51:06.741079+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"0eb2826a-52a6-4cdd-9181-4499234fac41\"}",
+      "stack": null,
+      "request_id": "1790fb9d-01ef-4801-8450-49f36078df6c",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "metadata": {
+        "checkin_id": "e35ae166-e289-4021-9191-51c4cd4fc6a1",
+        "error_name": "Error",
+        "event_context": "action_morning_followup_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "0eb2826a-52a6-4cdd-9181-4499234fac41",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "0eb2826a-52a6-4cdd-9181-4499234fac41"
+      }
+    },
+    {
+      "id": "5bd6489c-15f3-4296-9be2-2b1c3854cfc5",
+      "created_at": "2026-06-18T09:54:07.469148+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"49f7d177-22b1-4df4-8156-34edb6d52dbe\"}",
+      "stack": null,
+      "request_id": "71c98398-ad06-4910-850b-488d93836f5f",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "metadata": {
+        "checkin_id": "e35ae166-e289-4021-9191-51c4cd4fc6a1",
+        "error_name": "Error",
+        "event_context": "action_morning_followup_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "49f7d177-22b1-4df4-8156-34edb6d52dbe",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "49f7d177-22b1-4df4-8156-34edb6d52dbe"
+      }
+    },
+    {
+      "id": "2792ca0f-1173-43c2-a2dc-e4cce424ff4c",
+      "created_at": "2026-06-18T15:57:13.403149+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"472d8f8e-f528-4b15-ac57-de3c748a46f7\"}",
+      "stack": null,
+      "request_id": "579a9edb-aa1d-427d-8ed7-ab625f8877bb",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "metadata": {
+        "checkin_id": "e35ae166-e289-4021-9191-51c4cd4fc6a1",
+        "error_name": "Error",
+        "event_context": "action_morning_followup_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "472d8f8e-f528-4b15-ac57-de3c748a46f7",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "472d8f8e-f528-4b15-ac57-de3c748a46f7"
+      }
+    },
+    {
+      "id": "09aeb355-5047-4fd0-86e4-482d801dc5d4",
+      "created_at": "2026-06-19T06:03:07.385848+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"ec89ec8c-dcc2-43d4-894e-094e7731de95\"}",
+      "stack": null,
+      "request_id": "0de77ab9-ff24-4f33-b390-e5371d4b3e0e",
+      "user_id": "f3bd26a5-581e-4630-8550-77dd5c75387a",
+      "metadata": {
+        "checkin_id": "d68801fa-6d53-4938-97af-b6a810aa3385",
+        "error_name": "Error",
+        "event_context": "action_morning_followup_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "ec89ec8c-dcc2-43d4-894e-094e7731de95",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "ec89ec8c-dcc2-43d4-894e-094e7731de95"
+      }
+    },
+    {
+      "id": "7e4cd9d3-4150-42da-8cb7-53b4af4ff9f2",
+      "created_at": "2026-06-19T06:09:06.777428+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"0116ec77-170d-49db-8b58-eed39aa8655f\"}",
+      "stack": null,
+      "request_id": "1c348c07-df5b-468b-ac10-5805dd74399a",
+      "user_id": "f3bd26a5-581e-4630-8550-77dd5c75387a",
+      "metadata": {
+        "checkin_id": "d68801fa-6d53-4938-97af-b6a810aa3385",
+        "error_name": "Error",
+        "event_context": "action_morning_followup_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "0116ec77-170d-49db-8b58-eed39aa8655f",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "0116ec77-170d-49db-8b58-eed39aa8655f"
+      }
+    },
+    {
+      "id": "8b83a1cf-9836-4ebf-808b-72fec0dcd0c4",
+      "created_at": "2026-06-19T06:42:06.688544+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"b34e9e4f-5000-444d-a488-15c1bdda76c4\"}",
+      "stack": null,
+      "request_id": "2cc4de5c-b7a4-42ba-a855-857ec42369c6",
+      "user_id": "f3bd26a5-581e-4630-8550-77dd5c75387a",
+      "metadata": {
+        "checkin_id": "d68801fa-6d53-4938-97af-b6a810aa3385",
+        "error_name": "Error",
+        "event_context": "action_morning_followup_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "b34e9e4f-5000-444d-a488-15c1bdda76c4",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "b34e9e4f-5000-444d-a488-15c1bdda76c4"
+      }
+    },
+    {
+      "id": "9746cdbf-6613-4d76-be70-301cbb6adbfc",
+      "created_at": "2026-06-19T08:42:17.318223+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"9790a4ab-e235-47ec-bfe6-976fd1ef2b8a\"}",
+      "stack": null,
+      "request_id": "24171cfe-8d90-4952-9564-f4631446fd87",
+      "user_id": "f3bd26a5-581e-4630-8550-77dd5c75387a",
+      "metadata": {
+        "checkin_id": "d68801fa-6d53-4938-97af-b6a810aa3385",
+        "error_name": "Error",
+        "event_context": "action_morning_followup_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "9790a4ab-e235-47ec-bfe6-976fd1ef2b8a",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "9790a4ab-e235-47ec-bfe6-976fd1ef2b8a"
+      }
+    },
+    {
+      "id": "f0c9443c-0157-4a47-9965-785ae012d894",
+      "created_at": "2026-06-19T14:45:11.202749+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"39cef62f-3c77-43d4-b683-d57d93085019\"}",
+      "stack": null,
+      "request_id": "77101699-2a36-4518-a70f-36710be5c762",
+      "user_id": "f3bd26a5-581e-4630-8550-77dd5c75387a",
+      "metadata": {
+        "checkin_id": "d68801fa-6d53-4938-97af-b6a810aa3385",
+        "error_name": "Error",
+        "event_context": "action_morning_followup_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "39cef62f-3c77-43d4-b683-d57d93085019",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "39cef62f-3c77-43d4-b683-d57d93085019"
+      }
+    },
+    {
+      "id": "c3a922d2-ba8a-4670-acf2-6e361ac4cbf6",
+      "created_at": "2026-06-19T19:00:27.953971+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (503): {\"code\":\"SUPABASE_EDGE_RUNTIME_SERVICE_DEGRADED\",\"message\":\"Service is temporarily unavailable\"}",
+      "stack": null,
+      "request_id": "44921e2b-9d66-47c3-98ca-11a2ae151d0b",
+      "user_id": "f3bd26a5-581e-4630-8550-77dd5c75387a",
+      "metadata": {
+        "checkin_id": "7bf1d421-5b41-4e12-8db8-25b8d97e05ad",
+        "error_name": "Error",
+        "event_context": "action_evening_review_v2",
+        "checkin_purpose": "action_evening_review",
+        "downstream_error": {
+          "code": "SUPABASE_EDGE_RUNTIME_SERVICE_DEGRADED",
+          "message": "Service is temporarily unavailable"
+        },
+        "downstream_status": 503
+      }
+    },
+    {
+      "id": "6bc42093-cb4e-4462-8902-a3390d4032d9",
+      "created_at": "2026-06-20T06:57:06.556346+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"0009ba1d-7401-476e-be27-d879bdc383e1\"}",
+      "stack": null,
+      "request_id": "77b1c349-84cf-4ee9-b7ca-277e838ee35d",
+      "user_id": "f3bd26a5-581e-4630-8550-77dd5c75387a",
+      "metadata": {
+        "checkin_id": "3e3da544-d963-4824-b916-8a11107a73e7",
+        "error_name": "Error",
+        "event_context": "action_morning_followup_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "0009ba1d-7401-476e-be27-d879bdc383e1",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "0009ba1d-7401-476e-be27-d879bdc383e1"
+      }
+    },
+    {
+      "id": "583e157d-f5a6-465c-930e-f7b80784e665",
+      "created_at": "2026-06-20T07:03:07.229016+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"3e3320c7-bf1c-4948-a597-c88b3b29fa24\"}",
+      "stack": null,
+      "request_id": "5f019d49-9789-4b01-a42f-2be0f43b571e",
+      "user_id": "f3bd26a5-581e-4630-8550-77dd5c75387a",
+      "metadata": {
+        "checkin_id": "3e3da544-d963-4824-b916-8a11107a73e7",
+        "error_name": "Error",
+        "event_context": "action_morning_followup_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "3e3320c7-bf1c-4948-a597-c88b3b29fa24",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "3e3320c7-bf1c-4948-a597-c88b3b29fa24"
+      }
+    },
+    {
+      "id": "78b29e60-788a-4a3d-bc20-bddfed8c38ac",
+      "created_at": "2026-06-20T07:18:07.922588+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"8396c001-b265-40a3-95be-104adf4378ef\"}",
+      "stack": null,
+      "request_id": "7d8eb1d5-3b6c-41f4-b5cc-74fba8490825",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "metadata": {
+        "checkin_id": "d992f613-4084-4e34-b75f-1617f9134e29",
+        "error_name": "Error",
+        "event_context": "morning_light_greeting_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "8396c001-b265-40a3-95be-104adf4378ef",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "8396c001-b265-40a3-95be-104adf4378ef"
+      }
+    },
+    {
+      "id": "bd29cdc5-957a-40dc-9227-ba5230adf059",
+      "created_at": "2026-06-20T07:24:08.296661+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"b8012470-1930-4f13-a9ee-9f75d58f262f\"}",
+      "stack": null,
+      "request_id": "a44a0a31-4a9e-4e73-8db8-c872d1ba439f",
+      "user_id": "dcd8eece-2994-4982-9121-c500301d193b",
+      "metadata": {
+        "checkin_id": "e0482c2f-6d31-4130-a7bb-a9e47472b1e1",
+        "error_name": "Error",
+        "event_context": "morning_light_greeting_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "b8012470-1930-4f13-a9ee-9f75d58f262f",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "b8012470-1930-4f13-a9ee-9f75d58f262f"
+      }
+    },
+    {
+      "id": "2be1586a-3c5d-459c-ae49-8dc17f5ae96f",
+      "created_at": "2026-06-20T07:24:20.03174+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"ef9b61b5-b270-4494-90fd-fc2c0a50450a\"}",
+      "stack": null,
+      "request_id": "a44a0a31-4a9e-4e73-8db8-c872d1ba439f",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "metadata": {
+        "checkin_id": "d992f613-4084-4e34-b75f-1617f9134e29",
+        "error_name": "Error",
+        "event_context": "morning_light_greeting_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "ef9b61b5-b270-4494-90fd-fc2c0a50450a",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "ef9b61b5-b270-4494-90fd-fc2c0a50450a"
+      }
+    },
+    {
+      "id": "17f566c0-d003-4822-b06d-5273d465c6d0",
+      "created_at": "2026-06-20T07:30:18.237593+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"d9784403-f8a6-475a-94fc-1ee04ab2c734\"}",
+      "stack": null,
+      "request_id": "c6fbd046-2abd-43d2-bd76-15b2d260e968",
+      "user_id": "dcd8eece-2994-4982-9121-c500301d193b",
+      "metadata": {
+        "checkin_id": "e0482c2f-6d31-4130-a7bb-a9e47472b1e1",
+        "error_name": "Error",
+        "event_context": "morning_light_greeting_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "d9784403-f8a6-475a-94fc-1ee04ab2c734",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "d9784403-f8a6-475a-94fc-1ee04ab2c734"
+      }
+    },
+    {
+      "id": "5f5ce174-4c13-44e3-a747-27f1359061ed",
+      "created_at": "2026-06-20T07:36:09.884136+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"c1ea05ae-5b18-4533-a668-b3f16de0be10\"}",
+      "stack": null,
+      "request_id": "82a1f80a-d729-4489-95d9-f9677a9ce8f4",
+      "user_id": "f3bd26a5-581e-4630-8550-77dd5c75387a",
+      "metadata": {
+        "checkin_id": "3e3da544-d963-4824-b916-8a11107a73e7",
+        "error_name": "Error",
+        "event_context": "action_morning_followup_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "c1ea05ae-5b18-4533-a668-b3f16de0be10",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "c1ea05ae-5b18-4533-a668-b3f16de0be10"
+      }
+    },
+    {
+      "id": "0c51ea6c-3017-485c-8a7c-594eb35124b4",
+      "created_at": "2026-06-20T07:57:08.348098+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"f3560252-ec59-4fa9-ab65-7da99070f6bd\"}",
+      "stack": null,
+      "request_id": "6aceab2f-8dbe-4666-9736-0585a9c47135",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "metadata": {
+        "checkin_id": "d992f613-4084-4e34-b75f-1617f9134e29",
+        "error_name": "Error",
+        "event_context": "morning_light_greeting_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "f3560252-ec59-4fa9-ab65-7da99070f6bd",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "f3560252-ec59-4fa9-ab65-7da99070f6bd"
+      }
+    },
+    {
+      "id": "226c15e3-8d93-4aa2-9359-182a07b92327",
+      "created_at": "2026-06-20T08:00:40.550895+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"5c46cb9a-bc54-4d9c-ada4-62d90f04b381\"}",
+      "stack": null,
+      "request_id": "f217f33c-2ff6-4fd7-a9e1-cd395724a530",
+      "user_id": "dcd8eece-2994-4982-9121-c500301d193b",
+      "metadata": {
+        "checkin_id": "e0482c2f-6d31-4130-a7bb-a9e47472b1e1",
+        "error_name": "Error",
+        "event_context": "morning_light_greeting_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "5c46cb9a-bc54-4d9c-ada4-62d90f04b381",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "5c46cb9a-bc54-4d9c-ada4-62d90f04b381"
+      }
+    },
+    {
+      "id": "77820205-720f-4bf5-9a32-d31918969848",
+      "created_at": "2026-06-20T09:39:06.696686+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"74fb3160-6446-4ba6-a1b7-554a17feb871\"}",
+      "stack": null,
+      "request_id": "a64f17f1-7b64-4185-9dbe-814372149cf7",
+      "user_id": "f3bd26a5-581e-4630-8550-77dd5c75387a",
+      "metadata": {
+        "checkin_id": "3e3da544-d963-4824-b916-8a11107a73e7",
+        "error_name": "Error",
+        "event_context": "action_morning_followup_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "74fb3160-6446-4ba6-a1b7-554a17feb871",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "74fb3160-6446-4ba6-a1b7-554a17feb871"
+      }
+    },
+    {
+      "id": "db1f26b7-332d-41a9-9c53-697b4bedfae0",
+      "created_at": "2026-06-20T10:00:35.680355+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"4dd9b63e-330f-41d5-a412-fffb721f8dfd\"}",
+      "stack": null,
+      "request_id": "e2504499-24f4-4d6e-8668-b5e2a3b7f56d",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "metadata": {
+        "checkin_id": "d992f613-4084-4e34-b75f-1617f9134e29",
+        "error_name": "Error",
+        "event_context": "morning_light_greeting_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "4dd9b63e-330f-41d5-a412-fffb721f8dfd",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "4dd9b63e-330f-41d5-a412-fffb721f8dfd"
+      }
+    },
+    {
+      "id": "11702cc3-903c-4a35-9531-fc4b42106657",
+      "created_at": "2026-06-20T10:03:08.004691+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"178d37c7-dda5-4f5d-beb1-95699f785cb9\"}",
+      "stack": null,
+      "request_id": "a00d7609-6a44-4159-ac4e-1d26b4bd9f31",
+      "user_id": "dcd8eece-2994-4982-9121-c500301d193b",
+      "metadata": {
+        "checkin_id": "e0482c2f-6d31-4130-a7bb-a9e47472b1e1",
+        "error_name": "Error",
+        "event_context": "morning_light_greeting_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "178d37c7-dda5-4f5d-beb1-95699f785cb9",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "178d37c7-dda5-4f5d-beb1-95699f785cb9"
+      }
+    },
+    {
+      "id": "cc8eaf59-250c-47d4-b185-b62ad8840108",
+      "created_at": "2026-06-20T15:42:06.093403+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"fe13d72a-3625-4744-bc2c-ba6792403983\"}",
+      "stack": null,
+      "request_id": "fd69dce1-6d3b-4c06-b6cd-6e57f52d1ea7",
+      "user_id": "f3bd26a5-581e-4630-8550-77dd5c75387a",
+      "metadata": {
+        "checkin_id": "3e3da544-d963-4824-b916-8a11107a73e7",
+        "error_name": "Error",
+        "event_context": "action_morning_followup_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "fe13d72a-3625-4744-bc2c-ba6792403983",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "fe13d72a-3625-4744-bc2c-ba6792403983"
+      }
+    },
+    {
+      "id": "6d16713b-0c48-4d99-a3a6-66b882290aa7",
+      "created_at": "2026-06-20T16:03:09.383983+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"94da8319-5074-4391-a5fd-405ae98c4721\"}",
+      "stack": null,
+      "request_id": "133bb3a7-9ec4-4cd9-b15f-fe642d583def",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "metadata": {
+        "checkin_id": "d992f613-4084-4e34-b75f-1617f9134e29",
+        "error_name": "Error",
+        "event_context": "morning_light_greeting_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "94da8319-5074-4391-a5fd-405ae98c4721",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "94da8319-5074-4391-a5fd-405ae98c4721"
+      }
+    },
+    {
+      "id": "3da9512e-cdf9-42a6-829b-36b5330b6f8f",
+      "created_at": "2026-06-20T16:06:15.478194+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"6738f38f-17cf-4283-ab10-6954016a6cf0\"}",
+      "stack": null,
+      "request_id": "5427f3d4-5088-42b2-8e9e-1c8e57df32bb",
+      "user_id": "dcd8eece-2994-4982-9121-c500301d193b",
+      "metadata": {
+        "checkin_id": "e0482c2f-6d31-4130-a7bb-a9e47472b1e1",
+        "error_name": "Error",
+        "event_context": "morning_light_greeting_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "6738f38f-17cf-4283-ab10-6954016a6cf0",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "6738f38f-17cf-4283-ab10-6954016a6cf0"
+      }
+    },
+    {
+      "id": "8f8c513e-5fee-4f5f-bc10-c4ef46ed0b01",
+      "created_at": "2026-06-21T15:45:13.760494+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"3d35a261-e577-41d3-9914-5d6f98ba4b0c\"}",
+      "stack": null,
+      "request_id": "c6d38bd9-3935-4e3a-b801-bc9472e6f749",
+      "user_id": "f3bd26a5-581e-4630-8550-77dd5c75387a",
+      "metadata": {
+        "checkin_id": "3e3da544-d963-4824-b916-8a11107a73e7",
+        "error_name": "Error",
+        "event_context": "action_morning_followup_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "3d35a261-e577-41d3-9914-5d6f98ba4b0c",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "3d35a261-e577-41d3-9914-5d6f98ba4b0c"
+      }
+    },
+    {
+      "id": "119fd69e-c014-4d39-a529-b96e46f38179",
+      "created_at": "2026-06-21T16:06:07.41759+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"55102982-bde5-4596-bd6c-78b726c838da\"}",
+      "stack": null,
+      "request_id": "3200cde1-c49f-4c12-b4fb-47c4a84e139e",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "metadata": {
+        "checkin_id": "d992f613-4084-4e34-b75f-1617f9134e29",
+        "error_name": "Error",
+        "event_context": "morning_light_greeting_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "55102982-bde5-4596-bd6c-78b726c838da",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "55102982-bde5-4596-bd6c-78b726c838da"
+      }
+    },
+    {
+      "id": "b213bc4a-734d-47bf-a2b5-31208de01a13",
+      "created_at": "2026-06-21T16:09:04.670257+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"283a59f4-f1d2-40f1-8645-129f38161011\"}",
+      "stack": null,
+      "request_id": "ead1abab-31e1-4afa-a099-c151cc5720bf",
+      "user_id": "dcd8eece-2994-4982-9121-c500301d193b",
+      "metadata": {
+        "checkin_id": "e0482c2f-6d31-4130-a7bb-a9e47472b1e1",
+        "error_name": "Error",
+        "event_context": "morning_light_greeting_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "283a59f4-f1d2-40f1-8645-129f38161011",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "283a59f4-f1d2-40f1-8645-129f38161011"
+      }
+    },
+    {
+      "id": "e836cd1d-b296-495a-ae3a-bf90e41a8d45",
+      "created_at": "2026-06-22T06:48:07.64582+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"c27f3619-39b7-4a42-9013-4ec1e4a919d3\"}",
+      "stack": null,
+      "request_id": "9628800d-e1a7-4820-9d95-61bcccf82641",
+      "user_id": "f3bd26a5-581e-4630-8550-77dd5c75387a",
+      "metadata": {
+        "checkin_id": "f7ea4f31-9a6a-4ac9-879c-2a0900a92310",
+        "error_name": "Error",
+        "event_context": "morning_light_greeting_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "c27f3619-39b7-4a42-9013-4ec1e4a919d3",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "c27f3619-39b7-4a42-9013-4ec1e4a919d3"
+      }
+    },
+    {
+      "id": "94ebabb5-0fbd-428b-b722-a678ba1ff97b",
+      "created_at": "2026-06-22T06:54:05.913491+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"1fd143a6-e79f-4950-afd4-2f101c63e7f6\"}",
+      "stack": null,
+      "request_id": "7b695a7e-2283-47f6-8627-f5949f26fda1",
+      "user_id": "f3bd26a5-581e-4630-8550-77dd5c75387a",
+      "metadata": {
+        "checkin_id": "f7ea4f31-9a6a-4ac9-879c-2a0900a92310",
+        "error_name": "Error",
+        "event_context": "morning_light_greeting_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "1fd143a6-e79f-4950-afd4-2f101c63e7f6",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "1fd143a6-e79f-4950-afd4-2f101c63e7f6"
+      }
+    },
+    {
+      "id": "a8d46066-9bf4-4ec8-abb5-1f6818830028",
+      "created_at": "2026-06-22T07:27:09.10604+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"763cf37d-66c5-4d16-abf2-84f8d2d779dc\"}",
+      "stack": null,
+      "request_id": "44e310be-304f-4956-ac85-93fb4db6050e",
+      "user_id": "f3bd26a5-581e-4630-8550-77dd5c75387a",
+      "metadata": {
+        "checkin_id": "f7ea4f31-9a6a-4ac9-879c-2a0900a92310",
+        "error_name": "Error",
+        "event_context": "morning_light_greeting_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "763cf37d-66c5-4d16-abf2-84f8d2d779dc",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "763cf37d-66c5-4d16-abf2-84f8d2d779dc"
+      }
+    },
+    {
+      "id": "3411da0c-97e4-4a68-a8d4-5726b9bc67e0",
+      "created_at": "2026-06-22T09:30:23.213944+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"1e6d1967-e4bf-487a-bf35-7e3c0bf430a2\"}",
+      "stack": null,
+      "request_id": "c52943fe-d7fc-43ee-93d5-5a83a6553c4d",
+      "user_id": "f3bd26a5-581e-4630-8550-77dd5c75387a",
+      "metadata": {
+        "checkin_id": "f7ea4f31-9a6a-4ac9-879c-2a0900a92310",
+        "error_name": "Error",
+        "event_context": "morning_light_greeting_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "1e6d1967-e4bf-487a-bf35-7e3c0bf430a2",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "1e6d1967-e4bf-487a-bf35-7e3c0bf430a2"
+      }
+    },
+    {
+      "id": "adc6dc0d-1c7e-4eb4-b02b-b845f4af97f4",
+      "created_at": "2026-06-22T15:33:09.482267+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"7f080713-0c36-4bc0-af98-4c893a93e8d7\"}",
+      "stack": null,
+      "request_id": "cd6bde83-20cd-40af-a6d9-3f8accb3ee85",
+      "user_id": "f3bd26a5-581e-4630-8550-77dd5c75387a",
+      "metadata": {
+        "checkin_id": "f7ea4f31-9a6a-4ac9-879c-2a0900a92310",
+        "error_name": "Error",
+        "event_context": "morning_light_greeting_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "7f080713-0c36-4bc0-af98-4c893a93e8d7",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "7f080713-0c36-4bc0-af98-4c893a93e8d7"
+      }
+    },
+    {
+      "id": "32a1c06e-9397-4e1b-b5bd-a925871e4e2e",
+      "created_at": "2026-06-24T06:18:06.283069+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"b22ab0c5-a426-4e1e-ab89-a0b10f023490\"}",
+      "stack": null,
+      "request_id": "85828312-b61b-414b-b596-bca1d35d9953",
+      "user_id": "dcd8eece-2994-4982-9121-c500301d193b",
+      "metadata": {
+        "checkin_id": "bfed9fae-18e9-4c35-81c4-3cc7dfd65a20",
+        "error_name": "Error",
+        "event_context": "morning_light_greeting_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "b22ab0c5-a426-4e1e-ab89-a0b10f023490",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "b22ab0c5-a426-4e1e-ab89-a0b10f023490"
+      }
+    },
+    {
+      "id": "9f176905-7e52-4f83-bc31-0fb7dafe8e2c",
+      "created_at": "2026-06-24T06:24:05.254901+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"771b777f-a33f-4ef9-bbcc-2d77327dc9b5\"}",
+      "stack": null,
+      "request_id": "517109f6-16f0-46d3-b292-b54fa69c723d",
+      "user_id": "dcd8eece-2994-4982-9121-c500301d193b",
+      "metadata": {
+        "checkin_id": "bfed9fae-18e9-4c35-81c4-3cc7dfd65a20",
+        "error_name": "Error",
+        "event_context": "morning_light_greeting_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "771b777f-a33f-4ef9-bbcc-2d77327dc9b5",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "771b777f-a33f-4ef9-bbcc-2d77327dc9b5"
+      }
+    },
+    {
+      "id": "b51aace3-af8f-4a47-a304-45fa5292edad",
+      "created_at": "2026-06-24T06:33:07.503421+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"b2e4ee9e-c043-405c-bc3d-f919b42b0132\"}",
+      "stack": null,
+      "request_id": "df1ca722-dac3-43e5-bc6a-4697ea1baa9e",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "metadata": {
+        "checkin_id": "c15fb273-4877-4a6e-b722-6f8c6f402ba3",
+        "error_name": "Error",
+        "event_context": "morning_light_greeting_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "b2e4ee9e-c043-405c-bc3d-f919b42b0132",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "b2e4ee9e-c043-405c-bc3d-f919b42b0132"
+      }
+    },
+    {
+      "id": "f4c249cd-6368-4ea7-b3d5-f62e7c5c8eeb",
+      "created_at": "2026-06-24T06:39:04.573878+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"4e4081a2-b443-4afe-a230-3cba16e53bd3\"}",
+      "stack": null,
+      "request_id": "d85daf35-7709-49ef-8943-adc2d0229d70",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "metadata": {
+        "checkin_id": "c15fb273-4877-4a6e-b722-6f8c6f402ba3",
+        "error_name": "Error",
+        "event_context": "morning_light_greeting_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "4e4081a2-b443-4afe-a230-3cba16e53bd3",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "4e4081a2-b443-4afe-a230-3cba16e53bd3"
+      }
+    },
+    {
+      "id": "f31436f1-b9ed-4ae8-9dc3-982d302bc012",
+      "created_at": "2026-06-24T06:57:06.597085+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"fd8f5e63-5972-4d01-9739-9128f912b3ed\"}",
+      "stack": null,
+      "request_id": "0350c523-7f29-4def-ad1c-753b0cac5313",
+      "user_id": "dcd8eece-2994-4982-9121-c500301d193b",
+      "metadata": {
+        "checkin_id": "bfed9fae-18e9-4c35-81c4-3cc7dfd65a20",
+        "error_name": "Error",
+        "event_context": "morning_light_greeting_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "fd8f5e63-5972-4d01-9739-9128f912b3ed",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "fd8f5e63-5972-4d01-9739-9128f912b3ed"
+      }
+    },
+    {
+      "id": "6777969f-c9a7-490b-afd4-e174e1b09b31",
+      "created_at": "2026-06-24T07:03:06.225797+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"facfb5d1-d9a5-409f-9bd4-b7175f4d8747\"}",
+      "stack": null,
+      "request_id": "57768afc-1f2e-44aa-b584-b117474827aa",
+      "user_id": "f3bd26a5-581e-4630-8550-77dd5c75387a",
+      "metadata": {
+        "checkin_id": "2e6c8935-09d2-4b07-a061-828d5ade85e4",
+        "error_name": "Error",
+        "event_context": "morning_light_greeting_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "facfb5d1-d9a5-409f-9bd4-b7175f4d8747",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "facfb5d1-d9a5-409f-9bd4-b7175f4d8747"
+      }
+    },
+    {
+      "id": "fd180395-8553-48e5-afc3-c6e76f5fb47f",
+      "created_at": "2026-06-24T07:09:07.133274+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"56a8f611-cfc0-4ec5-9cf1-3b15fc314ecd\"}",
+      "stack": null,
+      "request_id": "b8177390-c542-403b-8fa2-3b629a3f2858",
+      "user_id": "f3bd26a5-581e-4630-8550-77dd5c75387a",
+      "metadata": {
+        "checkin_id": "2e6c8935-09d2-4b07-a061-828d5ade85e4",
+        "error_name": "Error",
+        "event_context": "morning_light_greeting_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "56a8f611-cfc0-4ec5-9cf1-3b15fc314ecd",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "56a8f611-cfc0-4ec5-9cf1-3b15fc314ecd"
+      }
+    },
+    {
+      "id": "e8fabc2f-24f7-4501-8c01-385983edd3d5",
+      "created_at": "2026-06-24T07:12:07.262704+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"e297ac1a-0114-402c-918a-c292ac819ab1\"}",
+      "stack": null,
+      "request_id": "d7ad4f56-0171-40f5-804b-976016a8a73d",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "metadata": {
+        "checkin_id": "c15fb273-4877-4a6e-b722-6f8c6f402ba3",
+        "error_name": "Error",
+        "event_context": "morning_light_greeting_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "e297ac1a-0114-402c-918a-c292ac819ab1",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "e297ac1a-0114-402c-918a-c292ac819ab1"
+      }
+    },
+    {
+      "id": "bf89df9a-ec8f-4894-a82a-ca13ccaeb83b",
+      "created_at": "2026-06-24T07:42:07.218291+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"e9f536e3-aaa2-402a-a0d5-e2fbc93ddfc5\"}",
+      "stack": null,
+      "request_id": "77352e82-5d74-42d8-82dc-f785b6f2b6d7",
+      "user_id": "f3bd26a5-581e-4630-8550-77dd5c75387a",
+      "metadata": {
+        "checkin_id": "2e6c8935-09d2-4b07-a061-828d5ade85e4",
+        "error_name": "Error",
+        "event_context": "morning_light_greeting_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "e9f536e3-aaa2-402a-a0d5-e2fbc93ddfc5",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "e9f536e3-aaa2-402a-a0d5-e2fbc93ddfc5"
+      }
+    },
+    {
+      "id": "20a20e50-dd6f-4962-a6de-8c11a6db5daa",
+      "created_at": "2026-06-24T07:57:06.54342+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"bd252360-4993-41a4-8000-88ff63712dfe\"}",
+      "stack": null,
+      "request_id": "7fd7f7cf-b8b4-47b6-9c86-bfef665e56c0",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "metadata": {
+        "checkin_id": "8193a81c-c80b-40b5-991b-ba7c9ce40377",
+        "error_name": "Error",
+        "event_context": "morning_light_greeting_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "bd252360-4993-41a4-8000-88ff63712dfe",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "bd252360-4993-41a4-8000-88ff63712dfe"
+      }
+    },
+    {
+      "id": "741d015a-2a1a-496c-922e-092be01696f5",
+      "created_at": "2026-06-24T08:03:06.604657+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"72e07ed7-94ee-40ec-b5c3-a502270ba6e3\"}",
+      "stack": null,
+      "request_id": "50d743e3-6a5b-4192-870f-047c15919afb",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "metadata": {
+        "checkin_id": "8193a81c-c80b-40b5-991b-ba7c9ce40377",
+        "error_name": "Error",
+        "event_context": "morning_light_greeting_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "72e07ed7-94ee-40ec-b5c3-a502270ba6e3",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "72e07ed7-94ee-40ec-b5c3-a502270ba6e3"
+      }
+    },
+    {
+      "id": "172ecaad-53f5-4b03-8c2a-10603c19a5b0",
+      "created_at": "2026-06-24T08:36:06.091241+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"dfeec0ee-1641-433a-97c8-4e7e7fc92172\"}",
+      "stack": null,
+      "request_id": "f6ffb6ef-267c-4338-a5ff-2eb3cce39b8d",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "metadata": {
+        "checkin_id": "8193a81c-c80b-40b5-991b-ba7c9ce40377",
+        "error_name": "Error",
+        "event_context": "morning_light_greeting_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "dfeec0ee-1641-433a-97c8-4e7e7fc92172",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "dfeec0ee-1641-433a-97c8-4e7e7fc92172"
+      }
+    },
+    {
+      "id": "aa356dd4-db67-46e8-8f77-446e17f43ea9",
+      "created_at": "2026-06-24T09:00:13.115726+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"dd1016f1-b4de-4ac6-8dfb-f51efb3e0714\"}",
+      "stack": null,
+      "request_id": "a14267eb-0870-4cd7-818b-fa5d39ab57a6",
+      "user_id": "dcd8eece-2994-4982-9121-c500301d193b",
+      "metadata": {
+        "checkin_id": "bfed9fae-18e9-4c35-81c4-3cc7dfd65a20",
+        "error_name": "Error",
+        "event_context": "morning_light_greeting_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "dd1016f1-b4de-4ac6-8dfb-f51efb3e0714",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "dd1016f1-b4de-4ac6-8dfb-f51efb3e0714"
+      }
+    },
+    {
+      "id": "f540612f-d7ed-4a54-86b3-32b7f8e60449",
+      "created_at": "2026-06-24T09:15:11.46849+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"1238a7e5-578f-441a-bf9b-3f1cc965b02e\"}",
+      "stack": null,
+      "request_id": "e23b032b-c01d-4405-ad19-a3471bee2c56",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "metadata": {
+        "checkin_id": "c15fb273-4877-4a6e-b722-6f8c6f402ba3",
+        "error_name": "Error",
+        "event_context": "morning_light_greeting_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "1238a7e5-578f-441a-bf9b-3f1cc965b02e",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "1238a7e5-578f-441a-bf9b-3f1cc965b02e"
+      }
+    },
+    {
+      "id": "397256b3-2df6-4ac8-9d93-f485f81dfd5c",
+      "created_at": "2026-06-24T09:45:08.65258+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"971c26df-537e-4616-945d-217bdc77e004\"}",
+      "stack": null,
+      "request_id": "98c9bba7-b14a-45de-ae41-2453acac699b",
+      "user_id": "f3bd26a5-581e-4630-8550-77dd5c75387a",
+      "metadata": {
+        "checkin_id": "2e6c8935-09d2-4b07-a061-828d5ade85e4",
+        "error_name": "Error",
+        "event_context": "morning_light_greeting_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "971c26df-537e-4616-945d-217bdc77e004",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "971c26df-537e-4616-945d-217bdc77e004"
+      }
+    },
+    {
+      "id": "4bef241d-4d46-41a0-a1ec-91bf18d22b62",
+      "created_at": "2026-06-24T10:39:07.129261+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"b8165833-dad1-4465-b62c-7d501d16fde1\"}",
+      "stack": null,
+      "request_id": "a61b70ae-c736-4403-b0b0-d93f5df01b1f",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "metadata": {
+        "checkin_id": "8193a81c-c80b-40b5-991b-ba7c9ce40377",
+        "error_name": "Error",
+        "event_context": "morning_light_greeting_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "b8165833-dad1-4465-b62c-7d501d16fde1",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "b8165833-dad1-4465-b62c-7d501d16fde1"
+      }
+    },
+    {
+      "id": "971d2f28-0aee-48ef-8923-f4cfa784dd47",
+      "created_at": "2026-06-24T15:03:06.778901+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"8e838743-edfc-4f81-925e-f77da5d8c45b\"}",
+      "stack": null,
+      "request_id": "7f834707-6327-4607-aa70-d3f6a39c0deb",
+      "user_id": "dcd8eece-2994-4982-9121-c500301d193b",
+      "metadata": {
+        "checkin_id": "bfed9fae-18e9-4c35-81c4-3cc7dfd65a20",
+        "error_name": "Error",
+        "event_context": "morning_light_greeting_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "8e838743-edfc-4f81-925e-f77da5d8c45b",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "8e838743-edfc-4f81-925e-f77da5d8c45b"
+      }
+    },
+    {
+      "id": "07c4d7e8-7bc9-4398-a8bf-dc513f4ec302",
+      "created_at": "2026-06-24T15:18:06.843382+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"82bc72b1-7f46-44bf-8607-956a5e7aca41\"}",
+      "stack": null,
+      "request_id": "e6d5328e-a876-4351-a2fb-272db0bbd96c",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "metadata": {
+        "checkin_id": "c15fb273-4877-4a6e-b722-6f8c6f402ba3",
+        "error_name": "Error",
+        "event_context": "morning_light_greeting_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "82bc72b1-7f46-44bf-8607-956a5e7aca41",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "82bc72b1-7f46-44bf-8607-956a5e7aca41"
+      }
+    },
+    {
+      "id": "e6d99fbf-b016-4091-a073-65c2db6781c9",
+      "created_at": "2026-06-24T15:48:05.162248+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"c89917cd-1db7-4f9c-9dc8-e46f5fa211d1\"}",
+      "stack": null,
+      "request_id": "240d14c9-8e77-4dd0-be2a-2c5eedbdba5f",
+      "user_id": "f3bd26a5-581e-4630-8550-77dd5c75387a",
+      "metadata": {
+        "checkin_id": "2e6c8935-09d2-4b07-a061-828d5ade85e4",
+        "error_name": "Error",
+        "event_context": "morning_light_greeting_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "c89917cd-1db7-4f9c-9dc8-e46f5fa211d1",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "c89917cd-1db7-4f9c-9dc8-e46f5fa211d1"
+      }
+    },
+    {
+      "id": "73e7427b-6ca4-42b4-ae6f-8834c196727c",
+      "created_at": "2026-06-24T16:42:07.378974+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"3850f46e-a5ae-4cb1-ad1e-aaff27d6a2ba\"}",
+      "stack": null,
+      "request_id": "cfcf4235-9fbf-4856-952f-4cda38a044b7",
+      "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+      "metadata": {
+        "checkin_id": "8193a81c-c80b-40b5-991b-ba7c9ce40377",
+        "error_name": "Error",
+        "event_context": "morning_light_greeting_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "3850f46e-a5ae-4cb1-ad1e-aaff27d6a2ba",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "3850f46e-a5ae-4cb1-ad1e-aaff27d6a2ba"
+      }
+    },
+    {
+      "id": "5e9a97c1-2df9-4f47-b9a3-4b3c376122e4",
+      "created_at": "2026-06-25T15:06:05.858621+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"d16d06e5-a772-45a0-ac95-536d0f67d923\"}",
+      "stack": null,
+      "request_id": "d3e99b5b-c5e3-4c63-9249-ef286164b5e5",
+      "user_id": "dcd8eece-2994-4982-9121-c500301d193b",
+      "metadata": {
+        "checkin_id": "bfed9fae-18e9-4c35-81c4-3cc7dfd65a20",
+        "error_name": "Error",
+        "event_context": "morning_light_greeting_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "d16d06e5-a772-45a0-ac95-536d0f67d923",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "d16d06e5-a772-45a0-ac95-536d0f67d923"
+      }
+    },
+    {
+      "id": "91c39695-3c22-4897-9921-591ec1b08b70",
+      "created_at": "2026-06-25T15:21:06.413974+00:00",
+      "severity": "error",
+      "source": "whatsapp",
+      "function_name": "process-checkins",
+      "title": "Error",
+      "message": "whatsapp-send failed (502): {\"error\":\"WhatsApp send failed\",\"meta_code\":132000,\"http_status\":400,\"retryable\":false,\"request_id\":\"99b0b6a4-7dee-4983-b8a3-93b13971c21a\"}",
+      "stack": null,
+      "request_id": "9fdc1294-3293-45b7-99ac-8ac3793a176e",
+      "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+      "metadata": {
+        "checkin_id": "c15fb273-4877-4a6e-b722-6f8c6f402ba3",
+        "error_name": "Error",
+        "event_context": "morning_light_greeting_v2",
+        "checkin_purpose": "scheduled_checkin",
+        "downstream_error": {
+          "error": "WhatsApp send failed",
+          "meta_code": 132000,
+          "retryable": false,
+          "request_id": "99b0b6a4-7dee-4983-b8a3-93b13971c21a",
+          "http_status": 400
+        },
+        "downstream_status": 502,
+        "downstream_request_id": "99b0b6a4-7dee-4983-b8a3-93b13971c21a"
+      }
+    }
+  ]
+}

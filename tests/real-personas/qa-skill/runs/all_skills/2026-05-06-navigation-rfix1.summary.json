@@ -1,0 +1,113 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-all-skills-navigation-2026-05-06-rfix1-t01",
+    "status": 200,
+    "ok": true,
+    "user": "dans Sophia, le dashboard sert a quoi exactement quand j'ai deja un plan ?",
+    "assistant": "Je peux t'expliquer le fonctionnement et te dire ou agir, mais je ne lance rien depuis l'aide produit.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "product_help",
+    "selected_handler": "product_help",
+    "route_reason_code": "product_signal",
+    "skill_entry_ids": [],
+    "skill_lifecycle_ids": [],
+    "skill_run_id": null,
+    "skill_run_status": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "turn_frame_safety": {
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": []
+    },
+    "direct_effects": [],
+    "trace_direct_effects": [],
+    "memory_write_candidates_emitted": 0,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "tool_skill_run": null,
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-all-skills-navigation-2026-05-06-rfix1-t02",
+    "status": 200,
+    "ok": true,
+    "user": "ok, et si je veux ajuster une action sans tout refaire, je dois passer par quelle partie ?",
+    "assistant": "Je peux t'expliquer le fonctionnement et te dire ou agir, mais je ne lance rien depuis l'aide produit.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "product_help",
+    "selected_handler": "product_help",
+    "route_reason_code": "product_signal",
+    "skill_entry_ids": [],
+    "skill_lifecycle_ids": [],
+    "skill_run_id": null,
+    "skill_run_status": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "turn_frame_safety": {
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": []
+    },
+    "direct_effects": [],
+    "trace_direct_effects": [],
+    "memory_write_candidates_emitted": 0,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "tool_skill_run": null,
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-all-skills-navigation-2026-05-06-rfix1-t03",
+    "status": null,
+    "ok": false,
+    "user": "je demande parce que mon plan a une action admin et je ne sais pas si je dois la modifier ou juste la traiter ici",
+    "assistant": "",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": true,
+    "response_owner": null,
+    "selected_handler": null,
+    "route_reason_code": null,
+    "skill_entry_ids": [],
+    "skill_lifecycle_ids": [],
+    "skill_run_id": null,
+    "skill_run_status": null,
+    "safety_pregate": null,
+    "turn_frame_safety": null,
+    "direct_effects": [],
+    "trace_direct_effects": null,
+    "memory_write_candidates_emitted": null,
+    "response_tool_execution": null,
+    "response_executed_tools": [],
+    "tool_skill_run": null,
+    "trace_error": "This operation was aborted"
+  }
+]

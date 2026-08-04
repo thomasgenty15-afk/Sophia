@@ -1,0 +1,253 @@
+{
+  "user_defense_cards": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_plan_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "6da4ad1a-bfa0-4b77-9f03-c7e7fa847f4c",
+        "role": "user",
+        "content": "Je dois me remettre sur mon dossier mais j’arrive pas à commencer.",
+        "scope": "qa-prepare-defense-card-alex-2026-06-08-prepare-defense-local-r1b",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-alex-2026-06-08-prepare-defense-local-r1b-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-08T11:29:38.941579+00:00"
+      },
+      {
+        "id": "510da4f3-9250-498f-b06f-1a47eeef71d7",
+        "role": "assistant",
+        "content": "Quand tu dis « ton dossier », tu veux surtout t’aider à attaquer quelle action précise : l’ouvrir, t’y remettre, avancer dessus ou le terminer ? 🙂",
+        "scope": "qa-prepare-defense-card-alex-2026-06-08-prepare-defense-local-r1b",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-alex-2026-06-08-prepare-defense-local-r1b-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "collecting",
+              "reason_code": "prepare_attack_card_local_ask_target",
+              "handoff_state": {
+                "mode": "platform_handoff",
+                "draft": {
+                  "mode": "platform_handoff",
+                  "operation_type": "prepare_attack_card",
+                  "recommendation": {
+                    "avoid": [],
+                    "preserve": [],
+                    "platform_steps": [
+                      "ouvre la section Cartes",
+                      "choisis Carte d’attaque",
+                      "reprends le brouillon proposé"
+                    ],
+                    "technique_label": "",
+                    "card_draft_summary": "",
+                    "why_this_technique": "Technique manquante.",
+                    "platform_destination": "dans la section Cartes d’attaque"
+                  },
+                  "target_summary": "mon dossier",
+                  "blocker_summary": "",
+                  "no_chat_mutation": true,
+                  "missing_decisions": [],
+                  "executable_from_chat": false
+                },
+                "status": "collecting",
+                "target": {
+                  "kind": "personal_action",
+                  "title": "mon dossier",
+                  "plan_item_id": null
+                },
+                "skill_id": "prepare_attack_card",
+                "max_turns": 8,
+                "created_at": "2026-06-08T11:29:49.614Z",
+                "turn_count": 1,
+                "updated_at": "2026-06-08T11:29:49.614Z",
+                "local_state": {
+                  "flow_id": "prepare_attack_card",
+                  "flow_kind": "free_attack_card",
+                  "target_state": {
+                    "kind": "personal_action",
+                    "status": "proposed",
+                    "why_status": "Cible proposée depuis le contexte structuré.",
+                    "locked_value": null,
+                    "plan_item_id": null,
+                    "candidate_value": "mon dossier",
+                    "needs_user_confirmation": true
+                  },
+                  "blocker_state": {
+                    "status": "missing",
+                    "why_status": "Piège manquant.",
+                    "blocker_type": null,
+                    "locked_value": null,
+                    "candidate_value": null,
+                    "needs_user_confirmation": false
+                  },
+                  "technique_state": {
+                    "status": "missing",
+                    "why_status": "Technique manquante.",
+                    "fit_warning": null,
+                    "technique_key": null,
+                    "technique_label": null,
+                    "candidate_options": [],
+                    "explicitly_requested": false,
+                    "needs_user_confirmation": false
+                  },
+                  "current_field_id": null,
+                  "last_visible_task": "ask_target",
+                  "platform_destination": "dans la section Cartes d’attaque",
+                  "platform_field_order": [],
+                  "platform_field_states": {},
+                  "last_handoff_delivered": false,
+                  "activation_keyword_state": {
+                    "status": "not_applicable",
+                    "why_status": "Non applicable.",
+                    "locked_value": null,
+                    "candidate_value": null,
+                    "needs_user_confirmation": false
+                  }
+                },
+                "source_draft": null,
+                "no_chat_mutation": true
+              },
+              "runtime_trace": [
+                {
+                  "event": "local_dispatcher start",
+                  "stage": null,
+                  "component": "prepare_attack_card.local_flow",
+                  "flow_action": null,
+                  "target_status": "proposed",
+                  "technique_key": null,
+                  "blocker_status": "missing",
+                  "missing_fields": [],
+                  "risk_assessment": null,
+                  "current_field_id": null,
+                  "selected_handler": "prepare_attack_card",
+                  "visible_task_kind": null
+                },
+                {
+                  "event": "local_dispatcher decision",
+                  "stage": "ask_target",
+                  "component": "prepare_attack_card.local_flow",
+                  "flow_action": "confirm_proposed_field",
+                  "target_status": "proposed",
+                  "technique_key": null,
+                  "blocker_status": "missing",
+                  "missing_fields": [],
+                  "risk_assessment": {
+                    "risk_band": "none",
+                    "risk_score": 0,
+                    "reason_codes": [],
+                    "safety_preempt": false
+                  },
+                  "current_field_id": null,
+                  "selected_handler": "prepare_attack_card",
+                  "visible_task_kind": "ask_target"
+                },
+                {
+                  "event": "reducer reduced",
+                  "stage": "ask_target",
+                  "component": "prepare_attack_card.local_flow",
+                  "flow_action": "confirm_proposed_field",
+                  "target_status": "proposed",
+                  "technique_key": null,
+                  "blocker_status": "missing",
+                  "missing_fields": [],
+                  "risk_assessment": {
+                    "risk_band": "none",
+                    "risk_score": 0,
+                    "reason_codes": [],
+                    "safety_preempt": false
+                  },
+                  "current_field_id": null,
+                  "selected_handler": "prepare_attack_card",
+                  "visible_task_kind": "ask_target"
+                },
+                {
+                  "event": "visible_stage start",
+                  "stage": "ask_target",
+                  "component": "prepare_attack_card.local_flow",
+                  "flow_action": "confirm_proposed_field",
+                  "target_status": "proposed",
+                  "technique_key": null,
+                  "blocker_status": "missing",
+                  "missing_fields": [],
+                  "risk_assessment": {
+                    "risk_band": "none",
+                    "risk_score": 0,
+                    "reason_codes": [],
+                    "safety_preempt": false
+                  },
+                  "current_field_id": null,
+                  "selected_handler": "prepare_attack_card",
+                  "visible_task_kind": "ask_target"
+                },
+                {
+                  "stage": "ask_target",
+                  "issues": [],
+                  "attempt": 1,
+                  "accepted": true,
+                  "component": "visible_agent"
+                },
+                {
+                  "event": "visible_stage complete",
+                  "stage": "ask_target",
+                  "component": "prepare_attack_card.local_flow",
+                  "flow_action": "confirm_proposed_field",
+                  "target_status": "proposed",
+                  "technique_key": null,
+                  "blocker_status": "missing",
+                  "missing_fields": [],
+                  "risk_assessment": {
+                    "risk_band": "none",
+                    "risk_score": 0,
+                    "reason_codes": [],
+                    "safety_preempt": false
+                  },
+                  "current_field_id": null,
+                  "selected_handler": "prepare_attack_card",
+                  "visible_task_kind": "ask_target"
+                }
+              ],
+              "operation_type": "prepare_attack_card",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "risk_assessment": {
+                "risk_band": "none",
+                "risk_score": 0,
+                "reason_codes": [],
+                "safety_preempt": false
+              },
+              "no_chat_mutation": true,
+              "selected_handler": "prepare_attack_card",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-08T11:29:49.627619+00:00"
+      }
+    ]
+  }
+}

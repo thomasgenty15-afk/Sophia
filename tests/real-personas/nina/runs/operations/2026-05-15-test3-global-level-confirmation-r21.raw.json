@@ -1,0 +1,11 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-adjust-plan-nina-test3-global-level-confirmation-r21-t01-87faf602-6da0-4ba2-b5b2-ecb52adb13ec",
+    "user": "Je reviens sur le bloc grignotage. Ce n'est pas une action isolée qui coince, c'est plutôt le niveau en entier : le soir je me retrouve avec trop de petits choix à faire, et ça me donne envie de laisser tomber.",
+    "status": 503,
+    "body": {
+      "message": "name resolution failed"
+    }
+  }
+]

@@ -1,0 +1,245 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-15-defense-real-edge-fit-fix-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Fais une carte de défense pour démarrer le sas, le problème c'est surtout que j'ai pas envie de m'y mettre.",
+    "assistant": "Je vois, c'est la résistance au démarrage. Pour ça, une 'carte d'attaque' est souvent plus efficace qu'une carte de défense. On part là-dessus pour t'aider à briser la glace ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_defense_card",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": {
+      "status": "handoff_from_defense_fit",
+      "reason_code": "tool_skill_intent_start",
+      "missing_slots": [
+        "technique"
+      ],
+      "source_handler": "prepare_defense_card",
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-15-defense-real-edge-fit-fix-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Oui vas-y.",
+    "assistant": "Super. Pour t'aider à lancer ton sas de déchargement quand tu n'as pas envie, quelle approche te tente le plus ?\n\n- Le texte magique\n- Preparer le terrain\n- Mot de bascule",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_flow_run": {
+      "status": "ask_question",
+      "slot_state": {
+        "slot": "technique",
+        "needed": true,
+        "reason": "structured_ai_missing_technique",
+        "status": "missing",
+        "question": "Super. Pour t'aider à lancer ton sas de déchargement quand tu n'as pas envie, quelle approche te tente le plus ?\n\n- Le texte magique\n- Preparer le terrain\n- Mot de bascule",
+        "known_slots": {
+          "target": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "intake_state": {
+            "target": {
+              "kind": "plan_item",
+              "title": "Faire le sas de déchargement",
+              "status": "identified",
+              "evidence": [
+                "structured_operation_input"
+              ],
+              "confidence": "high",
+              "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+            },
+            "blocker": {
+              "type": "avoidance",
+              "evidence": [
+                "pas envie de m'y mettre"
+              ],
+              "confidence": 0.9
+            },
+            "skill_id": "prepare_attack_card",
+            "technique": {
+              "value": null,
+              "status": "ambiguous",
+              "options": [
+                {
+                  "title": "Le texte magique",
+                  "reason": "Parfait pour couper court à la négociation mentale quand tu n'as pas envie de t'y mettre.",
+                  "example": "Un texte de 3 lignes à relire quand la résistance monte.",
+                  "description": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+                  "recommended": true,
+                  "technique_key": "texte_recadrage"
+                },
+                {
+                  "title": "Preparer le terrain",
+                  "reason": "Pour rendre le premier geste (ouvrir le carnet) quasi automatique.",
+                  "example": "Carnet ouvert à la bonne page et stylo posé dessus dès l'après-midi.",
+                  "description": "Retirer de la friction avant que le moment d'action arrive.",
+                  "recommended": false,
+                  "technique_key": "preparer_terrain"
+                },
+                {
+                  "title": "Mot de bascule",
+                  "reason": "Si tu sens que tu vas esquiver le sas, tu m'envoies juste un mot et je t'aide à basculer.",
+                  "example": "M'envoyer un mot court quand tu sens que tu vas craquer.",
+                  "description": "Avoir un mot simple a envoyer quand le moment devient fragile.",
+                  "recommended": false,
+                  "technique_key": "pre_engagement"
+                }
+              ],
+              "evidence": [
+                "user_confirmation_to_proceed"
+              ],
+              "confidence": "medium",
+              "fit_warning": null,
+              "explicitly_requested": false
+            },
+            "confidence": "high",
+            "constraints": [],
+            "current_step": "technique_selection",
+            "missing_slots": [
+              "technique"
+            ],
+            "activation_keyword": {
+              "value": null,
+              "status": "not_applicable",
+              "options": [],
+              "evidence": [],
+              "confidence": "low",
+              "rejected_value": null
+            },
+            "generated_user_message": "Super. Pour t'aider à lancer ton sas de déchargement quand tu n'as pas envie, quelle approche te tente le plus ?\n\n- Le texte magique\n- Preparer le terrain\n- Mot de bascule"
+          },
+          "technique_options": [
+            {
+              "title": "Le texte magique",
+              "reason": "Parfait pour couper court à la négociation mentale quand tu n'as pas envie de t'y mettre.",
+              "example": "Un texte de 3 lignes à relire quand la résistance monte.",
+              "description": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+              "recommended": true,
+              "technique_key": "texte_recadrage"
+            },
+            {
+              "title": "Preparer le terrain",
+              "reason": "Pour rendre le premier geste (ouvrir le carnet) quasi automatique.",
+              "example": "Carnet ouvert à la bonne page et stylo posé dessus dès l'après-midi.",
+              "description": "Retirer de la friction avant que le moment d'action arrive.",
+              "recommended": false,
+              "technique_key": "preparer_terrain"
+            },
+            {
+              "title": "Mot de bascule",
+              "reason": "Si tu sens que tu vas esquiver le sas, tu m'envoies juste un mot et je t'aide à basculer.",
+              "example": "M'envoyer un mot court quand tu sens que tu vas craquer.",
+              "description": "Avoir un mot simple a envoyer quand le moment devient fragile.",
+              "recommended": false,
+              "technique_key": "pre_engagement"
+            }
+          ]
+        },
+        "technique_options": [
+          {
+            "title": "Le texte magique",
+            "reason": "Parfait pour couper court à la négociation mentale quand tu n'as pas envie de t'y mettre.",
+            "example": "Un texte de 3 lignes à relire quand la résistance monte.",
+            "description": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+            "recommended": true,
+            "technique_key": "texte_recadrage"
+          },
+          {
+            "title": "Preparer le terrain",
+            "reason": "Pour rendre le premier geste (ouvrir le carnet) quasi automatique.",
+            "example": "Carnet ouvert à la bonne page et stylo posé dessus dès l'après-midi.",
+            "description": "Retirer de la friction avant que le moment d'action arrive.",
+            "recommended": false,
+            "technique_key": "preparer_terrain"
+          },
+          {
+            "title": "Mot de bascule",
+            "reason": "Si tu sens que tu vas esquiver le sas, tu m'envoies juste un mot et je t'aide à basculer.",
+            "example": "M'envoyer un mot court quand tu sens que tu vas craquer.",
+            "description": "Avoir un mot simple a envoyer quand le moment devient fragile.",
+            "recommended": false,
+            "technique_key": "pre_engagement"
+          }
+        ],
+        "activation_keyword_options": []
+      },
+      "reason_code": "active_tool_skill_continue",
+      "missing_slots": [
+        "technique"
+      ],
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-15-defense-real-edge-fit-fix-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Préparer le terrain.",
+    "assistant": "Voici ta carte d'attaque :\n*Sas de déchargement sans friction* (Préparer le terrain)\nAction : Ouvre ton carnet à la page du jour, pose ton stylo dessus et éloigne ton téléphone dans une autre pièce.\nMode d'emploi : Prépare ces éléments maintenant pour que le moment venu, tu n'aies qu'à t'asseoir.\nOn valide ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "title": "Sas de déchargement sans friction",
+          "technique": "preparer_terrain",
+          "instruction": "Mets en place ton environnement pour que le sas soit inévitable.",
+          "mode_emploi": "Prépare ces éléments maintenant pour que le moment venu, tu n'aies qu'à t'asseoir.",
+          "target_label": "Faire le sas de déchargement",
+          "why_it_helps": "En retirant les obstacles avant d'avoir besoin de volonté, tu contournes l'envie de procrastiner.",
+          "generated_asset": "Ouvre ton carnet à la page du jour, pose ton stylo dessus et éloigne ton téléphone dans une autre pièce.",
+          "technique_title": "Préparer le terrain",
+          "supporting_points": [
+            "Réduit la friction initiale",
+            "Élimine les distractions numériques",
+            "Rend le premier geste automatique"
+          ],
+          "activation_keyword": null
+        },
+        "output_schema": "attack_card_draft_v1",
+        "operation_type": "prepare_attack_card",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Voici ta carte d'attaque :\n*Sas de déchargement sans friction* (Préparer le terrain)\nAction : Ouvre ton carnet à la page du jour, pose ton stylo dessus et éloigne ton téléphone dans une autre pièce.\nMode d'emploi : Prépare ces éléments maintenant pour que le moment venu, tu n'aies qu'à t'asseoir.\nOn valide ?"
+      },
+      "status": "pending_confirmation",
+      "reason_code": "active_tool_skill_continue",
+      "operation_id": "48c25114-3dc7-4358-b341-21146feed1d8",
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "trace_error": null
+  }
+]

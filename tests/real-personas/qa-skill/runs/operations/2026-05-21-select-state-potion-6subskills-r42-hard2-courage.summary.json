@@ -1,0 +1,399 @@
+[
+  {
+    "potion": "courage",
+    "state": "fear_avoidance",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r42_hard2_courage_courage",
+    "user_id": "dde77208-5382-437d-8625-559eb13817ff",
+    "fixture": {
+      "cycle": {
+        "id": "c99577e7-8e9b-4da2-bd9b-a12f322bde72",
+        "user_id": "dde77208-5382-437d-8625-559eb13817ff",
+        "status": "active",
+        "raw_intake_text": "QA potions: l'utilisateur veut retrouver une relation plus calme a son quotidien tout en gardant une action simple.",
+        "intake_language": "fr",
+        "duration_months": 1,
+        "birth_date_snapshot": null,
+        "gender_snapshot": null,
+        "active_transformation_id": null,
+        "version": 1,
+        "created_at": "2026-05-21T16:01:44.14963+00:00",
+        "updated_at": "2026-05-21T16:01:44.14963+00:00",
+        "completed_at": null,
+        "archived_at": null,
+        "validated_structure": null,
+        "requested_pace": null
+      },
+      "transformation": {
+        "id": "dc634cac-b196-4fb7-96e3-ee0824e0f855",
+        "cycle_id": "c99577e7-8e9b-4da2-bd9b-a12f322bde72",
+        "priority_order": 1,
+        "status": "active",
+        "title": "Oser les conversations importantes",
+        "internal_summary": "Fixture QA pour tester la potion courage.",
+        "user_summary": "Le user cherche un accompagnement doux, concret, sans pression supplementaire.",
+        "success_definition": "Avoir un appui simple qui ramene au bon geste sans surcharge.",
+        "main_constraint": "Quand la charge monte, le user se perd dans la pression et l'auto-jugement.",
+        "questionnaire_schema": null,
+        "questionnaire_answers": {
+          "potion_qa": "courage",
+          "ton_prefere": "doux et direct",
+          "rythme_prefere": "matin"
+        },
+        "completion_summary": null,
+        "handoff_payload": {
+          "phase_1": {
+            "deep_why": {
+              "answers": [
+                {
+                  "answer": "Je veux arreter de me disperser et me sentir plus present a ce que je choisis.",
+                  "question_id": "why_1"
+                },
+                {
+                  "answer": "Je veux proteger mon energie et ma confiance au lieu de les depenser en tension.",
+                  "question_id": "why_2"
+                }
+              ],
+              "questions": [
+                {
+                  "id": "why_1",
+                  "label": "Pourquoi est-ce important pour toi ?"
+                },
+                {
+                  "id": "why_2",
+                  "label": "Qu'est-ce que tu veux proteger ?"
+                }
+              ]
+            }
+          }
+        },
+        "created_at": "2026-05-21T16:01:44.155739+00:00",
+        "updated_at": "2026-05-21T16:01:44.155739+00:00",
+        "activated_at": "2026-05-21T16:01:43.903+00:00",
+        "completed_at": null,
+        "ordering_rationale": null,
+        "unlocked_principles": {
+          "kaizen": true
+        },
+        "base_de_vie_payload": null
+      },
+      "plan": {
+        "id": "29ec3505-e7d5-4bdb-bb16-9c70d6c205ac",
+        "user_id": "dde77208-5382-437d-8625-559eb13817ff",
+        "cycle_id": "c99577e7-8e9b-4da2-bd9b-a12f322bde72",
+        "transformation_id": "dc634cac-b196-4fb7-96e3-ee0824e0f855",
+        "status": "active",
+        "version": 1,
+        "title": "Plan QA courage",
+        "content": {
+          "source": "qa_state_potion_6subskills",
+          "strategy": {
+            "core_principle": "Un seul appui juste vaut mieux qu'une pression de plus.",
+            "identity_shift": "Je deviens quelqu'un qui avance avec plus de douceur.",
+            "main_constraint": "La surcharge transforme les petits pas en montagne.",
+            "success_definition": "Revenir a un geste simple au bon moment."
+          }
+        },
+        "generation_attempts": 0,
+        "last_generation_reason": null,
+        "activated_at": "2026-05-21T16:01:43.903+00:00",
+        "completed_at": null,
+        "archived_at": null,
+        "created_at": "2026-05-21T16:01:44.164938+00:00",
+        "updated_at": "2026-05-21T16:01:44.164938+00:00",
+        "generation_feedback": null,
+        "generation_input_snapshot": null
+      },
+      "item": {
+        "id": "6e2cd943-ee06-4e22-b1f5-ff4dcd5f41e8",
+        "user_id": "dde77208-5382-437d-8625-559eb13817ff",
+        "cycle_id": "c99577e7-8e9b-4da2-bd9b-a12f322bde72",
+        "transformation_id": "dc634cac-b196-4fb7-96e3-ee0824e0f855",
+        "plan_id": "29ec3505-e7d5-4bdb-bb16-9c70d6c205ac",
+        "dimension": "habits",
+        "kind": "habit",
+        "status": "active",
+        "title": "Envoyer le message difficile",
+        "description": "Action QA active visible par le skill potion.",
+        "tracking_type": "boolean",
+        "activation_order": 1,
+        "activation_condition": null,
+        "current_habit_state": "active_building",
+        "support_mode": null,
+        "support_function": null,
+        "target_reps": 1,
+        "current_reps": 0,
+        "cadence_label": "quotidien",
+        "scheduled_days": [
+          "thu"
+        ],
+        "time_of_day": "09:00",
+        "start_after_item_id": null,
+        "payload": {
+          "source": "qa_state_potion_6subskills",
+          "potion_type": "courage"
+        },
+        "created_at": "2026-05-21T16:01:44.170292+00:00",
+        "updated_at": "2026-05-21T16:01:44.170292+00:00",
+        "activated_at": "2026-05-21T16:01:43.903+00:00",
+        "completed_at": null,
+        "phase_id": null,
+        "phase_order": null,
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "cards_status": "not_required",
+        "cards_generated_at": null
+      }
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r42_hard2_courage-courage-t01-a1",
+        "user": "J'ai besoin d'une potion de courage, mais je change de formulation toutes les deux minutes.",
+        "assistant": "On va stabiliser ça. C'est pour quel genre de message ou de situation que tu cherches la formulation idéale ? 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "tool_skill_intent_start",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r42_hard2_courage-courage-t01-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 2,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r42_hard2_courage-courage-t02-a1",
+        "user": "C'est pour parler a mon associe. Je dois envoyer une premiere phrase, pas refaire mon plan.",
+        "assistant": "Pour t'aider à envoyer cette première phrase à ton associé sans que le perfectionnisme ne bloque tout, je vais t'accompagner avec cette potion de courage. Je passerai te voir chaque matin à 08h30 pendant une semaine pour garder cette impulsion douce. Dis-moi si c'est bon pour toi. 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r42_hard2_courage-courage-t02-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 3,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r42_hard2_courage-courage-t03-a1",
+        "user": "Ce qui bloque, c'est surtout qu'il me trouve lourd et que le conflit parte trop vite.",
+        "assistant": "J'entends cette peur d'être perçu comme lourd ou de voir le conflit s'allumer trop vite. On va utiliser la potion de courage pour t'aider à poser ce message avec plus de sérénité. Je viendrai te voir chaque matin à 08h30 pendant une semaine pour t'aider à franchir ce pas sans pression. Dis-moi si on fait comme ça. 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r42_hard2_courage-courage-t03-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 4,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r42_hard2_courage-courage-t04-a1",
+        "user": "Aide-moi uniquement demain matin avant que je l'ecrive, vers 08h15.",
+        "assistant": "C'est entendu pour demain matin. On garde la potion de courage pour t'aider à envoyer ce message à ton associé sans que l'appréhension ou le perfectionnisme ne te bloquent. Je viendrai te voir à 08h15, juste avant que tu ne l'écrives, pour t'aider à rester simple et serein. On se dit à demain 08h15 ? 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [
+              "demain"
+            ],
+            "risk_band": "none",
+            "reason_codes": [
+              "immediacy_tomorrow"
+            ],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": true,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r42_hard2_courage-courage-t04-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 5,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r42_hard2_courage-courage-t05-a1",
+        "user": "Oui, active la potion de courage.",
+        "assistant": "C'est normal d'avoir peur de la réaction de l'autre ou de paraître pesant. On va juste chercher à poser les choses, sans forcer le ton, pour que tu te sentes plus léger. 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [
+            {
+              "outcome": "success",
+              "tool_id": "select_state_potion"
+            }
+          ],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [
+            "select_state_potion"
+          ],
+          "tool_execution": "success",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r42_hard2_courage-courage-t05-a1"
+        },
+        "durable_after": {
+          "sessions": [
+            {
+              "id": "b30a3aa3-2db0-4d01-b600-4ccc4caefbae",
+              "potion_type": "courage",
+              "status": "completed"
+            }
+          ],
+          "reminders": [
+            {
+              "id": "e1b7cb42-02c7-463b-b0ef-59914869ef05",
+              "initiative_kind": "potion_follow_up",
+              "source_kind": "potion_generated"
+            }
+          ],
+          "checkins": [
+            {
+              "id": "a506dd24-0c09-42ad-afd1-3c6eb64b54a1",
+              "status": "pending",
+              "scheduled_for": "2026-05-22T08:15:00+00:00"
+            }
+          ]
+        }
+      }
+    ]
+  }
+]

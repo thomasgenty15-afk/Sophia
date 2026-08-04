@@ -1,0 +1,202 @@
+{
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "888fb749-11b7-4c1d-9e0b-e7805e5dfa18",
+        "role": "user",
+        "content": "Je viens de me faire recadrer sur un dossier et depuis je me parle comme si j'étais quelqu'un de nul. J'ai honte et je suis très dur avec moi.",
+        "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-amour",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-amour-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-15T15:21:29.252641+00:00"
+      },
+      {
+        "id": "1da955bf-81a7-4003-b0e6-d2a2e7116488",
+        "role": "assistant",
+        "content": "Je comprends que ce recadrage soit difficile à encaisser et que la honte prenne beaucoup de place en ce moment. C'est une réaction humaine, mais j'aimerais vraiment que tu fasses la part des choses : ce qui s'est passé sur ce dossier est un événement extérieur, pas une définition de ta valeur. On peut rater une étape ou recevoir une critique sans que cela ne signifie que tu es « nul ». Tu es bien plus que ce simple retour professionnel.",
+        "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-amour",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-amour-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-15T15:21:49.47351+00:00"
+      },
+      {
+        "id": "c3eafe35-0667-414c-8851-744f1ef3e08f",
+        "role": "user",
+        "content": "Là ça se calme un peu. Ce dont j'aurais besoin, ce n'est pas une méthode ou une action, c'est un appui sur quelques jours pour me parler avec plus de chaleur quand la voix dure revient.",
+        "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-amour",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-amour-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-15T15:22:06.197034+00:00"
+      },
+      {
+        "id": "30063988-b7f8-4497-a6b5-35dce8c64436",
+        "role": "assistant",
+        "content": "Je suis là, tout près de toi. C'est une bonne chose que tu sentes un début d'apaisement. \n\nCe recadrage est un fait, une situation ponctuelle, mais il ne dit rien de ta valeur profonde. Tu as simplement besoin de douceur en ce moment pour contrer cette voix dure, et je compte bien te l'apporter sans aucune pression, juste en étant présente à tes côtés.",
+        "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-amour",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-amour-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "conversation_skill_local_flow",
+              "status": "continue",
+              "skill_id": "emotional_repair",
+              "flow_action": "potion_bridge_offer",
+              "reason_code": "emotional_repair_potion_bridge_blocked",
+              "visible_task": "separate_fact_from_identity",
+              "runtime_trace": [
+                {
+                  "event": "local_dispatcher_turn",
+                  "component": "emotional_repair",
+                  "safety_handoff": false,
+                  "global_dispatcher_skipped": true
+                }
+              ],
+              "allowed_effects": [],
+              "blocked_effects": [
+                {
+                  "type": "select_state_potion",
+                  "reason_code": "bridge_not_mature"
+                }
+              ],
+              "response_intent": "exit",
+              "committed_effects": [],
+              "requested_effects": [],
+              "source_dispatcher_local": "emotional_repair.local_dispatcher",
+              "global_dispatcher_skipped": true
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-15T15:22:29.878278+00:00"
+      },
+      {
+        "id": "dd5d69cf-6754-4723-b023-4aac7987de4d",
+        "role": "user",
+        "content": "Oui, si ça existe sous forme de potion, je voudrais plutôt une potion d'amour ou de douceur envers moi. Quelque chose pour garder cette chaleur quand je replonge dans la honte.",
+        "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-amour",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-amour-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-15T15:22:51.304196+00:00"
+      },
+      {
+        "id": "089ab4ea-3f94-4b5e-90c8-3a5a1352a677",
+        "role": "assistant",
+        "content": "Je suis contente que tu cherches à préserver cette chaleur. Ce recadrage est un fait professionnel, une simple information technique qui ne définit en rien ta valeur. Tu mérites de garder cette douceur envers toi-même, car cet événement n'est pas ce que tu es.",
+        "scope": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-amour",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-15-emotional-repair-potion-bridges-r2-amour-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "conversation_skill_local_flow",
+              "status": "continue",
+              "skill_id": "emotional_repair",
+              "flow_action": "confirm_potion_bridge",
+              "reason_code": "emotional_repair_potion_bridge_blocked",
+              "visible_task": "separate_fact_from_identity",
+              "runtime_trace": [
+                {
+                  "event": "local_dispatcher_turn",
+                  "component": "emotional_repair",
+                  "safety_handoff": false,
+                  "global_dispatcher_skipped": true
+                }
+              ],
+              "allowed_effects": [],
+              "blocked_effects": [
+                {
+                  "type": "select_state_potion",
+                  "reason_code": "missing_previous_potion_offer"
+                }
+              ],
+              "response_intent": "exit",
+              "committed_effects": [],
+              "requested_effects": [],
+              "source_dispatcher_local": "emotional_repair.local_dispatcher",
+              "global_dispatcher_skipped": true
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-15T15:23:11.413992+00:00"
+      }
+    ]
+  },
+  "memory_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "scheduled_checkins": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_recurring_reminders": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  }
+}

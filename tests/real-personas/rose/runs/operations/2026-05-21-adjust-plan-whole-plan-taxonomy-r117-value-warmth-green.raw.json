@@ -1,0 +1,863 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r117-value-warmth-green-t01",
+    "user": "Je veux ajuster le plan global : il me donne une impression de performance, comme si je devais cocher des cases. Je veux garder l'objectif de couple, mais réorienter le cap vers chaleur et fiabilité, sans ajouter d'actions.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r117-value-warmth-green-t01",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r117-value-warmth-green",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je comprends que tu souhaites réorienter le plan global pour qu'il mette davantage l'accent sur la chaleur et la fiabilité, plutôt que sur une impression de performance, tout en conservant l'objectif de couple et sans ajouter de nouvelles actions. Est-ce que je peux te préparer une proposition concrète pour cela ? 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r117-value-warmth-green-t01",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "fa4adb08-dfc8-4916-a4a5-f799e36ee66c",
+        "ts": "2026-05-21T14:14:00.974+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 12668,
+          "latency_ms": 4726,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 829,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "objectifs et direction du plan actuel",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "relations.couple",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "valeurs chaleur et fiabilité dans le couple",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Je veux ajuster le plan global : il me donne une impression de performance, comme si je devais cocher des cases. Je veux garder l'objectif de couple, mais réori",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r117-value-warmth-green-t01",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "objectifs et direction du plan actuel",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "relations.couple",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "valeurs chaleur et fiabilité dans le couple",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Je veux ajuster le plan global : il me donne une impression de performance, comme si je devais cocher des cases. Je veux garder l'objectif de couple, mais réori",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": "level_reference",
+            "status": "current_level",
+            "detected": true,
+            "expansion_policy": "include_level_execution_handoff"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "fa4adb08-dfc8-4916-a4a5-f799e36ee66c",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "plan global",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "whole_plan",
+                  "label": "plan global",
+                  "status": "identified",
+                  "evidence": [
+                    "plan global"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "whole_plan",
+                  "status": "identified",
+                  "evidence": [
+                    "Je veux ajuster le plan global",
+                    "réorienter le cap"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "whole_plan"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "ask_question",
+          "reason_code": "tool_skill_intent_start",
+          "plan_item_id": null,
+          "target_title": null,
+          "missing_slots": [
+            "draft_generation_confirmation"
+          ],
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Proposer d'ajouter des actions ou des phases supplémentaires.",
+              "Suggérer de supprimer des actions existantes sans une compréhension approfondie de leur contribution à la nouvelle orientation.",
+              "Se concentrer uniquement sur des métriques quantitatives de complétion des tâches."
+            ],
+            "scope": "whole_plan",
+            "preserve": [
+              "L'objectif global de couple.",
+              "L'ensemble des actions existantes (pas d'ajout de nouvelles actions).",
+              "L'intention fondamentale de chaque action (ex: le signal de pause pour la désescalade, le point positif pour le renforcement)."
+            ],
+            "warnings": [
+              "Éviter de proposer l'ajout de nouvelles actions, car cela a été explicitement exclu par l'utilisateur.",
+              "Éviter de minimiser la perception de l'utilisateur comme une simple 'impression'; c'est un signal important de désalignement qualitatif.",
+              "Éviter de transformer les actions existantes en quelque chose de radicalement différent qui en perdrait l'intention initiale, sans discussion préalable."
+            ],
+            "readiness": "diagnose",
+            "confidence": "high",
+            "guidelines": [
+              "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "whole_plan: La trajectoire du plan doit être réévaluée pour s'aligner sur les valeurs de chaleur et fiabilité. La cohérence globale doit être maintenue en réinterprétant les actions existantes. Les prérequis et l'ordre des phases peuvent être ajustés si cela sert la nouvelle orientation qualitative. L'objectif de couple est préservé."
+            ],
+            "observation": "L'utilisateur perçoit le plan actuel comme trop axé sur la performance et la complétion de tâches, ce qui génère une dissonance avec son objectif de couple. Il souhaite une réorientation qualitative du plan vers les valeurs de 'chaleur et fiabilité', sans pour autant ajouter de nouvelles actions.",
+            "change_family": "direction_change",
+            "recommendation": "Réorienter le plan en ajustant la formulation, l'emphase et les critères de succès des actions existantes pour qu'elles résonnent davantage avec les valeurs de 'chaleur et fiabilité', plutôt qu'avec une logique de performance ou de 'cases à cocher'.",
+            "next_best_question": "Qu'est-ce qui, concrètement, dans les actions actuelles, te donne cette impression de 'cocher des cases' plutôt que de construire de la chaleur et de la fiabilité ?",
+            "options_to_discuss": [
+              "Réviser la description des actions pour mettre en avant leur contribution à la chaleur et la fiabilité plutôt qu'à leur exécution mécanique.",
+              "Intégrer des questions de réflexion post-action qui encouragent l'utilisateur à évaluer l'impact de l'action sur la chaleur et la fiabilité du couple.",
+              "Explorer si la cadence ou la difficulté perçue de certaines actions contribue à l'impression de 'performance' et pourrait être ajustée pour favoriser une approche plus organique.",
+              "Reconsidérer l'ordre ou le regroupement de certaines phases pour mieux construire progressivement la chaleur et la fiabilité."
+            ],
+            "candidate_operation": "change_emphasis",
+            "questions_to_clarify": [
+              "Qu'est-ce qui, concrètement, dans les actions actuelles, te donne cette impression de 'cocher des cases' plutôt que de construire de la chaleur et de la fiabilité ?",
+              "Pour toi, comment une action comme 'Convenir d'un signal de pause' ou 'Partager un point positif' pourrait-elle être vécue ou formulée différemment pour incarner davantage la 'chaleur' ou la 'fiabilité' ?",
+              "Y a-t-il des moments ou des types d'interactions dans votre couple qui incarnent déjà cette 'chaleur et fiabilité' que tu souhaites renforcer avec le plan ?"
+            ],
+            "trajectory_hypothesis": "Le plan actuel est perçu comme trop axé sur la performance; la trajectoire proposée est de réorienter son esprit vers la chaleur et la fiabilité, en utilisant les actions existantes.",
+            "must_not_execute_reason": null
+          },
+          "coaching_guidance_audit": {
+            "scope": "whole_plan",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 26595,
+        "created_at": "2026-05-21T14:14:00.975263+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r117-value-warmth-green-t02",
+    "user": "Oui, prépare une proposition concrète, mais ne l'applique pas encore. Pour moi ça veut dire : prévenir quand je suis indisponible, garder un petit moment positif même en semaine tendue, et réparer vite après une maladresse.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r117-value-warmth-green-t02",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r117-value-warmth-green",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je te propose de réorienter l'esprit de ton plan global pour qu'il mette davantage l'accent sur la « chaleur » et la « fiabilité », en intégrant les définitions concrètes que tu as données : prévenir l'indisponibilité, garder un petit moment positif même en semaine tendue, et réparer vite après une maladresse. Cette proposition vise à rendre ton plan plus aligné avec tes valeurs, sans ajouter de nouvelles actions ni modifier l'objectif global de couple.\n\nPar exemple, l'action \"Convenir d'un signal de pause\" serait perçue non plus comme une simple tâche à cocher, mais comme un moyen concret de prévenir les montées de tension et de faciliter une réparation rapide. De même, l'habitude \"Partager un point positif\" serait mise en avant pour son rôle dans le maintien d'un lien chaleureux, même dans les moments difficiles.\n\nPour l'instant, rien n'est appliqué. Avant de concrétiser ces ajustements, j'aimerais que tu me dises : Comment ces nouvelles définitions de 'chaleur et fiabilité' (prévenir l'indisponibilité, garder un petit moment positif, réparer vite) pourraient-elles se traduire concrètement dans les actions déjà présentes dans ton plan ? 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r117-value-warmth-green-t02",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "52395937-afc2-47e0-9c2b-cbb1a05904e4",
+        "ts": "2026-05-21T14:15:00.454+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 16232,
+          "latency_ms": 4270,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 613,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "chaleur_fiabilite_couple",
+                "type": "topic",
+                "priority": "medium",
+                "query_hint": "valeurs chaleur et fiabilité dans le couple",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r117-value-warmth-green-t02",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "chaleur_fiabilite_couple",
+                "type": "topic",
+                "priority": "medium",
+                "query_hint": "valeurs chaleur et fiabilité dans le couple",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "product_help": {
+                "reason": "product_question",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 1,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0;decay=0.55;recovery=1.5",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "52395937-afc2-47e0-9c2b-cbb1a05904e4",
+          "tool_skill_intents": [],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "active_adjust_plan_intake_kept_in_tool_skill",
+          "blocked_paths": [
+            {
+              "path": "tool_skills",
+              "reason_code": "product_help_inline_preserves_active_tool_skill"
+            },
+            {
+              "path": "product_help",
+              "reason_code": "active_adjust_plan_intake_in_progress"
+            }
+          ],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "inline_answer_then_resume",
+            "reason_code": "product_help_inline_resume_active_tool_skill",
+            "active_owner": "tool_skill",
+            "resume_policy": "auto_after_answer",
+            "selected_owner": "product_help"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "draft": {
+            "draft": {
+              "patch": {
+                "confidence": "medium",
+                "scope_kind": "whole_plan",
+                "constraints": [
+                  "no_pressure",
+                  "minimal_patch",
+                  "preserve_plan_intent",
+                  "no_schedule_day_change",
+                  "ask_confirmation_before_write",
+                  "garder l'objectif de couple",
+                  "sans ajouter d'actions",
+                  "whole_plan_change_family:missing_bridge_or_level",
+                  "whole_plan_candidate_operation:insert_phase",
+                  "whole_plan_readiness:draft_ready",
+                  "whole_plan_directional_draft_ready",
+                  "preserve_plan_intent",
+                  "whole_plan_change_family:value_preference_conflict",
+                  "whole_plan_candidate_operation:change_emphasis",
+                  "whole_plan_readiness:diagnose",
+                  "avoid_repetitive_clarification_when_user_gives_solution",
+                  "coach_observation:L'utilisateur affine sa définition des valeurs de 'chaleur et fiabilité' en fournissant des exemples concrets de comportements attendus : la communication proactive des indisponibilités, le maintien d'un lien positif même sous tension, et la réparation rapide des maladresses. Il demande une proposition concrète sans application immédiate.",
+                  "coach_recommendation:Intégrer ces définitions concrètes de 'chaleur et fiabilité' dans l'analyse du plan existant. L'objectif est de réinterpréter ou de reformuler les actions actuelles pour qu'elles résonnent directement avec ces comportements, plutôt que d'être perçues comme de simples tâches à accomplir.",
+                  "coach_warning:Éviter de proposer l'ajout de nouvelles actions, car cela a été explicitement exclu par l'utilisateur.",
+                  "coach_warning:Éviter de minimiser la perception de l'utilisateur comme une simple 'impression'; c'est un signal important de désalignement qualitatif.",
+                  "coach_warning:Éviter de transformer les actions existantes en quelque chose de radicalement différent qui en perdrait l'intention initiale, sans discussion préalable.",
+                  "coach_warning:Ne pas générer de proposition concrète d'ajustement du plan avant d'avoir une compréhension claire de la manière dont l'utilisateur souhaite que ces nouvelles définitions s'appliquent aux actions existantes.",
+                  "coach_preserve:L'objectif global de couple.",
+                  "coach_preserve:L'ensemble des actions existantes (pas d'ajout de nouvelles actions).",
+                  "coach_preserve:L'intention fondamentale de chaque action (ex: le signal de pause pour la désescalade, le point positif pour le renforcement).",
+                  "coach_avoid:Proposer d'ajouter des actions ou des phases supplémentaires.",
+                  "coach_avoid:Suggérer de supprimer des actions existantes sans une compréhension approfondie de leur contribution à la nouvelle orientation.",
+                  "coach_avoid:Se concentrer uniquement sur des métriques quantitatives de complétion des tâches.",
+                  "coach_avoid:Appliquer tout changement au plan sans validation explicite de l'utilisateur.",
+                  "coach_guideline:Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+                  "coach_guideline:Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+                  "coach_guideline:Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+                  "coach_guideline:Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+                  "coach_guideline:Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+                  "coach_guideline:whole_plan: La trajectoire du plan doit être réévaluée pour s'aligner sur les valeurs de chaleur et fiabilité. La cohérence globale doit être maintenue en réinterprétant les actions existantes. Les prérequis et l'ordre des phases peuvent être ajustés si cela sert la nouvelle orientation qualitative. L'objectif de couple est préservé.",
+                  "whole_plan_change_family:direction_change",
+                  "whole_plan_candidate_operation:change_emphasis",
+                  "whole_plan_readiness:diagnose",
+                  "coach_must_not_execute:L'utilisateur demande une proposition concrète mais pas son application immédiate, et des clarifications sont encore nécessaires pour aligner le plan sur les nouvelles définitions qualitatives.",
+                  "coach_trajectory_hypothesis:Le plan actuel est perçu comme trop axé sur la performance; la trajectoire proposée est de réorienter son esprit vers la chaleur et la fiabilité, en intégrant les définitions concrètes de ces valeurs (prévenir l'indisponibilité, garder un moment positif, réparer vite) dans les actions existantes.",
+                  "coach_next_best_question:Comment ces nouvelles définitions de 'chaleur et fiabilité' (prévenir l'indisponibilité, garder un petit moment positif, réparer vite) pourraient-elles se traduire concrètement dans les actions déjà présentes dans ton plan ?",
+                  "whole_plan_change_family:value_preference_conflict",
+                  "whole_plan_candidate_operation:change_emphasis",
+                  "whole_plan_readiness:diagnose",
+                  "affected_item:Convenir d'un signal de pause",
+                  "affected_item:Faire le point sur le signal de pause"
+                ],
+                "reason_type": "bad_fit",
+                "change_target": "global_load",
+                "reason_change": "context_changed",
+                "load_adjustment": "review",
+                "plan_adjustment": "resequence"
+              },
+              "title": "Ajustement - plan global",
+              "confidence": "medium",
+              "ack_summary": {
+                "changed": [
+                  "plan global: resequence",
+                  "cible de changement: global_load"
+                ],
+                "unchanged": [
+                  "l'objectif/direction reste préservé sauf demande contraire explicite",
+                  "le plan canonique n'est pas reconstruit automatiquement"
+                ],
+                "confidence": "medium",
+                "why_it_helps": "Le plan garde ses rails, mais la charge baisse pour redevenir compatible avec le contexte actuel.",
+                "follow_up_needed": "identifier ensuite les semaines ou blocs les plus lourds pour affiner"
+              },
+              "scope_label": "plan global",
+              "why_it_helps": "Le changement traite la trajectoire globale du plan au lieu de forcer une cible action.",
+              "decision_basis": {
+                "evidence": [
+                  "Oui, prépare une proposition concrète, mais ne l'applique pas encore. Pour moi ça veut dire : prévenir quand je suis indisponible, garder un petit moment positif même en semaine tendue, et réparer vite après une maladresse.",
+                  "operation_input.scope",
+                  "deterministic whole-plan structural/family signal",
+                  "deterministic whole-plan fit/complexity signal",
+                  "il me donne une impression de performance, comme si je devais cocher des cases",
+                  "réorienter le cap vers chaleur et fiabilité"
+                ],
+                "confidence": "medium",
+                "uncertainty": [
+                  "semaines ou blocs exacts a affiner ensuite"
+                ],
+                "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+                "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+                "must_preserve": [
+                  "intention du plan",
+                  "direction globale du plan"
+                ]
+              },
+              "adjustment_type": "rebalance",
+              "proposed_change": "reordonner le plan dans son ensemble",
+              "change_rationale": {
+                "why_this_change": "Réduire global_load répond au problème \"context_changed\" sans changer la direction du plan.",
+                "success_condition": "Le plan paraît tenable sans reconstruction complète ni changement d'objectif implicite.",
+                "expected_mechanism": "Le plan garde ses rails, mais la charge baisse pour redevenir compatible avec le contexte actuel."
+              },
+              "adjust_plan_result": {
+                "scope": "whole_plan",
+                "rationale": {
+                  "confidence": "medium",
+                  "missing_info": [
+                    "semaines ou blocs exacts à affiner ensuite",
+                    "Comment ces nouvelles définitions de 'chaleur et fiabilité' (prévenir l'indisponibilité, garder un petit moment positif, réparer vite) pourraient-elles se traduire concrètement dans les actions déjà présentes dans ton plan ?"
+                  ],
+                  "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel, donnant une impression de performance plutôt que de soutien aux valeurs de chaleur et fiabilité.",
+                  "expected_effect": "Le plan devrait être perçu comme plus aligné avec les valeurs de l'utilisateur, favorisant une approche plus organique et moins 'tâche-orientée', ce qui devrait améliorer sa tenabilité et son impact qualitatif.",
+                  "why_this_change": "Réorienter l'emphase du plan répond au problème de perception de 'performance' et de désalignement qualitatif, sans changer la direction fondamentale du plan ni ajouter de charge."
+                },
+                "boundaries": {
+                  "explanation": "L'ajustement porte sur la réorientation qualitative de l'ensemble du plan, sans modifier sa structure fondamentale ni ses objectifs principaux. Il s'agit d'un changement d'emphase et de perception des actions existantes.",
+                  "affected_scope": "plan dans son ensemble",
+                  "global_plan_impact": "indirect",
+                  "explicitly_not_affected": [
+                    "objectif principal",
+                    "identité du plan"
+                  ]
+                },
+                "applied_change": {
+                  "summary": "Réorientation de l'emphase du plan global vers la chaleur et la fiabilité, en intégrant les définitions concrètes de ces valeurs dans la perception des actions existantes.",
+                  "changed_items": [
+                    {
+                      "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                      "kind": "action",
+                      "after": "Une action pour établir un outil qui soutient la 'chaleur' en prévenant les montées de tension et en permettant de 'réparer vite' après une maladresse.",
+                      "title": "Convenir d'un signal de pause",
+                      "before": "Une tâche à cocher pour mettre en place un outil de désescalade.",
+                      "reason": "Réorienter la perception de cette action vers son rôle de soutien à la fiabilité et à la réparation rapide, en lien avec les nouvelles définitions de l'utilisateur.",
+                      "capability": "modify_existing_action"
+                    },
+                    {
+                      "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                      "kind": "action",
+                      "after": "Une revue de l'efficacité du signal de pause, en évaluant comment il a contribué à la 'chaleur' et à la 'réparation rapide' des maladresses.",
+                      "title": "Faire le point sur le signal de pause",
+                      "before": "Une revue de l'efficacité du signal de pause.",
+                      "reason": "Aligner la revue de cette action sur les nouvelles valeurs de chaleur et fiabilité, en évaluant son impact qualitatif sur la relation.",
+                      "capability": "modify_existing_action"
+                    },
+                    {
+                      "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                      "kind": "habit",
+                      "after": "Une habitude pour cultiver un 'moment positif' régulier, même en période tendue, renforçant la 'chaleur' du lien et la connexion.",
+                      "title": "Partager un point positif",
+                      "before": "Une habitude à maintenir pour renforcer le positif.",
+                      "reason": "Mettre en lumière comment cette habitude contribue directement à la valeur de chaleur et au maintien d'un lien positif, en lien avec les nouvelles définitions de l'utilisateur.",
+                      "capability": "modify_existing_action"
+                    }
+                  ],
+                  "preserved_items": [],
+                  "trajectory_change": {
+                    "after": "La nouvelle trajectoire vise à réorienter l'esprit de ton plan vers la chaleur et la fiabilité, en intégrant les définitions concrètes que tu as données : prévenir l'indisponibilité, garder un petit moment positif même en semaine tendue, et réparer vite après une maladresse.",
+                    "before": "Ton plan était perçu comme axé sur la performance, avec des actions à cocher pour atteindre des objectifs.",
+                    "inserted_step": null,
+                    "coaching_reason": "Cette réorientation qualitative permet d'aligner le plan sur les valeurs profondes de l'utilisateur, transformant la perception des actions de simples tâches à accomplir en leviers concrets pour cultiver la chaleur et la fiabilité dans la relation. Cela répond à la perception de 'performance' sans dénaturer les fondations du plan.",
+                    "reordered_steps": [],
+                    "preserved_direction": "L'objectif global de couple et l'ensemble des actions existantes sont préservés, sans ajout de nouvelles actions. L'intention fondamentale de chaque action (comme le signal de pause pour la désescalade ou le point positif pour le renforcement) est maintenue."
+                  }
+                },
+                "user_message_brief": "Je te propose de réorienter l'esprit de ton plan global vers plus de chaleur et de fiabilité, en réinterprétant les actions existantes. Rien n'est encore appliqué, j'attends tes précisions.",
+                "user_message_detailed": "Je te propose de réorienter l'esprit de ton plan global pour qu'il mette davantage l'accent sur la « chaleur » et la « fiabilité », en intégrant les définitions concrètes que tu as données : prévenir l'indisponibilité, garder un petit moment positif même en semaine tendue, et réparer vite après une maladresse. Cette proposition vise à rendre ton plan plus aligné avec tes valeurs, sans ajouter de nouvelles actions ni modifier l'objectif global de couple.\n\nVoici deux exemples concrets de la manière dont cette réorientation pourrait se traduire :\n\n1.  **Convenir d'un signal de pause** :\n    *   **Avant** : Cette action était perçue comme \"Une tâche à cocher pour mettre en place un outil de désescalade.\"\n    *   **Après** : Elle serait réinterprétée comme \"Une action pour établir un outil qui soutient la 'chaleur' en prévenant les montées de tension et en permettant de 'réparer vite' après une maladresse.\"\n    *   **Pourquoi ça aide** : Cela met en lumière le rôle de cette action dans la construction d'une relation plus fiable et chaleureuse, au-delà de sa simple fonction technique.\n\n2.  **Partager un point positif** :\n    *   **Avant** : Cette habitude était vue comme \"Une habitude à maintenir pour renforcer le positif.\"\n    *   **Après** : Elle serait perçue comme \"Une habitude pour cultiver un 'moment positif' régulier, même en période tendue, renforçant la 'chaleur' du lien et la connexion.\"\n    *   **Pourquoi ça aide** : Cela souligne comment cette habitude contribue directement à la valeur de chaleur et au maintien d'un lien positif, même dans les moments difficiles.\n\nCette proposition ne touche pas à l'objectif global de couple ni à l'ensemble des actions existantes, qui sont préservés. L'intention fondamentale de chaque action reste la même, seule leur emphase est ajustée. Mon niveau de confiance est moyen car il s'agit d'une phase de diagnostic, et j'ai besoin de tes retours pour affiner cette réorientation.\n\nPour l'instant, rien n'est appliqué. Avant de concrétiser ces ajustements, j'aimerais que tu me dises : Comment ces nouvelles définitions de 'chaleur et fiabilité' (prévenir l'indisponibilité, garder un petit moment positif, réparer vite) pourraient-elles se traduire concrètement dans les actions déjà présentes dans ton plan ?"
+              },
+              "execution_strategy": "whole_plan_adjustment",
+              "allowed_patch_fields": [
+                "scope_kind",
+                "plan_adjustment",
+                "load_adjustment",
+                "goal_adjustment",
+                "sequence_adjustment",
+                "reason_type",
+                "reason_change",
+                "change_target",
+                "confidence",
+                "constraints"
+              ]
+            },
+            "output_schema": "plan_adjustment_draft_v1",
+            "operation_type": "adjust_plan_item",
+            "execution_message": "Je n'ai pas encore appliqué de modifications à ton plan. Comme tu l'as demandé, je t'ai préparé une proposition pour réorienter l'esprit de ton plan vers plus de chaleur et de fiabilité. Pour que je puisse affiner cette proposition et la rendre vraiment concrète, j'ai besoin de tes précisions sur la question que je t'ai posée.",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je te propose de réorienter l'esprit de ton plan global pour qu'il mette davantage l'accent sur la « chaleur » et la « fiabilité », en intégrant les définitions concrètes que tu as données : prévenir l'indisponibilité, garder un petit moment positif même en semaine tendue, et réparer vite après une maladresse. Cette proposition vise à rendre ton plan plus aligné avec tes valeurs, sans ajouter de nouvelles actions ni modifier l'objectif global de couple.\n\nPar exemple, l'action \"Convenir d'un signal de pause\" serait perçue non plus comme une simple tâche à cocher, mais comme un moyen concret de prévenir les montées de tension et de faciliter une réparation rapide. De même, l'habitude \"Partager un point positif\" serait mise en avant pour son rôle dans le maintien d'un lien chaleureux, même dans les moments difficiles.\n\nPour l'instant, rien n'est appliqué. Avant de concrétiser ces ajustements, j'aimerais que tu me dises : Comment ces nouvelles définitions de 'chaleur et fiabilité' (prévenir l'indisponibilité, garder un petit moment positif, réparer vite) pourraient-elles se traduire concrètement dans les actions déjà présentes dans ton plan ?"
+          },
+          "status": "draft_review",
+          "reason_code": "active_adjust_plan_intake_kept_in_tool_skill",
+          "operation_id": "0f2b83d9-a02b-4046-9be8-a54a05b0c42e",
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Proposer d'ajouter des actions ou des phases supplémentaires.",
+              "Suggérer de supprimer des actions existantes sans une compréhension approfondie de leur contribution à la nouvelle orientation.",
+              "Se concentrer uniquement sur des métriques quantitatives de complétion des tâches.",
+              "Appliquer tout changement au plan sans validation explicite de l'utilisateur."
+            ],
+            "scope": "whole_plan",
+            "preserve": [
+              "L'objectif global de couple.",
+              "L'ensemble des actions existantes (pas d'ajout de nouvelles actions).",
+              "L'intention fondamentale de chaque action (ex: le signal de pause pour la désescalade, le point positif pour le renforcement)."
+            ],
+            "warnings": [
+              "Éviter de proposer l'ajout de nouvelles actions, car cela a été explicitement exclu par l'utilisateur.",
+              "Éviter de minimiser la perception de l'utilisateur comme une simple 'impression'; c'est un signal important de désalignement qualitatif.",
+              "Éviter de transformer les actions existantes en quelque chose de radicalement différent qui en perdrait l'intention initiale, sans discussion préalable.",
+              "Ne pas générer de proposition concrète d'ajustement du plan avant d'avoir une compréhension claire de la manière dont l'utilisateur souhaite que ces nouvelles définitions s'appliquent aux actions existantes."
+            ],
+            "readiness": "diagnose",
+            "confidence": "high",
+            "guidelines": [
+              "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "whole_plan: La trajectoire du plan doit être réévaluée pour s'aligner sur les valeurs de chaleur et fiabilité. La cohérence globale doit être maintenue en réinterprétant les actions existantes. Les prérequis et l'ordre des phases peuvent être ajustés si cela sert la nouvelle orientation qualitative. L'objectif de couple est préservé."
+            ],
+            "observation": "L'utilisateur affine sa définition des valeurs de 'chaleur et fiabilité' en fournissant des exemples concrets de comportements attendus : la communication proactive des indisponibilités, le maintien d'un lien positif même sous tension, et la réparation rapide des maladresses. Il demande une proposition concrète sans application immédiate.",
+            "change_family": "direction_change",
+            "recommendation": "Intégrer ces définitions concrètes de 'chaleur et fiabilité' dans l'analyse du plan existant. L'objectif est de réinterpréter ou de reformuler les actions actuelles pour qu'elles résonnent directement avec ces comportements, plutôt que d'être perçues comme de simples tâches à accomplir.",
+            "next_best_question": "Comment ces nouvelles définitions de 'chaleur et fiabilité' (prévenir l'indisponibilité, garder un petit moment positif, réparer vite) pourraient-elles se traduire concrètement dans les actions déjà présentes dans ton plan ?",
+            "options_to_discuss": [
+              "Réviser la description des actions pour mettre en avant leur contribution spécifique à 'prévenir l'indisponibilité', 'garder un moment positif' ou 'réparer vite'.",
+              "Intégrer des questions de réflexion post-action qui encouragent l'utilisateur à évaluer l'impact de l'action sur la chaleur et la fiabilité du couple, en lien avec ses nouvelles définitions.",
+              "Explorer si la cadence ou la difficulté perçue de certaines actions contribue à l'impression de 'performance' et pourrait être ajustée pour favoriser une approche plus organique et alignée sur ces valeurs."
+            ],
+            "candidate_operation": "change_emphasis",
+            "questions_to_clarify": [
+              "Comment ces nouvelles définitions de 'chaleur et fiabilité' (prévenir l'indisponibilité, garder un petit moment positif, réparer vite) pourraient-elles se traduire concrètement dans les actions déjà présentes dans ton plan ?",
+              "Parmi les actions actuelles, lesquelles te semblent pouvoir le mieux incarner ces nouvelles définitions de 'chaleur et fiabilité' ?",
+              "Y a-t-il des actions actuelles qui, même avec une nouvelle emphase, te semblent toujours trop 'performance-orientées' par rapport à ces nouvelles définitions ?"
+            ],
+            "trajectory_hypothesis": "Le plan actuel est perçu comme trop axé sur la performance; la trajectoire proposée est de réorienter son esprit vers la chaleur et la fiabilité, en intégrant les définitions concrètes de ces valeurs (prévenir l'indisponibilité, garder un moment positif, réparer vite) dans les actions existantes.",
+            "must_not_execute_reason": "L'utilisateur demande une proposition concrète mais pas son application immédiate, et des clarifications sont encore nécessaires pour aligner le plan sur les nouvelles définitions qualitatives."
+          },
+          "coaching_guidance_audit": {
+            "scope": "whole_plan",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 46827,
+        "created_at": "2026-05-21T14:15:00.455983+00:00"
+      },
+      "trace_error": null
+    }
+  }
+]

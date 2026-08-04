@@ -1,0 +1,220 @@
+{
+  "scheduled_checkins": [],
+  "chat_messages_count": 4,
+  "chat_messages": [
+    {
+      "role": "user",
+      "content": "Je repousse mon dossier de relance client depuis ce matin; quel levier Sophia tu utiliserais pour m’aider à démarrer ?",
+      "created_at": "2026-06-24T20:48:06.9852+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_red_rerun_20260624_r2_coaching-t01",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Plutôt une carte d’attaque pour te mettre en route. Mais pour te guider juste : tu bloques sur quoi exactement dans ce dossier ?",
+      "created_at": "2026-06-24T20:48:35.969147+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_red_rerun_20260624_r2_coaching-t01",
+        "route_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "user",
+      "content": "Je bloque surtout sur le premier email. Rappelle-moi dans 28 minutes d’ouvrir ce premier email, et donne-moi juste le levier à utiliser.",
+      "created_at": "2026-06-24T20:48:45.323485+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_red_rerun_20260624_r2_coaching-t02",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Plutôt une carte d’attaque pour te lancer. Tu bloques sur quoi exactement au moment d’ouvrir ce premier email ?",
+      "created_at": "2026-06-24T20:49:09.739639+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_red_rerun_20260624_r2_coaching-t02",
+        "route_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "tool_execution": null
+      }
+    }
+  ],
+  "user_chat_state": {
+    "user_id": "4f76d674-5919-499d-85ec-4b85f37b58fa",
+    "current_mode": "companion",
+    "risk_level": 0,
+    "temp_memory": {
+      "__active_skill_state": {
+        "status": "active",
+        "version": 1,
+        "skill_id": "coaching_recommendation",
+        "started_at": "2026-06-24T20:48:35.951Z",
+        "turn_count": 2,
+        "updated_at": "2026-06-24T20:49:09.718Z",
+        "working_state": {
+          "coaching_recommendation_local_state": {
+            "stage": "recommend",
+            "max_turns": 4,
+            "difficulty": {
+              "summary": "L'utilisateur parle d'une action concrète du plan, repoussée depuis ce matin, et demande quel levier utiliser pour démarrer.",
+              "target_kind": "plan_action",
+              "action_title": "dossier de relance client",
+              "action_source": "ambiguous"
+            },
+            "turn_count": 2,
+            "coaching_type": "plan_action",
+            "cause_analysis": {
+              "confidence": "medium",
+              "missing_info": [],
+              "primary_cause": "unclear",
+              "why_it_exists": "User asks which coaching lever to use for a concrete blocked action in the plan."
+            },
+            "parent_flow_id": null,
+            "user_need_summary": "L'utilisateur parle d'une action concrète du plan, le premier email, et demande un rappel ponctuel ainsi que le levier à utiliser pour démarrer.",
+            "candidate_features": [],
+            "last_answer_summary": "L'utilisateur parle d'une action concrète du plan, le premier email, et demande un rappel ponctuel ainsi que le levier à utiliser pour démarrer.",
+            "parent_return_focus": null,
+            "pending_type_change": {
+              "reason": "User asks which coaching lever to use for a concrete blocked action in the plan.",
+              "candidate_coaching_type": "unclear"
+            },
+            "unresolved_question": null,
+            "parent_state_summary": null,
+            "parent_action_context": null,
+            "coaching_type_evidence": [
+              "User asks which coaching lever to use for a concrete blocked action in the plan."
+            ],
+            "current_recommendation": null,
+            "last_visible_task_kind": "change_confirm_coaching_type",
+            "recommendation_decision": {
+              "why_primary": null,
+              "why_not_others": {},
+              "primary_feature": null,
+              "secondary_feature": null,
+              "platform_destination": {
+                "label": null,
+                "surface_hint": null,
+                "user_facing_destination": null
+              },
+              "user_facing_next_step": null
+            },
+            "coaching_type_confidence": "high",
+            "secondary_recommendation": null,
+            "dispatcher_signal_context": {
+              "reason": "User asks which coaching lever to use for a concrete blocked action in the plan.",
+              "confidence": 0.84,
+              "coaching_type": "plan_action",
+              "action_context": {
+                "source": "ambiguous",
+                "plan_id": null,
+                "plan_title": null,
+                "action_type": "other",
+                "action_title": "dossier de relance client",
+                "plan_item_id": null
+              },
+              "activation_checks": {
+                "is_coaching_need": true,
+                "is_about_plan_action": true,
+                "needs_type_confirmation": false,
+                "has_concrete_plan_action": true,
+                "is_about_emotional_state": false,
+                "is_about_non_plan_action": false
+              },
+              "emotional_state_context": null
+            }
+          }
+        }
+      },
+      "__active_conversation_skill_v1": {
+        "status": "active",
+        "version": 1,
+        "skill_id": "coaching_recommendation",
+        "started_at": "2026-06-24T20:48:35.951Z",
+        "turn_count": 2,
+        "updated_at": "2026-06-24T20:49:09.718Z",
+        "working_state": {
+          "coaching_recommendation_local_state": {
+            "stage": "recommend",
+            "max_turns": 4,
+            "difficulty": {
+              "summary": "L'utilisateur parle d'une action concrète du plan, repoussée depuis ce matin, et demande quel levier utiliser pour démarrer.",
+              "target_kind": "plan_action",
+              "action_title": "dossier de relance client",
+              "action_source": "ambiguous"
+            },
+            "turn_count": 2,
+            "coaching_type": "plan_action",
+            "cause_analysis": {
+              "confidence": "medium",
+              "missing_info": [],
+              "primary_cause": "unclear",
+              "why_it_exists": "User asks which coaching lever to use for a concrete blocked action in the plan."
+            },
+            "parent_flow_id": null,
+            "user_need_summary": "L'utilisateur parle d'une action concrète du plan, le premier email, et demande un rappel ponctuel ainsi que le levier à utiliser pour démarrer.",
+            "candidate_features": [],
+            "last_answer_summary": "L'utilisateur parle d'une action concrète du plan, le premier email, et demande un rappel ponctuel ainsi que le levier à utiliser pour démarrer.",
+            "parent_return_focus": null,
+            "pending_type_change": {
+              "reason": "User asks which coaching lever to use for a concrete blocked action in the plan.",
+              "candidate_coaching_type": "unclear"
+            },
+            "unresolved_question": null,
+            "parent_state_summary": null,
+            "parent_action_context": null,
+            "coaching_type_evidence": [
+              "User asks which coaching lever to use for a concrete blocked action in the plan."
+            ],
+            "current_recommendation": null,
+            "last_visible_task_kind": "change_confirm_coaching_type",
+            "recommendation_decision": {
+              "why_primary": null,
+              "why_not_others": {},
+              "primary_feature": null,
+              "secondary_feature": null,
+              "platform_destination": {
+                "label": null,
+                "surface_hint": null,
+                "user_facing_destination": null
+              },
+              "user_facing_next_step": null
+            },
+            "coaching_type_confidence": "high",
+            "secondary_recommendation": null,
+            "dispatcher_signal_context": {
+              "reason": "User asks which coaching lever to use for a concrete blocked action in the plan.",
+              "confidence": 0.84,
+              "coaching_type": "plan_action",
+              "action_context": {
+                "source": "ambiguous",
+                "plan_id": null,
+                "plan_title": null,
+                "action_type": "other",
+                "action_title": "dossier de relance client",
+                "plan_item_id": null
+              },
+              "activation_checks": {
+                "is_coaching_need": true,
+                "is_about_plan_action": true,
+                "needs_type_confirmation": false,
+                "has_concrete_plan_action": true,
+                "is_about_emotional_state": false,
+                "is_about_non_plan_action": false
+              },
+              "emotional_state_context": null
+            }
+          }
+        }
+      }
+    },
+    "updated_at": "2026-06-24T20:49:09.731888+00:00"
+  }
+}

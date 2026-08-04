@@ -1,0 +1,1567 @@
+{
+  "user_attack_cards": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "81340b70-49a0-45f4-a459-208557a1c3ea",
+        "plan_item_id": "8d321c6c-ce4b-440f-b7b1-69e1a17ff835",
+        "status": "active",
+        "content": {
+          "summary": "Carte d'attaque pour Repérer les pièges de l'hypervigilance.",
+          "techniques": [
+            {
+              "title": "Mot de bascule",
+              "pour_quoi": "Avoir un mot simple a envoyer quand le moment devient fragile.",
+              "questions": [],
+              "mode_emploi": "Envoie seulement ce mot quand tu sens que tu peux craquer; Sophia reprend le contexte.",
+              "objet_genere": "Un mot-cle memorisable et un mini protocole de bascule.",
+              "technique_key": "pre_engagement",
+              "generated_result": {
+                "mode_emploi": "Envoie seulement ce mot quand tu sens que tu peux craquer; Sophia reprend le contexte.",
+                "generated_at": "2026-05-13T13:47:44.272Z",
+                "output_title": "Carte d'attaque - Repérer les pièges de l'hypervigilance",
+                "generated_asset": "Mot-cle: ANCRE. Quand tu l'envoies, Sophia t'aide a revenir au premier geste de Repérer les pièges de l'hypervigilance.",
+                "keyword_trigger": {
+                  "risk_situation": "Repérer les pièges de l'hypervigilance",
+                  "strength_anchor": "Avoir un mot simple a envoyer quand le moment devient fragile.",
+                  "assistant_prompt": "L'utilisateur a envoye le mot de bascule pour Repérer les pièges de l'hypervigilance. Aide-le a revenir au premier geste.",
+                  "activation_keyword": "ANCRE",
+                  "first_response_intent": "Envoie le mot de bascule quand tu sens que tu vas eviter \"Repérer les pièges de l'hypervigilance\".",
+                  "activation_keyword_normalized": "ancre"
+                },
+                "supporting_points": []
+              }
+            }
+          ],
+          "operation_draft": {
+            "title": "Carte d'attaque - Repérer les pièges de l'hypervigilance",
+            "technique": "pre_engagement",
+            "instruction": "Envoie le mot de bascule quand tu sens que tu vas eviter \"Repérer les pièges de l'hypervigilance\".",
+            "mode_emploi": "Envoie seulement ce mot quand tu sens que tu peux craquer; Sophia reprend le contexte.",
+            "target_label": "Repérer les pièges de l'hypervigilance",
+            "why_it_helps": "Avoir un mot simple a envoyer quand le moment devient fragile.",
+            "generated_asset": "Mot-cle: ANCRE. Quand tu l'envoies, Sophia t'aide a revenir au premier geste de Repérer les pièges de l'hypervigilance.",
+            "technique_title": "Mot de bascule",
+            "supporting_points": [],
+            "activation_keyword": "ANCRE"
+          }
+        },
+        "metadata": {
+          "draft": {
+            "draft": {
+              "title": "Carte d'attaque - Repérer les pièges de l'hypervigilance",
+              "technique": "pre_engagement",
+              "instruction": "Envoie le mot de bascule quand tu sens que tu vas eviter \"Repérer les pièges de l'hypervigilance\".",
+              "mode_emploi": "Envoie seulement ce mot quand tu sens que tu peux craquer; Sophia reprend le contexte.",
+              "target_label": "Repérer les pièges de l'hypervigilance",
+              "why_it_helps": "Avoir un mot simple a envoyer quand le moment devient fragile.",
+              "generated_asset": "Mot-cle: ANCRE. Quand tu l'envoies, Sophia t'aide a revenir au premier geste de Repérer les pièges de l'hypervigilance.",
+              "technique_title": "Mot de bascule",
+              "supporting_points": [],
+              "activation_keyword": "ANCRE"
+            },
+            "output_schema": "attack_card_draft_v1",
+            "operation_type": "prepare_attack_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je te propose cette carte d'attaque avant de la creer.\n\nMot de bascule\nMot-cle: ANCRE. Quand tu l'envoies, Sophia t'aide a revenir au premier geste de Repérer les pièges de l'hypervigilance.\n\nMode d'emploi: Envoie seulement ce mot quand tu sens que tu peux craquer; Sophia reprend le contexte.\n\nTu veux que je cree cette carte ?"
+          },
+          "source": "sophia_brain_operation_flow",
+          "target": {
+            "kind": "plan_item",
+            "title": "Repérer les pièges de l'hypervigilance",
+            "plan_item_id": "8d321c6c-ce4b-440f-b7b1-69e1a17ff835"
+          },
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-other-action-keyword-r1-t04",
+          "operation_id": "e7fb7457-02cc-4d1b-8444-54e1728ffd55",
+          "operation_type": "prepare_attack_card",
+          "source_message_id": "6c91c70d-080d-4c4b-9b61-67bd4a6e3bfd"
+        },
+        "generated_at": "2026-05-13T13:47:44.272+00:00",
+        "last_updated_at": "2026-05-13T13:47:44.272+00:00"
+      },
+      {
+        "id": "f8240553-5269-4fac-8ec7-f01f0f3c4a5c",
+        "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+        "status": "active",
+        "content": {
+          "summary": "Carte d'attaque pour Faire le sas de déchargement.",
+          "techniques": [
+            {
+              "title": "Preparer le terrain",
+              "pour_quoi": "Retirer de la friction avant que le moment d'action arrive.",
+              "questions": [],
+              "mode_emploi": "Prepare le terrain avant le moment vise, puis laisse l'environnement t'aider a demarrer.",
+              "objet_genere": "Un micro-setup qui rend le bon geste plus facile.",
+              "technique_key": "preparer_terrain",
+              "generated_result": {
+                "mode_emploi": "Prepare le terrain avant le moment vise, puis laisse l'environnement t'aider a demarrer.",
+                "generated_at": "2026-05-13T13:40:19.562Z",
+                "output_title": "Carte d'attaque - Faire le sas de déchargement",
+                "generated_asset": "Version minuscule : ouvrir le carnet, puis écrire une phrase, puis décider après si je continue.",
+                "keyword_trigger": null,
+                "supporting_points": []
+              }
+            }
+          ],
+          "operation_draft": {
+            "title": "Carte d'attaque - Faire le sas de déchargement",
+            "technique": "preparer_terrain",
+            "instruction": "Version minuscule : ouvrir le carnet, puis écrire une phrase, puis décider après si je continue.",
+            "mode_emploi": "Prepare le terrain avant le moment vise, puis laisse l'environnement t'aider a demarrer.",
+            "target_label": "Faire le sas de déchargement",
+            "why_it_helps": "Retirer de la friction avant que le moment d'action arrive.",
+            "generated_asset": "Version minuscule : ouvrir le carnet, puis écrire une phrase, puis décider après si je continue.",
+            "technique_title": "Preparer le terrain",
+            "supporting_points": [],
+            "activation_keyword": null
+          }
+        },
+        "metadata": {
+          "draft": {
+            "draft": {
+              "title": "Carte d'attaque - Faire le sas de déchargement",
+              "technique": "preparer_terrain",
+              "instruction": "Version minuscule : ouvrir le carnet, puis écrire une phrase, puis décider après si je continue.",
+              "mode_emploi": "Prepare le terrain avant le moment vise, puis laisse l'environnement t'aider a demarrer.",
+              "target_label": "Faire le sas de déchargement",
+              "why_it_helps": "Retirer de la friction avant que le moment d'action arrive.",
+              "generated_asset": "Version minuscule : ouvrir le carnet, puis écrire une phrase, puis décider après si je continue.",
+              "technique_title": "Preparer le terrain",
+              "supporting_points": [],
+              "activation_keyword": null
+            },
+            "output_schema": "attack_card_draft_v1",
+            "operation_type": "prepare_attack_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je te propose cette carte d'attaque avant de la creer.\n\nPreparer le terrain\nVersion minuscule : ouvrir le carnet, puis écrire une phrase, puis décider après si je continue.\n\nMode d'emploi: Prepare le terrain avant le moment vise, puis laisse l'environnement t'aider a demarrer.\n\nTu veux que je cree cette carte ?"
+          },
+          "source": "sophia_brain_operation_flow",
+          "target": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-opportunity-signal-10t-r12-t04",
+          "operation_id": "c02ea0de-e5fa-48ec-8021-13ed60da28e4",
+          "operation_type": "prepare_attack_card",
+          "source_message_id": "56aa31bd-fe02-4021-b5cc-36d142417985"
+        },
+        "generated_at": "2026-05-13T13:40:19.562+00:00",
+        "last_updated_at": "2026-05-13T13:40:19.562+00:00"
+      },
+      {
+        "id": "3aebb63b-a2de-46be-950d-1b314aef7cae",
+        "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+        "status": "active",
+        "content": {
+          "summary": "Carte d'attaque pour Faire le sas de déchargement.",
+          "techniques": [
+            {
+              "title": "Mot de bascule",
+              "pour_quoi": "Avoir un mot simple a envoyer quand le moment devient fragile.",
+              "questions": [],
+              "mode_emploi": "Envoie seulement ce mot quand tu sens que tu peux craquer; Sophia reprend le contexte.",
+              "objet_genere": "Un mot-cle memorisable et un mini protocole de bascule.",
+              "technique_key": "pre_engagement",
+              "generated_result": {
+                "mode_emploi": "Envoie seulement ce mot quand tu sens que tu peux craquer; Sophia reprend le contexte.",
+                "generated_at": "2026-05-13T13:32:14.515Z",
+                "output_title": "Carte d'attaque - Faire le sas de déchargement",
+                "generated_asset": "Mot-cle: SAS. Quand tu l'envoies, Sophia t'aide a revenir au premier geste de Faire le sas de déchargement.",
+                "keyword_trigger": {
+                  "risk_situation": "Faire le sas de déchargement",
+                  "strength_anchor": "Avoir un mot simple a envoyer quand le moment devient fragile.",
+                  "assistant_prompt": "L'utilisateur a envoye le mot de bascule pour Faire le sas de déchargement. Aide-le a revenir au premier geste.",
+                  "activation_keyword": "SAS",
+                  "first_response_intent": "Envoie le mot de bascule quand tu sens que tu vas eviter \"Faire le sas de déchargement\".",
+                  "activation_keyword_normalized": "sas"
+                },
+                "supporting_points": []
+              }
+            }
+          ],
+          "operation_draft": {
+            "title": "Carte d'attaque - Faire le sas de déchargement",
+            "technique": "pre_engagement",
+            "instruction": "Envoie le mot de bascule quand tu sens que tu vas eviter \"Faire le sas de déchargement\".",
+            "mode_emploi": "Envoie seulement ce mot quand tu sens que tu peux craquer; Sophia reprend le contexte.",
+            "target_label": "Faire le sas de déchargement",
+            "why_it_helps": "Avoir un mot simple a envoyer quand le moment devient fragile.",
+            "generated_asset": "Mot-cle: SAS. Quand tu l'envoies, Sophia t'aide a revenir au premier geste de Faire le sas de déchargement.",
+            "technique_title": "Mot de bascule",
+            "supporting_points": [],
+            "activation_keyword": "SAS"
+          }
+        },
+        "metadata": {
+          "draft": {
+            "draft": {
+              "title": "Carte d'attaque - Faire le sas de déchargement",
+              "technique": "pre_engagement",
+              "instruction": "Envoie le mot de bascule quand tu sens que tu vas eviter \"Faire le sas de déchargement\".",
+              "mode_emploi": "Envoie seulement ce mot quand tu sens que tu peux craquer; Sophia reprend le contexte.",
+              "target_label": "Faire le sas de déchargement",
+              "why_it_helps": "Avoir un mot simple a envoyer quand le moment devient fragile.",
+              "generated_asset": "Mot-cle: SAS. Quand tu l'envoies, Sophia t'aide a revenir au premier geste de Faire le sas de déchargement.",
+              "technique_title": "Mot de bascule",
+              "supporting_points": [],
+              "activation_keyword": "SAS"
+            },
+            "output_schema": "attack_card_draft_v1",
+            "operation_type": "prepare_attack_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je te propose cette carte d'attaque avant de la creer.\n\nMot de bascule\nMot-cle: SAS. Quand tu l'envoies, Sophia t'aide a revenir au premier geste de Faire le sas de déchargement.\n\nMode d'emploi: Envoie seulement ce mot quand tu sens que tu peux craquer; Sophia reprend le contexte.\n\nTu veux que je cree cette carte ?"
+          },
+          "source": "sophia_brain_operation_flow",
+          "target": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-context-keyword-r3-t05",
+          "operation_id": "38024b53-3f18-4bf0-b152-dd80fa46c5e8",
+          "operation_type": "prepare_attack_card",
+          "source_message_id": "cd564c09-7cb9-494c-a628-a275315c2c1d"
+        },
+        "generated_at": "2026-05-13T13:32:14.515+00:00",
+        "last_updated_at": "2026-05-13T13:32:14.515+00:00"
+      },
+      {
+        "id": "d8ba7ee9-7e4f-4306-8cd1-848646171800",
+        "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+        "status": "active",
+        "content": {
+          "summary": "Carte d'attaque pour Faire le sas de déchargement.",
+          "techniques": [
+            {
+              "title": "Mot de bascule",
+              "pour_quoi": "Avoir un mot simple a envoyer quand le moment devient fragile.",
+              "questions": [],
+              "mode_emploi": "Envoie seulement ce mot quand tu sens que tu peux craquer; Sophia reprend le contexte.",
+              "objet_genere": "Un mot-cle memorisable et un mini protocole de bascule.",
+              "technique_key": "pre_engagement",
+              "generated_result": {
+                "mode_emploi": "Envoie seulement ce mot quand tu sens que tu peux craquer; Sophia reprend le contexte.",
+                "generated_at": "2026-05-13T13:14:06.914Z",
+                "output_title": "Carte d'attaque - Faire le sas de déchargement",
+                "generated_asset": "Mot-cle: PAUSE. Quand tu l'envoies, Sophia t'aide a revenir au premier geste de Faire le sas de déchargement.",
+                "keyword_trigger": {
+                  "risk_situation": "Faire le sas de déchargement",
+                  "strength_anchor": "Avoir un mot simple a envoyer quand le moment devient fragile.",
+                  "assistant_prompt": "L'utilisateur a envoye le mot de bascule pour Faire le sas de déchargement. Aide-le a revenir au premier geste.",
+                  "activation_keyword": "PAUSE",
+                  "first_response_intent": "Envoie le mot de bascule quand tu sens que tu vas eviter \"Faire le sas de déchargement\".",
+                  "activation_keyword_normalized": "pause"
+                },
+                "supporting_points": []
+              }
+            }
+          ],
+          "operation_draft": {
+            "title": "Carte d'attaque - Faire le sas de déchargement",
+            "technique": "pre_engagement",
+            "instruction": "Envoie le mot de bascule quand tu sens que tu vas eviter \"Faire le sas de déchargement\".",
+            "mode_emploi": "Envoie seulement ce mot quand tu sens que tu peux craquer; Sophia reprend le contexte.",
+            "target_label": "Faire le sas de déchargement",
+            "why_it_helps": "Avoir un mot simple a envoyer quand le moment devient fragile.",
+            "generated_asset": "Mot-cle: PAUSE. Quand tu l'envoies, Sophia t'aide a revenir au premier geste de Faire le sas de déchargement.",
+            "technique_title": "Mot de bascule",
+            "supporting_points": [],
+            "activation_keyword": "PAUSE"
+          }
+        },
+        "metadata": {
+          "draft": {
+            "draft": {
+              "title": "Carte d'attaque - Faire le sas de déchargement",
+              "technique": "pre_engagement",
+              "instruction": "Envoie le mot de bascule quand tu sens que tu vas eviter \"Faire le sas de déchargement\".",
+              "mode_emploi": "Envoie seulement ce mot quand tu sens que tu peux craquer; Sophia reprend le contexte.",
+              "target_label": "Faire le sas de déchargement",
+              "why_it_helps": "Avoir un mot simple a envoyer quand le moment devient fragile.",
+              "generated_asset": "Mot-cle: PAUSE. Quand tu l'envoies, Sophia t'aide a revenir au premier geste de Faire le sas de déchargement.",
+              "technique_title": "Mot de bascule",
+              "supporting_points": [],
+              "activation_keyword": "PAUSE"
+            },
+            "output_schema": "attack_card_draft_v1",
+            "operation_type": "prepare_attack_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je te propose cette carte d'attaque avant de la creer.\n\nMot de bascule\nMot-cle: PAUSE. Quand tu l'envoies, Sophia t'aide a revenir au premier geste de Faire le sas de déchargement.\n\nMode d'emploi: Envoie seulement ce mot quand tu sens que tu peux craquer; Sophia reprend le contexte.\n\nTu veux que je cree cette carte ?"
+          },
+          "source": "sophia_brain_operation_flow",
+          "target": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-mot-bascule-keyword-r1-t05",
+          "operation_id": "1fd65583-109d-4557-ad22-7eeab1566750",
+          "operation_type": "prepare_attack_card",
+          "source_message_id": "8690880c-76c0-404c-8e38-cddf6178d4c8"
+        },
+        "generated_at": "2026-05-13T13:14:06.914+00:00",
+        "last_updated_at": "2026-05-13T13:14:06.914+00:00"
+      },
+      {
+        "id": "1da78814-9bc2-40a1-a342-1775c4486cad",
+        "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+        "status": "active",
+        "content": {
+          "summary": "Carte d'attaque pour Faire le sas de déchargement.",
+          "techniques": [
+            {
+              "title": "Le texte magique",
+              "pour_quoi": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+              "questions": [],
+              "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+              "objet_genere": "Un texte court a relire ou recopier quand la resistance monte.",
+              "technique_key": "texte_recadrage",
+              "generated_result": {
+                "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+                "generated_at": "2026-05-13T13:09:33.360Z",
+                "output_title": "Carte d'attaque - Faire le sas de déchargement",
+                "generated_asset": "Je n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance. Mon premier geste: ouvrir le carnet, puis écrire une seule ligne, puis décider après si je continue.",
+                "keyword_trigger": null,
+                "supporting_points": []
+              }
+            }
+          ],
+          "operation_draft": {
+            "title": "Carte d'attaque - Faire le sas de déchargement",
+            "technique": "texte_recadrage",
+            "instruction": "Version minuscule : ouvrir le carnet, puis écrire une seule ligne, puis décider après si je continue.",
+            "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+            "target_label": "Faire le sas de déchargement",
+            "why_it_helps": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+            "generated_asset": "Je n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance. Mon premier geste: ouvrir le carnet, puis écrire une seule ligne, puis décider après si je continue.",
+            "technique_title": "Le texte magique",
+            "supporting_points": []
+          }
+        },
+        "metadata": {
+          "draft": {
+            "draft": {
+              "title": "Carte d'attaque - Faire le sas de déchargement",
+              "technique": "texte_recadrage",
+              "instruction": "Version minuscule : ouvrir le carnet, puis écrire une seule ligne, puis décider après si je continue.",
+              "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+              "target_label": "Faire le sas de déchargement",
+              "why_it_helps": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+              "generated_asset": "Je n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance. Mon premier geste: ouvrir le carnet, puis écrire une seule ligne, puis décider après si je continue.",
+              "technique_title": "Le texte magique",
+              "supporting_points": []
+            },
+            "output_schema": "attack_card_draft_v1",
+            "operation_type": "prepare_attack_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je te propose cette carte d'attaque avant de la creer.\n\nLe texte magique\nJe n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance. Mon premier geste: ouvrir le carnet, puis écrire une seule ligne, puis décider après si je continue.\n\nMode d'emploi: Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.\n\nTu veux que je cree cette carte ?"
+          },
+          "source": "sophia_brain_operation_flow",
+          "target": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-opportunity-signal-10t-r4-t04",
+          "operation_id": "048f472c-bdfe-49e6-9d62-26b75fe3c187",
+          "operation_type": "prepare_attack_card",
+          "source_message_id": "03f3dbd2-df99-4000-884c-109e39f37f9c"
+        },
+        "generated_at": "2026-05-13T13:09:33.36+00:00",
+        "last_updated_at": "2026-05-13T13:09:33.36+00:00"
+      },
+      {
+        "id": "c593b4ba-f985-4ab8-8710-b1d4821bb806",
+        "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+        "status": "active",
+        "content": {
+          "summary": "Carte d'attaque pour Faire le sas de déchargement.",
+          "techniques": [
+            {
+              "title": "Le texte magique",
+              "pour_quoi": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+              "questions": [],
+              "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+              "objet_genere": "Un texte court a relire ou recopier quand la resistance monte.",
+              "technique_key": "texte_recadrage",
+              "generated_result": {
+                "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+                "generated_at": "2026-05-13T13:04:05.145Z",
+                "output_title": "Carte d'attaque - Faire le sas de déchargement",
+                "generated_asset": "Je n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance. Mon premier geste: ouvrir le carnet, puis écrire une seule ligne, puis décider après si je continue. Contraintes: après si je continue.",
+                "keyword_trigger": null,
+                "supporting_points": []
+              }
+            }
+          ],
+          "operation_draft": {
+            "title": "Carte d'attaque - Faire le sas de déchargement",
+            "technique": "texte_recadrage",
+            "instruction": "Version minuscule : ouvrir le carnet, puis écrire une seule ligne, puis décider après si je continue. Contraintes: après si je continue.",
+            "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+            "target_label": "Faire le sas de déchargement",
+            "why_it_helps": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+            "generated_asset": "Je n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance. Mon premier geste: ouvrir le carnet, puis écrire une seule ligne, puis décider après si je continue. Contraintes: après si je continue.",
+            "technique_title": "Le texte magique",
+            "supporting_points": []
+          }
+        },
+        "metadata": {
+          "draft": {
+            "draft": {
+              "title": "Carte d'attaque - Faire le sas de déchargement",
+              "technique": "texte_recadrage",
+              "instruction": "Version minuscule : ouvrir le carnet, puis écrire une seule ligne, puis décider après si je continue. Contraintes: après si je continue.",
+              "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+              "target_label": "Faire le sas de déchargement",
+              "why_it_helps": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+              "generated_asset": "Je n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance. Mon premier geste: ouvrir le carnet, puis écrire une seule ligne, puis décider après si je continue. Contraintes: après si je continue.",
+              "technique_title": "Le texte magique",
+              "supporting_points": []
+            },
+            "output_schema": "attack_card_draft_v1",
+            "operation_type": "prepare_attack_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je te propose cette carte d'attaque avant de la creer.\n\nLe texte magique\nJe n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance. Mon premier geste: ouvrir le carnet, puis écrire une seule ligne, puis décider après si je continue. Contraintes: après si je continue.\n\nMode d'emploi: Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.\n\nTu veux que je cree cette carte ?"
+          },
+          "source": "sophia_brain_operation_flow",
+          "target": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-opportunity-signal-10t-r3-t04",
+          "operation_id": "d82f074c-5fef-4f64-9e25-0de9dec95466",
+          "operation_type": "prepare_attack_card",
+          "source_message_id": "855928d4-7008-4d85-a85c-bf1108855333"
+        },
+        "generated_at": "2026-05-13T13:04:05.145+00:00",
+        "last_updated_at": "2026-05-13T13:04:05.145+00:00"
+      },
+      {
+        "id": "f92d1271-4fb4-456f-bf9a-3a8f7e9828a3",
+        "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+        "status": "active",
+        "content": {
+          "summary": "Carte d'attaque pour Faire le sas de déchargement.",
+          "techniques": [
+            {
+              "title": "Mot de bascule",
+              "pour_quoi": "Avoir un mot simple a envoyer quand le moment devient fragile.",
+              "questions": [],
+              "mode_emploi": "Envoie seulement ce mot quand tu sens que tu peux craquer; Sophia reprend le contexte.",
+              "objet_genere": "Un mot-cle memorisable et un mini protocole de bascule.",
+              "technique_key": "pre_engagement",
+              "generated_result": {
+                "mode_emploi": "Envoie seulement ce mot quand tu sens que tu peux craquer; Sophia reprend le contexte.",
+                "generated_at": "2026-05-13T11:07:06.250Z",
+                "output_title": "Carte d'attaque - Faire le sas de déchargement",
+                "generated_asset": "Mot-cle: BASCULE. Quand tu l'envoies, Sophia t'aide a revenir au premier geste de Faire le sas de déchargement.",
+                "keyword_trigger": {
+                  "risk_situation": "Faire le sas de déchargement",
+                  "strength_anchor": "Avoir un mot simple a envoyer quand le moment devient fragile.",
+                  "assistant_prompt": "L'utilisateur a envoye le mot de bascule pour Faire le sas de déchargement. Aide-le a revenir au premier geste.",
+                  "activation_keyword": "BASCULE",
+                  "first_response_intent": "Envoie le mot de bascule quand tu sens que tu vas eviter \"Faire le sas de déchargement\".",
+                  "activation_keyword_normalized": "bascule"
+                },
+                "supporting_points": []
+              }
+            }
+          ],
+          "operation_draft": {
+            "title": "Carte d'attaque - Faire le sas de déchargement",
+            "technique": "pre_engagement",
+            "instruction": "Envoie le mot de bascule quand tu sens que tu vas eviter \"Faire le sas de déchargement\".",
+            "mode_emploi": "Envoie seulement ce mot quand tu sens que tu peux craquer; Sophia reprend le contexte.",
+            "target_label": "Faire le sas de déchargement",
+            "why_it_helps": "Avoir un mot simple a envoyer quand le moment devient fragile.",
+            "generated_asset": "Mot-cle: BASCULE. Quand tu l'envoies, Sophia t'aide a revenir au premier geste de Faire le sas de déchargement.",
+            "technique_title": "Mot de bascule",
+            "supporting_points": []
+          }
+        },
+        "metadata": {
+          "draft": {
+            "draft": {
+              "title": "Carte d'attaque - Faire le sas de déchargement",
+              "technique": "pre_engagement",
+              "instruction": "Envoie le mot de bascule quand tu sens que tu vas eviter \"Faire le sas de déchargement\".",
+              "mode_emploi": "Envoie seulement ce mot quand tu sens que tu peux craquer; Sophia reprend le contexte.",
+              "target_label": "Faire le sas de déchargement",
+              "why_it_helps": "Avoir un mot simple a envoyer quand le moment devient fragile.",
+              "generated_asset": "Mot-cle: BASCULE. Quand tu l'envoies, Sophia t'aide a revenir au premier geste de Faire le sas de déchargement.",
+              "technique_title": "Mot de bascule",
+              "supporting_points": []
+            },
+            "output_schema": "attack_card_draft_v1",
+            "operation_type": "prepare_attack_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je te propose cette carte d'attaque avant de la creer.\n\nMot de bascule\nMot-cle: BASCULE. Quand tu l'envoies, Sophia t'aide a revenir au premier geste de Faire le sas de déchargement.\n\nMode d'emploi: Envoie seulement ce mot quand tu sens que tu peux craquer; Sophia reprend le contexte.\n\nTu veux que je cree cette carte ?"
+          },
+          "source": "sophia_brain_operation_flow",
+          "target": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-mot-secours-r3-t04",
+          "operation_id": "0e41cb80-18a1-45e6-a640-5e5e0c86a46a",
+          "operation_type": "prepare_attack_card",
+          "source_message_id": "e290b5ad-462f-49dd-8385-4158c855a263"
+        },
+        "generated_at": "2026-05-13T11:07:06.25+00:00",
+        "last_updated_at": "2026-05-13T11:07:06.25+00:00"
+      },
+      {
+        "id": "c7ec2f16-0123-48c1-a2c6-f0dfa209ac01",
+        "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+        "status": "active",
+        "content": {
+          "summary": "Carte d'attaque pour Faire le sas de déchargement.",
+          "techniques": [
+            {
+              "title": "Ancre visuelle",
+              "pour_quoi": "Utiliser l'environnement comme rappel concret de l'engagement.",
+              "questions": [],
+              "mode_emploi": "Place l'ancre dans ton environnement et utilise-la comme signal de depart.",
+              "objet_genere": "Un repere visuel simple, avec une phrase associee.",
+              "technique_key": "ancre_visuelle",
+              "generated_result": {
+                "mode_emploi": "Place l'ancre dans ton environnement et utilise-la comme signal de depart.",
+                "generated_at": "2026-05-13T10:43:33.444Z",
+                "output_title": "Carte d'attaque - Faire le sas de déchargement",
+                "generated_asset": "Ancre: un objet visible lie a Faire le sas de déchargement. Phrase: \"Je commence par le geste le plus simple.\"",
+                "keyword_trigger": null,
+                "supporting_points": []
+              }
+            }
+          ],
+          "operation_draft": {
+            "title": "Carte d'attaque - Faire le sas de déchargement",
+            "technique": "ancre_visuelle",
+            "instruction": "Place l'ancre visuelle la ou tu verras le signal juste avant \"Faire le sas de déchargement\".",
+            "mode_emploi": "Place l'ancre dans ton environnement et utilise-la comme signal de depart.",
+            "target_label": "Faire le sas de déchargement",
+            "why_it_helps": "Utiliser l'environnement comme rappel concret de l'engagement.",
+            "generated_asset": "Ancre: un objet visible lie a Faire le sas de déchargement. Phrase: \"Je commence par le geste le plus simple.\"",
+            "technique_title": "Ancre visuelle",
+            "supporting_points": []
+          }
+        },
+        "metadata": {
+          "draft": {
+            "draft": {
+              "title": "Carte d'attaque - Faire le sas de déchargement",
+              "technique": "ancre_visuelle",
+              "instruction": "Place l'ancre visuelle la ou tu verras le signal juste avant \"Faire le sas de déchargement\".",
+              "mode_emploi": "Place l'ancre dans ton environnement et utilise-la comme signal de depart.",
+              "target_label": "Faire le sas de déchargement",
+              "why_it_helps": "Utiliser l'environnement comme rappel concret de l'engagement.",
+              "generated_asset": "Ancre: un objet visible lie a Faire le sas de déchargement. Phrase: \"Je commence par le geste le plus simple.\"",
+              "technique_title": "Ancre visuelle",
+              "supporting_points": []
+            },
+            "output_schema": "attack_card_draft_v1",
+            "operation_type": "prepare_attack_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je te propose cette carte d'attaque avant de la creer.\n\nAncre visuelle\nAncre: un objet visible lie a Faire le sas de déchargement. Phrase: \"Je commence par le geste le plus simple.\"\n\nMode d'emploi: Place l'ancre dans ton environnement et utilise-la comme signal de depart.\n\nTu veux que je cree cette carte ?"
+          },
+          "source": "sophia_brain_operation_flow",
+          "target": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-alt-technique-r1-t04",
+          "operation_id": "68000354-8107-477a-a8af-6690b1aca049",
+          "operation_type": "prepare_attack_card",
+          "source_message_id": "da50ae78-870c-46ae-9e5b-58ac8133a1a2"
+        },
+        "generated_at": "2026-05-13T10:43:33.444+00:00",
+        "last_updated_at": "2026-05-13T10:43:33.444+00:00"
+      },
+      {
+        "id": "8091f9ef-e251-4310-b6dd-f6f0387fcd2a",
+        "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+        "status": "active",
+        "content": {
+          "summary": "Carte d'attaque pour Faire le sas de déchargement.",
+          "techniques": [
+            {
+              "title": "Le texte magique",
+              "pour_quoi": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+              "questions": [],
+              "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+              "objet_genere": "Un texte court a relire ou recopier quand la resistance monte.",
+              "technique_key": "texte_recadrage",
+              "generated_result": {
+                "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+                "generated_at": "2026-05-13T10:40:58.317Z",
+                "output_title": "Carte d'attaque - Faire le sas de déchargement",
+                "generated_asset": "Je n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance. Mon premier geste: ouvrir le carnet.",
+                "keyword_trigger": null,
+                "supporting_points": []
+              }
+            }
+          ],
+          "operation_draft": {
+            "title": "Carte d'attaque - Faire le sas de déchargement",
+            "technique": "texte_recadrage",
+            "instruction": "Version minuscule : ouvrir le carnet.",
+            "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+            "target_label": "Faire le sas de déchargement",
+            "why_it_helps": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+            "generated_asset": "Je n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance. Mon premier geste: ouvrir le carnet.",
+            "technique_title": "Le texte magique",
+            "supporting_points": []
+          }
+        },
+        "metadata": {
+          "draft": {
+            "draft": {
+              "title": "Carte d'attaque - Faire le sas de déchargement",
+              "technique": "texte_recadrage",
+              "instruction": "Version minuscule : ouvrir le carnet.",
+              "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+              "target_label": "Faire le sas de déchargement",
+              "why_it_helps": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+              "generated_asset": "Je n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance. Mon premier geste: ouvrir le carnet.",
+              "technique_title": "Le texte magique",
+              "supporting_points": []
+            },
+            "output_schema": "attack_card_draft_v1",
+            "operation_type": "prepare_attack_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je te propose cette carte d'attaque avant de la creer.\n\nLe texte magique\nJe n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance. Mon premier geste: ouvrir le carnet.\n\nMode d'emploi: Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.\n\nTu veux que je cree cette carte ?"
+          },
+          "source": "sophia_brain_operation_flow",
+          "target": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-opportunity-signal-10t-r1-t06",
+          "operation_id": "41b24eca-8d8c-466b-b1ab-031fe8b8f6f1",
+          "operation_type": "prepare_attack_card",
+          "source_message_id": "f835de31-fc50-4729-b8f4-1d9b56dc2bc2"
+        },
+        "generated_at": "2026-05-13T10:40:58.317+00:00",
+        "last_updated_at": "2026-05-13T10:40:58.317+00:00"
+      },
+      {
+        "id": "6ea6d6a7-b875-4dcb-9080-d674cc5845ab",
+        "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+        "status": "active",
+        "content": {
+          "summary": "Carte d'attaque pour Faire le sas de déchargement.",
+          "techniques": [
+            {
+              "title": "Le texte magique",
+              "pour_quoi": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+              "questions": [],
+              "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+              "objet_genere": "Un texte court a relire ou recopier quand la resistance monte.",
+              "technique_key": "texte_recadrage",
+              "generated_result": {
+                "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+                "generated_at": "2026-05-13T03:19:54.999Z",
+                "output_title": "Carte d'attaque - Faire le sas de déchargement",
+                "generated_asset": "Je n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance. Mon premier geste: ouvrir le carnet, puis noter une ligne.",
+                "keyword_trigger": null,
+                "supporting_points": []
+              }
+            }
+          ],
+          "operation_draft": {
+            "title": "Carte d'attaque - Faire le sas de déchargement",
+            "technique": "texte_recadrage",
+            "instruction": "Version minuscule : ouvrir le carnet, puis noter une ligne.",
+            "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+            "target_label": "Faire le sas de déchargement",
+            "why_it_helps": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+            "generated_asset": "Je n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance. Mon premier geste: ouvrir le carnet, puis noter une ligne.",
+            "technique_title": "Le texte magique",
+            "supporting_points": []
+          }
+        },
+        "metadata": {
+          "draft": {
+            "draft": {
+              "title": "Carte d'attaque - Faire le sas de déchargement",
+              "technique": "texte_recadrage",
+              "instruction": "Version minuscule : ouvrir le carnet, puis noter une ligne.",
+              "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+              "target_label": "Faire le sas de déchargement",
+              "why_it_helps": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+              "generated_asset": "Je n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance. Mon premier geste: ouvrir le carnet, puis noter une ligne.",
+              "technique_title": "Le texte magique",
+              "supporting_points": []
+            },
+            "output_schema": "attack_card_draft_v1",
+            "operation_type": "prepare_attack_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je te propose cette carte d'attaque avant de la creer.\n\nLe texte magique\nJe n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance. Mon premier geste: ouvrir le carnet, puis noter une ligne.\n\nMode d'emploi: Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.\n\nTu veux que je cree cette carte ?"
+          },
+          "source": "sophia_brain_operation_flow",
+          "target": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-hard-10t-r13-t05",
+          "operation_id": "48fa0af5-8692-4df8-a0e1-16dc924fe2aa",
+          "operation_type": "prepare_attack_card",
+          "source_message_id": "79004ccf-8f22-4400-b916-185dde9bc625"
+        },
+        "generated_at": "2026-05-13T03:19:54.999+00:00",
+        "last_updated_at": "2026-05-13T03:19:54.999+00:00"
+      },
+      {
+        "id": "8ab7a835-4288-48d0-a2a0-d029eea585e4",
+        "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+        "status": "active",
+        "content": {
+          "summary": "Carte d'attaque pour Faire le sas de déchargement.",
+          "techniques": [
+            {
+              "title": "Le texte magique",
+              "pour_quoi": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+              "questions": [],
+              "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+              "objet_genere": "Un texte court a relire ou recopier quand la resistance monte.",
+              "technique_key": "texte_recadrage",
+              "generated_result": {
+                "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+                "generated_at": "2026-05-13T03:14:43.891Z",
+                "output_title": "Carte d'attaque - Faire le sas de déchargement",
+                "generated_asset": "Je n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance. Mon premier geste: ouvrir le carnet, puis noter une ligne.",
+                "keyword_trigger": null,
+                "supporting_points": []
+              }
+            }
+          ],
+          "operation_draft": {
+            "title": "Carte d'attaque - Faire le sas de déchargement",
+            "technique": "texte_recadrage",
+            "instruction": "Version minuscule : ouvrir le carnet, puis noter une ligne.",
+            "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+            "target_label": "Faire le sas de déchargement",
+            "why_it_helps": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+            "generated_asset": "Je n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance. Mon premier geste: ouvrir le carnet, puis noter une ligne.",
+            "technique_title": "Le texte magique",
+            "supporting_points": []
+          }
+        },
+        "metadata": {
+          "draft": {
+            "draft": {
+              "title": "Carte d'attaque - Faire le sas de déchargement",
+              "technique": "texte_recadrage",
+              "instruction": "Version minuscule : ouvrir le carnet, puis noter une ligne.",
+              "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+              "target_label": "Faire le sas de déchargement",
+              "why_it_helps": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+              "generated_asset": "Je n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance. Mon premier geste: ouvrir le carnet, puis noter une ligne.",
+              "technique_title": "Le texte magique",
+              "supporting_points": []
+            },
+            "output_schema": "attack_card_draft_v1",
+            "operation_type": "prepare_attack_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je te propose cette carte d'attaque avant de la creer.\n\nLe texte magique\nJe n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance. Mon premier geste: ouvrir le carnet, puis noter une ligne.\n\nMode d'emploi: Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.\n\nTu veux que je cree cette carte ?"
+          },
+          "source": "sophia_brain_operation_flow",
+          "target": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-hard-10t-r11-t05",
+          "operation_id": "b298d4a9-590f-497a-828d-2c7511e53d76",
+          "operation_type": "prepare_attack_card",
+          "source_message_id": "cc430e8e-ffec-4b74-b427-c704a7e08bb1"
+        },
+        "generated_at": "2026-05-13T03:14:43.891+00:00",
+        "last_updated_at": "2026-05-13T03:14:43.891+00:00"
+      },
+      {
+        "id": "ac124ffb-3da2-4b4e-8bc9-9f59b3e1ae65",
+        "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+        "status": "active",
+        "content": {
+          "summary": "Carte d'attaque pour Faire le sas de déchargement.",
+          "techniques": [
+            {
+              "title": "Le texte magique",
+              "pour_quoi": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+              "questions": [],
+              "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+              "objet_genere": "Un texte court a relire ou recopier quand la resistance monte.",
+              "technique_key": "texte_recadrage",
+              "generated_result": {
+                "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+                "generated_at": "2026-05-13T03:10:32.827Z",
+                "output_title": "Carte d'attaque - Faire le sas de déchargement",
+                "generated_asset": "Je n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance. Mon premier geste: ouvrir le carnet, puis noter une ligne.",
+                "keyword_trigger": null,
+                "supporting_points": []
+              }
+            }
+          ],
+          "operation_draft": {
+            "title": "Carte d'attaque - Faire le sas de déchargement",
+            "technique": "texte_recadrage",
+            "instruction": "Version minuscule : ouvrir le carnet, puis noter une ligne.",
+            "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+            "target_label": "Faire le sas de déchargement",
+            "why_it_helps": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+            "generated_asset": "Je n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance. Mon premier geste: ouvrir le carnet, puis noter une ligne.",
+            "technique_title": "Le texte magique",
+            "supporting_points": []
+          }
+        },
+        "metadata": {
+          "draft": {
+            "draft": {
+              "title": "Carte d'attaque - Faire le sas de déchargement",
+              "technique": "texte_recadrage",
+              "instruction": "Version minuscule : ouvrir le carnet, puis noter une ligne.",
+              "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+              "target_label": "Faire le sas de déchargement",
+              "why_it_helps": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+              "generated_asset": "Je n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance. Mon premier geste: ouvrir le carnet, puis noter une ligne.",
+              "technique_title": "Le texte magique",
+              "supporting_points": []
+            },
+            "output_schema": "attack_card_draft_v1",
+            "operation_type": "prepare_attack_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je te propose cette carte d'attaque avant de la creer.\n\nLe texte magique\nJe n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance. Mon premier geste: ouvrir le carnet, puis noter une ligne.\n\nMode d'emploi: Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.\n\nTu veux que je cree cette carte ?"
+          },
+          "source": "sophia_brain_operation_flow",
+          "target": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-hard-10t-r10-t05",
+          "operation_id": "9933242f-1675-4258-90e2-667a4d50c234",
+          "operation_type": "prepare_attack_card",
+          "source_message_id": "62b40d4c-e90d-4a10-92c0-d25b6fd7bbf1"
+        },
+        "generated_at": "2026-05-13T03:10:32.827+00:00",
+        "last_updated_at": "2026-05-13T03:10:32.827+00:00"
+      },
+      {
+        "id": "b9c90458-2827-4036-ac00-b24ed9643698",
+        "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+        "status": "active",
+        "content": {
+          "summary": "Carte d'attaque pour Faire le sas de déchargement.",
+          "techniques": [
+            {
+              "title": "Le texte magique",
+              "pour_quoi": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+              "questions": [],
+              "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+              "objet_genere": "Un texte court a relire ou recopier quand la resistance monte.",
+              "technique_key": "texte_recadrage",
+              "generated_result": {
+                "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+                "generated_at": "2026-05-13T03:07:42.239Z",
+                "output_title": "Carte d'attaque - Faire le sas de déchargement",
+                "generated_asset": "Je n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance.",
+                "keyword_trigger": null,
+                "supporting_points": []
+              }
+            }
+          ],
+          "operation_draft": {
+            "title": "Carte d'attaque - Faire le sas de déchargement",
+            "technique": "texte_recadrage",
+            "instruction": "Relis ce texte au moment ou tu negocies avec l'idee de faire le sas de déchargement, puis fais seulement le premier geste.",
+            "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+            "target_label": "Faire le sas de déchargement",
+            "why_it_helps": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+            "generated_asset": "Je n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance.",
+            "technique_title": "Le texte magique",
+            "supporting_points": []
+          }
+        },
+        "metadata": {
+          "draft": {
+            "draft": {
+              "title": "Carte d'attaque - Faire le sas de déchargement",
+              "technique": "texte_recadrage",
+              "instruction": "Relis ce texte au moment ou tu negocies avec l'idee de faire le sas de déchargement, puis fais seulement le premier geste.",
+              "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+              "target_label": "Faire le sas de déchargement",
+              "why_it_helps": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+              "generated_asset": "Je n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance.",
+              "technique_title": "Le texte magique",
+              "supporting_points": []
+            },
+            "output_schema": "attack_card_draft_v1",
+            "operation_type": "prepare_attack_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je te propose cette carte d'attaque avant de la creer.\n\nLe texte magique\nJe n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance.\n\nMode d'emploi: Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.\n\nTu veux que je cree cette carte ?"
+          },
+          "source": "sophia_brain_operation_flow",
+          "target": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-hard-10t-r9-t04",
+          "operation_id": "91ba973b-4476-4d3a-ad46-97e26158ae9f",
+          "operation_type": "prepare_attack_card",
+          "source_message_id": "b56f5c2d-6e77-4573-ab24-efc2cc94dadb"
+        },
+        "generated_at": "2026-05-13T03:07:42.239+00:00",
+        "last_updated_at": "2026-05-13T03:07:42.239+00:00"
+      },
+      {
+        "id": "5521e1b4-c347-46ff-8a40-8a231f3d5ba2",
+        "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+        "status": "active",
+        "content": {
+          "summary": "Carte d'attaque pour Faire le sas de déchargement.",
+          "techniques": [
+            {
+              "title": "Le texte magique",
+              "pour_quoi": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+              "questions": [],
+              "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+              "objet_genere": "Un texte court a relire ou recopier quand la resistance monte.",
+              "technique_key": "texte_recadrage",
+              "generated_result": {
+                "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+                "generated_at": "2026-05-13T03:05:05.862Z",
+                "output_title": "Carte d'attaque - Faire le sas de déchargement",
+                "generated_asset": "Je n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance.",
+                "keyword_trigger": null,
+                "supporting_points": []
+              }
+            }
+          ],
+          "operation_draft": {
+            "title": "Carte d'attaque - Faire le sas de déchargement",
+            "technique": "texte_recadrage",
+            "instruction": "Relis ce texte au moment ou tu negocies avec l'idee de faire le sas de déchargement, puis fais seulement le premier geste.",
+            "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+            "target_label": "Faire le sas de déchargement",
+            "why_it_helps": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+            "generated_asset": "Je n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance.",
+            "technique_title": "Le texte magique",
+            "supporting_points": []
+          }
+        },
+        "metadata": {
+          "draft": {
+            "draft": {
+              "title": "Carte d'attaque - Faire le sas de déchargement",
+              "technique": "texte_recadrage",
+              "instruction": "Relis ce texte au moment ou tu negocies avec l'idee de faire le sas de déchargement, puis fais seulement le premier geste.",
+              "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+              "target_label": "Faire le sas de déchargement",
+              "why_it_helps": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+              "generated_asset": "Je n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance.",
+              "technique_title": "Le texte magique",
+              "supporting_points": []
+            },
+            "output_schema": "attack_card_draft_v1",
+            "operation_type": "prepare_attack_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je te propose cette carte d'attaque avant de la creer.\n\nLe texte magique\nJe n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance.\n\nMode d'emploi: Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.\n\nTu veux que je cree cette carte ?"
+          },
+          "source": "sophia_brain_operation_flow",
+          "target": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-hard-10t-r8-t04",
+          "operation_id": "30d48e06-503d-433b-ae59-a467114d8f6b",
+          "operation_type": "prepare_attack_card",
+          "source_message_id": "9951f11c-ec18-4bca-bf17-e03a3fc44792"
+        },
+        "generated_at": "2026-05-13T03:05:05.862+00:00",
+        "last_updated_at": "2026-05-13T03:05:05.862+00:00"
+      },
+      {
+        "id": "2779360a-2ae0-4c8e-81f5-745848f56907",
+        "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+        "status": "active",
+        "content": {
+          "summary": "Carte d'attaque pour Faire le sas de déchargement.",
+          "techniques": [
+            {
+              "title": "Le texte magique",
+              "pour_quoi": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+              "questions": [],
+              "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+              "objet_genere": "Un texte court a relire ou recopier quand la resistance monte.",
+              "technique_key": "texte_recadrage",
+              "generated_result": {
+                "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+                "generated_at": "2026-05-13T02:31:23.182Z",
+                "output_title": "Carte d'attaque - Faire le sas de déchargement",
+                "generated_asset": "Je n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance. Mon premier geste: ouvrir le carnet, puis noter une ligne.",
+                "keyword_trigger": null,
+                "supporting_points": []
+              }
+            }
+          ],
+          "operation_draft": {
+            "title": "Carte d'attaque - Faire le sas de déchargement",
+            "technique": "texte_recadrage",
+            "instruction": "Version minuscule : ouvrir le carnet, puis noter une ligne.",
+            "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+            "target_label": "Faire le sas de déchargement",
+            "why_it_helps": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+            "generated_asset": "Je n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance. Mon premier geste: ouvrir le carnet, puis noter une ligne.",
+            "technique_title": "Le texte magique",
+            "supporting_points": []
+          }
+        },
+        "metadata": {
+          "draft": {
+            "draft": {
+              "title": "Carte d'attaque - Faire le sas de déchargement",
+              "technique": "texte_recadrage",
+              "instruction": "Version minuscule : ouvrir le carnet, puis noter une ligne.",
+              "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+              "target_label": "Faire le sas de déchargement",
+              "why_it_helps": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+              "generated_asset": "Je n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance. Mon premier geste: ouvrir le carnet, puis noter une ligne.",
+              "technique_title": "Le texte magique",
+              "supporting_points": []
+            },
+            "output_schema": "attack_card_draft_v1",
+            "operation_type": "prepare_attack_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je te propose cette carte d'attaque avant de la creer.\n\nLe texte magique\nJe n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance. Mon premier geste: ouvrir le carnet, puis noter une ligne.\n\nMode d'emploi: Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.\n\nTu veux que je cree cette carte ?"
+          },
+          "source": "sophia_brain_operation_flow",
+          "target": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-hard-10t-r5-t05",
+          "operation_id": "4434b519-b10f-46de-9fb6-6054e844cc9b",
+          "operation_type": "prepare_attack_card",
+          "source_message_id": "6e6fabd9-160c-4724-a3ef-0ceb7773683a"
+        },
+        "generated_at": "2026-05-13T02:31:23.182+00:00",
+        "last_updated_at": "2026-05-13T02:31:23.182+00:00"
+      },
+      {
+        "id": "0c00368f-2569-40d0-8878-d6a415d7fa60",
+        "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+        "status": "active",
+        "content": {
+          "summary": "Carte d'attaque pour Faire le sas de déchargement.",
+          "techniques": [
+            {
+              "title": "Le texte magique",
+              "pour_quoi": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+              "questions": [],
+              "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+              "objet_genere": "Un texte court a relire ou recopier quand la resistance monte.",
+              "technique_key": "texte_recadrage",
+              "generated_result": {
+                "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+                "generated_at": "2026-05-13T02:28:31.314Z",
+                "output_title": "Carte d'attaque - Faire le sas de déchargement",
+                "generated_asset": "Je n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance. Mon premier geste: ouvrir le carnet, puis noter une ligne.",
+                "keyword_trigger": null,
+                "supporting_points": []
+              }
+            }
+          ],
+          "operation_draft": {
+            "title": "Carte d'attaque - Faire le sas de déchargement",
+            "technique": "texte_recadrage",
+            "instruction": "Version minuscule : ouvrir le carnet, puis noter une ligne.",
+            "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+            "target_label": "Faire le sas de déchargement",
+            "why_it_helps": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+            "generated_asset": "Je n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance. Mon premier geste: ouvrir le carnet, puis noter une ligne.",
+            "technique_title": "Le texte magique",
+            "supporting_points": []
+          }
+        },
+        "metadata": {
+          "draft": {
+            "draft": {
+              "title": "Carte d'attaque - Faire le sas de déchargement",
+              "technique": "texte_recadrage",
+              "instruction": "Version minuscule : ouvrir le carnet, puis noter une ligne.",
+              "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+              "target_label": "Faire le sas de déchargement",
+              "why_it_helps": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+              "generated_asset": "Je n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance. Mon premier geste: ouvrir le carnet, puis noter une ligne.",
+              "technique_title": "Le texte magique",
+              "supporting_points": []
+            },
+            "output_schema": "attack_card_draft_v1",
+            "operation_type": "prepare_attack_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je te propose cette carte d'attaque avant de la creer.\n\nLe texte magique\nJe n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance. Mon premier geste: ouvrir le carnet, puis noter une ligne.\n\nMode d'emploi: Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.\n\nTu veux que je cree cette carte ?"
+          },
+          "source": "sophia_brain_operation_flow",
+          "target": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-hard-10t-r4-t05",
+          "operation_id": "b5fd2307-0d06-4609-b857-b2dcac39bb97",
+          "operation_type": "prepare_attack_card",
+          "source_message_id": "54fd5398-07c9-45a6-a36b-694717d2b91c"
+        },
+        "generated_at": "2026-05-13T02:28:31.314+00:00",
+        "last_updated_at": "2026-05-13T02:28:31.315+00:00"
+      },
+      {
+        "id": "52ad8c7e-dbc5-48ef-b228-ac0502c91e45",
+        "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+        "status": "active",
+        "content": {
+          "summary": "Carte d'attaque pour Faire le sas de déchargement.",
+          "techniques": [
+            {
+              "title": "Le texte magique",
+              "pour_quoi": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+              "questions": [],
+              "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+              "objet_genere": "Un texte court a relire ou recopier quand la resistance monte.",
+              "technique_key": "texte_recadrage",
+              "generated_result": {
+                "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+                "generated_at": "2026-05-13T02:25:20.063Z",
+                "output_title": "Carte d'attaque - Faire le sas de déchargement",
+                "generated_asset": "Je n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance. Mon premier geste: ouvrir le carnet, puis noter une ligne.",
+                "keyword_trigger": null,
+                "supporting_points": []
+              }
+            }
+          ],
+          "operation_draft": {
+            "title": "Carte d'attaque - Faire le sas de déchargement",
+            "technique": "texte_recadrage",
+            "instruction": "Version minuscule : ouvrir le carnet, puis noter une ligne.",
+            "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+            "target_label": "Faire le sas de déchargement",
+            "why_it_helps": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+            "generated_asset": "Je n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance. Mon premier geste: ouvrir le carnet, puis noter une ligne.",
+            "technique_title": "Le texte magique",
+            "supporting_points": []
+          }
+        },
+        "metadata": {
+          "draft": {
+            "draft": {
+              "title": "Carte d'attaque - Faire le sas de déchargement",
+              "technique": "texte_recadrage",
+              "instruction": "Version minuscule : ouvrir le carnet, puis noter une ligne.",
+              "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+              "target_label": "Faire le sas de déchargement",
+              "why_it_helps": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+              "generated_asset": "Je n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance. Mon premier geste: ouvrir le carnet, puis noter une ligne.",
+              "technique_title": "Le texte magique",
+              "supporting_points": []
+            },
+            "output_schema": "attack_card_draft_v1",
+            "operation_type": "prepare_attack_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je te propose cette carte d'attaque avant de la creer.\n\nLe texte magique\nJe n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance. Mon premier geste: ouvrir le carnet, puis noter une ligne.\n\nMode d'emploi: Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.\n\nTu veux que je cree cette carte ?"
+          },
+          "source": "sophia_brain_operation_flow",
+          "target": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-hard-10t-r3-t05",
+          "operation_id": "c6a3d180-ab5e-45ae-ad12-3355aa7f1da9",
+          "operation_type": "prepare_attack_card",
+          "source_message_id": "ddf62a6e-98c1-47a3-b005-867ed452f281"
+        },
+        "generated_at": "2026-05-13T02:25:20.063+00:00",
+        "last_updated_at": "2026-05-13T02:25:20.063+00:00"
+      },
+      {
+        "id": "69c85fd2-2663-4d35-9dc9-d6066f445043",
+        "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+        "status": "active",
+        "content": {
+          "summary": "Carte d'attaque pour Faire le sas de déchargement.",
+          "techniques": [
+            {
+              "title": "Le texte magique",
+              "pour_quoi": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+              "questions": [],
+              "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+              "objet_genere": "Un texte court a relire ou recopier quand la resistance monte.",
+              "technique_key": "texte_recadrage",
+              "generated_result": {
+                "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+                "generated_at": "2026-05-13T02:23:15.119Z",
+                "output_title": "Carte d'attaque - Faire le sas de déchargement",
+                "generated_asset": "Je n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance. Mon premier geste: ouvrir le carnet, puis noter une ligne.",
+                "keyword_trigger": null,
+                "supporting_points": []
+              }
+            }
+          ],
+          "operation_draft": {
+            "title": "Carte d'attaque - Faire le sas de déchargement",
+            "technique": "texte_recadrage",
+            "instruction": "Version minuscule : ouvrir le carnet, puis noter une ligne.",
+            "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+            "target_label": "Faire le sas de déchargement",
+            "why_it_helps": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+            "generated_asset": "Je n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance. Mon premier geste: ouvrir le carnet, puis noter une ligne.",
+            "technique_title": "Le texte magique",
+            "supporting_points": []
+          }
+        },
+        "metadata": {
+          "draft": {
+            "draft": {
+              "title": "Carte d'attaque - Faire le sas de déchargement",
+              "technique": "texte_recadrage",
+              "instruction": "Version minuscule : ouvrir le carnet, puis noter une ligne.",
+              "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+              "target_label": "Faire le sas de déchargement",
+              "why_it_helps": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+              "generated_asset": "Je n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance. Mon premier geste: ouvrir le carnet, puis noter une ligne.",
+              "technique_title": "Le texte magique",
+              "supporting_points": []
+            },
+            "output_schema": "attack_card_draft_v1",
+            "operation_type": "prepare_attack_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je te propose cette carte d'attaque avant de la creer.\n\nLe texte magique\nJe n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance. Mon premier geste: ouvrir le carnet, puis noter une ligne.\n\nMode d'emploi: Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.\n\nTu veux que je cree cette carte ?"
+          },
+          "source": "sophia_brain_operation_flow",
+          "target": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-hard-10t-r2-t05",
+          "operation_id": "8e055a85-44e9-4c8d-90db-d38b30b2741c",
+          "operation_type": "prepare_attack_card",
+          "source_message_id": "88142105-4b02-47f0-abc9-d7b9580757a5"
+        },
+        "generated_at": "2026-05-13T02:23:15.119+00:00",
+        "last_updated_at": "2026-05-13T02:23:15.119+00:00"
+      },
+      {
+        "id": "9c5f3a62-a401-457b-b1b6-555ae4d20d7f",
+        "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+        "status": "active",
+        "content": {
+          "summary": "Carte d'attaque pour Faire le sas de déchargement.",
+          "techniques": [
+            {
+              "title": "Le texte magique",
+              "pour_quoi": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+              "questions": [],
+              "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+              "objet_genere": "Un texte court a relire ou recopier quand la resistance monte.",
+              "technique_key": "texte_recadrage",
+              "generated_result": {
+                "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+                "generated_at": "2026-05-13T02:05:48.181Z",
+                "output_title": "Carte d'attaque - Faire le sas de déchargement",
+                "generated_asset": "Je n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance.",
+                "keyword_trigger": null,
+                "supporting_points": []
+              }
+            }
+          ],
+          "operation_draft": {
+            "title": "Carte d'attaque - Faire le sas de déchargement",
+            "technique": "texte_recadrage",
+            "instruction": "Version minuscule : ouvrir le carnet, puis Faire le sas de dechargement. Texte magique. Premier geste : ouvrir le carnet, puis noter une ligne.",
+            "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+            "target_label": "Faire le sas de déchargement",
+            "why_it_helps": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+            "generated_asset": "Je n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance.",
+            "technique_title": "Le texte magique",
+            "supporting_points": []
+          }
+        },
+        "metadata": {
+          "draft": {
+            "draft": {
+              "title": "Carte d'attaque - Faire le sas de déchargement",
+              "technique": "texte_recadrage",
+              "instruction": "Version minuscule : ouvrir le carnet, puis Faire le sas de dechargement. Texte magique. Premier geste : ouvrir le carnet, puis noter une ligne.",
+              "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+              "target_label": "Faire le sas de déchargement",
+              "why_it_helps": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+              "generated_asset": "Je n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance.",
+              "technique_title": "Le texte magique",
+              "supporting_points": []
+            },
+            "output_schema": "attack_card_draft_v1",
+            "operation_type": "prepare_attack_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je te propose cette carte d'attaque avant de la creer.\n\nLe texte magique\nJe n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance.\n\nMode d'emploi: Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.\n\nTu veux que je cree cette carte ?"
+          },
+          "source": "sophia_brain_operation_flow",
+          "target": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-hard-10t-r1-t10",
+          "operation_id": "e2fbbe8f-d388-4806-86fd-9429307ff7e3",
+          "operation_type": "prepare_attack_card",
+          "source_message_id": "17f359fa-4984-4728-9075-c0549c11f203"
+        },
+        "generated_at": "2026-05-13T02:05:48.181+00:00",
+        "last_updated_at": "2026-05-13T02:05:48.181+00:00"
+      },
+      {
+        "id": "e096b47c-69d3-4639-9d0e-06018d57e057",
+        "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+        "status": "active",
+        "content": {
+          "summary": "Carte d'attaque pour Faire le sas de déchargement.",
+          "techniques": [
+            {
+              "title": "Le texte magique",
+              "pour_quoi": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+              "questions": [],
+              "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+              "objet_genere": "Un texte court a relire ou recopier quand la resistance monte.",
+              "technique_key": "texte_recadrage",
+              "generated_result": {
+                "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+                "generated_at": "2026-05-13T01:18:03.781Z",
+                "output_title": "Carte d'attaque - Faire le sas de déchargement",
+                "generated_asset": "Je n'ai pas besoin de negocier Faire le sas de déchargement. Je fais juste le premier geste maintenant, assez petit pour passer la resistance.",
+                "keyword_trigger": null,
+                "supporting_points": []
+              }
+            }
+          ],
+          "operation_draft": {
+            "title": "Carte d'attaque - Faire le sas de déchargement",
+            "technique": "texte_recadrage",
+            "instruction": "Relis ce texte au moment ou tu negocies avec \"Faire le sas de déchargement\", puis fais seulement le premier geste.",
+            "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+            "target_label": "Faire le sas de déchargement",
+            "why_it_helps": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+            "generated_asset": "Je n'ai pas besoin de negocier Faire le sas de déchargement. Je fais juste le premier geste maintenant, assez petit pour passer la resistance.",
+            "technique_title": "Le texte magique",
+            "supporting_points": []
+          }
+        },
+        "metadata": {
+          "draft": {
+            "draft": {
+              "title": "Carte d'attaque - Faire le sas de déchargement",
+              "technique": "texte_recadrage",
+              "instruction": "Relis ce texte au moment ou tu negocies avec \"Faire le sas de déchargement\", puis fais seulement le premier geste.",
+              "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+              "target_label": "Faire le sas de déchargement",
+              "why_it_helps": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+              "generated_asset": "Je n'ai pas besoin de negocier Faire le sas de déchargement. Je fais juste le premier geste maintenant, assez petit pour passer la resistance.",
+              "technique_title": "Le texte magique",
+              "supporting_points": []
+            },
+            "output_schema": "attack_card_draft_v1",
+            "operation_type": "prepare_attack_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je te propose cette carte d'attaque avant de la creer.\n\nLe texte magique\nJe n'ai pas besoin de negocier Faire le sas de déchargement. Je fais juste le premier geste maintenant, assez petit pour passer la resistance.\n\nMode d'emploi: Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.\n\nTu veux que je cree cette carte ?"
+          },
+          "source": "sophia_brain_operation_flow",
+          "target": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-technique-options-r1-t04",
+          "operation_id": "0e89880a-3165-48c4-abe0-7dfa2ceb9ec4",
+          "operation_type": "prepare_attack_card",
+          "source_message_id": "f10ec0f5-432b-4578-8dce-f272a49f96bd"
+        },
+        "generated_at": "2026-05-13T01:18:03.781+00:00",
+        "last_updated_at": "2026-05-13T01:18:03.781+00:00"
+      }
+    ]
+  },
+  "user_plan_items": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e",
+        "title": "Préparer ta zone de déchargement",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "active",
+        "cards_status": "not_started",
+        "attack_card_id": null,
+        "updated_at": "2026-05-06T13:45:51.10963+00:00"
+      },
+      {
+        "id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+        "title": "Faire le sas de déchargement",
+        "dimension": "habits",
+        "kind": "habit",
+        "status": "active",
+        "cards_status": "ready",
+        "attack_card_id": "f8240553-5269-4fac-8ec7-f01f0f3c4a5c",
+        "updated_at": "2026-05-13T13:40:19.56904+00:00"
+      },
+      {
+        "id": "8d321c6c-ce4b-440f-b7b1-69e1a17ff835",
+        "title": "Repérer les pièges de l'hypervigilance",
+        "dimension": "clarifications",
+        "kind": "exercise",
+        "status": "pending",
+        "cards_status": "ready",
+        "attack_card_id": "81340b70-49a0-45f4-a459-208557a1c3ea",
+        "updated_at": "2026-05-13T13:47:44.277267+00:00"
+      },
+      {
+        "id": "793bdd4a-c2fb-40fa-b972-e58b8659658f",
+        "title": "Bilan et ajustement du sas",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "pending",
+        "cards_status": "not_started",
+        "attack_card_id": null,
+        "updated_at": "2026-05-06T06:23:51.281+00:00"
+      }
+    ]
+  },
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "4a21cb56-76e5-42b7-b7ae-4c2503e50ed5",
+        "role": "user",
+        "content": "ANCRE",
+        "scope": "qa-operation-suggestion-test1-alex-2026-05-13-attack-keyword-ancre-r1",
+        "metadata": {
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-keyword-ancre-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-13T13:54:15.002298+00:00"
+      },
+      {
+        "id": "d7ad9af4-e9df-4071-ab96-dff202ad9cd4",
+        "role": "assistant",
+        "content": "Ok. Respire une fois, pose ta main sur le lieu le plus “stable” (poitrine ou ventre), et dis-toi intérieurement: “Je reviens au repérage.” Ensuite, repère juste un piège d’hypervigilance là, maintenant. 😮‍💨\n\nTu sens plutôt: contrôle excessif A, ou sur-interprétation B ?",
+        "scope": "qa-operation-suggestion-test1-alex-2026-05-13-attack-keyword-ancre-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-keyword-ancre-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-05-13T13:54:28.941642+00:00"
+      }
+    ]
+  }
+}

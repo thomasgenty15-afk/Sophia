@@ -1,0 +1,732 @@
+{
+  "run_id": "weekly-gate-20260516-r6",
+  "created_at": "2026-05-16T19:21:58.775Z",
+  "auth": {
+    "user_id": "75ad3907-f313-4387-bced-c0540d08b022",
+    "email": "qa-weekly-gate-weekly-gate-20260516-r6@example.com",
+    "password": "[redacted]"
+  },
+  "timezone": "Europe/Paris",
+  "local_now": {
+    "ymd": "2026-05-16",
+    "weekday": "sat",
+    "minutes": 1281
+  },
+  "dates": {
+    "currentWeekStart": "2026-05-11",
+    "currentWeekEnd": "2026-05-17",
+    "nextWeekStart": "2026-05-18",
+    "nextWeekEnd": "2026-05-24"
+  },
+  "ids": {
+    "cycle_id": "3498b2ee-2d5a-4b82-bed1-647e2f6a1f71",
+    "transformation_id": "ede1f746-c4cd-4905-954e-1897ca163ebb",
+    "plan_id": "a910e4a5-c9fe-4895-88e0-d9b95dc509c1"
+  },
+  "items": [
+    {
+      "id": "df7cc8c5-7e44-4f4e-a32b-eb0518090976",
+      "title": "Session focus courte",
+      "dimension": "habits",
+      "kind": "habit",
+      "target_reps": 4
+    },
+    {
+      "id": "886e52c4-5467-44bd-a0ad-eb397e3c5fb1",
+      "title": "Marche de decompression",
+      "dimension": "habits",
+      "kind": "habit",
+      "target_reps": 2
+    }
+  ],
+  "schedule_result": {
+    "status": 200,
+    "ok": true,
+    "body": {
+      "success": true,
+      "scheduled": 0,
+      "action_morning_scheduled": 0,
+      "action_morning_followup_scheduled": 0,
+      "light_greeting_scheduled": 0,
+      "action_evening_review_scheduled": 0,
+      "weekly_planning_prompt_scheduled": 0,
+      "weekly_progress_review_scheduled": 0,
+      "skipped": 1,
+      "candidates": 0,
+      "request_id": "qa-weekly-gate-weekly-gate-20260516-r6-schedule",
+      "user_id": "75ad3907-f313-4387-bced-c0540d08b022",
+      "event_context": "action_morning_encouragement_v2"
+    },
+    "text": "{\"success\":true,\"scheduled\":0,\"action_morning_scheduled\":0,\"action_morning_followup_scheduled\":0,\"light_greeting_scheduled\":0,\"action_evening_review_scheduled\":0,\"weekly_planning_prompt_scheduled\":0,\"weekly_progress_review_scheduled\":0,\"skipped\":1,\"candidates\":0,\"request_id\":\"qa-weekly-gate-weekly-gate-20260516-r6-schedule\",\"user_id\":\"75ad3907-f313-4387-bced-c0540d08b022\",\"event_context\":\"action_morning_encouragement_v2\"}"
+  },
+  "scheduled_after_saturday_gate": [],
+  "early_confirm_result": {
+    "status": 409,
+    "body": {
+      "error": "weekly_planning_locked_until_weekly_review",
+      "details": {
+        "week_start_date": "2026-05-18",
+        "timezone": "Europe/Paris",
+        "unlock_local_date": "2026-05-17",
+        "unlock_local_time": "18:30",
+        "reason": "La semaine suivante ne peut etre confirmee qu'apres le weekly du dimanche soir, ou le lundi matin."
+      },
+      "request_id": "qa-weekly-gate-weekly-gate-20260516-r6-early-confirm"
+    }
+  },
+  "weekly_checkin_initial": {
+    "id": "a208d346-ccc6-4cf9-a301-df3c5377f919",
+    "user_id": "75ad3907-f313-4387-bced-c0540d08b022",
+    "event_context": "weekly_progress_review_v2",
+    "draft_message": "Point hebdo QA",
+    "scheduled_for": "2026-05-16T19:20:59.089+00:00",
+    "status": "pending",
+    "created_at": "2026-05-16T19:21:59.091785+00:00",
+    "processed_at": null,
+    "message_mode": "dynamic",
+    "message_payload": {
+      "source": "weekly_planning_gate_qa",
+      "version": 1,
+      "timezone": "Europe/Paris",
+      "generated_at": "2026-05-16T19:21:59.089Z",
+      "week_end_date": "2026-05-17",
+      "week_start_date": "2026-05-11"
+    },
+    "origin": "weekly_review",
+    "delivery_attempt_count": 0,
+    "delivery_last_error": null,
+    "delivery_last_error_at": null,
+    "delivery_last_request_id": null,
+    "recurring_reminder_id": null
+  },
+  "process_result": {
+    "status": 200,
+    "ok": true,
+    "body": {
+      "success": true,
+      "processed": 1,
+      "flushed_deferred": 0,
+      "delivered_rendez_vous": 0,
+      "processed_access_notifications": 0,
+      "processed_proactive_candidates": 0,
+      "request_id": "qa-weekly-gate-weekly-gate-20260516-r6-process-weekly"
+    },
+    "text": "{\"success\":true,\"processed\":1,\"flushed_deferred\":0,\"delivered_rendez_vous\":0,\"processed_access_notifications\":0,\"processed_proactive_candidates\":0,\"request_id\":\"qa-weekly-gate-weekly-gate-20260516-r6-process-weekly\"}"
+  },
+  "weekly_checkin_after": {
+    "id": "a208d346-ccc6-4cf9-a301-df3c5377f919",
+    "status": "sent",
+    "draft_message": "J’ai surtout vu ce blocage cette semaine : fatigue…  \nTu veux qu’on parte sur une semaine “pont” pour te laisser reprendre de l’élan sans pression ?",
+    "delivery_last_error": null,
+    "processed_at": "2026-05-16T19:22:00.718+00:00",
+    "message_payload": {
+      "source": "process_checkins:weekly_adaptive_review_v1",
+      "version": 1,
+      "timezone": "Europe/Paris",
+      "instruction": "Weekly adaptive review.\nObjectif: faire le point de fin de semaine en partant des habitudes et des donnees daily_action_review_v1.\nNe refais pas un bilan action par action si le daily donne deja les raisons.\nPose uniquement la question fournie si elle existe.\nNe dis jamais que tu as applique un changement de plan: le JSON est une proposition qui demande confirmation.\nHabit verdict: failed (0.25).\nDecision proposee: bridge_week.\nQuestion a poser: J'ai surtout vu ce blocage cette semaine: fatigue. Tu confirmes que c'est bien ca qui doit guider l'ajustement de la semaine prochaine ?",
+      "generated_at": "2026-05-16T19:21:59.089Z",
+      "week_end_date": "2026-05-17",
+      "chat_capability": "weekly_adaptive_review",
+      "event_grounding": "{\"version\":1,\"user_id\":\"75ad3907-f313-4387-bced-c0540d08b022\",\"timezone\":\"Europe/Paris\",\"week_start_date\":\"2026-05-11\",\"week_end_date\":\"2026-05-17\",\"generated_at\":\"2026-05-16T19:21:59.348Z\",\"transformations\":[{\"transformation_id\":\"ede1f746-c4cd-4905-954e-1897ca163ebb\",\"transformation_title\":\"Stabiliser le rythme de travail\",\"plan_id\":\"a910e4a5-c9fe-4895-88e0-d9b95dc509c1\",\"plan_title\":\"Plan QA weekly gate\",\"summary\":{\"planned_count\":6,\"done_count\":1,\"partial_count\":1,\"missed_count\":4,\"unanswered_count\":0,\"rescheduled_count\":0,\"adherence_rate\":0.25},\"actions\":[{\"occurrence_id\":\"3bdea73f-a076-41b4-8ce0-c8b6928d92e6\",\"plan_item_id\":\"886e52c4-5467-44bd-a0ad-eb397e3c5fb1\",\"title\":\"Marche de decompression\",\"dimension\":\"habits\",\"kind\":\"habit\",\"planned_day\":\"wed\",\"status\":\"partial\",\"had_entry\":true,\"entry_outcome\":\"partial\",\"deviation\":\"partial\",\"daily_evidence\":{\"source\":\"daily_action_review_v1\",\"reason_category\":\"fatigue\",\"reason_text\":\"Trop peu d'energie pour marcher plus.\",\"matched_user_text\":null,\"still_relevant\":true,\"occurrence_status\":\"partial\",\"reschedule_decision\":\"none\",\"rescheduled_to\":null,\"confidence\":\"high\",\"outcome_source\":\"user_reply\"}},{\"occurrence_id\":\"ded73acb-de54-4474-953b-30cdf7f7f0a9\",\"plan_item_id\":\"df7cc8c5-7e44-4f4e-a32b-eb0518090976\",\"title\":\"Session focus courte\",\"dimension\":\"habits\",\"kind\":\"habit\",\"planned_day\":\"mon\",\"status\":\"done\",\"had_entry\":true,\"entry_outcome\":\"completed\",\"deviation\":\"on_plan\",\"daily_evidence\":{\"source\":\"daily_action_review_v1\",\"reason_category\":\"none\",\"reason_text\":\"Fait lundi matin avec minuteur.\",\"matched_user_text\":null,\"still_relevant\":true,\"occurrence_status\":\"completed\",\"reschedule_decision\":\"none\",\"rescheduled_to\":null,\"confidence\":\"high\",\"outcome_source\":\"user_reply\"}},{\"occurrence_id\":\"314f0940-32e7-4efa-89e3-d3d186ca0712\",\"plan_item_id\":\"886e52c4-5467-44bd-a0ad-eb397e3c5fb1\",\"title\":\"Marche de decompression\",\"dimension\":\"habits\",\"kind\":\"habit\",\"planned_day\":\"fri\",\"status\":\"missed\",\"had_entry\":true,\"entry_outcome\":\"missed\",\"deviation\":\"missed\",\"daily_evidence\":{\"source\":\"daily_action_review_v1\",\"reason_category\":\"fatigue\",\"reason_text\":\"Fatigue du soir.\",\"matched_user_text\":null,\"still_relevant\":true,\"occurrence_status\":\"missed\",\"reschedule_decision\":\"not_rescheduled_weekly_review\",\"rescheduled_to\":null,\"confidence\":\"high\",\"outcome_source\":\"user_reply\"}},{\"occurrence_id\":\"7ff1fd90-0e8a-4690-a0e7-059b4a2790d1\",\"plan_item_id\":\"df7cc8c5-7e44-4f4e-a32b-eb0518090976\",\"title\":\"Session focus courte\",\"dimension\":\"habits\",\"kind\":\"habit\",\"planned_day\":\"tue\",\"status\":\"missed\",\"had_entry\":true,\"entry_outcome\":\"missed\",\"deviation\":\"missed\",\"daily_evidence\":{\"source\":\"daily_action_review_v1\",\"reason_category\":\"fatigue\",\"reason_text\":\"Fatigue forte apres la journee.\",\"matched_user_text\":null,\"still_relevant\":true,\"occurrence_status\":\"missed\",\"reschedule_decision\":\"not_rescheduled_weekly_review\",\"rescheduled_to\":null,\"confidence\":\"high\",\"outcome_source\":\"user_reply\"}},{\"occurrence_id\":\"1df3b8c5-86f8-4867-85d9-f39885a1fd8c\",\"plan_item_id\":\"df7cc8c5-7e44-4f4e-a32b-eb0518090976\",\"title\":\"Session focus courte\",\"dimension\":\"habits\",\"kind\":\"habit\",\"planned_day\":\"thu\",\"status\":\"missed\",\"had_entry\":true,\"entry_outcome\":\"missed\",\"deviation\":\"missed\",\"daily_evidence\":{\"source\":\"daily_action_review_v1\",\"reason_category\":\"too_hard\",\"reason_text\":\"La session semblait trop lourde.\",\"matched_user_text\":null,\"still_relevant\":true,\"occurrence_status\":\"missed\",\"reschedule_decision\":\"not_rescheduled_weekly_review\",\"rescheduled_to\":null,\"confidence\":\"high\",\"outcome_source\":\"user_reply\"}},{\"occurrence_id\":\"215e7730-bae4-4cab-a2fe-3c4d9cfa7bf5\",\"plan_item_id\":\"df7cc8c5-7e44-4f4e-a32b-eb0518090976\",\"title\":\"Session focus courte\",\"dimension\":\"habits\",\"kind\":\"habit\",\"planned_day\":\"fri\",\"status\":\"missed\",\"had_entry\":true,\"entry_outcome\":\"missed\",\"deviation\":\"missed\",\"daily_evidence\":{\"source\":\"daily_action_review_v1\",\"reason_category\":\"emotional\",\"reason_text\":\"Saturation mentale.\",\"matched_user_text\":null,\"still_relevant\":true,\"occurrence_status\":\"missed\",\"reschedule_decision\":\"not_rescheduled_weekly_review\",\"rescheduled_to\":null,\"confidence\":\"high\",\"outcome_source\":\"user_reply\"}}],\"observation\":{\"what_worked\":[\"Session focus courte a ete cochee cette semaine.\"],\"friction_points\":[\"Marche de decompression n'a pas ete faite.\",\"Session focus courte n'a pas ete faite.\",\"Session focus courte n'a pas ete faite.\",\"Marche de decompression avance seulement partiellement.\"],\"pattern\":\"La semaine semble trop chargee ou pas assez ajustee au reel.\",\"confidence\":\"high\"},\"dashboard_recommendations\":[{\"kind\":\"adjust_next_week_planning\",\"priority\":\"high\",\"title\":\"Alleger ou deplacer le planning\",\"reason\":\"Les echecs/partiels dominent: la semaine suivante doit etre plus realiste.\",\"dashboard_path\":\"/dashboard\"}]}],\"global_synthesis\":{\"message_intent\":\"repair\",\"short_observation\":\"1/6 action(s) faites, 1 partielle(s), 4 non faite(s).\",\"whatsapp_message\":\"Petit point de fin de semaine: 1/6 action(s) faites, 1 partielle(s), 4 non faite(s). On ajuste la suite sans dramatiser.\",\"dashboard_cta\":{\"label\":\"Voir le dashboard\",\"url\":\"https://app.sophia.app/dashboard\"}}}\n\nweekly_adaptive_review={\"version\":1,\"status\":\"ask_question\",\"habit_verdict\":{\"status\":\"failed\",\"completion_rate\":0.25,\"planned_count\":6,\"done_points\":1.5,\"reason\":\"La cible d'habitudes n'est pas atteinte.\"},\"human_signals\":{\"objective_delta\":\"unknown\",\"felt_state\":\"unknown\"},\"daily_evidence_summary\":{\"source\":\"daily_action_review_v1\",\"coverage\":\"complete\",\"covered_count\":6,\"action_count\":6,\"dominant_blockers\":[\"fatigue\",\"too_hard\",\"emotional\"],\"rescheduled_open_count\":0,\"not_answered_count\":0,\"confidence\":\"high\"},\"week_strategy\":{\"decision\":\"bridge_week\",\"reason\":\"Les habitudes ne sont pas validees et la cause dominante demande une semaine plus simple.\",\"preserve_level_objective\":true,\"preserve_level_architecture\":true},\"question\":{\"id\":\"weekly_confirm_dominant_blocker\",\"text\":\"J'ai surtout vu ce blocage cette semaine: fatigue. Tu confirmes que c'est bien ca qui doit guider l'ajustement de la semaine prochaine ?\",\"reason\":\"Le daily donne deja la cause dominante; Sophia demande seulement confirmation.\",\"blocks_decision\":true},\"item_decisions\":[{\"plan_item_id\":\"886e52c4-5467-44bd-a0ad-eb397e3c5fb1\",\"occurrence_id\":\"3bdea73f-a076-41b4-8ce0-c8b6928d92e6\",\"title\":\"Marche de decompression\",\"family\":\"habit\",\"current_week_status\":\"partial\",\"evidence_done\":false,\"daily_evidence\":{\"source\":\"daily_action_review_v1\",\"reason_category\":\"fatigue\",\"reason_text\":\"Trop peu d'energie pour marcher plus.\",\"still_relevant\":true,\"reschedule_decision\":\"none\",\"confidence\":\"high\"},\"decision\":\"bridge_with_week\",\"reason\":\"Les habitudes suivent la strategie bridge de la semaine.\"},{\"plan_item_id\":\"df7cc8c5-7e44-4f4e-a32b-eb0518090976\",\"occurrence_id\":\"ded73acb-de54-4474-953b-30cdf7f7f0a9\",\"title\":\"Session focus courte\",\"family\":\"habit\",\"current_week_status\":\"done\",\"evidence_done\":true,\"daily_evidence\":{\"source\":\"daily_action_review_v1\",\"reason_category\":\"none\",\"reason_text\":\"Fait lundi matin avec minuteur.\",\"still_relevant\":true,\"reschedule_decision\":\"none\",\"confidence\":\"high\"},\"decision\":\"keep\",\"reason\":\"L'occurrence d'habitude est deja comptabilisee.\"},{\"plan_item_id\":\"886e52c4-5467-44bd-a0ad-eb397e3c5fb1\",\"occurrence_id\":\"314f0940-32e7-4efa-89e3-d3d186ca0712\",\"title\":\"Marche de decompression\",\"family\":\"habit\",\"current_week_status\":\"missed\",\"evidence_done\":false,\"daily_evidence\":{\"source\":\"daily_action_review_v1\",\"reason_category\":\"fatigue\",\"reason_text\":\"Fatigue du soir.\",\"still_relevant\":true,\"reschedule_decision\":\"not_rescheduled_weekly_review\",\"confidence\":\"high\"},\"decision\":\"bridge_with_week\",\"reason\":\"Les habitudes suivent la strategie bridge de la semaine.\"},{\"plan_item_id\":\"df7cc8c5-7e44-4f4e-a32b-eb0518090976\",\"occurrence_id\":\"7ff1fd90-0e8a-4690-a0e7-059b4a2790d1\",\"title\":\"Session focus courte\",\"family\":\"habit\",\"current_week_status\":\"missed\",\"evidence_done\":false,\"daily_evidence\":{\"source\":\"daily_action_review_v1\",\"reason_category\":\"fatigue\",\"reason_text\":\"Fatigue forte apres la journee.\",\"still_relevant\":true,\"reschedule_decision\":\"not_rescheduled_weekly_review\",\"confidence\":\"high\"},\"decision\":\"bridge_with_week\",\"reason\":\"Les habitudes suivent la strategie bridge de la semaine.\"},{\"plan_item_id\":\"df7cc8c5-7e44-4f4e-a32b-eb0518090976\",\"occurrence_id\":\"1df3b8c5-86f8-4867-85d9-f39885a1fd8c\",\"title\":\"Session focus courte\",\"family\":\"habit\",\"current_week_status\":\"missed\",\"evidence_done\":false,\"daily_evidence\":{\"source\":\"daily_action_review_v1\",\"reason_category\":\"too_hard\",\"reason_text\":\"La session semblait trop lourde.\",\"still_relevant\":true,\"reschedule_decision\":\"not_rescheduled_weekly_review\",\"confidence\":\"high\"},\"decision\":\"bridge_with_week\",\"reason\":\"Les habitudes suivent la strategie bridge de la semaine.\"},{\"plan_item_id\":\"df7cc8c5-7e44-4f4e-a32b-eb0518090976\",\"occurrence_id\":\"215e7730-bae4-4cab-a2fe-3c4d9cfa7bf5\",\"title\":\"Session focus courte\",\"family\":\"habit\",\"current_week_status\":\"missed\",\"evidence_done\":false,\"daily_evidence\":{\"source\":\"daily_action_review_v1\",\"reason_category\":\"emotional\",\"reason_text\":\"Saturation mentale.\",\"still_relevant\":true,\"reschedule_decision\":\"not_rescheduled_weekly_review\",\"confidence\":\"high\"},\"decision\":\"bridge_with_week\",\"reason\":\"Les habitudes suivent la strategie bridge de la semaine.\"}],\"plan_patch\":{\"requires_confirmation\":true,\"operations\":[{\"op\":\"insert_bridge_week\",\"details\":{\"reason\":\"Les habitudes ne sont pas validees et la cause dominante demande une semaine plus simple.\"}}]},\"safety\":{\"forbidden_operations\":[\"modify_level_objective_from_weekly\",\"reschedule_completed_non_habit\",\"apply_without_user_confirmation\",\"include_support_items\"],\"warnings\":[]}}\n\nmomentum_snapshot_v2={\"version\":1,\"user_id\":\"75ad3907-f313-4387-bced-c0540d08b022\",\"generated_at\":\"2026-05-16T19:21:59.360Z\",\"window\":{\"from\":\"2026-05-10\",\"to\":\"2026-05-16\",\"days\":7},\"state\":\"stuck\",\"risk_level\":\"high\",\"signals\":{\"active_transformations\":1,\"planned_actions\":6,\"done\":1,\"partial\":1,\"missed\":4,\"unanswered\":0,\"rescheduled\":0,\"adherence_rate\":0.25,\"current_done_streak\":0,\"missed_streak\":3,\"last_user_reply_at\":null,\"days_since_last_user_reply\":null,\"planning_confirmed\":true,\"planning_modified_this_week\":false,\"upcoming_planned_actions_7d\":0,\"conversation_risk\":null},\"interpretation\":{\"main_pattern\":\"les echecs ou non-reponses dominent sur plusieurs actions\",\"confidence\":\"high\"},\"recommended_intervention\":{\"kind\":\"repair\",\"urgency\":\"high\",\"posture\":\"repair_first\",\"reason\":\"plusieurs echecs ou absences de reponse s'accumulent\"}}",
+      "week_start_date": "2026-05-11",
+      "momentum_snapshot_v2": {
+        "state": "stuck",
+        "window": {
+          "to": "2026-05-16",
+          "days": 7,
+          "from": "2026-05-10"
+        },
+        "signals": {
+          "done": 1,
+          "missed": 4,
+          "partial": 1,
+          "unanswered": 0,
+          "rescheduled": 0,
+          "missed_streak": 3,
+          "adherence_rate": 0.25,
+          "planned_actions": 6,
+          "conversation_risk": null,
+          "last_user_reply_at": null,
+          "planning_confirmed": true,
+          "current_done_streak": 0,
+          "active_transformations": 1,
+          "days_since_last_user_reply": null,
+          "planning_modified_this_week": false,
+          "upcoming_planned_actions_7d": 0
+        },
+        "user_id": "75ad3907-f313-4387-bced-c0540d08b022",
+        "version": 1,
+        "risk_level": "high",
+        "generated_at": "2026-05-16T19:21:59.360Z",
+        "interpretation": {
+          "confidence": "high",
+          "main_pattern": "les echecs ou non-reponses dominent sur plusieurs actions"
+        },
+        "recommended_intervention": {
+          "kind": "repair",
+          "reason": "plusieurs echecs ou absences de reponse s'accumulent",
+          "posture": "repair_first",
+          "urgency": "high"
+        }
+      },
+      "weekly_adaptive_review": {
+        "safety": {
+          "warnings": [],
+          "forbidden_operations": [
+            "modify_level_objective_from_weekly",
+            "reschedule_completed_non_habit",
+            "apply_without_user_confirmation",
+            "include_support_items"
+          ]
+        },
+        "status": "ask_question",
+        "version": 1,
+        "question": {
+          "id": "weekly_confirm_dominant_blocker",
+          "text": "J'ai surtout vu ce blocage cette semaine: fatigue. Tu confirmes que c'est bien ca qui doit guider l'ajustement de la semaine prochaine ?",
+          "reason": "Le daily donne deja la cause dominante; Sophia demande seulement confirmation.",
+          "blocks_decision": true
+        },
+        "plan_patch": {
+          "operations": [
+            {
+              "op": "insert_bridge_week",
+              "details": {
+                "reason": "Les habitudes ne sont pas validees et la cause dominante demande une semaine plus simple."
+              }
+            }
+          ],
+          "requires_confirmation": true
+        },
+        "habit_verdict": {
+          "reason": "La cible d'habitudes n'est pas atteinte.",
+          "status": "failed",
+          "done_points": 1.5,
+          "planned_count": 6,
+          "completion_rate": 0.25
+        },
+        "human_signals": {
+          "felt_state": "unknown",
+          "objective_delta": "unknown"
+        },
+        "week_strategy": {
+          "reason": "Les habitudes ne sont pas validees et la cause dominante demande une semaine plus simple.",
+          "decision": "bridge_week",
+          "preserve_level_objective": true,
+          "preserve_level_architecture": true
+        },
+        "item_decisions": [
+          {
+            "title": "Marche de decompression",
+            "family": "habit",
+            "reason": "Les habitudes suivent la strategie bridge de la semaine.",
+            "decision": "bridge_with_week",
+            "plan_item_id": "886e52c4-5467-44bd-a0ad-eb397e3c5fb1",
+            "evidence_done": false,
+            "occurrence_id": "3bdea73f-a076-41b4-8ce0-c8b6928d92e6",
+            "daily_evidence": {
+              "source": "daily_action_review_v1",
+              "confidence": "high",
+              "reason_text": "Trop peu d'energie pour marcher plus.",
+              "still_relevant": true,
+              "reason_category": "fatigue",
+              "reschedule_decision": "none"
+            },
+            "current_week_status": "partial"
+          },
+          {
+            "title": "Session focus courte",
+            "family": "habit",
+            "reason": "L'occurrence d'habitude est deja comptabilisee.",
+            "decision": "keep",
+            "plan_item_id": "df7cc8c5-7e44-4f4e-a32b-eb0518090976",
+            "evidence_done": true,
+            "occurrence_id": "ded73acb-de54-4474-953b-30cdf7f7f0a9",
+            "daily_evidence": {
+              "source": "daily_action_review_v1",
+              "confidence": "high",
+              "reason_text": "Fait lundi matin avec minuteur.",
+              "still_relevant": true,
+              "reason_category": "none",
+              "reschedule_decision": "none"
+            },
+            "current_week_status": "done"
+          },
+          {
+            "title": "Marche de decompression",
+            "family": "habit",
+            "reason": "Les habitudes suivent la strategie bridge de la semaine.",
+            "decision": "bridge_with_week",
+            "plan_item_id": "886e52c4-5467-44bd-a0ad-eb397e3c5fb1",
+            "evidence_done": false,
+            "occurrence_id": "314f0940-32e7-4efa-89e3-d3d186ca0712",
+            "daily_evidence": {
+              "source": "daily_action_review_v1",
+              "confidence": "high",
+              "reason_text": "Fatigue du soir.",
+              "still_relevant": true,
+              "reason_category": "fatigue",
+              "reschedule_decision": "not_rescheduled_weekly_review"
+            },
+            "current_week_status": "missed"
+          },
+          {
+            "title": "Session focus courte",
+            "family": "habit",
+            "reason": "Les habitudes suivent la strategie bridge de la semaine.",
+            "decision": "bridge_with_week",
+            "plan_item_id": "df7cc8c5-7e44-4f4e-a32b-eb0518090976",
+            "evidence_done": false,
+            "occurrence_id": "7ff1fd90-0e8a-4690-a0e7-059b4a2790d1",
+            "daily_evidence": {
+              "source": "daily_action_review_v1",
+              "confidence": "high",
+              "reason_text": "Fatigue forte apres la journee.",
+              "still_relevant": true,
+              "reason_category": "fatigue",
+              "reschedule_decision": "not_rescheduled_weekly_review"
+            },
+            "current_week_status": "missed"
+          },
+          {
+            "title": "Session focus courte",
+            "family": "habit",
+            "reason": "Les habitudes suivent la strategie bridge de la semaine.",
+            "decision": "bridge_with_week",
+            "plan_item_id": "df7cc8c5-7e44-4f4e-a32b-eb0518090976",
+            "evidence_done": false,
+            "occurrence_id": "1df3b8c5-86f8-4867-85d9-f39885a1fd8c",
+            "daily_evidence": {
+              "source": "daily_action_review_v1",
+              "confidence": "high",
+              "reason_text": "La session semblait trop lourde.",
+              "still_relevant": true,
+              "reason_category": "too_hard",
+              "reschedule_decision": "not_rescheduled_weekly_review"
+            },
+            "current_week_status": "missed"
+          },
+          {
+            "title": "Session focus courte",
+            "family": "habit",
+            "reason": "Les habitudes suivent la strategie bridge de la semaine.",
+            "decision": "bridge_with_week",
+            "plan_item_id": "df7cc8c5-7e44-4f4e-a32b-eb0518090976",
+            "evidence_done": false,
+            "occurrence_id": "215e7730-bae4-4cab-a2fe-3c4d9cfa7bf5",
+            "daily_evidence": {
+              "source": "daily_action_review_v1",
+              "confidence": "high",
+              "reason_text": "Saturation mentale.",
+              "still_relevant": true,
+              "reason_category": "emotional",
+              "reschedule_decision": "not_rescheduled_weekly_review"
+            },
+            "current_week_status": "missed"
+          }
+        ],
+        "daily_evidence_summary": {
+          "source": "daily_action_review_v1",
+          "coverage": "complete",
+          "confidence": "high",
+          "action_count": 6,
+          "covered_count": 6,
+          "dominant_blockers": [
+            "fatigue",
+            "too_hard",
+            "emotional"
+          ],
+          "not_answered_count": 0,
+          "rescheduled_open_count": 0
+        }
+      },
+      "weekly_progress_review": {
+        "user_id": "75ad3907-f313-4387-bced-c0540d08b022",
+        "version": 1,
+        "timezone": "Europe/Paris",
+        "generated_at": "2026-05-16T19:21:59.348Z",
+        "week_end_date": "2026-05-17",
+        "transformations": [
+          {
+            "actions": [
+              {
+                "kind": "habit",
+                "title": "Marche de decompression",
+                "status": "partial",
+                "deviation": "partial",
+                "dimension": "habits",
+                "had_entry": true,
+                "planned_day": "wed",
+                "plan_item_id": "886e52c4-5467-44bd-a0ad-eb397e3c5fb1",
+                "entry_outcome": "partial",
+                "occurrence_id": "3bdea73f-a076-41b4-8ce0-c8b6928d92e6",
+                "daily_evidence": {
+                  "source": "daily_action_review_v1",
+                  "confidence": "high",
+                  "reason_text": "Trop peu d'energie pour marcher plus.",
+                  "outcome_source": "user_reply",
+                  "rescheduled_to": null,
+                  "still_relevant": true,
+                  "reason_category": "fatigue",
+                  "matched_user_text": null,
+                  "occurrence_status": "partial",
+                  "reschedule_decision": "none"
+                }
+              },
+              {
+                "kind": "habit",
+                "title": "Session focus courte",
+                "status": "done",
+                "deviation": "on_plan",
+                "dimension": "habits",
+                "had_entry": true,
+                "planned_day": "mon",
+                "plan_item_id": "df7cc8c5-7e44-4f4e-a32b-eb0518090976",
+                "entry_outcome": "completed",
+                "occurrence_id": "ded73acb-de54-4474-953b-30cdf7f7f0a9",
+                "daily_evidence": {
+                  "source": "daily_action_review_v1",
+                  "confidence": "high",
+                  "reason_text": "Fait lundi matin avec minuteur.",
+                  "outcome_source": "user_reply",
+                  "rescheduled_to": null,
+                  "still_relevant": true,
+                  "reason_category": "none",
+                  "matched_user_text": null,
+                  "occurrence_status": "completed",
+                  "reschedule_decision": "none"
+                }
+              },
+              {
+                "kind": "habit",
+                "title": "Marche de decompression",
+                "status": "missed",
+                "deviation": "missed",
+                "dimension": "habits",
+                "had_entry": true,
+                "planned_day": "fri",
+                "plan_item_id": "886e52c4-5467-44bd-a0ad-eb397e3c5fb1",
+                "entry_outcome": "missed",
+                "occurrence_id": "314f0940-32e7-4efa-89e3-d3d186ca0712",
+                "daily_evidence": {
+                  "source": "daily_action_review_v1",
+                  "confidence": "high",
+                  "reason_text": "Fatigue du soir.",
+                  "outcome_source": "user_reply",
+                  "rescheduled_to": null,
+                  "still_relevant": true,
+                  "reason_category": "fatigue",
+                  "matched_user_text": null,
+                  "occurrence_status": "missed",
+                  "reschedule_decision": "not_rescheduled_weekly_review"
+                }
+              },
+              {
+                "kind": "habit",
+                "title": "Session focus courte",
+                "status": "missed",
+                "deviation": "missed",
+                "dimension": "habits",
+                "had_entry": true,
+                "planned_day": "tue",
+                "plan_item_id": "df7cc8c5-7e44-4f4e-a32b-eb0518090976",
+                "entry_outcome": "missed",
+                "occurrence_id": "7ff1fd90-0e8a-4690-a0e7-059b4a2790d1",
+                "daily_evidence": {
+                  "source": "daily_action_review_v1",
+                  "confidence": "high",
+                  "reason_text": "Fatigue forte apres la journee.",
+                  "outcome_source": "user_reply",
+                  "rescheduled_to": null,
+                  "still_relevant": true,
+                  "reason_category": "fatigue",
+                  "matched_user_text": null,
+                  "occurrence_status": "missed",
+                  "reschedule_decision": "not_rescheduled_weekly_review"
+                }
+              },
+              {
+                "kind": "habit",
+                "title": "Session focus courte",
+                "status": "missed",
+                "deviation": "missed",
+                "dimension": "habits",
+                "had_entry": true,
+                "planned_day": "thu",
+                "plan_item_id": "df7cc8c5-7e44-4f4e-a32b-eb0518090976",
+                "entry_outcome": "missed",
+                "occurrence_id": "1df3b8c5-86f8-4867-85d9-f39885a1fd8c",
+                "daily_evidence": {
+                  "source": "daily_action_review_v1",
+                  "confidence": "high",
+                  "reason_text": "La session semblait trop lourde.",
+                  "outcome_source": "user_reply",
+                  "rescheduled_to": null,
+                  "still_relevant": true,
+                  "reason_category": "too_hard",
+                  "matched_user_text": null,
+                  "occurrence_status": "missed",
+                  "reschedule_decision": "not_rescheduled_weekly_review"
+                }
+              },
+              {
+                "kind": "habit",
+                "title": "Session focus courte",
+                "status": "missed",
+                "deviation": "missed",
+                "dimension": "habits",
+                "had_entry": true,
+                "planned_day": "fri",
+                "plan_item_id": "df7cc8c5-7e44-4f4e-a32b-eb0518090976",
+                "entry_outcome": "missed",
+                "occurrence_id": "215e7730-bae4-4cab-a2fe-3c4d9cfa7bf5",
+                "daily_evidence": {
+                  "source": "daily_action_review_v1",
+                  "confidence": "high",
+                  "reason_text": "Saturation mentale.",
+                  "outcome_source": "user_reply",
+                  "rescheduled_to": null,
+                  "still_relevant": true,
+                  "reason_category": "emotional",
+                  "matched_user_text": null,
+                  "occurrence_status": "missed",
+                  "reschedule_decision": "not_rescheduled_weekly_review"
+                }
+              }
+            ],
+            "plan_id": "a910e4a5-c9fe-4895-88e0-d9b95dc509c1",
+            "summary": {
+              "done_count": 1,
+              "missed_count": 4,
+              "partial_count": 1,
+              "planned_count": 6,
+              "adherence_rate": 0.25,
+              "unanswered_count": 0,
+              "rescheduled_count": 0
+            },
+            "plan_title": "Plan QA weekly gate",
+            "observation": {
+              "pattern": "La semaine semble trop chargee ou pas assez ajustee au reel.",
+              "confidence": "high",
+              "what_worked": [
+                "Session focus courte a ete cochee cette semaine."
+              ],
+              "friction_points": [
+                "Marche de decompression n'a pas ete faite.",
+                "Session focus courte n'a pas ete faite.",
+                "Session focus courte n'a pas ete faite.",
+                "Marche de decompression avance seulement partiellement."
+              ]
+            },
+            "transformation_id": "ede1f746-c4cd-4905-954e-1897ca163ebb",
+            "transformation_title": "Stabiliser le rythme de travail",
+            "dashboard_recommendations": [
+              {
+                "kind": "adjust_next_week_planning",
+                "title": "Alleger ou deplacer le planning",
+                "reason": "Les echecs/partiels dominent: la semaine suivante doit etre plus realiste.",
+                "priority": "high",
+                "dashboard_path": "/dashboard"
+              }
+            ]
+          }
+        ],
+        "week_start_date": "2026-05-11",
+        "global_synthesis": {
+          "dashboard_cta": {
+            "url": "https://app.sophia.app/dashboard",
+            "label": "Voir le dashboard"
+          },
+          "message_intent": "repair",
+          "whatsapp_message": "Petit point de fin de semaine: 1/6 action(s) faites, 1 partielle(s), 4 non faite(s). On ajuste la suite sans dramatiser.",
+          "short_observation": "1/6 action(s) faites, 1 partielle(s), 4 non faite(s)."
+        }
+      }
+    },
+    "delivery_attempt_count": 1
+  },
+  "pending_actions": [],
+  "next_week_plans": [],
+  "all_week_plans": [
+    {
+      "id": "355e00e0-027c-4a72-af86-e67eb7b2b632",
+      "week_start_date": "2026-05-11",
+      "plan_item_id": "df7cc8c5-7e44-4f4e-a32b-eb0518090976",
+      "status": "confirmed",
+      "confirmed_at": "2026-05-11T05:30:00+00:00"
+    },
+    {
+      "id": "b84ac059-00ab-4655-a558-cd6d67e8ac1a",
+      "week_start_date": "2026-05-11",
+      "plan_item_id": "886e52c4-5467-44bd-a0ad-eb397e3c5fb1",
+      "status": "confirmed",
+      "confirmed_at": "2026-05-11T05:30:00+00:00"
+    }
+  ],
+  "entries": [
+    {
+      "id": "f74bf55b-d2c1-402b-ad92-3af3d3172d5a",
+      "plan_item_id": "df7cc8c5-7e44-4f4e-a32b-eb0518090976",
+      "outcome": "completed",
+      "metadata": {
+        "source": "daily_action_review_v1",
+        "confidence": "high",
+        "reason_text": null,
+        "occurrence_id": "ded73acb-de54-4474-953b-30cdf7f7f0a9",
+        "outcome_source": "user_reply",
+        "still_relevant": true,
+        "reason_category": "none",
+        "occurrence_status": "completed",
+        "reschedule_decision": "none"
+      },
+      "effective_at": "2026-05-11T06:15:00+00:00"
+    },
+    {
+      "id": "10ee1d5f-3346-4f08-a7d4-c7a23a9b1b4d",
+      "plan_item_id": "df7cc8c5-7e44-4f4e-a32b-eb0518090976",
+      "outcome": "missed",
+      "metadata": {
+        "source": "daily_action_review_v1",
+        "confidence": "high",
+        "reason_text": "Fatigue forte apres la journee.",
+        "occurrence_id": "7ff1fd90-0e8a-4690-a0e7-059b4a2790d1",
+        "outcome_source": "user_reply",
+        "still_relevant": true,
+        "reason_category": "fatigue",
+        "occurrence_status": "missed",
+        "reschedule_decision": "not_rescheduled_weekly_review"
+      },
+      "effective_at": "2026-05-12T18:10:00+00:00"
+    },
+    {
+      "id": "ad09a42c-ea7d-4a5e-ae27-6f34ed96c264",
+      "plan_item_id": "886e52c4-5467-44bd-a0ad-eb397e3c5fb1",
+      "outcome": "partial",
+      "metadata": {
+        "source": "daily_action_review_v1",
+        "confidence": "high",
+        "reason_text": "Trop peu d'energie pour marcher plus.",
+        "occurrence_id": "3bdea73f-a076-41b4-8ce0-c8b6928d92e6",
+        "outcome_source": "user_reply",
+        "still_relevant": true,
+        "reason_category": "fatigue",
+        "occurrence_status": "partial",
+        "reschedule_decision": "none"
+      },
+      "effective_at": "2026-05-13T16:30:00+00:00"
+    },
+    {
+      "id": "827cacfd-2014-42e8-ad9b-e8f3756f5189",
+      "plan_item_id": "df7cc8c5-7e44-4f4e-a32b-eb0518090976",
+      "outcome": "missed",
+      "metadata": {
+        "source": "daily_action_review_v1",
+        "confidence": "high",
+        "reason_text": "La session semblait trop lourde.",
+        "occurrence_id": "1df3b8c5-86f8-4867-85d9-f39885a1fd8c",
+        "outcome_source": "user_reply",
+        "still_relevant": true,
+        "reason_category": "too_hard",
+        "occurrence_status": "missed",
+        "reschedule_decision": "not_rescheduled_weekly_review"
+      },
+      "effective_at": "2026-05-14T17:40:00+00:00"
+    },
+    {
+      "id": "5ac300a6-b7a3-472d-af6f-2d453f921b5a",
+      "plan_item_id": "df7cc8c5-7e44-4f4e-a32b-eb0518090976",
+      "outcome": "missed",
+      "metadata": {
+        "source": "daily_action_review_v1",
+        "confidence": "high",
+        "reason_text": "Saturation mentale.",
+        "occurrence_id": "215e7730-bae4-4cab-a2fe-3c4d9cfa7bf5",
+        "outcome_source": "user_reply",
+        "still_relevant": true,
+        "reason_category": "emotional",
+        "occurrence_status": "missed",
+        "reschedule_decision": "not_rescheduled_weekly_review"
+      },
+      "effective_at": "2026-05-15T17:50:00+00:00"
+    },
+    {
+      "id": "bf18e307-9faa-4214-b51b-7524f49ae4e6",
+      "plan_item_id": "886e52c4-5467-44bd-a0ad-eb397e3c5fb1",
+      "outcome": "missed",
+      "metadata": {
+        "source": "daily_action_review_v1",
+        "confidence": "high",
+        "reason_text": "Fatigue du soir.",
+        "occurrence_id": "314f0940-32e7-4efa-89e3-d3d186ca0712",
+        "outcome_source": "user_reply",
+        "still_relevant": true,
+        "reason_category": "fatigue",
+        "occurrence_status": "missed",
+        "reschedule_decision": "not_rescheduled_weekly_review"
+      },
+      "effective_at": "2026-05-15T18:20:00+00:00"
+    }
+  ],
+  "occurrences": [
+    {
+      "id": "215e7730-bae4-4cab-a2fe-3c4d9cfa7bf5",
+      "plan_item_id": "df7cc8c5-7e44-4f4e-a32b-eb0518090976",
+      "week_start_date": "2026-05-11",
+      "planned_day": "fri",
+      "status": "missed",
+      "source": "weekly_confirmed",
+      "validated_at": "2026-05-15T17:50:00+00:00"
+    },
+    {
+      "id": "314f0940-32e7-4efa-89e3-d3d186ca0712",
+      "plan_item_id": "886e52c4-5467-44bd-a0ad-eb397e3c5fb1",
+      "week_start_date": "2026-05-11",
+      "planned_day": "fri",
+      "status": "missed",
+      "source": "weekly_confirmed",
+      "validated_at": "2026-05-15T18:20:00+00:00"
+    },
+    {
+      "id": "ded73acb-de54-4474-953b-30cdf7f7f0a9",
+      "plan_item_id": "df7cc8c5-7e44-4f4e-a32b-eb0518090976",
+      "week_start_date": "2026-05-11",
+      "planned_day": "mon",
+      "status": "done",
+      "source": "weekly_confirmed",
+      "validated_at": "2026-05-11T06:15:00+00:00"
+    },
+    {
+      "id": "1df3b8c5-86f8-4867-85d9-f39885a1fd8c",
+      "plan_item_id": "df7cc8c5-7e44-4f4e-a32b-eb0518090976",
+      "week_start_date": "2026-05-11",
+      "planned_day": "thu",
+      "status": "missed",
+      "source": "weekly_confirmed",
+      "validated_at": "2026-05-14T17:40:00+00:00"
+    },
+    {
+      "id": "7ff1fd90-0e8a-4690-a0e7-059b4a2790d1",
+      "plan_item_id": "df7cc8c5-7e44-4f4e-a32b-eb0518090976",
+      "week_start_date": "2026-05-11",
+      "planned_day": "tue",
+      "status": "missed",
+      "source": "weekly_confirmed",
+      "validated_at": "2026-05-12T18:10:00+00:00"
+    },
+    {
+      "id": "3bdea73f-a076-41b4-8ce0-c8b6928d92e6",
+      "plan_item_id": "886e52c4-5467-44bd-a0ad-eb397e3c5fb1",
+      "week_start_date": "2026-05-11",
+      "planned_day": "wed",
+      "status": "partial",
+      "source": "weekly_confirmed",
+      "validated_at": "2026-05-13T16:30:00+00:00"
+    }
+  ],
+  "verdicts": {
+    "humanVerdict": "green",
+    "systemVerdict": "green",
+    "globalVerdict": "green",
+    "failures": []
+  }
+}

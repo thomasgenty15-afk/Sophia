@@ -1,0 +1,19 @@
+{
+  "auth_user_status": 200,
+  "http_status": 200,
+  "ok": true,
+  "request_id": "qa-research-routing-20260613-r1-t02",
+  "response_preview": "Go Nano ✅🙂 (pour du classement + génération de phrases courtes, tu seras surtout gagnant en coût/volume).  \n\nAvant de valider : tes tickets font plutôt des textes courts (1-3 phrases) ou des longs (plusieurs paragraphes) ?  \n<!--fil_rouge_whatsapp: Tu fais un outil de tri en 3 catégories + phrase courte; recommandation immédiate: Nano pour optimiser le coût. Prochaine étape: confirmer la longueur moyenne des tickets pour ajuster éventuellement vers Mini si c’est long.-->",
+  "response_owner": "normal_reply",
+  "selected_handler": null,
+  "route_reason": "normal_reply_default",
+  "needs_research": {
+    "detected": false,
+    "value": false,
+    "query": null,
+    "domain_hint": null,
+    "confidence": 0,
+    "reason": null
+  },
+  "trace_error": null
+}

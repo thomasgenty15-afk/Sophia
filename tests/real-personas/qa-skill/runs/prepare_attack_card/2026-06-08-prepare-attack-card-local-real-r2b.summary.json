@@ -1,0 +1,487 @@
+[
+  {
+    "turn": 1,
+    "requestId": "prepare-attack-card-local-real-r2b-t01",
+    "status": 200,
+    "ok": true,
+    "user": "J'ai besoin d'une carte d'attaque pour ne pas repousser mes dix minutes de rangement le soir. Le piège, c'est que je me dis que ce n'est pas urgent et que je le ferai demain.",
+    "assistant": "Je vois bien le genre de négociation interne qui s'installe pour ces dix minutes de rangement. Pour t'aider à ne plus repousser au lendemain, on pourrait s'appuyer sur Le texte magique, qu'en penses-tu ? 🙂",
+    "empty_response": false,
+    "aborted": false,
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_reason": "tool_skill_intent_start",
+    "safety": {
+      "risk_band": "low",
+      "reason_codes": [],
+      "evidence": []
+    },
+    "direct_effects": [],
+    "operation": "prepare_attack_card",
+    "pending_confirmation": null,
+    "memory_plan": {
+      "response_intent": "reflection",
+      "reasoning_complexity": "low",
+      "context_need": "targeted",
+      "memory_mode": "light",
+      "model_tier_hint": "lite",
+      "context_budget_tier": "small",
+      "targets": [
+        {
+          "type": "action",
+          "key": "rangement_soir",
+          "query_hint": "habitudes de rangement le soir et procrastination",
+          "expansion_policy": null,
+          "retrieval_policy": "semantic_first",
+          "priority": "high",
+          "entity_type": null
+        },
+        {
+          "type": "domain_key",
+          "key": "habitudes.procrastination",
+          "query_hint": "procrastination rangement soir",
+          "expansion_policy": null,
+          "retrieval_policy": "taxonomy_first",
+          "priority": "medium",
+          "entity_type": null
+        }
+      ],
+      "retrieval_policy": "semantic_first",
+      "plan_confidence": 0.7
+    },
+    "executed_tools": [],
+    "tool_execution": "blocked",
+    "durable_effect": {
+      "committed_effects": [],
+      "platform_handoff": null
+    },
+    "tool_skill_run": {
+      "selected_handler": "prepare_attack_card",
+      "reason_code": "prepare_attack_card_local_ask_target",
+      "operation_type": "prepare_attack_card",
+      "status": "collecting",
+      "no_chat_mutation": true,
+      "blocked_effects": [],
+      "runtime_trace": [
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "local_dispatcher start",
+          "flow_action": null,
+          "stage": null,
+          "visible_task_kind": null,
+          "current_field_id": null,
+          "technique_key": null,
+          "target_status": "proposed",
+          "blocker_status": "missing",
+          "missing_fields": [],
+          "risk_assessment": null,
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "local_dispatcher decision",
+          "flow_action": "confirm_technique_proposal",
+          "stage": "ask_target",
+          "visible_task_kind": "ask_target",
+          "current_field_id": null,
+          "technique_key": "texte_recadrage",
+          "target_status": "locked",
+          "blocker_status": "locked",
+          "missing_fields": [],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "reducer reduced",
+          "flow_action": "confirm_technique_proposal",
+          "stage": "ask_target",
+          "visible_task_kind": "ask_target",
+          "current_field_id": "negotiated_action",
+          "technique_key": "texte_recadrage",
+          "target_status": "locked",
+          "blocker_status": "locked",
+          "missing_fields": [
+            "negotiated_action",
+            "recurring_excuse",
+            "desired_reframe_state"
+          ],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "visible_stage start",
+          "flow_action": "confirm_technique_proposal",
+          "stage": "ask_target",
+          "visible_task_kind": "ask_target",
+          "current_field_id": "negotiated_action",
+          "technique_key": "texte_recadrage",
+          "target_status": "locked",
+          "blocker_status": "locked",
+          "missing_fields": [
+            "negotiated_action",
+            "recurring_excuse",
+            "desired_reframe_state"
+          ],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "visible_agent",
+          "stage": "ask_target",
+          "attempt": 1,
+          "accepted": true,
+          "issues": []
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "visible_stage complete",
+          "flow_action": "confirm_technique_proposal",
+          "stage": "ask_target",
+          "visible_task_kind": "ask_target",
+          "current_field_id": "negotiated_action",
+          "technique_key": "texte_recadrage",
+          "target_status": "locked",
+          "blocker_status": "locked",
+          "missing_fields": [
+            "negotiated_action",
+            "recurring_excuse",
+            "desired_reframe_state"
+          ],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_attack_card"
+        }
+      ],
+      "exit_memo": null
+    },
+    "flow_exit_context": null
+  },
+  {
+    "turn": 2,
+    "requestId": "prepare-attack-card-local-real-r2b-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Oui pour Le texte magique. L'action à saisir, c'est dix minutes de rangement le soir; l'excuse, c'est ce n'est pas urgent, je le ferai demain; l'état voulu, c'est net et léger: je range juste dix minutes et je m'arrête.",
+    "assistant": "Tout est prêt pour ta préparation. Tu peux maintenant te rendre dans la section Cartes d'attaque pour finaliser l'outil avec la technique Le texte magique en utilisant ces éléments :\n\nQuelle action tu sais que tu dois faire, mais que tu commences souvent a negocier ? : dix minutes de rangement le soir\nQuelles excuses ou pensees reviennent quand tu sens que tu glisses ? : ce n'est pas urgent, je le ferai demain\nDans quel etat tu veux te remettre en ecrivant ce texte ? : net et léger: je range juste dix minutes et je m'arrête 🙂",
+    "empty_response": false,
+    "aborted": false,
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_reason": "active_prepare_attack_card_local_dispatcher",
+    "safety": {
+      "risk_band": "none",
+      "reason_codes": [
+        "immediacy_tomorrow"
+      ],
+      "evidence": [
+        "demain"
+      ]
+    },
+    "direct_effects": [],
+    "operation": "prepare_attack_card",
+    "pending_confirmation": null,
+    "memory_plan": {
+      "response_intent": "reflection",
+      "reasoning_complexity": "low",
+      "context_need": "minimal",
+      "memory_mode": "none",
+      "model_tier_hint": "lite",
+      "context_budget_tier": "tiny",
+      "targets": [],
+      "retrieval_policy": "semantic_first",
+      "plan_confidence": 0.7
+    },
+    "executed_tools": [],
+    "tool_execution": "platform_handoff",
+    "durable_effect": {
+      "committed_effects": [],
+      "platform_handoff": {
+        "operation_type": "prepare_attack_card",
+        "status": "delivered",
+        "surface_id": "attack_cards",
+        "reason_code": "handoff_ready",
+        "no_chat_mutation": true
+      }
+    },
+    "tool_skill_run": {
+      "selected_handler": "prepare_attack_card",
+      "reason_code": "handoff_ready",
+      "operation_type": "prepare_attack_card",
+      "status": "handoff_delivered",
+      "no_chat_mutation": true,
+      "blocked_effects": [],
+      "runtime_trace": [
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "local_dispatcher start",
+          "flow_action": null,
+          "stage": null,
+          "visible_task_kind": null,
+          "current_field_id": "negotiated_action",
+          "technique_key": "texte_recadrage",
+          "target_status": "locked",
+          "blocker_status": "locked",
+          "missing_fields": [
+            "negotiated_action",
+            "recurring_excuse",
+            "desired_reframe_state"
+          ],
+          "risk_assessment": null,
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "local_dispatcher decision",
+          "flow_action": "handoff_ready",
+          "stage": "handoff_ready",
+          "visible_task_kind": "handoff_ready",
+          "current_field_id": null,
+          "technique_key": "texte_recadrage",
+          "target_status": "locked",
+          "blocker_status": "locked",
+          "missing_fields": [],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "reducer reduced",
+          "flow_action": "handoff_ready",
+          "stage": "handoff_ready",
+          "visible_task_kind": "handoff_ready",
+          "current_field_id": null,
+          "technique_key": "texte_recadrage",
+          "target_status": "locked",
+          "blocker_status": "locked",
+          "missing_fields": [],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "visible_stage start",
+          "flow_action": "handoff_ready",
+          "stage": "handoff_ready",
+          "visible_task_kind": "handoff_ready",
+          "current_field_id": null,
+          "technique_key": "texte_recadrage",
+          "target_status": "locked",
+          "blocker_status": "locked",
+          "missing_fields": [],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "visible_agent",
+          "stage": "handoff_ready",
+          "attempt": 1,
+          "accepted": true,
+          "issues": []
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "visible_stage complete",
+          "flow_action": "handoff_ready",
+          "stage": "handoff_ready",
+          "visible_task_kind": "handoff_ready",
+          "current_field_id": null,
+          "technique_key": "texte_recadrage",
+          "target_status": "locked",
+          "blocker_status": "locked",
+          "missing_fields": [],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_attack_card"
+        },
+        {
+          "component": "prepare_attack_card.local_flow",
+          "event": "handoff_ready",
+          "flow_action": "handoff_ready",
+          "stage": "handoff_ready",
+          "visible_task_kind": "handoff_ready",
+          "current_field_id": null,
+          "technique_key": "texte_recadrage",
+          "target_status": "locked",
+          "blocker_status": "locked",
+          "missing_fields": [],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "selected_handler": "prepare_attack_card"
+        }
+      ],
+      "exit_memo": null
+    },
+    "flow_exit_context": null
+  },
+  {
+    "turn": 3,
+    "requestId": "prepare-attack-card-local-real-r2b-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Finalement laisse cette carte de côté; aide-moi plutôt à choisir ma priorité pour ce soir.",
+    "assistant": "Ok, on met la carte de côté. Là, on choisit juste LA priorité de ce soir (celle qui te rendra fière sans te cramer) 🙂  \n\nFais ce tri rapide :\n1) Qu’est-ce qui, si tu ne le fais pas, te pèsera le plus mentalement demain ?\n2) Qu’est-ce que tu peux finir en une seule session raisonnable (même 15-30 min) ?\n3) Quel truc te donne de l’élan pour la suite (ou qui débloque le reste) ?\n\nDonne-moi tes 3 options possibles pour ce soir (même en vrac), et je te les hiérarchise. 🙂",
+    "empty_response": false,
+    "aborted": false,
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason": "normal_reply_default",
+    "safety": {
+      "risk_band": "low",
+      "reason_codes": [],
+      "evidence": []
+    },
+    "direct_effects": [],
+    "operation": null,
+    "pending_confirmation": null,
+    "memory_plan": {
+      "response_intent": "reflection",
+      "reasoning_complexity": "low",
+      "context_need": "targeted",
+      "memory_mode": "light",
+      "model_tier_hint": "lite",
+      "context_budget_tier": "small",
+      "targets": [
+        {
+          "type": "action",
+          "key": "rangement",
+          "query_hint": "priorités et rangement soir",
+          "expansion_policy": null,
+          "retrieval_policy": "semantic_first",
+          "priority": "high",
+          "entity_type": null
+        }
+      ],
+      "retrieval_policy": "semantic_first",
+      "plan_confidence": 0.7
+    },
+    "executed_tools": [],
+    "tool_execution": "none",
+    "durable_effect": {
+      "committed_effects": [],
+      "platform_handoff": null
+    },
+    "tool_skill_run": {
+      "selected_handler": null,
+      "reason_code": null,
+      "operation_type": null,
+      "status": null,
+      "no_chat_mutation": null,
+      "blocked_effects": [],
+      "runtime_trace": [],
+      "exit_memo": null
+    },
+    "flow_exit_context": null
+  },
+  {
+    "turn": 4,
+    "requestId": "prepare-attack-card-local-real-r2b-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Mes options sont: ranger dix minutes, préparer mon sac, ou répondre à un mail rapide.",
+    "assistant": "OK, là t’as une vraie bonne shortlist 👍  \nJe prendrais l’ordre suivant pour ce soir : répondre au mail rapide, puis préparer ton sac, et en dernier seulement les dix minutes de rangement.\n\nRaison simple : le mail enlève une boucle mentale, le sac te fait gagner demain, et le rangement peut attendre sans “fuite” émotionnelle. 🙂  \n\nTu pars sur quelle option en premier : mail (A) ou sac (B) ?",
+    "empty_response": false,
+    "aborted": false,
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason": "normal_reply_default",
+    "safety": {
+      "risk_band": "low",
+      "reason_codes": [],
+      "evidence": []
+    },
+    "direct_effects": [],
+    "operation": null,
+    "pending_confirmation": null,
+    "memory_plan": {
+      "response_intent": "reflection",
+      "reasoning_complexity": "low",
+      "context_need": "targeted",
+      "memory_mode": "light",
+      "model_tier_hint": "lite",
+      "context_budget_tier": "small",
+      "targets": [
+        {
+          "type": "topic",
+          "key": "priorisation",
+          "query_hint": "priorités et choix d'action",
+          "expansion_policy": null,
+          "retrieval_policy": "semantic_first",
+          "priority": "medium",
+          "entity_type": null
+        },
+        {
+          "type": "domain_key",
+          "key": "habitudes.procrastination",
+          "query_hint": "négociation interne rangement",
+          "expansion_policy": null,
+          "retrieval_policy": "taxonomy_first",
+          "priority": "low",
+          "entity_type": null
+        }
+      ],
+      "retrieval_policy": "semantic_first",
+      "plan_confidence": 0.7
+    },
+    "executed_tools": [],
+    "tool_execution": "none",
+    "durable_effect": {
+      "committed_effects": [],
+      "platform_handoff": null
+    },
+    "tool_skill_run": {
+      "selected_handler": null,
+      "reason_code": null,
+      "operation_type": null,
+      "status": null,
+      "no_chat_mutation": null,
+      "blocked_effects": [],
+      "runtime_trace": [],
+      "exit_memo": null
+    },
+    "flow_exit_context": null
+  }
+]

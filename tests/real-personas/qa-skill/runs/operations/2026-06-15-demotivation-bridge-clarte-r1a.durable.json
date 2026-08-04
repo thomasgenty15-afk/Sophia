@@ -1,0 +1,36 @@
+{
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "1504398b-c4a6-4542-9d36-f55e0a1537cf",
+        "role": "user",
+        "content": "Je fais encore mes actions, mais elles sonnent creux. Au départ mon plan santé devait me reconnecter à de l'énergie et à de la présence, et là je coche juste des cases sans sentir le pourquoi.",
+        "scope": "qa-demotivation-repair-2026-06-15-demotivation-bridge-clarte-r1a",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-2026-06-15-demotivation-bridge-clarte-r1a-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-15T13:46:30.217433+00:00"
+      }
+    ]
+  },
+  "memory_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "scheduled_checkins": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_recurring_reminders": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  }
+}

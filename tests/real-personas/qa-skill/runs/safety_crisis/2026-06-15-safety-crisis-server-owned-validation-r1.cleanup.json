@@ -1,0 +1,11 @@
+{
+  "run_id": "2026-06-15-safety-crisis-server-owned-validation-r1",
+  "user_id": "152e3258-23e0-499f-bab6-24e0665367dc",
+  "scope": "qa-safety-crisis-2026-06-15-safety-crisis-server-owned-validation-r1",
+  "deleted": {
+    "chat_messages": 204,
+    "user_chat_states": 204
+  },
+  "connection_cleanup": "cleanup complete for qa-skill connection=safety_crisis_local_2026-06-15-safety-crisis-server-owned-validation-r1 (152e3258-23e0-499f-bab6-24e0665367dc)",
+  "errors": []
+}

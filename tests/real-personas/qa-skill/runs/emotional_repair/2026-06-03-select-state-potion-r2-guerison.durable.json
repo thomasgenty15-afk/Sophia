@@ -1,0 +1,234 @@
+{
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "0319f7b7-f246-4586-84d6-9580de1a5f98",
+        "role": "user",
+        "content": "Je veux preparer une potion de guerison. Hier j ai craque sur un truc que je voulais tenir, et depuis je ressens surtout de la honte et de la culpabilite.",
+        "scope": "qa-emotional-repair-2026-06-03-select-state-potion-r2-guerison",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-guerison-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-03T16:33:01.033665+00:00"
+      },
+      {
+        "id": "012c7d9c-defc-4c7c-9771-7f270407590a",
+        "role": "assistant",
+        "content": "Est-ce que tu veux préparer une potion pour changer ton état ou est-ce que tu cherches un soutien émotionnel pour ce que tu ressens ? 🙂",
+        "scope": "qa-emotional-repair-2026-06-03-select-state-potion-r2-guerison",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-guerison-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-03T16:33:14.547576+00:00"
+      },
+      {
+        "id": "df264da8-a735-47b8-9af4-9762be1662aa",
+        "role": "user",
+        "content": "Je veux bien preparer la potion de guerison, pas juste parler de l emotion. Ce qui a fait mal : j ai craque hier, et le sentiment dominant c est la honte.",
+        "scope": "qa-emotional-repair-2026-06-03-select-state-potion-r2-guerison",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-guerison-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-03T16:33:37.039654+00:00"
+      },
+      {
+        "id": "b3456e0d-cb51-43a3-8817-913349b7facf",
+        "role": "assistant",
+        "content": "Ok, tu as craqué hier. Tu confirmes que le sentiment dominant est la honte ? 🙂",
+        "scope": "qa-emotional-repair-2026-06-03-select-state-potion-r2-guerison",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-guerison-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "clarifying",
+              "handoff": null,
+              "constraints": [],
+              "reason_code": "state_potion_handoff_clarifying",
+              "operation_type": "select_state_potion",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "no_chat_mutation": true,
+              "platform_handoff": {
+                "draft": null,
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "state_potion_handoff_clarifying",
+                "operation_type": "select_state_potion",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "select_state_potion",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-03T16:34:04.578022+00:00"
+      },
+      {
+        "id": "032402ee-1e8a-4786-ac7a-f56af4277c5a",
+        "role": "user",
+        "content": "Oui, c est la honte surtout.",
+        "scope": "qa-emotional-repair-2026-06-03-select-state-potion-r2-guerison",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-guerison-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-03T16:34:23.351173+00:00"
+      },
+      {
+        "id": "0dcf6b63-9a1c-42b1-ba7e-8307f63e2bfb",
+        "role": "assistant",
+        "content": "Ce que je comprends : j'ai craqué hier ; honte\n\nJe te conseille de choisir une potion de réparation. Le shift recommandé est de réparer la trace émotionnelle sans rouvrir toute l'analyse.\n\nPourquoi cette potion : Tu as exprimé t'être senti mal après avoir craqué hier et que la honte est le sentiment dominant. La Potion de guérison est conçue pour t'aider à te relever et à apaiser ces sentiments sans t'enfoncer davantage.\nPetit pas immédiat : Prends une grande inspiration. Ce qui s'est passé est derrière toi. Tu as le droit de te sentir mal, et tu as aussi le droit de te relever. Je suis là pour t'accompagner.\n\nÀ mettre dans la plateforme :\nPotion : Potion de guerison\n- Qu'est-ce qui t'a fait mal ou t'a fait retomber recemment ? j'ai craqué hier\n- Tu ressens surtout quoi ? De la honte\nDans la plateforme, tu pourras aussi préciser si c'est lié à ton plan ou hors plan.\n\nDans la plateforme, dans la section État / Potions, puis choisis la potion recommandée, active-la depuis la plateforme si elle te convient.\n\nJe ne lance pas de potion depuis le chat. 🙂",
+        "scope": "qa-emotional-repair-2026-06-03-select-state-potion-r2-guerison",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-03-select-state-potion-r2-guerison-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "handoff_delivered",
+              "handoff": null,
+              "constraints": [],
+              "reason_code": "state_potion_platform_handoff_delivered",
+              "operation_type": "select_state_potion",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "no_chat_mutation": true,
+              "platform_handoff": {
+                "draft": {
+                  "mode": "platform_handoff",
+                  "operation_type": "select_state_potion",
+                  "recommendation": {
+                    "avoid": [],
+                    "preserve": [],
+                    "potion_label": "une potion de réparation",
+                    "immediate_step": "Prends une grande inspiration. Ce qui s'est passé est derrière toi. Tu as le droit de te sentir mal, et tu as aussi le droit de te relever. Je suis là pour t'accompagner.",
+                    "platform_steps": [
+                      "ouvre la section État / Potions",
+                      "choisis la potion recommandée",
+                      "active-la depuis la plateforme si elle te convient"
+                    ],
+                    "platform_inputs": {
+                      "answers": [
+                        {
+                          "value": "j'ai craqué hier",
+                          "question_id": "recent_hurt",
+                          "option_label": null,
+                          "option_value": null,
+                          "question_label": "Qu'est-ce qui t'a fait mal ou t'a fait retomber recemment ?"
+                        },
+                        {
+                          "value": "De la honte",
+                          "question_id": "dominant_feeling",
+                          "option_label": "De la honte",
+                          "option_value": "honte",
+                          "question_label": "Tu ressens surtout quoi ?"
+                        }
+                      ],
+                      "potion_type": "guerison",
+                      "potion_title": "Potion de guerison",
+                      "optional_free_text": null
+                    },
+                    "why_this_potion": "Tu as exprimé t'être senti mal après avoir craqué hier et que la honte est le sentiment dominant. La Potion de guérison est conçue pour t'aider à te relever et à apaiser ces sentiments sans t'enfoncer davantage.",
+                    "platform_destination": "dans la section État / Potions"
+                  },
+                  "no_chat_mutation": true,
+                  "missing_decisions": [],
+                  "user_state_summary": "j'ai craqué hier ; honte",
+                  "executable_from_chat": false,
+                  "desired_shift_summary": "Le shift recommandé est de réparer la trace émotionnelle sans rouvrir toute l'analyse."
+                },
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "state_potion_platform_handoff_delivered",
+                "operation_type": "select_state_potion",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "select_state_potion",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-03T16:34:40.210705+00:00"
+      }
+    ]
+  },
+  "memory_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "scheduled_checkins": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_recurring_reminders": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  }
+}

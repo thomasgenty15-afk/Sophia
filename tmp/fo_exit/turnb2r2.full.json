@@ -1,0 +1,330 @@
+{
+  "ok": true,
+  "request_id": "633d9dc1-4575-4fae-a2e5-6e4170cb30ef",
+  "user_id": "d93db839-7302-41f9-8239-b90fefe3d672",
+  "channel": "web",
+  "scope": "web",
+  "empty_response": false,
+  "aborted": false,
+  "abort_reason": null,
+  "logged_message_id": null,
+  "latest_message_id": null,
+  "response": {
+    "content": "Je te dirais de partir sur **Apaisement** : là, ce qui prend de la place, c’est surtout la pression et le ras-le-bol. L’idée, c’est de t’aider à redescendre un peu pour que ça te pèse moins au quotidien. Si tu veux, je peux aussi t’aider à formuler ça en une phrase simple pour toi.",
+    "mode": "companion",
+    "delivery": null,
+    "tool_execution": "none",
+    "executed_tools": [],
+    "conversation_turn_trace": {
+      "turn_frame": {
+        "turn_id": "633d9dc1-4575-4fae-a2e5-6e4170cb30ef",
+        "source_message_id": "51cf68e9-0d4d-442e-ba71-ed90d26bff2f",
+        "user_id": "d93db839-7302-41f9-8239-b90fefe3d672",
+        "channel": "web",
+        "safety": {
+          "risk_band": "medium",
+          "reason_codes": [
+            "emotional_distress",
+            "hopelessness_signal"
+          ],
+          "evidence": [
+            "\"j'ai l'impression de jamais y arriver\"",
+            "\"ça me plombe vraiment en ce moment\""
+          ]
+        },
+        "conversation_risk": {
+          "score": 0,
+          "threshold": 8,
+          "should_exit_flows": false,
+          "reason_codes": [],
+          "previous_scores": [],
+          "matrix": [],
+          "context_summary": null
+        },
+        "direct_effects": [],
+        "direct_effect_time_context": {
+          "now_utc": "2026-07-02T14:29:59.220Z",
+          "user_timezone": "Europe/Paris",
+          "user_locale": "fr-FR",
+          "user_local_datetime": "2026-07-02T16:29:59",
+          "user_local_human": "jeudi 2 juillet 2026 à 16:29"
+        },
+        "note_information": {
+          "source_flow_id": "feature_opportunity",
+          "handoff_reason": "topic_change",
+          "target_dispatcher": "global",
+          "handoff_context_for_next_dispatcher": "{\"user_message_summary\":\"User expresses emotional distress and discouragement about the current situation.\",\"active_flow_summary\":\"feature_opportunity recommends a product surface and never executes tools.\",\"collected_state\":{\"feature\":\"initiatives\",\"opportunity_kind\":\"recurring_context\",\"trigger_context\":\"tous les dimanches soir\",\"dispatcher_signal_context\":{\"feature\":\"initiatives\",\"priority_reason\":\"Repeated weekly context fits initiatives.\",\"trigger_context\":\"tous les dimanches soir\",\"opportunity_kind\":\"recurring_context\",\"user_problem_summary\":\"User forgets to prepare their things for the week every Sunday evening and wants something recurrent to help remember.\"}},\"unresolved_questions\":[],\"recommended_next_focus\":\"global\",\"evidence\":[\"Franchement à quoi ça sert tout ça...\",\"j'ai l'impression de jamais y arriver\",\"ça me plombe vraiment en ce moment\"]}",
+          "user_words": [
+            "Franchement à quoi ça sert tout ça... j'ai l'impression de jamais y arriver et ça me plombe vraiment en ce moment.",
+            "Franchement à quoi ça sert tout ça...",
+            "j'ai l'impression de jamais y arriver"
+          ],
+          "structured_context": {
+            "user_message_summary": "User expresses emotional distress and discouragement about the current situation.",
+            "active_flow_summary": "feature_opportunity recommends a product surface and never executes tools.",
+            "collected_state": {
+              "feature": "initiatives",
+              "opportunity_kind": "recurring_context",
+              "trigger_context": "tous les dimanches soir",
+              "dispatcher_signal_context": {
+                "feature": "initiatives",
+                "priority_reason": "Repeated weekly context fits initiatives.",
+                "trigger_context": "tous les dimanches soir",
+                "opportunity_kind": "recurring_context",
+                "user_problem_summary": "User forgets to prepare their things for the week every Sunday evening and wants something recurrent to help remember."
+              }
+            },
+            "unresolved_questions": [],
+            "recommended_next_focus": "global",
+            "evidence": [
+              "Franchement à quoi ça sert tout ça...",
+              "j'ai l'impression de jamais y arriver",
+              "ça me plombe vraiment en ce moment"
+            ]
+          },
+          "confidence": "high"
+        },
+        "skill_signals": {
+          "coaching_recommendation": {
+            "detected": true,
+            "confidence_band": "high",
+            "reason": "emotional_state_coaching_need",
+            "context": {
+              "coaching_type": "emotional",
+              "confidence": 0.91,
+              "reason": "The user expresses global discouragement and emotional burden without anchoring it to a concrete action or asking for a product lever.",
+              "action_context": {
+                "source": "none",
+                "plan_item_id": null,
+                "action_title": null
+              }
+            }
+          }
+        },
+        "needs_research": {
+          "detected": false,
+          "value": false,
+          "query": null,
+          "domain_hint": null,
+          "confidence": 0,
+          "reason": null
+        },
+        "action_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_inference_unavailable"
+        },
+        "level_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_inference_unavailable"
+        },
+        "memory_plan": {
+          "response_intent": "User is emotionally discouraged and asks what this is for, without a product question or plan drift.",
+          "reasoning_complexity": "medium",
+          "context_need": "targeted",
+          "memory_mode": "light",
+          "model_tier_hint": "standard",
+          "context_budget_tier": "small",
+          "targets": [],
+          "retrieval_policy": "taxonomy_first",
+          "plan_confidence": 0.86
+        }
+      },
+      "route_decision": {
+        "route_version": "v1",
+        "response_owner": "coaching_recommendation",
+        "blocked_paths": [],
+        "direct_effects_to_run": [],
+        "reason_code": "coaching_recommendation_signal",
+        "memory_used_for_route": false,
+        "memory_item_ids_used_for_route": [],
+        "memory_use_kind": "none",
+        "selected_handler": "coaching_recommendation"
+      },
+      "effect_ledger": {
+        "turn_id": "633d9dc1-4575-4fae-a2e5-6e4170cb30ef",
+        "counts": {
+          "requested": 0,
+          "allowed": 0,
+          "blocked": 0,
+          "committed": 0,
+          "failed": 0,
+          "proposed": 0,
+          "delivered": 0,
+          "cancelled": 0,
+          "superseded": 0,
+          "asked": 0,
+          "resolved": 0,
+          "topic_change": 0
+        },
+        "entries": []
+      },
+      "response_owner": "coaching_recommendation",
+      "skill_run": {
+        "selected_skill_id": "coaching_recommendation",
+        "reason_code": "coaching_recommendation_signal",
+        "status": "continue",
+        "latency_ms": 13854
+      }
+    }
+  },
+  "conversation_turn_trace": {
+    "turn_frame": {
+      "turn_id": "633d9dc1-4575-4fae-a2e5-6e4170cb30ef",
+      "source_message_id": "51cf68e9-0d4d-442e-ba71-ed90d26bff2f",
+      "user_id": "d93db839-7302-41f9-8239-b90fefe3d672",
+      "channel": "web",
+      "safety": {
+        "risk_band": "medium",
+        "reason_codes": [
+          "emotional_distress",
+          "hopelessness_signal"
+        ],
+        "evidence": [
+          "\"j'ai l'impression de jamais y arriver\"",
+          "\"ça me plombe vraiment en ce moment\""
+        ]
+      },
+      "conversation_risk": {
+        "score": 0,
+        "threshold": 8,
+        "should_exit_flows": false,
+        "reason_codes": [],
+        "previous_scores": [],
+        "matrix": [],
+        "context_summary": null
+      },
+      "direct_effects": [],
+      "direct_effect_time_context": {
+        "now_utc": "2026-07-02T14:29:59.220Z",
+        "user_timezone": "Europe/Paris",
+        "user_locale": "fr-FR",
+        "user_local_datetime": "2026-07-02T16:29:59",
+        "user_local_human": "jeudi 2 juillet 2026 à 16:29"
+      },
+      "note_information": {
+        "source_flow_id": "feature_opportunity",
+        "handoff_reason": "topic_change",
+        "target_dispatcher": "global",
+        "handoff_context_for_next_dispatcher": "{\"user_message_summary\":\"User expresses emotional distress and discouragement about the current situation.\",\"active_flow_summary\":\"feature_opportunity recommends a product surface and never executes tools.\",\"collected_state\":{\"feature\":\"initiatives\",\"opportunity_kind\":\"recurring_context\",\"trigger_context\":\"tous les dimanches soir\",\"dispatcher_signal_context\":{\"feature\":\"initiatives\",\"priority_reason\":\"Repeated weekly context fits initiatives.\",\"trigger_context\":\"tous les dimanches soir\",\"opportunity_kind\":\"recurring_context\",\"user_problem_summary\":\"User forgets to prepare their things for the week every Sunday evening and wants something recurrent to help remember.\"}},\"unresolved_questions\":[],\"recommended_next_focus\":\"global\",\"evidence\":[\"Franchement à quoi ça sert tout ça...\",\"j'ai l'impression de jamais y arriver\",\"ça me plombe vraiment en ce moment\"]}",
+        "user_words": [
+          "Franchement à quoi ça sert tout ça... j'ai l'impression de jamais y arriver et ça me plombe vraiment en ce moment.",
+          "Franchement à quoi ça sert tout ça...",
+          "j'ai l'impression de jamais y arriver"
+        ],
+        "structured_context": {
+          "user_message_summary": "User expresses emotional distress and discouragement about the current situation.",
+          "active_flow_summary": "feature_opportunity recommends a product surface and never executes tools.",
+          "collected_state": {
+            "feature": "initiatives",
+            "opportunity_kind": "recurring_context",
+            "trigger_context": "tous les dimanches soir",
+            "dispatcher_signal_context": {
+              "feature": "initiatives",
+              "priority_reason": "Repeated weekly context fits initiatives.",
+              "trigger_context": "tous les dimanches soir",
+              "opportunity_kind": "recurring_context",
+              "user_problem_summary": "User forgets to prepare their things for the week every Sunday evening and wants something recurrent to help remember."
+            }
+          },
+          "unresolved_questions": [],
+          "recommended_next_focus": "global",
+          "evidence": [
+            "Franchement à quoi ça sert tout ça...",
+            "j'ai l'impression de jamais y arriver",
+            "ça me plombe vraiment en ce moment"
+          ]
+        },
+        "confidence": "high"
+      },
+      "skill_signals": {
+        "coaching_recommendation": {
+          "detected": true,
+          "confidence_band": "high",
+          "reason": "emotional_state_coaching_need",
+          "context": {
+            "coaching_type": "emotional",
+            "confidence": 0.91,
+            "reason": "The user expresses global discouragement and emotional burden without anchoring it to a concrete action or asking for a product lever.",
+            "action_context": {
+              "source": "none",
+              "plan_item_id": null,
+              "action_title": null
+            }
+          }
+        }
+      },
+      "needs_research": {
+        "detected": false,
+        "value": false,
+        "query": null,
+        "domain_hint": null,
+        "confidence": 0,
+        "reason": null
+      },
+      "action_reference": {
+        "detected": false,
+        "status": "none",
+        "expansion_policy": "none",
+        "reason": "semantic_inference_unavailable"
+      },
+      "level_reference": {
+        "detected": false,
+        "status": "none",
+        "expansion_policy": "none",
+        "reason": "semantic_inference_unavailable"
+      },
+      "memory_plan": {
+        "response_intent": "User is emotionally discouraged and asks what this is for, without a product question or plan drift.",
+        "reasoning_complexity": "medium",
+        "context_need": "targeted",
+        "memory_mode": "light",
+        "model_tier_hint": "standard",
+        "context_budget_tier": "small",
+        "targets": [],
+        "retrieval_policy": "taxonomy_first",
+        "plan_confidence": 0.86
+      }
+    },
+    "route_decision": {
+      "route_version": "v1",
+      "response_owner": "coaching_recommendation",
+      "blocked_paths": [],
+      "direct_effects_to_run": [],
+      "reason_code": "coaching_recommendation_signal",
+      "memory_used_for_route": false,
+      "memory_item_ids_used_for_route": [],
+      "memory_use_kind": "none",
+      "selected_handler": "coaching_recommendation"
+    },
+    "effect_ledger": {
+      "turn_id": "633d9dc1-4575-4fae-a2e5-6e4170cb30ef",
+      "counts": {
+        "requested": 0,
+        "allowed": 0,
+        "blocked": 0,
+        "committed": 0,
+        "failed": 0,
+        "proposed": 0,
+        "delivered": 0,
+        "cancelled": 0,
+        "superseded": 0,
+        "asked": 0,
+        "resolved": 0,
+        "topic_change": 0
+      },
+      "entries": []
+    },
+    "response_owner": "coaching_recommendation",
+    "skill_run": {
+      "selected_skill_id": "coaching_recommendation",
+      "reason_code": "coaching_recommendation_signal",
+      "status": "continue",
+      "latency_ms": 13854
+    }
+  },
+  "trace_error": null
+}

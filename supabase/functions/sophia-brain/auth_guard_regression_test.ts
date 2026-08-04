@@ -13,7 +13,9 @@ Deno.test("sophia-brain auth regression: explicit 401 on missing Authorization",
 
 Deno.test("sophia-brain auth regression: user identity comes from auth.getUser", async () => {
   const src = await loadIndexSource();
-  assertMatch(src, /auth\.getUser\(\)/);
+  // index.ts formats the call as `supabaseClient.auth\n      .getUser()`; the guard is about
+  // WHERE the identity comes from, not about where the formatter breaks the line.
+  assertMatch(src, /\bauth\s*\.\s*getUser\(\s*\)/);
   assertMatch(src, /processMessage\(\s*[\s\S]*?\buser\.id\b/);
 });
 

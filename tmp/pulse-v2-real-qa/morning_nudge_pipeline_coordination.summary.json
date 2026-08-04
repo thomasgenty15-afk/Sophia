@@ -1,0 +1,25 @@
+{
+  "run_id": "morning-nudge-pipeline-1781205818021",
+  "user_id": "aac76fd6-a688-4027-951a-fa79c628fac5",
+  "morning_nudge_id": "936e3c80-3ded-49bf-b342-7e9576c9e1eb",
+  "neighboring_checkin_id": "a6c0e34c-7187-4221-8f4f-ee41a5399cf6",
+  "scheduled_window_local": "07:00-12:00",
+  "status": "green",
+  "decision": "send",
+  "posture": "support_softly",
+  "nudge_kind": "emotional_presence_nudge",
+  "commitments_count": 1,
+  "commitment_ids": [
+    "a6c0e34c-7187-4221-8f4f-ee41a5399cf6"
+  ],
+  "includes_self": false,
+  "coordination_notes_count": 1,
+  "instruction_has_anti_redundancy": true,
+  "grounding_has_commitments": true,
+  "payload_source": "qa_process_checkins_pipeline",
+  "cleanup_error": null,
+  "cleanup_deleted_ids": [
+    "936e3c80-3ded-49bf-b342-7e9576c9e1eb",
+    "a6c0e34c-7187-4221-8f4f-ee41a5399cf6"
+  ]
+}

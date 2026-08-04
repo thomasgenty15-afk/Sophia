@@ -1,0 +1,40 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-update-coach-preferences-2026-05-17-prefmatrix-producthelp-what-r1-t01",
+    "user": "Qu'est-ce que je peux régler exactement dans tes préférences de coaching ?",
+    "assistant": "Tu peux régler exactement les préférences de ton coaching depuis Dashboard > Preferences (via la sidebar), puis sauvegarder. 🧭\n\nConcrètement, tu as 3 leviers principaux :\n1) Le ton (ex: plus chaleureux, plus direct, etc.)\n2) Le niveau de challenge (plus ou moins “exigeant”)\n3) La tendance à poser des questions (plus ou moins fréquent)\n\nTu veux plutôt changer comment je te parle, ou comment je te “pousse” à passer à l’action ? 😊",
+    "status": 200,
+    "trace": {
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "response_owner": "product_help",
+      "selected_handler": "product_help",
+      "route_selected_handler": "product_help",
+      "route_reason": "skill_entry_signal",
+      "safety": {
+        "detected": false,
+        "evidence": [],
+        "risk_band": "none",
+        "reason_codes": [],
+        "allow_side_effects": true,
+        "layer_contributions": {
+          "lexical": false,
+          "heuristic": false,
+          "dispatcher_llm": false
+        }
+      },
+      "direct_effects": [],
+      "operation": null,
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "executed_tools": [],
+      "tool_execution": "none",
+      "trace_error": null,
+      "trace_id": "qa-update-coach-preferences-2026-05-17-prefmatrix-producthelp-what-r1-t01"
+    }
+  }
+]

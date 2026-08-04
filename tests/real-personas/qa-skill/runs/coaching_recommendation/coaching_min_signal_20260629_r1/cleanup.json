@@ -1,0 +1,23 @@
+{
+  "user_id": "9c79220b-af32-4311-9572-c90a96b93baf",
+  "deleted_by_user_id": [
+    "memory_item_sources",
+    "memory_item_entities",
+    "memory_item_topics",
+    "memory_item_actions",
+    "memory_items",
+    "user_topic_memories",
+    "chat_messages",
+    "scheduled_checkins",
+    "conversation_turn_traces",
+    "user_plan_item_entries",
+    "user_habit_week_occurrences",
+    "user_attack_cards",
+    "user_defense_cards",
+    "user_plan_items",
+    "user_plans_v2",
+    "user_metrics",
+    "user_chat_states"
+  ],
+  "errors": []
+}

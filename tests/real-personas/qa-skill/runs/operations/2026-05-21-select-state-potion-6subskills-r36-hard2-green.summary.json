@@ -1,0 +1,2530 @@
+[
+  {
+    "potion": "rappel",
+    "state": "decrochage",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r36_hard2_green_rappel",
+    "user_id": "e4238c9f-2db1-4cfb-b79e-6e87b5109a12",
+    "fixture": {
+      "cycle": {
+        "id": "6355406d-28e2-4c66-8658-a07bbd1a9312",
+        "user_id": "e4238c9f-2db1-4cfb-b79e-6e87b5109a12",
+        "status": "active",
+        "raw_intake_text": "QA potions: l'utilisateur veut retrouver une relation plus calme a son quotidien tout en gardant une action simple.",
+        "intake_language": "fr",
+        "duration_months": 1,
+        "birth_date_snapshot": null,
+        "gender_snapshot": null,
+        "active_transformation_id": null,
+        "version": 1,
+        "created_at": "2026-05-21T14:28:52.050843+00:00",
+        "updated_at": "2026-05-21T14:28:52.050843+00:00",
+        "completed_at": null,
+        "archived_at": null,
+        "validated_structure": null,
+        "requested_pace": null
+      },
+      "transformation": {
+        "id": "976a4d2f-0502-46e8-9ce6-39c6c67c0399",
+        "cycle_id": "6355406d-28e2-4c66-8658-a07bbd1a9312",
+        "priority_order": 1,
+        "status": "active",
+        "title": "Revenir aux petits gestes du soir",
+        "internal_summary": "Fixture QA pour tester la potion rappel.",
+        "user_summary": "Le user cherche un accompagnement doux, concret, sans pression supplementaire.",
+        "success_definition": "Avoir un appui simple qui ramene au bon geste sans surcharge.",
+        "main_constraint": "Quand la charge monte, le user se perd dans la pression et l'auto-jugement.",
+        "questionnaire_schema": null,
+        "questionnaire_answers": {
+          "potion_qa": "rappel",
+          "ton_prefere": "doux et direct",
+          "rythme_prefere": "matin"
+        },
+        "completion_summary": null,
+        "handoff_payload": {
+          "phase_1": {
+            "deep_why": {
+              "answers": [
+                {
+                  "answer": "Je veux arreter de me disperser et me sentir plus present a ce que je choisis.",
+                  "question_id": "why_1"
+                },
+                {
+                  "answer": "Je veux proteger mon energie et ma confiance au lieu de les depenser en tension.",
+                  "question_id": "why_2"
+                }
+              ],
+              "questions": [
+                {
+                  "id": "why_1",
+                  "label": "Pourquoi est-ce important pour toi ?"
+                },
+                {
+                  "id": "why_2",
+                  "label": "Qu'est-ce que tu veux proteger ?"
+                }
+              ]
+            }
+          }
+        },
+        "created_at": "2026-05-21T14:28:52.064539+00:00",
+        "updated_at": "2026-05-21T14:28:52.064539+00:00",
+        "activated_at": "2026-05-21T14:28:51.584+00:00",
+        "completed_at": null,
+        "ordering_rationale": null,
+        "unlocked_principles": {
+          "kaizen": true
+        },
+        "base_de_vie_payload": null
+      },
+      "plan": {
+        "id": "f5acbfc9-216e-4b5a-8350-f552a1dca033",
+        "user_id": "e4238c9f-2db1-4cfb-b79e-6e87b5109a12",
+        "cycle_id": "6355406d-28e2-4c66-8658-a07bbd1a9312",
+        "transformation_id": "976a4d2f-0502-46e8-9ce6-39c6c67c0399",
+        "status": "active",
+        "version": 1,
+        "title": "Plan QA rappel",
+        "content": {
+          "source": "qa_state_potion_6subskills",
+          "strategy": {
+            "core_principle": "Un seul appui juste vaut mieux qu'une pression de plus.",
+            "identity_shift": "Je deviens quelqu'un qui avance avec plus de douceur.",
+            "main_constraint": "La surcharge transforme les petits pas en montagne.",
+            "success_definition": "Revenir a un geste simple au bon moment."
+          }
+        },
+        "generation_attempts": 0,
+        "last_generation_reason": null,
+        "activated_at": "2026-05-21T14:28:51.584+00:00",
+        "completed_at": null,
+        "archived_at": null,
+        "created_at": "2026-05-21T14:28:52.082259+00:00",
+        "updated_at": "2026-05-21T14:28:52.082259+00:00",
+        "generation_feedback": null,
+        "generation_input_snapshot": null
+      },
+      "item": {
+        "id": "0147d4ce-66c1-4601-a192-d471f69b2fd8",
+        "user_id": "e4238c9f-2db1-4cfb-b79e-6e87b5109a12",
+        "cycle_id": "6355406d-28e2-4c66-8658-a07bbd1a9312",
+        "transformation_id": "976a4d2f-0502-46e8-9ce6-39c6c67c0399",
+        "plan_id": "f5acbfc9-216e-4b5a-8350-f552a1dca033",
+        "dimension": "habits",
+        "kind": "habit",
+        "status": "active",
+        "title": "Marcher dix minutes puis ranger le bureau",
+        "description": "Action QA active visible par le skill potion.",
+        "tracking_type": "boolean",
+        "activation_order": 1,
+        "activation_condition": null,
+        "current_habit_state": "active_building",
+        "support_mode": null,
+        "support_function": null,
+        "target_reps": 1,
+        "current_reps": 0,
+        "cadence_label": "quotidien",
+        "scheduled_days": [
+          "thu"
+        ],
+        "time_of_day": "09:00",
+        "start_after_item_id": null,
+        "payload": {
+          "source": "qa_state_potion_6subskills",
+          "potion_type": "rappel"
+        },
+        "created_at": "2026-05-21T14:28:52.101175+00:00",
+        "updated_at": "2026-05-21T14:28:52.101175+00:00",
+        "activated_at": "2026-05-21T14:28:51.584+00:00",
+        "completed_at": null,
+        "phase_id": null,
+        "phase_order": null,
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "cards_status": "not_required",
+        "cards_generated_at": null
+      }
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r36_hard2_green-rappel-t01-a1",
+        "user": "Je veux une potion de rappel, mais je suis pas tres clair: mes fins de journee partent en vrille.",
+        "assistant": "Quand tu dis que tes fins de journée partent en vrille, ça se passe comment concrètement ? 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "tool_skill_intent_start",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r36_hard2_green-rappel-t01-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 2,
+        "attempt": 3,
+        "requestId": "qa-state-potion-state_potion_6subskills_r36_hard2_green-rappel-t02-a3",
+        "user": "Le moment a proteger, c'est quand je ferme l'ordi: soit je sors marcher dix minutes, soit je range le bureau, sinon je reporte.",
+        "assistant": "",
+        "status": 502,
+        "trace": {
+          "http_status": 502,
+          "ok": null,
+          "empty_response": null,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": null,
+          "selected_handler": null,
+          "route_selected_handler": null,
+          "route_reason": null,
+          "safety": null,
+          "direct_effects": null,
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": null,
+          "trace_error": null,
+          "trace_id": null
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 3,
+        "attempt": 2,
+        "requestId": "qa-state-potion-state_potion_6subskills_r36_hard2_green-rappel-t03-a2",
+        "user": "Je prefere que le rappel arrive avant que je me pose, vers 18h45. Le ton doit etre simple, pas scolaire.",
+        "assistant": "C'est noté pour 18h45. Et quand tu dis que ça part en vrille, comment ça se manifeste ? Tu oublies ce que tu avais prévu ou c'est plutôt que tu te laisses porter par autre chose ? 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r36_hard2_green-rappel-t03-a2"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 4,
+        "attempt": 3,
+        "requestId": "qa-state-potion-state_potion_6subskills_r36_hard2_green-rappel-t04-a3",
+        "user": "Oui, garde ce cadre: marche ou bureau, juste un repere doux.",
+        "assistant": "Pour tes fins de journée, quand tu sens que ça commence à glisser entre le bureau et la marche, cette potion de Rappel va t'aider à garder le fil. Je t'enverrai un message chaque jour à 17h30 pendant une semaine pour t'offrir ce repère doux que tu cherches. On cale ce rendez-vous ? 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r36_hard2_green-rappel-t04-a3"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 5,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r36_hard2_green-rappel-t05-a1",
+        "user": "Oui, active cette potion de rappel.",
+        "assistant": "C'est normal de laisser filer quand la fatigue arrive ou que la transition est floue. On ne va pas forcer, juste remettre un peu de conscience là où ça glisse pour que tu retrouves ton mouvement. 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [
+            {
+              "outcome": "success",
+              "tool_id": "select_state_potion"
+            }
+          ],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [
+            "select_state_potion"
+          ],
+          "tool_execution": "success",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r36_hard2_green-rappel-t05-a1"
+        },
+        "durable_after": {
+          "sessions": [
+            {
+              "id": "df1060a0-7c25-402a-bb1d-987cd9ad2761",
+              "potion_type": "rappel",
+              "status": "completed"
+            }
+          ],
+          "reminders": [
+            {
+              "id": "33ae9c80-341f-431a-8a4d-7f04adb7c25c",
+              "initiative_kind": "potion_follow_up",
+              "source_kind": "potion_generated"
+            }
+          ],
+          "checkins": [
+            {
+              "id": "49c65d77-1e41-4f1d-b19f-078ca30d93c2",
+              "status": "pending",
+              "scheduled_for": "2026-05-22T17:30:00+00:00"
+            },
+            {
+              "id": "0cf0fce4-7e90-4220-b0f4-e283fbf1db72",
+              "status": "pending",
+              "scheduled_for": "2026-05-23T17:30:00+00:00"
+            },
+            {
+              "id": "8846b378-1979-4c5c-af87-455b2adf1516",
+              "status": "pending",
+              "scheduled_for": "2026-05-24T17:30:00+00:00"
+            },
+            {
+              "id": "0ed88722-edb4-4281-b56a-9abe19eae4b5",
+              "status": "pending",
+              "scheduled_for": "2026-05-25T17:30:00+00:00"
+            },
+            {
+              "id": "8da0aac4-b69d-4819-b37c-609da44532f7",
+              "status": "pending",
+              "scheduled_for": "2026-05-26T17:30:00+00:00"
+            },
+            {
+              "id": "aee41abe-3b24-4917-9e7b-2b8b339aec52",
+              "status": "pending",
+              "scheduled_for": "2026-05-27T17:30:00+00:00"
+            },
+            {
+              "id": "43c4f31b-0aa1-4468-9d93-35a8e9a0d7c5",
+              "status": "pending",
+              "scheduled_for": "2026-05-28T17:30:00+00:00"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "potion": "courage",
+    "state": "fear_avoidance",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r36_hard2_green_courage",
+    "user_id": "2f57e606-08fa-49f8-804e-b4ed1bc4b2de",
+    "fixture": {
+      "cycle": {
+        "id": "b33de0c9-3052-41d4-9edd-f47b75611659",
+        "user_id": "2f57e606-08fa-49f8-804e-b4ed1bc4b2de",
+        "status": "active",
+        "raw_intake_text": "QA potions: l'utilisateur veut retrouver une relation plus calme a son quotidien tout en gardant une action simple.",
+        "intake_language": "fr",
+        "duration_months": 1,
+        "birth_date_snapshot": null,
+        "gender_snapshot": null,
+        "active_transformation_id": null,
+        "version": 1,
+        "created_at": "2026-05-21T14:32:24.946916+00:00",
+        "updated_at": "2026-05-21T14:32:24.946916+00:00",
+        "completed_at": null,
+        "archived_at": null,
+        "validated_structure": null,
+        "requested_pace": null
+      },
+      "transformation": {
+        "id": "0ce4ca2f-c4c6-4056-b264-6761ff21c9d2",
+        "cycle_id": "b33de0c9-3052-41d4-9edd-f47b75611659",
+        "priority_order": 1,
+        "status": "active",
+        "title": "Oser les conversations importantes",
+        "internal_summary": "Fixture QA pour tester la potion courage.",
+        "user_summary": "Le user cherche un accompagnement doux, concret, sans pression supplementaire.",
+        "success_definition": "Avoir un appui simple qui ramene au bon geste sans surcharge.",
+        "main_constraint": "Quand la charge monte, le user se perd dans la pression et l'auto-jugement.",
+        "questionnaire_schema": null,
+        "questionnaire_answers": {
+          "potion_qa": "courage",
+          "ton_prefere": "doux et direct",
+          "rythme_prefere": "matin"
+        },
+        "completion_summary": null,
+        "handoff_payload": {
+          "phase_1": {
+            "deep_why": {
+              "answers": [
+                {
+                  "answer": "Je veux arreter de me disperser et me sentir plus present a ce que je choisis.",
+                  "question_id": "why_1"
+                },
+                {
+                  "answer": "Je veux proteger mon energie et ma confiance au lieu de les depenser en tension.",
+                  "question_id": "why_2"
+                }
+              ],
+              "questions": [
+                {
+                  "id": "why_1",
+                  "label": "Pourquoi est-ce important pour toi ?"
+                },
+                {
+                  "id": "why_2",
+                  "label": "Qu'est-ce que tu veux proteger ?"
+                }
+              ]
+            }
+          }
+        },
+        "created_at": "2026-05-21T14:32:24.94999+00:00",
+        "updated_at": "2026-05-21T14:32:24.94999+00:00",
+        "activated_at": "2026-05-21T14:28:51.584+00:00",
+        "completed_at": null,
+        "ordering_rationale": null,
+        "unlocked_principles": {
+          "kaizen": true
+        },
+        "base_de_vie_payload": null
+      },
+      "plan": {
+        "id": "939999a4-cf3d-419f-84c9-40f38760b3f1",
+        "user_id": "2f57e606-08fa-49f8-804e-b4ed1bc4b2de",
+        "cycle_id": "b33de0c9-3052-41d4-9edd-f47b75611659",
+        "transformation_id": "0ce4ca2f-c4c6-4056-b264-6761ff21c9d2",
+        "status": "active",
+        "version": 1,
+        "title": "Plan QA courage",
+        "content": {
+          "source": "qa_state_potion_6subskills",
+          "strategy": {
+            "core_principle": "Un seul appui juste vaut mieux qu'une pression de plus.",
+            "identity_shift": "Je deviens quelqu'un qui avance avec plus de douceur.",
+            "main_constraint": "La surcharge transforme les petits pas en montagne.",
+            "success_definition": "Revenir a un geste simple au bon moment."
+          }
+        },
+        "generation_attempts": 0,
+        "last_generation_reason": null,
+        "activated_at": "2026-05-21T14:28:51.584+00:00",
+        "completed_at": null,
+        "archived_at": null,
+        "created_at": "2026-05-21T14:32:24.957001+00:00",
+        "updated_at": "2026-05-21T14:32:24.957001+00:00",
+        "generation_feedback": null,
+        "generation_input_snapshot": null
+      },
+      "item": {
+        "id": "c4556033-2c22-46fc-b89a-7cc1992369cc",
+        "user_id": "2f57e606-08fa-49f8-804e-b4ed1bc4b2de",
+        "cycle_id": "b33de0c9-3052-41d4-9edd-f47b75611659",
+        "transformation_id": "0ce4ca2f-c4c6-4056-b264-6761ff21c9d2",
+        "plan_id": "939999a4-cf3d-419f-84c9-40f38760b3f1",
+        "dimension": "habits",
+        "kind": "habit",
+        "status": "active",
+        "title": "Envoyer le message difficile",
+        "description": "Action QA active visible par le skill potion.",
+        "tracking_type": "boolean",
+        "activation_order": 1,
+        "activation_condition": null,
+        "current_habit_state": "active_building",
+        "support_mode": null,
+        "support_function": null,
+        "target_reps": 1,
+        "current_reps": 0,
+        "cadence_label": "quotidien",
+        "scheduled_days": [
+          "thu"
+        ],
+        "time_of_day": "09:00",
+        "start_after_item_id": null,
+        "payload": {
+          "source": "qa_state_potion_6subskills",
+          "potion_type": "courage"
+        },
+        "created_at": "2026-05-21T14:32:24.960969+00:00",
+        "updated_at": "2026-05-21T14:32:24.960969+00:00",
+        "activated_at": "2026-05-21T14:28:51.584+00:00",
+        "completed_at": null,
+        "phase_id": null,
+        "phase_order": null,
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "cards_status": "not_required",
+        "cards_generated_at": null
+      }
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r36_hard2_green-courage-t01-a1",
+        "user": "J'ai besoin d'une potion de courage, mais je change de formulation toutes les deux minutes.",
+        "assistant": "On dirait que tu cherches la version parfaite pour ne pas te tromper. Qu'est-ce qui t'inquiète le plus si tu t'arrêtes sur une version ? 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "tool_skill_intent_start",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r36_hard2_green-courage-t01-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 2,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r36_hard2_green-courage-t02-a1",
+        "user": "C'est pour parler a mon associe. Je dois envoyer une premiere phrase, pas refaire mon plan.",
+        "assistant": "D'accord, on se concentre sur cette première phrase pour ton associé. Qu'est-ce qui te fait le plus hésiter à la valider : sa réaction possible ou la peur de ne pas trouver les bons mots ? 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r36_hard2_green-courage-t02-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 3,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r36_hard2_green-courage-t03-a1",
+        "user": "Ce qui bloque, c'est surtout qu'il me trouve lourd et que le conflit parte trop vite.",
+        "assistant": "L'idée de paraître lourd ou de déclencher un conflit, c'est souvent ce qui nous fige. Pour t'aider à envoyer cette première phrase à ton associé, je peux te soutenir chaque jeudi à 9h, juste avant ton créneau habituel. Ça te permettrait d'y aller avec un peu plus de légèreté. Je prépare ça pour jeudi matin ? 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r36_hard2_green-courage-t03-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 4,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r36_hard2_green-courage-t04-a1",
+        "user": "Aide-moi uniquement demain matin avant que je l'ecrive, vers 08h15.",
+        "assistant": "Je te suis. Qu'est-ce qui te pèse le plus là-dedans ? 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [
+              "demain"
+            ],
+            "risk_band": "none",
+            "reason_codes": [
+              "immediacy_tomorrow"
+            ],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": true,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r36_hard2_green-courage-t04-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 5,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r36_hard2_green-courage-t05-a1",
+        "user": "Oui, active la potion de courage.",
+        "assistant": "Je te suis. Qu'est-ce qui te pèse le plus là-dedans ? 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r36_hard2_green-courage-t05-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 6,
+        "attempt": 2,
+        "requestId": "qa-state-potion-state_potion_6subskills_r36_hard2_green-courage-t06-a2",
+        "user": "Oui, je confirme, lance-la.",
+        "assistant": "Je te suis. Qu'est-ce qui te pèse le plus là-dedans ? 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r36_hard2_green-courage-t06-a2"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      }
+    ]
+  },
+  {
+    "potion": "guerison",
+    "state": "shame_guilt",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r36_hard2_green_guerison",
+    "user_id": "c602c5eb-98e1-41e0-b219-f1a33e0f5ad8",
+    "fixture": {
+      "cycle": {
+        "id": "592098f9-25f1-43d7-b66a-00b74c5fc0f6",
+        "user_id": "c602c5eb-98e1-41e0-b219-f1a33e0f5ad8",
+        "status": "active",
+        "raw_intake_text": "QA potions: l'utilisateur veut retrouver une relation plus calme a son quotidien tout en gardant une action simple.",
+        "intake_language": "fr",
+        "duration_months": 1,
+        "birth_date_snapshot": null,
+        "gender_snapshot": null,
+        "active_transformation_id": null,
+        "version": 1,
+        "created_at": "2026-05-21T14:36:07.759213+00:00",
+        "updated_at": "2026-05-21T14:36:07.759213+00:00",
+        "completed_at": null,
+        "archived_at": null,
+        "validated_structure": null,
+        "requested_pace": null
+      },
+      "transformation": {
+        "id": "ed2b56fb-bf48-4e8b-a91f-cac31c1c8306",
+        "cycle_id": "592098f9-25f1-43d7-b66a-00b74c5fc0f6",
+        "priority_order": 1,
+        "status": "active",
+        "title": "Reparer apres les rechutes",
+        "internal_summary": "Fixture QA pour tester la potion guerison.",
+        "user_summary": "Le user cherche un accompagnement doux, concret, sans pression supplementaire.",
+        "success_definition": "Avoir un appui simple qui ramene au bon geste sans surcharge.",
+        "main_constraint": "Quand la charge monte, le user se perd dans la pression et l'auto-jugement.",
+        "questionnaire_schema": null,
+        "questionnaire_answers": {
+          "potion_qa": "guerison",
+          "ton_prefere": "doux et direct",
+          "rythme_prefere": "matin"
+        },
+        "completion_summary": null,
+        "handoff_payload": {
+          "phase_1": {
+            "deep_why": {
+              "answers": [
+                {
+                  "answer": "Je veux arreter de me disperser et me sentir plus present a ce que je choisis.",
+                  "question_id": "why_1"
+                },
+                {
+                  "answer": "Je veux proteger mon energie et ma confiance au lieu de les depenser en tension.",
+                  "question_id": "why_2"
+                }
+              ],
+              "questions": [
+                {
+                  "id": "why_1",
+                  "label": "Pourquoi est-ce important pour toi ?"
+                },
+                {
+                  "id": "why_2",
+                  "label": "Qu'est-ce que tu veux proteger ?"
+                }
+              ]
+            }
+          }
+        },
+        "created_at": "2026-05-21T14:36:07.761973+00:00",
+        "updated_at": "2026-05-21T14:36:07.761973+00:00",
+        "activated_at": "2026-05-21T14:28:51.584+00:00",
+        "completed_at": null,
+        "ordering_rationale": null,
+        "unlocked_principles": {
+          "kaizen": true
+        },
+        "base_de_vie_payload": null
+      },
+      "plan": {
+        "id": "0b056768-c882-40e0-9bea-eff229065b98",
+        "user_id": "c602c5eb-98e1-41e0-b219-f1a33e0f5ad8",
+        "cycle_id": "592098f9-25f1-43d7-b66a-00b74c5fc0f6",
+        "transformation_id": "ed2b56fb-bf48-4e8b-a91f-cac31c1c8306",
+        "status": "active",
+        "version": 1,
+        "title": "Plan QA guerison",
+        "content": {
+          "source": "qa_state_potion_6subskills",
+          "strategy": {
+            "core_principle": "Un seul appui juste vaut mieux qu'une pression de plus.",
+            "identity_shift": "Je deviens quelqu'un qui avance avec plus de douceur.",
+            "main_constraint": "La surcharge transforme les petits pas en montagne.",
+            "success_definition": "Revenir a un geste simple au bon moment."
+          }
+        },
+        "generation_attempts": 0,
+        "last_generation_reason": null,
+        "activated_at": "2026-05-21T14:28:51.584+00:00",
+        "completed_at": null,
+        "archived_at": null,
+        "created_at": "2026-05-21T14:36:07.768163+00:00",
+        "updated_at": "2026-05-21T14:36:07.768163+00:00",
+        "generation_feedback": null,
+        "generation_input_snapshot": null
+      },
+      "item": {
+        "id": "3d24a012-39ca-44a8-87dc-8c36cbcc2e00",
+        "user_id": "c602c5eb-98e1-41e0-b219-f1a33e0f5ad8",
+        "cycle_id": "592098f9-25f1-43d7-b66a-00b74c5fc0f6",
+        "transformation_id": "ed2b56fb-bf48-4e8b-a91f-cac31c1c8306",
+        "plan_id": "0b056768-c882-40e0-9bea-eff229065b98",
+        "dimension": "habits",
+        "kind": "habit",
+        "status": "active",
+        "title": "Reprendre doucement apres un ratage",
+        "description": "Action QA active visible par le skill potion.",
+        "tracking_type": "boolean",
+        "activation_order": 1,
+        "activation_condition": null,
+        "current_habit_state": "active_building",
+        "support_mode": null,
+        "support_function": null,
+        "target_reps": 1,
+        "current_reps": 0,
+        "cadence_label": "quotidien",
+        "scheduled_days": [
+          "thu"
+        ],
+        "time_of_day": "09:00",
+        "start_after_item_id": null,
+        "payload": {
+          "source": "qa_state_potion_6subskills",
+          "potion_type": "guerison"
+        },
+        "created_at": "2026-05-21T14:36:07.771916+00:00",
+        "updated_at": "2026-05-21T14:36:07.771916+00:00",
+        "activated_at": "2026-05-21T14:28:51.584+00:00",
+        "completed_at": null,
+        "phase_id": null,
+        "phase_order": null,
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "cards_status": "not_required",
+        "cards_generated_at": null
+      }
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r36_hard2_green-guerison-t01-a1",
+        "user": "Je veux une potion de guerison. J'ai rate mon bloc hier et je me suis parle vraiment durement.",
+        "assistant": "C'est dur de se parler si durement. Tu ressens surtout quoi en ce moment ? 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "emotional_repair",
+          "route_selected_handler": "emotional_repair",
+          "route_reason": "skill_entry_signal",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r36_hard2_green-guerison-t01-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 2,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r36_hard2_green-guerison-t02-a1",
+        "user": "Le moment qui reste, c'est quand j'ai ferme le document et que j'ai fait comme si ce n'etait rien.",
+        "assistant": "Ce moment où on ferme tout pour essayer d'oublier... Qu'est-ce qui pèse le plus en toi en repensant à ça ? 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r36_hard2_green-guerison-t02-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 3,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r36_hard2_green-guerison-t03-a1",
+        "user": "Ce qui pese, c'est honte plus fatigue. Je veux que le message m'aide a ne pas transformer ca en identite.",
+        "assistant": "Le fait d'avoir fermé ce document hier, c'est une réaction de fatigue, pas une définition de toi. Pour éviter que la honte ne s'installe, je prépare un accompagnement de 7 jours avec un message chaque matin à 08h30 pour t'aider à retrouver de la douceur. Est-ce que ce soutien matinal t'aiderait à te sentir plus léger ? 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r36_hard2_green-guerison-t03-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 4,
+        "attempt": 2,
+        "requestId": "qa-state-potion-state_potion_6subskills_r36_hard2_green-guerison-t04-a2",
+        "user": "Le matin me va, avec un ton adulte, pas trop consolant.",
+        "assistant": "Avoir fermé ce document hier est un signal de fatigue, rien de plus. Pour éviter que l'auto-jugement ne vienne compliquer les choses, je prépare un suivi de 7 jours avec un message direct chaque matin à 08h30. Est-ce que ce rythme t'aiderait à garder la tête froide pour la suite ? 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r36_hard2_green-guerison-t04-a2"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 5,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r36_hard2_green-guerison-t05-a1",
+        "user": "Oui, active cette potion de guerison.",
+        "assistant": "Fermer ce document hier était une réponse à la fatigue. C'est un fait, pas une faute. On peut simplement reprendre là où c'est utile, sans avoir besoin de compenser ou de se justifier. 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [
+            {
+              "outcome": "success",
+              "tool_id": "select_state_potion"
+            }
+          ],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [
+            "select_state_potion"
+          ],
+          "tool_execution": "success",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r36_hard2_green-guerison-t05-a1"
+        },
+        "durable_after": {
+          "sessions": [
+            {
+              "id": "63edac3e-d9e5-4188-ac02-8935ab7c56a5",
+              "potion_type": "guerison",
+              "status": "completed"
+            }
+          ],
+          "reminders": [
+            {
+              "id": "2dba0120-1765-40b5-9487-eac31a482627",
+              "initiative_kind": "potion_follow_up",
+              "source_kind": "potion_generated"
+            }
+          ],
+          "checkins": [
+            {
+              "id": "7c9ebbde-8419-4f93-8a94-74def9a84955",
+              "status": "pending",
+              "scheduled_for": "2026-05-22T08:30:00+00:00"
+            },
+            {
+              "id": "d9310235-b838-4c82-a189-33d96e612bf0",
+              "status": "pending",
+              "scheduled_for": "2026-05-23T08:30:00+00:00"
+            },
+            {
+              "id": "1471ee48-50d5-4d4f-a2b8-f147d8b2dec3",
+              "status": "pending",
+              "scheduled_for": "2026-05-24T08:30:00+00:00"
+            },
+            {
+              "id": "e8b2e7ad-4ded-4910-8283-375e90c904f8",
+              "status": "pending",
+              "scheduled_for": "2026-05-25T08:30:00+00:00"
+            },
+            {
+              "id": "ba121b52-bc19-4657-b66f-3a448b0aa07d",
+              "status": "pending",
+              "scheduled_for": "2026-05-26T08:30:00+00:00"
+            },
+            {
+              "id": "b5a4d525-64bc-40bc-84dd-966cc225b84e",
+              "status": "pending",
+              "scheduled_for": "2026-05-27T08:30:00+00:00"
+            },
+            {
+              "id": "bc26ef03-8964-4396-8385-d21c93981249",
+              "status": "pending",
+              "scheduled_for": "2026-05-28T08:30:00+00:00"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "potion": "clarte",
+    "state": "confusion_overload",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r36_hard2_green_clarte",
+    "user_id": "cf183636-264c-4413-9136-775a519529b3",
+    "fixture": {
+      "cycle": {
+        "id": "14e4ebb5-eb04-4a98-af66-b8f49d68f49e",
+        "user_id": "cf183636-264c-4413-9136-775a519529b3",
+        "status": "active",
+        "raw_intake_text": "QA potions: l'utilisateur veut retrouver une relation plus calme a son quotidien tout en gardant une action simple.",
+        "intake_language": "fr",
+        "duration_months": 1,
+        "birth_date_snapshot": null,
+        "gender_snapshot": null,
+        "active_transformation_id": null,
+        "version": 1,
+        "created_at": "2026-05-21T14:38:32.740926+00:00",
+        "updated_at": "2026-05-21T14:38:32.740926+00:00",
+        "completed_at": null,
+        "archived_at": null,
+        "validated_structure": null,
+        "requested_pace": null
+      },
+      "transformation": {
+        "id": "033b715b-267a-4cce-a913-6d8be8e3de1b",
+        "cycle_id": "14e4ebb5-eb04-4a98-af66-b8f49d68f49e",
+        "priority_order": 1,
+        "status": "active",
+        "title": "Retrouver une priorite simple",
+        "internal_summary": "Fixture QA pour tester la potion clarte.",
+        "user_summary": "Le user cherche un accompagnement doux, concret, sans pression supplementaire.",
+        "success_definition": "Avoir un appui simple qui ramene au bon geste sans surcharge.",
+        "main_constraint": "Quand la charge monte, le user se perd dans la pression et l'auto-jugement.",
+        "questionnaire_schema": null,
+        "questionnaire_answers": {
+          "potion_qa": "clarte",
+          "ton_prefere": "doux et direct",
+          "rythme_prefere": "matin"
+        },
+        "completion_summary": null,
+        "handoff_payload": {
+          "phase_1": {
+            "deep_why": {
+              "answers": [
+                {
+                  "answer": "Je veux arreter de me disperser et me sentir plus present a ce que je choisis.",
+                  "question_id": "why_1"
+                },
+                {
+                  "answer": "Je veux proteger mon energie et ma confiance au lieu de les depenser en tension.",
+                  "question_id": "why_2"
+                }
+              ],
+              "questions": [
+                {
+                  "id": "why_1",
+                  "label": "Pourquoi est-ce important pour toi ?"
+                },
+                {
+                  "id": "why_2",
+                  "label": "Qu'est-ce que tu veux proteger ?"
+                }
+              ]
+            }
+          }
+        },
+        "created_at": "2026-05-21T14:38:32.743257+00:00",
+        "updated_at": "2026-05-21T14:38:32.743257+00:00",
+        "activated_at": "2026-05-21T14:28:51.584+00:00",
+        "completed_at": null,
+        "ordering_rationale": null,
+        "unlocked_principles": {
+          "kaizen": true
+        },
+        "base_de_vie_payload": null
+      },
+      "plan": {
+        "id": "b479e081-29f7-47db-ad56-369f2c2a3f40",
+        "user_id": "cf183636-264c-4413-9136-775a519529b3",
+        "cycle_id": "14e4ebb5-eb04-4a98-af66-b8f49d68f49e",
+        "transformation_id": "033b715b-267a-4cce-a913-6d8be8e3de1b",
+        "status": "active",
+        "version": 1,
+        "title": "Plan QA clarte",
+        "content": {
+          "source": "qa_state_potion_6subskills",
+          "strategy": {
+            "core_principle": "Un seul appui juste vaut mieux qu'une pression de plus.",
+            "identity_shift": "Je deviens quelqu'un qui avance avec plus de douceur.",
+            "main_constraint": "La surcharge transforme les petits pas en montagne.",
+            "success_definition": "Revenir a un geste simple au bon moment."
+          }
+        },
+        "generation_attempts": 0,
+        "last_generation_reason": null,
+        "activated_at": "2026-05-21T14:28:51.584+00:00",
+        "completed_at": null,
+        "archived_at": null,
+        "created_at": "2026-05-21T14:38:32.749658+00:00",
+        "updated_at": "2026-05-21T14:38:32.749658+00:00",
+        "generation_feedback": null,
+        "generation_input_snapshot": null
+      },
+      "item": {
+        "id": "3a0529c6-2518-4434-ac37-c6df90d5b393",
+        "user_id": "cf183636-264c-4413-9136-775a519529b3",
+        "cycle_id": "14e4ebb5-eb04-4a98-af66-b8f49d68f49e",
+        "transformation_id": "033b715b-267a-4cce-a913-6d8be8e3de1b",
+        "plan_id": "b479e081-29f7-47db-ad56-369f2c2a3f40",
+        "dimension": "habits",
+        "kind": "habit",
+        "status": "active",
+        "title": "Choisir la priorite du matin",
+        "description": "Action QA active visible par le skill potion.",
+        "tracking_type": "boolean",
+        "activation_order": 1,
+        "activation_condition": null,
+        "current_habit_state": "active_building",
+        "support_mode": null,
+        "support_function": null,
+        "target_reps": 1,
+        "current_reps": 0,
+        "cadence_label": "quotidien",
+        "scheduled_days": [
+          "thu"
+        ],
+        "time_of_day": "09:00",
+        "start_after_item_id": null,
+        "payload": {
+          "source": "qa_state_potion_6subskills",
+          "potion_type": "clarte"
+        },
+        "created_at": "2026-05-21T14:38:32.752536+00:00",
+        "updated_at": "2026-05-21T14:38:32.752536+00:00",
+        "activated_at": "2026-05-21T14:28:51.584+00:00",
+        "completed_at": null,
+        "phase_id": null,
+        "phase_order": null,
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "cards_status": "not_required",
+        "cards_generated_at": null
+      }
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r36_hard2_green-clarte-t01-a1",
+        "user": "Potion de clarte. J'ai trop de sujets ouverts et je tourne sans choisir.",
+        "assistant": "Je comprends, ce trop-plein empêche souvent d'avancer. Pour t'aider à choisir, tu as surtout besoin de comprendre quoi en priorité ? 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "tool_skill_intent_start",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r36_hard2_green-clarte-t01-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 2,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r36_hard2_green-clarte-t02-a1",
+        "user": "Le vrai flou c'est demain matin: je dois choisir entre trois pistes et j'ai peur de perdre la bonne.",
+        "assistant": "Demain matin, tu as ces trois pistes qui se bousculent et je sens que c'est là que le flou s'installe. On peut se retrouver à 08h30 pour faire ce tri ensemble, tranquillement, avant que tu ne lances ta journée. On se donne rendez-vous demain pour simplifier tout ça ? 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [
+              "demain"
+            ],
+            "risk_band": "none",
+            "reason_codes": [
+              "immediacy_tomorrow"
+            ],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": true,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r36_hard2_green-clarte-t02-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 3,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r36_hard2_green-clarte-t03-a1",
+        "user": "Ce dont j'ai besoin, c'est juste retrouver le premier fil, pas optimiser toute ma semaine.",
+        "assistant": "Tu n’as pas besoin de tenir toute la semaine d’un coup : ce qui compte ici, c’est de retrouver le premier fil avant ton 09:00. Je garde un rappel à 08:30 pendant 7 jours, pour t’aider à te recentrer sans surcharge. Si tu valides, je le mets en place. 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r36_hard2_green-clarte-t03-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 4,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r36_hard2_green-clarte-t04-a1",
+        "user": "Mets le soutien demain a 09h, et ensuite garde le matin si tu penses que ca aide.",
+        "assistant": "Trancher entre tes trois pistes demain matin sera plus simple avec un appui au bon moment : je règle le soutien à 09:00 pour demain, puis chaque matin pendant une semaine pour protéger ta clarté. Dis-moi si c'est ce qu'il te faut. 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [
+              "demain"
+            ],
+            "risk_band": "none",
+            "reason_codes": [
+              "immediacy_tomorrow"
+            ],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": true,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r36_hard2_green-clarte-t04-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 5,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r36_hard2_green-clarte-t05-a1",
+        "user": "Oui, active la potion de clarte.",
+        "assistant": "Là, tu n’as pas besoin de tout remettre en ordre. Juste de retrouver le premier fil, un seul, pour que ça redevienne maniable. 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [
+            {
+              "outcome": "success",
+              "tool_id": "select_state_potion"
+            }
+          ],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [
+            "select_state_potion"
+          ],
+          "tool_execution": "success",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r36_hard2_green-clarte-t05-a1"
+        },
+        "durable_after": {
+          "sessions": [
+            {
+              "id": "c1409027-7a9a-448b-b8bd-116f643a93f1",
+              "potion_type": "clarte",
+              "status": "completed"
+            }
+          ],
+          "reminders": [
+            {
+              "id": "93f3e12e-7a22-4689-8417-af30d1094b5a",
+              "initiative_kind": "potion_follow_up",
+              "source_kind": "potion_generated"
+            }
+          ],
+          "checkins": [
+            {
+              "id": "6cd73144-459a-476c-b3ad-95eb35325c11",
+              "status": "pending",
+              "scheduled_for": "2026-05-22T09:00:00+00:00"
+            },
+            {
+              "id": "8ec6faf7-30de-4d20-bce4-775b51d763b3",
+              "status": "pending",
+              "scheduled_for": "2026-05-23T09:00:00+00:00"
+            },
+            {
+              "id": "def708cc-8f12-478d-9010-6423aeca8de7",
+              "status": "pending",
+              "scheduled_for": "2026-05-24T09:00:00+00:00"
+            },
+            {
+              "id": "6e200312-2462-4efe-bbde-99f3db36e490",
+              "status": "pending",
+              "scheduled_for": "2026-05-25T09:00:00+00:00"
+            },
+            {
+              "id": "f99130f5-1285-44ba-8d08-0f62b660376b",
+              "status": "pending",
+              "scheduled_for": "2026-05-26T09:00:00+00:00"
+            },
+            {
+              "id": "5a754771-894b-46db-bd95-9d66ff4303ba",
+              "status": "pending",
+              "scheduled_for": "2026-05-27T09:00:00+00:00"
+            },
+            {
+              "id": "d76c1e07-a426-437d-aba6-34935c4e8927",
+              "status": "pending",
+              "scheduled_for": "2026-05-28T09:00:00+00:00"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "potion": "amour",
+    "state": "self_harshness",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r36_hard2_green_amour",
+    "user_id": "3f868625-cd7a-4faa-a466-ba4116c145f1",
+    "fixture": {
+      "cycle": {
+        "id": "3030c043-c72d-48a8-9303-79d28cba83c9",
+        "user_id": "3f868625-cd7a-4faa-a466-ba4116c145f1",
+        "status": "active",
+        "raw_intake_text": "QA potions: l'utilisateur veut retrouver une relation plus calme a son quotidien tout en gardant une action simple.",
+        "intake_language": "fr",
+        "duration_months": 1,
+        "birth_date_snapshot": null,
+        "gender_snapshot": null,
+        "active_transformation_id": null,
+        "version": 1,
+        "created_at": "2026-05-21T14:41:21.817097+00:00",
+        "updated_at": "2026-05-21T14:41:21.817097+00:00",
+        "completed_at": null,
+        "archived_at": null,
+        "validated_structure": null,
+        "requested_pace": null
+      },
+      "transformation": {
+        "id": "10613a9c-216e-4944-a685-0dd6d4c12782",
+        "cycle_id": "3030c043-c72d-48a8-9303-79d28cba83c9",
+        "priority_order": 1,
+        "status": "active",
+        "title": "Changer le ton interieur",
+        "internal_summary": "Fixture QA pour tester la potion amour.",
+        "user_summary": "Le user cherche un accompagnement doux, concret, sans pression supplementaire.",
+        "success_definition": "Avoir un appui simple qui ramene au bon geste sans surcharge.",
+        "main_constraint": "Quand la charge monte, le user se perd dans la pression et l'auto-jugement.",
+        "questionnaire_schema": null,
+        "questionnaire_answers": {
+          "potion_qa": "amour",
+          "ton_prefere": "doux et direct",
+          "rythme_prefere": "matin"
+        },
+        "completion_summary": null,
+        "handoff_payload": {
+          "phase_1": {
+            "deep_why": {
+              "answers": [
+                {
+                  "answer": "Je veux arreter de me disperser et me sentir plus present a ce que je choisis.",
+                  "question_id": "why_1"
+                },
+                {
+                  "answer": "Je veux proteger mon energie et ma confiance au lieu de les depenser en tension.",
+                  "question_id": "why_2"
+                }
+              ],
+              "questions": [
+                {
+                  "id": "why_1",
+                  "label": "Pourquoi est-ce important pour toi ?"
+                },
+                {
+                  "id": "why_2",
+                  "label": "Qu'est-ce que tu veux proteger ?"
+                }
+              ]
+            }
+          }
+        },
+        "created_at": "2026-05-21T14:41:21.819613+00:00",
+        "updated_at": "2026-05-21T14:41:21.819613+00:00",
+        "activated_at": "2026-05-21T14:28:51.584+00:00",
+        "completed_at": null,
+        "ordering_rationale": null,
+        "unlocked_principles": {
+          "kaizen": true
+        },
+        "base_de_vie_payload": null
+      },
+      "plan": {
+        "id": "21ee0936-ff17-4c4b-b74b-13b56680cb58",
+        "user_id": "3f868625-cd7a-4faa-a466-ba4116c145f1",
+        "cycle_id": "3030c043-c72d-48a8-9303-79d28cba83c9",
+        "transformation_id": "10613a9c-216e-4944-a685-0dd6d4c12782",
+        "status": "active",
+        "version": 1,
+        "title": "Plan QA amour",
+        "content": {
+          "source": "qa_state_potion_6subskills",
+          "strategy": {
+            "core_principle": "Un seul appui juste vaut mieux qu'une pression de plus.",
+            "identity_shift": "Je deviens quelqu'un qui avance avec plus de douceur.",
+            "main_constraint": "La surcharge transforme les petits pas en montagne.",
+            "success_definition": "Revenir a un geste simple au bon moment."
+          }
+        },
+        "generation_attempts": 0,
+        "last_generation_reason": null,
+        "activated_at": "2026-05-21T14:28:51.584+00:00",
+        "completed_at": null,
+        "archived_at": null,
+        "created_at": "2026-05-21T14:41:21.82553+00:00",
+        "updated_at": "2026-05-21T14:41:21.82553+00:00",
+        "generation_feedback": null,
+        "generation_input_snapshot": null
+      },
+      "item": {
+        "id": "e4504130-0c47-4da2-997c-fdf56f3ae59b",
+        "user_id": "3f868625-cd7a-4faa-a466-ba4116c145f1",
+        "cycle_id": "3030c043-c72d-48a8-9303-79d28cba83c9",
+        "transformation_id": "10613a9c-216e-4944-a685-0dd6d4c12782",
+        "plan_id": "21ee0936-ff17-4c4b-b74b-13b56680cb58",
+        "dimension": "habits",
+        "kind": "habit",
+        "status": "active",
+        "title": "Me parler avec plus de douceur",
+        "description": "Action QA active visible par le skill potion.",
+        "tracking_type": "boolean",
+        "activation_order": 1,
+        "activation_condition": null,
+        "current_habit_state": "active_building",
+        "support_mode": null,
+        "support_function": null,
+        "target_reps": 1,
+        "current_reps": 0,
+        "cadence_label": "quotidien",
+        "scheduled_days": [
+          "thu"
+        ],
+        "time_of_day": "09:00",
+        "start_after_item_id": null,
+        "payload": {
+          "source": "qa_state_potion_6subskills",
+          "potion_type": "amour"
+        },
+        "created_at": "2026-05-21T14:41:21.827772+00:00",
+        "updated_at": "2026-05-21T14:41:21.827772+00:00",
+        "activated_at": "2026-05-21T14:28:51.584+00:00",
+        "completed_at": null,
+        "phase_id": null,
+        "phase_order": null,
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "cards_status": "not_required",
+        "cards_generated_at": null
+      }
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r36_hard2_green-amour-t01-a1",
+        "user": "Je crois que j'ai besoin d'une potion d'amour, meme si j'aime pas trop le mot.",
+        "assistant": "Je comprends, on peut l'appeler potion de douceur si c'est plus juste pour toi. Dis-moi, comment est-ce que tu te parles à l'intérieur de toi en ce moment ? 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "tool_skill_intent_start",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r36_hard2_green-amour-t01-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 2,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r36_hard2_green-amour-t02-a1",
+        "user": "La phrase qui revient: tu rates toujours au meme endroit, donc a quoi bon.",
+        "assistant": "C'est une phrase difficile à porter. Pour adoucir un peu tout ça, de quoi est-ce que tu aurais le plus besoin là maintenant ? 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r36_hard2_green-amour-t02-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 3,
+        "attempt": 2,
+        "requestId": "qa-state-potion-state_potion_6subskills_r36_hard2_green-amour-t03-a2",
+        "user": "J'ai besoin d'un ton tendre mais lucide, pas un truc qui me flatte.",
+        "assistant": "Quand la voix devient du genre « tu rates toujours au même endroit, donc à quoi bon », le plus utile ici, c’est un rappel du matin à 09:00 pour revenir à un ton tendre mais lucide, sans flatterie. Dis-moi juste oui pour que je le garde en place. 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r36_hard2_green-amour-t03-a2"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 4,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r36_hard2_green-amour-t04-a1",
+        "user": "Le matin a 09h, ca m'aiderait a ne pas commencer par me taper dessus.",
+        "assistant": "Le point que je garde, c’est simple : à 09:00 le matin, tu veux un rappel pour ne pas démarrer en te tapant dessus, mais avec un ton tendre et lucide. Je laisse ce format en place si tu me dis oui. 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r36_hard2_green-amour-t04-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 5,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r36_hard2_green-amour-t05-a1",
+        "user": "Oui, active cette potion d'amour.",
+        "assistant": "Là, tu n’as pas besoin de te secouer. Juste de desserrer un peu la voix contre toi. On peut garder du vrai sans rajouter de dureté. 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [
+            {
+              "outcome": "success",
+              "tool_id": "select_state_potion"
+            }
+          ],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [
+            "select_state_potion"
+          ],
+          "tool_execution": "success",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r36_hard2_green-amour-t05-a1"
+        },
+        "durable_after": {
+          "sessions": [
+            {
+              "id": "2a153d8c-c9b3-4c00-bab6-d572fb3e7c21",
+              "potion_type": "amour",
+              "status": "completed"
+            }
+          ],
+          "reminders": [
+            {
+              "id": "6e1e3bb5-ae56-4e6f-9286-27570c1e31b2",
+              "initiative_kind": "potion_follow_up",
+              "source_kind": "potion_generated"
+            }
+          ],
+          "checkins": [
+            {
+              "id": "585915f7-1d62-4889-b6e5-9d473683f034",
+              "status": "pending",
+              "scheduled_for": "2026-05-22T09:00:00+00:00"
+            },
+            {
+              "id": "b07d92f7-6af9-48e6-8d2f-c70ff3a321f9",
+              "status": "pending",
+              "scheduled_for": "2026-05-23T09:00:00+00:00"
+            },
+            {
+              "id": "2778527e-951c-4b5a-bba8-f4b6c245ad05",
+              "status": "pending",
+              "scheduled_for": "2026-05-24T09:00:00+00:00"
+            },
+            {
+              "id": "ad9d742f-d582-4325-98e4-437977dfea79",
+              "status": "pending",
+              "scheduled_for": "2026-05-25T09:00:00+00:00"
+            },
+            {
+              "id": "851f1e98-c38c-4949-8ee1-3c956c7075fa",
+              "status": "pending",
+              "scheduled_for": "2026-05-26T09:00:00+00:00"
+            },
+            {
+              "id": "8bd63405-559f-4ba0-98cd-4aa2471f45c0",
+              "status": "pending",
+              "scheduled_for": "2026-05-27T09:00:00+00:00"
+            },
+            {
+              "id": "e56f8ef2-da5a-4e52-9cda-667255f5421d",
+              "status": "pending",
+              "scheduled_for": "2026-05-28T09:00:00+00:00"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "potion": "apaisement",
+    "state": "stress_pressure",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r36_hard2_green_apaisement",
+    "user_id": "5db2024e-0bd5-4753-9169-ba5cb4000898",
+    "fixture": {
+      "cycle": {
+        "id": "df6489ce-99ca-4155-99dd-d6781ff65fc1",
+        "user_id": "5db2024e-0bd5-4753-9169-ba5cb4000898",
+        "status": "active",
+        "raw_intake_text": "QA potions: l'utilisateur veut retrouver une relation plus calme a son quotidien tout en gardant une action simple.",
+        "intake_language": "fr",
+        "duration_months": 1,
+        "birth_date_snapshot": null,
+        "gender_snapshot": null,
+        "active_transformation_id": null,
+        "version": 1,
+        "created_at": "2026-05-21T14:44:16.272832+00:00",
+        "updated_at": "2026-05-21T14:44:16.272832+00:00",
+        "completed_at": null,
+        "archived_at": null,
+        "validated_structure": null,
+        "requested_pace": null
+      },
+      "transformation": {
+        "id": "0da333f7-1fb9-44e4-ada2-405312160da4",
+        "cycle_id": "df6489ce-99ca-4155-99dd-d6781ff65fc1",
+        "priority_order": 1,
+        "status": "active",
+        "title": "Redescendre la pression",
+        "internal_summary": "Fixture QA pour tester la potion apaisement.",
+        "user_summary": "Le user cherche un accompagnement doux, concret, sans pression supplementaire.",
+        "success_definition": "Avoir un appui simple qui ramene au bon geste sans surcharge.",
+        "main_constraint": "Quand la charge monte, le user se perd dans la pression et l'auto-jugement.",
+        "questionnaire_schema": null,
+        "questionnaire_answers": {
+          "potion_qa": "apaisement",
+          "ton_prefere": "doux et direct",
+          "rythme_prefere": "matin"
+        },
+        "completion_summary": null,
+        "handoff_payload": {
+          "phase_1": {
+            "deep_why": {
+              "answers": [
+                {
+                  "answer": "Je veux arreter de me disperser et me sentir plus present a ce que je choisis.",
+                  "question_id": "why_1"
+                },
+                {
+                  "answer": "Je veux proteger mon energie et ma confiance au lieu de les depenser en tension.",
+                  "question_id": "why_2"
+                }
+              ],
+              "questions": [
+                {
+                  "id": "why_1",
+                  "label": "Pourquoi est-ce important pour toi ?"
+                },
+                {
+                  "id": "why_2",
+                  "label": "Qu'est-ce que tu veux proteger ?"
+                }
+              ]
+            }
+          }
+        },
+        "created_at": "2026-05-21T14:44:16.276055+00:00",
+        "updated_at": "2026-05-21T14:44:16.276055+00:00",
+        "activated_at": "2026-05-21T14:28:51.584+00:00",
+        "completed_at": null,
+        "ordering_rationale": null,
+        "unlocked_principles": {
+          "kaizen": true
+        },
+        "base_de_vie_payload": null
+      },
+      "plan": {
+        "id": "0c9344a2-3455-41fd-bac5-80bdc2876e68",
+        "user_id": "5db2024e-0bd5-4753-9169-ba5cb4000898",
+        "cycle_id": "df6489ce-99ca-4155-99dd-d6781ff65fc1",
+        "transformation_id": "0da333f7-1fb9-44e4-ada2-405312160da4",
+        "status": "active",
+        "version": 1,
+        "title": "Plan QA apaisement",
+        "content": {
+          "source": "qa_state_potion_6subskills",
+          "strategy": {
+            "core_principle": "Un seul appui juste vaut mieux qu'une pression de plus.",
+            "identity_shift": "Je deviens quelqu'un qui avance avec plus de douceur.",
+            "main_constraint": "La surcharge transforme les petits pas en montagne.",
+            "success_definition": "Revenir a un geste simple au bon moment."
+          }
+        },
+        "generation_attempts": 0,
+        "last_generation_reason": null,
+        "activated_at": "2026-05-21T14:28:51.584+00:00",
+        "completed_at": null,
+        "archived_at": null,
+        "created_at": "2026-05-21T14:44:16.281375+00:00",
+        "updated_at": "2026-05-21T14:44:16.281375+00:00",
+        "generation_feedback": null,
+        "generation_input_snapshot": null
+      },
+      "item": {
+        "id": "65db09e9-6826-400f-bf74-78a5f1e4da9d",
+        "user_id": "5db2024e-0bd5-4753-9169-ba5cb4000898",
+        "cycle_id": "df6489ce-99ca-4155-99dd-d6781ff65fc1",
+        "transformation_id": "0da333f7-1fb9-44e4-ada2-405312160da4",
+        "plan_id": "0c9344a2-3455-41fd-bac5-80bdc2876e68",
+        "dimension": "habits",
+        "kind": "habit",
+        "status": "active",
+        "title": "Faire une pause avant de reprendre",
+        "description": "Action QA active visible par le skill potion.",
+        "tracking_type": "boolean",
+        "activation_order": 1,
+        "activation_condition": null,
+        "current_habit_state": "active_building",
+        "support_mode": null,
+        "support_function": null,
+        "target_reps": 1,
+        "current_reps": 0,
+        "cadence_label": "quotidien",
+        "scheduled_days": [
+          "thu"
+        ],
+        "time_of_day": "09:00",
+        "start_after_item_id": null,
+        "payload": {
+          "source": "qa_state_potion_6subskills",
+          "potion_type": "apaisement"
+        },
+        "created_at": "2026-05-21T14:44:16.284414+00:00",
+        "updated_at": "2026-05-21T14:44:16.284414+00:00",
+        "activated_at": "2026-05-21T14:28:51.584+00:00",
+        "completed_at": null,
+        "phase_id": null,
+        "phase_order": null,
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "cards_status": "not_required",
+        "cards_generated_at": null
+      }
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r36_hard2_green-apaisement-t01-a1",
+        "user": "Potion d'apaisement. Je suis tendu mais je n'arrive pas a trier ce qui se passe.",
+        "assistant": "C'est normal de se sentir un peu perdu quand tout s'accumule. Si tu devais isoler juste un élément qui te pèse là tout de suite, ce serait quoi ? 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": null,
+          "route_selected_handler": null,
+          "route_reason": "immediate_mode_request_not_state_potion",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r36_hard2_green-apaisement-t01-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 2,
+        "attempt": 3,
+        "requestId": "qa-state-potion-state_potion_6subskills_r36_hard2_green-apaisement-t02-a3",
+        "user": "La reunion de cet apres-midi prend toute la place, et autour j'ai l'impression que tout presse.",
+        "assistant": "Entre la réunion de cet après-midi et les urgences qui s'accumulent, c'est normal que tu te sentes submergé. Pour t'aider à retrouver un peu d'air, je prévois de t'envoyer un message de soutien chaque matin à 08:30 pendant une semaine. Dis-moi si c'est ce dont tu as besoin pour traverser cette période plus sereinement. 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r36_hard2_green-apaisement-t02-a3"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 3,
+        "attempt": 2,
+        "requestId": "qa-state-potion-state_potion_6subskills_r36_hard2_green-apaisement-t03-a2",
+        "user": "Dans le corps c'est machoire serree, souffle court. Aide-moi le matin a ralentir sans culpabiliser.",
+        "assistant": "Quand le corps se crispe avec la mâchoire serrée et le souffle court, c'est que la pression a pris toute la place. Pour t'aider à ralentir chaque matin sans culpabiliser, je prévois de t'envoyer un message à 08:30 pendant une semaine. Est-ce que ce soutien quotidien t'aiderait à retrouver un peu d'air ? 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r36_hard2_green-apaisement-t03-a2"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 4,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r36_hard2_green-apaisement-t04-a1",
+        "user": "08h30 sur une semaine, ca me va. Garde le ton calme et direct.",
+        "assistant": "C'est entendu. On garde ce rendez-vous de 08h30 chaque matin pendant une semaine pour t'aider à relâcher la pression et ne pas te laisser submerger. Dis-moi si c'est bien ce qu'il te faut pour avancer plus sereinement. 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r36_hard2_green-apaisement-t04-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 5,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r36_hard2_green-apaisement-t05-a1",
+        "user": "Oui, active cette potion d'apaisement.",
+        "assistant": "Prends juste une seconde pour desserrer la mâchoire et laisser tes épaules descendre. On ne va rien rajouter à ta liste, juste laisser un peu d'air circuler là où c'est bloqué en ce moment. 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [
+            {
+              "outcome": "success",
+              "tool_id": "select_state_potion"
+            }
+          ],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [
+            "select_state_potion"
+          ],
+          "tool_execution": "success",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r36_hard2_green-apaisement-t05-a1"
+        },
+        "durable_after": {
+          "sessions": [
+            {
+              "id": "f389fc39-58a8-49f9-b32b-11e0abf7303c",
+              "potion_type": "apaisement",
+              "status": "completed"
+            }
+          ],
+          "reminders": [
+            {
+              "id": "b9dd2d34-fb4d-43e8-a0d8-5fb13ff480f4",
+              "initiative_kind": "potion_follow_up",
+              "source_kind": "potion_generated"
+            }
+          ],
+          "checkins": [
+            {
+              "id": "dc2a34ce-a8a7-457c-b455-29357f7e2f80",
+              "status": "pending",
+              "scheduled_for": "2026-05-22T08:30:00+00:00"
+            },
+            {
+              "id": "c921f59e-5390-41d9-b3c2-35a3d34cbf94",
+              "status": "pending",
+              "scheduled_for": "2026-05-23T08:30:00+00:00"
+            },
+            {
+              "id": "3d708aa9-2bf9-432b-9b4a-ceeb223fcb7a",
+              "status": "pending",
+              "scheduled_for": "2026-05-24T08:30:00+00:00"
+            },
+            {
+              "id": "2ec44185-af13-49e2-8e30-2c7f30c3a3bc",
+              "status": "pending",
+              "scheduled_for": "2026-05-25T08:30:00+00:00"
+            },
+            {
+              "id": "66b285c5-379a-415b-bd91-1bb03f6905d8",
+              "status": "pending",
+              "scheduled_for": "2026-05-26T08:30:00+00:00"
+            },
+            {
+              "id": "cd39fe2d-f6e6-4822-b7a3-8afe06b169dc",
+              "status": "pending",
+              "scheduled_for": "2026-05-27T08:30:00+00:00"
+            },
+            {
+              "id": "e9e69e80-613c-4d65-a6ab-45de1b997f40",
+              "status": "pending",
+              "scheduled_for": "2026-05-28T08:30:00+00:00"
+            }
+          ]
+        }
+      }
+    ]
+  }
+]

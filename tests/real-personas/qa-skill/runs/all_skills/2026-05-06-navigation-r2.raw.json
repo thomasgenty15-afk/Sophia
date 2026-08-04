@@ -1,0 +1,940 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-all-skills-navigation-2026-05-06-r2-t01",
+    "user": "dans Sophia, le dashboard sert a quoi exactement quand j'ai deja un plan ?",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-all-skills-navigation-2026-05-06-r2-t01",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "qa-all-skills-navigation-2026-05-06-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Bonne question 😄 Le dashboard, quand tu as déjà un plan, sert surtout à 3 trucs concrets :\n\n1) Suivre l’exécution (bilan du quotidien/trace de ce que tu as fait)\nTu vois ta progression, ce qui tourne, et ce qui a besoin d’attention.\n\n2) Rendre le plan “pilotable”\nMême si le plan existe déjà, le dashboard t’aide à garder une vision claire des dimensions (soutien, missions, habitudes) et des items associés, sans tout recalculer dans ta tête.\n\n3) Ajuster proprement quand ça coince\nSi tu veux modifier/activer/pause des actions, c’est là que ça se fait de façon organisée (et pas “à l’arrache” dans le chat).\n\nL’idée: le plan te donne la direction, le dashboard te donne le volant et les instruments. 🚗✨\n\nTu veux plutôt comprendre le suivi (progression) ou la partie “changer des actions” ?",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-all-skills-navigation-2026-05-06-r2-t01",
+        "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+        "source_message_id": "988ebeb6-e6cc-4b57-9425-3071c9773cc0",
+        "ts": "2026-05-06T08:55:36.709+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 510,
+          "latency_ms": 5933,
+          "tokens_out": 231,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "routing": {
+            "action": "explain_dashboard_utility",
+            "target_id": null,
+            "confidence": 0.95
+          },
+          "signals": [
+            {
+              "type": "intent",
+              "value": "product_feature_qa",
+              "evidence": "L'utilisateur demande une clarification sur l'utilité du dashboard par rapport au plan."
+            },
+            {
+              "type": "sentiment",
+              "value": "neutral",
+              "evidence": "Ton informatif et interrogatif."
+            }
+          ],
+          "turn_id": "qa-all-skills-navigation-2026-05-06-r2-t01",
+          "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "skill_signals": {},
+          "direct_effects": [],
+          "safety_pregate": {
+            "evidence": "Demande d'information fonctionnelle sur l'interface utilisateur sans contenu sensible.",
+            "risk_band": "low"
+          },
+          "operation_intake": null,
+          "tool_skill_intents": [],
+          "source_message_id": "988ebeb6-e6cc-4b57-9425-3071c9773cc0",
+          "confirmation_classification": null
+        },
+        "route_decision": {
+          "reason_code": "normal_reply_default",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "normal_reply",
+          "memory_use_kind": "none",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "normal_reply",
+        "total_latency_ms": 9052,
+        "created_at": "2026-05-06T08:55:36.711868+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-all-skills-navigation-2026-05-06-r2-t02",
+    "user": "ok, et si je veux ajuster une action sans tout refaire, je dois passer par quelle partie ?",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-all-skills-navigation-2026-05-06-r2-t02",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "qa-all-skills-navigation-2026-05-06-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je peux l'ajuster, mais il me manque la cible exacte. Donne-moi le nom de l'action du plan a clarifier.",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-all-skills-navigation-2026-05-06-r2-t02",
+        "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+        "source_message_id": "c6bb8eaf-bf53-4f70-9fc7-e577185f6261",
+        "ts": "2026-05-06T08:55:48.954+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 750,
+          "latency_ms": 11307,
+          "tokens_out": 388,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-all-skills-navigation-2026-05-06-r2-t02",
+          "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "skill_signals": {},
+          "direct_effects": [],
+          "safety_pregate": {
+            "evidence": "L'utilisateur demande une précision technique sur l'utilisation de l'interface (dashboard).",
+            "risk_band": "low"
+          },
+          "routing_decision": {
+            "priority": "high",
+            "reasoning": "L'utilisateur souhaite savoir concrètement où cliquer ou quelle section utiliser pour modifier une action sans relancer le processus de création de plan.",
+            "target_skill": "sophia_product_expert"
+          },
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "ok, et si je veux ajuster une action sans tout refaire, je dois passer par quelle partie ?",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high"
+            }
+          ],
+          "source_message_id": "c6bb8eaf-bf53-4f70-9fc7-e577185f6261",
+          "context_enrichment": {
+            "active_topic": "dashboard_navigation",
+            "relevant_entities": [
+              "dashboard",
+              "action_adjustment"
+            ],
+            "memory_integration": "L'utilisateur rebondit sur le point 3 de la réponse précédente concernant l'ajustement des actions via le dashboard."
+          },
+          "operation_analysis": {
+            "pending_response": null,
+            "extracted_parameters": {}
+          },
+          "intent_classification": {
+            "confidence": 0.98,
+            "is_follow_up": true,
+            "primary_intent": "product_feature_qa",
+            "detected_signals": [
+              "question sur la navigation",
+              "ajustement d'action",
+              "référence au dashboard"
+            ]
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "ask_question",
+          "reason_code": "tool_skill_intent_start",
+          "missing_slots": [
+            "scope"
+          ],
+          "selected_handler": "adjust_plan_item"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 11392,
+        "created_at": "2026-05-06T08:55:48.956495+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-all-skills-navigation-2026-05-06-r2-t03",
+    "user": "je demande parce que mon plan a une action admin et je ne sais pas si je dois la modifier ou juste la traiter ici",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-all-skills-navigation-2026-05-06-r2-t03",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "qa-all-skills-navigation-2026-05-06-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ok, bonne question 😄\n\nSi ton action admin doit juste être faite (remplir des docs, envoyer un mail, traiter un dossier), alors tu la traites ici en “exécution” et tu fais le suivi côté dashboard quand c’est fait.\n\nPar contre, si tu sens que le contenu, le périmètre, la fréquence, ou la façon de l’accomplir ne te convient plus (ou que ça a changé), là tu ajustes l’action depuis le dashboard, sans tout refaire.\n\nDis-moi juste le nom exact de l’action admin (ou ce que tu mets dedans), et ce que tu veux changer: A) la traiter comme prévu, ou B) modifier quelque chose dedans ? 🙂",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-all-skills-navigation-2026-05-06-r2-t03",
+        "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+        "source_message_id": "81210402-eecd-404e-a08a-b42491cecbbe",
+        "ts": "2026-05-06T08:55:59.041+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 819,
+          "latency_ms": 7266,
+          "tokens_out": 263,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "routing": {
+            "skill_id": "core_assistant",
+            "reasoning": "L'utilisateur demande un conseil méthodologique sur la manière d'interagir avec une action spécifique de son plan (modifier via interface vs traiter par chat).",
+            "target_id": null,
+            "confidence": 0.95
+          },
+          "turn_id": "qa-all-skills-navigation-2026-05-06-r2-t03",
+          "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "skill_signals": {},
+          "direct_effects": [],
+          "intent_signals": [
+            {
+              "signal": "workflow_guidance_request",
+              "evidence": "je ne sais pas si je dois la modifier ou juste la traiter ici"
+            },
+            {
+              "signal": "plan_interaction_query",
+              "evidence": "mon plan a une action admin"
+            }
+          ],
+          "safety_pregate": {
+            "evidence": "L'utilisateur pose une question de fonctionnement sur la gestion des actions de son plan.",
+            "risk_band": "low"
+          },
+          "tool_skill_intents": [],
+          "source_message_id": "81210402-eecd-404e-a08a-b42491cecbbe",
+          "active_topic_state": null,
+          "operation_analysis": null
+        },
+        "route_decision": {
+          "reason_code": "normal_reply_default",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "normal_reply",
+          "memory_use_kind": "none",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "normal_reply",
+        "total_latency_ms": 9191,
+        "created_at": "2026-05-06T08:55:59.044325+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-all-skills-navigation-2026-05-06-r2-t04",
+    "user": "l'action c'est ouvrir mon dossier mutuelle et envoyer une piece manquante; je bloque depuis trois jours",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-all-skills-navigation-2026-05-06-r2-t04",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "qa-all-skills-navigation-2026-05-06-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ah merde… trois jours, c’est clairement un “je repousse” pas un “j’ai rien à faire”. 😅\n\nComme c’est une action admin simple (ouvrir le dossier + envoyer une pièce), on ne touche pas au plan : on la traite en exécution ici, en mode micro-étapes.\n\nFais juste ça maintenant, sans chercher à “finir” :\n1) Ouvrir le dossier mutuelle (ou la page)  \n2) Sortir la pièce manquante (fichier prêt à être joint)  \n3) Préparer le mail / téléversement (tu t’arrêtes juste après “joindre”)\n\nTu veux que je te fasse une version ultra-courte du message à envoyer, ou c’est plutôt un téléversement sur un portail ? 🙂",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-all-skills-navigation-2026-05-06-r2-t04",
+        "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+        "source_message_id": "def1e8cd-0a4f-4435-bc25-b75ac68ede15",
+        "ts": "2026-05-06T08:56:09.479+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [
+            "bounded_context_lowers_risk"
+          ],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 1008,
+          "latency_ms": 7550,
+          "tokens_out": 282,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [
+              "bounded_context_lowers_risk"
+            ]
+          },
+          "channel": "web",
+          "routing": {
+            "skill_id": "skill_coaching",
+            "reasoning": "L'utilisateur identifie précisément l'action administrative et exprime un blocage temporel ('je bloque depuis trois jours'). Le skill coaching est le plus approprié pour traiter la résistance psychologique ou organisationnelle liée à cette tâche."
+          },
+          "turn_id": "qa-all-skills-navigation-2026-05-06-r2-t04",
+          "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "topic_state": null,
+          "skill_signals": {
+            "entry": {
+              "execution_breakdown": {
+                "reason": "execution_blocked",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "safety_pregate": {
+            "evidence": "L'utilisateur mentionne un blocage de trois jours sur une tâche administrative (mutuelle), ce qui peut indiquer une charge mentale ou une procrastination, mais aucun risque de sécurité immédiat.",
+            "risk_band": "low"
+          },
+          "tool_skill_intents": [],
+          "source_message_id": "def1e8cd-0a4f-4435-bc25-b75ac68ede15",
+          "operation_confirmation": null
+        },
+        "route_decision": {
+          "reason_code": "skill_entry_signal",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "memory_use_kind": "none",
+          "selected_handler": "execution_breakdown",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "reason_code": "skill_entry_signal",
+          "selected_skill_id": "execution_breakdown"
+        },
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "conversation_handler",
+        "total_latency_ms": 9530,
+        "created_at": "2026-05-06T08:56:09.481446+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-all-skills-navigation-2026-05-06-r2-t05",
+    "user": "je connais le resultat attendu, mais des que j'ouvre le site je me perds dans les onglets",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-all-skills-navigation-2026-05-06-r2-t05",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "qa-all-skills-navigation-2026-05-06-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ah ouais… le piège classique: tu veux juste faire 2 clics, et ton cerveau se retrouve à explorer le web comme si c’était un menu secret 😅\n\nLe but, c’est pas “comprendre le site”, c’est “forcer un chemin”.\nFais ce micro-process avant d’ouvrir:\n1) Prépare 1 phrase à exécuter: “Je vais uniquement à la page où on envoie la pièce”\n2) Ouvre le site avec un seul onglet (pas plusieurs), et ignore tout le reste\n3) Quand tu es sur la bonne page, ne ferme pas: tu fais la pièce + l’envoi, point.\n\nSi tu veux, on le rend encore plus béton: dis-moi ce qui t’attire en premier (menu “documents”, “espace client”, “contact”…). C’est quoi le nom du premier écran/zone que tu vois quand tu ouvres le site ?",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-all-skills-navigation-2026-05-06-r2-t05",
+        "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+        "source_message_id": "b976da95-2537-4b9b-b269-dd6144ae1003",
+        "ts": "2026-05-06T08:56:17.148+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 1226,
+          "latency_ms": 4354,
+          "tokens_out": 185,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "intent": "execution_breakdown",
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "signals": [
+            {
+              "type": "friction_detected",
+              "evidence": "L'utilisateur se perd dans les onglets du site cible lors de l'exécution."
+            }
+          ],
+          "turn_id": "qa-all-skills-navigation-2026-05-06-r2-t05",
+          "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+          "risk_band": "low",
+          "target_id": null,
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "skill_signals": {
+            "lifecycle": {
+              "execution_breakdown": {
+                "reason": "active_skill_continue",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "source_message_id": "b976da95-2537-4b9b-b269-dd6144ae1003",
+          "operation_confirmation_type": null
+        },
+        "route_decision": {
+          "reason_code": "active_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "memory_use_kind": "none",
+          "selected_handler": "execution_breakdown",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "reason_code": "active_skill_continue",
+          "selected_skill_id": "execution_breakdown"
+        },
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "conversation_handler",
+        "total_latency_ms": 6832,
+        "created_at": "2026-05-06T08:56:17.14978+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 6,
+    "requestId": "qa-all-skills-navigation-2026-05-06-r2-t06",
+    "user": "je veux seulement la plus petite etape maintenant, pas un plan complet",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-all-skills-navigation-2026-05-06-r2-t06",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "qa-all-skills-navigation-2026-05-06-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ok, la plus petite étape maintenant pour ton dossier mutuelle ✅🙂\n\nOuvre juste le fichier de la pièce manquante (ou prépare le fichier à joindre), et ferme tout le reste sauf l’onglet du site. Ensuite seulement, tu iras sur “joindre/envoyer”.  \n\nTu as déjà la pièce prête en fichier sur ton tel/ordi, oui ou non ? 📄",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-all-skills-navigation-2026-05-06-r2-t06",
+        "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+        "source_message_id": "acc74524-dd4b-4a82-8b0b-3aeb62391dc8",
+        "ts": "2026-05-06T08:56:24.126+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [
+            "maintenant"
+          ],
+          "risk_band": "none",
+          "reason_codes": [
+            "immediacy_now"
+          ],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": true,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 1199,
+          "latency_ms": 4224,
+          "tokens_out": 219,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [
+              "maintenant"
+            ],
+            "risk_band": "none",
+            "reason_codes": [
+              "immediacy_now"
+            ]
+          },
+          "channel": "web",
+          "routing": {
+            "skill_id": "execution_breakdown",
+            "target_id": null,
+            "confidence": 1
+          },
+          "signals": [
+            {
+              "name": "request_micro_step",
+              "evidence": "je veux seulement la plus petite etape maintenant, pas un plan complet"
+            },
+            {
+              "name": "overwhelmed",
+              "evidence": "je me perds dans les onglets"
+            }
+          ],
+          "turn_id": "qa-all-skills-navigation-2026-05-06-r2-t06",
+          "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "skill_signals": {
+            "lifecycle": {
+              "execution_breakdown": {
+                "reason": "active_skill_continue",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "safety_pregate": "low",
+          "topic_analysis": null,
+          "tool_skill_intents": [],
+          "source_message_id": "acc74524-dd4b-4a82-8b0b-3aeb62391dc8",
+          "operation_analysis": null
+        },
+        "route_decision": {
+          "reason_code": "active_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "memory_use_kind": "none",
+          "selected_handler": "execution_breakdown",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "reason_code": "active_skill_continue",
+          "selected_skill_id": "execution_breakdown"
+        },
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "conversation_handler",
+        "total_latency_ms": 6153,
+        "created_at": "2026-05-06T08:56:24.128463+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 7,
+    "requestId": "qa-all-skills-navigation-2026-05-06-r2-t07",
+    "user": "si je mets cinq minutes, ce serait quoi le geste exact ?",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-all-skills-navigation-2026-05-06-r2-t07",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "qa-all-skills-navigation-2026-05-06-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ok, cinq minutes = zéro réflexion, juste une passe d’exécution 🎯🙂\n\n1) Tu ouvres le site dans un seul onglet.  \n2) Tu cliques uniquement sur “envoyer / joindre une pièce” (ou le champ “pièce manquante”).  \n3) Tu fais glisser/le choix du fichier: tu sélectionnes la pièce déjà prête.  \n4) Tu vérifies vite que le bon fichier est attaché, puis tu mets “envoyer/valider”.  \n5) Si ça bloque à l’étape finale, tu t’arrêtes juste après et tu me dis à quel écran exact ça coince.\n\nLa pièce manquante, elle est déjà sur ton appareil (oui/non) ?",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-all-skills-navigation-2026-05-06-r2-t07",
+        "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+        "source_message_id": "f487037d-d0ad-40b3-aa4b-450c11253048",
+        "ts": "2026-05-06T08:56:30.813+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 1244,
+          "latency_ms": 3740,
+          "tokens_out": 189,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "intent": "execution_breakdown",
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-all-skills-navigation-2026-05-06-r2-t07",
+          "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+          "evidence": "L'utilisateur demande une micro-étape précise limitée à 5 minutes pour débloquer son action administrative.",
+          "risk_band": "low",
+          "target_id": null,
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "skill_signals": {
+            "lifecycle": {
+              "execution_breakdown": {
+                "reason": "active_skill_continue",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "safety_pregate": "none",
+          "tool_skill_intents": [],
+          "source_message_id": "f487037d-d0ad-40b3-aa4b-450c11253048",
+          "operation_confirmation_type": null
+        },
+        "route_decision": {
+          "reason_code": "active_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "memory_use_kind": "none",
+          "selected_handler": "execution_breakdown",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "reason_code": "active_skill_continue",
+          "selected_skill_id": "execution_breakdown"
+        },
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "conversation_handler",
+        "total_latency_ms": 5850,
+        "created_at": "2026-05-06T08:56:30.81473+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 8,
+    "requestId": "qa-all-skills-navigation-2026-05-06-r2-t08",
+    "user": "je peux ouvrir l'onglet, mais j'ai peur de partir verifier tous les documents au lieu d'avancer",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-all-skills-navigation-2026-05-06-r2-t08",
+      "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+      "channel": "web",
+      "scope": "qa-all-skills-navigation-2026-05-06-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ah je vois le coup venir 😅 La peur, c’est pas “j’ai du mal”, c’est “si je démarre, je risque de partir en exploration”.\n\nDonc là, on s’équipe avec une règle anti-dérive : tu ne fais qu’une seule chose, dans le même onglet, pour 5 minutes max. Ensuite tu arrêtes même si c’est pas parfait.\n\nGeste exact (zéro docs en plus) :\n1) Ouvre le bon onglet\n2) Clique “joindre / envoyer”\n3) Attache uniquement la pièce déjà prête (ou la dernière version que tu as sous la main)\n4) Tu vérifies juste “c’est le bon fichier ?” puis tu vas au bouton suivant\n5) Si tu sens que tu vas fouiller : tu fermes tous les autres onglets et tu reviens au bouton “envoyer/valider” (même sans améliorer)\n\nTu veux faire le défi en mode A ou B ?\nA) 5 minutes chrono, sans regarder tes documents\nB) 1 minute chrono, juste “joindre le fichier”, et tu stop dès que c’est attaché 🚀",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-all-skills-navigation-2026-05-06-r2-t08",
+        "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+        "source_message_id": "d3196013-0f55-46b3-97a6-86972efb42c5",
+        "ts": "2026-05-06T08:56:44.629+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 1229,
+          "latency_ms": 10480,
+          "tokens_out": 356,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "signals": [
+            {
+              "name": "resistance_detected",
+              "evidence": "peur de partir verifier tous les documents au lieu d'avancer"
+            },
+            {
+              "name": "procrastination_pattern",
+              "evidence": "bloque depuis trois jours"
+            }
+          ],
+          "turn_id": "qa-all-skills-navigation-2026-05-06-r2-t08",
+          "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "skill_routing": {
+            "skill_id": "execution_breakdown",
+            "reasoning": "L'utilisateur est en phase d'exécution mais identifie un point de friction comportemental (risque de distraction/perfectionnisme). On reste dans ce skill pour proposer un cadre d'exécution 'aveugle' qui empêche la dérive vers d'autres documents.",
+            "target_id": null
+          },
+          "skill_signals": {
+            "lifecycle": {
+              "execution_breakdown": {
+                "reason": "active_skill_continue",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "safety_pregate": {
+            "evidence": "L'utilisateur exprime une appréhension psychologique (peur de s'éparpiller) liée à la tâche administrative.",
+            "risk_band": "low"
+          },
+          "memory_resolution": {
+            "reasoning": "L'utilisateur demande implicitement une stratégie pour limiter son champ d'action et éviter le 'rabbit hole' administratif.",
+            "resolved_intent": "execution_support"
+          },
+          "tool_skill_intents": [],
+          "source_message_id": "d3196013-0f55-46b3-97a6-86972efb42c5",
+          "pending_tool_skill_confirmation": null
+        },
+        "route_decision": {
+          "reason_code": "active_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "memory_use_kind": "none",
+          "selected_handler": "execution_breakdown",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "reason_code": "active_skill_continue",
+          "selected_skill_id": "execution_breakdown"
+        },
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "conversation_handler",
+        "total_latency_ms": 13001,
+        "created_at": "2026-05-06T08:56:44.630695+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 9,
+    "requestId": "qa-all-skills-navigation-2026-05-06-r2-t09",
+    "user": "choisis une contrainte simple pour eviter que je transforme ca en chantier",
+    "status": 502,
+    "body": {
+      "message": "An invalid response was received from the upstream server"
+    }
+  }
+]

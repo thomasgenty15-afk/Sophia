@@ -1,0 +1,564 @@
+{
+  "run_id": "qa-one-shot-global-20260624-r1",
+  "scope": "qa-normal-conversation-qa-one-shot-global-20260624-r1",
+  "base_url": "http://127.0.0.1:54321",
+  "email": "qa-normal-qa-one-shot-global-20260624-r1-1782300464647@example.com",
+  "user_id": "02c9b609-4dd8-4c19-9aab-7a1fc15f27b6",
+  "anon_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0",
+  "service_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU",
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjU0MzIxL2F1dGgvdjEiLCJzdWIiOiIwMmM5YjYwOS00ZGQ4LTRjMTktOWFhYi03YTFmYzE1ZjI3YjYiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzgyMzA0MDY0LCJpYXQiOjE3ODIzMDA0NjQsImVtYWlsIjoicWEtbm9ybWFsLXFhLW9uZS1zaG90LWdsb2JhbC0yMDI2MDYyNC1yMS0xNzgyMzAwNDY0NjQ3QGV4YW1wbGUuY29tIiwicGhvbmUiOiIiLCJhcHBfbWV0YWRhdGEiOnsicHJvdmlkZXIiOiJlbWFpbCIsInByb3ZpZGVycyI6WyJlbWFpbCJdfSwidXNlcl9tZXRhZGF0YSI6eyJlbWFpbCI6InFhLW5vcm1hbC1xYS1vbmUtc2hvdC1nbG9iYWwtMjAyNjA2MjQtcjEtMTc4MjMwMDQ2NDY0N0BleGFtcGxlLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJpc190ZXN0X3BlcnNvbmEiOnRydWUsInBob25lX3ZlcmlmaWVkIjpmYWxzZSwicWFfcnVuX2lkIjoicWEtb25lLXNob3QtZ2xvYmFsLTIwMjYwNjI0LXIxIiwic3ViIjoiMDJjOWI2MDktNGRkOC00YzE5LTlhYWItN2ExZmMxNWYyN2I2In0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3ODIzMDA0NjR9XSwic2Vzc2lvbl9pZCI6Ijc2OWZmMDBlLTlmOTMtNDFmMS1hYzkxLTBmMjAwZTM3MzNiZSIsImlzX2Fub255bW91cyI6ZmFsc2V9.sNdIQwTj2iK978-BfgCQ_LQ6lkpz4f4F47uUF1B_9_w",
+  "auth_check": {
+    "status": 200,
+    "ok": true
+  },
+  "force_full_ai": true,
+  "created_at": "2026-06-24T11:27:44.956Z",
+  "turns": [
+    {
+      "turn": 1,
+      "sent_at": "2026-06-24T11:28:16.676Z",
+      "user": "Rappelle-moi demain à 18h de relire mes notes sur le rythme du soir, et dis-moi aussi en une phrase comment garder le fil aujourd'hui.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "C’est noté pour demain à 18h : relire tes notes sur le rythme du soir.\n\nPour aujourd’hui, garde juste une seule idée en tête : fais au plus simple et reprends le fil là où tu l’as laissé, sans chercher à tout remettre d’équerre d’un coup 🙂",
+      "trace_short": {
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "route_reason": "direct_effects_then_normal_reply",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [
+          "create_one_shot_reminder"
+        ],
+        "direct_effects_to_run": [
+          "create_one_shot_reminder"
+        ],
+        "confirmation_kind": null,
+        "selected_skill_id": null,
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [
+          "create_one_shot_reminder"
+        ],
+        "tool_execution": "success"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "companion_question_rhythm": {
+                  "preference": "normal",
+                  "recent_turns": [
+                    0
+                  ],
+                  "last_updated_at": "2026-06-24T11:28:16.593Z",
+                  "last_turn_had_question": false,
+                  "turns_since_last_question": 1
+                }
+              },
+              "updated_at": "2026-06-24T11:28:16.622541+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "cb6b269a-b14b-4ed1-a470-8e1e2401503c",
+              "status": "pending",
+              "event_context": "one_shot_reminder:relire_mes_notes_sur_le_rythme_du_soir",
+              "draft_message": null,
+              "scheduled_for": "2026-05-23T16:00:00+00:00",
+              "created_at": "2026-06-24T11:28:15.095202+00:00"
+            }
+          ]
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "qa-one-shot-global-20260624-r1-t01",
+        "user_id": "02c9b609-4dd8-4c19-9aab-7a1fc15f27b6",
+        "channel": "web",
+        "scope": "qa-normal-conversation-qa-one-shot-global-20260624-r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "C’est noté pour demain à 18h : relire tes notes sur le rythme du soir.\n\nPour aujourd’hui, garde juste une seule idée en tête : fais au plus simple et reprends le fil là où tu l’as laissé, sans chercher à tout remettre d’équerre d’un coup 🙂",
+          "mode": "companion",
+          "delivery": {
+            "mode": "text_reply"
+          },
+          "tool_execution": "success",
+          "executed_tools": [
+            "create_one_shot_reminder"
+          ],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "qa-one-shot-global-20260624-r1-t01",
+              "source_message_id": "d098b6da-750f-4f36-85d9-3b6e28c39bdd",
+              "user_id": "02c9b609-4dd8-4c19-9aab-7a1fc15f27b6",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [
+                {
+                  "effect_type": "create_one_shot_reminder",
+                  "explicitness": "explicit",
+                  "target_status": "identified",
+                  "confidence_band": "high",
+                  "payload_hint": {
+                    "raw_text": "Rappelle-moi demain à 18h de relire mes notes sur le rythme du soir",
+                    "when_hint": "demain à 18h",
+                    "instruction_hint": "relire mes notes sur le rythme du soir"
+                  }
+                }
+              ],
+              "note_information": null,
+              "skill_signals": {},
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "provide a concise answer plus a one-shot reminder acknowledgement",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "force_taxonomy",
+                "plan_confidence": 0.7
+              },
+              "direct_effect_lane": {
+                "selected_handler": "create_one_shot_reminder",
+                "toolExecution": "success",
+                "executedTools": [
+                  "create_one_shot_reminder"
+                ],
+                "requested_effects": [
+                  {
+                    "type": "create_one_shot_reminder",
+                    "scheduled_for": "2026-05-23T16:00:00+00:00",
+                    "local_label": "samedi 23 mai à 18:00",
+                    "reminder_instruction": "relire mes notes sur le rythme du soir",
+                    "reason_code": "payload"
+                  }
+                ],
+                "allowed_effects": [
+                  {
+                    "type": "create_one_shot_reminder",
+                    "scheduled_for": "2026-05-23T16:00:00+00:00",
+                    "local_label": "samedi 23 mai à 18:00",
+                    "reminder_instruction": "relire mes notes sur le rythme du soir",
+                    "reason_code": "payload"
+                  }
+                ],
+                "committed_effects": [
+                  {
+                    "type": "create_one_shot_reminder",
+                    "id": "cb6b269a-b14b-4ed1-a470-8e1e2401503c",
+                    "scheduled_for": "2026-05-23T16:00:00+00:00",
+                    "local_label": "samedi 23 mai à 18:00",
+                    "reminder_instruction": "relire mes notes sur le rythme du soir"
+                  }
+                ],
+                "blocked_effects": [],
+                "visible_confirmation_hint": "C'est programmé pour samedi 23 mai à 18:00: je te ferai un rappel pour relire mes notes sur le rythme du soir."
+              },
+              "direct_effect_confirmation_context": {
+                "has_committed_one_shot_reminder": true,
+                "has_requested_one_shot_reminder": true,
+                "confirmation_text": null,
+                "committed_effects": [
+                  {
+                    "type": "create_one_shot_reminder",
+                    "id": "cb6b269a-b14b-4ed1-a470-8e1e2401503c",
+                    "scheduled_for": "2026-05-23T16:00:00+00:00",
+                    "local_label": "samedi 23 mai à 18:00",
+                    "reminder_instruction": "relire mes notes sur le rythme du soir"
+                  }
+                ],
+                "requested_effects": [
+                  {
+                    "type": "create_one_shot_reminder",
+                    "scheduled_for": "2026-05-23T16:00:00+00:00",
+                    "local_label": "samedi 23 mai à 18:00",
+                    "reminder_instruction": "relire mes notes sur le rythme du soir",
+                    "reason_code": "payload"
+                  }
+                ],
+                "blocked_effects": [],
+                "do_not_recreate": true,
+                "do_not_reroute": true,
+                "do_not_redemand": true,
+                "do_not_confirm_without_commit": true,
+                "remaining_user_need_must_continue": true
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "normal_reply",
+              "blocked_paths": [],
+              "direct_effects_to_run": [
+                "create_one_shot_reminder"
+              ],
+              "reason_code": "direct_effects_then_normal_reply",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "minimal_global_dispatcher",
+                "active_owner": "none",
+                "selected_owner": "normal_reply",
+                "resume_policy": "none",
+                "reason_code": "direct_effects_then_normal_reply"
+              }
+            },
+            "effect_ledger": {
+              "turn_id": "qa-one-shot-global-20260624-r1-t01",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "normal_reply",
+            "tool_skill_run": {
+              "selected_handler": "create_one_shot_reminder",
+              "status": "success",
+              "reason": "payload",
+              "requested_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "scheduled_for": "2026-05-23T16:00:00+00:00",
+                  "local_label": "samedi 23 mai à 18:00",
+                  "reminder_instruction": "relire mes notes sur le rythme du soir",
+                  "reason_code": "payload"
+                }
+              ],
+              "allowed_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "scheduled_for": "2026-05-23T16:00:00+00:00",
+                  "local_label": "samedi 23 mai à 18:00",
+                  "reminder_instruction": "relire mes notes sur le rythme du soir",
+                  "reason_code": "payload"
+                }
+              ],
+              "committed_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "id": "cb6b269a-b14b-4ed1-a470-8e1e2401503c",
+                  "scheduled_for": "2026-05-23T16:00:00+00:00",
+                  "local_label": "samedi 23 mai à 18:00",
+                  "reminder_instruction": "relire mes notes sur le rythme du soir"
+                }
+              ],
+              "blocked_effects": []
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "qa-one-shot-global-20260624-r1-t01",
+            "source_message_id": "d098b6da-750f-4f36-85d9-3b6e28c39bdd",
+            "user_id": "02c9b609-4dd8-4c19-9aab-7a1fc15f27b6",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [
+              {
+                "effect_type": "create_one_shot_reminder",
+                "explicitness": "explicit",
+                "target_status": "identified",
+                "confidence_band": "high",
+                "payload_hint": {
+                  "raw_text": "Rappelle-moi demain à 18h de relire mes notes sur le rythme du soir",
+                  "when_hint": "demain à 18h",
+                  "instruction_hint": "relire mes notes sur le rythme du soir"
+                }
+              }
+            ],
+            "note_information": null,
+            "skill_signals": {},
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "provide a concise answer plus a one-shot reminder acknowledgement",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "force_taxonomy",
+              "plan_confidence": 0.7
+            },
+            "direct_effect_lane": {
+              "selected_handler": "create_one_shot_reminder",
+              "toolExecution": "success",
+              "executedTools": [
+                "create_one_shot_reminder"
+              ],
+              "requested_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "scheduled_for": "2026-05-23T16:00:00+00:00",
+                  "local_label": "samedi 23 mai à 18:00",
+                  "reminder_instruction": "relire mes notes sur le rythme du soir",
+                  "reason_code": "payload"
+                }
+              ],
+              "allowed_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "scheduled_for": "2026-05-23T16:00:00+00:00",
+                  "local_label": "samedi 23 mai à 18:00",
+                  "reminder_instruction": "relire mes notes sur le rythme du soir",
+                  "reason_code": "payload"
+                }
+              ],
+              "committed_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "id": "cb6b269a-b14b-4ed1-a470-8e1e2401503c",
+                  "scheduled_for": "2026-05-23T16:00:00+00:00",
+                  "local_label": "samedi 23 mai à 18:00",
+                  "reminder_instruction": "relire mes notes sur le rythme du soir"
+                }
+              ],
+              "blocked_effects": [],
+              "visible_confirmation_hint": "C'est programmé pour samedi 23 mai à 18:00: je te ferai un rappel pour relire mes notes sur le rythme du soir."
+            },
+            "direct_effect_confirmation_context": {
+              "has_committed_one_shot_reminder": true,
+              "has_requested_one_shot_reminder": true,
+              "confirmation_text": null,
+              "committed_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "id": "cb6b269a-b14b-4ed1-a470-8e1e2401503c",
+                  "scheduled_for": "2026-05-23T16:00:00+00:00",
+                  "local_label": "samedi 23 mai à 18:00",
+                  "reminder_instruction": "relire mes notes sur le rythme du soir"
+                }
+              ],
+              "requested_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "scheduled_for": "2026-05-23T16:00:00+00:00",
+                  "local_label": "samedi 23 mai à 18:00",
+                  "reminder_instruction": "relire mes notes sur le rythme du soir",
+                  "reason_code": "payload"
+                }
+              ],
+              "blocked_effects": [],
+              "do_not_recreate": true,
+              "do_not_reroute": true,
+              "do_not_redemand": true,
+              "do_not_confirm_without_commit": true,
+              "remaining_user_need_must_continue": true
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "normal_reply",
+            "blocked_paths": [],
+            "direct_effects_to_run": [
+              "create_one_shot_reminder"
+            ],
+            "reason_code": "direct_effects_then_normal_reply",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "minimal_global_dispatcher",
+              "active_owner": "none",
+              "selected_owner": "normal_reply",
+              "resume_policy": "none",
+              "reason_code": "direct_effects_then_normal_reply"
+            }
+          },
+          "effect_ledger": {
+            "turn_id": "qa-one-shot-global-20260624-r1-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "normal_reply",
+          "tool_skill_run": {
+            "selected_handler": "create_one_shot_reminder",
+            "status": "success",
+            "reason": "payload",
+            "requested_effects": [
+              {
+                "type": "create_one_shot_reminder",
+                "scheduled_for": "2026-05-23T16:00:00+00:00",
+                "local_label": "samedi 23 mai à 18:00",
+                "reminder_instruction": "relire mes notes sur le rythme du soir",
+                "reason_code": "payload"
+              }
+            ],
+            "allowed_effects": [
+              {
+                "type": "create_one_shot_reminder",
+                "scheduled_for": "2026-05-23T16:00:00+00:00",
+                "local_label": "samedi 23 mai à 18:00",
+                "reminder_instruction": "relire mes notes sur le rythme du soir",
+                "reason_code": "payload"
+              }
+            ],
+            "committed_effects": [
+              {
+                "type": "create_one_shot_reminder",
+                "id": "cb6b269a-b14b-4ed1-a470-8e1e2401503c",
+                "scheduled_for": "2026-05-23T16:00:00+00:00",
+                "local_label": "samedi 23 mai à 18:00",
+                "reminder_instruction": "relire mes notes sur le rythme du soir"
+              }
+            ],
+            "blocked_effects": []
+          }
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "updated_at": "2026-06-24T11:28:16.677Z",
+  "cleanup": [
+    {
+      "table": "chat_messages",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "scheduled_checkins",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_chat_states",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_memories",
+      "status": 404,
+      "ok": false
+    },
+    {
+      "table": "user_topic_memories",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "memory_items",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "auth.users",
+      "status": 200,
+      "ok": true
+    }
+  ],
+  "cleaned_at": "2026-06-24T11:32:46.119Z"
+}

@@ -1,0 +1,247 @@
+[
+  {
+    "potion": "apaisement",
+    "user_id": "5b47908d-e39f-4d13-8ec7-8fb550ce2cef",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r51_hard2_apaisement_apaisement",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [
+        {
+          "id": "ed6d7369-1db6-4225-a1e6-ab7afd0d623f",
+          "potion_type": "apaisement",
+          "status": "completed",
+          "source": "system",
+          "scope_kind": "out_of_plan",
+          "cycle_id": "4563c47e-6927-49d7-8cab-18646b45a5eb",
+          "transformation_id": null,
+          "content": {
+            "title": "Desserrer l'étau",
+            "target_binding": {
+              "kind": "one_off_action",
+              "label": "Réunion de cet après-midi",
+              "evidence": [
+                "La reunion de cet apres-midi prend toute la place"
+              ],
+              "recurrence_hint": null,
+              "date_or_window_hint": "cet après-midi",
+              "target_plan_item_id": null,
+              "related_plan_item_id": null,
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "operation_draft": {
+              "title": "Desserrer l'étau",
+              "follow_up": {
+                "duration_days": 7,
+                "schedule_plan": {
+                  "mode": "daily_series",
+                  "reason": "Un suivi quotidien sur une semaine permet de transformer le réflexe de tension en un réflexe de relâchement.",
+                  "local_dates": [],
+                  "duration_days": 7,
+                  "scheduled_days": [],
+                  "local_time_hhmm": "08:30",
+                  "timing_relation": "daily"
+                },
+                "local_time_hhmm": "08:30",
+                "reason_for_time": "Le matin est ton moment préféré pour stabiliser ton état avant que la pression ne s'accumule.",
+                "reminder_instruction": "Aider à ralentir le matin et relâcher les tensions physiques sans aucune culpabilité."
+              },
+              "potion_type": "apaisement",
+              "opening_prompt": "Si tu pouvais relâcher juste un millimètre de tension dans ta mâchoire là maintenant, à quoi ressemblerait ton prochain souffle ?",
+              "target_binding": {
+                "kind": "one_off_action",
+                "label": "Réunion de cet après-midi",
+                "evidence": [
+                  "La reunion de cet apres-midi prend toute la place"
+                ],
+                "recurrence_hint": null,
+                "date_or_window_hint": "cet après-midi",
+                "target_plan_item_id": null,
+                "related_plan_item_id": null,
+                "target_action_family_key": null,
+                "target_generated_temp_id": null
+              },
+              "why_this_potion": "Ton corps exprime physiquement la surcharge ; l'apaisement va t'aider à protéger ton énergie face à la réunion de cet après-midi et à la pression ambiante.",
+              "expected_duration": "short",
+              "potion_info_message": "La Potion d'apaisement est là pour t'aider à retrouver de l'air quand tout semble trop serré. Je t'enverrai un mot chaque matin pour t'aider à ralentir tranquillement.",
+              "instant_support_message": "C'est noté pour la tension. On va juste prendre un instant pour laisser la pression redescendre d'un cran, sans rien exiger de toi, juste pour retrouver un peu d'espace."
+            },
+            "why_this_potion": "Ton corps exprime physiquement la surcharge ; l'apaisement va t'aider à protéger ton énergie face à la réunion de cet après-midi et à la pression ambiante.",
+            "potion_info_message": "La Potion d'apaisement est là pour t'aider à retrouver de l'air quand tout semble trop serré. Je t'enverrai un mot chaque matin pour t'aider à ralentir tranquillement.",
+            "instant_support_message": "C'est noté pour la tension. On va juste prendre un instant pour laisser la pression redescendre d'un cran, sans rien exiger de toi, juste pour retrouver un peu d'espace."
+          },
+          "follow_up_strategy": {
+            "duration_days": 7,
+            "schedule_plan": {
+              "mode": "daily_series",
+              "reason": "Un suivi quotidien sur une semaine permet de transformer le réflexe de tension en un réflexe de relâchement.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [],
+              "local_time_hhmm": "08:30",
+              "timing_relation": "daily"
+            },
+            "target_binding": {
+              "kind": "one_off_action",
+              "label": "Réunion de cet après-midi",
+              "evidence": [
+                "La reunion de cet apres-midi prend toute la place"
+              ],
+              "recurrence_hint": null,
+              "date_or_window_hint": "cet après-midi",
+              "target_plan_item_id": null,
+              "related_plan_item_id": null,
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "local_time_hhmm": "08:30",
+            "reason_for_time": "Le matin est ton moment préféré pour stabiliser ton état avant que la pression ne s'accumule.",
+            "reminder_instruction": "Aider à ralentir le matin et relâcher les tensions physiques sans aucune culpabilité."
+          },
+          "metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r51_hard2_apaisement-apaisement-t05-a1",
+            "operation_id": "a6170f57-1a3c-4cf1-9fe1-177f2e04f297",
+            "operation_type": "select_state_potion",
+            "source_message_id": "75419f84-68cf-49e5-9325-c7e8bcaa94d0"
+          },
+          "generated_at": "2026-05-21T16:26:51.626+00:00",
+          "last_updated_at": "2026-05-21T16:26:51.626+00:00"
+        }
+      ],
+      "reminders": [
+        {
+          "id": "114bb4ea-f814-4fe7-96b4-69ea61b9c46e",
+          "message_instruction": "Aider à ralentir le matin et relâcher les tensions physiques sans aucune culpabilité.",
+          "rationale": "Un suivi quotidien sur une semaine permet de transformer le réflexe de tension en un réflexe de relâchement.",
+          "local_time_hhmm": "08:30",
+          "scheduled_days": [
+            "fri",
+            "sat",
+            "sun",
+            "mon",
+            "tue",
+            "wed",
+            "thu"
+          ],
+          "status": "active",
+          "initiative_kind": "potion_follow_up",
+          "source_kind": "potion_generated",
+          "source_potion_session_id": "ed6d7369-1db6-4225-a1e6-ab7afd0d623f",
+          "initiative_metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r51_hard2_apaisement-apaisement-t05-a1",
+            "operation_id": "a6170f57-1a3c-4cf1-9fe1-177f2e04f297",
+            "schedule_plan": {
+              "mode": "daily_series",
+              "reason": "Un suivi quotidien sur une semaine permet de transformer le réflexe de tension en un réflexe de relâchement.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [],
+              "local_time_hhmm": "08:30",
+              "timing_relation": "daily"
+            },
+            "operation_type": "select_state_potion",
+            "target_binding": {
+              "kind": "one_off_action",
+              "label": "Réunion de cet après-midi",
+              "evidence": [
+                "La reunion de cet apres-midi prend toute la place"
+              ],
+              "recurrence_hint": null,
+              "date_or_window_hint": "cet après-midi",
+              "target_plan_item_id": null,
+              "related_plan_item_id": null,
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            }
+          },
+          "target_kind": "transformation",
+          "target_plan_item_id": null,
+          "target_action_family_key": null,
+          "target_binding_policy": "snapshot",
+          "target_lifecycle_policy": "independent",
+          "starts_at": "2026-05-21T16:26:51.626+00:00",
+          "created_at": "2026-05-21T16:26:51.630444+00:00",
+          "updated_at": "2026-05-21T16:26:51.630444+00:00"
+        }
+      ],
+      "checkins": [
+        {
+          "id": "ddc22bd0-5e28-4d16-81da-8e4abaf361d0",
+          "recurring_reminder_id": "114bb4ea-f814-4fe7-96b4-69ea61b9c46e",
+          "event_context": "recurring_reminder:114bb4ea-f814-4fe7-96b4-69ea61b9c46e:potion:ed6d7369-1db6-4225-a1e6-ab7afd0d623f:2026-05-22",
+          "draft_message": "Aider à ralentir le matin et relâcher les tensions physiques sans aucune culpabilité.",
+          "scheduled_for": "2026-05-22T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T16:26:51.634725+00:00"
+        },
+        {
+          "id": "23869bfe-fe49-4dad-82d4-e1e305435d0e",
+          "recurring_reminder_id": "114bb4ea-f814-4fe7-96b4-69ea61b9c46e",
+          "event_context": "recurring_reminder:114bb4ea-f814-4fe7-96b4-69ea61b9c46e:potion:ed6d7369-1db6-4225-a1e6-ab7afd0d623f:2026-05-23",
+          "draft_message": "Aider à ralentir le matin et relâcher les tensions physiques sans aucune culpabilité.",
+          "scheduled_for": "2026-05-23T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T16:26:51.634725+00:00"
+        },
+        {
+          "id": "51a88735-2657-46d9-b3ed-ed6a68504138",
+          "recurring_reminder_id": "114bb4ea-f814-4fe7-96b4-69ea61b9c46e",
+          "event_context": "recurring_reminder:114bb4ea-f814-4fe7-96b4-69ea61b9c46e:potion:ed6d7369-1db6-4225-a1e6-ab7afd0d623f:2026-05-24",
+          "draft_message": "Aider à ralentir le matin et relâcher les tensions physiques sans aucune culpabilité.",
+          "scheduled_for": "2026-05-24T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T16:26:51.634725+00:00"
+        },
+        {
+          "id": "be78d700-360c-49fe-81ec-53594c6ba1de",
+          "recurring_reminder_id": "114bb4ea-f814-4fe7-96b4-69ea61b9c46e",
+          "event_context": "recurring_reminder:114bb4ea-f814-4fe7-96b4-69ea61b9c46e:potion:ed6d7369-1db6-4225-a1e6-ab7afd0d623f:2026-05-25",
+          "draft_message": "Aider à ralentir le matin et relâcher les tensions physiques sans aucune culpabilité.",
+          "scheduled_for": "2026-05-25T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T16:26:51.634725+00:00"
+        },
+        {
+          "id": "aa2f9991-5369-4586-a64b-b23321a02cf2",
+          "recurring_reminder_id": "114bb4ea-f814-4fe7-96b4-69ea61b9c46e",
+          "event_context": "recurring_reminder:114bb4ea-f814-4fe7-96b4-69ea61b9c46e:potion:ed6d7369-1db6-4225-a1e6-ab7afd0d623f:2026-05-26",
+          "draft_message": "Aider à ralentir le matin et relâcher les tensions physiques sans aucune culpabilité.",
+          "scheduled_for": "2026-05-26T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T16:26:51.634725+00:00"
+        },
+        {
+          "id": "cbcf1339-6aff-4ddf-b490-46a04adf8330",
+          "recurring_reminder_id": "114bb4ea-f814-4fe7-96b4-69ea61b9c46e",
+          "event_context": "recurring_reminder:114bb4ea-f814-4fe7-96b4-69ea61b9c46e:potion:ed6d7369-1db6-4225-a1e6-ab7afd0d623f:2026-05-27",
+          "draft_message": "Aider à ralentir le matin et relâcher les tensions physiques sans aucune culpabilité.",
+          "scheduled_for": "2026-05-27T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T16:26:51.634725+00:00"
+        },
+        {
+          "id": "9df07f1d-0bb0-4a50-9f07-9c2505e7e639",
+          "recurring_reminder_id": "114bb4ea-f814-4fe7-96b4-69ea61b9c46e",
+          "event_context": "recurring_reminder:114bb4ea-f814-4fe7-96b4-69ea61b9c46e:potion:ed6d7369-1db6-4225-a1e6-ab7afd0d623f:2026-05-28",
+          "draft_message": "Aider à ralentir le matin et relâcher les tensions physiques sans aucune culpabilité.",
+          "scheduled_for": "2026-05-28T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T16:26:51.634725+00:00"
+        }
+      ]
+    }
+  }
+]

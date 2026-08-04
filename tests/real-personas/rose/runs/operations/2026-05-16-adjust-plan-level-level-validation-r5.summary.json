@@ -1,0 +1,19 @@
+[
+  {
+    "turn": 1,
+    "request_id": "qa-rose-2026-05-16-adjust-plan-level-level-validation-r5-t01",
+    "user": "Je veux alléger le niveau actuel sur la sécurité, pas seulement une action. Cette semaine, garde l'objectif global du couple, mais propose-moi un brouillon plus léger : point positif à 2 jours / semaine, phrase neutre, sans créneau imposé ; signal de pause en 5 minutes pour choisir un mot ou un geste simple. La cartographie des déclencheurs reste inchangée.",
+    "status": 401,
+    "sophia": "",
+    "empty_response": true,
+    "response_owner": null,
+    "selected_handler": null,
+    "route_reason": null,
+    "safety": null,
+    "operation_flow_status": null,
+    "operation_id": null,
+    "memory_mode": null,
+    "tool_execution": null,
+    "executed_tools": []
+  }
+]

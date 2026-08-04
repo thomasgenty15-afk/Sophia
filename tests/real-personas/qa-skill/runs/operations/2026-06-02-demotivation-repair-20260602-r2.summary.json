@@ -1,0 +1,563 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r2-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Franchement aujourd'hui j'ai plus envie. Le plan de grignotage, les placards, tout ca, j'ai l'impression que ca ne sert a rien et que je vais encore tenir deux jours puis laisser tomber.",
+    "assistant": "Est-ce que tu veux faire le point sur la motivation ou est-ce qu'on modifie le plan de grignotage ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "orientation_clarification",
+    "selected_handler": "orientation_clarification",
+    "route_reason": "clarification_required",
+    "safety_pregate": null,
+    "turn_agenda_summary": {
+      "task_count": 1,
+      "owners": [
+        "dispatcher"
+      ],
+      "operation_types": [],
+      "constraints": {},
+      "tasks": [
+        {
+          "task_id": "clarification:dispatcher",
+          "kind": "clarification",
+          "owner": "dispatcher",
+          "operation_type": null,
+          "intent": "clarify",
+          "source": "dispatcher",
+          "status": "asked",
+          "reason_code": "clarification_required"
+        }
+      ]
+    },
+    "effect_ledger": {
+      "turn_id": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r2-t01",
+      "counts": {
+        "requested": 0,
+        "allowed": 0,
+        "blocked": 0,
+        "committed": 0,
+        "failed": 0,
+        "proposed": 0,
+        "delivered": 0,
+        "cancelled": 0,
+        "superseded": 0,
+        "asked": 1,
+        "resolved": 0,
+        "topic_change": 0
+      },
+      "entries": [
+        {
+          "effect_id": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r2-t01:agenda:asked:clarification:dispatcher",
+          "kind": "clarification",
+          "effect_type": "clarification.intent",
+          "operation_type": null,
+          "operation_id": null,
+          "committed_id": null,
+          "tool_id": "dispatcher",
+          "status": "asked",
+          "reason_code": "clarification_required",
+          "source": "dispatcher",
+          "payload_summary": {
+            "task_id": "clarification:dispatcher",
+            "source": "dispatcher",
+            "evidence": [
+              "demotivation_repair",
+              "adjust_plan_item"
+            ]
+          },
+          "db_ref": null,
+          "error_message": null,
+          "surface_id": null,
+          "no_chat_mutation": true,
+          "committed": false,
+          "executed_tool": false,
+          "owner": "dispatcher",
+          "ambiguity_kind": "intent",
+          "candidate_ids": [
+            "demotivation_repair",
+            "adjust_plan_item"
+          ],
+          "selected_candidate_id": null
+        }
+      ]
+    },
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_plan": null,
+    "memory_write_candidates_emitted": null,
+    "response_executed_tools": [],
+    "tool_execution": "none",
+    "trace_id": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r2-t01",
+    "trace_error": null,
+    "operation_flow_run": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r2-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Plutot motivation. Ne modifie pas le plan, ne lance pas de potion ni d'outil. J'ai juste besoin que tu m'aides a ne pas transformer ce ratage en preuve que je suis nulle.",
+    "assistant": "Je ne l'active pas depuis le chat. Reprends cette recommandation dans la section État / Potions.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "tool_skill",
+    "selected_handler": "select_state_potion",
+    "route_reason": "orientation_clarification_resolved",
+    "safety_pregate": null,
+    "turn_agenda_summary": {
+      "task_count": 1,
+      "owners": [
+        "normal_reply"
+      ],
+      "operation_types": [],
+      "constraints": {
+        "no_tool": true
+      },
+      "tasks": [
+        {
+          "task_id": "reply:fallback",
+          "kind": "reply",
+          "owner": "normal_reply",
+          "operation_type": null,
+          "intent": "reply",
+          "source": "route_decision",
+          "status": "pending",
+          "reason_code": "orientation_clarification_resolved"
+        }
+      ]
+    },
+    "effect_ledger": {
+      "turn_id": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r2-t02",
+      "counts": {
+        "requested": 0,
+        "allowed": 0,
+        "blocked": 1,
+        "committed": 0,
+        "failed": 0,
+        "proposed": 0,
+        "delivered": 0,
+        "cancelled": 1,
+        "superseded": 0,
+        "asked": 0,
+        "resolved": 0,
+        "topic_change": 0
+      },
+      "entries": [
+        {
+          "effect_id": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r2-t02:platform_handoff:cancelled:select_state_potion:runtime",
+          "kind": "platform_handoff",
+          "effect_type": "platform_handoff.select_state_potion",
+          "operation_type": "select_state_potion",
+          "operation_id": null,
+          "committed_id": null,
+          "tool_id": "select_state_potion",
+          "status": "cancelled",
+          "reason_code": "select_state_potion_no_potion_constraint",
+          "source": "tool_skill",
+          "payload_summary": {
+            "no_chat_mutation": true,
+            "status": "cancelled",
+            "surface_id": "state_potions"
+          },
+          "db_ref": null,
+          "error_message": null,
+          "surface_id": "state_potions",
+          "no_chat_mutation": true,
+          "committed": false,
+          "executed_tool": false,
+          "owner": null,
+          "ambiguity_kind": null,
+          "selected_candidate_id": null
+        },
+        {
+          "effect_id": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r2-t02:guard:uncommitted_state_potion_activate_claim",
+          "kind": "durable_effect",
+          "effect_type": "final_reply.claim",
+          "operation_type": null,
+          "operation_id": null,
+          "committed_id": null,
+          "tool_id": null,
+          "status": "blocked",
+          "reason_code": "uncommitted_state_potion_activate_claim",
+          "source": "guard",
+          "payload_summary": {
+            "reason_codes": [
+              "uncommitted_state_potion_activate_claim"
+            ]
+          },
+          "db_ref": null,
+          "error_message": null,
+          "surface_id": null,
+          "owner": null,
+          "ambiguity_kind": null,
+          "selected_candidate_id": null
+        }
+      ]
+    },
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_plan": null,
+    "memory_write_candidates_emitted": null,
+    "response_executed_tools": [],
+    "tool_execution": "blocked",
+    "trace_id": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r2-t02",
+    "trace_error": null,
+    "operation_flow_run": {
+      "selected_handler": "select_state_potion",
+      "reason_code": "select_state_potion_no_potion_constraint",
+      "operation_type": "select_state_potion",
+      "mode": "platform_handoff",
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "status": "cancelled",
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "constraints": [
+        {
+          "kind": "no_potion",
+          "evidence": [
+            "Plutot motivation. Ne modifie pas le plan, ne lance pas de potion ni d'outil. J'ai juste besoin que tu m'aides a ne pas transformer ce ratage en preuve que je suis nulle."
+          ]
+        }
+      ],
+      "handoff": null,
+      "platform_handoff": {
+        "operation_type": "select_state_potion",
+        "status": "cancelled",
+        "surface_id": "state_potions",
+        "reason_code": "select_state_potion_no_potion_constraint",
+        "no_chat_mutation": true,
+        "draft": null
+      }
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r2-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Non justement, pas de potion. Je te demande de rester avec moi deux minutes sur la demotivation. Je me sens juste fatiguee et decouragee, pas en train de demander une action dans l'app.",
+    "assistant": "Phrase de réparation : \"Je reviens au prochain geste, pas a toute la montagne.\"\nMicro-action : ferme ce qui attire ton attention, rouvre seulement la tâche utile, et fais 90 secondes dessus. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "tool_skill",
+    "selected_handler": "select_state_potion",
+    "route_reason": "explicit_no_tool_request_blocks_tool_start",
+    "safety_pregate": null,
+    "turn_agenda_summary": {
+      "task_count": 1,
+      "owners": [
+        "status"
+      ],
+      "operation_types": [],
+      "constraints": {
+        "no_tool": true,
+        "status_only": true
+      },
+      "tasks": [
+        {
+          "task_id": "status:route",
+          "kind": "status",
+          "owner": "status",
+          "operation_type": null,
+          "intent": "verify",
+          "source": "route_decision",
+          "status": "pending",
+          "reason_code": "explicit_no_tool_request_blocks_tool_start"
+        }
+      ]
+    },
+    "effect_ledger": {
+      "turn_id": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r2-t03",
+      "counts": {
+        "requested": 0,
+        "allowed": 0,
+        "blocked": 0,
+        "committed": 0,
+        "failed": 0,
+        "proposed": 0,
+        "delivered": 0,
+        "cancelled": 1,
+        "superseded": 0,
+        "asked": 0,
+        "resolved": 0,
+        "topic_change": 0
+      },
+      "entries": [
+        {
+          "effect_id": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r2-t03:platform_handoff:cancelled:select_state_potion:runtime",
+          "kind": "platform_handoff",
+          "effect_type": "platform_handoff.select_state_potion",
+          "operation_type": "select_state_potion",
+          "operation_id": null,
+          "committed_id": null,
+          "tool_id": "select_state_potion",
+          "status": "cancelled",
+          "reason_code": "select_state_potion_no_potion_constraint",
+          "source": "tool_skill",
+          "payload_summary": {
+            "no_chat_mutation": true,
+            "status": "cancelled",
+            "surface_id": "state_potions"
+          },
+          "db_ref": null,
+          "error_message": null,
+          "surface_id": "state_potions",
+          "no_chat_mutation": true,
+          "committed": false,
+          "executed_tool": false,
+          "owner": null,
+          "ambiguity_kind": null,
+          "selected_candidate_id": null
+        }
+      ]
+    },
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_plan": null,
+    "memory_write_candidates_emitted": null,
+    "response_executed_tools": [],
+    "tool_execution": "blocked",
+    "trace_id": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r2-t03",
+    "trace_error": null,
+    "operation_flow_run": {
+      "selected_handler": "select_state_potion",
+      "reason_code": "select_state_potion_no_potion_constraint",
+      "operation_type": "select_state_potion",
+      "mode": "platform_handoff",
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "status": "cancelled",
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [],
+      "constraints": [
+        {
+          "kind": "no_potion",
+          "evidence": [
+            "Non justement, pas de potion. Je te demande de rester avec moi deux minutes sur la demotivation. Je me sens juste fatiguee et decouragee, pas en train de demander une action dans l'app."
+          ]
+        }
+      ],
+      "handoff": null,
+      "platform_handoff": {
+        "operation_type": "select_state_potion",
+        "status": "cancelled",
+        "surface_id": "state_potions",
+        "reason_code": "select_state_potion_no_potion_constraint",
+        "no_chat_mutation": true,
+        "draft": null
+      }
+    }
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r2-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Ok. La micro-action que je peux faire maintenant, c'est juste ouvrir le placard le plus visible et enlever un seul paquet, pas plus. Aide-moi a lancer ca sans me refaire un grand plan.",
+    "assistant": "Tu veux découper cette action ou préparer ton démarrage ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "orientation_clarification",
+    "selected_handler": "orientation_clarification",
+    "route_reason": "clarification_required",
+    "safety_pregate": null,
+    "turn_agenda_summary": {
+      "task_count": 1,
+      "owners": [
+        "dispatcher"
+      ],
+      "operation_types": [],
+      "constraints": {},
+      "tasks": [
+        {
+          "task_id": "clarification:dispatcher",
+          "kind": "clarification",
+          "owner": "dispatcher",
+          "operation_type": null,
+          "intent": "clarify",
+          "source": "dispatcher",
+          "status": "asked",
+          "reason_code": "clarification_required"
+        }
+      ]
+    },
+    "effect_ledger": {
+      "turn_id": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r2-t04",
+      "counts": {
+        "requested": 0,
+        "allowed": 0,
+        "blocked": 0,
+        "committed": 0,
+        "failed": 0,
+        "proposed": 0,
+        "delivered": 0,
+        "cancelled": 0,
+        "superseded": 0,
+        "asked": 1,
+        "resolved": 0,
+        "topic_change": 0
+      },
+      "entries": [
+        {
+          "effect_id": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r2-t04:agenda:asked:clarification:dispatcher",
+          "kind": "clarification",
+          "effect_type": "clarification.intent",
+          "operation_type": null,
+          "operation_id": null,
+          "committed_id": null,
+          "tool_id": "dispatcher",
+          "status": "asked",
+          "reason_code": "clarification_required",
+          "source": "dispatcher",
+          "payload_summary": {
+            "task_id": "clarification:dispatcher",
+            "source": "dispatcher",
+            "evidence": [
+              "product_help",
+              "execution_breakdown",
+              "prepare_attack_card"
+            ]
+          },
+          "db_ref": null,
+          "error_message": null,
+          "surface_id": null,
+          "no_chat_mutation": true,
+          "committed": false,
+          "executed_tool": false,
+          "owner": "dispatcher",
+          "ambiguity_kind": "intent",
+          "candidate_ids": [
+            "product_help",
+            "execution_breakdown",
+            "prepare_attack_card"
+          ],
+          "selected_candidate_id": null
+        }
+      ]
+    },
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_plan": null,
+    "memory_write_candidates_emitted": null,
+    "response_executed_tools": [],
+    "tool_execution": "none",
+    "trace_id": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r2-t04",
+    "trace_error": null,
+    "operation_flow_run": null
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r2-t05",
+    "status": 200,
+    "ok": true,
+    "user": "Prepare juste mon demarrage. Pas besoin de decouper plus : un paquet, maintenant, puis je reviens.",
+    "assistant": "Je n'ai pas pu préparer cette carte depuis le chat pour l'instant. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_reason": "orientation_clarification_resolved_tool_skill",
+    "safety_pregate": null,
+    "turn_agenda_summary": {
+      "task_count": 1,
+      "owners": [
+        "prepare_attack_card"
+      ],
+      "operation_types": [],
+      "constraints": {},
+      "tasks": [
+        {
+          "task_id": "reply:fallback",
+          "kind": "reply",
+          "owner": "prepare_attack_card",
+          "operation_type": null,
+          "intent": "reply",
+          "source": "route_decision",
+          "status": "pending",
+          "reason_code": "orientation_clarification_resolved_tool_skill"
+        }
+      ]
+    },
+    "effect_ledger": {
+      "turn_id": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r2-t05",
+      "counts": {
+        "requested": 0,
+        "allowed": 0,
+        "blocked": 1,
+        "committed": 0,
+        "failed": 0,
+        "proposed": 0,
+        "delivered": 0,
+        "cancelled": 0,
+        "superseded": 0,
+        "asked": 0,
+        "resolved": 0,
+        "topic_change": 0
+      },
+      "entries": [
+        {
+          "effect_id": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r2-t05:platform_handoff:blocked:prepare_attack_card:runtime",
+          "kind": "platform_handoff",
+          "effect_type": "platform_handoff.prepare_attack_card",
+          "operation_type": "prepare_attack_card",
+          "operation_id": null,
+          "committed_id": null,
+          "tool_id": "prepare_attack_card",
+          "status": "blocked",
+          "reason_code": "missing_platform_handoff_contract",
+          "source": "tool_skill",
+          "payload_summary": {
+            "no_chat_mutation": true,
+            "status": "blocked_by_safety",
+            "rejected_effect_arrays": "[object]"
+          },
+          "db_ref": null,
+          "error_message": null,
+          "surface_id": null,
+          "no_chat_mutation": true,
+          "committed": false,
+          "executed_tool": false,
+          "owner": null,
+          "ambiguity_kind": null,
+          "selected_candidate_id": null
+        }
+      ]
+    },
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_plan": null,
+    "memory_write_candidates_emitted": null,
+    "response_executed_tools": [],
+    "tool_execution": "blocked",
+    "trace_id": "qa-demotivation-repair-qa-skill-2026-06-02-20260602-r2-t05",
+    "trace_error": null,
+    "operation_flow_run": {
+      "selected_handler": "prepare_attack_card",
+      "reason_code": "orientation_clarification_resolved_tool_skill",
+      "status": "blocked_by_safety",
+      "missing_slots": [],
+      "requested_effects": [],
+      "allowed_effects": [],
+      "committed_effects": [],
+      "blocked_effects": [
+        {
+          "type": "prepare_attack_card",
+          "reason_code": "blocked_by_safety"
+        }
+      ]
+    }
+  }
+]

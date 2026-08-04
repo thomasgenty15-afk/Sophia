@@ -1,0 +1,360 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r2-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Ce soir je vais préparer la zone de déchargement, mais je sens le vieux réflexe : comme c’est juste poser un carnet et un stylo, je vais me dire que ça ne mérite pas maintenant et repousser.",
+    "assistant": "Ah oui, le classique “c’est simple donc ça attend” 😅\n\nLe piège, c’est que ton réflexe transforme “petit geste” en “pas important”. Donc on garde juste l’intention minimale: tu lances la zone de déchargement pour de vrai, en version express, sans négocier.\n\nMicro-action maintenant (2 minutes): tu sors le carnet + stylo et tu écris juste le titre “Zone de déchargement”, puis une seule ligne: “Je note tout ce qui me prend la tête”.\n\nTu veux que je t’aide à choisir une phrase d’étiquette pour quand tu repiques le “pas maintenant” (A) courte et dure, ou (B) douce mais ferme ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "conversation_handler",
+    "selected_handler": "execution_breakdown",
+    "route_reason_code": "skill_entry_signal",
+    "operation_flow_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [
+        "Ce soir"
+      ],
+      "risk_band": "none",
+      "reason_codes": [
+        "immediacy_tonight"
+      ],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": true,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r2-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r2-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Je veux plutôt une carte d’attaque pour l’action du plan “Préparer ta zone de déchargement”. Je ne sais pas quelle technique choisir, mais je veux qu’elle attaque ce réflexe de repousser.",
+    "assistant": "Ok, je te propose qu’on utilise la Carte d’attaque (surface “Carte d’attaque”) pour ancrer un déclencheur simple contre ton réflexe de repousser. 💪😅\n\nAvant de la lancer, je te propose un choix rapide:\nTu veux attaquer plutôt en mode “je commence petit maintenant” ou en mode “je supprime la négociation dans ma tête” (A/B) ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason_code": "active_skill_exit_requested",
+    "operation_flow_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r2-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r2-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Plutôt “je commence petit maintenant”. Et oui, je veux vraiment préparer une carte d’attaque pour l’action Préparer ta zone de déchargement, pas juste une phrase dans le chat.",
+    "assistant": "C'est noté pour l'action et ta phrase. Quelle approche te semble la plus efficace pour ne pas lâcher ?\n\n1. Mantra de force : répéter ta phrase pour te mettre dans l'axe.\n2. Mot de bascule : m'envoyer un mot court si tu sens que tu vas esquiver.\n3. Le texte magique : un court texte à relire pour calmer le débat intérieur.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": {
+      "source": "recommendation_tool",
+      "status": "ask_question",
+      "slot_state": {
+        "slot": "technique",
+        "needed": true,
+        "reason": "structured_ai_missing_technique",
+        "status": "missing",
+        "question": "C'est noté pour l'action et ta phrase. Quelle approche te semble la plus efficace pour ne pas lâcher ?\n\n1. Mantra de force : répéter ta phrase pour te mettre dans l'axe.\n2. Mot de bascule : m'envoyer un mot court si tu sens que tu vas esquiver.\n3. Le texte magique : un court texte à relire pour calmer le débat intérieur.",
+        "known_slots": {
+          "target": {
+            "kind": "plan_item",
+            "title": "Préparer ta zone de déchargement",
+            "plan_item_id": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e"
+          },
+          "intake_state": {
+            "target": {
+              "kind": "plan_item",
+              "title": "Préparer ta zone de déchargement",
+              "status": "identified",
+              "evidence": [
+                "L'utilisateur confirme explicitement l'action : 'préparer une carte d’attaque pour l’action Préparer ta zone de déchargement'"
+              ],
+              "confidence": "high",
+              "plan_item_id": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e"
+            },
+            "blocker": {
+              "type": "procrastination",
+              "evidence": [
+                "La phrase 'je commence petit maintenant' suggère une difficulté à démarrer ou une tendance à voir l'action comme trop lourde."
+              ],
+              "confidence": 0.8
+            },
+            "skill_id": "prepare_attack_card",
+            "technique": {
+              "value": null,
+              "status": "ambiguous",
+              "options": [
+                {
+                  "title": "Mantra de force",
+                  "reason": "Ta phrase 'je commence petit maintenant' est un excellent mantra pour briser la résistance.",
+                  "example": "Répéter 'je commence petit maintenant' 3 fois avant de t'installer.",
+                  "description": "Une phrase courte a repeter pour renforcer le rapport a l'action.",
+                  "recommended": true,
+                  "technique_key": "mantra_force"
+                },
+                {
+                  "title": "Mot de bascule",
+                  "reason": "Si tu as peur d'esquiver au dernier moment, un mot court à m'envoyer peut t'aider.",
+                  "example": "M'envoyer 'PETIT' quand tu sens que tu procrastines.",
+                  "description": "Un mot-cle memorisable et un mini protocole de bascule.",
+                  "recommended": false,
+                  "technique_key": "pre_engagement"
+                },
+                {
+                  "title": "Le texte magique",
+                  "reason": "Pour développer l'idée de 'commencer petit' en un court paragraphe qui calme le mental.",
+                  "example": "Un texte qui explique pourquoi faire juste le premier pas suffit ce soir.",
+                  "description": "Un texte court a relire ou recopier quand la resistance monte.",
+                  "recommended": false,
+                  "technique_key": "texte_recadrage"
+                }
+              ],
+              "evidence": [
+                "L'utilisateur propose une phrase d'accroche ('je commence petit maintenant') mais n'a pas encore choisi le format technique."
+              ],
+              "confidence": "medium",
+              "fit_warning": null,
+              "explicitly_requested": false
+            },
+            "confidence": "high",
+            "constraints": [],
+            "current_step": "technique_selection",
+            "missing_slots": [
+              "technique"
+            ],
+            "activation_keyword": {
+              "value": null,
+              "status": "missing",
+              "options": [],
+              "evidence": [],
+              "confidence": "low",
+              "rejected_value": null
+            },
+            "generated_user_message": "C'est noté pour l'action et ta phrase. Quelle approche te semble la plus efficace pour ne pas lâcher ?\n\n1. Mantra de force : répéter ta phrase pour te mettre dans l'axe.\n2. Mot de bascule : m'envoyer un mot court si tu sens que tu vas esquiver.\n3. Le texte magique : un court texte à relire pour calmer le débat intérieur."
+          },
+          "technique_options": [
+            {
+              "title": "Mantra de force",
+              "reason": "Ta phrase 'je commence petit maintenant' est un excellent mantra pour briser la résistance.",
+              "example": "Répéter 'je commence petit maintenant' 3 fois avant de t'installer.",
+              "description": "Une phrase courte a repeter pour renforcer le rapport a l'action.",
+              "recommended": true,
+              "technique_key": "mantra_force"
+            },
+            {
+              "title": "Mot de bascule",
+              "reason": "Si tu as peur d'esquiver au dernier moment, un mot court à m'envoyer peut t'aider.",
+              "example": "M'envoyer 'PETIT' quand tu sens que tu procrastines.",
+              "description": "Un mot-cle memorisable et un mini protocole de bascule.",
+              "recommended": false,
+              "technique_key": "pre_engagement"
+            },
+            {
+              "title": "Le texte magique",
+              "reason": "Pour développer l'idée de 'commencer petit' en un court paragraphe qui calme le mental.",
+              "example": "Un texte qui explique pourquoi faire juste le premier pas suffit ce soir.",
+              "description": "Un texte court a relire ou recopier quand la resistance monte.",
+              "recommended": false,
+              "technique_key": "texte_recadrage"
+            }
+          ]
+        },
+        "technique_options": [
+          {
+            "title": "Mantra de force",
+            "reason": "Ta phrase 'je commence petit maintenant' est un excellent mantra pour briser la résistance.",
+            "example": "Répéter 'je commence petit maintenant' 3 fois avant de t'installer.",
+            "description": "Une phrase courte a repeter pour renforcer le rapport a l'action.",
+            "recommended": true,
+            "technique_key": "mantra_force"
+          },
+          {
+            "title": "Mot de bascule",
+            "reason": "Si tu as peur d'esquiver au dernier moment, un mot court à m'envoyer peut t'aider.",
+            "example": "M'envoyer 'PETIT' quand tu sens que tu procrastines.",
+            "description": "Un mot-cle memorisable et un mini protocole de bascule.",
+            "recommended": false,
+            "technique_key": "pre_engagement"
+          },
+          {
+            "title": "Le texte magique",
+            "reason": "Pour développer l'idée de 'commencer petit' en un court paragraphe qui calme le mental.",
+            "example": "Un texte qui explique pourquoi faire juste le premier pas suffit ce soir.",
+            "description": "Un texte court a relire ou recopier quand la resistance monte.",
+            "recommended": false,
+            "technique_key": "texte_recadrage"
+          }
+        ],
+        "activation_keyword_options": []
+      },
+      "reason_code": "tool_skill_intent_start",
+      "missing_slots": [
+        "technique"
+      ],
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [
+        "maintenant"
+      ],
+      "risk_band": "none",
+      "reason_codes": [
+        "immediacy_now"
+      ],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": true,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r2-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r2-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Je pensais à “Préparer le terrain”, mais comme l’action c’est justement préparer le terrain, je ne veux pas une boucle bizarre. Dans tes options, Le texte magique me paraît mieux pour couper le débat “plus tard”.",
+    "assistant": "Voici ta carte d'attaque :\n*Zone de déchargement prête* (Le texte magique)\n« Je ne discute pas avec la fatigue ou l'envie de remettre à plus tard. Je prépare juste l'espace, maintenant, pour libérer mon esprit. »\nLis ce texte dès que tu sens une résistance, puis fais le premier geste sans réfléchir.\nEst-ce que ce brouillon te convient ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "title": "Zone de déchargement prête",
+          "technique": "texte_recadrage",
+          "instruction": "Recopie ou lis ce texte dès que tu commences à négocier avec toi-même.",
+          "mode_emploi": "Lis ce texte dès que tu sens une résistance, puis fais le premier geste sans réfléchir.",
+          "target_label": "Préparer ta zone de déchargement",
+          "why_it_helps": "Cela permet de court-circuiter le débat mental en rappelant l'objectif de clarté d'esprit.",
+          "generated_asset": "Je ne discute pas avec la fatigue ou l'envie de remettre à plus tard. Je prépare juste l'espace, maintenant, pour libérer mon esprit.",
+          "technique_title": "Le texte magique",
+          "supporting_points": [
+            "Coupe court à la négociation interne",
+            "Focalise sur le geste physique immédiat"
+          ],
+          "activation_keyword": null
+        },
+        "output_schema": "attack_card_draft_v1",
+        "operation_type": "prepare_attack_card",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Voici ta carte d'attaque :\n*Zone de déchargement prête* (Le texte magique)\n« Je ne discute pas avec la fatigue ou l'envie de remettre à plus tard. Je prépare juste l'espace, maintenant, pour libérer mon esprit. »\nLis ce texte dès que tu sens une résistance, puis fais le premier geste sans réfléchir.\nEst-ce que ce brouillon te convient ?"
+      },
+      "status": "pending_confirmation",
+      "reason_code": "active_tool_skill_continue",
+      "operation_id": "5ddc8df2-4513-410e-8f09-84436e962a18",
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r2-t04",
+    "trace_error": null
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r2-t05",
+    "status": 200,
+    "ok": true,
+    "user": "Le brouillon me va presque. Remplace “je prépare juste l’espace” par “je sors le carnet et le stylo”, parce que je veux un premier geste vraiment concret.",
+    "assistant": "Yes, bon ajustement. Ton texte magique peut devenir :\n\n« Je ne discute pas avec la fatigue ou l’envie de remettre à plus tard. Je sors le carnet et le stylo. Je commence maintenant par la zone de déchargement. »\n\nJe te conseille de le relire une fois, puis tu le mets en relance juste au moment où tu hésites. ✅😄\n\nTu veux que je garde exactement “carnet et le stylo” tels quels, ou tu préfères une version “ton matériel à toi” (ex: “le carnet bleu”, “le stylo noir”) ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "product_help",
+    "selected_handler": "product_help",
+    "route_reason_code": "skill_entry_signal",
+    "operation_flow_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r2-t05",
+    "trace_error": null
+  }
+]

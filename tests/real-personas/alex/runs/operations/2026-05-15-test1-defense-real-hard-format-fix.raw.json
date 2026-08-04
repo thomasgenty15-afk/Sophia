@@ -1,0 +1,567 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-15-defense-real-hard-format-fix-t01",
+    "user": "Fais un truc pour le soir, là où ça part en vrille. Pas un pavé, juste règle ça.",
+    "status": 200,
+    "response": {
+      "content": "On prépare ça. C'est pour protéger ton sas de déchargement ? Et concrètement, il se passe quoi quand 'ça part en vrille' ? C'est quoi le piège ?",
+      "mode": "companion",
+      "tool_execution": "blocked",
+      "executed_tools": []
+    },
+    "trace": {
+      "turn_id": "qa-operation-suggestion-test1-alex-2026-05-15-defense-real-hard-format-fix-t01",
+      "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+      "source_message_id": "cf6a646e-e753-4ecf-b4fc-a5b5f3151f5d",
+      "ts": "2026-05-15T13:31:17.552+00:00",
+      "safety_pregate": {
+        "detected": false,
+        "evidence": [],
+        "risk_band": "none",
+        "reason_codes": [],
+        "allow_side_effects": true,
+        "layer_contributions": {
+          "lexical": false,
+          "heuristic": false,
+          "dispatcher_llm": false
+        }
+      },
+      "dispatcher_run": {
+        "tokens_in": 5801,
+        "latency_ms": 9032,
+        "model_used": "gemini-3-flash-preview",
+        "tokens_out": 550,
+        "memory_plan": {
+          "targets": [
+            {
+              "key": "habitudes.reprise_apres_echec",
+              "type": "domain_key",
+              "priority": "medium",
+              "query_hint": "difficultés le soir ou moments où ça part en vrille",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "prompt_version": "dispatcher_v2_prompt_2026_05_s10"
+      },
+      "turn_frame": {
+        "safety": {
+          "evidence": [],
+          "risk_band": "low",
+          "reason_codes": []
+        },
+        "channel": "whatsapp",
+        "turn_id": "qa-operation-suggestion-test1-alex-2026-05-15-defense-real-hard-format-fix-t01",
+        "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+        "memory_plan": {
+          "targets": [
+            {
+              "key": "habitudes.reprise_apres_echec",
+              "type": "domain_key",
+              "priority": "medium",
+              "query_hint": "difficultés le soir ou moments où ça part en vrille",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "skill_signals": {
+          "exit": {},
+          "entry": {},
+          "lifecycle": {}
+        },
+        "direct_effects": [],
+        "conversation_risk": {
+          "score": 0,
+          "matrix": [
+            {
+              "signal": "system_misunderstanding",
+              "weight": 3.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "explicit_stop_or_abandon",
+              "weight": 2.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "anger_or_profanity",
+              "weight": 2,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "repetition_or_correction",
+              "weight": 1.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "typographic_intensity",
+              "weight": 0.7,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "active_flow_pressure",
+              "weight": 1,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "previous_risk",
+              "weight": 10,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            }
+          ],
+          "threshold": 8,
+          "reason_codes": [],
+          "context_summary": null,
+          "previous_scores": [],
+          "flow_exit_context": null,
+          "should_exit_flows": false
+        },
+        "source_message_id": "cf6a646e-e753-4ecf-b4fc-a5b5f3151f5d",
+        "tool_skill_intents": [
+          {
+            "ambiguity": "none",
+            "target_hint": "le soir, là où ça part en vrille",
+            "user_intent": "create",
+            "explicitness": "explicit",
+            "operation_type": "prepare_defense_card",
+            "confidence_band": "high"
+          }
+        ],
+        "confirmation_response": null,
+        "tool_skill_opportunity": {
+          "type": "none",
+          "surface_id": null,
+          "prop_reason": null,
+          "source_span": null,
+          "target_hint": null,
+          "offer_timing": "never",
+          "should_offer": false,
+          "target_status": "none",
+          "operation_type": null,
+          "confidence_band": "low",
+          "must_not_execute": true,
+          "suggested_question_intent": null
+        }
+      },
+      "route_decision": {
+        "reason_code": "tool_skill_intent_start",
+        "blocked_paths": [],
+        "route_version": "v1",
+        "response_owner": "tool_skill",
+        "memory_use_kind": "none",
+        "selected_handler": "prepare_defense_card",
+        "direct_effects_to_run": [],
+        "memory_used_for_route": false,
+        "active_flow_arbitration": {
+          "decision": "none",
+          "reason_code": "no_active_flow",
+          "active_owner": "none",
+          "resume_policy": "none",
+          "selected_owner": "none"
+        },
+        "memory_item_ids_used_for_route": []
+      },
+      "direct_effects": [],
+      "skill_run": null,
+      "operation_flow_run": {
+        "status": "ask_question",
+        "slot_state": {
+          "slot": "risk_situation",
+          "needed": true,
+          "reason": "structured_ai_missing_trigger",
+          "status": "missing",
+          "question": "On prépare ça. C'est pour protéger ton sas de déchargement ? Et concrètement, il se passe quoi quand 'ça part en vrille' ? C'est quoi le piège ?",
+          "known_slots": {
+            "attachment": {
+              "kind": "plan_item",
+              "title": "Faire le sas de déchargement",
+              "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+            },
+            "intake_state": {
+              "trigger": {
+                "type": null,
+                "status": "missing",
+                "evidence": [],
+                "confidence": 0
+              },
+              "skill_id": "prepare_defense_card",
+              "tool_fit": {
+                "reason": "L'utilisateur décrit un moment de dérapage ('ça part en vrille') le soir, ce qui correspond à une situation de risque nécessitant une carte de défense.",
+                "status": "defense",
+                "evidence": [
+                  "Fais un truc pour le soir, là où ça part en vrille"
+                ],
+                "confidence": "high"
+              },
+              "attachment": {
+                "kind": "plan_item",
+                "title": "Faire le sas de déchargement",
+                "status": "identified",
+                "evidence": [
+                  "le soir",
+                  "plan_snapshot: habit 'Faire le sas de déchargement' scheduled for evening"
+                ],
+                "confidence": "medium",
+                "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+              },
+              "confidence": "medium",
+              "constraints": [
+                "Pas de pavé",
+                "Réponse courte"
+              ],
+              "current_step": "risk_intake",
+              "defense_goal": {
+                "value": null,
+                "status": "missing",
+                "evidence": [],
+                "confidence": "low"
+              },
+              "missing_slots": [
+                "trigger",
+                "defense_goal"
+              ],
+              "risk_situation": {
+                "label": "Soirée qui dérape",
+                "status": "identified",
+                "evidence": [
+                  "le soir, là où ça part en vrille"
+                ],
+                "confidence": "medium",
+                "description": "ça part en vrille",
+                "timing_hint": "le soir",
+                "context_hint": null
+              },
+              "defense_response_hint": {
+                "value": null,
+                "status": "missing",
+                "evidence": [],
+                "confidence": "low",
+                "strategy_hint": null
+              },
+              "generated_user_message": "On prépare ça. C'est pour protéger ton sas de déchargement ? Et concrètement, il se passe quoi quand 'ça part en vrille' ? C'est quoi le piège ?"
+            },
+            "risk_situation": {
+              "label": "Soirée qui dérape",
+              "description": "ça part en vrille",
+              "timing_hint": "le soir",
+              "context_hint": null
+            }
+          }
+        },
+        "reason_code": "tool_skill_intent_start",
+        "missing_slots": [
+          "trigger",
+          "defense_goal"
+        ],
+        "selected_handler": "prepare_defense_card"
+      },
+      "recommendation_tool_run": null,
+      "confirmation_token_outcomes": [],
+      "memory_write_candidates_emitted": 0,
+      "response_owner": "tool_skill",
+      "total_latency_ms": 21708,
+      "created_at": "2026-05-15T13:31:17.566534+00:00"
+    },
+    "error": null,
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-15-defense-real-hard-format-fix-t02",
+    "user": "Oui le sas. Quand je ferme le carnet je reprends le tel, soi-disant pour vérifier un truc sinon j'ai peur d'oublier.",
+    "status": 200,
+    "response": {
+      "content": "Voici ta carte de défense :\n\nLe moment : Fin du sas de déchargement\nLe piège : Peur d'oublier un truc\nMon geste : Rouvrir le carnet pour noter l'idée\nPlan B : Éloigner le téléphone avant le sas\n\nOn valide ?",
+      "mode": "companion",
+      "tool_execution": "blocked",
+      "executed_tools": []
+    },
+    "trace": {
+      "turn_id": "qa-operation-suggestion-test1-alex-2026-05-15-defense-real-hard-format-fix-t02",
+      "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+      "source_message_id": "013bd7cd-906a-466f-bd61-b13241b2c6f8",
+      "ts": "2026-05-15T13:31:47.863+00:00",
+      "safety_pregate": {
+        "detected": false,
+        "evidence": [],
+        "risk_band": "none",
+        "reason_codes": [],
+        "allow_side_effects": true,
+        "layer_contributions": {
+          "lexical": false,
+          "heuristic": false,
+          "dispatcher_llm": false
+        }
+      },
+      "dispatcher_run": {
+        "tokens_in": 6822,
+        "latency_ms": 7151,
+        "model_used": "gemini-3-flash-preview",
+        "tokens_out": 640,
+        "memory_plan": {
+          "targets": [
+            {
+              "key": "habitudes.execution",
+              "type": "domain_key",
+              "priority": "medium",
+              "query_hint": "sas de déchargement carnet",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "prompt_version": "dispatcher_v2_prompt_2026_05_s10"
+      },
+      "turn_frame": {
+        "safety": {
+          "evidence": [],
+          "risk_band": "low",
+          "reason_codes": []
+        },
+        "channel": "whatsapp",
+        "turn_id": "qa-operation-suggestion-test1-alex-2026-05-15-defense-real-hard-format-fix-t02",
+        "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+        "memory_plan": {
+          "targets": [
+            {
+              "key": "habitudes.execution",
+              "type": "domain_key",
+              "priority": "medium",
+              "query_hint": "sas de déchargement carnet",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "skill_signals": {
+          "exit": {},
+          "entry": {},
+          "lifecycle": {
+            "prepare_defense_card": {
+              "status": "active",
+              "confidence_band": "high"
+            }
+          }
+        },
+        "direct_effects": [],
+        "conversation_risk": {
+          "score": 1,
+          "matrix": [
+            {
+              "signal": "system_misunderstanding",
+              "weight": 3.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "explicit_stop_or_abandon",
+              "weight": 2.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "anger_or_profanity",
+              "weight": 2,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "repetition_or_correction",
+              "weight": 1.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "typographic_intensity",
+              "weight": 0.7,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "active_flow_pressure",
+              "weight": 1,
+              "detected": true,
+              "evidence": "active_skill_or_operation_state",
+              "contribution": 1
+            },
+            {
+              "signal": "previous_risk",
+              "weight": 10,
+              "detected": false,
+              "evidence": "0;decay=0.55;recovery=1.5",
+              "contribution": 0
+            }
+          ],
+          "threshold": 8,
+          "reason_codes": [
+            "active_flow_pressure"
+          ],
+          "context_summary": null,
+          "previous_scores": [
+            0
+          ],
+          "flow_exit_context": null,
+          "should_exit_flows": false
+        },
+        "source_message_id": "013bd7cd-906a-466f-bd61-b13241b2c6f8",
+        "tool_skill_intents": [
+          {
+            "ambiguity": "none",
+            "target_hint": "sas de déchargement",
+            "user_intent": "create",
+            "explicitness": "explicit",
+            "operation_type": "prepare_defense_card",
+            "confidence_band": "high",
+            "operation_input": {
+              "trigger": {
+                "value": "fermeture du carnet",
+                "status": "identified",
+                "evidence": [
+                  "Quand je ferme le carnet"
+                ]
+              },
+              "risk_situation": {
+                "label": "reprise du téléphone par peur d'oublier",
+                "status": "identified",
+                "evidence": [
+                  "je reprends le tel",
+                  "peur d'oublier"
+                ]
+              }
+            }
+          }
+        ],
+        "confirmation_response": null,
+        "tool_skill_opportunity": {
+          "type": "none",
+          "surface_id": null,
+          "prop_reason": null,
+          "source_span": null,
+          "target_hint": null,
+          "offer_timing": "never",
+          "should_offer": false,
+          "target_status": "none",
+          "operation_type": null,
+          "confidence_band": "low",
+          "must_not_execute": true,
+          "suggested_question_intent": null
+        }
+      },
+      "route_decision": {
+        "reason_code": "active_tool_skill_continue",
+        "blocked_paths": [],
+        "route_version": "v1",
+        "response_owner": "tool_skill",
+        "memory_use_kind": "none",
+        "selected_handler": "prepare_defense_card",
+        "direct_effects_to_run": [],
+        "memory_used_for_route": false,
+        "active_flow_arbitration": {
+          "decision": "continue_active",
+          "reason_code": "active_tool_skill_continue",
+          "active_owner": "tool_skill",
+          "resume_policy": "none",
+          "selected_owner": "tool_skill"
+        },
+        "memory_item_ids_used_for_route": []
+      },
+      "direct_effects": [],
+      "skill_run": null,
+      "operation_flow_run": {
+        "draft": {
+          "draft": {
+            "title": "Protéger mon sas",
+            "plan_b": "Éloigner le téléphone avant le sas",
+            "signal": "Peur d'oublier un truc",
+            "trigger": "Peur d'oublier",
+            "situation": "Fin du sas de déchargement",
+            "target_label": "Faire le sas de déchargement",
+            "why_it_helps": "Évite de retomber dans les écrans par peur d'oublier.",
+            "fallback_plan": "Éloigner le téléphone",
+            "impulse_label": "Reprendre le téléphone",
+            "risk_situation": "Fin du sas de déchargement",
+            "generic_defense": "Noter sur papier",
+            "defense_response": "Rouvrir le carnet pour noter l'idée"
+          },
+          "output_schema": "defense_card_draft_v1",
+          "operation_type": "prepare_defense_card",
+          "confirmation_actions": [
+            "yes",
+            "no"
+          ],
+          "confirmation_message": "Voici ta carte de défense :\n\nLe moment : Fin du sas de déchargement\nLe piège : Peur d'oublier un truc\nMon geste : Rouvrir le carnet pour noter l'idée\nPlan B : Éloigner le téléphone avant le sas\n\nOn valide ?"
+        },
+        "status": "pending_confirmation",
+        "reason_code": "active_tool_skill_continue",
+        "operation_id": "8c9fcc00-b91b-45df-9247-73a606e712a9",
+        "selected_handler": "prepare_defense_card"
+      },
+      "recommendation_tool_run": null,
+      "confirmation_token_outcomes": [],
+      "memory_write_candidates_emitted": 0,
+      "response_owner": "tool_skill",
+      "total_latency_ms": 19681,
+      "created_at": "2026-05-15T13:31:47.875594+00:00"
+    },
+    "error": null,
+    "trace_error": null
+  }
+]

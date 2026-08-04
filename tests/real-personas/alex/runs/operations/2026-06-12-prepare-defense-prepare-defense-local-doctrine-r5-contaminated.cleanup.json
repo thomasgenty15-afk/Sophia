@@ -1,0 +1,17 @@
+{
+  "scope": "qa-prepare-defense-card-alex-2026-06-12-prepare-defense-local-doctrine-r5",
+  "before_counts": {
+    "chat_messages": 2,
+    "user_chat_states": 1,
+    "user_defense_cards": 0
+  },
+  "deleted_counts": {
+    "chat_messages": 2,
+    "user_chat_states": 1
+  },
+  "after_counts": {
+    "chat_messages": 0,
+    "user_chat_states": 0,
+    "user_defense_cards": 0
+  }
+}

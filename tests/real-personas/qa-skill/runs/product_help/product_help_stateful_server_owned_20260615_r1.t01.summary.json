@@ -1,0 +1,211 @@
+{
+  "requestId": "qa-product_help_stateful_server_owned_20260615_r1-t01",
+  "http_status": 200,
+  "ok": true,
+  "assistant": "C'est assez simple : la carte d'attaque t'aide à réduire la friction avant de commencer (comment je m'y mets ?), alors que la carte de défense te protège contre un piège ou une impulsion sur le moment (comment je ne déraille pas ?). L'une prépare le terrain, l'autre assure tes arrières. Est-ce que l'un de ces deux besoins te parle plus qu'un autre en ce moment ?",
+  "response_owner": "product_help",
+  "selected_handler": "product_help",
+  "route_reason": "skill_entry_signal",
+  "skill_id": "product_help",
+  "skill_status": "complete",
+  "diagnosis": {
+    "local_flow": true,
+    "flow_action": "compare_features",
+    "mode": "standalone",
+    "target": {
+      "kind": "feature_catalog",
+      "feature_id": "resources.attack_vs_defense_cards",
+      "object_type": null,
+      "object_ref": null,
+      "confidence": "high"
+    },
+    "grounding": {
+      "catalog_feature_ids": [
+        "resources.attack_vs_defense_cards",
+        "resources.attack_card",
+        "resources.defense_card"
+      ],
+      "surface_ids": [
+        "attack_card",
+        "defense_card"
+      ],
+      "db_sources_required": false,
+      "db_sources_used": [],
+      "active_flow_used": false,
+      "missing_grounding_reason": null
+    },
+    "bridge": {
+      "needed": false,
+      "operation_type": null,
+      "kind": null,
+      "executable": false,
+      "why": null
+    },
+    "visible_task": "compare_features",
+    "return_to_parent_flow": false,
+    "exit_to_global_dispatcher": false,
+    "note_information": null,
+    "reason_code": "product_help_local_compare_features",
+    "reducer_trace": {
+      "flow_action": "compare_features",
+      "visible_task": "compare_features",
+      "selected_target": {
+        "kind": "feature_catalog",
+        "feature_id": "resources.attack_vs_defense_cards",
+        "object_type": null,
+        "object_ref": null,
+        "confidence": "high"
+      },
+      "selected_option": "resources.attack_vs_defense_cards",
+      "pending_state_present": false,
+      "direct_handoff_flag": false,
+      "candidate_list_summary": [
+        {
+          "id": "dashboard.plan",
+          "label": "Plan"
+        },
+        {
+          "id": "plan.weekly_planning_validation",
+          "label": "Validation de la semaine"
+        },
+        {
+          "id": "plan.clarifications",
+          "label": "Clarifications"
+        },
+        {
+          "id": "plan.missions",
+          "label": "Missions"
+        },
+        {
+          "id": "plan.habits",
+          "label": "Habitudes"
+        },
+        {
+          "id": "plan.adjustment",
+          "label": "Ajustement du plan"
+        }
+      ],
+      "constraint_list": [
+        "pédagogique",
+        "structuré",
+        "short",
+        "natural",
+        "non_mutating",
+        "ne pas proposer de créer une carte immédiatement sans demande explicite",
+        "ne pas affirmer que l'utilisateur possède déjà ces cartes sans preuve DB",
+        "Ne dis pas que Sophia a cree, modifie, annule, active, programme ou enregistre quelque chose.",
+        "Ne mentionne pas JSON, dispatcher, reducer, prompt, DB, table ou outil interne."
+      ],
+      "readiness": {
+        "bridge_needed": false,
+        "bridge_operation": null,
+        "note_information_present": false
+      },
+      "blocked_effects_reason_codes": [],
+      "state_mutation_audit": {
+        "server_owned_fields": [
+          "product_help_local_state",
+          "active_product_surface",
+          "active_product_topic",
+          "source_flow_context",
+          "parent_flow_context",
+          "product_help_subskill_history",
+          "suspended_flow_snapshot",
+          "exit_memo",
+          "handoff_note",
+          "last_answered_product_question",
+          "skill_id",
+          "mode",
+          "status",
+          "product_help_state.stage",
+          "product_help_state.last_intent",
+          "product_help_state.last_target",
+          "product_help_state.last_answer_summary",
+          "product_help_state.last_catalog_feature_ids",
+          "product_help_state.last_locations",
+          "product_help_state.parent_flow_context",
+          "product_help_state.turn_count",
+          "product_help_state.max_turns",
+          "product_help_state.updated_at"
+        ],
+        "modified_fields_declared": [],
+        "clear_fields_declared": [],
+        "applied_fields": [
+          "status",
+          "product_help_state.stage",
+          "product_help_state.last_intent",
+          "product_help_state.last_target",
+          "product_help_state.last_answer_summary",
+          "product_help_state.last_catalog_feature_ids",
+          "product_help_state.last_locations",
+          "product_help_state.turn_count",
+          "product_help_state.updated_at"
+        ],
+        "preserved_fields": [
+          "skill_id",
+          "mode",
+          "product_help_state.parent_flow_context",
+          "product_help_state.max_turns"
+        ],
+        "restored_fields": [],
+        "cleared_fields": [],
+        "rejected_changes": []
+      }
+    },
+    "state_mutation_audit": {
+      "server_owned_fields": [
+        "product_help_local_state",
+        "active_product_surface",
+        "active_product_topic",
+        "source_flow_context",
+        "parent_flow_context",
+        "product_help_subskill_history",
+        "suspended_flow_snapshot",
+        "exit_memo",
+        "handoff_note",
+        "last_answered_product_question",
+        "skill_id",
+        "mode",
+        "status",
+        "product_help_state.stage",
+        "product_help_state.last_intent",
+        "product_help_state.last_target",
+        "product_help_state.last_answer_summary",
+        "product_help_state.last_catalog_feature_ids",
+        "product_help_state.last_locations",
+        "product_help_state.parent_flow_context",
+        "product_help_state.turn_count",
+        "product_help_state.max_turns",
+        "product_help_state.updated_at"
+      ],
+      "modified_fields_declared": [],
+      "clear_fields_declared": [],
+      "applied_fields": [
+        "status",
+        "product_help_state.stage",
+        "product_help_state.last_intent",
+        "product_help_state.last_target",
+        "product_help_state.last_answer_summary",
+        "product_help_state.last_catalog_feature_ids",
+        "product_help_state.last_locations",
+        "product_help_state.turn_count",
+        "product_help_state.updated_at"
+      ],
+      "preserved_fields": [
+        "skill_id",
+        "mode",
+        "product_help_state.parent_flow_context",
+        "product_help_state.max_turns"
+      ],
+      "restored_fields": [],
+      "cleared_fields": [],
+      "rejected_changes": []
+    },
+    "evidence": [
+      "user asks for difference between attack and defense cards",
+      "resources.attack_vs_defense_cards"
+    ]
+  },
+  "direct_effects": [],
+  "tool_skill_run": null
+}

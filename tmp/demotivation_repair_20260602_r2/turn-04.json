@@ -1,0 +1,751 @@
+{
+  "ok": true,
+  "request_id": "demotivation_repair_20260602_r2-t04",
+  "user_id": "85c5cbc9-47f2-41a5-83e5-aa8c8073d7e4",
+  "channel": "web",
+  "scope": "qa-demotivation-repair-demotivation_repair_20260602_r2",
+  "empty_response": false,
+  "aborted": false,
+  "abort_reason": null,
+  "logged_message_id": null,
+  "latest_message_id": null,
+  "response": {
+    "content": "Je ne l'ai pas modifié. 🙂",
+    "mode": "companion",
+    "tool_execution": "none",
+    "executed_tools": [],
+    "conversation_turn_trace": {
+      "turn_frame": {
+        "turn_id": "demotivation_repair_20260602_r2-t04",
+        "source_message_id": "be32ac0e-e8d3-459a-b194-45cfc1d2aee0",
+        "user_id": "85c5cbc9-47f2-41a5-83e5-aa8c8073d7e4",
+        "channel": "web",
+        "safety": {
+          "risk_band": "low",
+          "reason_codes": [],
+          "evidence": []
+        },
+        "conversation_risk": {
+          "score": 1.9,
+          "threshold": 8,
+          "should_exit_flows": false,
+          "reason_codes": [
+            "active_flow_pressure",
+            "previous_risk"
+          ],
+          "previous_scores": [
+            0,
+            1,
+            1.6
+          ],
+          "matrix": [
+            {
+              "signal": "system_misunderstanding",
+              "detected": false,
+              "weight": 3.5,
+              "contribution": 0,
+              "evidence": null
+            },
+            {
+              "signal": "explicit_stop_or_abandon",
+              "detected": false,
+              "weight": 2.5,
+              "contribution": 0,
+              "evidence": null
+            },
+            {
+              "signal": "anger_or_profanity",
+              "detected": false,
+              "weight": 2,
+              "contribution": 0,
+              "evidence": null
+            },
+            {
+              "signal": "repetition_or_correction",
+              "detected": false,
+              "weight": 1.5,
+              "contribution": 0,
+              "evidence": null
+            },
+            {
+              "signal": "typographic_intensity",
+              "detected": false,
+              "weight": 0.7,
+              "contribution": 0,
+              "evidence": null
+            },
+            {
+              "signal": "active_flow_pressure",
+              "detected": true,
+              "weight": 1,
+              "contribution": 1,
+              "evidence": "active_skill_or_operation_state"
+            },
+            {
+              "signal": "previous_risk",
+              "detected": true,
+              "weight": 10,
+              "contribution": 0.9,
+              "evidence": "0,1,1.6;decay=0.55;recovery=0"
+            }
+          ],
+          "context_summary": null,
+          "flow_exit_context": null
+        },
+        "direct_effects": [],
+        "tool_skill_intents": [],
+        "tool_skill_opportunity": {
+          "type": "none",
+          "operation_type": null,
+          "surface_id": null,
+          "confidence_band": "low",
+          "should_offer": false,
+          "prop_reason": null,
+          "source_span": null,
+          "target_hint": null,
+          "target_status": "none",
+          "suggested_question_intent": null,
+          "offer_timing": "never",
+          "must_not_execute": true
+        },
+        "skill_signals": {
+          "entry": {
+            "execution_breakdown": {
+              "detected": true,
+              "confidence_band": "high",
+              "reason": "user_requests_micro_step_to_break_friction"
+            }
+          },
+          "lifecycle": {
+            "emotional_repair": {
+              "detected": true,
+              "confidence_band": "medium",
+              "reason": "continuation_of_demotivation_context"
+            }
+          },
+          "exit": {}
+        },
+        "needs_research": {
+          "detected": false,
+          "value": false,
+          "query": null,
+          "domain_hint": null,
+          "confidence": 0,
+          "reason": null
+        },
+        "action_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_fallback_disabled"
+        },
+        "level_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_fallback_disabled"
+        },
+        "memory_plan": {
+          "response_intent": "reflection",
+          "reasoning_complexity": "low",
+          "context_need": "targeted",
+          "memory_mode": "light",
+          "model_tier_hint": "lite",
+          "context_budget_tier": "small",
+          "targets": [
+            {
+              "type": "topic",
+              "key": "psychologie.motivation",
+              "query_hint": "impression que tout s'éteint après 2-3 jours",
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first",
+              "priority": "medium",
+              "entity_type": null
+            }
+          ],
+          "retrieval_policy": "semantic_first",
+          "plan_confidence": 0.7
+        },
+        "confirmation_response": null
+      },
+      "route_decision": {
+        "route_version": "v1",
+        "response_owner": "conversation_handler",
+        "blocked_paths": [
+          {
+            "path": "tool_skill_opportunity",
+            "reason_code": "active_flow_blocks_tool_opportunity"
+          },
+          {
+            "path": "tool_skill_router",
+            "reason_code": "orientation_clarification_resolved_conversation_skill"
+          },
+          {
+            "path": "direct_effects",
+            "reason_code": "orientation_clarification_resolved_conversation_skill"
+          }
+        ],
+        "direct_effects_to_run": [],
+        "reason_code": "orientation_clarification_resolved_conversation_skill",
+        "memory_used_for_route": false,
+        "memory_item_ids_used_for_route": [],
+        "memory_use_kind": "none",
+        "active_flow_arbitration": {
+          "decision": "supersede_active",
+          "active_owner": "conversation_skill",
+          "selected_owner": "conversation_skill",
+          "resume_policy": "auto_after_answer",
+          "reason_code": "skill_handoff_requested"
+        },
+        "selected_handler": "execution_breakdown"
+      },
+      "turn_agenda_summary": {
+        "task_count": 1,
+        "owners": [
+          "execution_breakdown"
+        ],
+        "operation_types": [],
+        "constraints": {},
+        "tasks": [
+          {
+            "task_id": "reply:fallback",
+            "kind": "reply",
+            "owner": "execution_breakdown",
+            "operation_type": null,
+            "intent": "reply",
+            "source": "route_decision",
+            "status": "pending",
+            "reason_code": "orientation_clarification_resolved_conversation_skill"
+          }
+        ]
+      },
+      "skill_run": {
+        "selected_skill_id": "execution_breakdown",
+        "reason_code": "orientation_clarification_resolved_conversation_skill",
+        "output": {
+          "skill_id": "execution_breakdown",
+          "status": "exit",
+          "response_intent": "exit",
+          "memory_trace": {
+            "memory_used_for_response": false,
+            "memory_item_ids_used": [],
+            "correction_detected": false,
+            "correction_target_item_ids": []
+          },
+          "reply": "Ouvre juste l'endroit de l'action et fais une trace imparfaite de 2 minutes. Après, on ajuste.",
+          "diagnosis": {
+            "stage": "diagnosis",
+            "target": {
+              "kind": "unknown",
+              "confidence_band": "high"
+            },
+            "blocker": "unknown",
+            "action_readiness": "blocked_after_first_step",
+            "emotional_dominance": "low",
+            "constraints": [
+              "do_not_create_card_without_consent"
+            ],
+            "response_contract": {
+              "max_questions": 1,
+              "allow_tool_suggestion": true,
+              "allow_plan_edit_suggestion": false,
+              "allow_card_suggestion": true,
+              "allow_exact_phrase": false,
+              "must_start_with_concrete_action": false,
+              "max_bullets": 2,
+              "tone": "relationship_repair"
+            },
+            "execution_decision": {
+              "skill_id": "execution_breakdown",
+              "intent": "unclear",
+              "phase": "exit",
+              "target": {
+                "kind": "unknown",
+                "confidence_band": "high"
+              },
+              "blocker": "unknown",
+              "action_readiness": "blocked_after_first_step",
+              "emotional_dominance": "low",
+              "constraints": [
+                "do_not_create_card_without_consent"
+              ],
+              "response_contract": {
+                "max_questions": 1,
+                "allow_tool_suggestion": true,
+                "allow_plan_edit_suggestion": false,
+                "allow_card_suggestion": true,
+                "allow_exact_phrase": false,
+                "must_start_with_concrete_action": false,
+                "max_bullets": 2,
+                "tone": "relationship_repair"
+              },
+              "operation_suggestions": [],
+              "memory_write_candidates": [],
+              "reply": "Ouvre juste l'endroit de l'action et fais une trace imparfaite de 2 minutes. Après, on ajuste.",
+              "state_patch": {}
+            },
+            "intake_status": "ok"
+          },
+          "recommendation_need": {
+            "needed": false,
+            "type": "execution_repair",
+            "urgency": "low",
+            "constraints": [
+              "do_not_create_card_without_consent"
+            ]
+          },
+          "operation_suggestions": [],
+          "memory_write_candidates": [],
+          "effects": {
+            "requested": [],
+            "allowed": [],
+            "blocked": [],
+            "committed": []
+          },
+          "state_patch": {
+            "execution_decision": {
+              "skill_id": "execution_breakdown",
+              "intent": "unclear",
+              "phase": "exit",
+              "target": {
+                "kind": "unknown",
+                "confidence_band": "high"
+              },
+              "blocker": "unknown",
+              "action_readiness": "blocked_after_first_step",
+              "emotional_dominance": "low",
+              "constraints": [
+                "do_not_create_card_without_consent"
+              ],
+              "response_contract": {
+                "max_questions": 1,
+                "allow_tool_suggestion": true,
+                "allow_plan_edit_suggestion": false,
+                "allow_card_suggestion": true,
+                "allow_exact_phrase": false,
+                "must_start_with_concrete_action": false,
+                "max_bullets": 2,
+                "tone": "relationship_repair"
+              },
+              "operation_suggestions": [],
+              "memory_write_candidates": [],
+              "reply": "Ouvre juste l'endroit de l'action et fais une trace imparfaite de 2 minutes. Après, on ajuste.",
+              "state_patch": {}
+            },
+            "intake_status": "ok"
+          }
+        }
+      },
+      "effect_ledger": {
+        "turn_id": "demotivation_repair_20260602_r2-t04",
+        "counts": {
+          "requested": 0,
+          "allowed": 0,
+          "blocked": 1,
+          "committed": 0,
+          "failed": 0,
+          "proposed": 0,
+          "delivered": 0,
+          "cancelled": 0,
+          "superseded": 0,
+          "asked": 0,
+          "resolved": 0,
+          "topic_change": 0
+        },
+        "entries": [
+          {
+            "effect_id": "demotivation_repair_20260602_r2-t04:guard:uncommitted_plan_adjust_claim",
+            "kind": "durable_effect",
+            "effect_type": "final_reply.claim",
+            "operation_type": null,
+            "operation_id": null,
+            "committed_id": null,
+            "tool_id": null,
+            "status": "blocked",
+            "reason_code": "uncommitted_plan_adjust_claim",
+            "source": "guard",
+            "payload_summary": {
+              "reason_codes": [
+                "uncommitted_plan_adjust_claim"
+              ]
+            },
+            "db_ref": null,
+            "error_message": null,
+            "surface_id": null,
+            "owner": null,
+            "ambiguity_kind": null,
+            "selected_candidate_id": null
+          }
+        ]
+      },
+      "response_owner": "conversation_handler"
+    }
+  },
+  "conversation_turn_trace": {
+    "turn_frame": {
+      "turn_id": "demotivation_repair_20260602_r2-t04",
+      "source_message_id": "be32ac0e-e8d3-459a-b194-45cfc1d2aee0",
+      "user_id": "85c5cbc9-47f2-41a5-83e5-aa8c8073d7e4",
+      "channel": "web",
+      "safety": {
+        "risk_band": "low",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "conversation_risk": {
+        "score": 1.9,
+        "threshold": 8,
+        "should_exit_flows": false,
+        "reason_codes": [
+          "active_flow_pressure",
+          "previous_risk"
+        ],
+        "previous_scores": [
+          0,
+          1,
+          1.6
+        ],
+        "matrix": [
+          {
+            "signal": "system_misunderstanding",
+            "detected": false,
+            "weight": 3.5,
+            "contribution": 0,
+            "evidence": null
+          },
+          {
+            "signal": "explicit_stop_or_abandon",
+            "detected": false,
+            "weight": 2.5,
+            "contribution": 0,
+            "evidence": null
+          },
+          {
+            "signal": "anger_or_profanity",
+            "detected": false,
+            "weight": 2,
+            "contribution": 0,
+            "evidence": null
+          },
+          {
+            "signal": "repetition_or_correction",
+            "detected": false,
+            "weight": 1.5,
+            "contribution": 0,
+            "evidence": null
+          },
+          {
+            "signal": "typographic_intensity",
+            "detected": false,
+            "weight": 0.7,
+            "contribution": 0,
+            "evidence": null
+          },
+          {
+            "signal": "active_flow_pressure",
+            "detected": true,
+            "weight": 1,
+            "contribution": 1,
+            "evidence": "active_skill_or_operation_state"
+          },
+          {
+            "signal": "previous_risk",
+            "detected": true,
+            "weight": 10,
+            "contribution": 0.9,
+            "evidence": "0,1,1.6;decay=0.55;recovery=0"
+          }
+        ],
+        "context_summary": null,
+        "flow_exit_context": null
+      },
+      "direct_effects": [],
+      "tool_skill_intents": [],
+      "tool_skill_opportunity": {
+        "type": "none",
+        "operation_type": null,
+        "surface_id": null,
+        "confidence_band": "low",
+        "should_offer": false,
+        "prop_reason": null,
+        "source_span": null,
+        "target_hint": null,
+        "target_status": "none",
+        "suggested_question_intent": null,
+        "offer_timing": "never",
+        "must_not_execute": true
+      },
+      "skill_signals": {
+        "entry": {
+          "execution_breakdown": {
+            "detected": true,
+            "confidence_band": "high",
+            "reason": "user_requests_micro_step_to_break_friction"
+          }
+        },
+        "lifecycle": {
+          "emotional_repair": {
+            "detected": true,
+            "confidence_band": "medium",
+            "reason": "continuation_of_demotivation_context"
+          }
+        },
+        "exit": {}
+      },
+      "needs_research": {
+        "detected": false,
+        "value": false,
+        "query": null,
+        "domain_hint": null,
+        "confidence": 0,
+        "reason": null
+      },
+      "action_reference": {
+        "detected": false,
+        "status": "none",
+        "expansion_policy": "none",
+        "reason": "semantic_fallback_disabled"
+      },
+      "level_reference": {
+        "detected": false,
+        "status": "none",
+        "expansion_policy": "none",
+        "reason": "semantic_fallback_disabled"
+      },
+      "memory_plan": {
+        "response_intent": "reflection",
+        "reasoning_complexity": "low",
+        "context_need": "targeted",
+        "memory_mode": "light",
+        "model_tier_hint": "lite",
+        "context_budget_tier": "small",
+        "targets": [
+          {
+            "type": "topic",
+            "key": "psychologie.motivation",
+            "query_hint": "impression que tout s'éteint après 2-3 jours",
+            "expansion_policy": null,
+            "retrieval_policy": "semantic_first",
+            "priority": "medium",
+            "entity_type": null
+          }
+        ],
+        "retrieval_policy": "semantic_first",
+        "plan_confidence": 0.7
+      },
+      "confirmation_response": null
+    },
+    "route_decision": {
+      "route_version": "v1",
+      "response_owner": "conversation_handler",
+      "blocked_paths": [
+        {
+          "path": "tool_skill_opportunity",
+          "reason_code": "active_flow_blocks_tool_opportunity"
+        },
+        {
+          "path": "tool_skill_router",
+          "reason_code": "orientation_clarification_resolved_conversation_skill"
+        },
+        {
+          "path": "direct_effects",
+          "reason_code": "orientation_clarification_resolved_conversation_skill"
+        }
+      ],
+      "direct_effects_to_run": [],
+      "reason_code": "orientation_clarification_resolved_conversation_skill",
+      "memory_used_for_route": false,
+      "memory_item_ids_used_for_route": [],
+      "memory_use_kind": "none",
+      "active_flow_arbitration": {
+        "decision": "supersede_active",
+        "active_owner": "conversation_skill",
+        "selected_owner": "conversation_skill",
+        "resume_policy": "auto_after_answer",
+        "reason_code": "skill_handoff_requested"
+      },
+      "selected_handler": "execution_breakdown"
+    },
+    "turn_agenda_summary": {
+      "task_count": 1,
+      "owners": [
+        "execution_breakdown"
+      ],
+      "operation_types": [],
+      "constraints": {},
+      "tasks": [
+        {
+          "task_id": "reply:fallback",
+          "kind": "reply",
+          "owner": "execution_breakdown",
+          "operation_type": null,
+          "intent": "reply",
+          "source": "route_decision",
+          "status": "pending",
+          "reason_code": "orientation_clarification_resolved_conversation_skill"
+        }
+      ]
+    },
+    "skill_run": {
+      "selected_skill_id": "execution_breakdown",
+      "reason_code": "orientation_clarification_resolved_conversation_skill",
+      "output": {
+        "skill_id": "execution_breakdown",
+        "status": "exit",
+        "response_intent": "exit",
+        "memory_trace": {
+          "memory_used_for_response": false,
+          "memory_item_ids_used": [],
+          "correction_detected": false,
+          "correction_target_item_ids": []
+        },
+        "reply": "Ouvre juste l'endroit de l'action et fais une trace imparfaite de 2 minutes. Après, on ajuste.",
+        "diagnosis": {
+          "stage": "diagnosis",
+          "target": {
+            "kind": "unknown",
+            "confidence_band": "high"
+          },
+          "blocker": "unknown",
+          "action_readiness": "blocked_after_first_step",
+          "emotional_dominance": "low",
+          "constraints": [
+            "do_not_create_card_without_consent"
+          ],
+          "response_contract": {
+            "max_questions": 1,
+            "allow_tool_suggestion": true,
+            "allow_plan_edit_suggestion": false,
+            "allow_card_suggestion": true,
+            "allow_exact_phrase": false,
+            "must_start_with_concrete_action": false,
+            "max_bullets": 2,
+            "tone": "relationship_repair"
+          },
+          "execution_decision": {
+            "skill_id": "execution_breakdown",
+            "intent": "unclear",
+            "phase": "exit",
+            "target": {
+              "kind": "unknown",
+              "confidence_band": "high"
+            },
+            "blocker": "unknown",
+            "action_readiness": "blocked_after_first_step",
+            "emotional_dominance": "low",
+            "constraints": [
+              "do_not_create_card_without_consent"
+            ],
+            "response_contract": {
+              "max_questions": 1,
+              "allow_tool_suggestion": true,
+              "allow_plan_edit_suggestion": false,
+              "allow_card_suggestion": true,
+              "allow_exact_phrase": false,
+              "must_start_with_concrete_action": false,
+              "max_bullets": 2,
+              "tone": "relationship_repair"
+            },
+            "operation_suggestions": [],
+            "memory_write_candidates": [],
+            "reply": "Ouvre juste l'endroit de l'action et fais une trace imparfaite de 2 minutes. Après, on ajuste.",
+            "state_patch": {}
+          },
+          "intake_status": "ok"
+        },
+        "recommendation_need": {
+          "needed": false,
+          "type": "execution_repair",
+          "urgency": "low",
+          "constraints": [
+            "do_not_create_card_without_consent"
+          ]
+        },
+        "operation_suggestions": [],
+        "memory_write_candidates": [],
+        "effects": {
+          "requested": [],
+          "allowed": [],
+          "blocked": [],
+          "committed": []
+        },
+        "state_patch": {
+          "execution_decision": {
+            "skill_id": "execution_breakdown",
+            "intent": "unclear",
+            "phase": "exit",
+            "target": {
+              "kind": "unknown",
+              "confidence_band": "high"
+            },
+            "blocker": "unknown",
+            "action_readiness": "blocked_after_first_step",
+            "emotional_dominance": "low",
+            "constraints": [
+              "do_not_create_card_without_consent"
+            ],
+            "response_contract": {
+              "max_questions": 1,
+              "allow_tool_suggestion": true,
+              "allow_plan_edit_suggestion": false,
+              "allow_card_suggestion": true,
+              "allow_exact_phrase": false,
+              "must_start_with_concrete_action": false,
+              "max_bullets": 2,
+              "tone": "relationship_repair"
+            },
+            "operation_suggestions": [],
+            "memory_write_candidates": [],
+            "reply": "Ouvre juste l'endroit de l'action et fais une trace imparfaite de 2 minutes. Après, on ajuste.",
+            "state_patch": {}
+          },
+          "intake_status": "ok"
+        }
+      }
+    },
+    "effect_ledger": {
+      "turn_id": "demotivation_repair_20260602_r2-t04",
+      "counts": {
+        "requested": 0,
+        "allowed": 0,
+        "blocked": 1,
+        "committed": 0,
+        "failed": 0,
+        "proposed": 0,
+        "delivered": 0,
+        "cancelled": 0,
+        "superseded": 0,
+        "asked": 0,
+        "resolved": 0,
+        "topic_change": 0
+      },
+      "entries": [
+        {
+          "effect_id": "demotivation_repair_20260602_r2-t04:guard:uncommitted_plan_adjust_claim",
+          "kind": "durable_effect",
+          "effect_type": "final_reply.claim",
+          "operation_type": null,
+          "operation_id": null,
+          "committed_id": null,
+          "tool_id": null,
+          "status": "blocked",
+          "reason_code": "uncommitted_plan_adjust_claim",
+          "source": "guard",
+          "payload_summary": {
+            "reason_codes": [
+              "uncommitted_plan_adjust_claim"
+            ]
+          },
+          "db_ref": null,
+          "error_message": null,
+          "surface_id": null,
+          "owner": null,
+          "ambiguity_kind": null,
+          "selected_candidate_id": null
+        }
+      ]
+    },
+    "response_owner": "conversation_handler"
+  },
+  "trace_error": null
+}

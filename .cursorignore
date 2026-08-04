@@ -37,3 +37,8 @@ npm run prod:bundle:user -- \
 **/.env
 **/.env.*
 supabase/.env
+
+
+
+Pour sophia staging : 
+

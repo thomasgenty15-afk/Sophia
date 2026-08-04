@@ -1,0 +1,70 @@
+[
+  {
+    "turn": 1,
+    "request_id": "qa-rose-2026-05-17-adjust-plan-horizon-r15-observation-t01",
+    "user": "Cette semaine j'ai fait seulement 2 fois le partage positif au lieu de 3. Je ne sais pas trop quoi en penser.",
+    "status": 200,
+    "sophia": "Ah je vois… et c’est normal que ça te fasse un petit quelque chose. Si l’objectif c’était 3 jours, t’en as fait 2, donc tu es à +, mais pas encore au niveau “tout calé”. La bonne nouvelle: t’as quand même réussi à le tenir plusieurs fois, et ton indicateur de traction est justement “en hausse” (donc ça progresse, même avec un jour en moins). 🙂\n\nOn va faire simple et utile: pour les prochaines fois, ton seul job c’est d’identifier le moment qui t’a fait décrocher (fatigue, oubli, journée trop pleine) et ajouter une micro-sécurité pour que ça te rate moins.\n\nProchain pas: tu veux qu’on regarde plutôt “pourquoi ça a sauté 1 fois” ou “comment garantir le 3e jour” ? (A ou B)",
+    "trace": {
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "response_owner": "normal_reply",
+      "selected_handler": null,
+      "route_reason": null,
+      "safety": "none",
+      "memory_mode": "light",
+      "operation_flow_status": null,
+      "operation_type": null,
+      "pending_confirmation": null,
+      "tool_execution": "success",
+      "executed_tools": [
+        "track_progress_plan_item"
+      ]
+    }
+  },
+  {
+    "turn": 2,
+    "request_id": "qa-rose-2026-05-17-adjust-plan-horizon-r15-observation-t02",
+    "user": "Je ne veux pas forcément changer le plan. Je veux surtout comprendre si c'est grave ou si je peux juste continuer.",
+    "status": 200,
+    "sophia": "Non, ce n’est pas “grave”. Tu as fait 2 partages positifs au lieu de 3, donc t’es surtout en mode “pas encore au niveau pile”, pas en mode “échec”. 🙂  \nLe point important: ton indicateur de traction reste en hausse, et ça dit que tu es en progression malgré un petit écart.\n\nDu coup, tu peux juste continuer, mais avec une petite règle mentale: pendant quelques jours, tu vises “le maintien”, pas la perfection.\n\nTu préfères continuer en mode tranquille (sans pression) ou te remettre 1 mini-coup de boost pour revenir à 3 ? (A/B)",
+    "trace": {
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "response_owner": "normal_reply",
+      "selected_handler": null,
+      "route_reason": null,
+      "safety": "none",
+      "memory_mode": "light",
+      "operation_flow_status": null,
+      "operation_type": null,
+      "pending_confirmation": null,
+      "tool_execution": "none",
+      "executed_tools": []
+    }
+  },
+  {
+    "turn": 3,
+    "request_id": "qa-rose-2026-05-17-adjust-plan-horizon-r15-observation-t03",
+    "user": "Mode tranquille pour l'instant. Ne change rien dans mon plan.",
+    "status": 200,
+    "sophia": "Ok, mode tranquille activé. Je ne touche pas à ton plan. 😊\n\nLà, ton objectif c’est juste de le continuer comme ça, sans chercher à “rattraper” quoi que ce soit.",
+    "trace": {
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "response_owner": "normal_reply",
+      "selected_handler": null,
+      "route_reason": null,
+      "safety": "none",
+      "memory_mode": "light",
+      "operation_flow_status": null,
+      "operation_type": null,
+      "pending_confirmation": null,
+      "tool_execution": "none",
+      "executed_tools": []
+    }
+  }
+]

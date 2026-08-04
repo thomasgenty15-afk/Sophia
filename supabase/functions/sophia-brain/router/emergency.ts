@@ -1,18 +1,27 @@
-import type { SupabaseClient } from "jsr:@supabase/supabase-js@2"
-import type { AgentMode } from "../state-manager.ts"
-import { generateWithGemini } from "../../_shared/gemini.ts"
+import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
+import type { AgentMode } from "../state-manager.ts";
+import { generateWithGemini } from "../../_shared/gemini.ts";
 
 export async function enqueueLlmRetryJob(opts: {
-  supabase: SupabaseClient
-  userId: string
-  scope: string
-  channel: "web" | "whatsapp"
-  userMessage: string
-  investigationActive: boolean
-  requestId?: string
-  reason: string
+  supabase: SupabaseClient;
+  userId: string;
+  scope: string;
+  channel: "web" | "whatsapp";
+  userMessage: string;
+  investigationActive: boolean;
+  requestId?: string;
+  reason: string;
 }): Promise<string | null> {
-  const { supabase, userId, scope, channel, userMessage, investigationActive, requestId, reason } = opts
+  const {
+    supabase,
+    userId,
+    scope,
+    channel,
+    userMessage,
+    investigationActive,
+    requestId,
+    reason,
+  } = opts;
   try {
     const { data, error } = await supabase.rpc("enqueue_llm_retry_job", {
       p_user_id: userId,
@@ -25,25 +34,25 @@ export async function enqueueLlmRetryJob(opts: {
         source: "sophia-brain:router",
         investigation_active: Boolean(investigationActive),
       },
-    })
-    if (error) throw error
-    return data ? String(data) : null
+    });
+    if (error) throw error;
+    return data ? String(data) : null;
   } catch (e) {
-    console.error("[Router] enqueue_llm_retry_job failed (non-blocking):", e)
-    return null
+    console.error("[Router] enqueue_llm_retry_job failed (non-blocking):", e);
+    return null;
   }
 }
 
 export async function tryEmergencyAiReply(opts: {
-  userMessage: string
-  targetMode: AgentMode
-  checkupActive: boolean
-  isPostCheckup: boolean
-  requestId?: string
-  userId?: string
-  forceRealAi?: boolean
+  userMessage: string;
+  targetMode: AgentMode;
+  checkupActive: boolean;
+  isPostCheckup: boolean;
+  requestId?: string;
+  userId?: string;
+  forceRealAi?: boolean;
 }): Promise<string | null> {
-  const { userMessage } = opts
+  const { userMessage } = opts;
   try {
     const emergencySystem = `
 Tu es Sophia.
@@ -51,6 +60,10 @@ Contrainte: le système a eu un souci temporaire, mais tu DOIS quand même répo
 
 RÈGLES:
 - Français, tutoiement.
+- Tu tutoies toujours l'utilisateur. N'utilise "vous", "votre" ou "vos" que si tu parles explicitement du couple ou de plusieurs personnes, jamais pour t'adresser directement à l'utilisateur.
+- Quand tu parles de toi-même, utilise la première personne du singulier ("je", "me", "moi"). N'écris jamais "Sophia" pour te désigner.
+- Sophia est féminine: quand tu parles de toi-même, accorde les adjectifs et participes au féminin ("contente", "prête", "désolée", "ravie", etc.).
+- Chaque message visible contient au moins 1 emoji naturel et sobre; 2 max.
 - Ne mentionne pas d'erreur technique, pas de "je suis saturée", pas de "renvoie ton message".
 - Réponse courte (max ~6 lignes). 1 question max.
 - Si CHECKUP actif: ne pars pas sur un autre sujet, garde le fil.
@@ -60,26 +73,33 @@ CONTEXTE:
 - targetMode=${opts.targetMode}
 - checkupActive=${opts.checkupActive ? "true" : "false"}
 - postCheckup=${opts.isPostCheckup ? "true" : "false"}
-      `.trim()
+      `.trim();
 
     const model =
-      ((((globalThis as any)?.Deno?.env?.get?.("GEMINI_FALLBACK_MODEL") ?? "") as string).trim()) ||
+      ((((globalThis as any)?.Deno?.env?.get?.("GEMINI_FALLBACK_MODEL") ??
+        "") as string).trim()) ||
       // Last resort: stable model name
-      "gpt-5-mini"
+      "gpt-5.4-mini";
 
-    const out = await generateWithGemini(emergencySystem, userMessage, 0.2, false, [], "auto", {
-      requestId: opts.requestId,
-      userId: opts.userId,
-      model,
-      source: "sophia-brain:router_emergency",
-      forceRealAi: opts.forceRealAi,
-    })
-    if (typeof out === "string" && out.trim()) return out
-    return null
+    const out = await generateWithGemini(
+      emergencySystem,
+      userMessage,
+      0.2,
+      false,
+      [],
+      "auto",
+      {
+        requestId: opts.requestId,
+        userId: opts.userId,
+        model,
+        source: "sophia-brain:router_emergency",
+        forceRealAi: opts.forceRealAi,
+      },
+    );
+    if (typeof out === "string" && out.trim()) return out;
+    return null;
   } catch (e) {
-    console.error("[Router] emergency AI reply failed:", e)
-    return null
+    console.error("[Router] emergency AI reply failed:", e);
+    return null;
   }
 }
-
-

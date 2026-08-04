@@ -19,6 +19,19 @@ const WATCHER_ACTIVITY_LOOKBACK_MINUTES = Number(
 /** Maximum number of users to process per cron invocation to avoid timeouts. */
 const BATCH_LIMIT = 50
 
+async function readJsonBody(req: Request): Promise<Record<string, unknown>> {
+  try {
+    const raw = await req.clone().text()
+    if (!raw.trim()) return {}
+    const parsed = JSON.parse(raw)
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+      ? parsed as Record<string, unknown>
+      : {}
+  } catch {
+    return {}
+  }
+}
+
 async function hasMessagesSince(params: {
   admin: ReturnType<typeof createClient>
   userId: string
@@ -58,9 +71,13 @@ Deno.serve(async (req) => {
     const authResp = ensureInternalRequest(req)
     if (authResp) return authResp
 
+    const body = await readJsonBody(req)
+    const forceFullAi = body.force_full_ai === true
+
     const watcherDisabled =
-      (Deno.env.get("SOPHIA_WATCHER_DISABLED") ?? "").trim() === "1" ||
-      (Deno.env.get("SOPHIA_VEILLEUR_DISABLED") ?? "").trim() === "1"
+      !forceFullAi &&
+      ((Deno.env.get("SOPHIA_WATCHER_DISABLED") ?? "").trim() === "1" ||
+        (Deno.env.get("SOPHIA_VEILLEUR_DISABLED") ?? "").trim() === "1")
 
     if (watcherDisabled) {
       return jsonResponse(req, {
@@ -93,7 +110,7 @@ Deno.serve(async (req) => {
 
     if (queryErr) throw queryErr
 
-    const rows = (eligible ?? []).filter((row: any) => {
+    const eligibleRows = (eligible ?? []).filter((row: any) => {
       const lastInteractionMs = Number(new Date(String(row?.last_interaction_at ?? "")).getTime())
       if (!Number.isFinite(lastInteractionMs)) return false
       const lastProcessedRaw = String(row?.last_processed_at ?? "").trim()
@@ -102,6 +119,20 @@ Deno.serve(async (req) => {
       if (!Number.isFinite(lastProcessedMs)) return true
       return lastInteractionMs > lastProcessedMs
     })
+
+    // RGPD: accounts pending deletion are excluded from all proactive processing.
+    let rows = eligibleRows
+    const candidateIds = [...new Set(eligibleRows.map((row: any) => String(row.user_id)))]
+    if (candidateIds.length > 0) {
+      const { data: activeProfiles, error: profilesErr } = await admin
+        .from("profiles")
+        .select("id")
+        .in("id", candidateIds)
+        .neq("account_status", "deletion_pending")
+      if (profilesErr) throw profilesErr
+      const activeIds = new Set((activeProfiles ?? []).map((p: any) => String(p.id)))
+      rows = eligibleRows.filter((row: any) => activeIds.has(String(row.user_id)))
+    }
     console.log(`[trigger-watcher-batch] request_id=${requestId} eligible=${rows.length}`)
 
     if (rows.length === 0) {
@@ -143,6 +174,7 @@ Deno.serve(async (req) => {
           requestId,
           channel,
           scope,
+          forceRealAi: forceFullAi,
         })
 
         await acknowledgeWatcherRun(

@@ -1,0 +1,20 @@
+{
+  "http_status": 200,
+  "ok": true,
+  "request_id": "qa-exec-breakdown-r3-t1",
+  "user_id": "62df97ee-a966-4db1-96f6-dd07d1afbf15",
+  "scope": "qa-execution-breakdown-20260602-r3",
+  "content": "Je dois finaliser mon dossier de bourse ce soir. J'hésite entre le découper en mini-étapes ou déplacer cette action dans mon plan, parce que là je bloque.",
+  "assistant": "Est-ce que tu préfères découper ton dossier de bourse en petites étapes ou plutôt le déplacer dans ton plan ? 🙂",
+  "response_owner": "orientation_clarification",
+  "selected_handler": null,
+  "route_reason": null,
+  "safety": null,
+  "operation": null,
+  "pending_confirmation": null,
+  "executed_tools": [],
+  "direct_effects": [],
+  "memory_plan": null,
+  "trace_error": null,
+  "raw_path": "tmp/qa-execution-breakdown-20260602-r3/qa-exec-breakdown-r3-t1.raw.json"
+}

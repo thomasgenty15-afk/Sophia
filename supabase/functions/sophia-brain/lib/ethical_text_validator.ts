@@ -3,7 +3,6 @@ import { generateWithGemini } from "../../_shared/gemini.ts";
 export type EthicalEntityType =
   | "action"
   | "rendez_vous"
-  | "north_star"
   | "vital_sign"
   | "wish"
   | "reflection"
@@ -34,8 +33,6 @@ function blockReasonByEntity(entityType: EthicalEntityType): string {
       return "Ce type d'action n'est pas en accord avec les valeurs de Sophia.";
     case "rendez_vous":
       return "Ce type de rendez-vous n'est pas en accord avec les valeurs de Sophia.";
-    case "north_star":
-      return "Ce type d'etoile polaire n'est pas en accord avec les valeurs de Sophia.";
     case "vital_sign":
       return "Ce type de signe vital n'est pas en accord avec les valeurs de Sophia.";
     case "wish":

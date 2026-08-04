@@ -1,0 +1,2217 @@
+[
+  {
+    "id": "8ada3200-fd15-482b-a56a-5ef3caed9183",
+    "user_id": "f3bd26a5-581e-4630-8550-77dd5c75387a",
+    "cycle_id": "a3b67512-32d5-4bef-9f0a-3b845ddc5f9c",
+    "transformation_id": "b0ab2260-2dfe-4106-8000-17dde7abcb36",
+    "status": "active",
+    "title": "Sortir du décalage extrême",
+    "activated_at": "2026-06-14T11:57:52.937+00:00",
+    "archived_at": null,
+    "created_at": "2026-06-14T11:52:28.988+00:00",
+    "updated_at": "2026-06-14T11:57:55.38182+00:00",
+    "content": {
+      "title": "Sortir du décalage extrême",
+      "phases": [
+        {
+          "items": [
+            {
+              "kind": "task",
+              "title": "Préparer ton accès à la lumière",
+              "payload": {},
+              "temp_id": "gen-p1-missions-001",
+              "dimension": "missions",
+              "description": "Dès ce soir, laisse tes volets légèrement ouverts ou prépare tes affaires pour pouvoir te mettre à la fenêtre ou sur le balcon dès ton réveil demain.",
+              "target_reps": null,
+              "time_of_day": "evening",
+              "support_mode": null,
+              "cadence_label": null,
+              "tracking_type": "boolean",
+              "scheduled_days": null,
+              "activation_order": 1,
+              "support_function": null,
+              "activation_condition": null
+            },
+            {
+              "kind": "habit",
+              "title": "Prendre la lumière du jour au réveil",
+              "payload": {},
+              "temp_id": "gen-p1-habits-001",
+              "dimension": "habits",
+              "description": "Dans les 15 minutes après ton lever (vers 11h pour l'instant), expose-toi à la lumière naturelle pendant 10 à 15 minutes. C'est le signal principal qui dit à ton cerveau que la journée commence.",
+              "target_reps": 6,
+              "time_of_day": "morning",
+              "support_mode": null,
+              "cadence_label": "6 matins / semaine",
+              "tracking_type": "boolean",
+              "scheduled_days": null,
+              "activation_order": 2,
+              "support_function": null,
+              "activation_condition": null
+            },
+            {
+              "kind": "framework",
+              "title": "Identifier les freins du matin",
+              "payload": {
+                "clarification_details": {
+                  "type": "one_shot",
+                  "intro": "Qu'est-ce qui crée de la friction le matin ? Le but est de repérer l'obstacle pour le contourner plus facilement demain.",
+                  "sections": [
+                    {
+                      "id": "morning_friction",
+                      "label": "Qu'est-ce qui te retient le plus au lit ?",
+                      "input_type": "list",
+                      "helper_text": "Liste les éléments qui retardent ton exposition à la lumière.",
+                      "placeholder": "Le téléphone, le froid, la flemme..."
+                    }
+                  ],
+                  "save_label": "Enregistrer"
+                }
+              },
+              "temp_id": "gen-p1-clarifications-001",
+              "dimension": "clarifications",
+              "description": "Prends 2 minutes pour noter ce qui t'empêche parfois de prendre la lumière tout de suite au réveil.",
+              "target_reps": null,
+              "time_of_day": "afternoon",
+              "support_mode": null,
+              "cadence_label": null,
+              "tracking_type": "boolean",
+              "scheduled_days": null,
+              "activation_order": 3,
+              "support_function": null,
+              "activation_condition": null
+            },
+            {
+              "kind": "task",
+              "title": "Sécuriser la régularité",
+              "payload": {},
+              "temp_id": "gen-p1-missions-002",
+              "dimension": "missions",
+              "description": "Ajuste ton environnement (rideaux, réveil éloigné) pour que l'exposition à la lumière devienne automatique, même les jours où tu es fatigué.",
+              "target_reps": null,
+              "time_of_day": "anytime",
+              "support_mode": null,
+              "cadence_label": null,
+              "tracking_type": "boolean",
+              "scheduled_days": null,
+              "activation_order": 4,
+              "support_function": null,
+              "activation_condition": null
+            }
+          ],
+          "title": "Verrouiller ton signal de jour",
+          "phase_id": "phase-1",
+          "heartbeat": {
+            "unit": "matins/semaine",
+            "title": "Matins avec lumière naturelle au réveil",
+            "target": 6,
+            "current": null,
+            "tracking_mode": "inferred"
+          },
+          "rationale": "Avant de chercher à te lever plus tôt, il faut que ton corps comprenne clairement quand la journée commence, même à 11h.",
+          "phase_order": 1,
+          "why_this_now": "C'est le seul moyen de stopper l'instabilité de ton rythme sans te demander un effort de volonté le soir.",
+          "phase_objective": "Créer un repère biologique fort au réveil pour empêcher ton horloge de se décaler davantage.",
+          "duration_guidance": "3 semaines",
+          "phase_metric_target": "Pas encore de cible directe sur l'heure d'endormissement ; ce niveau prépare le terrain en visant 6 matins par semaine avec une exposition immédiate à la lumière.",
+          "how_this_phase_works": "On installe une exposition systématique à la lumière naturelle dès ton lever actuel, sans encore changer tes horaires.",
+          "maintained_foundation": [],
+          "what_this_phase_targets": "Le manque de signal clair le matin qui laisse ton horloge flotter."
+        }
+      ],
+      "version": 3,
+      "cycle_id": "a3b67512-32d5-4bef-9f0a-3b845ddc5f9c",
+      "metadata": {
+        "phase_1_preview": {
+          "title": "Comprendre ton horloge",
+          "heartbeat": "Pourquoi clarifié",
+          "rationale": "Avant de toucher à tes horaires, on met au clair ton histoire avec le sommeil et ce qui te pousse vraiment à vouloir changer aujourd'hui.",
+          "phase_objective": "Te donner une base solide : comprendre pourquoi ton rythme s'est décalé et définir la raison profonde qui t'aidera à tenir quand la fatigue se fera sentir."
+        },
+        "schedule_anchor": {
+          "version": 1,
+          "timezone": "Europe/Paris",
+          "week_starts_on": "monday",
+          "anchor_week_end": "2026-06-14",
+          "generated_at_utc": "2026-06-14T11:57:52.937Z",
+          "anchor_local_date": "2026-06-14",
+          "anchor_week_start": "2026-06-08",
+          "anchor_local_human": "dimanche 14 juin 2026 à 13:57",
+          "anchor_display_start": "2026-06-14",
+          "is_partial_anchor_week": true,
+          "days_remaining_in_anchor_week": 1
+        },
+        "plan_adjustment_context": {
+          "phase_reasoning": [
+            {
+              "phase_id": "phase-1",
+              "phase_order": 1,
+              "role_in_plan": "Créer un synchroniseur externe fort (la lumière) pour stopper la dérive naturelle de l'horloge.",
+              "why_before_next": "Tant que le corps ne sait pas quand la journée commence, avancer l'heure de lever ne fera que créer de la fatigue sans décaler l'heure d'endormissement.",
+              "slowdown_signals": [
+                "Oubli fréquent de prendre la lumière",
+                "Friction trop forte pour sortir du lit ou ouvrir les volets"
+              ],
+              "user_signals_used": [
+                "Le décalage est très facile dès qu'il y a relâchement",
+                "La lumière naturelle est identifiée comme un bon synchroniseur le matin",
+                "L'endormissement est bloqué par l'agitation du soir"
+              ],
+              "acceleration_signals": [
+                "L'exposition à la lumière est facile et agréable",
+                "L'heure de réveil naturel commence déjà à s'avancer un peu"
+              ],
+              "prerequisite_for_next_phase": "Une exposition à la lumière quasi quotidienne au réveil, à heure à peu près fixe."
+            }
+          ],
+          "global_reasoning": {
+            "sequencing_logic": "On ancre d'abord le lever avec la lumière pour stopper la dérive, on avance ensuite le réveil par micro-pas, puis on calme le soir. Forcer le coucher en premier ne marcherait pas.",
+            "slowdown_signals": [
+              "Grosse dette de sommeil accumulée",
+              "Incapacité totale à sortir du lit à l'heure prévue plusieurs jours de suite",
+              "Le décalage s'aggrave au lieu de se stabiliser"
+            ],
+            "main_problem_model": "Un retard de phase sévère (5h du matin) entretenu par une horloge biologique instable et un hyper-éveil le soir.",
+            "acceleration_signals": [
+              "La personne se réveille naturellement avant son alarme",
+              "La fatigue se fait sentir plus tôt le soir sans effort"
+            ],
+            "why_not_faster_initially": "Avancer l'horloge de plus de 20 minutes d'un coup sur un profil très décalé provoque un rebond de fatigue et une rechute immédiate."
+          }
+        }
+      },
+      "strategy": {
+        "core_principle": null,
+        "identity_shift": null,
+        "main_constraint": "Ne jamais avancer l'heure de lever de plus de 20 minutes d'un coup pour ne pas brusquer l'horloge biologique.",
+        "success_definition": "Atteindre un endormissement stable vers 2h du matin et un lever régulier sans dérive pendant 2 semaines."
+      },
+      "user_summary": "L'objectif de cette première étape est de ramener ton endormissement de 5h à 2h du matin. Pour y arriver sans forcer et sans rechuter, on va utiliser la lumière du matin pour reprogrammer ton horloge en douceur.",
+      "plan_blueprint": {
+        "levels": [
+          {
+            "title": "Avancer l'horloge en douceur",
+            "phase_id": "phase-2",
+            "intention": "Décaler ton heure de lever de 15 à 20 minutes tous les 3 jours pour ramener ton réveil vers 9h-10h.",
+            "level_order": 3,
+            "preview_summary": "Une fois le signal du matin verrouillé, on commence à reculer l'heure de réveil très progressivement.",
+            "estimated_duration_weeks": 3
+          },
+          {
+            "title": "Créer le sas de décompression",
+            "phase_id": "phase-3",
+            "intention": "Réduire l'hyper-éveil cognitif et lumineux 1h avant la nouvelle heure de coucher cible (2h du matin).",
+            "level_order": 4,
+            "preview_summary": "Ton corps se réveillant plus tôt, on l'aide à s'éteindre le soir en coupant les écrans au bon moment.",
+            "estimated_duration_weeks": 2
+          },
+          {
+            "title": "Stabiliser le palier des 2h",
+            "phase_id": "phase-4",
+            "intention": "Ancrer ce nouveau rythme (2h-9h) pour qu'il résiste aux écarts du week-end.",
+            "level_order": 5,
+            "preview_summary": "On consolide ce premier grand palier avant d'envisager la suite de ton parcours vers 23h.",
+            "estimated_duration_weeks": 2
+          }
+        ],
+        "global_objective": "Ramener ton endormissement de 5h à 2h du matin de façon stable.",
+        "estimated_levels_count": 3
+      },
+      "primary_metric": {
+        "unit": "heure",
+        "label": "Heure d'endormissement",
+        "baseline_value": "05:00",
+        "success_target": "02:00",
+        "measurement_mode": "absolute_value"
+      },
+      "duration_months": 2,
+      "journey_context": {
+        "part_number": 1,
+        "is_multi_part": true,
+        "continuation_hint": "Ancrer le rythme matinal cible",
+        "estimated_total_parts": 2,
+        "estimated_total_duration_months": 6
+      },
+      "global_objective": "Atteindre un endormissement stable vers 2h du matin et un lever régulier sans dérive pendant 2 semaines.",
+      "internal_summary": "Transformation 1 sur 2 pour un profil en retard de phase sévère (5h -> 23h à terme). L'objectif ici est d'atteindre un premier palier stable à 2h du matin. La stratégie repose sur l'ancrage du lever via la lumière naturelle, suivi d'une avance de phase progressive (15-20 min), avant d'introduire un sas de décompression le soir. Le rythme est normal mais la progression est très graduelle pour éviter l'effet rebond d'une horloge instable.",
+      "timeline_summary": "On commence par bloquer ton heure de lever avec la lumière du matin, puis on avancera progressivement ton horloge vers 2h du matin.",
+      "key_understanding": "Le sommeil ne se force pas par l'heure du coucher. Il s'attrape par l'heure du lever et le signal de la lumière du matin, qui programment ton horloge pour le soir.",
+      "progression_logic": "On va d'abord bloquer ton heure de lever actuelle avec un signal de lumière fort pour stopper la dérive. Ensuite, on avancera ce lever très progressivement, avant de s'attaquer au calme du soir pour que l'endormissement suive naturellement vers 2h du matin.",
+      "situation_context": "Tu t'endors actuellement vers 5h du matin et ton horloge biologique se décale au moindre relâchement. Ton cerveau reste en hyper-éveil le soir, ce qui rend les tentatives de coucher anticipé inutiles ou très frustrantes.",
+      "transformation_id": "b0ab2260-2dfe-4106-8000-17dde7abcb36",
+      "mechanism_analysis": "Quand tu essaies de te coucher plus tôt, ton corps n'a pas accumulé la bonne pression de sommeil parce que ton heure de lever et ton exposition à la lumière ne sont pas calées. Résultat : tu tournes dans le lit, tu t'agaces, et le lendemain tu es encore plus fatigué, ce qui relance le décalage.",
+      "current_level_runtime": {
+        "title": "Verrouiller ton signal de jour",
+        "weeks": [
+          {
+            "focus": "Mettre en place l'environnement pour demain matin.",
+            "title": "Préparer le terrain",
+            "week_order": 1,
+            "action_focus": [
+              "Préparer l'accès à la lumière dès ce soir",
+              "Faire un premier essai demain matin"
+            ],
+            "mission_days": [
+              "dimanche"
+            ],
+            "reps_summary": "1 essai",
+            "success_signal": "Tu as préparé ton environnement et pris la lumière une première fois.",
+            "item_assignments": [
+              {
+                "temp_id": "gen-p1-missions-001"
+              },
+              {
+                "temp_id": "gen-p1-habits-001",
+                "weekly_reps": 1,
+                "weekly_cadence_label": "1 matin cette semaine",
+                "weekly_description_override": "Prends la lumière dès ton réveil demain matin, juste pour tester le geste."
+              }
+            ],
+            "progression_note": "La semaine est presque terminée, on se concentre juste sur la préparation et un premier essai demain matin.",
+            "weekly_target_label": "1 matin avec lumière naturelle",
+            "weekly_target_value": 1
+          },
+          {
+            "focus": "Répéter l'exposition à la lumière pour que le corps commence à l'enregistrer.",
+            "title": "Installer le signal",
+            "week_order": 2,
+            "action_focus": [
+              "Prendre la lumière 4 matins",
+              "Identifier ce qui bloque les jours où c'est difficile"
+            ],
+            "mission_days": [
+              "mardi"
+            ],
+            "reps_summary": "4 matins tenus",
+            "success_signal": "Le geste devient plus naturel et tu sais ce qui te freine.",
+            "item_assignments": [
+              {
+                "temp_id": "gen-p1-habits-001",
+                "weekly_reps": 4,
+                "weekly_cadence_label": "4 matins cette semaine",
+                "weekly_description_override": "Prends la lumière 10 à 15 min dans le quart d'heure qui suit ton réveil, 4 matins cette semaine."
+              },
+              {
+                "temp_id": "gen-p1-clarifications-001"
+              }
+            ],
+            "progression_note": "On vise un peu plus de la moitié de la semaine pour installer l'habitude sans pression de perfection.",
+            "weekly_target_label": "4 matins avec lumière naturelle",
+            "weekly_target_value": 4
+          },
+          {
+            "focus": "Rendre le signal quasi quotidien pour verrouiller l'horloge.",
+            "title": "Ancrer la régularité",
+            "week_order": 3,
+            "action_focus": [
+              "Prendre la lumière presque tous les jours",
+              "Ajuster l'environnement pour que ça devienne automatique"
+            ],
+            "mission_days": [
+              "jeudi"
+            ],
+            "reps_summary": "6 matins tenus",
+            "success_signal": "Prendre la lumière au réveil est devenu ton premier réflexe de la journée.",
+            "item_assignments": [
+              {
+                "temp_id": "gen-p1-habits-001",
+                "weekly_reps": 6,
+                "weekly_cadence_label": "6 matins cette semaine",
+                "weekly_description_override": "Vise 6 matins cette semaine. C'est cette régularité qui va empêcher ton horloge de dériver."
+              },
+              {
+                "temp_id": "gen-p1-missions-002"
+              }
+            ],
+            "progression_note": "On monte la fréquence pour que le signal biologique soit fort et constant.",
+            "weekly_target_label": "6 matins avec lumière naturelle",
+            "weekly_target_value": 6
+          }
+        ],
+        "phase_id": "phase-1",
+        "heartbeat": {
+          "unit": "matins/semaine",
+          "title": "Matins avec lumière naturelle au réveil",
+          "target": 6,
+          "current": null,
+          "tracking_mode": "inferred"
+        },
+        "rationale": "Avant de chercher à te lever plus tôt, il faut que ton corps comprenne clairement quand la journée commence, même à 11h.",
+        "level_order": 1,
+        "review_focus": [
+          "L'exposition à la lumière est-elle devenue un réflexe ?",
+          "L'heure de réveil a-t-elle arrêté de dériver ?"
+        ],
+        "why_this_now": "C'est le seul moyen de stopper l'instabilité de ton rythme sans te demander un effort de volonté le soir.",
+        "duration_weeks": 3,
+        "phase_objective": "Créer un repère biologique fort au réveil pour empêcher ton horloge de se décaler davantage.",
+        "phase_metric_target": "Pas encore de cible directe sur l'heure d'endormissement ; ce niveau prépare le terrain en visant 6 matins par semaine avec une exposition immédiate à la lumière.",
+        "how_this_phase_works": "On installe une exposition systématique à la lumière naturelle dès ton lever actuel, sans encore changer tes horaires.",
+        "maintained_foundation": [],
+        "what_this_phase_targets": "Le manque de signal clair le matin qui laisse ton horloge flotter."
+      },
+      "inspiration_narrative": "Imagine-toi dans quelques semaines : tu te réveilles naturellement, ton corps sait que c'est le matin. Le soir, vers 1h ou 2h, tu sens une vraie fatigue s'installer, sans lutter. Ton horloge est enfin devenue une alliée sur laquelle tu peux compter."
+    }
+  },
+  {
+    "id": "1b9bbb7f-87d2-40d6-bfa8-d323a03446f6",
+    "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+    "cycle_id": "7235a580-386d-4b0d-a5b9-a157bf7781da",
+    "transformation_id": "135841cf-0f48-4afe-be9f-091854b93704",
+    "status": "archived",
+    "title": "Dégager du temps pour ta passion",
+    "activated_at": "2026-06-14T12:38:59.917+00:00",
+    "archived_at": "2026-06-14T12:57:32.226+00:00",
+    "created_at": "2026-06-14T12:33:37.799+00:00",
+    "updated_at": "2026-06-14T12:57:32.49329+00:00",
+    "content": {
+      "title": "Dégager du temps pour ta passion",
+      "phases": [
+        {
+          "items": [
+            {
+              "kind": "task",
+              "title": "Fixer ton couvre-feu professionnel",
+              "payload": {},
+              "temp_id": "gen-p1-missions-001",
+              "dimension": "missions",
+              "description": "Définis une heure précise (ex: 19h00) qui marque la fin absolue de ta journée de travail. Mets une alarme sur ton téléphone. Quand elle sonne, tu fermes tout.",
+              "target_reps": null,
+              "time_of_day": "afternoon",
+              "support_mode": null,
+              "cadence_label": null,
+              "tracking_type": "boolean",
+              "scheduled_days": null,
+              "activation_order": 1,
+              "support_function": null,
+              "activation_condition": null
+            },
+            {
+              "kind": "habit",
+              "title": "Respecter le couvre-feu pro",
+              "payload": {},
+              "temp_id": "gen-p1-habits-001",
+              "dimension": "habits",
+              "description": "Dès que ton heure limite est atteinte, coupe les notifications pro et ferme ton ordinateur. Ce temps t'appartient désormais.",
+              "target_reps": 5,
+              "time_of_day": "evening",
+              "support_mode": null,
+              "cadence_label": "5 jours / semaine",
+              "tracking_type": "boolean",
+              "scheduled_days": null,
+              "activation_order": 2,
+              "support_function": null,
+              "activation_condition": null
+            },
+            {
+              "kind": "task",
+              "title": "Sanctuariser les blocs du week-end",
+              "payload": {},
+              "temp_id": "gen-p1-missions-002",
+              "dimension": "missions",
+              "description": "Puisque le week-end est ton meilleur levier, bloque 2 gros créneaux dédiés à ta passion dans ton agenda dès aujourd'hui, comme s'il s'agissait de rendez-vous médicaux.",
+              "target_reps": null,
+              "time_of_day": "anytime",
+              "support_mode": null,
+              "cadence_label": null,
+              "tracking_type": "boolean",
+              "scheduled_days": null,
+              "activation_order": 3,
+              "support_function": null,
+              "activation_condition": null
+            },
+            {
+              "kind": "task",
+              "title": "Reprogrammer la musique",
+              "payload": {},
+              "temp_id": "gen-p1-missions-003",
+              "dimension": "missions",
+              "description": "Pour éviter les conflits avec tes voisins et protéger tes 7-8h de sommeil, décide d'une heure limite (ex: 21h) pour tes sessions de chant et d'instrument.",
+              "target_reps": null,
+              "time_of_day": "anytime",
+              "support_mode": null,
+              "cadence_label": null,
+              "tracking_type": "boolean",
+              "scheduled_days": null,
+              "activation_order": 4,
+              "support_function": null,
+              "activation_condition": null
+            },
+            {
+              "kind": "framework",
+              "title": "Auditer les débordements",
+              "payload": {
+                "clarification_details": {
+                  "type": "one_shot",
+                  "intro": "Quand tu n'arrives pas à dire non à une sollicitation tardive, quel est le vrai moteur ? Identifie la faille pour mieux la contrer la prochaine fois.",
+                  "sections": [
+                    {
+                      "id": "overflow_reason",
+                      "label": "Quelle a été la principale cause de débordement cette semaine ?",
+                      "input_type": "list",
+                      "helper_text": "Liste les raisons réelles, sans te juger.",
+                      "placeholder": "Urgence d'un collègue, peur de mal faire, mauvaise estimation du temps..."
+                    },
+                    {
+                      "id": "boundary_fix",
+                      "label": "Quelle phrase type peux-tu utiliser pour dire non la prochaine fois ?",
+                      "input_type": "text",
+                      "helper_text": "Prépare ta parade à l'avance.",
+                      "placeholder": "Je m'en occupe dès demain matin à la première heure."
+                    }
+                  ],
+                  "save_label": "Enregistrer l'analyse"
+                }
+              },
+              "temp_id": "gen-p1-clarifications-001",
+              "dimension": "clarifications",
+              "description": "Prends 5 minutes pour analyser ce qui t'a empêché de couper le travail à l'heure cette semaine.",
+              "target_reps": null,
+              "time_of_day": "anytime",
+              "support_mode": null,
+              "cadence_label": null,
+              "tracking_type": "boolean",
+              "scheduled_days": null,
+              "activation_order": 5,
+              "support_function": null,
+              "activation_condition": null
+            }
+          ],
+          "title": "Poser la limite professionnelle",
+          "phase_id": "phase-1",
+          "heartbeat": {
+            "unit": "jours/semaine",
+            "title": "Jours avec couvre-feu pro respecté",
+            "target": 5,
+            "current": null,
+            "tracking_mode": "inferred"
+          },
+          "rationale": "Avant d'ajouter des heures, il faut arrêter l'hémorragie d'énergie. Poser un couvre-feu professionnel strict est le levier le plus puissant pour récupérer tes soirées.",
+          "phase_order": 1,
+          "why_this_now": "Parce que tu ne pourras pas tenir 20h de pratique de qualité si tes soirées restent imprévisibles et épuisantes.",
+          "phase_objective": "Installer une heure de fin de travail non négociable pour sanctuariser ton temps libre.",
+          "duration_guidance": "3 semaines",
+          "phase_metric_target": "Pas encore de cible directe sur les 20h de pratique ; ce niveau de plan prépare le terrain en visant 5 jours par semaine avec une fin de travail strictement respectée.",
+          "how_this_phase_works": "On installe un couvre-feu professionnel strict et on réorganise tes sessions bruyantes pour protéger ton sommeil.",
+          "maintained_foundation": [],
+          "what_this_phase_targets": "Le débordement du travail sur ta vie personnelle et ton épuisement mental."
+        }
+      ],
+      "version": 3,
+      "cycle_id": "7235a580-386d-4b0d-a5b9-a157bf7781da",
+      "metadata": {
+        "phase_1_preview": {
+          "title": "Clarifier ton point d'ancrage",
+          "heartbeat": "Pourquoi clarifié",
+          "rationale": "Avant de bousculer ton emploi du temps, il faut mettre au clair ce qui te pousse à viser la RADA et ce qui te draine aujourd'hui.",
+          "phase_objective": "Te donner une base solide : comprendre pourquoi tu acceptes que le travail déborde, et te reconnecter à l'urgence de ta vocation artistique."
+        },
+        "schedule_anchor": {
+          "version": 1,
+          "timezone": "Europe/Paris",
+          "week_starts_on": "monday",
+          "anchor_week_end": "2026-06-14",
+          "generated_at_utc": "2026-06-14T12:38:59.917Z",
+          "anchor_local_date": "2026-06-14",
+          "anchor_week_start": "2026-06-08",
+          "anchor_local_human": "dimanche 14 juin 2026 à 14:38",
+          "anchor_display_start": "2026-06-14",
+          "is_partial_anchor_week": true,
+          "days_remaining_in_anchor_week": 1
+        },
+        "plan_adjustment_context": {
+          "phase_reasoning": [
+            {
+              "phase_id": "phase-1",
+              "phase_order": 1,
+              "role_in_plan": "Créer une barrière étanche entre le travail et la vie personnelle pour récupérer de la bande passante mentale.",
+              "why_before_next": "Tant que les soirées sont imprévisibles et épuisantes, toute tentative d'optimisation (comme travailler ses textes dans les transports) sera vécue comme une corvée de plus.",
+              "slowdown_signals": [
+                "Incapacité à dire non aux urgences de dernière minute",
+                "La limite pro crée trop d'anxiété"
+              ],
+              "user_signals_used": [
+                "Épuisement mental après la journée",
+                "Imprévisibilité de l'emploi du temps",
+                "Difficulté à dire non aux sollicitations"
+              ],
+              "acceleration_signals": [
+                "La limite est tenue facilement dès la première semaine complète",
+                "L'utilisatrice demande spontanément à utiliser ses temps de trajet"
+              ],
+              "prerequisite_for_next_phase": "Être capable de couper le travail à une heure fixe au moins 4 jours par semaine."
+            }
+          ],
+          "global_reasoning": {
+            "sequencing_logic": "Il est dangereux d'ajouter 3h de pratique sans d'abord colmater la fuite d'énergie. On pose d'abord la limite pro, puis on optimise les temps morts (transports), puis on stabilise.",
+            "slowdown_signals": [
+              "Le travail continue de déborder malgré l'alarme",
+              "Le sommeil passe sous la barre des 7h",
+              "Sensation de culpabilité face aux collègues"
+            ],
+            "main_problem_model": "L'utilisatrice a déjà un volume de pratique très élevé (17h) mais le fait au détriment de son énergie et de son sommeil à cause d'un travail qui déborde.",
+            "acceleration_signals": [
+              "Le couvre-feu pro est respecté sans effort",
+              "L'énergie mentale remonte significativement le soir",
+              "Les 17h actuelles sont vécues sans fatigue excessive"
+            ],
+            "why_not_faster_initially": "Aller plus vite en forçant les 20h tout de suite mènerait au burn-out avant même l'entrée à la RADA."
+          }
+        }
+      },
+      "strategy": {
+        "core_principle": null,
+        "identity_shift": null,
+        "main_constraint": "Ne jamais sacrifier le sommeil pour ajouter des heures de pratique.",
+        "success_definition": "Atteindre 20h de pratique hebdomadaire avec des nuits de 7-8h et des soirées libérées du travail."
+      },
+      "user_summary": "Tu es déjà très engagée, mais au prix de ton énergie. Nous allons sanctuariser tes soirées en posant des limites fermes avec ton travail, pour que tu puisses atteindre tes 20h de pratique sereinement et sans sacrifier ton sommeil.",
+      "plan_blueprint": {
+        "levels": [
+          {
+            "title": "Optimiser les temps interstitiels",
+            "phase_id": "phase-2",
+            "intention": "Utiliser tes temps de transport (20 min) pour la mémorisation et l'écriture afin d'augmenter ton volume sans toucher à tes soirées.",
+            "level_order": 2,
+            "preview_summary": "Une fois tes soirées protégées, on transforme tes trajets en sessions de travail productives.",
+            "estimated_duration_weeks": 3
+          },
+          {
+            "title": "Stabiliser l'écosystème avant le départ",
+            "phase_id": "phase-3",
+            "intention": "Ancrer la routine des 20h de pratique tout en garantissant 7 à 8h de sommeil par nuit, pour préparer la transition vers Londres.",
+            "level_order": 3,
+            "preview_summary": "On consolide ton rythme de future professionnelle pour que l'équilibre devienne naturel.",
+            "estimated_duration_weeks": 4
+          }
+        ],
+        "global_objective": "Atteindre 20h de pratique hebdomadaire avec un sommeil préservé et des limites professionnelles respectées.",
+        "estimated_levels_count": 2
+      },
+      "primary_metric": {
+        "unit": "heures/semaine",
+        "label": "Heures consacrées à ta passion",
+        "baseline_value": "17",
+        "success_target": "20",
+        "measurement_mode": "absolute_value"
+      },
+      "duration_months": 3,
+      "journey_context": {
+        "part_number": 1,
+        "is_multi_part": true,
+        "continuation_hint": "Transition vers l'identité d'actrice professionnelle",
+        "estimated_total_parts": 2,
+        "estimated_total_duration_months": 6
+      },
+      "global_objective": "Atteindre 20h de pratique hebdomadaire avec des nuits de 7-8h et des soirées libérées du travail.",
+      "internal_summary": "L'utilisatrice pratique déjà 17h/semaine mais subit un épuisement mental dû au débordement du travail sur la vie perso. Le plan (Transformation 1 sur 2) se concentre d'abord sur la protection de l'énergie et la pose de limites professionnelles avant de chercher à augmenter le volume horaire. Le rythme demandé est intense, mais l'approche doit rester protectrice.",
+      "timeline_summary": "En 3 semaines, tu vas sanctuariser tes soirées en posant une limite stricte à ton travail, ce qui te redonnera l'énergie nécessaire pour ta passion.",
+      "key_understanding": "Le temps pour ta passion ne se 'trouve' pas, il se protège. Pour atteindre 20h sans t'épuiser avant la RADA, la limite professionnelle doit devenir rigide.",
+      "progression_logic": "On commence par poser une limite stricte sur tes horaires de travail pour récupérer tes soirées et ton énergie. Ensuite, on optimisera tes temps de transport, puis on stabilisera le rythme global pour que tu sois prête pour Londres.",
+      "situation_context": "Tu consacres déjà 17h par semaine à ta passion entre le Cours Florent, la musique et l'écriture, ce qui est énorme. Mais tu frôles l'épuisement : le travail déborde, ton emploi du temps est imprévisible, et tu essaies de compenser tard le soir au détriment de ton sommeil et de tes voisins.",
+      "transformation_id": "135841cf-0f48-4afe-be9f-091854b93704",
+      "mechanism_analysis": "Tu traites ta passion comme une variable d'ajustement qui doit rentrer 'après le reste'. Résultat : ton incapacité à dire non aux sollicitations professionnelles grignote tes soirées, et tu n'as plus d'énergie mentale quand tu t'y mets enfin.",
+      "current_level_runtime": {
+        "title": "Poser la limite professionnelle",
+        "weeks": [
+          {
+            "focus": "La semaine est presque finie. Profite de ce dimanche pour poser les règles de la semaine prochaine.",
+            "title": "Le premier coup d'arrêt",
+            "week_order": 1,
+            "action_focus": [
+              "Définir ton heure limite",
+              "Couper à l'heure aujourd'hui"
+            ],
+            "mission_days": [
+              "dimanche"
+            ],
+            "reps_summary": "1 coupure nette",
+            "success_signal": "L'alarme est programmée pour demain et tu as réussi à déconnecter aujourd'hui.",
+            "item_assignments": [
+              {
+                "temp_id": "gen-p1-missions-001"
+              },
+              {
+                "temp_id": "gen-p1-habits-001",
+                "weekly_reps": 1,
+                "weekly_cadence_label": "1 jour cette semaine",
+                "weekly_description_override": "Pour ce dimanche, coupe toute préparation ou charge mentale pro à l'heure fixée."
+              }
+            ],
+            "progression_note": "Semaine très courte : on se concentre sur la mise en place de l'alarme et un premier test immédiat.",
+            "weekly_target_label": "1 jour avec couvre-feu pro respecté",
+            "weekly_target_value": 1
+          },
+          {
+            "focus": "Faire respecter la limite en semaine et sécuriser les gros blocs du week-end.",
+            "title": "Défendre le territoire",
+            "week_order": 2,
+            "action_focus": [
+              "Respecter l'alarme de fin de journée",
+              "Bloquer les créneaux du week-end dans l'agenda"
+            ],
+            "mission_days": [
+              "lundi"
+            ],
+            "reps_summary": "4 jours tenus",
+            "success_signal": "Tu ressens un vrai soulagement en fin de journée car la soirée t'appartient.",
+            "item_assignments": [
+              {
+                "temp_id": "gen-p1-habits-001",
+                "weekly_reps": 4,
+                "weekly_cadence_label": "4 jours cette semaine",
+                "weekly_description_override": "Dès que l'alarme sonne, tu fermes l'ordinateur pro. Vise 4 réussites cette semaine."
+              },
+              {
+                "temp_id": "gen-p1-missions-002"
+              }
+            ],
+            "progression_note": "On passe à la vraie semaine de travail. L'objectif est de tenir la ligne 4 jours sur 5.",
+            "weekly_target_label": "4 jours avec couvre-feu pro respecté",
+            "weekly_target_value": 4
+          },
+          {
+            "focus": "Tenir la limite toute la semaine et ajuster tes horaires de pratique pour protéger ton sommeil.",
+            "title": "Ancrer la frontière",
+            "week_order": 3,
+            "action_focus": [
+              "Tenir le couvre-feu 5 jours",
+              "Reprogrammer les sessions bruyantes",
+              "Auditer ce qui bloque encore"
+            ],
+            "mission_days": [
+              "mercredi",
+              "vendredi"
+            ],
+            "reps_summary": "5 jours tenus",
+            "success_signal": "La coupure devient automatique et tu ne te couches plus à des heures impossibles.",
+            "item_assignments": [
+              {
+                "temp_id": "gen-p1-habits-001",
+                "weekly_reps": 5,
+                "weekly_cadence_label": "5 jours cette semaine",
+                "weekly_description_override": "Maintiens la coupure stricte tous les jours de la semaine travaillée."
+              },
+              {
+                "temp_id": "gen-p1-missions-003"
+              },
+              {
+                "temp_id": "gen-p1-clarifications-001"
+              }
+            ],
+            "progression_note": "On vise la semaine complète de protection pro, et on réorganise la musique pour éviter les nuits trop courtes.",
+            "weekly_target_label": "5 jours avec couvre-feu pro respecté",
+            "weekly_target_value": 5
+          }
+        ],
+        "phase_id": "phase-1",
+        "heartbeat": {
+          "unit": "jours/semaine",
+          "title": "Jours avec couvre-feu pro respecté",
+          "target": 5,
+          "current": null,
+          "tracking_mode": "inferred"
+        },
+        "rationale": "Tu es déjà à 17h de pratique, ce qui prouve ta détermination. Le vrai frein actuel est l'épuisement. On doit d'abord couper la fuite d'énergie liée au travail.",
+        "level_order": 1,
+        "review_focus": [
+          "As-tu réussi à fermer l'ordinateur à l'heure prévue ?",
+          "Ressens-tu un peu plus d'énergie mentale le soir ?"
+        ],
+        "why_this_now": "Parce que tu ne pourras pas tenir 20h de pratique de qualité si tes soirées restent imprévisibles et épuisantes.",
+        "duration_weeks": 3,
+        "phase_objective": "Installer une heure de fin de travail non négociable pour sanctuariser ton temps libre.",
+        "phase_metric_target": "Pas encore de cible directe sur les 20h de pratique ; ce niveau de plan prépare le terrain en visant 5 jours par semaine avec une fin de travail strictement respectée.",
+        "how_this_phase_works": "On installe un couvre-feu professionnel strict et on réorganise tes sessions bruyantes pour protéger ton sommeil.",
+        "maintained_foundation": [],
+        "what_this_phase_targets": "Le débordement du travail sur ta vie personnelle et ton épuisement mental."
+      },
+      "inspiration_narrative": "Imagine-toi en septembre, arrivant à Londres avec une énergie intacte. Tu ne cours plus après le temps : tes journées sont structurées, tes soirées t'appartiennent, et tu crées sans culpabilité ni fatigue écrasante. Tu as déjà l'étoffe et le rythme d'une actrice professionnelle."
+    }
+  },
+  {
+    "id": "a31d8112-22c1-4ae6-8f00-83af149fdf17",
+    "user_id": "1b7b4127-a0fd-4d3c-ab5b-b33a1cc7c0e9",
+    "cycle_id": "7235a580-386d-4b0d-a5b9-a157bf7781da",
+    "transformation_id": "135841cf-0f48-4afe-be9f-091854b93704",
+    "status": "active",
+    "title": "Dégager du temps pour ta passion",
+    "activated_at": "2026-06-14T12:57:32.226+00:00",
+    "archived_at": null,
+    "created_at": "2026-06-14T12:55:10.862+00:00",
+    "updated_at": "2026-06-14T12:57:34.011831+00:00",
+    "content": {
+      "title": "Dégager du temps pour ta passion",
+      "phases": [
+        {
+          "items": [
+            {
+              "kind": "task",
+              "title": "Préparer ton matériel de trajet",
+              "payload": {},
+              "temp_id": "gen-p1-missions-001",
+              "dimension": "missions",
+              "description": "Télécharge tes textes, tes audios ou tes notes sur ton téléphone pour que tout soit accessible hors ligne. Le but est de dégainer ton travail en 2 secondes dans les transports dès demain.",
+              "target_reps": null,
+              "time_of_day": "anytime",
+              "support_mode": null,
+              "cadence_label": null,
+              "tracking_type": "boolean",
+              "scheduled_days": null,
+              "activation_order": 1,
+              "support_function": null,
+              "activation_condition": null
+            },
+            {
+              "kind": "habit",
+              "title": "Le studio mobile (Trajets)",
+              "payload": {},
+              "temp_id": "gen-p1-habits-001",
+              "dimension": "habits",
+              "description": "Utilise 20 minutes de ton trajet (matin ou soir) pour mémoriser un texte, écouter une compo ou écrire. Pas de réseaux, juste ta passion.",
+              "target_reps": 4,
+              "time_of_day": "anytime",
+              "support_mode": null,
+              "cadence_label": "4 trajets / semaine",
+              "tracking_type": "boolean",
+              "scheduled_days": null,
+              "activation_order": 2,
+              "support_function": null,
+              "activation_condition": null
+            },
+            {
+              "kind": "habit",
+              "title": "Le bloc profond du week-end",
+              "payload": {},
+              "temp_id": "gen-p1-habits-002",
+              "dimension": "habits",
+              "description": "Fais une vraie session de pratique (musique, chant, écriture) sur un créneau que tu as bloqué à l'avance. C'est ton temps de création pur.",
+              "target_reps": 2,
+              "time_of_day": "anytime",
+              "support_mode": null,
+              "cadence_label": "2 blocs / week-end",
+              "tracking_type": "boolean",
+              "scheduled_days": null,
+              "activation_order": 2,
+              "support_function": null,
+              "activation_condition": null
+            },
+            {
+              "kind": "task",
+              "title": "Sanctuariser l'agenda du week-end",
+              "payload": {},
+              "temp_id": "gen-p1-missions-002",
+              "dimension": "missions",
+              "description": "Bloque officiellement tes créneaux de pratique du week-end dans ton agenda pour éviter que des sollicitations sociales ne les grignotent.",
+              "target_reps": null,
+              "time_of_day": "anytime",
+              "support_mode": null,
+              "cadence_label": null,
+              "tracking_type": "boolean",
+              "scheduled_days": null,
+              "activation_order": 3,
+              "support_function": null,
+              "activation_condition": null
+            },
+            {
+              "kind": "framework",
+              "title": "Bilan d'énergie du nouveau rythme",
+              "payload": {
+                "clarification_details": {
+                  "type": "one_shot",
+                  "intro": "Tu as testé le déplacement de ta pratique sur les trajets et le week-end. Faisons le point sur ce qui fonctionne.",
+                  "sections": [
+                    {
+                      "id": "energy_level",
+                      "label": "Comment te sens-tu physiquement avec ce rythme ?",
+                      "input_type": "text",
+                      "helper_text": "Sois honnête sur ton niveau de fatigue.",
+                      "placeholder": "Ex: Fatiguée mais satisfaite, ou épuisée..."
+                    },
+                    {
+                      "id": "best_moment",
+                      "label": "Quel a été ton meilleur moment de pratique cette semaine ?",
+                      "input_type": "text",
+                      "helper_text": "Identifie ce qu'il faut absolument garder.",
+                      "placeholder": "Le trajet du mardi matin, le bloc du samedi..."
+                    }
+                  ],
+                  "save_label": "Enregistrer le bilan"
+                }
+              },
+              "temp_id": "gen-p1-clarifications-001",
+              "dimension": "clarifications",
+              "description": "Prends 5 minutes pour évaluer si ce rythme te permet de tenir tes 20h sans puiser dans tes réserves de sommeil.",
+              "target_reps": null,
+              "time_of_day": "evening",
+              "support_mode": null,
+              "cadence_label": null,
+              "tracking_type": "boolean",
+              "scheduled_days": null,
+              "activation_order": 4,
+              "support_function": null,
+              "activation_condition": null
+            }
+          ],
+          "title": "Exploiter les zones libres (Trajets & Week-ends)",
+          "phase_id": "phase-1",
+          "heartbeat": {
+            "unit": "créneaux/semaine",
+            "title": "Créneaux de passion validés",
+            "target": 6,
+            "current": null,
+            "tracking_mode": "inferred"
+          },
+          "rationale": "Puisque tes soirées de semaine sont bloquées par le Cours Florent, c'est le week-end et pendant tes déplacements que se trouvent les 3 heures manquantes.",
+          "phase_order": 1,
+          "why_this_now": "C'est la seule façon réaliste d'augmenter ton volume de pratique sans te mener au burn-out avant septembre.",
+          "phase_objective": "Déplacer l'effort sur les moments où tu es vraiment disponible pour atteindre tes 20h sans sacrifier ton sommeil.",
+          "duration_guidance": "3 semaines",
+          "phase_metric_target": "Ce niveau de plan vise à atteindre directement les 20h de pratique globale en validant 6 créneaux dédiés (trajets + week-end) hors de tes heures au Cours Florent.",
+          "how_this_phase_works": "On installe des micro-sessions dans les transports et on bloque de vrais rendez-vous avec toi-même le week-end.",
+          "maintained_foundation": [],
+          "what_this_phase_targets": "Les temps morts de ta semaine et la protection de ton week-end."
+        }
+      ],
+      "version": 3,
+      "cycle_id": "7235a580-386d-4b0d-a5b9-a157bf7781da",
+      "metadata": {
+        "phase_1_preview": {
+          "title": "Faire le point sur ton ambition",
+          "heartbeat": "Pourquoi clarifié",
+          "rationale": "Avant de courir partout, on pose clairement pourquoi cette admission à la RADA change tout et ce que tu veux vraiment accomplir.",
+          "phase_objective": "Te donner une base solide pour la suite : savoir d'où tu pars, ce que tu veux vraiment retrouver ou protéger, et avoir une raison claire à laquelle te raccrocher quand la fatigue se fera sentir."
+        },
+        "schedule_anchor": {
+          "version": 1,
+          "timezone": "Europe/Paris",
+          "week_starts_on": "monday",
+          "anchor_week_end": "2026-06-14",
+          "generated_at_utc": "2026-06-14T12:57:32.226Z",
+          "anchor_local_date": "2026-06-14",
+          "anchor_week_start": "2026-06-08",
+          "anchor_local_human": "dimanche 14 juin 2026 à 14:57",
+          "anchor_display_start": "2026-06-14",
+          "is_partial_anchor_week": true,
+          "days_remaining_in_anchor_week": 1
+        },
+        "plan_adjustment_context": {
+          "phase_reasoning": [
+            {
+              "phase_id": "phase-1",
+              "phase_order": 1,
+              "role_in_plan": "Trouver les heures manquantes là où elles existent vraiment (trajets et week-ends) sans toucher aux soirées de semaine.",
+              "why_before_next": "Tant que le volume horaire n'est pas atteint via une méthode tenable, il est inutile de travailler sur l'optimisation de la récupération.",
+              "slowdown_signals": [
+                "Les trajets sont trop bruyants ou épuisants pour travailler",
+                "Le week-end est mangé par la récupération du manque de sommeil"
+              ],
+              "user_signals_used": [
+                "Absence du domicile de 8h à 23h30 du lundi au jeudi",
+                "Besoin d'atteindre 20h de pratique",
+                "Admission à la RADA en septembre"
+              ],
+              "acceleration_signals": [
+                "Les textes sont mémorisés plus vite que prévu",
+                "Les blocs du week-end sont fluides et ressourçants"
+              ],
+              "prerequisite_for_next_phase": "Avoir validé que la pratique dans les transports et le week-end est tenable sur plusieurs semaines."
+            }
+          ],
+          "global_reasoning": {
+            "sequencing_logic": "On exploite d'abord les zones blanches (trajets, week-ends) pour atteindre le volume d'heures, puis on sécurisera la récupération physique.",
+            "slowdown_signals": [
+              "Fatigue extrême le week-end",
+              "Incapacité à se concentrer dans les transports",
+              "Le sommeil passe sous les 7 heures"
+            ],
+            "main_problem_model": "L'utilisatrice a un emploi du temps saturé de 8h à 23h30 du lundi au jeudi. Le blocage n'est pas un manque de volonté, mais une impossibilité physique d'ajouter des choses le soir en semaine.",
+            "acceleration_signals": [
+              "Les trajets sont facilement utilisés",
+              "L'énergie le week-end est excellente",
+              "Les 20h sont atteintes sans effort"
+            ],
+            "why_not_faster_initially": "Elle frôle déjà l'épuisement. Ajouter des contraintes en semaine la ferait craquer."
+          }
+        }
+      },
+      "strategy": {
+        "core_principle": null,
+        "identity_shift": null,
+        "main_constraint": "Ne rien ajouter comme charge active du lundi au jeudi après 23h30.",
+        "success_definition": "Atteindre 20h de pratique hebdomadaire en utilisant exclusivement les trajets et les week-ends, sans amputer le sommeil."
+      },
+      "user_summary": "Tes journées du lundi au jeudi sont déjà pleines à craquer. On va arrêter de te demander l'impossible le soir. À la place, on va transformer tes temps de transport en sessions de travail mental et sanctuariser tes week-ends pour tes sessions de musique et d'écriture.",
+      "plan_blueprint": {
+        "levels": [
+          {
+            "title": "Protéger la récupération en semaine",
+            "phase_id": "phase-2",
+            "intention": "Puisque tu es dehors de 8h à 23h30, on va optimiser ton sommeil et tes repas pour que tu tiennes ce rythme intense sans t'épuiser.",
+            "level_order": 3,
+            "preview_summary": "Une fois les heures de pratique trouvées, on s'assure que ton corps suit le rythme du lundi au jeudi.",
+            "estimated_duration_weeks": 2
+          },
+          {
+            "title": "Transition RADA",
+            "phase_id": "phase-3",
+            "intention": "Préparer logistiquement et mentalement ton départ pour Londres afin de basculer sereinement vers ton identité d'actrice à plein temps.",
+            "level_order": 4,
+            "preview_summary": "On ancre définitivement ton identité professionnelle et on prépare le terrain pour septembre.",
+            "estimated_duration_weeks": 3
+          }
+        ],
+        "global_objective": "Atteindre 20h de pratique hebdomadaire et préparer la transition vers la RADA.",
+        "estimated_levels_count": 2
+      },
+      "primary_metric": {
+        "unit": "heures/semaine",
+        "label": "Heures consacrées à ta passion",
+        "baseline_value": "17",
+        "success_target": "20",
+        "measurement_mode": "absolute_value"
+      },
+      "duration_months": 2,
+      "journey_context": {
+        "part_number": 1,
+        "is_multi_part": true,
+        "continuation_hint": "Transition vers l'identité d'actrice professionnelle",
+        "estimated_total_parts": 2,
+        "estimated_total_duration_months": 6
+      },
+      "global_objective": "Atteindre 20h de pratique hebdomadaire en utilisant exclusivement les trajets et les week-ends, sans amputer le sommeil.",
+      "internal_summary": "L'utilisatrice a un emploi du temps saturé de 8h à 23h30 du lundi au jeudi. Le plan précédent échouait car il ciblait les soirées. Ce nouveau plan pivote vers l'exploitation des temps de transport (mémorisation) et la sanctuarisation stricte des week-ends (pratique profonde) pour combler le gap de 3h manquant vers son objectif de 20h, tout en préparant son départ pour la RADA.",
+      "timeline_summary": "On commence par récupérer 3 à 4 heures dans tes trajets et tes week-ends, puis on sécurisera ta récupération physique avant de préparer ton départ pour Londres.",
+      "key_understanding": "Tu ne peux pas étirer tes journées de semaine. Ton temps de pratique supplémentaire doit se trouver dans les interstices (trajets) et les blocs libres (week-end), en les protégeant farouchement.",
+      "progression_logic": "On arrête de chercher du temps là où il n'y en a pas. On va d'abord transformer tes trajets en studio mobile et bloquer tes week-ends pour la pratique profonde, avant de sécuriser ta récupération physique globale.",
+      "situation_context": "Du lundi au jeudi, tu enchaînes le cabinet de 8h à 19h puis le Cours Florent jusqu'à 22h30. Tes journées sont des marathons et tu n'es pas chez toi avant 23h30.",
+      "transformation_id": "135841cf-0f48-4afe-be9f-091854b93704",
+      "mechanism_analysis": "Chercher à dégager du temps le soir en semaine est une impasse physique et logistique. Le manque de temps vient du fait que les vraies fenêtres disponibles (tes temps de trajet et tes week-ends) ne sont pas encore sanctuarisées comme des temps de création officiels.",
+      "current_level_runtime": {
+        "title": "Exploiter les zones libres (Trajets & Week-ends)",
+        "weeks": [
+          {
+            "focus": "Profiter du jour restant pour faire un bloc profond et préparer la semaine.",
+            "title": "Lancer la machine ce week-end",
+            "week_order": 1,
+            "action_focus": [
+              "Faire ta session profonde aujourd'hui",
+              "Préparer tes textes/audios sur ton téléphone"
+            ],
+            "mission_days": [
+              "dimanche"
+            ],
+            "reps_summary": "1 bloc validé",
+            "success_signal": "Tu as ton matériel prêt pour ton trajet de lundi matin.",
+            "item_assignments": [
+              {
+                "temp_id": "gen-p1-habits-002",
+                "weekly_reps": 1,
+                "weekly_cadence_label": "1 bloc aujourd'hui",
+                "weekly_description_override": "Fais un vrai bloc de pratique aujourd'hui pour marquer le coup."
+              },
+              {
+                "temp_id": "gen-p1-missions-001"
+              }
+            ],
+            "progression_note": "La semaine est presque finie, on se concentre juste sur une belle session aujourd'hui et la préparation de tes trajets de demain.",
+            "weekly_target_label": "1 bloc profond ce dimanche",
+            "weekly_target_value": 1
+          },
+          {
+            "focus": "Commencer à utiliser tes trajets en semaine et protéger ton prochain week-end.",
+            "title": "Activer le studio mobile",
+            "week_order": 2,
+            "action_focus": [
+              "Utiliser 3 trajets pour mémoriser ou écouter",
+              "Bloquer ton agenda du week-end dès jeudi"
+            ],
+            "mission_days": [
+              "jeudi"
+            ],
+            "reps_summary": "5 créneaux validés",
+            "success_signal": "Tu ne vois plus tes trajets comme une perte de temps.",
+            "item_assignments": [
+              {
+                "temp_id": "gen-p1-habits-001",
+                "weekly_reps": 3,
+                "weekly_cadence_label": "3 trajets cette semaine",
+                "weekly_description_override": "Utilise 3 de tes trajets cette semaine pour avancer sur tes textes ou ta musique."
+              },
+              {
+                "temp_id": "gen-p1-habits-002",
+                "weekly_reps": 2,
+                "weekly_cadence_label": "2 blocs ce week-end",
+                "weekly_description_override": "Tiens tes 2 blocs profonds ce week-end."
+              },
+              {
+                "temp_id": "gen-p1-missions-002"
+              }
+            ],
+            "progression_note": "On intègre la pratique dans tes déplacements et on sanctuarise ton week-end à l'avance.",
+            "weekly_target_label": "3 trajets utiles et 2 blocs le week-end",
+            "weekly_target_value": 5
+          },
+          {
+            "focus": "Tenir le rythme complet et faire le point sur ton énergie.",
+            "title": "Atteindre le rythme de croisière",
+            "week_order": 3,
+            "action_focus": [
+              "Valider tes 6 créneaux de la semaine",
+              "Faire le bilan d'énergie dimanche soir"
+            ],
+            "mission_days": [
+              "dimanche"
+            ],
+            "reps_summary": "6 créneaux validés",
+            "success_signal": "Tu as atteint tes 20h de pratique sans avoir eu besoin de veiller tard en semaine.",
+            "item_assignments": [
+              {
+                "temp_id": "gen-p1-habits-001",
+                "weekly_reps": 4,
+                "weekly_cadence_label": "4 trajets cette semaine",
+                "weekly_description_override": "Passe à 4 trajets utiles cette semaine."
+              },
+              {
+                "temp_id": "gen-p1-habits-002",
+                "weekly_reps": 2,
+                "weekly_cadence_label": "2 blocs ce week-end",
+                "weekly_description_override": "Maintiens tes 2 blocs profonds ce week-end."
+              },
+              {
+                "temp_id": "gen-p1-clarifications-001"
+              }
+            ],
+            "progression_note": "On monte à 4 trajets utiles pour atteindre le volume cible, et on vérifie que la fatigue reste gérable.",
+            "weekly_target_label": "4 trajets utiles et 2 blocs le week-end",
+            "weekly_target_value": 6
+          }
+        ],
+        "phase_id": "phase-1",
+        "heartbeat": {
+          "unit": "créneaux/semaine",
+          "title": "Créneaux de passion validés",
+          "target": 6,
+          "current": null,
+          "tracking_mode": "inferred"
+        },
+        "rationale": "Puisque tes soirées de semaine sont bloquées par le Cours Florent, c'est le week-end et pendant tes déplacements que se trouvent les 3 heures manquantes.",
+        "level_order": 1,
+        "review_focus": [
+          "Les trajets sont-ils vraiment exploitables ?",
+          "Le week-end permet-il une vraie récupération malgré les blocs de pratique ?"
+        ],
+        "why_this_now": "C'est la seule façon réaliste d'augmenter ton volume de pratique sans te mener au burn-out avant septembre.",
+        "duration_weeks": 3,
+        "phase_objective": "Déplacer l'effort sur les moments où tu es vraiment disponible pour atteindre tes 20h sans sacrifier ton sommeil.",
+        "phase_metric_target": "Ce niveau de plan vise à atteindre directement les 20h de pratique globale en validant 6 créneaux dédiés (trajets + week-end) hors de tes heures au Cours Florent.",
+        "how_this_phase_works": "On installe des micro-sessions dans les transports et on bloque de vrais rendez-vous avec toi-même le week-end.",
+        "maintained_foundation": [],
+        "what_this_phase_targets": "Les temps morts de ta semaine et la protection de ton week-end."
+      },
+      "inspiration_narrative": "Imagine tes trajets non plus comme une fatigue, mais comme ton sas de création. Le week-end, tu ne cherches plus quand pratiquer : tes blocs sont posés, intouchables. Tu arrives à tes 20h de pratique avec la sensation d'être déjà dans la peau d'une actrice professionnelle, prête pour Londres."
+    }
+  },
+  {
+    "id": "f46e7ce4-2ffb-43b7-b35a-34a724b59fb0",
+    "user_id": "f40c3cb9-0acf-4afa-8ba5-76e973ffa946",
+    "cycle_id": "140eb9a9-d2a6-482f-9347-0e9e1b618e1b",
+    "transformation_id": "f310bcec-385c-45c8-b201-a5e99118b902",
+    "status": "active",
+    "title": "Dégager du temps pour ton projet entrepreneurial",
+    "activated_at": "2026-06-15T07:15:33.195+00:00",
+    "archived_at": null,
+    "created_at": "2026-06-14T21:42:59.218+00:00",
+    "updated_at": "2026-06-15T07:15:32.193333+00:00",
+    "content": {
+      "title": "Dégager du temps pour ton projet entrepreneurial",
+      "phases": [
+        {
+          "items": [
+            {
+              "kind": "task",
+              "title": "Bloquer tes deux créneaux dans l'agenda",
+              "payload": {},
+              "temp_id": "gen-p1-missions-001",
+              "dimension": "missions",
+              "description": "Ouvre ton agenda et choisis deux créneaux d'une heure pour cette semaine. Traite-les avec la même importance que tes séances avec ta coach sportive. Préviens ton entourage que tu ne seras pas disponible.",
+              "target_reps": null,
+              "time_of_day": "anytime",
+              "support_mode": null,
+              "cadence_label": null,
+              "tracking_type": "boolean",
+              "scheduled_days": null,
+              "activation_order": 1,
+              "support_function": null,
+              "activation_condition": null
+            },
+            {
+              "kind": "habit",
+              "title": "Faire une session de travail focus d'une heure",
+              "payload": {},
+              "temp_id": "gen-p1-habits-001",
+              "dimension": "habits",
+              "description": "Installe-toi sur ton projet pendant une heure chrono. Coupe les notifications, ferme les emails du travail salarié, et n'accepte aucune interruption.",
+              "target_reps": 2,
+              "time_of_day": "evening",
+              "support_mode": null,
+              "cadence_label": "2 sessions / semaine",
+              "tracking_type": "boolean",
+              "scheduled_days": null,
+              "activation_order": 1,
+              "support_function": null,
+              "activation_condition": null
+            },
+            {
+              "kind": "framework",
+              "title": "Créer ton sas de décompression",
+              "payload": {
+                "clarification_details": {
+                  "type": "one_shot",
+                  "intro": "Le soir, l'énergie est basse. Pour éviter de replonger dans les urgences, il te faut un signal clair qui dit 'la journée pro est finie, mon projet commence'.",
+                  "sections": [
+                    {
+                      "id": "transition_action",
+                      "label": "Quelle petite action peut marquer cette coupure ?",
+                      "input_type": "list",
+                      "helper_text": "Choisis des gestes simples qui signalent à ton cerveau que tu changes de rôle.",
+                      "placeholder": "Prendre une douche, changer de tenue, boire un thé..."
+                    },
+                    {
+                      "id": "energy_check",
+                      "label": "À quel moment précis sens-tu que ton énergie chute le soir ?",
+                      "input_type": "text",
+                      "helper_text": "L'objectif sera de placer tes sessions avant cette chute.",
+                      "placeholder": "Ex: juste après le dîner"
+                    }
+                  ],
+                  "save_label": "Valider mon sas"
+                }
+              },
+              "temp_id": "gen-p1-clarifications-001",
+              "dimension": "clarifications",
+              "description": "Passe 5 minutes à définir comment tu vas marquer la rupture entre ta journée de salariée/maman et ton temps d'entrepreneure.",
+              "target_reps": null,
+              "time_of_day": "anytime",
+              "support_mode": null,
+              "cadence_label": null,
+              "tracking_type": "boolean",
+              "scheduled_days": null,
+              "activation_order": 2,
+              "support_function": null,
+              "activation_condition": null
+            },
+            {
+              "kind": "task",
+              "title": "Préparer ton espace la veille",
+              "payload": {},
+              "temp_id": "gen-p1-missions-002",
+              "dimension": "missions",
+              "description": "Pour réduire la friction, prépare ton bureau, tes notes ou ton ordinateur la veille de ta session. Quand l'heure arrive, tu n'as plus qu'à t'asseoir et démarrer.",
+              "target_reps": null,
+              "time_of_day": "evening",
+              "support_mode": null,
+              "cadence_label": null,
+              "tracking_type": "boolean",
+              "scheduled_days": null,
+              "activation_order": 3,
+              "support_function": null,
+              "activation_condition": {
+                "type": "after_item_completion",
+                "depends_on": [
+                  "gen-p1-missions-001"
+                ]
+              }
+            }
+          ],
+          "title": "Sanctuariser tes premiers créneaux",
+          "phase_id": "phase-1",
+          "heartbeat": {
+            "unit": "sessions/semaine",
+            "title": "Sessions de travail sanctuarisées",
+            "target": 2,
+            "current": null,
+            "tracking_mode": "inferred"
+          },
+          "rationale": "Avant de viser 5 heures, il faut prouver que tu peux bloquer et tenir du temps sans te laisser interrompre. On réduit la durée des sessions pour les rendre infaillibles.",
+          "phase_order": 1,
+          "why_this_now": "C'est le verrou principal : tant qu'un petit créneau n'est pas respecté, un grand créneau de 2 heures sera toujours voué à l'échec.",
+          "phase_objective": "Installer et tenir deux sessions de travail d'une heure par semaine, totalement protégées des distractions.",
+          "duration_guidance": "3 semaines",
+          "phase_metric_target": "Pas encore de cible directe de 5 heures ; ce niveau vise d'abord à sécuriser 2 sessions de 1 heure par semaine sans distraction.",
+          "how_this_phase_works": "On identifie les deux meilleurs moments de ta semaine pour placer une heure de travail, et on les bloque comme des rendez-vous officiels.",
+          "maintained_foundation": [],
+          "what_this_phase_targets": "La difficulté à protéger ton temps face aux sollicitations familiales et professionnelles."
+        }
+      ],
+      "version": 3,
+      "cycle_id": "140eb9a9-d2a6-482f-9347-0e9e1b618e1b",
+      "metadata": {
+        "phase_1_preview": {
+          "title": "Poser ton socle de départ",
+          "heartbeat": "Pourquoi clarifié",
+          "rationale": "Avant de bousculer ton agenda, on met au clair ce qui te motive profondément et ce que tu veux protéger.",
+          "phase_objective": "Te donner une base solide pour la suite : savoir pourquoi ce projet compte assez pour justifier de dire non à d'autres sollicitations."
+        },
+        "schedule_anchor": {
+          "version": 1,
+          "timezone": "Europe/Paris",
+          "week_starts_on": "monday",
+          "anchor_week_end": "2026-06-21",
+          "generated_at_utc": "2026-06-15T07:15:33.195Z",
+          "anchor_local_date": "2026-06-15",
+          "anchor_week_start": "2026-06-15",
+          "anchor_local_human": "lundi 15 juin 2026 à 09:15",
+          "anchor_display_start": "2026-06-15",
+          "is_partial_anchor_week": false,
+          "days_remaining_in_anchor_week": 7
+        },
+        "plan_adjustment_context": {
+          "phase_reasoning": [
+            {
+              "phase_id": "phase-1",
+              "phase_order": 1,
+              "role_in_plan": "Prouver qu'il est possible de bloquer du temps intouchable dans un agenda saturé.",
+              "why_before_next": "Tant qu'un petit créneau d'une heure n'est pas respecté, essayer d'en placer 5 sera voué à l'échec.",
+              "slowdown_signals": [
+                "Impossibilité de trouver 2 heures dans la semaine",
+                "Les sessions sont constamment interrompues"
+              ],
+              "user_signals_used": [
+                "Difficulté à tenir des blocs de 2h",
+                "Sollicitations constantes",
+                "Discipline existante sur le sport (coach)"
+              ],
+              "acceleration_signals": [
+                "Les créneaux sont respectés sans effort de volonté majeur",
+                "L'entourage a compris et respecte la limite"
+              ],
+              "prerequisite_for_next_phase": "Avoir tenu 2 sessions d'une heure sur une semaine sans se laisser interrompre."
+            }
+          ],
+          "global_reasoning": {
+            "sequencing_logic": "Réduire la durée des blocs pour garantir leur exécution, sanctuariser comme un rdv médical/sportif, puis augmenter le volume.",
+            "slowdown_signals": [
+              "Même 1h est annulée pour cause de fatigue",
+              "Culpabilité vis-à-vis de la famille",
+              "Réunions tardives systématiques qui écrasent les créneaux"
+            ],
+            "main_problem_model": "L'utilisatrice essaie de caser des blocs trop longs (2h) dans des moments de basse énergie (soir), sans protéger ce temps des sollicitations.",
+            "acceleration_signals": [
+              "Les sessions d'une heure sont tenues facilement",
+              "L'énergie reste haute",
+              "L'envie de continuer après 1h est forte"
+            ],
+            "why_not_faster_initially": "Un agenda déjà saturé exploserait avec un objectif direct de 5h. Il faut d'abord prouver que 2h sont tenables sans sacrifier le sport ou la méditation."
+          }
+        }
+      },
+      "strategy": {
+        "core_principle": null,
+        "identity_shift": null,
+        "main_constraint": "Ne jamais sacrifier les routines de sport et de méditation qui maintiennent l'équilibre actuel.",
+        "success_definition": "Atteindre 5 heures de travail hebdomadaire sur le projet, réparties en sessions régulières et sans stress."
+      },
+      "user_summary": "Ton agenda est saturé et ton projet entrepreneurial en fait les frais. Cette transformation va t'aider à sanctuariser des créneaux intouchables, sans sacrifier ton équilibre personnel ni tes routines saines.",
+      "plan_blueprint": {
+        "levels": [
+          {
+            "title": "Optimiser l'énergie et allonger les sessions",
+            "phase_id": "phase-2",
+            "intention": "Passer de sessions d'une heure à des blocs d'une heure et demie, en gérant mieux la fatigue du soir.",
+            "level_order": 2,
+            "preview_summary": "Une fois les petits créneaux sécurisés, on augmente progressivement la durée sans créer d'épuisement.",
+            "estimated_duration_weeks": 4
+          },
+          {
+            "title": "Atteindre et stabiliser les 5 heures",
+            "phase_id": "phase-3",
+            "intention": "Ajouter les derniers créneaux pour atteindre l'objectif final et ancrer ce rythme dans la durée.",
+            "level_order": 3,
+            "preview_summary": "On consolide l'emploi du temps pour que tes 5 heures deviennent une norme intouchable.",
+            "estimated_duration_weeks": 4
+          }
+        ],
+        "global_objective": "Atteindre 5 heures de travail hebdomadaire sur ton projet entrepreneurial.",
+        "estimated_levels_count": 2
+      },
+      "primary_metric": {
+        "unit": "heures",
+        "label": "Heures dédiées au projet par semaine",
+        "baseline_value": "1 heure",
+        "success_target": "5 heures",
+        "measurement_mode": "absolute_value"
+      },
+      "duration_months": 3,
+      "journey_context": null,
+      "global_objective": "Atteindre 5 heures de travail hebdomadaire sur le projet, réparties en sessions régulières et sans stress.",
+      "internal_summary": "L'utilisatrice a une vie très remplie mais fait preuve d'une grande discipline (sport, méditation). Le blocage vient d'une mauvaise allocation de l'énergie (blocs de 2h le soir) et d'un manque de frontières avec les sollicitations. Le plan vise à réduire la taille des blocs initiaux pour garantir le succès, installer un sas de décompression, puis scaler progressivement vers 5h/semaine.",
+      "timeline_summary": "En 3 semaines, tu vas passer d'un temps résiduel subi à deux heures de travail sanctuarisées et protégées.",
+      "key_understanding": "Tu ne trouveras pas de temps libre par magie : tu dois le sanctuariser et le traiter avec le même niveau d'intransigeance que tes séances avec ta coach sportive, en commençant par des blocs plus courts.",
+      "progression_logic": "On commence par sécuriser deux petits blocs d'une heure par semaine pour recréer l'habitude de travailler sur le projet sans s'épuiser. Ensuite, on optimisera l'énergie, puis on augmentera progressivement la durée jusqu'aux 5 heures visées.",
+      "situation_context": "Tu as un emploi du temps déjà très dense entre ton travail salarié, ta famille, tes amis et tes routines sportives. Ton projet entrepreneurial passe en dernier, souvent le soir quand ton énergie est au plus bas, ce qui t'empêche de dépasser 1 heure par semaine.",
+      "transformation_id": "f310bcec-385c-45c8-b201-a5e99118b902",
+      "mechanism_analysis": "Essayer de caler des blocs de 2 heures en fin de journée, sans sas de décompression après le travail, te confronte directement à la fatigue et aux imprévus. Le temps n'est pas protégé comme l'est ton heure de sport, il sert de variable d'ajustement et saute à la moindre sollicitation.",
+      "current_level_runtime": {
+        "title": "Sanctuariser tes premiers créneaux",
+        "weeks": [
+          {
+            "focus": "La semaine se termine ce soir. On pose juste les bases pour la semaine prochaine.",
+            "title": "Préparer le terrain",
+            "week_order": 1,
+            "action_focus": [
+              "Bloquer les créneaux dans l'agenda pour la semaine à venir"
+            ],
+            "mission_days": [
+              "dimanche"
+            ],
+            "reps_summary": "1 micro-session",
+            "success_signal": "Tes deux créneaux de la semaine prochaine sont inscrits dans ton agenda.",
+            "item_assignments": [
+              {
+                "temp_id": "gen-p1-habits-001",
+                "weekly_reps": 1,
+                "weekly_cadence_label": "1 micro-session",
+                "weekly_description_override": "Ce soir, prends juste 15 minutes pour définir ce que tu feras lors de ta première vraie session."
+              },
+              {
+                "temp_id": "gen-p1-missions-001"
+              }
+            ],
+            "progression_note": "Il est tard ce dimanche, on ne lance pas de grande session. On prépare juste le calendrier.",
+            "weekly_target_label": "1 micro-action de préparation ce soir",
+            "weekly_target_value": 1
+          },
+          {
+            "focus": "Tenir un premier créneau d'une heure sans aucune interruption.",
+            "title": "Lancer la première vraie session",
+            "week_order": 2,
+            "action_focus": [
+              "Faire une session d'une heure complète",
+              "Définir ton sas de décompression"
+            ],
+            "mission_days": [
+              "mercredi"
+            ],
+            "reps_summary": "1 session tenue",
+            "success_signal": "Tu as réussi à travailler une heure sans répondre à aucune sollicitation.",
+            "item_assignments": [
+              {
+                "temp_id": "gen-p1-habits-001",
+                "weekly_reps": 1,
+                "weekly_cadence_label": "1 session cette semaine",
+                "weekly_description_override": "Fais ta première session d'une heure complète, sans aucune distraction."
+              },
+              {
+                "temp_id": "gen-p1-clarifications-001"
+              }
+            ],
+            "progression_note": "On commence doucement avec une seule vraie session d'une heure pour s'habituer à la coupure.",
+            "weekly_target_label": "1 session d'une heure sanctuarisée",
+            "weekly_target_value": 1
+          },
+          {
+            "focus": "Passer à deux sessions d'une heure et réduire la friction de démarrage.",
+            "title": "Installer le rythme de base",
+            "week_order": 3,
+            "action_focus": [
+              "Tenir tes deux sessions d'une heure",
+              "Préparer ton espace la veille pour faciliter le démarrage"
+            ],
+            "mission_days": [
+              "lundi"
+            ],
+            "reps_summary": "2 sessions tenues",
+            "success_signal": "Les deux sessions sont devenues des rendez-vous naturels dans ta semaine.",
+            "item_assignments": [
+              {
+                "temp_id": "gen-p1-habits-001",
+                "weekly_reps": 2,
+                "weekly_cadence_label": "2 sessions cette semaine",
+                "weekly_description_override": "Tiens tes deux sessions d'une heure cette semaine. Le rythme s'installe."
+              },
+              {
+                "temp_id": "gen-p1-missions-002"
+              }
+            ],
+            "progression_note": "On atteint le rythme cible de ce niveau : deux sessions par semaine.",
+            "weekly_target_label": "2 sessions d'une heure sanctuarisées",
+            "weekly_target_value": 2
+          }
+        ],
+        "phase_id": "phase-1",
+        "heartbeat": {
+          "unit": "sessions/semaine",
+          "title": "Sessions de travail sanctuarisées",
+          "target": 2,
+          "current": null,
+          "tracking_mode": "inferred"
+        },
+        "rationale": "Avant de viser 5 heures, il faut prouver que tu peux bloquer et tenir du temps sans te laisser interrompre. On réduit la durée des sessions pour les rendre infaillibles.",
+        "level_order": 1,
+        "review_focus": [
+          "As-tu réussi à imposer ces créneaux à ton entourage ?",
+          "L'heure de travail t'a-t-elle semblé trop courte, ou juste bien pour démarrer ?"
+        ],
+        "why_this_now": "C'est le verrou principal : tant qu'un petit créneau n'est pas respecté, un grand créneau de 2 heures sera toujours voué à l'échec.",
+        "duration_weeks": 3,
+        "phase_objective": "Installer et tenir deux sessions de travail d'une heure par semaine, totalement protégées des distractions.",
+        "phase_metric_target": "Pas encore de cible directe de 5 heures ; ce niveau vise d'abord à sécuriser 2 sessions de 1 heure par semaine sans distraction.",
+        "how_this_phase_works": "On identifie les deux meilleurs moments de ta semaine pour placer une heure de travail, et on les bloque comme des rendez-vous officiels.",
+        "maintained_foundation": [],
+        "what_this_phase_targets": "La difficulté à protéger ton temps face aux sollicitations familiales et professionnelles."
+      },
+      "inspiration_narrative": "Tu as déjà prouvé ta capacité à tenir des engagements forts avec le sport et la méditation. Imagine appliquer cette même rigueur sereine à ton projet entrepreneurial. D'ici quelques mois, tes 5 heures hebdomadaires seront devenues aussi naturelles et intouchables que tes séances de coaching, te permettant de voir ton business décoller sans sacrifier ton équilibre."
+    }
+  },
+  {
+    "id": "758705b4-40c4-4b06-aa19-10c72b566654",
+    "user_id": "779092ad-93a2-4497-95de-01ddf5f32b86",
+    "cycle_id": "dbdf324a-1037-4475-bd01-6941a6dd070f",
+    "transformation_id": "8423134c-bb21-46d3-aa7a-9dfdcb74e450",
+    "status": "active",
+    "title": "Apaiser la relation avec ton père",
+    "activated_at": "2026-06-15T13:17:23.127+00:00",
+    "archived_at": null,
+    "created_at": "2026-06-15T13:15:34.273+00:00",
+    "updated_at": "2026-06-15T13:17:25.360425+00:00",
+    "content": {
+      "title": "Apaiser la relation avec ton père",
+      "phases": [
+        {
+          "items": [
+            {
+              "kind": "task",
+              "title": "Lister les 3 sujets rouges",
+              "payload": {},
+              "temp_id": "gen-p1-missions-001",
+              "dimension": "missions",
+              "description": "Identifie les 3 thèmes (ex: politique, passé, santé) qui déclenchent systématiquement des tensions. Ce sont les sujets sur lesquels tu ne débattras plus.",
+              "target_reps": null,
+              "time_of_day": "anytime",
+              "support_mode": null,
+              "cadence_label": null,
+              "tracking_type": "boolean",
+              "scheduled_days": null,
+              "activation_order": 1,
+              "support_function": null,
+              "activation_condition": null
+            },
+            {
+              "kind": "task",
+              "title": "Préparer tes phrases boucliers",
+              "payload": {},
+              "temp_id": "gen-p1-missions-002",
+              "dimension": "missions",
+              "description": "Écris 2 ou 3 phrases neutres pour couper court (ex: 'Je comprends ton point de vue, on en reparlera', 'Je n'ai pas l'énergie pour ce sujet aujourd'hui').",
+              "target_reps": null,
+              "time_of_day": "anytime",
+              "support_mode": null,
+              "cadence_label": null,
+              "tracking_type": "boolean",
+              "scheduled_days": null,
+              "activation_order": 2,
+              "support_function": null,
+              "activation_condition": {
+                "type": "after_item_completion",
+                "depends_on": [
+                  "gen-p1-missions-001"
+                ]
+              }
+            },
+            {
+              "kind": "habit",
+              "title": "Appliquer le délai de protection",
+              "payload": {},
+              "temp_id": "gen-p1-habits-001",
+              "dimension": "habits",
+              "description": "Ne réponds à aucun message de sa part dans l'heure. Laisse systématiquement retomber la pression avant de décider si et comment tu réponds.",
+              "target_reps": 6,
+              "time_of_day": "anytime",
+              "support_mode": null,
+              "cadence_label": "6 jours / semaine",
+              "tracking_type": "boolean",
+              "scheduled_days": null,
+              "activation_order": 1,
+              "support_function": null,
+              "activation_condition": null
+            },
+            {
+              "kind": "framework",
+              "title": "Désamorcer l'impact d'une pique",
+              "payload": {
+                "clarification_details": {
+                  "type": "recurring",
+                  "intro": "Utilise ce filtre quand tu reçois un message piquant ou politique. Le but est de le vider de sa charge émotionnelle avant d'agir.",
+                  "sections": [
+                    {
+                      "id": "trigger_topic",
+                      "label": "Quel est le sujet exact de sa remarque ?",
+                      "input_type": "list",
+                      "helper_text": "Identifie si c'est un de tes sujets rouges.",
+                      "placeholder": "Politique, reproche sur le passé..."
+                    },
+                    {
+                      "id": "fact_vs_emotion",
+                      "label": "Quelle est la part de fait et la part d'émotion de son côté ?",
+                      "input_type": "textarea",
+                      "helper_text": "Isole ce qui lui appartient.",
+                      "placeholder": "Il est en colère contre l'actualité, ce n'est pas contre moi..."
+                    },
+                    {
+                      "id": "chosen_response",
+                      "label": "Quelle phrase bouclier vas-tu utiliser (ou vas-tu ignorer) ?",
+                      "input_type": "text",
+                      "helper_text": "Choisis ta réponse à froid.",
+                      "placeholder": "Ma phrase de sortie..."
+                    }
+                  ],
+                  "save_label": "Valider l'analyse"
+                }
+              },
+              "temp_id": "gen-p1-clarifications-001",
+              "dimension": "clarifications",
+              "description": "Prends 2 minutes pour analyser un message irritant avant d'y réagir, afin de séparer les faits de l'émotion.",
+              "target_reps": 2,
+              "time_of_day": "anytime",
+              "support_mode": null,
+              "cadence_label": "Au besoin",
+              "tracking_type": "boolean",
+              "scheduled_days": null,
+              "activation_order": 3,
+              "support_function": null,
+              "activation_condition": null
+            },
+            {
+              "kind": "task",
+              "title": "Couper l'urgence des notifications",
+              "payload": {},
+              "temp_id": "gen-p1-missions-003",
+              "dimension": "missions",
+              "description": "Désactive les notifications sonores ou visuelles de ses messages. C'est toi qui décides quand tu ouvres la conversation, pas son impulsivité.",
+              "target_reps": null,
+              "time_of_day": "anytime",
+              "support_mode": null,
+              "cadence_label": null,
+              "tracking_type": "boolean",
+              "scheduled_days": null,
+              "activation_order": 4,
+              "support_function": null,
+              "activation_condition": null
+            }
+          ],
+          "title": "Créer un sas de protection",
+          "phase_id": "phase-1",
+          "heartbeat": {
+            "unit": "jours/semaine",
+            "title": "Jours avec bouclier maintenu",
+            "target": 6,
+            "current": null,
+            "tracking_mode": "inferred"
+          },
+          "rationale": "L'épuisement est trop fort pour chercher à améliorer la relation tout de suite. Il faut d'abord couper la réactivité à chaud.",
+          "phase_order": 1,
+          "why_this_now": "C'est la seule façon de stopper la fuite d'énergie et de ramener la pression à un niveau gérable.",
+          "phase_objective": "Arrêter de subir l'urgence de ses messages et savoir neutraliser un échange avant qu'il ne dégénère.",
+          "duration_guidance": "3 semaines",
+          "phase_metric_target": "Pas encore de cible directe sur la note de 4/10 ; ce niveau de plan vise d'abord à ramener la pression à zéro en instaurant 6 jours par semaine de protection émotionnelle stricte.",
+          "how_this_phase_works": "On met en place un délai de réponse strict et on prépare à l'avance tes phrases pour clore les sujets toxiques.",
+          "maintained_foundation": [],
+          "what_this_phase_targets": "Ton réflexe de répondre à chaud ou de te laisser happer par ses sujets de tension."
+        }
+      ],
+      "version": 3,
+      "cycle_id": "dbdf324a-1037-4475-bd01-6941a6dd070f",
+      "metadata": {
+        "phase_1_preview": {
+          "title": "Poser ton socle de départ",
+          "heartbeat": "Pourquoi clarifié",
+          "rationale": "Ici, tu ne changes encore rien à la relation. Tu prends du recul sur ton histoire familiale et tu mets au clair pourquoi préserver cette part de toi compte vraiment.",
+          "phase_objective": "Te donner une base solide pour la suite : savoir d'où tu pars, ce que tu veux vraiment protéger chez toi, et avoir une raison claire à laquelle te raccrocher quand ses réactions seront dures à encaisser."
+        },
+        "schedule_anchor": {
+          "version": 1,
+          "timezone": "Europe/Paris",
+          "week_starts_on": "monday",
+          "anchor_week_end": "2026-06-21",
+          "generated_at_utc": "2026-06-15T13:17:23.127Z",
+          "anchor_local_date": "2026-06-15",
+          "anchor_week_start": "2026-06-15",
+          "anchor_local_human": "lundi 15 juin 2026 à 15:17",
+          "anchor_display_start": "2026-06-15",
+          "is_partial_anchor_week": false,
+          "days_remaining_in_anchor_week": 7
+        },
+        "plan_adjustment_context": {
+          "phase_reasoning": [
+            {
+              "phase_id": "phase-1",
+              "phase_order": 1,
+              "role_in_plan": "Créer une barrière physique et temporelle entre le stimulus (le message du père) et la réaction de l'utilisateur.",
+              "why_before_next": "Tant que l'utilisateur réagit à chaud, il absorbe l'émotion de son père. Il faut couper ce cordon avant de travailler sur l'acceptation.",
+              "slowdown_signals": [
+                "L'utilisateur n'arrive pas à s'empêcher de répondre du tac au tac",
+                "La pression familiale annexe rend la mise à distance impossible"
+              ],
+              "user_signals_used": [
+                "Épuisement émotionnel face à ses propos",
+                "Qualité des échanges à 1/10",
+                "Rythme intense demandé, nécessitant des actions radicales de protection"
+              ],
+              "acceleration_signals": [
+                "Les notifications sont coupées et le délai est tenu sans effort",
+                "Les phrases boucliers ont été utilisées avec succès"
+              ],
+              "prerequisite_for_next_phase": "Être capable de laisser un message en attente pendant plusieurs heures sans ressentir d'angoisse ou de besoin compulsif de se justifier."
+            }
+          ],
+          "global_reasoning": {
+            "sequencing_logic": "On commence par une mise à distance mécanique (délai, notifications, phrases toutes faites) avant de pouvoir faire un travail cognitif sur le détachement émotionnel.",
+            "slowdown_signals": [
+              "La culpabilité de ne pas répondre à chaud est trop forte",
+              "Le père fait une escalade agressive face au silence",
+              "L'utilisateur craque et repart dans un long débat politique"
+            ],
+            "main_problem_model": "L'utilisateur est vidé de son énergie par les réactions impulsives et les opinions de son père, et tente encore de débattre ou de s'investir émotionnellement dans des impasses.",
+            "acceleration_signals": [
+              "L'utilisateur arrive très facilement à ignorer les piques",
+              "Il ne ressent plus de colère immédiate à la lecture d'un message",
+              "Il exprime l'envie de relancer un sujet neutre de lui-même"
+            ],
+            "why_not_faster_initially": "Le score de départ est à 1/10 et l'épuisement est le blocage principal. Demander un effort de communication positive maintenant mènerait au crash."
+          }
+        }
+      },
+      "strategy": {
+        "core_principle": null,
+        "identity_shift": null,
+        "main_constraint": "Ne jamais chercher à le convaincre ou à débattre de ses opinions pendant toute la durée du plan.",
+        "success_definition": "Atteindre 4/10 de qualité d'interaction en sachant écourter un échange sans culpabilité et sans escalade."
+      },
+      "user_summary": "Tu traverses une période d'épuisement face aux réactions de ton père. Nous allons d'abord construire un bouclier pour protéger ton énergie et arrêter de subir les échanges. Ensuite, nous travaillerons à désamorcer l'impact de ses mots pour recréer, à terme, des moments neutres et apaisés.",
+      "plan_blueprint": {
+        "levels": [
+          {
+            "title": "Détacher ton émotion de ses propos",
+            "phase_id": "phase-2",
+            "intention": "Apprendre à ne plus prendre ses remarques politiques ou personnelles comme des attaques directes contre toi.",
+            "level_order": 2,
+            "preview_summary": "Une fois le bouclier en place, on travaille sur ta réception interne pour que ses mots glissent sans t'atteindre.",
+            "estimated_duration_weeks": 3
+          },
+          {
+            "title": "Reprendre l'initiative sur un terrain neutre",
+            "phase_id": "phase-3",
+            "intention": "Initier des échanges très courts et maîtrisés sur des sujets sûrs, pour recréer un lien minimal sans danger.",
+            "level_order": 3,
+            "preview_summary": "Quand tu te sentiras protégé, on réintroduira des micro-contacts que tu piloteras de A à Z.",
+            "estimated_duration_weeks": 3
+          }
+        ],
+        "global_objective": "Atteindre une qualité d'interaction de 4/10 en se protégeant émotionnellement.",
+        "estimated_levels_count": 2
+      },
+      "primary_metric": {
+        "unit": "/10",
+        "label": "Qualité des interactions",
+        "baseline_value": "1/10",
+        "success_target": "4/10",
+        "measurement_mode": "absolute_value"
+      },
+      "duration_months": 2,
+      "journey_context": {
+        "part_number": 1,
+        "is_multi_part": true,
+        "continuation_hint": "Recréer un dialogue serein",
+        "estimated_total_parts": 2,
+        "estimated_total_duration_months": 6
+      },
+      "global_objective": "Atteindre 4/10 de qualité d'interaction en sachant écourter un échange sans culpabilité et sans escalade.",
+      "internal_summary": "L'utilisateur est à 1/10 en qualité d'interaction et subit un fort épuisement émotionnel face à un père réactif et politiquement polarisé. Le rythme demandé est intense, ce qui se traduit ici par une pose de limites stricte et immédiate. La première phase (transformation 1 sur 2) se concentre exclusivement sur la protection émotionnelle : différer les réponses, préparer des phrases de sortie et couper l'urgence. Les phases suivantes viseront le détachement cognitif puis la reprise d'initiative sur des formats courts.",
+      "timeline_summary": "En 2 mois, nous allons d'abord construire un sas de protection strict pour stopper ton épuisement, puis travailler à détacher tes émotions de ses propos.",
+      "key_understanding": "Tu ne peux pas changer ses opinions ni son isolement, mais tu as le pouvoir total de choisir à quoi tu réponds, quand tu le fais, et quand tu mets fin à l'échange.",
+      "progression_logic": "On commence par stopper l'hémorragie en filtrant les échanges et en posant un bouclier strict. Ensuite, on apprendra à se détacher émotionnellement de ses propos, avant de réintroduire des contacts très courts et maîtrisés.",
+      "situation_context": "Tu es épuisé émotionnellement par les réactions vives et les opinions tranchées de ton père, ce qui a fait chuter la qualité de vos rares échanges à 1/10.",
+      "transformation_id": "8423134c-bb21-46d3-aa7a-9dfdcb74e450",
+      "mechanism_analysis": "Face à ses piques ou ses propos politiques, tu tentes de débattre ou tu accumules de la frustration. Cette réactivité à chaud nourrit le conflit, te vide de ton énergie et entretient l'épuisement.",
+      "current_level_runtime": {
+        "title": "Créer un sas de protection",
+        "weeks": [
+          {
+            "focus": "Définir ce que tu n'acceptes plus de subir et commencer à différer tes réponses.",
+            "title": "Poser les limites d'urgence",
+            "week_order": 1,
+            "action_focus": [
+              "Faire les deux missions de préparation (sujets rouges et phrases boucliers)",
+              "Tenir le délai de protection 4 jours"
+            ],
+            "mission_days": [
+              "mardi",
+              "jeudi"
+            ],
+            "reps_summary": "4 jours de recul",
+            "success_signal": "Tu sais exactement quels sujets fuir et comment le dire.",
+            "item_assignments": [
+              {
+                "temp_id": "gen-p1-missions-001"
+              },
+              {
+                "temp_id": "gen-p1-missions-002"
+              },
+              {
+                "temp_id": "gen-p1-habits-001",
+                "weekly_reps": 4,
+                "weekly_cadence_label": "4 jours cette semaine",
+                "weekly_description_override": "Entraîne-toi à ne pas répondre dans l'heure, au moins 4 jours cette semaine, même s'il n'y a pas de conflit ouvert."
+              }
+            ],
+            "progression_note": "On installe les fondations du bouclier : identifier les pièges et s'entraîner à ne pas sauter dedans immédiatement.",
+            "weekly_target_label": "4 jours cette semaine sans répondre à chaud",
+            "weekly_target_value": 4
+          },
+          {
+            "focus": "Utiliser le délai pour analyser ses piques et répondre de manière purement factuelle ou neutre.",
+            "title": "Filtrer l'émotion",
+            "week_order": 2,
+            "action_focus": [
+              "Tenir le délai de protection 5 jours",
+              "Utiliser la clarification si un message te crispe"
+            ],
+            "mission_days": [],
+            "reps_summary": "5 jours de recul",
+            "success_signal": "Tu ressens moins d'urgence physique quand son nom s'affiche sur ton téléphone.",
+            "item_assignments": [
+              {
+                "temp_id": "gen-p1-habits-001",
+                "weekly_reps": 5,
+                "weekly_cadence_label": "5 jours cette semaine",
+                "weekly_description_override": "Garde le réflexe de différer tes réponses sur 5 jours cette semaine."
+              },
+              {
+                "temp_id": "gen-p1-clarifications-001"
+              }
+            ],
+            "progression_note": "Le délai de réponse devient plus régulier, et on ajoute un outil pour vider ses messages de leur poison émotionnel.",
+            "weekly_target_label": "5 jours cette semaine sans répondre à chaud",
+            "weekly_target_value": 5
+          },
+          {
+            "focus": "Rendre la protection quasi quotidienne et reprendre le contrôle total des notifications.",
+            "title": "Verrouiller le sas",
+            "week_order": 3,
+            "action_focus": [
+              "Tenir le délai de protection 6 jours",
+              "Couper les notifications pour ne plus subir ses irruptions"
+            ],
+            "mission_days": [
+              "mercredi"
+            ],
+            "reps_summary": "6 jours de recul",
+            "success_signal": "C'est toi qui décides quand tu lis ses messages, et tu ne te justifies plus de répondre tard.",
+            "item_assignments": [
+              {
+                "temp_id": "gen-p1-habits-001",
+                "weekly_reps": 6,
+                "weekly_cadence_label": "6 jours cette semaine",
+                "weekly_description_override": "Le délai de protection doit maintenant être ton mode de fonctionnement par défaut, 6 jours sur 7."
+              },
+              {
+                "temp_id": "gen-p1-missions-003"
+              }
+            ],
+            "progression_note": "On consolide l'habitude pour qu'elle devienne ton mode par défaut, et on coupe les alertes intrusives.",
+            "weekly_target_label": "6 jours cette semaine avec le bouclier actif",
+            "weekly_target_value": 6
+          }
+        ],
+        "phase_id": "phase-1",
+        "heartbeat": {
+          "unit": "jours/semaine",
+          "title": "Jours avec bouclier maintenu",
+          "target": 6,
+          "current": null,
+          "tracking_mode": "inferred"
+        },
+        "rationale": "Le rythme intense que tu as choisi implique de poser des limites strictes immédiatement. On ne cherche pas à discuter, on coupe l'hémorragie d'énergie.",
+        "level_order": 1,
+        "review_focus": [
+          "Arrives-tu à ne plus répondre à chaud ?",
+          "Les phrases boucliers te semblent-elles utilisables en conditions réelles ?"
+        ],
+        "why_this_now": "C'est la seule façon de stopper la fuite d'énergie et de ramener la pression à un niveau gérable.",
+        "duration_weeks": 3,
+        "phase_objective": "Arrêter de subir l'urgence de ses messages et savoir neutraliser un échange avant qu'il ne dégénère.",
+        "phase_metric_target": "Pas encore de cible directe sur la note de 4/10 ; ce niveau de plan vise d'abord à ramener la pression à zéro en instaurant 6 jours par semaine de protection émotionnelle stricte.",
+        "how_this_phase_works": "On met en place un délai de réponse strict et on prépare à l'avance tes phrases pour clore les sujets toxiques.",
+        "maintained_foundation": [],
+        "what_this_phase_targets": "Ton réflexe de répondre à chaud ou de te laisser happer par ses sujets de tension."
+      },
+      "inspiration_narrative": "Imagine pouvoir lire un message de ton père sans sentir ton rythme cardiaque s'accélérer. Tu as tes phrases prêtes, tu sais exactement ce que tu laisses glisser, et tu protèges ton énergie sans culpabiliser. La relation ne sera peut-être pas parfaite, mais elle ne te fera plus de mal et tu auras repris le contrôle de ton espace mental."
+    }
+  },
+  {
+    "id": "36048005-b514-4d77-a529-ecc84920e4af",
+    "user_id": "dcd8eece-2994-4982-9121-c500301d193b",
+    "cycle_id": "d7316505-9f1c-4c1f-9269-65f05eec0617",
+    "transformation_id": "e90bbb48-2091-459e-b5b2-b1144bf9ee75",
+    "status": "active",
+    "title": "Intensifier ta pratique artistique",
+    "activated_at": "2026-06-16T21:40:32.171+00:00",
+    "archived_at": null,
+    "created_at": "2026-06-16T21:35:32.1+00:00",
+    "updated_at": "2026-06-16T21:40:31.800369+00:00",
+    "content": {
+      "title": "Intensifier ta pratique artistique",
+      "phases": [
+        {
+          "items": [
+            {
+              "kind": "task",
+              "title": "Préparer un espace dédié à la recherche",
+              "payload": {},
+              "temp_id": "gen-p1-missions-001",
+              "dimension": "missions",
+              "description": "Avant ta prochaine session, range les pinceaux de finition. Ne sors que de quoi faire des croquis, des jus ou des fonds. Rends la précipitation impossible matériellement.",
+              "target_reps": null,
+              "time_of_day": "anytime",
+              "support_mode": null,
+              "cadence_label": null,
+              "tracking_type": "boolean",
+              "scheduled_days": null,
+              "activation_order": 1,
+              "support_function": null,
+              "activation_condition": null
+            },
+            {
+              "kind": "habit",
+              "title": "Faire une session sans objectif de résultat",
+              "payload": {},
+              "temp_id": "gen-p1-habits-001",
+              "dimension": "habits",
+              "description": "Passe au moins 1h sur ta toile ou ton carnet uniquement pour chercher, poser des fonds ou faire des croquis. Interdiction de chercher à faire 'beau' ou 'fini'.",
+              "target_reps": 2,
+              "time_of_day": "anytime",
+              "support_mode": null,
+              "cadence_label": "2 sessions / semaine",
+              "tracking_type": "boolean",
+              "scheduled_days": null,
+              "activation_order": 2,
+              "support_function": null,
+              "activation_condition": null
+            },
+            {
+              "kind": "framework",
+              "title": "Repérer le moment de bascule",
+              "payload": {
+                "clarification_details": {
+                  "type": "one_shot",
+                  "intro": "L'impatience ne prévient pas. Elle arrive d'un coup. Prends 2 minutes après une session pour noter ce qui a déclenché cette envie de te précipiter.",
+                  "sections": [
+                    {
+                      "id": "trigger_moment",
+                      "label": "À quel moment as-tu eu envie d'accélérer ?",
+                      "input_type": "text",
+                      "helper_text": "Sois précis sur le déclencheur.",
+                      "placeholder": "Ex: Quand j'ai posé le premier contraste fort..."
+                    },
+                    {
+                      "id": "underlying_fear",
+                      "label": "Quelle pensée accompagnait cette urgence ?",
+                      "input_type": "list",
+                      "helper_text": "Note les pensées qui te poussent à fuir le processus lent.",
+                      "placeholder": "Peur de gâcher, envie de voir si c'est original..."
+                    }
+                  ],
+                  "save_label": "Enregistrer l'observation"
+                }
+              },
+              "temp_id": "gen-p1-clarifications-001",
+              "dimension": "clarifications",
+              "description": "Identifie à quel moment exact de ta session tu ressens l'urgence d'accélérer ou de finir.",
+              "target_reps": null,
+              "time_of_day": "anytime",
+              "support_mode": null,
+              "cadence_label": null,
+              "tracking_type": "boolean",
+              "scheduled_days": null,
+              "activation_order": 3,
+              "support_function": null,
+              "activation_condition": {
+                "type": "after_item_completion",
+                "depends_on": [
+                  "gen-p1-missions-001"
+                ]
+              }
+            },
+            {
+              "kind": "task",
+              "title": "Bilan de la lenteur",
+              "payload": {},
+              "temp_id": "gen-p1-missions-002",
+              "dimension": "missions",
+              "description": "Regarde ce que tu as produit ces dernières semaines sans chercher à finir. Observe la matière et la densité qui commencent à s'installer naturellement.",
+              "target_reps": null,
+              "time_of_day": "anytime",
+              "support_mode": null,
+              "cadence_label": null,
+              "tracking_type": "boolean",
+              "scheduled_days": null,
+              "activation_order": 4,
+              "support_function": null,
+              "activation_condition": {
+                "type": "after_habit_traction",
+                "depends_on": [
+                  "gen-p1-habits-001"
+                ],
+                "min_completions": 3
+              }
+            }
+          ],
+          "title": "Désamorcer l'urgence du résultat",
+          "phase_id": "phase-1",
+          "heartbeat": {
+            "unit": "sessions/semaine",
+            "title": "Sessions d'exploration lente",
+            "target": 2,
+            "current": null,
+            "tracking_mode": "inferred"
+          },
+          "rationale": "Tant que tu peins pour finir vite, tu restes en surface. Il faut réapprendre à aimer l'étape de construction.",
+          "phase_order": 1,
+          "why_this_now": "C'est le verrou principal : sans ralentissement, les techniques de superposition que tu veux utiliser ne fonctionneront pas.",
+          "phase_objective": "Installer 2 sessions par semaine dédiées uniquement à la recherche et à la préparation, sans aucune attente de résultat final.",
+          "duration_guidance": "3 semaines",
+          "phase_metric_target": "On vise d'abord 2 sessions par semaine (sur les 3 visées à terme), mais des sessions exclusivement centrées sur l'exploration lente.",
+          "how_this_phase_works": "On va sanctuariser des temps de peinture où il est littéralement interdit de chercher à terminer une œuvre.",
+          "maintained_foundation": [],
+          "what_this_phase_targets": "L'impatience et la précipitation qui t'empêchent de creuser tes toiles."
+        }
+      ],
+      "version": 3,
+      "cycle_id": "d7316505-9f1c-4c1f-9269-65f05eec0617",
+      "metadata": {
+        "phase_1_preview": {
+          "title": "Comprendre ton urgence créative",
+          "heartbeat": "Vision artistique clarifiée",
+          "rationale": "Avant de changer ta façon de peindre, il faut comprendre pourquoi tu ressens ce besoin de prouver ton originalité si vite.",
+          "phase_objective": "Mettre au clair ce qui te pousse à la précipitation et définir ce que signifie vraiment l'authenticité pour toi."
+        },
+        "schedule_anchor": {
+          "version": 1,
+          "timezone": "Europe/Paris",
+          "week_starts_on": "monday",
+          "anchor_week_end": "2026-06-21",
+          "generated_at_utc": "2026-06-16T21:40:32.171Z",
+          "anchor_local_date": "2026-06-16",
+          "anchor_week_start": "2026-06-15",
+          "anchor_local_human": "mardi 16 juin 2026 à 23:40",
+          "anchor_display_start": "2026-06-16",
+          "is_partial_anchor_week": true,
+          "days_remaining_in_anchor_week": 6
+        },
+        "plan_adjustment_context": {
+          "phase_reasoning": [
+            {
+              "phase_id": "phase-1",
+              "phase_order": 1,
+              "role_in_plan": "Casser le cycle de la précipitation en séparant l'acte de peindre de l'obligation de produire une œuvre finie.",
+              "why_before_next": "Impossible de faire des glacis ou des empâtements (phase 2) si on n'a pas la patience d'attendre entre les couches ou de construire un fond.",
+              "slowdown_signals": [
+                "Sentiment de perdre son temps",
+                "Incapacité à tenir les 2 sessions par manque de motivation liée à l'absence de résultat"
+              ],
+              "user_signals_used": [
+                "Blocage : peur de ne pas être original",
+                "Facteur dominant : précipitation et impatience",
+                "Objectif technique : superposition de couches"
+              ],
+              "acceleration_signals": [
+                "Plaisir évident trouvé dans la préparation et les croquis",
+                "Demande spontanée d'introduire de nouvelles techniques de matière"
+              ],
+              "prerequisite_for_next_phase": "Être capable de peindre pendant 1h sans chercher à terminer une toile."
+            }
+          ],
+          "global_reasoning": {
+            "sequencing_logic": "1. Ralentir et accepter l'inachevé. 2. Apprendre la technique des couches. 3. Ajouter la couleur. 4. Stabiliser le volume de pratique.",
+            "slowdown_signals": [
+              "L'utilisateur n'arrive pas à s'empêcher de finir ses toiles",
+              "Frustration face à l'absence de résultat final"
+            ],
+            "main_problem_model": "L'utilisateur veut de la profondeur mais sa peur de ne pas être original le pousse à expédier le processus pour voir le résultat, ce qui empêche techniquement la création de densité (couches, glacis).",
+            "acceleration_signals": [
+              "L'utilisateur trouve les sessions d'exploration très faciles et demande à passer aux glacis",
+              "L'impatience a totalement disparu"
+            ],
+            "why_not_faster_initially": "Demander 3 sessions de peinture complexes tout de suite ne ferait qu'augmenter la pression du résultat et renforcerait la précipitation."
+          }
+        }
+      },
+      "strategy": {
+        "core_principle": null,
+        "identity_shift": null,
+        "main_constraint": "Interdiction de chercher à finir une toile en une seule session pendant le premier mois.",
+        "success_definition": "Atteindre 3 sessions hebdomadaires où le temps est pris pour superposer les couches et explorer sans précipitation."
+      },
+      "user_summary": "Tu veux donner plus de force à tes tableaux. Pour y arriver, nous allons d'abord ralentir ton processus pour contrer l'impatience, avant d'enrichir ta technique et tes couleurs.",
+      "plan_blueprint": {
+        "levels": [
+          {
+            "title": "Introduire la matière et les couches",
+            "phase_id": "phase-2",
+            "intention": "Utiliser le temps gagné sur l'impatience pour expérimenter les glacis et les empâtements.",
+            "level_order": 2,
+            "preview_summary": "Maintenant que tu sais ralentir, on va utiliser ce temps pour superposer les couches et créer de la vraie densité physique sur la toile.",
+            "estimated_duration_weeks": 3
+          },
+          {
+            "title": "Élargir la palette chromatique",
+            "phase_id": "phase-3",
+            "intention": "Sortir du noir et blanc en introduisant progressivement de nouvelles couleurs sans perdre la force visuelle.",
+            "level_order": 3,
+            "preview_summary": "On ajoute une nouvelle dimension à ton travail en intégrant la couleur de manière réfléchie et progressive.",
+            "estimated_duration_weeks": 3
+          },
+          {
+            "title": "Ancrer la régularité à 3 sessions",
+            "phase_id": "phase-4",
+            "intention": "Passer à 3 sessions par semaine en maintenant l'exigence de profondeur et d'authenticité.",
+            "level_order": 4,
+            "preview_summary": "On consolide le rythme final pour que cette intensité créatrice devienne ta nouvelle norme.",
+            "estimated_duration_weeks": 3
+          }
+        ],
+        "global_objective": "Atteindre 3 sessions hebdomadaires profondes avec une technique et une palette enrichies.",
+        "estimated_levels_count": 3
+      },
+      "primary_metric": {
+        "unit": "sessions",
+        "label": "Sessions de peinture profonde par semaine",
+        "baseline_value": "1",
+        "success_target": "3",
+        "measurement_mode": "absolute_value"
+      },
+      "duration_months": 3,
+      "journey_context": null,
+      "global_objective": "Atteindre 3 sessions hebdomadaires où le temps est pris pour superposer les couches et explorer sans précipitation.",
+      "internal_summary": "L'utilisateur vise 3 sessions de peinture profonde par semaine. Le blocage est l'impatience et la peur du manque d'originalité. Le plan sur 3 mois va d'abord imposer un rythme lent centré sur le processus (croquis, fonds), puis introduire les glacis/empâtements, et enfin intégrer de nouvelles couleurs à sa palette noir et blanc.",
+      "timeline_summary": "En 3 mois, tu vas passer d'une peinture précipitée à un processus riche en couches et en couleurs, à raison de 3 sessions profondes par semaine.",
+      "key_understanding": "La densité d'une œuvre ne vient pas de l'idée initiale, mais de l'accumulation patiente des couches, des erreurs et des ajustements. Ralentir le processus est la seule voie vers la profondeur.",
+      "progression_logic": "On commence par désamorcer l'urgence en séparant la recherche du résultat. Ensuite, on introduira la technique des couches, puis on élargira ta palette de couleurs pour enfin consolider ton style.",
+      "situation_context": "Tu peins actuellement une fois par semaine avec l'envie de créer des œuvres denses et profondes, mais tu te heurtes à la peur de manquer d'originalité et à une forte impatience.",
+      "transformation_id": "e90bbb48-2091-459e-b5b2-b1144bf9ee75",
+      "mechanism_analysis": "La peur de ne pas susciter d'intérêt te pousse à vouloir un résultat rapide. Cette précipitation t'empêche de prendre le temps de superposer les couches et de construire la profondeur émotionnelle que tu recherches.",
+      "current_level_runtime": {
+        "title": "Désamorcer l'urgence du résultat",
+        "weeks": [
+          {
+            "focus": "Mettre en place l'environnement et faire une première session sans pression.",
+            "title": "Préparer le terrain de la lenteur",
+            "week_order": 1,
+            "action_focus": [
+              "Préparer ton espace pour éviter la tentation de finir",
+              "Faire ta première session d'exploration lente"
+            ],
+            "mission_days": [
+              "jeudi"
+            ],
+            "reps_summary": "1 session",
+            "success_signal": "Tu as réussi à peindre sans chercher à produire une œuvre finie.",
+            "item_assignments": [
+              {
+                "temp_id": "gen-p1-missions-001"
+              },
+              {
+                "temp_id": "gen-p1-habits-001",
+                "weekly_reps": 1,
+                "weekly_cadence_label": "1 session cette semaine",
+                "weekly_description_override": "Fais 1 session cette semaine où tu te concentres uniquement sur des croquis ou des fonds."
+              }
+            ],
+            "progression_note": "La semaine est déjà entamée, on se concentre sur une seule session bien préparée.",
+            "weekly_target_label": "1 session d'exploration cette semaine",
+            "weekly_target_value": 1
+          },
+          {
+            "focus": "Passer à 2 sessions et comprendre ce qui te pousse habituellement à accélérer.",
+            "title": "Observer l'impatience",
+            "week_order": 2,
+            "action_focus": [
+              "Tenir 2 sessions d'exploration",
+              "Noter à quel moment l'impatience se manifeste"
+            ],
+            "mission_days": [
+              "mardi"
+            ],
+            "reps_summary": "2 sessions",
+            "success_signal": "Tu commences à repérer tes propres mécanismes de précipitation.",
+            "item_assignments": [
+              {
+                "temp_id": "gen-p1-habits-001",
+                "weekly_reps": 2,
+                "weekly_cadence_label": "2 sessions cette semaine",
+                "weekly_description_override": "Vise 2 sessions cette semaine, toujours sans objectif de résultat final."
+              },
+              {
+                "temp_id": "gen-p1-clarifications-001"
+              }
+            ],
+            "progression_note": "On augmente la fréquence et on ajoute une observation sur ton ressenti pendant la peinture.",
+            "weekly_target_label": "2 sessions d'exploration cette semaine",
+            "weekly_target_value": 2
+          },
+          {
+            "focus": "Maintenir les 2 sessions et faire le point sur la densité qui commence à apparaître.",
+            "title": "Consolider l'approche",
+            "week_order": 3,
+            "action_focus": [
+              "Maintenir tes 2 sessions d'exploration",
+              "Faire le bilan visuel de cette nouvelle approche"
+            ],
+            "mission_days": [
+              "dimanche"
+            ],
+            "reps_summary": "2 sessions",
+            "success_signal": "Tu ressens moins le besoin de finir vite et tu apprécies la matière créée.",
+            "item_assignments": [
+              {
+                "temp_id": "gen-p1-habits-001",
+                "weekly_reps": 2,
+                "weekly_cadence_label": "2 sessions cette semaine",
+                "weekly_description_override": "Maintiens tes 2 sessions d'exploration lente."
+              },
+              {
+                "temp_id": "gen-p1-missions-002"
+              }
+            ],
+            "progression_note": "On stabilise le rythme de 2 sessions et on prend du recul sur le travail accompli.",
+            "weekly_target_label": "2 sessions d'exploration cette semaine",
+            "weekly_target_value": 2
+          }
+        ],
+        "phase_id": "phase-1",
+        "heartbeat": {
+          "unit": "sessions/semaine",
+          "title": "Sessions d'exploration lente",
+          "target": 2,
+          "current": null,
+          "tracking_mode": "inferred"
+        },
+        "rationale": "Tant que tu peins pour finir vite, tu restes en surface. Il faut réapprendre à aimer l'étape de construction.",
+        "level_order": 1,
+        "review_focus": [
+          "As-tu réussi à ne pas chercher de résultat final ?",
+          "L'impatience a-t-elle diminué pendant les sessions ?"
+        ],
+        "why_this_now": "C'est le verrou principal : sans ralentissement, les techniques de superposition que tu veux utiliser ne fonctionneront pas.",
+        "duration_weeks": 3,
+        "phase_objective": "Installer 2 sessions par semaine dédiées uniquement à la recherche et à la préparation, sans aucune attente de résultat final.",
+        "phase_metric_target": "On vise d'abord 2 sessions par semaine (sur les 3 visées à terme), mais des sessions exclusivement centrées sur l'exploration lente.",
+        "how_this_phase_works": "On va sanctuariser des temps de peinture où il est littéralement interdit de chercher à terminer une œuvre.",
+        "maintained_foundation": [],
+        "what_this_phase_targets": "L'impatience et la précipitation qui t'empêchent de creuser tes toiles."
+      },
+      "inspiration_narrative": "Imagine-toi devant ta toile, serein, prenant le temps de poser un glacis ou un empâtement sans te soucier du résultat immédiat. Tes œuvres gagnent en épaisseur, en mystère et en force. Les retours que tu reçois soulignent l'émotion brute qui s'en dégage, car tu as laissé le temps à la peinture de s'exprimer."
+    }
+  }
+]

@@ -1,0 +1,886 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-r78-whole-plan-add-level-vague-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je me demande s'il faudrait ajouter un niveau dans le plan global. Pas forcement maintenant, mais j'ai l'impression qu'il manque une etape quelque part.",
+    "assistant": "Je vois ce que tu veux dire. Quand tu sens “il manque une étape”, c’est souvent soit un chaînon entre réflexion → action, soit un chaînon “stabiliser” (quand c’est en place, comment on le garde). Et parfois, ajouter un niveau peut aider… mais uniquement si on arrive à le nommer clairement. 🙂\n\nAu lieu de “ajouter un niveau” tout de suite, on peut faire un mini-tri très simple :\n1) Qu’est-ce que tu fais actuellement quand tu bloques : tu reviens plutôt à analyser, à décider, à agir, ou à relire/ajuster ?\n2) Et le “manque”, c’est à quel moment précis : avant de commencer, pendant, ou après quand tu dois maintenir ?\n\nRéponds juste à 1) ou 2) (ou les deux) : A) avant d’agir, B) pendant, C) après/maintien ? 😊",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "operation_flow_run": null,
+    "tool_skill_run": null,
+    "coaching_guidance_audit": null,
+    "coaching_guidance": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [
+        "maintenant"
+      ],
+      "risk_band": "none",
+      "reason_codes": [
+        "immediacy_now"
+      ],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": true,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-r78-whole-plan-add-level-vague-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-r78-whole-plan-add-level-vague-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Je dirais B et C. Pendant je perds le fil, et apres je ne sais pas comment maintenir sans revenir en arriere. C'est pour ca que je me dis qu'un niveau en plus aiderait peut-etre.",
+    "assistant": "Je vois exactement le truc : pendant tu perds le fil (donc “passage”), et après tu sais pas stabiliser (donc “maintien”). Et oui, c’est typiquement là qu’un niveau en plus peut aider… mais seulement si on le définit comme un chaînon clair, pas juste “un cran de plus”. 😅\n\nVersion simple de tri :\n1) B (pendant) = manque de “guide de transition” : quoi faire à partir de ton dernier état pour avancer sans te disperser.\n2) C (après) = manque de “routine de stabilisation” : comment garder le gain quand la motivation retombe.\n\nCe que je te propose : on ne part pas sur “ajouter un niveau” en mode vague. On le formule comme une mini-étape nommable, du style :\n“Transition” (pendant) et “Stabiliser” (après).\nEt ensuite, on voit si ça correspond à ce que tu vis.\n\nDans le dashboard, le Plan sert à consulter ce qui est déjà structuré (niveau actif, semaines, missions/habitudes/éléments à venir) et la saisie des bilans se fait par message WhatsApp le dimanche. Donc l’objectif ici, c’est surtout de clarifier le manque que tu ressens, pour qu’on sache quoi nommer/ajuster.\n\nQuestion rapide : quand tu dis “après je ne sais pas maintenir”, c’est plutôt que tu oublies de le faire, ou bien que tu le fais mais ça retombe vite ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "product_help",
+    "selected_handler": "product_help",
+    "route_selected_handler": "product_help",
+    "route_reason_code": "skill_entry_signal",
+    "operation_flow_run": null,
+    "tool_skill_run": null,
+    "coaching_guidance_audit": null,
+    "coaching_guidance": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-r78-whole-plan-add-level-vague-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-r78-whole-plan-add-level-vague-t03",
+    "status": 200,
+    "ok": true,
+    "user": "C'est plutot que je le fais mal: je garde l'effort deux jours puis ca se dilue. J'aimerais que le plan prevoie mieux ce passage entre apprendre un truc et le garder.",
+    "assistant": "Oui, je vois très bien le schéma : tu fais le “pic” (apprendre), puis ça s’effrite parce que le plan ne dit pas comment passer en mode “stabiliser” après. Et c’est exactement le genre de chaînon qui manque. 🎯\n\nOn peut ajouter ce niveau sans tout compliquer. L’idée : un mini-passage “Après l’apprentissage” avec 2 règles.\n\n1) Pendant : tu as le droit de foirer légèrement, tant que tu apprends.\n2) Transition (juste après) : tu réduis l’effort, tu répètes un petit noyau, et tu te crées un filet anti-oubli.\n3) Maintien : tu fais moins, mais de façon régulière, pour empêcher que ça “dilu(e)”.\n\nConcrètement, ce que je te propose pour ton plan :\n- Un bloc “Transition” avec une consigne claire du style : “je ne re-apprends pas, je consolide”\n- Une tâche “noyau” plus petite que la tâche d’apprentissage (le minimum vital)\n- Un critère simple de réussite au lieu de “ça marche ou pas” (ex: “j’ai fait le noyau même 10 minutes”)\n\nPour que je te l’ajuste pile : quand tu dis “ça se dilue”, c’est plutôt parce que tu arrêtes complètement, ou parce que tu fais moins souvent / moins bien ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "operation_flow_run": null,
+    "tool_skill_run": null,
+    "coaching_guidance_audit": null,
+    "coaching_guidance": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-r78-whole-plan-add-level-vague-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-r78-whole-plan-add-level-vague-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Je fais moins souvent, et comme je fais moins souvent je finis par penser que le plan ne marche pas. Donc oui, un niveau transition-maintien me parle.",
+    "assistant": "Ok, là ton cerveau fait un truc classique 😅 : tu diminues → tu te dis “c’est mort” → et du coup tu lâches plus vite. Du coup le “niveau transition-maintien” sert à casser cette boucle.\n\nConcrètement, tu peux le formuler comme un mini-niveau en 2 étapes :\n1) Transition (juste après l’apprentissage) : pendant X jours tu ne juges pas la performance, tu juges la répétition “assez”.\n2) Maintien : tu gardes une version plus petite et stable, pour que ça reste vivant même si tu fais moins souvent.\n\nÀ quoi tu veux que ça s’applique exactement dans ton plan : “Partage un point positif [habitudes]” ou plutôt “Convenir d’un signal de pause [missions]” ? ✅🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "operation_flow_run": null,
+    "tool_skill_run": null,
+    "coaching_guidance_audit": null,
+    "coaching_guidance": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-r78-whole-plan-add-level-vague-t04",
+    "trace_error": null
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-r78-whole-plan-add-level-vague-t05",
+    "status": 200,
+    "ok": true,
+    "user": "Pas une action precise, plutot tout le plan. Je veux que la trajectoire globale integre un vrai passage transition-maintien apres les apprentissages importants.",
+    "assistant": "Oui. Là tu décris un “truc” de trajectoire, pas un bug ponctuel. Et ce que tu veux, c’est ajouter (ou rendre explicite) une étape qui dit : après l’apprentissage, tu fais une transition, puis tu stabilises. Sinon c’est normal que ça tienne 2 jours et que ça se dilue. 😅\n\nJe te propose une formulation simple (que tu peux intégrer au plan global) :\n1) Passage (48-72h) : transformer l’effort “motivé” en micro-routine concrète\n2) Maintien (2-4 semaines) : rendre ça automatique avec des déclencheurs + un petit rituel de vérification\n3) Recalage : si ça baisse, tu ajustes au lieu d’abandonner\n\nPour que ton “niveau en plus” soit vraiment utile, il faut lui donner une mission ultra claire. Tu veux que ce niveau serve surtout à quoi :\nA) éviter l’après-coup (“ça retombe”)  \nB) rendre le maintien automatique (déclencheurs + rythme)  \nC) les deux ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "operation_flow_run": null,
+    "tool_skill_run": null,
+    "coaching_guidance_audit": null,
+    "coaching_guidance": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-r78-whole-plan-add-level-vague-t05",
+    "trace_error": null
+  },
+  {
+    "turn": 6,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-r78-whole-plan-add-level-vague-t06",
+    "status": 200,
+    "ok": true,
+    "user": "C les deux. Tu peux me proposer un brouillon d'ajustement du plan global avec ce niveau passage-maintien, mais sans l'appliquer tant que je n'ai pas valide.",
+    "assistant": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: j'insère une étape intermédiaire avant les conversations plus sensibles, centrée sur le signal de pause et une réparation simple après conflit.\n\nCe qui reste stable: l'objectif global du plan, le rôle du signal de pause, et les actions de soutien qui restent utiles.\n\nCe que ça implique: si tu valides, je régénère le plan pour réordonner la suite autour de cette étape de consolidation. Rien n'est appliqué tant que tu ne valides pas. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": null,
+    "route_selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "scope_kind": "whole_plan",
+            "constraints": [
+              "no_pressure",
+              "minimal_patch",
+              "preserve_plan_intent",
+              "no_schedule_day_change",
+              "ask_confirmation_before_write",
+              "whole_plan_directional_draft_ready",
+              "preserve_plan_intent",
+              "coach_observation:La demande exprime une intention de co-construction: le user veut un brouillon d’ajustement du plan global, avec un niveau de passage-maintien, mais sans application automatique. Le sens humain derrière la demande est double: garder la continuité du travail déjà engagé tout en réduisant la charge ou l’inconfort perçu; il ne s’agit pas d’un rejet du plan, mais d’un besoin de réagencer le rythme et la place des éléments pour que l’ensemble reste vivant et acceptable. Techniquement, le contexte pointe vers un ajustement de séquence à l’échelle du plan entier, avec préservation de l’intention du plan et des jalons déjà en place.",
+              "coach_recommendation:Orienter la prochaine réponse vers un brouillon explicite de réordonnancement global, présenté comme hypothèse de travail et non comme modification effective. Le sous-skill doit préserver le cœur du parcours, signaler clairement les zones qui restent stables, et proposer une transition douce entre les niveaux plutôt qu’un changement de nature. À ce stade, la meilleure posture coaching est: proposer un plan réorganisé, clarifier le passage-maintien comme phase temporaire, et laisser au user le pouvoir de validation finale.",
+              "coach_warning:Éviter de présenter le brouillon comme déjà appliqué ou comme décision actée.",
+              "coach_warning:Éviter de transformer la demande de réordonnancement en changement de contenu profond sans demande explicite.",
+              "coach_warning:Éviter d’accélérer vers les phases suivantes si la cohérence du niveau courant n’est pas stabilisée.",
+              "coach_warning:Éviter de déplacer des missions structurantes hors de leur logique sans préserver leur rôle de sécurité et de repère.",
+              "coach_warning:Éviter de diluer la distinction entre ajustement local et trajectoire globale.",
+              "coach_preserve:Le cœur du niveau actuel: désamorcer, recréer de la sécurité, et observer sans attaquer.",
+              "coach_preserve:La logique des missions de sécurité, en particulier le signal de pause et son point de contrôle.",
+              "coach_preserve:La continuité du questionnaire / des clarifications comme cadre d’observation à froid.",
+              "coach_preserve:La progression par étapes: sécurité d’abord, consolidation ensuite, pas de saut de phase.",
+              "coach_preserve:L’intention globale du plan: rendre l’échange plus vivable sans changer sa nature.",
+              "coach_avoid:Ne pas proposer une suppression pure et simple du niveau courant.",
+              "coach_avoid:Ne pas suggérer une montée de niveau immédiate si le maintien n’a pas été consolidé.",
+              "coach_avoid:Ne pas reformuler le plan comme s’il fallait tout refaire de zéro.",
+              "coach_avoid:Ne pas introduire de nouvelles exigences de performance pendant le passage-maintien.",
+              "coach_avoid:Ne pas promettre que le changement résoudra à lui seul les difficultés de fond.",
+              "coach_guideline:Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "coach_guideline:Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "coach_guideline:Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "coach_guideline:Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "coach_guideline:Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "coach_guideline:Action: traiter la demande comme un brouillon de réordonnancement du plan, avec intention de co-pilote et non d’exécution.",
+              "coach_guideline:Action: préserver l’intention de chaque élément avant de modifier son placement; si un pont mini est nécessaire, le nommer explicitement.",
+              "coach_guideline:Action: ne pas changer la nature d’une mission ou d’une habitude sans demande explicite; privilégier la séquence et le rythme.",
+              "coach_guideline:Niveau: décrire le passage-maintien comme une charge temporairement stabilisée, pas comme un abandon du niveau courant; conserver le cœur du niveau actuel.",
+              "coach_guideline:Niveau: fixer une boundary claire de fin de niveau ou de palier pour éviter l’entre-deux flou; maintenir le rôle des actions de sécurité.",
+              "coach_guideline:Whole plan: garder la trajectoire générale, l’ordre des phases et les prérequis; le maintien doit servir la cohérence, pas la contourner.",
+              "coach_guideline:Whole plan: si une réorganisation est proposée, elle doit expliciter ce qui reste stable, ce qui passe en entretien, et ce qui est différé.",
+              "coach_guideline:Whole plan: préserver le questionnaire / l’observation comme base de décision, afin que la suite repose sur des signaux concrets plutôt que sur une simple impression.",
+              "affected_item:plan global",
+              "affected_item:Convenir d'un signal de pause",
+              "affected_item:Faire le point sur le signal de pause"
+            ],
+            "reason_type": "bad_fit",
+            "change_target": "sequence",
+            "reason_change": "structure_bad_fit"
+          },
+          "title": "Ajuster la trajectoire du plan",
+          "confidence": "medium",
+          "ack_summary": {
+            "changed": [
+              "Insertion d'une étape intermédiaire de consolidation avant les conversations sensibles."
+            ],
+            "unchanged": [
+              "Objectif global du plan",
+              "Rôle du signal de pause",
+              "Actions de soutien existantes sauf réordonnancement nécessaire"
+            ],
+            "confidence": "medium",
+            "why_it_helps": "La progression devient plus cohérente avec le rythme de sécurité du user.",
+            "follow_up_needed": "Valider avant régénération; le détail exact sera produit dans le plan ajusté."
+          },
+          "scope_label": "plan global",
+          "why_it_helps": "Cela garde l'objectif global, mais ajoute un prérequis de sécurité relationnelle avant de monter en complexité.",
+          "decision_basis": {
+            "evidence": [
+              "C les deux. Tu peux me proposer un brouillon d'ajustement du plan global avec ce niveau passage-maintien, mais sans l'appliquer tant que je n'ai pas valide.",
+              "operation_input.scope",
+              "message.explicit_whole_plan_adjustment",
+              "message.explicit_whole_plan_adjustment",
+              "message.explicit_whole_plan_adjustment",
+              "message.explicit_whole_plan_adjustment"
+            ],
+            "confidence": "medium",
+            "uncertainty": [
+              "semaines ou blocs exacts a affiner ensuite"
+            ],
+            "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+            "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+            "must_preserve": [
+              "intention du plan",
+              "direction globale du plan"
+            ]
+          },
+          "adjustment_type": "rebalance",
+          "proposed_change": "Ralentir la trajectoire globale en ajoutant une étape intermédiaire centrée sur le signal de pause et une réparation simple avant les conversations plus sensibles.",
+          "change_rationale": {
+            "why_this_change": "Le user demande une modification structurelle de trajectoire, pas un simple patch d'action.",
+            "success_condition": "Le prochain plan garde le même objectif mais avance plus progressivement.",
+            "expected_mechanism": "Ajouter une étape de consolidation réduit le saut de difficulté avant les sujets sensibles."
+          },
+          "adjust_plan_result": {
+            "scope": "whole_plan",
+            "rationale": {
+              "confidence": "medium",
+              "missing_info": [],
+              "user_problem": "La prochaine étape semble arriver trop vite avant des conversations plus sensibles.",
+              "expected_effect": "Le plan avance sans surcharger le user ni casser l'objectif global.",
+              "why_this_change": "Une étape intermédiaire rend la trajectoire plus progressive et plus sécurisante."
+            },
+            "boundaries": {
+              "explanation": "Le changement touche l'ordre et les prérequis de progression, donc il doit passer par une régénération contrôlée du plan.",
+              "affected_scope": "trajectoire globale du plan",
+              "global_plan_impact": "requires_review",
+              "explicitly_not_affected": [
+                "objectif global",
+                "identité du plan",
+                "demande de ne pas transformer cela en simple ajustement d'action"
+              ]
+            },
+            "applied_change": {
+              "summary": "Ralentir la trajectoire globale en ajoutant une étape intermédiaire centrée sur le signal de pause et une réparation simple avant les conversations plus sensibles.",
+              "changed_items": [
+                {
+                  "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                  "kind": "action",
+                  "after": "À replacer dans une trajectoire plus progressive: consolider le signal de pause et une réparation simple avant les conversations plus sensibles.",
+                  "title": "Convenir d'un signal de pause",
+                  "before": "À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.",
+                  "reason": "Le user demande de ralentir la transition globale sans changer l'objectif du plan.",
+                  "capability": "modify_existing_action"
+                },
+                {
+                  "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                  "kind": "action",
+                  "after": "À replacer dans une trajectoire plus progressive: consolider le signal de pause et une réparation simple avant les conversations plus sensibles.",
+                  "title": "Faire le point sur le signal de pause",
+                  "before": "Discutez 10 minutes à froid pour voir si le signal de pause a été utile cette semaine et s'il est respecté par vous deux.",
+                  "reason": "Le user demande de ralentir la transition globale sans changer l'objectif du plan.",
+                  "capability": "modify_existing_action"
+                }
+              ],
+              "preserved_items": [
+                {
+                  "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                  "kind": "habit",
+                  "title": "Partager un point positif",
+                  "reason": "L'action reste comme soutien; le changement concerne la trajectoire et l'ordre de progression."
+                }
+              ],
+              "trajectory_change": {
+                "after": "Le plan garde ce cap, mais ajoute d'abord une étape de consolidation pour sécuriser le retour au calme et la réparation simple.",
+                "before": "Le plan avance du désamorçage vers des conversations plus sensibles.",
+                "inserted_step": "Une étape intermédiaire de sécurité émotionnelle et de réparation simple après conflit.",
+                "coaching_reason": "La réparation après conflit devient plus réaliste si le couple a d'abord un protocole de pause et de reprise calme.",
+                "reordered_steps": [
+                  "Consolider le signal de pause",
+                  "S'entraîner au retour au calme et à la réparation simple",
+                  "Reprendre ensuite les conversations plus sensibles"
+                ],
+                "preserved_direction": "L'objectif global du plan et l'apprentissage du désamorçage restent la base."
+              }
+            },
+            "user_message_brief": "Ralentir la trajectoire globale en ajoutant une étape intermédiaire centrée sur le signal de pause et une réparation simple avant les conversations plus sensibles.",
+            "user_message_detailed": "Ralentir la trajectoire globale en ajoutant une étape intermédiaire centrée sur le signal de pause et une réparation simple avant les conversations plus sensibles."
+          },
+          "execution_strategy": "whole_plan_adjustment",
+          "allowed_patch_fields": [
+            "scope_kind",
+            "plan_adjustment",
+            "load_adjustment",
+            "goal_adjustment",
+            "sequence_adjustment",
+            "reason_type",
+            "reason_change",
+            "change_target",
+            "confidence",
+            "constraints"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "C'est fait: j'ai ajusté la trajectoire du plan.\n\nLe plan garde le même objectif, mais la suite est régénérée pour ralentir la transition et consolider le signal de pause avec une réparation simple avant les conversations plus sensibles.",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: j'insère une étape intermédiaire avant les conversations plus sensibles, centrée sur le signal de pause et une réparation simple après conflit.\n\nCe qui reste stable: l'objectif global du plan, le rôle du signal de pause, et les actions de soutien qui restent utiles.\n\nCe que ça implique: si tu valides, je régénère le plan pour réordonner la suite autour de cette étape de consolidation. Rien n'est appliqué tant que tu ne valides pas."
+      },
+      "status": "draft_review",
+      "reason_code": "normal_reply_default",
+      "operation_id": "f6c1028c-58fa-4990-8a3c-34ca97493084",
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Ne pas proposer une suppression pure et simple du niveau courant.",
+          "Ne pas suggérer une montée de niveau immédiate si le maintien n’a pas été consolidé.",
+          "Ne pas reformuler le plan comme s’il fallait tout refaire de zéro.",
+          "Ne pas introduire de nouvelles exigences de performance pendant le passage-maintien.",
+          "Ne pas promettre que le changement résoudra à lui seul les difficultés de fond."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "Le cœur du niveau actuel: désamorcer, recréer de la sécurité, et observer sans attaquer.",
+          "La logique des missions de sécurité, en particulier le signal de pause et son point de contrôle.",
+          "La continuité du questionnaire / des clarifications comme cadre d’observation à froid.",
+          "La progression par étapes: sécurité d’abord, consolidation ensuite, pas de saut de phase.",
+          "L’intention globale du plan: rendre l’échange plus vivable sans changer sa nature."
+        ],
+        "warnings": [
+          "Éviter de présenter le brouillon comme déjà appliqué ou comme décision actée.",
+          "Éviter de transformer la demande de réordonnancement en changement de contenu profond sans demande explicite.",
+          "Éviter d’accélérer vers les phases suivantes si la cohérence du niveau courant n’est pas stabilisée.",
+          "Éviter de déplacer des missions structurantes hors de leur logique sans préserver leur rôle de sécurité et de repère.",
+          "Éviter de diluer la distinction entre ajustement local et trajectoire globale."
+        ],
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Action: traiter la demande comme un brouillon de réordonnancement du plan, avec intention de co-pilote et non d’exécution.",
+          "Action: préserver l’intention de chaque élément avant de modifier son placement; si un pont mini est nécessaire, le nommer explicitement.",
+          "Action: ne pas changer la nature d’une mission ou d’une habitude sans demande explicite; privilégier la séquence et le rythme.",
+          "Niveau: décrire le passage-maintien comme une charge temporairement stabilisée, pas comme un abandon du niveau courant; conserver le cœur du niveau actuel.",
+          "Niveau: fixer une boundary claire de fin de niveau ou de palier pour éviter l’entre-deux flou; maintenir le rôle des actions de sécurité.",
+          "Whole plan: garder la trajectoire générale, l’ordre des phases et les prérequis; le maintien doit servir la cohérence, pas la contourner.",
+          "Whole plan: si une réorganisation est proposée, elle doit expliciter ce qui reste stable, ce qui passe en entretien, et ce qui est différé.",
+          "Whole plan: préserver le questionnaire / l’observation comme base de décision, afin que la suite repose sur des signaux concrets plutôt que sur une simple impression."
+        ],
+        "observation": "La demande exprime une intention de co-construction: le user veut un brouillon d’ajustement du plan global, avec un niveau de passage-maintien, mais sans application automatique. Le sens humain derrière la demande est double: garder la continuité du travail déjà engagé tout en réduisant la charge ou l’inconfort perçu; il ne s’agit pas d’un rejet du plan, mais d’un besoin de réagencer le rythme et la place des éléments pour que l’ensemble reste vivant et acceptable. Techniquement, le contexte pointe vers un ajustement de séquence à l’échelle du plan entier, avec préservation de l’intention du plan et des jalons déjà en place.",
+        "recommendation": "Orienter la prochaine réponse vers un brouillon explicite de réordonnancement global, présenté comme hypothèse de travail et non comme modification effective. Le sous-skill doit préserver le cœur du parcours, signaler clairement les zones qui restent stables, et proposer une transition douce entre les niveaux plutôt qu’un changement de nature. À ce stade, la meilleure posture coaching est: proposer un plan réorganisé, clarifier le passage-maintien comme phase temporaire, et laisser au user le pouvoir de validation finale.",
+        "options_to_discuss": [
+          "Proposer une version du plan global réordonnée pour introduire un passage-maintien entre le niveau courant et la suite.",
+          "Explorer si le maintien doit être court et ciblé, ou si un palier plus net est nécessaire avant progression.",
+          "Mettre en avant quelles actions sont des ancres immuables et lesquelles peuvent passer en mode entretien temporaire.",
+          "Comparer deux brouillons: un qui garde la structure actuelle avec charge réduite, et un qui réorganise la séquence des phases.",
+          "Définir si le passage-maintien sert surtout à consolider la sécurité, à réduire la charge, ou à vérifier l’adhérence du plan."
+        ],
+        "questions_to_clarify": []
+      },
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "whole_plan",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Ne pas proposer une suppression pure et simple du niveau courant.",
+        "Ne pas suggérer une montée de niveau immédiate si le maintien n’a pas été consolidé.",
+        "Ne pas reformuler le plan comme s’il fallait tout refaire de zéro.",
+        "Ne pas introduire de nouvelles exigences de performance pendant le passage-maintien.",
+        "Ne pas promettre que le changement résoudra à lui seul les difficultés de fond."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "Le cœur du niveau actuel: désamorcer, recréer de la sécurité, et observer sans attaquer.",
+        "La logique des missions de sécurité, en particulier le signal de pause et son point de contrôle.",
+        "La continuité du questionnaire / des clarifications comme cadre d’observation à froid.",
+        "La progression par étapes: sécurité d’abord, consolidation ensuite, pas de saut de phase.",
+        "L’intention globale du plan: rendre l’échange plus vivable sans changer sa nature."
+      ],
+      "warnings": [
+        "Éviter de présenter le brouillon comme déjà appliqué ou comme décision actée.",
+        "Éviter de transformer la demande de réordonnancement en changement de contenu profond sans demande explicite.",
+        "Éviter d’accélérer vers les phases suivantes si la cohérence du niveau courant n’est pas stabilisée.",
+        "Éviter de déplacer des missions structurantes hors de leur logique sans préserver leur rôle de sécurité et de repère.",
+        "Éviter de diluer la distinction entre ajustement local et trajectoire globale."
+      ],
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Action: traiter la demande comme un brouillon de réordonnancement du plan, avec intention de co-pilote et non d’exécution.",
+        "Action: préserver l’intention de chaque élément avant de modifier son placement; si un pont mini est nécessaire, le nommer explicitement.",
+        "Action: ne pas changer la nature d’une mission ou d’une habitude sans demande explicite; privilégier la séquence et le rythme.",
+        "Niveau: décrire le passage-maintien comme une charge temporairement stabilisée, pas comme un abandon du niveau courant; conserver le cœur du niveau actuel.",
+        "Niveau: fixer une boundary claire de fin de niveau ou de palier pour éviter l’entre-deux flou; maintenir le rôle des actions de sécurité.",
+        "Whole plan: garder la trajectoire générale, l’ordre des phases et les prérequis; le maintien doit servir la cohérence, pas la contourner.",
+        "Whole plan: si une réorganisation est proposée, elle doit expliciter ce qui reste stable, ce qui passe en entretien, et ce qui est différé.",
+        "Whole plan: préserver le questionnaire / l’observation comme base de décision, afin que la suite repose sur des signaux concrets plutôt que sur une simple impression."
+      ],
+      "observation": "La demande exprime une intention de co-construction: le user veut un brouillon d’ajustement du plan global, avec un niveau de passage-maintien, mais sans application automatique. Le sens humain derrière la demande est double: garder la continuité du travail déjà engagé tout en réduisant la charge ou l’inconfort perçu; il ne s’agit pas d’un rejet du plan, mais d’un besoin de réagencer le rythme et la place des éléments pour que l’ensemble reste vivant et acceptable. Techniquement, le contexte pointe vers un ajustement de séquence à l’échelle du plan entier, avec préservation de l’intention du plan et des jalons déjà en place.",
+      "recommendation": "Orienter la prochaine réponse vers un brouillon explicite de réordonnancement global, présenté comme hypothèse de travail et non comme modification effective. Le sous-skill doit préserver le cœur du parcours, signaler clairement les zones qui restent stables, et proposer une transition douce entre les niveaux plutôt qu’un changement de nature. À ce stade, la meilleure posture coaching est: proposer un plan réorganisé, clarifier le passage-maintien comme phase temporaire, et laisser au user le pouvoir de validation finale.",
+      "options_to_discuss": [
+        "Proposer une version du plan global réordonnée pour introduire un passage-maintien entre le niveau courant et la suite.",
+        "Explorer si le maintien doit être court et ciblé, ou si un palier plus net est nécessaire avant progression.",
+        "Mettre en avant quelles actions sont des ancres immuables et lesquelles peuvent passer en mode entretien temporaire.",
+        "Comparer deux brouillons: un qui garde la structure actuelle avec charge réduite, et un qui réorganise la séquence des phases.",
+        "Définir si le passage-maintien sert surtout à consolider la sécurité, à réduire la charge, ou à vérifier l’adhérence du plan."
+      ],
+      "questions_to_clarify": []
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-r78-whole-plan-add-level-vague-t06",
+    "trace_error": null
+  },
+  {
+    "turn": 7,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-r78-whole-plan-add-level-vague-t07",
+    "status": 200,
+    "ok": true,
+    "user": "Non, ce n'est pas ca. Je ne parle pas des conversations sensibles ici. Je parle d'ajouter un niveau global passage-maintien pour eviter que les apprentissages se diluent apres deux jours.",
+    "assistant": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: j'insère une étape intermédiaire avant les conversations plus sensibles, centrée sur le signal de pause et une réparation simple après conflit.\n\nCe qui reste stable: l'objectif global du plan, le rôle du signal de pause, et les actions de soutien qui restent utiles.\n\nCe que ça implique: si tu valides, je régénère le plan pour réordonner la suite autour de cette étape de consolidation. Rien n'est appliqué tant que tu ne valides pas. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": null,
+    "route_selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "scope_kind": "whole_plan",
+            "constraints": [
+              "no_pressure",
+              "minimal_patch",
+              "preserve_plan_intent",
+              "no_schedule_day_change",
+              "ask_confirmation_before_write",
+              "whole_plan_directional_draft_ready",
+              "preserve_plan_intent",
+              "focus_on_passage_maintien",
+              "avoid_sensitive_conversations_focus",
+              "avoid_repetitive_clarification_when_user_gives_solution",
+              "coach_observation:La demande ne porte pas sur des conversations sensibles ni sur un simple réordonnancement de sécurité relationnelle. Le besoin réel est architectural: le user veut ajouter au plan global un niveau de passage-maintien pour éviter qu’un apprentissage récent ne retombe après 48h. Humainement, cela exprime une lutte contre la dilution, avec une attente de continuité et de stabilisation; techniquement, c’est une demande de trajectoire globale et de logique de phase, pas un patch d’action locale.",
+              "coach_recommendation:Orienter la prochaine réponse vers un brouillon de niveau global explicitement nommé \"passage-maintien\", avec une mission de consolidation post-apprentissage, des critères de maintien, et une boundary claire de fin de niveau. Le sous-skill doit préserver le cœur du plan, mais déplacer le centre de gravité vers la stabilisation des acquis avant toute montée ou complexification. Il faut présenter cela comme une hypothèse de trajectoire à valider, pas comme une application.",
+              "coach_warning:Ne pas rebasculer sur le thème des conversations sensibles: ce serait un mauvais alignement avec la demande actuelle.",
+              "coach_warning:Ne pas proposer seulement une baisse de charge sans niveau de stabilisation explicite: le user demande une architecture de maintien, pas juste moins d’effort.",
+              "coach_warning:Ne pas transformer le passage-maintien en simple répétition du niveau courant; il faut une fonction différente et nommée.",
+              "coach_warning:Ne pas suggérer une montée de niveau immédiate sans palier de consolidation.",
+              "coach_warning:Ne pas promettre qu’un changement de structure suffira à lui seul à résoudre toutes les dilutions; garder une posture réaliste.",
+              "coach_preserve:L’intention globale du plan: aider à garder les acquis dans le temps.",
+              "coach_preserve:La progression par étapes: apprentissage puis stabilisation avant autre chose.",
+              "coach_preserve:Le rôle du plan comme support de trajectoire, pas comme suite d’actions isolées.",
+              "coach_preserve:La logique de validation préalable avant toute modification effective.",
+              "coach_preserve:La distinction entre acquisition et entretien, qui doit devenir explicite.",
+              "coach_avoid:Ne pas proposer un contenu centré sur les conflits ou conversations sensibles.",
+              "coach_avoid:Ne pas effacer le niveau courant: le passage-maintien doit s’y adosser, pas le remplacer.",
+              "coach_avoid:Ne pas présenter le maintien comme une corvée supplémentaire sans bénéfice lisible.",
+              "coach_avoid:Ne pas changer la nature des actions existantes si le user n’a pas demandé une refonte complète.",
+              "coach_avoid:Ne pas laisser flou le moment où l’on quitte le passage pour entrer en maintien.",
+              "coach_guideline:Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "coach_guideline:Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "coach_guideline:Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "coach_guideline:Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "coach_guideline:Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "coach_guideline:Action: traiter la demande comme une modification de trajectoire globale avec une fonction nouvelle, pas comme un ajustement local.",
+              "coach_guideline:Action: préserver l’intention du plan tout en ajoutant un pont mini entre apprentissage et stabilisation; ne pas changer la nature des éléments sans demande explicite.",
+              "coach_guideline:Niveau: définir une charge temporairement abaissée puis stabilisée; préserver le cœur du niveau courant et expliciter une boundary de fin de passage.",
+              "coach_guideline:Niveau: le passage doit servir à transformer l’effort en routine minimale; le maintien doit servir à garder l’acquis vivant sans revenir au point de départ.",
+              "coach_guideline:Whole plan: garder l’ordre des phases, mais rendre explicite la séquence apprentissage → passage → maintien → éventuel recalage; ne pas sauter directement vers la suite.",
+              "coach_guideline:Whole plan: préserver les prérequis et les critères de stabilité avant progression; le plan doit montrer comment éviter la dilution après deux jours.",
+              "coach_guideline:Whole plan: si un brouillon est proposé, il doit nommer ce qui reste stable, ce qui passe en entretien, et ce qui devient le seuil de stabilité.",
+              "coach_guideline:Whole plan: le questionnaire / les observations doivent rester la base de décision pour ajuster la durée ou le seuil du passage-maintien.",
+              "coach_guideline:Whole plan: ne pas confondre \"plus simple\" avec \"plus pauvre\"; la simplification doit viser la tenue dans le temps, pas la dégradation de l’intention.",
+              "affected_item:plan global",
+              "affected_item:Convenir d'un signal de pause",
+              "affected_item:Faire le point sur le signal de pause"
+            ],
+            "reason_type": "bad_fit",
+            "change_target": "sequence",
+            "reason_change": "structure_bad_fit"
+          },
+          "title": "Ajuster la trajectoire du plan",
+          "confidence": "medium",
+          "ack_summary": {
+            "changed": [
+              "Insertion d'une étape intermédiaire de consolidation avant les conversations sensibles."
+            ],
+            "unchanged": [
+              "Objectif global du plan",
+              "Rôle du signal de pause",
+              "Actions de soutien existantes sauf réordonnancement nécessaire"
+            ],
+            "confidence": "medium",
+            "why_it_helps": "La progression devient plus cohérente avec le rythme de sécurité du user.",
+            "follow_up_needed": "Valider avant régénération; le détail exact sera produit dans le plan ajusté."
+          },
+          "scope_label": "plan global",
+          "why_it_helps": "Cela garde l'objectif global, mais ajoute un prérequis de sécurité relationnelle avant de monter en complexité.",
+          "decision_basis": {
+            "evidence": [
+              "Non, ce n'est pas ca. Je ne parle pas des conversations sensibles ici. Je parle d'ajouter un niveau global passage-maintien pour eviter que les apprentissages se diluent apres deux jours.",
+              "operation_input.scope",
+              "rebalance",
+              "bad_fit",
+              "message.explicit_whole_plan_adjustment",
+              "message.explicit_whole_plan_adjustment"
+            ],
+            "confidence": "medium",
+            "uncertainty": [
+              "semaines ou blocs exacts a affiner ensuite"
+            ],
+            "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+            "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+            "must_preserve": [
+              "intention du plan",
+              "direction globale du plan"
+            ]
+          },
+          "adjustment_type": "rebalance",
+          "proposed_change": "Ralentir la trajectoire globale en ajoutant une étape intermédiaire centrée sur le signal de pause et une réparation simple avant les conversations plus sensibles.",
+          "change_rationale": {
+            "why_this_change": "Le user demande une modification structurelle de trajectoire, pas un simple patch d'action.",
+            "success_condition": "Le prochain plan garde le même objectif mais avance plus progressivement.",
+            "expected_mechanism": "Ajouter une étape de consolidation réduit le saut de difficulté avant les sujets sensibles."
+          },
+          "adjust_plan_result": {
+            "scope": "whole_plan",
+            "rationale": {
+              "confidence": "medium",
+              "missing_info": [],
+              "user_problem": "La prochaine étape semble arriver trop vite avant des conversations plus sensibles.",
+              "expected_effect": "Le plan avance sans surcharger le user ni casser l'objectif global.",
+              "why_this_change": "Une étape intermédiaire rend la trajectoire plus progressive et plus sécurisante."
+            },
+            "boundaries": {
+              "explanation": "Le changement touche l'ordre et les prérequis de progression, donc il doit passer par une régénération contrôlée du plan.",
+              "affected_scope": "trajectoire globale du plan",
+              "global_plan_impact": "requires_review",
+              "explicitly_not_affected": [
+                "objectif global",
+                "identité du plan",
+                "demande de ne pas transformer cela en simple ajustement d'action"
+              ]
+            },
+            "applied_change": {
+              "summary": "Ralentir la trajectoire globale en ajoutant une étape intermédiaire centrée sur le signal de pause et une réparation simple avant les conversations plus sensibles.",
+              "changed_items": [
+                {
+                  "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                  "kind": "action",
+                  "after": "À replacer dans une trajectoire plus progressive: consolider le signal de pause et une réparation simple avant les conversations plus sensibles.",
+                  "title": "Convenir d'un signal de pause",
+                  "before": "À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.",
+                  "reason": "Le user demande de ralentir la transition globale sans changer l'objectif du plan.",
+                  "capability": "modify_existing_action"
+                },
+                {
+                  "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                  "kind": "action",
+                  "after": "À replacer dans une trajectoire plus progressive: consolider le signal de pause et une réparation simple avant les conversations plus sensibles.",
+                  "title": "Faire le point sur le signal de pause",
+                  "before": "Discutez 10 minutes à froid pour voir si le signal de pause a été utile cette semaine et s'il est respecté par vous deux.",
+                  "reason": "Le user demande de ralentir la transition globale sans changer l'objectif du plan.",
+                  "capability": "modify_existing_action"
+                }
+              ],
+              "preserved_items": [
+                {
+                  "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                  "kind": "habit",
+                  "title": "Partager un point positif",
+                  "reason": "L'action reste comme soutien; le changement concerne la trajectoire et l'ordre de progression."
+                }
+              ],
+              "trajectory_change": {
+                "after": "Le plan garde ce cap, mais ajoute d'abord une étape de consolidation pour sécuriser le retour au calme et la réparation simple.",
+                "before": "Le plan avance du désamorçage vers des conversations plus sensibles.",
+                "inserted_step": "Une étape intermédiaire de sécurité émotionnelle et de réparation simple après conflit.",
+                "coaching_reason": "La réparation après conflit devient plus réaliste si le couple a d'abord un protocole de pause et de reprise calme.",
+                "reordered_steps": [
+                  "Consolider le signal de pause",
+                  "S'entraîner au retour au calme et à la réparation simple",
+                  "Reprendre ensuite les conversations plus sensibles"
+                ],
+                "preserved_direction": "L'objectif global du plan et l'apprentissage du désamorçage restent la base."
+              }
+            },
+            "user_message_brief": "Ralentir la trajectoire globale en ajoutant une étape intermédiaire centrée sur le signal de pause et une réparation simple avant les conversations plus sensibles.",
+            "user_message_detailed": "Ralentir la trajectoire globale en ajoutant une étape intermédiaire centrée sur le signal de pause et une réparation simple avant les conversations plus sensibles."
+          },
+          "execution_strategy": "whole_plan_adjustment",
+          "allowed_patch_fields": [
+            "scope_kind",
+            "plan_adjustment",
+            "load_adjustment",
+            "goal_adjustment",
+            "sequence_adjustment",
+            "reason_type",
+            "reason_change",
+            "change_target",
+            "confidence",
+            "constraints"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "C'est fait: j'ai ajusté la trajectoire du plan.\n\nLe plan garde le même objectif, mais la suite est régénérée pour ralentir la transition et consolider le signal de pause avec une réparation simple avant les conversations plus sensibles.",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: j'insère une étape intermédiaire avant les conversations plus sensibles, centrée sur le signal de pause et une réparation simple après conflit.\n\nCe qui reste stable: l'objectif global du plan, le rôle du signal de pause, et les actions de soutien qui restent utiles.\n\nCe que ça implique: si tu valides, je régénère le plan pour réordonner la suite autour de cette étape de consolidation. Rien n'est appliqué tant que tu ne valides pas."
+      },
+      "status": "draft_review_updated",
+      "reason_code": "normal_reply_default",
+      "operation_id": "1eec5017-a405-4c1a-a61f-264ad0924ac1",
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Ne pas proposer un contenu centré sur les conflits ou conversations sensibles.",
+          "Ne pas effacer le niveau courant: le passage-maintien doit s’y adosser, pas le remplacer.",
+          "Ne pas présenter le maintien comme une corvée supplémentaire sans bénéfice lisible.",
+          "Ne pas changer la nature des actions existantes si le user n’a pas demandé une refonte complète.",
+          "Ne pas laisser flou le moment où l’on quitte le passage pour entrer en maintien."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "L’intention globale du plan: aider à garder les acquis dans le temps.",
+          "La progression par étapes: apprentissage puis stabilisation avant autre chose.",
+          "Le rôle du plan comme support de trajectoire, pas comme suite d’actions isolées.",
+          "La logique de validation préalable avant toute modification effective.",
+          "La distinction entre acquisition et entretien, qui doit devenir explicite."
+        ],
+        "warnings": [
+          "Ne pas rebasculer sur le thème des conversations sensibles: ce serait un mauvais alignement avec la demande actuelle.",
+          "Ne pas proposer seulement une baisse de charge sans niveau de stabilisation explicite: le user demande une architecture de maintien, pas juste moins d’effort.",
+          "Ne pas transformer le passage-maintien en simple répétition du niveau courant; il faut une fonction différente et nommée.",
+          "Ne pas suggérer une montée de niveau immédiate sans palier de consolidation.",
+          "Ne pas promettre qu’un changement de structure suffira à lui seul à résoudre toutes les dilutions; garder une posture réaliste."
+        ],
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Action: traiter la demande comme une modification de trajectoire globale avec une fonction nouvelle, pas comme un ajustement local.",
+          "Action: préserver l’intention du plan tout en ajoutant un pont mini entre apprentissage et stabilisation; ne pas changer la nature des éléments sans demande explicite.",
+          "Niveau: définir une charge temporairement abaissée puis stabilisée; préserver le cœur du niveau courant et expliciter une boundary de fin de passage.",
+          "Niveau: le passage doit servir à transformer l’effort en routine minimale; le maintien doit servir à garder l’acquis vivant sans revenir au point de départ.",
+          "Whole plan: garder l’ordre des phases, mais rendre explicite la séquence apprentissage → passage → maintien → éventuel recalage; ne pas sauter directement vers la suite.",
+          "Whole plan: préserver les prérequis et les critères de stabilité avant progression; le plan doit montrer comment éviter la dilution après deux jours.",
+          "Whole plan: si un brouillon est proposé, il doit nommer ce qui reste stable, ce qui passe en entretien, et ce qui devient le seuil de stabilité.",
+          "Whole plan: le questionnaire / les observations doivent rester la base de décision pour ajuster la durée ou le seuil du passage-maintien.",
+          "Whole plan: ne pas confondre \"plus simple\" avec \"plus pauvre\"; la simplification doit viser la tenue dans le temps, pas la dégradation de l’intention."
+        ],
+        "observation": "La demande ne porte pas sur des conversations sensibles ni sur un simple réordonnancement de sécurité relationnelle. Le besoin réel est architectural: le user veut ajouter au plan global un niveau de passage-maintien pour éviter qu’un apprentissage récent ne retombe après 48h. Humainement, cela exprime une lutte contre la dilution, avec une attente de continuité et de stabilisation; techniquement, c’est une demande de trajectoire globale et de logique de phase, pas un patch d’action locale.",
+        "recommendation": "Orienter la prochaine réponse vers un brouillon de niveau global explicitement nommé \"passage-maintien\", avec une mission de consolidation post-apprentissage, des critères de maintien, et une boundary claire de fin de niveau. Le sous-skill doit préserver le cœur du plan, mais déplacer le centre de gravité vers la stabilisation des acquis avant toute montée ou complexification. Il faut présenter cela comme une hypothèse de trajectoire à valider, pas comme une application.",
+        "options_to_discuss": [
+          "Définir un niveau global \"passage-maintien\" comme phase dédiée après tout apprentissage important.",
+          "Choisir une durée-type du maintien: courte et intensive, ou plus étalée et légère.",
+          "Décider si le passage-maintien s’applique à tout apprentissage important ou seulement à certains jalons.",
+          "Nommer un critère de sortie du passage-maintien: stabilité observée, répétition suffisante, ou autonomie partielle.",
+          "Séparer clairement ce qui relève du passage, du maintien et du recalage si ça redescend."
+        ],
+        "questions_to_clarify": []
+      },
+      "draft_review_decision": {
+        "decision": "revise",
+        "evidence": [
+          "correction explicite du thème du brouillon",
+          "nouvelle contrainte explicite: niveau global passage-maintien",
+          "refus explicite de l'axe conversations sensibles"
+        ],
+        "confidence": "high",
+        "apply_after_revision": false
+      },
+      "previous_operation_id": "f6c1028c-58fa-4990-8a3c-34ca97493084",
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "whole_plan",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Ne pas proposer un contenu centré sur les conflits ou conversations sensibles.",
+        "Ne pas effacer le niveau courant: le passage-maintien doit s’y adosser, pas le remplacer.",
+        "Ne pas présenter le maintien comme une corvée supplémentaire sans bénéfice lisible.",
+        "Ne pas changer la nature des actions existantes si le user n’a pas demandé une refonte complète.",
+        "Ne pas laisser flou le moment où l’on quitte le passage pour entrer en maintien."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "L’intention globale du plan: aider à garder les acquis dans le temps.",
+        "La progression par étapes: apprentissage puis stabilisation avant autre chose.",
+        "Le rôle du plan comme support de trajectoire, pas comme suite d’actions isolées.",
+        "La logique de validation préalable avant toute modification effective.",
+        "La distinction entre acquisition et entretien, qui doit devenir explicite."
+      ],
+      "warnings": [
+        "Ne pas rebasculer sur le thème des conversations sensibles: ce serait un mauvais alignement avec la demande actuelle.",
+        "Ne pas proposer seulement une baisse de charge sans niveau de stabilisation explicite: le user demande une architecture de maintien, pas juste moins d’effort.",
+        "Ne pas transformer le passage-maintien en simple répétition du niveau courant; il faut une fonction différente et nommée.",
+        "Ne pas suggérer une montée de niveau immédiate sans palier de consolidation.",
+        "Ne pas promettre qu’un changement de structure suffira à lui seul à résoudre toutes les dilutions; garder une posture réaliste."
+      ],
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Action: traiter la demande comme une modification de trajectoire globale avec une fonction nouvelle, pas comme un ajustement local.",
+        "Action: préserver l’intention du plan tout en ajoutant un pont mini entre apprentissage et stabilisation; ne pas changer la nature des éléments sans demande explicite.",
+        "Niveau: définir une charge temporairement abaissée puis stabilisée; préserver le cœur du niveau courant et expliciter une boundary de fin de passage.",
+        "Niveau: le passage doit servir à transformer l’effort en routine minimale; le maintien doit servir à garder l’acquis vivant sans revenir au point de départ.",
+        "Whole plan: garder l’ordre des phases, mais rendre explicite la séquence apprentissage → passage → maintien → éventuel recalage; ne pas sauter directement vers la suite.",
+        "Whole plan: préserver les prérequis et les critères de stabilité avant progression; le plan doit montrer comment éviter la dilution après deux jours.",
+        "Whole plan: si un brouillon est proposé, il doit nommer ce qui reste stable, ce qui passe en entretien, et ce qui devient le seuil de stabilité.",
+        "Whole plan: le questionnaire / les observations doivent rester la base de décision pour ajuster la durée ou le seuil du passage-maintien.",
+        "Whole plan: ne pas confondre \"plus simple\" avec \"plus pauvre\"; la simplification doit viser la tenue dans le temps, pas la dégradation de l’intention."
+      ],
+      "observation": "La demande ne porte pas sur des conversations sensibles ni sur un simple réordonnancement de sécurité relationnelle. Le besoin réel est architectural: le user veut ajouter au plan global un niveau de passage-maintien pour éviter qu’un apprentissage récent ne retombe après 48h. Humainement, cela exprime une lutte contre la dilution, avec une attente de continuité et de stabilisation; techniquement, c’est une demande de trajectoire globale et de logique de phase, pas un patch d’action locale.",
+      "recommendation": "Orienter la prochaine réponse vers un brouillon de niveau global explicitement nommé \"passage-maintien\", avec une mission de consolidation post-apprentissage, des critères de maintien, et une boundary claire de fin de niveau. Le sous-skill doit préserver le cœur du plan, mais déplacer le centre de gravité vers la stabilisation des acquis avant toute montée ou complexification. Il faut présenter cela comme une hypothèse de trajectoire à valider, pas comme une application.",
+      "options_to_discuss": [
+        "Définir un niveau global \"passage-maintien\" comme phase dédiée après tout apprentissage important.",
+        "Choisir une durée-type du maintien: courte et intensive, ou plus étalée et légère.",
+        "Décider si le passage-maintien s’applique à tout apprentissage important ou seulement à certains jalons.",
+        "Nommer un critère de sortie du passage-maintien: stabilité observée, répétition suffisante, ou autonomie partielle.",
+        "Séparer clairement ce qui relève du passage, du maintien et du recalage si ça redescend."
+      ],
+      "questions_to_clarify": []
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-r78-whole-plan-add-level-vague-t07",
+    "trace_error": null
+  }
+]

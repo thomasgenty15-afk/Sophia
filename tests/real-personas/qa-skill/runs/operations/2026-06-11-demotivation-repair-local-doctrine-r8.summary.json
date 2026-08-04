@@ -1,0 +1,361 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r8-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je décroche de mon rangement du soir. J'avais réussi à en faire un petit rituel, mais là j'ai juste l'impression que ça ne sert plus à rien et que je vais zapper.",
+    "assistant": "C'est tout à fait normal de vouloir décrocher quand un geste perd son utilité à tes yeux. Ce n'est pas une question de volonté, c'est simplement que le lien entre cette action et ton bien-être semble s'être rompu. Qu'est-ce qui a changé pour que ce rangement te paraisse si vide de sens aujourd'hui ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "conversation_handler",
+    "selected_handler": "demotivation_repair",
+    "route_reason": "skill_entry_signal",
+    "active_flow_arbitration": null,
+    "local_flow_action": null,
+    "local_visible_task_kind": null,
+    "note_information": null,
+    "safety_pregate": null,
+    "tone_adjustment": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_write_candidates_emitted": null,
+    "memory_plan": null,
+    "response_executed_tools": [],
+    "tool_execution": "none",
+    "trace_id": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r8-t01",
+    "trace_error": null,
+    "operation_flow_run": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r8-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Je crois que j'ai arrêté de le relier au lendemain matin. Au départ ça me donnait l'impression de poser la journée, maintenant je ne vois que les objets à bouger et ça me fatigue d'avance.",
+    "assistant": "C’est tout à fait compréhensible que tu ressentes cette fatigue d'avance. Ton rituel a glissé d'une préparation mentale vers une simple corvée de manutention, et sans ce lien avec ton bien-être du lendemain, l'effort paraît démesuré.\n\nQu'est-ce qui, dans ce geste de ranger, te donnait l'impression de vraiment « poser ta journée » au tout début ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "conversation_handler",
+    "selected_handler": "demotivation_repair",
+    "route_reason": "active_conversation_skill_continue",
+    "active_flow_arbitration": null,
+    "local_flow_action": null,
+    "local_visible_task_kind": null,
+    "note_information": null,
+    "safety_pregate": null,
+    "tone_adjustment": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_write_candidates_emitted": null,
+    "memory_plan": null,
+    "response_executed_tools": [],
+    "tool_execution": "none",
+    "trace_id": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r8-t02",
+    "trace_error": null,
+    "operation_flow_run": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r8-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Au début c'était le fait d'avoir une table vide en entrant dans la cuisine le matin. Je crois que je peux garder juste ça : enlever deux objets de la table, pas ranger la pièce.",
+    "assistant": "Ton rituel de rangement du soir te semble trop lourd en ce moment, alors on va réduire l'action pour que ça reste gérable. L'objectif est de te limiter à enlever deux objets de la table afin de garder le bénéfice d'une surface vide le matin, sans t'épuiser à ranger toute la pièce. Pour faire ce changement, va dans ton Plan sur la plateforme. Sous le niveau actif, tu trouveras 'Ajuster mon plan' où tu pourras saisir cette proposition : Simplifier le rituel du soir : enlever seulement deux objets de la table pour garantir une table vide le matin, sans ranger le reste de la pièce.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason": "orientation_clarification_resolved_tool_skill",
+    "active_flow_arbitration": null,
+    "local_flow_action": "prepare_plan_handoff",
+    "local_visible_task_kind": "plan_handoff_ready",
+    "note_information": null,
+    "safety_pregate": null,
+    "tone_adjustment": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_write_candidates_emitted": null,
+    "memory_plan": null,
+    "response_executed_tools": [],
+    "tool_execution": "platform_handoff",
+    "trace_id": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r8-t03",
+    "trace_error": null,
+    "operation_flow_run": {
+      "selected_handler": "adjust_plan_item",
+      "reason_code": "adjust_plan_item_local_plan_handoff_ready",
+      "operation_type": "adjust_plan_item",
+      "mode": "platform_handoff",
+      "status": "draft_delivered",
+      "operation_id": null,
+      "input_draft": {
+        "operation_type": "adjust_plan_item",
+        "mode": "platform_handoff",
+        "no_chat_mutation": true,
+        "executable_from_chat": false,
+        "user_blocker_summary": "Le rituel actuel est perçu comme une corvée de manutention fatigante sans lien avec le bien-être du lendemain.",
+        "suggested_platform_input": "Simplifier le rituel du soir : enlever seulement deux objets de la table pour garantir une table vide le matin, sans ranger le reste de la pièce.",
+        "preserve": [
+          "Le bénéfice d'une table vide le matin"
+        ],
+        "avoid": [
+          "Ranger toute la pièce"
+        ],
+        "destination": {
+          "product_area": "Plan",
+          "instruction": "Reprendre cette proposition dans la surface Plan."
+        },
+        "missing_clarity": []
+      },
+      "requested_effects": [],
+      "allowed_effects": [],
+      "blocked_effects": [],
+      "committed_effects": [],
+      "platform_handoff": {
+        "operation_type": "adjust_plan_item",
+        "status": "delivered",
+        "surface_id": "plan",
+        "reason_code": "adjust_plan_item_local_plan_handoff_ready",
+        "no_chat_mutation": true,
+        "executable_from_chat": false,
+        "draft": {
+          "operation_type": "adjust_plan_item",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "user_blocker_summary": "Le rituel actuel est perçu comme une corvée de manutention fatigante sans lien avec le bien-être du lendemain.",
+          "suggested_platform_input": "Simplifier le rituel du soir : enlever seulement deux objets de la table pour garantir une table vide le matin, sans ranger le reste de la pièce.",
+          "preserve": [
+            "Le bénéfice d'une table vide le matin"
+          ],
+          "avoid": [
+            "Ranger toute la pièce"
+          ],
+          "destination": {
+            "product_area": "Plan",
+            "instruction": "Reprendre cette proposition dans la surface Plan."
+          },
+          "missing_clarity": []
+        }
+      },
+      "skill_result": {
+        "handled": true,
+        "status": "handoff_delivered",
+        "user_intent": "start",
+        "reply": "Ton rituel de rangement du soir te semble trop lourd en ce moment, alors on va réduire l'action pour que ça reste gérable. L'objectif est de te limiter à enlever deux objets de la table afin de garder le bénéfice d'une surface vide le matin, sans t'épuiser à ranger toute la pièce. Pour faire ce changement, va dans ton Plan sur la plateforme. Sous le niveau actif, tu trouveras 'Ajuster mon plan' où tu pourras saisir cette proposition : Simplifier le rituel du soir : enlever seulement deux objets de la table pour garantir une table vide le matin, sans ranger le reste de la pièce.",
+        "requested_effects": [],
+        "allowed_effects": [],
+        "blocked_effects": [],
+        "committed_effects": [],
+        "pending_confirmation": null,
+        "debug": {
+          "reason_code": "adjust_plan_item_local_plan_handoff_ready"
+        }
+      },
+      "no_chat_mutation": true,
+      "executable_from_chat": false,
+      "pending_confirmation": null,
+      "flow_action": "prepare_plan_handoff",
+      "local_flow_state": {
+        "skill_id": "adjust_plan_item",
+        "operation_type": "adjust_plan_item",
+        "mode": "platform_handoff",
+        "status": "handoff_delivered",
+        "stage": "handoff",
+        "scope": {
+          "kind": "specific_plan_item",
+          "confidence": "high",
+          "plan_id": null,
+          "plan_title": null,
+          "level_id": null,
+          "level_title": null,
+          "plan_item_ids": [],
+          "target_summary": "Rituel de rangement du soir",
+          "needs_scope_clarification": false
+        },
+        "adjustment_need": {
+          "reason_change": "Le rituel actuel est perçu comme une corvée de manutention fatigante sans lien avec le bien-être du lendemain.",
+          "requested_change": "Réduire l'action à : enlever seulement deux objets de la table au lieu de ranger toute la pièce.",
+          "change_kind": "reduce",
+          "constraints": [],
+          "preserve": [
+            "Le bénéfice d'une table vide le matin"
+          ],
+          "avoid": [
+            "Ranger toute la pièce"
+          ],
+          "missing": []
+        },
+        "platform_handoff": {
+          "status": "delivered",
+          "destination": "Plan",
+          "suggested_platform_input": "Simplifier le rituel du soir : enlever seulement deux objets de la table pour garantir une table vide le matin, sans ranger le reste de la pièce.",
+          "grouped_by_plan": [],
+          "previous_value": null,
+          "revised_value": null
+        },
+        "last_visible_task": "plan_handoff_ready",
+        "last_handoff_summary": "Simplifier le rituel du soir : enlever seulement deux objets de la table pour garantir une table vide le matin, sans ranger le reste de la pièce.",
+        "turn_count": 1,
+        "subskill_history": []
+      },
+      "visible_task": {
+        "kind": "plan_handoff_ready"
+      },
+      "conversation_context": {
+        "state_summary": "Le user souhaite simplifier son rituel de rangement du soir pour ne garder que l'essentiel : vider la table.",
+        "user_words": [
+          "enlever deux objets",
+          "pas ranger la pièce",
+          "table vide"
+        ],
+        "field_or_stage": "handoff",
+        "known_values": {
+          "scope": {
+            "kind": "specific_plan_item",
+            "confidence": "high",
+            "plan_id": null,
+            "plan_title": null,
+            "level_id": null,
+            "level_title": null,
+            "plan_item_ids": [],
+            "target_summary": "Rituel de rangement du soir",
+            "needs_scope_clarification": false
+          },
+          "adjustment_need": {
+            "reason_change": "Le rituel actuel est perçu comme une corvée de manutention fatigante sans lien avec le bien-être du lendemain.",
+            "requested_change": "Réduire l'action à : enlever seulement deux objets de la table au lieu de ranger toute la pièce.",
+            "change_kind": "reduce",
+            "constraints": [],
+            "preserve": [
+              "Le bénéfice d'une table vide le matin"
+            ],
+            "avoid": [
+              "Ranger toute la pièce"
+            ],
+            "missing": []
+          },
+          "constraints": [],
+          "preserve": [
+            "Le bénéfice d'une table vide le matin"
+          ],
+          "avoid": [
+            "Ranger toute la pièce"
+          ]
+        },
+        "missing_or_weak_values": [],
+        "selected_candidate": {
+          "plan_id": null,
+          "plan_title": null,
+          "level_id": null,
+          "level_title": null,
+          "plan_item_ids": [],
+          "target_summary": "Rituel de rangement du soir",
+          "scope_kind": "specific_plan_item",
+          "scope_confidence": "high"
+        },
+        "handoff_data": {
+          "destination": "Plan",
+          "suggested_platform_input": "Simplifier le rituel du soir : enlever seulement deux objets de la table pour garantir une table vide le matin, sans ranger le reste de la pièce.",
+          "grouped_by_plan": [],
+          "previous_value": null,
+          "revised_value": null
+        },
+        "tone_constraints": [],
+        "do_not_say": [
+          "Ne dis pas que le Plan est applique, modifie, deplace, valide, sauvegarde ou enregistre.",
+          "Ne mentionne pas les labels internes du dispatcher.",
+          "Ne dis pas que le Plan a été modifié.",
+          "Ne dis pas que l'action est enregistrée."
+        ],
+        "context_summary": "Le user a clarifié son besoin de réduction suite à une phase de demotivation_repair.",
+        "evidence_used": [
+          "enlever deux objets de la table",
+          "pas ranger la pièce",
+          "table vide le matin",
+          "enlever deux objets de la table",
+          "pas ranger la pièce",
+          "table vide en entrant dans la cuisine"
+        ]
+      },
+      "handoff_core": {
+        "target_to_modify": "Rituel de rangement du soir",
+        "reason_change": "Le rituel actuel est perçu comme une corvée de manutention fatigante sans lien avec le bien-être du lendemain.",
+        "requested_change": "Réduire l'action à : enlever seulement deux objets de la table au lieu de ranger toute la pièce.",
+        "change_kind": "reduce",
+        "has_core_triptych": true,
+        "missing_or_weak_values": []
+      },
+      "risk_score": 0,
+      "runtime_trace": [
+        {
+          "component": "adjust_plan_item.visible_agent",
+          "stage": "plan_handoff_ready",
+          "accepted": true,
+          "issues": []
+        }
+      ]
+    }
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r8-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Non, je ne veux pas changer mon plan ni aller dans la plateforme. Je veux juste garder cette phrase et ce micro-geste pour ce soir, sans outil ni suite.",
+    "assistant": "Ok, ni outil ni suite. ✅🙂\n\nPour ce soir, tu gardes juste ton “micro” : enlever deux objets de la table, point. Tu t’arrêtes là, comme si c’était déjà suffisant pour “poser le matin”.\n\nQuand c’est fait, tu me dis juste : c’était facile, moyen, ou galère ? 😅",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason": "normal_reply_default",
+    "active_flow_arbitration": null,
+    "local_flow_action": null,
+    "local_visible_task_kind": null,
+    "note_information": null,
+    "safety_pregate": null,
+    "tone_adjustment": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_write_candidates_emitted": null,
+    "memory_plan": null,
+    "response_executed_tools": [],
+    "tool_execution": "none",
+    "trace_id": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r8-t04",
+    "trace_error": null,
+    "operation_flow_run": null
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r8-t05",
+    "status": 200,
+    "ok": true,
+    "user": "Non justement, je ne veux pas faire de retour après. Je m'arrête là pour aujourd'hui. Bonne soirée.",
+    "assistant": "OK, tu t’arrêtes là pour aujourd’hui. Bonne soirée 🌿🙂\n\nSi tu veux juste te donner une mini-clôture mentale (sans retour), dis-toi une phrase du style “Table vidée = mission remplie”, et tu coupes.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason": "normal_reply_default",
+    "active_flow_arbitration": null,
+    "local_flow_action": null,
+    "local_visible_task_kind": null,
+    "note_information": null,
+    "safety_pregate": null,
+    "tone_adjustment": null,
+    "direct_effects": [],
+    "pending_confirmation": null,
+    "memory_write_candidates_emitted": null,
+    "memory_plan": null,
+    "response_executed_tools": [],
+    "tool_execution": "none",
+    "trace_id": "qa-demotivation-repair-2026-06-11-demotivation-repair-local-doctrine-r8-t05",
+    "trace_error": null,
+    "operation_flow_run": null
+  }
+]

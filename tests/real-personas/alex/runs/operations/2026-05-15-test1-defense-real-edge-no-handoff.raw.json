@@ -1,0 +1,375 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-15-defense-real-edge-no-handoff-t01",
+    "user": "Fais une carte de défense pour démarrer le sas, le problème c'est surtout que j'ai pas envie de m'y mettre.",
+    "status": 200,
+    "response": {
+      "content": "C'est noté pour le sas de déchargement. Pour contrer ce manque d'envie, quelle approche préfères-tu ?\n\n1. Le texte magique (un texte à relire pour arrêter de négocier)\n2. Mot de bascule (un mot simple à m'envoyer pour déclencher l'action)\n3. Préparer le terrain (une micro-action pour faciliter le démarrage)",
+      "mode": "companion",
+      "tool_execution": "blocked",
+      "executed_tools": []
+    },
+    "trace": {
+      "turn_id": "qa-operation-suggestion-test1-alex-2026-05-15-defense-real-edge-no-handoff-t01",
+      "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+      "source_message_id": "8a887868-3135-4ac6-87d4-ed3c982ddbe0",
+      "ts": "2026-05-15T13:32:32.732+00:00",
+      "safety_pregate": {
+        "detected": false,
+        "evidence": [],
+        "risk_band": "none",
+        "reason_codes": [],
+        "allow_side_effects": true,
+        "layer_contributions": {
+          "lexical": false,
+          "heuristic": false,
+          "dispatcher_llm": false
+        }
+      },
+      "dispatcher_run": {
+        "tokens_in": 5807,
+        "latency_ms": 25293,
+        "model_used": "gemini-3-flash-preview",
+        "tokens_out": 588,
+        "memory_plan": {
+          "targets": [
+            {
+              "key": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+              "type": "action",
+              "priority": "high",
+              "query_hint": "habitude sas de déchargement",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            },
+            {
+              "key": "habitudes.procrastination",
+              "type": "domain_key",
+              "priority": "medium",
+              "query_hint": "difficulté à démarrer",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "prompt_version": "dispatcher_v2_prompt_2026_05_s10"
+      },
+      "turn_frame": {
+        "safety": {
+          "evidence": [],
+          "risk_band": "low",
+          "reason_codes": []
+        },
+        "channel": "whatsapp",
+        "turn_id": "qa-operation-suggestion-test1-alex-2026-05-15-defense-real-edge-no-handoff-t01",
+        "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+        "memory_plan": {
+          "targets": [
+            {
+              "key": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+              "type": "action",
+              "priority": "high",
+              "query_hint": "habitude sas de déchargement",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            },
+            {
+              "key": "habitudes.procrastination",
+              "type": "domain_key",
+              "priority": "medium",
+              "query_hint": "difficulté à démarrer",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "skill_signals": {
+          "exit": {},
+          "entry": {},
+          "lifecycle": {}
+        },
+        "direct_effects": [],
+        "conversation_risk": {
+          "score": 0,
+          "matrix": [
+            {
+              "signal": "system_misunderstanding",
+              "weight": 3.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "explicit_stop_or_abandon",
+              "weight": 2.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "anger_or_profanity",
+              "weight": 2,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "repetition_or_correction",
+              "weight": 1.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "typographic_intensity",
+              "weight": 0.7,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "active_flow_pressure",
+              "weight": 1,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "previous_risk",
+              "weight": 10,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            }
+          ],
+          "threshold": 8,
+          "reason_codes": [],
+          "context_summary": null,
+          "previous_scores": [],
+          "flow_exit_context": null,
+          "should_exit_flows": false
+        },
+        "source_message_id": "8a887868-3135-4ac6-87d4-ed3c982ddbe0",
+        "tool_skill_intents": [
+          {
+            "ambiguity": "none",
+            "target_hint": "démarrer le sas",
+            "user_intent": "create",
+            "explicitness": "explicit",
+            "operation_type": "prepare_attack_card",
+            "confidence_band": "high"
+          }
+        ],
+        "confirmation_response": null,
+        "tool_skill_opportunity": {
+          "type": "none",
+          "surface_id": null,
+          "prop_reason": null,
+          "source_span": null,
+          "target_hint": null,
+          "offer_timing": "never",
+          "should_offer": false,
+          "target_status": "none",
+          "operation_type": null,
+          "confidence_band": "low",
+          "must_not_execute": true,
+          "suggested_question_intent": null
+        }
+      },
+      "route_decision": {
+        "reason_code": "tool_skill_intent_start",
+        "blocked_paths": [],
+        "route_version": "v1",
+        "response_owner": "tool_skill",
+        "memory_use_kind": "none",
+        "selected_handler": "prepare_attack_card",
+        "direct_effects_to_run": [],
+        "memory_used_for_route": false,
+        "active_flow_arbitration": {
+          "decision": "none",
+          "reason_code": "no_active_flow",
+          "active_owner": "none",
+          "resume_policy": "none",
+          "selected_owner": "none"
+        },
+        "memory_item_ids_used_for_route": []
+      },
+      "direct_effects": [],
+      "skill_run": null,
+      "operation_flow_run": {
+        "status": "ask_question",
+        "slot_state": {
+          "slot": "technique",
+          "needed": true,
+          "reason": "structured_ai_missing_technique",
+          "status": "missing",
+          "question": "C'est noté pour le sas de déchargement. Pour contrer ce manque d'envie, quelle approche préfères-tu ?\n\n1. Le texte magique (un texte à relire pour arrêter de négocier)\n2. Mot de bascule (un mot simple à m'envoyer pour déclencher l'action)\n3. Préparer le terrain (une micro-action pour faciliter le démarrage)",
+          "known_slots": {
+            "target": {
+              "kind": "plan_item",
+              "title": "Faire le sas de déchargement",
+              "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+            },
+            "intake_state": {
+              "target": {
+                "kind": "plan_item",
+                "title": "Faire le sas de déchargement",
+                "status": "identified",
+                "evidence": [
+                  "démarrer le sas"
+                ],
+                "confidence": "high",
+                "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+              },
+              "blocker": {
+                "type": "avoidance",
+                "evidence": [
+                  "pas envie de m'y mettre"
+                ],
+                "confidence": 0.9
+              },
+              "skill_id": "prepare_attack_card",
+              "technique": {
+                "value": null,
+                "status": "ambiguous",
+                "options": [
+                  {
+                    "title": "Le texte magique",
+                    "reason": "Idéal pour calmer le dialogue intérieur quand tu n'as 'pas envie'.",
+                    "example": "Un texte de 3 lignes qui te rappelle pourquoi tu fais ce sas.",
+                    "description": "Un texte court à relire ou recopier quand la résistance monte.",
+                    "recommended": true,
+                    "technique_key": "texte_recadrage"
+                  },
+                  {
+                    "title": "Mot de bascule",
+                    "reason": "Efficace pour court-circuiter la flemme en m'envoyant juste un mot.",
+                    "example": "M'envoyer un mot court dès que tu sens que tu vas esquiver.",
+                    "description": "Un mot-clé mémorisable et un mini protocole de bascule.",
+                    "recommended": false,
+                    "technique_key": "pre_engagement"
+                  },
+                  {
+                    "title": "Préparer le terrain",
+                    "reason": "Pour réduire la friction au moment de démarrer.",
+                    "example": "Poser le carnet ouvert avec le stylo déjà dessus.",
+                    "description": "Un micro-setup qui rend le bon geste plus facile.",
+                    "recommended": false,
+                    "technique_key": "preparer_terrain"
+                  }
+                ],
+                "evidence": [
+                  "pas envie de m'y mettre"
+                ],
+                "confidence": "medium",
+                "fit_warning": null,
+                "explicitly_requested": false
+              },
+              "confidence": "high",
+              "constraints": [],
+              "current_step": "technique_selection",
+              "missing_slots": [
+                "technique"
+              ],
+              "activation_keyword": {
+                "value": null,
+                "status": "not_applicable",
+                "options": [],
+                "evidence": [],
+                "confidence": "low",
+                "rejected_value": null
+              },
+              "generated_user_message": "C'est noté pour le sas de déchargement. Pour contrer ce manque d'envie, quelle approche préfères-tu ?\n\n1. Le texte magique (un texte à relire pour arrêter de négocier)\n2. Mot de bascule (un mot simple à m'envoyer pour déclencher l'action)\n3. Préparer le terrain (une micro-action pour faciliter le démarrage)"
+            },
+            "technique_options": [
+              {
+                "title": "Le texte magique",
+                "reason": "Idéal pour calmer le dialogue intérieur quand tu n'as 'pas envie'.",
+                "example": "Un texte de 3 lignes qui te rappelle pourquoi tu fais ce sas.",
+                "description": "Un texte court à relire ou recopier quand la résistance monte.",
+                "recommended": true,
+                "technique_key": "texte_recadrage"
+              },
+              {
+                "title": "Mot de bascule",
+                "reason": "Efficace pour court-circuiter la flemme en m'envoyant juste un mot.",
+                "example": "M'envoyer un mot court dès que tu sens que tu vas esquiver.",
+                "description": "Un mot-clé mémorisable et un mini protocole de bascule.",
+                "recommended": false,
+                "technique_key": "pre_engagement"
+              },
+              {
+                "title": "Préparer le terrain",
+                "reason": "Pour réduire la friction au moment de démarrer.",
+                "example": "Poser le carnet ouvert avec le stylo déjà dessus.",
+                "description": "Un micro-setup qui rend le bon geste plus facile.",
+                "recommended": false,
+                "technique_key": "preparer_terrain"
+              }
+            ]
+          },
+          "technique_options": [
+            {
+              "title": "Le texte magique",
+              "reason": "Idéal pour calmer le dialogue intérieur quand tu n'as 'pas envie'.",
+              "example": "Un texte de 3 lignes qui te rappelle pourquoi tu fais ce sas.",
+              "description": "Un texte court à relire ou recopier quand la résistance monte.",
+              "recommended": true,
+              "technique_key": "texte_recadrage"
+            },
+            {
+              "title": "Mot de bascule",
+              "reason": "Efficace pour court-circuiter la flemme en m'envoyant juste un mot.",
+              "example": "M'envoyer un mot court dès que tu sens que tu vas esquiver.",
+              "description": "Un mot-clé mémorisable et un mini protocole de bascule.",
+              "recommended": false,
+              "technique_key": "pre_engagement"
+            },
+            {
+              "title": "Préparer le terrain",
+              "reason": "Pour réduire la friction au moment de démarrer.",
+              "example": "Poser le carnet ouvert avec le stylo déjà dessus.",
+              "description": "Un micro-setup qui rend le bon geste plus facile.",
+              "recommended": false,
+              "technique_key": "preparer_terrain"
+            }
+          ],
+          "activation_keyword_options": []
+        },
+        "reason_code": "tool_skill_intent_start",
+        "missing_slots": [
+          "technique"
+        ],
+        "selected_handler": "prepare_attack_card"
+      },
+      "recommendation_tool_run": null,
+      "confirmation_token_outcomes": [],
+      "memory_write_candidates_emitted": 0,
+      "response_owner": "tool_skill",
+      "total_latency_ms": 32260,
+      "created_at": "2026-05-15T13:32:32.750409+00:00"
+    },
+    "error": null,
+    "trace_error": null
+  }
+]

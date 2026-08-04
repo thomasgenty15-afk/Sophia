@@ -1,0 +1,466 @@
+{
+  "turn": 6,
+  "requestId": "qa-demotivation-local-flow-r1-t06",
+  "user": "Oui, c'est exactement ca. Garde cette formulation et donne-moi maintenant la Potion de clarte en version tres courte.",
+  "status": 200,
+  "body": {
+    "ok": true,
+    "request_id": "qa-demotivation-local-flow-r1-t06",
+    "user_id": "c7049c91-2e43-444a-973d-5a1fc9f23139",
+    "channel": "web",
+    "scope": "qa-demotivation-local-flow-2026-06-08-r1",
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "logged_message_id": null,
+    "latest_message_id": null,
+    "response": {
+      "content": "Je t'ai préparé une version très directe pour ta Potion de clarté. Comme je ne peux pas l'activer moi-même depuis notre discussion, il te suffit de te rendre dans l'onglet État / Potions de la plateforme. À la question Pourquoi est-ce que tu as l’impression que ton plan n’a plus de sens pour toi aujourd’hui ?, tu peux inscrire exactement ceci : L'effort semble vain face à l'ampleur du bazar, ce qui brise le lien avec la fierté d'accueillir. Ça te permettra de garder ce constat bien en vue. ✨",
+      "additional_contents": [],
+      "mode": "companion",
+      "tool_execution": "platform_handoff",
+      "executed_tools": [],
+      "conversation_turn_trace": {
+        "turn_frame": {
+          "turn_id": "qa-demotivation-local-flow-r1-t06",
+          "source_message_id": "14ce03b7-3ef0-49c5-b023-a0f9842fbf2e",
+          "user_id": "c7049c91-2e43-444a-973d-5a1fc9f23139",
+          "channel": "web",
+          "safety": {
+            "risk_band": "none",
+            "reason_codes": [
+              "immediacy_now"
+            ],
+            "evidence": [
+              "maintenant"
+            ]
+          },
+          "conversation_risk": {
+            "score": 0,
+            "threshold": 8,
+            "should_exit_flows": false,
+            "reason_codes": [],
+            "previous_scores": [
+              0,
+              0,
+              0
+            ],
+            "matrix": [],
+            "context_summary": null
+          },
+          "direct_effects": [],
+          "tool_skill_intents": [],
+          "tool_skill_opportunity": {
+            "type": "none",
+            "operation_type": null,
+            "surface_id": null,
+            "confidence_band": "low",
+            "should_offer": false,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "target_status": "none",
+            "suggested_question_intent": null,
+            "offer_timing": "never",
+            "must_not_execute": true
+          },
+          "skill_signals": {},
+          "memory_plan": {
+            "response_intent": "reflection",
+            "reasoning_complexity": "low",
+            "context_need": "minimal",
+            "memory_mode": "none",
+            "model_tier_hint": "lite",
+            "context_budget_tier": "tiny",
+            "targets": [],
+            "retrieval_policy": "semantic_first",
+            "plan_confidence": 0.7
+          }
+        },
+        "route_decision": {
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion.clarte",
+          "blocked_paths": [
+            {
+              "path": "global_dispatcher",
+              "reason_code": "active_clarte_uses_local_dispatcher"
+            }
+          ],
+          "direct_effects_to_run": [],
+          "reason_code": "active_clarte_local_dispatcher",
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": [],
+          "memory_use_kind": "none"
+        },
+        "turn_agenda_summary": null,
+        "tool_skill_run": {
+          "selected_handler": "select_state_potion.clarte",
+          "reason_code": "clarte_apply_attempt_no_chat_execution",
+          "operation_type": "select_state_potion",
+          "mode": "platform_handoff",
+          "no_chat_mutation": true,
+          "executable_from_chat": false,
+          "status": "apply_attempt",
+          "requested_effects": [],
+          "allowed_effects": [],
+          "committed_effects": [],
+          "blocked_effects": [],
+          "constraints": [],
+          "risk_assessment": {
+            "risk_score": 0,
+            "risk_band": "none",
+            "safety_preempt": false,
+            "reason_codes": []
+          },
+          "runtime_trace": [
+            {
+              "component": "select_state_potion.clarte",
+              "event": "active_clarte_turn_start",
+              "global_dispatcher_available": false,
+              "previous_status": "clarifying"
+            },
+            {
+              "component": "local_dispatcher",
+              "event": "decision",
+              "flow": "select_state_potion.clarte",
+              "flow_action": "apply_attempt",
+              "confidence": "high",
+              "selected_potion": "clarte",
+              "visible_task": "apply_attempt",
+              "risk_assessment": {
+                "risk_score": 0,
+                "risk_band": "none",
+                "safety_preempt": false,
+                "reason_codes": []
+              },
+              "exit_reason": null
+            },
+            {
+              "component": "local_reducer",
+              "event": "reduced",
+              "flow": "select_state_potion.clarte",
+              "status": "apply_attempt",
+              "reason_code": "clarte_apply_attempt_no_chat_execution",
+              "visible_task": "apply_attempt",
+              "field_status": "proposed",
+              "exit_to_global_dispatcher": false
+            },
+            {
+              "component": "visible_stage",
+              "event": "start",
+              "stage": "clarte_task",
+              "clarte_visible_task": "apply_attempt",
+              "potion_subskill_visible_task": null,
+              "handoff_status": "apply_attempt"
+            },
+            {
+              "component": "visible_agent",
+              "stage": "clarte_task",
+              "attempt": 1,
+              "accepted": false,
+              "issues": [
+                "clarte_missing_exact_potion_name",
+                "clarte_missing_potion_name"
+              ]
+            },
+            {
+              "component": "visible_agent",
+              "stage": "clarte_task",
+              "attempt": 2,
+              "accepted": true,
+              "issues": [],
+              "retry_triggered_by": [
+                "clarte_missing_exact_potion_name",
+                "clarte_missing_potion_name"
+              ]
+            },
+            {
+              "component": "visible_stage",
+              "event": "complete",
+              "stage": "clarte_task"
+            }
+          ],
+          "handoff": {
+            "target": "state_potions"
+          },
+          "platform_handoff": {
+            "operation_type": "select_state_potion",
+            "status": "delivered",
+            "surface_id": "state_potions",
+            "reason_code": "clarte_apply_attempt_no_chat_execution",
+            "no_chat_mutation": true,
+            "draft": null
+          }
+        },
+        "effect_ledger": {
+          "turn_id": "qa-demotivation-local-flow-r1-t06",
+          "counts": {
+            "requested": 0,
+            "allowed": 0,
+            "blocked": 0,
+            "committed": 0,
+            "failed": 0,
+            "proposed": 0,
+            "delivered": 1,
+            "cancelled": 0,
+            "superseded": 0,
+            "asked": 0,
+            "resolved": 0,
+            "topic_change": 0
+          },
+          "entries": [
+            {
+              "effect_id": "qa-demotivation-local-flow-r1-t06:platform_handoff:delivered:select_state_potion:runtime",
+              "kind": "platform_handoff",
+              "effect_type": "platform_handoff.select_state_potion",
+              "operation_type": "select_state_potion",
+              "operation_id": null,
+              "committed_id": null,
+              "tool_id": "select_state_potion.clarte",
+              "status": "delivered",
+              "reason_code": "clarte_apply_attempt_no_chat_execution",
+              "source": "tool_skill",
+              "payload_summary": {
+                "no_chat_mutation": true,
+                "status": "apply_attempt",
+                "surface_id": "state_potions"
+              },
+              "db_ref": null,
+              "error_message": null,
+              "surface_id": "state_potions",
+              "no_chat_mutation": true,
+              "committed": false,
+              "executed_tool": false,
+              "owner": null,
+              "ambiguity_kind": null,
+              "selected_candidate_id": null
+            }
+          ]
+        },
+        "response_owner": "tool_skill"
+      }
+    },
+    "conversation_turn_trace": {
+      "turn_frame": {
+        "turn_id": "qa-demotivation-local-flow-r1-t06",
+        "source_message_id": "14ce03b7-3ef0-49c5-b023-a0f9842fbf2e",
+        "user_id": "c7049c91-2e43-444a-973d-5a1fc9f23139",
+        "channel": "web",
+        "safety": {
+          "risk_band": "none",
+          "reason_codes": [
+            "immediacy_now"
+          ],
+          "evidence": [
+            "maintenant"
+          ]
+        },
+        "conversation_risk": {
+          "score": 0,
+          "threshold": 8,
+          "should_exit_flows": false,
+          "reason_codes": [],
+          "previous_scores": [
+            0,
+            0,
+            0
+          ],
+          "matrix": [],
+          "context_summary": null
+        },
+        "direct_effects": [],
+        "tool_skill_intents": [],
+        "tool_skill_opportunity": {
+          "type": "none",
+          "operation_type": null,
+          "surface_id": null,
+          "confidence_band": "low",
+          "should_offer": false,
+          "prop_reason": null,
+          "source_span": null,
+          "target_hint": null,
+          "target_status": "none",
+          "suggested_question_intent": null,
+          "offer_timing": "never",
+          "must_not_execute": true
+        },
+        "skill_signals": {},
+        "memory_plan": {
+          "response_intent": "reflection",
+          "reasoning_complexity": "low",
+          "context_need": "minimal",
+          "memory_mode": "none",
+          "model_tier_hint": "lite",
+          "context_budget_tier": "tiny",
+          "targets": [],
+          "retrieval_policy": "semantic_first",
+          "plan_confidence": 0.7
+        }
+      },
+      "route_decision": {
+        "route_version": "v1",
+        "response_owner": "tool_skill",
+        "selected_handler": "select_state_potion.clarte",
+        "blocked_paths": [
+          {
+            "path": "global_dispatcher",
+            "reason_code": "active_clarte_uses_local_dispatcher"
+          }
+        ],
+        "direct_effects_to_run": [],
+        "reason_code": "active_clarte_local_dispatcher",
+        "memory_used_for_route": false,
+        "memory_item_ids_used_for_route": [],
+        "memory_use_kind": "none"
+      },
+      "turn_agenda_summary": null,
+      "tool_skill_run": {
+        "selected_handler": "select_state_potion.clarte",
+        "reason_code": "clarte_apply_attempt_no_chat_execution",
+        "operation_type": "select_state_potion",
+        "mode": "platform_handoff",
+        "no_chat_mutation": true,
+        "executable_from_chat": false,
+        "status": "apply_attempt",
+        "requested_effects": [],
+        "allowed_effects": [],
+        "committed_effects": [],
+        "blocked_effects": [],
+        "constraints": [],
+        "risk_assessment": {
+          "risk_score": 0,
+          "risk_band": "none",
+          "safety_preempt": false,
+          "reason_codes": []
+        },
+        "runtime_trace": [
+          {
+            "component": "select_state_potion.clarte",
+            "event": "active_clarte_turn_start",
+            "global_dispatcher_available": false,
+            "previous_status": "clarifying"
+          },
+          {
+            "component": "local_dispatcher",
+            "event": "decision",
+            "flow": "select_state_potion.clarte",
+            "flow_action": "apply_attempt",
+            "confidence": "high",
+            "selected_potion": "clarte",
+            "visible_task": "apply_attempt",
+            "risk_assessment": {
+              "risk_score": 0,
+              "risk_band": "none",
+              "safety_preempt": false,
+              "reason_codes": []
+            },
+            "exit_reason": null
+          },
+          {
+            "component": "local_reducer",
+            "event": "reduced",
+            "flow": "select_state_potion.clarte",
+            "status": "apply_attempt",
+            "reason_code": "clarte_apply_attempt_no_chat_execution",
+            "visible_task": "apply_attempt",
+            "field_status": "proposed",
+            "exit_to_global_dispatcher": false
+          },
+          {
+            "component": "visible_stage",
+            "event": "start",
+            "stage": "clarte_task",
+            "clarte_visible_task": "apply_attempt",
+            "potion_subskill_visible_task": null,
+            "handoff_status": "apply_attempt"
+          },
+          {
+            "component": "visible_agent",
+            "stage": "clarte_task",
+            "attempt": 1,
+            "accepted": false,
+            "issues": [
+              "clarte_missing_exact_potion_name",
+              "clarte_missing_potion_name"
+            ]
+          },
+          {
+            "component": "visible_agent",
+            "stage": "clarte_task",
+            "attempt": 2,
+            "accepted": true,
+            "issues": [],
+            "retry_triggered_by": [
+              "clarte_missing_exact_potion_name",
+              "clarte_missing_potion_name"
+            ]
+          },
+          {
+            "component": "visible_stage",
+            "event": "complete",
+            "stage": "clarte_task"
+          }
+        ],
+        "handoff": {
+          "target": "state_potions"
+        },
+        "platform_handoff": {
+          "operation_type": "select_state_potion",
+          "status": "delivered",
+          "surface_id": "state_potions",
+          "reason_code": "clarte_apply_attempt_no_chat_execution",
+          "no_chat_mutation": true,
+          "draft": null
+        }
+      },
+      "effect_ledger": {
+        "turn_id": "qa-demotivation-local-flow-r1-t06",
+        "counts": {
+          "requested": 0,
+          "allowed": 0,
+          "blocked": 0,
+          "committed": 0,
+          "failed": 0,
+          "proposed": 0,
+          "delivered": 1,
+          "cancelled": 0,
+          "superseded": 0,
+          "asked": 0,
+          "resolved": 0,
+          "topic_change": 0
+        },
+        "entries": [
+          {
+            "effect_id": "qa-demotivation-local-flow-r1-t06:platform_handoff:delivered:select_state_potion:runtime",
+            "kind": "platform_handoff",
+            "effect_type": "platform_handoff.select_state_potion",
+            "operation_type": "select_state_potion",
+            "operation_id": null,
+            "committed_id": null,
+            "tool_id": "select_state_potion.clarte",
+            "status": "delivered",
+            "reason_code": "clarte_apply_attempt_no_chat_execution",
+            "source": "tool_skill",
+            "payload_summary": {
+              "no_chat_mutation": true,
+              "status": "apply_attempt",
+              "surface_id": "state_potions"
+            },
+            "db_ref": null,
+            "error_message": null,
+            "surface_id": "state_potions",
+            "no_chat_mutation": true,
+            "committed": false,
+            "executed_tool": false,
+            "owner": null,
+            "ambiguity_kind": null,
+            "selected_candidate_id": null
+          }
+        ]
+      },
+      "response_owner": "tool_skill"
+    },
+    "trace_error": null
+  }
+}

@@ -1,0 +1,128 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-action-understanding-after-mini-clean-r3-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je suis un peu perdue là. Cette semaine je suis censée faire quoi exactement ? Et nettoyer mon environnement direct, c'est un truc à refaire tous les jours ou c'est autre chose ?",
+    "assistant": "Ah mince… t’es perdue, et c’est normal quand c’est “censé” être clair mais que ça ne l’est pas. 😕🧠\n\nSans ton planning exact sous les yeux ici, je peux pas te dire “cette semaine = X” mot pour mot. Mais je peux te clarifier tout de suite la 2e partie :\n- Nettoyer ton environnement direct, c’est généralement plutôt un “rituel” régulier (souvent quotidien ou quasi-quotidien), mais avec une version légère tous les jours et une version plus profonde une autre fois. En gros: on ne refait pas forcément la même intensité tous les jours.\n\nPour que je te donne la réponse exacte sur “cette semaine”, tu peux me copier-coller les lignes/points de ta semaine (ou une capture du texte) ? (même juste 5-6 bullet points) ✅",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "conversation_handler",
+    "selected_handler": "execution_breakdown",
+    "route_reason_code": "skill_entry_signal",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": {
+      "output": {
+        "reply": "On ne cherche pas encore la solution parfaite. On cherche le point exact ou ca bloque: demarrage, energie, flou, peur, ou environnement.",
+        "status": "continue",
+        "skill_id": "execution_breakdown",
+        "diagnosis": {
+          "stage": "diagnosis",
+          "blocker_candidates": [
+            "flou",
+            "energie",
+            "friction_demarrage"
+          ]
+        },
+        "state_patch": {
+          "summary": "Execution blocker diagnosis in progress."
+        },
+        "memory_trace": {
+          "correction_detected": false,
+          "memory_item_ids_used": [],
+          "memory_used_for_response": false,
+          "correction_target_item_ids": []
+        },
+        "response_intent": "diagnose_blocker",
+        "recommendation_need": {
+          "type": "execution_repair",
+          "needed": true,
+          "urgency": "medium",
+          "constraints": [
+            "understand_before_solution"
+          ]
+        },
+        "operation_suggestions": [
+          {
+            "reason": "clear_execution_block_can_use_attack_card",
+            "urgency": "medium",
+            "operation_type": "prepare_attack_card",
+            "confidence_band": "medium",
+            "source_skill_id": "execution_breakdown",
+            "operation_input_hint": {
+              "scope": {
+                "kind": "plan_item",
+                "title": "Nettoyer ton environnement direct",
+                "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0"
+              },
+              "target": {
+                "kind": "plan_item",
+                "title": "Nettoyer ton environnement direct",
+                "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0"
+              },
+              "blocker": {
+                "type": "execution_block"
+              }
+            },
+            "requires_user_consent": true
+          }
+        ],
+        "memory_write_candidates": [
+          {
+            "kind": "statement",
+            "scope_hint": "session",
+            "content_text": "Je suis un peu perdue là. Cette semaine je suis censée faire quoi exactement ? Et nettoyer mon environnement direct, c'est un truc à refaire tous les jours ou c'est autre chose ?",
+            "confidence_band": "medium",
+            "sensitivity_level": 1,
+            "evidence_source_ids": [
+              "5bd609a3-fa90-45e7-bacf-d3d539763ca8"
+            ],
+            "persistence_rationale": "Conversation skill observation; memorizer decides durable persistence.",
+            "should_persist_default": false,
+            "anti_identity_freeze_checked": true
+          }
+        ]
+      },
+      "reason_code": "skill_entry_signal",
+      "selected_skill_id": "execution_breakdown"
+    },
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "recommendation_tool_run": {
+      "stats": null,
+      "recommendation": {
+        "reason": "cooldown_or_contraindications_exhausted_surfaces",
+        "timing": "later",
+        "decision": "defer",
+        "cta_style": "none",
+        "confidence": 0.7,
+        "alternatives": [],
+        "do_not_recommend": [],
+        "requires_consent": false,
+        "recommendation_id": "rec_qa-operation-suggestion-test3-nina-2026-05-12-test3-action-understanding-after-mini-clean-r3-t01_1778846958206",
+        "presentation_level": 0
+      }
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-action-understanding-after-mini-clean-r3-t01",
+    "trace_error": null
+  }
+]

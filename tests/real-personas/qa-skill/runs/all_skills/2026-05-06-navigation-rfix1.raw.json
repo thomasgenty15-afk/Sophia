@@ -1,0 +1,61 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-all-skills-navigation-2026-05-06-rfix1-t01",
+    "user": "dans Sophia, le dashboard sert a quoi exactement quand j'ai deja un plan ?",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-all-skills-navigation-2026-05-06-rfix1-t01",
+      "user_id": "441bd30c-0e9a-4363-9595-d7b713961611",
+      "channel": "web",
+      "scope": "qa-all-skills-navigation-2026-05-06-rfix1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je peux t'expliquer le fonctionnement et te dire ou agir, mais je ne lance rien depuis l'aide produit.",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-all-skills-navigation-2026-05-06-rfix1-t02",
+    "user": "ok, et si je veux ajuster une action sans tout refaire, je dois passer par quelle partie ?",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-all-skills-navigation-2026-05-06-rfix1-t02",
+      "user_id": "441bd30c-0e9a-4363-9595-d7b713961611",
+      "channel": "web",
+      "scope": "qa-all-skills-navigation-2026-05-06-rfix1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je peux t'expliquer le fonctionnement et te dire ou agir, mais je ne lance rien depuis l'aide produit.",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-all-skills-navigation-2026-05-06-rfix1-t03",
+    "user": "je demande parce que mon plan a une action admin et je ne sais pas si je dois la modifier ou juste la traiter ici",
+    "status": null,
+    "error": "This operation was aborted"
+  }
+]

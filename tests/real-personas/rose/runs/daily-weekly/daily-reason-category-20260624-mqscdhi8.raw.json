@@ -1,0 +1,93 @@
+{
+  "run": {
+    "run_id": "daily-reason-category-20260624-mqscdhi8",
+    "persona": "rose",
+    "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+    "auth_user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+    "start_iso": "2026-06-24T17:23:08.753Z",
+    "turns": [],
+    "target_titles": [
+      "Faire cinq minutes de respiration calme",
+      "Ranger deux papiers administratifs"
+    ],
+    "error": {
+      "message": "400 http://127.0.0.1:54321/rest/v1/chat_messages: {\"code\":\"22P02\",\"details\":null,\"hint\":null,\"message\":\"invalid input value for enum chat_agent_mode: \\\"daily_action_review_opening_fixture\\\"\"}",
+      "stack": "Error: 400 http://127.0.0.1:54321/rest/v1/chat_messages: {\"code\":\"22P02\",\"details\":null,\"hint\":null,\"message\":\"invalid input value for enum chat_agent_mode: \\\"daily_action_review_opening_fixture\\\"\"}\n    at jsonFetch (file:///Users/ahmedamara/Dev/Sophia%202/tmp/qa_daily_reason_category_real_20260624.mjs:110:17)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async rest (file:///Users/ahmedamara/Dev/Sophia%202/tmp/qa_daily_reason_category_real_20260624.mjs:119:10)\n    at async insert (file:///Users/ahmedamara/Dev/Sophia%202/tmp/qa_daily_reason_category_real_20260624.mjs:136:17)\n    at async createDirectDailyPending (file:///Users/ahmedamara/Dev/Sophia%202/tmp/qa_daily_reason_category_real_20260624.mjs:458:19)\n    at async main (file:///Users/ahmedamara/Dev/Sophia%202/tmp/qa_daily_reason_category_real_20260624.mjs:745:27)\n    at async file:///Users/ahmedamara/Dev/Sophia%202/tmp/qa_daily_reason_category_real_20260624.mjs:808:1"
+    }
+  },
+  "cleanup": {
+    "deleted": {
+      "user_plan_item_entries": 0,
+      "whatsapp_pending_actions": 1,
+      "chat_messages": 0,
+      "scheduled_checkins": 1,
+      "user_habit_week_occurrences": 2,
+      "user_plan_items": 2,
+      "user_plans_v2": 1
+    },
+    "restored": [],
+    "verification": {
+      "pending": [],
+      "entries": [],
+      "checkin": []
+    }
+  },
+  "touched": {
+    "planIds": [
+      "bc11a82c-9ba6-4e94-bfa4-45339a19d3d9"
+    ],
+    "itemIds": [
+      "ff94e897-ba39-4bab-b841-71d4a49e9e11",
+      "4c06f60c-d947-4319-9abf-8d0a1cad8a5f"
+    ],
+    "occurrenceIds": [
+      "e7941e93-2146-457e-ab53-1fb6dcd1e0d6",
+      "40dfe00a-1dbc-49f9-804c-270f54b201bd"
+    ],
+    "targets": [
+      {
+        "occurrence_id": "e7941e93-2146-457e-ab53-1fb6dcd1e0d6",
+        "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+        "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+        "plan_id": "bc11a82c-9ba6-4e94-bfa4-45339a19d3d9",
+        "plan_label": null,
+        "plan_item_id": "ff94e897-ba39-4bab-b841-71d4a49e9e11",
+        "title": "Faire cinq minutes de respiration calme",
+        "description": "S'asseoir, respirer lentement cinq minutes et traverser l'envie de fumer sans allumer de joint.",
+        "dimension": "missions",
+        "kind": "task",
+        "tracking_type": "boolean",
+        "planned_day": "wed",
+        "original_planned_day": null,
+        "week_start_date": "2026-06-22",
+        "time_of_day": "anytime",
+        "reviewed_local_date": "2026-06-24"
+      },
+      {
+        "occurrence_id": "40dfe00a-1dbc-49f9-804c-270f54b201bd",
+        "cycle_id": "f5b0fa6b-d029-40a3-9fd1-c7cd586831be",
+        "transformation_id": "d3e847f5-0664-475d-9303-9b79a3759526",
+        "plan_id": "bc11a82c-9ba6-4e94-bfa4-45339a19d3d9",
+        "plan_label": null,
+        "plan_item_id": "4c06f60c-d947-4319-9abf-8d0a1cad8a5f",
+        "title": "Ranger deux papiers administratifs",
+        "description": "Choisir deux courriers, les trier puis les ranger ou les jeter.",
+        "dimension": "missions",
+        "kind": "task",
+        "tracking_type": "boolean",
+        "planned_day": "wed",
+        "original_planned_day": null,
+        "week_start_date": "2026-06-22",
+        "time_of_day": "anytime",
+        "reviewed_local_date": "2026-06-24"
+      }
+    ],
+    "checkinId": "0a7606f5-85bd-4550-b0d9-08d181ce810b",
+    "pendingIds": [
+      "b85df58b-bebe-4959-94d7-633d106abb55"
+    ],
+    "entryIds": [],
+    "chatMessageIds": [],
+    "deferredCheckins": []
+  }
+}

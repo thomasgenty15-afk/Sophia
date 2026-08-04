@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { isEmailDeliveryEnabled } from "./delivery.ts";
 
 function sleep(ms: number) {
   return new Promise<void>((resolve) => setTimeout(resolve, ms));
@@ -27,6 +28,10 @@ export async function sendResendEmail(opts: {
   from?: string;
   maxAttempts?: number;
 }): Promise<{ ok: true; data: any; skipped?: boolean } | { ok: false; error: string; status?: number; data?: any }> {
+  if (!isEmailDeliveryEnabled()) {
+    return { ok: true, skipped: true, data: { id: "resend_DISABLED", delivery_disabled: true } };
+  }
+
   // In tests/local deterministic runs we never want to send real emails.
   if (isMegaTestMode()) {
     return { ok: true, skipped: true, data: { id: "resend_MEGA_TEST" } };
@@ -83,7 +88,6 @@ export async function sendResendEmail(opts: {
 
   return { ok: false, error: "Resend retry exhausted" };
 }
-
 
 
 

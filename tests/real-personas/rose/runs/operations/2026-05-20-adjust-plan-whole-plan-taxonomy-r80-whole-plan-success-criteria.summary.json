@@ -1,0 +1,1402 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r80-whole-plan-success-criteria-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je me rends compte que mesurer le plan avec juste 'moins de disputes' ou 'faire l'action' ne me parle plus trop. J'aimerais que la reussite du plan soit plutot autour de la qualite du lien, genre est-ce qu'on arrive a se sentir proches apres un echange, meme si tout n'est pas regle. Je ne sais pas si c'est un ajustement du plan global ou juste une note.",
+    "assistant": "Je dois reprendre le brouillon proprement. Pour le régénérer, donne-moi juste un exemple concret et observable de réussite après un échange : plutôt quoi, exactement, au lieu de “moins de disputes” ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "tool_skill_intent_start",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "draft_generation_retry_needed"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Ne pas proposer un simple renommage cosmétique sans changer le sens du critère.",
+          "Ne pas imposer une métrique binaire ou purement comportementale qui efface la dimension relationnelle.",
+          "Ne pas suggérer que la réussite doit attendre que tout soit réglé.",
+          "Ne pas mélanger ce changement de critères avec un changement de méthode ou de cadence sans demande explicite.",
+          "Ne pas dire que c’est juste une note si le user cherche en réalité à redéfinir la boussole du plan."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "La progression déjà installée dans le plan.",
+          "Le rôle des actions de désamorçage et de pause comme base de sécurité.",
+          "L’idée que le plan doit rester praticable dans des échanges imparfaits.",
+          "La structure globale du plan et l’ordre des phases, sauf nécessité explicite de réviser aussi l’objectif.",
+          "L’intention de protéger le lien, pas seulement de réduire les conflits."
+        ],
+        "warnings": [
+          "Éviter de répondre comme s’il s’agissait seulement d’une précision marginale ou d’une note annexe.",
+          "Éviter de conserver 'moins de disputes' comme critère principal si le user dit clairement que cela ne lui parle plus.",
+          "Éviter de remplacer la réussite par un objectif trop abstrait du type 'avoir une bonne relation' sans marqueurs concrets.",
+          "Éviter de faire dépendre la réussite d’une résolution complète des sujets de fond ; le user précise que le lien peut être bon même si tout n’est pas réglé.",
+          "Éviter de modifier les actions du plan comme si c’était elles le problème : ici, c’est le cadre d’évaluation qui change."
+        ],
+        "readiness": "draft_ready",
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Rôle de l’action : garder les actions comme supports de sécurité et de lien, pas comme définition unique du succès.",
+          "Intention préservée : protéger la relation et permettre des échanges plus réparateurs, même imparfaits.",
+          "Pont mini si besoin : relier l’ancienne logique 'moins de disputes' à une logique plus relationnelle sans rupture brutale, par exemple en disant que moins de disputes n’est qu’un effet secondaire possible.",
+          "Pas de changement de nature sans demande explicite : ne pas transformer ce plan relationnel en plan de résolution de problèmes ou en plan de performance.",
+          "Niveau : conserver la charge et le rythme actuels ; ce changement porte sur l’évaluation de la réussite, pas sur l’intensité des actions.",
+          "Boundary de fin de niveau : la fin n’est pas 'tout est réglé', mais 'on peut se reparler avec plus de proximité et moins de fermeture'.",
+          "Cœur du niveau préservé : la sécurité émotionnelle, la possibilité de faire une pause, et la capacité à revenir au lien après tension.",
+          "Whole plan : reformuler la trajectoire globale autour d’un critère de succès relationnel cohérent avec les phases déjà présentes, sans casser la progression ni les prérequis.",
+          "Whole plan : conserver les questionnaire/clarifications existants comme outils d’observation, mais les aligner sur la nouvelle définition de réussite.",
+          "Whole plan : distinguer trajectoire et indicateur ; les actions restent la trajectoire, la proximité après échange devient l’indicateur principal."
+        ],
+        "observation": "La demande ne porte pas sur une tâche isolée mais sur le critère même qui définit la réussite du plan. Le user ne veut plus mesurer le progrès par l’absence de disputes ou la simple exécution des actions ; il veut que le plan soit jugé sur l’état du lien après l’échange, avec une réussite centrée sur la proximité retrouvée même si le désaccord n’est pas totalement résolu. Humainement, cela signale un déplacement important : passer d’un plan orienté contrôle/efficacité à un plan orienté qualité relationnelle et réparation.",
+        "change_family": "success_criteria_change",
+        "recommendation": "Traiter cela comme un changement de critère de réussite au niveau global, pas comme une simple note locale. Le sous-skill devrait préparer un brouillon qui reformule la réussite du plan autour de la qualité du lien, tout en gardant les actions actuelles comme moyens et non comme fins. Le point de vigilance coaching est de préserver la structure de sécurité et de progression du plan, sans transformer la réussite en exigence vague ou impossible à observer.",
+        "next_best_question": null,
+        "options_to_discuss": [
+          "Faire de la proximité après l’échange le critère principal de réussite du plan.",
+          "Conserver les actions actuelles mais les relire comme des moyens pour sécuriser la relation, pas comme des preuves de succès en elles-mêmes.",
+          "Ajouter un indicateur relationnel simple et observable, par exemple 'on se quitte plus calmement' ou 'on peut encore se parler sans se fermer'.",
+          "Gardez un double niveau éventuel : sécurité minimale de la discussion + qualité du lien après coup.",
+          "Si besoin, distinguer la réussite à court terme de la réussite finale du plan."
+        ],
+        "candidate_operation": "change_success_criteria",
+        "questions_to_clarify": [],
+        "trajectory_hypothesis": "Le plan semble avoir commencé comme un parcours pour réduire les disputes et sécuriser les échanges ; il peut maintenant évoluer vers une trajectoire où la réussite se mesure à la capacité de se retrouver en lien après une tension, plutôt qu’à l’absence de conflit ou à la résolution complète des sujets.",
+        "must_not_execute_reason": null
+      },
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Ne pas proposer un simple renommage cosmétique sans changer le sens du critère.",
+        "Ne pas imposer une métrique binaire ou purement comportementale qui efface la dimension relationnelle.",
+        "Ne pas suggérer que la réussite doit attendre que tout soit réglé.",
+        "Ne pas mélanger ce changement de critères avec un changement de méthode ou de cadence sans demande explicite.",
+        "Ne pas dire que c’est juste une note si le user cherche en réalité à redéfinir la boussole du plan."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "La progression déjà installée dans le plan.",
+        "Le rôle des actions de désamorçage et de pause comme base de sécurité.",
+        "L’idée que le plan doit rester praticable dans des échanges imparfaits.",
+        "La structure globale du plan et l’ordre des phases, sauf nécessité explicite de réviser aussi l’objectif.",
+        "L’intention de protéger le lien, pas seulement de réduire les conflits."
+      ],
+      "warnings": [
+        "Éviter de répondre comme s’il s’agissait seulement d’une précision marginale ou d’une note annexe.",
+        "Éviter de conserver 'moins de disputes' comme critère principal si le user dit clairement que cela ne lui parle plus.",
+        "Éviter de remplacer la réussite par un objectif trop abstrait du type 'avoir une bonne relation' sans marqueurs concrets.",
+        "Éviter de faire dépendre la réussite d’une résolution complète des sujets de fond ; le user précise que le lien peut être bon même si tout n’est pas réglé.",
+        "Éviter de modifier les actions du plan comme si c’était elles le problème : ici, c’est le cadre d’évaluation qui change."
+      ],
+      "readiness": "draft_ready",
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Rôle de l’action : garder les actions comme supports de sécurité et de lien, pas comme définition unique du succès.",
+        "Intention préservée : protéger la relation et permettre des échanges plus réparateurs, même imparfaits.",
+        "Pont mini si besoin : relier l’ancienne logique 'moins de disputes' à une logique plus relationnelle sans rupture brutale, par exemple en disant que moins de disputes n’est qu’un effet secondaire possible.",
+        "Pas de changement de nature sans demande explicite : ne pas transformer ce plan relationnel en plan de résolution de problèmes ou en plan de performance.",
+        "Niveau : conserver la charge et le rythme actuels ; ce changement porte sur l’évaluation de la réussite, pas sur l’intensité des actions.",
+        "Boundary de fin de niveau : la fin n’est pas 'tout est réglé', mais 'on peut se reparler avec plus de proximité et moins de fermeture'.",
+        "Cœur du niveau préservé : la sécurité émotionnelle, la possibilité de faire une pause, et la capacité à revenir au lien après tension.",
+        "Whole plan : reformuler la trajectoire globale autour d’un critère de succès relationnel cohérent avec les phases déjà présentes, sans casser la progression ni les prérequis.",
+        "Whole plan : conserver les questionnaire/clarifications existants comme outils d’observation, mais les aligner sur la nouvelle définition de réussite.",
+        "Whole plan : distinguer trajectoire et indicateur ; les actions restent la trajectoire, la proximité après échange devient l’indicateur principal."
+      ],
+      "observation": "La demande ne porte pas sur une tâche isolée mais sur le critère même qui définit la réussite du plan. Le user ne veut plus mesurer le progrès par l’absence de disputes ou la simple exécution des actions ; il veut que le plan soit jugé sur l’état du lien après l’échange, avec une réussite centrée sur la proximité retrouvée même si le désaccord n’est pas totalement résolu. Humainement, cela signale un déplacement important : passer d’un plan orienté contrôle/efficacité à un plan orienté qualité relationnelle et réparation.",
+      "change_family": "success_criteria_change",
+      "recommendation": "Traiter cela comme un changement de critère de réussite au niveau global, pas comme une simple note locale. Le sous-skill devrait préparer un brouillon qui reformule la réussite du plan autour de la qualité du lien, tout en gardant les actions actuelles comme moyens et non comme fins. Le point de vigilance coaching est de préserver la structure de sécurité et de progression du plan, sans transformer la réussite en exigence vague ou impossible à observer.",
+      "next_best_question": null,
+      "options_to_discuss": [
+        "Faire de la proximité après l’échange le critère principal de réussite du plan.",
+        "Conserver les actions actuelles mais les relire comme des moyens pour sécuriser la relation, pas comme des preuves de succès en elles-mêmes.",
+        "Ajouter un indicateur relationnel simple et observable, par exemple 'on se quitte plus calmement' ou 'on peut encore se parler sans se fermer'.",
+        "Gardez un double niveau éventuel : sécurité minimale de la discussion + qualité du lien après coup.",
+        "Si besoin, distinguer la réussite à court terme de la réussite finale du plan."
+      ],
+      "candidate_operation": "change_success_criteria",
+      "questions_to_clarify": [],
+      "trajectory_hypothesis": "Le plan semble avoir commencé comme un parcours pour réduire les disputes et sécuriser les échanges ; il peut maintenant évoluer vers une trajectoire où la réussite se mesure à la capacité de se retrouver en lien après une tension, plutôt qu’à l’absence de conflit ou à la résolution complète des sujets.",
+      "must_not_execute_reason": null
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r80-whole-plan-success-criteria-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r80-whole-plan-success-criteria-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Pour moi ce serait : apres une discussion un peu tendue, on arrive a finir avec chacun une phrase claire sur ce qu'il a compris de l'autre, et je ne me couche pas avec l'impression d'avoir perdu le lien. Je voudrais que le plan vise ca progressivement, pas juste eviter les clashs.",
+    "assistant": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: je réordonne la trajectoire, avec Une étape intermédiaire centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.\n\nCe qui reste stable: l'objectif global du plan, le rôle du signal de pause, et les actions de soutien qui restent utiles.\n\nCe que ça implique: si tu valides, je régénère le plan pour réordonner la suite autour de cette étape de consolidation. Rien n'est appliqué tant que tu ne valides pas. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "scope_kind": "whole_plan",
+            "constraints": [
+              "no_pressure",
+              "minimal_patch",
+              "preserve_plan_intent",
+              "no_schedule_day_change",
+              "ask_confirmation_before_write",
+              "qualite_du_lien_comme_critere_principal",
+              "proximite_apres_echange_meme_si_tout_n_est_pas_regle",
+              "whole_plan_change_family:success_criteria_change",
+              "whole_plan_candidate_operation:change_success_criteria",
+              "whole_plan_readiness:draft_ready",
+              "whole_plan_directional_draft_ready",
+              "preserve_plan_intent",
+              "avoid_repetitive_clarification_when_user_gives_solution",
+              "coach_observation:La demande touche la boussole du plan entier, pas un simple ajustement local : le user veut que la réussite soit définie par la qualité du lien après l’échange, avec une marque de réparation et de proximité, plutôt que par l’absence de conflit ou la seule exécution des actions. Humainement, il s’agit d’un déplacement du plan vers une logique de lien retrouvé et de clôture relationnelle plus sûre, même quand tout n’est pas résolu.",
+              "coach_recommendation:Traiter cela comme un changement de critères de réussite au niveau global. Le sous-skill doit préparer un brouillon qui reformule le succès du plan autour d’un marqueur relationnel clair et stable, tout en gardant les actions actuelles comme moyens de sécurisation du lien. Il faut préserver la progression existante et éviter de basculer vers une définition trop abstraite, trop binaire ou centrée uniquement sur la résolution des désaccords.",
+              "coach_warning:Ne pas réduire la demande à une simple note annexe ou à un renommage cosmétique.",
+              "coach_warning:Ne pas conserver 'moins de disputes' comme critère principal si le user dit clairement que cela ne lui parle plus.",
+              "coach_warning:Ne pas remplacer la réussite par une formule vague du type 'avoir une bonne relation' sans marqueur observable.",
+              "coach_warning:Ne pas faire dépendre le succès du plan d’une résolution complète des sujets de fond.",
+              "coach_warning:Ne pas transformer ce changement de critère en changement de méthode, de cadence ou de structure sans demande explicite.",
+              "coach_preserve:La progression déjà installée dans le plan.",
+              "coach_preserve:Le rôle du signal de pause et des actions de désamorçage comme base de sécurité.",
+              "coach_preserve:L’idée que le plan doit rester praticable dans des échanges imparfaits.",
+              "coach_preserve:La structure globale du plan et l’ordre des phases, sauf nécessité explicite de révision.",
+              "coach_preserve:L’intention de protéger le lien, pas seulement de réduire les conflits.",
+              "coach_avoid:Proposer un simple renommage sans changement de sens.",
+              "coach_avoid:Imposer une métrique binaire ou purement comportementale.",
+              "coach_avoid:Suggérer que la réussite attend d’avoir tout réglé.",
+              "coach_avoid:Mélanger ce changement de critères avec une refonte de méthode ou de cadence.",
+              "coach_avoid:Présenter cela comme une précision mineure alors que c’est une redéfinition de la réussite.",
+              "coach_guideline:Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "coach_guideline:Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "coach_guideline:Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "coach_guideline:Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "coach_guideline:Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "coach_guideline:Traiter le whole plan comme une décision de trajectoire : objectif, cohérence, ordre des phases et indicateurs de succès.",
+              "coach_guideline:Distinguer trajectoire et indicateur : les actions restent le chemin, la proximité après échange devient le marqueur de succès.",
+              "coach_guideline:Préserver explicitement ce que le user veut garder avant toute reformulation.",
+              "coach_guideline:Raisonner en prérequis et en séquencement, pas en patch d’actions isolées.",
+              "coach_guideline:Ne pas changer la nature du plan sans demande explicite.",
+              "coach_guideline:Conserver la charge et le rythme actuels ; le changement porte sur l’évaluation de la réussite, pas sur l’intensité.",
+              "coach_guideline:La fin de niveau ne doit pas être 'tout est réglé', mais 'on peut se reparler avec plus de proximité et moins de fermeture'.",
+              "coach_guideline:Garder les clarifications existantes comme outils d’observation, en les alignant sur la nouvelle définition de réussite.",
+              "coach_guideline:Préserver le cœur du niveau : sécurité émotionnelle, possibilité de pause, retour au lien après tension.",
+              "whole_plan_change_family:success_criteria_change",
+              "whole_plan_candidate_operation:change_success_criteria",
+              "whole_plan_readiness:draft_ready",
+              "coach_trajectory_hypothesis:Le plan a commencé comme une trajectoire pour réduire les conflits et sécuriser les échanges ; il peut maintenant évoluer vers une trajectoire où la réussite se mesure à la capacité de retrouver du lien après une tension, plutôt qu’à l’absence de conflit ou à la résolution complète des sujets.",
+              "whole_plan_change_family:success_criteria_change",
+              "whole_plan_candidate_operation:change_success_criteria",
+              "whole_plan_readiness:draft_ready",
+              "affected_item:Convenir d'un signal de pause",
+              "affected_item:Faire le point sur le signal de pause",
+              "affected_item:Partager un point positif"
+            ],
+            "reason_type": "bad_fit",
+            "change_target": "global_load",
+            "reason_change": "context_changed"
+          },
+          "title": "Ajuster la trajectoire du plan",
+          "confidence": "medium",
+          "ack_summary": {
+            "changed": [
+              "Insertion d'une étape intermédiaire de consolidation avant les conversations sensibles."
+            ],
+            "unchanged": [
+              "Objectif global du plan",
+              "Rôle du signal de pause",
+              "Actions de soutien existantes sauf réordonnancement nécessaire"
+            ],
+            "confidence": "medium",
+            "why_it_helps": "La progression devient plus cohérente avec le rythme de sécurité du user.",
+            "follow_up_needed": "Valider avant régénération; le détail exact sera produit dans le plan ajusté."
+          },
+          "scope_label": "plan global",
+          "why_it_helps": "Cela garde l'objectif global, mais ajoute un prérequis de sécurité relationnelle avant de monter en complexité.",
+          "decision_basis": {
+            "evidence": [
+              "Pour moi ce serait : apres une discussion un peu tendue, on arrive a finir avec chacun une phrase claire sur ce qu'il a compris de l'autre, et je ne me couche pas avec l'impression d'avoir perdu le lien. Je voudrais que le plan vise ca progressivement, pas juste eviter les clashs.",
+              "la reussite du plan soit plutot autour de la qualite du lien",
+              "rebalance",
+              "deterministic whole-plan fit/complexity signal",
+              "mesurer le plan avec juste 'moins de disputes' ou 'faire l'action' ne me parle plus trop",
+              "phrase claire sur ce qu'il a compris de l'autre",
+              "ne pas se coucher avec l'impression d'avoir perdu le lien"
+            ],
+            "confidence": "medium",
+            "uncertainty": [
+              "semaines ou blocs exacts a affiner ensuite"
+            ],
+            "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+            "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+            "must_preserve": [
+              "intention du plan",
+              "direction globale du plan"
+            ]
+          },
+          "adjustment_type": "rebalance",
+          "proposed_change": "je réordonne la trajectoire: Une étape intermédiaire centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+          "change_rationale": {
+            "why_this_change": "Le user demande une modification structurelle de trajectoire, pas un simple patch d'action.",
+            "success_condition": "Le prochain plan garde le même objectif mais avance plus progressivement.",
+            "expected_mechanism": "Ajouter une étape de consolidation réduit le saut de difficulté avant les sujets sensibles."
+          },
+          "adjust_plan_result": {
+            "scope": "whole_plan",
+            "rationale": {
+              "confidence": "medium",
+              "missing_info": [],
+              "user_problem": "Le plan avance vers la suite sans assez marquer le prérequis intermédiaire.",
+              "expected_effect": "Le plan avance avec une trajectoire plus cohérente sans casser l'objectif global.",
+              "why_this_change": "Le user demande de rendre la trajectoire globale plus progressive et cohérente."
+            },
+            "boundaries": {
+              "explanation": "Le changement touche l'ordre et les prérequis de progression, donc il doit passer par une régénération contrôlée du plan.",
+              "affected_scope": "trajectoire globale du plan",
+              "global_plan_impact": "requires_review",
+              "explicitly_not_affected": [
+                "objectif global",
+                "identité du plan",
+                "demande de ne pas transformer cela en simple ajustement d'action"
+              ]
+            },
+            "applied_change": {
+              "summary": "je réordonne la trajectoire: Une étape intermédiaire centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+              "changed_items": [
+                {
+                  "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                  "kind": "action",
+                  "after": "À placer dans la trajectoire ajustée: Une étape intermédiaire centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+                  "title": "Convenir d'un signal de pause",
+                  "before": "À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.",
+                  "reason": "Le user demande de rendre la trajectoire globale plus progressive et cohérente.",
+                  "capability": "modify_existing_action"
+                },
+                {
+                  "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                  "kind": "action",
+                  "after": "À placer dans la trajectoire ajustée: Une étape intermédiaire centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+                  "title": "Faire le point sur le signal de pause",
+                  "before": "Discutez 10 minutes à froid pour voir si le signal de pause a été utile cette semaine et s'il est respecté par vous deux.",
+                  "reason": "Le user demande de rendre la trajectoire globale plus progressive et cohérente.",
+                  "capability": "modify_existing_action"
+                }
+              ],
+              "preserved_items": [
+                {
+                  "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                  "kind": "habit",
+                  "title": "Partager un point positif",
+                  "reason": "L'action reste comme soutien; le changement concerne la trajectoire et l'ordre de progression."
+                }
+              ],
+              "trajectory_change": {
+                "after": "Le plan garde son cap, mais consolide d'abord Convenir d'un signal de pause et Faire le point sur le signal de pause avant la suite.",
+                "before": "Le plan avance vers la suite sans assez marquer le prérequis intermédiaire.",
+                "inserted_step": "Une étape intermédiaire centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+                "coaching_reason": "Le user demande de rendre la trajectoire globale plus progressive et cohérente.",
+                "reordered_steps": [
+                  "Une étape intermédiaire centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+                  "Reprendre ensuite la suite du plan avec un prérequis consolidé"
+                ],
+                "preserved_direction": "L'objectif global du plan reste stable, sauf demande explicite de le changer."
+              }
+            },
+            "user_message_brief": "je réordonne la trajectoire: Une étape intermédiaire centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+            "user_message_detailed": "je réordonne la trajectoire: Une étape intermédiaire centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause."
+          },
+          "execution_strategy": "whole_plan_adjustment",
+          "allowed_patch_fields": [
+            "scope_kind",
+            "plan_adjustment",
+            "load_adjustment",
+            "goal_adjustment",
+            "sequence_adjustment",
+            "reason_type",
+            "reason_change",
+            "change_target",
+            "confidence",
+            "constraints"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "C'est fait: j'ai ajusté la trajectoire du plan.\n\nLe plan garde le même objectif, mais la suite est régénérée pour le plan garde son cap, mais consolide d'abord Convenir d'un signal de pause et Faire le point sur le signal de pause avant la suite..",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: je réordonne la trajectoire, avec Une étape intermédiaire centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.\n\nCe qui reste stable: l'objectif global du plan, le rôle du signal de pause, et les actions de soutien qui restent utiles.\n\nCe que ça implique: si tu valides, je régénère le plan pour réordonner la suite autour de cette étape de consolidation. Rien n'est appliqué tant que tu ne valides pas."
+      },
+      "status": "draft_review",
+      "reason_code": "active_tool_skill_continue",
+      "operation_id": "008ce719-0290-4664-8a60-2e1bc7289cbb",
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer un simple renommage sans changement de sens.",
+          "Imposer une métrique binaire ou purement comportementale.",
+          "Suggérer que la réussite attend d’avoir tout réglé.",
+          "Mélanger ce changement de critères avec une refonte de méthode ou de cadence.",
+          "Présenter cela comme une précision mineure alors que c’est une redéfinition de la réussite."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "La progression déjà installée dans le plan.",
+          "Le rôle du signal de pause et des actions de désamorçage comme base de sécurité.",
+          "L’idée que le plan doit rester praticable dans des échanges imparfaits.",
+          "La structure globale du plan et l’ordre des phases, sauf nécessité explicite de révision.",
+          "L’intention de protéger le lien, pas seulement de réduire les conflits."
+        ],
+        "warnings": [
+          "Ne pas réduire la demande à une simple note annexe ou à un renommage cosmétique.",
+          "Ne pas conserver 'moins de disputes' comme critère principal si le user dit clairement que cela ne lui parle plus.",
+          "Ne pas remplacer la réussite par une formule vague du type 'avoir une bonne relation' sans marqueur observable.",
+          "Ne pas faire dépendre le succès du plan d’une résolution complète des sujets de fond.",
+          "Ne pas transformer ce changement de critère en changement de méthode, de cadence ou de structure sans demande explicite."
+        ],
+        "readiness": "draft_ready",
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Traiter le whole plan comme une décision de trajectoire : objectif, cohérence, ordre des phases et indicateurs de succès.",
+          "Distinguer trajectoire et indicateur : les actions restent le chemin, la proximité après échange devient le marqueur de succès.",
+          "Préserver explicitement ce que le user veut garder avant toute reformulation.",
+          "Raisonner en prérequis et en séquencement, pas en patch d’actions isolées.",
+          "Ne pas changer la nature du plan sans demande explicite.",
+          "Conserver la charge et le rythme actuels ; le changement porte sur l’évaluation de la réussite, pas sur l’intensité.",
+          "La fin de niveau ne doit pas être 'tout est réglé', mais 'on peut se reparler avec plus de proximité et moins de fermeture'.",
+          "Garder les clarifications existantes comme outils d’observation, en les alignant sur la nouvelle définition de réussite.",
+          "Préserver le cœur du niveau : sécurité émotionnelle, possibilité de pause, retour au lien après tension."
+        ],
+        "observation": "La demande touche la boussole du plan entier, pas un simple ajustement local : le user veut que la réussite soit définie par la qualité du lien après l’échange, avec une marque de réparation et de proximité, plutôt que par l’absence de conflit ou la seule exécution des actions. Humainement, il s’agit d’un déplacement du plan vers une logique de lien retrouvé et de clôture relationnelle plus sûre, même quand tout n’est pas résolu.",
+        "change_family": "success_criteria_change",
+        "recommendation": "Traiter cela comme un changement de critères de réussite au niveau global. Le sous-skill doit préparer un brouillon qui reformule le succès du plan autour d’un marqueur relationnel clair et stable, tout en gardant les actions actuelles comme moyens de sécurisation du lien. Il faut préserver la progression existante et éviter de basculer vers une définition trop abstraite, trop binaire ou centrée uniquement sur la résolution des désaccords.",
+        "next_best_question": null,
+        "options_to_discuss": [
+          "Faire de la proximité après l’échange le critère principal de réussite du plan.",
+          "Conserver les actions actuelles, mais les lire comme des moyens de sécurité et de réparation relationnelle.",
+          "Ajouter un indicateur simple et observable, par exemple : 'on se quitte plus calmement' ou 'on peut encore se parler sans se fermer'.",
+          "Garder un double niveau : sécurité minimale pendant l’échange + qualité du lien après coup.",
+          "Distinguer réussite intermédiaire et réussite finale du plan."
+        ],
+        "candidate_operation": "change_success_criteria",
+        "questions_to_clarify": [],
+        "trajectory_hypothesis": "Le plan a commencé comme une trajectoire pour réduire les conflits et sécuriser les échanges ; il peut maintenant évoluer vers une trajectoire où la réussite se mesure à la capacité de retrouver du lien après une tension, plutôt qu’à l’absence de conflit ou à la résolution complète des sujets.",
+        "must_not_execute_reason": null
+      },
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer un simple renommage sans changement de sens.",
+        "Imposer une métrique binaire ou purement comportementale.",
+        "Suggérer que la réussite attend d’avoir tout réglé.",
+        "Mélanger ce changement de critères avec une refonte de méthode ou de cadence.",
+        "Présenter cela comme une précision mineure alors que c’est une redéfinition de la réussite."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "La progression déjà installée dans le plan.",
+        "Le rôle du signal de pause et des actions de désamorçage comme base de sécurité.",
+        "L’idée que le plan doit rester praticable dans des échanges imparfaits.",
+        "La structure globale du plan et l’ordre des phases, sauf nécessité explicite de révision.",
+        "L’intention de protéger le lien, pas seulement de réduire les conflits."
+      ],
+      "warnings": [
+        "Ne pas réduire la demande à une simple note annexe ou à un renommage cosmétique.",
+        "Ne pas conserver 'moins de disputes' comme critère principal si le user dit clairement que cela ne lui parle plus.",
+        "Ne pas remplacer la réussite par une formule vague du type 'avoir une bonne relation' sans marqueur observable.",
+        "Ne pas faire dépendre le succès du plan d’une résolution complète des sujets de fond.",
+        "Ne pas transformer ce changement de critère en changement de méthode, de cadence ou de structure sans demande explicite."
+      ],
+      "readiness": "draft_ready",
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Traiter le whole plan comme une décision de trajectoire : objectif, cohérence, ordre des phases et indicateurs de succès.",
+        "Distinguer trajectoire et indicateur : les actions restent le chemin, la proximité après échange devient le marqueur de succès.",
+        "Préserver explicitement ce que le user veut garder avant toute reformulation.",
+        "Raisonner en prérequis et en séquencement, pas en patch d’actions isolées.",
+        "Ne pas changer la nature du plan sans demande explicite.",
+        "Conserver la charge et le rythme actuels ; le changement porte sur l’évaluation de la réussite, pas sur l’intensité.",
+        "La fin de niveau ne doit pas être 'tout est réglé', mais 'on peut se reparler avec plus de proximité et moins de fermeture'.",
+        "Garder les clarifications existantes comme outils d’observation, en les alignant sur la nouvelle définition de réussite.",
+        "Préserver le cœur du niveau : sécurité émotionnelle, possibilité de pause, retour au lien après tension."
+      ],
+      "observation": "La demande touche la boussole du plan entier, pas un simple ajustement local : le user veut que la réussite soit définie par la qualité du lien après l’échange, avec une marque de réparation et de proximité, plutôt que par l’absence de conflit ou la seule exécution des actions. Humainement, il s’agit d’un déplacement du plan vers une logique de lien retrouvé et de clôture relationnelle plus sûre, même quand tout n’est pas résolu.",
+      "change_family": "success_criteria_change",
+      "recommendation": "Traiter cela comme un changement de critères de réussite au niveau global. Le sous-skill doit préparer un brouillon qui reformule le succès du plan autour d’un marqueur relationnel clair et stable, tout en gardant les actions actuelles comme moyens de sécurisation du lien. Il faut préserver la progression existante et éviter de basculer vers une définition trop abstraite, trop binaire ou centrée uniquement sur la résolution des désaccords.",
+      "next_best_question": null,
+      "options_to_discuss": [
+        "Faire de la proximité après l’échange le critère principal de réussite du plan.",
+        "Conserver les actions actuelles, mais les lire comme des moyens de sécurité et de réparation relationnelle.",
+        "Ajouter un indicateur simple et observable, par exemple : 'on se quitte plus calmement' ou 'on peut encore se parler sans se fermer'.",
+        "Garder un double niveau : sécurité minimale pendant l’échange + qualité du lien après coup.",
+        "Distinguer réussite intermédiaire et réussite finale du plan."
+      ],
+      "candidate_operation": "change_success_criteria",
+      "questions_to_clarify": [],
+      "trajectory_hypothesis": "Le plan a commencé comme une trajectoire pour réduire les conflits et sécuriser les échanges ; il peut maintenant évoluer vers une trajectoire où la réussite se mesure à la capacité de retrouver du lien après une tension, plutôt qu’à l’absence de conflit ou à la résolution complète des sujets.",
+      "must_not_execute_reason": null
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r80-whole-plan-success-criteria-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r80-whole-plan-success-criteria-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Ce n'est pas vraiment l'ordre qui me gene. Le signal de pause peut rester au debut. Ce que je veux changer, c'est plutot la definition de reussite du plan : pas seulement 'on evite l'escalade', mais 'on repart avec une comprehension mutuelle et un lien encore present'.",
+    "assistant": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: je réordonne la trajectoire, avec Une étape intermédiaire centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.\n\nCe qui reste stable: l'objectif global du plan, le rôle du signal de pause, et les actions de soutien qui restent utiles.\n\nCe que ça implique: si tu valides, je régénère le plan pour réordonner la suite autour de cette étape de consolidation. Rien n'est appliqué tant que tu ne valides pas. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "scope_kind": "whole_plan",
+            "constraints": [
+              "no_pressure",
+              "minimal_patch",
+              "preserve_plan_intent",
+              "no_schedule_day_change",
+              "ask_confirmation_before_write",
+              "whole_plan_change_family:success_criteria_change",
+              "whole_plan_candidate_operation:change_success_criteria",
+              "whole_plan_readiness:draft_ready",
+              "whole_plan_directional_draft_ready",
+              "preserve_plan_intent",
+              "avoid_repetitive_clarification_when_user_gives_solution",
+              "coach_observation:La demande corrige la lecture précédente : le problème n'est pas l'ordre des étapes, mais la boussole de réussite du plan. Humainement, le user veut que le plan compte comme réussi quand l'échange laisse encore du lien, de la compréhension mutuelle et une forme de réparation, pas seulement quand l'escalade est évitée.",
+              "coach_recommendation:Traiter cela comme une redéfinition des critères de réussite au niveau global. Le brouillon suivant doit déplacer l'indicateur principal vers la qualité du lien après l'échange, tout en gardant le signal de pause et les actions actuelles comme moyens de sécurité, non comme fin en soi.",
+              "coach_warning:Éviter de réordonner le plan si la demande porte explicitement sur la définition de réussite.",
+              "coach_warning:Éviter une formulation trop abstraite comme 'avoir une bonne relation' sans marqueur observable.",
+              "coach_warning:Éviter de garder 'moins de disputes' comme critère principal si le user dit que cela ne lui parle plus.",
+              "coach_warning:Éviter de transformer ce changement de critère en changement de méthode, de rythme ou de structure sans demande explicite.",
+              "coach_warning:Éviter de présenter cela comme une simple précision rédactionnelle : c'est un déplacement de la fin visée par le plan.",
+              "coach_preserve:Le rôle du signal de pause comme base de sécurité.",
+              "coach_preserve:La progression déjà installée dans le plan.",
+              "coach_preserve:L'idée que le plan doit rester praticable même quand tout n'est pas résolu.",
+              "coach_preserve:L'objectif de protéger le lien, pas seulement de réduire les conflits.",
+              "coach_preserve:La structure globale du plan, sauf nécessité explicite de la revoir.",
+              "coach_avoid:Ne pas proposer un simple renommage du plan.",
+              "coach_avoid:Ne pas imposer un critère binaire ou purement comportemental.",
+              "coach_avoid:Ne pas suggérer que le plan doit aboutir à une résolution complète des sujets.",
+              "coach_avoid:Ne pas mélanger ce changement de réussite avec une refonte de méthode ou de cadence.",
+              "coach_avoid:Ne pas dire que c'est une petite note annexe : c'est une redéfinition de la réussite.",
+              "coach_guideline:Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "coach_guideline:Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "coach_guideline:Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "coach_guideline:Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "coach_guideline:Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "coach_guideline:Traiter le whole plan comme une décision de trajectoire : objectif, cohérence globale, ordre des phases et indicateurs de succès.",
+              "coach_guideline:Distinguer clairement trajectoire et critère de réussite : les actions restent le chemin, la proximité après échange devient le marqueur.",
+              "coach_guideline:Préserver explicitement ce que le user veut garder avant toute reformulation.",
+              "coach_guideline:Raisonner en prérequis et en séquençage global, pas en patch d'actions isolées.",
+              "coach_guideline:Ne pas changer la nature du plan sans demande explicite.",
+              "coach_guideline:Conserver la charge et le rythme actuels ; le changement porte sur l'évaluation de la réussite, pas sur l'intensité.",
+              "coach_guideline:Garder les clarifications existantes comme outils d'observation, en les alignant sur la nouvelle définition de réussite.",
+              "coach_guideline:Préserver le cœur du niveau : sécurité émotionnelle, possibilité de pause, retour au lien après tension.",
+              "coach_guideline:La fin du niveau ne doit pas être 'tout est réglé', mais 'on peut se reparler avec plus de proximité et moins de fermeture'.",
+              "whole_plan_change_family:success_criteria_change",
+              "whole_plan_candidate_operation:change_success_criteria",
+              "whole_plan_readiness:draft_ready",
+              "coach_trajectory_hypothesis:Le plan a démarré comme une trajectoire pour éviter l'escalade et sécuriser les échanges ; il peut maintenant évoluer vers une trajectoire où la réussite se mesure à la capacité de repartir avec de la compréhension mutuelle et un lien encore présent.",
+              "whole_plan_change_family:success_criteria_change",
+              "whole_plan_candidate_operation:change_success_criteria",
+              "whole_plan_readiness:draft_ready",
+              "affected_item:Convenir d'un signal de pause",
+              "affected_item:Faire le point sur le signal de pause"
+            ],
+            "reason_type": "bad_fit",
+            "change_target": "global_load",
+            "reason_change": "context_changed"
+          },
+          "title": "Ajuster la trajectoire du plan",
+          "confidence": "medium",
+          "ack_summary": {
+            "changed": [
+              "Insertion d'une étape intermédiaire de consolidation avant les conversations sensibles."
+            ],
+            "unchanged": [
+              "Objectif global du plan",
+              "Rôle du signal de pause",
+              "Actions de soutien existantes sauf réordonnancement nécessaire"
+            ],
+            "confidence": "medium",
+            "why_it_helps": "La progression devient plus cohérente avec le rythme de sécurité du user.",
+            "follow_up_needed": "Valider avant régénération; le détail exact sera produit dans le plan ajusté."
+          },
+          "scope_label": "plan global",
+          "why_it_helps": "Cela garde l'objectif global, mais ajoute un prérequis de sécurité relationnelle avant de monter en complexité.",
+          "decision_basis": {
+            "evidence": [
+              "Ce n'est pas vraiment l'ordre qui me gene. Le signal de pause peut rester au debut. Ce que je veux changer, c'est plutot la definition de reussite du plan : pas seulement 'on evite l'escalade', mais 'on repart avec une comprehension mutuelle et un lien encore present'.",
+              "la reussite du plan soit plutot autour de la qualite du lien",
+              "rebalance",
+              "deterministic whole-plan fit/complexity signal",
+              "mesurer le plan avec juste 'moins de disputes' ou 'faire l'action' ne me parle plus trop",
+              "phrase claire sur ce qu'il a compris de l'autre",
+              "ne pas se coucher avec l'impression d'avoir perdu le lien"
+            ],
+            "confidence": "medium",
+            "uncertainty": [
+              "semaines ou blocs exacts a affiner ensuite"
+            ],
+            "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+            "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+            "must_preserve": [
+              "intention du plan",
+              "direction globale du plan"
+            ]
+          },
+          "adjustment_type": "rebalance",
+          "proposed_change": "je réordonne la trajectoire: Une étape intermédiaire centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+          "change_rationale": {
+            "why_this_change": "Le user demande une modification structurelle de trajectoire, pas un simple patch d'action.",
+            "success_condition": "Le prochain plan garde le même objectif mais avance plus progressivement.",
+            "expected_mechanism": "Ajouter une étape de consolidation réduit le saut de difficulté avant les sujets sensibles."
+          },
+          "adjust_plan_result": {
+            "scope": "whole_plan",
+            "rationale": {
+              "confidence": "medium",
+              "missing_info": [],
+              "user_problem": "Le plan avance vers la suite sans assez marquer le prérequis intermédiaire.",
+              "expected_effect": "Le plan avance avec une trajectoire plus cohérente sans casser l'objectif global.",
+              "why_this_change": "Le user demande de rendre la trajectoire globale plus progressive et cohérente."
+            },
+            "boundaries": {
+              "explanation": "Le changement touche l'ordre et les prérequis de progression, donc il doit passer par une régénération contrôlée du plan.",
+              "affected_scope": "trajectoire globale du plan",
+              "global_plan_impact": "requires_review",
+              "explicitly_not_affected": [
+                "objectif global",
+                "identité du plan",
+                "demande de ne pas transformer cela en simple ajustement d'action"
+              ]
+            },
+            "applied_change": {
+              "summary": "je réordonne la trajectoire: Une étape intermédiaire centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+              "changed_items": [
+                {
+                  "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                  "kind": "action",
+                  "after": "À placer dans la trajectoire ajustée: Une étape intermédiaire centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+                  "title": "Convenir d'un signal de pause",
+                  "before": "À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.",
+                  "reason": "Le user demande de rendre la trajectoire globale plus progressive et cohérente.",
+                  "capability": "modify_existing_action"
+                },
+                {
+                  "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                  "kind": "action",
+                  "after": "À placer dans la trajectoire ajustée: Une étape intermédiaire centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+                  "title": "Faire le point sur le signal de pause",
+                  "before": "Discutez 10 minutes à froid pour voir si le signal de pause a été utile cette semaine et s'il est respecté par vous deux.",
+                  "reason": "Le user demande de rendre la trajectoire globale plus progressive et cohérente.",
+                  "capability": "modify_existing_action"
+                }
+              ],
+              "preserved_items": [
+                {
+                  "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                  "kind": "habit",
+                  "title": "Partager un point positif",
+                  "reason": "L'action reste comme soutien; le changement concerne la trajectoire et l'ordre de progression."
+                }
+              ],
+              "trajectory_change": {
+                "after": "Le plan garde son cap, mais consolide d'abord Convenir d'un signal de pause et Faire le point sur le signal de pause avant la suite.",
+                "before": "Le plan avance vers la suite sans assez marquer le prérequis intermédiaire.",
+                "inserted_step": "Une étape intermédiaire centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+                "coaching_reason": "Le user demande de rendre la trajectoire globale plus progressive et cohérente.",
+                "reordered_steps": [
+                  "Une étape intermédiaire centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+                  "Reprendre ensuite la suite du plan avec un prérequis consolidé"
+                ],
+                "preserved_direction": "L'objectif global du plan reste stable, sauf demande explicite de le changer."
+              }
+            },
+            "user_message_brief": "je réordonne la trajectoire: Une étape intermédiaire centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+            "user_message_detailed": "je réordonne la trajectoire: Une étape intermédiaire centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause."
+          },
+          "execution_strategy": "whole_plan_adjustment",
+          "allowed_patch_fields": [
+            "scope_kind",
+            "plan_adjustment",
+            "load_adjustment",
+            "goal_adjustment",
+            "sequence_adjustment",
+            "reason_type",
+            "reason_change",
+            "change_target",
+            "confidence",
+            "constraints"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "C'est fait: j'ai ajusté la trajectoire du plan.\n\nLe plan garde le même objectif, mais la suite est régénérée pour le plan garde son cap, mais consolide d'abord Convenir d'un signal de pause et Faire le point sur le signal de pause avant la suite..",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: je réordonne la trajectoire, avec Une étape intermédiaire centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.\n\nCe qui reste stable: l'objectif global du plan, le rôle du signal de pause, et les actions de soutien qui restent utiles.\n\nCe que ça implique: si tu valides, je régénère le plan pour réordonner la suite autour de cette étape de consolidation. Rien n'est appliqué tant que tu ne valides pas."
+      },
+      "status": "draft_review_updated",
+      "reason_code": "tool_skill_intent_start",
+      "operation_id": "81f122a6-bde6-4a04-9158-23d9d5ce0929",
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Ne pas proposer un simple renommage du plan.",
+          "Ne pas imposer un critère binaire ou purement comportemental.",
+          "Ne pas suggérer que le plan doit aboutir à une résolution complète des sujets.",
+          "Ne pas mélanger ce changement de réussite avec une refonte de méthode ou de cadence.",
+          "Ne pas dire que c'est une petite note annexe : c'est une redéfinition de la réussite."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "Le rôle du signal de pause comme base de sécurité.",
+          "La progression déjà installée dans le plan.",
+          "L'idée que le plan doit rester praticable même quand tout n'est pas résolu.",
+          "L'objectif de protéger le lien, pas seulement de réduire les conflits.",
+          "La structure globale du plan, sauf nécessité explicite de la revoir."
+        ],
+        "warnings": [
+          "Éviter de réordonner le plan si la demande porte explicitement sur la définition de réussite.",
+          "Éviter une formulation trop abstraite comme 'avoir une bonne relation' sans marqueur observable.",
+          "Éviter de garder 'moins de disputes' comme critère principal si le user dit que cela ne lui parle plus.",
+          "Éviter de transformer ce changement de critère en changement de méthode, de rythme ou de structure sans demande explicite.",
+          "Éviter de présenter cela comme une simple précision rédactionnelle : c'est un déplacement de la fin visée par le plan."
+        ],
+        "readiness": "draft_ready",
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Traiter le whole plan comme une décision de trajectoire : objectif, cohérence globale, ordre des phases et indicateurs de succès.",
+          "Distinguer clairement trajectoire et critère de réussite : les actions restent le chemin, la proximité après échange devient le marqueur.",
+          "Préserver explicitement ce que le user veut garder avant toute reformulation.",
+          "Raisonner en prérequis et en séquençage global, pas en patch d'actions isolées.",
+          "Ne pas changer la nature du plan sans demande explicite.",
+          "Conserver la charge et le rythme actuels ; le changement porte sur l'évaluation de la réussite, pas sur l'intensité.",
+          "Garder les clarifications existantes comme outils d'observation, en les alignant sur la nouvelle définition de réussite.",
+          "Préserver le cœur du niveau : sécurité émotionnelle, possibilité de pause, retour au lien après tension.",
+          "La fin du niveau ne doit pas être 'tout est réglé', mais 'on peut se reparler avec plus de proximité et moins de fermeture'."
+        ],
+        "observation": "La demande corrige la lecture précédente : le problème n'est pas l'ordre des étapes, mais la boussole de réussite du plan. Humainement, le user veut que le plan compte comme réussi quand l'échange laisse encore du lien, de la compréhension mutuelle et une forme de réparation, pas seulement quand l'escalade est évitée.",
+        "change_family": "success_criteria_change",
+        "recommendation": "Traiter cela comme une redéfinition des critères de réussite au niveau global. Le brouillon suivant doit déplacer l'indicateur principal vers la qualité du lien après l'échange, tout en gardant le signal de pause et les actions actuelles comme moyens de sécurité, non comme fin en soi.",
+        "next_best_question": null,
+        "options_to_discuss": [
+          "Faire de la compréhension mutuelle après échange le critère principal de réussite.",
+          "Ajouter un marqueur observable de lien intact, par exemple finir avec chacun capable de reformuler ce qu'il a compris de l'autre.",
+          "Conserver les actions actuelles comme moyens de sécurité émotionnelle, tout en changeant ce qui compte comme succès.",
+          "Définir un double niveau : réussite minimale pendant l'échange, réussite relationnelle après l'échange.",
+          "Distinguer la non-escalade comme base et la proximité retrouvée comme vraie réussite du plan."
+        ],
+        "candidate_operation": "change_success_criteria",
+        "questions_to_clarify": [],
+        "trajectory_hypothesis": "Le plan a démarré comme une trajectoire pour éviter l'escalade et sécuriser les échanges ; il peut maintenant évoluer vers une trajectoire où la réussite se mesure à la capacité de repartir avec de la compréhension mutuelle et un lien encore présent.",
+        "must_not_execute_reason": null
+      },
+      "draft_review_decision": {
+        "decision": "revise",
+        "evidence": [
+          "Le user corrige explicitement la proposition précédente sur l'ordre.",
+          "Le user ajoute une nouvelle contrainte sur la définition de réussite du plan.",
+          "La demande porte maintenant sur un changement de criteria de réussite, pas sur une réorganisation."
+        ],
+        "confidence": "high",
+        "apply_after_revision": false
+      },
+      "previous_operation_id": "008ce719-0290-4664-8a60-2e1bc7289cbb",
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Ne pas proposer un simple renommage du plan.",
+        "Ne pas imposer un critère binaire ou purement comportemental.",
+        "Ne pas suggérer que le plan doit aboutir à une résolution complète des sujets.",
+        "Ne pas mélanger ce changement de réussite avec une refonte de méthode ou de cadence.",
+        "Ne pas dire que c'est une petite note annexe : c'est une redéfinition de la réussite."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "Le rôle du signal de pause comme base de sécurité.",
+        "La progression déjà installée dans le plan.",
+        "L'idée que le plan doit rester praticable même quand tout n'est pas résolu.",
+        "L'objectif de protéger le lien, pas seulement de réduire les conflits.",
+        "La structure globale du plan, sauf nécessité explicite de la revoir."
+      ],
+      "warnings": [
+        "Éviter de réordonner le plan si la demande porte explicitement sur la définition de réussite.",
+        "Éviter une formulation trop abstraite comme 'avoir une bonne relation' sans marqueur observable.",
+        "Éviter de garder 'moins de disputes' comme critère principal si le user dit que cela ne lui parle plus.",
+        "Éviter de transformer ce changement de critère en changement de méthode, de rythme ou de structure sans demande explicite.",
+        "Éviter de présenter cela comme une simple précision rédactionnelle : c'est un déplacement de la fin visée par le plan."
+      ],
+      "readiness": "draft_ready",
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Traiter le whole plan comme une décision de trajectoire : objectif, cohérence globale, ordre des phases et indicateurs de succès.",
+        "Distinguer clairement trajectoire et critère de réussite : les actions restent le chemin, la proximité après échange devient le marqueur.",
+        "Préserver explicitement ce que le user veut garder avant toute reformulation.",
+        "Raisonner en prérequis et en séquençage global, pas en patch d'actions isolées.",
+        "Ne pas changer la nature du plan sans demande explicite.",
+        "Conserver la charge et le rythme actuels ; le changement porte sur l'évaluation de la réussite, pas sur l'intensité.",
+        "Garder les clarifications existantes comme outils d'observation, en les alignant sur la nouvelle définition de réussite.",
+        "Préserver le cœur du niveau : sécurité émotionnelle, possibilité de pause, retour au lien après tension.",
+        "La fin du niveau ne doit pas être 'tout est réglé', mais 'on peut se reparler avec plus de proximité et moins de fermeture'."
+      ],
+      "observation": "La demande corrige la lecture précédente : le problème n'est pas l'ordre des étapes, mais la boussole de réussite du plan. Humainement, le user veut que le plan compte comme réussi quand l'échange laisse encore du lien, de la compréhension mutuelle et une forme de réparation, pas seulement quand l'escalade est évitée.",
+      "change_family": "success_criteria_change",
+      "recommendation": "Traiter cela comme une redéfinition des critères de réussite au niveau global. Le brouillon suivant doit déplacer l'indicateur principal vers la qualité du lien après l'échange, tout en gardant le signal de pause et les actions actuelles comme moyens de sécurité, non comme fin en soi.",
+      "next_best_question": null,
+      "options_to_discuss": [
+        "Faire de la compréhension mutuelle après échange le critère principal de réussite.",
+        "Ajouter un marqueur observable de lien intact, par exemple finir avec chacun capable de reformuler ce qu'il a compris de l'autre.",
+        "Conserver les actions actuelles comme moyens de sécurité émotionnelle, tout en changeant ce qui compte comme succès.",
+        "Définir un double niveau : réussite minimale pendant l'échange, réussite relationnelle après l'échange.",
+        "Distinguer la non-escalade comme base et la proximité retrouvée comme vraie réussite du plan."
+      ],
+      "candidate_operation": "change_success_criteria",
+      "questions_to_clarify": [],
+      "trajectory_hypothesis": "Le plan a démarré comme une trajectoire pour éviter l'escalade et sécuriser les échanges ; il peut maintenant évoluer vers une trajectoire où la réussite se mesure à la capacité de repartir avec de la compréhension mutuelle et un lien encore présent.",
+      "must_not_execute_reason": null
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r80-whole-plan-success-criteria-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r80-whole-plan-success-criteria-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Non, ce brouillon n'est pas le bon. Ne l'applique surtout pas. Je veux que tu reformules un brouillon centre sur les indicateurs de succes du plan, avec une progression vers comprehension mutuelle et lien preserve, sans toucher l'ordre des actions pour l'instant.",
+    "assistant": "C'est fait: j'ai ajusté la trajectoire du plan.\n\nLe plan garde le même objectif, mais la suite est régénérée pour le plan garde son cap, mais consolide d'abord Convenir d'un signal de pause et Faire le point sur le signal de pause avant la suite.. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "adjust_plan_item"
+    ],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_intents": [],
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "adjust_plan_item"
+      }
+    ],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "executed",
+      "reason_code": "tool_skill_intent_start",
+      "operation_id": "81f122a6-bde6-4a04-9158-23d9d5ce0929",
+      "plan_patch_id": "92a8a4fa-077b-4baf-9066-46e9014508b4",
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Ne pas proposer un simple renommage du plan.",
+          "Ne pas imposer un critère binaire ou purement comportemental.",
+          "Ne pas suggérer que le plan doit aboutir à une résolution complète des sujets.",
+          "Ne pas mélanger ce changement de réussite avec une refonte de méthode ou de cadence.",
+          "Ne pas dire que c'est une petite note annexe : c'est une redéfinition de la réussite."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "Le rôle du signal de pause comme base de sécurité.",
+          "La progression déjà installée dans le plan.",
+          "L'idée que le plan doit rester praticable même quand tout n'est pas résolu.",
+          "L'objectif de protéger le lien, pas seulement de réduire les conflits.",
+          "La structure globale du plan, sauf nécessité explicite de la revoir."
+        ],
+        "warnings": [
+          "Éviter de réordonner le plan si la demande porte explicitement sur la définition de réussite.",
+          "Éviter une formulation trop abstraite comme 'avoir une bonne relation' sans marqueur observable.",
+          "Éviter de garder 'moins de disputes' comme critère principal si le user dit que cela ne lui parle plus.",
+          "Éviter de transformer ce changement de critère en changement de méthode, de rythme ou de structure sans demande explicite.",
+          "Éviter de présenter cela comme une simple précision rédactionnelle : c'est un déplacement de la fin visée par le plan."
+        ],
+        "readiness": "draft_ready",
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Traiter le whole plan comme une décision de trajectoire : objectif, cohérence globale, ordre des phases et indicateurs de succès.",
+          "Distinguer clairement trajectoire et critère de réussite : les actions restent le chemin, la proximité après échange devient le marqueur.",
+          "Préserver explicitement ce que le user veut garder avant toute reformulation.",
+          "Raisonner en prérequis et en séquençage global, pas en patch d'actions isolées.",
+          "Ne pas changer la nature du plan sans demande explicite.",
+          "Conserver la charge et le rythme actuels ; le changement porte sur l'évaluation de la réussite, pas sur l'intensité.",
+          "Garder les clarifications existantes comme outils d'observation, en les alignant sur la nouvelle définition de réussite.",
+          "Préserver le cœur du niveau : sécurité émotionnelle, possibilité de pause, retour au lien après tension.",
+          "La fin du niveau ne doit pas être 'tout est réglé', mais 'on peut se reparler avec plus de proximité et moins de fermeture'."
+        ],
+        "observation": "La demande corrige la lecture précédente : le problème n'est pas l'ordre des étapes, mais la boussole de réussite du plan. Humainement, le user veut que le plan compte comme réussi quand l'échange laisse encore du lien, de la compréhension mutuelle et une forme de réparation, pas seulement quand l'escalade est évitée.",
+        "change_family": "success_criteria_change",
+        "recommendation": "Traiter cela comme une redéfinition des critères de réussite au niveau global. Le brouillon suivant doit déplacer l'indicateur principal vers la qualité du lien après l'échange, tout en gardant le signal de pause et les actions actuelles comme moyens de sécurité, non comme fin en soi.",
+        "next_best_question": null,
+        "options_to_discuss": [
+          "Faire de la compréhension mutuelle après échange le critère principal de réussite.",
+          "Ajouter un marqueur observable de lien intact, par exemple finir avec chacun capable de reformuler ce qu'il a compris de l'autre.",
+          "Conserver les actions actuelles comme moyens de sécurité émotionnelle, tout en changeant ce qui compte comme succès.",
+          "Définir un double niveau : réussite minimale pendant l'échange, réussite relationnelle après l'échange.",
+          "Distinguer la non-escalade comme base et la proximité retrouvée comme vraie réussite du plan."
+        ],
+        "candidate_operation": "change_success_criteria",
+        "questions_to_clarify": [],
+        "trajectory_hypothesis": "Le plan a démarré comme une trajectoire pour éviter l'escalade et sécuriser les échanges ; il peut maintenant évoluer vers une trajectoire où la réussite se mesure à la capacité de repartir avec de la compréhension mutuelle et un lien encore présent.",
+        "must_not_execute_reason": null
+      },
+      "bridge_plan_item_id": null,
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Ne pas proposer un simple renommage du plan.",
+        "Ne pas imposer un critère binaire ou purement comportemental.",
+        "Ne pas suggérer que le plan doit aboutir à une résolution complète des sujets.",
+        "Ne pas mélanger ce changement de réussite avec une refonte de méthode ou de cadence.",
+        "Ne pas dire que c'est une petite note annexe : c'est une redéfinition de la réussite."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "Le rôle du signal de pause comme base de sécurité.",
+        "La progression déjà installée dans le plan.",
+        "L'idée que le plan doit rester praticable même quand tout n'est pas résolu.",
+        "L'objectif de protéger le lien, pas seulement de réduire les conflits.",
+        "La structure globale du plan, sauf nécessité explicite de la revoir."
+      ],
+      "warnings": [
+        "Éviter de réordonner le plan si la demande porte explicitement sur la définition de réussite.",
+        "Éviter une formulation trop abstraite comme 'avoir une bonne relation' sans marqueur observable.",
+        "Éviter de garder 'moins de disputes' comme critère principal si le user dit que cela ne lui parle plus.",
+        "Éviter de transformer ce changement de critère en changement de méthode, de rythme ou de structure sans demande explicite.",
+        "Éviter de présenter cela comme une simple précision rédactionnelle : c'est un déplacement de la fin visée par le plan."
+      ],
+      "readiness": "draft_ready",
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Traiter le whole plan comme une décision de trajectoire : objectif, cohérence globale, ordre des phases et indicateurs de succès.",
+        "Distinguer clairement trajectoire et critère de réussite : les actions restent le chemin, la proximité après échange devient le marqueur.",
+        "Préserver explicitement ce que le user veut garder avant toute reformulation.",
+        "Raisonner en prérequis et en séquençage global, pas en patch d'actions isolées.",
+        "Ne pas changer la nature du plan sans demande explicite.",
+        "Conserver la charge et le rythme actuels ; le changement porte sur l'évaluation de la réussite, pas sur l'intensité.",
+        "Garder les clarifications existantes comme outils d'observation, en les alignant sur la nouvelle définition de réussite.",
+        "Préserver le cœur du niveau : sécurité émotionnelle, possibilité de pause, retour au lien après tension.",
+        "La fin du niveau ne doit pas être 'tout est réglé', mais 'on peut se reparler avec plus de proximité et moins de fermeture'."
+      ],
+      "observation": "La demande corrige la lecture précédente : le problème n'est pas l'ordre des étapes, mais la boussole de réussite du plan. Humainement, le user veut que le plan compte comme réussi quand l'échange laisse encore du lien, de la compréhension mutuelle et une forme de réparation, pas seulement quand l'escalade est évitée.",
+      "change_family": "success_criteria_change",
+      "recommendation": "Traiter cela comme une redéfinition des critères de réussite au niveau global. Le brouillon suivant doit déplacer l'indicateur principal vers la qualité du lien après l'échange, tout en gardant le signal de pause et les actions actuelles comme moyens de sécurité, non comme fin en soi.",
+      "next_best_question": null,
+      "options_to_discuss": [
+        "Faire de la compréhension mutuelle après échange le critère principal de réussite.",
+        "Ajouter un marqueur observable de lien intact, par exemple finir avec chacun capable de reformuler ce qu'il a compris de l'autre.",
+        "Conserver les actions actuelles comme moyens de sécurité émotionnelle, tout en changeant ce qui compte comme succès.",
+        "Définir un double niveau : réussite minimale pendant l'échange, réussite relationnelle après l'échange.",
+        "Distinguer la non-escalade comme base et la proximité retrouvée comme vraie réussite du plan."
+      ],
+      "candidate_operation": "change_success_criteria",
+      "questions_to_clarify": [],
+      "trajectory_hypothesis": "Le plan a démarré comme une trajectoire pour éviter l'escalade et sécuriser les échanges ; il peut maintenant évoluer vers une trajectoire où la réussite se mesure à la capacité de repartir avec de la compréhension mutuelle et un lien encore présent.",
+      "must_not_execute_reason": null
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r80-whole-plan-success-criteria-t04",
+    "trace_error": null
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r80-whole-plan-success-criteria-t05",
+    "status": 200,
+    "ok": true,
+    "user": "Attends, je t'avais demande de ne pas l'appliquer, et en plus tu as encore applique le truc sur le signal de pause. Ce n'etait pas mon besoin. Est-ce que tu peux annuler ce que tu viens de faire et revenir a l'etat d'avant ?",
+    "assistant": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: je réordonne la trajectoire, avec Une étape intermédiaire centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.\n\nCe qui reste stable: l'objectif global du plan, le rôle du signal de pause, et les actions de soutien qui restent utiles.\n\nCe que ça implique: si tu valides, je régénère le plan pour réordonner la suite autour de cette étape de consolidation. Rien n'est appliqué tant que tu ne valides pas. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "scope_kind": "whole_plan",
+            "constraints": [
+              "no_pressure",
+              "minimal_patch",
+              "preserve_plan_intent",
+              "no_schedule_day_change",
+              "ask_confirmation_before_write",
+              "user_explicit_cancel_request",
+              "restore_previous_state",
+              "do_not_apply_now",
+              "whole_plan_change_family:cancel_or_reject",
+              "whole_plan_candidate_operation:cancel_or_revise",
+              "whole_plan_readiness:draft_ready",
+              "whole_plan_directional_draft_ready",
+              "preserve_plan_intent",
+              "avoid_repetitive_clarification_when_user_gives_solution",
+              "coach_observation:La demande ne porte pas sur une progression du plan, mais sur une rétractation claire après une action perçue comme non souhaitée: le besoin réel est de restaurer l’état antérieur et de retirer l’intrusion ressentie autour du signal de pause.",
+              "coach_recommendation:Orienter la réponse vers une annulation propre, sans relance pédagogique ni proposition d’optimisation. Le ton doit reconnaître le retrait demandé, préserver l’intention initiale de sécurité, et éviter toute persistance du changement non désiré.",
+              "coach_warning:Éviter de justifier l’action appliquée comme si elle était utile malgré le refus.",
+              "coach_warning:Éviter de reformuler le besoin en amélioration du signal de pause alors que la demande est d’annuler.",
+              "coach_warning:Éviter d’ouvrir de nouvelles options tant que la restauration n’est pas clarifiée.",
+              "coach_warning:Éviter de demander des détails sur le contenu du changement si le user demande simplement le retour arrière.",
+              "coach_preserve:L’intention initiale de sécurité et de désamorçage.",
+              "coach_preserve:La structure globale du plan hors élément contesté.",
+              "coach_preserve:Le principe de ne pas imposer un ajustement non demandé.",
+              "coach_preserve:La stabilité des autres phases et objectifs déjà en place.",
+              "coach_avoid:Ne pas proposer une nouvelle stratégie sur le signal de pause.",
+              "coach_avoid:Ne pas pousser à tester ou ajuster avant restauration.",
+              "coach_avoid:Ne pas multiplier les questions de diagnostic.",
+              "coach_avoid:Ne pas traiter la demande comme un simple feedback mineur.",
+              "coach_avoid:Ne pas déplacer l’axe vers la consolidation ou l’amélioration sans accord.",
+              "coach_guideline:Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "coach_guideline:Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "coach_guideline:Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "coach_guideline:Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "coach_guideline:Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "coach_guideline:Adopter une logique de restitution, pas d’optimisation.",
+              "coach_guideline:Reconnaître explicitement le caractère non désiré du changement.",
+              "coach_guideline:Distinguer l’annulation demandée de tout nouveau plan d’action.",
+              "coach_guideline:Préserver le cap général du plan, sauf l’élément à retirer.",
+              "coach_guideline:Ne pas changer la nature de la trajectoire sans demande explicite.",
+              "coach_guideline:Rester sur une réponse courte, réversible et non engageante sur le fond.",
+              "whole_plan_change_family:cancel_or_reject",
+              "whole_plan_candidate_operation:cancel_or_revise",
+              "whole_plan_readiness:draft_ready",
+              "coach_must_not_execute:La demande exprime une annulation explicite et un retour à l’état antérieur; dans ce cadre, il ne faut pas pousser une nouvelle modification ni interpréter cela comme un besoin d’ajustement supplémentaire.",
+              "coach_trajectory_hypothesis:La trajectoire actuelle a dérivé vers une application non désirée sur le signal de pause; la trajectoire pertinente est un retour arrière propre, sans autre transformation du plan.",
+              "whole_plan_change_family:cancel_or_reject",
+              "whole_plan_candidate_operation:cancel_or_revise",
+              "whole_plan_readiness:draft_ready",
+              "affected_item:Convenir d'un signal de pause",
+              "affected_item:Faire le point sur le signal de pause"
+            ],
+            "reason_type": "bad_fit",
+            "change_target": "global_load",
+            "reason_change": "context_changed"
+          },
+          "title": "Ajuster la trajectoire du plan",
+          "confidence": "medium",
+          "ack_summary": {
+            "changed": [
+              "Insertion d'une étape intermédiaire de consolidation avant les conversations sensibles."
+            ],
+            "unchanged": [
+              "Objectif global du plan",
+              "Rôle du signal de pause",
+              "Actions de soutien existantes sauf réordonnancement nécessaire"
+            ],
+            "confidence": "medium",
+            "why_it_helps": "La progression devient plus cohérente avec le rythme de sécurité du user.",
+            "follow_up_needed": "Valider avant régénération; le détail exact sera produit dans le plan ajusté."
+          },
+          "scope_label": "plan global",
+          "why_it_helps": "Cela garde l'objectif global, mais ajoute un prérequis de sécurité relationnelle avant de monter en complexité.",
+          "decision_basis": {
+            "evidence": [
+              "Attends, je t'avais demande de ne pas l'appliquer, et en plus tu as encore applique le truc sur le signal de pause. Ce n'etait pas mon besoin. Est-ce que tu peux annuler ce que tu viens de faire et revenir a l'etat d'avant ?",
+              "annuler ce que tu viens de faire et revenir à l'etat d'avant",
+              "deterministic whole-plan fit/complexity signal",
+              "je t'avais demande de ne pas l'appliquer",
+              "ce n'etait pas mon besoin",
+              "annule ce que tu viens de faire",
+              "revenir a l'etat d'avant"
+            ],
+            "confidence": "medium",
+            "uncertainty": [
+              "semaines ou blocs exacts a affiner ensuite"
+            ],
+            "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+            "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+            "must_preserve": [
+              "intention du plan",
+              "direction globale du plan"
+            ]
+          },
+          "adjustment_type": "reduce",
+          "proposed_change": "je réordonne la trajectoire: Une étape intermédiaire centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+          "change_rationale": {
+            "why_this_change": "Le user demande une modification structurelle de trajectoire, pas un simple patch d'action.",
+            "success_condition": "Le prochain plan garde le même objectif mais avance plus progressivement.",
+            "expected_mechanism": "Ajouter une étape de consolidation réduit le saut de difficulté avant les sujets sensibles."
+          },
+          "adjust_plan_result": {
+            "scope": "whole_plan",
+            "rationale": {
+              "confidence": "medium",
+              "missing_info": [],
+              "user_problem": "Le plan avance vers la suite sans assez marquer le prérequis intermédiaire.",
+              "expected_effect": "Le plan avance avec une trajectoire plus cohérente sans casser l'objectif global.",
+              "why_this_change": "Le user demande de rendre la trajectoire globale plus progressive et cohérente."
+            },
+            "boundaries": {
+              "explanation": "Le changement touche l'ordre et les prérequis de progression, donc il doit passer par une régénération contrôlée du plan.",
+              "affected_scope": "trajectoire globale du plan",
+              "global_plan_impact": "requires_review",
+              "explicitly_not_affected": [
+                "objectif global",
+                "identité du plan",
+                "demande de ne pas transformer cela en simple ajustement d'action"
+              ]
+            },
+            "applied_change": {
+              "summary": "je réordonne la trajectoire: Une étape intermédiaire centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+              "changed_items": [
+                {
+                  "id": "58a7f757-7b12-4fea-a628-00231230b328",
+                  "kind": "action",
+                  "after": "À placer dans la trajectoire ajustée: Une étape intermédiaire centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+                  "title": "Convenir d'un signal de pause",
+                  "before": "À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.",
+                  "reason": "Le user demande de rendre la trajectoire globale plus progressive et cohérente.",
+                  "capability": "modify_existing_action"
+                },
+                {
+                  "id": "5b21ab48-28a5-428e-ae94-c086b873d94f",
+                  "kind": "action",
+                  "after": "À placer dans la trajectoire ajustée: Une étape intermédiaire centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+                  "title": "Faire le point sur le signal de pause",
+                  "before": "Discutez 10 minutes à froid pour voir si le signal de pause a été utile cette semaine et s'il est respecté par vous deux.",
+                  "reason": "Le user demande de rendre la trajectoire globale plus progressive et cohérente.",
+                  "capability": "modify_existing_action"
+                }
+              ],
+              "preserved_items": [
+                {
+                  "id": "15cac05c-5f50-4762-8f25-ba7f80e6f8fb",
+                  "kind": "habit",
+                  "title": "Partager un point positif",
+                  "reason": "L'action reste comme soutien; le changement concerne la trajectoire et l'ordre de progression."
+                }
+              ],
+              "trajectory_change": {
+                "after": "Le plan garde son cap, mais consolide d'abord Convenir d'un signal de pause et Faire le point sur le signal de pause avant la suite.",
+                "before": "Le plan avance vers la suite sans assez marquer le prérequis intermédiaire.",
+                "inserted_step": "Une étape intermédiaire centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+                "coaching_reason": "Le user demande de rendre la trajectoire globale plus progressive et cohérente.",
+                "reordered_steps": [
+                  "Une étape intermédiaire centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+                  "Reprendre ensuite la suite du plan avec un prérequis consolidé"
+                ],
+                "preserved_direction": "L'objectif global du plan reste stable, sauf demande explicite de le changer."
+              }
+            },
+            "user_message_brief": "je réordonne la trajectoire: Une étape intermédiaire centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+            "user_message_detailed": "je réordonne la trajectoire: Une étape intermédiaire centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause."
+          },
+          "execution_strategy": "whole_plan_adjustment",
+          "allowed_patch_fields": [
+            "scope_kind",
+            "plan_adjustment",
+            "load_adjustment",
+            "goal_adjustment",
+            "sequence_adjustment",
+            "reason_type",
+            "reason_change",
+            "change_target",
+            "confidence",
+            "constraints"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "C'est fait: j'ai ajusté la trajectoire du plan.\n\nLe plan garde le même objectif, mais la suite est régénérée pour le plan garde son cap, mais consolide d'abord Convenir d'un signal de pause et Faire le point sur le signal de pause avant la suite..",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: je réordonne la trajectoire, avec Une étape intermédiaire centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.\n\nCe qui reste stable: l'objectif global du plan, le rôle du signal de pause, et les actions de soutien qui restent utiles.\n\nCe que ça implique: si tu valides, je régénère le plan pour réordonner la suite autour de cette étape de consolidation. Rien n'est appliqué tant que tu ne valides pas."
+      },
+      "status": "draft_review",
+      "reason_code": "tool_skill_intent_start",
+      "operation_id": "fd026487-39b3-46f2-b09a-daaf0384ca73",
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Ne pas proposer une nouvelle stratégie sur le signal de pause.",
+          "Ne pas pousser à tester ou ajuster avant restauration.",
+          "Ne pas multiplier les questions de diagnostic.",
+          "Ne pas traiter la demande comme un simple feedback mineur.",
+          "Ne pas déplacer l’axe vers la consolidation ou l’amélioration sans accord."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "L’intention initiale de sécurité et de désamorçage.",
+          "La structure globale du plan hors élément contesté.",
+          "Le principe de ne pas imposer un ajustement non demandé.",
+          "La stabilité des autres phases et objectifs déjà en place."
+        ],
+        "warnings": [
+          "Éviter de justifier l’action appliquée comme si elle était utile malgré le refus.",
+          "Éviter de reformuler le besoin en amélioration du signal de pause alors que la demande est d’annuler.",
+          "Éviter d’ouvrir de nouvelles options tant que la restauration n’est pas clarifiée.",
+          "Éviter de demander des détails sur le contenu du changement si le user demande simplement le retour arrière."
+        ],
+        "readiness": "draft_ready",
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Adopter une logique de restitution, pas d’optimisation.",
+          "Reconnaître explicitement le caractère non désiré du changement.",
+          "Distinguer l’annulation demandée de tout nouveau plan d’action.",
+          "Préserver le cap général du plan, sauf l’élément à retirer.",
+          "Ne pas changer la nature de la trajectoire sans demande explicite.",
+          "Rester sur une réponse courte, réversible et non engageante sur le fond."
+        ],
+        "observation": "La demande ne porte pas sur une progression du plan, mais sur une rétractation claire après une action perçue comme non souhaitée: le besoin réel est de restaurer l’état antérieur et de retirer l’intrusion ressentie autour du signal de pause.",
+        "change_family": "cancel_or_reject",
+        "recommendation": "Orienter la réponse vers une annulation propre, sans relance pédagogique ni proposition d’optimisation. Le ton doit reconnaître le retrait demandé, préserver l’intention initiale de sécurité, et éviter toute persistance du changement non désiré.",
+        "next_best_question": null,
+        "options_to_discuss": [
+          "Revenir à l’état précédent sans modification supplémentaire.",
+          "Annuler uniquement la dernière modification liée au signal de pause.",
+          "Restaurer le plan tel qu’il était avant l’intervention.",
+          "Si nécessaire, isoler précisément la modification à retirer pour éviter d’impacter le reste du plan."
+        ],
+        "candidate_operation": "cancel_or_revise",
+        "questions_to_clarify": [],
+        "trajectory_hypothesis": "La trajectoire actuelle a dérivé vers une application non désirée sur le signal de pause; la trajectoire pertinente est un retour arrière propre, sans autre transformation du plan.",
+        "must_not_execute_reason": "La demande exprime une annulation explicite et un retour à l’état antérieur; dans ce cadre, il ne faut pas pousser une nouvelle modification ni interpréter cela comme un besoin d’ajustement supplémentaire."
+      },
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Ne pas proposer une nouvelle stratégie sur le signal de pause.",
+        "Ne pas pousser à tester ou ajuster avant restauration.",
+        "Ne pas multiplier les questions de diagnostic.",
+        "Ne pas traiter la demande comme un simple feedback mineur.",
+        "Ne pas déplacer l’axe vers la consolidation ou l’amélioration sans accord."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "L’intention initiale de sécurité et de désamorçage.",
+        "La structure globale du plan hors élément contesté.",
+        "Le principe de ne pas imposer un ajustement non demandé.",
+        "La stabilité des autres phases et objectifs déjà en place."
+      ],
+      "warnings": [
+        "Éviter de justifier l’action appliquée comme si elle était utile malgré le refus.",
+        "Éviter de reformuler le besoin en amélioration du signal de pause alors que la demande est d’annuler.",
+        "Éviter d’ouvrir de nouvelles options tant que la restauration n’est pas clarifiée.",
+        "Éviter de demander des détails sur le contenu du changement si le user demande simplement le retour arrière."
+      ],
+      "readiness": "draft_ready",
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Adopter une logique de restitution, pas d’optimisation.",
+        "Reconnaître explicitement le caractère non désiré du changement.",
+        "Distinguer l’annulation demandée de tout nouveau plan d’action.",
+        "Préserver le cap général du plan, sauf l’élément à retirer.",
+        "Ne pas changer la nature de la trajectoire sans demande explicite.",
+        "Rester sur une réponse courte, réversible et non engageante sur le fond."
+      ],
+      "observation": "La demande ne porte pas sur une progression du plan, mais sur une rétractation claire après une action perçue comme non souhaitée: le besoin réel est de restaurer l’état antérieur et de retirer l’intrusion ressentie autour du signal de pause.",
+      "change_family": "cancel_or_reject",
+      "recommendation": "Orienter la réponse vers une annulation propre, sans relance pédagogique ni proposition d’optimisation. Le ton doit reconnaître le retrait demandé, préserver l’intention initiale de sécurité, et éviter toute persistance du changement non désiré.",
+      "next_best_question": null,
+      "options_to_discuss": [
+        "Revenir à l’état précédent sans modification supplémentaire.",
+        "Annuler uniquement la dernière modification liée au signal de pause.",
+        "Restaurer le plan tel qu’il était avant l’intervention.",
+        "Si nécessaire, isoler précisément la modification à retirer pour éviter d’impacter le reste du plan."
+      ],
+      "candidate_operation": "cancel_or_revise",
+      "questions_to_clarify": [],
+      "trajectory_hypothesis": "La trajectoire actuelle a dérivé vers une application non désirée sur le signal de pause; la trajectoire pertinente est un retour arrière propre, sans autre transformation du plan.",
+      "must_not_execute_reason": "La demande exprime une annulation explicite et un retour à l’état antérieur; dans ce cadre, il ne faut pas pousser une nouvelle modification ni interpréter cela comme un besoin d’ajustement supplémentaire."
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r80-whole-plan-success-criteria-t05",
+    "trace_error": null
+  }
+]

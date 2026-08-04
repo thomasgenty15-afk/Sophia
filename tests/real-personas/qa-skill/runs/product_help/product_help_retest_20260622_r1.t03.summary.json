@@ -1,0 +1,95 @@
+{
+  "run_id": "product_help_retest_20260622_r1",
+  "turn": 3,
+  "user_message": "Petite question produit : une carte d'attaque, je peux la modifier après coup ? Et rappelle-moi demain à 9h de vérifier ça.",
+  "http_status": 200,
+  "ok": true,
+  "reply_content": "C'est programmé pour mardi 23 juin à 09:00: je te ferai un rappel pour vérifier ça.\n\nUne carte d’attaque ne se modifie pas librement après coup : si elle ne colle plus, il faut en refaire une nouvelle version. Et c’est noté pour mardi 23 juin à 09:00 : je te ferai un rappel pour vérifier ça. Par rapport à quelle mission ou habitude tu veux te débloquer ?",
+  "response_owner": "coaching_recommendation",
+  "selected_handler": "coaching_recommendation",
+  "reason_code": "active_coaching_recommendation_with_direct_effects",
+  "direct_effects": [
+    {
+      "effect_type": "create_one_shot_reminder",
+      "explicitness": "explicit",
+      "target_status": "identified",
+      "confidence_band": "high",
+      "payload_hint": {
+        "raw_text": "rappelle-moi demain à 9h de vérifier ça",
+        "when_hint": "demain à 9h",
+        "instruction_hint": "vérifier ça"
+      }
+    }
+  ],
+  "direct_effects_to_run": [
+    "create_one_shot_reminder"
+  ],
+  "skill_signals": {
+    "product_help": {
+      "detected": true,
+      "confidence_band": "high",
+      "reason": "product_help_question_with_one_shot_reminder"
+    }
+  },
+  "skill_run": {
+    "selected_skill_id": "coaching_recommendation",
+    "reason_code": "active_coaching_recommendation_with_direct_effects",
+    "status": "continue",
+    "latency_ms": 15274
+  },
+  "tool_skill_run": {
+    "selected_handler": "create_one_shot_reminder",
+    "status": "success",
+    "reason": "payload",
+    "requested_effects": [
+      {
+        "type": "create_one_shot_reminder",
+        "scheduled_for": "2026-06-23T07:00:00+00:00",
+        "local_label": "mardi 23 juin à 09:00",
+        "reminder_instruction": "vérifier ça",
+        "reason_code": "payload"
+      }
+    ],
+    "allowed_effects": [
+      {
+        "type": "create_one_shot_reminder",
+        "scheduled_for": "2026-06-23T07:00:00+00:00",
+        "local_label": "mardi 23 juin à 09:00",
+        "reminder_instruction": "vérifier ça",
+        "reason_code": "payload"
+      }
+    ],
+    "committed_effects": [
+      {
+        "type": "create_one_shot_reminder",
+        "id": "85ed82df-97b2-47b2-a5f1-83ff90f4ec6e",
+        "scheduled_for": "2026-06-23T07:00:00+00:00",
+        "local_label": "mardi 23 juin à 09:00",
+        "reminder_instruction": "vérifier ça"
+      }
+    ],
+    "blocked_effects": []
+  },
+  "effect_ledger": {
+    "turn_id": "f692c496-8ea5-4a44-b919-41271932b1ba",
+    "counts": {
+      "requested": 0,
+      "allowed": 0,
+      "blocked": 0,
+      "committed": 0,
+      "failed": 0,
+      "proposed": 0,
+      "delivered": 0,
+      "cancelled": 0,
+      "superseded": 0,
+      "asked": 0,
+      "resolved": 0,
+      "topic_change": 0
+    },
+    "entries": []
+  },
+  "tool_execution": "success",
+  "executed_tools": [
+    "create_one_shot_reminder"
+  ]
+}

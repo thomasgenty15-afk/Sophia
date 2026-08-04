@@ -1,0 +1,1286 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r61-whole-plan-next-step-t01",
+    "user": "En regardant la suite du plan, je ne pense pas que la prochaine étape soit la bonne. Avant d'aller vers plus de discussions, je voudrais une étape intermédiaire sur la sécurité émotionnelle et le retour au calme.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r61-whole-plan-next-step-t01",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-19-adjust-plan-postfix-rerun-r61-whole-plan-next-step",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Pour que je puisse bien intégrer cette étape sur la sécurité émotionnelle et le retour au calme, peux-tu me dire ce que tu as en tête concrètement ? Est-ce que tu penses à une nouvelle action à ajouter, ou à ajuster une action existante comme \"Partager un point positif\" ou \"Cartographier les déclencheurs\" ? 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r61-whole-plan-next-step-t01",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "f7e7e078-d085-4eb9-9e56-4e061b56ff61",
+        "ts": "2026-05-20T11:47:54.329+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 11308,
+          "latency_ms": 6850,
+          "model_used": "gemini-2.5-flash",
+          "tokens_out": 894,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "plan_progression",
+                "type": "topic",
+                "priority": "high",
+                "query_hint": "suite du plan, prochaine étape",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "psychologie.emotions",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "sécurité émotionnelle, retour au calme",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r61-whole-plan-next-step-t01",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "plan_progression",
+                "type": "topic",
+                "priority": "high",
+                "query_hint": "suite du plan, prochaine étape",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "psychologie.emotions",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "sécurité émotionnelle, retour au calme",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "f7e7e078-d085-4eb9-9e56-4e061b56ff61",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "la prochaine étape",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "current_level",
+                  "label": "la suite du plan",
+                  "status": "identified",
+                  "evidence": [
+                    "la suite du plan",
+                    "la prochaine étape"
+                  ]
+                },
+                "constraints": {
+                  "value": "focus on emotional safety and calm",
+                  "status": "identified",
+                  "evidence": [
+                    "sécurité émotionnelle et le retour au calme"
+                  ],
+                  "confidence": "high"
+                },
+                "change_target": {
+                  "value": "insert_new_step",
+                  "status": "identified",
+                  "evidence": [
+                    "étape intermédiaire"
+                  ],
+                  "confidence": "high"
+                },
+                "reason_change": {
+                  "value": "need_for_emotional_safety_and_calm_before_next_step",
+                  "status": "identified",
+                  "evidence": [
+                    "je ne pense pas que la prochaine étape soit la bonne",
+                    "je voudrais une étape intermédiaire sur la sécurité émotionnelle et le retour au calme"
+                  ],
+                  "confidence": "high"
+                },
+                "target_granularity": {
+                  "value": "current_level",
+                  "status": "identified",
+                  "evidence": [
+                    "la prochaine étape",
+                    "étape intermédiaire"
+                  ],
+                  "confidence": "high",
+                  "negative_evidence": [
+                    "pas une seule action"
+                  ]
+                }
+              },
+              "adjust_plan_scope": "current_level"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "ask_question",
+          "reason_code": "tool_skill_intent_start",
+          "plan_item_id": null,
+          "target_title": null,
+          "missing_slots": [
+            "current_level.affected_items"
+          ],
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Toute proposition qui ignorerait la demande explicite de l'utilisateur de renforcer la sécurité émotionnelle.",
+              "Des solutions qui ne seraient pas ancrées dans la réalité des interactions du couple ou qui seraient trop théoriques."
+            ],
+            "scope": "level",
+            "preserve": [
+              "L'intention globale du niveau 1 : 'Désamorcer et recréer de la sécurité', qui est en parfaite adéquation avec la demande de l'utilisateur.",
+              "Le 'signal de pause' comme outil fondamental de désescalade, et l'importance de son évaluation future.",
+              "L'habitude 'Partager un point positif' et le framework 'Cartographier les déclencheurs', qui contribuent déjà à la sécurité et à la conscience de soi."
+            ],
+            "warnings": [
+              "Éviter d'ajouter une étape générique ou trop abstraite qui ne se traduirait pas par une action concrète et pertinente pour la dynamique relationnelle.",
+              "Éviter de supprimer ou de repousser indéfiniment 'Faire le point sur le signal de pause' sans comprendre la nature exacte de la réticence du user, car cette mission est clé pour consolider un acquis.",
+              "Éviter de proposer une solution qui augmenterait significativement la charge mentale ou le nombre d'actions, risquant de créer un sentiment d'écrasement."
+            ],
+            "confidence": "high",
+            "guidelines": [
+              "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+              "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+              "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+              "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+              "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+              "Guidelines action: Toute nouvelle action ou modification doit servir directement l'intention de 'sécurité émotionnelle et retour au calme' sans dénaturer les actions existantes. Elle doit être un pont concret et mini vers la prochaine étape, et non un détour. Ne pas changer la nature d'une action sans demande explicite.",
+              "Guidelines niveau: Le niveau actuel est déjà axé sur la sécurité. L'ajustement doit renforcer le cœur de ce niveau en s'assurant que la charge et le rythme restent gérables. Ne pas modifier les boundaries de fin de niveau sans raison claire.",
+              "Guidelines whole_plan: L'ajustement doit s'inscrire dans la trajectoire globale de rétablissement de la sécurité et de la communication. Il ne doit pas compromettre la cohérence globale du plan ni les prérequis des phases ultérieures. L'objectif et le questionnaire du plan doivent rester préservés."
+            ],
+            "observation": "L'utilisateur exprime un besoin de renforcer la sécurité émotionnelle et le retour au calme avant d'aborder la prochaine étape du plan, qui est une discussion sur le signal de pause. Cela suggère une perception d'un manque de préparation ou de ressources émotionnelles pour une interaction potentiellement délicate, même si elle vise à consolider un outil de désescalade. Le cœur de la demande est de solidifier les fondations émotionnelles du niveau actuel avant de progresser.",
+            "recommendation": "Guider le sous-skill à explorer comment intégrer ou renforcer des actions concrètes de sécurité émotionnelle et de retour au calme *au sein* du niveau actuel, en lien avec l'objectif de 'Désamorcer et recréer de la sécurité'. Il s'agit de s'assurer que le user se sente suffisamment outillé et en sécurité pour aborder les discussions prévues, plutôt que d'ajouter une étape déconnectée.",
+            "options_to_discuss": [
+              "Proposer une micro-action ou une modification d'une action existante pour inclure une pratique de retour au calme ou de renforcement de la sécurité émotionnelle (ex: une courte routine individuelle avant une discussion, une reformulation de l'habitude 'Partager un point positif' pour inclure une dimension de 'sécurité ressentie').",
+              "Explorer la possibilité de décomposer 'Faire le point sur le signal de pause' en étapes plus petites, si la difficulté réside dans l'ampleur perçue de cette discussion.",
+              "Questionner si la 'sécurité émotionnelle' recherchée est une pratique individuelle ou une interaction avec le partenaire, et si elle doit être proactive ou réactive (après une tension)."
+            ],
+            "questions_to_clarify": [
+              "Qu'est-ce qui, spécifiquement, dans 'Faire le point sur le signal de pause', fait que l'utilisateur ne pense pas que ce soit la bonne prochaine étape ? Y a-t-il une appréhension liée à la discussion elle-même ou à l'état émotionnel pour l'aborder ?",
+              "Comment l'utilisateur définirait-il concrètement 'sécurité émotionnelle et retour au calme' dans le contexte de son couple ? Quels seraient les signes que cette étape a été réussie pour lui ?",
+              "Est-ce que l'utilisateur recherche une action à faire seul(e) ou avec son/sa partenaire pour cette 'étape intermédiaire' ?"
+            ]
+          },
+          "coaching_guidance_audit": {
+            "scope": "level",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 41738,
+        "created_at": "2026-05-20T11:47:54.330823+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r61-whole-plan-next-step-t02",
+    "user": "Je pense à une mission ponctuelle puis une habitude légère. Mission : définir notre protocole de pause. Habitude : après une tension, attendre 20 minutes puis revenir avec une phrase calme pour reprendre.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r61-whole-plan-next-step-t02",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-19-adjust-plan-postfix-rerun-r61-whole-plan-next-step",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Tu souhaites ajouter une étape intermédiaire axée sur la sécurité émotionnelle et le retour au calme. Pour cela, tu proposes de te concentrer sur 'Convenir d'un signal de pause' et d'introduire une nouvelle habitude : 'après une tension, attendre 20 minutes puis revenir avec une phrase calme pour reprendre'. Est-ce bien cela ? Je peux te préparer une proposition concrète pour ces ajustements. 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r61-whole-plan-next-step-t02",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "09a8c2ad-b020-428d-8bb8-b1adf9b5e9b8",
+        "ts": "2026-05-20T11:48:52.258+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 14923,
+          "latency_ms": 10516,
+          "model_used": "gemini-2.5-flash",
+          "tokens_out": 801,
+          "memory_plan": {
+            "targets": [],
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r61-whole-plan-next-step-t02",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [],
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {
+              "reason": "user_provides_missing_slot_data",
+              "state_change": "continue",
+              "active_skill_id": "adjust_plan_item"
+            }
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 1,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0;decay=0.55;recovery=0",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "09a8c2ad-b020-428d-8bb8-b1adf9b5e9b8",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "mission ponctuelle et habitude légère",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "current_level",
+                  "label": "la suite du plan",
+                  "status": "identified",
+                  "evidence": [
+                    "active_tool_skill_intake.scope"
+                  ]
+                },
+                "payload": {
+                  "affected_items": {
+                    "status": "identified",
+                    "values": [
+                      {
+                        "kind": "mission",
+                        "title": "Définir notre protocole de pause",
+                        "evidence": [
+                          "Mission : définir notre protocole de pause"
+                        ]
+                      },
+                      {
+                        "kind": "habit",
+                        "title": "Après une tension, attendre 20 minutes puis revenir avec une phrase calme pour reprendre",
+                        "evidence": [
+                          "Habitude : après une tension, attendre 20 minutes puis revenir avec une phrase calme pour reprendre"
+                        ]
+                      }
+                    ],
+                    "confidence": "high"
+                  }
+                },
+                "target_granularity": {
+                  "value": "current_level",
+                  "status": "identified",
+                  "evidence": [
+                    "active_tool_skill_intake.target_granularity"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "current_level"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "active_tool_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "continue_active",
+            "reason_code": "active_tool_skill_continue",
+            "active_owner": "tool_skill",
+            "resume_policy": "none",
+            "selected_owner": "tool_skill"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "ask_question",
+          "reason_code": "active_tool_skill_continue",
+          "plan_item_id": null,
+          "target_title": null,
+          "missing_slots": [
+            "draft_generation_confirmation"
+          ],
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Proposer des actions qui ne sont pas concrètes ou qui ne répondent pas directement au besoin de sécurité émotionnelle et de retour au calme.",
+              "Ignorer la duplication potentielle de la mission sur le protocole de pause sans chercher à comprendre le besoin sous-jacent.",
+              "Modifier le plan de manière radicale sans comprendre la nuance derrière la demande de l'utilisateur."
+            ],
+            "scope": "level",
+            "preserve": [
+              "L'intention de renforcer la \"sécurité émotionnelle et le retour au calme\" comme priorité actuelle.",
+              "Le principe d'un \"signal de pause\" comme outil de désescalade.",
+              "L'habitude \"Partager un point positif\" et le framework \"Cartographier les déclencheurs\" qui sont des fondations importantes du niveau actuel."
+            ],
+            "warnings": [
+              "Éviter d'ajouter la mission \"définir notre protocole de pause\" telle quelle sans clarifier sa relation avec la mission \"Convenir d'un signal de pause\" déjà complétée et la mission \"Faire le point sur le signal de pause\" à venir. Cela pourrait entraîner une duplication d'effort et une perte de cohérence.",
+              "Éviter de rejeter la proposition de mission sans comprendre le besoin sous-jacent de l'utilisateur concernant la formalisation ou l'efficacité du protocole de pause.",
+              "Éviter de modifier radicalement le plan ou de supprimer des actions existantes sans une compréhension claire de l'intention de l'utilisateur."
+            ],
+            "confidence": "high",
+            "guidelines": [
+              "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+              "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+              "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+              "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+              "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+              "Guidelines action: La nouvelle habitude est un bon exemple d'action concrète servant l'intention. Pour la mission, s'assurer qu'elle ne duplique pas l'existant mais le complète ou le raffine. Ne pas changer la nature d'une action sans demande explicite.",
+              "Guidelines niveau: L'ajout de l'habitude renforce le cœur du niveau actuel. La mission doit être intégrée de manière à ne pas surcharger le niveau et à maintenir la cohérence avec les actions déjà prévues. Ne pas modifier les boundaries de fin de niveau sans raison claire.",
+              "Guidelines whole_plan: L'ajustement doit s'inscrire dans la trajectoire globale de rétablissement de la sécurité et de la communication. Il ne doit pas compromettre la cohérence globale du plan ni les prérequis des phases ultérieures. L'objectif et le questionnaire du plan doivent rester préservés."
+            ],
+            "observation": "L'utilisateur propose deux actions concrètes pour répondre à son besoin de renforcer la \"sécurité émotionnelle et le retour au calme\". L'habitude proposée (\"après une tension, attendre 20 minutes puis revenir avec une phrase calme pour reprendre\") est très pertinente et s'aligne directement avec l'objectif du niveau actuel. Cependant, la mission proposée (\"définir notre protocole de pause\") semble faire écho à une mission déjà existante et complétée (\"Convenir d'un signal de pause\"). Cela suggère soit une insatisfaction quant à la clarté ou l'efficacité de la définition initiale, soit un désir de formaliser davantage les étapes post-signal, ce qui nécessite une clarification pour éviter la redondance et s'assurer que le besoin réel est adressé.",
+            "recommendation": "Guider le sous-skill à valider l'intégration de l'habitude proposée, car elle répond directement et concrètement au besoin de retour au calme. Pour la mission, inciter le sous-skill à explorer la relation entre la nouvelle proposition et la mission existante sur le signal de pause. Il est crucial de comprendre si l'utilisateur souhaite affiner, redéfinir ou compléter le protocole de pause déjà en place, plutôt que de simplement ajouter une action potentiellement dupliquée. L'objectif est de renforcer la sécurité émotionnelle sans créer de confusion ou de charge inutile.",
+            "options_to_discuss": [
+              "Si la mission \"définir notre protocole de pause\" vise à détailler ce qui se passe *après* le signal, envisager de la reformuler comme une nouvelle mission complémentaire (ex: \"Établir les étapes post-signal de pause\").",
+              "Si la mission vise à renforcer la clarté du signal existant, proposer de modifier la description de la mission \"Faire le point sur le signal de pause\" pour y inclure un objectif de \"raffinement et formalisation du protocole\".",
+              "Intégrer l'habitude \"après une tension, attendre 20 minutes puis revenir avec une phrase calme pour reprendre\" comme une nouvelle habitude légère, car elle est directement alignée avec le besoin exprimé."
+            ],
+            "questions_to_clarify": [
+              "Concernant la mission \"définir notre protocole de pause\" : Est-ce que le \"signal de pause\" convenu précédemment n'est pas suffisant, ou est-ce que vous souhaitez clarifier ce qui se passe *après* que le signal ait été donné ?",
+              "Quel est l'objectif précis de ce nouveau \"protocole de pause\" par rapport au \"signal de pause\" déjà en place ? S'agit-il de le renforcer, de le détailler, ou d'ajouter des étapes spécifiques ?",
+              "La mission \"Faire le point sur le signal de pause\" est prévue pour la semaine 3. Est-ce que la proposition de \"définir notre protocole de pause\" vise à remplacer ou à préparer cette discussion ?"
+            ]
+          },
+          "coaching_guidance_audit": {
+            "scope": "level",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 46119,
+        "created_at": "2026-05-20T11:48:52.259194+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r61-whole-plan-next-step-t03",
+    "user": "Oui, prépare la proposition concrète. Je veux que ce soit une étape intermédiaire dans la trajectoire globale, pas juste un ajout isolé d'action.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r61-whole-plan-next-step-t03",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-19-adjust-plan-postfix-rerun-r61-whole-plan-next-step",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je ne peux pas encore te montrer le brouillon précis pour l'instant. Pour que je puisse bien préparer cette proposition concrète et qu'elle s'intègre comme une vraie étape intermédiaire, j'ai besoin de quelques précisions sur la mission « définir notre protocole de pause ».\n\nTu as déjà une mission « Convenir d'un signal de pause » qui est terminée, et une autre « Faire le point sur le signal de pause » qui est prévue.\n\nEst-ce que cette nouvelle mission « définir notre protocole de pause » vise à :\n1. Détailler ce qui se passe *après* que le signal de pause a été donné ?\n2. Renforcer ou formaliser le signal de pause existant ?\n3. Ou a-t-elle un autre objectif spécifique ? 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r61-whole-plan-next-step-t03",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "3c54f0eb-0432-4492-98ae-17a661868ae6",
+        "ts": "2026-05-20T11:50:40.166+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 15764,
+          "latency_ms": 11684,
+          "model_used": "gemini-2.5-flash",
+          "tokens_out": 819,
+          "memory_plan": {
+            "targets": [],
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r61-whole-plan-next-step-t03",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [],
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {
+              "reason": "user_confirms_preparation_but_adds_constraint",
+              "skill_id": "adjust_plan_item",
+              "state_change": "continue"
+            }
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 1,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0,1;decay=0.55;recovery=1.5",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              1
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "3c54f0eb-0432-4492-98ae-17a661868ae6",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "proposition concrète",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "current_level",
+                  "label": "la suite du plan",
+                  "status": "identified",
+                  "evidence": [
+                    "active_tool_skill_intake.scope"
+                  ]
+                },
+                "constraints": {
+                  "status": "identified",
+                  "values": [
+                    "sécurité émotionnelle et le retour au calme",
+                    "duration:20 minutes",
+                    "duration_minutes:20",
+                    "étape intermédiaire dans la trajectoire globale",
+                    "pas juste un ajout isolé d'action"
+                  ],
+                  "evidence": [
+                    "active_tool_skill_intake.operation_input.constraints",
+                    "Je veux que ce soit une étape intermédiaire dans la trajectoire globale, pas juste un ajout isolé d'action"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "current_level",
+                  "status": "identified",
+                  "evidence": [
+                    "active_tool_skill_intake.target_granularity"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "current_level"
+            }
+          ],
+          "confirmation_response": {
+            "kind": "correction_to_pending",
+            "reason": "user_confirms_preparation_but_adds_constraint",
+            "confidence_band": "high"
+          },
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "active_tool_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "continue_active",
+            "reason_code": "active_tool_skill_continue",
+            "active_owner": "tool_skill",
+            "resume_policy": "none",
+            "selected_owner": "tool_skill"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "ask_question",
+          "reason_code": "active_tool_skill_continue",
+          "plan_item_id": null,
+          "target_title": null,
+          "missing_slots": [
+            "draft_generation_retry_needed"
+          ],
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Proposer des actions qui ne sont pas concrètes ou qui ne répondent pas directement au besoin de sécurité émotionnelle et de retour au calme.",
+              "Ignorer la duplication potentielle de la mission sur le protocole de pause sans chercher à comprendre le besoin sous-jacent.",
+              "Modifier le plan de manière radicale ou ajouter des éléments sans lien clair avec la progression du niveau et du plan global.",
+              "Présenter la nouvelle étape comme un simple ajout sans expliquer comment elle s'intègre dans la trajectoire."
+            ],
+            "scope": "level",
+            "preserve": [
+              "L'intention de renforcer la \"sécurité émotionnelle et le retour au calme\" comme priorité actuelle du niveau.",
+              "Le principe d'un \"signal de pause\" comme outil de désescalade, déjà établi.",
+              "L'habitude \"Partager un point positif\" et le framework \"Cartographier les déclencheurs\" qui sont des fondations importantes du niveau actuel.",
+              "La contrainte que toute nouvelle action doit être une \"étape intermédiaire dans la trajectoire globale\" et non un \"ajout isolé d'action\"."
+            ],
+            "warnings": [
+              "Éviter d'ajouter la mission \"définir notre protocole de pause\" telle quelle sans clarifier sa relation avec la mission \"Convenir d'un signal de pause\" déjà complétée et la mission \"Faire le point sur le signal de pause\" à venir. Cela pourrait entraîner une duplication d'effort et une perte de cohérence, allant à l'encontre de la demande d'une \"étape intermédiaire dans la trajectoire globale\".",
+              "Éviter de proposer des actions qui ne sont pas clairement connectées aux étapes précédentes ou suivantes du plan, car l'utilisateur a explicitement demandé que ce ne soit \"pas juste un ajout isolé d'action\".",
+              "Éviter de rejeter la proposition de mission sans comprendre le besoin sous-jacent de l'utilisateur concernant la formalisation ou l'efficacité du protocole de pause."
+            ],
+            "confidence": "high",
+            "guidelines": [
+              "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+              "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+              "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+              "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+              "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+              "Traiter le niveau comme le périmètre courant: rythme, charge, focus, ordre ou intensité du bloc actuel.",
+              "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+              "Si la période demandée dépasse la fin du niveau, garder ce repère pour le prochain niveau sans modifier toute la trajectoire.",
+              "Préserver le cœur du niveau et identifier ce qui peut être allégé en premier.",
+              "Éviter de supprimer une action structurante quand une simplification ou un rééquilibrage suffit.",
+              "Guidelines action: La nouvelle habitude est un bon exemple d'action concrète servant l'intention. Pour la mission, s'assurer qu'elle ne duplique pas l'existant mais le complète ou le raffine, en s'inscrivant comme un pont logique. Ne pas changer la nature d'une action sans demande explicite.",
+              "Guidelines niveau: L'ajout de l'habitude renforce le cœur du niveau actuel. La mission doit être intégrée de manière à ne pas surcharger le niveau et à maintenir la cohérence avec les actions déjà prévues, servant de véritable \"étape intermédiaire\". Ne pas modifier les boundaries de fin de niveau sans raison claire.",
+              "Guidelines whole_plan: L'ajustement doit s'inscrire dans la trajectoire globale de rétablissement de la sécurité et de la communication. Il ne doit pas compromettre la cohérence globale du plan ni les prérequis des phases ultérieures. L'objectif et le questionnaire du plan doivent rester préservés. La nouvelle étape doit clairement servir de pont vers la suite."
+            ],
+            "observation": "L'utilisateur insiste sur l'intégration de la nouvelle proposition comme une \"étape intermédiaire dans la trajectoire globale\", et non comme un \"ajout isolé d'action\". Cela renforce la nécessité d'une cohérence forte avec les actions existantes et à venir. L'habitude proposée est bien alignée avec le besoin de \"sécurité émotionnelle et retour au calme\". La mission sur le \"protocole de pause\" nécessite toujours une clarification pour s'assurer qu'elle s'inscrit logiquement dans la progression du plan et ne duplique pas ou ne crée pas de confusion avec les missions existantes sur le signal de pause.",
+            "recommendation": "Guider le sous-skill à valider l'intégration de l'habitude proposée, car elle répond directement et concrètement au besoin de retour au calme et s'intègre naturellement. Pour la mission, inciter le sous-skill à s'assurer que la proposition s'inscrit comme une étape logique et non redondante dans la trajectoire. Il est crucial de comprendre si l'utilisateur souhaite affiner, formaliser ou ajouter des étapes *après* le signal de pause déjà convenu, en lien avec la mission de 'Faire le point' à venir, plutôt que de simplement réitérer la définition d'un signal.",
+            "options_to_discuss": [
+              "Si la mission \"définir notre protocole de pause\" vise à détailler ce qui se passe *après* le signal, envisager de la reformuler comme une nouvelle mission complémentaire (ex: \"Établir les étapes post-signal de pause\") pour clarifier la progression.",
+              "Si la mission vise à renforcer la clarté du signal existant, proposer de modifier la description de la mission \"Faire le point sur le signal de pause\" pour y inclure un objectif de \"raffinement et formalisation du protocole\" afin d'intégrer le besoin dans une action existante.",
+              "Intégrer l'habitude \"après une tension, attendre 20 minutes puis revenir avec une phrase calme pour reprendre\" comme une nouvelle habitude légère, car elle est directement alignée avec le besoin exprimé de retour au calme et s'inscrit bien comme une étape intermédiaire concrète."
+            ],
+            "questions_to_clarify": [
+              "Concernant la mission \"définir notre protocole de pause\" : Est-ce que le \"signal de pause\" convenu précédemment n'est pas suffisant, ou est-ce que vous souhaitez clarifier ce qui se passe *après* que le signal ait été donné, pour une meilleure gestion du retour au calme ?",
+              "Quel est l'objectif précis de ce nouveau \"protocole de pause\" par rapport au \"signal de pause\" déjà en place ? S'agit-il de le renforcer, de le détailler, ou d'ajouter des étapes spécifiques pour le retour au calme ?",
+              "La mission \"Faire le point sur le signal de pause\" est prévue pour la semaine 3. Est-ce que la proposition de \"définir notre protocole de pause\" vise à remplacer ou à préparer cette discussion en y ajoutant une dimension plus formelle ?"
+            ]
+          },
+          "coaching_guidance_audit": {
+            "scope": "level",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 98021,
+        "created_at": "2026-05-20T11:50:40.17418+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r61-whole-plan-next-step-t04",
+    "user": "Option 1 : détailler ce qui se passe après le signal de pause. Le signal dit stop, puis le protocole dit comment chacun redescend et comment on reprend calmement ensuite.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r61-whole-plan-next-step-t04",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-19-adjust-plan-postfix-rerun-r61-whole-plan-next-step",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Option 1, je valide à fond. 😌\nSi on structure ça comme une vraie étape intermédiaire (sécurité émotionnelle + retour au calme), le contenu peut devenir un mini “protocole de pause” qui décrit clairement 2-3 moments : stop, redescente, reprise.\n\nProposition concrète (étape intermédiaire dans la trajectoire globale) :\n1) Signal stop (tout le monde est aligné)\n- Qui observe quoi : “quand X apparaît (ton/rythme/phrases), on dit stop”\n- But immédiat : “on ne discute pas du fond maintenant”\n\n2) Redescente guidée (comment chacun se régule)\n- 20 minutes comme base (mécanique simple)\n- Ce que chacun fait pendant : respiration lente / eau / marcher un peu (au choix, mais cadré)\n- Règle sécurité : pas de “réparations à chaud” ni de justification longue\n\n3) Reprise calme (comment on revient)\n- 1 phrase “calme” avant de relancer (exemples à choisir) :\n  - “Je reviens à tête plus posée : tu me répètes le point clé ?”\n  - “Je veux comprendre sans repartir au conflit : on repart où précisément ?”\n- Objectif : revenir au sujet, pas au jugement\n\n4) Clôture/feedback ultra court (optionnel mais puissant)\n- Après reprise : chacun dit une phrase sur “ce qui a aidé à redescendre”\n- Ça sert à ajuster la prochaine version du protocole\n\nEt pour l’intégration au plan : tu peux faire en sorte que la mission “définir notre protocole de pause” contienne précisément ces éléments, puis que l’habitude “après tension attendre 20 minutes puis revenir avec une phrase calme” devienne le mode d’exécution concret de la reprise.\n\nTu veux que le protocole soit plutôt “très strict (liste courte + règles non négociables)” ou “souple (cadre + options pour chacun)”? 🙂",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r61-whole-plan-next-step-t04",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "2539234e-6366-46de-819a-17e59aee6996",
+        "ts": "2026-05-20T11:51:00.271+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 11835,
+          "latency_ms": 4614,
+          "model_used": "gemini-2.5-flash",
+          "tokens_out": 590,
+          "memory_plan": {
+            "targets": [],
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r61-whole-plan-next-step-t04",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [],
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "product_help": {
+                "reason": "product_question",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 3.1,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": true,
+                "evidence": "stop",
+                "contribution": 2.5
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": true,
+                "evidence": "0,1,1;decay=0.55;recovery=0",
+                "contribution": 0.6
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "explicit_stop_or_abandon",
+              "previous_risk"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              1,
+              1
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "2539234e-6366-46de-819a-17e59aee6996",
+          "tool_skill_intents": [],
+          "confirmation_response": {
+            "kind": "correction_to_pending",
+            "reason": "user_provides_clarification_for_pending_tool_skill_intake",
+            "confidence_band": "high"
+          },
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "skill_entry_signal",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "product_help",
+          "memory_use_kind": "none",
+          "selected_handler": "product_help",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "output": {
+            "reply": "Missions: Dans le Plan, ouvre la semaine ou le niveau actif, trouve la mission, puis valide-la quand elle est faite.\n\nOu ca se trouve:\n- Dashboard > Plan: Quand le plan contient des items de dimension missions. Tu peux y consulter la mission, voir les ressources liees si elles existent, marquer comme fait.\n\nLimites importantes:\n- Le user ne cree pas ou ne supprime pas directement une mission depuis la carte.\n- Si la mission n'est plus adaptee, passer par l'ajustement du plan.",
+            "status": "complete",
+            "skill_id": "product_help",
+            "diagnosis": {
+              "locations": [
+                "Dashboard > Plan"
+              ],
+              "feature_id": "plan.missions",
+              "feature_label": "Missions",
+              "operation_bridge": null
+            },
+            "state_patch": {
+              "summary": "Product help answered for plan.missions."
+            },
+            "memory_trace": {
+              "correction_detected": false,
+              "memory_item_ids_used": [],
+              "memory_used_for_response": false,
+              "correction_target_item_ids": []
+            },
+            "response_intent": "how_to",
+            "recommendation_need": {
+              "type": "none",
+              "needed": false,
+              "urgency": "none",
+              "constraints": [
+                "product_help_does_not_execute_operations",
+                "operation_bridge_requires_confirmation_when_present"
+              ]
+            },
+            "operation_suggestions": []
+          },
+          "reason_code": "skill_entry_signal",
+          "selected_skill_id": "product_help"
+        },
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "product_help",
+        "total_latency_ms": 8327,
+        "created_at": "2026-05-20T11:51:00.281987+00:00"
+      },
+      "trace_error": null
+    }
+  }
+]

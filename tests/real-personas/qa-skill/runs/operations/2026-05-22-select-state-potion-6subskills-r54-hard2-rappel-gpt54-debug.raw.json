@@ -1,0 +1,425 @@
+[
+  {
+    "potion": "rappel",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r54_hard2_rappel_gpt54_debug_rappel",
+    "auth_user_id": "9a30c75d-575d-4327-a478-06f8af78342a",
+    "fixture": {
+      "cycle": {
+        "id": "b98781b1-b799-4fb1-92db-69101a3b21ed",
+        "user_id": "9a30c75d-575d-4327-a478-06f8af78342a",
+        "status": "active",
+        "raw_intake_text": "QA potions: l'utilisateur veut retrouver une relation plus calme a son quotidien tout en gardant une action simple.",
+        "intake_language": "fr",
+        "duration_months": 1,
+        "birth_date_snapshot": null,
+        "gender_snapshot": null,
+        "active_transformation_id": null,
+        "version": 1,
+        "created_at": "2026-05-22T09:41:23.994261+00:00",
+        "updated_at": "2026-05-22T09:41:23.994261+00:00",
+        "completed_at": null,
+        "archived_at": null,
+        "validated_structure": null,
+        "requested_pace": null
+      },
+      "transformation": {
+        "id": "57aaff12-5c17-41c0-ab6b-ce7dc6c08058",
+        "cycle_id": "b98781b1-b799-4fb1-92db-69101a3b21ed",
+        "priority_order": 1,
+        "status": "active",
+        "title": "Revenir aux petits gestes du soir",
+        "internal_summary": "Fixture QA pour tester la potion rappel.",
+        "user_summary": "Le user cherche un accompagnement doux, concret, sans pression supplementaire.",
+        "success_definition": "Avoir un appui simple qui ramene au bon geste sans surcharge.",
+        "main_constraint": "Quand la charge monte, le user se perd dans la pression et l'auto-jugement.",
+        "questionnaire_schema": null,
+        "questionnaire_answers": {
+          "potion_qa": "rappel",
+          "ton_prefere": "doux et direct",
+          "rythme_prefere": "matin"
+        },
+        "completion_summary": null,
+        "handoff_payload": {
+          "phase_1": {
+            "deep_why": {
+              "answers": [
+                {
+                  "answer": "Je veux arreter de me disperser et me sentir plus present a ce que je choisis.",
+                  "question_id": "why_1"
+                },
+                {
+                  "answer": "Je veux proteger mon energie et ma confiance au lieu de les depenser en tension.",
+                  "question_id": "why_2"
+                }
+              ],
+              "questions": [
+                {
+                  "id": "why_1",
+                  "label": "Pourquoi est-ce important pour toi ?"
+                },
+                {
+                  "id": "why_2",
+                  "label": "Qu'est-ce que tu veux proteger ?"
+                }
+              ]
+            }
+          }
+        },
+        "created_at": "2026-05-22T09:41:24.008218+00:00",
+        "updated_at": "2026-05-22T09:41:24.008218+00:00",
+        "activated_at": "2026-05-22T09:41:23.718+00:00",
+        "completed_at": null,
+        "ordering_rationale": null,
+        "unlocked_principles": {
+          "kaizen": true
+        },
+        "base_de_vie_payload": null
+      },
+      "plan": {
+        "id": "1ae5b9d5-4bc5-4a08-8228-d0867e438dab",
+        "user_id": "9a30c75d-575d-4327-a478-06f8af78342a",
+        "cycle_id": "b98781b1-b799-4fb1-92db-69101a3b21ed",
+        "transformation_id": "57aaff12-5c17-41c0-ab6b-ce7dc6c08058",
+        "status": "active",
+        "version": 1,
+        "title": "Plan QA rappel",
+        "content": {
+          "source": "qa_state_potion_6subskills",
+          "strategy": {
+            "core_principle": "Un seul appui juste vaut mieux qu'une pression de plus.",
+            "identity_shift": "Je deviens quelqu'un qui avance avec plus de douceur.",
+            "main_constraint": "La surcharge transforme les petits pas en montagne.",
+            "success_definition": "Revenir a un geste simple au bon moment."
+          }
+        },
+        "generation_attempts": 0,
+        "last_generation_reason": null,
+        "activated_at": "2026-05-22T09:41:23.718+00:00",
+        "completed_at": null,
+        "archived_at": null,
+        "created_at": "2026-05-22T09:41:24.037217+00:00",
+        "updated_at": "2026-05-22T09:41:24.037217+00:00",
+        "generation_feedback": null,
+        "generation_input_snapshot": null
+      },
+      "item": {
+        "id": "7816c095-f0c3-4b41-a516-35b4ddcb1824",
+        "user_id": "9a30c75d-575d-4327-a478-06f8af78342a",
+        "cycle_id": "b98781b1-b799-4fb1-92db-69101a3b21ed",
+        "transformation_id": "57aaff12-5c17-41c0-ab6b-ce7dc6c08058",
+        "plan_id": "1ae5b9d5-4bc5-4a08-8228-d0867e438dab",
+        "dimension": "habits",
+        "kind": "habit",
+        "status": "active",
+        "title": "Marcher dix minutes puis ranger le bureau",
+        "description": "Action QA active visible par le skill potion.",
+        "tracking_type": "boolean",
+        "activation_order": 1,
+        "activation_condition": null,
+        "current_habit_state": "active_building",
+        "support_mode": null,
+        "support_function": null,
+        "target_reps": 1,
+        "current_reps": 0,
+        "cadence_label": "quotidien",
+        "scheduled_days": [
+          "fri"
+        ],
+        "time_of_day": "09:00",
+        "start_after_item_id": null,
+        "payload": {
+          "source": "qa_state_potion_6subskills",
+          "potion_type": "rappel"
+        },
+        "created_at": "2026-05-22T09:41:24.044759+00:00",
+        "updated_at": "2026-05-22T09:41:24.044759+00:00",
+        "activated_at": "2026-05-22T09:41:23.718+00:00",
+        "completed_at": null,
+        "phase_id": null,
+        "phase_order": null,
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "cards_status": "not_required",
+        "cards_generated_at": null
+      }
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r54_hard2_rappel_gpt54_debug-rappel-t01-a1",
+        "user": "Je veux une potion de rappel, mais je suis pas tres clair: mes fins de journee partent en vrille.",
+        "assistant": "",
+        "status": 500,
+        "body": {
+          "error": "The operation is not supported",
+          "request_id": "qa-state-potion-state_potion_6subskills_r54_hard2_rappel_gpt54_debug-rappel-t01-a1",
+          "qa_diagnostic": {
+            "source": "test-send-message",
+            "category": "router_or_app",
+            "reason": "unknown",
+            "provider": "unknown",
+            "retryable": false,
+            "note": "Unhandled application/router failure while running QA endpoint."
+          },
+          "__http_status": 500
+        },
+        "trace": {
+          "http_status": 500,
+          "ok": null,
+          "empty_response": null,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": null,
+          "selected_handler": null,
+          "route_selected_handler": null,
+          "route_reason": null,
+          "safety": null,
+          "direct_effects": null,
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": null,
+          "trace_error": null,
+          "trace_id": null
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 2,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r54_hard2_rappel_gpt54_debug-rappel-t02-a1",
+        "user": "Le moment a proteger, c'est quand je ferme l'ordi: soit je sors marcher dix minutes, soit je range le bureau, sinon je reporte.",
+        "assistant": "",
+        "status": 500,
+        "body": {
+          "error": "The operation is not supported",
+          "request_id": "qa-state-potion-state_potion_6subskills_r54_hard2_rappel_gpt54_debug-rappel-t02-a1",
+          "qa_diagnostic": {
+            "source": "test-send-message",
+            "category": "router_or_app",
+            "reason": "unknown",
+            "provider": "unknown",
+            "retryable": false,
+            "note": "Unhandled application/router failure while running QA endpoint."
+          },
+          "__http_status": 500
+        },
+        "trace": {
+          "http_status": 500,
+          "ok": null,
+          "empty_response": null,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": null,
+          "selected_handler": null,
+          "route_selected_handler": null,
+          "route_reason": null,
+          "safety": null,
+          "direct_effects": null,
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": null,
+          "trace_error": null,
+          "trace_id": null
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 3,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r54_hard2_rappel_gpt54_debug-rappel-t03-a1",
+        "user": "Je prefere que le rappel arrive avant que je me pose, vers 18h45. Le ton doit etre simple, pas scolaire.",
+        "assistant": "",
+        "status": 500,
+        "body": {
+          "error": "The operation is not supported",
+          "request_id": "qa-state-potion-state_potion_6subskills_r54_hard2_rappel_gpt54_debug-rappel-t03-a1",
+          "qa_diagnostic": {
+            "source": "test-send-message",
+            "category": "router_or_app",
+            "reason": "unknown",
+            "provider": "unknown",
+            "retryable": false,
+            "note": "Unhandled application/router failure while running QA endpoint."
+          },
+          "__http_status": 500
+        },
+        "trace": {
+          "http_status": 500,
+          "ok": null,
+          "empty_response": null,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": null,
+          "selected_handler": null,
+          "route_selected_handler": null,
+          "route_reason": null,
+          "safety": null,
+          "direct_effects": null,
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": null,
+          "trace_error": null,
+          "trace_id": null
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 4,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r54_hard2_rappel_gpt54_debug-rappel-t04-a1",
+        "user": "Oui, garde ce cadre: marche ou bureau, juste un repere doux.",
+        "assistant": "",
+        "status": 500,
+        "body": {
+          "error": "The operation is not supported",
+          "request_id": "qa-state-potion-state_potion_6subskills_r54_hard2_rappel_gpt54_debug-rappel-t04-a1",
+          "qa_diagnostic": {
+            "source": "test-send-message",
+            "category": "router_or_app",
+            "reason": "unknown",
+            "provider": "unknown",
+            "retryable": false,
+            "note": "Unhandled application/router failure while running QA endpoint."
+          },
+          "__http_status": 500
+        },
+        "trace": {
+          "http_status": 500,
+          "ok": null,
+          "empty_response": null,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": null,
+          "selected_handler": null,
+          "route_selected_handler": null,
+          "route_reason": null,
+          "safety": null,
+          "direct_effects": null,
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": null,
+          "trace_error": null,
+          "trace_id": null
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 5,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r54_hard2_rappel_gpt54_debug-rappel-t05-a1",
+        "user": "Oui, active cette potion de rappel.",
+        "assistant": "",
+        "status": 500,
+        "body": {
+          "error": "The operation is not supported",
+          "request_id": "qa-state-potion-state_potion_6subskills_r54_hard2_rappel_gpt54_debug-rappel-t05-a1",
+          "qa_diagnostic": {
+            "source": "test-send-message",
+            "category": "router_or_app",
+            "reason": "unknown",
+            "provider": "unknown",
+            "retryable": false,
+            "note": "Unhandled application/router failure while running QA endpoint."
+          },
+          "__http_status": 500
+        },
+        "trace": {
+          "http_status": 500,
+          "ok": null,
+          "empty_response": null,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": null,
+          "selected_handler": null,
+          "route_selected_handler": null,
+          "route_reason": null,
+          "safety": null,
+          "direct_effects": null,
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": null,
+          "trace_error": null,
+          "trace_id": null
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 6,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r54_hard2_rappel_gpt54_debug-rappel-t06-a1",
+        "user": "Oui je confirme, lance-la.",
+        "assistant": "",
+        "status": 500,
+        "body": {
+          "error": "The operation is not supported",
+          "request_id": "qa-state-potion-state_potion_6subskills_r54_hard2_rappel_gpt54_debug-rappel-t06-a1",
+          "qa_diagnostic": {
+            "source": "test-send-message",
+            "category": "router_or_app",
+            "reason": "unknown",
+            "provider": "unknown",
+            "retryable": false,
+            "note": "Unhandled application/router failure while running QA endpoint."
+          },
+          "__http_status": 500
+        },
+        "trace": {
+          "http_status": 500,
+          "ok": null,
+          "empty_response": null,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": null,
+          "selected_handler": null,
+          "route_selected_handler": null,
+          "route_reason": null,
+          "safety": null,
+          "direct_effects": null,
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": null,
+          "trace_error": null,
+          "trace_id": null
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      }
+    ]
+  }
+]

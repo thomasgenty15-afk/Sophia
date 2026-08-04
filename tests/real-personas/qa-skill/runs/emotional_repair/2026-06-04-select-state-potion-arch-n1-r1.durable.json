@@ -1,0 +1,397 @@
+{
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "d5ff3c8a-0943-487b-9653-2c2d3e66f38d",
+        "role": "user",
+        "content": "Je veux une potion de clarté. Je fais les actions prévues, mais je ne sens plus pourquoi elles comptent pour moi aujourd'hui.",
+        "scope": "qa-emotional-repair-2026-06-04-select-state-potion-arch-n1-r1",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-04-select-state-potion-arch-n1-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-04T14:19:52.989808+00:00"
+      },
+      {
+        "id": "b1c0fa1e-9396-49fe-9d44-09ec3d3d61fa",
+        "role": "assistant",
+        "content": "Ce que je comprends : Je fais les actions prévues, mais je ne sens plus pourquoi elles comptent pour moi aujourd'hui.\n\nJe te conseille de choisir Potion de clarté. Le shift recommandé est de retrouver un fil simple plutôt que tout résoudre.\n\nPourquoi cette potion : Tu m'as dit que tu faisais les actions prévues, mais que tu ne sentais plus pourquoi elles comptaient pour toi aujourd'hui.\nPetit pas immédiat : Je comprends que tu te sentes déconnecté de tes actions. C'est un sentiment lourd quand on ne voit plus le sens. Prends un instant pour respirer. Je suis là pour t'aider à retrouver cette clarté.\n\nÀ mettre dans la plateforme :\nPotion : Potion de clarté\n- Qu'est-ce qui te donne l'impression que ton plan n'a plus de sens pour toi aujourd'hui ? Je fais les actions prévues, mais je ne sens plus pourquoi elles comptent pour moi aujourd'hui.\n\nDans la plateforme, dans la section État / Potions, puis choisis la potion recommandée, active-la depuis la plateforme si elle te convient.\n\nJe ne lance pas de potion depuis le chat. 🙂",
+        "scope": "qa-emotional-repair-2026-06-04-select-state-potion-arch-n1-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-04-select-state-potion-arch-n1-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "handoff_delivered",
+              "handoff": null,
+              "constraints": [],
+              "reason_code": "state_potion_platform_handoff_delivered",
+              "operation_type": "select_state_potion",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "no_chat_mutation": true,
+              "platform_handoff": {
+                "draft": {
+                  "mode": "platform_handoff",
+                  "operation_type": "select_state_potion",
+                  "recommendation": {
+                    "avoid": [],
+                    "preserve": [],
+                    "potion_label": "Potion de clarté",
+                    "immediate_step": "Je comprends que tu te sentes déconnecté de tes actions. C'est un sentiment lourd quand on ne voit plus le sens. Prends un instant pour respirer. Je suis là pour t'aider à retrouver cette clarté.",
+                    "platform_steps": [
+                      "ouvre la section État / Potions",
+                      "choisis la potion recommandée",
+                      "active-la depuis la plateforme si elle te convient"
+                    ],
+                    "platform_inputs": {
+                      "answers": [
+                        {
+                          "value": "Je fais les actions prévues, mais je ne sens plus pourquoi elles comptent pour moi aujourd'hui.",
+                          "question_id": "plan_meaning_loss_reason",
+                          "option_label": null,
+                          "option_value": null,
+                          "question_label": "Qu'est-ce qui te donne l'impression que ton plan n'a plus de sens pour toi aujourd'hui ?"
+                        }
+                      ],
+                      "potion_type": "clarte",
+                      "potion_title": "Potion de clarté",
+                      "optional_free_text": null
+                    },
+                    "why_this_potion": "Tu m'as dit que tu faisais les actions prévues, mais que tu ne sentais plus pourquoi elles comptaient pour toi aujourd'hui.",
+                    "platform_destination": "dans la section État / Potions"
+                  },
+                  "no_chat_mutation": true,
+                  "missing_decisions": [],
+                  "user_state_summary": "Je fais les actions prévues, mais je ne sens plus pourquoi elles comptent pour moi aujourd'hui.",
+                  "executable_from_chat": false,
+                  "desired_shift_summary": "Le shift recommandé est de retrouver un fil simple plutôt que tout résoudre."
+                },
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "state_potion_platform_handoff_delivered",
+                "operation_type": "select_state_potion",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "select_state_potion",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-04T14:20:25.215574+00:00"
+      },
+      {
+        "id": "f9b9f954-8f97-4e88-bf0d-35965a993178",
+        "role": "user",
+        "content": "Je vais où pour la lancer ?",
+        "scope": "qa-emotional-repair-2026-06-04-select-state-potion-arch-n1-r1",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-04-select-state-potion-arch-n1-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-04T14:20:39.120543+00:00"
+      },
+      {
+        "id": "e34471bd-4d41-4ce6-b97b-eb3c8c79fce2",
+        "role": "assistant",
+        "content": "Tu peux la reprendre dans la plateforme, dans la section État / Potions.\nChoisis : Potion de clarté.\nÀ renseigner :\n- Qu'est-ce qui te donne l'impression que ton plan n'a plus de sens pour toi aujourd'hui ? Je fais les actions prévues, mais je ne sens plus pourquoi elles comptent pour moi aujourd'hui. 🙂",
+        "scope": "qa-emotional-repair-2026-06-04-select-state-potion-arch-n1-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-04-select-state-potion-arch-n1-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "repeat_handoff",
+              "handoff": null,
+              "constraints": [],
+              "reason_code": "state_potion_platform_destination_followup",
+              "operation_type": "select_state_potion",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "no_chat_mutation": true,
+              "platform_handoff": {
+                "draft": {
+                  "mode": "platform_handoff",
+                  "operation_type": "select_state_potion",
+                  "recommendation": {
+                    "avoid": [],
+                    "preserve": [],
+                    "potion_label": "Potion de clarté",
+                    "immediate_step": "Je comprends que tu te sentes déconnecté de tes actions. C'est un sentiment lourd quand on ne voit plus le sens. Prends un instant pour respirer. Je suis là pour t'aider à retrouver cette clarté.",
+                    "platform_steps": [
+                      "ouvre la section État / Potions",
+                      "choisis la potion recommandée",
+                      "active-la depuis la plateforme si elle te convient"
+                    ],
+                    "platform_inputs": {
+                      "answers": [
+                        {
+                          "value": "Je fais les actions prévues, mais je ne sens plus pourquoi elles comptent pour moi aujourd'hui.",
+                          "question_id": "plan_meaning_loss_reason",
+                          "option_label": null,
+                          "option_value": null,
+                          "question_label": "Qu'est-ce qui te donne l'impression que ton plan n'a plus de sens pour toi aujourd'hui ?"
+                        }
+                      ],
+                      "potion_type": "clarte",
+                      "potion_title": "Potion de clarté",
+                      "optional_free_text": null
+                    },
+                    "why_this_potion": "Tu m'as dit que tu faisais les actions prévues, mais que tu ne sentais plus pourquoi elles comptaient pour toi aujourd'hui.",
+                    "platform_destination": "dans la section État / Potions"
+                  },
+                  "no_chat_mutation": true,
+                  "missing_decisions": [],
+                  "user_state_summary": "Je fais les actions prévues, mais je ne sens plus pourquoi elles comptent pour moi aujourd'hui.",
+                  "executable_from_chat": false,
+                  "desired_shift_summary": "Le shift recommandé est de retrouver un fil simple plutôt que tout résoudre."
+                },
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "state_potion_platform_destination_followup",
+                "operation_type": "select_state_potion",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "select_state_potion",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-04T14:20:42.972588+00:00"
+      },
+      {
+        "id": "d5dbd4a7-ff85-431b-89ca-a514d865819b",
+        "role": "user",
+        "content": "Reformule le champ comme ça : je fais les actions prévues, mais je ne sens plus pourquoi elles comptent pour moi aujourd'hui.",
+        "scope": "qa-emotional-repair-2026-06-04-select-state-potion-arch-n1-r1",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-04-select-state-potion-arch-n1-r1-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-04T14:24:35.620554+00:00"
+      },
+      {
+        "id": "76db93d7-fedc-444f-b6f9-fb32ecffed70",
+        "role": "assistant",
+        "content": "Oui, garde plutôt cette version : elle remplace l’ancienne formulation.\n\nDans la plateforme, pour Potion de clarté, mets :\n\nPourquoi est-ce que tu as l’impression que ton plan n’a plus de sens pour toi aujourd’hui ?\nje fais les actions prévues, mais je ne sens plus pourquoi elles comptent pour moi aujourd'hui. 🙂",
+        "scope": "qa-emotional-repair-2026-06-04-select-state-potion-arch-n1-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-04-select-state-potion-arch-n1-r1-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "handoff_delivered",
+              "handoff": {
+                "target": "state_potions"
+              },
+              "constraints": [],
+              "reason_code": "clarte_revision_applied",
+              "operation_type": "select_state_potion",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "no_chat_mutation": true,
+              "platform_handoff": {
+                "draft": {
+                  "mode": "platform_handoff",
+                  "operation_type": "select_state_potion",
+                  "recommendation": {
+                    "avoid": [],
+                    "preserve": [],
+                    "potion_label": "Potion de clarté",
+                    "immediate_step": null,
+                    "platform_steps": [
+                      "va dans État / Potions",
+                      "choisis Potion de clarté"
+                    ],
+                    "platform_inputs": {
+                      "answers": [
+                        {
+                          "value": "je fais les actions prévues, mais je ne sens plus pourquoi elles comptent pour moi aujourd'hui.",
+                          "question_id": "plan_meaning_loss_reason",
+                          "option_label": null,
+                          "option_value": null,
+                          "question_label": "Pourquoi est-ce que tu as l’impression que ton plan n’a plus de sens pour toi aujourd’hui ?"
+                        }
+                      ],
+                      "potion_type": "clarte",
+                      "potion_title": "Potion de clarté",
+                      "optional_free_text": null
+                    },
+                    "why_this_potion": "La demande porte sur le sens du plan et le lien perdu avec ce qui compte.",
+                    "platform_destination": "section État / Potions"
+                  },
+                  "no_chat_mutation": true,
+                  "missing_decisions": [],
+                  "user_state_summary": "je fais les actions prévues, mais je ne sens plus pourquoi elles comptent pour moi aujourd'hui.",
+                  "executable_from_chat": false,
+                  "desired_shift_summary": "Retrouver le lien entre les actions du plan et le pourquoi profond."
+                },
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "clarte_revision_applied",
+                "operation_type": "select_state_potion",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "select_state_potion",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-04T14:24:44.578701+00:00"
+      },
+      {
+        "id": "0e967c4a-b445-4945-8378-0d3020c32ad5",
+        "role": "user",
+        "content": "Ok lance-la.",
+        "scope": "qa-emotional-repair-2026-06-04-select-state-potion-arch-n1-r1",
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-04-select-state-potion-arch-n1-r1-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-04T14:25:01.894229+00:00"
+      },
+      {
+        "id": "fd80fe8e-7b91-49a4-b780-3f749038e5cf",
+        "role": "assistant",
+        "content": "Je ne peux pas encore lancer de potion depuis le chat :)\n\nTu peux la créer dans section État / Potions, en choisissant Potion de clarté.\n\nÀ mettre :\nPourquoi est-ce que tu as l’impression que ton plan n’a plus de sens pour toi aujourd’hui ?\nje fais les actions prévues, mais je ne sens plus pourquoi elles comptent pour moi aujourd'hui. 🙂",
+        "scope": "qa-emotional-repair-2026-06-04-select-state-potion-arch-n1-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-04-select-state-potion-arch-n1-r1-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "apply_attempt",
+              "handoff": {
+                "target": "state_potions"
+              },
+              "constraints": [],
+              "reason_code": "clarte_apply_attempt_no_chat_execution",
+              "operation_type": "select_state_potion",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "no_chat_mutation": true,
+              "platform_handoff": {
+                "draft": {
+                  "mode": "platform_handoff",
+                  "operation_type": "select_state_potion",
+                  "recommendation": {
+                    "avoid": [],
+                    "preserve": [],
+                    "potion_label": "Potion de clarté",
+                    "immediate_step": null,
+                    "platform_steps": [
+                      "va dans État / Potions",
+                      "choisis Potion de clarté"
+                    ],
+                    "platform_inputs": {
+                      "answers": [
+                        {
+                          "value": "je fais les actions prévues, mais je ne sens plus pourquoi elles comptent pour moi aujourd'hui.",
+                          "question_id": "plan_meaning_loss_reason",
+                          "option_label": null,
+                          "option_value": null,
+                          "question_label": "Pourquoi est-ce que tu as l’impression que ton plan n’a plus de sens pour toi aujourd’hui ?"
+                        }
+                      ],
+                      "potion_type": "clarte",
+                      "potion_title": "Potion de clarté",
+                      "optional_free_text": null
+                    },
+                    "why_this_potion": "La demande porte sur le sens du plan et le lien perdu avec ce qui compte.",
+                    "platform_destination": "section État / Potions"
+                  },
+                  "no_chat_mutation": true,
+                  "missing_decisions": [],
+                  "user_state_summary": "je fais les actions prévues, mais je ne sens plus pourquoi elles comptent pour moi aujourd'hui.",
+                  "executable_from_chat": false,
+                  "desired_shift_summary": "Retrouver le lien entre les actions du plan et le pourquoi profond."
+                },
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "clarte_apply_attempt_no_chat_execution",
+                "operation_type": "select_state_potion",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "select_state_potion",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-04T14:25:09.683118+00:00"
+      }
+    ]
+  },
+  "memory_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "scheduled_checkins": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_recurring_reminders": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  }
+}

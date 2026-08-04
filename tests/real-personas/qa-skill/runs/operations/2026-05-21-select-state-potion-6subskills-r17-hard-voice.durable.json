@@ -1,0 +1,518 @@
+[
+  {
+    "potion": "rappel",
+    "user_id": "403066c4-6106-4836-a67b-61c11c7e871e",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r17_hard_voice_rappel",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    }
+  },
+  {
+    "potion": "courage",
+    "user_id": "80caf533-0bcb-42ef-9330-12149eff0e78",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r17_hard_voice_courage",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [
+        {
+          "id": "3503e145-0256-49ae-b0a0-a60330902cb2",
+          "potion_type": "courage",
+          "status": "completed",
+          "source": "system",
+          "scope_kind": "out_of_plan",
+          "cycle_id": "b9061f20-2d43-4f29-ae6d-7c7d5e36b7fa",
+          "transformation_id": null,
+          "content": {
+            "title": "Face au regard de l'autre",
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Envoyer le message difficile",
+              "evidence": [
+                "Le vrai sujet c'est mon associe. Je dois clarifier un conflit",
+                "peur que ca parte mal et qu'il me voie comme quelqu'un de penible"
+              ],
+              "recurrence_hint": "Mardi et Jeudi",
+              "date_or_window_hint": "09:00",
+              "target_plan_item_id": "18d0253c-de9b-4e76-81cc-d86207131c95",
+              "related_plan_item_id": null,
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "operation_draft": {
+              "title": "Face au regard de l'autre",
+              "follow_up": {
+                "duration_days": 7,
+                "schedule_plan": {
+                  "mode": "specific_weekdays",
+                  "reason": "Soutien ciblé avant la discussion avec l'associé le mardi et le jeudi.",
+                  "local_dates": [],
+                  "duration_days": 7,
+                  "scheduled_days": [
+                    "tue",
+                    "thu"
+                  ],
+                  "local_time_hhmm": "08:45",
+                  "timing_relation": "before"
+                },
+                "local_time_hhmm": "08:45",
+                "reason_for_time": "Pour t'accompagner juste avant l'action prévue à 09:00.",
+                "reminder_instruction": "Aider le user à aborder la discussion avec son associé en dépassant la peur d'être jugé comme pénible."
+              },
+              "potion_type": "courage",
+              "opening_prompt": "Si tu veux, dis-m'en plus sur ce qui te fait craindre d'être perçu comme 'pénible'.",
+              "target_binding": {
+                "kind": "plan_item",
+                "label": "Envoyer le message difficile",
+                "evidence": [
+                  "Le vrai sujet c'est mon associe. Je dois clarifier un conflit",
+                  "peur que ca parte mal et qu'il me voie comme quelqu'un de penible"
+                ],
+                "recurrence_hint": "Mardi et Jeudi",
+                "date_or_window_hint": "09:00",
+                "target_plan_item_id": "18d0253c-de9b-4e76-81cc-d86207131c95",
+                "related_plan_item_id": null,
+                "target_action_family_key": null,
+                "target_generated_temp_id": null
+              },
+              "why_this_potion": "Pour t'aider à dépasser la peur d'être mal perçu et à oser cette conversation nécessaire pour ta sérénité.",
+              "expected_duration": "short",
+              "potion_info_message": "Je t'enverrai un message mardi et jeudi à 08:45 pour t'aider à aborder cet échange avec plus de légèreté et de présence.",
+              "instant_support_message": "C'est une peur très humaine. On préfère souvent se taire plutôt que de risquer de paraître difficile. Mais protéger ton énergie et la clarté de votre relation n'est pas être pénible, c'est être responsable. On va s'assurer que tu ne traverses pas ça avec ce poids sur les épaules."
+            },
+            "why_this_potion": "Pour t'aider à dépasser la peur d'être mal perçu et à oser cette conversation nécessaire pour ta sérénité.",
+            "potion_info_message": "Je t'enverrai un message mardi et jeudi à 08:45 pour t'aider à aborder cet échange avec plus de légèreté et de présence.",
+            "instant_support_message": "C'est une peur très humaine. On préfère souvent se taire plutôt que de risquer de paraître difficile. Mais protéger ton énergie et la clarté de votre relation n'est pas être pénible, c'est être responsable. On va s'assurer que tu ne traverses pas ça avec ce poids sur les épaules."
+          },
+          "follow_up_strategy": {
+            "duration_days": 7,
+            "schedule_plan": {
+              "mode": "specific_weekdays",
+              "reason": "Soutien ciblé avant la discussion avec l'associé le mardi et le jeudi.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [
+                "tue",
+                "thu"
+              ],
+              "local_time_hhmm": "08:45",
+              "timing_relation": "before"
+            },
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Envoyer le message difficile",
+              "evidence": [
+                "Le vrai sujet c'est mon associe. Je dois clarifier un conflit",
+                "peur que ca parte mal et qu'il me voie comme quelqu'un de penible"
+              ],
+              "recurrence_hint": "Mardi et Jeudi",
+              "date_or_window_hint": "09:00",
+              "target_plan_item_id": "18d0253c-de9b-4e76-81cc-d86207131c95",
+              "related_plan_item_id": null,
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "local_time_hhmm": "08:45",
+            "reason_for_time": "Pour t'accompagner juste avant l'action prévue à 09:00.",
+            "reminder_instruction": "Aider le user à aborder la discussion avec son associé en dépassant la peur d'être jugé comme pénible."
+          },
+          "metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r17_hard_voice-courage-t05-a1",
+            "operation_id": "85470b8c-2f38-400d-80fd-d58e00d50499",
+            "operation_type": "select_state_potion",
+            "source_message_id": "16feabe7-6460-473d-9a44-113ef2dd2cd3"
+          },
+          "generated_at": "2026-05-21T09:01:16.495+00:00",
+          "last_updated_at": "2026-05-21T09:01:16.495+00:00"
+        }
+      ],
+      "reminders": [
+        {
+          "id": "35456b80-3e9c-4be3-aca8-2d377bac681b",
+          "message_instruction": "Aider le user à aborder la discussion avec son associé en dépassant la peur d'être jugé comme pénible.",
+          "rationale": "Soutien ciblé avant la discussion avec l'associé le mardi et le jeudi.",
+          "local_time_hhmm": "08:45",
+          "scheduled_days": [
+            "tue",
+            "thu"
+          ],
+          "status": "active",
+          "initiative_kind": "potion_follow_up",
+          "source_kind": "potion_generated",
+          "source_potion_session_id": "3503e145-0256-49ae-b0a0-a60330902cb2",
+          "initiative_metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r17_hard_voice-courage-t05-a1",
+            "operation_id": "85470b8c-2f38-400d-80fd-d58e00d50499",
+            "schedule_plan": {
+              "mode": "specific_weekdays",
+              "reason": "Soutien ciblé avant la discussion avec l'associé le mardi et le jeudi.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [
+                "tue",
+                "thu"
+              ],
+              "local_time_hhmm": "08:45",
+              "timing_relation": "before"
+            },
+            "operation_type": "select_state_potion",
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Envoyer le message difficile",
+              "evidence": [
+                "Le vrai sujet c'est mon associe. Je dois clarifier un conflit",
+                "peur que ca parte mal et qu'il me voie comme quelqu'un de penible"
+              ],
+              "recurrence_hint": "Mardi et Jeudi",
+              "date_or_window_hint": "09:00",
+              "target_plan_item_id": "18d0253c-de9b-4e76-81cc-d86207131c95",
+              "related_plan_item_id": null,
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            }
+          },
+          "target_kind": "plan_item",
+          "target_plan_item_id": "18d0253c-de9b-4e76-81cc-d86207131c95",
+          "target_action_family_key": null,
+          "target_binding_policy": "live_action",
+          "target_lifecycle_policy": "while_target_active",
+          "starts_at": "2026-05-21T09:01:16.495+00:00",
+          "created_at": "2026-05-21T09:01:16.499693+00:00",
+          "updated_at": "2026-05-21T09:01:16.499693+00:00"
+        }
+      ],
+      "checkins": [
+        {
+          "id": "01ba45d1-77db-4eaa-8f39-e3c6e5e474df",
+          "recurring_reminder_id": "35456b80-3e9c-4be3-aca8-2d377bac681b",
+          "event_context": "recurring_reminder:35456b80-3e9c-4be3-aca8-2d377bac681b:potion:3503e145-0256-49ae-b0a0-a60330902cb2:2026-05-26",
+          "draft_message": "Aider le user à aborder la discussion avec son associé en dépassant la peur d'être jugé comme pénible.",
+          "scheduled_for": "2026-05-26T08:45:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T09:01:16.503578+00:00"
+        },
+        {
+          "id": "d7f7e3a6-3891-416e-b137-e67eb32de885",
+          "recurring_reminder_id": "35456b80-3e9c-4be3-aca8-2d377bac681b",
+          "event_context": "recurring_reminder:35456b80-3e9c-4be3-aca8-2d377bac681b:potion:3503e145-0256-49ae-b0a0-a60330902cb2:2026-05-28",
+          "draft_message": "Aider le user à aborder la discussion avec son associé en dépassant la peur d'être jugé comme pénible.",
+          "scheduled_for": "2026-05-28T08:45:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T09:01:16.503578+00:00"
+        }
+      ]
+    }
+  },
+  {
+    "potion": "guerison",
+    "user_id": "c068c4ba-ef6e-45c5-92f4-da8790f162a3",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r17_hard_voice_guerison",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    }
+  },
+  {
+    "potion": "clarte",
+    "user_id": "63725fe4-2d15-4d1b-b5bd-9120ad1cdc8a",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r17_hard_voice_clarte",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    }
+  },
+  {
+    "potion": "amour",
+    "user_id": "9102a737-6877-4c20-a55d-32f4b82b2d50",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r17_hard_voice_amour",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [
+        {
+          "id": "284df3cb-65d5-4075-b337-12aede069695",
+          "potion_type": "amour",
+          "status": "completed",
+          "source": "system",
+          "scope_kind": "out_of_plan",
+          "cycle_id": "96bfe7a3-0ac4-4a1e-b150-a0e37b3becb6",
+          "transformation_id": null,
+          "content": {
+            "title": "Retrouver un ton juste",
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Me parler avec plus de douceur",
+              "evidence": [
+                "Me parler avec plus de douceur",
+                "tu rates toujours les memes choses",
+                "Le matin vers 9h ca me va"
+              ],
+              "recurrence_hint": "quotidien",
+              "date_or_window_hint": "09:00",
+              "target_plan_item_id": "b5d4152b-4148-4c0e-9bce-3c7ed5916b60",
+              "related_plan_item_id": null,
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "operation_draft": {
+              "title": "Retrouver un ton juste",
+              "follow_up": {
+                "duration_days": 7,
+                "schedule_plan": {
+                  "mode": "daily_series",
+                  "reason": "Un suivi quotidien le matin permet d'ancrer le changement de ton dès le début de la journée.",
+                  "local_dates": [],
+                  "duration_days": 7,
+                  "scheduled_days": [],
+                  "local_time_hhmm": "09:00",
+                  "timing_relation": "daily"
+                },
+                "local_time_hhmm": "09:00",
+                "reason_for_time": "C'est l'heure que tu as choisie pour démarrer ta journée sans te taper dessus directement.",
+                "reminder_instruction": "Un message pour ajuster le ton intérieur et ramener de la douceur sans complaisance."
+              },
+              "potion_type": "amour",
+              "opening_prompt": "Si tu veux, ajoute ce qui rend ton dialogue intérieur si dur aujourd'hui. Une phrase suffit.",
+              "target_binding": {
+                "kind": "plan_item",
+                "label": "Me parler avec plus de douceur",
+                "evidence": [
+                  "Me parler avec plus de douceur",
+                  "tu rates toujours les memes choses",
+                  "Le matin vers 9h ca me va"
+                ],
+                "recurrence_hint": "quotidien",
+                "date_or_window_hint": "09:00",
+                "target_plan_item_id": "b5d4152b-4148-4c0e-9bce-3c7ed5916b60",
+                "related_plan_item_id": null,
+                "target_action_family_key": null,
+                "target_generated_temp_id": null
+              },
+              "why_this_potion": "Tu as exprimé une auto-critique forte et un besoin de douceur honnête. Cette potion vise à transformer ce 'tu rates toujours' en un constat plus utile et moins violent.",
+              "expected_duration": "short",
+              "potion_info_message": "Cette potion va t'aider à adoucir ce dialogue intérieur sans tomber dans le discours sucré. Je t'enverrai un message chaque matin pour t'aider à rester présent à toi-même avec plus de justesse.",
+              "instant_support_message": "C'est épuisant de s'entendre dire qu'on rate toujours les mêmes choses. On va juste poser ça un instant, sans chercher à se mentir, mais sans se frapper non plus. Respire un coup, on va ramener un peu de calme là-dedans."
+            },
+            "why_this_potion": "Tu as exprimé une auto-critique forte et un besoin de douceur honnête. Cette potion vise à transformer ce 'tu rates toujours' en un constat plus utile et moins violent.",
+            "potion_info_message": "Cette potion va t'aider à adoucir ce dialogue intérieur sans tomber dans le discours sucré. Je t'enverrai un message chaque matin pour t'aider à rester présent à toi-même avec plus de justesse.",
+            "instant_support_message": "C'est épuisant de s'entendre dire qu'on rate toujours les mêmes choses. On va juste poser ça un instant, sans chercher à se mentir, mais sans se frapper non plus. Respire un coup, on va ramener un peu de calme là-dedans."
+          },
+          "follow_up_strategy": {
+            "duration_days": 7,
+            "schedule_plan": {
+              "mode": "daily_series",
+              "reason": "Un suivi quotidien le matin permet d'ancrer le changement de ton dès le début de la journée.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [],
+              "local_time_hhmm": "09:00",
+              "timing_relation": "daily"
+            },
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Me parler avec plus de douceur",
+              "evidence": [
+                "Me parler avec plus de douceur",
+                "tu rates toujours les memes choses",
+                "Le matin vers 9h ca me va"
+              ],
+              "recurrence_hint": "quotidien",
+              "date_or_window_hint": "09:00",
+              "target_plan_item_id": "b5d4152b-4148-4c0e-9bce-3c7ed5916b60",
+              "related_plan_item_id": null,
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "local_time_hhmm": "09:00",
+            "reason_for_time": "C'est l'heure que tu as choisie pour démarrer ta journée sans te taper dessus directement.",
+            "reminder_instruction": "Un message pour ajuster le ton intérieur et ramener de la douceur sans complaisance."
+          },
+          "metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r17_hard_voice-amour-t05-a1",
+            "operation_id": "bc4467dd-4ef3-4d07-9e40-7f8c53ae40ae",
+            "operation_type": "select_state_potion",
+            "source_message_id": "f5c98015-27e6-4014-b3fa-114f6a124d0e"
+          },
+          "generated_at": "2026-05-21T09:04:30.039+00:00",
+          "last_updated_at": "2026-05-21T09:04:30.039+00:00"
+        }
+      ],
+      "reminders": [
+        {
+          "id": "60921573-90f8-4fde-b0e6-0bde1c9f2838",
+          "message_instruction": "Un message pour ajuster le ton intérieur et ramener de la douceur sans complaisance.",
+          "rationale": "Un suivi quotidien le matin permet d'ancrer le changement de ton dès le début de la journée.",
+          "local_time_hhmm": "09:00",
+          "scheduled_days": [
+            "fri",
+            "sat",
+            "sun",
+            "mon",
+            "tue",
+            "wed",
+            "thu"
+          ],
+          "status": "active",
+          "initiative_kind": "potion_follow_up",
+          "source_kind": "potion_generated",
+          "source_potion_session_id": "284df3cb-65d5-4075-b337-12aede069695",
+          "initiative_metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r17_hard_voice-amour-t05-a1",
+            "operation_id": "bc4467dd-4ef3-4d07-9e40-7f8c53ae40ae",
+            "schedule_plan": {
+              "mode": "daily_series",
+              "reason": "Un suivi quotidien le matin permet d'ancrer le changement de ton dès le début de la journée.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [],
+              "local_time_hhmm": "09:00",
+              "timing_relation": "daily"
+            },
+            "operation_type": "select_state_potion",
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Me parler avec plus de douceur",
+              "evidence": [
+                "Me parler avec plus de douceur",
+                "tu rates toujours les memes choses",
+                "Le matin vers 9h ca me va"
+              ],
+              "recurrence_hint": "quotidien",
+              "date_or_window_hint": "09:00",
+              "target_plan_item_id": "b5d4152b-4148-4c0e-9bce-3c7ed5916b60",
+              "related_plan_item_id": null,
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            }
+          },
+          "target_kind": "plan_item",
+          "target_plan_item_id": "b5d4152b-4148-4c0e-9bce-3c7ed5916b60",
+          "target_action_family_key": null,
+          "target_binding_policy": "live_action",
+          "target_lifecycle_policy": "while_target_active",
+          "starts_at": "2026-05-21T09:04:30.039+00:00",
+          "created_at": "2026-05-21T09:04:30.044286+00:00",
+          "updated_at": "2026-05-21T09:04:30.044286+00:00"
+        }
+      ],
+      "checkins": [
+        {
+          "id": "700e797e-be33-43a1-9cf6-dd54ce4b00dc",
+          "recurring_reminder_id": "60921573-90f8-4fde-b0e6-0bde1c9f2838",
+          "event_context": "recurring_reminder:60921573-90f8-4fde-b0e6-0bde1c9f2838:potion:284df3cb-65d5-4075-b337-12aede069695:2026-05-22",
+          "draft_message": "Un message pour ajuster le ton intérieur et ramener de la douceur sans complaisance.",
+          "scheduled_for": "2026-05-22T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T09:04:30.048259+00:00"
+        },
+        {
+          "id": "c1355425-825b-48df-be80-6fb0b5b889b0",
+          "recurring_reminder_id": "60921573-90f8-4fde-b0e6-0bde1c9f2838",
+          "event_context": "recurring_reminder:60921573-90f8-4fde-b0e6-0bde1c9f2838:potion:284df3cb-65d5-4075-b337-12aede069695:2026-05-23",
+          "draft_message": "Un message pour ajuster le ton intérieur et ramener de la douceur sans complaisance.",
+          "scheduled_for": "2026-05-23T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T09:04:30.048259+00:00"
+        },
+        {
+          "id": "e3380a34-6ad5-4452-baaf-e89cbc964cc4",
+          "recurring_reminder_id": "60921573-90f8-4fde-b0e6-0bde1c9f2838",
+          "event_context": "recurring_reminder:60921573-90f8-4fde-b0e6-0bde1c9f2838:potion:284df3cb-65d5-4075-b337-12aede069695:2026-05-24",
+          "draft_message": "Un message pour ajuster le ton intérieur et ramener de la douceur sans complaisance.",
+          "scheduled_for": "2026-05-24T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T09:04:30.048259+00:00"
+        },
+        {
+          "id": "5da13212-9419-4c0a-bcc1-2ab704610233",
+          "recurring_reminder_id": "60921573-90f8-4fde-b0e6-0bde1c9f2838",
+          "event_context": "recurring_reminder:60921573-90f8-4fde-b0e6-0bde1c9f2838:potion:284df3cb-65d5-4075-b337-12aede069695:2026-05-25",
+          "draft_message": "Un message pour ajuster le ton intérieur et ramener de la douceur sans complaisance.",
+          "scheduled_for": "2026-05-25T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T09:04:30.048259+00:00"
+        },
+        {
+          "id": "17a70d03-c493-4d53-b548-30cde8195283",
+          "recurring_reminder_id": "60921573-90f8-4fde-b0e6-0bde1c9f2838",
+          "event_context": "recurring_reminder:60921573-90f8-4fde-b0e6-0bde1c9f2838:potion:284df3cb-65d5-4075-b337-12aede069695:2026-05-26",
+          "draft_message": "Un message pour ajuster le ton intérieur et ramener de la douceur sans complaisance.",
+          "scheduled_for": "2026-05-26T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T09:04:30.048259+00:00"
+        },
+        {
+          "id": "d7b71dc3-3665-4547-9991-b08a3bfb0a5b",
+          "recurring_reminder_id": "60921573-90f8-4fde-b0e6-0bde1c9f2838",
+          "event_context": "recurring_reminder:60921573-90f8-4fde-b0e6-0bde1c9f2838:potion:284df3cb-65d5-4075-b337-12aede069695:2026-05-27",
+          "draft_message": "Un message pour ajuster le ton intérieur et ramener de la douceur sans complaisance.",
+          "scheduled_for": "2026-05-27T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T09:04:30.048259+00:00"
+        },
+        {
+          "id": "97622700-e0c5-4922-aaf2-c53ce1a9257e",
+          "recurring_reminder_id": "60921573-90f8-4fde-b0e6-0bde1c9f2838",
+          "event_context": "recurring_reminder:60921573-90f8-4fde-b0e6-0bde1c9f2838:potion:284df3cb-65d5-4075-b337-12aede069695:2026-05-28",
+          "draft_message": "Un message pour ajuster le ton intérieur et ramener de la douceur sans complaisance.",
+          "scheduled_for": "2026-05-28T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T09:04:30.048259+00:00"
+        }
+      ]
+    }
+  },
+  {
+    "potion": "apaisement",
+    "user_id": "4159da88-55c3-4007-a96c-e5577020f1d0",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r17_hard_voice_apaisement",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    }
+  }
+]

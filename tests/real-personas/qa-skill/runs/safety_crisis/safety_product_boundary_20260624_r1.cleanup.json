@@ -1,0 +1,11 @@
+{
+  "run_id": "safety_product_boundary_20260624_r1",
+  "user_id": "ba667370-3628-43ec-bb8d-19aa59d80717",
+  "scope": "qa-safety-crisis-safety_product_boundary_20260624_r1",
+  "deleted": {
+    "chat_messages": 204,
+    "user_chat_states": 204
+  },
+  "connection_cleanup": "cleanup complete for qa-skill connection=safety_crisis_local_safety_product_boundary_20260624_r1 (ba667370-3628-43ec-bb8d-19aa59d80717)",
+  "errors": []
+}

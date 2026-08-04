@@ -1,0 +1,29 @@
+{
+  "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+  "scope": "qa-adjust-plan-nina-2026-05-15-test3-global-level-confirmation-r21",
+  "plan_patches": {
+    "ok": false,
+    "status": 404,
+    "body": {
+      "code": "PGRST205",
+      "details": null,
+      "hint": "Perhaps you meant the table 'public.user_plan_item_entries'",
+      "message": "Could not find the table 'public.plan_patches' in the schema cache"
+    }
+  },
+  "plan_items": {
+    "ok": false,
+    "status": 404,
+    "body": {
+      "code": "PGRST205",
+      "details": null,
+      "hint": "Perhaps you meant the table 'public.user_plan_items'",
+      "message": "Could not find the table 'public.plan_items' in the schema cache"
+    }
+  },
+  "user_chat_state": {
+    "ok": true,
+    "status": 200,
+    "body": []
+  }
+}

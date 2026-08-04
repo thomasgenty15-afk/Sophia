@@ -1,0 +1,189 @@
+{
+  "user_defense_cards": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_plan_items": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "a751731a-3832-4bea-a707-c72170fd15a0",
+        "title": "Nettoyer ton environnement direct",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "pending",
+        "cards_status": "not_started",
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "description": "Fais le tour de tes placards et de ton espace de travail. Retire ou cache les produits transformés qui te tentent le plus en cas de stress.",
+        "target_reps": null,
+        "current_reps": null,
+        "cadence_label": "Action ponctuelle à réaliser une seule fois pour assainir l'espace.",
+        "time_of_day": "anytime",
+        "updated_at": "2026-05-14T17:33:10.37736+00:00"
+      },
+      {
+        "id": "eb9df535-b6e9-40d9-af57-effafdc2f662",
+        "title": "Faire le choix du brut",
+        "dimension": "habits",
+        "kind": "habit",
+        "status": "pending",
+        "cards_status": "not_started",
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "description": "Limiter le choix à une seule option brute prédéfinie (ex: toujours une pomme) pour éliminer la fatigue décisionnelle.",
+        "target_reps": 6,
+        "current_reps": 0,
+        "cadence_label": "3 jours par semaine",
+        "time_of_day": "anytime",
+        "updated_at": "2026-05-15T13:47:31.068979+00:00"
+      },
+      {
+        "id": "7ed21c74-e2ad-4ffb-85d9-5d204d72bbcf",
+        "title": "Décoder ton envie de grignoter",
+        "dimension": "clarifications",
+        "kind": "framework",
+        "status": "pending",
+        "cards_status": "not_required",
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "description": "Question unique : 'Est-ce de la faim ou une émotion ?'",
+        "target_reps": null,
+        "current_reps": null,
+        "cadence_label": null,
+        "time_of_day": "anytime",
+        "updated_at": "2026-05-15T13:54:28.713418+00:00"
+      },
+      {
+        "id": "23f34398-87ae-4388-80b4-786989faac97",
+        "title": "Préparer tes alternatives d'avance",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "pending",
+        "cards_status": "not_started",
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "description": "Fixé au dimanche à 16h, aucune préparation le soir.",
+        "target_reps": null,
+        "current_reps": null,
+        "cadence_label": null,
+        "time_of_day": "anytime",
+        "updated_at": "2026-05-15T13:54:28.720386+00:00"
+      }
+    ]
+  },
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "07b4e97a-a6c4-4198-8478-807e958a334d",
+        "role": "user",
+        "content": "Je repère un point hors plan officiel : le soir en rentrant, si mon téléphone arrive jusqu’au canapé, je scrolle et ça me donne envie de snack. Le charger dans l’entrée me paraît plus protecteur.",
+        "scope": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r4",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r4-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-15T17:59:34.383893+00:00"
+      },
+      {
+        "id": "09e5a8bd-8b45-47f1-9511-a6713bfa3715",
+        "role": "assistant",
+        "content": "Carrément logique comme point hors-plan. Là tu as identifié un mini-déclencheur super précis (télé au canapé) et la protection correspondante (le charger dans l’entrée). Le cerveau adore les routines, donc si tu changes le décor, tu changes l’envie. 😄\n\nJe te propose qu’on prépare une Carte de defense pour ton “moment du retour à la maison (sas d’entrée)” avec ce déclencheur précis. Tu veux qu’on l’utilise ? 📱✅",
+        "scope": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r4",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r4-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-05-15T17:59:41.073929+00:00"
+      },
+      {
+        "id": "63d2970f-4b28-4972-b0f6-edc764064181",
+        "role": "user",
+        "content": "Oui, utilisons-le pour une carte de défense. Je veux qu’elle reste hors plan officiel : juste le retour à la maison, téléphone et canapé.",
+        "scope": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r4",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r4-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-15T17:59:54.530005+00:00"
+      },
+      {
+        "id": "66386191-6011-43c1-ad15-400db4dc857d",
+        "role": "assistant",
+        "content": "Ok, on la garde 100% “hors plan officiel” et ultra ciblée. 📱🛋️\n\nCarte de défense (version canapé)\n- Déclencheur : je rentre, le téléphone arrive jusqu’au canapé.\n- Slogan ultra court : “Entrée = téléphone au chargeur.”\n- Action de défense (immédiate) : je pose/charge le téléphone dans l’entrée.\n- Plan B si j’ai déjà “tombé” sur le canapé : je me lève tout de suite, je le récupère et je le mets au chargeur dans l’entrée (sans négociation).\n- Récompense (petite) : 1 truc agréable juste après (thé, lumière, musique, serviette chaude… ce que tu veux).\n\nTu veux un format “une seule phrase” sur la carte (super visible), ou une mini-checklist comme ci-dessus ? 😄",
+        "scope": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r4",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r4-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-05-15T18:00:01.7597+00:00"
+      }
+    ]
+  }
+}

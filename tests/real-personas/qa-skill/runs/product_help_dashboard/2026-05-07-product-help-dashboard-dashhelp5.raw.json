@@ -1,0 +1,4106 @@
+[
+  {
+    "id": "plan-overview",
+    "title": "Plan, actions et ajustement",
+    "targetFeatures": [
+      "dashboard.plan",
+      "plan.missions",
+      "plan.habits",
+      "plan.adjustment"
+    ],
+    "connectionName": "product_help_dashboard_dashhelp5_c1_plan-overview",
+    "turns": [
+      {
+        "attempt": 1,
+        "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-plan-overview-t01-a1",
+        "status": 200,
+        "ok": true,
+        "user": "dans mon espace Sophia, le plan sert a quoi exactement quand j'ai deja une transformation ?",
+        "assistant": "Ton Plan, c’est l’espace “exécution” de la transformation. Même si tu as déjà une transformation, le Plan sert à éviter le flou : tu sais exactement ce qui est actif maintenant, sur quelle semaine, et quoi faire concrètement. 😊\n\nConcrètement, dans le dashboard :\n- Tu sélectionnes la transformation (colonne de gauche)\n- Puis tu ouvres l’onglet Plan\n- Tu vois le niveau actif, les semaines, et les missions/habitudes associées pour avancer\n\nÇa aide surtout à ne pas mélanger “tout le parcours” avec “ce que tu fais maintenant”, et à avoir une vue claire de l’avancement. ✅\n\nTu veux comprendre le Plan pour mieux démarrer ta prochaine étape, ou pour suivre ce que tu as déjà fait ?",
+        "aborted": false,
+        "abort_reason": null,
+        "empty_response": false,
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason_code": "product_signal",
+        "skill_entry_ids": [],
+        "skill_lifecycle_ids": [],
+        "skill_run_id": "product_help",
+        "skill_run_status": "complete",
+        "skill_run_response_intent": "explain",
+        "skill_run_diagnosis": {
+          "locations": [
+            "Dashboard > Plan"
+          ],
+          "feature_id": "dashboard.plan",
+          "feature_label": "Plan",
+          "operation_bridge": null
+        },
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "direct_effects": [],
+        "response_tool_execution": "none",
+        "response_executed_tools": [],
+        "tool_skill_run": null,
+        "trace_error": null,
+        "attempts": [
+          {
+            "attempt": 1,
+            "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-plan-overview-t01-a1",
+            "status": 200,
+            "ok": true,
+            "user": "dans mon espace Sophia, le plan sert a quoi exactement quand j'ai deja une transformation ?",
+            "assistant": "Ton Plan, c’est l’espace “exécution” de la transformation. Même si tu as déjà une transformation, le Plan sert à éviter le flou : tu sais exactement ce qui est actif maintenant, sur quelle semaine, et quoi faire concrètement. 😊\n\nConcrètement, dans le dashboard :\n- Tu sélectionnes la transformation (colonne de gauche)\n- Puis tu ouvres l’onglet Plan\n- Tu vois le niveau actif, les semaines, et les missions/habitudes associées pour avancer\n\nÇa aide surtout à ne pas mélanger “tout le parcours” avec “ce que tu fais maintenant”, et à avoir une vue claire de l’avancement. ✅\n\nTu veux comprendre le Plan pour mieux démarrer ta prochaine étape, ou pour suivre ce que tu as déjà fait ?",
+            "aborted": false,
+            "abort_reason": null,
+            "empty_response": false,
+            "response_owner": "product_help",
+            "selected_handler": "product_help",
+            "route_reason_code": "product_signal",
+            "skill_entry_ids": [],
+            "skill_lifecycle_ids": [],
+            "skill_run_id": "product_help",
+            "skill_run_status": "complete",
+            "skill_run_response_intent": "explain",
+            "skill_run_diagnosis": {
+              "locations": [
+                "Dashboard > Plan"
+              ],
+              "feature_id": "dashboard.plan",
+              "feature_label": "Plan",
+              "operation_bridge": null
+            },
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "direct_effects": [],
+            "response_tool_execution": "none",
+            "response_executed_tools": [],
+            "tool_skill_run": null,
+            "trace_error": null
+          }
+        ],
+        "connectionName": "product_help_dashboard_dashhelp5_c1_plan-overview",
+        "turn": 1
+      },
+      {
+        "attempt": 1,
+        "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-plan-overview-t02-a1",
+        "status": 200,
+        "ok": true,
+        "user": "ok, et dans le tableau de bord action, je peux rentrer mes propres bilans ou actions ?",
+        "assistant": "Oui, je te cadre ça clairement 🙂 Le “Plan” du dashboard n’est pas un journal libre pour rentrer des bilans ou créer des actions à ta sauce.\n\nSelon l’info produit que j’ai ici :\n- Plan (Dashboard > Plan) sert à consulter ce qui est actif (niveau, semaines, missions/habitudes, clarifications, éléments à venir).\n- Limite importante : ce n’est pas un espace pour saisir librement des bilans ou pour créer/ajouter des actions depuis cette vue.\n\nDu coup pour tes bilans/ta saisie, ça dépend de l’endroit exact dans le dashboard (pas le Plan). Tu veux parler plutôt de bilans “quand tu fais le point”, ou d’actions “que tu ajoutes au quotidien” ?",
+        "aborted": false,
+        "abort_reason": null,
+        "empty_response": false,
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason_code": "product_signal",
+        "skill_entry_ids": [],
+        "skill_lifecycle_ids": [],
+        "skill_run_id": "product_help",
+        "skill_run_status": "complete",
+        "skill_run_response_intent": "how_to",
+        "skill_run_diagnosis": {
+          "locations": [
+            "Dashboard > Plan"
+          ],
+          "feature_id": "dashboard.plan",
+          "feature_label": "Plan",
+          "operation_bridge": null
+        },
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "direct_effects": [],
+        "response_tool_execution": "none",
+        "response_executed_tools": [],
+        "tool_skill_run": null,
+        "trace_error": null,
+        "attempts": [
+          {
+            "attempt": 1,
+            "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-plan-overview-t02-a1",
+            "status": 200,
+            "ok": true,
+            "user": "ok, et dans le tableau de bord action, je peux rentrer mes propres bilans ou actions ?",
+            "assistant": "Oui, je te cadre ça clairement 🙂 Le “Plan” du dashboard n’est pas un journal libre pour rentrer des bilans ou créer des actions à ta sauce.\n\nSelon l’info produit que j’ai ici :\n- Plan (Dashboard > Plan) sert à consulter ce qui est actif (niveau, semaines, missions/habitudes, clarifications, éléments à venir).\n- Limite importante : ce n’est pas un espace pour saisir librement des bilans ou pour créer/ajouter des actions depuis cette vue.\n\nDu coup pour tes bilans/ta saisie, ça dépend de l’endroit exact dans le dashboard (pas le Plan). Tu veux parler plutôt de bilans “quand tu fais le point”, ou d’actions “que tu ajoutes au quotidien” ?",
+            "aborted": false,
+            "abort_reason": null,
+            "empty_response": false,
+            "response_owner": "product_help",
+            "selected_handler": "product_help",
+            "route_reason_code": "product_signal",
+            "skill_entry_ids": [],
+            "skill_lifecycle_ids": [],
+            "skill_run_id": "product_help",
+            "skill_run_status": "complete",
+            "skill_run_response_intent": "how_to",
+            "skill_run_diagnosis": {
+              "locations": [
+                "Dashboard > Plan"
+              ],
+              "feature_id": "dashboard.plan",
+              "feature_label": "Plan",
+              "operation_bridge": null
+            },
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "direct_effects": [],
+            "response_tool_execution": "none",
+            "response_executed_tools": [],
+            "tool_skill_run": null,
+            "trace_error": null
+          }
+        ],
+        "connectionName": "product_help_dashboard_dashhelp5_c1_plan-overview",
+        "turn": 2
+      },
+      {
+        "attempt": 1,
+        "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-plan-overview-t03-a1",
+        "status": 200,
+        "ok": true,
+        "user": "si une mission du plan ne colle plus, je dois la supprimer ou passer par autre chose ?",
+        "assistant": "Bonne question 🙂 Si une mission du Plan ne colle plus, le réflexe à garder c’est: ne pas la “supprimer” directement depuis sa carte.\n\nD’après le fonctionnement des Missions :\n- Tu repasses par l’ajustement du plan si la mission n’est plus adaptée (pour que ce soit le plan qui reflète ton moment, pas un bricolage).\n- Tu peux ensuite consulter/valider ce qui reste pertinent via Dashboard > Plan.\n\nL’idée: ajuster le plan plutôt que manipuler une mission au cas par cas.  \n\nTu veux l’ajuster parce que ton rythme a changé, ou parce que tu t’es rendu compte que l’objectif n’est plus le bon ? 🎯",
+        "aborted": false,
+        "abort_reason": null,
+        "empty_response": false,
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason_code": "product_signal",
+        "skill_entry_ids": [],
+        "skill_lifecycle_ids": [],
+        "skill_run_id": "product_help",
+        "skill_run_status": "complete",
+        "skill_run_response_intent": "how_to",
+        "skill_run_diagnosis": {
+          "locations": [
+            "Dashboard > Plan"
+          ],
+          "feature_id": "plan.missions",
+          "feature_label": "Missions",
+          "operation_bridge": null
+        },
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "direct_effects": [],
+        "response_tool_execution": "none",
+        "response_executed_tools": [],
+        "tool_skill_run": null,
+        "trace_error": null,
+        "attempts": [
+          {
+            "attempt": 1,
+            "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-plan-overview-t03-a1",
+            "status": 200,
+            "ok": true,
+            "user": "si une mission du plan ne colle plus, je dois la supprimer ou passer par autre chose ?",
+            "assistant": "Bonne question 🙂 Si une mission du Plan ne colle plus, le réflexe à garder c’est: ne pas la “supprimer” directement depuis sa carte.\n\nD’après le fonctionnement des Missions :\n- Tu repasses par l’ajustement du plan si la mission n’est plus adaptée (pour que ce soit le plan qui reflète ton moment, pas un bricolage).\n- Tu peux ensuite consulter/valider ce qui reste pertinent via Dashboard > Plan.\n\nL’idée: ajuster le plan plutôt que manipuler une mission au cas par cas.  \n\nTu veux l’ajuster parce que ton rythme a changé, ou parce que tu t’es rendu compte que l’objectif n’est plus le bon ? 🎯",
+            "aborted": false,
+            "abort_reason": null,
+            "empty_response": false,
+            "response_owner": "product_help",
+            "selected_handler": "product_help",
+            "route_reason_code": "product_signal",
+            "skill_entry_ids": [],
+            "skill_lifecycle_ids": [],
+            "skill_run_id": "product_help",
+            "skill_run_status": "complete",
+            "skill_run_response_intent": "how_to",
+            "skill_run_diagnosis": {
+              "locations": [
+                "Dashboard > Plan"
+              ],
+              "feature_id": "plan.missions",
+              "feature_label": "Missions",
+              "operation_bridge": null
+            },
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "direct_effects": [],
+            "response_tool_execution": "none",
+            "response_executed_tools": [],
+            "tool_skill_run": null,
+            "trace_error": null
+          }
+        ],
+        "connectionName": "product_help_dashboard_dashhelp5_c1_plan-overview",
+        "turn": 3
+      },
+      {
+        "attempt": 1,
+        "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-plan-overview-t04-a1",
+        "status": 200,
+        "ok": true,
+        "user": "imagine que l'action est trop grosse cette semaine, tu m'orientes vers quelle partie precise ?",
+        "assistant": "Si l’action te paraît trop grosse, le bon réflexe c’est de la repasser côté exécution, donc dans Dashboard > Plan, et surtout via la carte de l’élément concerné (la mission/habitude) pour la rendre ajustable à la bonne semaine/état actif. 😊\n\nConcrètement tu vas dans :\n1) Dashboard > Plan\n2) Tu sélectionnes la transformation à gauche\n3) Tu repères la carte de la mission (ou de l’habitude) qui est trop lourde\n4) Tu l’ajustes pour qu’elle colle à “maintenant” (au lieu de tenter de gérer ça ailleurs)\n\nTu sais si c’est plutôt une mission (travail ponctuel) ou une habitude (répétitive) qui te paraît trop grosse ?",
+        "aborted": false,
+        "abort_reason": null,
+        "empty_response": false,
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason_code": "product_signal",
+        "skill_entry_ids": [],
+        "skill_lifecycle_ids": [],
+        "skill_run_id": "product_help",
+        "skill_run_status": "complete",
+        "skill_run_response_intent": "explain",
+        "skill_run_diagnosis": {
+          "locations": [
+            "Dashboard > Plan"
+          ],
+          "feature_id": "dashboard.plan",
+          "feature_label": "Plan",
+          "operation_bridge": null
+        },
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "direct_effects": [],
+        "response_tool_execution": "none",
+        "response_executed_tools": [],
+        "tool_skill_run": null,
+        "trace_error": null,
+        "attempts": [
+          {
+            "attempt": 1,
+            "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-plan-overview-t04-a1",
+            "status": 200,
+            "ok": true,
+            "user": "imagine que l'action est trop grosse cette semaine, tu m'orientes vers quelle partie precise ?",
+            "assistant": "Si l’action te paraît trop grosse, le bon réflexe c’est de la repasser côté exécution, donc dans Dashboard > Plan, et surtout via la carte de l’élément concerné (la mission/habitude) pour la rendre ajustable à la bonne semaine/état actif. 😊\n\nConcrètement tu vas dans :\n1) Dashboard > Plan\n2) Tu sélectionnes la transformation à gauche\n3) Tu repères la carte de la mission (ou de l’habitude) qui est trop lourde\n4) Tu l’ajustes pour qu’elle colle à “maintenant” (au lieu de tenter de gérer ça ailleurs)\n\nTu sais si c’est plutôt une mission (travail ponctuel) ou une habitude (répétitive) qui te paraît trop grosse ?",
+            "aborted": false,
+            "abort_reason": null,
+            "empty_response": false,
+            "response_owner": "product_help",
+            "selected_handler": "product_help",
+            "route_reason_code": "product_signal",
+            "skill_entry_ids": [],
+            "skill_lifecycle_ids": [],
+            "skill_run_id": "product_help",
+            "skill_run_status": "complete",
+            "skill_run_response_intent": "explain",
+            "skill_run_diagnosis": {
+              "locations": [
+                "Dashboard > Plan"
+              ],
+              "feature_id": "dashboard.plan",
+              "feature_label": "Plan",
+              "operation_bridge": null
+            },
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "direct_effects": [],
+            "response_tool_execution": "none",
+            "response_executed_tools": [],
+            "tool_skill_run": null,
+            "trace_error": null
+          }
+        ],
+        "connectionName": "product_help_dashboard_dashhelp5_c1_plan-overview",
+        "turn": 4
+      },
+      {
+        "attempt": 1,
+        "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-plan-overview-t05-a1",
+        "status": 200,
+        "ok": true,
+        "user": "et une habitude, je la valide comment sans inventer un bilan libre ?",
+        "assistant": "C'est très simple : pour valider une habitude sans faire de long discours, tu vas dans ton Dashboard, section Plan.\n\nLà, tu cherches ta carte d'habitude. Tu peux valider chaque occurrence directement dessus. Ça te permet de voir ta progression d'ancrage sans avoir à rédiger quoi que ce soit. 📈\n\nSi tu as besoin de voir ton planning de la semaine, c'est aussi là que ça se passe.",
+        "aborted": false,
+        "abort_reason": null,
+        "empty_response": false,
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason_code": "product_signal",
+        "skill_entry_ids": [],
+        "skill_lifecycle_ids": [],
+        "skill_run_id": "product_help",
+        "skill_run_status": "complete",
+        "skill_run_response_intent": "how_to",
+        "skill_run_diagnosis": {
+          "locations": [
+            "Dashboard > Plan"
+          ],
+          "feature_id": "plan.habits",
+          "feature_label": "Habitudes",
+          "operation_bridge": null
+        },
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "direct_effects": [],
+        "response_tool_execution": "none",
+        "response_executed_tools": [],
+        "tool_skill_run": null,
+        "trace_error": null,
+        "attempts": [
+          {
+            "attempt": 1,
+            "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-plan-overview-t05-a1",
+            "status": 200,
+            "ok": true,
+            "user": "et une habitude, je la valide comment sans inventer un bilan libre ?",
+            "assistant": "C'est très simple : pour valider une habitude sans faire de long discours, tu vas dans ton Dashboard, section Plan.\n\nLà, tu cherches ta carte d'habitude. Tu peux valider chaque occurrence directement dessus. Ça te permet de voir ta progression d'ancrage sans avoir à rédiger quoi que ce soit. 📈\n\nSi tu as besoin de voir ton planning de la semaine, c'est aussi là que ça se passe.",
+            "aborted": false,
+            "abort_reason": null,
+            "empty_response": false,
+            "response_owner": "product_help",
+            "selected_handler": "product_help",
+            "route_reason_code": "product_signal",
+            "skill_entry_ids": [],
+            "skill_lifecycle_ids": [],
+            "skill_run_id": "product_help",
+            "skill_run_status": "complete",
+            "skill_run_response_intent": "how_to",
+            "skill_run_diagnosis": {
+              "locations": [
+                "Dashboard > Plan"
+              ],
+              "feature_id": "plan.habits",
+              "feature_label": "Habitudes",
+              "operation_bridge": null
+            },
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "direct_effects": [],
+            "response_tool_execution": "none",
+            "response_executed_tools": [],
+            "tool_skill_run": null,
+            "trace_error": null
+          }
+        ],
+        "connectionName": "product_help_dashboard_dashhelp5_c1_plan-overview",
+        "turn": 5
+      },
+      {
+        "attempt": 1,
+        "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-plan-overview-t06-a1",
+        "status": 200,
+        "ok": true,
+        "user": "donne-moi la difference simple entre valider une mission et ajuster le plan.",
+        "assistant": "Ok 🙂 différence simple :\n\nValider une mission = tu confirmes “c’est fait” pour une action ponctuelle prévue par le plan (tu passes en statut fait sur la carte de la mission). ✅\n\nAjuster le plan = tu modifies ce qui est prévu, parce que ça ne colle plus à ta réalité de la semaine (plus petit, autre timing, pas le bon niveau actif, etc.). 🔧\n\nDonc : validation = exécution. Ajustement = changement. 🚀\n\nTu parles d’une mission qui est trop grosse cette semaine, ou plutôt qui ne correspond plus du tout ? 😊",
+        "aborted": false,
+        "abort_reason": null,
+        "empty_response": false,
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason_code": "product_signal",
+        "skill_entry_ids": [],
+        "skill_lifecycle_ids": [],
+        "skill_run_id": "product_help",
+        "skill_run_status": "complete",
+        "skill_run_response_intent": "explain",
+        "skill_run_diagnosis": {
+          "locations": [
+            "Dashboard > Plan"
+          ],
+          "feature_id": "plan.missions",
+          "feature_label": "Missions",
+          "operation_bridge": null
+        },
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "direct_effects": [],
+        "response_tool_execution": "none",
+        "response_executed_tools": [],
+        "tool_skill_run": null,
+        "trace_error": null,
+        "attempts": [
+          {
+            "attempt": 1,
+            "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-plan-overview-t06-a1",
+            "status": 200,
+            "ok": true,
+            "user": "donne-moi la difference simple entre valider une mission et ajuster le plan.",
+            "assistant": "Ok 🙂 différence simple :\n\nValider une mission = tu confirmes “c’est fait” pour une action ponctuelle prévue par le plan (tu passes en statut fait sur la carte de la mission). ✅\n\nAjuster le plan = tu modifies ce qui est prévu, parce que ça ne colle plus à ta réalité de la semaine (plus petit, autre timing, pas le bon niveau actif, etc.). 🔧\n\nDonc : validation = exécution. Ajustement = changement. 🚀\n\nTu parles d’une mission qui est trop grosse cette semaine, ou plutôt qui ne correspond plus du tout ? 😊",
+            "aborted": false,
+            "abort_reason": null,
+            "empty_response": false,
+            "response_owner": "product_help",
+            "selected_handler": "product_help",
+            "route_reason_code": "product_signal",
+            "skill_entry_ids": [],
+            "skill_lifecycle_ids": [],
+            "skill_run_id": "product_help",
+            "skill_run_status": "complete",
+            "skill_run_response_intent": "explain",
+            "skill_run_diagnosis": {
+              "locations": [
+                "Dashboard > Plan"
+              ],
+              "feature_id": "plan.missions",
+              "feature_label": "Missions",
+              "operation_bridge": null
+            },
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "direct_effects": [],
+            "response_tool_execution": "none",
+            "response_executed_tools": [],
+            "tool_skill_run": null,
+            "trace_error": null
+          }
+        ],
+        "connectionName": "product_help_dashboard_dashhelp5_c1_plan-overview",
+        "turn": 6
+      },
+      {
+        "attempt": 1,
+        "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-plan-overview-t07-a1",
+        "status": 200,
+        "ok": true,
+        "user": "si je suis perdu dans les semaines et niveaux, tu me dis de regarder quoi en premier ?",
+        "assistant": "Si t’es perdu dans les semaines et niveaux, commence par le plus simple : le niveau actif, puis ta semaine en cours. 🎯\n\nConcrètement, dans Dashboard :\n1) Va sur Plan\n2) Repère ce qui est “actif” (le niveau actuellement en cours)\n3) Ensuite seulement, regarde la semaine correspondante pour voir les missions/habitudes du moment\n\nEt si tu vois une carte qui te parle pas, c’est elle le point à clarifier/ajuster, pas toute la structure. 🙂\n\nTu es perdu surtout sur les semaines (quoi faire maintenant) ou sur les niveaux (quel “niveau” est censé tourner) ?",
+        "aborted": false,
+        "abort_reason": null,
+        "empty_response": false,
+        "response_owner": "conversation_handler",
+        "selected_handler": "execution_breakdown",
+        "route_reason_code": "skill_entry_signal",
+        "skill_entry_ids": [
+          "execution_breakdown"
+        ],
+        "skill_lifecycle_ids": [],
+        "skill_run_id": "execution_breakdown",
+        "skill_run_status": "continue",
+        "skill_run_response_intent": "target_resolution",
+        "skill_run_diagnosis": {
+          "stage": "target_resolution",
+          "blocker_candidates": [
+            "flou",
+            "energie",
+            "friction_demarrage"
+          ]
+        },
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "direct_effects": [],
+        "response_tool_execution": "none",
+        "response_executed_tools": [],
+        "tool_skill_run": null,
+        "trace_error": null,
+        "attempts": [
+          {
+            "attempt": 1,
+            "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-plan-overview-t07-a1",
+            "status": 200,
+            "ok": true,
+            "user": "si je suis perdu dans les semaines et niveaux, tu me dis de regarder quoi en premier ?",
+            "assistant": "Si t’es perdu dans les semaines et niveaux, commence par le plus simple : le niveau actif, puis ta semaine en cours. 🎯\n\nConcrètement, dans Dashboard :\n1) Va sur Plan\n2) Repère ce qui est “actif” (le niveau actuellement en cours)\n3) Ensuite seulement, regarde la semaine correspondante pour voir les missions/habitudes du moment\n\nEt si tu vois une carte qui te parle pas, c’est elle le point à clarifier/ajuster, pas toute la structure. 🙂\n\nTu es perdu surtout sur les semaines (quoi faire maintenant) ou sur les niveaux (quel “niveau” est censé tourner) ?",
+            "aborted": false,
+            "abort_reason": null,
+            "empty_response": false,
+            "response_owner": "conversation_handler",
+            "selected_handler": "execution_breakdown",
+            "route_reason_code": "skill_entry_signal",
+            "skill_entry_ids": [
+              "execution_breakdown"
+            ],
+            "skill_lifecycle_ids": [],
+            "skill_run_id": "execution_breakdown",
+            "skill_run_status": "continue",
+            "skill_run_response_intent": "target_resolution",
+            "skill_run_diagnosis": {
+              "stage": "target_resolution",
+              "blocker_candidates": [
+                "flou",
+                "energie",
+                "friction_demarrage"
+              ]
+            },
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "direct_effects": [],
+            "response_tool_execution": "none",
+            "response_executed_tools": [],
+            "tool_skill_run": null,
+            "trace_error": null
+          }
+        ],
+        "connectionName": "product_help_dashboard_dashhelp5_c1_plan-overview",
+        "turn": 7
+      },
+      {
+        "attempt": 1,
+        "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-plan-overview-t08-a1",
+        "status": 200,
+        "ok": true,
+        "user": "recap en trois points sur ce que je dois faire dans le Plan.",
+        "assistant": "Ok, recap en 3 points dans Plan 🎯\n\n1) Sélectionne ta transformation (à gauche), pour être sur le bon contexte.  \n2) Regarde le niveau actif + la semaine en cours, pour savoir ce qui compte maintenant.  \n3) Exécute en suivant les cartes missions/habitudes (valider quand c’est fait, ajuster si ça ne colle plus). 😊",
+        "aborted": false,
+        "abort_reason": null,
+        "empty_response": false,
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason_code": "product_signal",
+        "skill_entry_ids": [],
+        "skill_lifecycle_ids": [
+          "execution_breakdown"
+        ],
+        "skill_run_id": "product_help",
+        "skill_run_status": "complete",
+        "skill_run_response_intent": "explain",
+        "skill_run_diagnosis": {
+          "locations": [
+            "Dashboard > Plan"
+          ],
+          "feature_id": "dashboard.plan",
+          "feature_label": "Plan",
+          "operation_bridge": null
+        },
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "direct_effects": [],
+        "response_tool_execution": "none",
+        "response_executed_tools": [],
+        "tool_skill_run": null,
+        "trace_error": null,
+        "attempts": [
+          {
+            "attempt": 1,
+            "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-plan-overview-t08-a1",
+            "status": 200,
+            "ok": true,
+            "user": "recap en trois points sur ce que je dois faire dans le Plan.",
+            "assistant": "Ok, recap en 3 points dans Plan 🎯\n\n1) Sélectionne ta transformation (à gauche), pour être sur le bon contexte.  \n2) Regarde le niveau actif + la semaine en cours, pour savoir ce qui compte maintenant.  \n3) Exécute en suivant les cartes missions/habitudes (valider quand c’est fait, ajuster si ça ne colle plus). 😊",
+            "aborted": false,
+            "abort_reason": null,
+            "empty_response": false,
+            "response_owner": "product_help",
+            "selected_handler": "product_help",
+            "route_reason_code": "product_signal",
+            "skill_entry_ids": [],
+            "skill_lifecycle_ids": [
+              "execution_breakdown"
+            ],
+            "skill_run_id": "product_help",
+            "skill_run_status": "complete",
+            "skill_run_response_intent": "explain",
+            "skill_run_diagnosis": {
+              "locations": [
+                "Dashboard > Plan"
+              ],
+              "feature_id": "dashboard.plan",
+              "feature_label": "Plan",
+              "operation_bridge": null
+            },
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "direct_effects": [],
+            "response_tool_execution": "none",
+            "response_executed_tools": [],
+            "tool_skill_run": null,
+            "trace_error": null
+          }
+        ],
+        "connectionName": "product_help_dashboard_dashhelp5_c1_plan-overview",
+        "turn": 8
+      }
+    ],
+    "evaluation": {
+      "productTurns": 7,
+      "observedFeatureIds": [
+        "dashboard.plan",
+        "plan.missions",
+        "plan.habits"
+      ],
+      "missing": [
+        "plan.adjustment"
+      ],
+      "bad": [],
+      "forbidden": [],
+      "verdict": "ROUGE"
+    }
+  },
+  {
+    "id": "resources-cards",
+    "title": "Ressources, cartes libres et cartes liees au plan",
+    "targetFeatures": [
+      "resources.overview",
+      "resources.attack_card",
+      "resources.defense_card",
+      "resources.plan_cards"
+    ],
+    "connectionName": "product_help_dashboard_dashhelp5_c2_resources-cards",
+    "turns": [
+      {
+        "attempt": 1,
+        "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-resources-cards-t01-a1",
+        "status": 200,
+        "ok": true,
+        "user": "dans l'espace Ressources, c'est quoi la difference entre carte d'attaque et carte de defense ?",
+        "assistant": "Bonne question 🙂 Voilà la différence, simplement :\n\nCarte de defense : c’est ton plan “anti-crainte / anti-craquage”. Elle sert à te protéger quand ça monte, et à te remettre sur des rails. Elle peut être générée librement depuis Ressources, ou liée à une mission/habitude (dans ce cas tu la retrouves aussi ensuite dans Ressources).\n\nCarte d’attaque : c’est plutôt la version “action”. Elle te sert quand tu veux avancer activement (agresser le problème de face), en déclenchant une stratégie pour passer à l’action au moment où tu pourrais procrastiner ou te dérober.\n\nTu veux que je te dise quelle carte est la plus adaptée pour ton contexte du moment (plutôt “ça me submerge” ou plutôt “je sais quoi faire mais j’ai du mal à le lancer”) ? 😊",
+        "aborted": false,
+        "abort_reason": null,
+        "empty_response": false,
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason_code": "product_signal",
+        "skill_entry_ids": [],
+        "skill_lifecycle_ids": [],
+        "skill_run_id": "product_help",
+        "skill_run_status": "complete",
+        "skill_run_response_intent": "how_to",
+        "skill_run_diagnosis": {
+          "locations": [
+            "Dashboard > Plan",
+            "Dashboard > Ressources"
+          ],
+          "feature_id": "resources.defense_card",
+          "feature_label": "Carte de defense",
+          "operation_bridge": {
+            "trigger_phrases": [
+              "prepare une carte de defense",
+              "j'ai besoin d'un plan b",
+              "aide-moi pour le moment ou je risque de craquer"
+            ],
+            "skill_or_operation": "prepare_defense_card",
+            "requires_confirmation": true
+          }
+        },
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "direct_effects": [],
+        "response_tool_execution": "none",
+        "response_executed_tools": [],
+        "tool_skill_run": null,
+        "trace_error": null,
+        "attempts": [
+          {
+            "attempt": 1,
+            "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-resources-cards-t01-a1",
+            "status": 200,
+            "ok": true,
+            "user": "dans l'espace Ressources, c'est quoi la difference entre carte d'attaque et carte de defense ?",
+            "assistant": "Bonne question 🙂 Voilà la différence, simplement :\n\nCarte de defense : c’est ton plan “anti-crainte / anti-craquage”. Elle sert à te protéger quand ça monte, et à te remettre sur des rails. Elle peut être générée librement depuis Ressources, ou liée à une mission/habitude (dans ce cas tu la retrouves aussi ensuite dans Ressources).\n\nCarte d’attaque : c’est plutôt la version “action”. Elle te sert quand tu veux avancer activement (agresser le problème de face), en déclenchant une stratégie pour passer à l’action au moment où tu pourrais procrastiner ou te dérober.\n\nTu veux que je te dise quelle carte est la plus adaptée pour ton contexte du moment (plutôt “ça me submerge” ou plutôt “je sais quoi faire mais j’ai du mal à le lancer”) ? 😊",
+            "aborted": false,
+            "abort_reason": null,
+            "empty_response": false,
+            "response_owner": "product_help",
+            "selected_handler": "product_help",
+            "route_reason_code": "product_signal",
+            "skill_entry_ids": [],
+            "skill_lifecycle_ids": [],
+            "skill_run_id": "product_help",
+            "skill_run_status": "complete",
+            "skill_run_response_intent": "how_to",
+            "skill_run_diagnosis": {
+              "locations": [
+                "Dashboard > Plan",
+                "Dashboard > Ressources"
+              ],
+              "feature_id": "resources.defense_card",
+              "feature_label": "Carte de defense",
+              "operation_bridge": {
+                "trigger_phrases": [
+                  "prepare une carte de defense",
+                  "j'ai besoin d'un plan b",
+                  "aide-moi pour le moment ou je risque de craquer"
+                ],
+                "skill_or_operation": "prepare_defense_card",
+                "requires_confirmation": true
+              }
+            },
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "direct_effects": [],
+            "response_tool_execution": "none",
+            "response_executed_tools": [],
+            "tool_skill_run": null,
+            "trace_error": null
+          }
+        ],
+        "connectionName": "product_help_dashboard_dashhelp5_c2_resources-cards",
+        "turn": 1
+      },
+      {
+        "attempt": 1,
+        "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-resources-cards-t02-a1",
+        "status": 200,
+        "ok": true,
+        "user": "une carte de defense je peux la creer librement ou seulement depuis une action du plan ?",
+        "assistant": "Tu peux la créer librement depuis Dashboard > Ressources. 🙂  \nEt si une carte de defense est liée à une mission ou une habitude du plan, tu la retrouveras aussi ensuite dans Ressources (via le plan), mais ce n’est pas obligatoire pour la faire.\n\nTu veux plutôt la carte “pour quand ça monte” (libre), ou la carte liée à une habitude/moment précis ? 🙂",
+        "aborted": false,
+        "abort_reason": null,
+        "empty_response": false,
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason_code": "product_signal",
+        "skill_entry_ids": [],
+        "skill_lifecycle_ids": [],
+        "skill_run_id": "product_help",
+        "skill_run_status": "complete",
+        "skill_run_response_intent": "how_to",
+        "skill_run_diagnosis": {
+          "locations": [
+            "Dashboard > Plan",
+            "Dashboard > Ressources"
+          ],
+          "feature_id": "resources.defense_card",
+          "feature_label": "Carte de defense",
+          "operation_bridge": {
+            "trigger_phrases": [
+              "prepare une carte de defense",
+              "j'ai besoin d'un plan b",
+              "aide-moi pour le moment ou je risque de craquer"
+            ],
+            "skill_or_operation": "prepare_defense_card",
+            "requires_confirmation": true
+          }
+        },
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "direct_effects": [],
+        "response_tool_execution": "none",
+        "response_executed_tools": [],
+        "tool_skill_run": null,
+        "trace_error": null,
+        "attempts": [
+          {
+            "attempt": 1,
+            "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-resources-cards-t02-a1",
+            "status": 200,
+            "ok": true,
+            "user": "une carte de defense je peux la creer librement ou seulement depuis une action du plan ?",
+            "assistant": "Tu peux la créer librement depuis Dashboard > Ressources. 🙂  \nEt si une carte de defense est liée à une mission ou une habitude du plan, tu la retrouveras aussi ensuite dans Ressources (via le plan), mais ce n’est pas obligatoire pour la faire.\n\nTu veux plutôt la carte “pour quand ça monte” (libre), ou la carte liée à une habitude/moment précis ? 🙂",
+            "aborted": false,
+            "abort_reason": null,
+            "empty_response": false,
+            "response_owner": "product_help",
+            "selected_handler": "product_help",
+            "route_reason_code": "product_signal",
+            "skill_entry_ids": [],
+            "skill_lifecycle_ids": [],
+            "skill_run_id": "product_help",
+            "skill_run_status": "complete",
+            "skill_run_response_intent": "how_to",
+            "skill_run_diagnosis": {
+              "locations": [
+                "Dashboard > Plan",
+                "Dashboard > Ressources"
+              ],
+              "feature_id": "resources.defense_card",
+              "feature_label": "Carte de defense",
+              "operation_bridge": {
+                "trigger_phrases": [
+                  "prepare une carte de defense",
+                  "j'ai besoin d'un plan b",
+                  "aide-moi pour le moment ou je risque de craquer"
+                ],
+                "skill_or_operation": "prepare_defense_card",
+                "requires_confirmation": true
+              }
+            },
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "direct_effects": [],
+            "response_tool_execution": "none",
+            "response_executed_tools": [],
+            "tool_skill_run": null,
+            "trace_error": null
+          }
+        ],
+        "connectionName": "product_help_dashboard_dashhelp5_c2_resources-cards",
+        "turn": 2
+      },
+      {
+        "attempt": 1,
+        "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-resources-cards-t03-a1",
+        "status": 200,
+        "ok": true,
+        "user": "et si elle est liee a une mission, je la retrouve ou apres generation ?",
+        "assistant": "Si la carte de défense est liée à une mission, tu la retrouves ensuite dans Ressources, parce qu’une fois générée (ou générable) elle apparaît à la fois sur l’item du plan et dans Ressources, par niveau. 🙂  \nElle n’est pas “uniquement” sur la mission.\n\nTu parles d’une carte de défense déjà générée, ou d’une carte que tu veux générer et associer à une mission ?",
+        "aborted": false,
+        "abort_reason": null,
+        "empty_response": false,
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason_code": "product_signal",
+        "skill_entry_ids": [],
+        "skill_lifecycle_ids": [],
+        "skill_run_id": "product_help",
+        "skill_run_status": "complete",
+        "skill_run_response_intent": "how_to",
+        "skill_run_diagnosis": {
+          "locations": [
+            "Dashboard > Plan",
+            "Dashboard > Ressources"
+          ],
+          "feature_id": "resources.plan_cards",
+          "feature_label": "Cartes liees au plan",
+          "operation_bridge": null
+        },
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "direct_effects": [],
+        "response_tool_execution": "none",
+        "response_executed_tools": [],
+        "tool_skill_run": null,
+        "trace_error": null,
+        "attempts": [
+          {
+            "attempt": 1,
+            "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-resources-cards-t03-a1",
+            "status": 200,
+            "ok": true,
+            "user": "et si elle est liee a une mission, je la retrouve ou apres generation ?",
+            "assistant": "Si la carte de défense est liée à une mission, tu la retrouves ensuite dans Ressources, parce qu’une fois générée (ou générable) elle apparaît à la fois sur l’item du plan et dans Ressources, par niveau. 🙂  \nElle n’est pas “uniquement” sur la mission.\n\nTu parles d’une carte de défense déjà générée, ou d’une carte que tu veux générer et associer à une mission ?",
+            "aborted": false,
+            "abort_reason": null,
+            "empty_response": false,
+            "response_owner": "product_help",
+            "selected_handler": "product_help",
+            "route_reason_code": "product_signal",
+            "skill_entry_ids": [],
+            "skill_lifecycle_ids": [],
+            "skill_run_id": "product_help",
+            "skill_run_status": "complete",
+            "skill_run_response_intent": "how_to",
+            "skill_run_diagnosis": {
+              "locations": [
+                "Dashboard > Plan",
+                "Dashboard > Ressources"
+              ],
+              "feature_id": "resources.plan_cards",
+              "feature_label": "Cartes liees au plan",
+              "operation_bridge": null
+            },
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "direct_effects": [],
+            "response_tool_execution": "none",
+            "response_executed_tools": [],
+            "tool_skill_run": null,
+            "trace_error": null
+          }
+        ],
+        "connectionName": "product_help_dashboard_dashhelp5_c2_resources-cards",
+        "turn": 3
+      },
+      {
+        "attempt": 1,
+        "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-resources-cards-t04-a1",
+        "status": 200,
+        "ok": true,
+        "user": "pour une carte d'attaque, je la vois aussi dans le Plan ou seulement dans Ressources ?",
+        "assistant": "Pour une carte d’attaque, tu la retrouves dans Ressources (rangée par niveau) quand elle est générée via le plan. 🙂  \nDans le Plan, tu l’as surtout si elle est rattachée à une mission ou une habitude (et donc qu’elle est prévue pour ce point-là).\n\nTu parles d’une carte d’attaque déjà générée, ou d’une que tu vas créer maintenant ?",
+        "aborted": false,
+        "abort_reason": null,
+        "empty_response": false,
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason_code": "product_signal",
+        "skill_entry_ids": [],
+        "skill_lifecycle_ids": [],
+        "skill_run_id": "product_help",
+        "skill_run_status": "complete",
+        "skill_run_response_intent": "how_to",
+        "skill_run_diagnosis": {
+          "locations": [
+            "Dashboard > Plan",
+            "Dashboard > Ressources"
+          ],
+          "feature_id": "resources.attack_card",
+          "feature_label": "Carte d'attaque",
+          "operation_bridge": {
+            "trigger_phrases": [
+              "prepare une carte d'attaque",
+              "aide-moi a preparer cette action",
+              "rends cette mission plus facile a lancer"
+            ],
+            "skill_or_operation": "prepare_attack_card",
+            "requires_confirmation": true
+          }
+        },
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "direct_effects": [],
+        "response_tool_execution": "none",
+        "response_executed_tools": [],
+        "tool_skill_run": null,
+        "trace_error": null,
+        "attempts": [
+          {
+            "attempt": 1,
+            "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-resources-cards-t04-a1",
+            "status": 200,
+            "ok": true,
+            "user": "pour une carte d'attaque, je la vois aussi dans le Plan ou seulement dans Ressources ?",
+            "assistant": "Pour une carte d’attaque, tu la retrouves dans Ressources (rangée par niveau) quand elle est générée via le plan. 🙂  \nDans le Plan, tu l’as surtout si elle est rattachée à une mission ou une habitude (et donc qu’elle est prévue pour ce point-là).\n\nTu parles d’une carte d’attaque déjà générée, ou d’une que tu vas créer maintenant ?",
+            "aborted": false,
+            "abort_reason": null,
+            "empty_response": false,
+            "response_owner": "product_help",
+            "selected_handler": "product_help",
+            "route_reason_code": "product_signal",
+            "skill_entry_ids": [],
+            "skill_lifecycle_ids": [],
+            "skill_run_id": "product_help",
+            "skill_run_status": "complete",
+            "skill_run_response_intent": "how_to",
+            "skill_run_diagnosis": {
+              "locations": [
+                "Dashboard > Plan",
+                "Dashboard > Ressources"
+              ],
+              "feature_id": "resources.attack_card",
+              "feature_label": "Carte d'attaque",
+              "operation_bridge": {
+                "trigger_phrases": [
+                  "prepare une carte d'attaque",
+                  "aide-moi a preparer cette action",
+                  "rends cette mission plus facile a lancer"
+                ],
+                "skill_or_operation": "prepare_attack_card",
+                "requires_confirmation": true
+              }
+            },
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "direct_effects": [],
+            "response_tool_execution": "none",
+            "response_executed_tools": [],
+            "tool_skill_run": null,
+            "trace_error": null
+          }
+        ],
+        "connectionName": "product_help_dashboard_dashhelp5_c2_resources-cards",
+        "turn": 4
+      },
+      {
+        "attempt": 1,
+        "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-resources-cards-t05-a1",
+        "status": 200,
+        "ok": true,
+        "user": "si je veux preparer une action avant de la faire, quelle carte tu m'expliques ?",
+        "assistant": "Pour préparer une action avant de la faire, c’est la carte d’attaque que tu vises. ⚔️🙂\n\nElle sert à te mettre en mode “exécution” sur le moment, avec ce que tu vas faire concrètement pour avancer.\n\nSi au lieu de ça tu veux te protéger parce que tu sens que ça peut te bloquer (stress, crainte, envie d’abandonner), là c’est plutôt la carte de défense.\n\nTu cherches à préparer quoi exactement : lancer l’action, ou éviter de te faire freiner ?",
+        "aborted": false,
+        "abort_reason": null,
+        "empty_response": false,
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason_code": "product_signal",
+        "skill_entry_ids": [],
+        "skill_lifecycle_ids": [],
+        "skill_run_id": "product_help",
+        "skill_run_status": "complete",
+        "skill_run_response_intent": "explain",
+        "skill_run_diagnosis": {
+          "locations": [
+            "Dashboard > Ressources"
+          ],
+          "feature_id": "resources.overview",
+          "feature_label": "Ressources",
+          "operation_bridge": null
+        },
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "direct_effects": [],
+        "response_tool_execution": "none",
+        "response_executed_tools": [],
+        "tool_skill_run": null,
+        "trace_error": null,
+        "attempts": [
+          {
+            "attempt": 1,
+            "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-resources-cards-t05-a1",
+            "status": 200,
+            "ok": true,
+            "user": "si je veux preparer une action avant de la faire, quelle carte tu m'expliques ?",
+            "assistant": "Pour préparer une action avant de la faire, c’est la carte d’attaque que tu vises. ⚔️🙂\n\nElle sert à te mettre en mode “exécution” sur le moment, avec ce que tu vas faire concrètement pour avancer.\n\nSi au lieu de ça tu veux te protéger parce que tu sens que ça peut te bloquer (stress, crainte, envie d’abandonner), là c’est plutôt la carte de défense.\n\nTu cherches à préparer quoi exactement : lancer l’action, ou éviter de te faire freiner ?",
+            "aborted": false,
+            "abort_reason": null,
+            "empty_response": false,
+            "response_owner": "product_help",
+            "selected_handler": "product_help",
+            "route_reason_code": "product_signal",
+            "skill_entry_ids": [],
+            "skill_lifecycle_ids": [],
+            "skill_run_id": "product_help",
+            "skill_run_status": "complete",
+            "skill_run_response_intent": "explain",
+            "skill_run_diagnosis": {
+              "locations": [
+                "Dashboard > Ressources"
+              ],
+              "feature_id": "resources.overview",
+              "feature_label": "Ressources",
+              "operation_bridge": null
+            },
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "direct_effects": [],
+            "response_tool_execution": "none",
+            "response_executed_tools": [],
+            "tool_skill_run": null,
+            "trace_error": null
+          }
+        ],
+        "connectionName": "product_help_dashboard_dashhelp5_c2_resources-cards",
+        "turn": 5
+      },
+      {
+        "attempt": 1,
+        "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-resources-cards-t06-a1",
+        "status": 200,
+        "ok": true,
+        "user": "si mon probleme c'est plutot un piege au moment ou je deraille, tu m'orientes vers quoi ?",
+        "assistant": "Si ton souci, c’est vraiment “au moment où je deraille”, tu t’orientes vers la carte de defense 🙂🛡️\n\nElle est faite pour te rattraper quand ça monte: te donner un plan B concret pour redescendre et reprendre, sans essayer de “forcer la volonté” à chaud.\n\nTu sais à peu près ce qui te fait dérayer: stress, fatigue, solitude, envie d’abandonner, ou autre ?",
+        "aborted": false,
+        "abort_reason": null,
+        "empty_response": false,
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason_code": "product_signal",
+        "skill_entry_ids": [],
+        "skill_lifecycle_ids": [],
+        "skill_run_id": "product_help",
+        "skill_run_status": "complete",
+        "skill_run_response_intent": "how_to",
+        "skill_run_diagnosis": {
+          "locations": [
+            "Dashboard > Plan",
+            "Dashboard > Ressources"
+          ],
+          "feature_id": "resources.defense_card",
+          "feature_label": "Carte de defense",
+          "operation_bridge": {
+            "trigger_phrases": [
+              "prepare une carte de defense",
+              "j'ai besoin d'un plan b",
+              "aide-moi pour le moment ou je risque de craquer"
+            ],
+            "skill_or_operation": "prepare_defense_card",
+            "requires_confirmation": true
+          }
+        },
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "direct_effects": [],
+        "response_tool_execution": "none",
+        "response_executed_tools": [],
+        "tool_skill_run": null,
+        "trace_error": null,
+        "attempts": [
+          {
+            "attempt": 1,
+            "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-resources-cards-t06-a1",
+            "status": 200,
+            "ok": true,
+            "user": "si mon probleme c'est plutot un piege au moment ou je deraille, tu m'orientes vers quoi ?",
+            "assistant": "Si ton souci, c’est vraiment “au moment où je deraille”, tu t’orientes vers la carte de defense 🙂🛡️\n\nElle est faite pour te rattraper quand ça monte: te donner un plan B concret pour redescendre et reprendre, sans essayer de “forcer la volonté” à chaud.\n\nTu sais à peu près ce qui te fait dérayer: stress, fatigue, solitude, envie d’abandonner, ou autre ?",
+            "aborted": false,
+            "abort_reason": null,
+            "empty_response": false,
+            "response_owner": "product_help",
+            "selected_handler": "product_help",
+            "route_reason_code": "product_signal",
+            "skill_entry_ids": [],
+            "skill_lifecycle_ids": [],
+            "skill_run_id": "product_help",
+            "skill_run_status": "complete",
+            "skill_run_response_intent": "how_to",
+            "skill_run_diagnosis": {
+              "locations": [
+                "Dashboard > Plan",
+                "Dashboard > Ressources"
+              ],
+              "feature_id": "resources.defense_card",
+              "feature_label": "Carte de defense",
+              "operation_bridge": {
+                "trigger_phrases": [
+                  "prepare une carte de defense",
+                  "j'ai besoin d'un plan b",
+                  "aide-moi pour le moment ou je risque de craquer"
+                ],
+                "skill_or_operation": "prepare_defense_card",
+                "requires_confirmation": true
+              }
+            },
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "direct_effects": [],
+            "response_tool_execution": "none",
+            "response_executed_tools": [],
+            "tool_skill_run": null,
+            "trace_error": null
+          }
+        ],
+        "connectionName": "product_help_dashboard_dashhelp5_c2_resources-cards",
+        "turn": 6
+      },
+      {
+        "attempt": 1,
+        "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-resources-cards-t07-a1",
+        "status": 200,
+        "ok": true,
+        "user": "est-ce que ces cartes modifient mon plan ou c'est juste un appui ?",
+        "assistant": "Elles sont surtout un appui, pas un “remplacement” de ton plan 🙂🛡️\n\nEn pratique :\n- Carte d’attaque: elle sert quand tu veux préparer/faire l’action, souvent liée à une mission/habitude du plan.\n- Carte de défense: elle sert de plan anti-crainte pour quand ça monte, et même quand elle est liée à un élément du plan, elle reste pensée comme support “au moment où ça déraille”, pas comme une modification en profondeur de tes semaines.\n\nSi tu me dis : “ta carte est déjà liée à une mission/habitude” ou “tu l’as faite libre”, je te dis exactement ce que ça implique pour ton plan.",
+        "aborted": false,
+        "abort_reason": null,
+        "empty_response": false,
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason_code": "product_signal",
+        "skill_entry_ids": [],
+        "skill_lifecycle_ids": [],
+        "skill_run_id": "product_help",
+        "skill_run_status": "complete",
+        "skill_run_response_intent": "how_to",
+        "skill_run_diagnosis": {
+          "locations": [
+            "Dashboard > Plan"
+          ],
+          "feature_id": "dashboard.plan",
+          "feature_label": "Plan",
+          "operation_bridge": null
+        },
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "direct_effects": [],
+        "response_tool_execution": "none",
+        "response_executed_tools": [],
+        "tool_skill_run": null,
+        "trace_error": null,
+        "attempts": [
+          {
+            "attempt": 1,
+            "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-resources-cards-t07-a1",
+            "status": 200,
+            "ok": true,
+            "user": "est-ce que ces cartes modifient mon plan ou c'est juste un appui ?",
+            "assistant": "Elles sont surtout un appui, pas un “remplacement” de ton plan 🙂🛡️\n\nEn pratique :\n- Carte d’attaque: elle sert quand tu veux préparer/faire l’action, souvent liée à une mission/habitude du plan.\n- Carte de défense: elle sert de plan anti-crainte pour quand ça monte, et même quand elle est liée à un élément du plan, elle reste pensée comme support “au moment où ça déraille”, pas comme une modification en profondeur de tes semaines.\n\nSi tu me dis : “ta carte est déjà liée à une mission/habitude” ou “tu l’as faite libre”, je te dis exactement ce que ça implique pour ton plan.",
+            "aborted": false,
+            "abort_reason": null,
+            "empty_response": false,
+            "response_owner": "product_help",
+            "selected_handler": "product_help",
+            "route_reason_code": "product_signal",
+            "skill_entry_ids": [],
+            "skill_lifecycle_ids": [],
+            "skill_run_id": "product_help",
+            "skill_run_status": "complete",
+            "skill_run_response_intent": "how_to",
+            "skill_run_diagnosis": {
+              "locations": [
+                "Dashboard > Plan"
+              ],
+              "feature_id": "dashboard.plan",
+              "feature_label": "Plan",
+              "operation_bridge": null
+            },
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "direct_effects": [],
+            "response_tool_execution": "none",
+            "response_executed_tools": [],
+            "tool_skill_run": null,
+            "trace_error": null
+          }
+        ],
+        "connectionName": "product_help_dashboard_dashhelp5_c2_resources-cards",
+        "turn": 7
+      },
+      {
+        "attempt": 1,
+        "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-resources-cards-t08-a1",
+        "status": 200,
+        "ok": true,
+        "user": "recap clair: ou creer, ou retrouver, et quoi utiliser selon le cas.",
+        "assistant": "Ok, recap clair ⚔️🛡️\n\n1) Carte d’attaque (pour préparer/faire l’action)\n- Où créer : depuis le Plan (tu sélectionnes la transformation à gauche, puis tu ouvres l’onglet Plan).\n- Où retrouver : dans Ressources (rangée par niveau) une fois qu’elle est générée via le plan.\n- Quand l’utiliser : quand tu veux passer en mode exécution et avancer.\n\n2) Carte de défense (pour “quand ça monte”, plan anti-crainte)\n- Où créer : dans Ressources.\n- Où retrouver si elle est liée à une mission/habitude : ensuite tu peux la voir dans Ressources aussi (elle apparaît via le plan), pas seulement sur l’item du plan.\n- Quand l’utiliser : quand tu sens que tu vas “dérayer” (stress, fatigue, envie d’abandonner, etc.).\n\nEn une phrase : Plan = pour préparer l’action (attaque), Ressources = pour te rattraper quand ça dérape (défense). 🙂\n\nTu veux que je te fasse un mini guide “si/donc” selon ton cas typique (dérapage vs exécution) ?",
+        "aborted": false,
+        "abort_reason": null,
+        "empty_response": false,
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason_code": "product_signal",
+        "skill_entry_ids": [],
+        "skill_lifecycle_ids": [],
+        "skill_run_id": "product_help",
+        "skill_run_status": "complete",
+        "skill_run_response_intent": "how_to",
+        "skill_run_diagnosis": {
+          "locations": [
+            "Dashboard > Plan"
+          ],
+          "feature_id": "dashboard.plan",
+          "feature_label": "Plan",
+          "operation_bridge": null
+        },
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "direct_effects": [],
+        "response_tool_execution": "none",
+        "response_executed_tools": [],
+        "tool_skill_run": null,
+        "trace_error": null,
+        "attempts": [
+          {
+            "attempt": 1,
+            "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-resources-cards-t08-a1",
+            "status": 200,
+            "ok": true,
+            "user": "recap clair: ou creer, ou retrouver, et quoi utiliser selon le cas.",
+            "assistant": "Ok, recap clair ⚔️🛡️\n\n1) Carte d’attaque (pour préparer/faire l’action)\n- Où créer : depuis le Plan (tu sélectionnes la transformation à gauche, puis tu ouvres l’onglet Plan).\n- Où retrouver : dans Ressources (rangée par niveau) une fois qu’elle est générée via le plan.\n- Quand l’utiliser : quand tu veux passer en mode exécution et avancer.\n\n2) Carte de défense (pour “quand ça monte”, plan anti-crainte)\n- Où créer : dans Ressources.\n- Où retrouver si elle est liée à une mission/habitude : ensuite tu peux la voir dans Ressources aussi (elle apparaît via le plan), pas seulement sur l’item du plan.\n- Quand l’utiliser : quand tu sens que tu vas “dérayer” (stress, fatigue, envie d’abandonner, etc.).\n\nEn une phrase : Plan = pour préparer l’action (attaque), Ressources = pour te rattraper quand ça dérape (défense). 🙂\n\nTu veux que je te fasse un mini guide “si/donc” selon ton cas typique (dérapage vs exécution) ?",
+            "aborted": false,
+            "abort_reason": null,
+            "empty_response": false,
+            "response_owner": "product_help",
+            "selected_handler": "product_help",
+            "route_reason_code": "product_signal",
+            "skill_entry_ids": [],
+            "skill_lifecycle_ids": [],
+            "skill_run_id": "product_help",
+            "skill_run_status": "complete",
+            "skill_run_response_intent": "how_to",
+            "skill_run_diagnosis": {
+              "locations": [
+                "Dashboard > Plan"
+              ],
+              "feature_id": "dashboard.plan",
+              "feature_label": "Plan",
+              "operation_bridge": null
+            },
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "direct_effects": [],
+            "response_tool_execution": "none",
+            "response_executed_tools": [],
+            "tool_skill_run": null,
+            "trace_error": null
+          }
+        ],
+        "connectionName": "product_help_dashboard_dashhelp5_c2_resources-cards",
+        "turn": 8
+      }
+    ],
+    "evaluation": {
+      "productTurns": 8,
+      "observedFeatureIds": [
+        "resources.defense_card",
+        "resources.plan_cards",
+        "resources.attack_card",
+        "resources.overview",
+        "dashboard.plan"
+      ],
+      "missing": [],
+      "bad": [],
+      "forbidden": [],
+      "verdict": "ROUGE"
+    }
+  },
+  {
+    "id": "potions-initiatives",
+    "title": "Potions et initiative automatique",
+    "targetFeatures": [
+      "resources.potions",
+      "initiatives"
+    ],
+    "connectionName": "product_help_dashboard_dashhelp5_c3_potions-initiatives",
+    "turns": [
+      {
+        "attempt": 1,
+        "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-potions-initiatives-t01-a1",
+        "status": 200,
+        "ok": true,
+        "user": "a quoi sert une potion dans Sophia ?",
+        "assistant": "Une potion, c’est un support court pour traverser un état intérieur quand il prend trop de place. Elle sert à te redescendre / te recentrer vite sans devoir “refaire tout le plan”. 🧃\n\nConcrètement, quand tu actives une potion, ça crée aussi automatiquement une initiative de suivi pendant 7 jours pour soutenir cet état.\n\nTu la trouveras dans Dashboard > Ressources (et si tu veux vraiment la lancer/reactiver, il faut passer par l’activation avec confirmation). 😊\n\nTu veux l’utiliser pour calmer un rush émotionnel, ou plutôt pour te donner un coup de recentrage sur une journée précise ?",
+        "aborted": false,
+        "abort_reason": null,
+        "empty_response": false,
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason_code": "product_signal",
+        "skill_entry_ids": [],
+        "skill_lifecycle_ids": [],
+        "skill_run_id": "product_help",
+        "skill_run_status": "complete",
+        "skill_run_response_intent": "benefits",
+        "skill_run_diagnosis": {
+          "locations": [
+            "Dashboard > Ressources"
+          ],
+          "feature_id": "resources.potions",
+          "feature_label": "Potions",
+          "operation_bridge": {
+            "trigger_phrases": [
+              "active une potion",
+              "j'ai besoin d'une potion",
+              "aide-moi a changer d'etat maintenant"
+            ],
+            "skill_or_operation": "activate_potion",
+            "requires_confirmation": true
+          }
+        },
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "direct_effects": [],
+        "response_tool_execution": "none",
+        "response_executed_tools": [],
+        "tool_skill_run": null,
+        "trace_error": null,
+        "attempts": [
+          {
+            "attempt": 1,
+            "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-potions-initiatives-t01-a1",
+            "status": 200,
+            "ok": true,
+            "user": "a quoi sert une potion dans Sophia ?",
+            "assistant": "Une potion, c’est un support court pour traverser un état intérieur quand il prend trop de place. Elle sert à te redescendre / te recentrer vite sans devoir “refaire tout le plan”. 🧃\n\nConcrètement, quand tu actives une potion, ça crée aussi automatiquement une initiative de suivi pendant 7 jours pour soutenir cet état.\n\nTu la trouveras dans Dashboard > Ressources (et si tu veux vraiment la lancer/reactiver, il faut passer par l’activation avec confirmation). 😊\n\nTu veux l’utiliser pour calmer un rush émotionnel, ou plutôt pour te donner un coup de recentrage sur une journée précise ?",
+            "aborted": false,
+            "abort_reason": null,
+            "empty_response": false,
+            "response_owner": "product_help",
+            "selected_handler": "product_help",
+            "route_reason_code": "product_signal",
+            "skill_entry_ids": [],
+            "skill_lifecycle_ids": [],
+            "skill_run_id": "product_help",
+            "skill_run_status": "complete",
+            "skill_run_response_intent": "benefits",
+            "skill_run_diagnosis": {
+              "locations": [
+                "Dashboard > Ressources"
+              ],
+              "feature_id": "resources.potions",
+              "feature_label": "Potions",
+              "operation_bridge": {
+                "trigger_phrases": [
+                  "active une potion",
+                  "j'ai besoin d'une potion",
+                  "aide-moi a changer d'etat maintenant"
+                ],
+                "skill_or_operation": "activate_potion",
+                "requires_confirmation": true
+              }
+            },
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "direct_effects": [],
+            "response_tool_execution": "none",
+            "response_executed_tools": [],
+            "tool_skill_run": null,
+            "trace_error": null
+          }
+        ],
+        "connectionName": "product_help_dashboard_dashhelp5_c3_potions-initiatives",
+        "turn": 1
+      },
+      {
+        "attempt": 1,
+        "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-potions-initiatives-t02-a1",
+        "status": 200,
+        "ok": true,
+        "user": "quand je l'active, est-ce qu'elle fait juste une reponse maintenant ou autre chose apres ?",
+        "assistant": "Quand tu actives une potion, ce n’est pas juste “une réponse maintenant” 🙂  \nEn plus du support immédiat pour te recentrer, ça déclenche automatiquement un suivi sur 7 jours pour soutenir l’état que tu essayes de traverser.\n\nDonc tu as :\n1) l’aide tout de suite\n2) puis une continuité pendant une semaine\n\nTu veux l’activer pour calmer un pic émotionnel, ou plutôt pour relancer une action que tu remets en place ? 🧃",
+        "aborted": false,
+        "abort_reason": null,
+        "empty_response": false,
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason_code": "product_signal",
+        "skill_entry_ids": [],
+        "skill_lifecycle_ids": [],
+        "skill_run_id": "product_help",
+        "skill_run_status": "complete",
+        "skill_run_response_intent": "how_to",
+        "skill_run_diagnosis": {
+          "locations": [
+            "Dashboard > Plan"
+          ],
+          "feature_id": "dashboard.plan",
+          "feature_label": "Plan",
+          "operation_bridge": null
+        },
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [
+            "maintenant"
+          ],
+          "risk_band": "none",
+          "reason_codes": [
+            "immediacy_now"
+          ],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": true,
+            "dispatcher_llm": false
+          }
+        },
+        "direct_effects": [
+          {
+            "effect_type": "track_progress_plan_item",
+            "explicitness": "explicit",
+            "payload_hint": {
+              "status_hint": "completed",
+              "target_title": null
+            },
+            "target_status": "missing",
+            "confidence_band": "high"
+          }
+        ],
+        "response_tool_execution": "none",
+        "response_executed_tools": [],
+        "tool_skill_run": null,
+        "trace_error": null,
+        "attempts": [
+          {
+            "attempt": 1,
+            "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-potions-initiatives-t02-a1",
+            "status": 200,
+            "ok": true,
+            "user": "quand je l'active, est-ce qu'elle fait juste une reponse maintenant ou autre chose apres ?",
+            "assistant": "Quand tu actives une potion, ce n’est pas juste “une réponse maintenant” 🙂  \nEn plus du support immédiat pour te recentrer, ça déclenche automatiquement un suivi sur 7 jours pour soutenir l’état que tu essayes de traverser.\n\nDonc tu as :\n1) l’aide tout de suite\n2) puis une continuité pendant une semaine\n\nTu veux l’activer pour calmer un pic émotionnel, ou plutôt pour relancer une action que tu remets en place ? 🧃",
+            "aborted": false,
+            "abort_reason": null,
+            "empty_response": false,
+            "response_owner": "product_help",
+            "selected_handler": "product_help",
+            "route_reason_code": "product_signal",
+            "skill_entry_ids": [],
+            "skill_lifecycle_ids": [],
+            "skill_run_id": "product_help",
+            "skill_run_status": "complete",
+            "skill_run_response_intent": "how_to",
+            "skill_run_diagnosis": {
+              "locations": [
+                "Dashboard > Plan"
+              ],
+              "feature_id": "dashboard.plan",
+              "feature_label": "Plan",
+              "operation_bridge": null
+            },
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [
+                "maintenant"
+              ],
+              "risk_band": "none",
+              "reason_codes": [
+                "immediacy_now"
+              ],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": true,
+                "dispatcher_llm": false
+              }
+            },
+            "direct_effects": [
+              {
+                "effect_type": "track_progress_plan_item",
+                "explicitness": "explicit",
+                "payload_hint": {
+                  "status_hint": "completed",
+                  "target_title": null
+                },
+                "target_status": "missing",
+                "confidence_band": "high"
+              }
+            ],
+            "response_tool_execution": "none",
+            "response_executed_tools": [],
+            "tool_skill_run": null,
+            "trace_error": null
+          }
+        ],
+        "connectionName": "product_help_dashboard_dashhelp5_c3_potions-initiatives",
+        "turn": 2
+      },
+      {
+        "attempt": 1,
+        "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-potions-initiatives-t03-a1",
+        "status": 200,
+        "ok": true,
+        "user": "tu peux me dire clairement cette histoire de suivi 7 jours ?",
+        "assistant": "Oui 🙂 Quand tu actives une potion, tu as deux niveaux de support :\n\n1) Tout de suite : le contenu de la potion te recentre/apporte une réponse immédiate.\n2) Ensuite : ça lance automatiquement un suivi pendant 7 jours pour garder ce même état “tenu” au fil des jours, pas juste sur le moment.\n\nEn gros, c’est “je te soulève maintenant” + “je t’accompagne encore un peu derrière”, histoire que ça ne retombe pas dès que l’émotion redescend.\n\nTu veux que ça s’applique plutôt à une émotion/urgence, ou à quelque chose que tu veux relancer durablement ? 🧃",
+        "aborted": false,
+        "abort_reason": null,
+        "empty_response": false,
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason_code": "product_signal",
+        "skill_entry_ids": [],
+        "skill_lifecycle_ids": [],
+        "skill_run_id": "product_help",
+        "skill_run_status": "complete",
+        "skill_run_response_intent": "how_to",
+        "skill_run_diagnosis": {
+          "locations": [
+            "Dashboard > Inspirations"
+          ],
+          "feature_id": "inspirations",
+          "feature_label": "Inspirations",
+          "operation_bridge": null
+        },
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "direct_effects": [],
+        "response_tool_execution": "none",
+        "response_executed_tools": [],
+        "tool_skill_run": null,
+        "trace_error": null,
+        "attempts": [
+          {
+            "attempt": 1,
+            "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-potions-initiatives-t03-a1",
+            "status": 200,
+            "ok": true,
+            "user": "tu peux me dire clairement cette histoire de suivi 7 jours ?",
+            "assistant": "Oui 🙂 Quand tu actives une potion, tu as deux niveaux de support :\n\n1) Tout de suite : le contenu de la potion te recentre/apporte une réponse immédiate.\n2) Ensuite : ça lance automatiquement un suivi pendant 7 jours pour garder ce même état “tenu” au fil des jours, pas juste sur le moment.\n\nEn gros, c’est “je te soulève maintenant” + “je t’accompagne encore un peu derrière”, histoire que ça ne retombe pas dès que l’émotion redescend.\n\nTu veux que ça s’applique plutôt à une émotion/urgence, ou à quelque chose que tu veux relancer durablement ? 🧃",
+            "aborted": false,
+            "abort_reason": null,
+            "empty_response": false,
+            "response_owner": "product_help",
+            "selected_handler": "product_help",
+            "route_reason_code": "product_signal",
+            "skill_entry_ids": [],
+            "skill_lifecycle_ids": [],
+            "skill_run_id": "product_help",
+            "skill_run_status": "complete",
+            "skill_run_response_intent": "how_to",
+            "skill_run_diagnosis": {
+              "locations": [
+                "Dashboard > Inspirations"
+              ],
+              "feature_id": "inspirations",
+              "feature_label": "Inspirations",
+              "operation_bridge": null
+            },
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "direct_effects": [],
+            "response_tool_execution": "none",
+            "response_executed_tools": [],
+            "tool_skill_run": null,
+            "trace_error": null
+          }
+        ],
+        "connectionName": "product_help_dashboard_dashhelp5_c3_potions-initiatives",
+        "turn": 3
+      },
+      {
+        "attempt": 1,
+        "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-potions-initiatives-t04-a1",
+        "status": 200,
+        "ok": true,
+        "user": "ce suivi c'est une modification du plan ou une initiative ?",
+        "assistant": "Bonne question 🙂 Le suivi déclenché par la potion, c’est une initiative de suivi sur 7 jours (donc un support qui continue après le “tout de suite”), pas une modification manuelle de ton plan.\n\nEn clair :\n- Potion = réponse immédiate + initiative/soutien qui dure 7 jours\n- Plan (dans Dashboard > Plan) = là où tu consultes/vois le niveau actif, semaines, missions, habitudes, etc.\n\nTu veux que je t’aide à repérer où regarder dans le Dashboard selon ce que tu cherches : le suivi ou le plan ? 🙂",
+        "aborted": false,
+        "abort_reason": null,
+        "empty_response": false,
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason_code": "product_signal",
+        "skill_entry_ids": [],
+        "skill_lifecycle_ids": [],
+        "skill_run_id": "product_help",
+        "skill_run_status": "complete",
+        "skill_run_response_intent": "how_to",
+        "skill_run_diagnosis": {
+          "locations": [
+            "Dashboard > Plan"
+          ],
+          "feature_id": "dashboard.plan",
+          "feature_label": "Plan",
+          "operation_bridge": null
+        },
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "direct_effects": [],
+        "response_tool_execution": "none",
+        "response_executed_tools": [],
+        "tool_skill_run": null,
+        "trace_error": null,
+        "attempts": [
+          {
+            "attempt": 1,
+            "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-potions-initiatives-t04-a1",
+            "status": 200,
+            "ok": true,
+            "user": "ce suivi c'est une modification du plan ou une initiative ?",
+            "assistant": "Bonne question 🙂 Le suivi déclenché par la potion, c’est une initiative de suivi sur 7 jours (donc un support qui continue après le “tout de suite”), pas une modification manuelle de ton plan.\n\nEn clair :\n- Potion = réponse immédiate + initiative/soutien qui dure 7 jours\n- Plan (dans Dashboard > Plan) = là où tu consultes/vois le niveau actif, semaines, missions, habitudes, etc.\n\nTu veux que je t’aide à repérer où regarder dans le Dashboard selon ce que tu cherches : le suivi ou le plan ? 🙂",
+            "aborted": false,
+            "abort_reason": null,
+            "empty_response": false,
+            "response_owner": "product_help",
+            "selected_handler": "product_help",
+            "route_reason_code": "product_signal",
+            "skill_entry_ids": [],
+            "skill_lifecycle_ids": [],
+            "skill_run_id": "product_help",
+            "skill_run_status": "complete",
+            "skill_run_response_intent": "how_to",
+            "skill_run_diagnosis": {
+              "locations": [
+                "Dashboard > Plan"
+              ],
+              "feature_id": "dashboard.plan",
+              "feature_label": "Plan",
+              "operation_bridge": null
+            },
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "direct_effects": [],
+            "response_tool_execution": "none",
+            "response_executed_tools": [],
+            "tool_skill_run": null,
+            "trace_error": null
+          }
+        ],
+        "connectionName": "product_help_dashboard_dashhelp5_c3_potions-initiatives",
+        "turn": 4
+      },
+      {
+        "attempt": 1,
+        "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-potions-initiatives-t05-a1",
+        "status": 200,
+        "ok": true,
+        "user": "je la retrouve ou ensuite si je veux comprendre ce qui est programme ?",
+        "assistant": "Bonne question 🙂 Si tu veux comprendre ce qui est “programmé” ensuite, le suivi déclenché par la potion se voit côté initiative de suivi, et le repère le plus direct c’est dans Dashboard > Plan (tu y retrouveras l’item de type Clarification/Exercice de clarification quand c’est lié à ce genre de support).\n\nOù tu es censé regarder :\n- Dashboard > Plan : ouvre la carte correspondant au suivi/au support lancé, puis lis l’objectif et les étapes.\n\nTu veux comprendre “où cliquer” pour voir le suivi exact, ou tu veux juste savoir “quoi regarder” dans l’item ? 😊",
+        "aborted": false,
+        "abort_reason": null,
+        "empty_response": false,
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason_code": "product_signal",
+        "skill_entry_ids": [],
+        "skill_lifecycle_ids": [],
+        "skill_run_id": "product_help",
+        "skill_run_status": "complete",
+        "skill_run_response_intent": "how_to",
+        "skill_run_diagnosis": {
+          "locations": [
+            "Dashboard > Plan"
+          ],
+          "feature_id": "plan.clarifications",
+          "feature_label": "Clarifications",
+          "operation_bridge": null
+        },
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "direct_effects": [],
+        "response_tool_execution": "none",
+        "response_executed_tools": [],
+        "tool_skill_run": null,
+        "trace_error": null,
+        "attempts": [
+          {
+            "attempt": 1,
+            "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-potions-initiatives-t05-a1",
+            "status": 200,
+            "ok": true,
+            "user": "je la retrouve ou ensuite si je veux comprendre ce qui est programme ?",
+            "assistant": "Bonne question 🙂 Si tu veux comprendre ce qui est “programmé” ensuite, le suivi déclenché par la potion se voit côté initiative de suivi, et le repère le plus direct c’est dans Dashboard > Plan (tu y retrouveras l’item de type Clarification/Exercice de clarification quand c’est lié à ce genre de support).\n\nOù tu es censé regarder :\n- Dashboard > Plan : ouvre la carte correspondant au suivi/au support lancé, puis lis l’objectif et les étapes.\n\nTu veux comprendre “où cliquer” pour voir le suivi exact, ou tu veux juste savoir “quoi regarder” dans l’item ? 😊",
+            "aborted": false,
+            "abort_reason": null,
+            "empty_response": false,
+            "response_owner": "product_help",
+            "selected_handler": "product_help",
+            "route_reason_code": "product_signal",
+            "skill_entry_ids": [],
+            "skill_lifecycle_ids": [],
+            "skill_run_id": "product_help",
+            "skill_run_status": "complete",
+            "skill_run_response_intent": "how_to",
+            "skill_run_diagnosis": {
+              "locations": [
+                "Dashboard > Plan"
+              ],
+              "feature_id": "plan.clarifications",
+              "feature_label": "Clarifications",
+              "operation_bridge": null
+            },
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "direct_effects": [],
+            "response_tool_execution": "none",
+            "response_executed_tools": [],
+            "tool_skill_run": null,
+            "trace_error": null
+          }
+        ],
+        "connectionName": "product_help_dashboard_dashhelp5_c3_potions-initiatives",
+        "turn": 5
+      },
+      {
+        "attempt": 1,
+        "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-potions-initiatives-t06-a1",
+        "status": 200,
+        "ok": true,
+        "user": "si mon etat est vraiment lourd, est-ce que potion remplace la securite ou pas ?",
+        "assistant": "Non 🙂 une potion ne remplace pas la sécurité.\n\nSi ton état est “vraiment lourd”, la potion peut aider à te recentrer tout de suite et te soutenir pendant 7 jours, mais c’est un support, pas une réponse de safety.\n\nLà où tu t’en sers :\n- pour redescendre / stabiliser\n- pour gagner du temps et retrouver un peu de marge\n- sans lâcher les mesures de sécurité si le risque monte\n\nSi tu me dis juste ce que tu appelles “lourd” (stress intense, pensées noires, crise, etc.), je te dis quoi privilégier en premier. 🫶",
+        "aborted": false,
+        "abort_reason": null,
+        "empty_response": false,
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason_code": "product_signal",
+        "skill_entry_ids": [],
+        "skill_lifecycle_ids": [],
+        "skill_run_id": "product_help",
+        "skill_run_status": "complete",
+        "skill_run_response_intent": "how_to",
+        "skill_run_diagnosis": {
+          "locations": [
+            "Dashboard > Ressources"
+          ],
+          "feature_id": "resources.potions",
+          "feature_label": "Potions",
+          "operation_bridge": {
+            "trigger_phrases": [
+              "active une potion",
+              "j'ai besoin d'une potion",
+              "aide-moi a changer d'etat maintenant"
+            ],
+            "skill_or_operation": "activate_potion",
+            "requires_confirmation": true
+          }
+        },
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "direct_effects": [],
+        "response_tool_execution": "none",
+        "response_executed_tools": [],
+        "tool_skill_run": null,
+        "trace_error": null,
+        "attempts": [
+          {
+            "attempt": 1,
+            "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-potions-initiatives-t06-a1",
+            "status": 200,
+            "ok": true,
+            "user": "si mon etat est vraiment lourd, est-ce que potion remplace la securite ou pas ?",
+            "assistant": "Non 🙂 une potion ne remplace pas la sécurité.\n\nSi ton état est “vraiment lourd”, la potion peut aider à te recentrer tout de suite et te soutenir pendant 7 jours, mais c’est un support, pas une réponse de safety.\n\nLà où tu t’en sers :\n- pour redescendre / stabiliser\n- pour gagner du temps et retrouver un peu de marge\n- sans lâcher les mesures de sécurité si le risque monte\n\nSi tu me dis juste ce que tu appelles “lourd” (stress intense, pensées noires, crise, etc.), je te dis quoi privilégier en premier. 🫶",
+            "aborted": false,
+            "abort_reason": null,
+            "empty_response": false,
+            "response_owner": "product_help",
+            "selected_handler": "product_help",
+            "route_reason_code": "product_signal",
+            "skill_entry_ids": [],
+            "skill_lifecycle_ids": [],
+            "skill_run_id": "product_help",
+            "skill_run_status": "complete",
+            "skill_run_response_intent": "how_to",
+            "skill_run_diagnosis": {
+              "locations": [
+                "Dashboard > Ressources"
+              ],
+              "feature_id": "resources.potions",
+              "feature_label": "Potions",
+              "operation_bridge": {
+                "trigger_phrases": [
+                  "active une potion",
+                  "j'ai besoin d'une potion",
+                  "aide-moi a changer d'etat maintenant"
+                ],
+                "skill_or_operation": "activate_potion",
+                "requires_confirmation": true
+              }
+            },
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "direct_effects": [],
+            "response_tool_execution": "none",
+            "response_executed_tools": [],
+            "tool_skill_run": null,
+            "trace_error": null
+          }
+        ],
+        "connectionName": "product_help_dashboard_dashhelp5_c3_potions-initiatives",
+        "turn": 6
+      },
+      {
+        "attempt": 1,
+        "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-potions-initiatives-t07-a1",
+        "status": 200,
+        "ok": true,
+        "user": "et si je veux une initiative recurrente sans potion, je vais ou ?",
+        "assistant": "Tu peux la faire soit via une initiative “classique” dans ton plan, soit via une habitude récurrente. 🙂  \nLe plus direct, c’est d’aller dans Dashboard, puis de regarder la section Habitudes (si tu veux que ça se répète régulièrement), ou dans le Plan si tu veux une initiative structurée.\n\nTu veux plutôt A) une habitude quotidienne/hebdo ou B) une initiative récurrente (avec un suivi cadré) ?",
+        "aborted": false,
+        "abort_reason": null,
+        "empty_response": false,
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason_code": "product_signal",
+        "skill_entry_ids": [],
+        "skill_lifecycle_ids": [],
+        "skill_run_id": "product_help",
+        "skill_run_status": "complete",
+        "skill_run_response_intent": "how_to",
+        "skill_run_diagnosis": {
+          "locations": [
+            "Dashboard > Ressources"
+          ],
+          "feature_id": "resources.potions",
+          "feature_label": "Potions",
+          "operation_bridge": {
+            "trigger_phrases": [
+              "active une potion",
+              "j'ai besoin d'une potion",
+              "aide-moi a changer d'etat maintenant"
+            ],
+            "skill_or_operation": "activate_potion",
+            "requires_confirmation": true
+          }
+        },
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "direct_effects": [],
+        "response_tool_execution": "none",
+        "response_executed_tools": [],
+        "tool_skill_run": null,
+        "trace_error": null,
+        "attempts": [
+          {
+            "attempt": 1,
+            "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-potions-initiatives-t07-a1",
+            "status": 200,
+            "ok": true,
+            "user": "et si je veux une initiative recurrente sans potion, je vais ou ?",
+            "assistant": "Tu peux la faire soit via une initiative “classique” dans ton plan, soit via une habitude récurrente. 🙂  \nLe plus direct, c’est d’aller dans Dashboard, puis de regarder la section Habitudes (si tu veux que ça se répète régulièrement), ou dans le Plan si tu veux une initiative structurée.\n\nTu veux plutôt A) une habitude quotidienne/hebdo ou B) une initiative récurrente (avec un suivi cadré) ?",
+            "aborted": false,
+            "abort_reason": null,
+            "empty_response": false,
+            "response_owner": "product_help",
+            "selected_handler": "product_help",
+            "route_reason_code": "product_signal",
+            "skill_entry_ids": [],
+            "skill_lifecycle_ids": [],
+            "skill_run_id": "product_help",
+            "skill_run_status": "complete",
+            "skill_run_response_intent": "how_to",
+            "skill_run_diagnosis": {
+              "locations": [
+                "Dashboard > Ressources"
+              ],
+              "feature_id": "resources.potions",
+              "feature_label": "Potions",
+              "operation_bridge": {
+                "trigger_phrases": [
+                  "active une potion",
+                  "j'ai besoin d'une potion",
+                  "aide-moi a changer d'etat maintenant"
+                ],
+                "skill_or_operation": "activate_potion",
+                "requires_confirmation": true
+              }
+            },
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "direct_effects": [],
+            "response_tool_execution": "none",
+            "response_executed_tools": [],
+            "tool_skill_run": null,
+            "trace_error": null
+          }
+        ],
+        "connectionName": "product_help_dashboard_dashhelp5_c3_potions-initiatives",
+        "turn": 7
+      },
+      {
+        "attempt": 1,
+        "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-potions-initiatives-t08-a1",
+        "status": 200,
+        "ok": true,
+        "user": "recap sobre: potion maintenant, suivi apres, et limites.",
+        "assistant": "Ok, recap sobre 🧃\n\n1) Potion maintenant: un support court pour t’aider à traverser/redescendre un état intérieur sur le moment (sans avoir à “reprendre tout le plan”).\n2) Après: quand tu l’active, ça déclenche aussi une initiative de suivi pendant 7 jours pour soutenir cet état.\n3) Limites: ça n’est pas une sécurité/safety. Si ton état devient vraiment “lourd” côté risque, tu t’appuies aussi sur les mesures de sécurité adaptées, et la potion sert de soutien pour te recentrer et tenir un peu de marge.\n\nTu veux que je te formule une mini phrase “quand j’active une potion, je cherche quoi exactement” ? 🙂",
+        "aborted": false,
+        "abort_reason": null,
+        "empty_response": false,
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason_code": "product_signal",
+        "skill_entry_ids": [],
+        "skill_lifecycle_ids": [],
+        "skill_run_id": "product_help",
+        "skill_run_status": "complete",
+        "skill_run_response_intent": "explain",
+        "skill_run_diagnosis": {
+          "locations": [
+            "Dashboard > Ressources"
+          ],
+          "feature_id": "resources.potions",
+          "feature_label": "Potions",
+          "operation_bridge": {
+            "trigger_phrases": [
+              "active une potion",
+              "j'ai besoin d'une potion",
+              "aide-moi a changer d'etat maintenant"
+            ],
+            "skill_or_operation": "activate_potion",
+            "requires_confirmation": true
+          }
+        },
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [
+            "maintenant"
+          ],
+          "risk_band": "none",
+          "reason_codes": [
+            "immediacy_now"
+          ],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": true,
+            "dispatcher_llm": false
+          }
+        },
+        "direct_effects": [],
+        "response_tool_execution": "none",
+        "response_executed_tools": [],
+        "tool_skill_run": null,
+        "trace_error": null,
+        "attempts": [
+          {
+            "attempt": 1,
+            "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-potions-initiatives-t08-a1",
+            "status": 200,
+            "ok": true,
+            "user": "recap sobre: potion maintenant, suivi apres, et limites.",
+            "assistant": "Ok, recap sobre 🧃\n\n1) Potion maintenant: un support court pour t’aider à traverser/redescendre un état intérieur sur le moment (sans avoir à “reprendre tout le plan”).\n2) Après: quand tu l’active, ça déclenche aussi une initiative de suivi pendant 7 jours pour soutenir cet état.\n3) Limites: ça n’est pas une sécurité/safety. Si ton état devient vraiment “lourd” côté risque, tu t’appuies aussi sur les mesures de sécurité adaptées, et la potion sert de soutien pour te recentrer et tenir un peu de marge.\n\nTu veux que je te formule une mini phrase “quand j’active une potion, je cherche quoi exactement” ? 🙂",
+            "aborted": false,
+            "abort_reason": null,
+            "empty_response": false,
+            "response_owner": "product_help",
+            "selected_handler": "product_help",
+            "route_reason_code": "product_signal",
+            "skill_entry_ids": [],
+            "skill_lifecycle_ids": [],
+            "skill_run_id": "product_help",
+            "skill_run_status": "complete",
+            "skill_run_response_intent": "explain",
+            "skill_run_diagnosis": {
+              "locations": [
+                "Dashboard > Ressources"
+              ],
+              "feature_id": "resources.potions",
+              "feature_label": "Potions",
+              "operation_bridge": {
+                "trigger_phrases": [
+                  "active une potion",
+                  "j'ai besoin d'une potion",
+                  "aide-moi a changer d'etat maintenant"
+                ],
+                "skill_or_operation": "activate_potion",
+                "requires_confirmation": true
+              }
+            },
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [
+                "maintenant"
+              ],
+              "risk_band": "none",
+              "reason_codes": [
+                "immediacy_now"
+              ],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": true,
+                "dispatcher_llm": false
+              }
+            },
+            "direct_effects": [],
+            "response_tool_execution": "none",
+            "response_executed_tools": [],
+            "tool_skill_run": null,
+            "trace_error": null
+          }
+        ],
+        "connectionName": "product_help_dashboard_dashhelp5_c3_potions-initiatives",
+        "turn": 8
+      }
+    ],
+    "evaluation": {
+      "productTurns": 8,
+      "observedFeatureIds": [
+        "resources.potions",
+        "dashboard.plan",
+        "inspirations",
+        "plan.clarifications"
+      ],
+      "missing": [
+        "initiatives"
+      ],
+      "bad": [],
+      "forbidden": [],
+      "verdict": "ROUGE"
+    }
+  },
+  {
+    "id": "initiatives-preferences-base",
+    "title": "Initiatives, preferences et Base de vie",
+    "targetFeatures": [
+      "initiatives",
+      "coach_preferences",
+      "base_de_vie"
+    ],
+    "connectionName": "product_help_dashboard_dashhelp5_c4_initiatives-preferences-base",
+    "turns": [
+      {
+        "attempt": 1,
+        "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-initiatives-preferences-base-t01-a1",
+        "status": 200,
+        "ok": true,
+        "user": "les initiatives dans le dashboard, c'est quoi exactement ?",
+        "assistant": "Une “initiative” dans le dashboard, c’est un message récurrent planifié avec Sophia. 😊  \nEn gros, tu crées un rendez-vous automatisé dans le temps qui contient :\n\n1) une instruction (ce que Sophia doit te dire / te demander)  \n2) le contexte (pourquoi c’est important, dans quel esprit)  \n3) une heure  \n4) des jours actifs (quand ça se déclenche)  \n5) la destination : Plan actuel ou Base de vie\n\nLe but : installer une présence utile dans le temps sans que tu aies à revenir te rappeler tout seul.\n\nTu veux une initiative pour quoi exactement : te remettre en mouvement, un rappel discipline, ou plutôt du soutien plus “identité” ?",
+        "aborted": false,
+        "abort_reason": null,
+        "empty_response": false,
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason_code": "product_signal",
+        "skill_entry_ids": [],
+        "skill_lifecycle_ids": [],
+        "skill_run_id": "product_help",
+        "skill_run_status": "complete",
+        "skill_run_response_intent": "explain",
+        "skill_run_diagnosis": {
+          "locations": [
+            "Dashboard > Initiatives",
+            "Base de vie > Initiatives"
+          ],
+          "feature_id": "initiatives",
+          "feature_label": "Initiatives",
+          "operation_bridge": {
+            "trigger_phrases": [
+              "cree une initiative",
+              "programme un rendez-vous recurrent",
+              "modifie cette initiative",
+              "mets cette relance dans ma base de vie"
+            ],
+            "skill_or_operation": "create_or_update_initiative",
+            "requires_confirmation": true
+          }
+        },
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "direct_effects": [],
+        "response_tool_execution": "none",
+        "response_executed_tools": [],
+        "tool_skill_run": null,
+        "trace_error": null,
+        "attempts": [
+          {
+            "attempt": 1,
+            "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-initiatives-preferences-base-t01-a1",
+            "status": 200,
+            "ok": true,
+            "user": "les initiatives dans le dashboard, c'est quoi exactement ?",
+            "assistant": "Une “initiative” dans le dashboard, c’est un message récurrent planifié avec Sophia. 😊  \nEn gros, tu crées un rendez-vous automatisé dans le temps qui contient :\n\n1) une instruction (ce que Sophia doit te dire / te demander)  \n2) le contexte (pourquoi c’est important, dans quel esprit)  \n3) une heure  \n4) des jours actifs (quand ça se déclenche)  \n5) la destination : Plan actuel ou Base de vie\n\nLe but : installer une présence utile dans le temps sans que tu aies à revenir te rappeler tout seul.\n\nTu veux une initiative pour quoi exactement : te remettre en mouvement, un rappel discipline, ou plutôt du soutien plus “identité” ?",
+            "aborted": false,
+            "abort_reason": null,
+            "empty_response": false,
+            "response_owner": "product_help",
+            "selected_handler": "product_help",
+            "route_reason_code": "product_signal",
+            "skill_entry_ids": [],
+            "skill_lifecycle_ids": [],
+            "skill_run_id": "product_help",
+            "skill_run_status": "complete",
+            "skill_run_response_intent": "explain",
+            "skill_run_diagnosis": {
+              "locations": [
+                "Dashboard > Initiatives",
+                "Base de vie > Initiatives"
+              ],
+              "feature_id": "initiatives",
+              "feature_label": "Initiatives",
+              "operation_bridge": {
+                "trigger_phrases": [
+                  "cree une initiative",
+                  "programme un rendez-vous recurrent",
+                  "modifie cette initiative",
+                  "mets cette relance dans ma base de vie"
+                ],
+                "skill_or_operation": "create_or_update_initiative",
+                "requires_confirmation": true
+              }
+            },
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "direct_effects": [],
+            "response_tool_execution": "none",
+            "response_executed_tools": [],
+            "tool_skill_run": null,
+            "trace_error": null
+          }
+        ],
+        "connectionName": "product_help_dashboard_dashhelp5_c4_initiatives-preferences-base",
+        "turn": 1
+      },
+      {
+        "attempt": 1,
+        "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-initiatives-preferences-base-t02-a1",
+        "status": 200,
+        "ok": true,
+        "user": "je peux les mettre dans le plan actuel ou dans la base de vie ?",
+        "assistant": "Oui, tu peux les envoyer vers les deux, mais pas pour la même raison 😊\n\nPlan actuel: c’est pour ce qui s’intègre vraiment à ton déroulé du moment (les missions / habitudes du plan).\nBase de vie: c’est plutôt “hors plan” ou des éléments à garder/organiser ailleurs (pas un deuxième plan actif, et pas l’endroit pour exécuter les missions du plan courant).\n\nTu veux les utiliser comme un truc “pendant la période du plan” ou plutôt comme un suivi/rappel en parallèle ?",
+        "aborted": false,
+        "abort_reason": null,
+        "empty_response": false,
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason_code": "product_signal",
+        "skill_entry_ids": [],
+        "skill_lifecycle_ids": [],
+        "skill_run_id": "product_help",
+        "skill_run_status": "complete",
+        "skill_run_response_intent": "how_to",
+        "skill_run_diagnosis": {
+          "locations": [
+            "Dashboard sidebar > Base de vie",
+            "Base de vie > Initiatives"
+          ],
+          "feature_id": "base_de_vie",
+          "feature_label": "Base de vie",
+          "operation_bridge": null
+        },
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "direct_effects": [],
+        "response_tool_execution": "none",
+        "response_executed_tools": [],
+        "tool_skill_run": null,
+        "trace_error": null,
+        "attempts": [
+          {
+            "attempt": 1,
+            "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-initiatives-preferences-base-t02-a1",
+            "status": 200,
+            "ok": true,
+            "user": "je peux les mettre dans le plan actuel ou dans la base de vie ?",
+            "assistant": "Oui, tu peux les envoyer vers les deux, mais pas pour la même raison 😊\n\nPlan actuel: c’est pour ce qui s’intègre vraiment à ton déroulé du moment (les missions / habitudes du plan).\nBase de vie: c’est plutôt “hors plan” ou des éléments à garder/organiser ailleurs (pas un deuxième plan actif, et pas l’endroit pour exécuter les missions du plan courant).\n\nTu veux les utiliser comme un truc “pendant la période du plan” ou plutôt comme un suivi/rappel en parallèle ?",
+            "aborted": false,
+            "abort_reason": null,
+            "empty_response": false,
+            "response_owner": "product_help",
+            "selected_handler": "product_help",
+            "route_reason_code": "product_signal",
+            "skill_entry_ids": [],
+            "skill_lifecycle_ids": [],
+            "skill_run_id": "product_help",
+            "skill_run_status": "complete",
+            "skill_run_response_intent": "how_to",
+            "skill_run_diagnosis": {
+              "locations": [
+                "Dashboard sidebar > Base de vie",
+                "Base de vie > Initiatives"
+              ],
+              "feature_id": "base_de_vie",
+              "feature_label": "Base de vie",
+              "operation_bridge": null
+            },
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "direct_effects": [],
+            "response_tool_execution": "none",
+            "response_executed_tools": [],
+            "tool_skill_run": null,
+            "trace_error": null
+          }
+        ],
+        "connectionName": "product_help_dashboard_dashhelp5_c4_initiatives-preferences-base",
+        "turn": 2
+      },
+      {
+        "attempt": 1,
+        "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-initiatives-preferences-base-t03-a1",
+        "status": 200,
+        "ok": true,
+        "user": "quelles infos je dois remplir pour une initiative ?",
+        "assistant": "Pour une initiative, tu vas surtout remplir 4 blocs d’infos, et c’est ça qui fait que ça se déclenche bien. 😊\n\n1) Ce que tu veux que Sophia fasse / te dise\nUne instruction claire (le message ou la consigne exacte).\n\n2) Le contexte\nPourquoi c’est important, et le ton / l’esprit à garder.\n\n3) Quand ça part\nL’heure.\n\n4) Les jours actifs\nLes jours où l’initiative se répète (récurrence).\n\nOptionnel selon ton cas : la destination\nTu peux la mettre soit dans le plan actuel, soit dans la base de vie (pas pour la même raison).\n\nTu veux le faire plutôt pour un rappel “dans la période du plan” ou pour un truc “hors plan” ?",
+        "aborted": false,
+        "abort_reason": null,
+        "empty_response": false,
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason_code": "product_signal",
+        "skill_entry_ids": [],
+        "skill_lifecycle_ids": [],
+        "skill_run_id": "product_help",
+        "skill_run_status": "complete",
+        "skill_run_response_intent": "how_to",
+        "skill_run_diagnosis": {
+          "locations": [
+            "Dashboard > Initiatives",
+            "Base de vie > Initiatives"
+          ],
+          "feature_id": "initiatives",
+          "feature_label": "Initiatives",
+          "operation_bridge": {
+            "trigger_phrases": [
+              "cree une initiative",
+              "programme un rendez-vous recurrent",
+              "modifie cette initiative",
+              "mets cette relance dans ma base de vie"
+            ],
+            "skill_or_operation": "create_or_update_initiative",
+            "requires_confirmation": true
+          }
+        },
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "direct_effects": [],
+        "response_tool_execution": "none",
+        "response_executed_tools": [],
+        "tool_skill_run": null,
+        "trace_error": null,
+        "attempts": [
+          {
+            "attempt": 1,
+            "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-initiatives-preferences-base-t03-a1",
+            "status": 200,
+            "ok": true,
+            "user": "quelles infos je dois remplir pour une initiative ?",
+            "assistant": "Pour une initiative, tu vas surtout remplir 4 blocs d’infos, et c’est ça qui fait que ça se déclenche bien. 😊\n\n1) Ce que tu veux que Sophia fasse / te dise\nUne instruction claire (le message ou la consigne exacte).\n\n2) Le contexte\nPourquoi c’est important, et le ton / l’esprit à garder.\n\n3) Quand ça part\nL’heure.\n\n4) Les jours actifs\nLes jours où l’initiative se répète (récurrence).\n\nOptionnel selon ton cas : la destination\nTu peux la mettre soit dans le plan actuel, soit dans la base de vie (pas pour la même raison).\n\nTu veux le faire plutôt pour un rappel “dans la période du plan” ou pour un truc “hors plan” ?",
+            "aborted": false,
+            "abort_reason": null,
+            "empty_response": false,
+            "response_owner": "product_help",
+            "selected_handler": "product_help",
+            "route_reason_code": "product_signal",
+            "skill_entry_ids": [],
+            "skill_lifecycle_ids": [],
+            "skill_run_id": "product_help",
+            "skill_run_status": "complete",
+            "skill_run_response_intent": "how_to",
+            "skill_run_diagnosis": {
+              "locations": [
+                "Dashboard > Initiatives",
+                "Base de vie > Initiatives"
+              ],
+              "feature_id": "initiatives",
+              "feature_label": "Initiatives",
+              "operation_bridge": {
+                "trigger_phrases": [
+                  "cree une initiative",
+                  "programme un rendez-vous recurrent",
+                  "modifie cette initiative",
+                  "mets cette relance dans ma base de vie"
+                ],
+                "skill_or_operation": "create_or_update_initiative",
+                "requires_confirmation": true
+              }
+            },
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "direct_effects": [],
+            "response_tool_execution": "none",
+            "response_executed_tools": [],
+            "tool_skill_run": null,
+            "trace_error": null
+          }
+        ],
+        "connectionName": "product_help_dashboard_dashhelp5_c4_initiatives-preferences-base",
+        "turn": 3
+      },
+      {
+        "attempt": 1,
+        "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-initiatives-preferences-base-t04-a1",
+        "status": 200,
+        "ok": true,
+        "user": "et les preferences coach, ca change quoi concretement ?",
+        "assistant": "Les “Preferences coach”, concrètement, ça change surtout comment Sophia t’accompagne au quotidien, pas ton objectif. 😊\n\n1) Le ton global (plus doux vs plus direct)\n- Par exemple, elle va formuler plus “bienveillante et ferme” ou plus “très soft”, selon ce que tu choisis.\n\n2) Le niveau de challenge\n- Équilibré, plus challengeant, ou plus rassurant: ça influence la façon dont elle te pousse à agir (sans forcément changer le fond).\n\n3) Le style de feedback\n- Plutôt “positif puis amélioration” vs “plus direct / plus cadrant”, donc le ratio encouragements ↔ correction.\n\nTu veux que je t’aide à choisir quoi mettre selon ton cas (A: plus direct pour passer à l’action, B: plus doux pour mieux tenir le rythme) ? 🙂",
+        "aborted": false,
+        "abort_reason": null,
+        "empty_response": false,
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason_code": "product_signal",
+        "skill_entry_ids": [],
+        "skill_lifecycle_ids": [],
+        "skill_run_id": "product_help",
+        "skill_run_status": "complete",
+        "skill_run_response_intent": "explain",
+        "skill_run_diagnosis": {
+          "locations": [
+            "Dashboard > Preferences"
+          ],
+          "feature_id": "coach_preferences",
+          "feature_label": "Preferences coach",
+          "operation_bridge": {
+            "trigger_phrases": [
+              "change ton ton",
+              "sois plus directe",
+              "pose moins de questions",
+              "challenge-moi plus"
+            ],
+            "skill_or_operation": "update_coach_preferences",
+            "requires_confirmation": true
+          }
+        },
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "direct_effects": [],
+        "response_tool_execution": "none",
+        "response_executed_tools": [],
+        "tool_skill_run": null,
+        "trace_error": null,
+        "attempts": [
+          {
+            "attempt": 1,
+            "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-initiatives-preferences-base-t04-a1",
+            "status": 200,
+            "ok": true,
+            "user": "et les preferences coach, ca change quoi concretement ?",
+            "assistant": "Les “Preferences coach”, concrètement, ça change surtout comment Sophia t’accompagne au quotidien, pas ton objectif. 😊\n\n1) Le ton global (plus doux vs plus direct)\n- Par exemple, elle va formuler plus “bienveillante et ferme” ou plus “très soft”, selon ce que tu choisis.\n\n2) Le niveau de challenge\n- Équilibré, plus challengeant, ou plus rassurant: ça influence la façon dont elle te pousse à agir (sans forcément changer le fond).\n\n3) Le style de feedback\n- Plutôt “positif puis amélioration” vs “plus direct / plus cadrant”, donc le ratio encouragements ↔ correction.\n\nTu veux que je t’aide à choisir quoi mettre selon ton cas (A: plus direct pour passer à l’action, B: plus doux pour mieux tenir le rythme) ? 🙂",
+            "aborted": false,
+            "abort_reason": null,
+            "empty_response": false,
+            "response_owner": "product_help",
+            "selected_handler": "product_help",
+            "route_reason_code": "product_signal",
+            "skill_entry_ids": [],
+            "skill_lifecycle_ids": [],
+            "skill_run_id": "product_help",
+            "skill_run_status": "complete",
+            "skill_run_response_intent": "explain",
+            "skill_run_diagnosis": {
+              "locations": [
+                "Dashboard > Preferences"
+              ],
+              "feature_id": "coach_preferences",
+              "feature_label": "Preferences coach",
+              "operation_bridge": {
+                "trigger_phrases": [
+                  "change ton ton",
+                  "sois plus directe",
+                  "pose moins de questions",
+                  "challenge-moi plus"
+                ],
+                "skill_or_operation": "update_coach_preferences",
+                "requires_confirmation": true
+              }
+            },
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "direct_effects": [],
+            "response_tool_execution": "none",
+            "response_executed_tools": [],
+            "tool_skill_run": null,
+            "trace_error": null
+          }
+        ],
+        "connectionName": "product_help_dashboard_dashhelp5_c4_initiatives-preferences-base",
+        "turn": 4
+      },
+      {
+        "attempt": 1,
+        "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-initiatives-preferences-base-t05-a1",
+        "status": 200,
+        "ok": true,
+        "user": "si je veux que Sophia pose moins de questions, c'est dans quelle partie ?",
+        "assistant": "Ça se règle dans “Preferences coach” (Dashboard > Preferences) 😊  \nLà tu peux ajuster le paramètre “tendance à poser des questions” + le ton général, et du coup Sophia devient moins inquisitrice.\n\nTu veux plutôt qu’elle soit moins “interrogatoire”, mais quand même challengeante, ou plus douce ?",
+        "aborted": false,
+        "abort_reason": null,
+        "empty_response": false,
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason_code": "product_signal",
+        "skill_entry_ids": [],
+        "skill_lifecycle_ids": [],
+        "skill_run_id": "product_help",
+        "skill_run_status": "complete",
+        "skill_run_response_intent": "explain",
+        "skill_run_diagnosis": {
+          "locations": [
+            "Dashboard > Preferences"
+          ],
+          "feature_id": "coach_preferences",
+          "feature_label": "Preferences coach",
+          "operation_bridge": {
+            "trigger_phrases": [
+              "change ton ton",
+              "sois plus directe",
+              "pose moins de questions",
+              "challenge-moi plus"
+            ],
+            "skill_or_operation": "update_coach_preferences",
+            "requires_confirmation": true
+          }
+        },
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "direct_effects": [],
+        "response_tool_execution": "none",
+        "response_executed_tools": [],
+        "tool_skill_run": null,
+        "trace_error": null,
+        "attempts": [
+          {
+            "attempt": 1,
+            "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-initiatives-preferences-base-t05-a1",
+            "status": 200,
+            "ok": true,
+            "user": "si je veux que Sophia pose moins de questions, c'est dans quelle partie ?",
+            "assistant": "Ça se règle dans “Preferences coach” (Dashboard > Preferences) 😊  \nLà tu peux ajuster le paramètre “tendance à poser des questions” + le ton général, et du coup Sophia devient moins inquisitrice.\n\nTu veux plutôt qu’elle soit moins “interrogatoire”, mais quand même challengeante, ou plus douce ?",
+            "aborted": false,
+            "abort_reason": null,
+            "empty_response": false,
+            "response_owner": "product_help",
+            "selected_handler": "product_help",
+            "route_reason_code": "product_signal",
+            "skill_entry_ids": [],
+            "skill_lifecycle_ids": [],
+            "skill_run_id": "product_help",
+            "skill_run_status": "complete",
+            "skill_run_response_intent": "explain",
+            "skill_run_diagnosis": {
+              "locations": [
+                "Dashboard > Preferences"
+              ],
+              "feature_id": "coach_preferences",
+              "feature_label": "Preferences coach",
+              "operation_bridge": {
+                "trigger_phrases": [
+                  "change ton ton",
+                  "sois plus directe",
+                  "pose moins de questions",
+                  "challenge-moi plus"
+                ],
+                "skill_or_operation": "update_coach_preferences",
+                "requires_confirmation": true
+              }
+            },
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "direct_effects": [],
+            "response_tool_execution": "none",
+            "response_executed_tools": [],
+            "tool_skill_run": null,
+            "trace_error": null
+          }
+        ],
+        "connectionName": "product_help_dashboard_dashhelp5_c4_initiatives-preferences-base",
+        "turn": 5
+      },
+      {
+        "attempt": 1,
+        "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-initiatives-preferences-base-t06-a1",
+        "status": 200,
+        "ok": true,
+        "user": "la Base de vie sert a quoi quand une transformation est finie ?",
+        "assistant": "Bonne question 😊 La Base de vie sert justement à garder de côté ce qui reste utile une fois la transformation terminée, sans tout “noyer” dans le plan actuel.\n\nConcrètement, une fois que ta transformation est finie :\n- elle évite que les éléments importants disparaissent (ressources conservées, lignes de clôture, déclics)\n- tu peux retrouver plus facilement ce qui t’a servi, même hors période de transformation\n- ça te laisse un endroit “hors plan” pour organiser et ressortir ces ressources au moment où tu en as besoin\n\nTu veux que je te dise comment choisir entre Plan actuel et Base de vie pour un cas précis que tu as en tête ?",
+        "aborted": false,
+        "abort_reason": null,
+        "empty_response": false,
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason_code": "product_signal",
+        "skill_entry_ids": [],
+        "skill_lifecycle_ids": [],
+        "skill_run_id": "product_help",
+        "skill_run_status": "complete",
+        "skill_run_response_intent": "explain",
+        "skill_run_diagnosis": {
+          "locations": [
+            "Dashboard sidebar > Base de vie",
+            "Base de vie > Initiatives"
+          ],
+          "feature_id": "base_de_vie",
+          "feature_label": "Base de vie",
+          "operation_bridge": null
+        },
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "direct_effects": [],
+        "response_tool_execution": "none",
+        "response_executed_tools": [],
+        "tool_skill_run": null,
+        "trace_error": null,
+        "attempts": [
+          {
+            "attempt": 1,
+            "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-initiatives-preferences-base-t06-a1",
+            "status": 200,
+            "ok": true,
+            "user": "la Base de vie sert a quoi quand une transformation est finie ?",
+            "assistant": "Bonne question 😊 La Base de vie sert justement à garder de côté ce qui reste utile une fois la transformation terminée, sans tout “noyer” dans le plan actuel.\n\nConcrètement, une fois que ta transformation est finie :\n- elle évite que les éléments importants disparaissent (ressources conservées, lignes de clôture, déclics)\n- tu peux retrouver plus facilement ce qui t’a servi, même hors période de transformation\n- ça te laisse un endroit “hors plan” pour organiser et ressortir ces ressources au moment où tu en as besoin\n\nTu veux que je te dise comment choisir entre Plan actuel et Base de vie pour un cas précis que tu as en tête ?",
+            "aborted": false,
+            "abort_reason": null,
+            "empty_response": false,
+            "response_owner": "product_help",
+            "selected_handler": "product_help",
+            "route_reason_code": "product_signal",
+            "skill_entry_ids": [],
+            "skill_lifecycle_ids": [],
+            "skill_run_id": "product_help",
+            "skill_run_status": "complete",
+            "skill_run_response_intent": "explain",
+            "skill_run_diagnosis": {
+              "locations": [
+                "Dashboard sidebar > Base de vie",
+                "Base de vie > Initiatives"
+              ],
+              "feature_id": "base_de_vie",
+              "feature_label": "Base de vie",
+              "operation_bridge": null
+            },
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "direct_effects": [],
+            "response_tool_execution": "none",
+            "response_executed_tools": [],
+            "tool_skill_run": null,
+            "trace_error": null
+          }
+        ],
+        "connectionName": "product_help_dashboard_dashhelp5_c4_initiatives-preferences-base",
+        "turn": 6
+      },
+      {
+        "attempt": 1,
+        "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-initiatives-preferences-base-t07-a1",
+        "status": 200,
+        "ok": true,
+        "user": "est-ce que la Base de vie est un deuxieme plan actif ?",
+        "assistant": "Non 😊 La Base de vie, c’est pas un deuxième plan actif.\n\nL’idée, c’est de regrouper ce qui reste utile une fois une transformation terminée: transformations close, ressources conservées, “lignes et déclics de clôture”, et initiatives hors plan. Comme ça, tu retrouves facilement ce qui t’a servi, sans mélanger avec l’exécution du plan courant.\n\nTu veux la Base de vie plutôt pour “ranger” ce qui se termine, ou pour y déposer des initiatives à part du plan ? ",
+        "aborted": false,
+        "abort_reason": null,
+        "empty_response": false,
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason_code": "product_signal",
+        "skill_entry_ids": [],
+        "skill_lifecycle_ids": [],
+        "skill_run_id": "product_help",
+        "skill_run_status": "complete",
+        "skill_run_response_intent": "explain",
+        "skill_run_diagnosis": {
+          "locations": [
+            "Dashboard sidebar > Base de vie",
+            "Base de vie > Initiatives"
+          ],
+          "feature_id": "base_de_vie",
+          "feature_label": "Base de vie",
+          "operation_bridge": null
+        },
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "direct_effects": [],
+        "response_tool_execution": "none",
+        "response_executed_tools": [],
+        "tool_skill_run": null,
+        "trace_error": null,
+        "attempts": [
+          {
+            "attempt": 1,
+            "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-initiatives-preferences-base-t07-a1",
+            "status": 200,
+            "ok": true,
+            "user": "est-ce que la Base de vie est un deuxieme plan actif ?",
+            "assistant": "Non 😊 La Base de vie, c’est pas un deuxième plan actif.\n\nL’idée, c’est de regrouper ce qui reste utile une fois une transformation terminée: transformations close, ressources conservées, “lignes et déclics de clôture”, et initiatives hors plan. Comme ça, tu retrouves facilement ce qui t’a servi, sans mélanger avec l’exécution du plan courant.\n\nTu veux la Base de vie plutôt pour “ranger” ce qui se termine, ou pour y déposer des initiatives à part du plan ? ",
+            "aborted": false,
+            "abort_reason": null,
+            "empty_response": false,
+            "response_owner": "product_help",
+            "selected_handler": "product_help",
+            "route_reason_code": "product_signal",
+            "skill_entry_ids": [],
+            "skill_lifecycle_ids": [],
+            "skill_run_id": "product_help",
+            "skill_run_status": "complete",
+            "skill_run_response_intent": "explain",
+            "skill_run_diagnosis": {
+              "locations": [
+                "Dashboard sidebar > Base de vie",
+                "Base de vie > Initiatives"
+              ],
+              "feature_id": "base_de_vie",
+              "feature_label": "Base de vie",
+              "operation_bridge": null
+            },
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "direct_effects": [],
+            "response_tool_execution": "none",
+            "response_executed_tools": [],
+            "tool_skill_run": null,
+            "trace_error": null
+          }
+        ],
+        "connectionName": "product_help_dashboard_dashhelp5_c4_initiatives-preferences-base",
+        "turn": 7
+      },
+      {
+        "attempt": 1,
+        "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-initiatives-preferences-base-t08-a1",
+        "status": 200,
+        "ok": true,
+        "user": "recap: initiatives, preferences, base de vie, sans mélanger.",
+        "assistant": "OK 😊 Voilà le recap clair, sans mélanger :\n\nInitiatives\n- Ce sont des messages planifiés/récurrents avec Sophia.\n- Tu choisis l’heure et les jours, et tu cibles où ça s’envoie : Plan actuel ou Base de vie.\n- But : te rappeler / te guider à un moment précis, de façon régulière.\n\nPreferences coach\n- Ça ne change pas ton objectif.\n- Ça change la façon dont Sophia t’accompagne : ton (plus doux ou plus direct) et le niveau de questionnement/challenge.\n\nBase de vie\n- Non, ce n’est pas un deuxième plan actif.\n- C’est pour garder utile après une transformation : transformations terminées, ressources conservées, lignes/déclics de clôture, et initiatives “hors plan”.\n\nTu veux que je te fasse un mini exemple concret “quoi envoyer où” (A/B) ? 🙂",
+        "aborted": false,
+        "abort_reason": null,
+        "empty_response": false,
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason_code": "product_signal",
+        "skill_entry_ids": [],
+        "skill_lifecycle_ids": [],
+        "skill_run_id": "product_help",
+        "skill_run_status": "complete",
+        "skill_run_response_intent": "explain",
+        "skill_run_diagnosis": {
+          "locations": [
+            "Dashboard sidebar > Base de vie",
+            "Base de vie > Initiatives"
+          ],
+          "feature_id": "base_de_vie",
+          "feature_label": "Base de vie",
+          "operation_bridge": null
+        },
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "direct_effects": [],
+        "response_tool_execution": "none",
+        "response_executed_tools": [],
+        "tool_skill_run": null,
+        "trace_error": null,
+        "attempts": [
+          {
+            "attempt": 1,
+            "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-initiatives-preferences-base-t08-a1",
+            "status": 200,
+            "ok": true,
+            "user": "recap: initiatives, preferences, base de vie, sans mélanger.",
+            "assistant": "OK 😊 Voilà le recap clair, sans mélanger :\n\nInitiatives\n- Ce sont des messages planifiés/récurrents avec Sophia.\n- Tu choisis l’heure et les jours, et tu cibles où ça s’envoie : Plan actuel ou Base de vie.\n- But : te rappeler / te guider à un moment précis, de façon régulière.\n\nPreferences coach\n- Ça ne change pas ton objectif.\n- Ça change la façon dont Sophia t’accompagne : ton (plus doux ou plus direct) et le niveau de questionnement/challenge.\n\nBase de vie\n- Non, ce n’est pas un deuxième plan actif.\n- C’est pour garder utile après une transformation : transformations terminées, ressources conservées, lignes/déclics de clôture, et initiatives “hors plan”.\n\nTu veux que je te fasse un mini exemple concret “quoi envoyer où” (A/B) ? 🙂",
+            "aborted": false,
+            "abort_reason": null,
+            "empty_response": false,
+            "response_owner": "product_help",
+            "selected_handler": "product_help",
+            "route_reason_code": "product_signal",
+            "skill_entry_ids": [],
+            "skill_lifecycle_ids": [],
+            "skill_run_id": "product_help",
+            "skill_run_status": "complete",
+            "skill_run_response_intent": "explain",
+            "skill_run_diagnosis": {
+              "locations": [
+                "Dashboard sidebar > Base de vie",
+                "Base de vie > Initiatives"
+              ],
+              "feature_id": "base_de_vie",
+              "feature_label": "Base de vie",
+              "operation_bridge": null
+            },
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "direct_effects": [],
+            "response_tool_execution": "none",
+            "response_executed_tools": [],
+            "tool_skill_run": null,
+            "trace_error": null
+          }
+        ],
+        "connectionName": "product_help_dashboard_dashhelp5_c4_initiatives-preferences-base",
+        "turn": 8
+      }
+    ],
+    "evaluation": {
+      "productTurns": 8,
+      "observedFeatureIds": [
+        "initiatives",
+        "base_de_vie",
+        "coach_preferences"
+      ],
+      "missing": [],
+      "bad": [],
+      "forbidden": [],
+      "verdict": "ROUGE"
+    }
+  },
+  {
+    "id": "inspirations-completion-transition",
+    "title": "Inspirations, fin de niveau, cloture et transition",
+    "targetFeatures": [
+      "inspirations",
+      "plan.level_completion",
+      "transformation.closure",
+      "transformation.transition"
+    ],
+    "connectionName": "product_help_dashboard_dashhelp5_c5_inspirations-completion-transition",
+    "turns": [
+      {
+        "attempt": 1,
+        "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-inspirations-completion-transition-t01-a1",
+        "status": 200,
+        "ok": true,
+        "user": "l'onglet Inspirations sert a quoi dans le dashboard action ?",
+        "assistant": "L’onglet Inspirations, c’est pour te redonner du sens quand tu as l’impression que tout devient trop mécanique. 📌\n\nConcrètement, ça sert à :\n- retrouver des repères narratifs et des principes liés à ton parcours\n- relire l’histoire de ton chemin (le pourquoi profond, ce qui te guide)\n- refaire le lien entre ton plan d’action et ce que tu veux vraiment derrière\n\nOù aller : Dashboard > Inspirations.  \n\nTu veux t’en servir plutôt pour relire ton “pourquoi”, ou pour redonner du contexte quand tu décroches ? 😊",
+        "aborted": false,
+        "abort_reason": null,
+        "empty_response": false,
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason_code": "product_signal",
+        "skill_entry_ids": [
+          "execution_breakdown"
+        ],
+        "skill_lifecycle_ids": [],
+        "skill_run_id": "product_help",
+        "skill_run_status": "complete",
+        "skill_run_response_intent": "explain",
+        "skill_run_diagnosis": {
+          "locations": [
+            "Dashboard > Inspirations"
+          ],
+          "feature_id": "inspirations",
+          "feature_label": "Inspirations",
+          "operation_bridge": null
+        },
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "direct_effects": [],
+        "response_tool_execution": "none",
+        "response_executed_tools": [],
+        "tool_skill_run": null,
+        "trace_error": null,
+        "attempts": [
+          {
+            "attempt": 1,
+            "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-inspirations-completion-transition-t01-a1",
+            "status": 200,
+            "ok": true,
+            "user": "l'onglet Inspirations sert a quoi dans le dashboard action ?",
+            "assistant": "L’onglet Inspirations, c’est pour te redonner du sens quand tu as l’impression que tout devient trop mécanique. 📌\n\nConcrètement, ça sert à :\n- retrouver des repères narratifs et des principes liés à ton parcours\n- relire l’histoire de ton chemin (le pourquoi profond, ce qui te guide)\n- refaire le lien entre ton plan d’action et ce que tu veux vraiment derrière\n\nOù aller : Dashboard > Inspirations.  \n\nTu veux t’en servir plutôt pour relire ton “pourquoi”, ou pour redonner du contexte quand tu décroches ? 😊",
+            "aborted": false,
+            "abort_reason": null,
+            "empty_response": false,
+            "response_owner": "product_help",
+            "selected_handler": "product_help",
+            "route_reason_code": "product_signal",
+            "skill_entry_ids": [
+              "execution_breakdown"
+            ],
+            "skill_lifecycle_ids": [],
+            "skill_run_id": "product_help",
+            "skill_run_status": "complete",
+            "skill_run_response_intent": "explain",
+            "skill_run_diagnosis": {
+              "locations": [
+                "Dashboard > Inspirations"
+              ],
+              "feature_id": "inspirations",
+              "feature_label": "Inspirations",
+              "operation_bridge": null
+            },
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "direct_effects": [],
+            "response_tool_execution": "none",
+            "response_executed_tools": [],
+            "tool_skill_run": null,
+            "trace_error": null
+          }
+        ],
+        "connectionName": "product_help_dashboard_dashhelp5_c5_inspirations-completion-transition",
+        "turn": 1
+      },
+      {
+        "attempt": 1,
+        "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-inspirations-completion-transition-t02-a1",
+        "status": 200,
+        "ok": true,
+        "user": "ce n'est pas la partie pour modifier le plan, on est d'accord ?",
+        "assistant": "Oui, on est d’accord. 🙂 L’onglet Inspirations sert à te redonner du sens, pas à modifier concrètement ton plan.\n\nSi ton objectif c’est vraiment d’ajuster la suite, ça se fait via le panneau Ajuster le plan dans Dashboard > Plan (quand un plan actif est ouvert).  \n\nTu veux clarifier quoi exactement : “redonner du sens” ou “alléger / adapter” ?",
+        "aborted": false,
+        "abort_reason": null,
+        "empty_response": false,
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason_code": "product_signal",
+        "skill_entry_ids": [],
+        "skill_lifecycle_ids": [],
+        "skill_run_id": "product_help",
+        "skill_run_status": "complete",
+        "skill_run_response_intent": "how_to",
+        "skill_run_diagnosis": {
+          "locations": [
+            "Dashboard > Plan"
+          ],
+          "feature_id": "plan.adjustment",
+          "feature_label": "Ajustement du plan",
+          "operation_bridge": {
+            "trigger_phrases": [
+              "ajuste mon plan",
+              "modifie cette action",
+              "ce plan est trop lourd",
+              "cette mission ne colle plus",
+              "il faut adapter la suite"
+            ],
+            "skill_or_operation": "adjust_plan",
+            "requires_confirmation": true
+          }
+        },
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "direct_effects": [],
+        "response_tool_execution": "none",
+        "response_executed_tools": [],
+        "tool_skill_run": null,
+        "trace_error": null,
+        "attempts": [
+          {
+            "attempt": 1,
+            "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-inspirations-completion-transition-t02-a1",
+            "status": 200,
+            "ok": true,
+            "user": "ce n'est pas la partie pour modifier le plan, on est d'accord ?",
+            "assistant": "Oui, on est d’accord. 🙂 L’onglet Inspirations sert à te redonner du sens, pas à modifier concrètement ton plan.\n\nSi ton objectif c’est vraiment d’ajuster la suite, ça se fait via le panneau Ajuster le plan dans Dashboard > Plan (quand un plan actif est ouvert).  \n\nTu veux clarifier quoi exactement : “redonner du sens” ou “alléger / adapter” ?",
+            "aborted": false,
+            "abort_reason": null,
+            "empty_response": false,
+            "response_owner": "product_help",
+            "selected_handler": "product_help",
+            "route_reason_code": "product_signal",
+            "skill_entry_ids": [],
+            "skill_lifecycle_ids": [],
+            "skill_run_id": "product_help",
+            "skill_run_status": "complete",
+            "skill_run_response_intent": "how_to",
+            "skill_run_diagnosis": {
+              "locations": [
+                "Dashboard > Plan"
+              ],
+              "feature_id": "plan.adjustment",
+              "feature_label": "Ajustement du plan",
+              "operation_bridge": {
+                "trigger_phrases": [
+                  "ajuste mon plan",
+                  "modifie cette action",
+                  "ce plan est trop lourd",
+                  "cette mission ne colle plus",
+                  "il faut adapter la suite"
+                ],
+                "skill_or_operation": "adjust_plan",
+                "requires_confirmation": true
+              }
+            },
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "direct_effects": [],
+            "response_tool_execution": "none",
+            "response_executed_tools": [],
+            "tool_skill_run": null,
+            "trace_error": null
+          }
+        ],
+        "connectionName": "product_help_dashboard_dashhelp5_c5_inspirations-completion-transition",
+        "turn": 2
+      },
+      {
+        "attempt": 1,
+        "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-inspirations-completion-transition-t03-a1",
+        "status": 200,
+        "ok": true,
+        "user": "quand je finis un niveau, Sophia attend quoi de moi ?",
+        "assistant": "Bonne question 🙂 Quand tu finis un niveau, Sophia attend surtout que tu fasses une micro-validation du “prochain niveau” via le bloc de validation du prochain niveau dans Dashboard > Plan, une fois la fenêtre de review ouverte.\n\nEn gros, c’est un court bilan pour calibrer la suite (éviter de passer trop vite) : tu réponds aux questions proposées, et ça sert à ajuster la progression après. ✅\n\nTu finis “le niveau” dans quel sens pour toi : tu as terminé les missions du moment, ou juste l’étape/objectif d’un module ?",
+        "aborted": false,
+        "abort_reason": null,
+        "empty_response": false,
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason_code": "product_signal",
+        "skill_entry_ids": [],
+        "skill_lifecycle_ids": [],
+        "skill_run_id": "product_help",
+        "skill_run_status": "complete",
+        "skill_run_response_intent": "explain",
+        "skill_run_diagnosis": {
+          "locations": [
+            "Dashboard > Plan"
+          ],
+          "feature_id": "plan.level_completion",
+          "feature_label": "Validation du prochain niveau",
+          "operation_bridge": null
+        },
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "direct_effects": [],
+        "response_tool_execution": "none",
+        "response_executed_tools": [],
+        "tool_skill_run": null,
+        "trace_error": null,
+        "attempts": [
+          {
+            "attempt": 1,
+            "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-inspirations-completion-transition-t03-a1",
+            "status": 200,
+            "ok": true,
+            "user": "quand je finis un niveau, Sophia attend quoi de moi ?",
+            "assistant": "Bonne question 🙂 Quand tu finis un niveau, Sophia attend surtout que tu fasses une micro-validation du “prochain niveau” via le bloc de validation du prochain niveau dans Dashboard > Plan, une fois la fenêtre de review ouverte.\n\nEn gros, c’est un court bilan pour calibrer la suite (éviter de passer trop vite) : tu réponds aux questions proposées, et ça sert à ajuster la progression après. ✅\n\nTu finis “le niveau” dans quel sens pour toi : tu as terminé les missions du moment, ou juste l’étape/objectif d’un module ?",
+            "aborted": false,
+            "abort_reason": null,
+            "empty_response": false,
+            "response_owner": "product_help",
+            "selected_handler": "product_help",
+            "route_reason_code": "product_signal",
+            "skill_entry_ids": [],
+            "skill_lifecycle_ids": [],
+            "skill_run_id": "product_help",
+            "skill_run_status": "complete",
+            "skill_run_response_intent": "explain",
+            "skill_run_diagnosis": {
+              "locations": [
+                "Dashboard > Plan"
+              ],
+              "feature_id": "plan.level_completion",
+              "feature_label": "Validation du prochain niveau",
+              "operation_bridge": null
+            },
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "direct_effects": [],
+            "response_tool_execution": "none",
+            "response_executed_tools": [],
+            "tool_skill_run": null,
+            "trace_error": null
+          }
+        ],
+        "connectionName": "product_help_dashboard_dashhelp5_c5_inspirations-completion-transition",
+        "turn": 3
+      },
+      {
+        "attempt": 1,
+        "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-inspirations-completion-transition-t04-a1",
+        "status": 200,
+        "ok": true,
+        "user": "quelle difference entre finir un niveau et cloturer toute la transformation ?",
+        "assistant": "Bonne question 🙂 Les deux notions se ressemblent, mais c’est pas le même “niveau de fermeture”.\n\nFinir un niveau:\n- c’est la fin d’une étape de progression (un bloc de travail).\n- tu fais une review rapide pour calibrer le prochain niveau (et éviter de passer trop vite).\n- l’objectif, c’est d’ajuster la suite, pas de tout arrêter.\n\nClôturer toute la transformation:\n- là tu fermes le parcours complet.\n- tu valides que la transformation est terminée (donc plus de niveaux à enchaîner dans ce même cadre).\n- en général, c’est plus “bilan + passage à autre chose” que “préparer le prochain palier”.\n\nSi tu veux, je te dis exactement ce que ça implique concrètement pour toi: la transformation, tu la sens plutôt “en cours mais encore loin”, ou “ok c’est bon j’ai fait le tour” ? 🙂",
+        "aborted": false,
+        "abort_reason": null,
+        "empty_response": false,
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason_code": "product_signal",
+        "skill_entry_ids": [],
+        "skill_lifecycle_ids": [],
+        "skill_run_id": "product_help",
+        "skill_run_status": "complete",
+        "skill_run_response_intent": "how_to",
+        "skill_run_diagnosis": {
+          "locations": [
+            "Dashboard > Plan"
+          ],
+          "feature_id": "dashboard.plan",
+          "feature_label": "Plan",
+          "operation_bridge": null
+        },
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "direct_effects": [],
+        "response_tool_execution": "none",
+        "response_executed_tools": [],
+        "tool_skill_run": null,
+        "trace_error": null,
+        "attempts": [
+          {
+            "attempt": 1,
+            "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-inspirations-completion-transition-t04-a1",
+            "status": 200,
+            "ok": true,
+            "user": "quelle difference entre finir un niveau et cloturer toute la transformation ?",
+            "assistant": "Bonne question 🙂 Les deux notions se ressemblent, mais c’est pas le même “niveau de fermeture”.\n\nFinir un niveau:\n- c’est la fin d’une étape de progression (un bloc de travail).\n- tu fais une review rapide pour calibrer le prochain niveau (et éviter de passer trop vite).\n- l’objectif, c’est d’ajuster la suite, pas de tout arrêter.\n\nClôturer toute la transformation:\n- là tu fermes le parcours complet.\n- tu valides que la transformation est terminée (donc plus de niveaux à enchaîner dans ce même cadre).\n- en général, c’est plus “bilan + passage à autre chose” que “préparer le prochain palier”.\n\nSi tu veux, je te dis exactement ce que ça implique concrètement pour toi: la transformation, tu la sens plutôt “en cours mais encore loin”, ou “ok c’est bon j’ai fait le tour” ? 🙂",
+            "aborted": false,
+            "abort_reason": null,
+            "empty_response": false,
+            "response_owner": "product_help",
+            "selected_handler": "product_help",
+            "route_reason_code": "product_signal",
+            "skill_entry_ids": [],
+            "skill_lifecycle_ids": [],
+            "skill_run_id": "product_help",
+            "skill_run_status": "complete",
+            "skill_run_response_intent": "how_to",
+            "skill_run_diagnosis": {
+              "locations": [
+                "Dashboard > Plan"
+              ],
+              "feature_id": "dashboard.plan",
+              "feature_label": "Plan",
+              "operation_bridge": null
+            },
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "direct_effects": [],
+            "response_tool_execution": "none",
+            "response_executed_tools": [],
+            "tool_skill_run": null,
+            "trace_error": null
+          }
+        ],
+        "connectionName": "product_help_dashboard_dashhelp5_c5_inspirations-completion-transition",
+        "turn": 4
+      },
+      {
+        "attempt": 1,
+        "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-inspirations-completion-transition-t05-a1",
+        "status": 200,
+        "ok": true,
+        "user": "la cloture avec ligne rouge et declics, ca va ou apres ?",
+        "assistant": "Oui, tu peux le faire une fois que la transformation est “prête” pour la clôture 🙂📌\n\nConcrètement, dans le dashboard :\n- Dashboard > Plan\n- tu passes par le bloc de clôture\n- tu valides Ligne Rouge et Déclics (ce sont des éléments de fermeture)\n- ensuite la transformation passe dans la Base de vie\n\nAttention : la clôture ne doit pas être proposée si tu n’as pas fini la transformation (sinon ça remplace pas juste “un niveau”, ça ferme tout).  \n\nTu es à quelle étape là : tu sens que c’est terminé ou il te manque encore un déclic/l’info ?",
+        "aborted": false,
+        "abort_reason": null,
+        "empty_response": false,
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason_code": "product_signal",
+        "skill_entry_ids": [],
+        "skill_lifecycle_ids": [],
+        "skill_run_id": "product_help",
+        "skill_run_status": "complete",
+        "skill_run_response_intent": "how_to",
+        "skill_run_diagnosis": {
+          "locations": [
+            "Dashboard > Plan"
+          ],
+          "feature_id": "transformation.closure",
+          "feature_label": "Cloture de transformation",
+          "operation_bridge": null
+        },
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "direct_effects": [],
+        "response_tool_execution": "none",
+        "response_executed_tools": [],
+        "tool_skill_run": null,
+        "trace_error": null,
+        "attempts": [
+          {
+            "attempt": 1,
+            "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-inspirations-completion-transition-t05-a1",
+            "status": 200,
+            "ok": true,
+            "user": "la cloture avec ligne rouge et declics, ca va ou apres ?",
+            "assistant": "Oui, tu peux le faire une fois que la transformation est “prête” pour la clôture 🙂📌\n\nConcrètement, dans le dashboard :\n- Dashboard > Plan\n- tu passes par le bloc de clôture\n- tu valides Ligne Rouge et Déclics (ce sont des éléments de fermeture)\n- ensuite la transformation passe dans la Base de vie\n\nAttention : la clôture ne doit pas être proposée si tu n’as pas fini la transformation (sinon ça remplace pas juste “un niveau”, ça ferme tout).  \n\nTu es à quelle étape là : tu sens que c’est terminé ou il te manque encore un déclic/l’info ?",
+            "aborted": false,
+            "abort_reason": null,
+            "empty_response": false,
+            "response_owner": "product_help",
+            "selected_handler": "product_help",
+            "route_reason_code": "product_signal",
+            "skill_entry_ids": [],
+            "skill_lifecycle_ids": [],
+            "skill_run_id": "product_help",
+            "skill_run_status": "complete",
+            "skill_run_response_intent": "how_to",
+            "skill_run_diagnosis": {
+              "locations": [
+                "Dashboard > Plan"
+              ],
+              "feature_id": "transformation.closure",
+              "feature_label": "Cloture de transformation",
+              "operation_bridge": null
+            },
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "direct_effects": [],
+            "response_tool_execution": "none",
+            "response_executed_tools": [],
+            "tool_skill_run": null,
+            "trace_error": null
+          }
+        ],
+        "connectionName": "product_help_dashboard_dashhelp5_c5_inspirations-completion-transition",
+        "turn": 5
+      },
+      {
+        "attempt": 1,
+        "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-inspirations-completion-transition-t06-a1",
+        "status": 200,
+        "ok": true,
+        "user": "et la transition vers une prochaine transformation, je la vois ou ?",
+        "assistant": "Tu la vois dans le Dashboard, au niveau de la suite du parcours 🙂📌\n\nOù aller :\nDashboard > Plan > Suite du parcours\n\nQuand une suite existe, tu peux ouvrir la transition via ce bloc. Et petit point important : ça ne remplace pas la clôture de transformation ; c’est juste pour passer à la suite quand c’est prêt.\n\nTu la vois déjà dans “Suite du parcours”, ou tu ne vois aucun bloc/aucune transition ?",
+        "aborted": false,
+        "abort_reason": null,
+        "empty_response": false,
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason_code": "product_signal",
+        "skill_entry_ids": [],
+        "skill_lifecycle_ids": [],
+        "skill_run_id": "product_help",
+        "skill_run_status": "complete",
+        "skill_run_response_intent": "how_to",
+        "skill_run_diagnosis": {
+          "locations": [
+            "Dashboard > Plan > Suite du parcours"
+          ],
+          "feature_id": "transformation.transition",
+          "feature_label": "Transition vers la suite",
+          "operation_bridge": null
+        },
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "direct_effects": [],
+        "response_tool_execution": "none",
+        "response_executed_tools": [],
+        "tool_skill_run": null,
+        "trace_error": null,
+        "attempts": [
+          {
+            "attempt": 1,
+            "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-inspirations-completion-transition-t06-a1",
+            "status": 200,
+            "ok": true,
+            "user": "et la transition vers une prochaine transformation, je la vois ou ?",
+            "assistant": "Tu la vois dans le Dashboard, au niveau de la suite du parcours 🙂📌\n\nOù aller :\nDashboard > Plan > Suite du parcours\n\nQuand une suite existe, tu peux ouvrir la transition via ce bloc. Et petit point important : ça ne remplace pas la clôture de transformation ; c’est juste pour passer à la suite quand c’est prêt.\n\nTu la vois déjà dans “Suite du parcours”, ou tu ne vois aucun bloc/aucune transition ?",
+            "aborted": false,
+            "abort_reason": null,
+            "empty_response": false,
+            "response_owner": "product_help",
+            "selected_handler": "product_help",
+            "route_reason_code": "product_signal",
+            "skill_entry_ids": [],
+            "skill_lifecycle_ids": [],
+            "skill_run_id": "product_help",
+            "skill_run_status": "complete",
+            "skill_run_response_intent": "how_to",
+            "skill_run_diagnosis": {
+              "locations": [
+                "Dashboard > Plan > Suite du parcours"
+              ],
+              "feature_id": "transformation.transition",
+              "feature_label": "Transition vers la suite",
+              "operation_bridge": null
+            },
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "direct_effects": [],
+            "response_tool_execution": "none",
+            "response_executed_tools": [],
+            "tool_skill_run": null,
+            "trace_error": null
+          }
+        ],
+        "connectionName": "product_help_dashboard_dashhelp5_c5_inspirations-completion-transition",
+        "turn": 6
+      },
+      {
+        "attempt": 1,
+        "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-inspirations-completion-transition-t07-a1",
+        "status": 200,
+        "ok": true,
+        "user": "si la suite est verrouillee, qu'est-ce que Sophia doit m'expliquer ?",
+        "assistant": "Si la “suite du parcours” est verrouillée, Sophia doit surtout t’expliquer le pourquoi du verrouillage et ce qu’il te manque pour la débloquer 🙂📌\n\nConcrètement, dans Dashboard > Plan > Suite du parcours, tu devrais voir :\n- le statut (verrouillée)\n- et les éléments nécessaires / conditions à remplir (ce qui explique le blocage)\n- puis quoi faire une fois que c’est rempli\n\nTu vois un message du style “verrouillée car…” ou une liste de conditions dans Suite du parcours ?",
+        "aborted": false,
+        "abort_reason": null,
+        "empty_response": false,
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason_code": "product_signal",
+        "skill_entry_ids": [],
+        "skill_lifecycle_ids": [],
+        "skill_run_id": "product_help",
+        "skill_run_status": "complete",
+        "skill_run_response_intent": "how_to",
+        "skill_run_diagnosis": {
+          "locations": [
+            "Dashboard > Plan"
+          ],
+          "feature_id": "dashboard.plan",
+          "feature_label": "Plan",
+          "operation_bridge": null
+        },
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "direct_effects": [],
+        "response_tool_execution": "none",
+        "response_executed_tools": [],
+        "tool_skill_run": null,
+        "trace_error": null,
+        "attempts": [
+          {
+            "attempt": 1,
+            "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-inspirations-completion-transition-t07-a1",
+            "status": 200,
+            "ok": true,
+            "user": "si la suite est verrouillee, qu'est-ce que Sophia doit m'expliquer ?",
+            "assistant": "Si la “suite du parcours” est verrouillée, Sophia doit surtout t’expliquer le pourquoi du verrouillage et ce qu’il te manque pour la débloquer 🙂📌\n\nConcrètement, dans Dashboard > Plan > Suite du parcours, tu devrais voir :\n- le statut (verrouillée)\n- et les éléments nécessaires / conditions à remplir (ce qui explique le blocage)\n- puis quoi faire une fois que c’est rempli\n\nTu vois un message du style “verrouillée car…” ou une liste de conditions dans Suite du parcours ?",
+            "aborted": false,
+            "abort_reason": null,
+            "empty_response": false,
+            "response_owner": "product_help",
+            "selected_handler": "product_help",
+            "route_reason_code": "product_signal",
+            "skill_entry_ids": [],
+            "skill_lifecycle_ids": [],
+            "skill_run_id": "product_help",
+            "skill_run_status": "complete",
+            "skill_run_response_intent": "how_to",
+            "skill_run_diagnosis": {
+              "locations": [
+                "Dashboard > Plan"
+              ],
+              "feature_id": "dashboard.plan",
+              "feature_label": "Plan",
+              "operation_bridge": null
+            },
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "direct_effects": [],
+            "response_tool_execution": "none",
+            "response_executed_tools": [],
+            "tool_skill_run": null,
+            "trace_error": null
+          }
+        ],
+        "connectionName": "product_help_dashboard_dashhelp5_c5_inspirations-completion-transition",
+        "turn": 7
+      },
+      {
+        "attempt": 1,
+        "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-inspirations-completion-transition-t08-a1",
+        "status": 200,
+        "ok": true,
+        "user": "recap en separant Inspirations, fin de niveau, cloture, transition.",
+        "assistant": "Bien sûr 🙂 Voilà le recap séparé :\n\nInspirations\n- À quoi ça sert : te redonner du sens quand tu sens que ça devient trop mécanique.\n- Ce que tu y fais : relire les repères narratifs et les principes liés à ton parcours, pour retrouver le pourquoi profond.\n- Où : Dashboard > Inspirations.\n- Important : ce n’est pas pour modifier le plan.\n\nFin de niveau\n- À quoi ça sert : clôturer une étape de travail (pas toute la transformation).\n- Ce que Sophia attend : une petite validation du prochain niveau via le bloc de review/validation du prochain niveau (quand la fenêtre s’ouvre).\n- Objectif : calibrer la suite, éviter de passer trop vite.\n\nClôture (toute la transformation)\n- À quoi ça sert : fermer le parcours complet, avec des éléments de “ligne rouge”/déclics.\n- Où : Dashboard > Plan, via le bloc de clôture.\n- Important : à faire une fois que la transformation est vraiment prête (sinon ça remplace pas juste une fin de niveau).\n\nTransition vers une prochaine transformation\n- À quoi ça sert : passer à la suite du parcours quand c’est prêt.\n- Où : Dashboard > Plan > Suite du parcours.\n- Si c’est verrouillé : la priorité c’est comprendre pourquoi c’est verrouillé et ce qu’il manque pour débloquer.\n\nTu veux que je te le reformule en “checklist” ultra courte ? 📌",
+        "aborted": false,
+        "abort_reason": null,
+        "empty_response": false,
+        "response_owner": "product_help",
+        "selected_handler": "product_help",
+        "route_reason_code": "product_signal",
+        "skill_entry_ids": [],
+        "skill_lifecycle_ids": [],
+        "skill_run_id": "product_help",
+        "skill_run_status": "complete",
+        "skill_run_response_intent": "explain",
+        "skill_run_diagnosis": {
+          "locations": [
+            "Dashboard > Inspirations"
+          ],
+          "feature_id": "inspirations",
+          "feature_label": "Inspirations",
+          "operation_bridge": null
+        },
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "direct_effects": [],
+        "response_tool_execution": "none",
+        "response_executed_tools": [],
+        "tool_skill_run": null,
+        "trace_error": null,
+        "attempts": [
+          {
+            "attempt": 1,
+            "requestId": "qa-product-help-dashboard-2026-05-07-dashhelp5-inspirations-completion-transition-t08-a1",
+            "status": 200,
+            "ok": true,
+            "user": "recap en separant Inspirations, fin de niveau, cloture, transition.",
+            "assistant": "Bien sûr 🙂 Voilà le recap séparé :\n\nInspirations\n- À quoi ça sert : te redonner du sens quand tu sens que ça devient trop mécanique.\n- Ce que tu y fais : relire les repères narratifs et les principes liés à ton parcours, pour retrouver le pourquoi profond.\n- Où : Dashboard > Inspirations.\n- Important : ce n’est pas pour modifier le plan.\n\nFin de niveau\n- À quoi ça sert : clôturer une étape de travail (pas toute la transformation).\n- Ce que Sophia attend : une petite validation du prochain niveau via le bloc de review/validation du prochain niveau (quand la fenêtre s’ouvre).\n- Objectif : calibrer la suite, éviter de passer trop vite.\n\nClôture (toute la transformation)\n- À quoi ça sert : fermer le parcours complet, avec des éléments de “ligne rouge”/déclics.\n- Où : Dashboard > Plan, via le bloc de clôture.\n- Important : à faire une fois que la transformation est vraiment prête (sinon ça remplace pas juste une fin de niveau).\n\nTransition vers une prochaine transformation\n- À quoi ça sert : passer à la suite du parcours quand c’est prêt.\n- Où : Dashboard > Plan > Suite du parcours.\n- Si c’est verrouillé : la priorité c’est comprendre pourquoi c’est verrouillé et ce qu’il manque pour débloquer.\n\nTu veux que je te le reformule en “checklist” ultra courte ? 📌",
+            "aborted": false,
+            "abort_reason": null,
+            "empty_response": false,
+            "response_owner": "product_help",
+            "selected_handler": "product_help",
+            "route_reason_code": "product_signal",
+            "skill_entry_ids": [],
+            "skill_lifecycle_ids": [],
+            "skill_run_id": "product_help",
+            "skill_run_status": "complete",
+            "skill_run_response_intent": "explain",
+            "skill_run_diagnosis": {
+              "locations": [
+                "Dashboard > Inspirations"
+              ],
+              "feature_id": "inspirations",
+              "feature_label": "Inspirations",
+              "operation_bridge": null
+            },
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "direct_effects": [],
+            "response_tool_execution": "none",
+            "response_executed_tools": [],
+            "tool_skill_run": null,
+            "trace_error": null
+          }
+        ],
+        "connectionName": "product_help_dashboard_dashhelp5_c5_inspirations-completion-transition",
+        "turn": 8
+      }
+    ],
+    "evaluation": {
+      "productTurns": 8,
+      "observedFeatureIds": [
+        "inspirations",
+        "plan.adjustment",
+        "plan.level_completion",
+        "dashboard.plan",
+        "transformation.closure",
+        "transformation.transition"
+      ],
+      "missing": [],
+      "bad": [],
+      "forbidden": [],
+      "verdict": "ROUGE"
+    }
+  }
+]

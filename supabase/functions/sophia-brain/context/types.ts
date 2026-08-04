@@ -7,6 +7,9 @@
  */
 
 import type { AgentMode } from "../state-manager.ts";
+import { RECENT_MESSAGE_LIMITS } from "./recent_messages_policy.ts";
+
+type ContextProfileMode = AgentMode | "dispatcher" | "watcher";
 
 /**
  * Profil de contexte pour un agent.
@@ -15,18 +18,6 @@ import type { AgentMode } from "../state-manager.ts";
 export interface ContextProfile {
   /** Repères temporels (heure, jour, timezone) */
   temporal: boolean;
-
-  /** Métadonnées du plan (titre, deep_why, phase, status) - ~200 tokens */
-  plan_metadata: boolean;
-
-  /** JSON complet du plan - lourd, à la demande uniquement */
-  plan_json: boolean | "on_demand";
-
-  /** Résumé des actions (titres + status) - ~100-300 tokens */
-  actions_summary: boolean;
-
-  /** Détails complets des actions pour opérations */
-  actions_details: boolean | "on_demand";
 
   /** Identité profonde (Temple) */
   identity: boolean;
@@ -48,72 +39,88 @@ export interface ContextProfile {
 
   /** Nombre de messages d'historique à inclure */
   history_depth: number;
-
-  /** Signes vitaux */
-  vitals: boolean;
 }
 
 /**
  * Signaux du dispatcher qui peuvent déclencher le chargement "on_demand"
  */
 export interface OnDemandTriggers {
-  create_action_intent?: boolean;
-  update_action_intent?: boolean;
-  breakdown_recommended?: boolean;
-  action_discussion_detected?: boolean;
-  action_discussion_hint?: string;
+  plan_item_discussion_detected?: boolean;
+  plan_item_discussion_hint?: string | null;
+  plan_feedback_detected?: boolean;
 }
 
 /**
  * Contexte chargé par le loader
+ *
+ * Frontiere memoire:
+ * - le dispatcher produit TurnFrame.memory_plan;
+ * - le loader transforme ce plan en blocs concrets;
+ * - les skills lisent ce LoadedContext sans charger/ecrire la memoire durable.
  */
 export interface LoadedContext {
   temporal?: string;
   rendezVousSummary?: string;
-  planMetadata?: string;
-  northStarContext?: string;
   weeklyRecapContext?: string;
-  planJson?: string;
-  actionsSummary?: string;
-  actionIndicators?: string;
-  actionsDetails?: string;
+  dailyConversationPulseContext?: string;
+  currentWeekPlanContext?: string;
+  planItemIndicators?: string;
+  memoryV2Payload?: string;
   identity?: string;
   eventMemories?: string;
   globalMemories?: string;
   topicMemories?: string;
   facts?: string;
+  whatsappFilRouge?: string;
   shortTerm?: string;
   recentTurns?: string;
-  vitals?: string;
   trackProgressAddon?: string;
   momentumBlockersAddon?: string;
   coachingInterventionAddon?: string;
+  planFeedbackAddon?: string;
   dashboardRedirectAddon?: string;
   dashboardCapabilitiesLiteAddon?: string;
   dashboardCapabilitiesAddon?: string;
   dashboardPreferencesIntentAddon?: string;
-  dashboardRecurringReminderIntentAddon?: string;
   surfaceOpportunityAddon?: string;
-  safetyActiveAddon?: string;
   deferredUserPref?: string;
   injectedContext?: string;
   expiredBilanContext?: string;
   onboardingAddon?: string;
   checkupNotTriggerableAddon?: string;
   bilanJustStoppedAddon?: string;
-}
-
-/**
- * Métadonnées du plan (version légère)
- */
-export interface PlanMetadata {
-  id: string;
-  title: string | null;
-  status: string;
-  current_phase: number | null;
-  deep_why: string | null;
-  inputs_blockers: string | null;
-  recraft_reason: string | null;
+  defenseCardWinAddon?: string;
+  defenseCardPendingTriggersAddon?: string;
+  /**
+   * Résumé compact des effets durables en cours côté DB (carte d'attaque
+   * active, carte de défense active, rappels ponctuels en attente,
+   * préférences coach actives). Injecté en mode `companion` pour empêcher
+   * le LLM d'halluciner "on n'a pas validé/créé X" alors que la DB confirme
+   * X. Voir chantier 2 phase B, 2026-05-28.
+   */
+  durableEffectsSummary?: string;
+  /**
+   * Timeline compacte des effets persistés par l'EffectLedger sur les derniers
+   * tours. Source d'exécution récente uniquement; l'état courant reste porté
+   * par les tables métier.
+   */
+  recentEffectsSummary?: string;
+  /**
+   * P10-D (alex-hard24 R1-B05): segments explicitement rétractés en session
+   * (« oublie ça »), nommés au composeur avec l'interdit de restitution —
+   * renforcé P12-E (eva-hard25 R1-B05) en interdit de MENTION spontanée du
+   * topic. Injecté de façon déterministe, sans dépendance LLM ni règle de
+   * prompt.
+   */
+  retractedInSession?: string;
+  /**
+   * P12-E (alex-untested24 R1-B11): intentions mémoire explicites de la
+   * session (« garde ça en tête »), pas encore consolidées par le batch
+   * memorizer — servies au composeur pour qu'un récap in-session ne nie
+   * jamais un fait confié quelques minutes plus tôt. Les intentions
+   * rétractées en session sont exclues (croisement retraction_guard).
+   */
+  sessionMemoryIntents?: string;
 }
 
 /**
@@ -121,48 +128,24 @@ export interface PlanMetadata {
  *
  * Principes:
  * - Companion: contexte conversationnel le plus riche
- * - Investigator: focalisé sur le suivi guidé / bilan, sans mémoire durable large
  * - Dispatcher / watcher / sentry: contexte minimal ou nul
  */
-export const CONTEXT_PROFILES: Partial<Record<AgentMode, ContextProfile>> = {
+export const CONTEXT_PROFILES: Partial<
+  Record<ContextProfileMode, ContextProfile>
+> = {
   companion: {
     temporal: true,
-    plan_metadata: true,
-    plan_json: false,
-    actions_summary: true,
-    actions_details: "on_demand",
     identity: true,
     event_memories: true,
     global_memories: true,
     topic_memories: true,
     facts: true,
     short_term: true,
-    history_depth: 15,
-    vitals: true,
-  },
-
-  investigator: {
-    temporal: true,
-    plan_metadata: true,
-    plan_json: false,
-    actions_summary: true,
-    actions_details: "on_demand",
-    identity: false,
-    event_memories: false,
-    global_memories: false,
-    topic_memories: false,
-    facts: false,
-    short_term: false,
-    history_depth: 15,
-    vitals: true,
+    history_depth: RECENT_MESSAGE_LIMITS.normalReplyContext,
   },
 
   sentry: {
     temporal: false,
-    plan_metadata: false,
-    plan_json: false,
-    actions_summary: false,
-    actions_details: false,
     identity: false,
     event_memories: false,
     global_memories: false,
@@ -170,32 +153,22 @@ export const CONTEXT_PROFILES: Partial<Record<AgentMode, ContextProfile>> = {
     facts: false,
     short_term: false,
     history_depth: 0,
-    vitals: false,
   },
 
   // Modes avec profil minimal (pas de contexte lourd)
   dispatcher: {
     temporal: false,
-    plan_metadata: false,
-    plan_json: false,
-    actions_summary: false,
-    actions_details: false,
     identity: false,
     event_memories: false,
     global_memories: false,
     topic_memories: false,
     facts: false,
     short_term: false,
-    history_depth: 5,
-    vitals: false,
+    history_depth: RECENT_MESSAGE_LIMITS.dispatcher,
   },
 
   watcher: {
     temporal: false,
-    plan_metadata: false,
-    plan_json: false,
-    actions_summary: false,
-    actions_details: false,
     identity: false,
     event_memories: false,
     global_memories: false,
@@ -203,7 +176,6 @@ export const CONTEXT_PROFILES: Partial<Record<AgentMode, ContextProfile>> = {
     facts: false,
     short_term: false,
     history_depth: 0,
-    vitals: false,
   },
 };
 
@@ -212,10 +184,6 @@ export const CONTEXT_PROFILES: Partial<Record<AgentMode, ContextProfile>> = {
  */
 export const DEFAULT_CONTEXT_PROFILE: ContextProfile = {
   temporal: true,
-  plan_metadata: false,
-  plan_json: false,
-  actions_summary: false,
-  actions_details: false,
   identity: false,
   event_memories: false,
   global_memories: false,
@@ -223,7 +191,6 @@ export const DEFAULT_CONTEXT_PROFILE: ContextProfile = {
   facts: false,
   short_term: false,
   history_depth: 5,
-  vitals: false,
 };
 
 /**
@@ -236,40 +203,13 @@ export function getContextProfile(mode: AgentMode): ContextProfile {
 /**
  * Détermine si le plan JSON doit être chargé en fonction des signaux
  */
-export function shouldLoadPlanJson(
-  profile: ContextProfile,
-  triggers?: OnDemandTriggers,
-): boolean {
-  if (profile.plan_json === true) return true;
-  if (profile.plan_json === false) return false;
-
-  // "on_demand" - vérifier les triggers
-  if (!triggers) return false;
-
-  return Boolean(
-    triggers.create_action_intent ||
-      triggers.update_action_intent ||
-      triggers.breakdown_recommended,
-  );
-}
-
-/**
- * Détermine si les détails des actions doivent être chargés
- */
 export function shouldLoadActionsDetails(
   profile: ContextProfile,
   triggers?: OnDemandTriggers,
 ): boolean {
-  if (profile.actions_details === true) return true;
-  if (profile.actions_details === false) return false;
-
-  // "on_demand" - vérifier les triggers
-  if (!triggers) return false;
-
   return Boolean(
-    triggers.action_discussion_detected ||
-      triggers.create_action_intent ||
-      triggers.update_action_intent ||
-      triggers.breakdown_recommended,
+    profile && triggers &&
+      (triggers.plan_item_discussion_detected ||
+        triggers.plan_feedback_detected),
   );
 }

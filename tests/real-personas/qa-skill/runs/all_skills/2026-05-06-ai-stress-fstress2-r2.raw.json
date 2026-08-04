@@ -1,0 +1,262 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-all-skills-ai-stress-2026-05-06-fstress2-r2-t01",
+    "user": "Je veux que tu me rappelles mon plan, mais je ne sais pas si c'est juste demain ou plutôt toutes les semaines.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-all-skills-ai-stress-2026-05-06-fstress2-r2-t01",
+      "user_id": "dc0c72c2-7b64-4861-aee0-33282aaa5ee5",
+      "channel": "web",
+      "scope": "qa-all-skills-ai-stress-2026-05-06-fstress2-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ok, on va clarifier ça vite, parce que “rappel de plan” peut vouloir dire 2 trucs différents. 😊\n\nTu veux :\nA) un rappel ponctuel demain\nB) un rappel récurrent chaque semaine\n\nTu préfères A ou B ?",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-all-skills-ai-stress-2026-05-06-fstress2-r2-t01",
+        "user_id": "dc0c72c2-7b64-4861-aee0-33282aaa5ee5",
+        "source_message_id": "53b0cc20-e36a-4842-8ea2-152595b54bf5",
+        "ts": "2026-05-06T14:22:35.968+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [
+            "demain"
+          ],
+          "risk_band": "none",
+          "reason_codes": [
+            "immediacy_tomorrow"
+          ],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": true,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 521,
+          "latency_ms": 5041,
+          "tokens_out": 292,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [
+              "demain"
+            ],
+            "risk_band": "none",
+            "reason_codes": [
+              "immediacy_tomorrow"
+            ]
+          },
+          "channel": "web",
+          "routing": {
+            "skill_id": "plan_manager",
+            "action_id": "get_plan_summary",
+            "reasoning": "L'utilisateur demande un rappel de son plan et exprime une incertitude sur sa structure temporelle (quotidien vs hebdomadaire).",
+            "target_id": null
+          },
+          "signals": [
+            {
+              "type": "topic",
+              "value": "plan_retrieval",
+              "evidence": "rappelles mon plan"
+            },
+            {
+              "type": "sentiment",
+              "value": "neutral",
+              "evidence": "demande de clarification factuelle"
+            },
+            {
+              "type": "urgency",
+              "value": "low",
+              "evidence": "pas de marqueur temporel immédiat ou de détresse"
+            }
+          ],
+          "turn_id": "qa-all-skills-ai-stress-2026-05-06-fstress2-r2-t01",
+          "user_id": "dc0c72c2-7b64-4861-aee0-33282aaa5ee5",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "skill_signals": {},
+          "direct_effects": [],
+          "safety_pregate": {
+            "evidence": "Demande d'information sur le planning personnel sans contenu sensible.",
+            "risk_band": "low"
+          },
+          "tool_skill_intents": [],
+          "source_message_id": "53b0cc20-e36a-4842-8ea2-152595b54bf5",
+          "operation_analysis": null,
+          "intent_classification": {
+            "intent": "query_plan",
+            "confidence": 0.95,
+            "is_confirmation": false
+          }
+        },
+        "route_decision": {
+          "reason_code": "normal_reply_default",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "normal_reply",
+          "memory_use_kind": "none",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "normal_reply",
+        "total_latency_ms": 6431,
+        "created_at": "2026-05-06T14:22:35.971365+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-all-skills-ai-stress-2026-05-06-fstress2-r2-t02",
+    "user": "B. Chaque lundi à 9h, message 'Quelle est la prochaine petite action ?'. Demande-moi confirmation avant de le créer.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-all-skills-ai-stress-2026-05-06-fstress2-r2-t02",
+      "user_id": "dc0c72c2-7b64-4861-aee0-33282aaa5ee5",
+      "channel": "web",
+      "scope": "qa-all-skills-ai-stress-2026-05-06-fstress2-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Parfait, B = un rappel hebdo chaque lundi à 9h, avec le message: “Quelle est la prochaine petite action ?” 😊\nPour le faire correctement sans te le créer “à l’aveugle”, confirme-moi juste ceci : tu veux que je programme ce rappel pour toi, dès que tu dis “oui”, et c’est bien lundi 9h (heure de Paris) ?",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-all-skills-ai-stress-2026-05-06-fstress2-r2-t02",
+        "user_id": "dc0c72c2-7b64-4861-aee0-33282aaa5ee5",
+        "source_message_id": "a2053c16-59a1-4b8d-bdc8-32e784595e4d",
+        "ts": "2026-05-06T14:22:58.196+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 616,
+          "latency_ms": 8206,
+          "tokens_out": 383,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "routing": {
+            "reasoning": "L'utilisateur répond à un choix précédent pour configurer une automatisation récurrente avec des paramètres précis (jour, heure, contenu).",
+            "confidence": 0.98,
+            "target_skill": "skill_automation_manager"
+          },
+          "signals": [
+            {
+              "name": "user_choice",
+              "value": "B",
+              "evidence": "L'utilisateur commence son message par 'B.'"
+            },
+            {
+              "name": "recurrence_pattern",
+              "value": "weekly_monday",
+              "evidence": "Chaque lundi à 9h"
+            },
+            {
+              "name": "automation_action",
+              "value": "send_message",
+              "evidence": "message 'Quelle est la prochaine petite action ?'"
+            },
+            {
+              "name": "explicit_confirmation_request",
+              "value": "true",
+              "evidence": "Demande-moi confirmation avant de le créer."
+            }
+          ],
+          "turn_id": "qa-all-skills-ai-stress-2026-05-06-fstress2-r2-t02",
+          "user_id": "dc0c72c2-7b64-4861-aee0-33282aaa5ee5",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "skill_signals": {},
+          "direct_effects": [],
+          "safety_pregate": {
+            "evidence": "L'utilisateur demande la création d'un rappel récurrent, ce qui ne présente pas de risque de sécurité immédiat.",
+            "risk_band": "low"
+          },
+          "operation_intake": {
+            "parameters": {
+              "time": "09:00",
+              "message": "Quelle est la prochaine petite action ?",
+              "frequency": "weekly",
+              "day_of_week": "monday",
+              "requires_confirmation": true
+            },
+            "operation_type": "create_recurring_reminder"
+          },
+          "tool_skill_intents": [],
+          "source_message_id": "a2053c16-59a1-4b8d-bdc8-32e784595e4d",
+          "intent_classification": {
+            "primary_intent": "automation_creation",
+            "secondary_intent": "scheduling"
+          }
+        },
+        "route_decision": {
+          "reason_code": "normal_reply_default",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "normal_reply",
+          "memory_use_kind": "none",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "normal_reply",
+        "total_latency_ms": 10770,
+        "created_at": "2026-05-06T14:22:58.196709+00:00"
+      },
+      "trace_error": null
+    }
+  }
+]

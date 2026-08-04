@@ -1,0 +1,235 @@
+{
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "3b9a3f4b-d111-49b3-974a-10a8a7a4df7d",
+        "role": "user",
+        "content": "Je sens que je décroche de ma routine. Je ne suis pas triste ni en crise, juste je laisse filer les gestes que je voulais tenir et après trois jours je repars à zéro.",
+        "scope": "qa-demotivation-repair-2026-06-15-demotivation-bridge-antidecrochage-r1",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-2026-06-15-demotivation-bridge-antidecrochage-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-15T13:56:20.969578+00:00"
+      },
+      {
+        "id": "9f8a572d-90ed-436d-b778-e49868257368",
+        "role": "assistant",
+        "content": "C'est un cycle frustrant de voir l'élan s'arrêter net après seulement trois jours. Quand tu sens que tu commences à laisser filer, est-ce que c'est plutôt une perte d'intérêt ou une fatigue qui s'installe ?",
+        "scope": "qa-demotivation-repair-2026-06-15-demotivation-bridge-antidecrochage-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-2026-06-15-demotivation-bridge-antidecrochage-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-15T13:57:22.669205+00:00"
+      },
+      {
+        "id": "5ed4c494-f0ac-464a-a372-078d7ca556d6",
+        "role": "user",
+        "content": "C'est surtout une fatigue sourde: je ne rejette pas la routine, je perds juste l'accroche et je repousse au lendemain. J'aurais besoin d'un support Sophia pour éviter ce décrochage dans les prochains jours.",
+        "scope": "qa-demotivation-repair-2026-06-15-demotivation-bridge-antidecrochage-r1",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-2026-06-15-demotivation-bridge-antidecrochage-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-15T13:57:38.233275+00:00"
+      },
+      {
+        "id": "33e12f6d-cc48-4440-a84e-2ceb97bc2a3e",
+        "role": "assistant",
+        "content": "Cette fatigue sourde est un signal que je prends très au sérieux pour t'épauler. La Potion anti-décrochage est l'outil idéal pour t'offrir l'ancrage nécessaire et t'aider à ne plus repousser tes tâches au lendemain. Je suis prête à la mettre en place dès que tu me donnes ton accord.",
+        "scope": "qa-demotivation-repair-2026-06-15-demotivation-bridge-antidecrochage-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-2026-06-15-demotivation-bridge-antidecrochage-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": null,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-15T13:58:10.508046+00:00"
+      },
+      {
+        "id": "627539cc-dd78-49bf-afe6-aa735dc3e008",
+        "role": "user",
+        "content": "Oui, je suis d'accord pour partir sur la Potion anti-décrochage. Je veux juste que tu me guides vers le bon support, sans créer de rappel ou de suivi depuis le chat.",
+        "scope": "qa-demotivation-repair-2026-06-15-demotivation-bridge-antidecrochage-r1",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-2026-06-15-demotivation-bridge-antidecrochage-r1-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-15T13:58:23.400397+00:00"
+      },
+      {
+        "id": "c0700e30-b3b3-43de-b1ed-34703f40147d",
+        "role": "assistant",
+        "content": "C'est entendu. Je prends bien en compte ton souhait de ne pas avoir de rappels par ici pour la Potion anti-décrochage.",
+        "scope": "qa-demotivation-repair-2026-06-15-demotivation-bridge-antidecrochage-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-2026-06-15-demotivation-bridge-antidecrochage-r1-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": null,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-15T13:58:46.251316+00:00"
+      },
+      {
+        "id": "49b61abb-b138-466b-8f3a-c590e32ac59d",
+        "role": "user",
+        "content": "D'accord. Où est-ce que je dois aller dans Sophia pour reprendre cette Potion anti-décrochage correctement ?",
+        "scope": "qa-demotivation-repair-2026-06-15-demotivation-bridge-antidecrochage-r1",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-2026-06-15-demotivation-bridge-antidecrochage-r1-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-15T13:58:59.335637+00:00"
+      },
+      {
+        "id": "e72e49ed-cc57-40a9-87bd-f365c7a03ff4",
+        "role": "assistant",
+        "content": "Je t'accompagne tout de suite vers l'espace dédié pour ta Potion anti-décrochage.",
+        "scope": "qa-demotivation-repair-2026-06-15-demotivation-bridge-antidecrochage-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-2026-06-15-demotivation-bridge-antidecrochage-r1-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": null,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-15T13:59:22.254321+00:00"
+      }
+    ]
+  },
+  "memory_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "scheduled_checkins": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_recurring_reminders": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  }
+}

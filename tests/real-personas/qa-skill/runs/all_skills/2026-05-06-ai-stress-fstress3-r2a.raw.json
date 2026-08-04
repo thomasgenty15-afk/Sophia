@@ -1,0 +1,244 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-all-skills-ai-stress-2026-05-06-fstress3-r2a-t01",
+    "user": "Programme-moi un soutien récurrent chaque lundi à 08h, message 'Choisir un pas minuscule'.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-all-skills-ai-stress-2026-05-06-fstress3-r2a-t01",
+      "user_id": "cdb0e5e6-b495-416f-bb66-418b2c7b0623",
+      "channel": "web",
+      "scope": "qa-all-skills-ai-stress-2026-05-06-fstress3-r2a",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je te programme ça : soutien récurrent chaque lundi à 08h avec le message “Choisir un pas minuscule” 😄✅  \nTu confirmes juste : c’est bien lundi prochain (et pas un lundi déjà commencé) ?",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-all-skills-ai-stress-2026-05-06-fstress3-r2a-t01",
+        "user_id": "cdb0e5e6-b495-416f-bb66-418b2c7b0623",
+        "source_message_id": "4e85c046-9d25-486c-9bba-54e455b62352",
+        "ts": "2026-05-06T18:45:53.221+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 605,
+          "latency_ms": 6781,
+          "tokens_out": 298,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "routing": {
+            "action": "create",
+            "skill_id": "habits",
+            "target_id": null
+          },
+          "turn_id": "qa-all-skills-ai-stress-2026-05-06-fstress3-r2a-t01",
+          "user_id": "cdb0e5e6-b495-416f-bb66-418b2c7b0623",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "user_intent": "create_recurring_habit",
+          "skill_signals": {},
+          "direct_effects": [],
+          "confidence_score": 0.98,
+          "detected_signals": [
+            {
+              "signal": "recurring_request",
+              "evidence": "chaque lundi à 08h"
+            },
+            {
+              "signal": "specific_content",
+              "evidence": "message 'Choisir un pas minuscule'"
+            }
+          ],
+          "operation_intake": {
+            "parameters": {
+              "day": "monday",
+              "time": "08:00",
+              "title": "Soutien récurrent",
+              "message": "Choisir un pas minuscule",
+              "frequency": "weekly"
+            },
+            "operation_type": "create_habit"
+          },
+          "safety_risk_band": "low",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "Programme-moi un soutien récurrent chaque lundi à 08h, message 'Choisir un pas minuscule'.",
+              "user_intent": "create",
+              "explicitness": "explicit",
+              "operation_type": "create_recurring_reminder",
+              "confidence_band": "high"
+            }
+          ],
+          "source_message_id": "4e85c046-9d25-486c-9bba-54e455b62352",
+          "pending_confirmation_response": null
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "create_recurring_reminder",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "reason_code": "tool_skill_intent_start",
+          "selected_handler": "create_recurring_reminder"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 8447,
+        "created_at": "2026-05-06T18:45:53.22386+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-all-skills-ai-stress-2026-05-06-fstress3-r2a-t02",
+    "user": "Pas lundi finalement : chaque mercredi à 18h, même message, à partir de mercredi prochain.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-all-skills-ai-stress-2026-05-06-fstress3-r2a-t02",
+      "user_id": "cdb0e5e6-b495-416f-bb66-418b2c7b0623",
+      "channel": "web",
+      "scope": "qa-all-skills-ai-stress-2026-05-06-fstress3-r2a",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ok, mercredi à 18h à partir de mercredi prochain, avec “Choisir un pas minuscule” ✅🙂\n\nJuste une précision: tu veux bien “mercredi prochain” = le mercredi 13 mai 2026 (à 18h heure de Paris) ?",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-all-skills-ai-stress-2026-05-06-fstress3-r2a-t02",
+        "user_id": "cdb0e5e6-b495-416f-bb66-418b2c7b0623",
+        "source_message_id": "18c2923f-32fd-4418-8d9d-7b9b6f1759c7",
+        "ts": "2026-05-06T18:46:09.635+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 690,
+          "latency_ms": 5701,
+          "tokens_out": 246,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "routing": {
+            "skill_id": "scheduling",
+            "target_id": null,
+            "confidence": 1
+          },
+          "signals": [
+            {
+              "name": "correction",
+              "evidence": "L'utilisateur rejette le lundi au profit du mercredi et change l'horaire de 08h à 18h."
+            },
+            {
+              "name": "scheduling_intent",
+              "evidence": "Demande explicite de programmation récurrente : 'chaque mercredi à 18h'."
+            },
+            {
+              "name": "temporal_reference",
+              "evidence": "mercredi prochain, 18h"
+            }
+          ],
+          "turn_id": "qa-all-skills-ai-stress-2026-05-06-fstress3-r2a-t02",
+          "user_id": "cdb0e5e6-b495-416f-bb66-418b2c7b0623",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "skill_signals": {},
+          "direct_effects": [],
+          "safety_pregate": {
+            "evidence": "L'utilisateur modifie les paramètres d'une programmation de rappel récurrent.",
+            "risk_band": "low"
+          },
+          "tool_skill_intents": [],
+          "source_message_id": "18c2923f-32fd-4418-8d9d-7b9b6f1759c7",
+          "pending_tool_skill_confirmation": {
+            "classification": "correction"
+          }
+        },
+        "route_decision": {
+          "reason_code": "normal_reply_default",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "normal_reply",
+          "memory_use_kind": "none",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "normal_reply",
+        "total_latency_ms": 6792,
+        "created_at": "2026-05-06T18:46:09.637111+00:00"
+      },
+      "trace_error": null
+    }
+  }
+]

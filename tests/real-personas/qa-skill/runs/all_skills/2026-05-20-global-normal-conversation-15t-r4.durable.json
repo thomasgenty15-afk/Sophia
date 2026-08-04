@@ -1,0 +1,2595 @@
+{
+  "scheduled_checkins": [
+    {
+      "id": "d1f8165e-42a4-45a5-b6c0-658cace9afca",
+      "user_id": "3da1609d-a7a7-4678-b6c2-77571a25b1db",
+      "event_context": "one_shot_reminder:ce_que_tu_as_prevu",
+      "draft_message": null,
+      "scheduled_for": "2026-05-21T06:30:00+00:00",
+      "status": "pending",
+      "created_at": "2026-05-20T17:00:04.792665+00:00",
+      "processed_at": null,
+      "message_mode": "dynamic",
+      "message_payload": {
+        "source": "companion_one_shot_reminder_tool",
+        "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Rappelle-lui de ce que tu as prévu.",
+        "parse_source": "strict_absolute",
+        "request_text": "Fait. Programme-moi un rappel demain à 8h30: relire une fois, garder le brouillon, sortir trois puces telles quelles.",
+        "parse_details": {
+          "now_utc": "2026-05-20T17:00:04.775Z",
+          "timezone": "Europe/Paris",
+          "algorithm": "strict_absolute_hard_path_pure_calendar_v2",
+          "day_offset": 1,
+          "local_time_hhmm": "08:30",
+          "scheduled_for_utc": "2026-05-21T06:30:00.000Z"
+        },
+        "reminder_kind": "one_shot",
+        "user_timezone": "Europe/Paris",
+        "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: ce que tu as prévu.",
+        "reminder_instruction": "ce que tu as prévu"
+      },
+      "origin": "rendez_vous",
+      "delivery_attempt_count": 0,
+      "delivery_last_error": null,
+      "delivery_last_error_at": null,
+      "delivery_last_request_id": null,
+      "recurring_reminder_id": null
+    }
+  ],
+  "chat_messages": [
+    {
+      "id": "74aad6c3-4caf-4cf6-b955-19812af60603",
+      "role": "user",
+      "content": "Salut Sophia, j'ai un mini compte rendu client à reprendre aujourd'hui. Je peux le faire, mais je sens que je vais attendre d'avoir une vision parfaite avant d'écrire. Je veux juste démarrer.",
+      "scope": "qa-global-normal-conversation-15t-20260520-r4",
+      "created_at": "2026-05-20T16:57:29.610217+00:00",
+      "metadata": {
+        "request_id": "global15_20260520_r4-t01",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      }
+    },
+    {
+      "id": "c5365c54-7fe0-43a8-abf5-82162cdffcf9",
+      "role": "assistant",
+      "content": "Ah je vois le piège classique… la “vision parfaite” te fait rester bloqué avant même d’écrire 😅🧠\n\nFais ça, tout de suite (2 minutes max) :\n1) Ouvre le doc et écris uniquement le titre du client + la date.\n2) Ajoute 3 phrases brutes : “Ce qu’on a fait / Ce que le client veut / Prochaine étape”.\n3) Stop. On corrigera après.\n\nLà, tu dois le faire en mode super court (même brouillon) ou tu as déjà une trame à suivre ?",
+      "scope": "qa-global-normal-conversation-15t-20260520-r4",
+      "created_at": "2026-05-20T16:57:37.520694+00:00",
+      "metadata": {
+        "channel": "web",
+        "request_id": "global15_20260520_r4-t01",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message",
+        "router_decision_v2": {
+          "next_mode": "companion",
+          "risk_score": 2,
+          "surface_id": null,
+          "agent_model": "gpt-5.4-nano",
+          "target_mode": "companion",
+          "outage_error": null,
+          "safety_level": "NONE",
+          "stop_checkup": false,
+          "surface_level": null,
+          "checkup_active": false,
+          "interrupt_kind": "NONE",
+          "research_query": null,
+          "outage_fallback": false,
+          "agent_model_tier": "lite",
+          "llm_retry_job_id": null,
+          "llm_retry_queued": false,
+          "research_executed": false,
+          "agent_model_source": "memory_plan_lite",
+          "outage_failed_mode": null,
+          "research_requested": false,
+          "research_sources_count": 0,
+          "conversation_risk_score": 0,
+          "conversation_risk_exit_flows": false,
+          "coaching_intervention_pending": null
+        }
+      }
+    },
+    {
+      "id": "ca1ef665-8c1b-489b-b4d4-ef40f9b429bf",
+      "role": "user",
+      "content": "Oui, prépare une carte d'attaque. Cible: relire la note et sortir trois puces imparfaites. Mon piège: vouloir comprendre toute la logique avant de poser un brouillon. Choisis la technique la plus adaptée, pas un outil d'urgence pour impulsion.",
+      "scope": "qa-global-normal-conversation-15t-20260520-r4",
+      "created_at": "2026-05-20T16:57:46.99164+00:00",
+      "metadata": {
+        "request_id": "global15_20260520_r4-t02",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      }
+    },
+    {
+      "id": "9f282eb6-a318-45e8-92d7-439faf692e3b",
+      "role": "assistant",
+      "content": "C'est noté : sortir trois puces imparfaites sans te laisser piéger par le besoin de tout comprendre. Pour t'aider à démarrer, je te propose deux options :\n\n1. **Le texte magique** (recommandé) : un court texte à relire pour calmer ton mental quand il commence à trop analyser.\n2. **Préparer le terrain** : une installation simple pour que ton premier geste soit immédiat.\n\nLaquelle te semble la plus adaptée pour toi ? 🙂",
+      "scope": "qa-global-normal-conversation-15t-20260520-r4",
+      "created_at": "2026-05-20T16:58:06.73589+00:00",
+      "metadata": {
+        "channel": "web",
+        "request_id": "global15_20260520_r4-t02",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message",
+        "router_decision_v2": {
+          "next_mode": "companion",
+          "risk_score": 2,
+          "target_mode": "companion",
+          "safety_level": "NONE",
+          "tool_skill_runtime": {
+            "status": "ask_question",
+            "slot_state": {
+              "slot": "technique",
+              "needed": true,
+              "reason": "structured_ai_missing_technique",
+              "status": "missing",
+              "question": "C'est noté : sortir trois puces imparfaites sans te laisser piéger par le besoin de tout comprendre. Pour t'aider à démarrer, je te propose deux options :\n\n1. **Le texte magique** (recommandé) : un court texte à relire pour calmer ton mental quand il commence à trop analyser.\n2. **Préparer le terrain** : une installation simple pour que ton premier geste soit immédiat.\n\nLaquelle te semble la plus adaptée pour toi ?",
+              "known_slots": {
+                "target": {
+                  "kind": "personal_action",
+                  "title": "relire la note et sortir trois puces imparfaites",
+                  "plan_item_id": null
+                },
+                "intake_state": {
+                  "target": {
+                    "kind": "personal_action",
+                    "title": "relire la note et sortir trois puces imparfaites",
+                    "status": "identified",
+                    "evidence": [
+                      "Cible: relire la note et sortir trois puces imparfaites"
+                    ],
+                    "confidence": "high",
+                    "plan_item_id": null
+                  },
+                  "blocker": {
+                    "type": "action_too_heavy",
+                    "evidence": [
+                      "vouloir comprendre toute la logique avant de poser un brouillon"
+                    ],
+                    "confidence": 0.9
+                  },
+                  "skill_id": "prepare_attack_card",
+                  "technique": {
+                    "value": null,
+                    "status": "ambiguous",
+                    "options": [
+                      {
+                        "title": "Le texte magique",
+                        "reason": "Idéal pour contrer le besoin de tout comprendre avant d'agir en recadrant tes pensées sur l'imperfection acceptée.",
+                        "example": "Un texte de 3 lignes qui te rappelle que l'objectif est le brouillon, pas la perfection.",
+                        "description": "Un texte court à relire ou recopier quand la résistance monte.",
+                        "recommended": true,
+                        "technique_key": "texte_recadrage"
+                      },
+                      {
+                        "title": "Préparer le terrain",
+                        "reason": "Permet de réduire la friction au démarrage en préparant ton support de note à l'avance.",
+                        "example": "Ouvrir la note et le brouillon côte à côte avant même de commencer à réfléchir.",
+                        "description": "Un micro-setup qui rend le bon geste plus facile.",
+                        "recommended": false,
+                        "technique_key": "preparer_terrain"
+                      }
+                    ],
+                    "evidence": [
+                      "Mon piège: vouloir comprendre toute la logique avant de poser un brouillon",
+                      "pas un outil d'urgence pour impulsion"
+                    ],
+                    "confidence": "high",
+                    "fit_warning": null,
+                    "explicitly_requested": false
+                  },
+                  "confidence": "high",
+                  "constraints": [
+                    "pas un outil d'urgence pour impulsion"
+                  ],
+                  "current_step": "technique_selection",
+                  "missing_slots": [
+                    "technique"
+                  ],
+                  "activation_keyword": {
+                    "value": null,
+                    "status": "not_applicable",
+                    "options": [],
+                    "evidence": [
+                      "pas un outil d'urgence pour impulsion"
+                    ],
+                    "confidence": "high",
+                    "rejected_value": null
+                  },
+                  "generated_user_message": "C'est noté : sortir trois puces imparfaites sans te laisser piéger par le besoin de tout comprendre. Pour t'aider à démarrer, je te propose deux options :\n\n1. **Le texte magique** (recommandé) : un court texte à relire pour calmer ton mental quand il commence à trop analyser.\n2. **Préparer le terrain** : une installation simple pour que ton premier geste soit immédiat.\n\nLaquelle te semble la plus adaptée pour toi ?"
+                },
+                "technique_options": [
+                  {
+                    "title": "Le texte magique",
+                    "reason": "Idéal pour contrer le besoin de tout comprendre avant d'agir en recadrant tes pensées sur l'imperfection acceptée.",
+                    "example": "Un texte de 3 lignes qui te rappelle que l'objectif est le brouillon, pas la perfection.",
+                    "description": "Un texte court à relire ou recopier quand la résistance monte.",
+                    "recommended": true,
+                    "technique_key": "texte_recadrage"
+                  },
+                  {
+                    "title": "Préparer le terrain",
+                    "reason": "Permet de réduire la friction au démarrage en préparant ton support de note à l'avance.",
+                    "example": "Ouvrir la note et le brouillon côte à côte avant même de commencer à réfléchir.",
+                    "description": "Un micro-setup qui rend le bon geste plus facile.",
+                    "recommended": false,
+                    "technique_key": "preparer_terrain"
+                  }
+                ]
+              },
+              "technique_options": [
+                {
+                  "title": "Le texte magique",
+                  "reason": "Idéal pour contrer le besoin de tout comprendre avant d'agir en recadrant tes pensées sur l'imperfection acceptée.",
+                  "example": "Un texte de 3 lignes qui te rappelle que l'objectif est le brouillon, pas la perfection.",
+                  "description": "Un texte court à relire ou recopier quand la résistance monte.",
+                  "recommended": true,
+                  "technique_key": "texte_recadrage"
+                },
+                {
+                  "title": "Préparer le terrain",
+                  "reason": "Permet de réduire la friction au démarrage en préparant ton support de note à l'avance.",
+                  "example": "Ouvrir la note et le brouillon côte à côte avant même de commencer à réfléchir.",
+                  "description": "Un micro-setup qui rend le bon geste plus facile.",
+                  "recommended": false,
+                  "technique_key": "preparer_terrain"
+                }
+              ],
+              "activation_keyword_options": []
+            },
+            "missing_slots": [
+              "technique"
+            ],
+            "selected_handler": "prepare_attack_card"
+          }
+        },
+        "multi_message_count": 1,
+        "multi_message_index": 0
+      }
+    },
+    {
+      "id": "141c7ccb-00a0-4765-8184-2750aa02675d",
+      "role": "user",
+      "content": "Prends Le texte magique. Je veux une version très courte, qui m'aide à ouvrir le doc et écrire les trois puces sans chercher la version propre.",
+      "scope": "qa-global-normal-conversation-15t-20260520-r4",
+      "created_at": "2026-05-20T16:58:14.037152+00:00",
+      "metadata": {
+        "request_id": "global15_20260520_r4-t03",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      }
+    },
+    {
+      "id": "83f3bc24-c824-41ab-a04c-979c54716163",
+      "role": "assistant",
+      "content": "Voici ton brouillon :\n*Le texte magique : 3 puces imparfaites* (Le texte magique)\n« Ouvre le doc. Pose trois puces, même si elles sont nulles. La version propre n'existe pas encore, seule l'action compte maintenant. »\nLis ce texte au moment où tu sens la résistance monter, puis ouvre immédiatement ton document.\nEst-ce que je valide cette carte pour toi ? 🙂",
+      "scope": "qa-global-normal-conversation-15t-20260520-r4",
+      "created_at": "2026-05-20T16:58:37.80974+00:00",
+      "metadata": {
+        "channel": "web",
+        "request_id": "global15_20260520_r4-t03",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message",
+        "router_decision_v2": {
+          "next_mode": "companion",
+          "risk_score": 2,
+          "target_mode": "companion",
+          "safety_level": "NONE",
+          "tool_skill_runtime": {
+            "draft": {
+              "draft": {
+                "title": "Le texte magique : 3 puces imparfaites",
+                "technique": "texte_recadrage",
+                "instruction": "Lis ce texte dès que tu sens que tu commences à négocier avec toi-même.",
+                "mode_emploi": "Lis ce texte au moment où tu sens la résistance monter, puis ouvre immédiatement ton document.",
+                "target_label": "relire la note et sortir trois puces imparfaites",
+                "why_it_helps": "Il recadre ton besoin de perfection en une priorité d'action brute pour débloquer le démarrage.",
+                "generated_asset": "Ouvre le doc. Pose trois puces, même si elles sont nulles. La version propre n'existe pas encore, seule l'action compte maintenant.",
+                "technique_title": "Le texte magique",
+                "supporting_points": [
+                  "Le but n'est pas la qualité, mais le volume.",
+                  "L'imperfection est le seul chemin vers le fini.",
+                  "Une fois les puces posées, le plus dur est fait."
+                ],
+                "activation_keyword": null
+              },
+              "output_schema": "attack_card_draft_v1",
+              "operation_type": "prepare_attack_card",
+              "confirmation_actions": [
+                "yes",
+                "no"
+              ],
+              "confirmation_message": "Voici ton brouillon :\n*Le texte magique : 3 puces imparfaites* (Le texte magique)\n« Ouvre le doc. Pose trois puces, même si elles sont nulles. La version propre n'existe pas encore, seule l'action compte maintenant. »\nLis ce texte au moment où tu sens la résistance monter, puis ouvre immédiatement ton document.\nEst-ce que je valide cette carte pour toi ?"
+            },
+            "status": "pending_confirmation",
+            "operation_id": "7183746d-e3ec-47ef-bffe-df5a276c7c80",
+            "selected_handler": "prepare_attack_card"
+          }
+        },
+        "multi_message_count": 1,
+        "multi_message_index": 0
+      }
+    },
+    {
+      "id": "20c49b30-5208-49cd-8979-52af583d7e96",
+      "role": "user",
+      "content": "Oui, valide cette carte. Et garde en tête ce piège: chercher à tout comprendre d'abord me bloque avant le brouillon.",
+      "scope": "qa-global-normal-conversation-15t-20260520-r4",
+      "created_at": "2026-05-20T16:58:49.484504+00:00",
+      "metadata": {
+        "request_id": "global15_20260520_r4-t04",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      }
+    },
+    {
+      "id": "01649871-22ff-4ddb-8565-8a578de3ca62",
+      "role": "assistant",
+      "content": "C'est fait. J'ai créé cette carte d'attaque :\n\nLe texte magique : 3 puces imparfaites\nTechnique : Le texte magique\nOuvre le doc. Pose trois puces, même si elles sont nulles. La version propre n'existe pas encore, seule l'action compte maintenant.\n\nMode d'emploi : Lis ce texte au moment où tu sens la résistance monter, puis ouvre immédiatement ton document.\n\nTu peux la retrouver dans Ressources > Cartes d'attaque pour la relire et l'utiliser. Si c'est une carte Mot de bascule, le mot peut etre remplace depuis cette zone; pour changer le contexte, la technique ou le contenu, je peux preparer une nouvelle carte apres confirmation. 🙂",
+      "scope": "qa-global-normal-conversation-15t-20260520-r4",
+      "created_at": "2026-05-20T16:59:01.459414+00:00",
+      "metadata": {
+        "channel": "web",
+        "request_id": "global15_20260520_r4-t04",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message",
+        "router_decision_v2": {
+          "next_mode": "companion",
+          "risk_score": 2,
+          "target_mode": "companion",
+          "safety_level": "NONE",
+          "tool_skill_runtime": {
+            "status": "executed",
+            "operation_id": "7183746d-e3ec-47ef-bffe-df5a276c7c80",
+            "attack_card_id": "df36ff81-e18f-4d81-a793-bc409308a874",
+            "selected_handler": "prepare_attack_card"
+          }
+        },
+        "multi_message_count": 1,
+        "multi_message_index": 0
+      }
+    },
+    {
+      "id": "b825ca1a-d505-42ac-a9d3-af9076452f1c",
+      "role": "user",
+      "content": "Je l'applique maintenant. Donne-moi une phrase courte qui me garde sur le brouillon, pas sur la version parfaite.",
+      "scope": "qa-global-normal-conversation-15t-20260520-r4",
+      "created_at": "2026-05-20T16:59:09.392859+00:00",
+      "metadata": {
+        "request_id": "global15_20260520_r4-t05",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      }
+    },
+    {
+      "id": "32345b71-52d1-4a9d-97ad-6064332c2226",
+      "role": "assistant",
+      "content": "“Brouillon d’abord : trois puces imparfaites maintenant, la version parfaite après. 🎯”",
+      "scope": "qa-global-normal-conversation-15t-20260520-r4",
+      "created_at": "2026-05-20T16:59:22.238825+00:00",
+      "metadata": {
+        "channel": "web",
+        "request_id": "global15_20260520_r4-t05",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message",
+        "router_decision_v2": {
+          "next_mode": "companion",
+          "risk_score": 2,
+          "surface_id": null,
+          "agent_model": "gpt-5.4-nano",
+          "target_mode": "companion",
+          "outage_error": null,
+          "safety_level": "NONE",
+          "stop_checkup": false,
+          "surface_level": null,
+          "checkup_active": false,
+          "interrupt_kind": "NONE",
+          "research_query": null,
+          "outage_fallback": false,
+          "agent_model_tier": "lite",
+          "llm_retry_job_id": null,
+          "llm_retry_queued": false,
+          "research_executed": false,
+          "agent_model_source": "memory_plan_lite",
+          "outage_failed_mode": null,
+          "research_requested": false,
+          "research_sources_count": 0,
+          "conversation_risk_score": 1.6,
+          "conversation_risk_exit_flows": false,
+          "coaching_intervention_pending": null
+        }
+      }
+    },
+    {
+      "id": "bfa738e0-8ad5-47af-868b-f650e22e48d7",
+      "role": "user",
+      "content": "J'ai écrit deux puces. La troisième est moche, et j'ai honte de la laisser comme ça.",
+      "scope": "qa-global-normal-conversation-15t-20260520-r4",
+      "created_at": "2026-05-20T16:59:30.822353+00:00",
+      "metadata": {
+        "request_id": "global15_20260520_r4-t06",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      }
+    },
+    {
+      "id": "8c0443db-4a08-4d25-9c15-10b5beb0771b",
+      "role": "assistant",
+      "content": "Ah merde… quand t’as honte, tu veux “corriger” au lieu de finir. Mais là, ta mission c’est de poser la 3e puce, même moche. 😬\n\nFais juste ça, maintenant :\n1) Écris une version 3e puce “basse qualité” en 10 secondes, sans justification.\n2) Termine par “à préciser après”.\n\nPhrase prête à copier-coller :  \n“Prochaine étape (moche mais vrai) : [action] — à préciser après.”\n\nTu veux que ta 3e puce parle plutôt de “prochaine étape” ou de “ce que le client veut” ? 🙂",
+      "scope": "qa-global-normal-conversation-15t-20260520-r4",
+      "created_at": "2026-05-20T16:59:37.089454+00:00",
+      "metadata": {
+        "channel": "web",
+        "request_id": "global15_20260520_r4-t06",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message",
+        "router_decision_v2": {
+          "next_mode": "companion",
+          "risk_score": 2,
+          "surface_id": null,
+          "agent_model": "gpt-5.4-nano",
+          "target_mode": "companion",
+          "outage_error": null,
+          "safety_level": "NONE",
+          "stop_checkup": false,
+          "surface_level": null,
+          "checkup_active": false,
+          "interrupt_kind": "NONE",
+          "research_query": null,
+          "outage_fallback": false,
+          "agent_model_tier": "lite",
+          "llm_retry_job_id": null,
+          "llm_retry_queued": false,
+          "research_executed": false,
+          "agent_model_source": "memory_plan_lite",
+          "outage_failed_mode": null,
+          "research_requested": false,
+          "research_sources_count": 0,
+          "conversation_risk_score": 1.9,
+          "conversation_risk_exit_flows": false,
+          "coaching_intervention_pending": null
+        }
+      }
+    },
+    {
+      "id": "ef45cc7f-ba7d-4d28-81f2-2ed4d9c12dae",
+      "role": "user",
+      "content": "Prochaine étape. Je la garde en info à vérifier. Propose-moi juste le prochain micro-geste, sans liste longue.",
+      "scope": "qa-global-normal-conversation-15t-20260520-r4",
+      "created_at": "2026-05-20T16:59:46.875805+00:00",
+      "metadata": {
+        "request_id": "global15_20260520_r4-t07",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      }
+    },
+    {
+      "id": "20505cd8-c017-4ee3-b10b-457280db6265",
+      "role": "assistant",
+      "content": "Parfait, garde l’info à vérifier, et là ton micro-geste c’est juste: relire 30 secondes et écrire une seule puce “Next step (brouillon)” avec un mot d’incertitude dedans (“à confirmer”, “je pense que”, “sous réserve”). 🙂",
+      "scope": "qa-global-normal-conversation-15t-20260520-r4",
+      "created_at": "2026-05-20T16:59:52.848567+00:00",
+      "metadata": {
+        "channel": "web",
+        "request_id": "global15_20260520_r4-t07",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message",
+        "router_decision_v2": {
+          "next_mode": "companion",
+          "risk_score": 2,
+          "surface_id": null,
+          "agent_model": "gpt-5.4-nano",
+          "target_mode": "companion",
+          "outage_error": null,
+          "safety_level": "NONE",
+          "stop_checkup": false,
+          "surface_level": null,
+          "checkup_active": false,
+          "interrupt_kind": "NONE",
+          "research_query": null,
+          "outage_fallback": false,
+          "agent_model_tier": "lite",
+          "llm_retry_job_id": null,
+          "llm_retry_queued": false,
+          "research_executed": false,
+          "agent_model_source": "memory_plan_lite",
+          "outage_failed_mode": null,
+          "research_requested": false,
+          "research_sources_count": 0,
+          "conversation_risk_score": 2,
+          "conversation_risk_exit_flows": false,
+          "coaching_intervention_pending": null
+        }
+      }
+    },
+    {
+      "id": "ec44dca4-5b31-44ff-85d0-ae0d58320a03",
+      "role": "user",
+      "content": "Fait. Programme-moi un rappel demain à 8h30: relire une fois, garder le brouillon, sortir trois puces telles quelles.",
+      "scope": "qa-global-normal-conversation-15t-20260520-r4",
+      "created_at": "2026-05-20T17:00:01.088129+00:00",
+      "metadata": {
+        "request_id": "global15_20260520_r4-t08",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      }
+    },
+    {
+      "id": "39baeb54-4e45-4ea7-9efd-c4054d2acf76",
+      "role": "assistant",
+      "content": "Ok, je te le programme demain à 8h30 : relire une fois, garder le brouillon, et sortir 3 puces telles quelles. 😊\n\nTu veux que je le fasse pour ton fuseau Europe/Paris, ou il y a une autre ville ?",
+      "scope": "qa-global-normal-conversation-15t-20260520-r4",
+      "created_at": "2026-05-20T17:00:06.065479+00:00",
+      "metadata": {
+        "channel": "web",
+        "request_id": "global15_20260520_r4-t08",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message",
+        "router_decision_v2": {
+          "next_mode": "companion",
+          "risk_score": 2,
+          "surface_id": null,
+          "agent_model": "gpt-5.4-nano",
+          "target_mode": "companion",
+          "outage_error": null,
+          "safety_level": "NONE",
+          "stop_checkup": false,
+          "surface_level": null,
+          "checkup_active": false,
+          "interrupt_kind": "NONE",
+          "research_query": null,
+          "outage_fallback": false,
+          "agent_model_tier": "lite",
+          "llm_retry_job_id": null,
+          "llm_retry_queued": false,
+          "research_executed": false,
+          "agent_model_source": "memory_plan_lite",
+          "outage_failed_mode": null,
+          "research_requested": false,
+          "research_sources_count": 0,
+          "conversation_risk_score": 2.1,
+          "conversation_risk_exit_flows": false,
+          "coaching_intervention_pending": null
+        }
+      }
+    },
+    {
+      "id": "cd12edcf-4093-4db1-8428-efddae755a76",
+      "role": "user",
+      "content": "Oui, Europe/Paris. Et justement, ce rappel ponctuel que tu viens de programmer, je le retrouve où si je veux juste vérifier ou l'annuler plus tard ?",
+      "scope": "qa-global-normal-conversation-15t-20260520-r4",
+      "created_at": "2026-05-20T17:00:15.875069+00:00",
+      "metadata": {
+        "request_id": "global15_20260520_r4-t09",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      }
+    },
+    {
+      "id": "3925d1e0-eb19-4bc1-add7-2702d8657770",
+      "role": "user",
+      "content": "Oui, Europe/Paris. Et justement, ce rappel ponctuel que tu viens de programmer, je le retrouve où si je veux juste vérifier ou l'annuler plus tard ?",
+      "scope": "qa-global-normal-conversation-15t-20260520-r4",
+      "created_at": "2026-05-20T17:00:39.441155+00:00",
+      "metadata": {
+        "request_id": "global15_20260520_r4-t9r",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      }
+    },
+    {
+      "id": "28439e12-5e2b-46cb-a5a6-9c9e65fcec06",
+      "role": "assistant",
+      "content": "Pour ce rappel ponctuel, je le garde comme un rappel programmé depuis le chat.\n\nTu n'as rien à remettre dans le Plan. Pour le modifier, le plus fiable est de me le demander ici clairement, par exemple: \"change le rappel de demain à 9h\" ou \"annule le rappel de demain\".\n\nLes rappels récurrents, eux, se gèrent côté Initiatives/Rappels quand l'interface est disponible. 🙂",
+      "scope": "qa-global-normal-conversation-15t-20260520-r4",
+      "created_at": "2026-05-20T17:00:44.790367+00:00",
+      "metadata": {
+        "channel": "web",
+        "request_id": "global15_20260520_r4-t9r",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message",
+        "router_decision_v2": {
+          "next_mode": "companion",
+          "risk_score": 2,
+          "surface_id": null,
+          "agent_model": "gpt-5.4-nano",
+          "target_mode": "companion",
+          "outage_error": null,
+          "safety_level": "NONE",
+          "stop_checkup": false,
+          "surface_level": null,
+          "checkup_active": false,
+          "interrupt_kind": "NONE",
+          "research_query": null,
+          "outage_fallback": false,
+          "agent_model_tier": "lite",
+          "llm_retry_job_id": null,
+          "llm_retry_queued": false,
+          "research_executed": false,
+          "agent_model_source": "memory_plan_lite",
+          "outage_failed_mode": null,
+          "research_requested": false,
+          "research_sources_count": 0,
+          "conversation_risk_score": 0,
+          "conversation_risk_exit_flows": false,
+          "coaching_intervention_pending": null
+        }
+      }
+    },
+    {
+      "id": "bec26169-59a8-4f49-a8bd-e8406a1a8ad2",
+      "role": "user",
+      "content": "Ok, laisse l'interface de côté. Tu te souviens du piège de travail que je viens de te demander de garder en tête ?",
+      "scope": "qa-global-normal-conversation-15t-20260520-r4",
+      "created_at": "2026-05-20T17:00:52.809744+00:00",
+      "metadata": {
+        "request_id": "global15_20260520_r4-t10",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      }
+    },
+    {
+      "id": "b70eeb59-927c-46e5-b258-b3c894624c69",
+      "role": "assistant",
+      "content": "Oui 😊 Le piège, c’est quand tu cherches à tout comprendre d’abord : ça te bloque avant même que tu aies le droit de passer au brouillon.\n\nLa règle implicite, c’est: brouillon d’abord, version “propre” après.",
+      "scope": "qa-global-normal-conversation-15t-20260520-r4",
+      "created_at": "2026-05-20T17:00:57.798426+00:00",
+      "metadata": {
+        "channel": "web",
+        "request_id": "global15_20260520_r4-t10",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message",
+        "router_decision_v2": {
+          "next_mode": "companion",
+          "risk_score": 2,
+          "surface_id": null,
+          "agent_model": "gpt-5.4-nano",
+          "target_mode": "companion",
+          "outage_error": null,
+          "safety_level": "NONE",
+          "stop_checkup": false,
+          "surface_level": null,
+          "checkup_active": false,
+          "interrupt_kind": "NONE",
+          "research_query": null,
+          "outage_fallback": false,
+          "agent_model_tier": "lite",
+          "llm_retry_job_id": null,
+          "llm_retry_queued": false,
+          "research_executed": false,
+          "agent_model_source": "memory_plan_lite",
+          "outage_failed_mode": null,
+          "research_requested": false,
+          "research_sources_count": 0,
+          "conversation_risk_score": 0,
+          "conversation_risk_exit_flows": false,
+          "coaching_intervention_pending": null
+        }
+      }
+    },
+    {
+      "id": "b215ff08-8512-43d1-87c0-e6bd82d527df",
+      "role": "user",
+      "content": "Oui, formule-le en une phrase que tu pourrais réutiliser quand je reparle d'un document à écrire.",
+      "scope": "qa-global-normal-conversation-15t-20260520-r4",
+      "created_at": "2026-05-20T17:01:07.738047+00:00",
+      "metadata": {
+        "request_id": "global15_20260520_r4-t11",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      }
+    },
+    {
+      "id": "25822fac-903f-4703-8842-741be191f953",
+      "role": "assistant",
+      "content": "Carrément 😊 Voilà une phrase réutilisable :\n\n“Avant de chercher à tout comprendre, je commence par écrire 3 puces imparfaites qui résument l’idée, le plan, et la première phrase à produire.” ✅\n\nTu veux que je la rende plus courte (version ultra) ou plus cadrée (version plus stricte) ?\n\nConcrètement, je parle d'une Rappels, à préparer seulement si tu confirmes.",
+      "scope": "qa-global-normal-conversation-15t-20260520-r4",
+      "created_at": "2026-05-20T17:01:17.646396+00:00",
+      "metadata": {
+        "channel": "web",
+        "request_id": "global15_20260520_r4-t11",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message",
+        "router_decision_v2": {
+          "next_mode": "companion",
+          "risk_score": 2,
+          "surface_id": null,
+          "agent_model": "gpt-5.4-nano",
+          "target_mode": "companion",
+          "outage_error": null,
+          "safety_level": "NONE",
+          "stop_checkup": false,
+          "surface_level": null,
+          "checkup_active": false,
+          "interrupt_kind": "NONE",
+          "research_query": null,
+          "outage_fallback": false,
+          "agent_model_tier": "lite",
+          "llm_retry_job_id": null,
+          "llm_retry_queued": false,
+          "research_executed": false,
+          "agent_model_source": "memory_plan_lite",
+          "outage_failed_mode": null,
+          "research_requested": false,
+          "research_sources_count": 0,
+          "conversation_risk_score": 0,
+          "conversation_risk_exit_flows": false,
+          "coaching_intervention_pending": null
+        }
+      }
+    },
+    {
+      "id": "7356da4d-afb2-48e8-b9dd-207211ce0611",
+      "role": "user",
+      "content": "Version ultra. Et pour la suite, pose-moi une seule question courte à la fois; les listes longues me font décrocher quand je bloque.",
+      "scope": "qa-global-normal-conversation-15t-20260520-r4",
+      "created_at": "2026-05-20T17:01:42.699481+00:00",
+      "metadata": {
+        "request_id": "global15_20260520_r4-t12",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      }
+    },
+    {
+      "id": "3a644dc4-4852-415c-aff8-c2fb68d2af20",
+      "role": "assistant",
+      "content": "Tu préfères que je devienne plus exigeante (version ultra) ou que je te pose moins de questions à la fois ? Dis-moi par quoi je commence. 🙂",
+      "scope": "qa-global-normal-conversation-15t-20260520-r4",
+      "created_at": "2026-05-20T17:01:57.656581+00:00",
+      "metadata": {
+        "channel": "web",
+        "request_id": "global15_20260520_r4-t12",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message",
+        "router_decision_v2": {
+          "next_mode": "companion",
+          "risk_score": 2,
+          "target_mode": "companion",
+          "safety_level": "NONE",
+          "tool_skill_runtime": {
+            "status": "ask_question",
+            "missing_slots": [
+              "preference"
+            ],
+            "selected_handler": "update_coach_preferences"
+          }
+        },
+        "multi_message_count": 1,
+        "multi_message_index": 0
+      }
+    },
+    {
+      "id": "7f25f7db-699a-43b8-b5bb-99da0596ca16",
+      "role": "user",
+      "content": "Commence par la préférence: une seule question courte à la fois quand je bloque.",
+      "scope": "qa-global-normal-conversation-15t-20260520-r4",
+      "created_at": "2026-05-20T17:02:08.229457+00:00",
+      "metadata": {
+        "request_id": "global15_20260520_r4-t13",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      }
+    },
+    {
+      "id": "d8aef04f-f0d4-4358-8cbc-540cd6dd7808",
+      "role": "assistant",
+      "content": "Bien reçu. Pour la suite, je te poserai moins de questions, plus courtes, surtout quand tu es bloqué. Si c'est bien ça, je le garde comme préférence. 🙂",
+      "scope": "qa-global-normal-conversation-15t-20260520-r4",
+      "created_at": "2026-05-20T17:02:25.076999+00:00",
+      "metadata": {
+        "channel": "web",
+        "request_id": "global15_20260520_r4-t13",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message",
+        "router_decision_v2": {
+          "next_mode": "companion",
+          "risk_score": 2,
+          "target_mode": "companion",
+          "safety_level": "NONE",
+          "tool_skill_runtime": {
+            "draft": {
+              "draft": {
+                "patch": {
+                  "coach.question_tendency": "low"
+                },
+                "reason": "Commence par la préférence: une seule question courte à la fois quand je bloque.",
+                "summary": "je te poserai moins de questions, plus courtes, surtout quand tu es bloqué."
+              },
+              "output_schema": "coach_preferences_patch_draft_v1",
+              "operation_type": "update_coach_preferences",
+              "confirmation_actions": [
+                "yes",
+                "no"
+              ],
+              "confirmation_message": "Bien reçu. Pour la suite, je te poserai moins de questions, plus courtes, surtout quand tu es bloqué. Si c'est bien ça, je le garde comme préférence."
+            },
+            "status": "pending_confirmation",
+            "operation_id": "e7d872a9-40b8-4037-b2e4-46fef75ed33c",
+            "selected_handler": "update_coach_preferences"
+          }
+        },
+        "multi_message_count": 1,
+        "multi_message_index": 0
+      }
+    },
+    {
+      "id": "0ee6a19c-c78a-492a-a846-c06aacc8e7c8",
+      "role": "user",
+      "content": "Oui, garde cette préférence. Et donne-moi maintenant la version ultra de la phrase.",
+      "scope": "qa-global-normal-conversation-15t-20260520-r4",
+      "created_at": "2026-05-20T17:02:33.132095+00:00",
+      "metadata": {
+        "request_id": "global15_20260520_r4-t14",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      }
+    },
+    {
+      "id": "937b3b6a-2f0c-4f90-9140-2a1c6076b745",
+      "role": "user",
+      "content": "Oui, garde cette préférence. Et donne-moi maintenant la version ultra de la phrase.",
+      "scope": "qa-global-normal-conversation-15t-20260520-r4",
+      "created_at": "2026-05-20T17:03:10.306178+00:00",
+      "metadata": {
+        "request_id": "global15_20260520_r4-t14r",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      }
+    },
+    {
+      "id": "c60a8267-4484-4378-9b1e-accaa01e07e6",
+      "role": "assistant",
+      "content": "C'est entendu, je vais te préparer ça. Pour quelle action ou quel objectif veux-tu que je crée ce mantra ? 🙂",
+      "scope": "qa-global-normal-conversation-15t-20260520-r4",
+      "created_at": "2026-05-20T17:03:52.566555+00:00",
+      "metadata": {
+        "channel": "web",
+        "request_id": "global15_20260520_r4-t14r",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message",
+        "router_decision_v2": {
+          "next_mode": "companion",
+          "risk_score": 2,
+          "target_mode": "companion",
+          "safety_level": "NONE",
+          "tool_skill_runtime": {
+            "status": "ask_question",
+            "slot_state": {
+              "slot": "target",
+              "needed": true,
+              "reason": "structured_ai_missing_target",
+              "status": "missing",
+              "question": "C'est entendu, je vais te préparer ça. Pour quelle action ou quel objectif veux-tu que je crée ce mantra ?",
+              "candidates": [],
+              "known_slots": {
+                "technique": "mantra_force",
+                "intake_state": {
+                  "target": {
+                    "kind": "unknown",
+                    "status": "missing",
+                    "evidence": [],
+                    "candidates": [],
+                    "confidence": "low"
+                  },
+                  "blocker": {
+                    "type": "mixed",
+                    "evidence": [],
+                    "confidence": 0.5
+                  },
+                  "skill_id": "prepare_attack_card",
+                  "technique": {
+                    "value": "mantra_force",
+                    "status": "identified",
+                    "options": [],
+                    "evidence": [
+                      "donne-moi maintenant la version ultra de la phrase"
+                    ],
+                    "confidence": "high",
+                    "fit_warning": null,
+                    "explicitly_requested": true
+                  },
+                  "confidence": "high",
+                  "constraints": [],
+                  "current_step": "target_intake",
+                  "missing_slots": [
+                    "target"
+                  ],
+                  "activation_keyword": {
+                    "value": null,
+                    "status": "not_applicable",
+                    "options": [],
+                    "evidence": [],
+                    "confidence": "high",
+                    "rejected_value": null
+                  },
+                  "generated_user_message": "C'est entendu, je vais te préparer ça. Pour quelle action ou quel objectif veux-tu que je crée ce mantra ?"
+                }
+              },
+              "technique_options": [],
+              "activation_keyword_options": []
+            },
+            "missing_slots": [
+              "target"
+            ],
+            "selected_handler": "prepare_attack_card"
+          }
+        },
+        "multi_message_count": 1,
+        "multi_message_index": 0
+      }
+    },
+    {
+      "id": "37cfda1f-9125-4a20-a561-899fa85d12fb",
+      "role": "user",
+      "content": "Ne crée rien de nouveau. Fais juste un récap sobre: ce que j'ai fait, ce qui est prévu demain, le piège à surveiller, et dis si tu as bien gardé la préférence question courte.",
+      "scope": "qa-global-normal-conversation-15t-20260520-r4",
+      "created_at": "2026-05-20T17:04:05.456809+00:00",
+      "metadata": {
+        "request_id": "global15_20260520_r4-t15",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      }
+    },
+    {
+      "id": "2991325c-7416-4546-aee2-5719190077ec",
+      "role": "assistant",
+      "content": "Bien reçu. Pour la suite, je te poserai moins de questions, plus courtes, surtout quand tu es bloqué. Si c'est bien ça, je le garde comme préférence. 🙂",
+      "scope": "qa-global-normal-conversation-15t-20260520-r4",
+      "created_at": "2026-05-20T17:04:23.18084+00:00",
+      "metadata": {
+        "channel": "web",
+        "request_id": "global15_20260520_r4-t15",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message",
+        "router_decision_v2": {
+          "next_mode": "companion",
+          "risk_score": 2,
+          "target_mode": "companion",
+          "safety_level": "NONE",
+          "tool_skill_runtime": {
+            "draft": {
+              "draft": {
+                "patch": {
+                  "coach.question_tendency": "low"
+                },
+                "reason": "Ne crée rien de nouveau. Fais juste un récap sobre: ce que j'ai fait, ce qui est prévu demain, le piège à surveiller, et dis si tu as bien gardé la préférence question courte.",
+                "summary": "je te poserai moins de questions, plus courtes, surtout quand tu es bloqué."
+              },
+              "output_schema": "coach_preferences_patch_draft_v1",
+              "operation_type": "update_coach_preferences",
+              "confirmation_actions": [
+                "yes",
+                "no"
+              ],
+              "confirmation_message": "Bien reçu. Pour la suite, je te poserai moins de questions, plus courtes, surtout quand tu es bloqué. Si c'est bien ça, je le garde comme préférence."
+            },
+            "status": "pending_confirmation_updated",
+            "operation_id": "b587b532-c8b6-47a3-a817-6168244a2611",
+            "selected_handler": "update_coach_preferences",
+            "draft_review_decision": {
+              "decision": "revise",
+              "evidence": [
+                "Le message demande un récap sobre au lieu de créer quelque chose de nouveau.",
+                "Il demande explicitement d'intégrer une contrainte de forme: ce qui a été fait, ce qui est prévu demain, le piège à surveiller, et de confirmer la préférence question courte.",
+                "Le brouillon en attente concerne une autre formulation et une confirmation de préférence, donc il faut le modifier avant exécution."
+              ],
+              "confidence": "high",
+              "generated_user_message": "Je peux te faire un récap sobre avec seulement ce que tu as fait, ce qui est prévu demain, le piège à surveiller, et te dire si j’ai bien gardé la préférence de question courte. Je le reformule comme ça avant de le lancer."
+            },
+            "previous_operation_id": "e7d872a9-40b8-4037-b2e4-46fef75ed33c"
+          }
+        },
+        "multi_message_count": 1,
+        "multi_message_index": 0
+      }
+    }
+  ],
+  "memory_items": [],
+  "user_topic_memories": [],
+  "user_attack_cards": [
+    {
+      "id": "df36ff81-e18f-4d81-a793-bc409308a874",
+      "user_id": "3da1609d-a7a7-4678-b6c2-77571a25b1db",
+      "cycle_id": "46d124eb-460f-4862-9463-d514f6dfb521",
+      "transformation_id": null,
+      "phase_id": null,
+      "source": "system",
+      "status": "active",
+      "content": {
+        "summary": "Carte d'attaque pour relire la note et sortir trois puces imparfaites.",
+        "techniques": [
+          {
+            "title": "Le texte magique",
+            "pour_quoi": "Il recadre ton besoin de perfection en une priorité d'action brute pour débloquer le démarrage.",
+            "questions": [],
+            "mode_emploi": "Lis ce texte au moment où tu sens la résistance monter, puis ouvre immédiatement ton document.",
+            "objet_genere": "Un texte court a relire ou recopier quand la resistance monte.",
+            "technique_key": "texte_recadrage",
+            "generated_result": {
+              "mode_emploi": "Lis ce texte au moment où tu sens la résistance monter, puis ouvre immédiatement ton document.",
+              "generated_at": "2026-05-20T16:59:01.451Z",
+              "output_title": "Le texte magique : 3 puces imparfaites",
+              "generated_asset": "Ouvre le doc. Pose trois puces, même si elles sont nulles. La version propre n'existe pas encore, seule l'action compte maintenant.",
+              "keyword_trigger": null,
+              "supporting_points": [
+                "Le but n'est pas la qualité, mais le volume.",
+                "L'imperfection est le seul chemin vers le fini.",
+                "Une fois les puces posées, le plus dur est fait."
+              ]
+            }
+          }
+        ],
+        "operation_draft": {
+          "title": "Le texte magique : 3 puces imparfaites",
+          "technique": "texte_recadrage",
+          "instruction": "Lis ce texte dès que tu sens que tu commences à négocier avec toi-même.",
+          "mode_emploi": "Lis ce texte au moment où tu sens la résistance monter, puis ouvre immédiatement ton document.",
+          "target_label": "relire la note et sortir trois puces imparfaites",
+          "why_it_helps": "Il recadre ton besoin de perfection en une priorité d'action brute pour débloquer le démarrage.",
+          "generated_asset": "Ouvre le doc. Pose trois puces, même si elles sont nulles. La version propre n'existe pas encore, seule l'action compte maintenant.",
+          "technique_title": "Le texte magique",
+          "supporting_points": [
+            "Le but n'est pas la qualité, mais le volume.",
+            "L'imperfection est le seul chemin vers le fini.",
+            "Une fois les puces posées, le plus dur est fait."
+          ],
+          "activation_keyword": null
+        }
+      },
+      "metadata": {
+        "draft": {
+          "draft": {
+            "title": "Le texte magique : 3 puces imparfaites",
+            "technique": "texte_recadrage",
+            "instruction": "Lis ce texte dès que tu sens que tu commences à négocier avec toi-même.",
+            "mode_emploi": "Lis ce texte au moment où tu sens la résistance monter, puis ouvre immédiatement ton document.",
+            "target_label": "relire la note et sortir trois puces imparfaites",
+            "why_it_helps": "Il recadre ton besoin de perfection en une priorité d'action brute pour débloquer le démarrage.",
+            "generated_asset": "Ouvre le doc. Pose trois puces, même si elles sont nulles. La version propre n'existe pas encore, seule l'action compte maintenant.",
+            "technique_title": "Le texte magique",
+            "supporting_points": [
+              "Le but n'est pas la qualité, mais le volume.",
+              "L'imperfection est le seul chemin vers le fini.",
+              "Une fois les puces posées, le plus dur est fait."
+            ],
+            "activation_keyword": null
+          },
+          "output_schema": "attack_card_draft_v1",
+          "operation_type": "prepare_attack_card",
+          "confirmation_actions": [
+            "yes",
+            "no"
+          ],
+          "confirmation_message": "Voici ton brouillon :\n*Le texte magique : 3 puces imparfaites* (Le texte magique)\n« Ouvre le doc. Pose trois puces, même si elles sont nulles. La version propre n'existe pas encore, seule l'action compte maintenant. »\nLis ce texte au moment où tu sens la résistance monter, puis ouvre immédiatement ton document.\nEst-ce que je valide cette carte pour toi ?"
+        },
+        "source": "sophia_brain_tool_skill",
+        "target": {
+          "kind": "personal_action",
+          "title": "relire la note et sortir trois puces imparfaites",
+          "plan_item_id": null
+        },
+        "request_id": "global15_20260520_r4-t04",
+        "operation_id": "7183746d-e3ec-47ef-bffe-df5a276c7c80",
+        "operation_type": "prepare_attack_card",
+        "source_message_id": "20c49b30-5208-49cd-8979-52af583d7e96"
+      },
+      "generated_at": "2026-05-20T16:59:01.451+00:00",
+      "last_updated_at": "2026-05-20T16:59:01.451+00:00",
+      "scope_kind": "out_of_plan",
+      "plan_item_id": null
+    }
+  ],
+  "user_profile_facts": [
+    {
+      "user_id": "3da1609d-a7a7-4678-b6c2-77571a25b1db",
+      "scope": "global",
+      "key": "coach.tone",
+      "value": {
+        "label": "Bienveillant ferme",
+        "value": "warm_direct"
+      },
+      "status": "active",
+      "confidence": 1,
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-20T16:57:12.441859+00:00",
+      "updated_at": "2026-05-20T16:57:12.441859+00:00",
+      "last_confirmed_at": null,
+      "version": 1,
+      "previous_values": []
+    },
+    {
+      "user_id": "3da1609d-a7a7-4678-b6c2-77571a25b1db",
+      "scope": "global",
+      "key": "coach.challenge_level",
+      "value": {
+        "label": "Équilibré",
+        "value": "balanced"
+      },
+      "status": "active",
+      "confidence": 1,
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-20T16:57:12.441859+00:00",
+      "updated_at": "2026-05-20T16:57:12.441859+00:00",
+      "last_confirmed_at": null,
+      "version": 1,
+      "previous_values": []
+    },
+    {
+      "user_id": "3da1609d-a7a7-4678-b6c2-77571a25b1db",
+      "scope": "global",
+      "key": "coach.feedback_style",
+      "value": {
+        "label": "Positif puis amélioration",
+        "value": "positive_then_fix"
+      },
+      "status": "active",
+      "confidence": 1,
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-20T16:57:12.441859+00:00",
+      "updated_at": "2026-05-20T16:57:12.441859+00:00",
+      "last_confirmed_at": null,
+      "version": 1,
+      "previous_values": []
+    },
+    {
+      "user_id": "3da1609d-a7a7-4678-b6c2-77571a25b1db",
+      "scope": "global",
+      "key": "coach.talk_propensity",
+      "value": {
+        "label": "Équilibrée",
+        "value": "balanced"
+      },
+      "status": "active",
+      "confidence": 1,
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-20T16:57:12.441859+00:00",
+      "updated_at": "2026-05-20T16:57:12.441859+00:00",
+      "last_confirmed_at": null,
+      "version": 1,
+      "previous_values": []
+    },
+    {
+      "user_id": "3da1609d-a7a7-4678-b6c2-77571a25b1db",
+      "scope": "global",
+      "key": "coach.message_length",
+      "value": {
+        "label": "Courte",
+        "value": "short"
+      },
+      "status": "active",
+      "confidence": 1,
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-20T16:57:12.441859+00:00",
+      "updated_at": "2026-05-20T16:57:12.441859+00:00",
+      "last_confirmed_at": null,
+      "version": 1,
+      "previous_values": []
+    },
+    {
+      "user_id": "3da1609d-a7a7-4678-b6c2-77571a25b1db",
+      "scope": "global",
+      "key": "coach.message_format",
+      "value": {
+        "label": "Mix adaptatif",
+        "value": "adaptive"
+      },
+      "status": "active",
+      "confidence": 1,
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-20T16:57:12.441859+00:00",
+      "updated_at": "2026-05-20T16:57:12.441859+00:00",
+      "last_confirmed_at": null,
+      "version": 1,
+      "previous_values": []
+    },
+    {
+      "user_id": "3da1609d-a7a7-4678-b6c2-77571a25b1db",
+      "scope": "global",
+      "key": "coach.primary_focus",
+      "value": {
+        "label": "Discipline / action",
+        "value": "discipline"
+      },
+      "status": "active",
+      "confidence": 1,
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-20T16:57:12.441859+00:00",
+      "updated_at": "2026-05-20T16:57:12.441859+00:00",
+      "last_confirmed_at": null,
+      "version": 1,
+      "previous_values": []
+    },
+    {
+      "user_id": "3da1609d-a7a7-4678-b6c2-77571a25b1db",
+      "scope": "global",
+      "key": "coach.emotional_personalization",
+      "value": {
+        "label": "Chaleureux",
+        "value": "warm"
+      },
+      "status": "active",
+      "confidence": 1,
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-20T16:57:12.441859+00:00",
+      "updated_at": "2026-05-20T16:57:12.441859+00:00",
+      "last_confirmed_at": null,
+      "version": 1,
+      "previous_values": []
+    },
+    {
+      "user_id": "3da1609d-a7a7-4678-b6c2-77571a25b1db",
+      "scope": "global",
+      "key": "coach.question_tendency",
+      "value": {
+        "label": "Normale",
+        "value": "normal"
+      },
+      "status": "active",
+      "confidence": 1,
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-20T16:57:12.441859+00:00",
+      "updated_at": "2026-05-20T16:57:12.441859+00:00",
+      "last_confirmed_at": null,
+      "version": 1,
+      "previous_values": []
+    }
+  ],
+  "user_chat_states": [
+    {
+      "user_id": "3da1609d-a7a7-4678-b6c2-77571a25b1db",
+      "current_mode": "companion",
+      "risk_level": 2,
+      "investigation_state": null,
+      "short_term_context": "",
+      "last_interaction_at": "2026-05-20T17:04:23.165+00:00",
+      "updated_at": "2026-05-20T17:04:23.168979+00:00",
+      "unprocessed_msg_count": 15,
+      "last_processed_at": "2026-05-20T16:57:29.623+00:00",
+      "scope": "qa-global-normal-conversation-15t-20260520-r4",
+      "temp_memory": {
+        "__momentum_state_v2": {
+          "posture": {
+            "confidence": "high",
+            "recommended_posture": "simplify"
+          },
+          "version": 2,
+          "blockers": {
+            "blocker_kind": null,
+            "blocker_repeat_score": 0
+          },
+          "_internal": {
+            "sources": {
+              "router_updated_at": "2026-05-20T17:01:17.617Z",
+              "last_classified_by": "router"
+            },
+            "stability": {
+              "stable_since_at": "2026-05-20T16:57:37.489Z"
+            },
+            "signal_log": {
+              "consent_events": [
+                {
+                  "at": "2026-05-20T17:00:44.758Z",
+                  "kind": "accept"
+                },
+                {
+                  "at": "2026-05-20T17:01:17.617Z",
+                  "kind": "accept"
+                }
+              ],
+              "emotional_turns": [],
+              "response_quality_events": [
+                {
+                  "at": "2026-05-20T16:57:37.489Z",
+                  "quality": "substantive"
+                },
+                {
+                  "at": "2026-05-20T16:59:22.217Z",
+                  "quality": "substantive"
+                },
+                {
+                  "at": "2026-05-20T16:59:37.065Z",
+                  "quality": "substantive"
+                },
+                {
+                  "at": "2026-05-20T16:59:52.827Z",
+                  "quality": "substantive"
+                },
+                {
+                  "at": "2026-05-20T17:00:06.043Z",
+                  "quality": "substantive"
+                },
+                {
+                  "at": "2026-05-20T17:00:44.758Z",
+                  "quality": "substantive"
+                },
+                {
+                  "at": "2026-05-20T17:00:57.714Z",
+                  "quality": "substantive"
+                },
+                {
+                  "at": "2026-05-20T17:01:17.617Z",
+                  "quality": "substantive"
+                }
+              ]
+            },
+            "metrics_cache": {
+              "last_user_turn_at": "2026-05-20T17:01:17.617Z",
+              "last_user_turn_quality": "substantive",
+              "days_since_last_user_message": 0
+            }
+          },
+          "assessment": {
+            "top_risk": null,
+            "confidence": "low",
+            "top_blocker": null
+          },
+          "dimensions": {
+            "consent": {
+              "level": "open",
+              "reason": "explicit_accept_phrase"
+            },
+            "plan_fit": {
+              "level": "uncertain"
+            },
+            "engagement": {
+              "level": "high",
+              "reason": "substantive_recent_reply"
+            },
+            "load_balance": {
+              "level": "balanced"
+            },
+            "emotional_load": {
+              "level": "low",
+              "reason": "no_emotional_marker"
+            },
+            "execution_traction": {
+              "level": "unknown"
+            }
+          },
+          "updated_at": "2026-05-20T17:01:17.617Z",
+          "active_load": {
+            "needs_reduce": false,
+            "needs_consolidate": false,
+            "current_load_score": 0,
+            "mission_slots_used": 0,
+            "support_slots_used": 0,
+            "habit_building_slots_used": 0
+          },
+          "memory_links": {
+            "last_useful_support_ids": [],
+            "last_failed_technique_ids": []
+          },
+          "state_reason": "engaged_but_not_clearly_progressing",
+          "current_state": "friction_legere"
+        },
+        "__suspended_flow_v1": {
+          "owner": "conversation_skill",
+          "turn_ttl": 1,
+          "created_at": "2026-05-20T16:59:37.065Z",
+          "suspended_by": "conversation_handler",
+          "resume_policy": "auto_after_answer",
+          "state_snapshot": {
+            "skill_id": "execution_breakdown",
+            "turn_count": 2,
+            "updated_at": "2026-05-20T16:59:22.216Z",
+            "previous_skill_id": null
+          }
+        },
+        "__active_skill_state": {
+          "skill_id": "execution_breakdown",
+          "turn_count": 1,
+          "updated_at": "2026-05-20T17:01:17.617Z",
+          "previous_skill_id": null
+        },
+        "__active_topic_state_v2": {
+          "version": 2,
+          "confidence": 0.6,
+          "updated_at": "2026-05-20T16:59:20.826Z",
+          "last_decision": "create_candidate",
+          "router_version": "memory_v2_router_mvp_1",
+          "active_topic_id": null,
+          "lifecycle_stage": null,
+          "last_switched_at": null,
+          "active_topic_slug": null,
+          "previous_topic_id": null,
+          "candidate_topic_ids": [],
+          "last_decision_reason": "no_active_topic"
+        },
+        "__conversation_risk_last": {
+          "at": "2026-05-20T17:04:09.848Z",
+          "score": 1.6,
+          "threshold": 8,
+          "reason_codes": [
+            "active_flow_pressure",
+            "previous_risk"
+          ],
+          "flow_exit_context": null,
+          "should_exit_flows": false
+        },
+        "__memory_payload_state_v2": {
+          "items": [],
+          "budget": {
+            "max_items": 12,
+            "max_entities": 5,
+            "tokens_target": 1800
+          },
+          "modules": {},
+          "version": 2,
+          "entities": [],
+          "last_turn_id": "b215ff08-8512-43d1-87c0-e6bd82d527df",
+          "active_topic_id": null
+        },
+        "companion_question_rhythm": {
+          "preference": "normal",
+          "recent_turns": [
+            1,
+            0,
+            1,
+            1,
+            0,
+            1
+          ],
+          "last_updated_at": "2026-05-20T17:01:17.603Z",
+          "last_turn_had_question": true,
+          "turns_since_last_question": 0
+        },
+        "__conversation_risk_history": [
+          0,
+          1.2,
+          1.7,
+          1,
+          1.6
+        ],
+        "__coaching_intervention_history": [],
+        "__pending_tool_skill_confirmation": {
+          "draft": {
+            "draft": {
+              "patch": {
+                "coach.question_tendency": "low"
+              },
+              "reason": "Ne crée rien de nouveau. Fais juste un récap sobre: ce que j'ai fait, ce qui est prévu demain, le piège à surveiller, et dis si tu as bien gardé la préférence question courte.",
+              "summary": "je te poserai moins de questions, plus courtes, surtout quand tu es bloqué."
+            },
+            "output_schema": "coach_preferences_patch_draft_v1",
+            "operation_type": "update_coach_preferences",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Bien reçu. Pour la suite, je te poserai moins de questions, plus courtes, surtout quand tu es bloqué. Si c'est bien ça, je le garde comme préférence."
+          },
+          "source": "direct_user_request",
+          "summary": "je te poserai moins de questions, plus courtes, surtout quand tu es bloqué.",
+          "created_at": "2026-05-20T17:04:23.165Z",
+          "turn_count": 0,
+          "intake_state": {
+            "reason": {
+              "evidence": [
+                "les listes longues me font décrocher quand je bloque"
+              ],
+              "confidence": "high"
+            },
+            "skill_id": "update_coach_preferences",
+            "confidence": "high",
+            "preference": {
+              "key": "coach.question_tendency",
+              "status": "identified",
+              "evidence": [
+                "préférence question courte"
+              ],
+              "confidence": "high"
+            },
+            "constraints": [],
+            "current_step": "draft_generation",
+            "desired_value": {
+              "value": "low",
+              "status": "identified",
+              "evidence": [
+                "préférence question courte"
+              ],
+              "confidence": "high"
+            },
+            "missing_slots": [],
+            "generated_user_message": "Tu préfères que je devienne plus exigeante (version ultra) ou que je te pose moins de questions à la fois ? Dis-moi par quoi je commence."
+          },
+          "operation_id": "b587b532-c8b6-47a3-a817-6168244a2611",
+          "operation_type": "update_coach_preferences",
+          "expires_after_turns": 2,
+          "supersedes_operation_id": "e7d872a9-40b8-4037-b2e4-46fef75ed33c"
+        },
+        "__pending_recommendation_operation": {
+          "created_at": "2026-05-20T17:01:17.617Z",
+          "request_id": "global15_20260520_r4-t11",
+          "surface_id": "dashboard.reminders",
+          "surface_label": "Rappels",
+          "operation_type": "create_recurring_reminder",
+          "operation_input": {
+            "reason": "user_explicitly_asks_to_formalize_a_rule_for_future_reuse",
+            "message_hint": "formule-le en une phrase que tu pourrais réutiliser quand je reparle d'un document à écrire"
+          },
+          "recommendation_id": "dispatcher_opportunity:self_reminder:global15_20260520_r4-t11"
+        }
+      }
+    }
+  ],
+  "conversation_turn_traces": [
+    {
+      "turn_id": "global15_20260520_r4-t01",
+      "source_message_id": "74aad6c3-4caf-4cf6-b955-19812af60603",
+      "ts": "2026-05-20T16:57:37.473+00:00",
+      "route_decision": {
+        "reason_code": "skill_entry_signal",
+        "blocked_paths": [],
+        "route_version": "v1",
+        "response_owner": "conversation_handler",
+        "memory_use_kind": "none",
+        "selected_handler": "execution_breakdown",
+        "direct_effects_to_run": [],
+        "memory_used_for_route": false,
+        "active_flow_arbitration": {
+          "decision": "none",
+          "reason_code": "no_active_flow",
+          "active_owner": "none",
+          "resume_policy": "none",
+          "selected_owner": "none"
+        },
+        "memory_item_ids_used_for_route": []
+      },
+      "response_owner": "conversation_handler",
+      "direct_effects": [],
+      "skill_run": {
+        "output": {
+          "reply": "Avant de reparer, il me faut la cible: quelle action precise bloque la maintenant ?",
+          "status": "continue",
+          "skill_id": "execution_breakdown",
+          "diagnosis": {
+            "stage": "target_resolution",
+            "blocker_candidates": [
+              "flou",
+              "energie",
+              "friction_demarrage"
+            ]
+          },
+          "state_patch": {
+            "summary": "Need concrete target."
+          },
+          "memory_trace": {
+            "correction_detected": false,
+            "memory_item_ids_used": [],
+            "memory_used_for_response": false,
+            "correction_target_item_ids": []
+          },
+          "response_intent": "target_resolution",
+          "recommendation_need": {
+            "type": "execution_repair",
+            "needed": false,
+            "urgency": "medium",
+            "constraints": [
+              "understand_before_solution"
+            ]
+          },
+          "operation_suggestions": [],
+          "memory_write_candidates": [
+            {
+              "kind": "statement",
+              "scope_hint": "session",
+              "content_text": "Salut Sophia, j'ai un mini compte rendu client à reprendre aujourd'hui. Je peux le faire, mais je sens que je vais attendre d'avoir une vision parfaite avant d'écrire. Je veux juste démarrer.",
+              "confidence_band": "medium",
+              "sensitivity_level": 1,
+              "evidence_source_ids": [
+                "74aad6c3-4caf-4cf6-b955-19812af60603"
+              ],
+              "persistence_rationale": "Conversation skill observation; memorizer decides durable persistence.",
+              "should_persist_default": false,
+              "anti_identity_freeze_checked": true
+            }
+          ]
+        },
+        "reason_code": "skill_entry_signal",
+        "selected_skill_id": "execution_breakdown"
+      },
+      "tool_skill_run": null,
+      "memory_write_candidates_emitted": 0,
+      "total_latency_ms": 7876
+    },
+    {
+      "turn_id": "global15_20260520_r4-t02",
+      "source_message_id": "ca1ef665-8c1b-489b-b4d4-ef40f9b429bf",
+      "ts": "2026-05-20T16:58:06.741+00:00",
+      "route_decision": {
+        "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+        "blocked_paths": [],
+        "route_version": "v1",
+        "response_owner": "tool_skill",
+        "memory_use_kind": "none",
+        "selected_handler": "prepare_attack_card",
+        "direct_effects_to_run": [],
+        "memory_used_for_route": false,
+        "active_flow_arbitration": {
+          "decision": "supersede_active",
+          "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+          "active_owner": "conversation_skill",
+          "resume_policy": "user_reopens",
+          "selected_owner": "tool_skill"
+        },
+        "memory_item_ids_used_for_route": []
+      },
+      "response_owner": "tool_skill",
+      "direct_effects": [],
+      "skill_run": null,
+      "tool_skill_run": {
+        "status": "ask_question",
+        "slot_state": {
+          "slot": "technique",
+          "needed": true,
+          "reason": "structured_ai_missing_technique",
+          "status": "missing",
+          "question": "C'est noté : sortir trois puces imparfaites sans te laisser piéger par le besoin de tout comprendre. Pour t'aider à démarrer, je te propose deux options :\n\n1. **Le texte magique** (recommandé) : un court texte à relire pour calmer ton mental quand il commence à trop analyser.\n2. **Préparer le terrain** : une installation simple pour que ton premier geste soit immédiat.\n\nLaquelle te semble la plus adaptée pour toi ?",
+          "known_slots": {
+            "target": {
+              "kind": "personal_action",
+              "title": "relire la note et sortir trois puces imparfaites",
+              "plan_item_id": null
+            },
+            "intake_state": {
+              "target": {
+                "kind": "personal_action",
+                "title": "relire la note et sortir trois puces imparfaites",
+                "status": "identified",
+                "evidence": [
+                  "Cible: relire la note et sortir trois puces imparfaites"
+                ],
+                "confidence": "high",
+                "plan_item_id": null
+              },
+              "blocker": {
+                "type": "action_too_heavy",
+                "evidence": [
+                  "vouloir comprendre toute la logique avant de poser un brouillon"
+                ],
+                "confidence": 0.9
+              },
+              "skill_id": "prepare_attack_card",
+              "technique": {
+                "value": null,
+                "status": "ambiguous",
+                "options": [
+                  {
+                    "title": "Le texte magique",
+                    "reason": "Idéal pour contrer le besoin de tout comprendre avant d'agir en recadrant tes pensées sur l'imperfection acceptée.",
+                    "example": "Un texte de 3 lignes qui te rappelle que l'objectif est le brouillon, pas la perfection.",
+                    "description": "Un texte court à relire ou recopier quand la résistance monte.",
+                    "recommended": true,
+                    "technique_key": "texte_recadrage"
+                  },
+                  {
+                    "title": "Préparer le terrain",
+                    "reason": "Permet de réduire la friction au démarrage en préparant ton support de note à l'avance.",
+                    "example": "Ouvrir la note et le brouillon côte à côte avant même de commencer à réfléchir.",
+                    "description": "Un micro-setup qui rend le bon geste plus facile.",
+                    "recommended": false,
+                    "technique_key": "preparer_terrain"
+                  }
+                ],
+                "evidence": [
+                  "Mon piège: vouloir comprendre toute la logique avant de poser un brouillon",
+                  "pas un outil d'urgence pour impulsion"
+                ],
+                "confidence": "high",
+                "fit_warning": null,
+                "explicitly_requested": false
+              },
+              "confidence": "high",
+              "constraints": [
+                "pas un outil d'urgence pour impulsion"
+              ],
+              "current_step": "technique_selection",
+              "missing_slots": [
+                "technique"
+              ],
+              "activation_keyword": {
+                "value": null,
+                "status": "not_applicable",
+                "options": [],
+                "evidence": [
+                  "pas un outil d'urgence pour impulsion"
+                ],
+                "confidence": "high",
+                "rejected_value": null
+              },
+              "generated_user_message": "C'est noté : sortir trois puces imparfaites sans te laisser piéger par le besoin de tout comprendre. Pour t'aider à démarrer, je te propose deux options :\n\n1. **Le texte magique** (recommandé) : un court texte à relire pour calmer ton mental quand il commence à trop analyser.\n2. **Préparer le terrain** : une installation simple pour que ton premier geste soit immédiat.\n\nLaquelle te semble la plus adaptée pour toi ?"
+            },
+            "technique_options": [
+              {
+                "title": "Le texte magique",
+                "reason": "Idéal pour contrer le besoin de tout comprendre avant d'agir en recadrant tes pensées sur l'imperfection acceptée.",
+                "example": "Un texte de 3 lignes qui te rappelle que l'objectif est le brouillon, pas la perfection.",
+                "description": "Un texte court à relire ou recopier quand la résistance monte.",
+                "recommended": true,
+                "technique_key": "texte_recadrage"
+              },
+              {
+                "title": "Préparer le terrain",
+                "reason": "Permet de réduire la friction au démarrage en préparant ton support de note à l'avance.",
+                "example": "Ouvrir la note et le brouillon côte à côte avant même de commencer à réfléchir.",
+                "description": "Un micro-setup qui rend le bon geste plus facile.",
+                "recommended": false,
+                "technique_key": "preparer_terrain"
+              }
+            ]
+          },
+          "technique_options": [
+            {
+              "title": "Le texte magique",
+              "reason": "Idéal pour contrer le besoin de tout comprendre avant d'agir en recadrant tes pensées sur l'imperfection acceptée.",
+              "example": "Un texte de 3 lignes qui te rappelle que l'objectif est le brouillon, pas la perfection.",
+              "description": "Un texte court à relire ou recopier quand la résistance monte.",
+              "recommended": true,
+              "technique_key": "texte_recadrage"
+            },
+            {
+              "title": "Préparer le terrain",
+              "reason": "Permet de réduire la friction au démarrage en préparant ton support de note à l'avance.",
+              "example": "Ouvrir la note et le brouillon côte à côte avant même de commencer à réfléchir.",
+              "description": "Un micro-setup qui rend le bon geste plus facile.",
+              "recommended": false,
+              "technique_key": "preparer_terrain"
+            }
+          ],
+          "activation_keyword_options": []
+        },
+        "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+        "missing_slots": [
+          "technique"
+        ],
+        "selected_handler": "prepare_attack_card"
+      },
+      "memory_write_candidates_emitted": 0,
+      "total_latency_ms": 19750
+    },
+    {
+      "turn_id": "global15_20260520_r4-t03",
+      "source_message_id": "141c7ccb-00a0-4765-8184-2750aa02675d",
+      "ts": "2026-05-20T16:58:37.813+00:00",
+      "route_decision": {
+        "reason_code": "active_tool_skill_continue",
+        "blocked_paths": [],
+        "route_version": "v1",
+        "response_owner": "tool_skill",
+        "memory_use_kind": "none",
+        "selected_handler": "prepare_attack_card",
+        "direct_effects_to_run": [],
+        "memory_used_for_route": false,
+        "active_flow_arbitration": {
+          "decision": "continue_active",
+          "reason_code": "active_tool_skill_continue",
+          "active_owner": "tool_skill",
+          "resume_policy": "none",
+          "selected_owner": "tool_skill"
+        },
+        "memory_item_ids_used_for_route": []
+      },
+      "response_owner": "tool_skill",
+      "direct_effects": [],
+      "skill_run": null,
+      "tool_skill_run": {
+        "draft": {
+          "draft": {
+            "title": "Le texte magique : 3 puces imparfaites",
+            "technique": "texte_recadrage",
+            "instruction": "Lis ce texte dès que tu sens que tu commences à négocier avec toi-même.",
+            "mode_emploi": "Lis ce texte au moment où tu sens la résistance monter, puis ouvre immédiatement ton document.",
+            "target_label": "relire la note et sortir trois puces imparfaites",
+            "why_it_helps": "Il recadre ton besoin de perfection en une priorité d'action brute pour débloquer le démarrage.",
+            "generated_asset": "Ouvre le doc. Pose trois puces, même si elles sont nulles. La version propre n'existe pas encore, seule l'action compte maintenant.",
+            "technique_title": "Le texte magique",
+            "supporting_points": [
+              "Le but n'est pas la qualité, mais le volume.",
+              "L'imperfection est le seul chemin vers le fini.",
+              "Une fois les puces posées, le plus dur est fait."
+            ],
+            "activation_keyword": null
+          },
+          "output_schema": "attack_card_draft_v1",
+          "operation_type": "prepare_attack_card",
+          "confirmation_actions": [
+            "yes",
+            "no"
+          ],
+          "confirmation_message": "Voici ton brouillon :\n*Le texte magique : 3 puces imparfaites* (Le texte magique)\n« Ouvre le doc. Pose trois puces, même si elles sont nulles. La version propre n'existe pas encore, seule l'action compte maintenant. »\nLis ce texte au moment où tu sens la résistance monter, puis ouvre immédiatement ton document.\nEst-ce que je valide cette carte pour toi ?"
+        },
+        "status": "pending_confirmation",
+        "reason_code": "active_tool_skill_continue",
+        "operation_id": "7183746d-e3ec-47ef-bffe-df5a276c7c80",
+        "selected_handler": "prepare_attack_card"
+      },
+      "memory_write_candidates_emitted": 0,
+      "total_latency_ms": 23777
+    },
+    {
+      "turn_id": "global15_20260520_r4-t04",
+      "source_message_id": "20c49b30-5208-49cd-8979-52af583d7e96",
+      "ts": "2026-05-20T16:59:01.462+00:00",
+      "route_decision": {
+        "reason_code": "active_conversation_skill_continue",
+        "blocked_paths": [],
+        "route_version": "v1",
+        "response_owner": "conversation_handler",
+        "memory_use_kind": "none",
+        "selected_handler": "execution_breakdown",
+        "direct_effects_to_run": [],
+        "memory_used_for_route": false,
+        "active_flow_arbitration": {
+          "decision": "continue_active",
+          "reason_code": "active_conversation_skill_continue",
+          "active_owner": "conversation_skill",
+          "resume_policy": "none",
+          "selected_owner": "conversation_skill"
+        },
+        "memory_item_ids_used_for_route": []
+      },
+      "response_owner": "tool_skill",
+      "direct_effects": [
+        {
+          "outcome": "success",
+          "tool_id": "prepare_attack_card"
+        }
+      ],
+      "skill_run": null,
+      "tool_skill_run": {
+        "status": "executed",
+        "reason_code": "active_conversation_skill_continue",
+        "operation_id": "7183746d-e3ec-47ef-bffe-df5a276c7c80",
+        "attack_card_id": "df36ff81-e18f-4d81-a793-bc409308a874",
+        "selected_handler": "prepare_attack_card"
+      },
+      "memory_write_candidates_emitted": 0,
+      "total_latency_ms": 11979
+    },
+    {
+      "turn_id": "global15_20260520_r4-t05",
+      "source_message_id": "b825ca1a-d505-42ac-a9d3-af9076452f1c",
+      "ts": "2026-05-20T16:59:22.21+00:00",
+      "route_decision": {
+        "reason_code": "active_conversation_skill_continue",
+        "blocked_paths": [],
+        "route_version": "v1",
+        "response_owner": "conversation_handler",
+        "memory_use_kind": "none",
+        "selected_handler": "execution_breakdown",
+        "direct_effects_to_run": [],
+        "memory_used_for_route": false,
+        "active_flow_arbitration": {
+          "decision": "continue_active",
+          "reason_code": "active_conversation_skill_continue",
+          "active_owner": "conversation_skill",
+          "resume_policy": "none",
+          "selected_owner": "conversation_skill"
+        },
+        "memory_item_ids_used_for_route": []
+      },
+      "response_owner": "conversation_handler",
+      "direct_effects": [],
+      "skill_run": {
+        "output": {
+          "reply": "Avant de reparer, il me faut la cible: quelle action precise bloque la maintenant ?",
+          "status": "continue",
+          "skill_id": "execution_breakdown",
+          "diagnosis": {
+            "stage": "target_resolution",
+            "blocker_candidates": [
+              "flou",
+              "energie",
+              "friction_demarrage"
+            ]
+          },
+          "state_patch": {
+            "summary": "Need concrete target."
+          },
+          "memory_trace": {
+            "correction_detected": false,
+            "memory_item_ids_used": [],
+            "memory_used_for_response": false,
+            "correction_target_item_ids": []
+          },
+          "response_intent": "target_resolution",
+          "recommendation_need": {
+            "type": "execution_repair",
+            "needed": false,
+            "urgency": "medium",
+            "constraints": [
+              "understand_before_solution"
+            ]
+          },
+          "operation_suggestions": [],
+          "memory_write_candidates": [
+            {
+              "kind": "statement",
+              "scope_hint": "session",
+              "content_text": "Je l'applique maintenant. Donne-moi une phrase courte qui me garde sur le brouillon, pas sur la version parfaite.",
+              "confidence_band": "medium",
+              "sensitivity_level": 1,
+              "evidence_source_ids": [
+                "b825ca1a-d505-42ac-a9d3-af9076452f1c"
+              ],
+              "persistence_rationale": "Conversation skill observation; memorizer decides durable persistence.",
+              "should_persist_default": false,
+              "anti_identity_freeze_checked": true
+            }
+          ]
+        },
+        "reason_code": "active_conversation_skill_continue",
+        "selected_skill_id": "execution_breakdown"
+      },
+      "tool_skill_run": null,
+      "memory_write_candidates_emitted": 0,
+      "total_latency_ms": 12818
+    },
+    {
+      "turn_id": "global15_20260520_r4-t06",
+      "source_message_id": "bfa738e0-8ad5-47af-868b-f650e22e48d7",
+      "ts": "2026-05-20T16:59:37.051+00:00",
+      "route_decision": {
+        "reason_code": "skill_handoff_requested",
+        "blocked_paths": [
+          {
+            "path": "tool_skill_opportunity",
+            "reason_code": "active_flow_blocks_tool_opportunity"
+          }
+        ],
+        "route_version": "v1",
+        "response_owner": "conversation_handler",
+        "memory_use_kind": "none",
+        "selected_handler": "emotional_repair",
+        "direct_effects_to_run": [],
+        "memory_used_for_route": false,
+        "active_flow_arbitration": {
+          "decision": "supersede_active",
+          "reason_code": "skill_handoff_requested",
+          "active_owner": "conversation_skill",
+          "resume_policy": "auto_after_answer",
+          "selected_owner": "conversation_skill"
+        },
+        "memory_item_ids_used_for_route": []
+      },
+      "response_owner": "conversation_handler",
+      "direct_effects": [],
+      "skill_run": {
+        "output": {
+          "reply": "Ce que tu viens de dire ressemble plus a une attaque contre toi qu'a une information fiable. On peut garder le fait concret, sans transformer ca en verdict sur qui tu es.",
+          "status": "continue",
+          "skill_id": "emotional_repair",
+          "diagnosis": {
+            "pattern": "self_attack"
+          },
+          "state_patch": {
+            "summary": "Self-attack softened; keep concrete facts separate from identity."
+          },
+          "memory_trace": {
+            "correction_detected": false,
+            "memory_item_ids_used": [],
+            "memory_used_for_response": false,
+            "correction_target_item_ids": []
+          },
+          "response_intent": "de_shame",
+          "recommendation_need": {
+            "type": "state_regulation",
+            "needed": true,
+            "urgency": "medium",
+            "constraints": [
+              "no_solution_pushing"
+            ]
+          },
+          "operation_suggestions": [
+            {
+              "reason": "state_regulation_before_concrete_action",
+              "urgency": "medium",
+              "operation_type": "select_state_potion",
+              "confidence_band": "medium",
+              "source_skill_id": "emotional_repair",
+              "operation_input_hint": {
+                "state": "shame_guilt",
+                "potion_type": "guerison"
+              },
+              "requires_user_consent": true
+            }
+          ],
+          "memory_write_candidates": [
+            {
+              "kind": "statement",
+              "scope_hint": "session",
+              "content_text": "J'ai écrit deux puces. La troisième est moche, et j'ai honte de la laisser comme ça.",
+              "confidence_band": "medium",
+              "sensitivity_level": 3,
+              "evidence_source_ids": [
+                "bfa738e0-8ad5-47af-868b-f650e22e48d7"
+              ],
+              "persistence_rationale": "Conversation skill observation; memorizer decides durable persistence.",
+              "should_persist_default": false,
+              "anti_identity_freeze_checked": true
+            }
+          ]
+        },
+        "reason_code": "skill_handoff_requested",
+        "selected_skill_id": "emotional_repair"
+      },
+      "tool_skill_run": null,
+      "memory_write_candidates_emitted": 0,
+      "total_latency_ms": 6230
+    },
+    {
+      "turn_id": "global15_20260520_r4-t07",
+      "source_message_id": "ef45cc7f-ba7d-4d28-81f2-2ed4d9c12dae",
+      "ts": "2026-05-20T16:59:52.816+00:00",
+      "route_decision": {
+        "reason_code": "active_conversation_skill_continue",
+        "blocked_paths": [],
+        "route_version": "v1",
+        "response_owner": "conversation_handler",
+        "memory_use_kind": "none",
+        "selected_handler": "emotional_repair",
+        "direct_effects_to_run": [],
+        "memory_used_for_route": false,
+        "active_flow_arbitration": {
+          "decision": "continue_active",
+          "reason_code": "active_conversation_skill_continue",
+          "active_owner": "conversation_skill",
+          "resume_policy": "none",
+          "selected_owner": "conversation_skill"
+        },
+        "memory_item_ids_used_for_route": []
+      },
+      "response_owner": "conversation_handler",
+      "direct_effects": [],
+      "skill_run": {
+        "output": {
+          "reply": "Ce que tu viens de dire ressemble plus a une attaque contre toi qu'a une information fiable. On peut garder le fait concret, sans transformer ca en verdict sur qui tu es.",
+          "status": "continue",
+          "skill_id": "emotional_repair",
+          "diagnosis": {
+            "pattern": "emotional_pain"
+          },
+          "state_patch": {
+            "summary": "Self-attack softened; keep concrete facts separate from identity."
+          },
+          "memory_trace": {
+            "correction_detected": false,
+            "memory_item_ids_used": [],
+            "memory_used_for_response": false,
+            "correction_target_item_ids": []
+          },
+          "response_intent": "de_shame",
+          "recommendation_need": {
+            "type": "state_regulation",
+            "needed": false,
+            "urgency": "medium",
+            "constraints": [
+              "no_solution_pushing"
+            ]
+          },
+          "operation_suggestions": [],
+          "memory_write_candidates": [
+            {
+              "kind": "statement",
+              "scope_hint": "session",
+              "content_text": "Prochaine étape. Je la garde en info à vérifier. Propose-moi juste le prochain micro-geste, sans liste longue.",
+              "confidence_band": "medium",
+              "sensitivity_level": 2,
+              "evidence_source_ids": [
+                "ef45cc7f-ba7d-4d28-81f2-2ed4d9c12dae"
+              ],
+              "persistence_rationale": "Conversation skill observation; memorizer decides durable persistence.",
+              "should_persist_default": false,
+              "anti_identity_freeze_checked": true
+            }
+          ]
+        },
+        "reason_code": "active_conversation_skill_continue",
+        "selected_skill_id": "emotional_repair"
+      },
+      "tool_skill_run": null,
+      "memory_write_candidates_emitted": 0,
+      "total_latency_ms": 5941
+    },
+    {
+      "turn_id": "global15_20260520_r4-t08",
+      "source_message_id": "ec44dca4-5b31-44ff-85d0-ae0d58320a03",
+      "ts": "2026-05-20T17:00:06.033+00:00",
+      "route_decision": {
+        "reason_code": "active_skill_exit_requested",
+        "blocked_paths": [],
+        "route_version": "v1",
+        "response_owner": "normal_reply",
+        "memory_use_kind": "none",
+        "direct_effects_to_run": [
+          "create_one_shot_reminder"
+        ],
+        "memory_used_for_route": false,
+        "active_flow_arbitration": {
+          "decision": "abandon_active",
+          "reason_code": "active_skill_exit_requested",
+          "active_owner": "conversation_skill",
+          "resume_policy": "none",
+          "selected_owner": "normal_reply"
+        },
+        "memory_item_ids_used_for_route": []
+      },
+      "response_owner": "normal_reply",
+      "direct_effects": [
+        {
+          "outcome": "success",
+          "tool_id": "create_one_shot_reminder"
+        }
+      ],
+      "skill_run": null,
+      "tool_skill_run": null,
+      "memory_write_candidates_emitted": 0,
+      "total_latency_ms": 4946
+    },
+    {
+      "turn_id": "global15_20260520_r4-t9r",
+      "source_message_id": "3925d1e0-eb19-4bc1-add7-2702d8657770",
+      "ts": "2026-05-20T17:00:44.745+00:00",
+      "route_decision": {
+        "reason_code": "skill_entry_signal",
+        "blocked_paths": [],
+        "route_version": "v1",
+        "response_owner": "product_help",
+        "memory_use_kind": "none",
+        "selected_handler": "product_help",
+        "direct_effects_to_run": [],
+        "memory_used_for_route": false,
+        "active_flow_arbitration": {
+          "decision": "none",
+          "reason_code": "no_active_flow",
+          "active_owner": "none",
+          "resume_policy": "none",
+          "selected_owner": "none"
+        },
+        "memory_item_ids_used_for_route": []
+      },
+      "response_owner": "product_help",
+      "direct_effects": [],
+      "skill_run": {
+        "output": {
+          "reply": "Pour ce rappel ponctuel, je le garde comme un rappel programmé depuis le chat.\n\nTu n'as rien à remettre dans le Plan. Pour le modifier, le plus fiable est de me le demander ici clairement, par exemple: \"change le rappel de demain à 9h\" ou \"annule le rappel de demain\".\n\nLes rappels récurrents, eux, se gèrent côté Initiatives/Rappels quand l'interface est disponible.",
+          "status": "complete",
+          "skill_id": "product_help",
+          "diagnosis": {
+            "locations": [
+              "Chat"
+            ],
+            "feature_id": "one_shot_reminder.chat",
+            "feature_label": "Initiatives",
+            "operation_bridge": null
+          },
+          "state_patch": {
+            "summary": "Product help answered for already programmed one-shot reminder."
+          },
+          "memory_trace": {
+            "correction_detected": false,
+            "memory_item_ids_used": [],
+            "memory_used_for_response": false,
+            "correction_target_item_ids": []
+          },
+          "response_intent": "how_to",
+          "recommendation_need": {
+            "type": "none",
+            "needed": false,
+            "urgency": "none",
+            "constraints": [
+              "one_shot_reminder_already_programmed",
+              "do_not_restart_reminder_slot_filling",
+              "product_help_does_not_execute_operations"
+            ]
+          },
+          "operation_suggestions": []
+        },
+        "reason_code": "skill_entry_signal",
+        "selected_skill_id": "product_help"
+      },
+      "tool_skill_run": null,
+      "memory_write_candidates_emitted": 0,
+      "total_latency_ms": 5315
+    },
+    {
+      "turn_id": "global15_20260520_r4-t10",
+      "source_message_id": "bec26169-59a8-4f49-a8bd-e8406a1a8ad2",
+      "ts": "2026-05-20T17:00:57.669+00:00",
+      "route_decision": {
+        "reason_code": "normal_reply_default",
+        "blocked_paths": [],
+        "route_version": "v1",
+        "response_owner": "normal_reply",
+        "memory_use_kind": "none",
+        "direct_effects_to_run": [],
+        "memory_used_for_route": false,
+        "active_flow_arbitration": {
+          "decision": "none",
+          "reason_code": "no_active_flow",
+          "active_owner": "none",
+          "resume_policy": "none",
+          "selected_owner": "none"
+        },
+        "memory_item_ids_used_for_route": []
+      },
+      "response_owner": "normal_reply",
+      "direct_effects": [],
+      "skill_run": null,
+      "tool_skill_run": null,
+      "memory_write_candidates_emitted": 0,
+      "total_latency_ms": 4860
+    },
+    {
+      "turn_id": "global15_20260520_r4-t11",
+      "source_message_id": "b215ff08-8512-43d1-87c0-e6bd82d527df",
+      "ts": "2026-05-20T17:01:17.603+00:00",
+      "route_decision": {
+        "reason_code": "skill_entry_signal",
+        "blocked_paths": [],
+        "route_version": "v1",
+        "response_owner": "conversation_handler",
+        "memory_use_kind": "none",
+        "selected_handler": "execution_breakdown",
+        "direct_effects_to_run": [],
+        "memory_used_for_route": false,
+        "active_flow_arbitration": {
+          "decision": "none",
+          "reason_code": "no_active_flow",
+          "active_owner": "none",
+          "resume_policy": "none",
+          "selected_owner": "none"
+        },
+        "memory_item_ids_used_for_route": []
+      },
+      "response_owner": "conversation_handler",
+      "direct_effects": [],
+      "skill_run": {
+        "output": {
+          "reply": "Avant de reparer, il me faut la cible: quelle action precise bloque la maintenant ?",
+          "status": "continue",
+          "skill_id": "execution_breakdown",
+          "diagnosis": {
+            "stage": "target_resolution",
+            "blocker_candidates": [
+              "flou",
+              "energie",
+              "friction_demarrage"
+            ]
+          },
+          "state_patch": {
+            "summary": "Need concrete target."
+          },
+          "memory_trace": {
+            "correction_detected": false,
+            "memory_item_ids_used": [],
+            "memory_used_for_response": false,
+            "correction_target_item_ids": []
+          },
+          "response_intent": "target_resolution",
+          "recommendation_need": {
+            "type": "execution_repair",
+            "needed": false,
+            "urgency": "medium",
+            "constraints": [
+              "understand_before_solution"
+            ]
+          },
+          "operation_suggestions": [],
+          "memory_write_candidates": [
+            {
+              "kind": "statement",
+              "scope_hint": "session",
+              "content_text": "Oui, formule-le en une phrase que tu pourrais réutiliser quand je reparle d'un document à écrire.",
+              "confidence_band": "medium",
+              "sensitivity_level": 1,
+              "evidence_source_ids": [
+                "b215ff08-8512-43d1-87c0-e6bd82d527df"
+              ],
+              "persistence_rationale": "Conversation skill observation; memorizer decides durable persistence.",
+              "should_persist_default": false,
+              "anti_identity_freeze_checked": true
+            }
+          ]
+        },
+        "reason_code": "skill_entry_signal",
+        "selected_skill_id": "execution_breakdown"
+      },
+      "tool_skill_run": null,
+      "memory_write_candidates_emitted": 0,
+      "total_latency_ms": 9866
+    },
+    {
+      "turn_id": "global15_20260520_r4-t12",
+      "source_message_id": "7356da4d-afb2-48e8-b9dd-207211ce0611",
+      "ts": "2026-05-20T17:01:57.661+00:00",
+      "route_decision": {
+        "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+        "blocked_paths": [],
+        "route_version": "v1",
+        "response_owner": "tool_skill",
+        "memory_use_kind": "none",
+        "selected_handler": "update_coach_preferences",
+        "direct_effects_to_run": [],
+        "memory_used_for_route": false,
+        "active_flow_arbitration": {
+          "decision": "supersede_active",
+          "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+          "active_owner": "conversation_skill",
+          "resume_policy": "user_reopens",
+          "selected_owner": "tool_skill"
+        },
+        "memory_item_ids_used_for_route": []
+      },
+      "response_owner": "tool_skill",
+      "direct_effects": [],
+      "skill_run": null,
+      "tool_skill_run": {
+        "status": "ask_question",
+        "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+        "missing_slots": [
+          "preference"
+        ],
+        "selected_handler": "update_coach_preferences"
+      },
+      "memory_write_candidates_emitted": 0,
+      "total_latency_ms": 14962
+    },
+    {
+      "turn_id": "global15_20260520_r4-t13",
+      "source_message_id": "7f25f7db-699a-43b8-b5bb-99da0596ca16",
+      "ts": "2026-05-20T17:02:25.08+00:00",
+      "route_decision": {
+        "reason_code": "execution_breakdown_absorbed_by_active_tool_skill",
+        "blocked_paths": [
+          {
+            "path": "skill_signals.execution_breakdown",
+            "reason_code": "execution_breakdown_absorbed_by_active_tool_skill"
+          }
+        ],
+        "route_version": "v1",
+        "response_owner": "tool_skill",
+        "memory_use_kind": "none",
+        "selected_handler": "update_coach_preferences",
+        "direct_effects_to_run": [],
+        "memory_used_for_route": false,
+        "active_flow_arbitration": {
+          "decision": "continue_active",
+          "reason_code": "execution_breakdown_absorbed_by_active_tool_skill",
+          "active_owner": "tool_skill",
+          "resume_policy": "none",
+          "selected_owner": "tool_skill"
+        },
+        "memory_item_ids_used_for_route": []
+      },
+      "response_owner": "tool_skill",
+      "direct_effects": [],
+      "skill_run": null,
+      "tool_skill_run": {
+        "draft": {
+          "draft": {
+            "patch": {
+              "coach.question_tendency": "low"
+            },
+            "reason": "Commence par la préférence: une seule question courte à la fois quand je bloque.",
+            "summary": "je te poserai moins de questions, plus courtes, surtout quand tu es bloqué."
+          },
+          "output_schema": "coach_preferences_patch_draft_v1",
+          "operation_type": "update_coach_preferences",
+          "confirmation_actions": [
+            "yes",
+            "no"
+          ],
+          "confirmation_message": "Bien reçu. Pour la suite, je te poserai moins de questions, plus courtes, surtout quand tu es bloqué. Si c'est bien ça, je le garde comme préférence."
+        },
+        "status": "pending_confirmation",
+        "reason_code": "execution_breakdown_absorbed_by_active_tool_skill",
+        "operation_id": "e7d872a9-40b8-4037-b2e4-46fef75ed33c",
+        "selected_handler": "update_coach_preferences"
+      },
+      "memory_write_candidates_emitted": 0,
+      "total_latency_ms": 16851
+    },
+    {
+      "turn_id": "global15_20260520_r4-t14r",
+      "source_message_id": "937b3b6a-2f0c-4f90-9140-2a1c6076b745",
+      "ts": "2026-05-20T17:03:52.569+00:00",
+      "route_decision": {
+        "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+        "blocked_paths": [],
+        "route_version": "v1",
+        "response_owner": "tool_skill",
+        "memory_use_kind": "none",
+        "selected_handler": "prepare_attack_card",
+        "direct_effects_to_run": [],
+        "memory_used_for_route": false,
+        "active_flow_arbitration": {
+          "decision": "supersede_active",
+          "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+          "active_owner": "conversation_skill",
+          "resume_policy": "user_reopens",
+          "selected_owner": "tool_skill"
+        },
+        "memory_item_ids_used_for_route": []
+      },
+      "response_owner": "tool_skill",
+      "direct_effects": [],
+      "skill_run": null,
+      "tool_skill_run": {
+        "status": "ask_question",
+        "slot_state": {
+          "slot": "target",
+          "needed": true,
+          "reason": "structured_ai_missing_target",
+          "status": "missing",
+          "question": "C'est entendu, je vais te préparer ça. Pour quelle action ou quel objectif veux-tu que je crée ce mantra ?",
+          "candidates": [],
+          "known_slots": {
+            "technique": "mantra_force",
+            "intake_state": {
+              "target": {
+                "kind": "unknown",
+                "status": "missing",
+                "evidence": [],
+                "candidates": [],
+                "confidence": "low"
+              },
+              "blocker": {
+                "type": "mixed",
+                "evidence": [],
+                "confidence": 0.5
+              },
+              "skill_id": "prepare_attack_card",
+              "technique": {
+                "value": "mantra_force",
+                "status": "identified",
+                "options": [],
+                "evidence": [
+                  "donne-moi maintenant la version ultra de la phrase"
+                ],
+                "confidence": "high",
+                "fit_warning": null,
+                "explicitly_requested": true
+              },
+              "confidence": "high",
+              "constraints": [],
+              "current_step": "target_intake",
+              "missing_slots": [
+                "target"
+              ],
+              "activation_keyword": {
+                "value": null,
+                "status": "not_applicable",
+                "options": [],
+                "evidence": [],
+                "confidence": "high",
+                "rejected_value": null
+              },
+              "generated_user_message": "C'est entendu, je vais te préparer ça. Pour quelle action ou quel objectif veux-tu que je crée ce mantra ?"
+            }
+          },
+          "technique_options": [],
+          "activation_keyword_options": []
+        },
+        "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+        "missing_slots": [
+          "target"
+        ],
+        "selected_handler": "prepare_attack_card"
+      },
+      "memory_write_candidates_emitted": 0,
+      "total_latency_ms": 42274
+    },
+    {
+      "turn_id": "global15_20260520_r4-t15",
+      "source_message_id": "37cfda1f-9125-4a20-a561-899fa85d12fb",
+      "ts": "2026-05-20T17:04:23.185+00:00",
+      "route_decision": {
+        "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+        "blocked_paths": [],
+        "route_version": "v1",
+        "response_owner": "tool_skill",
+        "memory_use_kind": "none",
+        "selected_handler": "update_coach_preferences",
+        "direct_effects_to_run": [],
+        "memory_used_for_route": false,
+        "active_flow_arbitration": {
+          "decision": "supersede_active",
+          "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+          "active_owner": "conversation_skill",
+          "resume_policy": "user_reopens",
+          "selected_owner": "tool_skill"
+        },
+        "memory_item_ids_used_for_route": []
+      },
+      "response_owner": "tool_skill",
+      "direct_effects": [],
+      "skill_run": null,
+      "tool_skill_run": {
+        "draft": {
+          "draft": {
+            "patch": {
+              "coach.question_tendency": "low"
+            },
+            "reason": "Ne crée rien de nouveau. Fais juste un récap sobre: ce que j'ai fait, ce qui est prévu demain, le piège à surveiller, et dis si tu as bien gardé la préférence question courte.",
+            "summary": "je te poserai moins de questions, plus courtes, surtout quand tu es bloqué."
+          },
+          "output_schema": "coach_preferences_patch_draft_v1",
+          "operation_type": "update_coach_preferences",
+          "confirmation_actions": [
+            "yes",
+            "no"
+          ],
+          "confirmation_message": "Bien reçu. Pour la suite, je te poserai moins de questions, plus courtes, surtout quand tu es bloqué. Si c'est bien ça, je le garde comme préférence."
+        },
+        "status": "pending_confirmation_updated",
+        "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+        "operation_id": "b587b532-c8b6-47a3-a817-6168244a2611",
+        "selected_handler": "update_coach_preferences",
+        "draft_review_decision": {
+          "decision": "revise",
+          "evidence": [
+            "Le message demande un récap sobre au lieu de créer quelque chose de nouveau.",
+            "Il demande explicitement d'intégrer une contrainte de forme: ce qui a été fait, ce qui est prévu demain, le piège à surveiller, et de confirmer la préférence question courte.",
+            "Le brouillon en attente concerne une autre formulation et une confirmation de préférence, donc il faut le modifier avant exécution."
+          ],
+          "confidence": "high",
+          "generated_user_message": "Je peux te faire un récap sobre avec seulement ce que tu as fait, ce qui est prévu demain, le piège à surveiller, et te dire si j’ai bien gardé la préférence de question courte. Je le reformule comme ça avant de le lancer."
+        },
+        "previous_operation_id": "e7d872a9-40b8-4037-b2e4-46fef75ed33c"
+      },
+      "memory_write_candidates_emitted": 0,
+      "total_latency_ms": 17728
+    }
+  ]
+}

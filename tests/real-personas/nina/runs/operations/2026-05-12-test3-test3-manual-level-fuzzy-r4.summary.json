@@ -1,0 +1,370 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Là je décroche un peu avec les grignotages. Je vois ce qui est prévu et ça me paraît trop lourd pour cette semaine.",
+    "assistant": "Ah je vois… si tu “décroches” et que tout te paraît trop lourd, c’est souvent que la semaine est en mode surcharge, pas que toi tu lâches. 😮‍💨\n\nOn va alléger sans tout annuler :\n1) Choisis 1 seul grignotage “prioritaire” à réduire (pas tous).\n2) Pour le reste, objectif minimal : diminuer un peu, ou garder la même quantité mais à des moments choisis (pas en mode automatique).\n3) Et si la semaine est vraiment chargée : on descend le plan à une version “survie” pendant 7 jours, juste pour remettre le contrôle.\n\nTu veux qu’on fasse une version “survie” (0 pression) ou une version “léger allègement” (un petit effort mais réaliste) ? 🤍",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "grignotages",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "reason_code": "operation_intent_start",
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Version survie. Mais ce n'est pas seulement un grignotage précis, c'est tout ce qu'il y a autour qui me fait trop.",
+    "assistant": "Ah ouais… là c’est pas “un” grignotage, c’est l’ambiance complète autour qui te tire vers le bas. 😮‍💨\n\nVersion survie (ultra simple) :\n1) On ne “choisit” rien : on coupe le flux. Pendant 48h, tu retires/évites les déclencheurs à proximité (les trucs prêts à grignoter, visibles, à portée).\n2) Objectif minimal : 0 grignotage “automatique”. S’il y en a, c’est uniquement après une pause de 10 minutes (tu te demandes : j’ai vraiment faim ou je cherche juste l’occupation ?).\n3) Tu gardes 1 option “tampon” (thé/eau + un truc autorisé et prévu, petit et cadré). L’idée c’est que la faim soit gérée sans négociation.\n\nTu veux qu’on fasse ça avec quel niveau de coupe : A) tu ranges hors de vue tout de suite, ou B) tu fais “barrière” (tu gardes le truc, mais pas accessible sans effort) ? 🍀",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "version survie",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "reason_code": "operation_intent_start",
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4-t03",
+    "status": 200,
+    "ok": true,
+    "user": "B. Et mets ça dans le plan s'il te plaît, parce que là il y a trop d'étapes et trop de décisions pour moi.",
+    "assistant": "Avant de modifier ce niveau, qu'est-ce qui le rend trop lourd concretement, et quoi faut-il changer en premier: nombre d'actions, intensite, timing, ou priorite ? Je vois notamment dans le plan: Nettoyer ton environnement direct, Version mini - Nettoyer ton environnement direct, Version mini - Nettoyer ton environnement direct, Version mini - Nettoyer ton environnement direct.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "Version survie - Option B (barrière)",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "status": "ask_question",
+      "reason_code": "operation_intent_start",
+      "plan_item_id": null,
+      "target_title": "niveau actuel",
+      "missing_slots": [
+        "current_level.change_target"
+      ],
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Nombre d'actions et intensité. Je veux garder l'intention, mais en mode très léger cette semaine.",
+    "assistant": "Ok, donc le problème c’est surtout le volume d’actions + leur intensité. On garde l’intention, mais on passe en mode “survie propre” : moins d’étapes, moins de décisions, et des micro-missions. 😮‍💨\n\nConcrètement, pour cette semaine, je te propose juste 1 axe d’ajustement :\n- Nombre d’actions : réduire à 1 seule mission “Version mini - Nettoyer ton environnement direct” (pas 9 fois la même famille)\n- Intensité : version 5 minutes max, puis arrêt (pas de “finir”, juste “démarrer”)\n- Décision : si ça te coûte, tu t’arrêtes. L’objectif c’est de ne pas re-décrocher.\n\nJe te redirige pour que ça soit modifié au bon endroit dans le tableau de bord. ✅\n\nTu préfères une seule mission pour toute la semaine, ou 2 petites sessions (ex: 2 jours) ? 🎯",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "plan global / niveau de difficulté",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "reason_code": "active_tool_skill_continue",
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4-t04",
+    "trace_error": null
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4-t05",
+    "status": 200,
+    "ok": true,
+    "user": "Une seule mission. Mais je ne veux pas être redirigé, je veux que tu l'appliques ici si c'est possible.",
+    "assistant": "Je te suis : une seule mission, et sans te perdre dans des étapes. 😮‍💨\n\nLà, je ne peux pas “appliquer” une modification directe du plan dans ton tableau comme par magie depuis le chat. Par contre, on peut le faire ultra simple ici, tout de suite, comme une version survie à exécuter maintenant.\n\nVersion survie, une seule mission (celle qu’on garde) :\nNettoyer ton environnement direct (mode mini).\nRègle : 5 minutes max, une seule zone (table/plan de travail OU cuisine proche OU sac/entrée), et tu t’arrêtes même si c’est “pas parfait”.\n\nTu la fais maintenant sur quelle zone précise : table de travail, cuisine, ou entrée/sac ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "Une seule mission",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "reason_code": "active_tool_skill_continue",
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4-t05",
+    "trace_error": null
+  },
+  {
+    "turn": 6,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4-t06",
+    "status": 200,
+    "ok": true,
+    "user": "Je suis perdu : tu viens de dire que tu pouvais l'adapter dans le plan, puis maintenant tu dis que non. Qu'est-ce qui est réellement modifié ?",
+    "assistant": "Je n'ai pas une cible assez claire pour ajuster le plan depuis le chat. Tu peux le faire dans ton espace sur sophia-coach.ai.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [
+        "maintenant"
+      ],
+      "risk_band": "none",
+      "reason_codes": [
+        "immediacy_now"
+      ],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": true,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "high",
+        "target_hint": "plan modification",
+        "user_intent": "clarify",
+        "explicitness": "implicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "medium"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "status": "fallback_dashboard",
+      "reason_code": "active_tool_skill_continue",
+      "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0",
+      "target_title": "Nettoyer ton environnement direct",
+      "missing_slots": [
+        "current_level.adjustment_type",
+        "current_level.reason",
+        "current_level.reason_change",
+        "current_level.change_target"
+      ],
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4-t06",
+    "trace_error": null
+  },
+  {
+    "turn": 7,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4-t07",
+    "status": 200,
+    "ok": true,
+    "user": "Ok donc rien n'a été changé ? Si quelque chose a été changé, donne-moi deux exemples précis, sinon dis clairement que rien n'a été appliqué.",
+    "assistant": "Je n'ai pas une cible assez claire pour ajuster le plan depuis le chat. Tu peux le faire dans ton espace sur sophia-coach.ai.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "status": "fallback_dashboard",
+      "reason_code": "active_tool_skill_continue",
+      "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0",
+      "target_title": "Nettoyer ton environnement direct",
+      "missing_slots": [
+        "current_level.adjustment_type",
+        "current_level.reason_change",
+        "current_level.change_target"
+      ],
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4-t07",
+    "trace_error": null
+  }
+]

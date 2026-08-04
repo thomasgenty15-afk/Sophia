@@ -1,0 +1,338 @@
+{
+  "scope": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r1",
+  "user_id": "e7113156-a77d-4d98-93da-2f6b493e1791",
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "f71531bb-677e-43d1-add3-70a435e615ce",
+        "role": "user",
+        "content": "Je fais encore les petites actions du plan, mais depuis quelques jours ça sonne creux. J'avance par réflexe et je ne vois plus très bien à quoi je suis en train de tenir.",
+        "scope": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r1",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-09T16:37:35.793245+00:00"
+      },
+      {
+        "id": "443cc6bb-be7e-4606-a620-fa15222d6243",
+        "role": "assistant",
+        "content": "Agir par pur automatisme est une forme de fatigue silencieuse qui finit par vider l'action de sa substance. Si tu regardes ce que tu as fait aujourd'hui, quel aspect te semble le plus déconnecté de la raison initiale pour laquelle tu t'es lancé ?",
+        "scope": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-09T16:37:59.382366+00:00"
+      },
+      {
+        "id": "9c187039-37ca-4615-b9d9-76c136195d1f",
+        "role": "user",
+        "content": "C'est surtout l'action de relancer mon dossier administratif. Au départ ça devait me redonner de l'air, mais là je clique juste pour ne pas me sentir en retard, sans sentir le lien avec le fait de reprendre de la place.",
+        "scope": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r1",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-09T16:38:12.368054+00:00"
+      },
+      {
+        "id": "7e00f911-99eb-4d5c-a75b-fcaeb710aa53",
+        "role": "assistant",
+        "content": "Je comprends que cette relance administrative ressemble de plus en plus à une course contre la montre plutôt qu'à un moyen de retrouver de l'air. La Potion de clarté permet de remettre en lumière le lien entre ces démarches et ton besoin de reprendre ta place, afin que l'action retrouve son sens initial. Est-ce que tu souhaites essayer cela ?",
+        "scope": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-09T16:39:19.878712+00:00"
+      },
+      {
+        "id": "85223853-3200-43b3-b2aa-8969d2fb88b7",
+        "role": "user",
+        "content": "Oui, je veux essayer la Potion de clarté. Ce que je veux garder, c'est que ce dossier n'est pas juste une corvée : c'est une manière de récupérer un peu de marge et d'arrêter de subir.",
+        "scope": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r1",
+        "metadata": {
+          "request_id": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r1-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-09T20:17:52.648725+00:00"
+      },
+      {
+        "id": "122972b9-ab90-4e9e-93e2-0cd592e10d0b",
+        "role": "assistant",
+        "content": "C'est une intention forte de vouloir retrouver de la marge. Qu'est-ce qui, selon toi, a fait que le lien s'est rompu entre tes actions concrètes sur ce dossier et ce besoin profond de ne plus subir ?",
+        "scope": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-demotivation-repair-qa-skill-2026-06-09-local-doctrine-r1-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "mode": "platform_handoff",
+              "status": "clarifying",
+              "handoff": {
+                "target": "state_potions"
+              },
+              "constraints": [],
+              "reason_code": "clarte_field_missing",
+              "runtime_trace": [
+                {
+                  "event": "active_clarte_turn_start",
+                  "component": "select_state_potion.clarte",
+                  "previous_status": null,
+                  "global_dispatcher_available": false
+                },
+                {
+                  "event": "note_information_created",
+                  "component": "local_dispatcher",
+                  "source_flow": "select_state_potion",
+                  "handoff_reason": "clarification_resolved",
+                  "target_dispatcher": "other_local",
+                  "target_local_dispatcher_hint": "select_state_potion.clarte"
+                },
+                {
+                  "flow": "select_state_potion.clarte",
+                  "event": "decision",
+                  "component": "local_dispatcher",
+                  "confidence": "high",
+                  "exit_reason": null,
+                  "flow_action": "answer_current_field",
+                  "visible_task": "ask_deeper",
+                  "risk_assessment": {
+                    "risk_band": "none",
+                    "risk_score": 0,
+                    "reason_codes": [],
+                    "safety_preempt": false
+                  },
+                  "selected_potion": "clarte"
+                },
+                {
+                  "flow": "select_state_potion.clarte",
+                  "event": "reduced",
+                  "status": "clarifying",
+                  "component": "local_reducer",
+                  "reason_code": "clarte_field_missing",
+                  "field_status": "missing",
+                  "visible_task": "ask_deeper",
+                  "exit_to_global_dispatcher": false
+                },
+                {
+                  "flow": "select_state_potion.clarte",
+                  "event": "conversation_context_built",
+                  "component": "local_reducer",
+                  "visible_task": "ask_deeper",
+                  "field_or_stage": "plan_meaning_loss_reason"
+                },
+                {
+                  "event": "start",
+                  "stage": "clarte_task",
+                  "component": "visible_stage",
+                  "handoff_status": "clarifying",
+                  "clarte_visible_task": "ask_deeper",
+                  "potion_subskill_visible_task": null,
+                  "conversation_context_provided": true
+                },
+                {
+                  "stage": "clarte_task",
+                  "issues": [],
+                  "attempt": 1,
+                  "accepted": true,
+                  "component": "visible_agent"
+                },
+                {
+                  "event": "complete",
+                  "stage": "clarte_task",
+                  "component": "visible_stage"
+                }
+              ],
+              "operation_type": "select_state_potion",
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "risk_assessment": {
+                "risk_band": "none",
+                "risk_score": 0,
+                "reason_codes": [],
+                "safety_preempt": false
+              },
+              "no_chat_mutation": true,
+              "note_information": {
+                "risk_score": 0,
+                "user_words": [
+                  "Oui, je veux essayer la Potion de clarté. Ce que je veux garder, c'est que ce dossier n'est pas juste une corvée : c'est une manière de récupérer un peu de marge et d'arrêter de subir."
+                ],
+                "handoff_reason": "clarification_resolved",
+                "source_flow_id": "select_state_potion",
+                "no_chat_mutation": {
+                  "db_write_committed": false,
+                  "potion_session_created": false,
+                  "scheduled_checkin_created": false,
+                  "recurring_reminder_created": false,
+                  "executable_confirmation_generated": false
+                },
+                "target_dispatcher": "other_local",
+                "structured_context": {
+                  "handoff_data": {
+                    "fields": [
+                      {
+                        "value": null,
+                        "status": "missing",
+                        "field_id": "plan_meaning_loss_reason",
+                        "field_label": "Pourquoi est-ce que tu as l’impression que ton plan n’a plus de sens pour toi aujourd’hui ?",
+                        "locked_value": null,
+                        "option_label": null,
+                        "option_value": null,
+                        "candidate_value": null,
+                        "detail_sufficiency": null,
+                        "needs_user_confirmation": false
+                      }
+                    ],
+                    "potion_name": "Potion de clarté",
+                    "platform_destination": "section État / Potions"
+                  },
+                  "evidence_used": [
+                    "local_dispatcher_activation"
+                  ],
+                  "selected_potion": {
+                    "potion_name": "Potion de clarté",
+                    "potion_type": "clarte"
+                  },
+                  "collected_fields": {},
+                  "unresolved_questions": [
+                    {
+                      "reason": "champ plateforme pas encore verrouillé",
+                      "field_id": "plan_meaning_loss_reason",
+                      "field_label": "Pourquoi est-ce que tu as l’impression que ton plan n’a plus de sens pour toi aujourd’hui ?",
+                      "followup_question": null
+                    }
+                  ]
+                },
+                "source_flow_presentation": "Helps recommend a state potion or support option and redirects to the Etat-Potions surface. It never launches or schedules a potion.",
+                "source_flow_state_summary": "Potion de clarté | tache visible=ask_deeper | aucun champ verrouillé",
+                "target_local_dispatcher_hint": "select_state_potion.clarte",
+                "handoff_context_for_next_dispatcher": "Potion de clarté | tache visible=ask_deeper | aucun champ verrouillé"
+              },
+              "platform_handoff": {
+                "draft": null,
+                "status": "delivered",
+                "surface_id": "state_potions",
+                "reason_code": "clarte_field_missing",
+                "operation_type": "select_state_potion",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "select_state_potion.clarte",
+              "committed_effects": [],
+              "requested_effects": [],
+              "executable_from_chat": false
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-09T20:18:38.658219+00:00"
+      }
+    ]
+  },
+  "memory_items_recent": {
+    "status": 400,
+    "ok": false,
+    "body": {
+      "code": "42703",
+      "details": null,
+      "hint": null,
+      "message": "column memory_items.content does not exist"
+    }
+  },
+  "scheduled_checkins_recent": {
+    "status": 400,
+    "ok": false,
+    "body": {
+      "code": "42703",
+      "details": null,
+      "hint": null,
+      "message": "column scheduled_checkins.type does not exist"
+    }
+  },
+  "turn_summary_logs": {
+    "status": 400,
+    "ok": false,
+    "body": {
+      "code": "42703",
+      "details": null,
+      "hint": null,
+      "message": "column turn_summary_logs.summary_type does not exist"
+    }
+  }
+}

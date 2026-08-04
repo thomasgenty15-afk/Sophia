@@ -1,0 +1,75 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-all-skills-ai-stress-2026-05-06-fstress3-r4-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Rappelle-moi dans 45 minutes de fermer l'onglet et boire de l'eau.",
+    "assistant": "C’est programmé pour mercredi 06 mai à 21:40 : fermer l'onglet et boire de l'eau.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "create_one_shot_reminder"
+    ],
+    "response_owner": "conversation_handler",
+    "selected_handler": "execution_breakdown",
+    "route_reason_code": "skill_entry_signal",
+    "route_decision": {
+      "reason_code": "skill_entry_signal",
+      "blocked_paths": [],
+      "route_version": "v1",
+      "response_owner": "conversation_handler",
+      "memory_use_kind": "none",
+      "selected_handler": "execution_breakdown",
+      "direct_effects_to_run": [
+        "create_one_shot_reminder"
+      ],
+      "memory_used_for_route": false,
+      "memory_item_ids_used_for_route": []
+    },
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [
+        "dans 45 minutes"
+      ],
+      "risk_band": "none",
+      "reason_codes": [
+        "immediacy_near_term"
+      ],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": true,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "create_one_shot_reminder"
+      }
+    ],
+    "turn_frame_direct_effects": [
+      {
+        "effect_type": "create_one_shot_reminder",
+        "explicitness": "explicit",
+        "payload_hint": {
+          "raw_text": "Rappelle-moi dans 45 minutes de fermer l'onglet et boire de l'eau."
+        },
+        "target_status": "identified",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_entry_ids": [
+      "execution_breakdown"
+    ],
+    "skill_lifecycle_ids": [],
+    "tool_skill_run": null,
+    "pending_tool_skill_confirmation": null,
+    "recommendation": null,
+    "memory_write_candidates_emitted": 0,
+    "trace_error": null
+  }
+]

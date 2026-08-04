@@ -1,0 +1,22 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-atypique-r2-t01",
+    "status": 200,
+    "ok": true,
+    "user": "fais moi un truc d'attaque pour le machin du soir avec le carnet, j'ai pas d'idée de technique et j'ai pas envie d'un pavé",
+    "assistant": "Ok, on attaque simple et efficace 😄: ouvre le carnet et écris juste 1 ligne “ce que je veux obtenir ce soir”, puis 3 puces “ce que je peux faire en 15 min max” (même si c’est imparfait), et tu choisis la 1ère puce à faire tout de suite.  \n\nTu veux que le “machin du soir” soit plutôt A) pour te détendre / te poser, ou B) pour avancer sur quelque chose ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "operation_flow_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "trace_error": null
+  }
+]

@@ -1,0 +1,2936 @@
+{
+  "run_id": "coachingrec-postfix-20260624-r2",
+  "scope": "qa-normal-conversation-coachingrec-postfix-20260624-r2",
+  "base_url": "http://127.0.0.1:54321",
+  "email": "qa-normal-coachingrec-postfix-20260624-r2-1782306551952@example.com",
+  "user_id": "e3dbf80c-79e7-4fda-bf2c-29c20128b352",
+  "anon_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0",
+  "service_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU",
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjU0MzIxL2F1dGgvdjEiLCJzdWIiOiJlM2RiZjgwYy03OWU3LTRmZGEtYmYyYy0yOWMyMDEyOGIzNTIiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzgyMzEwMTUyLCJpYXQiOjE3ODIzMDY1NTIsImVtYWlsIjoicWEtbm9ybWFsLWNvYWNoaW5ncmVjLXBvc3RmaXgtMjAyNjA2MjQtcjItMTc4MjMwNjU1MTk1MkBleGFtcGxlLmNvbSIsInBob25lIjoiIiwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiZW1haWwiLCJwcm92aWRlcnMiOlsiZW1haWwiXX0sInVzZXJfbWV0YWRhdGEiOnsiZW1haWwiOiJxYS1ub3JtYWwtY29hY2hpbmdyZWMtcG9zdGZpeC0yMDI2MDYyNC1yMi0xNzgyMzA2NTUxOTUyQGV4YW1wbGUuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImlzX3Rlc3RfcGVyc29uYSI6dHJ1ZSwicGhvbmVfdmVyaWZpZWQiOmZhbHNlLCJxYV9ydW5faWQiOiJjb2FjaGluZ3JlYy1wb3N0Zml4LTIwMjYwNjI0LXIyIiwic3ViIjoiZTNkYmY4MGMtNzllNy00ZmRhLWJmMmMtMjljMjAxMjhiMzUyIn0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3ODIzMDY1NTJ9XSwic2Vzc2lvbl9pZCI6ImFkODEzYjdlLWE5NzEtNDZkZi1hY2E4LTVlZWNlMTA2OTkzMyIsImlzX2Fub255bW91cyI6ZmFsc2V9.34I9UfPWpWHD5p8ut5_4qbtjyf8w6iqKTYTFnmq7v4E",
+  "auth_check": {
+    "status": 200,
+    "ok": true
+  },
+  "force_full_ai": true,
+  "created_at": "2026-06-24T13:09:12.486Z",
+  "turns": [
+    {
+      "turn": 1,
+      "sent_at": "2026-06-24T13:10:13.224Z",
+      "user": "Dans mon plan, j'ai l'action Préparer le dossier mutuelle. Quand je vois le dossier, je bloque avant de commencer et je repousse. Tu me conseillerais quoi dans Sophia ?",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Je partirais sur une carte d’attaque, technique Preparer le terrain : tu rends le dossier plus facile à ouvrir en avance en préparant tout ce qu’il faut autour de l’action, pour lever le blocage du démarrage.",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "coaching_recommendation_signal",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-24T13:10:13.170Z",
+                  "turn_count": 1,
+                  "updated_at": "2026-06-24T13:10:13.170Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "recommend",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user parle d'une action précise de son plan et décrit un blocage au démarrage avec évitement et report.",
+                        "target_kind": "plan_action",
+                        "action_title": "Préparer le dossier mutuelle",
+                        "action_source": "plan"
+                      },
+                      "turn_count": 1,
+                      "coaching_type": "plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Il s'agit d'un blocage au moment de commencer une action concrète du plan. La carte d'attaque est faite pour préparer l'entrée dans l'action, rendre le démarrage plus simple et réduire l'évitement."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user parle d'une action précise de son plan et décrit un blocage au démarrage avec évitement et report.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "Le blocage arrive avant de commencer une action concrète du plan ; une carte d’attaque sert précisément à préparer l’entrée dans l’action et à réduire l’évitement au démarrage.",
+                          "feature": "attack_card",
+                          "destination_hint": "Dashboard > Plan"
+                        }
+                      ],
+                      "last_answer_summary": "Le blocage arrive avant de commencer une action concrète du plan ; une carte d’attaque sert précisément à préparer l’entrée dans l’action et à réduire l’évitement au démarrage.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "attack_card",
+                        "reason": "Le blocage arrive avant de commencer une action concrète du plan ; une carte d’attaque sert précisément à préparer l’entrée dans l’action et à réduire l’évitement au démarrage.",
+                        "variant": "preparer_terrain",
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "The user refers to a specific active plan item and asks what Sophia should recommend for a block before starting it."
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "Le blocage arrive avant de commencer une action concrète du plan ; une carte d’attaque sert précisément à préparer l’entrée dans l’action et à réduire l’évitement au démarrage.",
+                        "feature": "attack_card",
+                        "destination_hint": "Dashboard > Plan"
+                      },
+                      "last_visible_task_kind": "action_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le blocage arrive avant de commencer une action concrète du plan ; une carte d’attaque sert précisément à préparer l’entrée dans l’action et à réduire l’évitement au démarrage.",
+                        "why_not_others": {},
+                        "primary_feature": "attack_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte d'attaque",
+                          "surface_hint": "Dashboard > Plan",
+                          "user_facing_destination": "surface=Dashboard > Plan; anchor=action_concernee; object_type=carte d'attaque liee au Plan; user_action=ouvrir l'action concernee puis preparer la carte"
+                        },
+                        "user_facing_next_step": "Je te conseillerais une carte d'attaque liée à \"Préparer le dossier mutuelle\" pour préparer le démarrage et lever le blocage avant de t'y mettre."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "The user refers to a specific active plan item and asks what Sophia should recommend for a block before starting it.",
+                        "category": "plan_action_coaching",
+                        "confidence": 0.87,
+                        "failure_mode": "unclear",
+                        "coaching_type": "plan_action",
+                        "action_context": {
+                          "source": "plan",
+                          "plan_id": null,
+                          "plan_title": null,
+                          "action_type": "mission",
+                          "action_title": "Préparer le dossier mutuelle",
+                          "plan_item_id": "f6f617a9-ac16-4e35-a865-761123e43d0a"
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": true,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": true,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": false
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-24T13:10:13.170Z",
+                  "turn_count": 1,
+                  "updated_at": "2026-06-24T13:10:13.170Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "recommend",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user parle d'une action précise de son plan et décrit un blocage au démarrage avec évitement et report.",
+                        "target_kind": "plan_action",
+                        "action_title": "Préparer le dossier mutuelle",
+                        "action_source": "plan"
+                      },
+                      "turn_count": 1,
+                      "coaching_type": "plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Il s'agit d'un blocage au moment de commencer une action concrète du plan. La carte d'attaque est faite pour préparer l'entrée dans l'action, rendre le démarrage plus simple et réduire l'évitement."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user parle d'une action précise de son plan et décrit un blocage au démarrage avec évitement et report.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "Le blocage arrive avant de commencer une action concrète du plan ; une carte d’attaque sert précisément à préparer l’entrée dans l’action et à réduire l’évitement au démarrage.",
+                          "feature": "attack_card",
+                          "destination_hint": "Dashboard > Plan"
+                        }
+                      ],
+                      "last_answer_summary": "Le blocage arrive avant de commencer une action concrète du plan ; une carte d’attaque sert précisément à préparer l’entrée dans l’action et à réduire l’évitement au démarrage.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "attack_card",
+                        "reason": "Le blocage arrive avant de commencer une action concrète du plan ; une carte d’attaque sert précisément à préparer l’entrée dans l’action et à réduire l’évitement au démarrage.",
+                        "variant": "preparer_terrain",
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "The user refers to a specific active plan item and asks what Sophia should recommend for a block before starting it."
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "Le blocage arrive avant de commencer une action concrète du plan ; une carte d’attaque sert précisément à préparer l’entrée dans l’action et à réduire l’évitement au démarrage.",
+                        "feature": "attack_card",
+                        "destination_hint": "Dashboard > Plan"
+                      },
+                      "last_visible_task_kind": "action_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le blocage arrive avant de commencer une action concrète du plan ; une carte d’attaque sert précisément à préparer l’entrée dans l’action et à réduire l’évitement au démarrage.",
+                        "why_not_others": {},
+                        "primary_feature": "attack_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte d'attaque",
+                          "surface_hint": "Dashboard > Plan",
+                          "user_facing_destination": "surface=Dashboard > Plan; anchor=action_concernee; object_type=carte d'attaque liee au Plan; user_action=ouvrir l'action concernee puis preparer la carte"
+                        },
+                        "user_facing_next_step": "Je te conseillerais une carte d'attaque liée à \"Préparer le dossier mutuelle\" pour préparer le démarrage et lever le blocage avant de t'y mettre."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "The user refers to a specific active plan item and asks what Sophia should recommend for a block before starting it.",
+                        "category": "plan_action_coaching",
+                        "confidence": 0.87,
+                        "failure_mode": "unclear",
+                        "coaching_type": "plan_action",
+                        "action_context": {
+                          "source": "plan",
+                          "plan_id": null,
+                          "plan_title": null,
+                          "action_type": "mission",
+                          "action_title": "Préparer le dossier mutuelle",
+                          "plan_item_id": "f6f617a9-ac16-4e35-a865-761123e43d0a"
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": true,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": true,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": false
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-24T13:10:13.174418+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-postfix-20260624-r2-t01",
+        "user_id": "e3dbf80c-79e7-4fda-bf2c-29c20128b352",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-postfix-20260624-r2",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je partirais sur une carte d’attaque, technique Preparer le terrain : tu rends le dossier plus facile à ouvrir en avance en préparant tout ce qu’il faut autour de l’action, pour lever le blocage du démarrage.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-postfix-20260624-r2-t01",
+              "source_message_id": "dae4b403-4192-48e3-b51d-4d7b5e427a44",
+              "user_id": "e3dbf80c-79e7-4fda-bf2c-29c20128b352",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {
+                "coaching_recommendation": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "plan_action_coaching_need",
+                  "context": {
+                    "coaching_type": "plan_action",
+                    "confidence": 0.87,
+                    "activation_checks": {
+                      "is_coaching_need": true,
+                      "is_about_plan_action": true,
+                      "is_about_non_plan_action": false,
+                      "is_about_emotional_state": false,
+                      "has_concrete_plan_action": true,
+                      "needs_type_confirmation": false
+                    },
+                    "action_context": {
+                      "source": "plan",
+                      "plan_item_id": "f6f617a9-ac16-4e35-a865-761123e43d0a",
+                      "action_title": "Préparer le dossier mutuelle",
+                      "plan_id": null,
+                      "plan_title": null,
+                      "action_type": "mission"
+                    },
+                    "emotional_state_context": null,
+                    "reason": "The user refers to a specific active plan item and asks what Sophia should recommend for a block before starting it."
+                  }
+                }
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "coaching_recommendation_for_blocked_plan_action",
+                "reasoning_complexity": "medium",
+                "context_need": "targeted",
+                "memory_mode": "light",
+                "model_tier_hint": "standard",
+                "context_budget_tier": "small",
+                "targets": [],
+                "retrieval_policy": "taxonomy_first",
+                "plan_confidence": 0.92
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "coaching_recommendation_signal",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "minimal_global_dispatcher",
+                "active_owner": "none",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "none",
+                "reason_code": "coaching_recommendation_signal"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-postfix-20260624-r2-t01",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "coaching_recommendation_signal",
+              "status": "continue",
+              "latency_ms": 26102
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-postfix-20260624-r2-t01",
+            "source_message_id": "dae4b403-4192-48e3-b51d-4d7b5e427a44",
+            "user_id": "e3dbf80c-79e7-4fda-bf2c-29c20128b352",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {
+              "coaching_recommendation": {
+                "detected": true,
+                "confidence_band": "high",
+                "reason": "plan_action_coaching_need",
+                "context": {
+                  "coaching_type": "plan_action",
+                  "confidence": 0.87,
+                  "activation_checks": {
+                    "is_coaching_need": true,
+                    "is_about_plan_action": true,
+                    "is_about_non_plan_action": false,
+                    "is_about_emotional_state": false,
+                    "has_concrete_plan_action": true,
+                    "needs_type_confirmation": false
+                  },
+                  "action_context": {
+                    "source": "plan",
+                    "plan_item_id": "f6f617a9-ac16-4e35-a865-761123e43d0a",
+                    "action_title": "Préparer le dossier mutuelle",
+                    "plan_id": null,
+                    "plan_title": null,
+                    "action_type": "mission"
+                  },
+                  "emotional_state_context": null,
+                  "reason": "The user refers to a specific active plan item and asks what Sophia should recommend for a block before starting it."
+                }
+              }
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "coaching_recommendation_for_blocked_plan_action",
+              "reasoning_complexity": "medium",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "standard",
+              "context_budget_tier": "small",
+              "targets": [],
+              "retrieval_policy": "taxonomy_first",
+              "plan_confidence": 0.92
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "coaching_recommendation_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "minimal_global_dispatcher",
+              "active_owner": "none",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "none",
+              "reason_code": "coaching_recommendation_signal"
+            },
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-postfix-20260624-r2-t01",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "coaching_recommendation_signal",
+            "status": "continue",
+            "latency_ms": 26102
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 2,
+      "sent_at": "2026-06-24T13:10:57.026Z",
+      "user": "Je connais pas trop Sophia : une carte d'attaque et Préparer le terrain, ça veut dire quoi concrètement ?",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Une carte d’attaque, c’est une aide pour t’aider à démarrer une action du plan quand tu bloques avant le premier geste.\n\n« Préparer le terrain », ça veut dire rendre le démarrage plus facile en amont : sortir les papiers, ouvrir le bon dossier, prévoir un endroit calme, enlever ce qui te distrait.\n\nIci, je partirais sur une carte d’attaque, technique Préparer le terrain, parce que ton blocage arrive avant de commencer « Préparer le dossier mutuelle ».",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "active_coaching_recommendation",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-24T13:10:13.170Z",
+                  "turn_count": 2,
+                  "updated_at": "2026-06-24T13:10:56.967Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user parle d'une action précise de son plan et décrit un blocage au démarrage avec évitement et report.",
+                        "target_kind": "plan_action",
+                        "action_title": "Préparer le dossier mutuelle",
+                        "action_source": "plan"
+                      },
+                      "turn_count": 2,
+                      "coaching_type": "plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Il s'agit d'un blocage au moment de commencer une action concrète du plan. La carte d'attaque est faite pour préparer l'entrée dans l'action, rendre le démarrage plus simple et réduire l'évitement."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user demande une explication concrète de la carte d'attaque recommandée et de la technique 'Préparer le terrain' pour son action du plan.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "Le user demande une explication concrète et décrit un blocage au démarrage d’une action précise du plan ; la technique Préparer le terrain correspond bien à une carte d’attaque pour faciliter l’entrée dans l’action.",
+                          "feature": "attack_card",
+                          "destination_hint": "Dashboard > Plan"
+                        }
+                      ],
+                      "last_answer_summary": "Le user demande une explication concrète et décrit un blocage au démarrage d’une action précise du plan ; la technique Préparer le terrain correspond bien à une carte d’attaque pour faciliter l’entrée dans l’action.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "attack_card",
+                        "reason": "Le user demande une explication concrète et décrit un blocage au démarrage d’une action précise du plan ; la technique Préparer le terrain correspond bien à une carte d’attaque pour faciliter l’entrée dans l’action.",
+                        "variant": "preparer_terrain",
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "The user refers to a specific active plan item and asks what Sophia should recommend for a block before starting it."
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "Le user demande une explication concrète et décrit un blocage au démarrage d’une action précise du plan ; la technique Préparer le terrain correspond bien à une carte d’attaque pour faciliter l’entrée dans l’action.",
+                        "feature": "attack_card",
+                        "destination_hint": "Dashboard > Plan"
+                      },
+                      "last_visible_task_kind": "action_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le user demande une explication concrète et décrit un blocage au démarrage d’une action précise du plan ; la technique Préparer le terrain correspond bien à une carte d’attaque pour faciliter l’entrée dans l’action.",
+                        "why_not_others": {},
+                        "primary_feature": "attack_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte d'attaque",
+                          "surface_hint": "Dashboard > Plan",
+                          "user_facing_destination": "surface=Dashboard > Plan; anchor=action_concernee; object_type=carte d'attaque liee au Plan; user_action=ouvrir l'action concernee puis preparer la carte"
+                        },
+                        "user_facing_next_step": "Je te conseillerais une carte d'attaque liée à \"Préparer le dossier mutuelle\" pour préparer le démarrage et lever le blocage avant de t'y mettre."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "The user refers to a specific active plan item and asks what Sophia should recommend for a block before starting it.",
+                        "category": "plan_action_coaching",
+                        "confidence": 0.87,
+                        "failure_mode": "unclear",
+                        "coaching_type": "plan_action",
+                        "action_context": {
+                          "source": "plan",
+                          "plan_id": null,
+                          "plan_title": null,
+                          "action_type": "mission",
+                          "action_title": "Préparer le dossier mutuelle",
+                          "plan_item_id": "f6f617a9-ac16-4e35-a865-761123e43d0a"
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": true,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": true,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": false
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-24T13:10:13.170Z",
+                  "turn_count": 2,
+                  "updated_at": "2026-06-24T13:10:56.967Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user parle d'une action précise de son plan et décrit un blocage au démarrage avec évitement et report.",
+                        "target_kind": "plan_action",
+                        "action_title": "Préparer le dossier mutuelle",
+                        "action_source": "plan"
+                      },
+                      "turn_count": 2,
+                      "coaching_type": "plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Il s'agit d'un blocage au moment de commencer une action concrète du plan. La carte d'attaque est faite pour préparer l'entrée dans l'action, rendre le démarrage plus simple et réduire l'évitement."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user demande une explication concrète de la carte d'attaque recommandée et de la technique 'Préparer le terrain' pour son action du plan.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "Le user demande une explication concrète et décrit un blocage au démarrage d’une action précise du plan ; la technique Préparer le terrain correspond bien à une carte d’attaque pour faciliter l’entrée dans l’action.",
+                          "feature": "attack_card",
+                          "destination_hint": "Dashboard > Plan"
+                        }
+                      ],
+                      "last_answer_summary": "Le user demande une explication concrète et décrit un blocage au démarrage d’une action précise du plan ; la technique Préparer le terrain correspond bien à une carte d’attaque pour faciliter l’entrée dans l’action.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "attack_card",
+                        "reason": "Le user demande une explication concrète et décrit un blocage au démarrage d’une action précise du plan ; la technique Préparer le terrain correspond bien à une carte d’attaque pour faciliter l’entrée dans l’action.",
+                        "variant": "preparer_terrain",
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "The user refers to a specific active plan item and asks what Sophia should recommend for a block before starting it."
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "Le user demande une explication concrète et décrit un blocage au démarrage d’une action précise du plan ; la technique Préparer le terrain correspond bien à une carte d’attaque pour faciliter l’entrée dans l’action.",
+                        "feature": "attack_card",
+                        "destination_hint": "Dashboard > Plan"
+                      },
+                      "last_visible_task_kind": "action_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le user demande une explication concrète et décrit un blocage au démarrage d’une action précise du plan ; la technique Préparer le terrain correspond bien à une carte d’attaque pour faciliter l’entrée dans l’action.",
+                        "why_not_others": {},
+                        "primary_feature": "attack_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte d'attaque",
+                          "surface_hint": "Dashboard > Plan",
+                          "user_facing_destination": "surface=Dashboard > Plan; anchor=action_concernee; object_type=carte d'attaque liee au Plan; user_action=ouvrir l'action concernee puis preparer la carte"
+                        },
+                        "user_facing_next_step": "Je te conseillerais une carte d'attaque liée à \"Préparer le dossier mutuelle\" pour préparer le démarrage et lever le blocage avant de t'y mettre."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "The user refers to a specific active plan item and asks what Sophia should recommend for a block before starting it.",
+                        "category": "plan_action_coaching",
+                        "confidence": 0.87,
+                        "failure_mode": "unclear",
+                        "coaching_type": "plan_action",
+                        "action_context": {
+                          "source": "plan",
+                          "plan_id": null,
+                          "plan_title": null,
+                          "action_type": "mission",
+                          "action_title": "Préparer le dossier mutuelle",
+                          "plan_item_id": "f6f617a9-ac16-4e35-a865-761123e43d0a"
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": true,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": true,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": false
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-24T13:10:56.974808+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-postfix-20260624-r2-t02",
+        "user_id": "e3dbf80c-79e7-4fda-bf2c-29c20128b352",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-postfix-20260624-r2",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Une carte d’attaque, c’est une aide pour t’aider à démarrer une action du plan quand tu bloques avant le premier geste.\n\n« Préparer le terrain », ça veut dire rendre le démarrage plus facile en amont : sortir les papiers, ouvrir le bon dossier, prévoir un endroit calme, enlever ce qui te distrait.\n\nIci, je partirais sur une carte d’attaque, technique Préparer le terrain, parce que ton blocage arrive avant de commencer « Préparer le dossier mutuelle ».",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-postfix-20260624-r2-t02",
+              "source_message_id": "90d88fb0-c907-4a48-aee8-bd631187d82f",
+              "user_id": "e3dbf80c-79e7-4fda-bf2c-29c20128b352",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {},
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "active_coaching_recommendation",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "coaching_recommendation",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "resume_active",
+                "reason_code": "active_coaching_recommendation"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-postfix-20260624-r2-t02",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "active_coaching_recommendation",
+              "status": "continue",
+              "latency_ms": 24566
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-postfix-20260624-r2-t02",
+            "source_message_id": "90d88fb0-c907-4a48-aee8-bd631187d82f",
+            "user_id": "e3dbf80c-79e7-4fda-bf2c-29c20128b352",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {},
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "active_coaching_recommendation",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "coaching_recommendation",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "resume_active",
+              "reason_code": "active_coaching_recommendation"
+            },
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-postfix-20260624-r2-t02",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "active_coaching_recommendation",
+            "status": "continue",
+            "latency_ms": 24566
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 3,
+      "sent_at": "2026-06-24T13:11:29.155Z",
+      "user": "En vrai j'ai aussi la boule au ventre quand je pense au dossier. Est-ce qu'une potion Apaisement serait plus logique que cette carte ?",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "La potion Apaisement sert surtout quand la pression monte de façon globale. Ici, ta boule au ventre est liée à une action précise du plan et surtout au moment de démarrer, donc une carte d’attaque est plus adaptée. Je partirais sur une carte d’attaque, technique Préparer le terrain : tu enlèves au maximum ce qui freine l’entrée en action avant d’ouvrir le dossier, pour que le premier geste soit plus simple.",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "active_coaching_recommendation",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-24T13:10:13.170Z",
+                  "turn_count": 3,
+                  "updated_at": "2026-06-24T13:11:29.122Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user parle d'une action précise de son plan et décrit un blocage au démarrage avec évitement et report.",
+                        "target_kind": "plan_action",
+                        "action_title": "Préparer le dossier mutuelle",
+                        "action_source": "plan"
+                      },
+                      "turn_count": 3,
+                      "coaching_type": "plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Il s'agit d'un blocage au moment de commencer une action concrète du plan. La carte d'attaque est faite pour préparer l'entrée dans l'action, rendre le démarrage plus simple et réduire l'évitement."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user compare une carte d’attaque déjà recommandée avec une potion, mais la boule au ventre est liée à l’action du plan \"Préparer le dossier mutuelle\".",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "Le user décrit un blocage au démarrage d’une action concrète du plan, avec évitement et report. La carte d’attaque correspond mieux qu’une potion, et la technique Préparer le terrain est adaptée pour faciliter l’entrée dans l’action.",
+                          "feature": "attack_card",
+                          "destination_hint": "Dashboard > Plan"
+                        }
+                      ],
+                      "last_answer_summary": "Le user décrit un blocage au démarrage d’une action concrète du plan, avec évitement et report. La carte d’attaque correspond mieux qu’une potion, et la technique Préparer le terrain est adaptée pour faciliter l’entrée dans l’action.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "attack_card",
+                        "reason": "Le user décrit un blocage au démarrage d’une action concrète du plan, avec évitement et report. La carte d’attaque correspond mieux qu’une potion, et la technique Préparer le terrain est adaptée pour faciliter l’entrée dans l’action.",
+                        "variant": "preparer_terrain",
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "The user refers to a specific active plan item and asks what Sophia should recommend for a block before starting it."
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "Le user décrit un blocage au démarrage d’une action concrète du plan, avec évitement et report. La carte d’attaque correspond mieux qu’une potion, et la technique Préparer le terrain est adaptée pour faciliter l’entrée dans l’action.",
+                        "feature": "attack_card",
+                        "destination_hint": "Dashboard > Plan"
+                      },
+                      "last_visible_task_kind": "action_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le user décrit un blocage au démarrage d’une action concrète du plan, avec évitement et report. La carte d’attaque correspond mieux qu’une potion, et la technique Préparer le terrain est adaptée pour faciliter l’entrée dans l’action.",
+                        "why_not_others": {},
+                        "primary_feature": "attack_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte d'attaque",
+                          "surface_hint": "Dashboard > Plan",
+                          "user_facing_destination": "surface=Dashboard > Plan; anchor=action_concernee; object_type=carte d'attaque liee au Plan; user_action=ouvrir l'action concernee puis preparer la carte"
+                        },
+                        "user_facing_next_step": "Je te conseillerais une carte d'attaque liée à \"Préparer le dossier mutuelle\" pour préparer le démarrage et lever le blocage avant de t'y mettre."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "The user refers to a specific active plan item and asks what Sophia should recommend for a block before starting it.",
+                        "category": "plan_action_coaching",
+                        "confidence": 0.87,
+                        "failure_mode": "unclear",
+                        "coaching_type": "plan_action",
+                        "action_context": {
+                          "source": "plan",
+                          "plan_id": null,
+                          "plan_title": null,
+                          "action_type": "mission",
+                          "action_title": "Préparer le dossier mutuelle",
+                          "plan_item_id": "f6f617a9-ac16-4e35-a865-761123e43d0a"
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": true,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": true,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": false
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-24T13:10:13.170Z",
+                  "turn_count": 3,
+                  "updated_at": "2026-06-24T13:11:29.122Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user parle d'une action précise de son plan et décrit un blocage au démarrage avec évitement et report.",
+                        "target_kind": "plan_action",
+                        "action_title": "Préparer le dossier mutuelle",
+                        "action_source": "plan"
+                      },
+                      "turn_count": 3,
+                      "coaching_type": "plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Il s'agit d'un blocage au moment de commencer une action concrète du plan. La carte d'attaque est faite pour préparer l'entrée dans l'action, rendre le démarrage plus simple et réduire l'évitement."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user compare une carte d’attaque déjà recommandée avec une potion, mais la boule au ventre est liée à l’action du plan \"Préparer le dossier mutuelle\".",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "Le user décrit un blocage au démarrage d’une action concrète du plan, avec évitement et report. La carte d’attaque correspond mieux qu’une potion, et la technique Préparer le terrain est adaptée pour faciliter l’entrée dans l’action.",
+                          "feature": "attack_card",
+                          "destination_hint": "Dashboard > Plan"
+                        }
+                      ],
+                      "last_answer_summary": "Le user décrit un blocage au démarrage d’une action concrète du plan, avec évitement et report. La carte d’attaque correspond mieux qu’une potion, et la technique Préparer le terrain est adaptée pour faciliter l’entrée dans l’action.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "attack_card",
+                        "reason": "Le user décrit un blocage au démarrage d’une action concrète du plan, avec évitement et report. La carte d’attaque correspond mieux qu’une potion, et la technique Préparer le terrain est adaptée pour faciliter l’entrée dans l’action.",
+                        "variant": "preparer_terrain",
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "The user refers to a specific active plan item and asks what Sophia should recommend for a block before starting it."
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "Le user décrit un blocage au démarrage d’une action concrète du plan, avec évitement et report. La carte d’attaque correspond mieux qu’une potion, et la technique Préparer le terrain est adaptée pour faciliter l’entrée dans l’action.",
+                        "feature": "attack_card",
+                        "destination_hint": "Dashboard > Plan"
+                      },
+                      "last_visible_task_kind": "action_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le user décrit un blocage au démarrage d’une action concrète du plan, avec évitement et report. La carte d’attaque correspond mieux qu’une potion, et la technique Préparer le terrain est adaptée pour faciliter l’entrée dans l’action.",
+                        "why_not_others": {},
+                        "primary_feature": "attack_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte d'attaque",
+                          "surface_hint": "Dashboard > Plan",
+                          "user_facing_destination": "surface=Dashboard > Plan; anchor=action_concernee; object_type=carte d'attaque liee au Plan; user_action=ouvrir l'action concernee puis preparer la carte"
+                        },
+                        "user_facing_next_step": "Je te conseillerais une carte d'attaque liée à \"Préparer le dossier mutuelle\" pour préparer le démarrage et lever le blocage avant de t'y mettre."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "The user refers to a specific active plan item and asks what Sophia should recommend for a block before starting it.",
+                        "category": "plan_action_coaching",
+                        "confidence": 0.87,
+                        "failure_mode": "unclear",
+                        "coaching_type": "plan_action",
+                        "action_context": {
+                          "source": "plan",
+                          "plan_id": null,
+                          "plan_title": null,
+                          "action_type": "mission",
+                          "action_title": "Préparer le dossier mutuelle",
+                          "plan_item_id": "f6f617a9-ac16-4e35-a865-761123e43d0a"
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": true,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": true,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": false
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-24T13:11:29.125941+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-postfix-20260624-r2-t03",
+        "user_id": "e3dbf80c-79e7-4fda-bf2c-29c20128b352",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-postfix-20260624-r2",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "La potion Apaisement sert surtout quand la pression monte de façon globale. Ici, ta boule au ventre est liée à une action précise du plan et surtout au moment de démarrer, donc une carte d’attaque est plus adaptée. Je partirais sur une carte d’attaque, technique Préparer le terrain : tu enlèves au maximum ce qui freine l’entrée en action avant d’ouvrir le dossier, pour que le premier geste soit plus simple.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-postfix-20260624-r2-t03",
+              "source_message_id": "47b9f381-e653-492a-b859-a64e688f4542",
+              "user_id": "e3dbf80c-79e7-4fda-bf2c-29c20128b352",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {},
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "active_coaching_recommendation",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "coaching_recommendation",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "resume_active",
+                "reason_code": "active_coaching_recommendation"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-postfix-20260624-r2-t03",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "active_coaching_recommendation",
+              "status": "continue",
+              "latency_ms": 21932
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-postfix-20260624-r2-t03",
+            "source_message_id": "47b9f381-e653-492a-b859-a64e688f4542",
+            "user_id": "e3dbf80c-79e7-4fda-bf2c-29c20128b352",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {},
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "active_coaching_recommendation",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "coaching_recommendation",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "resume_active",
+              "reason_code": "active_coaching_recommendation"
+            },
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-postfix-20260624-r2-t03",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "active_coaching_recommendation",
+            "status": "continue",
+            "latency_ms": 21932
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 4,
+      "sent_at": "2026-06-24T13:12:03.216Z",
+      "user": "Ok, et si je veux préparer cette carte moi-même, je vais où exactement ? Ne la crée pas depuis le chat.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Je partirais sur une carte d’attaque, technique Préparer le terrain : tu l’ouvres depuis l’action \"Préparer le dossier mutuelle\" dans Dashboard > Plan, et elle t’aide à rendre le démarrage plus simple en aménageant le contexte avant de t’y mettre. Si tu veux juste la retrouver plus tard, ce sera dans Ressources.",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "active_coaching_recommendation",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-24T13:10:13.170Z",
+                  "turn_count": 4,
+                  "updated_at": "2026-06-24T13:12:03.184Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user parle d'une action précise de son plan et décrit un blocage au démarrage avec évitement et report.",
+                        "target_kind": "plan_action",
+                        "action_title": "Préparer le dossier mutuelle",
+                        "action_source": "plan"
+                      },
+                      "turn_count": 4,
+                      "coaching_type": "plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Il s'agit d'un blocage au moment de commencer une action concrète du plan. La carte d'attaque est faite pour préparer l'entrée dans l'action, rendre le démarrage plus simple et réduire l'évitement."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user ne demande pas une nouvelle recommandation; il demande où préparer lui-même la carte d’attaque déjà conseillée, sans la créer depuis le chat.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "Blocage au démarrage d’une action concrète du plan, avec évitement et report. La carte d’attaque est le bon levier, et Préparer le terrain correspond à une friction de départ.",
+                          "feature": "attack_card",
+                          "destination_hint": "Dashboard > Plan"
+                        }
+                      ],
+                      "last_answer_summary": "Blocage au démarrage d’une action concrète du plan, avec évitement et report. La carte d’attaque est le bon levier, et Préparer le terrain correspond à une friction de départ.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "attack_card",
+                        "reason": "Blocage au démarrage d’une action concrète du plan, avec évitement et report. La carte d’attaque est le bon levier, et Préparer le terrain correspond à une friction de départ.",
+                        "variant": "preparer_terrain",
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "The user refers to a specific active plan item and asks what Sophia should recommend for a block before starting it."
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "Blocage au démarrage d’une action concrète du plan, avec évitement et report. La carte d’attaque est le bon levier, et Préparer le terrain correspond à une friction de départ.",
+                        "feature": "attack_card",
+                        "destination_hint": "Dashboard > Plan"
+                      },
+                      "last_visible_task_kind": "action_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Blocage au démarrage d’une action concrète du plan, avec évitement et report. La carte d’attaque est le bon levier, et Préparer le terrain correspond à une friction de départ.",
+                        "why_not_others": {},
+                        "primary_feature": "attack_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte d'attaque",
+                          "surface_hint": "Dashboard > Plan",
+                          "user_facing_destination": "surface=Dashboard > Plan; anchor=action_concernee; object_type=carte d'attaque liee au Plan; user_action=ouvrir l'action concernee puis preparer la carte"
+                        },
+                        "user_facing_next_step": "Je te conseillerais une carte d'attaque liée à \"Préparer le dossier mutuelle\" pour préparer le démarrage et lever le blocage avant de t'y mettre."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "The user refers to a specific active plan item and asks what Sophia should recommend for a block before starting it.",
+                        "category": "plan_action_coaching",
+                        "confidence": 0.87,
+                        "failure_mode": "unclear",
+                        "coaching_type": "plan_action",
+                        "action_context": {
+                          "source": "plan",
+                          "plan_id": null,
+                          "plan_title": null,
+                          "action_type": "mission",
+                          "action_title": "Préparer le dossier mutuelle",
+                          "plan_item_id": "f6f617a9-ac16-4e35-a865-761123e43d0a"
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": true,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": true,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": false
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-24T13:10:13.170Z",
+                  "turn_count": 4,
+                  "updated_at": "2026-06-24T13:12:03.184Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user parle d'une action précise de son plan et décrit un blocage au démarrage avec évitement et report.",
+                        "target_kind": "plan_action",
+                        "action_title": "Préparer le dossier mutuelle",
+                        "action_source": "plan"
+                      },
+                      "turn_count": 4,
+                      "coaching_type": "plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Il s'agit d'un blocage au moment de commencer une action concrète du plan. La carte d'attaque est faite pour préparer l'entrée dans l'action, rendre le démarrage plus simple et réduire l'évitement."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user ne demande pas une nouvelle recommandation; il demande où préparer lui-même la carte d’attaque déjà conseillée, sans la créer depuis le chat.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "Blocage au démarrage d’une action concrète du plan, avec évitement et report. La carte d’attaque est le bon levier, et Préparer le terrain correspond à une friction de départ.",
+                          "feature": "attack_card",
+                          "destination_hint": "Dashboard > Plan"
+                        }
+                      ],
+                      "last_answer_summary": "Blocage au démarrage d’une action concrète du plan, avec évitement et report. La carte d’attaque est le bon levier, et Préparer le terrain correspond à une friction de départ.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "attack_card",
+                        "reason": "Blocage au démarrage d’une action concrète du plan, avec évitement et report. La carte d’attaque est le bon levier, et Préparer le terrain correspond à une friction de départ.",
+                        "variant": "preparer_terrain",
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "The user refers to a specific active plan item and asks what Sophia should recommend for a block before starting it."
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "Blocage au démarrage d’une action concrète du plan, avec évitement et report. La carte d’attaque est le bon levier, et Préparer le terrain correspond à une friction de départ.",
+                        "feature": "attack_card",
+                        "destination_hint": "Dashboard > Plan"
+                      },
+                      "last_visible_task_kind": "action_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Blocage au démarrage d’une action concrète du plan, avec évitement et report. La carte d’attaque est le bon levier, et Préparer le terrain correspond à une friction de départ.",
+                        "why_not_others": {},
+                        "primary_feature": "attack_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte d'attaque",
+                          "surface_hint": "Dashboard > Plan",
+                          "user_facing_destination": "surface=Dashboard > Plan; anchor=action_concernee; object_type=carte d'attaque liee au Plan; user_action=ouvrir l'action concernee puis preparer la carte"
+                        },
+                        "user_facing_next_step": "Je te conseillerais une carte d'attaque liée à \"Préparer le dossier mutuelle\" pour préparer le démarrage et lever le blocage avant de t'y mettre."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "The user refers to a specific active plan item and asks what Sophia should recommend for a block before starting it.",
+                        "category": "plan_action_coaching",
+                        "confidence": 0.87,
+                        "failure_mode": "unclear",
+                        "coaching_type": "plan_action",
+                        "action_context": {
+                          "source": "plan",
+                          "plan_id": null,
+                          "plan_title": null,
+                          "action_type": "mission",
+                          "action_title": "Préparer le dossier mutuelle",
+                          "plan_item_id": "f6f617a9-ac16-4e35-a865-761123e43d0a"
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": true,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": true,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": false
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-24T13:12:03.187764+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-postfix-20260624-r2-t04",
+        "user_id": "e3dbf80c-79e7-4fda-bf2c-29c20128b352",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-postfix-20260624-r2",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je partirais sur une carte d’attaque, technique Préparer le terrain : tu l’ouvres depuis l’action \"Préparer le dossier mutuelle\" dans Dashboard > Plan, et elle t’aide à rendre le démarrage plus simple en aménageant le contexte avant de t’y mettre. Si tu veux juste la retrouver plus tard, ce sera dans Ressources.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-postfix-20260624-r2-t04",
+              "source_message_id": "a4988471-7873-46b6-99ec-99575e1512db",
+              "user_id": "e3dbf80c-79e7-4fda-bf2c-29c20128b352",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {},
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "active_coaching_recommendation",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "coaching_recommendation",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "resume_active",
+                "reason_code": "active_coaching_recommendation"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-postfix-20260624-r2-t04",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "active_coaching_recommendation",
+              "status": "continue",
+              "latency_ms": 23331
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-postfix-20260624-r2-t04",
+            "source_message_id": "a4988471-7873-46b6-99ec-99575e1512db",
+            "user_id": "e3dbf80c-79e7-4fda-bf2c-29c20128b352",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {},
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "active_coaching_recommendation",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "coaching_recommendation",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "resume_active",
+              "reason_code": "active_coaching_recommendation"
+            },
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-postfix-20260624-r2-t04",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "active_coaching_recommendation",
+            "status": "continue",
+            "latency_ms": 23331
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 5,
+      "sent_at": "2026-06-24T13:12:46.961Z",
+      "user": "Autre cas : j'ai un mail à Camille qui n'est pas dans mon plan. Je bloque pareil dès que j'ouvre le brouillon, mais je ne veux pas l'ajouter au Plan. Tu m'aiderais comment ?",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Je partirais sur une carte libre d’attaque, technique Préparer le terrain : tu te fais un cadre simple avant d’ouvrir le brouillon, pour que le démarrage du mail à Camille demande moins d’effort.",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "active_coaching_recommendation",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-24T13:10:13.170Z",
+                  "turn_count": 4,
+                  "updated_at": "2026-06-24T13:12:46.904Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "recommend",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user décrit un blocage au démarrage d'un mail hors plan, avec évitement à l'ouverture du brouillon.",
+                        "target_kind": "free_action",
+                        "action_title": "Écrire le mail à Camille",
+                        "action_source": "free"
+                      },
+                      "turn_count": 4,
+                      "coaching_type": "no_plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Le problème est un blocage au lancement d'un mail hors plan. Ici, une carte d'attaque est le bon levier pour rendre le démarrage plus simple sans ajouter l'action au Plan."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user décrit un blocage au démarrage d'un mail hors plan, avec évitement à l'ouverture du brouillon.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "Le blocage arrive au moment de commencer le mail hors plan; une carte libre d’attaque avec la technique Préparer le terrain aide à rendre le premier geste plus simple sans passer par le Plan.",
+                          "feature": "attack_card",
+                          "destination_hint": "Dashboard > Ressources"
+                        }
+                      ],
+                      "last_answer_summary": "Le blocage arrive au moment de commencer le mail hors plan; une carte libre d’attaque avec la technique Préparer le terrain aide à rendre le premier geste plus simple sans passer par le Plan.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "free_attack_card",
+                        "reason": "Le blocage arrive au moment de commencer le mail hors plan; une carte libre d’attaque avec la technique Préparer le terrain aide à rendre le premier geste plus simple sans passer par le Plan.",
+                        "variant": "preparer_terrain",
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "Autre cas : j'ai un mail à Camille qui n'est pas dans mon plan.",
+                        "Je bloque pareil dès que j'ouvre le brouillon.",
+                        "mais je ne veux pas l'ajouter au Plan.",
+                        "explicit target switch to no_plan_action: Écrire le mail à Camille"
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "Le blocage arrive au moment de commencer le mail hors plan; une carte libre d’attaque avec la technique Préparer le terrain aide à rendre le premier geste plus simple sans passer par le Plan.",
+                        "feature": "attack_card",
+                        "destination_hint": "Dashboard > Ressources"
+                      },
+                      "last_visible_task_kind": "no_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le blocage arrive au moment de commencer le mail hors plan; une carte libre d’attaque avec la technique Préparer le terrain aide à rendre le premier geste plus simple sans passer par le Plan.",
+                        "why_not_others": {},
+                        "primary_feature": "attack_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte d'attaque libre",
+                          "surface_hint": "Dashboard > Ressources",
+                          "user_facing_destination": "surface=Dashboard > Ressources; object_type=carte d'attaque libre; relation_to_plan=hors_plan; user_action=ouvrir Ressources puis choisir ou creer ce type de carte"
+                        },
+                        "user_facing_next_step": "Je te conseillerais une carte d'attaque pour préparer l'entrée dans ce mail à Camille et réduire le blocage au moment d'ouvrir le brouillon."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "explicit target switch to no_plan_action: Écrire le mail à Camille",
+                        "category": "free_action_coaching",
+                        "confidence": 0.9,
+                        "failure_mode": "unclear",
+                        "coaching_type": "no_plan_action",
+                        "action_context": {
+                          "source": "free",
+                          "action_title": "Écrire le mail à Camille",
+                          "plan_item_id": null
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": false,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": false,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": true
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-24T13:10:13.170Z",
+                  "turn_count": 4,
+                  "updated_at": "2026-06-24T13:12:46.904Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "recommend",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user décrit un blocage au démarrage d'un mail hors plan, avec évitement à l'ouverture du brouillon.",
+                        "target_kind": "free_action",
+                        "action_title": "Écrire le mail à Camille",
+                        "action_source": "free"
+                      },
+                      "turn_count": 4,
+                      "coaching_type": "no_plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Le problème est un blocage au lancement d'un mail hors plan. Ici, une carte d'attaque est le bon levier pour rendre le démarrage plus simple sans ajouter l'action au Plan."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user décrit un blocage au démarrage d'un mail hors plan, avec évitement à l'ouverture du brouillon.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "Le blocage arrive au moment de commencer le mail hors plan; une carte libre d’attaque avec la technique Préparer le terrain aide à rendre le premier geste plus simple sans passer par le Plan.",
+                          "feature": "attack_card",
+                          "destination_hint": "Dashboard > Ressources"
+                        }
+                      ],
+                      "last_answer_summary": "Le blocage arrive au moment de commencer le mail hors plan; une carte libre d’attaque avec la technique Préparer le terrain aide à rendre le premier geste plus simple sans passer par le Plan.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "free_attack_card",
+                        "reason": "Le blocage arrive au moment de commencer le mail hors plan; une carte libre d’attaque avec la technique Préparer le terrain aide à rendre le premier geste plus simple sans passer par le Plan.",
+                        "variant": "preparer_terrain",
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "Autre cas : j'ai un mail à Camille qui n'est pas dans mon plan.",
+                        "Je bloque pareil dès que j'ouvre le brouillon.",
+                        "mais je ne veux pas l'ajouter au Plan.",
+                        "explicit target switch to no_plan_action: Écrire le mail à Camille"
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "Le blocage arrive au moment de commencer le mail hors plan; une carte libre d’attaque avec la technique Préparer le terrain aide à rendre le premier geste plus simple sans passer par le Plan.",
+                        "feature": "attack_card",
+                        "destination_hint": "Dashboard > Ressources"
+                      },
+                      "last_visible_task_kind": "no_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le blocage arrive au moment de commencer le mail hors plan; une carte libre d’attaque avec la technique Préparer le terrain aide à rendre le premier geste plus simple sans passer par le Plan.",
+                        "why_not_others": {},
+                        "primary_feature": "attack_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte d'attaque libre",
+                          "surface_hint": "Dashboard > Ressources",
+                          "user_facing_destination": "surface=Dashboard > Ressources; object_type=carte d'attaque libre; relation_to_plan=hors_plan; user_action=ouvrir Ressources puis choisir ou creer ce type de carte"
+                        },
+                        "user_facing_next_step": "Je te conseillerais une carte d'attaque pour préparer l'entrée dans ce mail à Camille et réduire le blocage au moment d'ouvrir le brouillon."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "explicit target switch to no_plan_action: Écrire le mail à Camille",
+                        "category": "free_action_coaching",
+                        "confidence": 0.9,
+                        "failure_mode": "unclear",
+                        "coaching_type": "no_plan_action",
+                        "action_context": {
+                          "source": "free",
+                          "action_title": "Écrire le mail à Camille",
+                          "plan_item_id": null
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": false,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": false,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": true
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-24T13:12:46.912876+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-postfix-20260624-r2-t05",
+        "user_id": "e3dbf80c-79e7-4fda-bf2c-29c20128b352",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-postfix-20260624-r2",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je partirais sur une carte libre d’attaque, technique Préparer le terrain : tu te fais un cadre simple avant d’ouvrir le brouillon, pour que le démarrage du mail à Camille demande moins d’effort.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-postfix-20260624-r2-t05",
+              "source_message_id": "389a92cd-f1c0-4a4e-b581-a7f64483b81b",
+              "user_id": "e3dbf80c-79e7-4fda-bf2c-29c20128b352",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {},
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "active_coaching_recommendation",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "coaching_recommendation",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "resume_active",
+                "reason_code": "active_coaching_recommendation"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-postfix-20260624-r2-t05",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "active_coaching_recommendation",
+              "status": "continue",
+              "latency_ms": 32686
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-postfix-20260624-r2-t05",
+            "source_message_id": "389a92cd-f1c0-4a4e-b581-a7f64483b81b",
+            "user_id": "e3dbf80c-79e7-4fda-bf2c-29c20128b352",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {},
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "active_coaching_recommendation",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "coaching_recommendation",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "resume_active",
+              "reason_code": "active_coaching_recommendation"
+            },
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-postfix-20260624-r2-t05",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "active_coaching_recommendation",
+            "status": "continue",
+            "latency_ms": 32686
+          }
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 6,
+      "sent_at": "2026-06-24T13:13:17.011Z",
+      "user": "Et cette carte libre, je la prépare où ? Je veux éviter de passer par le Plan pour ce mail.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Je partirais sur une carte d’attaque libre, technique Préparer le terrain : tu ouvres Ressources, puis tu choisis ou crées cette carte pour organiser ce qui t’entoure avant d’ouvrir le brouillon du mail. Ça colle bien ici parce que ton blocage arrive au démarrage.",
+      "trace_short": {
+        "response_owner": "coaching_recommendation",
+        "selected_handler": "coaching_recommendation",
+        "route_reason": "active_coaching_recommendation",
+        "safety": "none",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "coaching_recommendation",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 0,
+              "temp_memory": {
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-24T13:10:13.170Z",
+                  "turn_count": 4,
+                  "updated_at": "2026-06-24T13:13:16.972Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user décrit un blocage au démarrage d'un mail hors plan, avec évitement à l'ouverture du brouillon.",
+                        "target_kind": "free_action",
+                        "action_title": "Écrire le mail à Camille",
+                        "action_source": "free"
+                      },
+                      "turn_count": 4,
+                      "coaching_type": "no_plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Le problème est un blocage au lancement d'un mail hors plan. Ici, une carte d'attaque est le bon levier pour rendre le démarrage plus simple sans ajouter l'action au Plan."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user demande où préparer une carte libre d'attaque pour un mail hors plan, sans passer par le Plan.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "Le blocage est au lancement d’un mail hors plan; Préparer le terrain est la technique d’attaque libre la plus adaptée, et la carte se prépare dans Ressources.",
+                          "feature": "attack_card",
+                          "destination_hint": "Dashboard > Ressources"
+                        }
+                      ],
+                      "last_answer_summary": "Le blocage est au lancement d’un mail hors plan; Préparer le terrain est la technique d’attaque libre la plus adaptée, et la carte se prépare dans Ressources.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "free_attack_card",
+                        "reason": "Le blocage est au lancement d’un mail hors plan; Préparer le terrain est la technique d’attaque libre la plus adaptée, et la carte se prépare dans Ressources.",
+                        "variant": "preparer_terrain",
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "Autre cas : j'ai un mail à Camille qui n'est pas dans mon plan.",
+                        "Je bloque pareil dès que j'ouvre le brouillon.",
+                        "mais je ne veux pas l'ajouter au Plan.",
+                        "explicit target switch to no_plan_action: Écrire le mail à Camille"
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "Le blocage est au lancement d’un mail hors plan; Préparer le terrain est la technique d’attaque libre la plus adaptée, et la carte se prépare dans Ressources.",
+                        "feature": "attack_card",
+                        "destination_hint": "Dashboard > Ressources"
+                      },
+                      "last_visible_task_kind": "no_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le blocage est au lancement d’un mail hors plan; Préparer le terrain est la technique d’attaque libre la plus adaptée, et la carte se prépare dans Ressources.",
+                        "why_not_others": {},
+                        "primary_feature": "attack_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte d'attaque libre",
+                          "surface_hint": "Dashboard > Ressources",
+                          "user_facing_destination": "surface=Dashboard > Ressources; object_type=carte d'attaque libre; relation_to_plan=hors_plan; user_action=ouvrir Ressources puis choisir ou creer ce type de carte"
+                        },
+                        "user_facing_next_step": "Je te conseillerais une carte d'attaque pour préparer l'entrée dans ce mail à Camille et réduire le blocage au moment d'ouvrir le brouillon."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "explicit target switch to no_plan_action: Écrire le mail à Camille",
+                        "category": "free_action_coaching",
+                        "confidence": 0.9,
+                        "failure_mode": "unclear",
+                        "coaching_type": "no_plan_action",
+                        "action_context": {
+                          "source": "free",
+                          "plan_id": null,
+                          "action_title": "Écrire le mail à Camille",
+                          "plan_item_id": null
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": false,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": false,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": true
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                },
+                "__active_conversation_skill_v1": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "coaching_recommendation",
+                  "started_at": "2026-06-24T13:10:13.170Z",
+                  "turn_count": 4,
+                  "updated_at": "2026-06-24T13:13:16.972Z",
+                  "working_state": {
+                    "coaching_recommendation_local_state": {
+                      "stage": "followup",
+                      "max_turns": 4,
+                      "difficulty": {
+                        "summary": "Le user décrit un blocage au démarrage d'un mail hors plan, avec évitement à l'ouverture du brouillon.",
+                        "target_kind": "free_action",
+                        "action_title": "Écrire le mail à Camille",
+                        "action_source": "free"
+                      },
+                      "turn_count": 4,
+                      "coaching_type": "no_plan_action",
+                      "cause_analysis": {
+                        "confidence": "medium",
+                        "missing_info": [],
+                        "primary_cause": "unclear",
+                        "why_it_exists": "Le problème est un blocage au lancement d'un mail hors plan. Ici, une carte d'attaque est le bon levier pour rendre le démarrage plus simple sans ajouter l'action au Plan."
+                      },
+                      "parent_flow_id": null,
+                      "user_need_summary": "Le user demande où préparer une carte libre d'attaque pour un mail hors plan, sans passer par le Plan.",
+                      "candidate_features": [
+                        {
+                          "fit": "high",
+                          "why": "Le blocage est au lancement d’un mail hors plan; Préparer le terrain est la technique d’attaque libre la plus adaptée, et la carte se prépare dans Ressources.",
+                          "feature": "attack_card",
+                          "destination_hint": "Dashboard > Ressources"
+                        }
+                      ],
+                      "last_answer_summary": "Le blocage est au lancement d’un mail hors plan; Préparer le terrain est la technique d’attaque libre la plus adaptée, et la carte se prépare dans Ressources.",
+                      "parent_return_focus": null,
+                      "pending_type_change": null,
+                      "unresolved_question": null,
+                      "parent_state_summary": null,
+                      "last_visible_decision": {
+                        "lever": "free_attack_card",
+                        "reason": "Le blocage est au lancement d’un mail hors plan; Préparer le terrain est la technique d’attaque libre la plus adaptée, et la carte se prépare dans Ressources.",
+                        "variant": "preparer_terrain",
+                        "confidence": "high",
+                        "potion_type": null
+                      },
+                      "parent_action_context": null,
+                      "coaching_type_evidence": [
+                        "Autre cas : j'ai un mail à Camille qui n'est pas dans mon plan.",
+                        "Je bloque pareil dès que j'ouvre le brouillon.",
+                        "mais je ne veux pas l'ajouter au Plan.",
+                        "explicit target switch to no_plan_action: Écrire le mail à Camille"
+                      ],
+                      "current_recommendation": {
+                        "fit": "high",
+                        "why": "Le blocage est au lancement d’un mail hors plan; Préparer le terrain est la technique d’attaque libre la plus adaptée, et la carte se prépare dans Ressources.",
+                        "feature": "attack_card",
+                        "destination_hint": "Dashboard > Ressources"
+                      },
+                      "last_visible_task_kind": "no_plan_coaching",
+                      "recommendation_decision": {
+                        "why_primary": "Le blocage est au lancement d’un mail hors plan; Préparer le terrain est la technique d’attaque libre la plus adaptée, et la carte se prépare dans Ressources.",
+                        "why_not_others": {},
+                        "primary_feature": "attack_card",
+                        "secondary_feature": null,
+                        "platform_destination": {
+                          "label": "carte d'attaque libre",
+                          "surface_hint": "Dashboard > Ressources",
+                          "user_facing_destination": "surface=Dashboard > Ressources; object_type=carte d'attaque libre; relation_to_plan=hors_plan; user_action=ouvrir Ressources puis choisir ou creer ce type de carte"
+                        },
+                        "user_facing_next_step": "Je te conseillerais une carte d'attaque pour préparer l'entrée dans ce mail à Camille et réduire le blocage au moment d'ouvrir le brouillon."
+                      },
+                      "coaching_type_confidence": "high",
+                      "secondary_recommendation": null,
+                      "dispatcher_signal_context": {
+                        "reason": "explicit target switch to no_plan_action: Écrire le mail à Camille",
+                        "category": "free_action_coaching",
+                        "confidence": 0.9,
+                        "failure_mode": "unclear",
+                        "coaching_type": "no_plan_action",
+                        "action_context": {
+                          "source": "free",
+                          "plan_id": null,
+                          "action_title": "Écrire le mail à Camille",
+                          "plan_item_id": null
+                        },
+                        "activation_checks": {
+                          "is_coaching_need": true,
+                          "is_about_plan_action": false,
+                          "needs_type_confirmation": false,
+                          "has_concrete_plan_action": false,
+                          "is_about_emotional_state": false,
+                          "is_about_non_plan_action": true
+                        },
+                        "priority_features": [],
+                        "emotional_state_context": null
+                      }
+                    }
+                  }
+                }
+              },
+              "updated_at": "2026-06-24T13:13:16.978033+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "coachingrec-postfix-20260624-r2-t06",
+        "user_id": "e3dbf80c-79e7-4fda-bf2c-29c20128b352",
+        "channel": "web",
+        "scope": "qa-normal-conversation-coachingrec-postfix-20260624-r2",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je partirais sur une carte d’attaque libre, technique Préparer le terrain : tu ouvres Ressources, puis tu choisis ou crées cette carte pour organiser ce qui t’entoure avant d’ouvrir le brouillon du mail. Ça colle bien ici parce que ton blocage arrive au démarrage.",
+          "mode": "companion",
+          "delivery": null,
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "coachingrec-postfix-20260624-r2-t06",
+              "source_message_id": "85851e03-5062-49d8-b193-280da7cb8b04",
+              "user_id": "e3dbf80c-79e7-4fda-bf2c-29c20128b352",
+              "channel": "web",
+              "safety": {
+                "risk_band": "none",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [],
+                "context_summary": null
+              },
+              "direct_effects": [],
+              "note_information": null,
+              "skill_signals": {},
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_inference_unavailable"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "minimal",
+                "memory_mode": "none",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "tiny",
+                "targets": [],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              }
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "coaching_recommendation",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "active_coaching_recommendation",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "active_owner": "coaching_recommendation",
+                "selected_owner": "coaching_recommendation",
+                "resume_policy": "resume_active",
+                "reason_code": "active_coaching_recommendation"
+              },
+              "selected_handler": "coaching_recommendation"
+            },
+            "effect_ledger": {
+              "turn_id": "coachingrec-postfix-20260624-r2-t06",
+              "counts": {
+                "requested": 0,
+                "allowed": 0,
+                "blocked": 0,
+                "committed": 0,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": []
+            },
+            "response_owner": "coaching_recommendation",
+            "skill_run": {
+              "selected_skill_id": "coaching_recommendation",
+              "reason_code": "active_coaching_recommendation",
+              "status": "continue",
+              "latency_ms": 15934
+            }
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "coachingrec-postfix-20260624-r2-t06",
+            "source_message_id": "85851e03-5062-49d8-b193-280da7cb8b04",
+            "user_id": "e3dbf80c-79e7-4fda-bf2c-29c20128b352",
+            "channel": "web",
+            "safety": {
+              "risk_band": "none",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [],
+              "context_summary": null
+            },
+            "direct_effects": [],
+            "note_information": null,
+            "skill_signals": {},
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_inference_unavailable"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "minimal",
+              "memory_mode": "none",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "tiny",
+              "targets": [],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            }
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "coaching_recommendation",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "active_coaching_recommendation",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "active_owner": "coaching_recommendation",
+              "selected_owner": "coaching_recommendation",
+              "resume_policy": "resume_active",
+              "reason_code": "active_coaching_recommendation"
+            },
+            "selected_handler": "coaching_recommendation"
+          },
+          "effect_ledger": {
+            "turn_id": "coachingrec-postfix-20260624-r2-t06",
+            "counts": {
+              "requested": 0,
+              "allowed": 0,
+              "blocked": 0,
+              "committed": 0,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": []
+          },
+          "response_owner": "coaching_recommendation",
+          "skill_run": {
+            "selected_skill_id": "coaching_recommendation",
+            "reason_code": "active_coaching_recommendation",
+            "status": "continue",
+            "latency_ms": 15934
+          }
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "seeded_plan": {
+    "cycle_id": "6e2ab2a2-5a78-40bd-bf5e-f8b436bec8e5",
+    "transformation_id": "cb5927ab-0c32-4ef7-87aa-bf7505942802",
+    "plan_id": "4ad3ea8d-465f-44d1-8220-ffe717338779",
+    "item_id": "f6f617a9-ac16-4e35-a865-761123e43d0a"
+  },
+  "updated_at": "2026-06-24T13:13:17.012Z",
+  "seeded_plan_cleanup": "2026-06-24T13:13:40.042Z",
+  "cleanup": [
+    {
+      "table": "chat_messages",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "scheduled_checkins",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_chat_states",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_memories",
+      "status": 404,
+      "ok": false
+    },
+    {
+      "table": "user_topic_memories",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "memory_items",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "auth.users",
+      "status": 200,
+      "ok": true
+    }
+  ],
+  "cleaned_at": "2026-06-24T13:13:48.540Z"
+}

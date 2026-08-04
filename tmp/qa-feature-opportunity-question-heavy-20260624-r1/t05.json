@@ -1,0 +1,220 @@
+{
+  "user": "Autre truc, désolé je pose mille questions : quand Sophia me demande 'tu veux quoi faire ?' trois fois, ça m'agace. On peut régler ça aussi ? C'est quoi les préférences coach, c'est le ton, le niveau de challenge, le nombre de questions ?",
+  "ok": true,
+  "request_id": "55738e42-b288-4675-9e1a-3136d796c274",
+  "user_id": "c66b759f-ca3e-47c7-b4bc-33a7761eabfd",
+  "channel": "web",
+  "scope": "web",
+  "empty_response": false,
+  "aborted": false,
+  "abort_reason": null,
+  "logged_message_id": null,
+  "latest_message_id": null,
+  "response": {
+    "content": "Oui, c’est bien le sujet des préférences coach : tu peux ajuster le ton, le niveau de challenge, et la tendance à poser peu, normalement ou beaucoup de questions.\n\nSi tu veux, je peux aussi t’aider à choisir le réglage le plus adapté à ce qui t’agace.",
+    "mode": "companion",
+    "delivery": null,
+    "tool_execution": "none",
+    "executed_tools": [],
+    "conversation_turn_trace": {
+      "turn_frame": {
+        "turn_id": "55738e42-b288-4675-9e1a-3136d796c274",
+        "source_message_id": "11249b2c-85fb-4045-87eb-0275cfb59ff9",
+        "user_id": "c66b759f-ca3e-47c7-b4bc-33a7761eabfd",
+        "channel": "web",
+        "safety": {
+          "risk_band": "none",
+          "reason_codes": [],
+          "evidence": []
+        },
+        "conversation_risk": {
+          "score": 0,
+          "threshold": 8,
+          "should_exit_flows": false,
+          "reason_codes": [],
+          "previous_scores": [],
+          "matrix": [],
+          "context_summary": null
+        },
+        "direct_effects": [],
+        "note_information": null,
+        "skill_signals": {},
+        "needs_research": {
+          "detected": false,
+          "value": false,
+          "query": null,
+          "domain_hint": null,
+          "confidence": 0,
+          "reason": null
+        },
+        "action_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_inference_unavailable"
+        },
+        "level_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": "semantic_inference_unavailable"
+        },
+        "memory_plan": {
+          "response_intent": "reflection",
+          "reasoning_complexity": "low",
+          "context_need": "minimal",
+          "memory_mode": "none",
+          "model_tier_hint": "lite",
+          "context_budget_tier": "tiny",
+          "targets": [],
+          "retrieval_policy": "semantic_first",
+          "plan_confidence": 0.7
+        }
+      },
+      "route_decision": {
+        "route_version": "v1",
+        "response_owner": "feature_opportunity",
+        "blocked_paths": [],
+        "direct_effects_to_run": [],
+        "reason_code": "active_feature_opportunity",
+        "memory_used_for_route": false,
+        "memory_item_ids_used_for_route": [],
+        "memory_use_kind": "none",
+        "active_flow_arbitration": {
+          "decision": "continue_active",
+          "active_owner": "feature_opportunity",
+          "selected_owner": "feature_opportunity",
+          "resume_policy": "resume_active",
+          "reason_code": "active_feature_opportunity"
+        },
+        "selected_handler": "feature_opportunity"
+      },
+      "effect_ledger": {
+        "turn_id": "55738e42-b288-4675-9e1a-3136d796c274",
+        "counts": {
+          "requested": 0,
+          "allowed": 0,
+          "blocked": 0,
+          "committed": 0,
+          "failed": 0,
+          "proposed": 0,
+          "delivered": 0,
+          "cancelled": 0,
+          "superseded": 0,
+          "asked": 0,
+          "resolved": 0,
+          "topic_change": 0
+        },
+        "entries": []
+      },
+      "response_owner": "feature_opportunity",
+      "skill_run": {
+        "selected_skill_id": "feature_opportunity",
+        "reason_code": "active_feature_opportunity",
+        "status": "continue",
+        "latency_ms": 5542
+      }
+    }
+  },
+  "conversation_turn_trace": {
+    "turn_frame": {
+      "turn_id": "55738e42-b288-4675-9e1a-3136d796c274",
+      "source_message_id": "11249b2c-85fb-4045-87eb-0275cfb59ff9",
+      "user_id": "c66b759f-ca3e-47c7-b4bc-33a7761eabfd",
+      "channel": "web",
+      "safety": {
+        "risk_band": "none",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "conversation_risk": {
+        "score": 0,
+        "threshold": 8,
+        "should_exit_flows": false,
+        "reason_codes": [],
+        "previous_scores": [],
+        "matrix": [],
+        "context_summary": null
+      },
+      "direct_effects": [],
+      "note_information": null,
+      "skill_signals": {},
+      "needs_research": {
+        "detected": false,
+        "value": false,
+        "query": null,
+        "domain_hint": null,
+        "confidence": 0,
+        "reason": null
+      },
+      "action_reference": {
+        "detected": false,
+        "status": "none",
+        "expansion_policy": "none",
+        "reason": "semantic_inference_unavailable"
+      },
+      "level_reference": {
+        "detected": false,
+        "status": "none",
+        "expansion_policy": "none",
+        "reason": "semantic_inference_unavailable"
+      },
+      "memory_plan": {
+        "response_intent": "reflection",
+        "reasoning_complexity": "low",
+        "context_need": "minimal",
+        "memory_mode": "none",
+        "model_tier_hint": "lite",
+        "context_budget_tier": "tiny",
+        "targets": [],
+        "retrieval_policy": "semantic_first",
+        "plan_confidence": 0.7
+      }
+    },
+    "route_decision": {
+      "route_version": "v1",
+      "response_owner": "feature_opportunity",
+      "blocked_paths": [],
+      "direct_effects_to_run": [],
+      "reason_code": "active_feature_opportunity",
+      "memory_used_for_route": false,
+      "memory_item_ids_used_for_route": [],
+      "memory_use_kind": "none",
+      "active_flow_arbitration": {
+        "decision": "continue_active",
+        "active_owner": "feature_opportunity",
+        "selected_owner": "feature_opportunity",
+        "resume_policy": "resume_active",
+        "reason_code": "active_feature_opportunity"
+      },
+      "selected_handler": "feature_opportunity"
+    },
+    "effect_ledger": {
+      "turn_id": "55738e42-b288-4675-9e1a-3136d796c274",
+      "counts": {
+        "requested": 0,
+        "allowed": 0,
+        "blocked": 0,
+        "committed": 0,
+        "failed": 0,
+        "proposed": 0,
+        "delivered": 0,
+        "cancelled": 0,
+        "superseded": 0,
+        "asked": 0,
+        "resolved": 0,
+        "topic_change": 0
+      },
+      "entries": []
+    },
+    "response_owner": "feature_opportunity",
+    "skill_run": {
+      "selected_skill_id": "feature_opportunity",
+      "reason_code": "active_feature_opportunity",
+      "status": "continue",
+      "latency_ms": 5542
+    }
+  },
+  "trace_error": null,
+  "http_status": 200
+}

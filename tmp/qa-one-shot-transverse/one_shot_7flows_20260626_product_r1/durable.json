@@ -1,0 +1,66 @@
+{
+  "scheduled_checkins": [
+    {
+      "id": "89e8d4d2-3bc8-4a7e-9953-8c7a71313f03",
+      "status": "pending",
+      "scheduled_for": "2026-06-26T11:15:16.337+00:00",
+      "event_context": "one_shot_reminder:relire_la_fiche_initiatives",
+      "message_payload": {
+        "source": "one_shot_reminder_executor",
+        "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Objet du rappel utilisateur: relire la fiche Initiatives.",
+        "local_label": "dans 25 minutes",
+        "parse_source": "payload_utc_time",
+        "request_text": "Rappelle-moi dans 25 minutes de relire la fiche Initiatives",
+        "reminder_kind": "one_shot",
+        "user_timezone": "Europe/Paris",
+        "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: relire la fiche Initiatives.",
+        "source_message_id": "37a828a3-29d9-4525-b61e-1bde5fc48de8",
+        "reminder_instruction": "relire la fiche Initiatives"
+      },
+      "created_at": "2026-06-26T10:50:20.415563+00:00"
+    }
+  ],
+  "chat_messages_count": 3,
+  "chat_messages": [
+    {
+      "role": "user",
+      "content": "Dans Sophia, je retrouve où les initiatives déjà créées et comment je vois celles qui sont hors plan ?",
+      "created_at": "2026-06-26T10:49:56.547433+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_7flows_20260626_product_r1-t01",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "assistant",
+      "content": "Tu les retrouves dans Dashboard > Initiatives. Si elles sont hors plan, c’est dans Base de vie > Initiatives.",
+      "created_at": "2026-06-26T10:50:04.038183+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_7flows_20260626_product_r1-t01",
+        "route_owner": "product_help",
+        "selected_handler": "product_help",
+        "tool_execution": null
+      }
+    },
+    {
+      "role": "user",
+      "content": "Rappelle-moi dans 25 minutes de relire la fiche Initiatives, et redis-moi juste où je vois les initiatives hors plan.",
+      "created_at": "2026-06-26T10:50:16.324248+00:00",
+      "metadata": {
+        "request_id": "qa-one_shot_7flows_20260626_product_r1-t02",
+        "route_owner": null,
+        "selected_handler": null,
+        "tool_execution": null
+      }
+    }
+  ],
+  "user_chat_state": {
+    "user_id": "feb32469-c21f-4b40-80fe-f7b6b8bfecc5",
+    "current_mode": "companion",
+    "risk_level": 0,
+    "temp_memory": {},
+    "updated_at": "2026-06-26T10:50:04.035988+00:00"
+  }
+}

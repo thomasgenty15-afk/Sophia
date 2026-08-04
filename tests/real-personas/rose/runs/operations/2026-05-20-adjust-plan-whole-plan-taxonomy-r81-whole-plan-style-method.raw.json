@@ -1,0 +1,3003 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r81-whole-plan-style-method-t01",
+    "user": "J'ai une impression un peu bizarre sur le plan global : la direction me va, mais la methode me ressemble pas. C'est tres cadrage / discussion / analyse, alors que moi j'aurais besoin que le plan passe plus par des petites experiences legeres et des gestes concrets, sinon je vais me braquer.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r81-whole-plan-style-method-t01",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r81-whole-plan-style-method",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je dois reprendre le brouillon proprement avant de te le montrer. Dis-moi juste quelle partie du plan global tu veux rendre plus concrète en premier : une mission, une habitude, ou une phase précise ? 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r81-whole-plan-style-method-t01",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "15f493f2-c19b-4706-bfa7-fa8a9a35890a",
+        "ts": "2026-05-20T17:27:57.687+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 12518,
+          "latency_ms": 4124,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 868,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "structure et methode du plan actuel",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "action_observation",
+                "type": "action",
+                "query_hint": "J'ai une impression un peu bizarre sur le plan global : la direction me va, mais la methode me ressemble pas. C'est tres cadrage / discussion / analyse, alors q",
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "J'ai une impression un peu bizarre sur le plan global : la direction me va, mais la methode me ressemble pas. C'est tres cadrage / discussion / analyse, alors q",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "standard",
+            "plan_confidence": 0.7,
+            "response_intent": "problem_solving",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "medium"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s15"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r81-whole-plan-style-method-t01",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "structure et methode du plan actuel",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "action_observation",
+                "type": "action",
+                "query_hint": "J'ai une impression un peu bizarre sur le plan global : la direction me va, mais la methode me ressemble pas. C'est tres cadrage / discussion / analyse, alors q",
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "J'ai une impression un peu bizarre sur le plan global : la direction me va, mais la methode me ressemble pas. C'est tres cadrage / discussion / analyse, alors q",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "standard",
+            "plan_confidence": 0.7,
+            "response_intent": "problem_solving",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "medium"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": "level_reference",
+            "status": "current_level",
+            "detected": true,
+            "expansion_policy": "include_level_execution_handoff"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "15f493f2-c19b-4706-bfa7-fa8a9a35890a",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "plan global",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "whole_plan",
+                  "label": "plan global",
+                  "status": "identified",
+                  "evidence": [
+                    "impression un peu bizarre sur le plan global"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "whole_plan",
+                  "status": "identified",
+                  "evidence": [
+                    "le user parle du plan global",
+                    "la methode me ressemble pas",
+                    "le plan passe plus par des petites experiences"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "whole_plan"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "ask_question",
+          "reason_code": "tool_skill_intent_start",
+          "plan_item_id": null,
+          "target_title": null,
+          "missing_slots": [
+            "draft_generation_retry_needed"
+          ],
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Ne pas proposer un pivot complet du plan.",
+              "Ne pas augmenter la part d’analyse ou de cadrage comme solution principale.",
+              "Ne pas multiplier les questionnaires ou les bilans.",
+              "Ne pas suggérer des actions trop abstraites ou trop longues.",
+              "Ne pas promettre qu’un simple changement de wording suffira si le problème est structurel."
+            ],
+            "scope": "whole_plan",
+            "preserve": [
+              "La direction générale du plan.",
+              "L’intention de sécurité et de désamorçage.",
+              "La progression globale déjà construite.",
+              "Les objectifs relationnels de fond.",
+              "Les éléments de structure qui servent réellement de repère, à condition qu’ils restent au service du concret."
+            ],
+            "warnings": [
+              "Éviter de répondre comme s’il fallait tout rethéoriser ou justifier le plan par plus d’analyse.",
+              "Éviter de proposer un changement de direction, car le user dit explicitement que la direction convient.",
+              "Éviter d’ajouter encore des étapes de discussion ou de clarification qui renforceraient la sensation de lourdeur.",
+              "Éviter de présenter le plan comme déjà corrigé sans avoir confirmé le niveau de rééquilibrage souhaité.",
+              "Éviter de réduire le besoin à une simple question de motivation : la demande porte sur l’alignement méthode-personne."
+            ],
+            "readiness": "draft_ready",
+            "confidence": "high",
+            "guidelines": [
+              "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "Rester sur la cohérence globale du plan et non sur un ajustement local d’action.",
+              "Traiter la demande comme un mismatch de style/méthode, pas comme un désaccord sur le but.",
+              "Préserver la trajectoire existante tout en diminuant la charge cognitive et la distance avec le concret.",
+              "Proposer des micro-expériences, des gestes simples et des tests rapides comme forme prioritaire d’exécution.",
+              "Ne pas changer la nature du plan sans demande explicite ; privilégier un changement d’emphase.",
+              "Si une adaptation est proposée, la formuler comme un pont vers davantage de concret, pas comme une réécriture complète.",
+              "Vérifier que chaque élément conservé a une utilité opérationnelle immédiate.",
+              "Respecter la limite implicite du user : si ça ressemble trop à de la discussion ou de l’analyse, cela risque le rejet."
+            ],
+            "observation": "Le fond du plan semble accepté, mais la forme actuelle crée une dissonance de méthode : trop d’analyse, de cadrage et d’échanges, pas assez de micro-gestes concrets et d’expériences légères. Le vrai enjeu n’est pas une désaccord sur l’objectif, mais un risque de braquage si le plan ne correspond pas au mode d’engagement du user.",
+            "change_family": "style_or_method_mismatch",
+            "recommendation": "Orienter la réponse vers un rééquilibrage de l’emphase du plan : préserver la direction et la logique de progression, mais rendre l’exécution beaucoup plus incarnée, légère et testable. Le sous-skill devrait proposer de transformer une partie du cadrage en petites expériences concrètes, sans changer la nature ni l’objectif global du plan.",
+            "next_best_question": null,
+            "options_to_discuss": [
+              "Alléger certaines séquences de cadrage en les remplaçant par des tests très courts et observables.",
+              "Transformer une partie des échanges en gestes concrets à faire entre deux discussions.",
+              "Garder le plan tel quel sur le fond, mais modifier le format des actions pour qu’elles soient plus petites et plus faciles à lancer.",
+              "Ajouter une couche de micro-expérimentation au début de chaque phase pour éviter une entrée trop intellectuelle.",
+              "Conserver les moments de réflexion seulement là où ils servent directement une action suivante."
+            ],
+            "candidate_operation": "change_emphasis",
+            "questions_to_clarify": [],
+            "trajectory_hypothesis": "La trajectoire actuelle reste juste sur le fond, mais la forme doit passer d’un plan surtout cadré/analytique à un plan davantage rythmé par des micro-gestes concrets et des expériences légères.",
+            "must_not_execute_reason": "La demande décrit une préférence de méthode et une résonance au plan global, mais ne demande pas encore une réécriture opérationnelle complète; il faut d’abord cadrer le rééquilibrage à proposer avant toute application."
+          },
+          "coaching_guidance_audit": {
+            "scope": "whole_plan",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 50263,
+        "created_at": "2026-05-20T17:27:57.694083+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r81-whole-plan-style-method-t02",
+    "user": "Justement ce n'est pas une mission precise. C'est la methode de tout le plan : garder l'objectif d'apaiser et reconstruire, mais que chaque niveau parte d'abord d'une experience simple a vivre, puis seulement apres d'une discussion ou d'une analyse.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r81-whole-plan-style-method-t02",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r81-whole-plan-style-method",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: je réoriente l'accent du plan, avec Un axe directeur plus aligné avec Convenir d'un signal de pause et Faire le point sur le signal de pause.\n\nCe qui reste stable: l'objectif global du plan, le rôle du signal de pause, et les actions de soutien qui restent utiles.\n\nCe que ça implique: si tu valides, je régénère le plan pour réordonner la suite autour de cette étape de consolidation. Rien n'est appliqué tant que tu ne valides pas. 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r81-whole-plan-style-method-t02",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "5b040546-39b5-4ad3-af6c-a17dfdfe50fc",
+        "ts": "2026-05-20T17:28:23.676+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 16906,
+          "latency_ms": 5519,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 897,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "structure et methode du plan",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Justement ce n'est pas une mission precise. C'est la methode de tout le plan : garder l'objectif d'apaiser et reconstruire, mais que chaque niveau parte d'abord",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s15"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r81-whole-plan-style-method-t02",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "structure et methode du plan",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Justement ce n'est pas une mission precise. C'est la methode de tout le plan : garder l'objectif d'apaiser et reconstruire, mais que chaque niveau parte d'abord",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": "level_reference",
+            "status": "current_level",
+            "detected": true,
+            "expansion_policy": "include_level_execution_handoff"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 1,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0;decay=0.55;recovery=0",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "5b040546-39b5-4ad3-af6c-a17dfdfe50fc",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "plan global",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "whole_plan",
+                  "label": "plan global",
+                  "status": "identified",
+                  "evidence": [
+                    "tout le plan"
+                  ]
+                },
+                "constraints": {
+                  "status": "identified",
+                  "values": [
+                    "experience_first:chaque niveau parte d'abord d'une experience simple a vivre",
+                    "analysis_second:puis seulement apres d'une discussion ou d'une analyse",
+                    "keep_objective:garder l'objectif d'apaiser et reconstruire"
+                  ],
+                  "evidence": [
+                    "chaque niveau parte d'abord d'une experience simple a vivre, puis seulement apres d'une discussion ou d'une analyse"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "whole_plan",
+                  "status": "identified",
+                  "evidence": [
+                    "ce n'est pas une mission precise",
+                    "C'est la methode de tout le plan"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "whole_plan"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "active_tool_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "continue_active",
+            "reason_code": "active_tool_skill_continue",
+            "active_owner": "tool_skill",
+            "resume_policy": "none",
+            "selected_owner": "tool_skill"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "draft": {
+            "draft": {
+              "patch": {
+                "scope_kind": "whole_plan",
+                "constraints": [
+                  "no_pressure",
+                  "minimal_patch",
+                  "preserve_plan_intent",
+                  "no_schedule_day_change",
+                  "ask_confirmation_before_write",
+                  "experience_first:chaque niveau parte d'abord d'une experience simple a vivre",
+                  "analysis_second:puis seulement apres d'une discussion ou d'une analyse",
+                  "keep_objective:garder l'objectif d'apaiser et reconstruire",
+                  "whole_plan_change_family:direction_change",
+                  "whole_plan_candidate_operation:change_emphasis",
+                  "whole_plan_readiness:draft_ready",
+                  "whole_plan_directional_draft_ready",
+                  "preserve_plan_intent",
+                  "avoid_repetitive_clarification_when_user_gives_solution",
+                  "coach_observation:La demande ne vise pas une mission isolée mais la méthode du plan entier : le fond et la direction semblent acceptés, mais la forme actuelle est perçue comme trop cadrée, trop discursive et trop analytique. Le besoin réel est de rééquilibrer le plan vers des expériences simples, légères et concrètes, afin de préserver l’adhésion et d’éviter le braquage.",
+                  "coach_recommendation:Traiter cela comme un changement d’emphase au niveau global : conserver l’objectif d’apaiser et reconstruire, mais faire démarrer chaque niveau par une expérience vécue, puis seulement ensuite par une discussion ou une analyse. Le prochain brouillon devrait donc déplacer le centre de gravité du plan vers le concret sans réécrire la trajectoire de fond.",
+                  "coach_warning:Éviter de reformuler la demande comme un désaccord sur l’objectif global.",
+                  "coach_warning:Éviter de proposer davantage de cadrage, de questionnaires ou de bilans comme réponse principale.",
+                  "coach_warning:Éviter d’ouvrir un pivot complet du plan alors que la direction est explicitement validée.",
+                  "coach_warning:Éviter de promettre qu’un simple ajustement de formulation suffira si le problème est structurel.",
+                  "coach_warning:Éviter de supprimer les repères utiles au plan si eux-mêmes soutiennent l’action concrète.",
+                  "coach_preserve:La direction générale du plan.",
+                  "coach_preserve:L’objectif d’apaiser et reconstruire.",
+                  "coach_preserve:La logique de progression déjà construite.",
+                  "coach_preserve:Les repères de structure qui servent réellement l’action.",
+                  "coach_preserve:La cohérence globale entre les niveaux du plan.",
+                  "coach_avoid:Ne pas proposer un changement de but.",
+                  "coach_avoid:Ne pas augmenter la part d’analyse comme solution principale.",
+                  "coach_avoid:Ne pas noyer le plan sous des explications ou justifications supplémentaires.",
+                  "coach_avoid:Ne pas présenter le plan comme déjà corrigé sans rééquilibrage explicite.",
+                  "coach_avoid:Ne pas déplacer le débat vers la motivation personnelle.",
+                  "coach_guideline:Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+                  "coach_guideline:Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+                  "coach_guideline:Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+                  "coach_guideline:Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+                  "coach_guideline:Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+                  "coach_guideline:Traiter la demande comme un mismatch de style et de méthode, pas comme un refus du fond.",
+                  "coach_guideline:Préserver explicitement l’objectif et la trajectoire globale avant toute reconfiguration.",
+                  "coach_guideline:Formuler le changement comme un pont vers davantage de concret, pas comme une réécriture complète.",
+                  "coach_guideline:Privilégier des micro-expériences, des gestes simples et des tests rapides comme format d’entrée.",
+                  "coach_guideline:Raisonner en séquencement : expérience d’abord, analyse ensuite.",
+                  "coach_guideline:Vérifier que chaque élément conservé a une utilité opérationnelle immédiate.",
+                  "coach_guideline:Éviter de renforcer la sensation de lourdeur en ajoutant du cadrage supplémentaire.",
+                  "coach_guideline:Ne pas changer la nature du plan sans demande explicite ; privilégier l’emphase.",
+                  "coach_guideline:Rappeler les limites de charge cognitive et le risque de braquage si la méthode reste trop abstraite.",
+                  "coach_guideline:Rester cohérent avec une trajectoire globale d’apaisement, mais rendue plus incarnée et praticable.",
+                  "whole_plan_change_family:style_or_method_mismatch",
+                  "whole_plan_candidate_operation:change_emphasis",
+                  "whole_plan_readiness:draft_ready",
+                  "coach_must_not_execute:La demande exprime une préférence globale de méthode et un besoin de rééquilibrage, mais ne demande pas encore une réécriture opérationnelle complète ; il faut d’abord proposer le cadrage du déplacement vers le concret avant toute application.",
+                  "coach_trajectory_hypothesis:La trajectoire de fond reste valide, mais elle doit passer d’un plan surtout cadré et analytique à un plan qui commence systématiquement par des expériences simples et légères, puis seulement par l’analyse.",
+                  "whole_plan_change_family:direction_change",
+                  "whole_plan_candidate_operation:change_emphasis",
+                  "whole_plan_readiness:draft_ready",
+                  "affected_item:Convenir d'un signal de pause",
+                  "affected_item:Faire le point sur le signal de pause"
+                ],
+                "reason_type": "bad_fit",
+                "change_target": "global_load",
+                "reason_change": "context_changed"
+              },
+              "title": "Ajuster la trajectoire du plan",
+              "confidence": "medium",
+              "ack_summary": {
+                "changed": [
+                  "Insertion d'une étape intermédiaire de consolidation avant les conversations sensibles."
+                ],
+                "unchanged": [
+                  "Objectif global du plan",
+                  "Rôle du signal de pause",
+                  "Actions de soutien existantes sauf réordonnancement nécessaire"
+                ],
+                "confidence": "medium",
+                "why_it_helps": "La progression devient plus cohérente avec le rythme de sécurité du user.",
+                "follow_up_needed": "Valider avant régénération; le détail exact sera produit dans le plan ajusté."
+              },
+              "scope_label": "plan global",
+              "why_it_helps": "Cela garde l'objectif global, mais ajoute un prérequis de sécurité relationnelle avant de monter en complexité.",
+              "decision_basis": {
+                "evidence": [
+                  "Justement ce n'est pas une mission precise. C'est la methode de tout le plan : garder l'objectif d'apaiser et reconstruire, mais que chaque niveau parte d'abord d'une experience simple a vivre, puis seulement apres d'une discussion ou d'une analyse.",
+                  "le user parle du plan global",
+                  "la methode me ressemble pas",
+                  "le plan passe plus par des petites experiences",
+                  "reduce",
+                  "deterministic whole-plan fit/complexity signal",
+                  "la direction me va",
+                  "la methode me ressemble pas",
+                  "sinon je vais me braquer",
+                  "petites experiences legeres",
+                  "gestes concrets",
+                  "tres cadrage / discussion / analyse"
+                ],
+                "confidence": "medium",
+                "uncertainty": [
+                  "semaines ou blocs exacts a affiner ensuite"
+                ],
+                "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+                "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+                "must_preserve": [
+                  "intention du plan",
+                  "direction globale du plan"
+                ]
+              },
+              "adjustment_type": "reduce",
+              "proposed_change": "je réoriente l'accent du plan: Un axe directeur plus aligné avec Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+              "change_rationale": {
+                "why_this_change": "Le user demande une modification structurelle de trajectoire, pas un simple patch d'action.",
+                "success_condition": "Le prochain plan garde le même objectif mais avance plus progressivement.",
+                "expected_mechanism": "Ajouter une étape de consolidation réduit le saut de difficulté avant les sujets sensibles."
+              },
+              "adjust_plan_result": {
+                "scope": "whole_plan",
+                "rationale": {
+                  "confidence": "medium",
+                  "missing_info": [],
+                  "user_problem": "Le plan suivait son axe initial, mais cet axe ne correspond plus assez à la direction voulue.",
+                  "expected_effect": "Le plan avance avec une trajectoire plus cohérente sans casser l'objectif global.",
+                  "why_this_change": "Le user demande un changement d'axe global, pas seulement un allègement."
+                },
+                "boundaries": {
+                  "explanation": "Le changement touche l'ordre et les prérequis de progression, donc il doit passer par une régénération contrôlée du plan.",
+                  "affected_scope": "trajectoire globale du plan",
+                  "global_plan_impact": "requires_review",
+                  "explicitly_not_affected": [
+                    "objectif global",
+                    "identité du plan",
+                    "demande de ne pas transformer cela en simple ajustement d'action"
+                  ]
+                },
+                "applied_change": {
+                  "summary": "je réoriente l'accent du plan: Un axe directeur plus aligné avec Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+                  "changed_items": [
+                    {
+                      "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                      "kind": "action",
+                      "after": "À placer dans la trajectoire ajustée: Un axe directeur plus aligné avec Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+                      "title": "Convenir d'un signal de pause",
+                      "before": "À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.",
+                      "reason": "Le user demande un changement d'axe global, pas seulement un allègement.",
+                      "capability": "modify_existing_action"
+                    },
+                    {
+                      "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                      "kind": "action",
+                      "after": "À placer dans la trajectoire ajustée: Un axe directeur plus aligné avec Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+                      "title": "Faire le point sur le signal de pause",
+                      "before": "Discutez 10 minutes à froid pour voir si le signal de pause a été utile cette semaine et s'il est respecté par vous deux.",
+                      "reason": "Le user demande un changement d'axe global, pas seulement un allègement.",
+                      "capability": "modify_existing_action"
+                    }
+                  ],
+                  "preserved_items": [
+                    {
+                      "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                      "kind": "habit",
+                      "title": "Partager un point positif",
+                      "reason": "L'action reste comme soutien; le changement concerne la trajectoire et l'ordre de progression."
+                    }
+                  ],
+                  "trajectory_change": {
+                    "after": "Le plan garde ce qui reste utile, mais la suite est réorientée autour de Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+                    "before": "Le plan suivait son axe initial, mais cet axe ne correspond plus assez à la direction voulue.",
+                    "inserted_step": "Un axe directeur plus aligné avec Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+                    "coaching_reason": "Le user demande un changement d'axe global, pas seulement un allègement.",
+                    "reordered_steps": [
+                      "Un axe directeur plus aligné avec Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+                      "Construire les prochains blocs autour du nouvel axe"
+                    ],
+                    "preserved_direction": "L'objectif global du plan reste stable, sauf demande explicite de le changer."
+                  }
+                },
+                "user_message_brief": "je réoriente l'accent du plan: Un axe directeur plus aligné avec Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+                "user_message_detailed": "je réoriente l'accent du plan: Un axe directeur plus aligné avec Convenir d'un signal de pause et Faire le point sur le signal de pause."
+              },
+              "execution_strategy": "whole_plan_adjustment",
+              "allowed_patch_fields": [
+                "scope_kind",
+                "plan_adjustment",
+                "load_adjustment",
+                "goal_adjustment",
+                "sequence_adjustment",
+                "reason_type",
+                "reason_change",
+                "change_target",
+                "confidence",
+                "constraints"
+              ]
+            },
+            "output_schema": "plan_adjustment_draft_v1",
+            "operation_type": "adjust_plan_item",
+            "execution_message": "C'est fait: j'ai ajusté la trajectoire du plan.\n\nLe plan garde le même objectif, mais la suite est régénérée pour le plan garde ce qui reste utile, mais la suite est réorientée autour de Convenir d'un signal de pause et Faire le point sur le signal de pause..",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: je réoriente l'accent du plan, avec Un axe directeur plus aligné avec Convenir d'un signal de pause et Faire le point sur le signal de pause.\n\nCe qui reste stable: l'objectif global du plan, le rôle du signal de pause, et les actions de soutien qui restent utiles.\n\nCe que ça implique: si tu valides, je régénère le plan pour réordonner la suite autour de cette étape de consolidation. Rien n'est appliqué tant que tu ne valides pas."
+          },
+          "status": "draft_review",
+          "reason_code": "active_tool_skill_continue",
+          "operation_id": "80368cff-fb10-4a11-adc4-18bc3c7a4b88",
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Ne pas proposer un changement de but.",
+              "Ne pas augmenter la part d’analyse comme solution principale.",
+              "Ne pas noyer le plan sous des explications ou justifications supplémentaires.",
+              "Ne pas présenter le plan comme déjà corrigé sans rééquilibrage explicite.",
+              "Ne pas déplacer le débat vers la motivation personnelle."
+            ],
+            "scope": "whole_plan",
+            "preserve": [
+              "La direction générale du plan.",
+              "L’objectif d’apaiser et reconstruire.",
+              "La logique de progression déjà construite.",
+              "Les repères de structure qui servent réellement l’action.",
+              "La cohérence globale entre les niveaux du plan."
+            ],
+            "warnings": [
+              "Éviter de reformuler la demande comme un désaccord sur l’objectif global.",
+              "Éviter de proposer davantage de cadrage, de questionnaires ou de bilans comme réponse principale.",
+              "Éviter d’ouvrir un pivot complet du plan alors que la direction est explicitement validée.",
+              "Éviter de promettre qu’un simple ajustement de formulation suffira si le problème est structurel.",
+              "Éviter de supprimer les repères utiles au plan si eux-mêmes soutiennent l’action concrète."
+            ],
+            "readiness": "draft_ready",
+            "confidence": "high",
+            "guidelines": [
+              "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "Traiter la demande comme un mismatch de style et de méthode, pas comme un refus du fond.",
+              "Préserver explicitement l’objectif et la trajectoire globale avant toute reconfiguration.",
+              "Formuler le changement comme un pont vers davantage de concret, pas comme une réécriture complète.",
+              "Privilégier des micro-expériences, des gestes simples et des tests rapides comme format d’entrée.",
+              "Raisonner en séquencement : expérience d’abord, analyse ensuite.",
+              "Vérifier que chaque élément conservé a une utilité opérationnelle immédiate.",
+              "Éviter de renforcer la sensation de lourdeur en ajoutant du cadrage supplémentaire.",
+              "Ne pas changer la nature du plan sans demande explicite ; privilégier l’emphase.",
+              "Rappeler les limites de charge cognitive et le risque de braquage si la méthode reste trop abstraite.",
+              "Rester cohérent avec une trajectoire globale d’apaisement, mais rendue plus incarnée et praticable."
+            ],
+            "observation": "La demande ne vise pas une mission isolée mais la méthode du plan entier : le fond et la direction semblent acceptés, mais la forme actuelle est perçue comme trop cadrée, trop discursive et trop analytique. Le besoin réel est de rééquilibrer le plan vers des expériences simples, légères et concrètes, afin de préserver l’adhésion et d’éviter le braquage.",
+            "change_family": "style_or_method_mismatch",
+            "recommendation": "Traiter cela comme un changement d’emphase au niveau global : conserver l’objectif d’apaiser et reconstruire, mais faire démarrer chaque niveau par une expérience vécue, puis seulement ensuite par une discussion ou une analyse. Le prochain brouillon devrait donc déplacer le centre de gravité du plan vers le concret sans réécrire la trajectoire de fond.",
+            "next_best_question": null,
+            "options_to_discuss": [
+              "Réduire la place des séquences de discussion au profit de micro-expériences observables.",
+              "Transformer certaines étapes en gestes très courts à faire avant tout échange d’analyse.",
+              "Conserver la structure actuelle mais modifier le format des phases pour qu’elles commencent par du vécu.",
+              "Ajouter une couche de test concret au début de chaque niveau, puis seulement un débrief.",
+              "Garder les moments réflexifs uniquement là où ils servent directement une action suivante."
+            ],
+            "candidate_operation": "change_emphasis",
+            "questions_to_clarify": [],
+            "trajectory_hypothesis": "La trajectoire de fond reste valide, mais elle doit passer d’un plan surtout cadré et analytique à un plan qui commence systématiquement par des expériences simples et légères, puis seulement par l’analyse.",
+            "must_not_execute_reason": "La demande exprime une préférence globale de méthode et un besoin de rééquilibrage, mais ne demande pas encore une réécriture opérationnelle complète ; il faut d’abord proposer le cadrage du déplacement vers le concret avant toute application."
+          },
+          "coaching_guidance_audit": {
+            "scope": "whole_plan",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 15616,
+        "created_at": "2026-05-20T17:28:23.677238+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r81-whole-plan-style-method-t03",
+    "user": "Tu repars encore sur le signal de pause. Je veux plutot un principe global : dans chaque niveau, commencer par un geste ou une micro-experience, puis utiliser ca comme base pour parler. Est-ce que tu peux me faire un brouillon dans ce sens, sans appliquer ?",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r81-whole-plan-style-method-t03",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r81-whole-plan-style-method",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: je réoriente l'accent du plan, avec Un axe directeur plus aligné avec Convenir d'un signal de pause et Faire le point sur le signal de pause.\n\nCe qui reste stable: l'objectif global du plan, le rôle du signal de pause, et les actions de soutien qui restent utiles.\n\nCe que ça implique: si tu valides, je régénère le plan pour réordonner la suite autour de cette étape de consolidation. Rien n'est appliqué tant que tu ne valides pas. 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r81-whole-plan-style-method-t03",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "82826513-aa75-4152-b856-9a743674e02f",
+        "ts": "2026-05-20T17:28:48.791+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 13130,
+          "latency_ms": 4671,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 834,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "structure du plan et niveaux",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Tu repars encore sur le signal de pause. Je veux plutot un principe global : dans chaque niveau, commencer par un geste ou une micro-experience, puis utiliser c",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s15"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r81-whole-plan-style-method-t03",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "structure du plan et niveaux",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Tu repars encore sur le signal de pause. Je veux plutot un principe global : dans chaque niveau, commencer par un geste ou une micro-experience, puis utiliser c",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "product_help": {
+                "reason": "product_question",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": "level_reference",
+            "status": "current_level",
+            "detected": true,
+            "expansion_policy": "include_level_execution_handoff"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 1.6,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": true,
+                "evidence": "0,1;decay=0.55;recovery=0",
+                "contribution": 0.6
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure",
+              "previous_risk"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              1
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "82826513-aa75-4152-b856-9a743674e02f",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "plan global",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "whole_plan",
+                  "label": "plan global",
+                  "status": "identified",
+                  "evidence": [
+                    "principe global",
+                    "chaque niveau"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "whole_plan",
+                  "status": "identified",
+                  "evidence": [
+                    "Je veux plutot un principe global",
+                    "dans chaque niveau",
+                    "methode de tout le plan"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "whole_plan"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "draft": {
+            "draft": {
+              "patch": {
+                "scope_kind": "whole_plan",
+                "constraints": [
+                  "no_pressure",
+                  "minimal_patch",
+                  "preserve_plan_intent",
+                  "no_schedule_day_change",
+                  "ask_confirmation_before_write",
+                  "experience_first:chaque niveau commence par un geste ou une micro-experience",
+                  "analysis_second:utiliser ensuite cette base pour parler",
+                  "keep_objective:garder l'objectif d'apaiser et reconstruire",
+                  "whole_plan_change_family:direction_change",
+                  "whole_plan_candidate_operation:change_emphasis",
+                  "whole_plan_readiness:draft_ready",
+                  "whole_plan_directional_draft_ready",
+                  "preserve_plan_intent",
+                  "avoid_repetitive_clarification_when_user_gives_solution",
+                  "coach_observation:La demande corrige un recentrage trop spécifique : le user ne veut pas qu’on reparte d’un objet précis du plan, mais qu’on formalise un principe transversal. Le sens réel est un changement de méthode à l’échelle du plan entier : chaque niveau doit commencer par une micro-expérience ou un geste concret, puis seulement ensuite ouvrir sur la discussion ou l’analyse. Cela vise à préserver l’adhésion en réduisant la charge abstraite.",
+                  "coach_recommendation:Produire un brouillon de réorientation globale centré sur un principe d’entrée concrète : garder l’objectif d’apaiser et reconstruire, mais reformuler le plan pour que chaque niveau commence par du vécu simple, léger et faisable, puis seulement après par un temps réflexif. Il faut rester au niveau de l’emphase et du séquencement, sans appliquer ni réécrire opérationnellement le plan.",
+                  "coach_warning:Éviter de ramener la réponse vers une seule action comme le signal de pause.",
+                  "coach_warning:Éviter de traiter cela comme une simple consolidation ou un allègement local.",
+                  "coach_warning:Éviter de proposer davantage d’analyse, de cadrage ou de questionnaire comme solution principale.",
+                  "coach_warning:Éviter de changer l’objectif du plan alors que le fond est explicitement conservé.",
+                  "coach_warning:Éviter de donner l’impression que le plan est déjà modifié ou appliqué.",
+                  "coach_preserve:L’objectif global d’apaiser et reconstruire.",
+                  "coach_preserve:La validité de la direction de fond.",
+                  "coach_preserve:La structure de progression utile si elle peut être rendue plus incarnée.",
+                  "coach_preserve:La cohérence globale du plan.",
+                  "coach_preserve:Le principe de ne rien appliquer avant validation explicite.",
+                  "coach_avoid:Ne pas repartir d’un item isolé.",
+                  "coach_avoid:Ne pas proposer un changement de but.",
+                  "coach_avoid:Ne pas surcharger le brouillon de justification technique.",
+                  "coach_avoid:Ne pas présenter une version finale ou appliquée.",
+                  "coach_avoid:Ne pas augmenter la part de discussion comme point d’entrée.",
+                  "coach_guideline:Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+                  "coach_guideline:Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+                  "coach_guideline:Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+                  "coach_guideline:Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+                  "coach_guideline:Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+                  "coach_guideline:Traiter la demande comme un changement de méthode globale, pas comme un ajustement local.",
+                  "coach_guideline:Préserver le fond et déplacer seulement le mode d’entrée des niveaux.",
+                  "coach_guideline:Raisonner en séquence : micro-expérience d’abord, verbalisation ensuite.",
+                  "coach_guideline:Formuler un principe transversal réutilisable sur tout le plan.",
+                  "coach_guideline:Vérifier que le changement réduit la lourdeur sans casser la logique de progression.",
+                  "coach_guideline:Rester dans un brouillon non appliqué, avec un périmètre explicite.",
+                  "coach_guideline:Ne pas faire glisser la réponse vers la motivation ou l’adhésion psychologique générale.",
+                  "coach_guideline:Distinguer clairement ce qui est humainement pertinent du point de vue coach de ce qui serait seulement une reformulation technique.",
+                  "whole_plan_change_family:style_or_method_mismatch",
+                  "whole_plan_candidate_operation:change_emphasis",
+                  "whole_plan_readiness:draft_ready",
+                  "coach_must_not_execute:Le user demande un brouillon de réorientation de méthode, pas une application du changement ; il faut donc rester en proposition structurée sans modifier le plan en place.",
+                  "coach_trajectory_hypothesis:La trajectoire de fond reste la même, mais elle doit être reformulée pour que chaque niveau parte d’un geste ou d’une micro-expérience avant tout échange réflexif.",
+                  "whole_plan_change_family:direction_change",
+                  "whole_plan_candidate_operation:change_emphasis",
+                  "whole_plan_readiness:draft_ready",
+                  "affected_item:Convenir d'un signal de pause",
+                  "affected_item:Faire le point sur le signal de pause"
+                ],
+                "reason_type": "bad_fit",
+                "change_target": "global_load",
+                "reason_change": "context_changed"
+              },
+              "title": "Ajuster la trajectoire du plan",
+              "confidence": "medium",
+              "ack_summary": {
+                "changed": [
+                  "Insertion d'une étape intermédiaire de consolidation avant les conversations sensibles."
+                ],
+                "unchanged": [
+                  "Objectif global du plan",
+                  "Rôle du signal de pause",
+                  "Actions de soutien existantes sauf réordonnancement nécessaire"
+                ],
+                "confidence": "medium",
+                "why_it_helps": "La progression devient plus cohérente avec le rythme de sécurité du user.",
+                "follow_up_needed": "Valider avant régénération; le détail exact sera produit dans le plan ajusté."
+              },
+              "scope_label": "plan global",
+              "why_it_helps": "Cela garde l'objectif global, mais ajoute un prérequis de sécurité relationnelle avant de monter en complexité.",
+              "decision_basis": {
+                "evidence": [
+                  "Tu repars encore sur le signal de pause. Je veux plutot un principe global : dans chaque niveau, commencer par un geste ou une micro-experience, puis utiliser ca comme base pour parler. Est-ce que tu peux me faire un brouillon dans ce sens, sans appliquer ?",
+                  "le user parle du plan global",
+                  "la methode me ressemble pas",
+                  "le plan passe plus par des petites experiences",
+                  "reduce",
+                  "deterministic whole-plan fit/complexity signal",
+                  "la direction me va",
+                  "la methode me ressemble pas",
+                  "sinon je vais me braquer",
+                  "petites experiences legeres",
+                  "gestes concrets",
+                  "tres cadrage / discussion / analyse"
+                ],
+                "confidence": "medium",
+                "uncertainty": [
+                  "semaines ou blocs exacts a affiner ensuite"
+                ],
+                "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+                "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+                "must_preserve": [
+                  "intention du plan",
+                  "direction globale du plan"
+                ]
+              },
+              "adjustment_type": "reduce",
+              "proposed_change": "je réoriente l'accent du plan: Un axe directeur plus aligné avec Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+              "change_rationale": {
+                "why_this_change": "Le user demande une modification structurelle de trajectoire, pas un simple patch d'action.",
+                "success_condition": "Le prochain plan garde le même objectif mais avance plus progressivement.",
+                "expected_mechanism": "Ajouter une étape de consolidation réduit le saut de difficulté avant les sujets sensibles."
+              },
+              "adjust_plan_result": {
+                "scope": "whole_plan",
+                "rationale": {
+                  "confidence": "medium",
+                  "missing_info": [],
+                  "user_problem": "Le plan suivait son axe initial, mais cet axe ne correspond plus assez à la direction voulue.",
+                  "expected_effect": "Le plan avance avec une trajectoire plus cohérente sans casser l'objectif global.",
+                  "why_this_change": "Le user demande un changement d'axe global, pas seulement un allègement."
+                },
+                "boundaries": {
+                  "explanation": "Le changement touche l'ordre et les prérequis de progression, donc il doit passer par une régénération contrôlée du plan.",
+                  "affected_scope": "trajectoire globale du plan",
+                  "global_plan_impact": "requires_review",
+                  "explicitly_not_affected": [
+                    "objectif global",
+                    "identité du plan",
+                    "demande de ne pas transformer cela en simple ajustement d'action"
+                  ]
+                },
+                "applied_change": {
+                  "summary": "je réoriente l'accent du plan: Un axe directeur plus aligné avec Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+                  "changed_items": [
+                    {
+                      "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                      "kind": "action",
+                      "after": "À placer dans la trajectoire ajustée: Un axe directeur plus aligné avec Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+                      "title": "Convenir d'un signal de pause",
+                      "before": "À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.",
+                      "reason": "Le user demande un changement d'axe global, pas seulement un allègement.",
+                      "capability": "modify_existing_action"
+                    },
+                    {
+                      "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                      "kind": "action",
+                      "after": "À placer dans la trajectoire ajustée: Un axe directeur plus aligné avec Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+                      "title": "Faire le point sur le signal de pause",
+                      "before": "Discutez 10 minutes à froid pour voir si le signal de pause a été utile cette semaine et s'il est respecté par vous deux.",
+                      "reason": "Le user demande un changement d'axe global, pas seulement un allègement.",
+                      "capability": "modify_existing_action"
+                    }
+                  ],
+                  "preserved_items": [
+                    {
+                      "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                      "kind": "habit",
+                      "title": "Partager un point positif",
+                      "reason": "L'action reste comme soutien; le changement concerne la trajectoire et l'ordre de progression."
+                    }
+                  ],
+                  "trajectory_change": {
+                    "after": "Le plan garde ce qui reste utile, mais la suite est réorientée autour de Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+                    "before": "Le plan suivait son axe initial, mais cet axe ne correspond plus assez à la direction voulue.",
+                    "inserted_step": "Un axe directeur plus aligné avec Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+                    "coaching_reason": "Le user demande un changement d'axe global, pas seulement un allègement.",
+                    "reordered_steps": [
+                      "Un axe directeur plus aligné avec Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+                      "Construire les prochains blocs autour du nouvel axe"
+                    ],
+                    "preserved_direction": "L'objectif global du plan reste stable, sauf demande explicite de le changer."
+                  }
+                },
+                "user_message_brief": "je réoriente l'accent du plan: Un axe directeur plus aligné avec Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+                "user_message_detailed": "je réoriente l'accent du plan: Un axe directeur plus aligné avec Convenir d'un signal de pause et Faire le point sur le signal de pause."
+              },
+              "execution_strategy": "whole_plan_adjustment",
+              "allowed_patch_fields": [
+                "scope_kind",
+                "plan_adjustment",
+                "load_adjustment",
+                "goal_adjustment",
+                "sequence_adjustment",
+                "reason_type",
+                "reason_change",
+                "change_target",
+                "confidence",
+                "constraints"
+              ]
+            },
+            "output_schema": "plan_adjustment_draft_v1",
+            "operation_type": "adjust_plan_item",
+            "execution_message": "C'est fait: j'ai ajusté la trajectoire du plan.\n\nLe plan garde le même objectif, mais la suite est régénérée pour le plan garde ce qui reste utile, mais la suite est réorientée autour de Convenir d'un signal de pause et Faire le point sur le signal de pause..",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: je réoriente l'accent du plan, avec Un axe directeur plus aligné avec Convenir d'un signal de pause et Faire le point sur le signal de pause.\n\nCe qui reste stable: l'objectif global du plan, le rôle du signal de pause, et les actions de soutien qui restent utiles.\n\nCe que ça implique: si tu valides, je régénère le plan pour réordonner la suite autour de cette étape de consolidation. Rien n'est appliqué tant que tu ne valides pas."
+          },
+          "status": "draft_review_updated",
+          "reason_code": "tool_skill_intent_start",
+          "operation_id": "4c5fe279-a9ed-43d9-9044-c2ddcc779308",
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Ne pas repartir d’un item isolé.",
+              "Ne pas proposer un changement de but.",
+              "Ne pas surcharger le brouillon de justification technique.",
+              "Ne pas présenter une version finale ou appliquée.",
+              "Ne pas augmenter la part de discussion comme point d’entrée."
+            ],
+            "scope": "whole_plan",
+            "preserve": [
+              "L’objectif global d’apaiser et reconstruire.",
+              "La validité de la direction de fond.",
+              "La structure de progression utile si elle peut être rendue plus incarnée.",
+              "La cohérence globale du plan.",
+              "Le principe de ne rien appliquer avant validation explicite."
+            ],
+            "warnings": [
+              "Éviter de ramener la réponse vers une seule action comme le signal de pause.",
+              "Éviter de traiter cela comme une simple consolidation ou un allègement local.",
+              "Éviter de proposer davantage d’analyse, de cadrage ou de questionnaire comme solution principale.",
+              "Éviter de changer l’objectif du plan alors que le fond est explicitement conservé.",
+              "Éviter de donner l’impression que le plan est déjà modifié ou appliqué."
+            ],
+            "readiness": "draft_ready",
+            "confidence": "high",
+            "guidelines": [
+              "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "Traiter la demande comme un changement de méthode globale, pas comme un ajustement local.",
+              "Préserver le fond et déplacer seulement le mode d’entrée des niveaux.",
+              "Raisonner en séquence : micro-expérience d’abord, verbalisation ensuite.",
+              "Formuler un principe transversal réutilisable sur tout le plan.",
+              "Vérifier que le changement réduit la lourdeur sans casser la logique de progression.",
+              "Rester dans un brouillon non appliqué, avec un périmètre explicite.",
+              "Ne pas faire glisser la réponse vers la motivation ou l’adhésion psychologique générale.",
+              "Distinguer clairement ce qui est humainement pertinent du point de vue coach de ce qui serait seulement une reformulation technique."
+            ],
+            "observation": "La demande corrige un recentrage trop spécifique : le user ne veut pas qu’on reparte d’un objet précis du plan, mais qu’on formalise un principe transversal. Le sens réel est un changement de méthode à l’échelle du plan entier : chaque niveau doit commencer par une micro-expérience ou un geste concret, puis seulement ensuite ouvrir sur la discussion ou l’analyse. Cela vise à préserver l’adhésion en réduisant la charge abstraite.",
+            "change_family": "style_or_method_mismatch",
+            "recommendation": "Produire un brouillon de réorientation globale centré sur un principe d’entrée concrète : garder l’objectif d’apaiser et reconstruire, mais reformuler le plan pour que chaque niveau commence par du vécu simple, léger et faisable, puis seulement après par un temps réflexif. Il faut rester au niveau de l’emphase et du séquencement, sans appliquer ni réécrire opérationnellement le plan.",
+            "next_best_question": null,
+            "options_to_discuss": [
+              "Formuler le principe global sous forme de règle simple pour tout le plan.",
+              "Réécrire l’enchaînement des niveaux pour que le concret précède toujours le verbal.",
+              "Ajouter une micro-expérience d’entrée au début de chaque niveau sans toucher au but.",
+              "Conserver les phases existantes mais modifier leur logique interne : geste d’abord, réflexion ensuite.",
+              "Limiter les moments d’analyse aux situations où ils servent immédiatement une action suivante."
+            ],
+            "candidate_operation": "change_emphasis",
+            "questions_to_clarify": [],
+            "trajectory_hypothesis": "La trajectoire de fond reste la même, mais elle doit être reformulée pour que chaque niveau parte d’un geste ou d’une micro-expérience avant tout échange réflexif.",
+            "must_not_execute_reason": "Le user demande un brouillon de réorientation de méthode, pas une application du changement ; il faut donc rester en proposition structurée sans modifier le plan en place."
+          },
+          "draft_review_decision": {
+            "decision": "revise",
+            "evidence": [
+              "Tu repars encore sur le signal de pause",
+              "Je veux plutot un principe global",
+              "dans chaque niveau, commencer par un geste ou une micro-experience",
+              "Est-ce que tu peux me faire un brouillon dans ce sens, sans appliquer"
+            ],
+            "confidence": "high",
+            "apply_after_revision": false
+          },
+          "previous_operation_id": "80368cff-fb10-4a11-adc4-18bc3c7a4b88",
+          "coaching_guidance_audit": {
+            "scope": "whole_plan",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 15225,
+        "created_at": "2026-05-20T17:28:48.792511+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r81-whole-plan-style-method-t04",
+    "user": "Non, je n'ai pas valide ca. Ce brouillon ne correspond pas, donc n'applique rien. Reformule-moi juste en une phrase ce que tu as compris de ma demande avant de proposer quoi que ce soit.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r81-whole-plan-style-method-t04",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r81-whole-plan-style-method",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ok, je n'applique pas cet ajustement. On garde ton plan tel quel pour l'instant; observe encore une journée, et si le besoin d'alléger se confirme, on reprendra proprement. 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r81-whole-plan-style-method-t04",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "65477a9d-a047-4b8f-9181-7bcd03857c88",
+        "ts": "2026-05-20T17:29:03.638+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 13328,
+          "latency_ms": 4446,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 727,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": null,
+                "query_hint": "structure et methode du plan global",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s15"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r81-whole-plan-style-method-t04",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": null,
+                "query_hint": "structure et methode du plan global",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 3.4,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": true,
+                "evidence": "non, je n'ai pas",
+                "contribution": 1.5
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": true,
+                "evidence": "0,1,1.6;decay=0.55;recovery=0",
+                "contribution": 0.9
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "repetition_or_correction",
+              "active_flow_pressure",
+              "previous_risk"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              1,
+              1.6
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "65477a9d-a047-4b8f-9181-7bcd03857c88",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "plan global",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "whole_plan",
+                  "label": "plan global",
+                  "status": "identified",
+                  "evidence": [
+                    "methode de tout le plan"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "whole_plan",
+                  "status": "identified",
+                  "evidence": [
+                    "methode de tout le plan",
+                    "principe global",
+                    "dans chaque niveau"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "whole_plan"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "draft_review_cancelled",
+          "reason_code": "tool_skill_intent_start",
+          "operation_id": "4c5fe279-a9ed-43d9-9044-c2ddcc779308",
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": null,
+          "draft_review_decision": {
+            "decision": "reject",
+            "evidence": [
+              "user_cancelled_or_rejected_pending_adjust_plan_draft"
+            ],
+            "confidence": "high",
+            "apply_after_revision": false
+          },
+          "coaching_guidance_audit": {
+            "scope": "whole_plan",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 4496,
+        "created_at": "2026-05-20T17:29:03.638777+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r81-whole-plan-style-method-t05",
+    "user": "Ce n'est pas une question d'alleger non plus. Je veux changer le style de progression du plan : moins analyse d'abord, plus experience concrete d'abord. Tu peux me dire si tu as compris ce point, sans rien appliquer ?",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r81-whole-plan-style-method-t05",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r81-whole-plan-style-method",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Oui, j’ai compris : tu veux garder le plan, mais faire entrer la progression par du concret avant l’analyse. Il me manque juste la forme d’ajustement à viser pour le plan global : tu veux plutôt réordonner la progression, ou reformuler certaines étapes pour qu’elles partent d’abord du vécu ? 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r81-whole-plan-style-method-t05",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "72e27bbb-0b9c-4fb6-9664-3ec035131012",
+        "ts": "2026-05-20T17:29:38.547+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 13175,
+          "latency_ms": 4519,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 720,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "plan methodology and progression style",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s15"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r81-whole-plan-style-method-t05",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "plan methodology and progression style",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 1.9,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": true,
+                "evidence": "0,1,1.6,3.4;decay=0.55;recovery=0",
+                "contribution": 1.9
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "previous_risk"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              1,
+              1.6,
+              3.4
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "72e27bbb-0b9c-4fb6-9664-3ec035131012",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "whole_plan",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "whole_plan",
+                  "label": "méthode et style de progression globale",
+                  "status": "identified",
+                  "evidence": [
+                    "moins analyse d'abord, plus experience concrete d'abord"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "whole_plan",
+                  "status": "identified",
+                  "evidence": [
+                    "style de progression du plan",
+                    "methode de tout le plan"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "whole_plan"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "ask_question",
+          "reason_code": "tool_skill_intent_start",
+          "plan_item_id": null,
+          "target_title": null,
+          "missing_slots": [
+            "whole_plan.adjustment_type"
+          ],
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Proposer un plan plus léger au sens de moins exigeant.",
+              "Réécrire le plan comme s'il fallait tout remettre à plat.",
+              "Remplacer l'analyse par zéro analyse.",
+              "Promettre une application immédiate ou une modification du plan.",
+              "Formuler une validation technique au lieu d'une compréhension coaching."
+            ],
+            "scope": "whole_plan",
+            "preserve": [
+              "L'objectif relationnel et la direction globale du plan.",
+              "La présence d'un moment de compréhension, mais déplacé après l'expérience ou réduit en amont.",
+              "Les éléments déjà pertinents du plan, notamment les actions autour du signal de pause et du partage positif.",
+              "Le principe d'une progression structurée, sans dériver vers un plan improvisé."
+            ],
+            "warnings": [
+              "Éviter de traiter cela comme une simple réduction de charge ou une demande de simplification globale.",
+              "Éviter de proposer une suppression de l'analyse: le besoin exprimé est un déplacement du ratio, pas un rejet du questionnement.",
+              "Éviter de modifier l'objectif du plan, la séquence globale ou les jalons sans demande explicite.",
+              "Éviter de confondre style de progression et capacité: ce n'est pas forcément un problème de rythme, mais de méthode d'entrée."
+            ],
+            "readiness": "diagnose",
+            "confidence": "high",
+            "guidelines": [
+              "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "Nommer le changement comme un ajustement de style de progression, pas comme un allègement.",
+              "Préserver l'intention de développement: l'expérience concrète doit servir de porte d'entrée, pas d'abandon du sens.",
+              "Si un pont est proposé, il doit être minimal: expérimentation courte puis lecture a posteriori.",
+              "Ne pas changer la nature du plan sans demande explicite; rester au niveau de la méthode globale.",
+              "Distinguer clairement ce qui est humainement pertinent (moins de théorie initiale, plus d'essai vécu) de ce qui est techniquement faisable (réordonner ou reformuler des phases).",
+              "Si Sophia répond, elle doit d'abord montrer qu'elle a compris le déplacement 'analyse d'abord' vers 'expérience d'abord' avant toute proposition de structure."
+            ],
+            "observation": "La demande ne porte pas sur une baisse de charge ni sur un allègement du plan, mais sur un changement de logique de progression: passer d'une entrée surtout analytique à une entrée plus expérientielle et concrète. Le besoin humain sous-jacent semble être de rendre le plan plus incarné, plus testable dans l'action, et moins dépendant d'une compréhension préalable.",
+            "change_family": "style_or_method_mismatch",
+            "recommendation": "Le sous-skill doit refléter cette intention comme un changement de style/méthode à l'échelle du plan entier, sans proposer d'application. La réponse de Sophia devrait prioriser une reformulation de la compréhension: elle a saisi qu'il faut déplacer le point d'entrée vers l'expérience concrète, tout en gardant l'objectif global et l'architecture générale. À ce stade, il faut diagnostiquer la forme précise du basculement plutôt que modifier le contenu.",
+            "next_best_question": "Tu veux que je comprenne bien que tu souhaites garder le même plan, mais en inversant le point d'entrée: plus d'expérience concrète au début, et moins d'analyse avant d'agir ?",
+            "options_to_discuss": [
+              "Commencer par des micro-expériences concrètes, puis seulement extraire du sens a posteriori.",
+              "Garder les mêmes intentions mais inverser l'ordre: agir d'abord, comprendre ensuite.",
+              "Transformer certaines clarifications en observations guidées par l'expérience vécue.",
+              "Alléger la part de cadrage initial sans supprimer le moment de réflexion.",
+              "Conserver les missions mais changer leur présentation pour qu'elles produisent d'abord du vécu puis de l'analyse."
+            ],
+            "candidate_operation": "change_emphasis",
+            "questions_to_clarify": [],
+            "trajectory_hypothesis": "La trajectoire actuelle part d'une compréhension préalable puis va vers l'action; la trajectoire souhaitée part d'un vécu concret puis remonte vers l'analyse et la stabilisation.",
+            "must_not_execute_reason": "La demande est une clarification d'orientation méthodologique, pas une instruction d'application. Il faut d'abord comprendre le nouvel équilibre souhaité entre expérience et analyse avant toute adaptation du plan."
+          },
+          "coaching_guidance_audit": {
+            "scope": "whole_plan",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 22507,
+        "created_at": "2026-05-20T17:29:38.548719+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 6,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r81-whole-plan-style-method-t06",
+    "user": "Plutot reformuler les etapes pour qu'elles partent du vecu. Par exemple : petite experience dans la semaine, puis observation de ce que ca a produit, puis discussion seulement si ca a ouvert quelque chose. Je veux voir le brouillon avant validation.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r81-whole-plan-style-method-t06",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r81-whole-plan-style-method",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je te propose un brouillon qui garde le même objectif global, mais qui inverse le point d’entrée: on commence par une petite expérience concrète, on observe ce qu’elle produit, puis on ouvre la discussion seulement si quelque chose s’est vraiment révélé. Rien n’est encore appliqué. Ce choix aide parce qu’il rend la progression plus incarnée et plus testable, sans changer la direction du plan. Je ne touche pas à l’objectif du plan ni aux éléments déjà pertinents comme le signal de pause et le partage positif. Si tu veux, je peux préparer cette version pour validation. 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r81-whole-plan-style-method-t06",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "56940360-7f9e-4403-94ba-f42d55f54f0a",
+        "ts": "2026-05-20T17:30:22.053+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 16883,
+          "latency_ms": 5215,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 846,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "structure et style de progression",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s15"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r81-whole-plan-style-method-t06",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "structure et style de progression",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 2,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": true,
+                "evidence": "0,1,1.6,3.4,1.9;decay=0.55;recovery=0",
+                "contribution": 1
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure",
+              "previous_risk"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              1,
+              1.6,
+              3.4,
+              1.9
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "56940360-7f9e-4403-94ba-f42d55f54f0a",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "whole_plan",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "whole_plan",
+                  "label": "méthode et style de progression globale",
+                  "status": "identified",
+                  "evidence": [
+                    "méthode de tout le plan",
+                    "principe global"
+                  ]
+                },
+                "constraints": {
+                  "status": "identified",
+                  "values": [
+                    "experience_first",
+                    "observation_second",
+                    "discussion_conditional",
+                    "draft_before_validation"
+                  ],
+                  "evidence": [
+                    "petite experience dans la semaine, puis observation de ce que ca a produit, puis discussion seulement si ca a ouvert quelque chose",
+                    "Je veux voir le brouillon avant validation"
+                  ]
+                },
+                "adjustment_type": {
+                  "value": "reformulate_steps",
+                  "status": "identified",
+                  "evidence": [
+                    "reformuler les etapes pour qu'elles partent du vecu"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "whole_plan",
+                  "status": "identified",
+                  "evidence": [
+                    "méthode de tout le plan",
+                    "chaque niveau",
+                    "principe global"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "whole_plan"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "active_tool_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "continue_active",
+            "reason_code": "active_tool_skill_continue",
+            "active_owner": "tool_skill",
+            "resume_policy": "none",
+            "selected_owner": "tool_skill"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "draft": {
+            "draft": {
+              "patch": {
+                "confidence": "medium",
+                "scope_kind": "whole_plan",
+                "constraints": [
+                  "no_pressure",
+                  "minimal_patch",
+                  "preserve_plan_intent",
+                  "no_schedule_day_change",
+                  "ask_confirmation_before_write",
+                  "experience_first",
+                  "observation_second",
+                  "discussion_conditional",
+                  "draft_before_validation",
+                  "style_or_method_mismatch",
+                  "no_global_load_reduction",
+                  "less_analysis_first",
+                  "more_concrete_experience_first",
+                  "coach_observation:La demande ne vise pas à alléger le plan ni à réduire l'exigence, mais à déplacer sa logique d'entrée: partir d'une petite expérience vécue, observer ce qu'elle produit, puis seulement ouvrir la discussion si quelque chose s'est réellement révélé. Le besoin humain pertinent est de rendre la progression plus incarnée, plus testable, et moins dépendante d'une analyse préalable.",
+                  "coach_recommendation:Traiter cela comme un ajustement de style/méthode à l'échelle du plan entier, sans modification immédiate. La bonne direction coaching est de préserver le même objectif global tout en reformulant la séquence pour qu'elle commence par du vécu concret et que le sens vienne ensuite. Comme le user demande à voir le brouillon avant validation, Sophia doit préparer une proposition structurée mais ne pas l'appliquer.",
+                  "coach_warning:Ne pas interpréter la demande comme une baisse de charge ou une simplification globale.",
+                  "coach_warning:Ne pas supprimer l'analyse: le besoin exprimé est un déplacement du ratio entre action vécue et réflexion, pas un rejet du questionnement.",
+                  "coach_warning:Ne pas changer l'objectif du plan ni sa cohérence d'ensemble sans demande explicite.",
+                  "coach_warning:Ne pas proposer un plan entièrement remis à plat alors que la demande porte surtout sur l'ordre d'entrée.",
+                  "coach_warning:Ne pas promettre une exécution ou une application avant validation du brouillon.",
+                  "coach_preserve:L'objectif relationnel et la direction globale du plan.",
+                  "coach_preserve:La structure progressive du plan, même si l'ordre d'entrée change.",
+                  "coach_preserve:Les éléments déjà pertinents comme le signal de pause et le partage positif.",
+                  "coach_preserve:Le principe qu'une réflexion peut exister, mais après une expérience concrète.",
+                  "coach_preserve:Le cadre de validation: montrer un brouillon avant d'appliquer quoi que ce soit.",
+                  "coach_avoid:Proposer un allègement global du plan.",
+                  "coach_avoid:Réécrire le plan comme s'il fallait tout repartir de zéro.",
+                  "coach_avoid:Remplacer l'analyse par zéro analyse.",
+                  "coach_avoid:Appliquer ou annoncer une modification comme si elle était déjà validée.",
+                  "coach_avoid:Confondre changement de méthode et changement d'objectif.",
+                  "coach_guideline:Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+                  "coach_guideline:Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+                  "coach_guideline:Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+                  "coach_guideline:Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+                  "coach_guideline:Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+                  "coach_guideline:Traiter la demande comme un changement de trajectoire méthodologique au niveau whole_plan.",
+                  "coach_guideline:Préserver l'intention de développement: l'expérience concrète doit servir de porte d'entrée, pas d'abandon du sens.",
+                  "coach_guideline:Raisonner en séquencement, en prérequis et en phases plutôt qu'en patch local.",
+                  "coach_guideline:Si un pont est proposé, il doit être minimal: petite expérience, puis lecture a posteriori.",
+                  "coach_guideline:Nommer explicitement le déplacement 'analyse d'abord' vers 'expérience d'abord'.",
+                  "coach_guideline:Distinguer ce qui est humainement pertinent du simple faisable technique: ce qui compte ici est la manière de vivre le plan, pas seulement sa forme.",
+                  "coach_guideline:Ne pas changer la nature du plan sans demande explicite.",
+                  "coach_guideline:Le brouillon doit refléter l'inversion du point d'entrée tout en gardant la cohérence globale.",
+                  "coach_guideline:Avant toute validation, montrer que le sens coaching a bien été compris: même plan, mais progression plus incarnée.",
+                  "coach_guideline:Si Sophia rédige, elle doit présenter une proposition, pas une exécution.",
+                  "whole_plan_change_family:style_or_method_mismatch",
+                  "whole_plan_candidate_operation:change_emphasis",
+                  "whole_plan_readiness:draft_ready",
+                  "coach_must_not_execute:La demande porte sur une reformulation méthodologique et sur la présentation d'un brouillon avant validation. Il ne faut donc pas appliquer le changement maintenant; il faut d'abord proposer une version qui inverse le point d'entrée sans altérer l'objectif global.",
+                  "coach_trajectory_hypothesis:La trajectoire actuelle part d'un cadrage et d'une compréhension préalable; la trajectoire souhaitée part d'une petite expérience vécue, puis remonte vers l'observation et la discussion.",
+                  "coach_next_best_question:Tu veux que je comprenne bien que tu souhaites garder le même plan, mais en inversant le point d'entrée: plus d'expérience concrète au début, puis l'observation et la discussion seulement ensuite ?",
+                  "whole_plan_change_family:style_or_method_mismatch",
+                  "whole_plan_candidate_operation:change_emphasis",
+                  "whole_plan_readiness:draft_ready",
+                  "affected_item:Convenir d'un signal de pause",
+                  "affected_item:Faire le point sur le signal de pause",
+                  "affected_item:Partager un point positif"
+                ],
+                "reason_type": "context_changed",
+                "change_target": "global_load",
+                "reason_change": "context_changed",
+                "load_adjustment": "review",
+                "plan_adjustment": "resequence"
+              },
+              "title": "Ajustement - méthode et style de progression globale",
+              "confidence": "medium",
+              "ack_summary": {
+                "changed": [
+                  "plan global: resequence",
+                  "cible de changement: global_load"
+                ],
+                "unchanged": [
+                  "l'objectif/direction reste préservé sauf demande contraire explicite",
+                  "le plan canonique n'est pas reconstruit automatiquement"
+                ],
+                "confidence": "medium",
+                "why_it_helps": "Le plan garde ses rails, mais la charge baisse pour redevenir compatible avec le contexte actuel.",
+                "follow_up_needed": "identifier ensuite les semaines ou blocs les plus lourds pour affiner"
+              },
+              "scope_label": "méthode et style de progression globale",
+              "why_it_helps": "Le changement traite la trajectoire globale du plan au lieu de forcer une cible action.",
+              "decision_basis": {
+                "evidence": [
+                  "Plutot reformuler les etapes pour qu'elles partent du vecu. Par exemple : petite experience dans la semaine, puis observation de ce que ca a produit, puis discussion seulement si ca a ouvert quelque chose. Je veux voir le brouillon avant validation.",
+                  "méthode de tout le plan",
+                  "principe global",
+                  "reformuler les etapes pour qu'elles partent du vecu",
+                  "reformuler les etapes pour qu'elles partent du vecu",
+                  "moins analyse d'abord, plus experience concrete d'abord",
+                  "petite experience dans la semaine, puis observation de ce que ca a produit, puis discussion seulement si ca a ouvert quelque chose",
+                  "changer le style de progression du plan",
+                  "inverser le point d'entrée: expérience concrète d'abord, analyse ensuite"
+                ],
+                "confidence": "medium",
+                "uncertainty": [
+                  "semaines ou blocs exacts a affiner ensuite"
+                ],
+                "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+                "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+                "must_preserve": [
+                  "direction globale du plan"
+                ]
+              },
+              "adjustment_type": "rebalance",
+              "proposed_change": "reordonner le plan dans son ensemble",
+              "change_rationale": {
+                "why_this_change": "Réduire global_load répond au problème \"context_changed\" sans changer la direction du plan.",
+                "success_condition": "Le plan paraît tenable sans reconstruction complète ni changement d'objectif implicite.",
+                "expected_mechanism": "Le plan garde ses rails, mais la charge baisse pour redevenir compatible avec le contexte actuel."
+              },
+              "adjust_plan_result": {
+                "scope": "whole_plan",
+                "rationale": {
+                  "confidence": "medium",
+                  "missing_info": [
+                    "Le découpage précis des semaines ou des blocs reste à affiner ensuite."
+                  ],
+                  "user_problem": "Le plan global n’est plus assez tenable dans le contexte actuel, surtout parce qu’il commence trop par l’analyse et pas assez par du vécu concret.",
+                  "expected_effect": "Le plan devrait redevenir plus simple à engager sans perdre sa cohérence, avec une réflexion qui vient après l’expérience au lieu de la précéder.",
+                  "why_this_change": "Commencer par une petite expérience vécue rend le plan plus incarné, plus testable et moins dépendant d’un cadrage préalable."
+                },
+                "boundaries": {
+                  "explanation": "Le changement ne modifie pas l’intention du plan; il déplace seulement la séquence de départ vers l’expérience vécue avant la réflexion.",
+                  "affected_scope": "Le plan dans son ensemble, uniquement sur l’ordre d’entrée et l’accent méthodologique.",
+                  "global_plan_impact": "indirect",
+                  "explicitly_not_affected": [
+                    "l’objectif principal",
+                    "la direction globale du plan",
+                    "le signal de pause comme élément pertinent",
+                    "le partage positif comme élément pertinent"
+                  ]
+                },
+                "applied_change": {
+                  "summary": "Inverser le point d’entrée du plan: vécu concret d’abord, observation ensuite, discussion seulement si nécessaire, tout en gardant la direction globale intacte.",
+                  "changed_items": [
+                    {
+                      "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                      "kind": "action",
+                      "after": "À un moment calme, vous vous mettez d'accord sur un mot ou un geste simple pour faire pause dès que le ton monte, avant que la défensive ne prenne le dessus; cette étape sert de petite expérience concrète avant toute discussion plus large.",
+                      "title": "Convenir d'un signal de pause",
+                      "before": "À un moment calme, vous vous mettez d'accord sur un mot ou un geste simple pour faire pause dès que le ton monte, avant que la défensive ne prenne le dessus.",
+                      "reason": "Cet ancrage permet de commencer par du vécu concret plutôt que par du cadrage abstrait, sans changer la fonction du signal de pause.",
+                      "capability": "modify_existing_action"
+                    },
+                    {
+                      "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                      "kind": "habit",
+                      "after": "Écrire une phrase très simple, même imparfaite, plutôt que chercher un vrai point positif, avec une cadence de 3 jours par semaine; le partage vient après le vécu et l’observation.",
+                      "title": "Partager un point positif",
+                      "before": "Écrire une phrase très simple, même imparfaite, plutôt que chercher un vrai point positif, avec une cadence de 3 jours par semaine.",
+                      "reason": "Je garde la cadence de l’habitude intacte, mais je replace son entrée après l’expérience et l’observation pour suivre la logique demandée.",
+                      "capability": "reorder_actions"
+                    }
+                  ],
+                  "preserved_items": [
+                    {
+                      "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                      "kind": "action",
+                      "title": "Faire le point sur le signal de pause",
+                      "reason": "Cette étape reste utile comme lecture a posteriori, sans devenir le point d’entrée du plan."
+                    },
+                    {
+                      "id": null,
+                      "kind": "plan",
+                      "title": "Direction globale du plan",
+                      "reason": "L’objectif relationnel et la cohérence d’ensemble restent stables."
+                    }
+                  ],
+                  "trajectory_change": {
+                    "after": "Le plan part d’une petite expérience vécue, puis passe à l’observation de ses effets, et n’ouvre la discussion que si quelque chose s’est révélé.",
+                    "before": "Le plan part surtout d’un cadrage et d’une compréhension préalable, avec l’analyse en premier.",
+                    "inserted_step": "Insérer une petite expérience concrète avant l’étape d’observation, puis n’ouvrir la discussion qu’après cette lecture.",
+                    "coaching_reason": "Ce séquencement colle mieux au besoin exprimé: rendre la progression plus vivante, plus testable et moins dépendante d’une analyse préalable, tout en gardant la cohérence du plan.",
+                    "reordered_steps": [
+                      "faire d’abord l’expérience concrète",
+                      "observer ce que cette expérience produit",
+                      "ouvrir la discussion seulement si quelque chose s’est révélé"
+                    ],
+                    "preserved_direction": "La direction relationnelle et l’objectif global restent stables; seul l’ordre d’entrée change."
+                  }
+                },
+                "user_message_brief": "Je te propose d’inverser le point d’entrée du plan: expérience concrète d’abord, observation ensuite, discussion seulement si quelque chose se révèle, sans toucher à l’objectif global.",
+                "user_message_detailed": "Je te propose un brouillon qui garde la direction globale du plan, mais qui change l’ordre d’entrée pour le rendre plus incarné. 1) \"Convenir d'un signal de pause\" — avant: \"À un moment calme, vous vous mettez d'accord sur un mot ou un geste simple pour faire pause dès que le ton monte, avant que la défensive ne prenne le dessus.\" Après: \"À un moment calme, vous vous mettez d'accord sur un mot ou un geste simple pour faire pause dès que le ton monte, avant que la défensive ne prenne le dessus; cette étape sert de petite expérience concrète avant toute discussion plus large.\" Pourquoi ça aide: ça fait partir le plan du vécu, sans changer la fonction du signal de pause. 2) \"Partager un point positif\" — avant: \"Écrire une phrase très simple, même imparfaite, plutôt que chercher un vrai point positif, avec une cadence de 3 jours par semaine.\" Après: \"Écrire une phrase très simple, même imparfaite, plutôt que chercher un vrai point positif, avec une cadence de 3 jours par semaine; le partage vient après le vécu et l’observation.\" Pourquoi ça aide: je garde la cadence de l’habitude, mais je replace son entrée après l’expérience pour suivre la logique demandée. Ce qui ne bouge pas: l’objectif relationnel, la direction globale du plan, le signal de pause et le partage positif comme éléments pertinents. Le niveau de confiance est moyen, et le point à affiner ensuite est le découpage précis des moments ou des blocs."
+              },
+              "execution_strategy": "whole_plan_adjustment",
+              "allowed_patch_fields": [
+                "scope_kind",
+                "plan_adjustment",
+                "load_adjustment",
+                "goal_adjustment",
+                "sequence_adjustment",
+                "reason_type",
+                "reason_change",
+                "change_target",
+                "confidence",
+                "constraints"
+              ]
+            },
+            "output_schema": "plan_adjustment_draft_v1",
+            "operation_type": "adjust_plan_item",
+            "execution_message": "Le brouillon met l’expérience vécue avant l’analyse: d’abord une petite expérience concrète, ensuite l’observation de ses effets, puis la discussion seulement si elle a ouvert quelque chose. Je garde la direction globale du plan intacte, ainsi que les éléments déjà pertinents comme le signal de pause et le partage positif. Cette inversion du point d’entrée rend le plan plus incarné et plus simple à démarrer, sans le transformer en allègement global ni en remise à plat complète. Le niveau de confiance est moyen à bon, avec un point à affiner ensuite: le découpage précis des moments ou des blocs.",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je te propose un brouillon qui garde le même objectif global, mais qui inverse le point d’entrée: on commence par une petite expérience concrète, on observe ce qu’elle produit, puis on ouvre la discussion seulement si quelque chose s’est vraiment révélé. Rien n’est encore appliqué. Ce choix aide parce qu’il rend la progression plus incarnée et plus testable, sans changer la direction du plan. Je ne touche pas à l’objectif du plan ni aux éléments déjà pertinents comme le signal de pause et le partage positif. Si tu veux, je peux préparer cette version pour validation."
+          },
+          "status": "draft_review",
+          "reason_code": "active_tool_skill_continue",
+          "operation_id": "dd06c311-619d-45e5-a151-a9a99c93aa25",
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Proposer un allègement global du plan.",
+              "Réécrire le plan comme s'il fallait tout repartir de zéro.",
+              "Remplacer l'analyse par zéro analyse.",
+              "Appliquer ou annoncer une modification comme si elle était déjà validée.",
+              "Confondre changement de méthode et changement d'objectif."
+            ],
+            "scope": "whole_plan",
+            "preserve": [
+              "L'objectif relationnel et la direction globale du plan.",
+              "La structure progressive du plan, même si l'ordre d'entrée change.",
+              "Les éléments déjà pertinents comme le signal de pause et le partage positif.",
+              "Le principe qu'une réflexion peut exister, mais après une expérience concrète.",
+              "Le cadre de validation: montrer un brouillon avant d'appliquer quoi que ce soit."
+            ],
+            "warnings": [
+              "Ne pas interpréter la demande comme une baisse de charge ou une simplification globale.",
+              "Ne pas supprimer l'analyse: le besoin exprimé est un déplacement du ratio entre action vécue et réflexion, pas un rejet du questionnement.",
+              "Ne pas changer l'objectif du plan ni sa cohérence d'ensemble sans demande explicite.",
+              "Ne pas proposer un plan entièrement remis à plat alors que la demande porte surtout sur l'ordre d'entrée.",
+              "Ne pas promettre une exécution ou une application avant validation du brouillon."
+            ],
+            "readiness": "draft_ready",
+            "confidence": "high",
+            "guidelines": [
+              "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "Traiter la demande comme un changement de trajectoire méthodologique au niveau whole_plan.",
+              "Préserver l'intention de développement: l'expérience concrète doit servir de porte d'entrée, pas d'abandon du sens.",
+              "Raisonner en séquencement, en prérequis et en phases plutôt qu'en patch local.",
+              "Si un pont est proposé, il doit être minimal: petite expérience, puis lecture a posteriori.",
+              "Nommer explicitement le déplacement 'analyse d'abord' vers 'expérience d'abord'.",
+              "Distinguer ce qui est humainement pertinent du simple faisable technique: ce qui compte ici est la manière de vivre le plan, pas seulement sa forme.",
+              "Ne pas changer la nature du plan sans demande explicite.",
+              "Le brouillon doit refléter l'inversion du point d'entrée tout en gardant la cohérence globale.",
+              "Avant toute validation, montrer que le sens coaching a bien été compris: même plan, mais progression plus incarnée.",
+              "Si Sophia rédige, elle doit présenter une proposition, pas une exécution."
+            ],
+            "observation": "La demande ne vise pas à alléger le plan ni à réduire l'exigence, mais à déplacer sa logique d'entrée: partir d'une petite expérience vécue, observer ce qu'elle produit, puis seulement ouvrir la discussion si quelque chose s'est réellement révélé. Le besoin humain pertinent est de rendre la progression plus incarnée, plus testable, et moins dépendante d'une analyse préalable.",
+            "change_family": "style_or_method_mismatch",
+            "recommendation": "Traiter cela comme un ajustement de style/méthode à l'échelle du plan entier, sans modification immédiate. La bonne direction coaching est de préserver le même objectif global tout en reformulant la séquence pour qu'elle commence par du vécu concret et que le sens vienne ensuite. Comme le user demande à voir le brouillon avant validation, Sophia doit préparer une proposition structurée mais ne pas l'appliquer.",
+            "next_best_question": "Tu veux que je comprenne bien que tu souhaites garder le même plan, mais en inversant le point d'entrée: plus d'expérience concrète au début, puis l'observation et la discussion seulement ensuite ?",
+            "options_to_discuss": [
+              "Commencer par une micro-expérience concrète dans la semaine, puis observer ses effets avant toute discussion.",
+              "Garder les mêmes intentions mais inverser l'ordre: agir d'abord, comprendre ensuite.",
+              "Transformer certaines clarifications en observations guidées par le vécu.",
+              "Conserver le cadre du plan tout en réduisant la part de cadrage initial.",
+              "Faire en sorte que les missions produisent d'abord du vécu, puis seulement une lecture ou un partage a posteriori."
+            ],
+            "candidate_operation": "change_emphasis",
+            "questions_to_clarify": [],
+            "trajectory_hypothesis": "La trajectoire actuelle part d'un cadrage et d'une compréhension préalable; la trajectoire souhaitée part d'une petite expérience vécue, puis remonte vers l'observation et la discussion.",
+            "must_not_execute_reason": "La demande porte sur une reformulation méthodologique et sur la présentation d'un brouillon avant validation. Il ne faut donc pas appliquer le changement maintenant; il faut d'abord proposer une version qui inverse le point d'entrée sans altérer l'objectif global."
+          },
+          "coaching_guidance_audit": {
+            "scope": "whole_plan",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 31940,
+        "created_at": "2026-05-20T17:30:22.055561+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 7,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r81-whole-plan-style-method-t07",
+    "user": "Oui, cette version correspond. Tu peux l'appliquer, en gardant bien l'objectif global et sans transformer ca en baisse de niveau.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r81-whole-plan-style-method-t07",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r81-whole-plan-style-method",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je ne peux pas appliquer cet ajustement depuis le chat tant qu'il n'est pas rattaché proprement aux bonnes actions du plan. 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r81-whole-plan-style-method-t07",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "7553bc39-4db1-476a-8352-2d4de4e6c155",
+        "ts": "2026-05-20T17:30:49.271+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 13497,
+          "latency_ms": 16003,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 633,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Oui, cette version correspond. Tu peux l'appliquer, en gardant bien l'objectif global et sans transformer ca en baisse de niveau.",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s15"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r81-whole-plan-style-method-t07",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Oui, cette version correspond. Tu peux l'appliquer, en gardant bien l'objectif global et sans transformer ca en baisse de niveau.",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": "level_reference",
+            "status": "current_level",
+            "detected": true,
+            "expansion_policy": "include_level_execution_handoff"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 1,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "1,1.6,3.4,1.9,2;decay=0.55;recovery=1.5",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              1,
+              1.6,
+              3.4,
+              1.9,
+              2
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "7553bc39-4db1-476a-8352-2d4de4e6c155",
+          "tool_skill_intents": [],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "normal_reply_default",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "normal_reply",
+          "memory_use_kind": "none",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "blocked",
+          "reason_code": "level_capability_not_materializable:reorder_actions",
+          "operation_id": "dd06c311-619d-45e5-a151-a9a99c93aa25",
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Proposer un allègement global du plan.",
+              "Réécrire le plan comme s'il fallait tout repartir de zéro.",
+              "Remplacer l'analyse par zéro analyse.",
+              "Appliquer ou annoncer une modification comme si elle était déjà validée.",
+              "Confondre changement de méthode et changement d'objectif."
+            ],
+            "scope": "whole_plan",
+            "preserve": [
+              "L'objectif relationnel et la direction globale du plan.",
+              "La structure progressive du plan, même si l'ordre d'entrée change.",
+              "Les éléments déjà pertinents comme le signal de pause et le partage positif.",
+              "Le principe qu'une réflexion peut exister, mais après une expérience concrète.",
+              "Le cadre de validation: montrer un brouillon avant d'appliquer quoi que ce soit."
+            ],
+            "warnings": [
+              "Ne pas interpréter la demande comme une baisse de charge ou une simplification globale.",
+              "Ne pas supprimer l'analyse: le besoin exprimé est un déplacement du ratio entre action vécue et réflexion, pas un rejet du questionnement.",
+              "Ne pas changer l'objectif du plan ni sa cohérence d'ensemble sans demande explicite.",
+              "Ne pas proposer un plan entièrement remis à plat alors que la demande porte surtout sur l'ordre d'entrée.",
+              "Ne pas promettre une exécution ou une application avant validation du brouillon."
+            ],
+            "readiness": "draft_ready",
+            "confidence": "high",
+            "guidelines": [
+              "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "Traiter la demande comme un changement de trajectoire méthodologique au niveau whole_plan.",
+              "Préserver l'intention de développement: l'expérience concrète doit servir de porte d'entrée, pas d'abandon du sens.",
+              "Raisonner en séquencement, en prérequis et en phases plutôt qu'en patch local.",
+              "Si un pont est proposé, il doit être minimal: petite expérience, puis lecture a posteriori.",
+              "Nommer explicitement le déplacement 'analyse d'abord' vers 'expérience d'abord'.",
+              "Distinguer ce qui est humainement pertinent du simple faisable technique: ce qui compte ici est la manière de vivre le plan, pas seulement sa forme.",
+              "Ne pas changer la nature du plan sans demande explicite.",
+              "Le brouillon doit refléter l'inversion du point d'entrée tout en gardant la cohérence globale.",
+              "Avant toute validation, montrer que le sens coaching a bien été compris: même plan, mais progression plus incarnée.",
+              "Si Sophia rédige, elle doit présenter une proposition, pas une exécution."
+            ],
+            "observation": "La demande ne vise pas à alléger le plan ni à réduire l'exigence, mais à déplacer sa logique d'entrée: partir d'une petite expérience vécue, observer ce qu'elle produit, puis seulement ouvrir la discussion si quelque chose s'est réellement révélé. Le besoin humain pertinent est de rendre la progression plus incarnée, plus testable, et moins dépendante d'une analyse préalable.",
+            "change_family": "style_or_method_mismatch",
+            "recommendation": "Traiter cela comme un ajustement de style/méthode à l'échelle du plan entier, sans modification immédiate. La bonne direction coaching est de préserver le même objectif global tout en reformulant la séquence pour qu'elle commence par du vécu concret et que le sens vienne ensuite. Comme le user demande à voir le brouillon avant validation, Sophia doit préparer une proposition structurée mais ne pas l'appliquer.",
+            "next_best_question": "Tu veux que je comprenne bien que tu souhaites garder le même plan, mais en inversant le point d'entrée: plus d'expérience concrète au début, puis l'observation et la discussion seulement ensuite ?",
+            "options_to_discuss": [
+              "Commencer par une micro-expérience concrète dans la semaine, puis observer ses effets avant toute discussion.",
+              "Garder les mêmes intentions mais inverser l'ordre: agir d'abord, comprendre ensuite.",
+              "Transformer certaines clarifications en observations guidées par le vécu.",
+              "Conserver le cadre du plan tout en réduisant la part de cadrage initial.",
+              "Faire en sorte que les missions produisent d'abord du vécu, puis seulement une lecture ou un partage a posteriori."
+            ],
+            "candidate_operation": "change_emphasis",
+            "questions_to_clarify": [],
+            "trajectory_hypothesis": "La trajectoire actuelle part d'un cadrage et d'une compréhension préalable; la trajectoire souhaitée part d'une petite expérience vécue, puis remonte vers l'observation et la discussion.",
+            "must_not_execute_reason": "La demande porte sur une reformulation méthodologique et sur la présentation d'un brouillon avant validation. Il ne faut donc pas appliquer le changement maintenant; il faut d'abord proposer une version qui inverse le point d'entrée sans altérer l'objectif global."
+          },
+          "coaching_guidance_audit": {
+            "scope": "whole_plan",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 16076,
+        "created_at": "2026-05-20T17:30:49.272629+00:00"
+      },
+      "trace_error": null
+    }
+  }
+]

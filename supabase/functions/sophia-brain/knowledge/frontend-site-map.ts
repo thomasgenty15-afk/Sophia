@@ -15,10 +15,10 @@ Public
 - "/auth" : Connexion / auth
 
 App (après accès)
-- "/dashboard" : Tableau de bord
+- "/dashboard" : Tableau de bord V3 (phases, heartbeat, defense card, inspirations)
+- "/onboarding-v2" : Onboarding V3 (capture, validation, questionnaire, profil, roadmap)
 - "/chat" : Chat
 - "/global-plan" : Plan global
-- "/plan-priorities" : Priorités
 - "/plan-generator" : Génération de plan
 - "/framework-execution" : Exécution d’un framework/exercice
 - "/grimoire" (et "/grimoire/:id") : Grimoire
@@ -28,11 +28,18 @@ App (après accès)
 - "/architecte/evolution" : Identity evolution (architecte)
 - "/upgrade" : Upgrade
 
+Dashboard V3 sections
+- StrategyHeader : titre, résumé, progression multi-part
+- PhaseProgression : phases séquentielles avec heartbeat
+- DefenseCard : 4 rôles (stratège, surveillant, défenseur, comptable)
+- AtelierInspirations : principes japonais + récit narratif
+- RemindersSection : rappels personnalisés
+- PreferencesSection : préférences de relation
+
 Admin
 - "/admin" : Admin dashboard
 - "/admin/usage" : Usage dashboard
 - "/admin/production-log" : Production log
 `.trim();
-
 
 

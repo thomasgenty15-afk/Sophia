@@ -1,0 +1,698 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r49-level-add-week-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je crois que le niveau actuel va trop vite pour moi. J'aimerais rajouter une semaine au niveau avant de passer à la suite, mais sans changer l'objectif du plan.",
+    "assistant": "Je comprends. Pour cette semaine supplémentaire, est-ce qu'il y a des actions spécifiques dans le niveau \"Désamorcer et recréer de la sécurité\" que tu souhaiterais approfondir, alléger, ou sur lesquelles tu aimerais te concentrer davantage ? Par exemple, l'habitude \"Partager un point positif\" ou la clarification \"Cartographier les déclencheurs\" ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "tool_skill_intent_start",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "current_level.affected_items"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer de retirer des actions du niveau.",
+          "Changer l'objectif du niveau ou du plan global.",
+          "Faire des suppositions sur les raisons profondes du sentiment de 'trop vite' sans poser de questions.",
+          "Suggérer des modifications aux niveaux futurs à ce stade."
+        ],
+        "scope": "level",
+        "preserve": [
+          "L'objectif global du plan, tel que demandé par l'utilisateur.",
+          "Le cœur et l'intention des actions et missions du niveau actuel.",
+          "La séquence et la logique pédagogique du niveau, l'extension étant un ajustement de rythme."
+        ],
+        "warnings": [
+          "Éviter de modifier le contenu ou la difficulté des actions du niveau sans une demande explicite, car l'utilisateur demande un ajustement de durée, pas de substance.",
+          "Ne pas interpréter le 'trop vite' comme une demande de suppression d'actions, mais comme un besoin d'étaler leur exécution."
+        ],
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+          "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+          "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+          "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+          "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+          "Guidelines action: Les actions du niveau doivent conserver leur rôle et leur intention. Aucun changement de nature sans demande explicite.",
+          "Guidelines niveau: Le cœur du niveau et ses objectifs d'apprentissage doivent être préservés. L'extension est un ajustement de rythme, pas de contenu.",
+          "Guidelines whole_plan: La trajectoire et la cohérence globale du plan sont explicitement à préserver, conformément à la demande de l'utilisateur."
+        ],
+        "observation": "L'utilisateur exprime un sentiment de surcharge ou de rythme trop rapide au sein du niveau actuel, et demande un ajustement temporel pour mieux intégrer les actions. L'intention est de réduire la pression et de permettre une assimilation plus profonde sans modifier l'objectif global du plan.",
+        "recommendation": "Accorder une semaine supplémentaire au niveau actuel pour répondre directement au besoin de ralentissement et de meilleure intégration, tout en respectant la contrainte de ne pas modifier l'objectif du plan.",
+        "options_to_discuss": [
+          "Proposer de revoir la charge de travail hebdomadaire si l'extension d'une semaine ne suffit pas à soulager la pression ressentie.",
+          "Explorer si le sentiment de 'trop vite' est lié à des contraintes externes ou à des difficultés spécifiques avec certaines actions."
+        ],
+        "questions_to_clarify": [
+          "Y a-t-il des actions spécifiques dans ce niveau qui te semblent particulièrement lourdes ou rapides ?",
+          "Est-ce que cette semaine supplémentaire est destinée à approfondir certaines actions ou simplement à alléger la charge globale ?"
+        ]
+      },
+      "coaching_guidance_audit": {
+        "scope": "level",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "level",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer de retirer des actions du niveau.",
+        "Changer l'objectif du niveau ou du plan global.",
+        "Faire des suppositions sur les raisons profondes du sentiment de 'trop vite' sans poser de questions.",
+        "Suggérer des modifications aux niveaux futurs à ce stade."
+      ],
+      "scope": "level",
+      "preserve": [
+        "L'objectif global du plan, tel que demandé par l'utilisateur.",
+        "Le cœur et l'intention des actions et missions du niveau actuel.",
+        "La séquence et la logique pédagogique du niveau, l'extension étant un ajustement de rythme."
+      ],
+      "warnings": [
+        "Éviter de modifier le contenu ou la difficulté des actions du niveau sans une demande explicite, car l'utilisateur demande un ajustement de durée, pas de substance.",
+        "Ne pas interpréter le 'trop vite' comme une demande de suppression d'actions, mais comme un besoin d'étaler leur exécution."
+      ],
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+        "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+        "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+        "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+        "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+        "Guidelines action: Les actions du niveau doivent conserver leur rôle et leur intention. Aucun changement de nature sans demande explicite.",
+        "Guidelines niveau: Le cœur du niveau et ses objectifs d'apprentissage doivent être préservés. L'extension est un ajustement de rythme, pas de contenu.",
+        "Guidelines whole_plan: La trajectoire et la cohérence globale du plan sont explicitement à préserver, conformément à la demande de l'utilisateur."
+      ],
+      "observation": "L'utilisateur exprime un sentiment de surcharge ou de rythme trop rapide au sein du niveau actuel, et demande un ajustement temporel pour mieux intégrer les actions. L'intention est de réduire la pression et de permettre une assimilation plus profonde sans modifier l'objectif global du plan.",
+      "recommendation": "Accorder une semaine supplémentaire au niveau actuel pour répondre directement au besoin de ralentissement et de meilleure intégration, tout en respectant la contrainte de ne pas modifier l'objectif du plan.",
+      "options_to_discuss": [
+        "Proposer de revoir la charge de travail hebdomadaire si l'extension d'une semaine ne suffit pas à soulager la pression ressentie.",
+        "Explorer si le sentiment de 'trop vite' est lié à des contraintes externes ou à des difficultés spécifiques avec certaines actions."
+      ],
+      "questions_to_clarify": [
+        "Y a-t-il des actions spécifiques dans ce niveau qui te semblent particulièrement lourdes ou rapides ?",
+        "Est-ce que cette semaine supplémentaire est destinée à approfondir certaines actions ou simplement à alléger la charge globale ?"
+      ]
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r49-level-add-week-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r49-level-add-week-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Je veux surtout consolider le signal de pause et continuer à observer les déclencheurs. Je ne veux pas ajouter plein d'actions, plutôt garder le niveau une semaine de plus avec une charge stable.",
+    "assistant": "Si je comprends bien, tu souhaites prolonger le niveau actuel d'une semaine pour consolider le signal de pause et continuer à observer les déclencheurs, sans ajouter de nouvelles actions et en maintenant une charge stable. Je peux te préparer une proposition concrète pour cela ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "active_tool_skill_continue",
+      "plan_item_id": null,
+      "target_title": "Désamorcer et recréer de la sécurité",
+      "missing_slots": [
+        "draft_generation_confirmation"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer de retirer des actions du niveau.",
+          "Changer l'objectif du niveau ou du plan global.",
+          "Faire des suppositions sur les raisons profondes du sentiment de 'trop vite' sans poser de questions.",
+          "Suggérer des modifications aux niveaux futurs à ce stade."
+        ],
+        "scope": "level",
+        "preserve": [
+          "L'objectif global du plan et du niveau 'Désamorcer et recréer de la sécurité'.",
+          "Le cœur et l'intention des actions et missions du niveau actuel, notamment 'Convenir d'un signal de pause', 'Faire le point sur le signal de pause' et 'Cartographier les déclencheurs'.",
+          "La séquence et la logique pédagogique du niveau, l'extension étant un ajustement de rythme et non de contenu."
+        ],
+        "warnings": [
+          "Éviter de proposer de nouvelles actions ou d'augmenter la charge de travail, car l'utilisateur a explicitement demandé une charge stable et pas d'ajouts.",
+          "Ne pas modifier le contenu ou la difficulté des actions existantes sans une demande explicite, l'objectif étant la consolidation et non la refonte.",
+          "Ne pas interpréter le besoin de 'consolider' comme une nécessité de supprimer des actions, mais plutôt de leur laisser plus de temps pour s'ancrer."
+        ],
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+          "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+          "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+          "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+          "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+          "Guidelines action: Les actions du niveau doivent conserver leur rôle et leur intention. Aucun changement de nature sans demande explicite.",
+          "Guidelines niveau: Le cœur du niveau et ses objectifs d'apprentissage doivent être préservés. L'extension est un ajustement de rythme, pas de contenu.",
+          "Guidelines whole_plan: La trajectoire et la cohérence globale du plan sont explicitement à préserver, conformément à la demande de l'utilisateur."
+        ],
+        "observation": "L'utilisateur exprime le besoin de ralentir le rythme du niveau actuel pour mieux intégrer et consolider les apprentissages, notamment autour du signal de pause et de l'observation des déclencheurs. Il souhaite une extension temporelle du niveau sans augmentation de la charge de travail ni ajout de nouvelles actions.",
+        "recommendation": "Accorder une semaine supplémentaire au niveau actuel pour permettre à l'utilisateur de consolider les actions clés et d'observer les déclencheurs à un rythme stable, sans introduire de nouvelles actions ou modifier la charge existante.",
+        "options_to_discuss": [
+          "Proposer de revoir la charge de travail hebdomadaire si l'extension d'une semaine ne suffit pas à soulager la pression ressentie.",
+          "Explorer si le sentiment de 'trop vite' est lié à des contraintes externes ou à des difficultés spécifiques avec certaines actions, au-delà de la simple durée."
+        ],
+        "questions_to_clarify": [
+          "Y a-t-il des actions spécifiques dans ce niveau qui te semblent particulièrement lourdes ou rapides, au-delà du signal de pause et de l'observation des déclencheurs ?",
+          "Est-ce que cette semaine supplémentaire est destinée à approfondir spécifiquement le signal de pause et l'observation, ou simplement à alléger la charge globale du niveau ?"
+        ]
+      },
+      "coaching_guidance_audit": {
+        "scope": "level",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "level",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer de retirer des actions du niveau.",
+        "Changer l'objectif du niveau ou du plan global.",
+        "Faire des suppositions sur les raisons profondes du sentiment de 'trop vite' sans poser de questions.",
+        "Suggérer des modifications aux niveaux futurs à ce stade."
+      ],
+      "scope": "level",
+      "preserve": [
+        "L'objectif global du plan et du niveau 'Désamorcer et recréer de la sécurité'.",
+        "Le cœur et l'intention des actions et missions du niveau actuel, notamment 'Convenir d'un signal de pause', 'Faire le point sur le signal de pause' et 'Cartographier les déclencheurs'.",
+        "La séquence et la logique pédagogique du niveau, l'extension étant un ajustement de rythme et non de contenu."
+      ],
+      "warnings": [
+        "Éviter de proposer de nouvelles actions ou d'augmenter la charge de travail, car l'utilisateur a explicitement demandé une charge stable et pas d'ajouts.",
+        "Ne pas modifier le contenu ou la difficulté des actions existantes sans une demande explicite, l'objectif étant la consolidation et non la refonte.",
+        "Ne pas interpréter le besoin de 'consolider' comme une nécessité de supprimer des actions, mais plutôt de leur laisser plus de temps pour s'ancrer."
+      ],
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+        "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+        "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+        "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+        "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+        "Guidelines action: Les actions du niveau doivent conserver leur rôle et leur intention. Aucun changement de nature sans demande explicite.",
+        "Guidelines niveau: Le cœur du niveau et ses objectifs d'apprentissage doivent être préservés. L'extension est un ajustement de rythme, pas de contenu.",
+        "Guidelines whole_plan: La trajectoire et la cohérence globale du plan sont explicitement à préserver, conformément à la demande de l'utilisateur."
+      ],
+      "observation": "L'utilisateur exprime le besoin de ralentir le rythme du niveau actuel pour mieux intégrer et consolider les apprentissages, notamment autour du signal de pause et de l'observation des déclencheurs. Il souhaite une extension temporelle du niveau sans augmentation de la charge de travail ni ajout de nouvelles actions.",
+      "recommendation": "Accorder une semaine supplémentaire au niveau actuel pour permettre à l'utilisateur de consolider les actions clés et d'observer les déclencheurs à un rythme stable, sans introduire de nouvelles actions ou modifier la charge existante.",
+      "options_to_discuss": [
+        "Proposer de revoir la charge de travail hebdomadaire si l'extension d'une semaine ne suffit pas à soulager la pression ressentie.",
+        "Explorer si le sentiment de 'trop vite' est lié à des contraintes externes ou à des difficultés spécifiques avec certaines actions, au-delà de la simple durée."
+      ],
+      "questions_to_clarify": [
+        "Y a-t-il des actions spécifiques dans ce niveau qui te semblent particulièrement lourdes ou rapides, au-delà du signal de pause et de l'observation des déclencheurs ?",
+        "Est-ce que cette semaine supplémentaire est destinée à approfondir spécifiquement le signal de pause et l'observation, ou simplement à alléger la charge globale du niveau ?"
+      ]
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r49-level-add-week-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r49-level-add-week-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, prépare un brouillon sans appliquer. Je veux voir comment tu comptes ajouter cette semaine sans que ça devienne un plan interminable.",
+    "assistant": "J'ai bien compris que tu souhaites alléger ton niveau actuel, « Désamorcer et recréer de la sécurité », car tu le trouves trop rapide et que tu veux rajouter une semaine pour mieux intégrer les apprentissages, sans que cela ne rende le plan interminable. Je te propose un brouillon pour ajuster le rythme de ce niveau, sans toucher à l'objectif global de ton plan ni ajouter de nouvelles actions. Rien n'est appliqué pour l'instant, c'est une proposition pour que tu puisses valider.\n\nVoici les changements précis que je te propose :\n\n*   **Durée du niveau « Désamorcer et recréer de la sécurité »** : Au lieu de la durée prévue initialement, je propose d'**ajouter une semaine supplémentaire** à ce niveau. Cela t'aidera à te sentir moins pressé et à avoir plus de temps pour assimiler les concepts et pratiquer les nouvelles approches, répondant directement à ton sentiment que le niveau allait trop vite.\n*   **Fréquence de l'habitude « Partager un point positif »** : Je propose de la faire passer de **3 jours par semaine à 2 jours par semaine**. Cette modification vise à alléger ta charge hebdomadaire, te permettant de maintenir cette habitude importante sans que cela ne devienne une source de pression, et ainsi de mieux la consolider.\n\nCe qui ne bouge pas :\n\n*   **L'objectif global de ton plan** et celui du niveau « Désamorcer et recréer de la sécurité » restent inchangés. L'idée est de t'aider à atteindre tes objectifs, mais à un rythme plus adapté.\n*   Le contenu et l'intention des actions clés de ce niveau, comme « Convenir d'un signal de pause » ou « Cartographier les déclencheurs », sont **préservés**. L'extension du niveau te donne simplement plus de marge pour les réaliser.\n\nJe suis assez confiante que ces ajustements t'aideront à retrouver un rythme plus confortable pour ce niveau. Qu'en penses-tu ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "product_help",
+    "route_selected_handler": "product_help",
+    "route_reason_code": "product_help_inline_resume_active_tool_skill",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "product_help_inline_resume_active_tool_skill",
+      "plan_item_id": null,
+      "target_title": "Désamorcer et recréer de la sécurité",
+      "missing_slots": [
+        "materialized_changed_items"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer de retirer des actions du niveau.",
+          "Changer l'objectif du niveau ou du plan global.",
+          "Faire des suppositions sur les raisons profondes du sentiment de 'trop vite' sans poser de questions.",
+          "Suggérer des modifications aux niveaux futurs à ce stade."
+        ],
+        "scope": "level",
+        "preserve": [
+          "L'objectif global du plan et du niveau 'Désamorcer et recréer de la sécurité'.",
+          "Le cœur et l'intention des actions et missions du niveau actuel, notamment 'Convenir d'un signal de pause', 'Faire le point sur le signal de pause' et 'Cartographier les déclencheurs'.",
+          "La séquence et la logique pédagogique du niveau, l'extension étant un ajustement de rythme et non de contenu."
+        ],
+        "warnings": [
+          "Éviter de proposer de nouvelles actions ou d'augmenter la charge de travail, car l'utilisateur a explicitement demandé une charge stable et pas d'ajouts.",
+          "Ne pas modifier le contenu ou la difficulté des actions existantes sans une demande explicite, l'objectif étant la consolidation et non la refonte.",
+          "Ne pas interpréter le besoin de 'consolider' comme une nécessité de supprimer des actions, mais plutôt de leur laisser plus de temps pour s'ancrer."
+        ],
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+          "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+          "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+          "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+          "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+          "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+          "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+          "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+          "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+          "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+          "Guidelines action: Les actions du niveau doivent conserver leur rôle et leur intention. Aucun changement de nature sans demande explicite.",
+          "Guidelines niveau: Le cœur du niveau et ses objectifs d'apprentissage doivent être préservés. L'extension est un ajustement de rythme, pas de contenu.",
+          "Guidelines whole_plan: La trajectoire et la cohérence globale du plan sont explicitement à préserver, conformément à la demande de l'utilisateur."
+        ],
+        "observation": "L'utilisateur demande une extension d'une semaine pour le niveau actuel afin de mieux intégrer les apprentissages, sans que cela ne rende le plan 'interminable'. Cela indique un besoin de consolidation et de rythme stable, plutôt qu'une augmentation de la charge ou de nouvelles actions.",
+        "recommendation": "Proposer d'allonger le niveau actuel d'une semaine, en redistribuant les actions existantes sur cette période étendue pour permettre une meilleure intégration et consolidation, sans introduire de nouvelles tâches ni augmenter la charge globale.",
+        "options_to_discuss": [
+          "Proposer de revoir la répartition des actions existantes sur les semaines du niveau pour optimiser la consolidation.",
+          "Explorer si le sentiment de 'trop vite' est lié à des contraintes externes ou à des difficultés spécifiques avec certaines actions, au-delà de la simple durée."
+        ],
+        "questions_to_clarify": [
+          "Y a-t-il des actions spécifiques dans ce niveau qui te semblent particulièrement lourdes ou rapides, au-delà du signal de pause et de l'observation des déclencheurs ?",
+          "Est-ce que cette semaine supplémentaire est destinée à approfondir spécifiquement le signal de pause et l'observation, ou simplement à alléger la charge globale du niveau ?"
+        ]
+      },
+      "coaching_guidance_audit": {
+        "scope": "level",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "level",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer de retirer des actions du niveau.",
+        "Changer l'objectif du niveau ou du plan global.",
+        "Faire des suppositions sur les raisons profondes du sentiment de 'trop vite' sans poser de questions.",
+        "Suggérer des modifications aux niveaux futurs à ce stade."
+      ],
+      "scope": "level",
+      "preserve": [
+        "L'objectif global du plan et du niveau 'Désamorcer et recréer de la sécurité'.",
+        "Le cœur et l'intention des actions et missions du niveau actuel, notamment 'Convenir d'un signal de pause', 'Faire le point sur le signal de pause' et 'Cartographier les déclencheurs'.",
+        "La séquence et la logique pédagogique du niveau, l'extension étant un ajustement de rythme et non de contenu."
+      ],
+      "warnings": [
+        "Éviter de proposer de nouvelles actions ou d'augmenter la charge de travail, car l'utilisateur a explicitement demandé une charge stable et pas d'ajouts.",
+        "Ne pas modifier le contenu ou la difficulté des actions existantes sans une demande explicite, l'objectif étant la consolidation et non la refonte.",
+        "Ne pas interpréter le besoin de 'consolider' comme une nécessité de supprimer des actions, mais plutôt de leur laisser plus de temps pour s'ancrer."
+      ],
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+        "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+        "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+        "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+        "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+        "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+        "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+        "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+        "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+        "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+        "Guidelines action: Les actions du niveau doivent conserver leur rôle et leur intention. Aucun changement de nature sans demande explicite.",
+        "Guidelines niveau: Le cœur du niveau et ses objectifs d'apprentissage doivent être préservés. L'extension est un ajustement de rythme, pas de contenu.",
+        "Guidelines whole_plan: La trajectoire et la cohérence globale du plan sont explicitement à préserver, conformément à la demande de l'utilisateur."
+      ],
+      "observation": "L'utilisateur demande une extension d'une semaine pour le niveau actuel afin de mieux intégrer les apprentissages, sans que cela ne rende le plan 'interminable'. Cela indique un besoin de consolidation et de rythme stable, plutôt qu'une augmentation de la charge ou de nouvelles actions.",
+      "recommendation": "Proposer d'allonger le niveau actuel d'une semaine, en redistribuant les actions existantes sur cette période étendue pour permettre une meilleure intégration et consolidation, sans introduire de nouvelles tâches ni augmenter la charge globale.",
+      "options_to_discuss": [
+        "Proposer de revoir la répartition des actions existantes sur les semaines du niveau pour optimiser la consolidation.",
+        "Explorer si le sentiment de 'trop vite' est lié à des contraintes externes ou à des difficultés spécifiques avec certaines actions, au-delà de la simple durée."
+      ],
+      "questions_to_clarify": [
+        "Y a-t-il des actions spécifiques dans ce niveau qui te semblent particulièrement lourdes ou rapides, au-delà du signal de pause et de l'observation des déclencheurs ?",
+        "Est-ce que cette semaine supplémentaire est destinée à approfondir spécifiquement le signal de pause et l'observation, ou simplement à alléger la charge globale du niveau ?"
+      ]
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r49-level-add-week-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r49-level-add-week-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Le principe d'ajouter une semaine me va, mais je ne veux pas baisser 'Partager un point positif'. Garde le rythme actuel, je demande seulement une semaine de consolidation en plus.",
+    "assistant": "J'ai bien compris l'ajustement. Je te prépare une proposition concrète, et rien n'est appliqué tant que tu ne confirmes pas clairement. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "draft_review_decision",
+      "reason_code": "active_tool_skill_continue",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer de retirer des actions du niveau.",
+          "Changer l'objectif du niveau ou du plan global.",
+          "Réduire la fréquence ou la difficulté de 'Partager un point positif'.",
+          "Suggérer des modifications aux niveaux futurs à ce stade.",
+          "Ajouter de nouvelles actions."
+        ],
+        "scope": "level",
+        "preserve": [
+          "L'objectif global du plan et du niveau 'Désamorcer et recréer de la sécurité'.",
+          "Le cœur et l'intention des actions et missions du niveau actuel.",
+          "Le rythme actuel de l'habitude 'Partager un point positif'.",
+          "La séquence et la logique pédagogique du niveau, l'extension étant un ajustement de rythme et non de contenu."
+        ],
+        "warnings": [
+          "Ne pas modifier la fréquence ou la difficulté de l'habitude 'Partager un point positif', car l'utilisateur a explicitement demandé de garder son rythme actuel.",
+          "Éviter de proposer de nouvelles actions ou d'augmenter la charge de travail globale du niveau.",
+          "Ne pas interpréter l'ajout d'une semaine comme une opportunité de supprimer des actions existantes."
+        ],
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+          "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+          "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+          "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+          "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+          "Guidelines action: Les actions du niveau doivent conserver leur rôle et leur intention. Aucun changement de nature sans demande explicite.",
+          "Guidelines niveau: Le cœur du niveau et ses objectifs d'apprentissage doivent être préservés. L'extension est un ajustement de rythme, pas de contenu.",
+          "Guidelines whole_plan: La trajectoire et la cohérence globale du plan sont explicitement à préserver, conformément à la demande de l'utilisateur."
+        ],
+        "observation": "L'utilisateur accepte explicitement l'ajout d'une semaine de consolidation au niveau actuel. Il insiste spécifiquement pour que l'habitude 'Partager un point positif' conserve son rythme actuel et ne soit pas baissée. Cela confirme un besoin d'ajustement de la durée du niveau pour une meilleure intégration, avec une contrainte claire sur la charge d'une action spécifique.",
+        "recommendation": "Proposer d'allonger le niveau actuel d'une semaine, en s'assurant que l'habitude 'Partager un point positif' conserve son rythme actuel, et en redistribuant les autres actions du niveau sur cette période étendue pour permettre une meilleure intégration et consolidation sans augmenter la charge globale.",
+        "options_to_discuss": [
+          "Comment cette semaine supplémentaire pourrait être utilisée pour approfondir spécifiquement certains aspects du niveau, au-delà de la simple consolidation générale.",
+          "Si la répartition des actions existantes sur les semaines du niveau pourrait être ajustée pour mieux servir l'objectif de consolidation."
+        ],
+        "questions_to_clarify": [
+          "Y a-t-il des actions spécifiques (autres que 'Partager un point positif') que tu souhaiterais consolider davantage ou sur lesquelles tu aimerais passer plus de temps pendant cette semaine supplémentaire ?",
+          "Est-ce que cette semaine de consolidation est envisagée pour revoir des apprentissages passés ou pour mieux préparer les actions à venir dans ce même niveau ?"
+        ]
+      },
+      "coaching_guidance_audit": {
+        "scope": "level",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "level",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer de retirer des actions du niveau.",
+        "Changer l'objectif du niveau ou du plan global.",
+        "Réduire la fréquence ou la difficulté de 'Partager un point positif'.",
+        "Suggérer des modifications aux niveaux futurs à ce stade.",
+        "Ajouter de nouvelles actions."
+      ],
+      "scope": "level",
+      "preserve": [
+        "L'objectif global du plan et du niveau 'Désamorcer et recréer de la sécurité'.",
+        "Le cœur et l'intention des actions et missions du niveau actuel.",
+        "Le rythme actuel de l'habitude 'Partager un point positif'.",
+        "La séquence et la logique pédagogique du niveau, l'extension étant un ajustement de rythme et non de contenu."
+      ],
+      "warnings": [
+        "Ne pas modifier la fréquence ou la difficulté de l'habitude 'Partager un point positif', car l'utilisateur a explicitement demandé de garder son rythme actuel.",
+        "Éviter de proposer de nouvelles actions ou d'augmenter la charge de travail globale du niveau.",
+        "Ne pas interpréter l'ajout d'une semaine comme une opportunité de supprimer des actions existantes."
+      ],
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+        "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+        "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+        "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+        "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+        "Guidelines action: Les actions du niveau doivent conserver leur rôle et leur intention. Aucun changement de nature sans demande explicite.",
+        "Guidelines niveau: Le cœur du niveau et ses objectifs d'apprentissage doivent être préservés. L'extension est un ajustement de rythme, pas de contenu.",
+        "Guidelines whole_plan: La trajectoire et la cohérence globale du plan sont explicitement à préserver, conformément à la demande de l'utilisateur."
+      ],
+      "observation": "L'utilisateur accepte explicitement l'ajout d'une semaine de consolidation au niveau actuel. Il insiste spécifiquement pour que l'habitude 'Partager un point positif' conserve son rythme actuel et ne soit pas baissée. Cela confirme un besoin d'ajustement de la durée du niveau pour une meilleure intégration, avec une contrainte claire sur la charge d'une action spécifique.",
+      "recommendation": "Proposer d'allonger le niveau actuel d'une semaine, en s'assurant que l'habitude 'Partager un point positif' conserve son rythme actuel, et en redistribuant les autres actions du niveau sur cette période étendue pour permettre une meilleure intégration et consolidation sans augmenter la charge globale.",
+      "options_to_discuss": [
+        "Comment cette semaine supplémentaire pourrait être utilisée pour approfondir spécifiquement certains aspects du niveau, au-delà de la simple consolidation générale.",
+        "Si la répartition des actions existantes sur les semaines du niveau pourrait être ajustée pour mieux servir l'objectif de consolidation."
+      ],
+      "questions_to_clarify": [
+        "Y a-t-il des actions spécifiques (autres que 'Partager un point positif') que tu souhaiterais consolider davantage ou sur lesquelles tu aimerais passer plus de temps pendant cette semaine supplémentaire ?",
+        "Est-ce que cette semaine de consolidation est envisagée pour revoir des apprentissages passés ou pour mieux préparer les actions à venir dans ce même niveau ?"
+      ]
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r49-level-add-week-t04",
+    "trace_error": null
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r49-level-add-week-t05",
+    "status": 200,
+    "ok": true,
+    "user": "Ok montre-moi le brouillon final : une semaine en plus sur le niveau actuel, rythme inchangé, objectif global inchangé. Si c'est ça je validerai après.",
+    "assistant": "Je n'ai pas une cible assez claire pour ajuster le plan depuis le chat. Tu peux le faire dans ton espace sur sophia-coach.ai. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "fallback_dashboard",
+      "reason_code": "active_tool_skill_continue",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "current_level.affected_items"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer de retirer des actions du niveau.",
+          "Changer l'objectif du niveau ou du plan global.",
+          "Faire des suppositions sur les raisons profondes du sentiment de 'trop vite' sans poser de questions.",
+          "Suggérer des modifications aux niveaux futurs à ce stade.",
+          "Toute proposition qui rendrait le plan 'interminable'."
+        ],
+        "scope": "level",
+        "preserve": [
+          "L'objectif global du plan et du niveau 'Désamorcer et recréer de la sécurité'.",
+          "Le cœur et l'intention des actions et missions du niveau actuel, notamment 'Convenir d'un signal de pause', 'Faire le point sur le signal de pause' et 'Cartographier les déclencheurs'.",
+          "La séquence et la logique pédagogique du niveau, l'extension étant un ajustement de rythme et non de contenu.",
+          "Le 'rythme inchangé' et la 'charge stable' par semaine."
+        ],
+        "warnings": [
+          "Éviter de proposer de nouvelles actions ou d'augmenter la charge de travail, car l'utilisateur a explicitement demandé un 'rythme inchangé' et est préoccupé par un plan 'interminable'.",
+          "Ne pas modifier le contenu ou la difficulté des actions existantes sans une demande explicite, l'objectif étant la consolidation et non la refonte.",
+          "Ne pas interpréter le besoin de 'consolider' comme une nécessité de supprimer des actions, mais plutôt de leur laisser plus de temps pour s'ancrer.",
+          "Ne pas modifier l'objectif global du plan ou du niveau."
+        ],
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+          "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+          "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+          "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+          "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+          "Guidelines action: Les actions du niveau doivent conserver leur rôle et leur intention. Aucun changement de nature sans demande explicite.",
+          "Guidelines niveau: Le cœur du niveau et ses objectifs d'apprentissage doivent être préservés. L'extension est un ajustement de rythme, pas de contenu. Respecter le rythme du user sans transformer une baisse temporaire en refonte globale. Si la période demandée dépasse la fin du niveau, garder ce repère pour le prochain niveau sans modifier toute la trajectoire.",
+          "Guidelines whole_plan: La trajectoire et la cohérence globale du plan sont explicitement à préserver, conformément à la demande de l'utilisateur."
+        ],
+        "observation": "L'utilisateur demande une extension d'une semaine pour le niveau actuel, en insistant sur le maintien du rythme et de l'objectif global. Il souhaite visualiser le brouillon pour s'assurer que le plan ne devienne pas 'interminable'. Cela révèle un besoin de consolidation et d'intégration des apprentissages sans surcharge, et une préoccupation pour la durée totale du plan.",
+        "recommendation": "Proposer d'allonger le niveau actuel d'une semaine, en redistribuant les actions existantes sur cette période étendue pour permettre une meilleure intégration et consolidation, sans introduire de nouvelles tâches ni augmenter la charge globale. Le brouillon doit clairement montrer comment cette semaine supplémentaire est allouée aux actions actuelles.",
+        "options_to_discuss": [
+          "Proposer de revoir la répartition des actions existantes sur les semaines du niveau pour optimiser la consolidation, en mettant l'accent sur les actions qui nécessitent le plus d'intégration.",
+          "Explorer si le sentiment de 'trop vite' est lié à des contraintes externes ou à des difficultés spécifiques avec certaines actions, au-delà de la simple durée, afin d'affiner la redistribution."
+        ],
+        "questions_to_clarify": [
+          "Comment souhaites-tu que cette semaine supplémentaire soit utilisée pour les actions existantes ? Préfères-tu répéter certaines actions, ou simplement avoir plus de temps pour les réaliser sans pression ?",
+          "Y a-t-il des actions spécifiques que tu souhaiterais voir étalées ou approfondies pendant cette semaine additionnelle ?"
+        ]
+      },
+      "coaching_guidance_audit": {
+        "scope": "level",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "level",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer de retirer des actions du niveau.",
+        "Changer l'objectif du niveau ou du plan global.",
+        "Faire des suppositions sur les raisons profondes du sentiment de 'trop vite' sans poser de questions.",
+        "Suggérer des modifications aux niveaux futurs à ce stade.",
+        "Toute proposition qui rendrait le plan 'interminable'."
+      ],
+      "scope": "level",
+      "preserve": [
+        "L'objectif global du plan et du niveau 'Désamorcer et recréer de la sécurité'.",
+        "Le cœur et l'intention des actions et missions du niveau actuel, notamment 'Convenir d'un signal de pause', 'Faire le point sur le signal de pause' et 'Cartographier les déclencheurs'.",
+        "La séquence et la logique pédagogique du niveau, l'extension étant un ajustement de rythme et non de contenu.",
+        "Le 'rythme inchangé' et la 'charge stable' par semaine."
+      ],
+      "warnings": [
+        "Éviter de proposer de nouvelles actions ou d'augmenter la charge de travail, car l'utilisateur a explicitement demandé un 'rythme inchangé' et est préoccupé par un plan 'interminable'.",
+        "Ne pas modifier le contenu ou la difficulté des actions existantes sans une demande explicite, l'objectif étant la consolidation et non la refonte.",
+        "Ne pas interpréter le besoin de 'consolider' comme une nécessité de supprimer des actions, mais plutôt de leur laisser plus de temps pour s'ancrer.",
+        "Ne pas modifier l'objectif global du plan ou du niveau."
+      ],
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+        "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+        "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+        "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+        "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+        "Guidelines action: Les actions du niveau doivent conserver leur rôle et leur intention. Aucun changement de nature sans demande explicite.",
+        "Guidelines niveau: Le cœur du niveau et ses objectifs d'apprentissage doivent être préservés. L'extension est un ajustement de rythme, pas de contenu. Respecter le rythme du user sans transformer une baisse temporaire en refonte globale. Si la période demandée dépasse la fin du niveau, garder ce repère pour le prochain niveau sans modifier toute la trajectoire.",
+        "Guidelines whole_plan: La trajectoire et la cohérence globale du plan sont explicitement à préserver, conformément à la demande de l'utilisateur."
+      ],
+      "observation": "L'utilisateur demande une extension d'une semaine pour le niveau actuel, en insistant sur le maintien du rythme et de l'objectif global. Il souhaite visualiser le brouillon pour s'assurer que le plan ne devienne pas 'interminable'. Cela révèle un besoin de consolidation et d'intégration des apprentissages sans surcharge, et une préoccupation pour la durée totale du plan.",
+      "recommendation": "Proposer d'allonger le niveau actuel d'une semaine, en redistribuant les actions existantes sur cette période étendue pour permettre une meilleure intégration et consolidation, sans introduire de nouvelles tâches ni augmenter la charge globale. Le brouillon doit clairement montrer comment cette semaine supplémentaire est allouée aux actions actuelles.",
+      "options_to_discuss": [
+        "Proposer de revoir la répartition des actions existantes sur les semaines du niveau pour optimiser la consolidation, en mettant l'accent sur les actions qui nécessitent le plus d'intégration.",
+        "Explorer si le sentiment de 'trop vite' est lié à des contraintes externes ou à des difficultés spécifiques avec certaines actions, au-delà de la simple durée, afin d'affiner la redistribution."
+      ],
+      "questions_to_clarify": [
+        "Comment souhaites-tu que cette semaine supplémentaire soit utilisée pour les actions existantes ? Préfères-tu répéter certaines actions, ou simplement avoir plus de temps pour les réaliser sans pression ?",
+        "Y a-t-il des actions spécifiques que tu souhaiterais voir étalées ou approfondies pendant cette semaine additionnelle ?"
+      ]
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r49-level-add-week-t05",
+    "trace_error": null
+  }
+]

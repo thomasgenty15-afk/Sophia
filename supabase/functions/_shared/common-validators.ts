@@ -1,9 +1,10 @@
 import { z } from "npm:zod@3.22.4";
+import { TIME_OF_DAY_VALUES } from "./time_of_day.ts";
 
 // --- 1. ROUTER (DISPATCHER) ---
 
 export const DispatcherSchema = z.object({
-  targetMode: z.enum(['sentry', 'investigator', 'architect', 'assistant', 'companion']),
+  targetMode: z.enum(['sentry', 'architect', 'assistant', 'companion']),
   riskScore: z.number().min(0).max(10)
 });
 
@@ -15,7 +16,7 @@ export const MiniActionSchema = z.object({
   questType: z.string().optional(),
   type: z.enum(['mission', 'habitude', 'framework']),
   tracking_type: z.enum(['boolean', 'counter']),
-  time_of_day: z.enum(['morning', 'afternoon', 'evening', 'night', 'any_time']),
+  time_of_day: z.enum(TIME_OF_DAY_VALUES),
   targetReps: z.number().optional(),
   tips: z.string().optional(),
   rationale: z.string().optional(),
@@ -46,4 +47,3 @@ export const SortedAxesSchema = z.object({
 export function validateDispatcher(data: any) { return DispatcherSchema.parse(data); }
 export function validateMiniAction(data: any) { return MiniActionSchema.parse(data); }
 export function validateSortedAxes(data: any) { return SortedAxesSchema.parse(data); }
-

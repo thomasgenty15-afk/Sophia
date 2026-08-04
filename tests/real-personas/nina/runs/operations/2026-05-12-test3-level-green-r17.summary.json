@@ -1,0 +1,344 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r17-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je sens que le bloc du soir sur les grignotages est trop chargé pour moi. Je ne veux pas toucher à toute la trajectoire, juste l'alléger maintenant pour que ce soit tenable.",
+    "assistant": "D'accord, je comprends que le bloc du soir est trop chargé. Pour l'alléger, souhaites-tu simplifier certaines actions, en réduire le nombre, ou as-tu une autre idée en tête ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [
+        "maintenant"
+      ],
+      "risk_band": "none",
+      "reason_codes": [
+        "immediacy_now"
+      ],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": true,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "status": "ask_question",
+      "reason_code": "tool_skill_intent_start",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "current_level.adjustment_type",
+        "current_level.reason"
+      ],
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r17-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r17-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Simplifie certaines actions. Pas le nettoyage ni le décodage : je veux les garder tels quels. Le vrai problème, c'est préparer quoi manger et choisir au moment où j'ai faim ; donc touche seulement Préparer tes alternatives d'avance et Faire le choix du brut, avec du prêt et du décidé avant le soir.",
+    "assistant": "C'est noté : je vais simplifier 'Préparer tes alternatives d'avance' et 'Faire le choix du brut' pour que tout soit prêt et décidé avant le soir, tout en laissant le nettoyage et le décodage intacts. Rien n'est encore modifié, est-ce que je peux te préparer une proposition concrète dans ce sens ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "status": "ask_question",
+      "reason_code": "active_tool_skill_continue",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "draft_generation_confirmation"
+      ],
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r17-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r17-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, prépare la proposition concrète.",
+    "assistant": "Je te propose d'ajuster ton bloc du soir pour qu'il soit plus simple à gérer quand la fatigue s'installe. Rien n'est encore appliqué, j'attends ta validation sur ce brouillon. L'idée est de supprimer la pression du choix au moment où tu as faim : 'Préparer tes alternatives d'avance' deviendrait une version simplifiée avec des options déjà prêtes (comme des fruits lavés), et 'Faire le choix du brut' se limiterait à une seule option décidée à l'avance. Les actions de nettoyage et de décodage resteront exactement comme elles sont. Est-ce que cette proposition te convient ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "confidence": "medium",
+            "scope_kind": "current_level",
+            "constraints": [
+              "no_pressure",
+              "minimal_patch",
+              "preserve_plan_intent",
+              "no_schedule_day_change",
+              "ask_confirmation_before_write",
+              "Pas le nettoyage ni le décodage",
+              "garder tels quels",
+              "prêt et décidé avant le soir",
+              "affected_item:Préparer tes alternatives d'avance",
+              "affected_item:Faire le choix du brut"
+            ],
+            "reason_type": "context_changed",
+            "change_target": "global_load",
+            "reason_change": "context_changed",
+            "load_adjustment": "same",
+            "level_adjustment": "rebalance"
+          },
+          "title": "Ajustement - bloc du soir sur les grignotages",
+          "confidence": "medium",
+          "ack_summary": {
+            "changed": [
+              "niveau actuel: charge ajustée vers \"same\"",
+              "cible de changement: global_load"
+            ],
+            "unchanged": [
+              "le cœur du niveau reste préservé",
+              "chaque action n'est pas réécrite automatiquement"
+            ],
+            "confidence": "medium",
+            "why_it_helps": "La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale.",
+            "follow_up_needed": "identifier ensuite les actions exactes à alléger si tu veux une modification fine"
+          },
+          "scope_label": "bloc du soir sur les grignotages",
+          "why_it_helps": "Le changement agit au niveau du bloc courant, sans pretendre modifier une seule action.",
+          "decision_basis": {
+            "evidence": [
+              "Oui, prépare la proposition concrète.",
+              "contexte du message précédent",
+              "référence aux actions du bloc",
+              "Simplifie certaines actions",
+              "Le vrai problème, c'est préparer quoi manger et choisir au moment où j'ai faim",
+              "préparer quoi manger et choisir au moment où j'ai faim",
+              "avec du prêt et du décidé avant le soir"
+            ],
+            "confidence": "medium",
+            "uncertainty": [
+              "actions exactes du niveau a choisir pour une modification fine"
+            ],
+            "user_problem": "Le niveau actuel est trop lourd ou mal calibre pour le contexte de l'utilisateur.",
+            "inferred_need": "preserver le coeur du niveau et reduire la charge ciblee autour",
+            "must_preserve": [
+              "coeur du niveau"
+            ]
+          },
+          "adjustment_type": "rebalance",
+          "proposed_change": "reequilibrer le niveau actuel",
+          "change_rationale": {
+            "why_this_change": "Alléger global_load répond au problème \"context_changed\" tout en gardant le cœur du niveau.",
+            "success_condition": "Le niveau peut être repris avec moins de friction, puis réaugmenté seulement si l'énergie et le contexte suivent.",
+            "expected_mechanism": "La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale."
+          },
+          "adjust_plan_result": {
+            "scope": "level",
+            "rationale": {
+              "confidence": "medium",
+              "missing_info": [],
+              "user_problem": "Le choix et la préparation le soir sont trop lourds dans le contexte actuel, créant une friction inutile.",
+              "expected_effect": "Une réduction immédiate du stress lié au grignotage du soir et une meilleure adhésion au plan malgré la fatigue.",
+              "why_this_change": "En passant sur des versions 'mini' et décidées d'avance, on maintient l'habitude sans la charge mentale associée."
+            },
+            "boundaries": {
+              "explanation": "Le changement est strictement limité au niveau actuel pour répondre à un changement de contexte immédiat sans modifier tes objectifs à long terme.",
+              "affected_scope": "Le bloc du soir sur les grignotages uniquement.",
+              "global_plan_impact": "none",
+              "explicitly_not_affected": [
+                "Nettoyage de l'environnement",
+                "Décodage des envies",
+                "Structure globale du plan"
+              ]
+            },
+            "applied_change": {
+              "summary": "Simplification des actions de choix alimentaire pour éliminer la fatigue décisionnelle du soir.",
+              "changed_items": [
+                {
+                  "id": "23f34398-87ae-4388-80b4-786989faac97",
+                  "kind": "action",
+                  "after": "Version mini : Opter uniquement pour des alternatives prêtes à l'emploi (fruits lavés, oléagineux) pour supprimer toute préparation le soir. Cette version sert de pont, l'action complète reviendra plus tard.",
+                  "title": "Préparer tes alternatives d'avance",
+                  "before": "Action complète de préparation des alternatives.",
+                  "reason": "Supprimer la charge de préparation au moment où la faim et la fatigue sont présentes.",
+                  "capability": "create_bridge_action"
+                },
+                {
+                  "id": "eb9df535-b6e9-40d9-af57-effafdc2f662",
+                  "kind": "action",
+                  "after": "Version mini : Limiter le choix à une seule option brute prédéfinie pour éliminer la fatigue décisionnelle. L'action d'origine reviendra quand ton énergie sera plus haute.",
+                  "title": "Faire le choix du brut",
+                  "before": "Choix libre parmi des aliments bruts au moment du besoin.",
+                  "reason": "Éviter de devoir prendre une décision complexe quand l'énergie est basse.",
+                  "capability": "create_bridge_action"
+                }
+              ],
+              "preserved_items": [
+                {
+                  "id": "a751731a-3832-4bea-a707-c72170fd15a0",
+                  "kind": "action",
+                  "title": "Nettoyer ton environnement direct",
+                  "reason": "Exclu explicitement par tes contraintes de ne pas toucher au nettoyage."
+                },
+                {
+                  "id": "7ed21c74-e2ad-4ffb-85d9-5d204d72bbcf",
+                  "kind": "action",
+                  "title": "Décoder ton envie de grignoter",
+                  "reason": "Exclu explicitement par tes contraintes de ne pas toucher au décodage."
+                }
+              ]
+            },
+            "user_message_brief": "J'ai simplifié la préparation et le choix de tes collations du soir pour que tout soit prêt et décidé d'avance, sans toucher au reste.",
+            "user_message_detailed": "Pour répondre à ton besoin de simplicité, je propose deux changements précis : transformer la préparation des alternatives en un choix d'options prêtes à l'emploi, et fixer à l'avance une seule option brute pour éviter d'avoir à décider en ayant faim. Les actions de nettoyage et de décodage ne seront pas touchées. Mon niveau de confiance est bon car cela cible directement la fatigue décisionnelle. Ce changement reste limité à ton niveau actuel et ne modifie pas la direction générale de ton plan."
+          },
+          "execution_strategy": "level_adjustment",
+          "allowed_patch_fields": [
+            "scope_kind",
+            "level_adjustment",
+            "load_adjustment",
+            "focus_adjustment",
+            "reason_type",
+            "reason_change",
+            "change_target",
+            "confidence",
+            "constraints"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "C'est fait, j'ai allégé ton bloc du soir pour supprimer la fatigue décisionnelle au moment crucial. J'ai transformé 'Préparer tes alternatives d'avance' en une version sans préparation et 'Faire le choix du brut' en une décision unique prise en amont. Cela permet de garder le cap sans s'épuiser quand l'énergie baisse. Le reste de ton plan, notamment le nettoyage et le décodage, n'a pas bougé. Je suis assez confiante sur le fait que cela rendra tes soirées plus fluides et moins stressantes.",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je te propose d'ajuster ton bloc du soir pour qu'il soit plus simple à gérer quand la fatigue s'installe. Rien n'est encore appliqué, j'attends ta validation sur ce brouillon. L'idée est de supprimer la pression du choix au moment où tu as faim : 'Préparer tes alternatives d'avance' deviendrait une version simplifiée avec des options déjà prêtes (comme des fruits lavés), et 'Faire le choix du brut' se limiterait à une seule option décidée à l'avance. Les actions de nettoyage et de décodage resteront exactement comme elles sont. Est-ce que cette proposition te convient ?"
+      },
+      "status": "draft_review",
+      "reason_code": "active_tool_skill_continue",
+      "operation_id": "0ff1b57a-8dd2-4001-967a-8178f96cede3",
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r17-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r17-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, valide cet ajustement.",
+    "assistant": "C'est fait, j'ai allégé ton bloc du soir pour supprimer la fatigue décisionnelle au moment crucial. J'ai transformé 'Préparer tes alternatives d'avance' en une version sans préparation et 'Faire le choix du brut' en une décision unique prise en amont. Cela permet de garder le cap sans s'épuiser quand l'énergie baisse. Le reste de ton plan, notamment le nettoyage et le décodage, n'a pas bougé. Je suis assez confiante sur le fait que cela rendra tes soirées plus fluides et moins stressantes.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "adjust_plan_item"
+    ],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": null,
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "adjust_plan_item"
+      }
+    ],
+    "operation_flow_run": {
+      "status": "executed",
+      "reason_code": "tool_skill_intent_start",
+      "operation_id": "0ff1b57a-8dd2-4001-967a-8178f96cede3",
+      "plan_patch_id": "170e9937-ef79-40d6-8af6-05381d4d3aeb",
+      "selected_handler": "adjust_plan_item",
+      "bridge_plan_item_id": null
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r17-t04",
+    "trace_error": null
+  }
+]

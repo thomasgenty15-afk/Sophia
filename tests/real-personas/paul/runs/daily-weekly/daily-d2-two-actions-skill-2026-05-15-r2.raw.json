@@ -1,0 +1,148 @@
+{
+  "run_id": "daily-d2-two-actions-skill-2026-05-15-r2",
+  "persona": "paul",
+  "user_id": "3b2d22cd-3c57-4c43-a035-941c014f8165",
+  "connection_path": "tests/real-personas/paul/connection.json",
+  "created_at": "2026-05-15T12:09:23.234Z",
+  "qa_mode": "manual_adaptive_turn_by_turn",
+  "anti_hardcoding": {
+    "ids_discovered_at_runtime": true,
+    "user_replies_pre_scripted": false,
+    "dynamic_daily_generated_if_needed": false
+  },
+  "whatsapp": {
+    "from": "15553241389417",
+    "display_phone": "15550490708950",
+    "phone_number_id": "554049d339e17684"
+  },
+  "pending_initial": {
+    "id": "2a9a4638-02d1-4972-839f-edc57d6d0f26",
+    "scheduled_checkin_id": "a19b0d7d-1fa5-4560-a1e5-2d4765543c79",
+    "status": "pending",
+    "payload": {
+      "targets": [
+        {
+          "kind": "habit",
+          "title": "Faire une session de travail focus (2h)",
+          "plan_id": "55f505b5-e0b4-450b-a0a2-bc2656933181",
+          "cycle_id": "06e58ed9-8669-4d2a-a881-99509e993c34",
+          "dimension": "habits",
+          "planned_day": "tue",
+          "time_of_day": "anytime",
+          "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+          "occurrence_id": "8d619c8d-46c8-4462-ac96-9695b8eec41f",
+          "tracking_type": "count",
+          "week_start_date": "2026-05-18",
+          "transformation_id": "72a16a18-3370-464a-8296-80f3398fc76a",
+          "reviewed_local_date": "2026-05-19",
+          "original_planned_day": null
+        },
+        {
+          "kind": "task",
+          "title": "Bloquer tes créneaux de la semaine",
+          "plan_id": "55f505b5-e0b4-450b-a0a2-bc2656933181",
+          "cycle_id": "06e58ed9-8669-4d2a-a881-99509e993c34",
+          "dimension": "missions",
+          "planned_day": "tue",
+          "time_of_day": "anytime",
+          "plan_item_id": "89a1ccf2-2751-463e-97c0-94213551631d",
+          "occurrence_id": "98f69549-ad61-4944-ad6f-c4d666f02f10",
+          "tracking_type": "boolean",
+          "week_start_date": "2026-05-18",
+          "transformation_id": "72a16a18-3370-464a-8296-80f3398fc76a",
+          "reviewed_local_date": "2026-05-19",
+          "original_planned_day": "mon"
+        }
+      ],
+      "timezone": "Europe/Paris",
+      "local_date": "2026-05-19",
+      "message_mode": "conversation",
+      "review_state": {
+        "items": {
+          "8d619c8d-46c8-4462-ac96-9695b8eec41f": {
+            "title": "Faire une session de travail focus (2h)",
+            "outcome": null,
+            "plan_id": "55f505b5-e0b4-450b-a0a2-bc2656933181",
+            "confidence": "low",
+            "plan_label": null,
+            "action_type": "habit",
+            "reason_text": null,
+            "plan_item_id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+            "evidence_text": null,
+            "missing_slots": [
+              "outcome"
+            ],
+            "occurrence_id": "8d619c8d-46c8-4462-ac96-9695b8eec41f",
+            "still_relevant": "unknown",
+            "reason_category": null,
+            "matched_user_text": null
+          },
+          "98f69549-ad61-4944-ad6f-c4d666f02f10": {
+            "title": "Bloquer tes créneaux de la semaine",
+            "outcome": null,
+            "plan_id": "55f505b5-e0b4-450b-a0a2-bc2656933181",
+            "confidence": "low",
+            "plan_label": null,
+            "action_type": "mission",
+            "reason_text": null,
+            "plan_item_id": "89a1ccf2-2751-463e-97c0-94213551631d",
+            "evidence_text": null,
+            "missing_slots": [
+              "outcome"
+            ],
+            "occurrence_id": "98f69549-ad61-4944-ad6f-c4d666f02f10",
+            "still_relevant": "unknown",
+            "reason_category": null,
+            "matched_user_text": null
+          }
+        },
+        "source": "daily_action_review_v1",
+        "status": "collecting",
+        "skill_id": "daily_action_review_v1",
+        "stop_reason": null,
+        "next_question": null,
+        "should_apply_effects": false,
+        "next_question_targets": [
+          "8d619c8d-46c8-4462-ac96-9695b8eec41f",
+          "98f69549-ad61-4944-ad6f-c4d666f02f10"
+        ],
+        "generated_user_message": null,
+        "remaining_occurrence_ids": [],
+        "asked_occurrence_ids_history": [
+          [
+            "8d619c8d-46c8-4462-ac96-9695b8eec41f",
+            "98f69549-ad61-4944-ad6f-c4d666f02f10"
+          ]
+        ],
+        "current_focus_occurrence_ids": [
+          "8d619c8d-46c8-4462-ac96-9695b8eec41f",
+          "98f69549-ad61-4944-ad6f-c4d666f02f10"
+        ]
+      },
+      "draft_message": "La session de travail focus (2h) est bien notée comme faite, et le blocage des créneaux de la semaine comme non fait (tu étais saturé), reporté à mardi 19 mai : tu en es où aujourd’hui ?",
+      "event_context": "action_evening_review_v2",
+      "occurrence_ids": [
+        "8d619c8d-46c8-4462-ac96-9695b8eec41f",
+        "98f69549-ad61-4944-ad6f-c4d666f02f10"
+      ],
+      "chat_capability": "daily_action_review",
+      "grouping_reason": "priority",
+      "week_start_date": "2026-05-18",
+      "asked_occurrence_ids": [
+        "8d619c8d-46c8-4462-ac96-9695b8eec41f",
+        "98f69549-ad61-4944-ad6f-c4d666f02f10"
+      ],
+      "action_evening_review": true,
+      "not_yet_asked_occurrence_ids": []
+    },
+    "created_at": "2026-05-15T12:09:02.258969+00:00"
+  },
+  "turns": [
+    {
+      "turn": 0,
+      "role": "assistant",
+      "text": "La session de travail focus (2h) est bien notée comme faite, et le blocage des créneaux de la semaine comme non fait (tu étais saturé), reporté à mardi 19 mai : tu en es où aujourd’hui ?",
+      "source": "existing_pending"
+    }
+  ]
+}

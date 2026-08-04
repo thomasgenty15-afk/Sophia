@@ -1,0 +1,913 @@
+{
+  "run_id": "clarification-rerun-20260603-r1-reminder-paraphrase",
+  "scope": "qa-normal-conversation-clarification-rerun-20260603-r1-reminder-paraphrase",
+  "base_url": "http://127.0.0.1:54321",
+  "email": "qa-normal-clarification-rerun-20260603-r1-reminder-paraphrase-1780497239404@example.com",
+  "user_id": "8488e58d-fadf-4c48-8062-c6040b1f9188",
+  "anon_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0",
+  "service_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU",
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjU0MzIxL2F1dGgvdjEiLCJzdWIiOiI4NDg4ZTU4ZC1mYWRmLTRjNDgtODA2Mi1jNjA0MGIxZjkxODgiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzgwNTAwODM5LCJpYXQiOjE3ODA0OTcyMzksImVtYWlsIjoicWEtbm9ybWFsLWNsYXJpZmljYXRpb24tcmVydW4tMjAyNjA2MDMtcjEtcmVtaW5kZXItcGFyYXBocmFzZS0xNzgwNDk3MjM5NDA0QGV4YW1wbGUuY29tIiwicGhvbmUiOiIiLCJhcHBfbWV0YWRhdGEiOnsicHJvdmlkZXIiOiJlbWFpbCIsInByb3ZpZGVycyI6WyJlbWFpbCJdfSwidXNlcl9tZXRhZGF0YSI6eyJlbWFpbCI6InFhLW5vcm1hbC1jbGFyaWZpY2F0aW9uLXJlcnVuLTIwMjYwNjAzLXIxLXJlbWluZGVyLXBhcmFwaHJhc2UtMTc4MDQ5NzIzOTQwNEBleGFtcGxlLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJpc190ZXN0X3BlcnNvbmEiOnRydWUsInBob25lX3ZlcmlmaWVkIjpmYWxzZSwicWFfcnVuX2lkIjoiY2xhcmlmaWNhdGlvbi1yZXJ1bi0yMDI2MDYwMy1yMS1yZW1pbmRlci1wYXJhcGhyYXNlIiwic3ViIjoiODQ4OGU1OGQtZmFkZi00YzQ4LTgwNjItYzYwNDBiMWY5MTg4In0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3ODA0OTcyMzl9XSwic2Vzc2lvbl9pZCI6Ijg4OWUxNTgyLTJjMmItNDRiNC1hZGExLWE3ZDZmZTJhZWExOCIsImlzX2Fub255bW91cyI6ZmFsc2V9.cuqRcr4_RNDvzukfIhJsUXVqpWPP8PLeD8K0PK06A4I",
+  "auth_check": {
+    "status": 200,
+    "ok": true
+  },
+  "force_full_ai": true,
+  "created_at": "2026-06-03T14:33:59.760Z",
+  "turns": [
+    {
+      "turn": 1,
+      "sent_at": "2026-06-03T14:34:26.449Z",
+      "user": "Mets-moi un rappel dans 10 minutes pour boire mon traitement, puis juste après je veux préparer une carte d'attaque pour mon action.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "C'est programmé pour mercredi 03 juin à 15:28.\n\nJe garde aussi la suite : « puis juste après je veux préparer une carte d'attaque pour mon action. ». Tu veux qu'on la traite maintenant ? 🙂",
+      "trace_short": {
+        "response_owner": "tool_skill",
+        "selected_handler": "create_one_shot_reminder",
+        "route_reason": "central_arbitrator_one_shot_reminder_structured_effect",
+        "safety": "low",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": "none",
+        "opportunity_operation": null,
+        "direct_effects": [
+          "create_one_shot_reminder"
+        ],
+        "direct_effects_to_run": [
+          "create_one_shot_reminder"
+        ],
+        "confirmation_kind": null,
+        "selected_skill_id": null,
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [
+          "create_one_shot_reminder"
+        ],
+        "tool_execution": "success"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 2,
+              "temp_memory": {
+                "__conversation_risk_last": {
+                  "at": "2026-06-03T14:34:26.344Z",
+                  "score": 0,
+                  "threshold": 8,
+                  "reason_codes": [],
+                  "flow_exit_context": null,
+                  "should_exit_flows": false
+                },
+                "__conversation_risk_history": [
+                  0
+                ],
+                "__coaching_intervention_history": []
+              },
+              "updated_at": "2026-06-03T14:34:26.401195+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "baa7eb17-2e0a-42c5-b709-eb46449f96a3",
+              "status": "pending",
+              "event_context": "one_shot_reminder:boire_mon_traitement",
+              "draft_message": null,
+              "scheduled_for": "2026-06-03T13:28:00+00:00",
+              "created_at": "2026-06-03T14:34:26.391969+00:00"
+            }
+          ]
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "clarification-rerun-20260603-r1-reminder-paraphrase-t01",
+        "user_id": "8488e58d-fadf-4c48-8062-c6040b1f9188",
+        "channel": "web",
+        "scope": "qa-normal-conversation-clarification-rerun-20260603-r1-reminder-paraphrase",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "C'est programmé pour mercredi 03 juin à 15:28.\n\nJe garde aussi la suite : « puis juste après je veux préparer une carte d'attaque pour mon action. ». Tu veux qu'on la traite maintenant ? 🙂",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "success",
+          "executed_tools": [
+            "create_one_shot_reminder"
+          ],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "clarification-rerun-20260603-r1-reminder-paraphrase-t01",
+              "source_message_id": "24a646f1-98f7-416e-a829-4c86f6f95cd7",
+              "user_id": "8488e58d-fadf-4c48-8062-c6040b1f9188",
+              "channel": "web",
+              "safety": {
+                "risk_band": "low",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "detected": false,
+                    "weight": 3.5,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "detected": false,
+                    "weight": 2.5,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "detected": false,
+                    "weight": 2,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "detected": false,
+                    "weight": 1.5,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "detected": false,
+                    "weight": 0.7,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "detected": false,
+                    "weight": 1,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "detected": false,
+                    "weight": 10,
+                    "contribution": 0,
+                    "evidence": null
+                  }
+                ],
+                "context_summary": null,
+                "flow_exit_context": null
+              },
+              "direct_effects": [
+                {
+                  "effect_type": "create_one_shot_reminder",
+                  "explicitness": "explicit",
+                  "target_status": "identified",
+                  "confidence_band": "high",
+                  "payload_hint": {
+                    "raw_text": "Mets-moi un rappel dans 10 minutes pour boire mon traitement",
+                    "when_hint": "dans 10 minutes",
+                    "instruction_hint": "boire mon traitement"
+                  }
+                }
+              ],
+              "tool_skill_intents": [],
+              "tool_skill_opportunity": {
+                "type": "none",
+                "operation_type": null,
+                "surface_id": null,
+                "confidence_band": "low",
+                "should_offer": false,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "target_status": "none",
+                "suggested_question_intent": null,
+                "offer_timing": "never",
+                "must_not_execute": true
+              },
+              "skill_signals": {
+                "entry": {},
+                "lifecycle": {},
+                "exit": {}
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_fallback_disabled"
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": "semantic_fallback_disabled"
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "targeted",
+                "memory_mode": "light",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "small",
+                "targets": [
+                  {
+                    "type": "action",
+                    "key": "current_plan_actions",
+                    "query_hint": "actions du plan pour identifier 'mon action'",
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first",
+                    "priority": "high",
+                    "entity_type": null
+                  },
+                  {
+                    "type": "domain_key",
+                    "key": "sante.medical",
+                    "query_hint": "traitement medical",
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first",
+                    "priority": "medium",
+                    "entity_type": null
+                  }
+                ],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              },
+              "active_handoff_action": null,
+              "confirmation_response": null
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "blocked_paths": [
+                {
+                  "path": "tool_skills",
+                  "reason_code": "target_ambiguous"
+                },
+                {
+                  "path": "tool_skill_flow",
+                  "reason_code": "central_arbitrator_one_shot_reminder_structured_effect"
+                }
+              ],
+              "direct_effects_to_run": [
+                "create_one_shot_reminder"
+              ],
+              "reason_code": "central_arbitrator_one_shot_reminder_structured_effect",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "none",
+                "active_owner": "none",
+                "selected_owner": "none",
+                "resume_policy": "none",
+                "reason_code": "no_active_flow"
+              },
+              "selected_handler": "create_one_shot_reminder"
+            },
+            "turn_agenda_summary": {
+              "task_count": 2,
+              "owners": [
+                "create_one_shot_reminder",
+                "normal_reply"
+              ],
+              "operation_types": [
+                "create_one_shot_reminder"
+              ],
+              "constraints": {},
+              "tasks": [
+                {
+                  "task_id": "direct:create_one_shot_reminder:0",
+                  "kind": "effect",
+                  "owner": "create_one_shot_reminder",
+                  "operation_type": "create_one_shot_reminder",
+                  "intent": "create",
+                  "source": "dispatcher",
+                  "status": "pending",
+                  "reason_code": null
+                },
+                {
+                  "task_id": "reply:fallback",
+                  "kind": "reply",
+                  "owner": "normal_reply",
+                  "operation_type": null,
+                  "intent": "reply",
+                  "source": "route_decision",
+                  "status": "pending",
+                  "reason_code": "central_arbitrator_one_shot_reminder_structured_effect"
+                }
+              ]
+            },
+            "tool_skill_run": {
+              "selected_handler": "create_one_shot_reminder",
+              "reason_code": "central_arbitrator_one_shot_reminder_structured_effect",
+              "status": "success",
+              "reason": "local_parser",
+              "requested_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "scheduled_for": "2026-06-03T13:28:00+00:00",
+                  "local_label": "mercredi 03 juin à 15:28",
+                  "reminder_instruction": "boire mon traitement",
+                  "reason_code": "local_parser"
+                }
+              ],
+              "allowed_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "scheduled_for": "2026-06-03T13:28:00+00:00",
+                  "local_label": "mercredi 03 juin à 15:28",
+                  "reminder_instruction": "boire mon traitement",
+                  "reason_code": "local_parser"
+                }
+              ],
+              "committed_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "id": "baa7eb17-2e0a-42c5-b709-eb46449f96a3",
+                  "scheduled_for": "2026-06-03T13:28:00+00:00",
+                  "local_label": "mercredi 03 juin à 15:28",
+                  "reminder_instruction": "boire mon traitement"
+                }
+              ],
+              "blocked_effects": []
+            },
+            "effect_ledger": {
+              "turn_id": "clarification-rerun-20260603-r1-reminder-paraphrase-t01",
+              "counts": {
+                "requested": 2,
+                "allowed": 1,
+                "blocked": 0,
+                "committed": 1,
+                "failed": 0,
+                "proposed": 0,
+                "delivered": 0,
+                "cancelled": 0,
+                "superseded": 0,
+                "asked": 0,
+                "resolved": 0,
+                "topic_change": 0
+              },
+              "entries": [
+                {
+                  "effect_id": "clarification-rerun-20260603-r1-reminder-paraphrase-t01:agenda:pending:direct:create_one_shot_reminder:0",
+                  "kind": "durable_effect",
+                  "effect_type": "one_shot_reminder.create",
+                  "operation_type": "create_one_shot_reminder",
+                  "operation_id": null,
+                  "committed_id": null,
+                  "tool_id": "create_one_shot_reminder",
+                  "status": "requested",
+                  "reason_code": null,
+                  "source": "dispatcher",
+                  "payload_summary": {
+                    "task_id": "direct:create_one_shot_reminder:0",
+                    "intent": "create",
+                    "source": "dispatcher",
+                    "requires_confirmation": false,
+                    "evidence": [
+                      "explicit",
+                      "high",
+                      "identified"
+                    ]
+                  },
+                  "db_ref": null,
+                  "error_message": null,
+                  "surface_id": null,
+                  "owner": null,
+                  "ambiguity_kind": null,
+                  "selected_candidate_id": null
+                },
+                {
+                  "effect_id": "clarification-rerun-20260603-r1-reminder-paraphrase-t01:requested_effects:one_shot_reminder.create:0",
+                  "kind": "durable_effect",
+                  "effect_type": "one_shot_reminder.create",
+                  "operation_type": "one_shot_reminder",
+                  "operation_id": null,
+                  "committed_id": null,
+                  "tool_id": "create_one_shot_reminder",
+                  "status": "requested",
+                  "reason_code": "local_parser",
+                  "source": "tool_skill",
+                  "payload_summary": {
+                    "preference_keys": [],
+                    "scheduled_for": "2026-06-03T13:28:00+00:00",
+                    "local_label": "mercredi 03 juin à 15:28",
+                    "reminder_instruction": "boire mon traitement"
+                  },
+                  "db_ref": null,
+                  "error_message": null,
+                  "surface_id": null,
+                  "owner": null,
+                  "ambiguity_kind": null,
+                  "selected_candidate_id": null
+                },
+                {
+                  "effect_id": "clarification-rerun-20260603-r1-reminder-paraphrase-t01:allowed_effects:one_shot_reminder.create:0",
+                  "kind": "durable_effect",
+                  "effect_type": "one_shot_reminder.create",
+                  "operation_type": "one_shot_reminder",
+                  "operation_id": null,
+                  "committed_id": null,
+                  "tool_id": "create_one_shot_reminder",
+                  "status": "allowed",
+                  "reason_code": "local_parser",
+                  "source": "tool_skill",
+                  "payload_summary": {
+                    "preference_keys": [],
+                    "scheduled_for": "2026-06-03T13:28:00+00:00",
+                    "local_label": "mercredi 03 juin à 15:28",
+                    "reminder_instruction": "boire mon traitement"
+                  },
+                  "db_ref": null,
+                  "error_message": null,
+                  "surface_id": null,
+                  "owner": null,
+                  "ambiguity_kind": null,
+                  "selected_candidate_id": null
+                },
+                {
+                  "effect_id": "clarification-rerun-20260603-r1-reminder-paraphrase-t01:committed_effects:one_shot_reminder.create:0",
+                  "kind": "durable_effect",
+                  "effect_type": "one_shot_reminder.create",
+                  "operation_type": "one_shot_reminder",
+                  "operation_id": null,
+                  "committed_id": "baa7eb17-2e0a-42c5-b709-eb46449f96a3",
+                  "tool_id": "create_one_shot_reminder",
+                  "status": "committed",
+                  "reason_code": "success",
+                  "source": "executor",
+                  "payload_summary": {
+                    "preference_keys": [],
+                    "scheduled_for": "2026-06-03T13:28:00+00:00",
+                    "local_label": "mercredi 03 juin à 15:28",
+                    "reminder_instruction": "boire mon traitement"
+                  },
+                  "db_ref": {
+                    "table": "scheduled_checkins",
+                    "id": "baa7eb17-2e0a-42c5-b709-eb46449f96a3"
+                  },
+                  "error_message": null,
+                  "surface_id": null,
+                  "owner": null,
+                  "ambiguity_kind": null,
+                  "selected_candidate_id": null
+                }
+              ]
+            },
+            "response_owner": "tool_skill"
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "clarification-rerun-20260603-r1-reminder-paraphrase-t01",
+            "source_message_id": "24a646f1-98f7-416e-a829-4c86f6f95cd7",
+            "user_id": "8488e58d-fadf-4c48-8062-c6040b1f9188",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "detected": false,
+                  "weight": 3.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "detected": false,
+                  "weight": 2.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "detected": false,
+                  "weight": 2,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "detected": false,
+                  "weight": 1.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "detected": false,
+                  "weight": 0.7,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "detected": false,
+                  "weight": 1,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "previous_risk",
+                  "detected": false,
+                  "weight": 10,
+                  "contribution": 0,
+                  "evidence": null
+                }
+              ],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [
+              {
+                "effect_type": "create_one_shot_reminder",
+                "explicitness": "explicit",
+                "target_status": "identified",
+                "confidence_band": "high",
+                "payload_hint": {
+                  "raw_text": "Mets-moi un rappel dans 10 minutes pour boire mon traitement",
+                  "when_hint": "dans 10 minutes",
+                  "instruction_hint": "boire mon traitement"
+                }
+              }
+            ],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {
+              "entry": {},
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": "semantic_fallback_disabled"
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "action",
+                  "key": "current_plan_actions",
+                  "query_hint": "actions du plan pour identifier 'mon action'",
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first",
+                  "priority": "high",
+                  "entity_type": null
+                },
+                {
+                  "type": "domain_key",
+                  "key": "sante.medical",
+                  "query_hint": "traitement medical",
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "medium",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "active_handoff_action": null,
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "blocked_paths": [
+              {
+                "path": "tool_skills",
+                "reason_code": "target_ambiguous"
+              },
+              {
+                "path": "tool_skill_flow",
+                "reason_code": "central_arbitrator_one_shot_reminder_structured_effect"
+              }
+            ],
+            "direct_effects_to_run": [
+              "create_one_shot_reminder"
+            ],
+            "reason_code": "central_arbitrator_one_shot_reminder_structured_effect",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            },
+            "selected_handler": "create_one_shot_reminder"
+          },
+          "turn_agenda_summary": {
+            "task_count": 2,
+            "owners": [
+              "create_one_shot_reminder",
+              "normal_reply"
+            ],
+            "operation_types": [
+              "create_one_shot_reminder"
+            ],
+            "constraints": {},
+            "tasks": [
+              {
+                "task_id": "direct:create_one_shot_reminder:0",
+                "kind": "effect",
+                "owner": "create_one_shot_reminder",
+                "operation_type": "create_one_shot_reminder",
+                "intent": "create",
+                "source": "dispatcher",
+                "status": "pending",
+                "reason_code": null
+              },
+              {
+                "task_id": "reply:fallback",
+                "kind": "reply",
+                "owner": "normal_reply",
+                "operation_type": null,
+                "intent": "reply",
+                "source": "route_decision",
+                "status": "pending",
+                "reason_code": "central_arbitrator_one_shot_reminder_structured_effect"
+              }
+            ]
+          },
+          "tool_skill_run": {
+            "selected_handler": "create_one_shot_reminder",
+            "reason_code": "central_arbitrator_one_shot_reminder_structured_effect",
+            "status": "success",
+            "reason": "local_parser",
+            "requested_effects": [
+              {
+                "type": "create_one_shot_reminder",
+                "scheduled_for": "2026-06-03T13:28:00+00:00",
+                "local_label": "mercredi 03 juin à 15:28",
+                "reminder_instruction": "boire mon traitement",
+                "reason_code": "local_parser"
+              }
+            ],
+            "allowed_effects": [
+              {
+                "type": "create_one_shot_reminder",
+                "scheduled_for": "2026-06-03T13:28:00+00:00",
+                "local_label": "mercredi 03 juin à 15:28",
+                "reminder_instruction": "boire mon traitement",
+                "reason_code": "local_parser"
+              }
+            ],
+            "committed_effects": [
+              {
+                "type": "create_one_shot_reminder",
+                "id": "baa7eb17-2e0a-42c5-b709-eb46449f96a3",
+                "scheduled_for": "2026-06-03T13:28:00+00:00",
+                "local_label": "mercredi 03 juin à 15:28",
+                "reminder_instruction": "boire mon traitement"
+              }
+            ],
+            "blocked_effects": []
+          },
+          "effect_ledger": {
+            "turn_id": "clarification-rerun-20260603-r1-reminder-paraphrase-t01",
+            "counts": {
+              "requested": 2,
+              "allowed": 1,
+              "blocked": 0,
+              "committed": 1,
+              "failed": 0,
+              "proposed": 0,
+              "delivered": 0,
+              "cancelled": 0,
+              "superseded": 0,
+              "asked": 0,
+              "resolved": 0,
+              "topic_change": 0
+            },
+            "entries": [
+              {
+                "effect_id": "clarification-rerun-20260603-r1-reminder-paraphrase-t01:agenda:pending:direct:create_one_shot_reminder:0",
+                "kind": "durable_effect",
+                "effect_type": "one_shot_reminder.create",
+                "operation_type": "create_one_shot_reminder",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "create_one_shot_reminder",
+                "status": "requested",
+                "reason_code": null,
+                "source": "dispatcher",
+                "payload_summary": {
+                  "task_id": "direct:create_one_shot_reminder:0",
+                  "intent": "create",
+                  "source": "dispatcher",
+                  "requires_confirmation": false,
+                  "evidence": [
+                    "explicit",
+                    "high",
+                    "identified"
+                  ]
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": null,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              },
+              {
+                "effect_id": "clarification-rerun-20260603-r1-reminder-paraphrase-t01:requested_effects:one_shot_reminder.create:0",
+                "kind": "durable_effect",
+                "effect_type": "one_shot_reminder.create",
+                "operation_type": "one_shot_reminder",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "create_one_shot_reminder",
+                "status": "requested",
+                "reason_code": "local_parser",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "preference_keys": [],
+                  "scheduled_for": "2026-06-03T13:28:00+00:00",
+                  "local_label": "mercredi 03 juin à 15:28",
+                  "reminder_instruction": "boire mon traitement"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": null,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              },
+              {
+                "effect_id": "clarification-rerun-20260603-r1-reminder-paraphrase-t01:allowed_effects:one_shot_reminder.create:0",
+                "kind": "durable_effect",
+                "effect_type": "one_shot_reminder.create",
+                "operation_type": "one_shot_reminder",
+                "operation_id": null,
+                "committed_id": null,
+                "tool_id": "create_one_shot_reminder",
+                "status": "allowed",
+                "reason_code": "local_parser",
+                "source": "tool_skill",
+                "payload_summary": {
+                  "preference_keys": [],
+                  "scheduled_for": "2026-06-03T13:28:00+00:00",
+                  "local_label": "mercredi 03 juin à 15:28",
+                  "reminder_instruction": "boire mon traitement"
+                },
+                "db_ref": null,
+                "error_message": null,
+                "surface_id": null,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              },
+              {
+                "effect_id": "clarification-rerun-20260603-r1-reminder-paraphrase-t01:committed_effects:one_shot_reminder.create:0",
+                "kind": "durable_effect",
+                "effect_type": "one_shot_reminder.create",
+                "operation_type": "one_shot_reminder",
+                "operation_id": null,
+                "committed_id": "baa7eb17-2e0a-42c5-b709-eb46449f96a3",
+                "tool_id": "create_one_shot_reminder",
+                "status": "committed",
+                "reason_code": "success",
+                "source": "executor",
+                "payload_summary": {
+                  "preference_keys": [],
+                  "scheduled_for": "2026-06-03T13:28:00+00:00",
+                  "local_label": "mercredi 03 juin à 15:28",
+                  "reminder_instruction": "boire mon traitement"
+                },
+                "db_ref": {
+                  "table": "scheduled_checkins",
+                  "id": "baa7eb17-2e0a-42c5-b709-eb46449f96a3"
+                },
+                "error_message": null,
+                "surface_id": null,
+                "owner": null,
+                "ambiguity_kind": null,
+                "selected_candidate_id": null
+              }
+            ]
+          },
+          "response_owner": "tool_skill"
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "updated_at": "2026-06-03T14:34:26.449Z",
+  "cleanup": [
+    {
+      "table": "chat_messages",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "scheduled_checkins",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_chat_states",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_memories",
+      "status": 404,
+      "ok": false
+    },
+    {
+      "table": "user_topic_memories",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "memory_items",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "auth.users",
+      "status": 200,
+      "ok": true
+    }
+  ],
+  "cleaned_at": "2026-06-03T14:35:59.071Z"
+}

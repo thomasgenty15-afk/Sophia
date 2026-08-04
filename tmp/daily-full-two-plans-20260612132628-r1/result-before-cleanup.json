@@ -1,0 +1,25 @@
+{
+  "result": {
+    "runId": "daily-full-two-plans-20260612132628-r1",
+    "runDir": "/Users/ahmedamara/Dev/Sophia 2/tmp/daily-full-two-plans-20260612132628-r1",
+    "turns": [],
+    "errors": [
+      {
+        "message": "GET profiles 400 {\"code\":\"42703\",\"details\":null,\"hint\":null,\"message\":\"column profiles.user_id does not exist\"}",
+        "stack": "Error: GET profiles 400 {\"code\":\"42703\",\"details\":null,\"hint\":null,\"message\":\"column profiles.user_id does not exist\"}\n    at rest ([stdin]:19:19)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async get ([stdin]:23:41)\n    at async [stdin]:54:12"
+      }
+    ],
+    "cleanup": null,
+    "ok": false
+  },
+  "touched": {
+    "qaPhone": "+33698909634",
+    "planIds": [],
+    "itemIds": [],
+    "occurrenceIds": [],
+    "checkinId": null,
+    "pendingIds": [],
+    "entryIds": [],
+    "dedupWamids": []
+  }
+}

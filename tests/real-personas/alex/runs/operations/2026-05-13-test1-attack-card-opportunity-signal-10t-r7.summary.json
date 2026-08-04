@@ -1,0 +1,47 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-opportunity-signal-10t-r7-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Hier j'ai réussi le sas, mais j'ai attendu longtemps devant le carnet avant de commencer. Ce soir je veux éviter cette hésitation.",
+    "assistant": "Yes, bravo pour le sas d’hier ! 😄 Et ouais, l’hésitation au départ devant le carnet, c’est typiquement le “démarrage” qui coince plus que le reste.\n\nPour ce soir, le plus efficace c’est un mini sas de lancement ultra court avant d’ouvrir/chercher quoi que ce soit :\n1) 30 secondes pour te préparer (eau + posture + “je démarre, point”)\n2) tu ouvres le carnet et tu fais seulement la première micro-étape (zéro optimisation)\n3) tu continues même si c’est “pas parfait”\n\nOption simple : tu veux qu’on fasse une Carte d’attaque “Faire le sas de déchargement” spécialement pour éviter l’hésitation au démarrage ?\n\nConcrètement, je parle d'une Carte d'attaque pour \"Faire le sas de déchargement\", à préparer seulement si tu confirmes.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "track_progress_plan_item"
+    ],
+    "response_owner": "conversation_handler",
+    "selected_handler": "execution_breakdown",
+    "route_reason_code": "skill_entry_signal",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [
+        "Ce soir"
+      ],
+      "risk_band": "none",
+      "reason_codes": [
+        "immediacy_tonight"
+      ],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": true,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "track_progress_plan_item"
+      }
+    ],
+    "operation_flow_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  }
+]

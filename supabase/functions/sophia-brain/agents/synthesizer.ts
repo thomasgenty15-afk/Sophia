@@ -133,7 +133,7 @@ ${transcriptRecent}
   try {
     const raw = await generateWithGemini(`${stablePrompt}\n\n${semiStablePrompt}`, userPrompt, 0.15, true, [], "json", {
       requestId: meta?.requestId,
-      model: meta?.model ?? getGlobalAiModel("gemini-2.5-flash"),
+      model: meta?.model ?? getGlobalAiModel(),
       source: "sophia-brain:synthesizer",
       forceRealAi: meta?.forceRealAi,
       userId,

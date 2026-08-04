@@ -1,0 +1,11 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r126-direction-repair-retry-t01",
+    "user": "Je crois que le plan global part trop vers 'faire les exercices'. Je veux qu'il garde la même ambition, mais qu'il soit davantage orienté réparation concrète après tension et présence fiable au quotidien, sans rajouter de nouvelle étape.",
+    "status": 502,
+    "body": {
+      "message": "An invalid response was received from the upstream server"
+    }
+  }
+]

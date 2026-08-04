@@ -1,0 +1,469 @@
+{
+  "run_id": "dispatcher-conversation-ambiguity-20260521-defense-r5",
+  "created_at": "2026-05-21T09:34:34.562Z",
+  "base_url": "http://127.0.0.1:54321",
+  "qa_user": {
+    "email": "qa-dispatcher-conversation-ambiguity-20260521-defense-r5-1779356063651@example.com",
+    "user_id": "c1a9ae2b-4b8f-4293-88e6-5fa3774d2901"
+  },
+  "auth_check": {
+    "status": 200,
+    "ok": true
+  },
+  "force_full_ai": true,
+  "results": [
+    {
+      "id": "defense_explicit_stable",
+      "kind": "checks",
+      "trap": null,
+      "group": "defense_vs_emotion",
+      "scope": "dispatcher-conversation-ambiguity-20260521-defense-r5-defense_explicit_stable",
+      "seed_result": null,
+      "pre_results": [],
+      "sent_at": "2026-05-21T09:34:23.919Z",
+      "user_message": "Prépare une carte de défense pour ce soir quand je risque de craquer sur Instagram.",
+      "expected": {
+        "intentIncludes": [
+          "prepare_defense_card"
+        ],
+        "handlerOneOf": [
+          "prepare_defense_card"
+        ]
+      },
+      "observed": {
+        "intent_operations": [
+          "prepare_defense_card"
+        ],
+        "intent_explicitness": [
+          "explicit"
+        ],
+        "opportunity_type": "none",
+        "opportunity_operation": null,
+        "opportunity_should_offer": false,
+        "opportunity_must_not_execute": true,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "blocked_paths": [],
+        "blocked_reason_codes": [],
+        "skill_entry_ids": [],
+        "skill_lifecycle_ids": [],
+        "skill_exit_ids": [],
+        "confirmation_kind": null,
+        "safety_risk_band": "low",
+        "needs_research": false,
+        "needs_research_query": null,
+        "response_owner": "tool_skill",
+        "selected_handler": "prepare_defense_card",
+        "route_reason": "tool_skill_intent_start",
+        "executed_tools": [],
+        "content": "D'accord, on prépare ça pour ce soir. Qu'est-ce qui déclenche l'envie d'aller sur Instagram d'habitude, et qu'est-ce qui t'aiderait à ne pas ouvrir l'appli ? 🙂"
+      },
+      "verdict": "pass",
+      "failures": [],
+      "raw": {
+        "http_status": 200,
+        "ok": true,
+        "response": {
+          "ok": true,
+          "request_id": "347b311c-6c19-461b-918c-4080adc1051d",
+          "user_id": "c1a9ae2b-4b8f-4293-88e6-5fa3774d2901",
+          "channel": "web",
+          "scope": "dispatcher-conversation-ambiguity-20260521-defense-r5-defense_explicit_stable",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "D'accord, on prépare ça pour ce soir. Qu'est-ce qui déclenche l'envie d'aller sur Instagram d'habitude, et qu'est-ce qui t'aiderait à ne pas ouvrir l'appli ? 🙂",
+            "additional_contents": [],
+            "mode": "companion",
+            "tool_execution": "blocked",
+            "executed_tools": []
+          },
+          "conversation_turn_trace": {
+            "turn_id": "347b311c-6c19-461b-918c-4080adc1051d",
+            "user_id": "c1a9ae2b-4b8f-4293-88e6-5fa3774d2901",
+            "source_message_id": "2621c196-d5ad-4060-bdd8-b5f1e3c13fb0",
+            "ts": "2026-05-21T09:34:34.473+00:00",
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [
+                "ce soir"
+              ],
+              "risk_band": "none",
+              "reason_codes": [
+                "immediacy_tonight"
+              ],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": true,
+                "dispatcher_llm": false
+              }
+            },
+            "dispatcher_run": {
+              "tokens_in": 8473,
+              "latency_ms": 4367,
+              "model_used": "gemini-3-flash-preview",
+              "tokens_out": 661,
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "addictions.ecrans",
+                    "type": "domain_key",
+                    "priority": "medium",
+                    "query_hint": "Instagram usage patterns",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+            },
+            "turn_frame": {
+              "safety": {
+                "evidence": [],
+                "risk_band": "low",
+                "reason_codes": []
+              },
+              "channel": "web",
+              "turn_id": "347b311c-6c19-461b-918c-4080adc1051d",
+              "user_id": "c1a9ae2b-4b8f-4293-88e6-5fa3774d2901",
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "addictions.ecrans",
+                    "type": "domain_key",
+                    "priority": "medium",
+                    "query_hint": "Instagram usage patterns",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "skill_signals": {
+                "exit": {},
+                "entry": {},
+                "lifecycle": {}
+              },
+              "direct_effects": [],
+              "needs_research": {
+                "query": null,
+                "value": false,
+                "reason": null,
+                "detected": false,
+                "confidence": 0,
+                "domain_hint": null
+              },
+              "level_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "action_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "conversation_risk": {
+                "score": 0,
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "weight": 3.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "weight": 2.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "weight": 2,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "weight": 1.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "weight": 0.7,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "weight": 1,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "weight": 10,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  }
+                ],
+                "threshold": 8,
+                "reason_codes": [],
+                "context_summary": null,
+                "previous_scores": [],
+                "flow_exit_context": null,
+                "should_exit_flows": false
+              },
+              "source_message_id": "2621c196-d5ad-4060-bdd8-b5f1e3c13fb0",
+              "tool_skill_intents": [
+                {
+                  "ambiguity": "none",
+                  "target_hint": "craquer sur Instagram ce soir",
+                  "user_intent": "create",
+                  "explicitness": "explicit",
+                  "operation_type": "prepare_defense_card",
+                  "confidence_band": "high",
+                  "operation_input": {
+                    "risk_moment": {
+                      "value": "ce soir",
+                      "status": "identified",
+                      "evidence": [
+                        "ce soir"
+                      ],
+                      "confidence": "high"
+                    },
+                    "risk_trigger": {
+                      "value": "Instagram",
+                      "status": "identified",
+                      "evidence": [
+                        "craquer sur Instagram"
+                      ],
+                      "confidence": "high"
+                    }
+                  }
+                }
+              ],
+              "confirmation_response": null,
+              "tool_skill_opportunity": {
+                "type": "none",
+                "surface_id": null,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "offer_timing": "never",
+                "should_offer": false,
+                "target_status": "none",
+                "operation_type": null,
+                "confidence_band": "low",
+                "must_not_execute": true,
+                "suggested_question_intent": null
+              }
+            },
+            "route_decision": {
+              "reason_code": "tool_skill_intent_start",
+              "blocked_paths": [],
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "memory_use_kind": "none",
+              "selected_handler": "prepare_defense_card",
+              "direct_effects_to_run": [],
+              "memory_used_for_route": false,
+              "active_flow_arbitration": {
+                "decision": "none",
+                "reason_code": "no_active_flow",
+                "active_owner": "none",
+                "resume_policy": "none",
+                "selected_owner": "none"
+              },
+              "memory_item_ids_used_for_route": []
+            },
+            "direct_effects": [],
+            "skill_run": null,
+            "tool_skill_run": {
+              "status": "ask_question",
+              "slot_state": {
+                "slot": "risk_situation",
+                "needed": true,
+                "reason": "structured_ai_missing_trigger",
+                "status": "missing",
+                "question": "D'accord, on prépare ça pour ce soir. Qu'est-ce qui déclenche l'envie d'aller sur Instagram d'habitude, et qu'est-ce qui t'aiderait à ne pas ouvrir l'appli ?",
+                "known_slots": {
+                  "attachment": {
+                    "kind": "personal_action",
+                    "title": "Instagram",
+                    "plan_item_id": null
+                  },
+                  "intake_state": {
+                    "trigger": {
+                      "type": null,
+                      "status": "missing",
+                      "evidence": [],
+                      "confidence": 0
+                    },
+                    "skill_id": "prepare_defense_card",
+                    "tool_fit": {
+                      "reason": "L'utilisateur demande explicitement une carte de défense pour un risque de craquage.",
+                      "status": "defense",
+                      "evidence": [
+                        "Prépare une carte de défense"
+                      ],
+                      "confidence": "high"
+                    },
+                    "attachment": {
+                      "kind": "personal_action",
+                      "title": "Instagram",
+                      "status": "identified",
+                      "evidence": [
+                        "craquer sur Instagram"
+                      ],
+                      "confidence": "high",
+                      "plan_item_id": null
+                    },
+                    "confidence": "high",
+                    "constraints": [],
+                    "current_step": "risk_intake",
+                    "defense_goal": {
+                      "value": "interrupt_impulse",
+                      "status": "identified",
+                      "evidence": [
+                        "risque de craquer"
+                      ],
+                      "confidence": "medium"
+                    },
+                    "missing_slots": [
+                      "trigger"
+                    ],
+                    "risk_situation": {
+                      "label": "Instagram ce soir",
+                      "status": "identified",
+                      "evidence": [
+                        "ce soir",
+                        "craquer sur Instagram"
+                      ],
+                      "confidence": "high",
+                      "description": "Risque de craquer sur Instagram ce soir",
+                      "timing_hint": "ce soir",
+                      "context_hint": "Instagram"
+                    },
+                    "defense_response_hint": {
+                      "value": null,
+                      "status": "missing",
+                      "evidence": [],
+                      "confidence": "low",
+                      "strategy_hint": null
+                    },
+                    "generated_user_message": "D'accord, on prépare ça pour ce soir. Qu'est-ce qui déclenche l'envie d'aller sur Instagram d'habitude, et qu'est-ce qui t'aiderait à ne pas ouvrir l'appli ?"
+                  },
+                  "risk_situation": {
+                    "label": "Instagram ce soir",
+                    "description": "Risque de craquer sur Instagram ce soir",
+                    "timing_hint": "ce soir",
+                    "context_hint": "Instagram"
+                  }
+                }
+              },
+              "reason_code": "tool_skill_intent_start",
+              "missing_slots": [
+                "trigger"
+              ],
+              "selected_handler": "prepare_defense_card"
+            },
+            "recommendation_tool_run": null,
+            "confirmation_token_outcomes": [],
+            "memory_write_candidates_emitted": 0,
+            "response_owner": "tool_skill",
+            "total_latency_ms": 10037,
+            "created_at": "2026-05-21T09:34:34.475563+00:00"
+          },
+          "trace_error": null
+        }
+      }
+    }
+  ],
+  "summary": {
+    "total": 1,
+    "passed": 1,
+    "failed": 0
+  },
+  "cleanup": [
+    {
+      "table": "chat_messages",
+      "status": 204,
+      "ok": true,
+      "body": null
+    },
+    {
+      "table": "scheduled_checkins",
+      "status": 204,
+      "ok": true,
+      "body": null
+    },
+    {
+      "table": "user_chat_states",
+      "status": 204,
+      "ok": true,
+      "body": null
+    },
+    {
+      "table": "user_memories",
+      "status": 404,
+      "ok": false,
+      "body": {
+        "code": "PGRST205",
+        "details": null,
+        "hint": "Perhaps you meant the table 'public.user_metrics'",
+        "message": "Could not find the table 'public.user_memories' in the schema cache"
+      }
+    },
+    {
+      "table": "user_topic_memories",
+      "status": 204,
+      "ok": true,
+      "body": null
+    },
+    {
+      "table": "memory_items",
+      "status": 204,
+      "ok": true,
+      "body": null
+    },
+    {
+      "table": "auth.users",
+      "status": 200,
+      "ok": true,
+      "body": {}
+    }
+  ]
+}

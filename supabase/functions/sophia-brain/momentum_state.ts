@@ -1,16 +1,22 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 
 import type { DispatcherSignals } from "./router/dispatcher.ts";
+import type {
+  ConfidenceLevel,
+  MomentumPosture,
+  MomentumStateLabel,
+  MomentumStateV2,
+} from "../_shared/v2-types.ts";
+import {
+  getActiveLoad,
+  getActiveTransformationRuntime,
+  getPlanItemRuntime,
+  type PlanItemRuntimeRow,
+} from "../_shared/v2-runtime.ts";
 
-export const MOMENTUM_STATE_KEY = "__momentum_state_v1";
+export type { MomentumStateLabel };
 
-export type MomentumStateLabel =
-  | "momentum"
-  | "friction_legere"
-  | "evitement"
-  | "pause_consentie"
-  | "soutien_emotionnel"
-  | "reactivation";
+const DISABLED_V1_MOMENTUM_KEY = "__disabled_v1_momentum_state";
 
 export type EngagementLevel = "high" | "medium" | "low";
 export type ProgressionLevel = "up" | "flat" | "down" | "unknown";
@@ -198,68 +204,6 @@ const SEVENTY_TWO_HOURS_MS = 72 * 60 * 60 * 1000;
 const MAX_BLOCKER_ACTIONS = 8;
 const MAX_BLOCKER_HISTORY = 10;
 
-const MINIMAL_REPLY_PATTERNS = [
-  /^(ok|okay|oui|non|merci|top|super|parfait|d'accord|dac|ça marche|ca marche|c'est bon|cool)$/i,
-  /^(👍|🙏|❤️|ok merci|merci beaucoup)$/i,
-];
-
-const ACCEPT_PATTERNS = [
-  /\boui\b/i,
-  /\bvas[- ]?y\b/i,
-  /\bgo\b/i,
-  /\bc[' ]est bon\b/i,
-  /\bon peut reprendre\b/i,
-  /\bon reprend\b/i,
-];
-
-const CLOSED_CONSENT_PATTERNS = [
-  /\bstop\b/i,
-  /\barr[eê]te\b/i,
-  /\bpas maintenant\b/i,
-  /\blaisse[- ]?moi\b/i,
-  /\bon verra plus tard\b/i,
-  /\bpas ce soir\b/i,
-  /\bpas aujourd[' ]hui\b/i,
-  /\bon reprend plus tard\b/i,
-  /\bj'ai besoin d'une pause\b/i,
-];
-
-const FRAGILE_CONSENT_PATTERNS = [
-  /\bplus tard\b/i,
-  /\bbof\b/i,
-  /\bpas trop envie\b/i,
-  /\bon change de sujet\b/i,
-  /\bpas le moment\b/i,
-  /\bon verra\b/i,
-];
-
-const HIGH_EMOTIONAL_PATTERNS = [
-  /\bj[' ]?en peux plus\b/i,
-  /\bje craque\b/i,
-  /\bje vais craquer\b/i,
-  /\bau bout\b/i,
-  /\bsubmerg[eé]\b/i,
-  /\bangoisse\b/i,
-  /\bpanique\b/i,
-  /\bburn ?out\b/i,
-  /\btr[eè]s dur\b/i,
-  /\btrop dur\b/i,
-  /\bje n[' ]arrive plus\b/i,
-  /\bje suis [kq]o\b/i,
-];
-
-const MEDIUM_EMOTIONAL_PATTERNS = [
-  /\bfatigu[eé]\b/i,
-  /\bfatigue\b/i,
-  /\bstress\b/i,
-  /\bsurcharge\b/i,
-  /\bd[eé]bord[eé]\b/i,
-  /\bcompliqu[eé]\b/i,
-  /\bpas l[' ]?[eé]nergie\b/i,
-  /\bcharg[eé]\b/i,
-  /\bcrev[eé]\b/i,
-];
-
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
@@ -295,9 +239,21 @@ function pruneTimedArray<T extends { at: string }>(
 function firstNumber(raw: unknown): number | null {
   const text = String(raw ?? "").trim().replace(",", ".");
   if (!text) return null;
-  const match = text.match(/-?\d+(?:\.\d+)?/);
-  if (!match) return null;
-  const n = Number(match[0]);
+  const chars = [...text];
+  let buffer = "";
+  let started = false;
+  for (const char of chars) {
+    const numeric = (char >= "0" && char <= "9") || char === "." ||
+      (char === "-" && !started);
+    if (numeric) {
+      buffer += char;
+      started = true;
+      continue;
+    }
+    if (started) break;
+  }
+  if (!buffer || buffer === "-" || buffer === ".") return null;
+  const n = Number(buffer);
   return Number.isFinite(n) ? n : null;
 }
 
@@ -323,47 +279,26 @@ function shortExcerpt(input: unknown, max = 180): string | undefined {
   return text.slice(0, max);
 }
 
-function classifyBlockerCategory(input: unknown): MomentumBlockerCategory | null {
-  const text = normalizeText(input);
-  if (!text) return null;
-  if (
-    /pas le temps|manque de temps|trop de choses|emploi du temps|trop charge|pas eu le temps/.test(
-      text,
-    )
-  ) return "time";
-  if (
-    /fatigu|epuis|creve|pas l energie|trop ko|plus d energie/.test(text)
-  ) return "energy";
-  if (/oubli|j oublie|oublie/.test(text)) return "forgetfulness";
-  if (/pas clair|flou|je sais pas quoi|je ne sais pas quoi|pas compris|confus/.test(text)) {
-    return "clarity";
-  }
-  if (/trop gros|trop long|trop ambitieux|trop dur|trop lourd|trop grand/.test(text)) {
-    return "size";
-  }
-  if (/motivation|pas envie|flemme|envie zero|pas motive/.test(text)) {
-    return "motivation";
-  }
-  if (/stress|angoiss|peur|anxiet|pression|submerge|panique/.test(text)) {
-    return "emotion";
-  }
-  if (/boulot|travail|enfants|famille|imprevu|deplacement|contexte/.test(text)) {
-    return "context";
-  }
-  if (
-    /parce que|car |bloqu|galer|coince|difficile|dur|compliqu/.test(text)
-  ) return "other";
+function classifyBlockerCategory(
+  input: unknown,
+): MomentumBlockerCategory | null {
+  void input;
   return null;
 }
 
-function blockerStageFromRecentHistory(history: MomentumBlockerObservation[]): MomentumBlockerStage {
+function blockerStageFromRecentHistory(
+  history: MomentumBlockerObservation[],
+): MomentumBlockerStage {
   const recent = history.slice(-MAX_BLOCKER_HISTORY);
   if (recent.length >= 3) return "chronic";
   if (recent.length >= 2) return "recurrent";
   return "new";
 }
 
-function blockerStatusFromLastSeen(lastSeenMs: number, nowMs: number): MomentumBlockerStatus {
+function blockerStatusFromLastSeen(
+  lastSeenMs: number,
+  nowMs: number,
+): MomentumBlockerStatus {
   const gap = nowMs - lastSeenMs;
   if (!Number.isFinite(gap) || gap <= SEVEN_DAYS_MS) return "active";
   if (gap <= TWENTY_ONE_DAYS_MS) return "cooling";
@@ -377,24 +312,24 @@ function refreshBlockerMemory(
   const nowMs = parseIsoMs(nowIso);
   const refreshed: MomentumActionBlockerMemory[] = [];
   for (const item of (actions ?? [])) {
-      const history = (item.history ?? [])
-        .filter((obs) => nowMs - parseIsoMs(obs.at) <= TWENTY_ONE_DAYS_MS)
-        .slice(-MAX_BLOCKER_HISTORY);
-      const last = history[history.length - 1];
-      const first = history[0];
-      if (!last || !first) continue;
-      const lastSeenMs = parseIsoMs(last.at);
-      refreshed.push({
-        ...item,
-        current_category: last.category,
-        first_seen_at: first.at,
-        last_seen_at: last.at,
-        mention_count_21d: history.length,
-        status: blockerStatusFromLastSeen(lastSeenMs, nowMs),
-        stage: blockerStageFromRecentHistory(history),
-        last_reason_excerpt: last.reason_excerpt ?? item.last_reason_excerpt,
-        history,
-      });
+    const history = (item.history ?? [])
+      .filter((obs) => nowMs - parseIsoMs(obs.at) <= TWENTY_ONE_DAYS_MS)
+      .slice(-MAX_BLOCKER_HISTORY);
+    const last = history[history.length - 1];
+    const first = history[0];
+    if (!last || !first) continue;
+    const lastSeenMs = parseIsoMs(last.at);
+    refreshed.push({
+      ...item,
+      current_category: last.category,
+      first_seen_at: first.at,
+      last_seen_at: last.at,
+      mention_count_21d: history.length,
+      status: blockerStatusFromLastSeen(lastSeenMs, nowMs),
+      stage: blockerStageFromRecentHistory(history),
+      last_reason_excerpt: last.reason_excerpt ?? item.last_reason_excerpt,
+      history,
+    });
   }
   return refreshed
     .sort((a, b) => parseIsoMs(b.last_seen_at) - parseIsoMs(a.last_seen_at))
@@ -419,8 +354,11 @@ function mergeBlockerObservation(args: {
       current_category: args.observation.category,
       last_seen_at: args.observation.at,
       mention_count_total: current.mention_count_total + 1,
-      last_reason_excerpt: args.observation.reason_excerpt ?? current.last_reason_excerpt,
-      history: [...current.history, args.observation].slice(-MAX_BLOCKER_HISTORY),
+      last_reason_excerpt: args.observation.reason_excerpt ??
+        current.last_reason_excerpt,
+      history: [...current.history, args.observation].slice(
+        -MAX_BLOCKER_HISTORY,
+      ),
     };
   } else {
     next.push({
@@ -446,7 +384,8 @@ function buildBlockerMetrics(
   const active = actions.filter((item) => item.status === "active");
   return {
     active_blockers_count: active.length,
-    chronic_blockers_count: active.filter((item) => item.stage === "chronic").length,
+    chronic_blockers_count:
+      active.filter((item) => item.stage === "chronic").length,
   };
 }
 
@@ -458,22 +397,22 @@ function extractRouterBlockerObservation(args: {
   const message = String(args.userMessage ?? "").trim();
   if (!message) return null;
   const actionTitle = String(
-    args.dispatcherSignals.track_progress_action?.target_hint ??
-      args.dispatcherSignals.action_discussion?.action_hint ??
+    args.dispatcherSignals.track_progress_plan_item?.target_title ??
+      args.dispatcherSignals.plan_item_discussion?.item_hint ??
       "",
   ).trim().slice(0, 120);
   if (!actionTitle) return null;
 
-  const isBreakdown = Boolean(args.dispatcherSignals.breakdown_action?.detected);
-  const statusHint = String(args.dispatcherSignals.track_progress_action?.status_hint ?? "").trim();
+  const isBreakdown = false;
+  const statusHint = String(
+    args.dispatcherSignals.track_progress_plan_item?.status_hint ??
+      "",
+  ).trim();
   const category = classifyBlockerCategory(message);
-  const looksLikeReason = Boolean(
-    category ||
-      /parce que|car |bloqu|galer|coince|pas reussi|pas réussi|j arrive pas|j'arrive pas/.test(
-        normalizeText(message),
-      ),
-  );
-  if (!isBreakdown && statusHint !== "missed" && statusHint !== "partial") return null;
+  const looksLikeReason = Boolean(category);
+  if (!isBreakdown && statusHint !== "missed" && statusHint !== "partial") {
+    return null;
+  }
   if (!looksLikeReason && !isBreakdown) return null;
 
   return {
@@ -502,7 +441,9 @@ function mergeWatcherBlockers(args: {
     const actionTitle = String(entry?.action_title ?? "").trim().slice(0, 120);
     const note = String(entry?.note ?? "").trim();
     const status = String(entry?.status ?? "").trim();
-    if (!actionTitle || !note || (status !== "missed" && status !== "partial")) continue;
+    if (
+      !actionTitle || !note || (status !== "missed" && status !== "partial")
+    ) continue;
     const category = classifyBlockerCategory(note) ?? "other";
     actions = mergeBlockerObservation({
       actions,
@@ -523,22 +464,41 @@ function mergeWatcherBlockers(args: {
   };
 }
 
-export function getTopMomentumBlocker(
+function getDisabledV1TopMomentumBlocker(
   momentum: MomentumStateMemory,
 ): MomentumActionBlockerMemory | null {
-  const actions = refreshBlockerMemory(momentum.blocker_memory.actions ?? [], momentum.updated_at ?? nowIsoFrom());
+  const actions = refreshBlockerMemory(
+    momentum.blocker_memory.actions ?? [],
+    momentum.updated_at ?? nowIsoFrom(),
+  );
   return actions.find((item) => item.status === "active") ?? actions[0] ?? null;
 }
 
 export function summarizeMomentumBlockersForPrompt(
-  momentum: MomentumStateMemory,
+  momentum: MomentumStateMemory | StoredMomentumV2 | MomentumStateV2,
   maxItems = 2,
 ): string[] {
-  return refreshBlockerMemory(momentum.blocker_memory.actions ?? [], momentum.updated_at ?? nowIsoFrom())
+  if ("blockers" in momentum) {
+    const blockerKind = momentum.blockers.blocker_kind;
+    const repeatScore = momentum.blockers.blocker_repeat_score ?? 0;
+    const topBlocker = momentum.assessment.top_blocker ?? null;
+    if (!blockerKind && !topBlocker) return [];
+    return [
+      `blocage=${blockerKind ?? "global"} | intensite=${repeatScore} | repere=${
+        topBlocker ?? "aucun"
+      }`,
+    ].slice(0, Math.max(1, maxItems));
+  }
+  return refreshBlockerMemory(
+    momentum.blocker_memory.actions ?? [],
+    momentum.updated_at ?? nowIsoFrom(),
+  )
     .filter((item) => item.status !== "resolved")
     .slice(0, Math.max(1, maxItems))
     .map((item) => {
-      const excerpt = item.last_reason_excerpt ? ` | raison: ${item.last_reason_excerpt}` : "";
+      const excerpt = item.last_reason_excerpt
+        ? ` | raison: ${item.last_reason_excerpt}`
+        : "";
       return `${item.action_title} | categorie=${item.current_category} | stage=${item.stage} | statut=${item.status} | mentions_21d=${item.mention_count_21d}${excerpt}`;
     });
 }
@@ -566,8 +526,8 @@ function defaultMomentumState(): MomentumStateMemory {
   };
 }
 
-export function readMomentumState(tempMemory: any): MomentumStateMemory {
-  const raw = tempMemory?.[MOMENTUM_STATE_KEY];
+function readDisabledV1MomentumState(tempMemory: any): MomentumStateMemory {
+  const raw = tempMemory?.[DISABLED_V1_MOMENTUM_KEY];
   const base = defaultMomentumState();
   if (!raw || typeof raw !== "object") return base;
 
@@ -576,18 +536,19 @@ export function readMomentumState(tempMemory: any): MomentumStateMemory {
   const emotionalRaw = String(raw?.dimensions?.emotional_load?.level ?? "");
   const consentRaw = String(raw?.dimensions?.consent?.level ?? "");
 
-  const engagement = engagementRaw === "high" || engagementRaw === "medium" || engagementRaw === "low"
+  const engagement = engagementRaw === "high" || engagementRaw === "medium" ||
+      engagementRaw === "low"
     ? engagementRaw as EngagementLevel
     : base.dimensions.engagement.level;
-  const progression =
-    progressionRaw === "up" || progressionRaw === "flat" || progressionRaw === "down" ||
+  const progression = progressionRaw === "up" || progressionRaw === "flat" ||
+      progressionRaw === "down" ||
       progressionRaw === "unknown"
-      ? progressionRaw as ProgressionLevel
-      : base.dimensions.progression.level;
-  const emotionalLoad =
-    emotionalRaw === "high" || emotionalRaw === "medium" || emotionalRaw === "low"
-      ? emotionalRaw as EmotionalLoadLevel
-      : base.dimensions.emotional_load.level;
+    ? progressionRaw as ProgressionLevel
+    : base.dimensions.progression.level;
+  const emotionalLoad = emotionalRaw === "high" || emotionalRaw === "medium" ||
+      emotionalRaw === "low"
+    ? emotionalRaw as EmotionalLoadLevel
+    : base.dimensions.emotional_load.level;
   const consent =
     consentRaw === "open" || consentRaw === "fragile" || consentRaw === "closed"
       ? consentRaw as ConsentLevel
@@ -595,9 +556,15 @@ export function readMomentumState(tempMemory: any): MomentumStateMemory {
 
   return {
     version: 1,
-    updated_at: typeof raw?.updated_at === "string" ? raw.updated_at : undefined,
-    current_state: String(raw?.current_state ?? "").trim() as MomentumStateLabel | undefined,
-    state_reason: typeof raw?.state_reason === "string" ? raw.state_reason.slice(0, 200) : undefined,
+    updated_at: typeof raw?.updated_at === "string"
+      ? raw.updated_at
+      : undefined,
+    current_state: String(raw?.current_state ?? "").trim() as
+      | MomentumStateLabel
+      | undefined,
+    state_reason: typeof raw?.state_reason === "string"
+      ? raw.state_reason.slice(0, 200)
+      : undefined,
     dimensions: {
       engagement: {
         level: engagement,
@@ -607,7 +574,9 @@ export function readMomentumState(tempMemory: any): MomentumStateMemory {
         updated_at: typeof raw?.dimensions?.engagement?.updated_at === "string"
           ? raw.dimensions.engagement.updated_at
           : undefined,
-        source: raw?.dimensions?.engagement?.source === "watcher" ? "watcher" : "router",
+        source: raw?.dimensions?.engagement?.source === "watcher"
+          ? "watcher"
+          : "router",
       },
       progression: {
         level: progression,
@@ -617,17 +586,22 @@ export function readMomentumState(tempMemory: any): MomentumStateMemory {
         updated_at: typeof raw?.dimensions?.progression?.updated_at === "string"
           ? raw.dimensions.progression.updated_at
           : undefined,
-        source: raw?.dimensions?.progression?.source === "watcher" ? "watcher" : "router",
+        source: raw?.dimensions?.progression?.source === "watcher"
+          ? "watcher"
+          : "router",
       },
       emotional_load: {
         level: emotionalLoad,
         reason: typeof raw?.dimensions?.emotional_load?.reason === "string"
           ? raw.dimensions.emotional_load.reason.slice(0, 200)
           : undefined,
-        updated_at: typeof raw?.dimensions?.emotional_load?.updated_at === "string"
-          ? raw.dimensions.emotional_load.updated_at
-          : undefined,
-        source: raw?.dimensions?.emotional_load?.source === "watcher" ? "watcher" : "router",
+        updated_at:
+          typeof raw?.dimensions?.emotional_load?.updated_at === "string"
+            ? raw.dimensions.emotional_load.updated_at
+            : undefined,
+        source: raw?.dimensions?.emotional_load?.source === "watcher"
+          ? "watcher"
+          : "router",
       },
       consent: {
         level: consent,
@@ -637,7 +611,9 @@ export function readMomentumState(tempMemory: any): MomentumStateMemory {
         updated_at: typeof raw?.dimensions?.consent?.updated_at === "string"
           ? raw.dimensions.consent.updated_at
           : undefined,
-        source: raw?.dimensions?.consent?.source === "watcher" ? "watcher" : "router",
+        source: raw?.dimensions?.consent?.source === "watcher"
+          ? "watcher"
+          : "router",
       },
     },
     metrics: {
@@ -650,16 +626,30 @@ export function readMomentumState(tempMemory: any): MomentumStateMemory {
           raw?.metrics?.last_user_turn_quality === "minimal"
           ? raw.metrics.last_user_turn_quality
           : undefined,
-      recent_user_messages_7d: Number.isFinite(Number(raw?.metrics?.recent_user_messages_7d))
-        ? clamp(Math.floor(Number(raw.metrics.recent_user_messages_7d)), 0, 999)
-        : undefined,
-      recent_substantive_user_messages_7d:
-        Number.isFinite(Number(raw?.metrics?.recent_substantive_user_messages_7d))
-          ? clamp(Math.floor(Number(raw.metrics.recent_substantive_user_messages_7d)), 0, 999)
+      recent_user_messages_7d:
+        Number.isFinite(Number(raw?.metrics?.recent_user_messages_7d))
+          ? clamp(
+            Math.floor(Number(raw.metrics.recent_user_messages_7d)),
+            0,
+            999,
+          )
           : undefined,
+      recent_substantive_user_messages_7d: Number.isFinite(
+          Number(raw?.metrics?.recent_substantive_user_messages_7d),
+        )
+        ? clamp(
+          Math.floor(Number(raw.metrics.recent_substantive_user_messages_7d)),
+          0,
+          999,
+        )
+        : undefined,
       recent_assistant_messages_7d:
         Number.isFinite(Number(raw?.metrics?.recent_assistant_messages_7d))
-          ? clamp(Math.floor(Number(raw.metrics.recent_assistant_messages_7d)), 0, 999)
+          ? clamp(
+            Math.floor(Number(raw.metrics.recent_assistant_messages_7d)),
+            0,
+            999,
+          )
           : undefined,
       days_since_last_user_message:
         raw?.metrics?.days_since_last_user_message === null
@@ -667,40 +657,57 @@ export function readMomentumState(tempMemory: any): MomentumStateMemory {
           : Number.isFinite(Number(raw?.metrics?.days_since_last_user_message))
           ? round2(Number(raw.metrics.days_since_last_user_message))
           : undefined,
-      active_actions_count: Number.isFinite(Number(raw?.metrics?.active_actions_count))
-        ? clamp(Math.floor(Number(raw.metrics.active_actions_count)), 0, 999)
-        : undefined,
-      completed_actions_7d: Number.isFinite(Number(raw?.metrics?.completed_actions_7d))
-        ? clamp(Math.floor(Number(raw.metrics.completed_actions_7d)), 0, 999)
-        : undefined,
-      missed_actions_7d: Number.isFinite(Number(raw?.metrics?.missed_actions_7d))
-        ? clamp(Math.floor(Number(raw.metrics.missed_actions_7d)), 0, 999)
-        : undefined,
-      partial_actions_7d: Number.isFinite(Number(raw?.metrics?.partial_actions_7d))
-        ? clamp(Math.floor(Number(raw.metrics.partial_actions_7d)), 0, 999)
-        : undefined,
-      active_vitals_count: Number.isFinite(Number(raw?.metrics?.active_vitals_count))
-        ? clamp(Math.floor(Number(raw.metrics.active_vitals_count)), 0, 999)
-        : undefined,
-      improved_vitals_14d: Number.isFinite(Number(raw?.metrics?.improved_vitals_14d))
-        ? clamp(Math.floor(Number(raw.metrics.improved_vitals_14d)), 0, 999)
-        : undefined,
-      worsened_vitals_14d: Number.isFinite(Number(raw?.metrics?.worsened_vitals_14d))
-        ? clamp(Math.floor(Number(raw.metrics.worsened_vitals_14d)), 0, 999)
-        : undefined,
-      emotional_high_72h: Number.isFinite(Number(raw?.metrics?.emotional_high_72h))
-        ? clamp(Math.floor(Number(raw.metrics.emotional_high_72h)), 0, 999)
-        : undefined,
-      emotional_medium_72h: Number.isFinite(Number(raw?.metrics?.emotional_medium_72h))
-        ? clamp(Math.floor(Number(raw.metrics.emotional_medium_72h)), 0, 999)
-        : undefined,
+      active_actions_count:
+        Number.isFinite(Number(raw?.metrics?.active_actions_count))
+          ? clamp(Math.floor(Number(raw.metrics.active_actions_count)), 0, 999)
+          : undefined,
+      completed_actions_7d:
+        Number.isFinite(Number(raw?.metrics?.completed_actions_7d))
+          ? clamp(Math.floor(Number(raw.metrics.completed_actions_7d)), 0, 999)
+          : undefined,
+      missed_actions_7d:
+        Number.isFinite(Number(raw?.metrics?.missed_actions_7d))
+          ? clamp(Math.floor(Number(raw.metrics.missed_actions_7d)), 0, 999)
+          : undefined,
+      partial_actions_7d:
+        Number.isFinite(Number(raw?.metrics?.partial_actions_7d))
+          ? clamp(Math.floor(Number(raw.metrics.partial_actions_7d)), 0, 999)
+          : undefined,
+      active_vitals_count:
+        Number.isFinite(Number(raw?.metrics?.active_vitals_count))
+          ? clamp(Math.floor(Number(raw.metrics.active_vitals_count)), 0, 999)
+          : undefined,
+      improved_vitals_14d:
+        Number.isFinite(Number(raw?.metrics?.improved_vitals_14d))
+          ? clamp(Math.floor(Number(raw.metrics.improved_vitals_14d)), 0, 999)
+          : undefined,
+      worsened_vitals_14d:
+        Number.isFinite(Number(raw?.metrics?.worsened_vitals_14d))
+          ? clamp(Math.floor(Number(raw.metrics.worsened_vitals_14d)), 0, 999)
+          : undefined,
+      emotional_high_72h:
+        Number.isFinite(Number(raw?.metrics?.emotional_high_72h))
+          ? clamp(Math.floor(Number(raw.metrics.emotional_high_72h)), 0, 999)
+          : undefined,
+      emotional_medium_72h:
+        Number.isFinite(Number(raw?.metrics?.emotional_medium_72h))
+          ? clamp(Math.floor(Number(raw.metrics.emotional_medium_72h)), 0, 999)
+          : undefined,
       consent_soft_declines_7d:
         Number.isFinite(Number(raw?.metrics?.consent_soft_declines_7d))
-          ? clamp(Math.floor(Number(raw.metrics.consent_soft_declines_7d)), 0, 999)
+          ? clamp(
+            Math.floor(Number(raw.metrics.consent_soft_declines_7d)),
+            0,
+            999,
+          )
           : undefined,
       consent_explicit_stops_7d:
         Number.isFinite(Number(raw?.metrics?.consent_explicit_stops_7d))
-          ? clamp(Math.floor(Number(raw.metrics.consent_explicit_stops_7d)), 0, 999)
+          ? clamp(
+            Math.floor(Number(raw.metrics.consent_explicit_stops_7d)),
+            0,
+            999,
+          )
           : undefined,
       active_blockers_count:
         Number.isFinite(Number(raw?.metrics?.active_blockers_count))
@@ -708,14 +715,17 @@ export function readMomentumState(tempMemory: any): MomentumStateMemory {
           : undefined,
       chronic_blockers_count:
         Number.isFinite(Number(raw?.metrics?.chronic_blockers_count))
-          ? clamp(Math.floor(Number(raw.metrics.chronic_blockers_count)), 0, 999)
+          ? clamp(
+            Math.floor(Number(raw.metrics.chronic_blockers_count)),
+            0,
+            999,
+          )
           : undefined,
-      last_gap_hours:
-        raw?.metrics?.last_gap_hours === null
-          ? null
-          : Number.isFinite(Number(raw?.metrics?.last_gap_hours))
-          ? round2(Number(raw.metrics.last_gap_hours))
-          : undefined,
+      last_gap_hours: raw?.metrics?.last_gap_hours === null
+        ? null
+        : Number.isFinite(Number(raw?.metrics?.last_gap_hours))
+        ? round2(Number(raw.metrics.last_gap_hours))
+        : undefined,
     },
     blocker_memory: {
       updated_at: typeof raw?.blocker_memory?.updated_at === "string"
@@ -726,18 +736,30 @@ export function readMomentumState(tempMemory: any): MomentumStateMemory {
           ? raw.blocker_memory.actions.map((item: any) => ({
             action_key: String(item?.action_key ?? "").trim().slice(0, 80),
             action_title: String(item?.action_title ?? "").trim().slice(0, 120),
-            current_category: String(item?.current_category ?? "other") as MomentumBlockerCategory,
+            current_category: String(
+              item?.current_category ?? "other",
+            ) as MomentumBlockerCategory,
             first_seen_at: String(item?.first_seen_at ?? ""),
             last_seen_at: String(item?.last_seen_at ?? ""),
             status: String(item?.status ?? "active") as MomentumBlockerStatus,
             stage: String(item?.stage ?? "new") as MomentumBlockerStage,
-            mention_count_total: clamp(Math.floor(Number(item?.mention_count_total ?? 0)), 0, 999),
-            mention_count_21d: clamp(Math.floor(Number(item?.mention_count_21d ?? 0)), 0, 999),
+            mention_count_total: clamp(
+              Math.floor(Number(item?.mention_count_total ?? 0)),
+              0,
+              999,
+            ),
+            mention_count_21d: clamp(
+              Math.floor(Number(item?.mention_count_21d ?? 0)),
+              0,
+              999,
+            ),
             last_reason_excerpt: shortExcerpt(item?.last_reason_excerpt),
             history: Array.isArray(item?.history)
               ? item.history.map((obs: any) => ({
                 at: String(obs?.at ?? ""),
-                category: String(obs?.category ?? "other") as MomentumBlockerCategory,
+                category: String(
+                  obs?.category ?? "other",
+                ) as MomentumBlockerCategory,
                 source: obs?.source === "watcher" ? "watcher" : "router",
                 reason_excerpt: shortExcerpt(obs?.reason_excerpt),
                 evidence_kind: typeof obs?.evidence_kind === "string"
@@ -761,7 +783,11 @@ export function readMomentumState(tempMemory: any): MomentumStateMemory {
             .filter((item: EmotionalEvent) =>
               item.level === "high" || item.level === "medium"
             ),
-          { nowMs: Date.now(), maxAgeMs: SEVEN_DAYS_MS, maxItems: MAX_EMOTIONAL_EVENTS },
+          {
+            nowMs: Date.now(),
+            maxAgeMs: SEVEN_DAYS_MS,
+            maxItems: MAX_EMOTIONAL_EVENTS,
+          },
         )
         : [],
       consent_events: Array.isArray(raw?.signal_log?.consent_events)
@@ -775,47 +801,65 @@ export function readMomentumState(tempMemory: any): MomentumStateMemory {
               item.kind === "accept" || item.kind === "soft_decline" ||
               item.kind === "explicit_stop"
             ),
-          { nowMs: Date.now(), maxAgeMs: SEVEN_DAYS_MS, maxItems: MAX_CONSENT_EVENTS },
+          {
+            nowMs: Date.now(),
+            maxAgeMs: SEVEN_DAYS_MS,
+            maxItems: MAX_CONSENT_EVENTS,
+          },
         )
         : [],
-      response_quality_events: Array.isArray(raw?.signal_log?.response_quality_events)
-        ? pruneTimedArray(
-          raw.signal_log.response_quality_events
-            .map((item: any) => ({
-              at: String(item?.at ?? ""),
-              quality: String(item?.quality ?? "") as ReplyQuality,
-            }))
-            .filter((item: ResponseQualityEvent) =>
-              item.quality === "substantive" || item.quality === "brief" ||
-              item.quality === "minimal"
-            ),
-          { nowMs: Date.now(), maxAgeMs: SEVEN_DAYS_MS, maxItems: MAX_RESPONSE_EVENTS },
-        )
-        : [],
+      response_quality_events:
+        Array.isArray(raw?.signal_log?.response_quality_events)
+          ? pruneTimedArray(
+            raw.signal_log.response_quality_events
+              .map((item: any) => ({
+                at: String(item?.at ?? ""),
+                quality: String(item?.quality ?? "") as ReplyQuality,
+              }))
+              .filter((item: ResponseQualityEvent) =>
+                item.quality === "substantive" || item.quality === "brief" ||
+                item.quality === "minimal"
+              ),
+            {
+              nowMs: Date.now(),
+              maxAgeMs: SEVEN_DAYS_MS,
+              maxItems: MAX_RESPONSE_EVENTS,
+            },
+          )
+          : [],
     },
     stability: {
       stable_since_at: typeof raw?.stability?.stable_since_at === "string"
         ? raw.stability.stable_since_at
         : undefined,
-      pending_transition:
-        raw?.stability?.pending_transition &&
+      pending_transition: raw?.stability?.pending_transition &&
           typeof raw.stability.pending_transition === "object" &&
           typeof raw.stability.pending_transition.target_state === "string"
-          ? {
-            target_state: String(raw.stability.pending_transition.target_state) as MomentumStateLabel,
-            reason: typeof raw.stability.pending_transition.reason === "string"
-              ? raw.stability.pending_transition.reason.slice(0, 200)
-              : undefined,
-            confirmations: clamp(
-              Math.floor(Number(raw.stability.pending_transition.confirmations ?? 1)),
-              1,
-              9,
+        ? {
+          target_state: String(
+            raw.stability.pending_transition.target_state,
+          ) as MomentumStateLabel,
+          reason: typeof raw.stability.pending_transition.reason === "string"
+            ? raw.stability.pending_transition.reason.slice(0, 200)
+            : undefined,
+          confirmations: clamp(
+            Math.floor(
+              Number(raw.stability.pending_transition.confirmations ?? 1),
             ),
-            first_seen_at: String(raw.stability.pending_transition.first_seen_at ?? ""),
-            last_seen_at: String(raw.stability.pending_transition.last_seen_at ?? ""),
-            source: raw.stability.pending_transition.source === "watcher" ? "watcher" : "router",
-          }
-          : undefined,
+            1,
+            9,
+          ),
+          first_seen_at: String(
+            raw.stability.pending_transition.first_seen_at ?? "",
+          ),
+          last_seen_at: String(
+            raw.stability.pending_transition.last_seen_at ?? "",
+          ),
+          source: raw.stability.pending_transition.source === "watcher"
+            ? "watcher"
+            : "router",
+        }
+        : undefined,
     },
     sources: {
       router_updated_at: typeof raw?.sources?.router_updated_at === "string"
@@ -824,28 +868,31 @@ export function readMomentumState(tempMemory: any): MomentumStateMemory {
       watcher_updated_at: typeof raw?.sources?.watcher_updated_at === "string"
         ? raw.sources.watcher_updated_at
         : undefined,
-      last_state_change_at: typeof raw?.sources?.last_state_change_at === "string"
-        ? raw.sources.last_state_change_at
-        : undefined,
-      last_classified_by:
-        raw?.sources?.last_classified_by === "watcher" ? "watcher" : "router",
+      last_state_change_at:
+        typeof raw?.sources?.last_state_change_at === "string"
+          ? raw.sources.last_state_change_at
+          : undefined,
+      last_classified_by: raw?.sources?.last_classified_by === "watcher"
+        ? "watcher"
+        : "router",
     },
   };
 }
 
-export function writeMomentumState(
+function writeDisabledV1MomentumState(
   tempMemory: any,
   momentum: MomentumStateMemory,
 ): any {
-  const next = tempMemory && typeof tempMemory === "object" ? { ...tempMemory } : {};
-  next[MOMENTUM_STATE_KEY] = momentum;
+  const next = tempMemory && typeof tempMemory === "object"
+    ? { ...tempMemory }
+    : {};
+  next[DISABLED_V1_MOMENTUM_KEY] = momentum;
   return next;
 }
 
 export function detectReplyQuality(userMessage: string): ReplyQuality {
   const text = String(userMessage ?? "").trim();
   if (!text) return "minimal";
-  if (MINIMAL_REPLY_PATTERNS.some((pattern) => pattern.test(text))) return "minimal";
   if (text.length <= 12) return "minimal";
   if (text.length <= 40) return "brief";
   return "substantive";
@@ -859,20 +906,7 @@ function detectQuickEmotionalLoad(
     return { level: "high", reason: "dispatcher_safety_override" };
   }
 
-  const normalized = normalizeText(userMessage);
-  if (!normalized) return { level: "low", reason: "no_signal" };
-
-  const highHits = HIGH_EMOTIONAL_PATTERNS.filter((pattern) => pattern.test(normalized)).length;
-  const mediumHits = MEDIUM_EMOTIONAL_PATTERNS.filter((pattern) => pattern.test(normalized)).length;
-  if (highHits >= 1 || mediumHits >= 2) {
-    return {
-      level: highHits >= 1 ? "high" : "medium",
-      reason: highHits >= 1 ? "strong_emotional_turn" : "multiple_medium_emotional_markers",
-    };
-  }
-  if (mediumHits >= 1) {
-    return { level: "medium", reason: "medium_emotional_marker" };
-  }
+  void userMessage;
   return { level: "low", reason: "no_emotional_marker" };
 }
 
@@ -884,33 +918,20 @@ function detectConsentSignal(
   reason: string;
   eventKind?: ConsentEventKind;
 } {
-  const text = String(userMessage ?? "").trim();
-  if (String(dispatcherSignals?.interrupt?.kind ?? "NONE") === "EXPLICIT_STOP") {
+  void userMessage;
+  if (
+    String(dispatcherSignals?.interrupt?.kind ?? "NONE") === "EXPLICIT_STOP"
+  ) {
     return {
       level: "closed",
       reason: "dispatcher_explicit_stop",
       eventKind: "explicit_stop",
     };
   }
-  if (CLOSED_CONSENT_PATTERNS.some((pattern) => pattern.test(text))) {
-    return {
-      level: "closed",
-      reason: "explicit_pause_phrase",
-      eventKind: "explicit_stop",
-    };
-  }
-  if (ACCEPT_PATTERNS.some((pattern) => pattern.test(text))) {
-    return {
-      level: "open",
-      reason: "explicit_accept_phrase",
-      eventKind: "accept",
-    };
-  }
   if (
     String(dispatcherSignals?.interrupt?.kind ?? "NONE") === "BORED" ||
     String(dispatcherSignals?.interrupt?.kind ?? "NONE") === "SWITCH_TOPIC" ||
-    String(dispatcherSignals?.interrupt?.kind ?? "NONE") === "DIGRESSION" ||
-    FRAGILE_CONSENT_PATTERNS.some((pattern) => pattern.test(text))
+    String(dispatcherSignals?.interrupt?.kind ?? "NONE") === "DIGRESSION"
   ) {
     return {
       level: "fragile",
@@ -955,7 +976,10 @@ function classifyMomentumState(args: {
     return { state: "momentum", reason: "progression_up_and_open_consent" };
   }
   if (args.consent === "open" && args.engagement !== "low") {
-    return { state: "friction_legere", reason: "engaged_but_not_clearly_progressing" };
+    return {
+      state: "friction_legere",
+      reason: "engaged_but_not_clearly_progressing",
+    };
   }
   return { state: "evitement", reason: "default_gray_zone_state" };
 }
@@ -1004,8 +1028,10 @@ function collapseRouterDegradationTarget(
   proposedState: MomentumStateLabel,
 ): MomentumStateLabel {
   if (!currentState) return proposedState;
-  if (currentState === "momentum" &&
-      (proposedState === "evitement" || proposedState === "reactivation")) {
+  if (
+    currentState === "momentum" &&
+    (proposedState === "evitement" || proposedState === "reactivation")
+  ) {
     return "friction_legere";
   }
   if (currentState === "friction_legere" && proposedState === "reactivation") {
@@ -1113,12 +1139,14 @@ function stabilizeClassifiedState(args: {
   }
 
   if (currentState === "pause_consentie") {
-    if (canRouterExitPauseState({
-      proposedState: args.proposedState,
-      progression: args.progression,
-      consent: args.consent,
-      metrics: args.metrics,
-    })) {
+    if (
+      canRouterExitPauseState({
+        proposedState: args.proposedState,
+        progression: args.progression,
+        consent: args.consent,
+        metrics: args.metrics,
+      })
+    ) {
       return {
         state: args.proposedState,
         reason: args.proposedReason,
@@ -1130,7 +1158,8 @@ function stabilizeClassifiedState(args: {
 
     return {
       state: currentState,
-      reason: args.current.state_reason ?? "hold_pause_until_strong_resume_signal",
+      reason: args.current.state_reason ??
+        "hold_pause_until_strong_resume_signal",
       stability: {
         stable_since_at: args.current.stability.stable_since_at ?? args.nowIso,
         pending_transition: buildPendingTransition({
@@ -1147,7 +1176,8 @@ function stabilizeClassifiedState(args: {
   if (currentState === "soutien_emotionnel") {
     return {
       state: currentState,
-      reason: args.current.state_reason ?? "hold_support_until_watcher_confirms_exit",
+      reason: args.current.state_reason ??
+        "hold_support_until_watcher_confirms_exit",
       stability: {
         stable_since_at: args.current.stability.stable_since_at ?? args.nowIso,
         pending_transition: buildPendingTransition({
@@ -1161,9 +1191,10 @@ function stabilizeClassifiedState(args: {
     };
   }
 
-  const normalizedProposed = isDegradingTransition(currentState, args.proposedState)
-    ? collapseRouterDegradationTarget(currentState, args.proposedState)
-    : args.proposedState;
+  const normalizedProposed =
+    isDegradingTransition(currentState, args.proposedState)
+      ? collapseRouterDegradationTarget(currentState, args.proposedState)
+      : args.proposedState;
 
   if (
     normalizedProposed === "momentum" &&
@@ -1199,7 +1230,8 @@ function stabilizeClassifiedState(args: {
     }
     return {
       state: currentState,
-      reason: args.current.state_reason ?? "holding_state_pending_degradation_confirmation",
+      reason: args.current.state_reason ??
+        "holding_state_pending_degradation_confirmation",
       stability: {
         stable_since_at: args.current.stability.stable_since_at ?? args.nowIso,
         pending_transition: pending,
@@ -1216,7 +1248,7 @@ function stabilizeClassifiedState(args: {
   };
 }
 
-export function applyRouterMomentumSignals(args: {
+function applyDisabledV1RouterMomentumSignals(args: {
   tempMemory: any;
   userMessage: string;
   dispatcherSignals: DispatcherSignals;
@@ -1224,31 +1256,47 @@ export function applyRouterMomentumSignals(args: {
 }): MomentumStateMemory {
   const nowIso = nowIsoFrom(args.nowIso);
   const nowMs = parseIsoMs(nowIso);
-  const current = readMomentumState(args.tempMemory);
+  const current = readDisabledV1MomentumState(args.tempMemory);
 
   const responseQuality = detectReplyQuality(args.userMessage);
-  const emotional = detectQuickEmotionalLoad(args.userMessage, args.dispatcherSignals);
-  const consentSignal = detectConsentSignal(args.userMessage, args.dispatcherSignals);
+  const emotional = detectQuickEmotionalLoad(
+    args.userMessage,
+    args.dispatcherSignals,
+  );
+  const consentSignal = detectConsentSignal(
+    args.userMessage,
+    args.dispatcherSignals,
+  );
 
   const responseEvents = pruneTimedArray(
-    [...current.signal_log.response_quality_events, { at: nowIso, quality: responseQuality }],
+    [...current.signal_log.response_quality_events, {
+      at: nowIso,
+      quality: responseQuality,
+    }],
     { nowMs, maxAgeMs: SEVEN_DAYS_MS, maxItems: MAX_RESPONSE_EVENTS },
   );
 
-  const emotionalEvents = emotional.level === "high" || emotional.level === "medium"
-    ? pruneTimedArray(
-      [...current.signal_log.emotional_turns, { at: nowIso, level: emotional.level }],
-      { nowMs, maxAgeMs: SEVEN_DAYS_MS, maxItems: MAX_EMOTIONAL_EVENTS },
-    )
-    : pruneTimedArray(current.signal_log.emotional_turns, {
-      nowMs,
-      maxAgeMs: SEVEN_DAYS_MS,
-      maxItems: MAX_EMOTIONAL_EVENTS,
-    });
+  const emotionalEvents =
+    emotional.level === "high" || emotional.level === "medium"
+      ? pruneTimedArray(
+        [...current.signal_log.emotional_turns, {
+          at: nowIso,
+          level: emotional.level,
+        }],
+        { nowMs, maxAgeMs: SEVEN_DAYS_MS, maxItems: MAX_EMOTIONAL_EVENTS },
+      )
+      : pruneTimedArray(current.signal_log.emotional_turns, {
+        nowMs,
+        maxAgeMs: SEVEN_DAYS_MS,
+        maxItems: MAX_EMOTIONAL_EVENTS,
+      });
 
   const consentEvents = consentSignal.eventKind
     ? pruneTimedArray(
-      [...current.signal_log.consent_events, { at: nowIso, kind: consentSignal.eventKind }],
+      [...current.signal_log.consent_events, {
+        at: nowIso,
+        kind: consentSignal.eventKind,
+      }],
       { nowMs, maxAgeMs: SEVEN_DAYS_MS, maxItems: MAX_CONSENT_EVENTS },
     )
     : pruneTimedArray(current.signal_log.consent_events, {
@@ -1257,8 +1305,10 @@ export function applyRouterMomentumSignals(args: {
       maxItems: MAX_CONSENT_EVENTS,
     });
 
-  const substantiveCount7d = responseEvents.filter((item) => item.quality === "substantive").length;
-  const minimalCount7d = responseEvents.filter((item) => item.quality === "minimal").length;
+  const substantiveCount7d =
+    responseEvents.filter((item) => item.quality === "substantive").length;
+  const minimalCount7d =
+    responseEvents.filter((item) => item.quality === "minimal").length;
   const previousLastTurnMs = parseIsoMs(current.metrics.last_user_turn_at);
   const lastGapHours = previousLastTurnMs > 0
     ? round2((nowMs - previousLastTurnMs) / (60 * 60 * 1000))
@@ -1272,7 +1322,10 @@ export function applyRouterMomentumSignals(args: {
   } else if (minimalCount7d >= 3 && substantiveCount7d === 0) {
     engagementLevel = "low";
     engagementReason = "repeated_minimal_replies";
-  } else if (responseQuality === "minimal" && current.dimensions.engagement.level === "low") {
+  } else if (
+    responseQuality === "minimal" &&
+    current.dimensions.engagement.level === "low"
+  ) {
     engagementLevel = "low";
     engagementReason = "low_engagement_persists";
   } else {
@@ -1298,8 +1351,10 @@ export function applyRouterMomentumSignals(args: {
     maxAgeMs: SEVENTY_TWO_HOURS_MS,
     maxItems: MAX_EMOTIONAL_EVENTS,
   });
-  const emotionalHigh72h = emotional72h.filter((item) => item.level === "high").length;
-  const emotionalMedium72h = emotional72h.filter((item) => item.level === "medium").length;
+  const emotionalHigh72h =
+    emotional72h.filter((item) => item.level === "high").length;
+  const emotionalMedium72h =
+    emotional72h.filter((item) => item.level === "medium").length;
   const emotionalLevel: EmotionalLoadLevel = emotional.level === "high"
     ? "high"
     : emotionalHigh72h >= 2
@@ -1317,25 +1372,28 @@ export function applyRouterMomentumSignals(args: {
 
   let progressionLevel = current.dimensions.progression.level;
   let progressionReason = current.dimensions.progression.reason ?? "carry_over";
-  const actionSignal = args.dispatcherSignals.track_progress_action;
+  const actionSignal = args.dispatcherSignals.track_progress_plan_item;
   if (actionSignal?.detected && actionSignal.status_hint === "completed") {
     progressionLevel = "up";
     progressionReason = "current_turn_completed_action";
   } else if (actionSignal?.detected && actionSignal.status_hint === "partial") {
-    progressionLevel = progressionLevel === "unknown" ? "flat" : progressionLevel;
+    progressionLevel = progressionLevel === "unknown"
+      ? "flat"
+      : progressionLevel;
     progressionReason = "current_turn_partial_action";
   } else if (actionSignal?.detected && actionSignal.status_hint === "missed") {
-    progressionLevel = progressionLevel === "up" ? "flat" : progressionLevel === "unknown" ? "flat" : progressionLevel;
+    progressionLevel = progressionLevel === "up"
+      ? "flat"
+      : progressionLevel === "unknown"
+      ? "flat"
+      : progressionLevel;
     progressionReason = "current_turn_missed_action";
-  } else if (
-    args.dispatcherSignals.track_progress_vital_sign?.detected ||
-    args.dispatcherSignals.track_progress_north_star?.detected
-  ) {
-    progressionLevel = progressionLevel === "unknown" ? "flat" : progressionLevel;
-    progressionReason = "current_turn_metric_logged";
   }
 
-  let blockerMemory = refreshBlockerMemory(current.blocker_memory.actions ?? [], nowIso);
+  let blockerMemory = refreshBlockerMemory(
+    current.blocker_memory.actions ?? [],
+    nowIso,
+  );
   const blockerObservation = extractRouterBlockerObservation({
     userMessage: args.userMessage,
     dispatcherSignals: args.dispatcherSignals,
@@ -1439,8 +1497,14 @@ function computeEngagementFromSnapshot(args: {
   recentMessages: ChatMessageRow[];
   responseEvents: ResponseQualityEvent[];
   nowMs: number;
-}): { level: EngagementLevel; reason: string; metrics: Partial<MomentumMetrics> } {
-  const messages = (args.recentMessages ?? []).filter((msg) => parseIsoMs(msg.created_at) > 0);
+}): {
+  level: EngagementLevel;
+  reason: string;
+  metrics: Partial<MomentumMetrics>;
+} {
+  const messages = (args.recentMessages ?? []).filter((msg) =>
+    parseIsoMs(msg.created_at) > 0
+  );
   const userMessages = messages.filter((msg) => msg.role === "user");
   const assistantMessages = messages.filter((msg) => msg.role === "assistant");
   const lastUserMessage = userMessages[userMessages.length - 1];
@@ -1455,7 +1519,8 @@ function computeEngagementFromSnapshot(args: {
   const substantiveUserMessages7d = userMessages7d.filter((msg) =>
     detectReplyQuality(String(msg.content ?? "")) === "substantive"
   );
-  const lowQualityEvents7d = args.responseEvents.filter((item) => item.quality === "minimal").length;
+  const lowQualityEvents7d =
+    args.responseEvents.filter((item) => item.quality === "minimal").length;
 
   let level: EngagementLevel = "medium";
   let reason = "moderate_recent_interaction";
@@ -1488,14 +1553,20 @@ function computeEngagementFromSnapshot(args: {
   };
 }
 
-function computeProgressionFromSnapshot(snapshot: MomentumConsolidationSnapshot): {
+function computeProgressionFromSnapshot(
+  snapshot: MomentumConsolidationSnapshot,
+): {
   level: ProgressionLevel;
   reason: string;
   metrics: Partial<MomentumMetrics>;
 } {
-  const completed = snapshot.actionEntries.filter((entry) => entry.status === "completed").length;
-  const missed = snapshot.actionEntries.filter((entry) => entry.status === "missed").length;
-  const partial = snapshot.actionEntries.filter((entry) => entry.status === "partial").length;
+  const completed =
+    snapshot.actionEntries.filter((entry) => entry.status === "completed")
+      .length;
+  const missed =
+    snapshot.actionEntries.filter((entry) => entry.status === "missed").length;
+  const partial =
+    snapshot.actionEntries.filter((entry) => entry.status === "partial").length;
 
   const vitalEntriesById = new Map<string, number[]>();
   for (const entry of snapshot.vitalEntries) {
@@ -1519,8 +1590,7 @@ function computeProgressionFromSnapshot(snapshot: MomentumConsolidationSnapshot)
     else if (lastDistance >= firstDistance + 0.2) worsenedVitals++;
   }
 
-  const hasSignals =
-    snapshot.activeActionsCount > 0 ||
+  const hasSignals = snapshot.activeActionsCount > 0 ||
     snapshot.actionEntries.length > 0 ||
     snapshot.activeVitals.length > 0 ||
     snapshot.vitalEntries.length > 0;
@@ -1586,7 +1656,8 @@ function computeEmotionalLoadFromSignals(args: {
     maxItems: MAX_EMOTIONAL_EVENTS,
   });
   const high72h = emotional72h.filter((item) => item.level === "high").length;
-  const medium72h = emotional72h.filter((item) => item.level === "medium").length;
+  const medium72h =
+    emotional72h.filter((item) => item.level === "medium").length;
   const high24h = emotional24h.filter((item) => item.level === "high").length;
 
   let level: EmotionalLoadLevel = "low";
@@ -1635,8 +1706,10 @@ function computeConsentFromSignals(args: {
     maxAgeMs: SEVEN_DAYS_MS,
     maxItems: MAX_CONSENT_EVENTS,
   });
-  const softDeclines = events7d.filter((item) => item.kind === "soft_decline").length;
-  const explicitStops = events7d.filter((item) => item.kind === "explicit_stop").length;
+  const softDeclines =
+    events7d.filter((item) => item.kind === "soft_decline").length;
+  const explicitStops =
+    events7d.filter((item) => item.kind === "explicit_stop").length;
   const lastExplicitStopAt = Math.max(
     0,
     ...events7d
@@ -1652,8 +1725,10 @@ function computeConsentFromSignals(args: {
 
   let level: ConsentLevel = "open";
   let reason = "no_recent_decline";
-  if (lastExplicitStopAt > 0 && lastAcceptAt < lastExplicitStopAt &&
-      args.nowMs - lastExplicitStopAt <= SEVENTY_TWO_HOURS_MS) {
+  if (
+    lastExplicitStopAt > 0 && lastAcceptAt < lastExplicitStopAt &&
+    args.nowMs - lastExplicitStopAt <= SEVENTY_TWO_HOURS_MS
+  ) {
     level = "closed";
     reason = "recent_explicit_stop_without_reaccept";
   } else if (softDeclines >= 1 || explicitStops >= 1) {
@@ -1678,21 +1753,30 @@ export function deriveMomentumFromSnapshot(args: {
 }): MomentumStateMemory {
   const nowIso = nowIsoFrom(args.nowIso);
   const nowMs = parseIsoMs(nowIso);
-  const responseEvents = pruneTimedArray(args.current.signal_log.response_quality_events, {
-    nowMs,
-    maxAgeMs: SEVEN_DAYS_MS,
-    maxItems: MAX_RESPONSE_EVENTS,
-  });
-  const emotionalEvents = pruneTimedArray(args.current.signal_log.emotional_turns, {
-    nowMs,
-    maxAgeMs: SEVEN_DAYS_MS,
-    maxItems: MAX_EMOTIONAL_EVENTS,
-  });
-  const consentEvents = pruneTimedArray(args.current.signal_log.consent_events, {
-    nowMs,
-    maxAgeMs: SEVEN_DAYS_MS,
-    maxItems: MAX_CONSENT_EVENTS,
-  });
+  const responseEvents = pruneTimedArray(
+    args.current.signal_log.response_quality_events,
+    {
+      nowMs,
+      maxAgeMs: SEVEN_DAYS_MS,
+      maxItems: MAX_RESPONSE_EVENTS,
+    },
+  );
+  const emotionalEvents = pruneTimedArray(
+    args.current.signal_log.emotional_turns,
+    {
+      nowMs,
+      maxAgeMs: SEVEN_DAYS_MS,
+      maxItems: MAX_EMOTIONAL_EVENTS,
+    },
+  );
+  const consentEvents = pruneTimedArray(
+    args.current.signal_log.consent_events,
+    {
+      nowMs,
+      maxAgeMs: SEVEN_DAYS_MS,
+      maxItems: MAX_CONSENT_EVENTS,
+    },
+  );
 
   const engagement = computeEngagementFromSnapshot({
     recentMessages: args.snapshot.recentMessages,
@@ -1785,7 +1869,12 @@ export function deriveMomentumFromSnapshot(args: {
       response_quality_events: responseEvents,
     },
     stability: stabilized.stability,
-    sources: updateStateMetadata(args.current, stabilized.state, "watcher", nowIso),
+    sources: updateStateMetadata(
+      args.current,
+      stabilized.state,
+      "watcher",
+      nowIso,
+    ),
   };
 }
 
@@ -1796,10 +1885,14 @@ async function fetchMomentumSnapshot(args: {
   nowIso?: string;
 }): Promise<MomentumConsolidationSnapshot> {
   const nowIso = nowIsoFrom(args.nowIso);
-  const messagesSinceIso = new Date(parseIsoMs(nowIso) - SEVEN_DAYS_MS).toISOString();
-  const actionsSinceIso = new Date(parseIsoMs(nowIso) - SEVEN_DAYS_MS).toISOString();
-  const blockersSinceIso = new Date(parseIsoMs(nowIso) - TWENTY_ONE_DAYS_MS).toISOString();
-  const vitalsSinceIso = new Date(parseIsoMs(nowIso) - FOURTEEN_DAYS_MS).toISOString();
+  const messagesSinceIso = new Date(parseIsoMs(nowIso) - SEVEN_DAYS_MS)
+    .toISOString();
+  const actionsSinceIso = new Date(parseIsoMs(nowIso) - SEVEN_DAYS_MS)
+    .toISOString();
+  const blockersSinceIso = new Date(parseIsoMs(nowIso) - TWENTY_ONE_DAYS_MS)
+    .toISOString();
+  const vitalsSinceIso = new Date(parseIsoMs(nowIso) - FOURTEEN_DAYS_MS)
+    .toISOString();
 
   const [
     { data: profile },
@@ -1823,29 +1916,29 @@ async function fetchMomentumSnapshot(args: {
       .order("created_at", { ascending: true })
       .limit(120),
     args.supabase
-      .from("user_actions")
+      .from("user_plan_items")
       .select("id")
       .eq("user_id", args.userId)
       .eq("status", "active"),
     args.supabase
-      .from("user_action_entries")
-      .select("action_id, action_title, note, status, performed_at")
+      .from("user_plan_item_entries")
+      .select("plan_item_id, outcome, value_text, entry_kind, effective_at")
       .eq("user_id", args.userId)
-      .gte("performed_at", actionsSinceIso)
-      .order("performed_at", { ascending: true })
+      .gte("effective_at", actionsSinceIso)
+      .order("effective_at", { ascending: true })
       .limit(120),
     args.supabase
-      .from("user_action_entries")
-      .select("action_id, action_title, note, status, performed_at")
+      .from("user_plan_item_entries")
+      .select("plan_item_id, outcome, value_text, entry_kind, effective_at")
       .eq("user_id", args.userId)
-      .gte("performed_at", blockersSinceIso)
-      .order("performed_at", { ascending: true })
+      .gte("effective_at", blockersSinceIso)
+      .order("effective_at", { ascending: true })
       .limit(180),
     args.supabase
-      .from("user_vital_signs")
+      .from("user_metrics")
       .select("id, target_value, current_value")
       .eq("user_id", args.userId)
-      .eq("status", "active"),
+      .eq("kind", "progress_marker"),
   ]);
 
   const activeVitalIds = Array.isArray(activeVitals)
@@ -1853,8 +1946,8 @@ async function fetchMomentumSnapshot(args: {
     : [];
   const { data: vitalEntries } = activeVitalIds.length > 0
     ? await args.supabase
-      .from("user_vital_sign_entries")
-      .select("vital_sign_id, value, recorded_at")
+      .from("user_metric_entries")
+      .select("metric_id, value_numeric, created_at")
       .eq("user_id", args.userId)
       .in("vital_sign_id", activeVitalIds)
       .gte("recorded_at", vitalsSinceIso)
@@ -1863,8 +1956,11 @@ async function fetchMomentumSnapshot(args: {
     : { data: [] as any[] };
 
   const profilePauseUntilIso = (() => {
-    const coaching = String((profile as any)?.whatsapp_coaching_paused_until ?? "").trim();
-    const bilan = String((profile as any)?.whatsapp_bilan_paused_until ?? "").trim();
+    const coaching = String(
+      (profile as any)?.whatsapp_coaching_paused_until ?? "",
+    ).trim();
+    const bilan = String((profile as any)?.whatsapp_bilan_paused_until ?? "")
+      .trim();
     const coachingMs = parseIsoMs(coaching);
     const bilanMs = parseIsoMs(bilan);
     if (coachingMs >= bilanMs) return coaching || null;
@@ -1884,7 +1980,9 @@ async function fetchMomentumSnapshot(args: {
     actionEntries: Array.isArray(actionEntries)
       ? actionEntries.map((row: any) => ({
         action_id: row?.action_id == null ? undefined : String(row.action_id),
-        action_title: row?.action_title == null ? undefined : String(row.action_title),
+        action_title: row?.action_title == null
+          ? undefined
+          : String(row.action_title),
         note: row?.note == null ? null : String(row.note),
         status: String(row?.status ?? ""),
         performed_at: String(row?.performed_at ?? ""),
@@ -1893,7 +1991,9 @@ async function fetchMomentumSnapshot(args: {
     blockerEntries: Array.isArray(blockerEntries)
       ? blockerEntries.map((row: any) => ({
         action_id: row?.action_id == null ? undefined : String(row.action_id),
-        action_title: row?.action_title == null ? undefined : String(row.action_title),
+        action_title: row?.action_title == null
+          ? undefined
+          : String(row.action_title),
         note: row?.note == null ? null : String(row.note),
         status: String(row?.status ?? ""),
         performed_at: String(row?.performed_at ?? ""),
@@ -1902,8 +2002,12 @@ async function fetchMomentumSnapshot(args: {
     activeVitals: Array.isArray(activeVitals)
       ? activeVitals.map((row: any) => ({
         id: String(row?.id ?? ""),
-        target_value: row?.target_value == null ? null : String(row.target_value),
-        current_value: row?.current_value == null ? null : String(row.current_value),
+        target_value: row?.target_value == null
+          ? null
+          : String(row.target_value),
+        current_value: row?.current_value == null
+          ? null
+          : String(row.current_value),
       }))
       : [],
     vitalEntries: Array.isArray(vitalEntries)
@@ -1916,14 +2020,14 @@ async function fetchMomentumSnapshot(args: {
   };
 }
 
-export async function consolidateMomentumState(args: {
+async function consolidateDisabledV1MomentumState(args: {
   supabase: SupabaseClient;
   userId: string;
   scope: string;
   tempMemory: any;
   nowIso?: string;
 }): Promise<MomentumStateMemory> {
-  const current = readMomentumState(args.tempMemory);
+  const current = readDisabledV1MomentumState(args.tempMemory);
   const snapshot = await fetchMomentumSnapshot({
     supabase: args.supabase,
     userId: args.userId,
@@ -1937,8 +2041,33 @@ export async function consolidateMomentumState(args: {
   });
 }
 
-export function summarizeMomentumStateForLog(momentum: MomentumStateMemory): Record<string, unknown> {
-  const topBlocker = getTopMomentumBlocker(momentum);
+export function summarizeMomentumStateForLog(
+  momentum: MomentumStateMemory | StoredMomentumV2 | MomentumStateV2,
+): Record<string, unknown> {
+  if ("blockers" in momentum) {
+    const internal = "_internal" in momentum ? momentum._internal : undefined;
+    return {
+      state: momentum.current_state ?? null,
+      state_reason: momentum.state_reason ?? null,
+      engagement: momentum.dimensions.engagement.level,
+      progression: momentum.dimensions.execution_traction.level,
+      emotional_load: momentum.dimensions.emotional_load.level,
+      consent: momentum.dimensions.consent.level,
+      pending_transition_target:
+        internal?.stability.pending_transition?.target_state ?? null,
+      pending_transition_confirmations:
+        internal?.stability.pending_transition?.confirmations ?? null,
+      stable_since_at: internal?.stability.stable_since_at ?? null,
+      active_blockers_count: momentum.blockers.blocker_kind ? 1 : 0,
+      chronic_blockers_count: momentum.blockers.blocker_repeat_score >= 6 ? 1 : 0,
+      top_blocker_action: momentum.assessment.top_blocker ?? null,
+      top_blocker_category: momentum.blockers.blocker_kind ?? null,
+      top_blocker_stage:
+        momentum.blockers.blocker_repeat_score >= 6 ? "chronic" : null,
+      updated_at: momentum.updated_at ?? null,
+    };
+  }
+  const topBlocker = getDisabledV1TopMomentumBlocker(momentum);
   return {
     state: momentum.current_state ?? null,
     state_reason: momentum.state_reason ?? null,
@@ -1946,7 +2075,8 @@ export function summarizeMomentumStateForLog(momentum: MomentumStateMemory): Rec
     progression: momentum.dimensions.progression.level,
     emotional_load: momentum.dimensions.emotional_load.level,
     consent: momentum.dimensions.consent.level,
-    pending_transition_target: momentum.stability.pending_transition?.target_state ?? null,
+    pending_transition_target:
+      momentum.stability.pending_transition?.target_state ?? null,
     pending_transition_confirmations:
       momentum.stability.pending_transition?.confirmations ?? null,
     stable_since_at: momentum.stability.stable_since_at ?? null,
@@ -1956,5 +2086,878 @@ export function summarizeMomentumStateForLog(momentum: MomentumStateMemory): Rec
     top_blocker_category: topBlocker?.current_category ?? null,
     top_blocker_stage: topBlocker?.stage ?? null,
     updated_at: momentum.updated_at ?? null,
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// V2 MOMENTUM STATE
+// Shape: MomentumStateV2 (v2-types.ts section 5.3)
+// Key:   __momentum_state_v2
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export const MOMENTUM_STATE_V2_KEY = "__momentum_state_v2";
+
+type V2InternalState = {
+  signal_log: {
+    emotional_turns: EmotionalEvent[];
+    consent_events: ConsentEvent[];
+    response_quality_events: ResponseQualityEvent[];
+  };
+  stability: {
+    stable_since_at?: string;
+    pending_transition?: PendingTransition;
+  };
+  sources: {
+    router_updated_at?: string;
+    watcher_updated_at?: string;
+    last_state_change_at?: string;
+    last_classified_by?: "router" | "watcher";
+  };
+  metrics_cache: {
+    last_user_turn_at?: string;
+    last_user_turn_quality?: ReplyQuality;
+    days_since_last_user_message?: number | null;
+  };
+};
+
+export type StoredMomentumV2 = MomentumStateV2 & { _internal: V2InternalState };
+
+export type MomentumConsolidationSnapshotV2 = {
+  profilePauseUntilIso?: string | null;
+  recentMessages: ChatMessageRow[];
+  planItemsRuntime: PlanItemRuntimeRow[];
+  activeLoad: MomentumStateV2["active_load"];
+};
+
+function defaultV2Internal(): V2InternalState {
+  return {
+    signal_log: {
+      emotional_turns: [],
+      consent_events: [],
+      response_quality_events: [],
+    },
+    stability: {},
+    sources: {},
+    metrics_cache: {},
+  };
+}
+
+function defaultMomentumStateV2(): StoredMomentumV2 {
+  return {
+    version: 2,
+    updated_at: nowIsoFrom(),
+    current_state: "friction_legere",
+    state_reason: "initial_state",
+    dimensions: {
+      engagement: { level: "medium" },
+      execution_traction: { level: "unknown" },
+      emotional_load: { level: "low" },
+      consent: { level: "open" },
+      plan_fit: { level: "uncertain" },
+      load_balance: { level: "balanced" },
+    },
+    assessment: { top_blocker: null, top_risk: null, confidence: "low" },
+    active_load: {
+      current_load_score: 0,
+      mission_slots_used: 0,
+      support_slots_used: 0,
+      habit_building_slots_used: 0,
+      needs_reduce: false,
+      needs_consolidate: false,
+    },
+    posture: { recommended_posture: "simplify", confidence: "low" },
+    blockers: { blocker_kind: null, blocker_repeat_score: 0 },
+    memory_links: {
+      last_useful_support_ids: [],
+      last_failed_technique_ids: [],
+    },
+    _internal: defaultV2Internal(),
+  };
+}
+
+// --- V2 dimension computation ---
+
+function deriveExecutionTractionV2(
+  planItems: PlanItemRuntimeRow[],
+): { level: "up" | "flat" | "down" | "unknown"; reason: string } {
+  const activeItems = planItems.filter((i) => i.status === "active");
+  if (activeItems.length === 0) {
+    return { level: "unknown", reason: "no_active_plan_items" };
+  }
+
+  let pos = 0;
+  let neg = 0;
+  for (const item of activeItems) {
+    for (const e of item.recent_entries) {
+      if (
+        e.entry_kind === "checkin" || e.entry_kind === "progress" ||
+        e.entry_kind === "partial"
+      ) pos++;
+      else if (e.entry_kind === "skip" || e.entry_kind === "blocker") neg++;
+    }
+  }
+  const total = pos + neg;
+  if (total === 0) return { level: "unknown", reason: "no_recent_entries" };
+
+  const ratio = pos / total;
+  if (ratio >= 0.6) return { level: "up", reason: "majority_positive_entries" };
+  if (ratio <= 0.3) {
+    return { level: "down", reason: "majority_negative_entries" };
+  }
+  return { level: "flat", reason: "mixed_entries" };
+}
+
+function derivePlanFitV2(
+  planItems: PlanItemRuntimeRow[],
+  nowMs: number,
+): { level: "good" | "uncertain" | "poor"; reason: string } {
+  if (planItems.length === 0) {
+    return { level: "uncertain", reason: "no_plan_items" };
+  }
+
+  const active = planItems.filter((i) => i.status === "active");
+  const stalled = planItems.filter((i) => i.status === "stalled");
+  const completed = planItems.filter((i) => i.status === "completed");
+
+  if (stalled.length / planItems.length >= 0.3) {
+    return { level: "poor", reason: "many_stalled_items" };
+  }
+
+  const zombies = active.filter((i) => {
+    if (i.last_entry_at) {
+      return nowMs - parseIsoMs(i.last_entry_at) > SEVEN_DAYS_MS;
+    }
+
+    const activationRefMs = parseIsoMs(i.activated_at) ||
+      parseIsoMs(i.created_at);
+    if (activationRefMs <= 0) return false;
+
+    return nowMs - activationRefMs > SEVEN_DAYS_MS;
+  });
+  if (
+    zombies.length >= 2 ||
+    (active.length > 0 && zombies.length === active.length)
+  ) {
+    return { level: "poor", reason: "multiple_zombie_items" };
+  }
+  if (
+    (completed.length > 0 && stalled.length === 0) ||
+    (active.length > 0 && zombies.length === 0)
+  ) {
+    return { level: "good", reason: "items_progressing" };
+  }
+  return { level: "uncertain", reason: "mixed_signals" };
+}
+
+function deriveLoadBalanceV2(
+  activeLoad: MomentumStateV2["active_load"],
+): { level: "balanced" | "slightly_heavy" | "overloaded"; reason: string } {
+  if (activeLoad.needs_reduce) {
+    return { level: "overloaded", reason: "needs_reduce_flagged" };
+  }
+  if (activeLoad.current_load_score > 5) {
+    return { level: "slightly_heavy", reason: "load_score_above_5" };
+  }
+  return { level: "balanced", reason: "load_within_limits" };
+}
+
+// --- V2 classification (same 6 public states as V1) ---
+
+function classifyMomentumStateV2(args: {
+  engagement: EngagementLevel;
+  executionTraction: ProgressionLevel;
+  emotionalLoad: EmotionalLoadLevel;
+  consent: ConsentLevel;
+  daysSinceLastMessage?: number | null;
+}): { state: MomentumStateLabel; reason: string } {
+  if (args.emotionalLoad === "high") {
+    return { state: "soutien_emotionnel", reason: "emotional_load_high" };
+  }
+  if (args.consent === "closed") {
+    return { state: "pause_consentie", reason: "consent_closed" };
+  }
+  const daysSince = Number(args.daysSinceLastMessage ?? 0);
+  if (
+    args.engagement === "low" && Number.isFinite(daysSince) && daysSince >= 3
+  ) {
+    return { state: "reactivation", reason: "low_engagement_after_silence" };
+  }
+  if (
+    args.executionTraction === "up" && args.consent === "open" &&
+    args.engagement !== "low"
+  ) {
+    return { state: "momentum", reason: "traction_up_and_open_consent" };
+  }
+  if (args.consent === "open" && args.engagement !== "low") {
+    return {
+      state: "friction_legere",
+      reason: "engaged_but_not_clearly_progressing",
+    };
+  }
+  return { state: "evitement", reason: "default_gray_zone_state" };
+}
+
+// --- V2 posture derivation ---
+
+function derivePostureV2(
+  state: MomentumStateLabel,
+  activeLoad?: MomentumStateV2["active_load"],
+): MomentumPosture {
+  if (
+    activeLoad?.needs_reduce &&
+    state !== "soutien_emotionnel" && state !== "pause_consentie"
+  ) {
+    return "reduce_load";
+  }
+  switch (state) {
+    case "momentum":
+      return "push_lightly";
+    case "friction_legere":
+      return "simplify";
+    case "evitement":
+      return "hold";
+    case "pause_consentie":
+      return "hold";
+    case "soutien_emotionnel":
+      return "support";
+    case "reactivation":
+      return "reopen_door";
+    default:
+      return "simplify";
+  }
+}
+
+// --- V2 assessment derivation ---
+
+function deriveTopRiskV2(args: {
+  engagement: EngagementLevel;
+  executionTraction: ProgressionLevel;
+  emotionalLoad: EmotionalLoadLevel;
+  consent: ConsentLevel;
+  needsReduce: boolean;
+  planFit: "good" | "uncertain" | "poor";
+}): MomentumStateV2["assessment"]["top_risk"] {
+  if (args.emotionalLoad === "high") return "emotional";
+  if (args.consent === "closed") return "consent";
+  if (args.needsReduce) return "load";
+  if (args.engagement === "low" && args.executionTraction === "down") {
+    return "avoidance";
+  }
+  if (args.planFit === "poor") return "drift";
+  if (args.consent === "fragile") return "consent";
+  return null;
+}
+
+function deriveAssessmentConfidenceV2(args: {
+  executionTraction: ProgressionLevel;
+  planFit: "good" | "uncertain" | "poor";
+  hasRecentEntries: boolean;
+}): ConfidenceLevel {
+  if (args.executionTraction === "unknown" || !args.hasRecentEntries) {
+    return "low";
+  }
+  if (args.planFit === "uncertain") return "medium";
+  return "high";
+}
+
+// --- V2 blockers from plan items ---
+
+function deriveBlockersV2(
+  planItems: PlanItemRuntimeRow[],
+): MomentumStateV2["blockers"] {
+  const stalled = planItems.filter((i) => i.status === "stalled");
+  if (stalled.length === 0) {
+    return { blocker_kind: null, blocker_repeat_score: 0 };
+  }
+
+  const counts = new Map<string, number>();
+  for (const item of stalled) {
+    counts.set(item.dimension, (counts.get(item.dimension) ?? 0) + 1);
+  }
+
+  let topDim = "global";
+  let topCount = 0;
+  for (const [dim, c] of counts) {
+    if (c > topCount) {
+      topDim = dim;
+      topCount = c;
+    }
+  }
+
+  const kind: MomentumStateV2["blockers"]["blocker_kind"] =
+    topDim === "missions"
+      ? "mission"
+      : topDim === "habits"
+      ? "habit"
+      : topDim === "support"
+      ? "support"
+      : "global";
+
+  return {
+    blocker_kind: kind,
+    blocker_repeat_score: Math.min(stalled.length * 2, 10),
+  };
+}
+
+// --- V2 read / write ---
+
+export function readMomentumStateV2(tempMemory: any): StoredMomentumV2 {
+  const rawV2 = tempMemory?.[MOMENTUM_STATE_V2_KEY];
+  if (rawV2 && typeof rawV2 === "object" && rawV2.version === 2) {
+    return validateStoredV2(rawV2);
+  }
+  return defaultMomentumStateV2();
+}
+
+function validateStoredV2(raw: any): StoredMomentumV2 {
+  const base = defaultMomentumStateV2();
+  return {
+    ...base,
+    ...raw,
+    dimensions: { ...base.dimensions, ...(raw.dimensions ?? {}) },
+    assessment: { ...base.assessment, ...(raw.assessment ?? {}) },
+    active_load: { ...base.active_load, ...(raw.active_load ?? {}) },
+    posture: { ...base.posture, ...(raw.posture ?? {}) },
+    blockers: { ...base.blockers, ...(raw.blockers ?? {}) },
+    memory_links: { ...base.memory_links, ...(raw.memory_links ?? {}) },
+    _internal: raw._internal && typeof raw._internal === "object"
+      ? {
+        signal_log: {
+          emotional_turns: Array.isArray(
+              raw._internal.signal_log?.emotional_turns,
+            )
+            ? raw._internal.signal_log.emotional_turns
+            : [],
+          consent_events: Array.isArray(
+              raw._internal.signal_log?.consent_events,
+            )
+            ? raw._internal.signal_log.consent_events
+            : [],
+          response_quality_events: Array.isArray(
+              raw._internal.signal_log?.response_quality_events,
+            )
+            ? raw._internal.signal_log.response_quality_events
+            : [],
+        },
+        stability: raw._internal.stability ?? {},
+        sources: raw._internal.sources ?? {},
+        metrics_cache: raw._internal.metrics_cache ?? {},
+      }
+      : defaultV2Internal(),
+  };
+}
+
+export function writeMomentumStateV2(
+  tempMemory: any,
+  state: StoredMomentumV2,
+): any {
+  const next = tempMemory && typeof tempMemory === "object"
+    ? { ...tempMemory }
+    : {};
+  next[MOMENTUM_STATE_V2_KEY] = state;
+  return next;
+}
+
+export function toPublicMomentumV2(
+  stored: StoredMomentumV2,
+): MomentumStateV2 {
+  const { _internal: _, ...publicState } = stored;
+  return publicState;
+}
+
+// --- Adapter: V2 internal → V1 shape for stabilization reuse ---
+
+function v2ToStabilizationInput(
+  stored: StoredMomentumV2,
+): MomentumStateMemory {
+  return {
+    version: 1,
+    current_state: stored.current_state,
+    state_reason: stored.state_reason,
+    dimensions: {
+      engagement: {
+        level: stored.dimensions.engagement.level as EngagementLevel,
+      },
+      progression: {
+        level: stored.dimensions.execution_traction
+          .level as ProgressionLevel,
+      },
+      emotional_load: {
+        level: stored.dimensions.emotional_load.level as EmotionalLoadLevel,
+      },
+      consent: { level: stored.dimensions.consent.level as ConsentLevel },
+    },
+    metrics: {
+      last_user_turn_at: stored._internal.metrics_cache.last_user_turn_at,
+      last_user_turn_quality:
+        stored._internal.metrics_cache.last_user_turn_quality,
+      days_since_last_user_message:
+        stored._internal.metrics_cache.days_since_last_user_message,
+    },
+    blocker_memory: { actions: [] },
+    signal_log: stored._internal.signal_log,
+    stability: stored._internal.stability,
+    sources: stored._internal.sources,
+  };
+}
+
+// --- V2 router path ---
+
+export function applyRouterMomentumSignalsV2(args: {
+  tempMemory: any;
+  userMessage: string;
+  dispatcherSignals: DispatcherSignals;
+  nowIso?: string;
+}): StoredMomentumV2 {
+  const nowIso = nowIsoFrom(args.nowIso);
+  const nowMs = parseIsoMs(nowIso);
+  const current = readMomentumStateV2(args.tempMemory);
+  const internal = current._internal;
+
+  const responseQuality = detectReplyQuality(args.userMessage);
+  const emotional = detectQuickEmotionalLoad(
+    args.userMessage,
+    args.dispatcherSignals,
+  );
+  const consentSignal = detectConsentSignal(
+    args.userMessage,
+    args.dispatcherSignals,
+  );
+
+  const responseEvents = pruneTimedArray(
+    [...internal.signal_log.response_quality_events, {
+      at: nowIso,
+      quality: responseQuality,
+    }],
+    { nowMs, maxAgeMs: SEVEN_DAYS_MS, maxItems: MAX_RESPONSE_EVENTS },
+  );
+  const emotionalEvents = emotional.level === "high" ||
+      emotional.level === "medium"
+    ? pruneTimedArray(
+      [...internal.signal_log.emotional_turns, {
+        at: nowIso,
+        level: emotional.level,
+      }],
+      { nowMs, maxAgeMs: SEVEN_DAYS_MS, maxItems: MAX_EMOTIONAL_EVENTS },
+    )
+    : pruneTimedArray(internal.signal_log.emotional_turns, {
+      nowMs,
+      maxAgeMs: SEVEN_DAYS_MS,
+      maxItems: MAX_EMOTIONAL_EVENTS,
+    });
+  const consentEvents = consentSignal.eventKind
+    ? pruneTimedArray(
+      [...internal.signal_log.consent_events, {
+        at: nowIso,
+        kind: consentSignal.eventKind,
+      }],
+      { nowMs, maxAgeMs: SEVEN_DAYS_MS, maxItems: MAX_CONSENT_EVENTS },
+    )
+    : pruneTimedArray(internal.signal_log.consent_events, {
+      nowMs,
+      maxAgeMs: SEVEN_DAYS_MS,
+      maxItems: MAX_CONSENT_EVENTS,
+    });
+
+  const substantiveCount =
+    responseEvents.filter((i) => i.quality === "substantive").length;
+  const minimalCount = responseEvents.filter((i) => i.quality === "minimal")
+    .length;
+
+  let engagementLevel = current.dimensions.engagement
+    .level as EngagementLevel;
+  let engagementReason = current.dimensions.engagement.reason ?? "carry_over";
+  if (responseQuality === "substantive" && substantiveCount >= 1) {
+    engagementLevel = "high";
+    engagementReason = "substantive_recent_reply";
+  } else if (minimalCount >= 3 && substantiveCount === 0) {
+    engagementLevel = "low";
+    engagementReason = "repeated_minimal_replies";
+  } else if (
+    responseQuality === "minimal" && engagementLevel === "low"
+  ) {
+    engagementReason = "low_engagement_persists";
+  } else {
+    engagementLevel = responseQuality === "substantive" ? "high" : "medium";
+    engagementReason = responseQuality === "substantive"
+      ? "substantive_current_turn"
+      : "brief_or_minimal_current_turn";
+  }
+
+  const emotional72h = pruneTimedArray(emotionalEvents, {
+    nowMs,
+    maxAgeMs: SEVENTY_TWO_HOURS_MS,
+    maxItems: MAX_EMOTIONAL_EVENTS,
+  });
+  const highCount = emotional72h.filter((i) => i.level === "high").length;
+  const mediumCount = emotional72h.filter((i) => i.level === "medium").length;
+  const emotionalLevel: EmotionalLoadLevel = emotional.level === "high"
+    ? "high"
+    : highCount >= 2
+    ? "high"
+    : emotional.level === "medium" || mediumCount + highCount >= 1
+    ? "medium"
+    : "low";
+  const emotionalReason = emotionalLevel === emotional.level
+    ? emotional.reason
+    : emotionalLevel === "high"
+    ? "rolling_high_emotional_load"
+    : emotionalLevel === "medium"
+    ? "rolling_medium_emotional_load"
+    : "no_recent_emotional_load";
+
+  let consentLevel = consentSignal.level;
+  let consentReason = consentSignal.reason;
+  if (
+    current.dimensions.consent.level === "closed" &&
+    consentSignal.level === "open" &&
+    responseQuality !== "substantive"
+  ) {
+    consentLevel = "fragile";
+    consentReason = "recovering_from_closed_consent";
+  }
+
+  const executionTraction = current.dimensions.execution_traction;
+  const planFit = current.dimensions.plan_fit;
+  const loadBalance = current.dimensions.load_balance;
+
+  const classified = classifyMomentumStateV2({
+    engagement: engagementLevel,
+    executionTraction: executionTraction.level as ProgressionLevel,
+    emotionalLoad: emotionalLevel,
+    consent: consentLevel,
+    daysSinceLastMessage: 0,
+  });
+
+  const stabilized = stabilizeClassifiedState({
+    current: v2ToStabilizationInput(current),
+    proposedState: classified.state,
+    proposedReason: classified.reason,
+    classifiedBy: "router",
+    nowIso,
+    engagement: engagementLevel,
+    progression: executionTraction.level as ProgressionLevel,
+    emotionalLoad: emotionalLevel,
+    consent: consentLevel,
+    metrics: {
+      last_user_turn_at: nowIso,
+      last_user_turn_quality: responseQuality,
+      days_since_last_user_message: 0,
+    },
+  });
+
+  const posture = derivePostureV2(stabilized.state, current.active_load);
+  const topRisk = deriveTopRiskV2({
+    engagement: engagementLevel,
+    executionTraction: executionTraction.level as ProgressionLevel,
+    emotionalLoad: emotionalLevel,
+    consent: consentLevel,
+    needsReduce: current.active_load.needs_reduce,
+    planFit: planFit.level as "good" | "uncertain" | "poor",
+  });
+
+  return {
+    version: 2,
+    updated_at: nowIso,
+    current_state: stabilized.state,
+    state_reason: stabilized.reason,
+    dimensions: {
+      engagement: { level: engagementLevel, reason: engagementReason },
+      execution_traction: executionTraction,
+      emotional_load: { level: emotionalLevel, reason: emotionalReason },
+      consent: { level: consentLevel, reason: consentReason },
+      plan_fit: planFit,
+      load_balance: loadBalance,
+    },
+    assessment: {
+      top_blocker: current.assessment.top_blocker,
+      top_risk: topRisk,
+      confidence: current.assessment.confidence,
+    },
+    active_load: current.active_load,
+    posture: {
+      recommended_posture: posture,
+      confidence: topRisk === null ? "high" : "medium",
+    },
+    blockers: current.blockers,
+    memory_links: current.memory_links,
+    _internal: {
+      signal_log: {
+        emotional_turns: emotionalEvents,
+        consent_events: consentEvents,
+        response_quality_events: responseEvents,
+      },
+      stability: stabilized.stability,
+      sources: updateStateMetadata(
+        v2ToStabilizationInput(current),
+        stabilized.state,
+        "router",
+        nowIso,
+      ),
+      metrics_cache: {
+        last_user_turn_at: nowIso,
+        last_user_turn_quality: responseQuality,
+        days_since_last_user_message: 0,
+      },
+    },
+  };
+}
+
+// --- V2 watcher consolidation (pure function) ---
+
+export function deriveMomentumFromSnapshotV2(args: {
+  current: StoredMomentumV2;
+  snapshot: MomentumConsolidationSnapshotV2;
+  nowIso?: string;
+}): StoredMomentumV2 {
+  const nowIso = nowIsoFrom(args.nowIso);
+  const nowMs = parseIsoMs(nowIso);
+  const internal = args.current._internal;
+
+  const responseEvents = pruneTimedArray(
+    internal.signal_log.response_quality_events,
+    { nowMs, maxAgeMs: SEVEN_DAYS_MS, maxItems: MAX_RESPONSE_EVENTS },
+  );
+  const emotionalEvents = pruneTimedArray(
+    internal.signal_log.emotional_turns,
+    { nowMs, maxAgeMs: SEVEN_DAYS_MS, maxItems: MAX_EMOTIONAL_EVENTS },
+  );
+  const consentEvents = pruneTimedArray(
+    internal.signal_log.consent_events,
+    { nowMs, maxAgeMs: SEVEN_DAYS_MS, maxItems: MAX_CONSENT_EVENTS },
+  );
+
+  const engagement = computeEngagementFromSnapshot({
+    recentMessages: args.snapshot.recentMessages,
+    responseEvents,
+    nowMs,
+  });
+  const executionTraction = deriveExecutionTractionV2(
+    args.snapshot.planItemsRuntime,
+  );
+  const emotional = computeEmotionalLoadFromSignals({
+    emotionalEvents,
+    nowMs,
+  });
+  const consent = computeConsentFromSignals({
+    consentEvents,
+    profilePauseUntilIso: args.snapshot.profilePauseUntilIso,
+    nowMs,
+  });
+  const planFit = derivePlanFitV2(args.snapshot.planItemsRuntime, nowMs);
+  const loadBalance = deriveLoadBalanceV2(args.snapshot.activeLoad);
+  const blockers = deriveBlockersV2(args.snapshot.planItemsRuntime);
+
+  let daysSinceLastMessage = engagement.metrics.days_since_last_user_message;
+  if (daysSinceLastMessage === null || daysSinceLastMessage === undefined) {
+    const lastTurnMs = parseIsoMs(internal.metrics_cache.last_user_turn_at);
+    if (lastTurnMs > 0) {
+      daysSinceLastMessage = round2((nowMs - lastTurnMs) / ONE_DAY_MS);
+    }
+  }
+
+  const classified = classifyMomentumStateV2({
+    engagement: engagement.level,
+    executionTraction: executionTraction.level,
+    emotionalLoad: emotional.level,
+    consent: consent.level,
+    daysSinceLastMessage,
+  });
+
+  const stabilized = stabilizeClassifiedState({
+    current: v2ToStabilizationInput(args.current),
+    proposedState: classified.state,
+    proposedReason: classified.reason,
+    classifiedBy: "watcher",
+    nowIso,
+    engagement: engagement.level,
+    progression: executionTraction.level as ProgressionLevel,
+    emotionalLoad: emotional.level,
+    consent: consent.level,
+    metrics: {
+      ...(internal.metrics_cache as MomentumMetrics),
+      ...engagement.metrics,
+      ...emotional.metrics,
+      ...consent.metrics,
+    },
+  });
+
+  const posture = derivePostureV2(
+    stabilized.state,
+    args.snapshot.activeLoad,
+  );
+  const topRisk = deriveTopRiskV2({
+    engagement: engagement.level,
+    executionTraction: executionTraction.level,
+    emotionalLoad: emotional.level,
+    consent: consent.level,
+    needsReduce: args.snapshot.activeLoad.needs_reduce,
+    planFit: planFit.level,
+  });
+  const hasRecentEntries = args.snapshot.planItemsRuntime.some((i) =>
+    i.recent_entries.length > 0
+  );
+  const topBlockerTitle = blockers.blocker_kind
+    ? args.snapshot.planItemsRuntime.find((i) => i.status === "stalled")
+      ?.title ?? null
+    : null;
+
+  return {
+    version: 2,
+    updated_at: nowIso,
+    current_state: stabilized.state,
+    state_reason: stabilized.reason,
+    dimensions: {
+      engagement: { level: engagement.level, reason: engagement.reason },
+      execution_traction: executionTraction,
+      emotional_load: { level: emotional.level, reason: emotional.reason },
+      consent: { level: consent.level, reason: consent.reason },
+      plan_fit: planFit,
+      load_balance: loadBalance,
+    },
+    assessment: {
+      top_blocker: topBlockerTitle,
+      top_risk: topRisk,
+      confidence: deriveAssessmentConfidenceV2({
+        executionTraction: executionTraction.level,
+        planFit: planFit.level,
+        hasRecentEntries,
+      }),
+    },
+    active_load: args.snapshot.activeLoad,
+    posture: {
+      recommended_posture: posture,
+      confidence: topRisk === null ? "high" : "medium",
+    },
+    blockers,
+    memory_links: args.current.memory_links,
+    _internal: {
+      signal_log: {
+        emotional_turns: emotionalEvents,
+        consent_events: consentEvents,
+        response_quality_events: responseEvents,
+      },
+      stability: stabilized.stability,
+      sources: updateStateMetadata(
+        v2ToStabilizationInput(args.current),
+        stabilized.state,
+        "watcher",
+        nowIso,
+      ),
+      metrics_cache: {
+        last_user_turn_at: internal.metrics_cache.last_user_turn_at,
+        last_user_turn_quality: internal.metrics_cache.last_user_turn_quality,
+        days_since_last_user_message: daysSinceLastMessage,
+      },
+    },
+  };
+}
+
+// --- V2 watcher DB consolidation ---
+
+export async function consolidateMomentumStateV2(args: {
+  supabase: SupabaseClient;
+  userId: string;
+  scope: string;
+  tempMemory: any;
+  nowIso?: string;
+}): Promise<StoredMomentumV2> {
+  const nowIso = nowIsoFrom(args.nowIso);
+  const current = readMomentumStateV2(args.tempMemory);
+
+  const runtime = await getActiveTransformationRuntime(
+    args.supabase,
+    args.userId,
+  );
+
+  let planItemsRuntime: PlanItemRuntimeRow[] = [];
+  let activeLoad: MomentumStateV2["active_load"] = current.active_load;
+
+  if (runtime.plan) {
+    const [items, load] = await Promise.all([
+      getPlanItemRuntime(args.supabase, runtime.plan.id, {
+        scope: "current_phase",
+      }),
+      getActiveLoad(args.supabase, runtime.plan.id),
+    ]);
+    planItemsRuntime = items;
+    activeLoad = load;
+  }
+
+  const messagesSinceIso = new Date(
+    parseIsoMs(nowIso) - SEVEN_DAYS_MS,
+  ).toISOString();
+
+  const [{ data: profile }, { data: recentMessages }] = await Promise.all([
+    args.supabase
+      .from("profiles")
+      .select("whatsapp_coaching_paused_until, whatsapp_bilan_paused_until")
+      .eq("id", args.userId)
+      .maybeSingle(),
+    args.supabase
+      .from("chat_messages")
+      .select("role, content, created_at")
+      .eq("user_id", args.userId)
+      .eq("scope", args.scope)
+      .gte("created_at", messagesSinceIso)
+      .order("created_at", { ascending: true })
+      .limit(120),
+  ]);
+
+  const profilePauseUntilIso = (() => {
+    const coaching = String(
+      (profile as any)?.whatsapp_coaching_paused_until ?? "",
+    ).trim();
+    const bilan = String(
+      (profile as any)?.whatsapp_bilan_paused_until ?? "",
+    ).trim();
+    const coachingMs = parseIsoMs(coaching);
+    const bilanMs = parseIsoMs(bilan);
+    return coachingMs >= bilanMs ? (coaching || null) : (bilan || null);
+  })();
+
+  const messagesTyped: ChatMessageRow[] = Array.isArray(recentMessages)
+    ? recentMessages.map((row: any) => ({
+      role: String(row?.role ?? ""),
+      content: String(row?.content ?? ""),
+      created_at: String(row?.created_at ?? ""),
+    }))
+    : [];
+
+  return deriveMomentumFromSnapshotV2({
+    current,
+    snapshot: {
+      profilePauseUntilIso,
+      recentMessages: messagesTyped,
+      planItemsRuntime,
+      activeLoad,
+    },
+    nowIso,
+  });
+}
+
+// --- V2 log summary ---
+
+export function summarizeMomentumStateV2ForLog(
+  state: MomentumStateV2,
+): Record<string, unknown> {
+  return {
+    state: state.current_state,
+    state_reason: state.state_reason,
+    engagement: state.dimensions.engagement.level,
+    execution_traction: state.dimensions.execution_traction.level,
+    emotional_load: state.dimensions.emotional_load.level,
+    consent: state.dimensions.consent.level,
+    plan_fit: state.dimensions.plan_fit.level,
+    load_balance: state.dimensions.load_balance.level,
+    top_risk: state.assessment.top_risk,
+    top_blocker: state.assessment.top_blocker,
+    confidence: state.assessment.confidence,
+    posture: state.posture.recommended_posture,
+    load_score: state.active_load.current_load_score,
+    needs_reduce: state.active_load.needs_reduce,
+    needs_consolidate: state.active_load.needs_consolidate,
+    blocker_kind: state.blockers.blocker_kind,
+    updated_at: state.updated_at,
   };
 }
