@@ -17,6 +17,7 @@
  */
 
 import type { TurnFrame } from "../../../contracts/turn_frame.v1.ts";
+import type { SlotKey } from "../../../../_shared/keel/tokens.ts";
 import { runDirectEffectGate } from "../../../routers/direct_effect_gate.ts";
 import type {
   LogProtocolEventCommittedEffect,
@@ -38,6 +39,11 @@ export type LogProtocolEventRouterInput = {
   /** R2/R3: persisted conversation_locale of the thread. */
   content_locale: string | null | undefined;
   default_source?: ProtocolEventSource;
+  /**
+   * Le créneau NOMMÉ par l'élève dans son message (repli déterministe quand le
+   * modèle ne l'émet pas — mesuré 0/3). Voir `_shared/keel/slot_from_message.ts`.
+   */
+  slot_named_in_message?: SlotKey | null;
   /**
    * The day's plan line ids — the allow-list for an EXPLICIT binding. It must
    * be the same set the dispatcher was shown (`context/keel_plan_context.ts`),
@@ -103,6 +109,7 @@ export async function runLogProtocolEventDirectEffect(
     turn_frame: input.turn_frame,
     content_locale: input.content_locale,
     default_source: input.default_source,
+    slot_named_in_message: input.slot_named_in_message ?? null,
     allowed_commitment_ids: input.allowed_commitment_ids,
   });
   if (!intake.detected) return emptyResult(intake.reason_code);

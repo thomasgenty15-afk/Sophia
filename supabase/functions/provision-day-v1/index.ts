@@ -40,7 +40,7 @@ import { reseedOnPublish } from "./reseed_on_publish.ts";
  *
  * WHY HOURLY AND NOT DAILY — W1.3 bug 3, verbatim: a single daily UTC tick
  * cannot open a day for a fleet spread over 25 hours of offsets. The
- * per-timezone gate is IMPORTED from schedule-whatsapp-v2-checkins, not
+ * per-timezone gate is IMPORTED from schedule-checkins-v2, not
  * re-implemented (see sweep_gate.ts).
  *
  * IDEMPOTENCE — every mode can be replayed:

@@ -46,7 +46,7 @@ import {
   accessEndedPurpose,
   buildAccessEndedInitialMessage,
   normalizeAccessEndedReason,
-} from "../_shared/access_ended_whatsapp.ts";
+} from "../_shared/access_ended_notice.ts";
 import {
   isBirthdayGreetingEventContext,
 } from "../_shared/birthday_checkins.ts";
@@ -1225,7 +1225,7 @@ function evaluateDailyBilanWinbackForProfile(
     whatsappBilanOptedIn: profile.whatsapp_bilan_opted_in,
     whatsappBilanPausedUntil: profile.whatsapp_bilan_paused_until,
     whatsappCoachingPausedUntil: profile.whatsapp_coaching_paused_until,
-    whatsappLastInboundAt: profile.whatsapp_last_inbound_at,
+    whatsappLastInboundAt: profile.chat_last_inbound_at,
     whatsappBilanWinbackStep: profile.whatsapp_bilan_winback_step,
     whatsappBilanLastWinbackAt: (profile as any).whatsapp_bilan_last_winback_at,
   });
@@ -1323,11 +1323,18 @@ async function processDueDailyBilanWinbacks(params: {
   const { data: profiles, error } = await params.supabaseAdmin
     .from("profiles")
     .select(
-      "id,locale,timezone,access_tier,trial_end,whatsapp_bilan_opted_in,whatsapp_last_inbound_at,whatsapp_bilan_paused_until,whatsapp_coaching_paused_until,whatsapp_bilan_winback_step,whatsapp_bilan_last_winback_at",
+      // 🔴 CINQUIÈME INSTANCE, ET C'EST L'INVERSE DES QUATRE AUTRES.
+      // `chat_last_inbound_at` n'a plus AUCUN writer depuis que l'entrant
+      // in-app écrit `chat_last_inbound_at` (`inbound_pipeline.ts`). Les quatre
+      // premiers défauts faisaient TAIRE le produit; celui-ci l'aurait fait
+      // SPAMMER: figée dans le passé, la colonne fait passer chaque élève pour
+      // silencieux, et la sélection de winback ci-dessous les aurait tous
+      // repris, indéfiniment.
+      "id,locale,timezone,access_tier,trial_end,whatsapp_bilan_opted_in,chat_last_inbound_at,whatsapp_bilan_paused_until,whatsapp_coaching_paused_until,whatsapp_bilan_winback_step,whatsapp_bilan_last_winback_at",
     )
     .eq("whatsapp_bilan_opted_in", true)
-    .not("whatsapp_last_inbound_at", "is", null)
-    .lt("whatsapp_last_inbound_at", winbackStep1CutoffIso)
+    .not("chat_last_inbound_at", "is", null)
+    .lt("chat_last_inbound_at", winbackStep1CutoffIso)
     .lt("whatsapp_bilan_winback_step", 3)
     .neq("account_status", "deletion_pending")
     .limit(100);
@@ -1451,14 +1458,14 @@ async function sweepReengagementEpisodes(params: {
   );
   const { data: profiles, error: profilesError } = await params.supabaseAdmin
     .from("profiles")
-    .select("id,whatsapp_last_inbound_at")
+    .select("id,chat_last_inbound_at")
     .in("id", userIds);
   if (profilesError) throw profilesError;
   const lastInboundByUserId = new Map<string, number | null>();
   for (const profile of (profiles ?? []) as Array<Record<string, unknown>>) {
     lastInboundByUserId.set(
       cleanText(profile.id),
-      parseIsoMs(cleanText(profile.whatsapp_last_inbound_at)),
+      parseIsoMs(cleanText(profile.chat_last_inbound_at)),
     );
   }
 
@@ -2408,7 +2415,7 @@ async function processDueRendezVous(params: {
     const { data: profile } = await params.supabaseAdmin
       .from("profiles")
       .select(
-        "access_tier,trial_end,whatsapp_opted_in,whatsapp_last_inbound_at,whatsapp_last_outbound_at,timezone,account_status",
+        "access_tier,trial_end,proactive_muted_at,chat_last_inbound_at,timezone,account_status",
       )
       .eq("id", userId)
       .maybeSingle();
@@ -2456,9 +2463,11 @@ async function processDueRendezVous(params: {
       continue;
     }
 
-    if (!Boolean((profile as any)?.whatsapp_opted_in)) {
+    // Le mute produit, pas l'opt-in Meta: `whatsapp_opted_in` vaut `false` par
+    // défaut et faisait sauter TOUS les rendez-vous.
+    if ((profile as any)?.proactive_muted_at) {
       console.log(
-        `[process-checkins] request_id=${params.requestId} rendez_vous_skipped user_id=${userId} rdv_id=${rdvId} reason=not_opted_in`,
+        `[process-checkins] request_id=${params.requestId} rendez_vous_skipped user_id=${userId} rdv_id=${rdvId} reason=proactive_muted`,
       );
       await transitionRendezVous(
         params.supabaseAdmin as any,
@@ -2512,12 +2521,12 @@ async function processDueRendezVous(params: {
     try {
       const { data: profileForGreeting } = await params.supabaseAdmin
         .from("profiles")
-        .select("whatsapp_last_inbound_at,whatsapp_last_outbound_at")
+        .select("chat_last_inbound_at,chat_last_outbound_at")
         .eq("id", userId)
         .maybeSingle();
       const allowRelaunchGreeting = allowRelaunchGreetingFromLastMessage({
-        lastInboundAt: (profileForGreeting as any)?.whatsapp_last_inbound_at,
-        lastOutboundAt: (profileForGreeting as any)?.whatsapp_last_outbound_at,
+        lastInboundAt: (profileForGreeting as any)?.chat_last_inbound_at,
+        lastOutboundAt: (profileForGreeting as any)?.chat_last_outbound_at,
       });
       bodyText = applyScheduledCheckinGreetingPolicy({
         text: bodyText,
@@ -2668,7 +2677,7 @@ Deno.serve(async (req) => {
         const { data: profile } = await supabaseAdmin
           .from("profiles")
           .select(
-            "whatsapp_last_inbound_at, whatsapp_last_outbound_at, account_status",
+            "chat_last_inbound_at, chat_last_outbound_at, account_status",
           )
           .eq("id", row.user_id)
           .maybeSingle();
@@ -2685,11 +2694,11 @@ Deno.serve(async (req) => {
             .eq("id", row.id);
           continue;
         }
-        const lastInbound = profile?.whatsapp_last_inbound_at
-          ? new Date(profile.whatsapp_last_inbound_at).getTime()
+        const lastInbound = profile?.chat_last_inbound_at
+          ? new Date(profile.chat_last_inbound_at).getTime()
           : null;
-        const lastOutbound = (profile as any)?.whatsapp_last_outbound_at
-          ? new Date((profile as any).whatsapp_last_outbound_at).getTime()
+        const lastOutbound = (profile as any)?.chat_last_outbound_at
+          ? new Date((profile as any).chat_last_outbound_at).getTime()
           : null;
         const lastActivity = Math.max(lastInbound ?? 0, lastOutbound ?? 0);
         if (lastActivity > 0 && Date.now() - lastActivity < quietMs) {
@@ -2708,14 +2717,14 @@ Deno.serve(async (req) => {
         try {
           const { data: profileForGreeting } = await supabaseAdmin
             .from("profiles")
-            .select("whatsapp_last_inbound_at, whatsapp_last_outbound_at")
+            .select("chat_last_inbound_at, chat_last_outbound_at")
             .eq("id", row.user_id)
             .maybeSingle();
           const allowRelaunchGreeting = allowRelaunchGreetingFromLastMessage({
             lastInboundAt: (profileForGreeting as any)
-              ?.whatsapp_last_inbound_at,
+              ?.chat_last_inbound_at,
             lastOutboundAt: (profileForGreeting as any)
-              ?.whatsapp_last_outbound_at,
+              ?.chat_last_outbound_at,
           });
           bodyText = applyWhatsappProactiveOpeningPolicy({
             text: bodyText,
@@ -3167,7 +3176,7 @@ Deno.serve(async (req) => {
         const { data: profile } = await supabaseAdmin
           .from("profiles")
           .select(
-            "whatsapp_last_inbound_at, whatsapp_last_outbound_at, timezone, whatsapp_coaching_paused_until, whatsapp_bilan_opted_in, whatsapp_bilan_paused_until, whatsapp_bilan_missed_streak, whatsapp_bilan_last_prompt_at, whatsapp_bilan_winback_step, whatsapp_bilan_last_winback_at,onboarding_completed,whatsapp_state,account_status",
+            "chat_last_inbound_at, chat_last_outbound_at, timezone, whatsapp_coaching_paused_until, whatsapp_bilan_opted_in, whatsapp_bilan_paused_until, whatsapp_bilan_missed_streak, whatsapp_bilan_last_prompt_at, whatsapp_bilan_winback_step, whatsapp_bilan_last_winback_at,onboarding_completed,whatsapp_state,account_status",
           )
           .eq("id", checkin.user_id)
           .maybeSingle();
@@ -3334,11 +3343,11 @@ Deno.serve(async (req) => {
             continue;
           }
         }
-        const lastInbound = profile?.whatsapp_last_inbound_at
-          ? new Date(profile.whatsapp_last_inbound_at).getTime()
+        const lastInbound = profile?.chat_last_inbound_at
+          ? new Date(profile.chat_last_inbound_at).getTime()
           : null;
-        const lastOutbound = (profile as any)?.whatsapp_last_outbound_at
-          ? new Date((profile as any).whatsapp_last_outbound_at).getTime()
+        const lastOutbound = (profile as any)?.chat_last_outbound_at
+          ? new Date((profile as any).chat_last_outbound_at).getTime()
           : null;
         in24hConversationWindow = lastInbound !== null &&
           Date.now() - lastInbound < 24 * 60 * 60 * 1000;
@@ -3824,14 +3833,14 @@ Deno.serve(async (req) => {
         try {
           const { data: profileForGreeting } = await supabaseAdmin
             .from("profiles")
-            .select("whatsapp_last_inbound_at, whatsapp_last_outbound_at")
+            .select("chat_last_inbound_at, chat_last_outbound_at")
             .eq("id", checkin.user_id)
             .maybeSingle();
           const allowRelaunchGreeting = allowRelaunchGreetingFromLastMessage({
             lastInboundAt: (profileForGreeting as any)
-              ?.whatsapp_last_inbound_at,
+              ?.chat_last_inbound_at,
             lastOutboundAt: (profileForGreeting as any)
-              ?.whatsapp_last_outbound_at,
+              ?.chat_last_outbound_at,
             thresholdHours: PROACTIVE_GREETING_RELAUNCH_THRESHOLD_HOURS,
           });
           openingPlan = await generateDailyActionReviewOpening({
@@ -4263,14 +4272,14 @@ Deno.serve(async (req) => {
         try {
           const { data: profileForGreeting } = await supabaseAdmin
             .from("profiles")
-            .select("whatsapp_last_inbound_at, whatsapp_last_outbound_at")
+            .select("chat_last_inbound_at, chat_last_outbound_at")
             .eq("id", checkin.user_id)
             .maybeSingle();
           const allowRelaunchGreeting = allowRelaunchGreetingFromLastMessage({
             lastInboundAt: (profileForGreeting as any)
-              ?.whatsapp_last_inbound_at,
+              ?.chat_last_inbound_at,
             lastOutboundAt: (profileForGreeting as any)
-              ?.whatsapp_last_outbound_at,
+              ?.chat_last_outbound_at,
           });
           weeklyReviewIntro = await generateWeeklyAdaptiveReviewOpening({
             supabaseAdmin,
@@ -4539,13 +4548,13 @@ Deno.serve(async (req) => {
         try {
           const { data: profileForGreeting } = await supabaseAdmin
             .from("profiles")
-            .select("whatsapp_last_inbound_at, whatsapp_last_outbound_at")
+            .select("chat_last_inbound_at, chat_last_outbound_at")
             .eq("id", checkin.user_id)
             .maybeSingle();
           const allowRelaunchGreeting = allowRelaunchGreetingFromLastMessage({
-            lastInboundAt: (profileForGreeting as any)?.whatsapp_last_inbound_at,
+            lastInboundAt: (profileForGreeting as any)?.chat_last_inbound_at,
             lastOutboundAt: (profileForGreeting as any)
-              ?.whatsapp_last_outbound_at,
+              ?.chat_last_outbound_at,
             thresholdHours: PROACTIVE_GREETING_RELAUNCH_THRESHOLD_HOURS,
           });
           bodyText = applyScheduledCheckinGreetingPolicy({

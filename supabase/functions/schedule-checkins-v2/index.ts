@@ -336,7 +336,7 @@ Deno.serve(async (req) => {
     let profilesQuery = supabaseAdmin
       .from("profiles")
       .select(
-        "id,full_name,birth_date,timezone,whatsapp_opted_in,whatsapp_coaching_paused_until,access_tier,trial_start,trial_end",
+        "id,full_name,birth_date,timezone,proactive_muted_at,whatsapp_coaching_paused_until,access_tier,trial_start,trial_end",
       )
       .neq("account_status", "deletion_pending")
       .order("id", { ascending: true });
@@ -404,7 +404,7 @@ Deno.serve(async (req) => {
       // with it.
       if (timezoneClassification.invalid.has(timezone)) {
         console.warn(
-          "[schedule-whatsapp-v2-checkins] skipped_invalid_timezone",
+          "[schedule-checkins-v2] skipped_invalid_timezone",
           { user_id: userId, timezone },
         );
         skippedInvalidTimezone++;
@@ -428,7 +428,7 @@ Deno.serve(async (req) => {
       // restriction floor.
       //
       // MOVED HERE IN W10, ABOVE THE TWO GATES BELOW (MEGA_REVIEW B6).
-      // It used to sit ~90 lines further down, behind `whatsapp_opted_in` and
+      // It used to sit ~90 lines further down, behind the opt-in gate and
       // behind `isWhatsappSchedulingTierEligible`. A student invited by their
       // coach, using the web app, cleared neither: their `access_tier` is
       // 'student' (paid by the coach, not by them) and they may never have
@@ -445,7 +445,17 @@ Deno.serve(async (req) => {
       //
       // Its own try/catch, as before: a KEEL failure never takes down the
       // fleet's habit provisioning.
-      const keelRemindersEnabled = Boolean(profile.whatsapp_opted_in) &&
+      // 🔴 QUATRIÈME INSTANCE DU MÊME DÉFAUT, trouvée au balayage final.
+      //
+      // La condition était `Boolean(profile.whatsapp_opted_in)`. Cette colonne
+      // vaut `false` par défaut et plus personne ne la met à `true` depuis la
+      // suppression de `whatsapp-optin`: **AUCUN rappel de créneau KEEL
+      // n'était jamais provisionné**, pour aucun élève. Le plan du coach était
+      // publié, l'élève l'avait accepté, et rien ne lui arrivait jamais.
+      //
+      // Le réglage produit est `proactive_muted_at`: son absence veut dire
+      // « il accepte les relances ». Le gate de palier, lui, ne bouge pas.
+      const keelRemindersEnabled = !profile.proactive_muted_at &&
         tierGrantsProtocolExecution(profile.access_tier);
       try {
         const keelResult = await provisionKeelDayForUser(supabaseAdmin as any, {
@@ -460,23 +470,25 @@ Deno.serve(async (req) => {
           keelSlotRemindersScheduled += keelResult.provisioned;
           if (keelResult.restrictionFlag) keelRestrictionFlagged++;
           console.log(
-            `[schedule-whatsapp-v2-checkins] request_id=${requestId} keel_day_provisioned user_id=${userId} reason=${keelResult.reason} reminders_enabled=${keelRemindersEnabled} provisioned=${keelResult.provisioned} skipped_past=${keelResult.skippedPastTime} restriction_flag=${keelResult.restrictionFlag} restriction_escalated=${keelResult.restrictionEscalated} cancelled=${keelResult.cancelledByRestriction}`,
+            `[schedule-checkins-v2] request_id=${requestId} keel_day_provisioned user_id=${userId} reason=${keelResult.reason} reminders_enabled=${keelRemindersEnabled} provisioned=${keelResult.provisioned} skipped_past=${keelResult.skippedPastTime} restriction_flag=${keelResult.restrictionFlag} restriction_escalated=${keelResult.restrictionEscalated} cancelled=${keelResult.cancelledByRestriction}`,
           );
         }
       } catch (error) {
         keelProvisioningFailed++;
         console.error(
-          `[schedule-whatsapp-v2-checkins] request_id=${requestId} keel_provisioning_failed user_id=${userId}`,
+          `[schedule-checkins-v2] request_id=${requestId} keel_provisioning_failed user_id=${userId}`,
           error,
         );
       }
 
-      if (!Boolean(profile.whatsapp_opted_in)) {
+      // Même correction: l'élève qui a coupé ses relances voit ses check-ins
+      // en attente annulés. Celui qui n'a rien demandé les garde.
+      if (profile.proactive_muted_at) {
         await cancelPendingWhatsappCoachingCheckins({
           supabaseAdmin,
           userId,
           nowIso,
-          reason: "whatsapp_not_opted_in",
+          reason: "proactive_muted",
         });
         skipped++;
         continue;
@@ -740,7 +752,7 @@ Deno.serve(async (req) => {
             );
           if (birthdayErr) {
             console.error(
-              `[schedule-whatsapp-v2-checkins] request_id=${requestId} birthday_upsert_failed user_id=${userId}`,
+              `[schedule-checkins-v2] request_id=${requestId} birthday_upsert_failed user_id=${userId}`,
               birthdayErr,
             );
           } else {
@@ -821,7 +833,7 @@ Deno.serve(async (req) => {
           );
         if (upsertErr) {
           console.error(
-            `[schedule-whatsapp-v2-checkins] request_id=${requestId} morning_upsert_failed user_id=${userId}`,
+            `[schedule-checkins-v2] request_id=${requestId} morning_upsert_failed user_id=${userId}`,
             upsertErr,
           );
         } else {
@@ -919,7 +931,7 @@ Deno.serve(async (req) => {
             );
           if (eveningErr) {
             console.error(
-              `[schedule-whatsapp-v2-checkins] request_id=${requestId} evening_upsert_failed user_id=${userId}`,
+              `[schedule-checkins-v2] request_id=${requestId} evening_upsert_failed user_id=${userId}`,
               eveningErr,
             );
           } else {
@@ -1003,7 +1015,7 @@ Deno.serve(async (req) => {
             );
           if (lateAfternoonErr) {
             console.error(
-              `[schedule-whatsapp-v2-checkins] request_id=${requestId} late_afternoon_upsert_failed user_id=${userId}`,
+              `[schedule-checkins-v2] request_id=${requestId} late_afternoon_upsert_failed user_id=${userId}`,
               lateAfternoonErr,
             );
           } else {
@@ -1102,7 +1114,7 @@ Deno.serve(async (req) => {
             );
           if (nightPrepErr) {
             console.error(
-              `[schedule-whatsapp-v2-checkins] request_id=${requestId} night_prep_upsert_failed user_id=${userId}`,
+              `[schedule-checkins-v2] request_id=${requestId} night_prep_upsert_failed user_id=${userId}`,
               nightPrepErr,
             );
           } else {
@@ -1171,7 +1183,7 @@ Deno.serve(async (req) => {
           );
         if (weeklyReviewErr) {
           console.error(
-            `[schedule-whatsapp-v2-checkins] request_id=${requestId} weekly_review_upsert_failed user_id=${userId}`,
+            `[schedule-checkins-v2] request_id=${requestId} weekly_review_upsert_failed user_id=${userId}`,
             weeklyReviewErr,
           );
         } else {
@@ -1221,11 +1233,11 @@ Deno.serve(async (req) => {
     );
   } catch (error) {
     console.error(
-      `[schedule-whatsapp-v2-checkins] request_id=${requestId}`,
+      `[schedule-checkins-v2] request_id=${requestId}`,
       error,
     );
     await logEdgeFunctionError({
-      functionName: "schedule-whatsapp-v2-checkins",
+      functionName: "schedule-checkins-v2",
       requestId,
       error,
       metadata: { source: "edge" },

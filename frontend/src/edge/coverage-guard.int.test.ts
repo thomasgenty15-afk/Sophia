@@ -168,7 +168,7 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       "provision-day-v1",
       "purge-deleted-accounts",
       "review-plan-v1",
-      "schedule-whatsapp-v2-checkins",
+      "schedule-checkins-v2",
       "send-welcome-email",
       "sophia-brain",
       "stripe-create-checkout-session",
@@ -229,7 +229,9 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       "meal_ideas_food_groups_valid",
       "meal_plan_entries_touch",
       "student_cards_render",
-      "sync_phone_verified_on_whatsapp_optin_trigger",
+      // DE-WHATSAPP: `sync_phone_verified_on_whatsapp_optin_trigger` est
+      // supprime (20260804150000) — il posait phone_verified_at quand
+      // whatsapp_opted_in passait a true, ce que plus personne ne fait.
       "trg_archive_pending_week_plans_on_plan_archive",
       "trg_chat_messages_scope_memory_insert",
       "trg_memory_item_actions_updated_at",
@@ -237,6 +239,10 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       "trg_memory_item_topics_updated_at",
       "trg_memory_items_set_updated_at",
       "trg_memory_weekly_review_runs_updated_at",
+      // DE-WHATSAPP: RENOMME en base en `trg_refresh_scheduling_on_access_tier_change`
+      // (20260804150000). Le nom reste ici parce que ce garde decouvre les
+      // triggers en lisant les MIGRATIONS, ou le CREATE historique porte
+      // toujours l'ancien nom — et une migration historique ne se reecrit pas.
       "trg_refresh_whatsapp_scheduling_on_access_tier_change",
       "trg_scheduled_checkins_delete_audit",
       "trg_scheduled_checkins_enforce_min_gap_1h",

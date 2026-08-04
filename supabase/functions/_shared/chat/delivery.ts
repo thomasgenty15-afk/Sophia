@@ -451,6 +451,25 @@ export async function deliverChatMessage(
   const chatMessageId = String((inserted as { id?: string } | null)?.id ?? "") ||
     null;
 
+  // La FRAÎCHEUR DU SALUT. `process-checkins` compare dernier entrant et
+  // dernier sortant pour décider si Sophia dit « bonjour » ou reprend une
+  // conversation en cours. Sans cette écriture, la colonne resterait figée et
+  // chaque élève passerait pour éternellement absent — l'exact symétrique du
+  // défaut d'opt-in, mais qui fait se RÉPÉTER au lieu de faire taire.
+  //
+  // Best-effort: rater cette trace ne défait pas une livraison déjà reçue.
+  const { error: freshnessError } = await admin
+    .from("profiles")
+    .update({ chat_last_outbound_at: nowIso } as never)
+    .eq("id", params.userId);
+  if (freshnessError) {
+    console.warn(JSON.stringify({
+      tag: "chat_delivery_freshness_update_failed",
+      user_id: params.userId,
+      error: freshnessError.message,
+    }));
+  }
+
   // Le ledger apprend à quel message visible il correspond. Best-effort: la
   // livraison a eu lieu, l'élève l'a reçue, et rater ce lien ne la défait pas.
   if (claim.id && chatMessageId) {

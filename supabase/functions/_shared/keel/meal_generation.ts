@@ -56,7 +56,21 @@ import { normalizeForMatch } from "./forbidden_matcher.ts";
 export const MEAL_MODES = ["from_pantry", "to_shop"] as const;
 export type MealMode = (typeof MEAL_MODES)[number];
 
-export const MEAL_SCOPES = ["single_meal", "day", "several_days"] as const;
+/**
+ * Le périmètre d'une génération.
+ *
+ * ── POURQUOI `single_meal` N'EXISTE PLUS ────────────────────────────────
+ * « Donne-moi une idée pour ce soir » est une QUESTION DE CONVERSATION, pas
+ * une génération. L'élève l'écrit dans le chat, l'agent répond dans la méthode
+ * de son coach, et c'est réglé en un tour. Le faire passer par un générateur,
+ * une ligne en base et un PDF était une cérémonie disproportionnée.
+ *
+ * Ce que cette surface apporte commence à PLUSIEURS repas: c'est là qu'il y a
+ * une liste de courses à agréger, des jours à répartir et un document à
+ * emporter au magasin. (Arbitrage du 2026-08-04, migration
+ * `20260804110000_meal_scope_drop_single_meal`.)
+ */
+export const MEAL_SCOPES = ["day", "several_days"] as const;
 export type MealScope = (typeof MEAL_SCOPES)[number];
 
 export const MEAL_SLOTS = ["breakfast", "lunch", "dinner", "snack"] as const;
@@ -139,8 +153,6 @@ const DAY_TOKENS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
  */
 export function dishCapFor(scope: MealScope): number {
   switch (scope) {
-    case "single_meal":
-      return 1;
     case "day":
       return 3;
     case "several_days":

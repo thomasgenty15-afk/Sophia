@@ -545,3 +545,107 @@ migrations `20260803160000` (cycle de vie + SECURITY DEFINER) et
 `keel_output_locks.ts`, `router/run.ts`, `dispatcher.v2.ts`,
 `dispatcher.prompts.ts`, `routers/routers.ts`, `direct_effect_gate.ts`,
 `contracts/turn_frame.v1.ts` + leurs tests.
+
+---
+---
+
+# PARTIE 3 — LE RELIQUAT
+
+*Suite complète après ce lot : **2716 tests, 0 échec**.*
+
+## F8 — le créneau, corrigé structurellement
+
+Le prompt dispatcher demandait déjà le créneau (« le creneau que l'eleve
+nomme ») et le modèle ne l'émettait jamais : **0/3**. Un meilleur prompt aurait
+reproduit `p8-revalidation-rose-reds` — un correctif prompt-only qui régresse en
+run réel.
+
+Nouveau module `_shared/keel/slot_from_message.ts` : extracteur **déterministe**,
+en **repli** du `payload_hint` (le modèle prime toujours). Il ne reçoit **aucune
+horloge** — la règle « ne le deduis pas de l'heure qu'il est » est donc tenue par
+construction, pas par discipline.
+
+Trois refus délibérés, chacun testé :
+- **« snack » seul n'est pas résolu** : `snack_am` et `snack_pm` sont deux
+  créneaux, trancher demanderait l'heure qu'on s'interdit de lire ;
+- **deux créneaux nommés = aucun** : un message qui parle de deux repas ne
+  désigne pas un créneau ;
+- **les formes composées gagnent** : sans l'ordre, « petit-déjeuner » serait lu
+  « déjeuner » — une erreur d'un repas d'écart, tous les matins, en silence.
+
+```
+AVANT : 0/3 créneaux capturés
+APRÈS : 5/5 lignes portent leur créneau
+   2026-08-20 | breakfast | dairy_yogurt
+   2026-08-20 | dinner    | fatty_fish
+   2026-08-20 | lunch     | lean_protein
+   2026-08-20 | lunch     | whole_grain
+   2026-08-21 | breakfast | dairy_yogurt
+```
+Le correctif B2 de `Q6_NUTRITION_LAYER` arrivera donc sur une donnée réelle.
+
+## 🔴 Le chargeur de profil du memorizer était MORT depuis sa création
+
+Trouvé en corrigeant la langue de la mémoire, et c'est plus gros que le défaut
+cherché.
+
+`loadUserProfileForExtraction` sélectionnait **`first_name`**, une colonne qui
+**n'existe pas** sur `profiles` (c'est `full_name`). PostgREST renvoyait une
+erreur, un `catch (_error) { return null }` la mangeait, et `user_profile`
+valait **toujours `null`**.
+
+Conséquence : la règle **« GENRE ET STYLE DE REDACTION »** du prompt
+d'extraction — écrite nommément pour corriger un incident de mauvais genre
+(`nina-untested R1-B07`) — **n'a jamais eu de donnée à lire**. Une garde écrite,
+testée sur un payload que la production ne fournit jamais. Même famille que
+`optional-gate-params-are-disarmed-gates`, avec un try/catch silencieux à la
+place du paramètre optionnel.
+
+Le `catch` est conservé (une panne de lecture ne doit pas tuer le batch mémoire
+d'un utilisateur) mais il **logue** désormais : une colonne absente est une
+erreur de schéma, pas un aléa réseau, et ne doit pas se dégrader en « pas de
+profil ».
+
+## Langue de la mémoire
+
+`LANGUE DE SORTIE` codait **« STRICTEMENT en francais »** en dur — règle ajoutée
+pour un vrai incident (contamination d'alphabet géorgien), mais qui figeait la
+langue. Elle lit maintenant `user_profile.locale`, garde l'interdiction de
+mélange, et retombe sur le français quand la locale est absente (aucune
+régression pour la branche FR).
+
+```
+AVANT : « L'utilisateur déteste le brocoli. »        (élève en-GB)
+APRÈS : « Sam hates broccoli. »
+        « Sam eats at the canteen on weekdays. »
+        « Sam trains on Tuesday and Thursday evenings. »
+```
+Le prénom dans la sortie est la preuve que le chargeur est ressuscité.
+
+## F10 — rectificatif dans la migration d'origine
+
+L'encadré de `20260803031000` désignait
+`student_facts_no_hard_constraint_check` comme « LE GARDE-FOU CENTRAL DE CE
+FICHIER ». C'est `student_facts_kind_check` qui rejette — il restreint déjà la
+liste blanche et s'évalue le premier. Le rectificatif est posé dans le fichier,
+avec la raison qui compte : **la prochaine personne qui élargira la liste
+blanche doit savoir que c'est elle, la garde.**
+
+## Ce qui reste, et je ne le maquille pas
+
+- **F9 — recall fantôme.** « What do you know about me? » lit le **transcript**,
+  pas le ledger : il peut citer un repas dont l'écriture a échoué et taire une
+  contrainte réelle. **Non corrigé** — le fixer demande un récap groundé sur
+  `protocol_events` + `student_safety_constraints`, c'est-à-dire une lane de
+  lecture qui n'existe pas. C'est un chantier, pas une ligne.
+- **F7, fiabilité d'émission.** « chicken salad for lunch » n'émet toujours rien
+  certains tours. Le mauvais routage legacy est mort (structurel), la fiabilité
+  du modèle reste ce qu'elle est.
+- **Verrou doctrine bavard.** Sur un tour anodin post-rétractation, la réponse
+  est partie en repli doctrine (« I have passed your question to them ») — la
+  porte 1:1 qui n'existe pas en masterclasse, défaut C2 déjà corrigé ailleurs.
+  Observé sur ma fixture de doctrine minimale ; **non investigué**, hors
+  périmètre mémoire.
+- **Tout est LOCAL.** Aucun `db push`, aucun `functions deploy`, aucun secret.
+  Deux migrations à pousser (`20260803160000`, `20260803161000`), dont une
+  **destructive** (DROP de deux tables vides, avec garde-fou).

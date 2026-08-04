@@ -72,7 +72,7 @@ const EXEMPT = new Map([
   // day_targets.ts is the KEEL slot-aware loader written in W4.3 to replace the
   // legacy `alreadyLoggedItemIds` filter (logging breakfast made dinner vanish
   // from every follow-up). It is unwired: process-checkins and
-  // schedule-whatsapp-v2-checkins still import `_shared/action_occurrences.ts`,
+  // schedule-checkins-v2 still import `_shared/action_occurrences.ts`,
   // so the defect is LIVE for KEEL students today.
   // Owner: W7 (evening review). Remove this line when the evening review reads
   // day_targets — the check must go red if W7 ships without it.

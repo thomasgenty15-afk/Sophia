@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
     const admin = createClient(supabaseUrl, supabaseServiceRole);
     const { data: profile, error: profErr } = await admin
       .from("profiles")
-      .select("account_status,purge_at,pre_deletion_whatsapp_opted_in")
+      .select("account_status,purge_at,pre_deletion_proactive_muted")
       .eq("id", user.id)
       .maybeSingle();
     if (profErr) throw profErr;
@@ -71,27 +71,25 @@ Deno.serve(async (req) => {
       );
     }
 
-    const restoreOptIn = profile.pre_deletion_whatsapp_opted_in === true;
+    // Annuler une suppression doit rendre l'élève à l'état EXACT où il était.
+    // La demande de suppression a posé `proactive_muted_at`; on ne le retire
+    // que s'il n'était pas déjà muet avant. Les check-ins annulés ne sont pas
+    // ressuscités: le planificateur quotidien les recrée naturellement.
+    const wasMutedBefore = profile.pre_deletion_proactive_muted === true;
     const update: Record<string, unknown> = {
       account_status: ACCOUNT_STATUS_ACTIVE,
       purge_at: null,
       deletion_requested_at: null,
-      pre_deletion_whatsapp_opted_in: null,
+      pre_deletion_proactive_muted: null,
     };
-    if (restoreOptIn) {
-      // Put WhatsApp back the way it was at T0. Cancelled checkins are not
-      // resurrected: the daily scheduler recreates them naturally.
-      update.whatsapp_opted_in = true;
-      update.whatsapp_opted_out_at = null;
-      update.whatsapp_optout_reason = null;
-    }
+    if (!wasMutedBefore) update.proactive_muted_at = null;
     const { error: updErr } = await admin.from("profiles").update(update).eq("id", user.id);
     if (updErr) throw updErr;
 
     return jsonResponse(req, {
       ok: true,
       restored: true,
-      whatsapp_opted_in_restored: restoreOptIn,
+      proactive_relances_restored: !wasMutedBefore,
       // Stated in the UI: the Stripe subscription is NOT restored automatically.
       subscription_restored: false,
       request_id: requestId,

@@ -36,7 +36,7 @@ export const PROVISIONING_WINDOW_END_HOUR = 1;
 export function localHourInTimezone(timezone: string, now: Date): number {
   const zone = String(timezone ?? "").trim();
   if (!zone) {
-    throw new Error("schedule-whatsapp-v2-checkins: empty timezone");
+    throw new Error("schedule-checkins-v2: empty timezone");
   }
 
   let raw: string | undefined;
@@ -49,7 +49,7 @@ export function localHourInTimezone(timezone: string, now: Date): number {
     raw = parts.find((part) => part.type === "hour")?.value;
   } catch (error) {
     throw new Error(
-      `schedule-whatsapp-v2-checkins: unknown timezone "${zone}"`,
+      `schedule-checkins-v2: unknown timezone "${zone}"`,
       { cause: error },
     );
   }
@@ -57,7 +57,7 @@ export function localHourInTimezone(timezone: string, now: Date): number {
   const hour = Number(raw);
   if (!Number.isInteger(hour) || hour < 0 || hour > 23) {
     throw new Error(
-      `schedule-whatsapp-v2-checkins: unresolvable local hour for timezone "${zone}" (got "${raw}")`,
+      `schedule-checkins-v2: unresolvable local hour for timezone "${zone}" (got "${raw}")`,
     );
   }
   return hour;
@@ -111,7 +111,7 @@ export function classifyProvisioningTimezones(
     } catch (error) {
       invalid.add(zone);
       console.warn(
-        "[schedule-whatsapp-v2-checkins] invalid_profile_timezone",
+        "[schedule-checkins-v2] invalid_profile_timezone",
         { timezone: zone, error: String(error) },
       );
     }

@@ -37,7 +37,12 @@ const EXPORT_BUCKET = "gdpr-exports";
 // Every bucket whose objects are keyed `<user_id>/…` (KEEL convention, see
 // 20260727130000_keel_storage.sql). Missing a bucket here means personal files
 // survive a "hard" purge.
-const PURGE_BUCKETS = [EXPORT_BUCKET, "plan-documents", "meal-photos"];
+// `meal-documents` porte les PDF de repas et de courses. Ils contiennent le
+// contexte de vie que l'élève a écrit (« mariage mardi ») et ses contraintes
+// alimentaires: sans cette entrée, un compte « effacé » laisse ces feuilles
+// intactes dans le bucket. Ajouté avec la table, pas après — c'est la classe de
+// trou que ce dépôt a déjà eue sur les tables neuves du pivot.
+const PURGE_BUCKETS = [EXPORT_BUCKET, "plan-documents", "meal-photos", "meal-documents"];
 // storage.list() returns at most 100 objects by default and gives NO truncation
 // signal — a single call purges the first 100 photos and silently leaves the
 // rest. Hence the explicit paginated walk below.

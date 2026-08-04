@@ -51,7 +51,7 @@ export const KEEL_CHECKIN_EVENT_CONTEXT_PREFIX = "keel_";
  * Local hour window of the end-of-day sweep, [start, end).
  *
  * The provisioning window ([00, 01), reused verbatim from
- * schedule-whatsapp-v2-checkins/timezone_gate.ts) and this one are the two
+ * schedule-checkins-v2/timezone_gate.ts) and this one are the two
  * hour-shaped gates of the pass. Both are HOURS, never minutes: gating on a
  * local minute would permanently exclude the half-hour and quarter-hour
  * offsets (Asia/Kolkata +5:30, Asia/Kathmandu +5:45, Pacific/Chatham +12:45),

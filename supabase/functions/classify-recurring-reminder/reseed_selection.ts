@@ -235,7 +235,7 @@ export function isWhatsappReseedTier(accessTierRaw: unknown): boolean {
 /**
  * Users whose reminders may be re-seeded: WhatsApp-eligible tier AND not
  * pending deletion (RGPD: accounts pending deletion are excluded from all
- * proactive processing, same rule as schedule-whatsapp-v2-checkins).
+ * proactive processing, same rule as schedule-checkins-v2).
  */
 export function eligibleReseedUserIds(
   profiles: readonly ReseedProfileRow[] | null | undefined,

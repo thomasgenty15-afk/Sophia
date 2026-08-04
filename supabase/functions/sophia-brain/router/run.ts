@@ -219,6 +219,7 @@ import {
   selectDispatcherPlanContext,
 } from "../context/keel_plan_context.ts";
 import { dayTokenForLocalDate } from "../../_shared/keel/slot_reminders.ts";
+import { slotKeyNamedIn } from "../../_shared/keel/slot_from_message.ts";
 import {
   isFrenchLocale,
   resolveResponseLocale,
@@ -1680,6 +1681,12 @@ export async function runKeelDirectEffectLane(
         // Le tour de chat EST la source: ni photo ni tap. `evidence_weight`
         // en découle (0.8), il n'est jamais choisi à la main.
         default_source: "chat",
+        // Le créneau que l'élève a NOMMÉ, lu dans son message. Repli seulement:
+        // `payload_hint.slot_key` prime quand le modèle l'émet. Mesuré 0/3 sans
+        // ce repli — « for lunch », « at breakfast », « for dinner » écrivaient
+        // tous `slot_key = NULL`, ce qui aurait livré le correctif B2 sur une
+        // colonne vide.
+        slot_named_in_message: slotKeyNamedIn(input.userMessage),
         // L'ALLOWLIST DES LIAISONS EXPLICITES, et elle n'était pas passée.
         //
         // `resolveCommitmentId` (intake.ts) refuse tout `commitment_id` quand

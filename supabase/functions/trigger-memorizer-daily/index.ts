@@ -760,23 +760,52 @@ async function loadReminderInstructions(
 
 // P2-5c (nina-untested R1-B07): prenom/genre pour la redaction des items —
 // sans eux, l'extraction inferait le masculin par defaut.
+//
+// 🔴 CE CHARGEUR ETAIT MORT DEPUIS SA CREATION (QA agent 4, 2026-08-03).
+// Il selectionnait `first_name`, une colonne qui N'EXISTE PAS sur `profiles`
+// (c'est `full_name`). PostgREST rendait une erreur, le `catch` la mangeait et
+// rendait `null` — donc `user_profile` etait TOUJOURS null, et la regle
+// « GENRE ET STYLE DE REDACTION » du prompt d'extraction, ecrite exprès pour
+// corriger un incident de mauvais genre, n'a jamais eu de donnee a lire.
+//
+// Le try/catch silencieux est ce qui a rendu la panne invisible: une colonne
+// absente est une erreur de SCHEMA, pas un aleas reseau, et elle ne devrait
+// jamais se degrader en « pas de profil ». Le catch est conserve (une panne de
+// lecture ne doit pas tuer le batch memoire d'un user) mais il LOGUE
+// desormais, et il distingue les deux cas.
 async function loadUserProfileForExtraction(
   admin: ReturnType<typeof createClient>,
   userId: string,
-): Promise<{ first_name: string | null; gender: string | null } | null> {
+): Promise<
+  { first_name: string | null; gender: string | null; locale: string | null } | null
+> {
   try {
     const { data, error } = await (admin as any)
       .from("profiles")
-      .select("first_name,gender")
+      .select("full_name,gender,locale")
       .eq("id", userId)
       .maybeSingle();
     if (error) throw error;
     if (!data) return null;
     return {
-      first_name: String(data.first_name ?? "").trim() || null,
+      // `full_name` est le nom REEL de la colonne. On n'envoie que le premier
+      // mot: le prompt demande un PRENOM pour tutoyer correctement, pas une
+      // identite civile complete dans chaque item de memoire.
+      first_name: String(data.full_name ?? "").trim().split(/\s+/)[0] || null,
       gender: String(data.gender ?? "").trim() || null,
+      // QA agent 4: la LANGUE de la mémoire. Sans elle, le prompt d'extraction
+      // écrivait en français en dur, y compris pour un élève `en-GB` — mesuré
+      // le 2026-08-03 (4 items français sur un élève anglais).
+      locale: String(data.locale ?? "").trim() || null,
     };
-  } catch (_error) {
+  } catch (error) {
+    // Bruyant, R7: c'est exactement le silence qui a laisse ce chargeur mort
+    // pendant toute sa vie. Le batch continue (une memoire sans prenom vaut
+    // mieux que pas de memoire), mais l'incident est nomme.
+    console.warn("[memorizer] user_profile load failed", {
+      user_id: userId,
+      reason: error instanceof Error ? error.message : String(error),
+    });
     return null;
   }
 }

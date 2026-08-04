@@ -803,7 +803,7 @@ async function loadActivePlansForWeeklyReview(
 }
 
 // `hasPlanifiableWeekStart` a été supprimée en W2.B: son seul appelant était le
-// gate du prompt de validation hebdo dans schedule-whatsapp-v2-checkins, et sa
+// gate du prompt de validation hebdo dans schedule-checkins-v2, et sa
 // première condition lisait `user_habit_week_plans` via
 // `loadActiveWeeklyPlanning` (fichier supprimé). Le prédicat pur
 // `planContentHasPlanifiableWeekStart` reste exporté et testé.

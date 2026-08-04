@@ -119,7 +119,7 @@ Deno.serve(async (req) => {
         request_id: requestId,
       }, { status: 400 });
     }
-    const scopeRaw = String(body.scope ?? "single_meal").trim();
+    const scopeRaw = String(body.scope ?? "day").trim();
     if (!(MEAL_SCOPES as readonly string[]).includes(scopeRaw)) {
       return jsonResponse(req, {
         error: "unknown_scope",

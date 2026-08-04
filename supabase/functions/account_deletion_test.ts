@@ -140,7 +140,7 @@ Deno.test("account deletion: T0 flags the profile, cancels Stripe/WhatsApp, revo
   // Seed: opted-in WhatsApp profile + active subscription + scheduled work.
   await admin.from("profiles").update({
     phone_number: `+3361${makeNonce().slice(0, 7)}`,
-    whatsapp_opted_in: true,
+    proactive_muted_at: null,
     timezone: "Europe/Paris",
   }).eq("id", userId);
   const { error: subSeedErr } = await admin.from("subscriptions").upsert({
@@ -199,14 +199,15 @@ Deno.test("account deletion: T0 flags the profile, cancels Stripe/WhatsApp, revo
 
   // Profile flagged, purge in ~7 days.
   const { data: profile } = await admin.from("profiles")
-    .select("account_status,purge_at,whatsapp_opted_in,whatsapp_optout_reason,pre_deletion_whatsapp_opted_in")
+    .select("account_status,purge_at,proactive_muted_at,pre_deletion_proactive_muted")
     .eq("id", userId).single();
   assertEquals(profile!.account_status, "deletion_pending");
   const purgeMs = new Date(profile!.purge_at).getTime() - Date.now();
   assert(purgeMs > 6.9 * 24 * 3600 * 1000 && purgeMs < 7.1 * 24 * 3600 * 1000, "purge_at ≈ J+7");
-  assertEquals(profile!.whatsapp_opted_in, false);
-  assertEquals(profile!.whatsapp_optout_reason, "account_deletion");
-  assertEquals(profile!.pre_deletion_whatsapp_opted_in, true);
+  // La demande de suppression MUTE l'eleve. C'est le reglage produit, pas un
+  // opt-out Meta: `whatsapp_opted_in` ne decide plus rien (elle est gelee).
+  assert(profile!.proactive_muted_at, "la suppression coupe les relances");
+  assertEquals(profile!.pre_deletion_proactive_muted, false, "il n'etait pas mute avant de supprimer");
 
   // Subscription cancelled (MEGA Stripe stub), scheduled work cancelled.
   const { data: sub } = await admin.from("subscriptions").select("status").eq("user_id", userId).single();
@@ -233,12 +234,12 @@ Deno.test("account deletion: outbound WhatsApp is refused for deletion_pending a
   const { userId, accessToken } = await createTestUser(anon);
   await admin.from("profiles").update({
     phone_number: `+3362${makeNonce().slice(0, 7)}`,
-    whatsapp_opted_in: true,
+    proactive_muted_at: null,
   }).eq("id", userId);
   await deleteAccount(supabaseUrl, anonKey, accessToken);
 
   // Even an "opted-in" direct send must be blocked by the central gate.
-  await admin.from("profiles").update({ whatsapp_opted_in: true }).eq("id", userId);
+  await admin.from("profiles").update({ proactive_muted_at: null }).eq("id", userId);
   const send = await callInternal(supabaseUrl, anonKey, "whatsapp-send", {
     user_id: userId,
     message: { type: "text", body: "coucou" },
@@ -253,7 +254,7 @@ Deno.test("account deletion: process-checkins does not deliver for deletion_pend
   const { userId, accessToken } = await createTestUser(anon);
   await admin.from("profiles").update({
     phone_number: `+3363${makeNonce().slice(0, 7)}`,
-    whatsapp_opted_in: true,
+    proactive_muted_at: null,
     timezone: "Europe/Paris",
   }).eq("id", userId);
   await deleteAccount(supabaseUrl, anonKey, accessToken);
@@ -291,7 +292,7 @@ Deno.test("account restore: one click brings the account back (subscription stay
   const { userId, accessToken, email } = await createTestUser(anon);
   await admin.from("profiles").update({
     phone_number: `+3364${makeNonce().slice(0, 7)}`,
-    whatsapp_opted_in: true,
+    proactive_muted_at: null,
   }).eq("id", userId);
   const { error: subSeedErr } = await admin.from("subscriptions").upsert({
     user_id: userId,
@@ -318,14 +319,15 @@ Deno.test("account restore: one click brings the account back (subscription stay
   assertEquals(restore.json?.subscription_restored, false);
 
   const { data: profile } = await admin.from("profiles")
-    .select("account_status,purge_at,deletion_requested_at,whatsapp_opted_in,whatsapp_opted_out_at,pre_deletion_whatsapp_opted_in")
+    .select("account_status,purge_at,deletion_requested_at,proactive_muted_at,pre_deletion_proactive_muted")
     .eq("id", userId).single();
   assertEquals(profile!.account_status, "active");
   assertEquals(profile!.purge_at, null);
   assertEquals(profile!.deletion_requested_at, null);
-  assertEquals(profile!.whatsapp_opted_in, true);
-  assertEquals(profile!.whatsapp_opted_out_at, null);
-  assertEquals(profile!.pre_deletion_whatsapp_opted_in, null);
+  // ANNULER UNE SUPPRESSION REND L'ELEVE A SON ETAT EXACT: il n'etait pas mute
+  // avant de demander la suppression, donc il ne l'est plus apres l'annulation.
+  assertEquals(profile!.proactive_muted_at, null, "les relances reprennent");
+  assertEquals(profile!.pre_deletion_proactive_muted, null, "la memoire est effacee");
 
   // The Stripe cancellation is final.
   const { data: sub } = await admin.from("subscriptions").select("status").eq("user_id", userId).single();
@@ -344,7 +346,7 @@ Deno.test("purge: hard-deletes everything, anonymises llm_usage_events, is idemp
   const phone = `+3365${makeNonce().slice(0, 7)}`;
   await admin.from("profiles").update({
     phone_number: phone,
-    whatsapp_opted_in: true,
+    proactive_muted_at: null,
   }).eq("id", userId);
 
   // Seed data across cascade / SET NULL / FK-less tables.

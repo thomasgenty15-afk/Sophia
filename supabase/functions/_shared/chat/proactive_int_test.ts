@@ -80,8 +80,6 @@ async function makeStudentWithPlan(
     chat_last_inbound_at: null,
     proactive_muted_at: null,
     deletion_requested_at: null,
-    whatsapp_opted_in: true,
-    whatsapp_opted_out_at: null,
     ...patch,
   } as never).eq("id", userId);
   if (pErr) throw pErr;

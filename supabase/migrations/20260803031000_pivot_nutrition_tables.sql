@@ -46,8 +46,26 @@
 --           -> `student_safety_constraints`. Inchangée. Un seul chemin.
 --   * SOUPLE (préférence, aversion, contexte de vie, note d'objectif)
 --           -> `student_facts`. Ne peut PAS porter de contrainte dure.
--- Le CHECK `student_facts_no_hard_constraint_check` rend l'erreur impossible
--- à commettre en silence: une insertion 'allergy' échoue, bruyamment (R7).
+-- Une insertion 'allergy' echoue, bruyamment (R7).
+--
+-- ⚠️ RECTIFICATIF (QA agent 4, 2026-08-03) — QUEL CHECK MORD REELLEMENT.
+-- Ce paragraphe designait `student_facts_no_hard_constraint_check` comme le
+-- garde-fou. Verifie en base: c'est `student_facts_kind_check` qui rejette,
+-- parce qu'il restreint deja `kind` a la liste blanche
+-- (preference|aversion|context|goal_note) et s'evalue le premier. Le second
+-- CHECK est donc STRUCTURELLEMENT INATTEIGNABLE tant que la liste blanche
+-- reste ce qu'elle est: il ne peut rejeter que des valeurs que le premier a
+-- deja rejetees.
+-- Il reste de la defense en profondeur legitime (il mordrait si quelqu'un
+-- elargissait `kind_check`), mais il fallait le dire: la prochaine personne
+-- qui elargit la liste blanche doit savoir que c'est ELLE la garde, et non
+-- l'autre CHECK qu'elle croirait suffisant.
+--
+-- ⚠️ CES DEUX TABLES SONT DROPPEES depuis 20260803161000. La couche souple est
+-- assuree par le memorizer (memory_items), qui tourne deja pour les eleves
+-- KEEL — prouve le 2026-08-03. Ce fichier est conserve pour l'historique des
+-- migrations; son raisonnement sur le partage dur/souple reste valide, seule
+-- l'implementation a change de magasin.
 -- ---------------------------------------------------------------------------
 
 -- ===========================================================================

@@ -132,9 +132,8 @@ async function shutDownWhatsApp(
   await admin
     .from("profiles")
     .update({
-      whatsapp_opted_in: false,
-      whatsapp_opted_out_at: nowIso,
-      whatsapp_optout_reason: "account_deletion",
+      // Le silence est un fait produit, pas un opt-out Meta.
+      proactive_muted_at: nowIso,
     })
     .eq("id", userId);
 }
@@ -502,7 +501,7 @@ Deno.serve(async (req) => {
 
       const { data: profile, error: profErr } = await admin
         .from("profiles")
-        .select("account_status,whatsapp_opted_in,timezone,purge_at")
+        .select("account_status,proactive_muted_at,timezone,purge_at")
         .eq("id", user.id)
         .maybeSingle();
       if (profErr) throw profErr;
@@ -521,7 +520,9 @@ Deno.serve(async (req) => {
       const purgeAtIso = new Date(
         Date.now() + DELETION_GRACE_DAYS * 24 * 3600 * 1000,
       ).toISOString();
-      const wasOptedIn = Boolean(profile.whatsapp_opted_in);
+      // Le réglage produit, pas l'opt-in Meta. `whatsapp_opted_in` valait
+      // toujours `false`, ce qui faisait sauter la confirmation ci-dessous.
+      const wasMuted = Boolean(profile.proactive_muted_at);
 
       // 1) Flag deletion_pending FIRST so the stripe-webhook triggered by the
       //    cancellation below stays silent (no "abonnement annulé" WhatsApp).
@@ -531,7 +532,7 @@ Deno.serve(async (req) => {
           account_status: ACCOUNT_STATUS_DELETION_PENDING,
           purge_at: purgeAtIso,
           deletion_requested_at: nowIso,
-          pre_deletion_whatsapp_opted_in: wasOptedIn,
+          pre_deletion_proactive_muted: wasMuted,
         })
         .eq("id", user.id);
       if (flagErr) throw flagErr;
@@ -546,7 +547,7 @@ Deno.serve(async (req) => {
             account_status: ACCOUNT_STATUS_ACTIVE,
             purge_at: null,
             deletion_requested_at: null,
-            pre_deletion_whatsapp_opted_in: null,
+            pre_deletion_proactive_muted: null,
           })
           .eq("id", user.id);
         return jsonResponse(
@@ -587,11 +588,19 @@ Deno.serve(async (req) => {
         });
       }
 
-      // 4) Last sober WhatsApp confirmation, then full silence.
-      let whatsappNotified = false;
-      if (wasOptedIn) {
+      // 4) Dernier accusé sobre, puis silence complet.
+      //
+      // 🔴 IL ÉTAIT GARDÉ PAR `wasOptedIn`, DONC IL NE PARTAIT PLUS JAMAIS.
+      // L'élève supprimait son compte et ne recevait rien — ni la date de
+      // purge, ni le fait qu'il peut encore annuler. Cet accusé est
+      // TRANSACTIONNEL (`account_deletion_confirmed` est le seul purpose que
+      // `delivery_policy.ts` laisse passer malgré `deletion_pending`): il part
+      // toujours, y compris à quelqu'un qui avait coupé ses relances — couper
+      // les relances n'est pas refuser de savoir que son compte va disparaître.
+      let deletionNotified = false;
+      {
         const purgeDateFr = formatFrenchDate(purgeAtIso, profile.timezone);
-        whatsappNotified = await sendLifecycleMessage({
+        deletionNotified = await sendLifecycleMessage({
           user_id: user.id,
           purpose: "account_deletion_confirmed",
           body:
@@ -627,7 +636,7 @@ Deno.serve(async (req) => {
         students_notified: studentNotice.notified,
         students_notify_failed: studentNotice.failed,
         students_notify_truncated: studentNotice.truncated,
-        whatsapp_notified: whatsappNotified,
+        deletion_notified: deletionNotified,
         request_id: requestId,
       });
     }

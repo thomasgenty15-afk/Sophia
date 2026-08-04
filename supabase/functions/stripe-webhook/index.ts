@@ -131,7 +131,7 @@ async function sendSubscriptionWhatsapp(args: {
 
   const { data: profile, error: profileErr } = await args.admin
     .from("profiles")
-    .select("whatsapp_opted_in,whatsapp_opted_out_at,whatsapp_last_inbound_at")
+    .select("id")
     .eq("id", args.userId)
     .maybeSingle();
   if (profileErr) throw profileErr;

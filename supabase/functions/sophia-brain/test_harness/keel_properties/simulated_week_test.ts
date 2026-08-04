@@ -116,9 +116,9 @@ async function seed(client: SupabaseClient): Promise<void> {
       ('${PAUL}','00000000-0000-0000-0000-000000000000','authenticated','authenticated','sim.paul@test.dev','x',now(),now(),now(),'{}','{}')
     on conflict (id) do nothing;
     update public.profiles set full_name='Julie', keel_role='student', timezone='Europe/Paris',
-      whatsapp_opted_in=true, whatsapp_opted_out_at=null where id='${JULIE}';
+      proactive_muted_at=null where id='${JULIE}';
     update public.profiles set full_name='Paul', keel_role='student', timezone='Europe/Paris',
-      whatsapp_opted_in=true, whatsapp_opted_out_at=null where id='${PAUL}';
+      proactive_muted_at=null where id='${PAUL}';
     insert into public.coaches (id,user_id,display_name,status)
       values ('${COACH}','${COACH_USER}','Marc','active') on conflict (id) do nothing;
     insert into public.coach_clients (coach_id,student_user_id,invited_email,status,consent_granted_at)

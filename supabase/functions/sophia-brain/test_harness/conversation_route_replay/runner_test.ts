@@ -39,9 +39,9 @@ Deno.test("conversation_route_replay S4 latency smoke stays below 4s average per
   assertEquals(averageLatencyMs < 4000, true);
 });
 
-Deno.test("conversation_route_replay passes WhatsApp realism smoke fixture", async () => {
+Deno.test("conversation_route_replay passes chat realism smoke fixture", async () => {
   const fixtures = await loadReplayFixtures(
-    `${FIXTURES_DIR}/whatsapp_realism`,
+    `${FIXTURES_DIR}/chat_realism`,
   );
   assertEquals(fixtures.length, 1);
   const results = await runReplayFixtures(fixtures, { mode: "s2" });

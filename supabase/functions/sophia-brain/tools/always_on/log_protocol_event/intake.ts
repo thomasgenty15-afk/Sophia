@@ -270,6 +270,12 @@ export function runLogProtocolEventIntake(input: {
   /** Channel default when the payload does not state a source. */
   default_source?: ProtocolEventSource;
   /**
+   * Le créneau que l'élève a NOMMÉ dans son message, extrait
+   * déterministiquement en amont (`_shared/keel/slot_from_message.ts`).
+   * Utilisé UNIQUEMENT quand le payload n'en porte pas — le modèle prime.
+   */
+  slot_named_in_message?: SlotKey | null;
+  /**
    * Ids of the commitments the student may bind a fact to this turn — the same
    * lines the dispatcher was shown. Absent/empty means "no binding is
    * verifiable": a payload that carries one is then refused, not written.
@@ -323,7 +329,20 @@ export function runLogProtocolEventIntake(input: {
   let components: ComponentDraft[];
   try {
     const rawSlot = optionalString(payload.slot_key);
-    slotKey = rawSlot === null ? null : parseSlotKey(rawSlot);
+    // REPLI DÉTERMINISTE SUR LE CRÉNEAU NOMMÉ (QA agent 4).
+    //
+    // Le payload du modèle PRIME toujours: `slot_key` explicite gagne, et si le
+    // modèle émet un token inconnu on échoue bruyamment comme avant (R7). Le
+    // repli ne sert QUE le cas mesuré: le modèle n'émet rien alors que l'élève
+    // a nommé son créneau. 0/3 en run réel — « for lunch », « at breakfast »,
+    // « for dinner » ont tous produit `slot_key = NULL`.
+    //
+    // `slotKeyNamedIn` ne lit que le MESSAGE, jamais l'horloge: la règle « ne
+    // le deduis pas de l'heure qu'il est » est préservée par construction (la
+    // fonction ne reçoit pas de date).
+    slotKey = rawSlot === null
+      ? (input.slot_named_in_message ?? null)
+      : parseSlotKey(rawSlot);
     source = parseSource(payload.source, input.default_source ?? "chat");
     components = readComponents(payload);
   } catch (error) {

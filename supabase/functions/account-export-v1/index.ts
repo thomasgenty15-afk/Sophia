@@ -36,6 +36,10 @@ const PAGE = 1000;
 const KEEL_FILE_BUCKETS = [
   { bucket: "plan-documents", folder: "fichiers/documents-plan" },
   { bucket: "meal-photos", folder: "fichiers/photos-repas" },
+  // Les PDF de repas/courses. Même convention de chemin (`<user_id>/...`), donc
+  // le même préfixe suffit. Oubliés, l'élève recevrait un export qui référence
+  // des documents dont il n'a pas les octets.
+  { bucket: "meal-documents", folder: "fichiers/documents-repas" },
 ] as const;
 // storage.list() defaults to 100 objects and NEVER says it truncated — the
 // paginated walk below is the only correct way to enumerate a prefix.
@@ -355,6 +359,15 @@ const SCOPE = {
   studentWeekPlans:
     "id,week_start,generated_from,items,status,adopted_at,content_locale,created_at,updated_at",
   studentDailyCheckins: "id,local_date,overall,axis,source,created_at",
+  // Le repas généré porte le CONTEXTE DE VIE que l'élève a écrit (« mariage
+  // mardi ») et le contenu de ses placards. C'est de la donnée personnelle au
+  // sens plein, et elle sort avec le reste.
+  studentGeneratedMeals:
+    "id,scope,mode,meal_slot,servings,context,pantry,dishes,shopping_list,generated_from,content_locale,created_at,updated_at",
+  // `storage_path` sort aussi: c'est ce qui relie la ligne au PDF joint dans
+  // `fichiers/`, et sans lui le manifeste et les octets ne se recollent pas.
+  studentMealDocuments:
+    "id,meal_id,kind,storage_path,filename,delivery_status,delivery_error,sent_at,created_at,updated_at",
   // `portion_bias` est une calibration ORDINALE (bandes), pas un score interne:
   // elle est lisible par l'élève et sort avec le reste.
   recurringMeals:
@@ -424,7 +437,7 @@ async function buildExportPayload(
 ) {
   const { data: profile, error: profErr } = await admin
     .from("profiles")
-    .select("full_name,email,phone_number,birth_date,gender,timezone,locale,whatsapp_opted_in")
+    .select("full_name,email,phone_number,birth_date,gender,timezone,locale,proactive_muted_at")
     .eq("id", user.id)
     .maybeSingle();
   if (profErr) throw profErr;
@@ -496,6 +509,8 @@ async function buildExportPayload(
     studentGoals,
     studentWeekPlans,
     studentDailyCheckins,
+    studentGeneratedMeals,
+    studentMealDocuments,
     recurringMeals,
     studentFacts,
     studentCards,
@@ -613,6 +628,22 @@ async function buildExportPayload(
     ),
     fetchKeelRows(
       admin,
+      "student_generated_meals",
+      SCOPE.studentGeneratedMeals,
+      "user_id",
+      user.id,
+      keelUnavailable,
+    ),
+    fetchKeelRows(
+      admin,
+      "student_meal_documents",
+      SCOPE.studentMealDocuments,
+      "user_id",
+      user.id,
+      keelUnavailable,
+    ),
+    fetchKeelRows(
+      admin,
       "recurring_meals",
       SCOPE.recurringMeals,
       "user_id",
@@ -696,7 +727,9 @@ async function buildExportPayload(
         genre: profile?.gender ?? null,
         fuseau_horaire: profile?.timezone ?? null,
         langue: profile?.locale ?? null,
-        whatsapp_active: Boolean(profile?.whatsapp_opted_in),
+        // L'export dit l'état RÉEL du réglage de relances, pas un opt-in
+        // Meta gelé qui aurait annoncé « inactif » à tout le monde.
+        proactive_messages_active: !profile?.proactive_muted_at,
       },
       "transformations.json": { cycles, transformations },
       "plans.json": { plans, actions: planItems },
@@ -737,6 +770,13 @@ async function buildExportPayload(
         objectif: studentGoals,
         semaines: studentWeekPlans,
         points_du_soir: studentDailyCheckins,
+      },
+      // Séparé de `mon_plan.json`: un plan de semaine est un ENGAGEMENT que
+      // l'élève adopte, un repas généré est un SERVICE rendu à la demande. Les
+      // mêler ferait lire vingt repas comme vingt semaines de plan.
+      "mes_repas_generes.json": {
+        repas: studentGeneratedMeals,
+        documents: studentMealDocuments,
       },
       "ma_memoire_alimentaire.json": {
         repas_recurrents: recurringMeals,

@@ -65,7 +65,7 @@ function parse(payload: Record<string, unknown>, over: Record<string, unknown> =
     doctrine: DOCTRINE,
     safetyConstraints: [],
     mode: "to_shop",
-    scope: "single_meal",
+    scope: "day",
     pantry: PANTRY,
     beliefKeys: ["protein_anchors_the_plate"],
     ...over,
@@ -252,16 +252,30 @@ Deno.test("every scope has a named cap (R6)", () => {
   for (const scope of MEAL_SCOPES) {
     assert(dishCapFor(scope) > 0, scope);
   }
-  assertEquals(dishCapFor("single_meal"), 1);
+  assertEquals(dishCapFor("day"), 3);
 });
 
 Deno.test("the dish cap holds", () => {
+  // `day` plafonne à 3: le 4e plat tombe, et le rejet est NOMMÉ. Une journée
+  // à huit plats est une journée que personne ne cuisine.
   const meal = parse({
-    dishes: [dish({ title: "one" }), dish({ title: "two" })],
+    dishes: [
+      dish({ title: "one" }),
+      dish({ title: "two" }),
+      dish({ title: "three" }),
+      dish({ title: "four" }),
+    ],
     shopping_list: [],
   });
-  assertEquals(meal.dishes.length, 1);
+  assertEquals(meal.dishes.length, 3);
   assert(meal.issues.some((i) => i.includes("cap")));
+});
+
+Deno.test("single_meal is GONE — a retired scope is not silently accepted", () => {
+  // La suppression doit être structurelle, pas cosmétique: si `dishCapFor`
+  // rendait encore un plafond pour un scope retiré, un appelant resté sur
+  // l'ancienne valeur continuerait de marcher et personne ne le saurait.
+  assertEquals((MEAL_SCOPES as readonly string[]).includes("single_meal"), false);
 });
 
 Deno.test("a duplicate shopping line is collapsed", () => {
@@ -324,11 +338,11 @@ Deno.test("from_pantry puts the pantry in the prompt, to_shop does not pretend t
     servings: 1,
     pantry: [{ term: "eggs", quantity: "6" }],
   } as const;
-  const fromPantry = buildMealPrompt({ ...base, mode: "from_pantry", scope: "single_meal" });
+  const fromPantry = buildMealPrompt({ ...base, mode: "from_pantry", scope: "day" });
   assert(fromPantry.userMessage.includes("WHAT THEY ALREADY HAVE"));
   assert(fromPantry.userMessage.includes("eggs (6)"));
 
-  const toShop = buildMealPrompt({ ...base, mode: "to_shop", scope: "single_meal" });
+  const toShop = buildMealPrompt({ ...base, mode: "to_shop", scope: "day" });
   assert(toShop.userMessage.includes("HAVE NOT SHOPPED YET"));
   assert(!toShop.userMessage.includes("WHAT THEY ALREADY HAVE"));
 });
@@ -338,7 +352,7 @@ Deno.test("a non-JSON model output throws instead of shipping an empty meal", ()
     doctrine: DOCTRINE,
     safetyConstraints: [],
     mode: "to_shop",
-    scope: "single_meal",
+    scope: "day",
     pantry: [],
     beliefKeys: [],
   }));

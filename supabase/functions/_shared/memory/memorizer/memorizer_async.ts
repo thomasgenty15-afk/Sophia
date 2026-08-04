@@ -58,7 +58,9 @@ export interface MemorizerAsyncInput {
    */
   reminder_instructions?: string[];
   /** P2-5c: prenom/genre du user pour la redaction des items. */
-  user_profile?: { first_name?: string | null; gender?: string | null } | null;
+  user_profile?:
+    | { first_name?: string | null; gender?: string | null; locale?: string | null }
+    | null;
   trigger_type?: string;
   model_name?: string;
   llm_provider?: ExtractionLlmProvider;

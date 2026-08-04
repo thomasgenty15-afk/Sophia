@@ -3,7 +3,7 @@
  *
  * The opening half is NOT re-implemented here: `classifyProvisioningTimezones`
  * and `PROVISIONING_WINDOW_*` are imported verbatim from the W1.3 fix
- * (schedule-whatsapp-v2-checkins/timezone_gate.ts) and re-exported, so the two
+ * (schedule-checkins-v2/timezone_gate.ts) and re-exported, so the two
  * hourly passes of this repo can never drift onto two different definitions of
  * "the local day just started".
  *
@@ -23,7 +23,7 @@ import {
   PROVISIONING_WINDOW_END_HOUR,
   PROVISIONING_WINDOW_START_HOUR,
   type ProvisioningTimezoneClassification,
-} from "../schedule-whatsapp-v2-checkins/timezone_gate.ts";
+} from "../schedule-checkins-v2/timezone_gate.ts";
 
 import {
   SWEEP_WINDOW_END_HOUR,

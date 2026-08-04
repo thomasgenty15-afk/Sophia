@@ -83,8 +83,7 @@ const STUDENT = {
   phone_number: "+447700900001",
   full_name: "Iris Bell",
   timezone: "Europe/London",
-  whatsapp_opted_in: true,
-  whatsapp_opted_out_at: null,
+  proactive_muted_at: null,
   keel_role: "student",
 };
 const SILENT_INBOUND = {
