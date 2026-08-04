@@ -225,6 +225,38 @@ Deno.test("the block tells the model to lead with the coach's position", () => {
   assert(compiled.text.includes("never the reverse order"));
 });
 
+Deno.test("l'exemple d'ordre des mots porte le nom du VRAI coach", () => {
+  // LE ROUGE QUI A PRÉCÉDÉ CE TEST (QA WEB L3, run réel, coach « Marlow »):
+  // l'exemple était écrit « "Marc doesn't use X. It's when people ..." », et
+  // le modèle a recopié le prénom. Sur les deux tours d'interdit joués, en
+  // anglais et en français, l'élève a reçu:
+  //     « Marc doesn't count calories. He builds the plate instead… »
+  //     « Marc doesn't use calorie counting. »
+  // Un produit dont la promesse est de parler au nom du coach de l'élève ne
+  // peut pas lui apprendre que son coach s'appelle Marc.
+  const compiled = compileDoctrineBlock(
+    doctrine({ coachDisplayName: "Marlow" }),
+  );
+  assert(
+    compiled.text.includes(`"Marlow doesn't use X`),
+    "l'exemple doit nommer le coach du bloc",
+  );
+  assert(
+    !compiled.text.includes("Marc"),
+    "aucun prénom inventé ne doit subsister dans le bloc",
+  );
+});
+
+Deno.test("sans nom de coach, l'exemple retombe sur la formule neutre", () => {
+  // Condition de désarmement: un coach sans `display_name` ne doit pas
+  // produire un exemple bancal (`" doesn't use X"`), mais la même formule
+  // neutre que le titre du bloc.
+  const compiled = compileDoctrineBlock(
+    doctrine({ coachDisplayName: null }),
+  );
+  assert(compiled.text.includes(`"the coach doesn't use X`));
+});
+
 Deno.test("editing only `instead` moves the cache key", () => {
   // §3.7 brique 6 reaches `instead` too, now that it is compiled: a coach who
   // rewrites his alternative must be served the new one on the NEXT message.

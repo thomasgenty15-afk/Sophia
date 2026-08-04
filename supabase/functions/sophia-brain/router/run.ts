@@ -285,6 +285,7 @@ import {
   type LoadedDoctrine,
   loadPublishedDoctrine,
 } from "../../_shared/keel/doctrine_loader.ts";
+import { detectDeclaredSafetyConstraint } from "../../_shared/keel/safety_constraint_floor.ts";
 import {
   recordAllowedEffect,
   recordBlockedEffect,
@@ -3669,6 +3670,62 @@ export async function processMessage(
     }
   }
   const dispatcherLatencyMs = Date.now() - dispatcherStart;
+
+  // ══════════════════════════════════════════════════════════════════════
+  // PLANCHER DE DÉCLARATION D'ALLERGIE — la ligne médicale ne dépend pas
+  // d'un tirage du dispatcher.
+  //
+  // MESURÉ (QA WEB L3, run réel):
+  //   élève  : « I'm allergic to peanuts, badly »
+  //   Sophia : « I'll treat peanuts as a hard avoid going forward. »
+  //   base   : student_safety_constraints → 0 ligne
+  //   frame  : direct_effects: []
+  // Le MÊME message en français avait écrit la ligne. Ce n'est donc pas une
+  // panne, c'est un tirage — et le contenu perdu est médical.
+  //
+  // Le plancher n'ÉCRASE jamais le dispatcher: si le frame porte déjà un
+  // `declare_safety_constraint`, on ne touche à rien (son payload est plus
+  // riche — sévérité nuancée, notes, intention de rétractation). Il ne
+  // s'ajoute que sur un silence, ce qui est exactement la définition d'un
+  // plancher.
+  //
+  // Même famille et même place que le plancher TCA et le gate `plan_question`:
+  // ce qui OUVRE un effet médical ne transite pas par le LLM du dispatcher.
+  if (keelTurn.is_student) {
+    const declared = detectDeclaredSafetyConstraint(userMessage);
+    const alreadyRequested = turnFrame.direct_effects.some(
+      (effect) => effect.effect_type === "declare_safety_constraint",
+    );
+    if (declared && !alreadyRequested) {
+      console.warn("[keel] safety_constraint_floor raised", {
+        request_id: requestId,
+        allergen_ref: declared.allergen_ref,
+        matched: declared.matched,
+        detail:
+          "le dispatcher n'avait pas demandé l'effet; le plancher déterministe " +
+          "l'ajoute. Un accusé sans ligne est le pire des trois états.",
+      });
+      turnFrame = {
+        ...turnFrame,
+        direct_effects: [
+          ...turnFrame.direct_effects,
+          {
+            effect_type: "declare_safety_constraint",
+            explicitness: "explicit",
+            target_status: "identified",
+            confidence_band: "high",
+            payload_hint: {
+              intent: "declare",
+              kind: declared.kind,
+              allergen_ref: declared.allergen_ref,
+              severity: declared.severity,
+              notes: declared.notes,
+            },
+          },
+        ],
+      };
+    }
+  }
 
   let currentActiveSkillState = activeFlowState.activeSkillState;
   const presenceFlowEnabled = envFlagEnabled("SOPHIA_PRESENCE_FLOW_ENABLED");

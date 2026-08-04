@@ -484,9 +484,23 @@ export function compileDoctrineBlock(doctrine: CoachDoctrine): CompiledDoctrine 
     // delivered by the lock rather than by the model. Telling the model to
     // lead with the coach's position costs one sentence here and is the only
     // half of the fix that belongs in a prompt.
+    // L'EXEMPLE PORTE LE NOM DU VRAI COACH, ET CE N'EST PAS COSMÉTIQUE.
+    //
+    // Il disait « Marc doesn't use X ». Mesuré en run réel (QA WEB L3, coach
+    // `display_name = 'Marlow'`), sur les deux tours d'interdit joués, en
+    // anglais et en français:
+    //   « **Marc** doesn't count calories. He builds the plate instead… »
+    //   « **Marc** doesn't use calorie counting. »
+    // Le modèle recopie le nom de l'exemple. L'élève apprend donc que son
+    // coach s'appelle Marc — sur un produit dont la promesse entière est de
+    // parler AU NOM de son coach à lui.
+    //
+    // `who` est déjà résolu au-dessus (`coachDisplayName || "the coach"`), et
+    // il ouvre déjà le bloc. L'interpoler ici ne coûte rien et supprime la
+    // seule occurrence d'un nom propre inventé dans tout le prompt.
     lines.push(
       "When you explain one, LEAD with this coach's position and only then " +
-        "describe the practice — \"Marc doesn't use X. It's when people ...\" " +
+        `describe the practice — "${who} doesn't use X. It's when people ..." ` +
         "— never the reverse order.",
     );
     for (const f of doctrine.forbidden) {
