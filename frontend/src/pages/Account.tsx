@@ -25,7 +25,11 @@ export default function Account() {
     <div className="min-h-screen bg-gray-50">
       <UserProfile
         isOpen
-        onClose={() => navigate("/dashboard")}
+        // `/` et non `/dashboard`, supprimée avec le produit grand public: la
+        // landing renvoie un visiteur déjà connecté vers SON espace via
+        // `resolveHomePath`, donc fermer le compte ramène chacun chez lui —
+        // coach, élève, ou personne des deux.
+        onClose={() => navigate("/")}
         mode={mode}
         initialTab={initialTab}
       />

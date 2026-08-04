@@ -42,7 +42,9 @@ export default function DeletionPendingScreen() {
         throw new Error("The restore failed. Try again, or contact sophia@sophia-coach.ai.");
       }
       await refreshAccountStatus();
-      navigate("/dashboard", { replace: true });
+      // `/` plutôt que `/dashboard`, supprimée: la landing route le compte
+      // restauré vers son espace réel au lieu d'une route morte.
+      navigate("/", { replace: true });
     } catch (err) {
       setError(
         err instanceof Error && err.message

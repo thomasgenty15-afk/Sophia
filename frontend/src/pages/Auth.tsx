@@ -129,9 +129,11 @@ const Auth = () => {
   // KEEL W6.1 — coach mode. Everything downstream branches on this flag only.
   const coachSignup = (new URLSearchParams(location.search).get('role') || '') === 'coach';
 
-  const onboardingRedirect = redirectTo === '/onboarding-v2';
+  // `onboardingRedirect` a disparu avec `/onboarding-v2`: plus aucune route ne
+  // peut viser cette cible, donc la branche « on arrive de l'entonnoir, ouvre
+  // en mode inscription » n'avait plus de déclencheur. Reste le seul cas vivant.
   const [isSignUp, setIsSignUp] = useState(
-    prelaunchLockdown ? false : (onboardingRedirect || coachSignup),
+    prelaunchLockdown ? false : coachSignup,
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -187,13 +189,12 @@ const Auth = () => {
   // KEEL — the coach and consumer doors cross-link via client-side navigation,
   // so the form mode must follow the URL after mount, not only at mount:
   // arriving on ?role=coach opens the coach signup; leaving it returns to the
-  // sign-in form (except for the onboarding redirect, which owns its own mode).
+  // sign-in form.
   useEffect(() => {
     if (prelaunchLockdown) return;
     if (coachSignup) setIsSignUp(true);
-    else if (!onboardingRedirect) setIsSignUp(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [coachSignup, prelaunchLockdown, onboardingRedirect]);
+    else setIsSignUp(false);
+  }, [coachSignup, prelaunchLockdown]);
 
   useEffect(() => {
     const msg = "Access is restricted (pre-launch). Only the master_admin account can sign in.";
@@ -627,7 +628,7 @@ const Auth = () => {
             const invitation = coachSignup
               ? ({ kind: "none" } as const)
               : await consumePendingCoachInvitation();
-            if (onboardingRedirect || coachSignup) {
+            if (coachSignup) {
               await runPostSignupFlow(data.user.id);
             } else if (invitation.kind === "accepted") {
               // A consumed invitation OVERRIDES `redirect`. That redirect is
@@ -793,15 +794,6 @@ const Auth = () => {
                 <p className="text-xs text-red-700 font-medium">{error}</p>
               </div>
             )}
-          </div>
-        ) : onboardingRedirect ? (
-          <div className="animate-fade-in-up">
-            <h2 className="text-3xl font-bold text-slate-900 mb-2">
-              Create your Sophia space.
-            </h2>
-            <p className="text-slate-600 max-w-sm mx-auto">
-              Sign up to resume your onboarding and finish your plan.
-            </p>
           </div>
         ) : (
           <div>

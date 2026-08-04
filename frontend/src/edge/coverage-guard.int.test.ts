@@ -97,7 +97,6 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       // the RPCs and the tenancy invariants by
       // coach-invite-student-v1/invitation_rls_test.sql.
       "coach-invite-student-v1",
-      "ethical-text-validator",
       // KEEL W4.1 — pure evaluator + adherence formula; covered by
       // supabase/functions/evaluate-adherence-v1/snapshot_test.ts and by
       // _shared/keel/{evaluator,adherence}_test.ts.

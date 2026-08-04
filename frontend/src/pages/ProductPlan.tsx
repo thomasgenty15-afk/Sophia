@@ -18,9 +18,13 @@ const ProductPlan = () => {
   const seoDescription =
     "Découvre le plan Sophia : un coach IA personnel qui transforme ce que tu veux changer en plan clair et t'aide à tenir dans la vraie vie.";
 
+  // PIVOT KEEL — le bouton menait à `/onboarding-v2`, l'entonnoir du produit
+  // grand public, supprimé. Il pointe sur `/auth` pour ne pas mourir en 404.
+  // Cette page entière (`/le-plan`) vend en français un produit qui n'existe
+  // plus: elle est candidate au démontage, pas seulement au recâblage.
   const handleStartOnboarding = () => {
     startSession();
-    navigate("/onboarding-v2");
+    navigate("/auth");
   };
 
   return (

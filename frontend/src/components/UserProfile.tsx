@@ -335,7 +335,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
       }
       const { error } = await supabase.auth.updateUser(
         { email: nextEmail },
-        { emailRedirectTo: window.location.origin + "/dashboard" },
+        // `/account` et non `/dashboard`, supprimée avec le produit grand
+        // public. L'élève qui confirme son changement d'email revient là d'où
+        // il l'a demandé, ce qui est aussi la page qui lui montre le résultat.
+        { emailRedirectTo: window.location.origin + "/account" },
       );
       if (error) throw error;
       // Best-effort: notify current email about the email change request.

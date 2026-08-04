@@ -6,16 +6,23 @@
 //
 //   1. an ACTIVE `coaches` row      -> /coach      (CoachRoute's fact)
 //   2. profiles.keel_role='student' -> /app/today  (KeelStudentRoute's fact)
-//   3. anything else                -> /dashboard  (the legacy French app)
+//   3. anything else                -> /account
 //
 // FAIL SAFE, NOT CLOSED: this is navigation, not access control — the guards
-// and RLS re-check on arrival. So an unreadable row degrades to /dashboard
-// rather than stranding a legitimate legacy user on an error screen.
+// and RLS re-check on arrival. So an unreadable row degrades to a real page
+// rather than stranding a legitimate user on an error screen.
+//
+// THE FALLBACK USED TO BE `/dashboard`, the legacy French app. That route was
+// deleted with the consumer product, so the fallback was pointing at a 404 —
+// and it is the branch a signed-in user lands on precisely when we could NOT
+// read their role, which is the worst moment to show them nothing. `/account`
+// is what still serves them: their profile, their subscription, and the export
+// and deletion of their data.
 
 import { supabase } from "../../lib/supabase";
 import { loadKeelRole } from "./keelClient";
 
-export type HomePath = "/coach" | "/app/today" | "/dashboard";
+export type HomePath = "/coach" | "/app/today" | "/account";
 
 export async function resolveHomePath(userId: string): Promise<HomePath> {
   try {
@@ -31,9 +38,9 @@ export async function resolveHomePath(userId: string): Promise<HomePath> {
     const role = await loadKeelRole(userId);
     if (role === "student") return "/app/today";
   } catch {
-    // fall through to the legacy default
+    // fall through to the default
   }
-  return "/dashboard";
+  return "/account";
 }
 
 export default resolveHomePath;
