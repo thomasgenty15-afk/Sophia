@@ -74,6 +74,31 @@ function asRow(value: unknown): ProtocolEventRow | null {
   };
 }
 
+/**
+ * Le `recognized` de la ligne, ou `null`.
+ *
+ * JAMAIS `{}`: une colonne `recognized` vide se lit « analysée, rien trouvé »,
+ * ce qui est un fait différent de « rien à dire sur cette ligne ». La règle
+ * existait déjà pour la liaison; elle vaut aussi pour le lien de précision.
+ */
+function recognizedFor(input: {
+  commitment_id: string | null;
+  precision_answer_to?: string | null;
+}): Record<string, unknown> | null {
+  const recognized: Record<string, unknown> = {};
+  if (input.commitment_id !== null) {
+    // DEUX clés, comme sur le chemin photo (`meal-photo-upload-v1:419`):
+    // `commitment_id` est la liaison elle-même; `student_commitment_id`
+    // enregistre qu'un HUMAIN l'a énoncée, pour qu'une lecture machine
+    // ultérieure ne puisse jamais l'écraser en silence.
+    recognized.commitment_id = input.commitment_id;
+    recognized.student_commitment_id = input.commitment_id;
+  }
+  const answerTo = String(input.precision_answer_to ?? "").trim();
+  if (answerTo !== "") recognized.precision_answer_to = answerTo;
+  return Object.keys(recognized).length > 0 ? recognized : null;
+}
+
 export function createProtocolEventWrite(args: {
   supabase: SupabaseClient;
 }): ProtocolEventWrite {
@@ -92,16 +117,9 @@ export function createProtocolEventWrite(args: {
         substance_ref: input.substance_ref,
         food_group_ref: input.food_group_ref,
         // `protocol_events` has no commitment_id column: the binding lives in
-        // `recognized`, which is the key the evaluator reads. TWO keys, as on
-        // the photo path (`meal-photo-upload-v1:419`): `commitment_id` is the
-        // binding itself; `student_commitment_id` records that a HUMAN stated
-        // it, so a later machine reading can never silently overwrite it.
-        // Chat is always the student speaking — both keys, or the column stays
-        // null (never `{}`, which would read as "analysed, found nothing").
-        recognized: input.commitment_id === null ? null : {
-          commitment_id: input.commitment_id,
-          student_commitment_id: input.commitment_id,
-        },
+        // `recognized`, which is the key the evaluator reads. Voir
+        // `recognizedFor` pour les deux clés de liaison et le lien de précision.
+        recognized: recognizedFor(input),
         student_note: input.student_note,
         content_locale: input.content_locale,
         evidence_weight: input.evidence_weight,

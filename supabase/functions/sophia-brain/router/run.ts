@@ -224,7 +224,15 @@ import {
   isFrenchLocale,
   resolveResponseLocale,
 } from "../../_shared/keel/locale.ts";
-import { runMealPhotoCorrectionLane } from "./keel_meal_photo_lane.ts";
+import {
+  armMealPrecisionQuestion,
+  runMealPrecisionLane,
+} from "./keel_meal_precision_lane.ts";
+import type { PrecisionPlanLine } from "../../_shared/keel/meal_precision.ts";
+import {
+  applyMealPrecisionFlowState,
+  readMealPrecisionFlowState,
+} from "../../_shared/keel/meal_precision_flow_state.ts";
 import { createProtocolEventWrite } from "../tools/always_on/log_protocol_event/db.ts";
 import { runLogProtocolEventDirectEffect } from "../tools/always_on/log_protocol_event/router.ts";
 import { createSafetyConstraintWrite } from "../tools/always_on/declare_safety_constraint/db.ts";
@@ -1216,6 +1224,21 @@ export type KeelTurnContext = {
   safety_constraints_unavailable_reason: string | null;
   /** PIVOT §3.3 — la doctrine publiée du coach de cet élève. */
   doctrine: LoadedDoctrine | null;
+  /**
+   * LA QUESTION DE PRÉCISION armée par CE tour, ou `null`.
+   *
+   * Elle voyage ici et pas sur le `turn_frame` pour une raison mesurée: un
+   * redispatch de sortie de flow RECONSTRUIT le frame et perd ce qu'on y avait
+   * posé (`p5-execution-truth`, `oneShotReminderCommittedThisTurn` existe pour
+   * exactement ça). `keelTurn`, lui, est un local de tour passé
+   * OBLIGATOIREMENT à `finalVisibleText` — donc aux six chemins de sortie, et
+   * le compilateur refuse d'en oublier un.
+   *
+   * Le TEXTE est un gabarit fermé (`MEAL_PRECISION_QUESTIONS`), jamais une
+   * génération: c'est la seule garantie structurelle qu'aucune question de
+   * quantité ne sort, quelle que soit l'humeur du composeur.
+   */
+  meal_precision_question?: string | null;
 };
 
 export const LEGACY_KEEL_TURN_CONTEXT: KeelTurnContext = {
@@ -1592,6 +1615,14 @@ export type KeelDirectEffectLaneInput = {
   routeDecision: RouteDecision;
   tempMemory: unknown;
   keel: KeelTurnContext;
+  /**
+   * Les identités déjà écrites pour le repas que ce tour PRÉCISE. Elles sont
+   * interdites à l'intake: « du poulet avec du riz » en réponse à « et avec
+   * quoi ? » ne doit pas refaire un poulet.
+   */
+  suppressComponentKeys?: readonly string[];
+  /** La ligne d'origine à laquelle rattacher un composant ajouté. */
+  precisionAnswerTo?: string | null;
 };
 
 export async function runKeelDirectEffectLane(
@@ -1708,6 +1739,8 @@ export async function runKeelDirectEffectLane(
         // même défaut à l'envers: le modèle recopie fidèlement un id qu'on lui
         // a montré et le runtime le rejette.
         allowed_commitment_ids: keelBindableCommitmentIds(input.keel.plan_context),
+        suppress_component_keys: input.suppressComponentKeys ?? null,
+        precision_answer_to: input.precisionAnswerTo ?? null,
         write_protocol_event: createProtocolEventWrite({
           supabase: input.supabase,
         }),
@@ -2113,6 +2146,19 @@ export function finalVisibleText(
       keel.is_student === true,
       routeDecision?.response_owner === "disordered_eating_guard",
     );
+    // LA QUESTION DE PRÉCISION, en dernier dans le bloc non-crise.
+    //
+    // APRÈS la ceinture d'accusé fantôme, exprès: cette question n'est pas un
+    // accusé — elle ne prétend rien avoir enregistré — et la faire passer dans
+    // un détecteur d'accusé ne pourrait que la mutiler. Elle vient après pour
+    // la même raison que la ceinture vient après `ensureClarifyQuestionVisible`:
+    // le dernier à écrire est le seul qui sait ce que l'élève lira.
+    //
+    // ET DANS le `if (!isSafetyRoute(...))`: un tour de crise est le dernier
+    // endroit où l'on demande à quelqu'un avec quoi il a mangé son poulet. La
+    // bande de safety ferme déjà l'armement en amont (`gateMealPrecisionQuestion`);
+    // ceci est la seconde barrière, sur la route cette fois.
+    out = appendMealPrecisionQuestion(out, keel.meal_precision_question);
   }
   out = out.trim();
 
@@ -2168,6 +2214,49 @@ function retractedConstraintRefsIn(frame: TurnFrame | null): string[] {
     }
   }
   return refs;
+}
+
+/**
+ * LA QUESTION DE PRÉCISION, POSÉE PAR LE RUNTIME ET PAS PAR LE MODÈLE.
+ *
+ * POURQUOI ICI ET PAS DANS LE PROMPT DU COMPOSEUR. Le §3 du chantier pose une
+ * ligne rouge: « une question de précision ne demande JAMAIS une quantité ».
+ * Confier cette question à une génération, c'est la remettre en jeu à chaque
+ * tour — et ce dépôt a déjà mesuré que les correctifs prompt-only régressent en
+ * run réel (`p8-revalidation-rose-reds`). Le texte est un gabarit fermé, il
+ * arrive ici tel quel, et il n'existe aucun chemin par lequel il pourrait
+ * devenir « tu en as mangé combien ? ».
+ *
+ * L'ANTI-INTERROGATOIRE EST STRUCTUREL, ET IL FAIL-SAFE. Si le composeur a déjà
+ * posé une question, la question de précision est ABANDONNÉE plutôt qu'ajoutée:
+ * « deux questions sont un interrogatoire, et l'élève cesse d'écouter ». On
+ * perd une précision; on ne perd pas l'élève. C'est l'arbitrage du §7 —
+ * « la précision n'a de valeur que jusqu'au point où elle coûte l'adhésion ».
+ *
+ * CONDITION DE DÉSARMEMENT (doctrine P9): sans question armée, la fonction rend
+ * le texte inchangé, et elle n'en RETIRE jamais aucune. Elle ne peut donc pas
+ * appauvrir une réponse; au pire elle n'ajoute rien.
+ */
+export function appendMealPrecisionQuestion(
+  text: string,
+  question: string | null | undefined,
+): string {
+  const source = String(text ?? "");
+  const asked = String(question ?? "").trim();
+  if (!asked) return source;
+  // Déjà présente (rejeu, ou composeur qui a recopié le gabarit): ne pas la
+  // doubler. Comparaison EXACTE sur un gabarit fermé — pas une heuristique de
+  // sens, une égalité de chaîne.
+  if (source.includes(asked)) return source;
+  if (source.includes("?")) {
+    // Le composeur a déjà posé sa question. On se tait.
+    console.log(
+      `[keel] meal_precision_question dropped: reply already carries a question`,
+    );
+    return source;
+  }
+  const body = source.trim();
+  return body ? `${body}\n\n${asked}` : asked;
 }
 
 /**
@@ -4090,28 +4179,31 @@ export async function processMessage(
   // traverse pas le cerveau, elle passe par `meal-photo-upload-v1`, qui
   // rouvre le flow sur le nouvel `event_id` — donc le même effet que la sortie
   // `new_photo` du reducer, obtenu par le seul chemin que la photo emprunte.
-  const mealPhotoLane = await runMealPhotoCorrectionLane({
+  const mealPrecisionTurnClock = new Date();
+  const mealPrecisionLane = await runMealPrecisionLane({
     supabase,
     userId,
     userMessage,
     hasMedia: false,
     tempMemory,
     safetyBand: turnFrame?.safety?.risk_band,
-    now: new Date(),
+    now: mealPrecisionTurnClock,
     requestId,
   });
-  tempMemory = mealPhotoLane.tempMemory;
-  if (mealPhotoLane.amended) {
+  tempMemory = mealPrecisionLane.tempMemory;
+  if (mealPrecisionLane.amended) {
     console.log(
-      `[keel] request_id=${requestId} meal_photo_amended` +
-        ` event=${mealPhotoLane.amended.eventId}` +
-        ` kind=${mealPhotoLane.amended.amendment}` +
-        ` cleared_credit=${mealPhotoLane.amended.clearedCredit}`,
+      `[keel] request_id=${requestId} meal_precision_amended` +
+        ` events=${mealPrecisionLane.amended.eventIds.join(",")}` +
+        ` kind=${mealPrecisionLane.amended.amendment}` +
+        ` cleared_credit=${
+          mealPrecisionLane.amended.clearedCreditEventIds.length
+        }`,
     );
   }
-  if (mealPhotoLane.suppressLogProtocolEvent && routeDecision) {
-    // Le fait a été amendé: retirer l'effet est ce qui empêche le doublon de
-    // revenir par la porte que la lane vient de fermer.
+  if (mealPrecisionLane.suppressLogProtocolEvent && routeDecision) {
+    // La CORRECTION n'ajoute rien: retirer l'effet est ce qui empêche le
+    // doublon de revenir par la porte que la lane vient de fermer.
     routeDecision = {
       ...routeDecision,
       direct_effects_to_run: routeDecision.direct_effects_to_run.filter(
@@ -4128,6 +4220,11 @@ export async function processMessage(
     routeDecision,
     tempMemory,
     keel: keelTurn,
+    // La RÉPONSE à une question de précision peut ajouter des faits, mais
+    // jamais réécrire ceux qu'elle précise: ces clés-là sont interdites à
+    // l'intake, et ce qui reste est lié à la ligne d'origine.
+    suppressComponentKeys: mealPrecisionLane.suppressComponentKeys,
+    precisionAnswerTo: mealPrecisionLane.linkToEventId,
   });
   if (keelDirectEffectRuntime) {
     operationRuntime = mergeDirectEffectRuntimeIntoVisibleRuntime({
@@ -4148,6 +4245,106 @@ export async function processMessage(
         }`,
     );
   }
+
+  // LA QUESTION DE PRÉCISION — armée APRÈS l'écriture, jamais avant.
+  //
+  // « j'ai mangé du poulet » écrit un fait techniquement juste et pratiquement
+  // inutilisable: le coach ne sait ni s'il y avait un féculent, ni comment
+  // c'était cuit, et la ligne pèse dans la couverture comme si elle était
+  // complète. On pose UNE question, et seulement si la réponse changerait ce
+  // que le protocole du coach dit de ce repas (`assessMealPrecision`).
+  //
+  // ICI, et pas dans la lane: c'est le seul endroit où l'on tient à la fois les
+  // lignes RELUES (`committed_effects`), le protocole du jour (`keelTurn`) et
+  // `tempMemory` comme locaux vivants du tour. Le flow s'ouvre sur `tempMemory`
+  // exactement comme la lane d'amendement écrit le sien — écrire ailleurs
+  // serait écrasé par la réécriture de fin de tour.
+  if (keelTurn.is_student && keelDirectEffectRuntime) {
+    const committedFacts =
+      (keelDirectEffectRuntime.toolSkillRun.committed_effects as unknown[])
+        .filter((effect): effect is Record<string, unknown> =>
+          Boolean(effect) && typeof effect === "object" && !Array.isArray(effect)
+        )
+        .filter((effect) => String(effect.type ?? "") === "log_protocol_event")
+        .map((effect) => ({
+          protocol_event_id: String(effect.protocol_event_id ?? ""),
+          food_group_ref: effect.food_group_ref === null ||
+              effect.food_group_ref === undefined
+            ? null
+            : String(effect.food_group_ref),
+          substance_ref: effect.substance_ref === null ||
+              effect.substance_ref === undefined
+            ? null
+            : String(effect.substance_ref),
+          commitment_id: effect.commitment_id === null ||
+              effect.commitment_id === undefined
+            ? null
+            : String(effect.commitment_id),
+          slot_key: effect.slot_key === null || effect.slot_key === undefined
+            ? null
+            : String(effect.slot_key),
+        }));
+    if (committedFacts.length > 0) {
+      const planLines: PrecisionPlanLine[] =
+        (keelTurn.plan_context?.today ?? []).map((line) => ({
+          commitment_id: line.commitment_id,
+          polarity: line.polarity,
+          food_group_ref: line.food_group_ref,
+          bucket: String(line.bucket),
+          status: line.status,
+          grain: line.grain,
+          slot_kind: line.slot_kind,
+        }));
+      const armed = await armMealPrecisionQuestion({
+        supabase,
+        userId,
+        committed: committedFacts,
+        planLines,
+        slotKey: committedFacts[0]?.slot_key ?? null,
+        safetyBand: turnFrame?.safety?.risk_band === null ||
+            turnFrame?.safety?.risk_band === undefined
+          ? null
+          : String(turnFrame.safety.risk_band),
+        // La même ceinture déterministe que la lane d'écriture: on ne demande
+        // pas de précisions sur un repas qui n'a pas eu lieu.
+        futureIntent: isTrackProgressFutureIntent(userMessage),
+        // Un flow encore ouvert = une question déjà en attente. Deux questions
+        // ouvertes en même temps sont l'interrogatoire, même étalé sur deux
+        // tours.
+        flowAlreadyOpen: readMealPrecisionFlowState(tempMemory) !== null,
+        localDate: keelTurn.local_date,
+        sourceMessageId: loggedMessageId ?? requestId,
+        now: mealPrecisionTurnClock,
+      });
+      console.log(
+        `[keel] request_id=${requestId} meal_precision_question` +
+          ` reason=${armed.reason_code}` +
+          ` axis=${armed.armed?.axis ?? "none"}`,
+      );
+      if (armed.armed) {
+        // Le flow s'ouvre pour que la RÉPONSE amende au lieu de doubler.
+        tempMemory = applyMealPrecisionFlowState({
+          tempMemory: (tempMemory && typeof tempMemory === "object" &&
+              !Array.isArray(tempMemory))
+            ? tempMemory as Record<string, unknown>
+            : {},
+          flow: armed.armed.flow,
+          detectedFoods: committedFacts
+            .map((fact) => fact.food_group_ref ?? fact.substance_ref ?? "")
+            .filter((label) => label !== ""),
+          now: mealPrecisionTurnClock,
+        });
+        // LE VÉHICULE DE LA QUESTION, et c'est un choix structurel: `keelTurn`
+        // est passé OBLIGATOIREMENT à `finalVisibleText` sur les six chemins de
+        // sortie (le commentaire du paramètre explique pourquoi il est
+        // obligatoire). Une question posée sur le frame se perdrait au premier
+        // redispatch qui reconstruit le frame — la classe de bug déjà payée sur
+        // le runtime committed.
+        keelTurn.meal_precision_question = armed.armed.question;
+      }
+    }
+  }
+
   turnFrame = turnFrameWithDirectEffectRuntime(turnFrame, operationRuntime) ??
     (turnFrame ? withDirectEffectConfirmationContext(turnFrame) : turnFrame);
   // P12-F (rose-hard25 R1-B03): UNE source de vérité de bande effective par

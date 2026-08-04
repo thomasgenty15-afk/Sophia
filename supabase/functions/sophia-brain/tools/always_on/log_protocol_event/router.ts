@@ -52,6 +52,16 @@ export type LogProtocolEventRouterInput = {
    * refused (`unknown_commitment`) rather than written unchecked.
    */
   allowed_commitment_ids?: readonly string[] | null;
+  /**
+   * Les identités déjà écrites pour ce repas, quand ce tour RÉPOND à une
+   * question de précision. Voir `intake.ts`: c'est le seul point où le doublon
+   * « réponse qui re-cite le repas » peut encore être évité, l'index unique
+   * étant dérivé du message et le message de réponse n'étant pas celui de la
+   * déclaration.
+   */
+  suppress_component_keys?: readonly string[] | null;
+  /** La ligne d'origine à laquelle rattacher un composant ajouté. */
+  precision_answer_to?: string | null;
   recent_writes_idempotency?: { source_message_ids: string[] };
   db_idempotency_check?: (key: string) => Promise<boolean>;
   write_protocol_event: ProtocolEventWrite;
@@ -111,8 +121,37 @@ export async function runLogProtocolEventDirectEffect(
     default_source: input.default_source,
     slot_named_in_message: input.slot_named_in_message ?? null,
     allowed_commitment_ids: input.allowed_commitment_ids,
+    suppress_component_keys: input.suppress_component_keys,
+    precision_answer_to: input.precision_answer_to,
   });
   if (!intake.detected) return emptyResult(intake.reason_code);
+  if (
+    intake.detected && !intake.ok &&
+    intake.reason_code === "components_already_logged"
+  ) {
+    // TOUT était déjà écrit: la réponse à la question de précision a re-cité le
+    // repas qu'elle précisait. Ce n'est ni une erreur ni un refus — l'amendement
+    // porte déjà la parole de l'élève, et il n'y a RIEN à lui dire.
+    //
+    // `status: "ignored"` et `reply: null`, donc: une phrase de refus ici
+    // ferait passer un non-événement pour un problème. Le ledger, lui, le porte
+    // en `blocked_effects` — la comptabilité reste vraie même quand la surface
+    // se tait.
+    return {
+      detected: true,
+      status: "ignored",
+      reply: null,
+      executed_tools: [],
+      requested_effects: [],
+      allowed_effects: [],
+      committed_effects: [],
+      blocked_effects: [{
+        type: "log_protocol_event",
+        reason_code: "components_already_logged",
+      }],
+      debug: { reason_code: "components_already_logged" },
+    };
+  }
   if (!intake.ok) {
     // The refusal is NAMED and visible in the ledger. Note that a malformed
     // payload is refused BEFORE the gate: there is nothing coherent to gate,

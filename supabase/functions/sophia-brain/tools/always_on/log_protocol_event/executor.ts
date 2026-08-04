@@ -74,6 +74,7 @@ export async function executeLogProtocolEventWrite(args: {
       content_locale: requested.content_locale,
       evidence_weight: requested.evidence_weight,
       source_message_id: requested.source_message_id,
+      precision_answer_to: requested.precision_answer_to,
     });
   } catch (error) {
     return {

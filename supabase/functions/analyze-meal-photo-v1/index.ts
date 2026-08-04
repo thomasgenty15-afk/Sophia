@@ -23,6 +23,37 @@ import {
 } from "../_shared/keel/meal_analysis.ts";
 import { dayTokenForLocalDate } from "../_shared/keel/slot_reminders.ts";
 import { parseDayToken } from "../_shared/keel/tokens.ts";
+import {
+  ASSUMPTION_SUBJECT_TO_AXIS,
+  gateMealPrecisionQuestion,
+  type MealPrecisionAxis,
+} from "../_shared/keel/meal_precision.ts";
+import {
+  countMealPrecisionQuestionsToday,
+  recordMealPrecisionQuestion,
+} from "../_shared/keel/meal_precision_cap.ts";
+
+/**
+ * L'AXE DE LA QUESTION PHOTO, dans le vocabulaire UNIFIÉ (§P5.3).
+ *
+ * `ASSUMPTION_SUBJECTS` (photo) et les axes de précision (texte) décrivaient la
+ * même chose avec deux mots: `cooking_fat` et `preparation` sont le même manque.
+ * Le mapping vit dans `meal_precision.ts`, avec un test qui tombe si un sujet
+ * photo apparaît sans axe — c'est ce qui empêche les deux vocabulaires de
+ * repartir chacun de leur côté.
+ *
+ * Sans hypothèse mappable, l'axe est `composition`: c'est le cas de l'image
+ * dégradée, où ce qui manque est le contenu de l'assiette lui-même.
+ */
+function photoPrecisionAxis(
+  analysis: { assumptions: ReadonlyArray<{ subject: string }> },
+): MealPrecisionAxis {
+  for (const assumption of analysis.assumptions ?? []) {
+    const axis = ASSUMPTION_SUBJECT_TO_AXIS[assumption.subject];
+    if (axis) return axis;
+  }
+  return "composition";
+}
 
 /**
  * KEEL W5 — `analyze-meal-photo-v1`: what is on the plate, against the plan.
@@ -499,6 +530,71 @@ Deno.serve(async (req) => {
 
     const titles: Record<string, string> = {};
     for (const c of commitments) titles[c.id] = c.title;
+
+    // LE PLAFOND EST PARTAGÉ AVEC LE CHEMIN TEXTE, et c'est le point de la
+    // §P5.2. Deux compteurs séparés donneraient QUATRE questions par jour à un
+    // élève qui envoie des photos ET écrit — soit exactement l'interrogatoire
+    // que le plafond existe pour empêcher, obtenu en respectant deux fois la
+    // règle.
+    //
+    // Le filtre de mise (`meal_analysis.ts` FILTRE 3) a déjà tranché « cette
+    // question a-t-elle un enjeu ». Ici on ne juge plus l'enjeu: on regarde
+    // seulement si l'élève a déjà donné son quota d'attention aujourd'hui.
+    //
+    // ORDRE: la place est consommée AVANT que la question ne parte, comme côté
+    // texte. Une inscription qui échoue retire la question — un plafond qui ne
+    // plafonne pas est pire que pas de question.
+    const askedAnalysis = analysis;
+    if (analysis.clarifying_question) {
+      const count = await countMealPrecisionQuestionsToday(admin, {
+        userId: readBack.user_id,
+        localDate: readBack.local_date,
+      });
+      const gate = gateMealPrecisionQuestion({
+        // Le chemin photo apporte SON axe (dérivé des hypothèses déclarées) et
+        // sa propre condition de mise; l'évaluation textuelle ne s'y applique
+        // pas. On lui donne donc l'axe déjà décidé, et le gate ne juge plus que
+        // la crise, le fait, et le plafond.
+        assessment: {
+          axes: [photoPrecisionAxis(analysis)],
+          primary: photoPrecisionAxis(analysis),
+          reason_code: "photo_assumption",
+          depends_on: [],
+          slot_candidates: [],
+        },
+        safetyBand: "none",
+        futureIntent: false,
+        committedEventCount: 1,
+        questionsAskedToday: count.count,
+        flowAlreadyOpen: false,
+      });
+      if (!gate.ask) {
+        console.log(JSON.stringify({
+          tag: "meal_precision_question_withheld",
+          source: "photo",
+          user_id: readBack.user_id,
+          reason: `${gate.reason_code}:${count.reason}`,
+        }));
+        // La question tombe; le reste de la lecture est intact. L'accusé sera
+        // donc rendu sans question, et le flow s'ouvrira en
+        // `awaiting_correction` — l'élève garde le droit de corriger.
+        askedAnalysis.clarifying_question = null;
+      } else {
+        const recorded = await recordMealPrecisionQuestion(admin, {
+          userId: readBack.user_id,
+          localDate: readBack.local_date,
+          source: "photo",
+          axis: gate.axis ?? "composition",
+          question: analysis.clarifying_question,
+          protocolEventId: readBack.id,
+          // UNE question par photo: la clé d'idempotence est la ligne, pas le
+          // tour. Un rejeu `force: true` de la même photo ne consomme pas une
+          // seconde place du plafond.
+          askedForMessageId: `photo:${readBack.id}`,
+        });
+        if (!recorded.ok) askedAnalysis.clarifying_question = null;
+      }
+    }
 
     return jsonResponse(req, {
       ok: true,

@@ -3,16 +3,16 @@
 // Ce que ces tests protègent, en une phrase: un repas mangé une fois ne produit
 // qu'un seul fait, même quand l'élève le corrige.
 //
-// Le défaut d'origine (audit du 2026-08-04): `reduceMealPhotoFlow` existait,
+// Le défaut d'origine (audit du 2026-08-04): `reduceMealPrecisionFlow` existait,
 // testé, et n'avait AUCUN appelant. « non c'était du poulet » repartait donc
 // dans le routeur global, `log_protocol_event` y voyait une information
 // alimentaire, et écrivait une SECONDE ligne `protocol_events`.
 
 import { assert, assertEquals } from "jsr:@std/assert@1";
 
-import { buildAmendedRecognized } from "./meal_photo_amend.ts";
-import { classifyMealPhotoIntent } from "./meal_photo_intent.ts";
-import { openMealPhotoFlow, reduceMealPhotoFlow } from "./meal_photo_flow.ts";
+import { buildAmendedRecognized } from "./meal_precision_amend.ts";
+import { classifyMealPrecisionIntent } from "./meal_precision_intent.ts";
+import { openMealPrecisionFlow, reduceMealPrecisionFlow } from "./meal_precision_flow.ts";
 
 // ---------------------------------------------------------------------------
 // LE CLASSIFIEUR — un LLM injecté, donc aucun appel réseau ici
@@ -23,7 +23,8 @@ const runner = (intent: string, confidence: number) => () =>
 
 Deno.test("intent: une nouvelle photo est DÉTERMINISTE, le modèle n'est pas consulté", async () => {
   let called = false;
-  const got = await classifyMealPhotoIntent({
+  const got = await classifyMealPrecisionIntent({
+    source: "photo",
     question: "Was this cooked in oil?",
     detectedFoods: ["pork", "rice"],
     inboundText: "",
@@ -46,13 +47,14 @@ Deno.test("intent: une correction est reconnue quels que soient les mots", async
       "chicken actually, not pork",
     ]
   ) {
-    const got = await classifyMealPhotoIntent({
+    const got = await classifyMealPrecisionIntent({
+    source: "photo",
       question: null,
       detectedFoods: ["pork", "rice"],
       inboundText: text,
-      llmRunner: runner("corrects_analysis", 0.93),
+      llmRunner: runner("corrects_declaration", 0.93),
     });
-    assertEquals(got.intent, "corrects_analysis", text);
+    assertEquals(got.intent, "corrects_declaration", text);
   }
 });
 
@@ -60,11 +62,12 @@ Deno.test("intent: sous le seuil de confiance, on retombe sur le comportement d'
   // `unknown` fait « stay » dans le reducer: le tour repart normalement. Un
   // classifieur incertain ne doit jamais acquérir le pouvoir de supprimer
   // l'enregistrement d'un vrai repas.
-  const got = await classifyMealPhotoIntent({
+  const got = await classifyMealPrecisionIntent({
+    source: "photo",
     question: null,
     detectedFoods: ["pork"],
     inboundText: "hmm",
-    llmRunner: runner("corrects_analysis", 0.4),
+    llmRunner: runner("corrects_declaration", 0.4),
   });
   assertEquals(got.intent, "unknown");
 });
@@ -72,7 +75,8 @@ Deno.test("intent: sous le seuil de confiance, on retombe sur le comportement d'
 Deno.test("intent: `answers_question` est refusé quand aucune question n'a été posée", async () => {
   // Un élève ne peut pas répondre à une question qu'on ne lui a pas posée.
   // Sans cette garde, un modèle complaisant ferme un flow sur une hallucination.
-  const got = await classifyMealPhotoIntent({
+  const got = await classifyMealPrecisionIntent({
+    source: "photo",
     question: null,
     detectedFoods: ["pork"],
     inboundText: "oui",
@@ -84,7 +88,8 @@ Deno.test("intent: `answers_question` est refusé quand aucune question n'a ét�
 Deno.test("intent: le modèle ne peut PAS prétendre qu'une photo est arrivée", async () => {
   // `new_photo` est un fait de transport. Le laisser venir du modèle
   // permettrait à une phrase de fermer un flow en mentant sur son contenu.
-  const got = await classifyMealPhotoIntent({
+  const got = await classifyMealPrecisionIntent({
+    source: "photo",
     question: null,
     detectedFoods: ["pork"],
     inboundText: "voilà une autre photo",
@@ -94,7 +99,8 @@ Deno.test("intent: le modèle ne peut PAS prétendre qu'une photo est arrivée",
 });
 
 Deno.test("intent: un LLM qui échoue dégrade vers `unknown`, jamais vers une action", async () => {
-  const got = await classifyMealPhotoIntent({
+  const got = await classifyMealPrecisionIntent({
+    source: "photo",
     question: null,
     detectedFoods: ["pork"],
     inboundText: "non c'était du poulet",
@@ -106,7 +112,8 @@ Deno.test("intent: un LLM qui échoue dégrade vers `unknown`, jamais vers une a
 
 Deno.test("intent: une réponse illisible du modèle dégrade vers `unknown`", async () => {
   for (const bad of ["not json at all", '{"intent":"banana","confidence":1}', "{}"]) {
-    const got = await classifyMealPhotoIntent({
+    const got = await classifyMealPrecisionIntent({
+    source: "photo",
       question: null,
       detectedFoods: ["pork"],
       inboundText: "non c'était du poulet",
@@ -190,40 +197,44 @@ Deno.test("amend: un `recognized` absent ou corrompu ne fait pas perdre l'amende
 
 Deno.test("chaîne: « non c'était du poulet » amende, et n'écrit PAS un second fait", async () => {
   const now = new Date("2026-08-04T12:05:00.000Z");
-  const flow = openMealPhotoFlow({
-    eventId: "evt-1",
+  const flow = openMealPrecisionFlow({
+    source: "photo",
+    eventIds: ["evt-1"],
     question: "Was this cooked in oil?",
     now: new Date("2026-08-04T12:00:00.000Z"),
   });
 
-  const { intent } = await classifyMealPhotoIntent({
+  const { intent } = await classifyMealPrecisionIntent({
+    source: "photo",
     question: flow.question,
     detectedFoods: ["pork", "rice"],
     inboundText: "non c'était du poulet",
-    llmRunner: runner("corrects_analysis", 0.95),
+    llmRunner: runner("corrects_declaration", 0.95),
   });
-  const decision = reduceMealPhotoFlow({ flow, intent, now });
+  const decision = reduceMealPrecisionFlow({ flow, intent, now });
 
-  assertEquals(decision.kind, "amend_event");
-  if (decision.kind === "amend_event") {
-    assertEquals(decision.eventId, "evt-1");
+  assertEquals(decision.kind, "amend");
+  if (decision.kind === "amend") {
+    assertEquals(decision.eventIds, ["evt-1"]);
     assertEquals(decision.amendment, "correction");
   }
 });
 
 Deno.test("chaîne: un tour de crise ferme le flow avant toute autre chose", async () => {
-  const flow = openMealPhotoFlow({
-    eventId: "evt-1",
+  const flow = openMealPrecisionFlow({
+    source: "photo",
+    eventIds: ["evt-1"],
     question: "Was this cooked in oil?",
     now: new Date("2026-08-04T12:00:00.000Z"),
   });
-  const { intent } = await classifyMealPhotoIntent({
+  const { intent } = await classifyMealPrecisionIntent({
+    source: "photo",
     question: flow.question,
     detectedFoods: ["pork"],
     inboundText: "oui à l'huile",
     llmRunner: runner("answers_question", 0.99),
   });
-  const decision = reduceMealPhotoFlow({
+  const decision = reduceMealPrecisionFlow({
     flow,
     intent,
     safetyBand: "high",
@@ -235,18 +246,20 @@ Deno.test("chaîne: un tour de crise ferme le flow avant toute autre chose", asy
 });
 
 Deno.test("chaîne: passé 30 minutes, ce n'est plus la même photo", async () => {
-  const flow = openMealPhotoFlow({
-    eventId: "evt-1",
+  const flow = openMealPrecisionFlow({
+    source: "photo",
+    eventIds: ["evt-1"],
     question: null,
     now: new Date("2026-08-04T12:00:00.000Z"),
   });
-  const { intent } = await classifyMealPhotoIntent({
+  const { intent } = await classifyMealPrecisionIntent({
+    source: "photo",
     question: null,
     detectedFoods: ["pork"],
     inboundText: "c'était du poulet en fait",
-    llmRunner: runner("corrects_analysis", 0.95),
+    llmRunner: runner("corrects_declaration", 0.95),
   });
-  const decision = reduceMealPhotoFlow({
+  const decision = reduceMealPrecisionFlow({
     flow,
     intent,
     now: new Date("2026-08-04T12:31:00.000Z"),
@@ -259,19 +272,21 @@ Deno.test("chaîne: l'incertitude laisse le tour à son chemin normal", async ()
   // La garde de non-régression: quand le classifieur doute, le flow reste
   // ouvert et RIEN n'est amendé — le tour repart exactement comme avant
   // l'existence de ce câblage.
-  const flow = openMealPhotoFlow({
-    eventId: "evt-1",
+  const flow = openMealPrecisionFlow({
+    source: "photo",
+    eventIds: ["evt-1"],
     question: null,
     now: new Date("2026-08-04T12:00:00.000Z"),
   });
-  const { intent } = await classifyMealPhotoIntent({
+  const { intent } = await classifyMealPrecisionIntent({
+    source: "photo",
     question: null,
     detectedFoods: ["pork"],
     inboundText: "bof",
-    llmRunner: runner("corrects_analysis", 0.3),
+    llmRunner: runner("corrects_declaration", 0.3),
   });
   assertEquals(intent, "unknown");
-  const decision = reduceMealPhotoFlow({
+  const decision = reduceMealPrecisionFlow({
     flow,
     intent,
     now: new Date("2026-08-04T12:01:00.000Z"),

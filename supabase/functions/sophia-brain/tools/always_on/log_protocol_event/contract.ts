@@ -123,38 +123,29 @@ export type ProtocolEventWriteInput = {
    * duplicating.
    */
   source_message_id: string;
+  /**
+   * The meal row this fact COMPLETES, when it comes from an answer to a
+   * precision question ("and what did you have with it?" -> "rice").
+   *
+   * It is a LINK, not a merge: the rice is a fact of its own, countable by the
+   * evaluator, and burying it in the origin row's jsonb would make it invisible
+   * exactly where it matters. Written into `recognized`, so a coach reading the
+   * row sees the meal it belongs to instead of inferring it from timestamps.
+   */
+  precision_answer_to?: string | null;
 };
 
 /**
- * The discriminant that lets one message carry several facts, and the reason
- * this is one exported function rather than a template literal at the call
- * site: the WRITE and any later read of these rows must agree on it exactly.
+ * L'identité d'un composant. DÉPLACÉE dans `_shared/keel/protocol_event_key.ts`
+ * et ré-exportée ici pour que les appelants historiques ne bougent pas.
  *
- * It is built from the item's IDENTITY, in a fixed field order, never from its
- * index in the array. Two consequences, both wanted:
- *  - a retry that lists the same foods in another order produces the same keys,
- *    so the partial unique index reports `already_logged` and no duplicate fact
- *    is appended (`protocol_events` is APPEND-ONLY: a duplicate cannot be taken
- *    back from the chat, and it would double-count a `serving` target);
- *  - two components with the same identity ("broccoli and cauliflower" — one
- *    slug, `cruciferous_veg`) collapse to one key. The closed vocabulary cannot
- *    tell them apart, so the honest count is one fact, not two.
+ * Le déplacement a une raison unique et suffisante: `meal-photo-upload-v1` a
+ * besoin de la MÊME clé pour interdire à une réponse de précision de réécrire
+ * un aliment déjà enregistré, et une fonction edge ne peut importer que
+ * `_shared`. Deux copies de cette règle divergeraient en silence — pas
+ * d'erreur, pas de log, juste un doublon de temps en temps.
  */
-export function protocolEventComponentKey(component: {
-  food_group_ref: string | null;
-  substance_ref: string | null;
-  commitment_id: string | null;
-}): string {
-  const parts: string[] = [];
-  if (component.food_group_ref) {
-    parts.push(`food_group:${component.food_group_ref}`);
-  }
-  if (component.substance_ref) parts.push(`substance:${component.substance_ref}`);
-  if (component.commitment_id) parts.push(`commitment:${component.commitment_id}`);
-  // A fact with no structured identity (a slot and a note) is still a fact, and
-  // there can only be one of it per message.
-  return parts.length > 0 ? parts.join("+") : "item";
-}
+export { protocolEventComponentKey } from "../../../../_shared/keel/protocol_event_key.ts";
 
 /**
  * How many facts one message may write. Not a performance guard: a message that
@@ -200,6 +191,8 @@ export type LogProtocolEventRequestedEffect = {
   content_locale: string;
   evidence_weight: number;
   source_message_id: string;
+  /** See ProtocolEventWriteInput: the meal row this fact completes, or null. */
+  precision_answer_to: string | null;
 };
 
 /**

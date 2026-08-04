@@ -20,8 +20,10 @@ import { resolveResponseLocale } from "../_shared/keel/locale.ts";
 import { parseSlotKey } from "../_shared/keel/tokens.ts";
 import { CHAT_SCOPE, deliverChatMessage } from "../_shared/chat/delivery.ts";
 import { claimInbound } from "../_shared/chat/inbound_pipeline.ts";
-import { openMealPhotoFlow } from "../_shared/keel/meal_photo_flow.ts";
-import { openMealPhotoFlowState } from "../_shared/keel/meal_photo_flow_state.ts";
+import { openMealPrecisionFlow } from "../_shared/keel/meal_precision_flow.ts";
+import { openMealPrecisionFlowState } from "../_shared/keel/meal_precision_flow_state.ts";
+import { protocolEventComponentKey } from "../_shared/keel/protocol_event_key.ts";
+import { studentBindingIn } from "../_shared/keel/meal_analysis.ts";
 
 /**
  * KEEL W5 — `meal-photo-upload-v1`: the WEB path for a meal photo.
@@ -867,10 +869,34 @@ Deno.serve(async (req) => {
           ? recognized.clarifying_question
           : null;
         const now = new Date();
-        const opened = await openMealPhotoFlowState(admin, {
+        const opened = await openMealPrecisionFlowState(admin, {
           userId,
           scope: CHAT_SCOPE,
-          flow: openMealPhotoFlow({ eventId, question, now }),
+          flow: openMealPrecisionFlow({
+            source: "photo",
+            eventIds: [eventId],
+            // L'IDENTITÉ DÉJÀ ÉCRITE, calculée par la MÊME fonction que
+            // l'écriture texte. C'est ce qui empêchera « oui, du poulet grillé »
+            // de refaire un poulet: la réponse à la question de précision ne
+            // réécrit jamais ce qu'elle précise.
+            componentKeys: [
+              protocolEventComponentKey({
+                food_group_ref:
+                  (eventRow as { food_group_ref?: unknown }).food_group_ref ===
+                      null ||
+                    (eventRow as { food_group_ref?: unknown }).food_group_ref ===
+                      undefined
+                    ? null
+                    : String(
+                      (eventRow as { food_group_ref?: unknown }).food_group_ref,
+                    ),
+                substance_ref: null,
+                commitment_id: studentBindingIn(recognized),
+              }),
+            ],
+            question,
+            now,
+          }),
           detectedFoods: foods,
           now,
         });

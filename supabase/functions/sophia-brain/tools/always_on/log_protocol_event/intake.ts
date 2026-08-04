@@ -49,7 +49,15 @@ export type LogProtocolEventIntakeResult =
       | "unknown_token"
       | "unknown_commitment"
       | "too_many_components"
-      | "empty_payload";
+      | "empty_payload"
+      /**
+       * Tout ce que le message nomme est DÉJÀ un fait de ce repas: la réponse
+       * à une question de précision a re-cité ce qu'elle précisait. Ce n'est
+       * pas une erreur de l'élève et ça ne mérite aucune phrase — c'est un
+       * non-événement, et le ledger doit pouvoir le dire sans que le renderer
+       * accuse quoi que ce soit.
+       */
+      | "components_already_logged";
     token_issue: string | null;
   }
   | {
@@ -281,6 +289,23 @@ export function runLogProtocolEventIntake(input: {
    * verifiable": a payload that carries one is then refused, not written.
    */
   allowed_commitment_ids?: readonly string[] | null;
+  /**
+   * LES IDENTITÉS DÉJÀ ÉCRITES POUR CE REPAS (`protocolEventComponentKey`).
+   *
+   * Renseigné par la lane de précision quand l'élève RÉPOND à une question:
+   * « du poulet avec du riz » re-cite le poulet, qui est déjà un fait. Sans ce
+   * filtre, il en deviendrait un second — la clé d'idempotence est dérivée du
+   * message, et le message de RÉPONSE n'est pas celui de la déclaration, donc
+   * l'index unique ne peut pas l'attraper. C'est ici, et nulle part ailleurs,
+   * que ce doublon-là peut encore être évité.
+   */
+  suppress_component_keys?: readonly string[] | null;
+  /**
+   * La ligne d'origine du repas, quand ce tour ajoute un composant à un repas
+   * déjà déclaré. Écrite dans `recognized` pour que le lien soit lisible par le
+   * coach et par l'évaluateur, plutôt que déduit d'une proximité d'horodatage.
+   */
+  precision_answer_to?: string | null;
 }): LogProtocolEventIntakeResult {
   const effect = effectFor(input.turn_frame);
   if (!effect) return { detected: false, reason_code: "no_effect_candidate" };
@@ -387,7 +412,29 @@ export function runLogProtocolEventIntake(input: {
     const key = protocolEventComponentKey(component);
     if (!byKey.has(key)) byKey.set(key, component);
   }
-  const distinct = [...byKey.entries()];
+  const allDistinct = [...byKey.entries()];
+
+  // L'ANTI-DOUBLON DE LA RÉPONSE. Filtré APRÈS le dédoublonnage par identité et
+  // AVANT le plafond de cardinalité: un composant qu'on ne va pas écrire ne
+  // doit pas non plus faire refuser le tour pour excès de composants.
+  const suppressed = new Set(
+    (input.suppress_component_keys ?? []).map((key) => String(key ?? "").trim())
+      .filter((key) => key !== ""),
+  );
+  const distinct = suppressed.size === 0
+    ? allDistinct
+    : allDistinct.filter(([key]) => !suppressed.has(key));
+
+  if (distinct.length === 0 && allDistinct.length > 0) {
+    // Tout ce que le message nomme est déjà écrit. Rien à ajouter, et rien à
+    // reprocher à l'élève: l'amendement porte déjà sa parole.
+    return {
+      detected: true,
+      ok: false,
+      reason_code: "components_already_logged",
+      token_issue: null,
+    };
+  }
 
   if (distinct.length > MAX_PROTOCOL_EVENT_COMPONENTS) {
     return {
@@ -441,6 +488,7 @@ export function runLogProtocolEventIntake(input: {
       content_locale: contentLocale,
       evidence_weight: evidenceWeightForSource(source),
       source_message_id: `${sourceMessageId}#${key}`,
+      precision_answer_to: optionalString(input.precision_answer_to),
     })),
   };
 }

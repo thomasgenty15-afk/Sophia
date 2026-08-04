@@ -224,6 +224,7 @@ Deno.test("write-through — une ligne relue appartenant a un AUTRE user est ref
       content_locale: "en-GB",
       evidence_weight: 0.8,
       source_message_id: "msg-1",
+      precision_answer_to: null,
     },
     user_id: USER,
     write_protocol_event: write,
