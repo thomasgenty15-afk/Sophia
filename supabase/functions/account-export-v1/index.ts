@@ -326,6 +326,16 @@ const SCOPE = {
   plannedDeviations:
     "id,plan_version_id,local_date,slot_key,kind,declared_at,declared_via,note,content_locale,consumed_flex,coach_visible,created_at",
   upcomingContexts: "id,local_date,slot_key,kind,source,note,content_locale,created_at",
+  // LES QUESTIONS DE PRÉCISION POSÉES À L'ÉLÈVE.
+  //
+  // Table neuve (`20260804170000`), et elle porte de la donnée personnelle: le
+  // texte exact de ce que le produit lui a demandé, et quand. Elle manquait à
+  // l'export — c'est la deuxième fois que le lifecycle RGPD oublie une table
+  // du pivot, et la première fois avait déjà été payée. `asked_for_message_id`
+  // est un identifiant interne de corrélation, pas une donnée de l'élève: il
+  // reste dehors.
+  mealPrecisionQuestions:
+    "id,local_date,asked_at,source,axis,protocol_event_id,question",
   // risk_band is named in the header as a non-exportable classification;
   // coach_draft_reply is the coach's unsent draft, not the student's data.
   weeklyReviews:
@@ -498,6 +508,7 @@ async function buildExportPayload(
     evaluations,
     plannedDeviations,
     upcomingContexts,
+    mealPrecisionQuestions,
     weeklyReviews,
     changeRequests,
     safetyConstraints,
@@ -551,6 +562,19 @@ async function buildExportPayload(
       "user_id",
       user.id,
       keelUnavailable,
+    ),
+    fetchKeelRows(
+      admin,
+      "meal_precision_questions",
+      SCOPE.mealPrecisionQuestions,
+      "user_id",
+      user.id,
+      keelUnavailable,
+      // Cette table n'a PAS de `created_at`: sa date est `asked_at`. Le défaut
+      // par défaut de `fetchKeelRows` aurait fait échouer la lecture en
+      // silence, et la table serait ressortie en `tables_indisponibles` —
+      // c'est-à-dire absente de l'export tout en ayant l'air prise en compte.
+      "asked_at",
     ),
     fetchKeelRows(admin, "weekly_reviews", SCOPE.weeklyReviews, "user_id", user.id, keelUnavailable),
     fetchKeelRows(
@@ -757,6 +781,7 @@ async function buildExportPayload(
         evaluations,
         deviations_planifiees: plannedDeviations,
         contextes_a_venir: upcomingContexts,
+        questions_de_precision: mealPrecisionQuestions,
       },
       "protocole_bilans.json": {
         bilans_hebdomadaires: weeklyReviews,

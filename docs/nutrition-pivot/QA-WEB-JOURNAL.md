@@ -1240,3 +1240,122 @@ Le plafond de sièges d'essai **mord réellement**, à l'`INSERT` dans
 désarmer la garde — la désarmer aurait aussi faussé le lot facturation.
 
 **Verdict** : VERT (constaté en passant).
+
+---
+
+## L9 — CYCLE DE VIE DU COMPTE, RGPD
+
+Preuves : `qa-web/L9-lifecycle.txt`, bundle réel dans `qa-web/L9-export-bundle.zip`.
+
+⚠️ **Une note de méthode d'abord.** `account-export-v1` et `account-deletion-v1`
+exigent une **ré-authentification fraîche par mot de passe** — et c'est correct :
+ce sont les deux gestes les plus lourds du produit. Le mot de passe employé ici
+est celui d'un **compte jetable créé par le harnais sur `127.0.0.1`** ; aucun
+compte réel n'est touché et rien n'est tapé dans un formulaire.
+
+### 2026-08-04 21:25Z — Suppression → restauration → purge : VERT
+
+```
+suppression  → account_status=deletion_pending, purge_at = J+7  ✅
+l'élève supprimé poste       → HTTP 401, et AUCUN message écrit ✅
+reconnexion  → session obtenue (la session est révoquée à la suppression,
+                c'est voulu — d'où « restauration en se reconnectant »)
+restauration → {"ok":true,"restored":true,"proactive_relances_restored":true} ✅
+l'élève restauré poste       → HTTP 200, réponse reçue ✅
+```
+
+**La purge J+7**, jouée sur horloge simulée : `purged: 1`, puis
+
+```
+✅ protocol_events 1→0   ✅ chat_messages 4→0   ✅ student_week_plans 1→0
+✅ student_daily_checkins 1→0   ✅ student_safety_constraints 1→0
+✅ meal_precision_questions 1→0   ✅ outbound_messages 2→0
+✅ inbound_dedup 2→0   ✅ plan_versions 1→0   ✅ plan_commitments 2→0
+✅ coach_clients 1→0
+profil : <absent>          auth.users : 0
+```
+
+Et **aucune occurrence du prénom de l'élève supprimé dans `coach_syntheses`**.
+
+**Verdict** : VERT.
+
+### 2026-08-04 21:26Z — 🔴 P2 · La purge était le SEUL cron sans horloge injectable
+
+`purge-deleted-accounts` lisait `new Date()` en dur. Or son délai est de **sept
+jours** : sans horloge injectable, la purge RGPD ne se prouve qu'en attendant une
+semaine — c'est-à-dire jamais. Mesuré : compte à `purge_at = J+7`, cron tiré avec
+`{"now": J+8}` → **`purged: 0`**, le champ étant ignoré.
+
+Tous les autres crons du pivot acceptent `now`. Celui-ci était l'exception, et
+c'est celui dont la vérification compte le plus, parce qu'il efface
+irréversiblement des données personnelles.
+
+**Correctif** :
+[purge-deleted-accounts](supabase/functions/purge-deleted-accounts/index.ts:288)
+accepte `simulated_now` — **sous ce nom-là et pas `now`**, délibérément : sur les
+autres jobs une horloge trop avancée envoie un message en trop ; ici elle
+purgerait un compte **avant la fin de son délai de rétractation**. Le nom est
+explicite et chaque usage écrit un `console.warn` nommé, pour que l'emploi soit
+visible dans les journaux de production s'il arrivait.
+
+**Le vert après** : `purged: 1`, et les 11 tables à 0.
+
+**Verdict** : VERT après correctif. Défaut **P2** (comportement de production
+correct ; c'est la vérifiabilité qui manquait).
+
+### 2026-08-04 21:30Z — 🔴 P1 · L'export oubliait une table du pivot, **encore**
+
+Le prompt prévient : « le lifecycle RGPD a déjà oublié des tables neuves une
+fois ». C'est arrivé une deuxième fois, sur la table la plus récente.
+
+**Le rouge** : bundle téléchargé et ouvert (c'est une archive ZIP, pas du JSON
+en ligne — il faut aller la chercher via l'URL signée) :
+
+```
+fichiers.json → tables_indisponibles: ["meal_precision_questions",
+                                       "student_facts", "recurring_meals"]
+```
+
+`meal_precision_questions` porte de la donnée personnelle : le texte exact de
+chaque question posée à l'élève, et quand. Elle n'était pas exportée.
+
+**Et le défaut avait DEUX couches** :
+1. la table n'était pas dans le scope de l'export ;
+2. une fois ajoutée, elle ressortait quand même en `tables_indisponibles` —
+   `fetchKeelRows` trie par `created_at` **par défaut**, et cette table n'a pas
+   cette colonne (sa date est `asked_at`). La lecture échouait, et la table
+   était rangée en « indisponible » : **absente de l'export tout en ayant l'air
+   prise en compte**. C'est le bon comportement de repli qui masquait l'erreur.
+
+**Correctif** :
+[account-export-v1](supabase/functions/account-export-v1/index.ts) — scope de
+colonnes, chargement avec `orderColumn: "asked_at"`, et section
+`protocole_suivi.json → questions_de_precision`.
+
+**Le vert après** :
+
+```
+tables_indisponibles : ["student_facts", "recurring_meals"]
+questions_de_precision : [{"local_date":"2026-08-04","axis":"accompaniment",
+                           "question":"And what did you have with it?", …}]
+```
+
+**Verdict** : VERT après correctif. Défaut **P1**.
+
+### 2026-08-04 21:30Z — Ce qui reste, en AMBER
+
+- **`student_facts` et `recurring_meals` restent sondées** par l'export alors
+  qu'elles ont été **droppées** exprès. Le repli les range en
+  `tables_indisponibles` à chaque export : honnête, mais c'est du bruit
+  permanent dans le bundle d'un élève. **P2**, non corrigé.
+- **Le bundle entier est en FRANÇAIS** — `README.txt`, noms de fichiers
+  (`mes_repas_generes.json`, `ma_memoire_alimentaire.json`), et toutes les clés.
+  Un élève KEEL anglophone qui exerce son droit d'accès reçoit une archive
+  française. **P2**, non corrigé (c'est un chantier d'i18n, pas un correctif).
+- **`notified_whatsapp`** subsiste comme champ de la réponse d'export. **P2**.
+- **Facturation** (`stripe-reconcile-seats`, `entitlements`, `/upgrade`) :
+  **NON TESTÉE**. Le seul élément vérifié est le plafond de sièges d'essai, qui
+  **mord réellement** (rencontré en L5 : `keel_trial_seat_limit_reached`, 3
+  sièges vivants).
+
+**Verdict** : AMBER.

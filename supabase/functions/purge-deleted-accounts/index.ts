@@ -285,7 +285,43 @@ Deno.serve(async (req) => {
       auth: { persistSession: false, autoRefreshToken: false },
     });
 
-    const nowIso = new Date().toISOString();
+    // ══════════════════════════════════════════════════════════════════════
+    // L'HORLOGE EST UNE ENTRÉE — SOUS UN NOM QUI DIT CE QUE C'EST.
+    //
+    // Ce job est le SEUL cron du pivot dont l'horloge n'était pas injectable
+    // (`keel-daily-pulse-v1`, `keel-weekly-flow-v1`, `keel-reengage-v1`,
+    // `coach-synthesis-v1`, `provision-day-v1` acceptent tous `now`). Or son
+    // délai est de SEPT JOURS: sans horloge injectable, la purge RGPD ne peut
+    // se prouver qu'en attendant une semaine — c'est-à-dire jamais.
+    // Mesuré (QA WEB L9): compte supprimé avec `purge_at = J+7`, cron tiré
+    // avec `{"now": J+8}` → `purged: 0`, parce que le champ était ignoré.
+    //
+    // LE CHAMP S'APPELLE `simulated_now` ET PAS `now`, DÉLIBÉRÉMENT. Ce job
+    // efface des données personnelles de façon IRRÉVERSIBLE. Sur les autres
+    // crons, une horloge trop avancée envoie un message en trop; ici, elle
+    // purgerait un compte AVANT la fin de son délai de rétractation. Un nom
+    // explicite, plus un log d'avertissement à chaque usage, rendent
+    // impossible de l'employer sans le savoir — et rendent l'emploi visible
+    // dans les journaux de production s'il arrivait.
+    // ══════════════════════════════════════════════════════════════════════
+    const body = await req.json().catch(() => ({} as Record<string, unknown>));
+    const simulatedRaw = String(
+      (body as Record<string, unknown>)?.simulated_now ?? "",
+    ).trim();
+    const simulated = simulatedRaw ? new Date(simulatedRaw) : null;
+    const nowIso = simulated && Number.isFinite(simulated.getTime())
+      ? simulated.toISOString()
+      : new Date().toISOString();
+    if (simulated && Number.isFinite(simulated.getTime())) {
+      console.warn("[purge-deleted-accounts] SIMULATED CLOCK IN USE", {
+        request_id: requestId,
+        simulated_now: nowIso,
+        real_now: new Date().toISOString(),
+        detail:
+          "la fenêtre de sélection est calculée sur une horloge fournie par " +
+          "l'appelant. Attendu en QA; en production, c'est un incident.",
+      });
+    }
     let purged = 0;
     const errors: Array<{ user_id: string; error: string }> = [];
 
