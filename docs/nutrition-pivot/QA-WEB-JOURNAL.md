@@ -1649,3 +1649,170 @@ lieu de rendre un 400 muet.
 
 **Verdict du lot** : VERT sur le cœur (import → publication → semaine →
 conversation → bascule), NON TESTÉ sur les écrans et les actions secondaires.
+
+---
+
+## SECONDE VAGUE — les défauts laissés ouverts
+
+### 2026-08-04 23:05Z — 🔴 P0-3 CORRIGÉ · Le plancher d'écriture de repas
+
+Le plus lourd des défauts ouverts. Réparé par
+[meal_declaration_floor.ts](supabase/functions/_shared/keel/meal_declaration_floor.ts),
+câblé dans [run.ts](supabase/functions/sophia-brain/router/run.ts:3671) juste à
+côté du plancher d'allergie.
+
+**Sa forme, et pourquoi elle est étroite :**
+- un **lexique FERMÉ** FR + EN, écrit à la main. Un plat absent de la table
+  (`lasagne`, `tajine`) ne produit **aucun** fait : on ne devine pas ce qu'il y
+  avait dedans ;
+- **deux portes seulement** : un verbe de consommation au passé, ou un groupe
+  nominal accompagné d'un mot de créneau — c'est cette seconde forme
+  (« Poulet grillé, riz complet et brocolis à midi ») qui échouait le plus ;
+- des **conditions de désarmement explicites** : intention future, question,
+  négation, assiette de quelqu'un d'autre, hypothèse, copier-coller ;
+- il n'**écrase jamais** le dispatcher — il ne s'ajoute que sur un silence.
+
+**Le vert après**, 4 tours par phrase :
+
+| Déclaration | avant | après |
+|---|---|---|
+| « Poulet grillé, riz complet et brocolis à midi » | `[0,3,3,0]` | **`[3,3,3,3]`** ✅ |
+| « Grilled salmon with quinoa and green beans for dinner » | `[0,0,0,0]` | **`[3,3,3,3]`** ✅ |
+| « j'ai mangé du poulet » | `[1,1,1,1]` | `[1,1,1,1]` ✅ |
+| « I'm going to have chicken tonight » | `[0,0,0,0]` | `[0,1,0,0]` ⚠️ |
+
+**12 tests** dans les deux directions, dont le contre-factuel « couscous royal »
+qui rend ce qu'il **nomme** et rien de plus.
+
+⚠️ **Résiduel, et il n'est PAS de mon plancher** : « I'm going to have chicken
+tonight » a écrit une ligne sur 1 tour sur 4. Le plancher est désarmé sur cette
+phrase (test unitaire à l'appui) — c'est le **dispatcher** qui a émis l'effet.
+Instabilité dans l'autre sens, préexistante, à surveiller.
+
+**Verdict** : VERT après correctif. Défaut **P0** fermé.
+
+### 2026-08-04 23:40Z — 🔴 P1-7 + P2-10 CORRIGÉS · La rétractation n'avait JAMAIS pu s'écrire
+
+**La sonde qui tranche**, directement sur la RPC :
+
+```
+select rpc('retract_student_safety_constraint', <id d'une ligne active>)
+  sous service_role  →  null,  et la ligne reste 'active'
+```
+
+`retract_student_safety_constraint` porte `and user_id = (select auth.uid())`.
+Le moteur de tour écrit avec le client **service_role**, pour qui `auth.uid()`
+vaut **NULL** : l'UPDATE ne matchait aucune ligne, la fonction rendait `null`, et
+`db.ts` traduisait ça en `nothing_to_retract`.
+
+**L'ironie est complète** : le commentaire au-dessus de l'appel dit
+« Un UPDATE direct touchait zéro ligne — le mode d'échec exact rencontré en run
+réel », et la RPC censée le corriger a réintroduit la même condition sous une
+autre forme. `SECURITY DEFINER` change le **rôle d'exécution**, pas
+`auth.uid()`.
+
+**Correctif** :
+[migration 20260804190000](supabase/migrations/20260804190000_retract_safety_constraint_for_user.sql)
+— l'identité devient un **paramètre** (motif `accept_coach_invitation_for_user`),
+et la fonction retire **toutes** les lignes de la référence, pas la première.
+C'est ce qui neutralise P2-10 : deux déclarations de la même allergie créent
+deux lignes actives, et n'en fermer qu'une laissait l'élève contraint **après
+avoir été explicitement libéré**.
+
+**Le vert après** :
+
+```
+avant  : ["peanut|active", "peanut|active"]
+après  : ["peanut|retracted", "peanut|retracted"]
+tour suivant : « two snack ideas: Greek yogurt with berries / Apple slices with
+                 peanut butter »
+```
+
+La suggestion propose du beurre de cacahuète — la base et la réponse s'accordent
+enfin.
+
+**Verdict** : VERT après correctif. Défauts **P1** et **P2** fermés.
+
+### 2026-08-05 00:10Z — 🔴 P1 NEUF · Le cron redemandait, et c'est mon correctif L0 qui l'a révélé
+
+En rejouant la suite d'intégration après le revoke `anon`, un test est passé au
+rouge :
+
+```
+P2 DoD: le cron ne redemande pas — deux ticks, un seul message
+  AssertionError: 2 ≠ 1
+```
+
+**Ce n'était pas le revoke.** `wasPulseAskedToday` re-dérivait le jour local
+depuis `outbound_messages.created_at`. Or la ligne de `chat_messages` est
+estampillée à l'horloge du **job** (mon correctif L0), tandis que la ligne de
+**ledger** l'est par `claim_in_app_outbound` à `now()` — l'horloge **réelle**.
+Sur un rejeu à 22 h 35 réelles avec une horloge simulée à 18 h 30, les deux
+tombaient dans **deux jours locaux différents** : `askedToday` rendait `false`,
+et le cron **redemandait**.
+
+**Correctif** : la journée est **lue sur la ligne** (`metadata.local_date`,
+écrite une fois par `deliverChatMessage`) au lieu d'être recalculée depuis son
+horodatage. Le commentaire d'origine disait vouloir éviter « une deuxième
+implémentation du découpage des jours » — c'était précisément ce qu'il faisait.
+Repli sur l'ancien calcul pour les lignes antérieures, sinon une base existante
+oublierait son historique et redemanderait une fois à tout le monde.
+
+**Verdict** : VERT après correctif. Défaut **P1**.
+
+### 2026-08-05 00:00Z — P2-6 CORRIGÉ · `anon` n'a plus aucun privilège sur le pivot
+
+[migration 20260804191000](supabase/migrations/20260804191000_revoke_anon_on_pivot_tables.sql) :
+**13 tables** passent de « SELECT/INSERT/UPDATE/DELETE » à rien.
+
+Son contrôle final vérifie **les deux sens** : plus aucun privilège `anon`, et
+`authenticated` **garde** son SELECT sur cinq tables témoins — un revoke qui
+emporterait le rôle applicatif casserait le produit entier, et un contrôle qui
+ne regarderait qu'`anon` ne le verrait pas.
+
+**Après** : RLS élève toujours verte, les suites d'intégration à **104 passed /
+0 failed**.
+
+### 2026-08-04 23:55Z — P2-9 CORRIGÉ · L'export ne sonde plus les tables mortes
+
+`student_facts` et `recurring_meals` ont été droppées par le pivot ; les sonder
+à chaque export les rangeait dans `tables_indisponibles` — un bruit permanent
+dans le bundle de **chaque** élève. Les sections restent (un lecteur d'un export
+antérieur ne se retrouve pas devant une clé disparue), mais elles ne mentent
+plus.
+
+**Après** : `tables_indisponibles: []`.
+
+### 2026-08-05 00:20Z — AGENT-16 P0-5 : TRANCHÉ, et ce n'est PAS un compteur cassé
+
+Le lot L6 l'avait laissé « non concluant ». Rejoué avec un élève **actif dans la
+fenêtre** de la synthèse : 6 jours de faits, 6 check-ins, 6 messages.
+
+```
+"6 plates seen: 0 small, 6 moderate, 0 large"
+"evidence": { "logged_days": 0, … }
+"narrative": "No adherence figure this week: nobody logged at least 4 of 7 days."
+```
+
+Deux chiffres de la **même** synthèse qui se contredisent à l'œil d'un coach.
+
+**Le contre-factuel donne la cause exacte** — le même élève avec **2 faits par
+jour** :
+
+```
+"evidence": { "logged_days": 6, … }
+"narrative": "No adherence figure this week: no plan lines are published…"
+risk_band : disengaged → watch
+```
+
+La cause est `LOGGED_DAY_MIN_EVENTS = 2` : un jour ne compte comme « logué » que
+si l'élève a déclaré **au moins deux fois**. **Le compteur fonctionne.**
+
+**Ce qui reste, et c'est un arbitrage, pas un correctif** : un élève qui déclare
+**un repas par jour, tous les jours** est classé `disengaged`, et le coach lit
+« nobody logged at least 4 of 7 days » juste à côté de « 6 plates seen ». Le
+seuil est défendable ; la **phrase** ne dit pas qu'il existe. À trancher : soit
+le seuil descend, soit la phrase nomme sa règle.
+
+**Verdict** : le P0 annoncé est **requalifié en P2 de formulation**, avec sa
+mesure et son contre-factuel.

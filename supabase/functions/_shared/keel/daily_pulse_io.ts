@@ -89,21 +89,44 @@ export async function wasPulseAskedToday(
   db: Db,
   args: { userId: string; localDate: string; timezone: string | null; now: Date },
 ): Promise<boolean> {
-  const since = new Date(args.now.getTime() - 36 * 60 * 60 * 1000).toISOString();
+  // LA JOURNÉE EST LUE SUR LA LIGNE, PAS RECALCULÉE DEPUIS SON HORODATAGE.
+  //
+  // `writeOutboundRow` écrit déjà `metadata.local_date`, calculée UNE fois par
+  // `deliverChatMessage` à partir de l'horloge du tour. Re-dériver le jour
+  // depuis `created_at` était donc la SECONDE implémentation du découpage des
+  // jours — exactement le doublon que le commentaire d'origine disait vouloir
+  // éviter, et il portait le défaut.
+  //
+  // MESURÉ (QA WEB): la ligne de `chat_messages` est estampillée à l'horloge du
+  // job (correctif L0), mais la ligne de ledger l'est par `claim_in_app_outbound`
+  // à `now()` — l'horloge RÉELLE. Sur un rejeu à 22h35 réelles avec une horloge
+  // simulée à 18h30, les deux tombaient dans deux jours locaux différents:
+  // `askedToday` rendait `false` et le cron REDEMANDAIT. Le test
+  // « deux ticks, un seul message » l'a attrapé.
+  //
+  // La fenêtre sur `created_at` reste, élargie à 72 h: c'est un préfiltre
+  // d'index, plus une règle de jour. Le jour, c'est `metadata.local_date`.
+  const since = new Date(args.now.getTime() - 72 * 60 * 60 * 1000).toISOString();
   const { data, error } = await db
     .from("outbound_messages")
-    .select("created_at")
+    .select("created_at, metadata")
     .eq("user_id", args.userId)
     .eq("metadata->>purpose", PULSE_QUESTION_PURPOSE)
     .gte("created_at", since);
   if (error) throw error;
-  // Le rattachement au jour se fait ICI, dans le fuseau de l'élève, avec la
-  // MÊME fonction que celle qui a calculé `localDate`. Un filtre SQL sur des
-  // bornes UTC calculées à la main serait une deuxième implémentation du
-  // découpage des jours, et c'est ce genre de doublon qui a produit le défaut.
-  return ((data ?? []) as Array<Record<string, unknown>>).some((row) =>
-    localDateFor(new Date(String(row.created_at)), args.timezone) === args.localDate
-  );
+  return ((data ?? []) as Array<Record<string, unknown>>).some((row) => {
+    const stamped = String(
+      (row.metadata as { local_date?: unknown } | null)?.local_date ?? "",
+    ).trim();
+    // Repli sur l'ancien calcul UNIQUEMENT pour les lignes antérieures à
+    // `metadata.local_date` — sans lui, une base existante oublierait tout son
+    // historique et redemanderait une fois à tout le monde.
+    if (!stamped) {
+      return localDateFor(new Date(String(row.created_at)), args.timezone) ===
+        args.localDate;
+    }
+    return stamped === args.localDate;
+  });
 }
 
 export interface PulseWriteResult {
