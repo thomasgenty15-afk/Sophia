@@ -236,7 +236,10 @@ export default function JoinPage() {
             // The whole invitation, carried to handle_new_user().
             coach_invite_token: token,
           },
-          emailRedirectTo: `${window.location.origin}/app/today`,
+          // Même raison que le CTA d'acceptation: l'élève qui confirme son
+          // email arrive pour la PREMIÈRE fois. On l'emmène dans la
+          // conversation, pas sur un écran du jour encore vide.
+          emailRedirectTo: `${window.location.origin}/app/chat`,
         },
       });
       if (error) throw error;
@@ -316,9 +319,15 @@ export default function JoinPage() {
         <Button
           variant="primary"
           className="mt-6"
-          onClick={() => navigate("/app/today")}
+          // La conversation, pas l'écran du jour. Un élève qui vient d'accepter
+          // n'a encore RIEN sur son Today — ni plan adopté, ni suivi — et son
+          // tout premier écran serait vide. La bulle, elle, lui dit quoi faire
+          // (« Say hello, or send a photo of your next meal »), et c'est là que
+          // le produit se passe. Aucune ligne du dépôt ne menait au chat avant
+          // celle-ci: on expliquait à l'élève où aller au lieu de l'y emmener.
+          onClick={() => navigate("/app/chat")}
         >
-          {t("invite.already_in_cta")}
+          {t("join.accepted.cta")}
         </Button>
       </Notice>
     );

@@ -1013,11 +1013,14 @@ export const en = {
   "join.accepted.title": "You are in.",
   "join.accepted.title_with_coach": "You are in, with {coach}.",
   "join.accepted.body":
-    "Your space is open. Sophia talks to you in Chat; this is where you come to look at your week.",
+    "Your space is open. Sophia is waiting in your chat, and your week lives here too.",
+  // Le bouton dit où il emmène. Il partageait sa clé avec « Go to my space »,
+  // qui reste juste pour un élève déjà installé et faux pour celui qui vient
+  // d'entrer: on l'emmène dans la conversation, pas dans un espace vide.
+  "join.accepted.cta": "Start talking to Sophia",
 
   // What the days actually look like. The eyebrow is the SURFACE, because
-  // which screen a thing happens on is the useful fact: two of the three are
-  // WhatsApp, and that asymmetry is the product.
+  // which screen a thing happens on is the useful fact.
   "join.day.title": "What this actually looks like",
   "join.day.where_chat": "In your chat",
   "join.day.where_app": "In this app",
