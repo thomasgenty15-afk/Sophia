@@ -283,6 +283,7 @@ export function assessMealPrecision(
 
   const axes: MealPrecisionAxis[] = [];
   const dependsOn = new Map<MealPrecisionAxis, string[]>();
+  let slotCandidates: string[] = [];
 
   // --- composition ---------------------------------------------------------
   // Rien de nommé. Pas un groupe, pas une substance, pas une liaison de plan.
@@ -372,18 +373,16 @@ export function assessMealPrecision(
     if (buckets.length >= 2) {
       axes.push("slot");
       dependsOn.set("slot", reachable.map((l) => l.commitment_id));
-      return {
-        axes: orderAxes(axes),
-        primary: orderAxes(axes)[0] ?? null,
-        reason_code: "axis_missing",
-        depends_on: dependsOn.get(orderAxes(axes)[0] ?? "slot") ?? [],
-        slot_candidates: buckets,
-      };
+      slotCandidates = buckets;
     }
   }
 
   if (axes.length === 0) return empty("declaration_is_usable");
 
+  // UNE SEULE SORTIE. Une seconde sortie vivait ici, dans la branche `slot`,
+  // pour porter `slot_candidates` — et elle avait déjà divergé: elle oubliait le
+  // dédoublonnage de `depends_on`. Une relecture à froid l'a trouvée. Deux
+  // chemins de retour dans une fonction pure sont deux versions de la vérité.
   const ordered = orderAxes(axes);
   const primary = ordered[0];
   return {
@@ -391,7 +390,10 @@ export function assessMealPrecision(
     primary,
     reason_code: "axis_missing",
     depends_on: [...new Set(dependsOn.get(primary) ?? [])],
-    slot_candidates: [],
+    // Les créneaux ne NOMMENT la question que si c'est bien la question posée.
+    // Les porter sur un autre axe donnerait au renderer une donnée qu'il
+    // ignore, c'est-à-dire une occasion de s'en servir un jour par erreur.
+    slot_candidates: primary === "slot" ? slotCandidates : [],
   };
 }
 

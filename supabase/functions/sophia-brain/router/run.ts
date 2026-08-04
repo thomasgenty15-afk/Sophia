@@ -2159,7 +2159,17 @@ export function finalVisibleText(
     // endroit où l'on demande à quelqu'un avec quoi il a mangé son poulet. La
     // bande de safety ferme déjà l'armement en amont (`gateMealPrecisionQuestion`);
     // ceci est la seconde barrière, sur la route cette fois.
-    out = appendMealPrecisionQuestion(out, keel.meal_precision_question);
+    out = appendMealPrecisionQuestion(
+      out,
+      keel.meal_precision_question,
+      () => {
+        // La question n'est pas partie. Le flow doit donc s'ouvrir en
+        // « correction seulement »: l'élève garde le droit d'amender son repas
+        // au lieu d'en écrire un second, mais on ne prétend pas lui avoir
+        // demandé quoi que ce soit.
+        keel.meal_precision_question = null;
+      },
+    );
   }
   out = out.trim();
 
@@ -2241,6 +2251,13 @@ function retractedConstraintRefsIn(frame: TurnFrame | null): string[] {
 export function appendMealPrecisionQuestion(
   text: string,
   question: string | null | undefined,
+  /**
+   * Appelé quand la question est ABANDONNÉE. L'appelant doit alors rouvrir le
+   * flow SANS question: sinon le classifieur du tour suivant serait interrogé
+   * sur une question que l'élève n'a jamais lue, et jugerait sa phrase comme
+   * une réponse à rien.
+   */
+  onDropped?: () => void,
 ): string {
   const source = String(text ?? "");
   const asked = String(question ?? "").trim();
@@ -2254,6 +2271,7 @@ export function appendMealPrecisionQuestion(
     console.log(
       `[keel] meal_precision_question dropped: reply already carries a question`,
     );
+    onDropped?.();
     return source;
   }
   const body = source.trim();
@@ -6147,9 +6165,24 @@ export async function processMessage(
   // Mesuré en run réel avant correctif: flow absent de `temp_memory` au tour
   // suivant, alors que la question ET la ligne de plafond, elles, existaient.
   if (mealPrecisionFlowToCommit) {
+    const armedFlow = mealPrecisionFlowToCommit.flow;
+    // LA QUESTION ABANDONNÉE, ET SA CONSÉQUENCE SUR L'ÉTAT.
+    //
+    // La ceinture de rendu peut retirer la question (le composeur avait déjà
+    // posé la sienne). Persister malgré tout un flow `awaiting_clarification`
+    // porteur d'une question que l'élève N'A JAMAIS LUE ferait juger sa phrase
+    // suivante comme la réponse à rien. On dégrade en « correction seulement »:
+    // il garde le droit d'amender son repas, on ne prétend rien lui avoir
+    // demandé.
+    const questionSurvived = String(keelTurn.meal_precision_question ?? "")
+      .trim() !== "";
+    const flowToWrite = (armedFlow && !questionSurvived &&
+        armedFlow.question !== null)
+      ? { ...armedFlow, state: "awaiting_correction" as const, question: null }
+      : armedFlow;
     tempMemory = applyMealPrecisionFlowState({
       tempMemory: tempMemory as Record<string, unknown>,
-      flow: mealPrecisionFlowToCommit.flow,
+      flow: flowToWrite,
       detectedFoods: mealPrecisionFlowToCommit.detectedFoods,
       now: mealPrecisionTurnClock,
     });
