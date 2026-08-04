@@ -1,5 +1,5 @@
 import React from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { t } from "../i18n/t";
 import { Page, PageHeader, type PageWidth } from "./ui/Page";
@@ -78,6 +78,19 @@ export function KeelShellBar({ variant = "student" }: { variant?: ShellVariant }
         </div>
         <nav className="flex items-center gap-2 text-sm">
           <ShellLink to="/account" label={t("shell.nav.account")} />
+          {/* A ROUTE WITH NO LINK IS A FEATURE NOBODY HAS — the note at the top
+              of this file, applied to /legal. The connected shell had no path
+              to it at all, in either space: a student wanting to know who
+              holds their data, or a coach checking who they are paying, had to
+              sign out to find the answer. Deliberately NOT a ShellLink: it is
+              not a destination in the product, so it never lights up as the
+              active tab next to Today / Students. */}
+          <Link
+            to="/legal"
+            className="rounded-full px-3 py-1 text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+          >
+            {t("shell.nav.legal")}
+          </Link>
           <button
             type="button"
             onClick={handleSignOut}

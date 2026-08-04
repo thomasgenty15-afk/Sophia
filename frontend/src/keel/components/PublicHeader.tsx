@@ -33,6 +33,20 @@ export function PublicHeader({
           {t("brand.wordmark")}
         </Link>
         <nav className="flex items-center gap-2">
+          {/* The one exception to "nothing else" above, and it is not a
+              navigation entry — it is a CREDENTIAL. The mentions légales are
+              where the domain is tied to IKIZEN SAS, and the people who need
+              that link most (a store reviewer, a registry check, a coach
+              deciding whether to trust an unknown vendor with their method)
+              look for it before they scroll, not after. Reachable only from
+              the footer, it was a page that existed for nobody. Styled quieter
+              than "Sign in" so it stays out of the coach's path. */}
+          <Link
+            to="/legal"
+            className="rounded-full px-3 py-1.5 text-sm text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900"
+          >
+            {t("public.header.legal")}
+          </Link>
           <ButtonLink to="/auth" variant={audience === "student" ? "secondary" : "ghost"}>
             {t("public.header.sign_in")}
           </ButtonLink>

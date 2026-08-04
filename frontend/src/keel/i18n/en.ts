@@ -1200,6 +1200,8 @@ export const en = {
   "brand.wordmark": "Sophia",
   "public.header.sign_in": "Sign in",
   "public.header.start_trial": "Start free trial",
+  // Short form for the header; the footer keeps the fuller "Legal & privacy".
+  "public.header.legal": "Legal",
   "public.footer.tagline": "Your method, answering in your absence.",
   "public.footer.legal": "Legal & privacy",
   "public.footer.contact": "Contact",
@@ -1213,6 +1215,7 @@ export const en = {
   "shell.nav.weekly": "This week",
   "app.nav.plan": "My week",
   "shell.nav.account": "Account",
+  "shell.nav.legal": "Legal",
   "shell.nav.sign_out": "Sign out",
 
   // Auth page cross-links (the two doors reference each other)

@@ -2,6 +2,7 @@ import React from "react";
 import { Navigate } from "react-router-dom";
 import SEO from "../../components/SEO";
 import { useAuth } from "../../context/AuthContext";
+import { LEGAL_ENTITY, organizationStructuredData } from "../../lib/legalEntity";
 import { resolveHomePath, type HomePath } from "../api/postLogin";
 import { PublicFooter, PublicHeader } from "../components/PublicHeader";
 import { ButtonLink } from "../components/ui/Button";
@@ -71,6 +72,30 @@ import { t, type MessageKey } from "../i18n/t";
  * have said "there are three of them".
  */
 
+// Hoisted out of the render: SEO holds `structuredData` in a useEffect
+// dependency array, so an inline literal rebuilt the <script> tags on every
+// render. t() is a static table lookup, so module scope is safe.
+//
+// The Organization node comes from `lib/legalEntity` rather than being spelled
+// out here, because it is the SAME declaration /legal makes to humans. A store
+// or registry verifier that lands on "/" must be able to read the company
+// behind the domain without a second page load, and two hand-written copies of
+// a VAT number is how they end up disagreeing.
+const LANDING_STRUCTURED_DATA = [
+  organizationStructuredData(),
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "Sophia",
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Web",
+    url: `${LEGAL_ENTITY.siteUrl}/`,
+    description: t("landing.seo_description"),
+    inLanguage: "en-GB",
+    publisher: organizationStructuredData(),
+  },
+];
+
 export function LandingPage() {
   const { user } = useAuth();
   const [dest, setDest] = React.useState<HomePath | null>(null);
@@ -101,25 +126,7 @@ export function LandingPage() {
         description={t("landing.seo_description")}
         canonical="https://sophia-coach.ai/"
         lang="en"
-        structuredData={[
-          {
-            "@context": "https://schema.org",
-            "@type": "Organization",
-            name: "Sophia",
-            url: "https://sophia-coach.ai/",
-            logo: "https://sophia-coach.ai/apple-touch-icon.png",
-          },
-          {
-            "@context": "https://schema.org",
-            "@type": "SoftwareApplication",
-            name: "Sophia",
-            applicationCategory: "BusinessApplication",
-            operatingSystem: "Web",
-            url: "https://sophia-coach.ai/",
-            description: t("landing.seo_description"),
-            inLanguage: "en-GB",
-          },
-        ]}
+        structuredData={LANDING_STRUCTURED_DATA}
       />
 
       <PublicHeader />
