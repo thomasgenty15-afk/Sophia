@@ -164,3 +164,86 @@ chantier**, et invisibles sauf si les variables d'env dé-skippent ces tests.
 
 **La migration `20260804170000` est appliquée en LOCAL seulement.** Aucun
 `db push`, aucun `functions deploy`.
+
+---
+
+# ÉTAT — le plan de repas (suite du 2026-08-05)
+
+> Le chantier a changé d'objet en cours de nuit. Ce qui suit n'est plus de la
+> précision de repas : c'est le générateur de plan. Même conversation, même
+> arbre, donc même document.
+
+## En une phrase
+
+L'élève se fait composer **ses repas de la semaine** — plats, ingrédients,
+sessions de cuisine — à partir de la doctrine de son coach, **qui ne s'affiche
+jamais**.
+
+## Ce qui marche, et comment on le sait
+
+| Livrable | Preuve |
+|---|---|
+| `/app/plan` = la génération, `/app/meals` = les idées du coach | run navigateur, DOM inspecté |
+| La doctrine agit sans être montrée | 0 conviction, 0 clé, 0 badge dans le DOM |
+| Le plan part d'AUJOURD'HUI | run un mercredi → `wed…tue` |
+| Portions réalistes | `yogurt 200 g · oats 50 g · rice 75 g` |
+| Couverture complète | 7 jours × petit-déj/déj/dîner |
+| Préparations → plusieurs plats différents | 1 cuisson poulet → 4 repas distincts |
+| Sessions avec déroulé | 2 sessions, ordre des gestes écrit |
+| Contraintes respectées | `cook_days:[wed,sun]` → sessions mer + dim uniquement |
+| Cocher / décocher un repas | 4 gestes rejoués sous JWT élève réel |
+
+## Les défauts trouvés en mesurant
+
+Aucun de ces cinq n'a été trouvé en relisant du code.
+
+1. **La réponse HTTP et la base n'avaient pas la même forme** (`servingsMade`
+   vs `servings_made`) — le lot n'atteignait jamais l'écran.
+2. **La consigne de batch se perdait** dans un prompt système long : deux runs
+   à zéro lot. Déplacée près de la demande, avec un budget chiffré : 0 → 5.
+3. **Les quantités du lot étaient répétées** sur chaque jour couvert
+   (`1,200 g` × 4).
+4. **Décocher rapportait un succès et ne changeait rien** :
+   `protocol_events` n'avait aucune policy UPDATE, PostgREST rend 204 sur zéro
+   ligne touchée. La case se décochait à l'écran, le fait continuait de compter.
+5. **Le plan partait de lundi** quel que soit le jour.
+
+## Ce qui n'est PAS fait
+
+### Rien n'a été vu à l'écran depuis la carte santé
+
+Les cinq serveurs de dev de ce dossier appartiennent à d'autres sessions et le
+plafond interdit d'en démarrer un sixième. Tout ce qui suit `/app/health` est
+vérifié par HTTP, SQL et typecheck — **pas par les yeux**. Le rendu des sessions
+de cuisine, les cartes de plats repliées et `CookingCapacityCard` n'ont jamais
+été regardés.
+
+### `generate-week-plan-v1` n'a PAS été supprimé, et c'est une correction
+
+L'intention était de le retirer : plus aucun écran ne l'affiche depuis l'échange
+`/app/plan` ↔ `/app/meals`. L'audit d'appelants (commentaires retirés) dit
+l'inverse — `student_week_plans` a **quatre lecteurs vivants** :
+
+```
+keel-daily-pulse-v1    status='adopted' = la CONDITION du tap quotidien
+keel-weekly-flow-v1    idem pour le point hebdo
+coach_synthesis_io.ts  lit `items` pour la synthèse du coach
+account-export-v1      RGPD
+```
+
+Supprimer la table éteindrait la boucle proactive, le point hebdo et une partie
+de la synthèse coach — **en silence**. Le moteur n'est pas mort : il est
+débranché de l'écran et branché à trois systèmes.
+
+**À trancher** : soit on rebranche une surface qui adopte un plan hebdo, soit on
+migre ces trois lecteurs vers une autre condition (« l'élève a-t-il un plan de
+repas généré cette semaine ? »). Tant que ni l'un ni l'autre n'est fait, ces
+trois systèmes tournent sur une table que plus rien ne remplit.
+
+### Le mode `to_shop` produit des quantités
+
+La liste de courses porte des masses (`chicken thighs 2,000 g`). Le contrat
+interdit les mesures d'énergie et de masse **rapportées à l'élève**
+(non-input #4) ; une quantité pour ACHETER n'est pas une quantité pour COMPTER,
+et le prompt écrit cette distinction. C'est la frontière, elle est mince, et
+elle est assumée en connaissance de cause.

@@ -479,6 +479,11 @@ export interface MealAnalysisPrompt {
  *   day-grain line ("berries 1 serving/day") and a week-grain one ("fatty fish
  *   3x/week"); restricting the allowlist to the slot would make those matches
  *   impossible to express and push the model to invent an id instead.
+ *
+ *   EMPTY IS THE NORMAL CASE, not a degraded one: in the KEEL model no coach
+ *   publishes a per-student prescription, so there is nothing to compare a
+ *   plate to. The prompt then asks for a DESCRIPTION and forbids matches
+ *   outright, instead of asking for a comparison against an empty list.
  * @param slot the slot the student is logging against, or null when they did
  *   not say. R7: an unknown slot token throws here rather than travelling.
  */
@@ -495,24 +500,47 @@ export function buildMealAnalysisPrompt(
   );
   const elsewhere = commitmentsToday.filter((c) => !inSlot.includes(c));
 
-  const planBlock = JSON.stringify(
-    {
-      slot_key: slotKey,
-      commitments_for_this_slot: inSlot.map(compactCommitment),
-      other_commitments_today: elsewhere.map(compactCommitment),
-    },
-    null,
-    2,
-  );
-
-  const userMessage = [
-    "MEAL PHOTO: attached as media.",
-    "",
-    "THE STUDENT PLAN IN CONTEXT (the only commitment_ids that exist):",
-    planBlock,
-    "",
-    "Analyze the photo against this plan and return the JSON object.",
-  ].join("\n");
+  // ── LE CAS NORMAL EST « PAS DE PRESCRIPTION » (2026-08-05) ────────────────
+  //
+  // Ce builder envoyait TOUJOURS un bloc « THE STUDENT PLAN IN CONTEXT » suivi
+  // de « Analyze the photo against this plan ». Dans le modèle KEEL il n'y a
+  // pas de plan par élève (docs/keel/MODEL.md): la liste est vide pour tout le
+  // monde, et on demandait donc au modèle de comparer une assiette à un objet
+  // vide — une consigne qui n'a pas de réponse juste et qui pousse à en
+  // inventer une.
+  //
+  // Sans prescription, on ne dit plus « compare »: on dit « décris ». C'est
+  // exactement ce qu'une photo peut établir, et c'est tout ce qu'on lui demande.
+  const userMessage = commitmentsToday.length === 0
+    ? [
+      "MEAL PHOTO: attached as media.",
+      "",
+      "NO PRESCRIPTION IS IN CONTEXT. There is nothing to compare this plate to,",
+      "and that is the normal case, not a missing input.",
+      slotKey === null
+        ? "The student did not say which meal this is."
+        : `The student is logging this as: ${slotKey}.`,
+      "",
+      "Report what is ON THE PLATE and return the JSON object.",
+      "commitment_matches MUST be an empty array, and so must food_groups_absent:",
+      "absence only means something against a prescription, and there is none.",
+    ].join("\n")
+    : [
+      "MEAL PHOTO: attached as media.",
+      "",
+      "THE STUDENT PLAN IN CONTEXT (the only commitment_ids that exist):",
+      JSON.stringify(
+        {
+          slot_key: slotKey,
+          commitments_for_this_slot: inSlot.map(compactCommitment),
+          other_commitments_today: elsewhere.map(compactCommitment),
+        },
+        null,
+        2,
+      ),
+      "",
+      "Analyze the photo against this plan and return the JSON object.",
+    ].join("\n");
 
   return {
     systemPrompt: MEAL_ANALYSIS_SYSTEM_PROMPT,
@@ -524,9 +552,19 @@ export function buildMealAnalysisPrompt(
 }
 
 export const MEAL_ANALYSIS_SYSTEM_PROMPT =
-  `You are the meal-photo analyzer of KEEL, the runtime of a protocol written by a human coach. You receive one photo of a meal and the student's prescribed commitments for that day. You report what is ON THE PLATE and how it reads against those commitments. You never grade the student and you never author a prescription.
+  `You are the meal-photo analyzer of KEEL. You receive one photo of a meal, and SOMETIMES a list of commitments the student was prescribed that day. You report what is ON THE PLATE. You never grade the student and you never author a prescription.
 
 Output: a single JSON object, nothing else. No prose outside the JSON, no markdown fences.
+
+== MOST OF THE TIME THERE IS NOTHING TO COMPARE THE PLATE TO ==
+
+The usual case is a student whose coach teaches a method to a whole cohort and writes NOTHING per student. There is then no prescription, no commitment, no line, nothing to match. Your message will say so plainly.
+
+When that happens, describing the plate IS the whole job, and it is worth doing well:
+
+- commitment_matches: [] and food_groups_absent: []. Both are answers about a prescription; with no prescription they are empty, always. Never invent an id to have something to return, and never report a food as "missing" when nobody asked for it.
+- Everything else you produce is unchanged and matters MORE, not less: the foods you can name, the groups present, the portion band, the assumptions you had to make. That is what the student and their coach actually read.
+- Do not apologise for the absence, do not mention a plan, and do not treat the reading as incomplete. It is not.
 
 == FIRST QUESTION, BEFORE ANY OTHER: IS THIS A MEAL SOMEONE IS ABOUT TO EAT? ==
 
@@ -1687,6 +1725,35 @@ export interface MealPhotoAckArgs {
   credit?: MealPhotoFoodGroupCredit | null;
   /** commitment_id -> title, for the lines this photo speaks about. */
   commitmentTitles: Readonly<Record<string, string>>;
+  /**
+   * Y AVAIT-IL UNE PRESCRIPTION À CE TOUR — required, and required for the same
+   * reason `binding` is: a caller that can forget it renders the wrong message.
+   *
+   * `false` is the NORMAL case in the KEEL model (the coach writes for a cohort,
+   * never for one student), and it changes what the acknowledgement may say.
+   * Every sentence about lines, credits and "your plan" is silenced: there is
+   * no plan, so "I have not attached it to a line on your plan" describes an
+   * absence the student cannot act on and points at a screen that will never
+   * fill. What is left is the true and useful part -- what is on the plate.
+   *
+   * Deducing it from `commitmentTitles` being empty was the tempting shortcut.
+   * It conflates "no prescription exists" with "the plate matched nothing",
+   * which are different states that deserve different sentences.
+   */
+  hasPrescription: boolean;
+  /**
+   * LE PLAT PRÉVU QUE CE TOUR VIENT DE COCHER, ou null.
+   *
+   * REQUIS, et pour la raison symétrique de `binding`: celui-ci garde contre
+   * « un accusé sans effet », celui-là contre « un effet sans accusé ». La
+   * coche est une ligne écrite dans `protocol_events`; la passer sous silence
+   * laisserait l'élève découvrir une case cochée qu'il n'a pas cochée, sans
+   * savoir ni pourquoi ni comment la retirer.
+   *
+   * Non nul veut dire: la ligne EST écrite et relue. Jamais « on va la
+   * écrire » — c'est l'appelant qui ne renseigne ce champ qu'après l'insert.
+   */
+  tickedDish: string | null;
   locale: string;
 }
 
@@ -1740,6 +1807,19 @@ export function renderMealPhotoAck(args: MealPhotoAckArgs): string {
     // the state where it could announce a line nothing was credited to.
     throw new Error("[keel/meal_analysis] renderMealPhotoAck requires the binding");
   }
+  if (typeof args.hasPrescription !== "boolean") {
+    // Et pas un `?? false`: un défaut silencieux ferait taire les phrases de
+    // crédit du mode 1:1 sans que rien n'échoue. Le seul repli acceptable est
+    // le refus de rendre.
+    throw new Error(
+      "[keel/meal_analysis] renderMealPhotoAck requires hasPrescription",
+    );
+  }
+  if (args.tickedDish === undefined) {
+    // Même raison, dans l'autre sens: une coche écrite et tue est un effet sans
+    // accusé. `null` est une réponse; l'absence n'en est pas une.
+    throw new Error("[keel/meal_analysis] renderMealPhotoAck requires tickedDish");
+  }
   const a = args.analysis;
   // The three ways a photo does not become a meal. They were ONE sentence
   // before ("I could not read that photo"), which was sent about perfectly
@@ -1753,7 +1833,9 @@ export function renderMealPhotoAck(args: MealPhotoAckArgs): string {
       case "food_not_eaten":
         return "That looks like food you have not eaten yet — a menu, a shelf or a packet. I have not counted it as a meal. Send me the plate once it is in front of you.";
       case "unreadable":
-        return "I could not read that photo well enough to say anything useful, so it will not count toward your plan. Another one, a little brighter, and I will.";
+        // « toward your plan » supposait un plan. On dit ce qui est vrai des
+        // deux côtés: rien n'a été lu, donc rien n'a été enregistré du contenu.
+        return "I could not read that photo well enough to say anything useful, so I have not logged what is on it. Another one, a little brighter, and I will.";
     }
   }
 
@@ -1764,6 +1846,34 @@ export function renderMealPhotoAck(args: MealPhotoAckArgs): string {
       ? `I see ${foods.slice(0, 5).join(", ")}.`
       : "Photo saved. I could not identify the items with confidence.",
   );
+
+  // ── PAS DE PRESCRIPTION: ON DÉCRIT, ON NE RENDS PAS DE COMPTES ────────────
+  //
+  // Les quatre sections qui suivent parlent toutes de LIGNES: ce qui a été
+  // crédité, ce qui ne l'a pas été, ce qui contredit, et « rien n'a été
+  // rattaché ». Aucune n'a d'objet quand personne n'a rien prescrit — et la
+  // dernière était la pire: elle annonçait un manque à un élève qui n'a rien
+  // manqué, en désignant un « plan » que le modèle produit ne remplira jamais.
+  //
+  // On saute directement à l'incertitude (question / hypothèse), qui reste
+  // pleinement valable: elle porte sur l'assiette, pas sur une prescription.
+  // ── LE PLAT PRÉVU, COCHÉ ─────────────────────────────────────────────────
+  // Annoncé AVANT tout le reste des phrases de plan, parce que c'est le seul
+  // effet durable que ce tour vient d'écrire hors du fait lui-même.
+  //
+  // La porte de correction est dans la MÊME phrase, pas dans une seconde:
+  // « je l'ai coché, dis-moi si ce n'était pas ça » se lit d'un coup, là où
+  // une question séparée serait l'interrogatoire que §3.3bis interdit. Et le
+  // décochage existe (`meal_tick.ts`), donc la porte mène quelque part.
+  if (args.tickedDish) {
+    lines.push(
+      `Looks like your planned "${args.tickedDish}" — I have ticked it off. Tell me if that was not it.`,
+    );
+  }
+
+  if (!args.hasPrescription) {
+    return [...lines, ...uncertaintyLines(a)].join(" ");
+  }
 
   const titleOf = (id: string) => args.commitmentTitles[id] ?? "a line on your plan";
   const credited = creditedCommitmentIds({
@@ -1818,30 +1928,42 @@ export function renderMealPhotoAck(args: MealPhotoAckArgs): string {
   }
 
   // ---- 5. the uncertainty, resolved in ONE of three ways -------------------
-  // PLAN-NUIT §3.3bis, "Reparation and clarification": of the three options --
-  // guess (forbidden), clarify (costly), or proceed on the most likely
-  // hypothesis WHILE SAYING IT -- pick exactly one, never two. Stacking a
-  // question on top of an assumption on top of "correct me if I'm wrong" is
-  // the interrogation the same section warns about.
-  //
-  // Precedence, strongest first:
-  //   a) a clarifying question -- it already embodies the doubt AND opens the
-  //      correction door, so it supersedes both weaker forms;
-  //   b) otherwise, an assumption that is only a `standard_default` -- stated,
-  //      with the correction door ("hypothèse annoncée + porte de correction").
-  //      `visible_cue` assumptions are NOT surfaced: those are things the photo
-  //      shows, and asking the student to confirm what is visible is noise;
-  //   c) otherwise, the generic low-confidence caveat.
+  lines.push(...uncertaintyLines(a));
+  return lines.join(" ");
+}
+
+/**
+ * L'incertitude, résolue d'UNE des trois façons — jamais deux.
+ *
+ * PLAN-NUIT §3.3bis, "Reparation and clarification": of the three options --
+ * guess (forbidden), clarify (costly), or proceed on the most likely hypothesis
+ * WHILE SAYING IT -- pick exactly one. Stacking a question on top of an
+ * assumption on top of "correct me if I'm wrong" is the interrogation the same
+ * section warns about.
+ *
+ * Precedence, strongest first:
+ *   a) a clarifying question -- it already embodies the doubt AND opens the
+ *      correction door, so it supersedes both weaker forms;
+ *   b) otherwise, an assumption that is only a `standard_default` -- stated,
+ *      with the correction door ("hypothèse annoncée + porte de correction").
+ *      `visible_cue` assumptions are NOT surfaced: those are things the photo
+ *      shows, and asking the student to confirm what is visible is noise;
+ *   c) otherwise, the generic low-confidence caveat.
+ *
+ * EXTRAITE parce qu'elle sert les DEUX rendus (avec et sans prescription), et
+ * qu'elle ne parle jamais d'une ligne: le doute porte sur l'assiette. La
+ * dupliquer aurait laissé le chemin sans prescription — le cas normal — avec
+ * une version qui diverge en silence.
+ */
+function uncertaintyLines(a: MealAnalysis): string[] {
   const question = String(a.clarifying_question ?? "").trim();
   const guessed = a.assumptions.filter((h) => h.basis === "standard_default");
-  if (question) {
-    lines.push(question);
-  } else if (guessed.length > 0) {
-    lines.push(`${guessed[0].assumption} Tell me if that is wrong.`);
-  } else if (a.confidence_band === "low") {
+  if (question) return [question];
+  if (guessed.length > 0) return [`${guessed[0].assumption} Tell me if that is wrong.`];
+  if (a.confidence_band === "low") {
     // Named, not hidden: a low-confidence reading that presents itself as
     // certain is exactly what destroys a coach's trust (W5.5's metric).
-    lines.push("I am not confident about this reading - correct me if I got it wrong.");
+    return ["I am not confident about this reading - correct me if I got it wrong."];
   }
-  return lines.join(" ");
+  return [];
 }

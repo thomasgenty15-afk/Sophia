@@ -307,21 +307,11 @@ export default function CoachStudentPage() {
         <p className="mt-1 text-sm text-gray-500">
           {d.plan?.title ?? t("app.plan_untitled")}
         </p>
-        {/* THE WAY IN TO THE MEAL COMPOSER.
-            `/coach/clients/:id/meals` shipped with no link anywhere in the
-            product — the coach had to type the URL. It is offered only when a
-            plan is published, because the composer hangs off a published plan
-            version and its own screen would otherwise open on a refusal. */}
-        {d.plan && (
-          <p className="mt-3">
-            <Link
-              to={`/coach/clients/${d.student.id}/meals`}
-              className="rounded-full border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
-            >
-              {t("coach.student.meal_plan_cta")}
-            </Link>
-          </p>
-        )}
+        {/* LE COMPOSEUR PAR ÉLÈVE A DISPARU (20260804210000), et son lien avec
+            lui. KEEL est 1:N: le coach écrit une doctrine, un protocole et une
+            bibliothèque de recettes pour toute sa cohorte — il ne compose pas
+            la semaine de chacun. Cette page reste ce qu'elle doit être: une
+            LECTURE de l'élève, pas un poste de pilotage. */}
       </header>
 
       {!d.plan && (

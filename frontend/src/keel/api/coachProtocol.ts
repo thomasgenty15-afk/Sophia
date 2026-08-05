@@ -318,6 +318,15 @@ export const AXES_BY_GOAL: Readonly<Record<GoalToken, readonly ProtocolAxis[]>> 
     { labelKey: "coach.protocol.axis.liquid_calories", classes: ["beverage"] },
     { labelKey: "coach.protocol.axis.vegetable_volume", classes: ["vegetable"] },
   ],
+  // Prise de masse: le troisième axe est ce qui la distingue réellement de la
+  // recomposition juste en dessous. Sans lui les deux objectifs poseraient au
+  // coach les deux mêmes questions, et le nouveau jeton serait décoratif —
+  // « une entrée qui n'altère aucune branche est pire que son absence ».
+  muscle_gain: [
+    { labelKey: "coach.protocol.axis.protein_every_meal", classes: ["protein"] },
+    { labelKey: "coach.protocol.axis.carbs_around_training", classes: ["grain", "fruit"] },
+    { labelKey: "coach.protocol.axis.eating_enough", classes: ["grain", "fat", "dairy"] },
+  ],
   recomposition: [
     { labelKey: "coach.protocol.axis.protein_every_meal", classes: ["protein"] },
     { labelKey: "coach.protocol.axis.carbs_around_training", classes: ["grain", "fruit"] },

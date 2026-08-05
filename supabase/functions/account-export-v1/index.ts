@@ -365,7 +365,13 @@ const SCOPE = {
   //
   // `generated_from` EST exporté: c'est la réponse à « pourquoi Sophia m'a
   // proposé ça », et le §3.7 brique 3 en fait une exigence d'observabilité.
-  studentGoals: "id,goal,situation,practical_constraints,content_locale,created_at,updated_at",
+  // Les deux cibles sont des données que l'ÉLÈVE a déclarées sur son corps: si
+  // quoi que ce soit doit sortir dans son export, c'est bien ça. L'allowlist
+  // est par colonne, donc une colonne neuve est absente par défaut — ce dépôt a
+  // déjà oublié neuf tables du pivot dans ce même fichier.
+  studentGoals:
+    "id,goal,situation,aspiration,focus_axis,practical_constraints,target_weight_kg," +
+    "target_waist_cm,content_locale,created_at,updated_at",
   studentWeekPlans:
     "id,week_start,generated_from,items,status,adopted_at,content_locale,created_at,updated_at",
   studentDailyCheckins: "id,local_date,overall,axis,source,created_at",
@@ -399,13 +405,17 @@ const SCOPE = {
   cardWins:
     "id,student_card_id,arming_id,occurred_at,local_date,slot_key,outcome,source,note,content_locale,created_at",
 
-  // --- ÉCHAFAUDAGE REPAS (20260728120000) ------------------------------------
-  // Écrites PAR le coach POUR cet élève: c'est du contenu qu'il a reçu, au même
-  // titre que `plan_commitments`. `coach_id` reste hors liste (bruit).
-  mealIdeas:
-    "id,author_kind,title,description,slot_key,food_group_refs,content_locale,status,created_at",
-  mealPlanEntries:
-    "id,plan_version_id,day_token,slot_key,meal_idea_id,note,sort_order,created_at",
+  // --- ÉCHAFAUDAGE REPAS: RETIRÉ DE L'EXPORT (20260804210000) ---------------
+  // `meal_ideas` était exporté scopé sur `meal_ideas.student_id`, et
+  // `meal_plan_entries` sur `student_id` — les deux ont disparu avec la
+  // composition 1:1. La bibliothèque de recettes est désormais GLOBALE: elle
+  // appartient au coach, elle est identique pour toute sa cohorte, et elle ne
+  // contient aucune donnée personnelle de CET élève.
+  //
+  // Un export RGPD porte les données de la personne, pas le matériel qu'elle a
+  // consulté. Les y remettre gonflerait l'archive du contenu d'un tiers — et le
+  // scoper serait impossible: il n'existe plus aucune colonne qui relie une
+  // recette à un élève.
 
   // --- CÔTÉ COACH (20260803031000) -------------------------------------------
   // La doctrine est la propriété intellectuelle du coach, et elle est à lui.
@@ -527,8 +537,6 @@ async function buildExportPayload(
     studentCards,
     cardArmings,
     cardWins,
-    mealIdeas,
-    mealPlanEntries,
     coachDoctrines,
     cohorts,
     coachSyntheses,
@@ -679,16 +687,6 @@ async function buildExportPayload(
     fetchKeelRows(admin, "student_cards", SCOPE.studentCards, "user_id", user.id, keelUnavailable),
     fetchKeelRows(admin, "card_armings", SCOPE.cardArmings, "user_id", user.id, keelUnavailable),
     fetchKeelRows(admin, "card_wins", SCOPE.cardWins, "user_id", user.id, keelUnavailable),
-    // meal_ideas / meal_plan_entries scopent l'élève en `student_id`.
-    fetchKeelRows(admin, "meal_ideas", SCOPE.mealIdeas, "student_id", user.id, keelUnavailable),
-    fetchKeelRows(
-      admin,
-      "meal_plan_entries",
-      SCOPE.mealPlanEntries,
-      "student_id",
-      user.id,
-      keelUnavailable,
-    ),
     // --- PIVOT: le matériel du coach (vide pour un élève) --------------------
     fetchKeelRows(
       admin,
@@ -807,8 +805,6 @@ async function buildExportPayload(
       "ma_memoire_alimentaire.json": {
         repas_recurrents: recurringMeals,
         preferences_et_contexte: studentFacts,
-        idees_repas: mealIdeas,
-        entrees_de_menu: mealPlanEntries,
       },
       "mes_cartes.json": {
         cartes: studentCards,

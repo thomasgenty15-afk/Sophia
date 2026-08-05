@@ -73,8 +73,101 @@ export type MealMode = (typeof MEAL_MODES)[number];
 export const MEAL_SCOPES = ["day", "several_days"] as const;
 export type MealScope = (typeof MEAL_SCOPES)[number];
 
-export const MEAL_SLOTS = ["breakfast", "lunch", "dinner", "snack"] as const;
+/**
+ * LES MOMENTS OÙ ON MANGE — et pourquoi il y en a six et plus quatre.
+ *
+ * ── LE DÉFAUT QUE ÇA CORRIGE ────────────────────────────────────────────
+ * Le vocabulaire était `breakfast | lunch | dinner | snack`. Un seul jeton
+ * `snack` pour deux faims qui n'ont rien à voir: celle de 10h et celle de 17h.
+ * Un élève qui s'effondre à 17h ne pouvait pas le dire, et le moteur ne pouvait
+ * pas placer un vrai moment là — au mieux « un snack », quelque part.
+ *
+ * Ce n'est pas une invention: le dépôt porte DÉJÀ ce vocabulaire, dans
+ * `slot_vocabulary`, pour les plans publiés (`on_waking`, `snack_am`,
+ * `pre_workout`, `snack_pm`, `before_bed`...). Le moteur de repas en tenait un
+ * second, plus pauvre, en parallèle. On aligne sur celui qui existe, en ne
+ * gardant que ce qui décrit un MOMENT DE FAIM: `pre_workout`/`post_workout`
+ * sont des constructions d'entraînement, pas des repas de la journée.
+ *
+ * ── `snack` RESTE ACCEPTÉ, ET N'EST PLUS PROPOSÉ ────────────────────────
+ * Des lignes `student_generated_meals` en portent déjà. Le retirer de la liste
+ * ferait que le parseur DROP ces plats à la relecture — un plan composé hier
+ * deviendrait un plan troué. Il est donc accepté en lecture, absent de ce que
+ * l'écran offre, et le modèle ne le voit plus dans le schéma de sortie.
+ */
+export const EATING_OCCASIONS = [
+  "breakfast",
+  "snack_am",
+  "lunch",
+  "snack_pm",
+  "dinner",
+  "before_bed",
+] as const;
+export type EatingOccasion = (typeof EATING_OCCASIONS)[number];
+
+/** Le vocabulaire ACCEPTÉ sur un plat: les six moments, plus le legacy. */
+export const MEAL_SLOTS = [...EATING_OCCASIONS, "snack"] as const;
 export type MealSlot = (typeof MEAL_SLOTS)[number];
+
+/**
+ * UN MOMENT DE LA JOURNÉE DE CET ÉLÈVE, avec son heure si elle a été donnée.
+ *
+ * L'heure est FACULTATIVE et le reste: « je grignote l'après-midi » est une
+ * information utile même sans « à 17h ». Exiger l'heure ferait inventer une
+ * précision que l'élève n'a pas — et une heure inventée, le moteur la traite
+ * comme une contrainte.
+ */
+export interface EatingOccasionSlot {
+  slot: EatingOccasion;
+  /** « 17:00 », ou `null`. */
+  at: string | null;
+}
+
+/**
+ * Le rythme par défaut, quand l'élève n'a rien déclaré.
+ *
+ * C'est EXACTEMENT ce que le moteur imposait à tout le monde avant d'avoir la
+ * question. Le garder comme repli est ce qui rend ce chantier additif: un élève
+ * qui ne remplit rien reçoit la même semaine qu'hier.
+ */
+export const DEFAULT_EATING_RHYTHM: readonly EatingOccasionSlot[] = [
+  { slot: "breakfast", at: null },
+  { slot: "lunch", at: null },
+  { slot: "dinner", at: null },
+];
+
+/**
+ * Le rythme lu depuis `student_goals.practical_constraints.eating_rhythm`.
+ *
+ * DÉFENSIF DANS UNE SEULE DIRECTION: ce qui n'est pas reconnu est laissé de
+ * côté, jamais deviné. Un jeton inconnu deviendrait un moment que le rendu ne
+ * sait pas nommer, et une heure mal formée deviendrait une contrainte fausse.
+ * Un rythme entièrement illisible rend `[]`, et l'appelant retombe sur le
+ * défaut — jamais sur une journée vide.
+ *
+ * L'ORDRE EST CELUI DE LA JOURNÉE, pas celui du tableau reçu. On lit sa journée
+ * du réveil au coucher; laisser l'ordre de saisie décider ferait lire un dîner
+ * avant un petit-déjeuner.
+ */
+export function parseEatingRhythm(raw: unknown): EatingOccasionSlot[] {
+  if (!Array.isArray(raw)) return [];
+  const bySlot = new Map<EatingOccasion, string | null>();
+  for (const entry of raw) {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) continue;
+    const e = entry as Record<string, unknown>;
+    const slot = String(e.slot ?? "").trim().toLowerCase();
+    if (!(EATING_OCCASIONS as readonly string[]).includes(slot)) continue;
+    const at = String(e.at ?? "").trim();
+    // `HH:MM` ou rien. Une heure qu'on ne sait pas lire n'annule pas le moment:
+    // « je mange l'après-midi » reste vrai sans l'heure.
+    const valid = /^([01]\d|2[0-3]):[0-5]\d$/.test(at) ? at : null;
+    bySlot.set(slot as EatingOccasion, valid);
+  }
+  return EATING_OCCASIONS.filter((s) => bySlot.has(s)).map((s) => ({
+    slot: s,
+    at: bySlot.get(s) ?? null,
+  }));
+}
 
 /**
  * Les rayons. LISTE FERMÉE (R6): chaque valeur est rendue par une branche
@@ -120,6 +213,14 @@ export interface GeneratedDish {
   why: string;
   /** Informatif — voir l'en-tête. Jamais exigé, jamais vérifié par un CHECK. */
   honours_belief_keys: string[];
+  /**
+   * Ce que ce plat PRÉLÈVE sur des préparations déjà faites.
+   *
+   * Vide = le plat se fait de zéro (un assemblage sans cuisson, une omelette).
+   * Non vide = la cuisson a eu lieu ailleurs, et `ingredients` ne porte plus
+   * que ce qu'on AJOUTE au moment de manger — la salade, le pain, la sauce.
+   */
+  uses: Array<{ preparationId: string; servings: number }>;
 }
 
 export interface ShoppingItem {
@@ -128,8 +229,64 @@ export interface ShoppingItem {
   aisle: ShoppingAisle;
 }
 
+/**
+ * UNE PRÉPARATION — ce qu'on cuisine, par opposition à ce qu'on mange.
+ *
+ * ── POURQUOI LE LOT NE POUVAIT PAS RESTER UN ATTRIBUT DU PLAT ─────────────
+ * `DishBatch` disait « ce plat-ci se cuisine une fois pour trois jours ». C'est
+ * vrai et c'est insuffisant: ça oblige les trois jours à manger LE MÊME plat.
+ * Résultat mesuré, un bowl poulet-riz-brocoli identique lundi, mardi, mercredi
+ * et jeudi — techniquement du batch cooking, humainement une punition.
+ *
+ * Or ce qu'on cuisine une fois, ce n'est pas un plat: c'est une PRÉPARATION.
+ * 1,2 kg de cuisses rôties devient un bowl le lundi, un wrap le mardi, une base
+ * de curry le jeudi. Une seule cuisson, trois repas qui ne se ressemblent pas —
+ * c'est exactement ce que les gens cherchent quand ils veulent « réduire le
+ * temps de cuisine », et ce n'est pas « manger la même assiette trois fois ».
+ *
+ * La préparation devient donc un objet à part, que plusieurs plats CONSOMMENT.
+ */
+export interface MealPreparation {
+  /** Référence locale au plan, citée par les plats et les sessions. */
+  id: string;
+  title: string;
+  /** Combien de portions sortent de cette cuisson. Toujours > 1. */
+  servingsMade: number;
+  /** Les ingrédients de la PRÉPARATION, pour la totalité du lot. */
+  ingredients: DishIngredient[];
+  /** Comment on la fait. La recette vit ici, plus dans chaque plat. */
+  method: string;
+  /** Jour de cuisson, quand une session le fixe. */
+  cookOn: string | null;
+}
+
+/**
+ * UNE SESSION DE CUISINE — le moment où l'on cuisine, et son déroulé.
+ *
+ * Le plan disait QUOI manger et jamais QUAND cuisiner: « make the whole batch
+ * once » apparaissait sur quatre jours sans qu'aucun ne soit le jour de la
+ * casserole.
+ *
+ * Le DÉROULÉ est le champ qui compte, et c'est le seul qu'un plat ne peut pas
+ * porter: l'ordre des gestes se joue ENTRE les préparations — le riz pendant
+ * que le four tourne. C'est ce qu'on lit le dimanche soir, et c'est ce qui rend
+ * une semaine exécutable pour quelqu'un qui travaille.
+ */
+export interface CookingSession {
+  /** Jeton `mon`..`sun`. */
+  day: string;
+  /** Les préparations faites pendant cette session, par `id`. */
+  preparationIds: string[];
+  /** L'ordre réel des gestes, en prose. */
+  runThrough: string;
+}
+
 export interface GeneratedMeal {
   dishes: GeneratedDish[];
+  /** Ce qui se cuisine, par opposition à ce qui se mange. */
+  preparations: MealPreparation[];
+  /** Quand on cuisine, et dans quel ordre. */
+  cooking_sessions: CookingSession[];
   shopping_list: ShoppingItem[];
   /** Motifs numériques qui ont mordu. Non vide = le prompt a dérivé. */
   rejected_numeric: string[];
@@ -139,7 +296,7 @@ export interface GeneratedMeal {
   lock: OutputLockResult;
 }
 
-export const MEAL_PROMPT_VERSION = "meal.en.v1_doctrine";
+export const MEAL_PROMPT_VERSION = "meal.en.v3_preparations";
 
 const DAY_TOKENS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
 
@@ -151,12 +308,95 @@ const DAY_TOKENS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
  * abandonne le mercredi, et la même logique vaut pour une liste de courses
  * qu'on ne finit pas de lire.
  */
-export function dishCapFor(scope: MealScope): number {
+/**
+ * Combien de vraies sessions de cuisine on s'autorise sur la période.
+ *
+ * Dérivé du plafond de plats plutôt que posé à côté: les deux bougeraient
+ * séparément sinon, et on se retrouverait à demander vingt-et-un plats en cinq
+ * sessions ou l'inverse. Un tiers, arrondi — assez pour un plat frais par jour
+ * ou deux, pas assez pour tout cuisiner à la volée.
+ */
+export function batchSessionBudget(cap: number): number {
+  return Math.max(2, Math.round(cap / 3));
+}
+
+/**
+ * « breakfast, lunch and dinner » — la liste des moments, en anglais lisible.
+ *
+ * En prose et pas en JSON: cette phrase est une CONSIGNE au modèle (« chaque
+ * jour a besoin de ceci »), et une consigne se lit. Le JSON est réservé à ce
+ * qu'il doit RENDRE.
+ */
+export function occasionList(rhythm: readonly EatingOccasionSlot[]): string {
+  const names = rhythm.map((o) => OCCASION_PROSE[o.slot]);
+  if (names.length === 0) return "breakfast, lunch and dinner";
+  if (names.length === 1) return names[0];
+  return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+}
+
+/**
+ * Les moments, un par ligne, avec l'heure quand elle a été donnée.
+ *
+ * L'heure est REPRISE TELLE QUELLE et jamais complétée: « 17:00 » quand il l'a
+ * dit, rien quand il ne l'a pas dit. Inventer « vers 16h » pour faire joli
+ * poserait une contrainte que personne n'a exprimée, et le modèle la
+ * respecterait — c'est bien le problème.
+ */
+function rhythmLines(rhythm: readonly EatingOccasionSlot[]): string {
+  return rhythm
+    .map((o) => (o.at ? `- ${OCCASION_PROSE[o.slot]} (${o.at})` : `- ${OCCASION_PROSE[o.slot]}`))
+    .join("\n");
+}
+
+/** Le jeton, en mots. Le modèle lit de l'anglais, pas des slugs. */
+const OCCASION_PROSE: Record<EatingOccasion, string> = {
+  breakfast: "breakfast",
+  snack_am: "a mid-morning bite",
+  lunch: "lunch",
+  snack_pm: "an afternoon bite",
+  dinner: "dinner",
+  before_bed: "something before bed",
+};
+
+/**
+ * Le plafond de repas COUVERTS.
+ *
+ * ── IL SUIT LE RYTHME DE L'ÉLÈVE, ET C'EST LE POINT ─────────────────────
+ * Le plafond de la semaine valait 21 = 7 jours × 3 repas. Le « × 3 » était
+ * l'hypothèse silencieuse que tout le monde mange trois fois: quelqu'un qui
+ * mange deux fois recevait un budget d'un tiers trop grand, et quelqu'un qui
+ * mange cinq fois voyait ses deux dernières occasions tomber hors plafond —
+ * c'est-à-dire disparaître, sans que rien ne le dise.
+ *
+ * Le plafond est donc la même arithmétique, avec le vrai nombre. Sans rythme
+ * déclaré, la fonction rend EXACTEMENT ce qu'elle rendait avant ce chantier —
+ * c'est ce qui le rend additif: un élève qui ne remplit rien reçoit la semaine
+ * d'hier, au plat près.
+ */
+export function dishCapFor(
+  scope: MealScope,
+  rhythm: readonly EatingOccasionSlot[] = [],
+): number {
+  if (rhythm.length > 0) {
+    return scope === "day" ? rhythm.length : rhythm.length * 7;
+  }
   switch (scope) {
     case "day":
-      return 3;
+      return 4;
+    // LE PLAFOND A ÉTÉ LEVÉ DE 8 À 21, et le raisonnement a changé avec lui.
+    //
+    // À 8, une semaine demandée rendait une semaine TROUÉE: lundi dîner, mardi
+    // petit-déjeuner et dîner, puis plus rien. L'élève voyait des trous là où il
+    // n'avait donné aucune consigne de partialité, et l'écran affichait
+    // fièrement un tiers de semaine.
+    //
+    // L'ancien commentaire disait: « une semaine de vingt plats est une semaine
+    // qu'on abandonne le mercredi ». C'était vrai — tant que chaque plat coûtait
+    // une session de cuisine. Le BATCH casse cette équivalence: vingt-et-un
+    // repas peuvent tenir en six sessions. Le plafond borne donc désormais les
+    // REPAS COUVERTS, pendant que le prompt borne les sessions de CUISINE.
     case "several_days":
-      return 8;
+      return 21;
   }
 }
 
@@ -226,6 +466,80 @@ Your coach's method is given below. It is not a suggestion: their forbidden prac
 
 Inside those limits you are free. Write real food a real person wants to eat. You are not restricted to a catalogue.
 
+== A PORTION IS ONE PERSON'S PLATE ==
+
+You are told how many people are at the table. Every quantity you write is for
+THAT many people, for the number of servings the dish actually makes — and for
+nothing more.
+
+Measured failure, and it is the one that makes a plan unusable: "2 salmon
+fillets, 500 g potatoes" written for ONE person eating ONE dinner. That is three
+dinners on a plate. If a quantity only makes sense because the dish is cooked in
+a batch, then say so in \`batch\` — do not silently inflate a single plate.
+
+Sanity, before you write a quantity: one adult portion is roughly a palm of
+protein, a fist of starch, and vegetables on top. Scale from there. You never
+tell the student those figures; you use them so the numbers you DO write are
+believable.
+
+== THE STRETCH STARTS TODAY ==
+
+You are told what day it is for this student, and the exact days to fill. Use
+THOSE days, in that order, and no others.
+
+A plan handed to somebody on Wednesday that starts on Monday is half expired on
+delivery — measured, and the first thing a student notices. There is no such
+thing as planning a day that has already gone.
+
+== COVER THE WHOLE STRETCH, WITH FEW COOKING SESSIONS ==
+
+When you are asked for several days, cover EVERY day of the stretch and every
+meal that matters in it. A plan with Monday dinner and Wednesday dinner and
+nothing in between is not a plan — the student did not ask for a partial week,
+and holes are read as "the system gave up".
+
+Covering everything does not mean cooking everything. That is what the
+preparations below are for.
+
+== WHAT YOU COOK IS NOT WHAT YOU EAT ==
+
+This is the important one, and it is what makes a week both quick and bearable.
+
+Separate PREPARATIONS from DISHES.
+
+  A preparation is what comes out of one cooking session: 1.2 kg of roast
+  chicken thighs, a pot of chilli, a tray of roast vegetables, a batch of rice.
+  It carries its own ingredients — for the WHOLE batch — and its own method.
+
+  A dish is a meal on a day. It NAMES the preparations it draws on through
+  \`uses\`, and its own \`ingredients\` list only what you add at the moment of
+  eating: the salad, the bread, the yogurt, the lemon.
+
+Why it matters: one cooking of chicken becomes a rice bowl on Monday, a wrap on
+Tuesday and a curry base on Thursday. THREE DIFFERENT MEALS, ONE COOKING. Making
+the same student eat the identical plate four days running is technically batch
+cooking and humanly a punishment — do not do it.
+
+Rules that follow:
+  - anything that needs a pan, a pot or an oven is a PREPARATION making at
+    least two servings. Never a dish cooked from scratch twice in a week.
+  - assemblies that need no cooking — oats and yogurt, a sandwich, fruit and
+    nuts — are plain dishes with no \`uses\`, made fresh, quantities for one
+    plate.
+  - a dish that draws on a preparation does NOT repeat its recipe. Its method is
+    what you do at that meal: "reheat a portion, add the salad and the lemon".
+  - vary what you build from the same preparation. Same protein, different meal.
+
+== NAME THE COOKING SESSIONS, AND WRITE THE RUN-THROUGH ==
+
+Give \`cooking_sessions\`: the days on which the student actually cooks, which
+preparations get made in each, and the ORDER of the gestures — "oven on for the
+tray, rice on while it roasts, chilli simmering next to it, box four portions".
+
+Aim for two or three sessions in a week, not seven. Every preparation belongs to
+exactly one session: a preparation nobody cooks is a plan the student cannot
+follow.
+
 == NEVER PUT A NUMBER ON NUTRITION ==
 
 No calories. No macro grams. No percentages of anything nutritional. Not as a target, not as a range, not "roughly". Nobody has measured this student.
@@ -253,13 +567,26 @@ mode = to_shop
   "dishes": [
     {
       "title": "...",
-      "slot": "breakfast"|"lunch"|"dinner"|"snack"|null,
+      "slot": "breakfast"|"snack_am"|"lunch"|"snack_pm"|"dinner"|"before_bed"|null,
       "day": "mon"|"tue"|"wed"|"thu"|"fri"|"sat"|"sun"|null,
       "ingredients": [{ "term": "...", "quantity": "..."|null }],
       "method": "how to make it, plainly, in a short paragraph",
       "why": "one sentence: why THIS dish for THIS student this week",
-      "honours_belief_keys": ["<exact keys from the convictions list, when one applies>"]
+      "uses": [{ "preparation_id": "prep_chicken", "servings": 1 }],
+      "honours_belief_keys": ["<exact keys from the convictions list, when one applies>"],
+      "uses": [{ "preparation_id": "prep_chicken", "servings": 1 }]
     }
+  ],
+  "preparations": [
+    { "id": "prep_chicken", "title": "Roast chicken thighs",
+      "servings_made": 4,
+      "ingredients": [{ "term": "...", "quantity": "<for the WHOLE batch>" }],
+      "method": "how to cook the batch",
+      "cook_on": "sun"|null }
+  ],
+  "cooking_sessions": [
+    { "day": "sun", "preparation_ids": ["prep_chicken", "prep_rice"],
+      "run_through": "the order of the gestures, plainly" }
   ],
   "shopping_list": [
     { "term": "...", "quantity": "..."|null,
@@ -296,8 +623,32 @@ export function buildMealPrompt(args: {
   slot: MealSlot | null;
   servings: number;
   pantry: readonly PantryItem[];
+  /** Le jeton du jour de l'élève, dans SON fuseau. Jamais celui du serveur. */
+  todayToken?: string | null;
+  /**
+   * CE QUE L'ÉLÈVE PEUT VRAIMENT FAIRE — `practical_constraints`.
+   *
+   * Quatre entrées qui décidaient de tout et que le moteur devinait: les jours
+   * où il peut cuisiner, le temps par session, le niveau de recette, le budget.
+   * Un plan parfait et inapplicable est la première cause d'abandon.
+   */
+  cookDays?: readonly string[];
+  cookingTimeMin?: number | null;
+  recipeDifficulty?: string | null;
+  variety?: string | null;
+  budgetBand?: string | null;
+  /** Les jours à remplir, à partir d'aujourd'hui. Vide = le modèle décide. */
+  daysToFill?: readonly string[];
+  /**
+   * Les moments d'une journée NORMALE pour cet élève. Vide = il ne l'a pas dit,
+   * et on retombe sur les trois repas que le moteur imposait jusqu'ici.
+   */
+  eatingRhythm?: readonly EatingOccasionSlot[];
 }): { systemPrompt: string; userMessage: string } {
-  const cap = dishCapFor(args.scope);
+  const rhythm = args.eatingRhythm && args.eatingRhythm.length > 0
+    ? args.eatingRhythm
+    : DEFAULT_EATING_RHYTHM;
+  const cap = dishCapFor(args.scope, args.eatingRhythm ?? []);
   const pantryLines = args.pantry
     .map((p) => (p.quantity ? `- ${p.term} (${p.quantity})` : `- ${p.term}`))
     .join("\n");
@@ -325,10 +676,86 @@ export function buildMealPrompt(args: {
       ? `what is going on for them RIGHT NOW: ${args.context}`
       : "nothing special going on this week.",
     "",
+    // ── LA FORME DE LEUR JOURNÉE ────────────────────────────────────────
+    // Son propre en-tête, et pas une ligne perdue dans « what to cook »: c'est
+    // la contrainte qui décide COMBIEN de plats existent et QUAND. Une faim de
+    // 17h qu'on ne nomme pas est une faim qu'on comble ailleurs, et le plan le
+    // plus juste du monde s'écroule dessus.
+    "== THE SHAPE OF A NORMAL DAY FOR THEM ==",
+    rhythmLines(rhythm),
+    args.eatingRhythm && args.eatingRhythm.length > 0
+      ? "Those are the moments they actually eat. Do not add a meal they did " +
+        "not name, and do not drop one they did: an extra meal is a meal they " +
+        "skip, a missing one is the hour they raid the cupboard."
+      : "They have not told us their rhythm, so this is the default assumption " +
+        "— treat it as ordinary, not as something they chose.",
+    "",
     "== WHAT TO COOK ==",
     `mode: ${args.mode}`,
     `how much: ${args.scope} (at most ${cap} dish${cap > 1 ? "es" : ""})`,
+    // LES DEUX CONSIGNES QUI NE TIENNENT PAS DANS LE PROMPT SYSTÈME.
+    //
+    // Elles y étaient, et elles se perdaient: mesuré deux fois de suite, une
+    // semaine demandée rendait 17 à 20 plats cuisinés SÉPARÉMENT (zéro lot) et
+    // laissait des déjeuners vides. Un prompt système long dilue une règle; une
+    // consigne posée juste à côté de la DEMANDE est lue.
+    //
+    // Elles sont chiffrées exprès. « Peu de sessions » se négocie, « au plus
+    // cinq » ne se négocie pas — et le dépôt a déjà payé le fait qu'une règle
+    // qualitative dans un prompt est une règle que le modèle applique quand ça
+    // l'arrange.
+    ...(args.scope === "several_days"
+      ? [
+        // LE RYTHME DE CET ÉLÈVE, PAS CELUI DE TOUT LE MONDE.
+        //
+        // Cette ligne disait « every day needs breakfast, lunch and dinner ».
+        // Codée en dur, pour tous. Quelqu'un qui mange deux fois recevait un
+        // repas de trop; quelqu'un qui s'effondre à 17h n'avait aucun endroit
+        // où le dire, et sa journée s'arrêtait au déjeuner puis reprenait au
+        // dîner. La règle est la même — pas de trou — mais sur SA journée.
+        `every day of the stretch needs ${occasionList(rhythm)}. A day missing ` +
+        "one of those is a hole, and the student did not ask for a partial week.",
+        `cooking sessions: at most ${batchSessionBudget(cap)} for the whole ` +
+        "stretch. Most lunches and dinners must therefore come from BATCHES — " +
+        "one cooking session, several servings, several days, declared in " +
+        "`batch`. Seventeen separately-cooked dishes is not a plan anybody cooks.",
+      ]
+      : []),
     args.slot ? `meal: ${args.slot}` : "meal: whichever fits",
+    // LE JOUR OÙ L'ON EST, et il n'y était pas. Le modèle repartait de lundi
+    // par habitude: un plan généré le mercredi rendait trois jours déjà passés.
+    ...(args.todayToken ? [`today is: ${args.todayToken}`] : []),
+    // LES CONTRAINTES DE CUISINE, juste à côté de la demande. Une session
+    // proposée un dimanche à quelqu'un qui travaille le dimanche est un plan
+    // qu'on ne suit pas, et le modèle n'avait aucun moyen de le savoir.
+    ...(args.cookDays && args.cookDays.length > 0
+      ? [
+        `they can only cook on: ${args.cookDays.join(", ")}. Put every cooking ` +
+        "session on those days, and no others.",
+      ]
+      : []),
+    ...(args.cookingTimeMin
+      ? [
+        `time per cooking session: about ${args.cookingTimeMin} minutes. A ` +
+        "session that does not fit is a session they skip.",
+      ]
+      : []),
+    ...(args.recipeDifficulty
+      ? [`recipe level they want: ${args.recipeDifficulty}`]
+      : []),
+    ...(args.variety ? [`repetition they accept: ${args.variety}`] : []),
+    ...(args.budgetBand
+      ? [
+        `budget: ${args.budgetBand}. On a tight budget, favour cheap staples ` +
+        "and skip expensive proteins and out-of-season produce.",
+      ]
+      : []),
+    ...(args.daysToFill && args.daysToFill.length > 0
+      ? [
+        `days to fill, in this order: ${args.daysToFill.join(", ")}`,
+        "Do not use any other day token. Do not start earlier than today.",
+      ]
+      : []),
     `people at the table: ${args.servings}`,
     "",
     args.mode === "from_pantry"
@@ -391,6 +818,62 @@ export function parseGeneratedMeal(
   const cap = dishCapFor(args.scope);
 
   // ── LES PLATS ───────────────────────────────────────────────────────────
+  // ── LES PRÉPARATIONS ────────────────────────────────────────────────────
+  // Parsées AVANT les plats, parce que les plats les référencent: un `uses`
+  // qui pointe une préparation inexistante doit être jeté, pas affiché comme
+  // « prélève sur quelque chose » que l'élève ne trouvera nulle part.
+  const preparations: MealPreparation[] = [];
+  for (const [i, entry] of (Array.isArray(root.preparations) ? root.preparations : []).entries()) {
+    const prep = (entry && typeof entry === "object" ? entry : {}) as Record<string, unknown>;
+    const id = cleanText(prep.id);
+    const title = cleanText(prep.title);
+    if (!id || !title) {
+      issues.push(`preparations[${i}]: missing id or title, dropped`);
+      continue;
+    }
+    const made = Number(prep.servings_made);
+    if (!Number.isFinite(made) || made <= 1) {
+      // Une préparation d'UNE portion n'en est pas une: c'est un plat. La
+      // garder ferait afficher une session de cuisine pour une assiette.
+      issues.push(`preparations[${i}]: servings_made must be > 1, dropped`);
+      continue;
+    }
+    const method = cleanText(prep.method);
+    const numeric = findNumericTarget(`${title} ${method}`);
+    if (numeric) {
+      if (!rejectedNumeric.includes(numeric)) rejectedNumeric.push(numeric);
+      issues.push(`preparations[${i}]: numeric target (${numeric}) -- dropped`);
+      continue;
+    }
+    const prepIngredients: DishIngredient[] = [];
+    let prepNumeric: string | null = null;
+    for (const rawIng of (Array.isArray(prep.ingredients) ? prep.ingredients : [])) {
+      const ing = (rawIng && typeof rawIng === "object" ? rawIng : {}) as Record<string, unknown>;
+      const term = cleanText(ing.term);
+      if (!term) continue;
+      const quantity = cleanText(ing.quantity) || null;
+      if (quantity && ENERGY_UNIT_RE.test(quantity)) { prepNumeric = "energy_unit_in_quantity"; break; }
+      const termNumeric = findNumericTarget(`${quantity ?? ""} ${term}`);
+      if (termNumeric) { prepNumeric = termNumeric; break; }
+      prepIngredients.push({ term, quantity, in_pantry: isInPantry(term, args.pantry) });
+    }
+    if (prepNumeric) {
+      if (!rejectedNumeric.includes(prepNumeric)) rejectedNumeric.push(prepNumeric);
+      issues.push(`preparations[${i}]: numeric target in an ingredient -- dropped`);
+      continue;
+    }
+    const cookOnRaw = cleanText(prep.cook_on).toLowerCase();
+    preparations.push({
+      id,
+      title,
+      servingsMade: Math.min(21, Math.round(made)),
+      ingredients: prepIngredients,
+      method,
+      cookOn: DAY_TOKENS.includes(cookOnRaw) ? cookOnRaw : null,
+    });
+  }
+  const preparationIds = new Set(preparations.map((p) => p.id));
+
   const dishes: GeneratedDish[] = [];
   const rawDishes = Array.isArray(root.dishes) ? root.dishes : [];
   for (const [i, entry] of rawDishes.entries()) {
@@ -488,7 +971,40 @@ export function parseGeneratedMeal(
       if (!honours.includes(key)) honours.push(key);
     }
 
-    dishes.push({ title, slot, day, ingredients, method, why, honours_belief_keys: honours });
+    // CE QUE LE PLAT PRÉLÈVE. Une référence inconnue est JETÉE et comptée: la
+    // garder afficherait « prélève sur la préparation X » quand X n'existe
+    // nulle part, et l'élève chercherait une casserole qu'on ne lui a jamais
+    // demandé de faire.
+    const uses: Array<{ preparationId: string; servings: number }> = [];
+    for (const rawUse of (Array.isArray(d.uses) ? d.uses : [])) {
+      const u = (rawUse && typeof rawUse === "object" ? rawUse : {}) as Record<string, unknown>;
+      const prepId = cleanText(u.preparation_id);
+      if (!prepId) continue;
+      if (!preparationIds.has(prepId)) {
+        issues.push(
+          `dishes[${i}].uses: unknown preparation ${JSON.stringify(prepId)}, dropped`,
+        );
+        continue;
+      }
+      const servings = Number(u.servings);
+      uses.push({
+        preparationId: prepId,
+        servings: Number.isFinite(servings) && servings > 0
+          ? Math.min(12, Math.round(servings))
+          : 1,
+      });
+    }
+
+    dishes.push({
+      title,
+      slot,
+      day,
+      ingredients,
+      method,
+      why,
+      honours_belief_keys: honours,
+      uses,
+    });
   }
 
   // ── LA LISTE DE COURSES ─────────────────────────────────────────────────
@@ -584,8 +1100,51 @@ export function parseGeneratedMeal(
   });
   const clean = lock.reason === "clean" || lock.reason.startsWith("disarmed");
 
+  // ── LES SESSIONS DE CUISINE ─────────────────────────────────────────────
+  // Une session qui ne fait AUCUNE préparation connue est jetée: elle
+  // annoncerait un dimanche de cuisine sans rien à cuisiner.
+  const cookingSessions: CookingSession[] = [];
+  for (
+    const [i, entry] of (Array.isArray(root.cooking_sessions) ? root.cooking_sessions : [])
+      .entries()
+  ) {
+    const raw = (entry && typeof entry === "object" ? entry : {}) as Record<string, unknown>;
+    const dayRaw = cleanText(raw.day).toLowerCase();
+    if (!DAY_TOKENS.includes(dayRaw)) {
+      issues.push(`cooking_sessions[${i}]: unknown day, dropped`);
+      continue;
+    }
+    const ids = (Array.isArray(raw.preparation_ids) ? raw.preparation_ids : [])
+      .map((v) => cleanText(v))
+      .filter((v) => preparationIds.has(v));
+    if (ids.length === 0) {
+      issues.push(`cooking_sessions[${i}]: no known preparation, dropped`);
+      continue;
+    }
+    const runThrough = cleanText(raw.run_through);
+    const numeric = findNumericTarget(runThrough);
+    if (numeric) {
+      if (!rejectedNumeric.includes(numeric)) rejectedNumeric.push(numeric);
+      issues.push(`cooking_sessions[${i}]: numeric target (${numeric}) -- dropped`);
+      continue;
+    }
+    cookingSessions.push({ day: dayRaw, preparationIds: ids, runThrough });
+  }
+
+  // LE JOUR DE CUISSON VIENT DE LA SESSION, pas de la préparation. Le modèle
+  // remplit `cook_on` de façon inégale; la session, elle, EST le moment. Quand
+  // les deux se contredisent, la session gagne — c'est elle que l'élève lit.
+  for (const session of cookingSessions) {
+    for (const id of session.preparationIds) {
+      const prep = preparations.find((p) => p.id === id);
+      if (prep) prep.cookOn = session.day;
+    }
+  }
+
   return {
     dishes: clean ? dishes : [],
+    preparations: clean ? preparations : [],
+    cooking_sessions: clean ? cookingSessions : [],
     shopping_list: clean ? finalShopping : [],
     rejected_numeric: rejectedNumeric,
     rejected_aisles: rejectedAisles,
@@ -608,6 +1167,37 @@ export function mealDishesPayload(meal: GeneratedMeal): Array<Record<string, unk
     method: d.method,
     why: d.why,
     honours_belief_keys: d.honours_belief_keys,
+    uses: d.uses.map((u) => ({
+      preparation_id: u.preparationId,
+      servings: u.servings,
+    })),
+  }));
+}
+
+export function mealPreparationsPayload(
+  meal: GeneratedMeal,
+): Array<Record<string, unknown>> {
+  return meal.preparations.map((p) => ({
+    id: p.id,
+    title: p.title,
+    servings_made: p.servingsMade,
+    ingredients: p.ingredients.map((i) => ({
+      term: i.term,
+      quantity: i.quantity,
+      in_pantry: i.in_pantry,
+    })),
+    method: p.method,
+    cook_on: p.cookOn,
+  }));
+}
+
+export function mealSessionsPayload(
+  meal: GeneratedMeal,
+): Array<Record<string, unknown>> {
+  return meal.cooking_sessions.map((session) => ({
+    day: session.day,
+    preparation_ids: session.preparationIds,
+    run_through: session.runThrough,
   }));
 }
 

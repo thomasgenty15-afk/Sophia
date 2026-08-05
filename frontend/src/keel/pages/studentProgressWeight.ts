@@ -1,3 +1,5 @@
+import { datedMeasures } from "../api/bodyMeasures";
+
 export interface ReviewRow {
   week_start_date: string;
   outcomes: Record<string, unknown> | null;
@@ -24,11 +26,9 @@ export interface ReviewRow {
  * composant, et un export non-composant à côté d'une page casse le fast refresh.
  */
 export function displayWeights(reviews: ReviewRow[]): number[] {
-  return reviews
-    .map((r) => {
-      const fromFlow = Number((r.biofeedback ?? {})["weight_kg"]);
-      if (Number.isFinite(fromFlow)) return fromFlow;
-      return Number((r.outcomes ?? {})["weight_7d_avg"]);
-    })
-    .filter((n) => Number.isFinite(n));
+  // DÉLÈGUE, ne réimplémente pas. `/app/plan` lit maintenant les mêmes mesures
+  // pour en tirer une tendance; deux extractions de la même colonne, c'est le
+  // défaut que l'en-tête ci-dessus raconte, re-signé un étage plus haut. Un
+  // seul lecteur, et il connaît les deux modèles ET les bornes.
+  return datedMeasures(reviews, "weight").map((m) => m.value);
 }

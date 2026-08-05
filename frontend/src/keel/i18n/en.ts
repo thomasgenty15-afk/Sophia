@@ -62,6 +62,64 @@ export const en = {
   "coach.home.seat.trial": "Trial",
   "coach.home.seat.free": "Free",
 
+  // ── LA BIBLIOTHÈQUE DE RECETTES DU COACH (/coach/meals) ─────────────────
+  // Un artefact COLLECTIF, comme la doctrine: le coach écrit un plat une fois,
+  // tous ses élèves le lisent. Aucune copie ici n'a le droit de suggérer qu'on
+  // compose la semaine de quelqu'un — c'est précisément le 1:1 que le pivot a
+  // retiré (`meal_plan_entries`, supprimée le 04/08). Voir docs/keel/MODEL.md.
+  "coach.meals.title": "Meals",
+  "coach.meals.subtitle":
+    "Dishes you write once. Every one of your students sees the same library — you are not composing anybody's week.",
+  "coach.meals.loading": "Loading your recipes...",
+  "coach.meals.load_error":
+    "Your recipe library could not be loaded. Nothing is shown rather than something wrong.",
+  "coach.meals.retry": "Try again",
+  "coach.meals.no_coach_profile":
+    "This account has no active coach profile, so there is no library to write into.",
+
+  "coach.meals.add_title": "Add a dish",
+  "coach.meals.field_title": "Name of the dish",
+  "coach.meals.field_title_hint": "What you would call it to a student. 120 characters at most.",
+  "coach.meals.field_description": "How it is made",
+  "coach.meals.field_description_hint":
+    "Optional. Ingredients and method, in your words. No quantities are required and none are asked for.",
+  "coach.meals.field_slot": "Which moment of the day",
+  "coach.meals.field_slot_any": "Any moment",
+  "coach.meals.field_slot_hint": "Leave it on « any » unless the dish only makes sense at one time.",
+  "coach.meals.field_groups": "What it puts on the plate",
+  "coach.meals.field_groups_hint":
+    "The only food vocabulary this product has. No grams, no calories — that is a product rule, not a missing feature.",
+  "coach.meals.submit": "Add it to the library",
+  "coach.meals.submitting": "Adding...",
+  "coach.meals.title_required": "A dish needs a name.",
+  "coach.meals.create_failed": "That dish was not saved.",
+
+  "coach.meals.list_title": "Your library",
+  "coach.meals.empty_title": "Your library is empty",
+  "coach.meals.empty_body":
+    "Write your first dish above. Your students see it as soon as it is there — you do not have to assign it to anyone.",
+  "coach.meals.count_active": "{count} visible to your students",
+  "coach.meals.count_archived": "{count} archived",
+  "coach.meals.status_active": "Visible",
+  "coach.meals.status_archived": "Archived",
+  "coach.meals.any_slot": "Any moment",
+
+  // La photo. Elle passe par `coach-recipe-image-v1` — le navigateur est
+  // structurellement incapable de toucher un bucket (aucune policy sur
+  // `storage.objects`), et l'affichage se fait par URL signée courte.
+  "coach.meals.photo_add": "Add a photo",
+  "coach.meals.photo_replace": "Replace the photo",
+  "coach.meals.photo_uploading": "Sending...",
+  "coach.meals.photo_failed": "That photo was not sent.",
+  "coach.meals.photo_alt": "Photo of {title}",
+  "coach.meals.photo_too_big": "That photo is over 5 MB. Pick a smaller one.",
+
+  "coach.meals.archive": "Hide from students",
+  "coach.meals.restore": "Show it again",
+  "coach.meals.archive_hint":
+    "Hiding keeps the dish — yours, with its photo. Nothing here deletes anything.",
+  "coach.meals.archive_failed": "That change did not go through.",
+
   // Coach route guard (W6.1)
   "coach.guard.checking": "Checking your coach access...",
   "coach.guard.not_coach_title": "This space is for coaches",
@@ -333,10 +391,12 @@ export const en = {
   // l'élève qui construit la sienne dans « My week's plan ». Un écran qui dit
   // « attendez » à quelqu'un dont c'est le tour est pire qu'un écran vide.
   //
-  // Ce qu'on ne promet toujours PAS: que cette page se remplira. `/app/today`
-  // ne lit que `plan_versions` (le plan publié par un coach), jamais
-  // `student_week_plans`. Tant que ce lecteur n'existe pas, dire « ta journée
-  // se remplira ici » remplacerait un mensonge par un autre.
+  // ET CETTE PAGE SE REMPLIT MAINTENANT. Il y avait ici une réserve — « on ne
+  // promet pas que cette page se remplira », parce que `/app/today` ne lisait
+  // que `plan_versions`. Le lecteur existe: l'écran lit les deux choses que
+  // `/app/plan` écrit (`student_generated_meals`, et `student_week_plans` quand
+  // une semaine adoptée existe). La réserve tombe parce que le code a changé,
+  // pas parce que la copie a pris de l'assurance.
   "today.no_plan_title": "You don't have a plan for this week yet",
   "today.no_plan_body":
     "Your coach teaches the method — the week itself is yours to build. Say what you are after, and your eating for the week gets written from their method.",
@@ -346,6 +406,39 @@ export const en = {
     "What you eat, then what you do — that is the shape a day takes once a plan exists.",
   "today.no_plan_footer":
     "Nothing is generated for you in the meantime — an empty space is the honest one until a plan exists.",
+  // ── LA JOURNÉE QUE L'ÉLÈVE S'EST COMPOSÉE ───────────────────────────────
+  // `/app/today` ne lisait que le plan publié par un coach. Comme aucun coach
+  // n'en publie dans le modèle qu'on livre, l'élève voyait un écran vide même
+  // après avoir composé toute sa semaine. Ces lignes-ci viennent de ce qu'il
+  // s'est composé lui-même — ses PLATS (`student_generated_meals`) et, quand
+  // une existe, sa semaine de méthode adoptée (`student_week_plans`) — et la
+  // copie ne doit JAMAIS suggérer qu'on le note: rien ici n'est coché, compté
+  // ou évalué.
+  "today.own_week_badge": "Your week",
+  "today.own_week_hint":
+    "You set these lines yourself. Nothing here is scored — it is a reminder, not a test.",
+  "today.own_week_empty":
+    "Nothing you set for today. The lines below hold across the week.",
+  "today.own_week_nothing":
+    "Nothing you set for today. Enjoy it — an empty day was a choice you were allowed to make.",
+  "today.own_week_anyday": "This week, no fixed day",
+  "today.own_week_from_coach": "From your coach's method",
+  "today.own_week_from_sophia": "Suggested by Sophia",
+  "today.own_week_open_plan": "Open my week's plan",
+  // LES PLATS. Deux sections distinctes et nommées différemment parce que ce
+  // sont deux objets différents: un plat se cuisine, une ligne de méthode se
+  // tient. Les fondre sous un seul titre ferait lire « poulet, riz, épinards »
+  // et « build every meal around a protein anchor » comme la même demande.
+  "today.own_meals_label": "What you eat today",
+  "today.own_meals_empty":
+    "Nothing placed on today. What is below holds any day of the week.",
+  // Vu quand la composition ne couvre QUE d'autres jours. Ne dit pas « rien
+  // pour toi »: les plats existent, ils sont juste ailleurs dans la semaine.
+  "today.own_meals_other_days":
+    "Nothing placed on today — what you built sits on the other days of the week.",
+  "today.own_meals_anyday": "Built for no particular day",
+  "today.own_lines_label": "What you set for yourself",
+
   "today.week_section": "This week, no fixed day",
   "today.week_section_hint": "These lines are satisfied any day before the week closes.",
   // The heading of the lines that name no occasion, INSIDE one of the coach's
@@ -565,8 +658,9 @@ export const en = {
   // Un écran d'écriture de méthode qui prend vingt minutes ne sera pas rempli.
   // Chaque libellé ici est écrit pour être lu en diagonale par quelqu'un qui
   // édite depuis son téléphone entre deux clients.
-  "coach.protocol.title": "Your method",
-  "coach.protocol.subtitle": "What you want on your students' plates — and what you don't.",
+  "coach.protocol.title": "Recommended food",
+  "coach.protocol.subtitle":
+    "The foods you build with. Tap one to add it — say how often and why only if you want to.",
   "coach.protocol.search_placeholder": "Search a food…",
   "coach.protocol.search_empty": "No food matches “{query}”.",
   "coach.protocol.class.protein": "Protein",
@@ -603,32 +697,112 @@ export const en = {
   "coach.protocol.preview.not_after": "{group} — not after {time}",
   "coach.protocol.preview.at_slot": "{group} — at {slot}",
 
-  // Les règles temporelles: ce qu'un mapping ne sait pas dire.
-  "coach.protocol.timing.title": "Timing rules",
-  "coach.protocol.timing.add": "Add a rule",
-  "coach.protocol.timing.empty": "No timing rules. Most methods have one or two.",
-  "coach.protocol.timing.remove": "Remove",
-  "coach.protocol.timing.tpl.portions_per_period": "Servings per day or week",
-  "coach.protocol.timing.tpl.group_every_meal": "At every meal",
-  "coach.protocol.timing.tpl.no_group_after": "Not after a given time",
-  "coach.protocol.timing.tpl.group_at_slot": "At a given meal",
+  // ── Les aliments concrets — ce que le coach touche ───────────────────────
+  // Un coach pense « huile de coco », pas « matière grasse ajoutée ». Chaque
+  // libellé ici est écrit pour quelqu'un qui édite depuis son téléphone entre
+  // deux clients: court, sans jargon de schéma, et jamais une injonction.
+  "coach.food.pick_hint":
+    "Tap a food to add it to your list. Nothing else is required — the rest of the panel is there if you want it.",
+  "coach.food.empty_class": "No food here yet.",
+  "coach.food.add": "+ Add a food",
+  "coach.food.add.placeholder": "e.g. kefir, coconut aminos…",
+  "coach.food.add.submit": "Add",
+  "coach.food.add.cancel": "Cancel",
+  "coach.food.add.thinking": "Working out where it fits…",
+  // Le rattachement n'est JAMAIS silencieux — un rattachement muet est un
+  // mensonge sur ce que Sophia vérifiera vraiment.
+  "coach.food.add.treated_as": "Handled as {group}. Change it if that's wrong.",
+  "coach.food.add.failed":
+    "We could not work out where “{term}” fits. Pick a category yourself and it works the same.",
+  "coach.food.custom_badge": "yours",
+  "coach.food.remove": "Remove from my list",
+  // Une écriture ratée SE VOIT. Une pastille qui ne colle pas sans un mot
+  // d'explication est un accusé fantôme servi à l'envers: le coach reclique,
+  // et croit que l'écran est lent.
+  "coach.food.write_failed": "That change did not save. Nothing on this screen has been lost.",
 
-  // Les termes du coach. Le rattachement n'est JAMAIS silencieux.
-  "coach.protocol.terms.title": "Your words",
-  "coach.protocol.terms.help": "Add the words you actually use. Each one is handled as a food we already know.",
-  "coach.protocol.terms.placeholder": "e.g. kefir, seed oils…",
-  "coach.protocol.terms.add": "Add",
-  "coach.protocol.terms.treated_as": "handled as {group}",
-  "coach.protocol.terms.change": "Change",
-  "coach.protocol.terms.unmatched": "We have no food that matches “{term}”.",
-  "coach.protocol.terms.request_extension": "Ask us to add it",
-  "coach.protocol.terms.requested": "Requested. We review these by hand — your word stays usable meanwhile.",
+  // Les trois postures. Écrites comme un coach les dit, pas comme la base les
+  // stocke.
+  "coach.food.stance.encouraged": "Build with it",
+  "coach.food.stance.discouraged": "Go easy",
+  "coach.food.stance.excluded": "Never",
+
+  // La fréquence. Facultative, et l'écran le dit — un aliment coché sans règle
+  // ni pourquoi est une ligne parfaitement valide.
+  "coach.food.freq.title": "How often",
+  "coach.food.freq.none": "No rule — you have not set one, and you do not have to.",
+  "coach.food.freq.set": "Set a rule",
+  "coach.food.freq.clear": "Remove the rule",
+  "coach.food.freq.amount": "{direction} {amount} {unit} per {period}",
+  "coach.food.freq.at_least": "at least",
+  "coach.food.freq.at_most": "at most",
+  "coach.food.freq.period.day": "day",
+  "coach.food.freq.period.week": "week",
+  "coach.food.freq.unit.portion.one": "serving",
+  "coach.food.freq.unit.portion.many": "servings",
+  // Vide, exprès: « at most 2 per day » se lit mieux que « at most 2 units per
+  // day », et l'axe `count` existe précisément pour les aliments qu'on compte
+  // à l'unité (œufs, fruits).
+  "coach.food.freq.unit.count.one": "",
+  "coach.food.freq.unit.count.many": "",
+  "coach.food.freq.unit.g": "g",
+  "coach.food.freq.unit.ml": "ml",
+  "coach.food.freq.every_meal": "At every meal",
+  "coach.food.freq.not_after": "Not after {time}",
+  "coach.food.freq.at_slot": "At {slot}",
+  "coach.food.freq.tpl.amount_per_period": "An amount per day or week",
+  "coach.food.freq.tpl.every_meal": "At every meal",
+  "coach.food.freq.tpl.not_after": "Not after a given time",
+  "coach.food.freq.tpl.at_slot": "At a given meal",
+
+  // ⚠️ LA PHRASE QUI EMPÊCHE UNE GARANTIE FAUSSE. L'analyse photo rend des
+  // GROUPES: elle ne dira jamais « c'était de l'huile de coco » plutôt que
+  // « de la matière grasse ajoutée ». Une règle par aliment gouverne donc ce
+  // que Sophia construit et dit, jamais ce qu'elle vérifie dans une assiette.
+  // Le coach doit le lire là où il écrit la règle, pas le découvrir après.
+  "coach.food.freq.scope_note":
+    "Rules on a single food guide what Sophia builds and says. What she checks on a plate is the category — a photo can tell oil from vegetables, not one oil from another.",
+
+  // Le pourquoi. Pré-rempli, éditable, et jamais écrasé une fois touché.
+  "coach.food.why.title": "Why it matters",
+  "coach.food.why.placeholder": "In your words. Your students read this under the food.",
+  "coach.food.why.seeded": "Suggested — edit it, or leave it and it becomes yours when you publish.",
+  "coach.food.why.ai": "Written from your doctrine — edit it, or leave it as is.",
+  "coach.food.why.rewrite": "Rewrite in my method",
+  "coach.food.why.rewriting": "Writing…",
+  // Une IA sans matière n'invente pas: elle le dit. « Ceinture armée sur
+  // coffre vide » est un défaut déjà payé dans ce dépôt.
+  "coach.food.why.no_doctrine":
+    "Write your convictions on the Doctrine screen first — otherwise this would be our words, not yours.",
+  "coach.food.why.failed": "We could not write it. Your text is untouched.",
+
+  // Les conflits de dérivation. Un coach qui exclut un aliment dans une
+  // catégorie où il en recommande un autre doit savoir que son exclusion ne
+  // remonte PAS au niveau de la catégorie.
+  "coach.food.conflict.title": "Split categories",
+  "coach.food.conflict.line":
+    "{group}: you build with {forList} and rule out {againstList}. Sophia checks nothing on the category as a whole — both still guide what she builds.",
+
+  // ⚠️ « Timing rules » et « Your words » ont été RETIRÉS de cet écran le
+  // 2026-08-05: il ne parle plus que d'aliments. Leurs libellés sont partis
+  // avec eux. Les tables `coach_timing_rules` et `coach_terms` existent
+  // toujours et le compilateur les lit encore — voir le commentaire de
+  // `CoachProtocolPage`, qui explique pourquoi l'écran continue de les
+  // CHARGER sans les montrer. Si un écran d'édition revient un jour, ces clés
+  // sont à rétablir, pas à réinventer (git les garde).
 
   // Objectifs: divulgation progressive. Une entrée est globale par défaut.
   "coach.protocol.goal.all": "Everyone",
   "coach.protocol.goal.limit": "Limit to a goal",
+  // ⚠️ `recomposition` s'appelait ICI « Muscle gain », alors que le générateur
+  // implémente cet objectif comme « le tour de taille descend, le poids ne
+  // descend pas » — l'inverse d'une prise de masse. Un coach qui restreignait
+  // une règle à « Muscle gain » la restreignait donc, sans le savoir, aux
+  // élèves à poids constant. La prise de masse a maintenant son propre jeton;
+  // ce libellé-ci dit ce que l'objectif fait vraiment.
   "coach.protocol.goal.fat_loss": "Fat loss",
-  "coach.protocol.goal.recomposition": "Muscle gain",
+  "coach.protocol.goal.muscle_gain": "Muscle gain",
+  "coach.protocol.goal.recomposition": "Same weight, different shape",
   "coach.protocol.goal.performance": "Performance",
   "coach.protocol.goal.health": "Health",
   "coach.protocol.goal.maintenance": "Maintenance",
@@ -642,6 +816,10 @@ export const en = {
   "coach.protocol.axis.vegetable_volume": "vegetable volume",
   "coach.protocol.axis.carbs_around_training": "carbs around training",
   "coach.protocol.axis.hydration": "hydration",
+  // L'axe propre à la prise de masse. Sans lui, `muscle_gain` aurait posé au
+  // coach exactement les mêmes questions que `recomposition` — c'est-à-dire
+  // aurait été un objectif décoratif de plus côté protocole.
+  "coach.protocol.axis.eating_enough": "eating enough on low-appetite days",
   "coach.protocol.axis.ultra_processed": "ultra-processed food",
 
   // Brouillon et publication. Publier à l'aveugle sur une cohorte est le geste
@@ -1029,7 +1207,7 @@ export const en = {
 
   // Student app chrome
   "app.nav.today": "Today",
-  "app.nav.meals": "Meals",
+  "app.nav.meals": "Meal ideas",
   "app.nav.progress": "Progress",
   "app.nav.chat": "Chat",
   "app.nav.health": "Health",
@@ -1049,6 +1227,32 @@ export const en = {
   // tombée ET que rien n'est perdu, parce que les deux sont vrais.
   "chat.status.offline":
     "Live updates are off right now — messages still arrive, just more slowly.",
+
+  // ── CE QUI DIT « ELLE A ÉCRIT LA PREMIÈRE » ────────────────────────────────
+  // Trois messages partent sans que l'élève ait rien demandé: le tap du soir,
+  // le point du dimanche, et la relance après un silence. Rendus sans marque,
+  // ils se lisaient comme la réponse à quelque chose qu'il n'avait pas dit.
+  // Le libellé est le MÊME pour les trois: il dit qui a ouvert la bouche, pas
+  // pourquoi — la raison est dans le message lui-même.
+  "chat.proactive.label": "Sophia reached out",
+  "chat.unread.aria": "Unread messages from Sophia: {count}",
+
+  // Les réglages de la bulle. `proactive_muted_at` existait, la politique de
+  // livraison le respectait, et AUCUN écran ne pouvait le poser.
+  "chat.settings.toggle": "Notifications",
+  "chat.settings.checkins.label": "Check-ins from Sophia",
+  // La seconde phrase n'est pas du confort: le mute ne coupe QUE le proactif
+  // (`delivery_policy.ts`, garde 4 après la garde 2). Ne pas le dire ferait
+  // croire qu'on se coupe de Sophia, ce qui est le contraire de la règle.
+  "chat.settings.checkins.help":
+    "The evening check-in, Sunday's review, and a note if you go quiet. She always answers when you write, whatever this says.",
+  "chat.settings.notify.label": "Notify me on this device",
+  "chat.settings.notify.help":
+    "A system notification when she writes first and this tab isn't in front.",
+  "chat.settings.notify.blocked":
+    "Your browser is blocking notifications for this site — allow them there first.",
+  "chat.settings.notify.unsupported":
+    "This browser can't show notifications.",
 
   // Le point hebdomadaire, dans l'app. C'était un WhatsApp Flow: deux écrans
   // declares chez Meta. Il ne reste que ce qui comptait.
@@ -1461,10 +1665,16 @@ export const en = {
   // App shell (connected chrome, coach + student)
   "shell.nav.students": "Students",
   "shell.nav.templates": "Templates",
-  // « Method » et pas « Protocol »: le mot que le coach emploie pour parler de
-  // ce qu'il fait, pas celui du schéma.
-  "shell.nav.protocol": "Method",
+  // « Recommended food » et pas « Method »: l'écran ne demande plus une
+  // posture sur des groupes abstraits, il demande les ALIMENTS avec lesquels le
+  // coach construit. Le mot qu'il emploie pour ça n'est pas « protocole ».
+  "shell.nav.protocol": "Recommended food",
   "shell.nav.doctrine": "Doctrine",
+  // La bibliothèque de recettes. Elle existait en base, en fonction edge et en
+  // API cliente depuis le 04/08 — sans un seul écran pour l'atteindre. « UNE
+  // ROUTE SANS LIEN EST UNE FONCTIONNALITÉ QUE PERSONNE N'A »; ici il n'y avait
+  // même pas de route.
+  "shell.nav.meals": "Meals",
   "shell.nav.weekly": "This week",
   // « My week » ne disait pas ce qu'on y fait. L'écran est celui où l'élève
   // CONSTRUIT sa semaine alimentaire; le nom doit porter le mot « plan ».

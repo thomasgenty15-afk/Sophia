@@ -535,6 +535,36 @@ Deno.test("an empty plan yields an empty allowlist, so every match is rejected",
   assertEquals(analysis.rejected_commitment_ids, [ID_A]);
 });
 
+Deno.test("aucune prescription: le prompt demande de DÉCRIRE, pas de comparer", () => {
+  // LE DÉFAUT QUE ÇA FERME: le builder envoyait toujours « THE STUDENT PLAN IN
+  // CONTEXT » suivi de « Analyze the photo against this plan », avec un bloc
+  // vide. Dans le modèle KEEL la liste est vide pour TOUS les élèves: on
+  // demandait au modèle de comparer une assiette à rien, ce qui n'a pas de
+  // réponse juste — et le pousse à en inventer une.
+  const built = buildMealAnalysisPrompt([], "dinner");
+  assert(!built.userMessage.includes("THE STUDENT PLAN IN CONTEXT"), built.userMessage);
+  assert(!built.userMessage.includes("against this plan"), built.userMessage);
+  assert(built.userMessage.includes("NO PRESCRIPTION IS IN CONTEXT"), built.userMessage);
+  assert(built.userMessage.includes("Report what is ON THE PLATE"), built.userMessage);
+  // Le créneau reste dit: il situe le repas sans rien lui comparer.
+  assert(built.userMessage.includes("dinner"), built.userMessage);
+  // Et le prompt système porte la même règle, pour les deux moitiés du verrou.
+  assert(built.systemPrompt.includes("NOTHING TO COMPARE THE PLATE TO"));
+});
+
+Deno.test("aucune prescription et aucun créneau: la phrase le dit, sans inventer", () => {
+  const built = buildMealAnalysisPrompt([], null);
+  assertEquals(built.slotKey, null);
+  assert(built.userMessage.includes("did not say which meal this is"), built.userMessage);
+});
+
+Deno.test("avec prescription, le bloc de plan revient intact (mode 1:1)", () => {
+  const built = buildMealAnalysisPrompt([commitment()], "breakfast");
+  assert(built.userMessage.includes("THE STUDENT PLAN IN CONTEXT"), built.userMessage);
+  assert(built.userMessage.includes("Analyze the photo against this plan"), built.userMessage);
+  assert(!built.userMessage.includes("NO PRESCRIPTION"), built.userMessage);
+});
+
 Deno.test("an unusable image yields an empty, low-confidence reading", () => {
   const analysis = parseMealAnalysis(
     {
@@ -990,12 +1020,16 @@ function ack(over: {
   analysis: ReturnType<typeof parseMealAnalysis>;
   binding: Parameters<typeof creditedCommitmentIds>[0]["binding"];
   credit?: ReturnType<typeof resolveFoodGroupCredit> | null;
+  /** Défaut `true`: ces cas-là sont ceux du mode 1:1, qui a des lignes. */
+  hasPrescription?: boolean;
 }): string {
   return renderMealPhotoAck({
     analysis: over.analysis,
     binding: over.binding,
     credit: over.credit ?? null,
     commitmentTitles: TITLES,
+    hasPrescription: over.hasPrescription ?? true,
+    tickedDish: null,
     locale: "en",
   });
 }
@@ -1109,6 +1143,78 @@ Deno.test("ack: evidence AGAINST a line is reported, and is not a credit", () =>
   assert(!message.includes("on file for your coach"), message);
 });
 
+// ---------------------------------------------------------------------------
+// SANS PRESCRIPTION — le cas NORMAL du modèle KEEL, et celui qui parlait faux
+//
+// Le coach écrit une doctrine pour sa cohorte et ne publie rien par élève
+// (docs/keel/MODEL.md). Il n'y a donc aucune ligne, et l'accusé disait quand
+// même « I have not attached it to a line on your plan » — un manque annoncé à
+// quelqu'un qui n'a rien manqué, désignant un écran que personne ne remplira.
+// ---------------------------------------------------------------------------
+
+Deno.test("ack sans prescription: on DÉCRIT l'assiette, on ne parle d'aucune ligne", () => {
+  const analysis = analysisWithGroups(["berries"]);
+  const message = renderMealPhotoAck({
+    analysis,
+    binding: { kind: "none" },
+    credit: resolveFoodGroupCredit({ analysis, commitmentsToday: [] }),
+    commitmentTitles: {},
+    hasPrescription: false,
+    tickedDish: null,
+    locale: "en",
+  });
+  assert(message.startsWith("I see "), message);
+  // AUCUNE des quatre phrases de prescription.
+  assert(!message.includes("on your plan"), message);
+  assert(!message.includes("Counted toward"), message);
+  assert(!message.includes("Logged against"), message);
+  assert(!message.includes("tell me which one to count"), message);
+});
+
+Deno.test("ack sans prescription: le DOUTE reste dit — il porte sur l'assiette", () => {
+  // La question de précision ne parle pas d'une ligne: elle demande comment le
+  // plat a été fait. La faire tomber avec les phrases de plan aurait rendu le
+  // chemin normal muet sur la seule chose que l'élève peut corriger.
+  const analysis = parseMealAnalysis(
+    modelOutput({
+      commitment_matches: [],
+      // La mise, exigée par le FILTRE 3: une question sans hypothèse ni doute
+      // d'image serait tombée avant d'arriver au rendu.
+      assumptions: [
+        { subject: "cooking_fat", assumption: "Probably oil.", basis: "standard_default" },
+      ],
+      clarifying_question: "Did you cook these with any oil or butter?",
+    }),
+    [],
+  );
+  const message = renderMealPhotoAck({
+    analysis,
+    binding: { kind: "none" },
+    credit: null,
+    commitmentTitles: {},
+    hasPrescription: false,
+    tickedDish: null,
+    locale: "en",
+  });
+  assert(message.includes("Did you cook these with any oil or butter?"), message);
+  assert(!message.includes("on your plan"), message);
+});
+
+Deno.test("ack: hasPrescription est REQUIS, il ne se déduit pas", () => {
+  // Le raccourci tentant était `Object.keys(commitmentTitles).length === 0`. Il
+  // confond « aucune prescription n'existe » et « l'assiette n'a rien matché »,
+  // qui méritent deux phrases différentes. Un défaut silencieux ferait taire
+  // les crédits du mode 1:1 sans que rien n'échoue.
+  const analysis = analysisWithGroups(["berries"]);
+  const args = {
+    analysis,
+    binding: { kind: "none" },
+    commitmentTitles: TITLES,
+    locale: "en",
+  } as unknown as Parameters<typeof renderMealPhotoAck>[0];
+  assertThrows(() => renderMealPhotoAck(args));
+});
+
 Deno.test("ack: an unusable image claims nothing at all", () => {
   const analysis = parseMealAnalysis(
     {
@@ -1124,7 +1230,9 @@ Deno.test("ack: an unusable image claims nothing at all", () => {
     [ID_A],
   );
   const message = ack({ analysis, binding: { kind: "none" } });
-  assert(message.includes("will not count toward your plan"), message);
+  assert(message.includes("I have not logged what is on it"), message);
+  // « toward your plan » supposait un plan par élève, qui n'existe pas.
+  assert(!message.includes("your plan"), message);
   assert(!message.includes("Counted toward"), message);
   // L'ancienne phrase promettait « It is saved either way » — et la ligne
   // qu'elle décrivait comptait ensuite comme un repas. La photo est bien
@@ -1185,6 +1293,8 @@ Deno.test("ack: an unsupported locale still throws (R7)", () => {
       analysis,
       binding: { kind: "none" },
       commitmentTitles: TITLES,
+      hasPrescription: true,
+      tickedDish: null,
       locale: "fr",
     })
   );
@@ -1448,6 +1558,8 @@ Deno.test("ack: the clarifying question supersedes the generic caveat", () => {
     analysis,
     binding: { kind: "explicit", commitmentId: ID_A },
     commitmentTitles: { [ID_A]: "Protocol breakfast" },
+    hasPrescription: true,
+    tickedDish: null,
     locale: "en",
   });
   assert(text.includes("Did you cook these with oil?"));
@@ -1473,6 +1585,8 @@ Deno.test("ack: a standard_default assumption is stated with a correction door",
     analysis,
     binding: { kind: "explicit", commitmentId: ID_A },
     commitmentTitles: { [ID_A]: "Protocol breakfast" },
+    hasPrescription: true,
+    tickedDish: null,
     locale: "en",
   });
   assert(text.includes("I assumed the broccoli was tossed in oil."));
@@ -1495,6 +1609,8 @@ Deno.test("ack: a visible_cue assumption is NOT surfaced to the student", () => 
     analysis,
     binding: { kind: "explicit", commitmentId: ID_A },
     commitmentTitles: { [ID_A]: "Protocol breakfast" },
+    hasPrescription: true,
+    tickedDish: null,
     locale: "en",
   });
   assert(!text.includes("Seared, visibly."));
@@ -1516,6 +1632,8 @@ Deno.test("ack: still carries no number, whatever the new fields contain", () =>
     analysis,
     binding: { kind: "explicit", commitmentId: ID_A },
     commitmentTitles: { [ID_A]: "Protocol breakfast" },
+    hasPrescription: true,
+    tickedDish: null,
     locale: "en",
   });
   assert(!/kcal|calorie/i.test(text));
@@ -1721,4 +1839,58 @@ Deno.test("prompt v3: le filtre de sujet est spécifié avant tout le reste", ()
   // Et la question du sujet est posée AVANT la règle des calories, parce que
   // c'est une garde: ce qui n'est pas un repas n'a pas à être analysé du tout.
   assert(p.indexOf("subject_kind") < p.indexOf("YOU ARE NOT A CALORIE COUNTER"));
+});
+
+// ---------------------------------------------------------------------------
+// LE PLAT PRÉVU, COCHÉ — l'effet durable doit s'annoncer
+//
+// `binding` garde contre « un accusé sans effet ». `tickedDish` garde contre le
+// défaut symétrique: « un effet sans accusé ». Une coche est une ligne écrite
+// dans `protocol_events`; la taire laisserait l'élève découvrir une case cochée
+// qu'il n'a pas cochée, sans savoir ni pourquoi ni comment la retirer.
+// ---------------------------------------------------------------------------
+
+Deno.test("ack: le plat coché est NOMMÉ, avec la porte de correction", () => {
+  const analysis = analysisWithGroups(["berries"]);
+  const message = renderMealPhotoAck({
+    analysis,
+    binding: { kind: "none" },
+    credit: null,
+    commitmentTitles: {},
+    hasPrescription: false,
+    tickedDish: "Greek yogurt oats with banana",
+    locale: "en",
+  });
+  assert(message.includes("Greek yogurt oats with banana"), message);
+  assert(message.includes("ticked it off"), message);
+  // La porte est dans la MÊME phrase: une question séparée serait la seconde
+  // forme de doute que §3.3bis interdit d'empiler.
+  assert(message.includes("Tell me if that was not it"), message);
+});
+
+Deno.test("ack: sans coche, aucune phrase de plat prévu", () => {
+  const analysis = analysisWithGroups(["berries"]);
+  const message = renderMealPhotoAck({
+    analysis,
+    binding: { kind: "none" },
+    credit: null,
+    commitmentTitles: {},
+    hasPrescription: false,
+    tickedDish: null,
+    locale: "en",
+  });
+  assert(!message.includes("ticked"), message);
+  assert(!message.includes("planned"), message);
+});
+
+Deno.test("ack: tickedDish est REQUIS — l'absence n'est pas une réponse", () => {
+  const analysis = analysisWithGroups(["berries"]);
+  const args = {
+    analysis,
+    binding: { kind: "none" },
+    commitmentTitles: {},
+    hasPrescription: false,
+    locale: "en",
+  } as unknown as Parameters<typeof renderMealPhotoAck>[0];
+  assertThrows(() => renderMealPhotoAck(args));
 });

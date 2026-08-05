@@ -309,6 +309,7 @@ Deno.test("an invented conviction key is dropped but does NOT cost the dish", ()
 Deno.test("the prompt separates the STABLE situation from the DATED context", () => {
   const { userMessage, systemPrompt } = buildMealPrompt({
     doctrineBlock: "== MARC'S METHOD ==",
+    protocolBlock: "",
     beliefKeys: ["protein_anchors_the_plate"],
     goal: "fat_loss",
     situation: "I eat at the canteen at midday.",
@@ -330,6 +331,7 @@ Deno.test("the prompt separates the STABLE situation from the DATED context", ()
 Deno.test("from_pantry puts the pantry in the prompt, to_shop does not pretend to", () => {
   const base = {
     doctrineBlock: "d",
+    protocolBlock: "",
     beliefKeys: [],
     goal: "health",
     situation: null,

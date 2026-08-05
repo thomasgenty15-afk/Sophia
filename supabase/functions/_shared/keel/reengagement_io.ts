@@ -46,6 +46,14 @@ import {
   REENGAGE_AFTER_HOURS,
   renderReengageNudge,
 } from "./reengagement.ts";
+import {
+  acceptComposedNudge,
+  buildReengageSystemPrompt,
+  buildReengageUserPrompt,
+} from "./reengage_composer.ts";
+import { doctrineBlockFor, loadPublishedDoctrine } from "./doctrine_loader.ts";
+import { appendResponseLanguageBlock, resolveResponseLocale } from "./locale.ts";
+import { generateWithGemini } from "../gemini.ts";
 import { deliverChatMessage } from "../chat/delivery.ts";
 
 // deno-lint-ignore no-explicit-any
@@ -431,14 +439,129 @@ export async function markReengagementTouchSent(
 }
 
 /**
- * Envoie la relance. Template obligatoire — voir `renderReengageNudge`.
+ * Une composition qui pend ne doit pas manger le budget du job.
+ *
+ * `keel-reengage-v1` balaie sous budget (45 s par défaut) et reprend au tick
+ * suivant ce qu'il n'a pas fini — l'épisode ouvert garantit qu'un élève déjà
+ * touché ne l'est pas deux fois. Le seul cas qu'il ne rattrape pas tout seul
+ * est un appel qui ne rend JAMAIS la main: il consommerait le budget entier
+ * pour un seul élève, et les autres attendraient l'heure suivante sans qu'on
+ * sache pourquoi.
+ */
+const COMPOSE_TIMEOUT_MS = 12_000;
+
+export type ReengageBodySource = "composed" | "fallback";
+
+export interface ComposedReengageBody {
+  body: string;
+  source: ReengageBodySource;
+  /** Vide si composé. Sinon le motif exact du repli, pour le compte-rendu. */
+  reason: string;
+}
+
+/**
+ * LE CORPS DE LA RELANCE, DANS LA VOIX DU COACH — avec un repli qui part.
+ *
+ * ── POURQUOI C'ÉTAIT UN TEXTE FIGÉ, ET POURQUOI ÇA NE L'EST PLUS ────────────
+ * Voir l'en-tête de `reengage_composer.ts`: la contrainte était Meta (hors
+ * fenêtre 24 h ⇒ template approuvé ⇒ texte immuable), elle est partie avec lui,
+ * et l'écart assumé « ce message n'est pas dans la voix du coach » n'avait plus
+ * de cause. Il en avait juste l'habitude.
+ *
+ * ── LE REPLI N'EST PAS UNE PRÉCAUTION, C'EST LA RÈGLE ───────────────────────
+ * Tout échec — pas de doctrine, modèle en panne, verdict de ceinture négatif —
+ * rend le texte déterministe. Un message générique qui PART vaut mieux qu'un
+ * message personnalisé qui ne part jamais: c'est l'arbitrage déjà écrit dans ce
+ * module, et c'est encore plus vrai ici, parce que la population visée est
+ * exactement celle qui décroche.
+ *
+ * Le motif du repli est RENDU, pas avalé. Sans lui, « le composeur ne sert
+ * jamais » et « le composeur marche » produisent le même message et le même
+ * compte-rendu — la panne silencieuse que ce dépôt a payée trop souvent.
+ */
+export async function composeReengageBody(
+  db: Db,
+  args: { userId: string; firstName: string; tone: JobReachableTone; requestId?: string },
+): Promise<ComposedReengageBody> {
+  const fallback = (reason: string): ComposedReengageBody => ({
+    body: renderReengageNudge(args.firstName),
+    source: "fallback",
+    reason,
+  });
+
+  let doctrineBlock: string;
+  try {
+    const loaded = await loadPublishedDoctrine(db, args.userId);
+    // PAS DE COMPOSITION SANS DOCTRINE, et ce n'est pas de la prudence: sans
+    // méthode publiée il n'y a aucune voix à porter, donc la composition
+    // paierait un appel de modèle pour réécrire un texte figé — moins bien, et
+    // sans le déterminisme qui allait avec.
+    if (loaded.reason !== "loaded") return fallback(`no_doctrine:${loaded.reason}`);
+    doctrineBlock = doctrineBlockFor(loaded);
+  } catch (error) {
+    return fallback(
+      `doctrine_load_failed:${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+
+  const system = appendResponseLanguageBlock(
+    buildReengageSystemPrompt({ doctrineBlock, tone: args.tone }),
+    // Le verrou du pilote, pas le nôtre. Voir l'en-tête du composeur: la
+    // doctrine porte `write in <language>`, et le laisser gagner ici ferait
+    // sortir la relance dans une langue que la conversation qu'elle relance
+    // n'utilise pas. `locale.ts` est le point de changement unique.
+    resolveResponseLocale({}),
+  );
+
+  let raw: unknown;
+  try {
+    raw = await Promise.race([
+      generateWithGemini(
+        system,
+        buildReengageUserPrompt(args.firstName),
+        // Un peu de chaleur, pas de fantaisie: c'est un message court dont les
+        // interdits sont durs, et une température haute produit surtout des
+        // rejets de ceinture.
+        0.6,
+        false,
+        [],
+        "auto",
+        // PAS de `as never` ici. Un cast sur un type étranger désarme le
+        // typecheck exactement là où on en a besoin: ce dépôt a déjà vu un
+        // champ inventé passer la compilation et rendre `null` en silence.
+        // `source` existe, `purpose` n'existe pas — et c'est le compilateur qui
+        // vient de le dire.
+        { requestId: args.requestId, userId: args.userId, source: "keel_reengage" },
+      ),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("compose_timeout")), COMPOSE_TIMEOUT_MS)
+      ),
+    ]);
+  } catch (error) {
+    return fallback(
+      `llm_failed:${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+
+  // `generateWithGemini` peut rendre un appel d'outil. On n'en demande aucun;
+  // recevoir autre chose qu'une chaîne est donc une anomalie, pas un cas.
+  if (typeof raw !== "string") return fallback("llm_returned_non_text");
+
+  const verdict = acceptComposedNudge(raw);
+  if (!verdict.ok) return fallback(`rejected:${verdict.reason}:${verdict.detail}`);
+  return { body: verdict.text, source: "composed", reason: "" };
+}
+
+/**
+ * Envoie la relance, composée dans la voix du coach quand il en a une.
  *
  * La ceinture anti-culpabilisation tourne ICI, sur le texte exact que l'élève
- * va lire. Elle était écrite, testée, et appelée nulle part: le seul texte qui
- * part vit chez Meta, donc aucun chemin de production ne lui donnait rien à
- * mordre. Un `keel_reengage_v1` re-soumis un jour avec « you haven't logged
- * anything in a while » passerait toutes les revues de code du dépôt; il ne
- * passe pas cette ligne.
+ * va lire — et elle compte désormais pour de bon. Elle était écrite, testée, et
+ * appelée nulle part: le seul texte qui partait était figé et approuvé chez
+ * Meta, donc aucun chemin de production ne lui donnait rien à mordre. Depuis
+ * que le corps est COMPOSÉ, ce qu'elle inspecte est un texte que personne n'a
+ * relu avant l'élève. C'est le renversement qui compte: la même ligne de code
+ * est passée de symbolique à structurelle.
  */
 export async function sendReengageNudge(
   db: Db,
@@ -449,12 +572,24 @@ export async function sendReengageNudge(
     requestId?: string;
   },
 ): Promise<
-  { ok: boolean; error: string; status: number; toneDelivered: boolean }
+  {
+    ok: boolean;
+    error: string;
+    status: number;
+    toneDelivered: boolean;
+    /** D'où vient le texte parti. Compté par le job, jamais deviné. */
+    bodySource: ReengageBodySource;
+    /** Motif du repli, vide quand le corps est composé. */
+    bodyReason: string;
+  }
 > {
-  const body = renderReengageNudge(args.firstName);
+  const composed = await composeReengageBody(db, args);
+  const body = composed.body;
   // Lève si le corps culpabilise. Volontairement NON rattrapé: le job compte
   // l'échec et n'envoie pas. Un message qui fait honte à quelqu'un qui décroche
   // produit exactement le silence que cette boucle existe pour éviter.
+  //
+  // Elle vaut maintenant pour un texte que PERSONNE n'a relu avant l'élève.
   assertNoGuiltTripping(body);
 
   // ── DE-WHATSAPP — LE TON EST MAINTENANT TOUJOURS DÉLIVRÉ ──────────────────
@@ -472,6 +607,13 @@ export async function sendReengageNudge(
     content: body,
     purpose: "keel_reengage",
     requestId: args.requestId,
+    // La provenance voyage AVEC le message. Une relance dont on ne peut plus
+    // dire, trois semaines plus tard, si elle portait la voix du coach ou le
+    // texte de secours est une relance qu'on ne peut pas juger.
+    metadata: {
+      body_source: composed.source,
+      body_fallback_reason: composed.reason || null,
+    },
   });
   if (!delivered.delivered) {
     // Un refus de livraison est classé comme une erreur PRÉ-LIVRAISON (status
@@ -483,9 +625,18 @@ export async function sendReengageNudge(
       status: 409,
       error: `delivery refused: ${delivered.reason}`,
       toneDelivered: true,
+      bodySource: composed.source,
+      bodyReason: composed.reason,
     };
   }
-  return { ok: true, status: 200, error: "", toneDelivered: true };
+  return {
+    ok: true,
+    status: 200,
+    error: "",
+    toneDelivered: true,
+    bodySource: composed.source,
+    bodyReason: composed.reason,
+  };
 }
 
 /**

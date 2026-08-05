@@ -1,18 +1,20 @@
 // PIVOT NUTRITION §3.3 — doctrine_loader.ts.
 //
-// The test that carries the failure arbitration:
-//   * "a failed load degrades the answer, never its authority"
-//     -- refusing to answer breaks the product for the student; answering
-//        normally turns the agent back into a generic assistant that can
-//        contradict the coach. Neither. A prudence block, and a reason code.
+// The test that carries the absence arbitration:
+//   * "no method loaded still ANSWERS the student"
+//     -- the first version of this block told the model to withhold advice and
+//        send the student to their coach. Measured in a real conversation, that
+//        is a student who asks for food advice and gets nothing, pointed at a
+//        1:1 channel that does not exist. Absence of a method is not a reason
+//        to go quiet; it is only a reason not to speak in the coach's name.
 
 import { assert, assertEquals } from "jsr:@std/assert@1";
 
 import {
   doctrineBeliefsFor,
   doctrineBlockFor,
-  FALLBACK_PRUDENCE_BLOCK,
   loadPublishedDoctrine,
+  NO_COACH_METHOD_BLOCK,
   NO_DOCTRINE_FOR_THIS_GOAL_BLOCK,
 } from "./doctrine_loader.ts";
 
@@ -75,16 +77,22 @@ Deno.test("loads the published doctrine of the student's live coach", async () =
   assertEquals(doctrineBlockFor(loaded), loaded.compiled?.text);
 });
 
-Deno.test("a failed load degrades the answer, never its authority", () => {
-  // The block must instruct the model to defer rather than to invent a method.
-  // An EMPTY block would be filled with the model's general nutrition culture,
-  // which is exactly the voice the product does not sell.
-  assert(FALLBACK_PRUDENCE_BLOCK.includes("Do NOT give prescriptive nutrition advice"));
-  assert(FALLBACK_PRUDENCE_BLOCK.includes("coach's call"));
-  assert(FALLBACK_PRUDENCE_BLOCK.trim().length > 0);
+Deno.test("no method loaded still ANSWERS the student", () => {
+  // THE REGRESSION THIS PINS, and it was shipped: the block used to say "Do NOT
+  // give prescriptive nutrition advice ... say it is the coach's call and invite
+  // the student to ask them". A student asking "I need some food advice" got a
+  // refusal and a pointer to a channel that does not exist.
+  assert(NO_COACH_METHOD_BLOCK.includes("ANSWER THE QUESTION"));
+  assert(NO_COACH_METHOD_BLOCK.includes("your own nutrition knowledge"));
+  // What stays forbidden is the narrow, real risk: speaking for the coach.
+  assert(NO_COACH_METHOD_BLOCK.includes("Speak in your own name"));
+  // And never again the two sentences that gagged the agent.
+  assert(!/Do NOT give prescriptive nutrition advice/.test(NO_COACH_METHOD_BLOCK));
+  assert(!/coach's call/.test(NO_COACH_METHOD_BLOCK));
+  assert(NO_COACH_METHOD_BLOCK.trim().length > 0);
 });
 
-Deno.test("every failure mode is NAMED, and all inject the prudence block", async () => {
+Deno.test("every failure mode is NAMED, and all inject the no-method block", async () => {
   const cases: Array<[string, Record<string, Outcome>, string]> = [
     ["no_coach", { coach_clients: { data: null } }, "no_coach"],
     [
@@ -112,7 +120,7 @@ Deno.test("every failure mode is NAMED, and all inject the prudence block", asyn
     const { db } = fakeDb(tables);
     const loaded = await loadPublishedDoctrine(db, "student-1");
     assertEquals(loaded.reason, expected, label);
-    assertEquals(doctrineBlockFor(loaded), FALLBACK_PRUDENCE_BLOCK, label);
+    assertEquals(doctrineBlockFor(loaded), NO_COACH_METHOD_BLOCK, label);
     // No half-loaded state ever escapes.
     assertEquals(loaded.compiled?.text ?? null, null, label);
   }
@@ -130,7 +138,7 @@ Deno.test("a published-but-EMPTY doctrine is not reported as loaded", async () =
   });
   const loaded = await loadPublishedDoctrine(db, "student-1");
   assertEquals(loaded.reason, "empty_doctrine");
-  assertEquals(doctrineBlockFor(loaded), FALLBACK_PRUDENCE_BLOCK);
+  assertEquals(doctrineBlockFor(loaded), NO_COACH_METHOD_BLOCK);
 });
 
 Deno.test("an empty student id never reaches the database", async () => {
@@ -292,8 +300,11 @@ Deno.test("une doctrine entièrement ciblée ailleurs ne dit PAS qu'elle n'a pas
   assertEquals(block, NO_DOCTRINE_FOR_THIS_GOAL_BLOCK);
   // La phrase qui compte: on ne dit pas au modèle une cause fausse, parce
   // qu'il la répète mot pour mot à l'élève.
-  assert(!block.includes("could not load"));
-  assert(block.includes("Do NOT give prescriptive nutrition advice"));
+  assert(!block.includes("has not published"));
+  // Et comme l'autre repli, celui-ci RÉPOND. Une doctrine qui vise d'autres
+  // objectifs ne rend pas la question de l'élève sans réponse.
+  assert(block.includes("ANSWER THE QUESTION"));
+  assert(block.includes("Speak in your own name"));
 });
 
 Deno.test("les croyances RENDUES aux générateurs sont exactement celles du bloc", async () => {

@@ -101,6 +101,13 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       // directement: elle vérifie les OCTETS du fichier (pas l'en-tête déclaré)
       // et refuse un désaccord entre les deux.
       "coach-recipe-image-v1",
+      // « Recommended food » — les DEUX seuls endroits où un modèle touche à
+      // cet écran: classer un aliment que le coach ajoute (dans le vocabulaire
+      // FERMÉ, re-vérifié contre la table) et rédiger le « pourquoi » À PARTIR
+      // DE LA DOCTRINE DU COACH. Doctrine vide ⇒ refus explicite; et l'écriture
+      // est conditionnée `where why_source <> 'coach'`, donc une régénération
+      // ne peut pas écraser une édition du coach.
+      "coach-protocol-v1",
       // KEEL W4.1 — pure evaluator + adherence formula; covered by
       // supabase/functions/evaluate-adherence-v1/snapshot_test.ts and by
       // _shared/keel/{evaluator,adherence}_test.ts.
@@ -191,6 +198,11 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       // du coach B — la RLS de A laisserait passer, et la règle atterrirait
       // chez B. (20260805100000_coach_protocol_mapping.sql)
       "coach_food_rules_owner_check",
+      // `/coach/protocol` « Recommended food » (20260805140000): les aliments
+      // concrets du coach vivent sur son protocole, donc ils portent le même
+      // accord `coach_id`↔`protocol_id` — et RÉUTILISENT la fonction du lot
+      // précédent plutôt que d'en cloner une seconde qui divergerait.
+      "coach_food_items_owner_check",
       "coach_timing_rules_owner_check",
       "enforce_single_master_admin_trg",
       "guard_profiles_privileged_columns_biu",
@@ -230,6 +242,12 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       // réécrire `declared_by` et fabriquer une contrainte attribuée au coach,
       // sur la table qui décide de ce que Sophia refuse de dire.
       "student_safety_constraints_retraction_only",
+      // Cocher un repas du plan écrit un FAIT (`quick_tap`); décocher pose
+      // `disqualified_reason` au lieu de supprimer — la table est append-only.
+      // Le trigger borne la bascule à cette seule colonne: sans lui, la policy
+      // UPDATE laisserait réécrire food_group_ref et local_date, c'est-à-dire
+      // fabriquer des faits sur la table qui nourrit l'évaluateur.
+      "protocol_events_quick_tap_untick_only",
       // DE-WHATSAPP: `sync_phone_verified_on_whatsapp_optin_trigger` est
       // supprime (20260804150000) — il posait phone_verified_at quand
       // whatsapp_opted_in passait a true, ce que plus personne ne fait.

@@ -100,6 +100,63 @@ export interface MealPhotoUploadResult {
   } | null;
 }
 
+/**
+ * Échange des chemins de bucket contre des URLs signées, pour AFFICHER les
+ * photos déjà envoyées.
+ *
+ * MÊME ARBITRAGE QUE L'UPLOAD, dans l'autre sens, et MÊME FONCTION: une seule
+ * fonction possède le bucket (`meal-photos` est privé et sans policy, donc le
+ * navigateur ne peut pas lire un objet même en connaissant son chemin). La
+ * propriété est vérifiée côté serveur dans `protocol_events` — ce module envoie
+ * des chemins, il n'affirme aucun droit.
+ *
+ * Ne JETTE PAS sur un chemin refusé: il est simplement absent du retour, et la
+ * bulle s'affiche sans image. Une conversation entière ne doit pas échouer
+ * parce qu'une photo sur trente a été purgée.
+ */
+export async function signMealPhotoUrls(
+  paths: readonly string[],
+): Promise<Record<string, string>> {
+  const wanted = [...new Set(paths.map((p) => p.trim()).filter(Boolean))];
+  if (wanted.length === 0) return {};
+
+  const { data: sessionData } = await supabase.auth.getSession();
+  const accessToken = sessionData.session?.access_token;
+  if (!accessToken) throw new Error("[keel/api] no active session");
+
+  // Le serveur plafonne à 100 chemins par appel: on découpe ici plutôt que de
+  // laisser une conversation longue se faire refuser en bloc.
+  const CHUNK = 100;
+  const urls: Record<string, string> = {};
+  for (let i = 0; i < wanted.length; i += CHUNK) {
+    const res = await fetch(`${FUNCTIONS_BASE}/meal-photo-upload-v1`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: ANON_KEY,
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ action: "sign", paths: wanted.slice(i, i + CHUNK) }),
+    });
+    if (!res.ok) {
+      throw new Error(`[keel/api] signMealPhotoUrls failed: HTTP ${res.status}`);
+    }
+    const json = await res.json().catch(() => ({}));
+    const signed = (json as { urls?: Record<string, string> })?.urls ?? {};
+    for (const [path, relative] of Object.entries(signed)) {
+      // LE SERVEUR REND UN CHEMIN RELATIF, exprès: il compose ses URLs avec le
+      // `SUPABASE_URL` qu'IL voit, qui en local est le nom d'hôte interne du
+      // réseau Docker (`http://kong:8000`) — introuvable depuis un navigateur.
+      // Le seul composant qui connaisse à coup sûr l'origine publique est
+      // celui qui parle au navigateur: celui-ci.
+      urls[path] = relative.startsWith("http")
+        ? relative
+        : `${import.meta.env.VITE_SUPABASE_URL}${relative}`;
+    }
+  }
+  return urls;
+}
+
 /** Whether the analysis actually ran. `false` means: the photo is on file and
  *  nothing was read from it — say exactly that, never nothing. */
 export function analysisSucceeded(result: MealPhotoUploadResult): boolean {

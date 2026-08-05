@@ -18,7 +18,7 @@ import {
   DOCTRINE_BLOCK_FALLBACK_EN,
   MEDICAL_BLOCK_FALLBACK_EN,
 } from "../skills/_shared/keel_output_locks.ts";
-import { FALLBACK_PRUDENCE_BLOCK } from "../../_shared/keel/doctrine_loader.ts";
+import { NO_COACH_METHOD_BLOCK } from "../../_shared/keel/doctrine_loader.ts";
 import { compileDoctrineBlock } from "../../_shared/keel/doctrine.ts";
 
 function keel(over: Partial<KeelTurnContext> = {}): KeelTurnContext {
@@ -72,7 +72,7 @@ const DOCTRINE_CTX = keel({
       // recommandés / déconseillés, vérifiés par le même verrou que les
       // interdits). Cette fixture ne l'avait pas et `compileDoctrineBlock`
       // levait sur `doctrine.foods.recommended`.
-      foods: { recommended: [], discouraged: [] },
+      foods: { discouraged: [] },
       qa: [],
       contentLocale: "fr-FR",
     },
@@ -172,9 +172,10 @@ Deno.test("the doctrine block is injected AT THE HEAD of the composer context", 
   );
 });
 
-Deno.test("no doctrine loaded -> the PRUDENCE block, never an empty layer", () => {
-  // An empty layer gets filled by the model's general nutrition culture, which
-  // is precisely the voice this product does not sell.
+Deno.test("no doctrine loaded -> the NO-METHOD block, never an empty layer", () => {
+  // The layer is still injected, but for the opposite reason it used to be. The
+  // model IS meant to answer from its own nutrition knowledge here; what the
+  // block adds is the frame — answer in your own name, never in the coach's.
   const ctx = withKeelDoctrineBlock("=== PLAN ===", {
     ...DOCTRINE_CTX,
     doctrine: {
@@ -187,8 +188,8 @@ Deno.test("no doctrine loaded -> the PRUDENCE block, never an empty layer", () =
       goalSource: "none",
     },
   });
-  assert(ctx.includes(FALLBACK_PRUDENCE_BLOCK));
-  assert(ctx.includes("Do NOT give prescriptive nutrition advice"));
+  assert(ctx.includes(NO_COACH_METHOD_BLOCK));
+  assert(ctx.includes("ANSWER THE QUESTION"));
 });
 
 Deno.test("a non-KEEL turn keeps its context byte-for-byte", () => {

@@ -1,0 +1,441 @@
+// KEEL — LE GÉNÉRATEUR DE REPAS, enfin relié à un écran.
+//
+// `generate-meal-v1` existait, complet et déployable, avec ZÉRO appelant: le
+// seul endroit du dépôt qui le nommait était la liste du coverage-guard. Le
+// moteur qui compose des plats pour un élève n'était atteignable par personne.
+//
+// CE QU'IL FAIT, ET QUI EST EXACTEMENT LE PRODUIT
+// -----------------------------------------------
+// Il lit la DOCTRINE PUBLIÉE du coach et les CONTRAINTES DE SÉCURITÉ de
+// l'élève, puis compose des PLATS: un titre, un jour, un créneau, des
+// ingrédients avec leur quantité, la méthode en prose, et pourquoi ce plat pour
+// cet élève. Plus une liste de courses par rayon quand on lui demande.
+//
+// LA DOCTRINE NE S'AFFICHE JAMAIS.
+// `GeneratedDish.honours_belief_keys` existe et son propre en-tête le dit:
+// « Informatif — jamais exigé, jamais vérifié par un CHECK ». Les convictions du
+// coach SERVENT à construire le repas; elles ne sont pas montrées à l'élève.
+// C'est la différence avec le plan hebdo de méthode, qui cite la conviction
+// exprès (`WeekPlanItem.source_belief_claim`). Ce module n'expose donc pas
+// `honours_belief_keys`, pour qu'aucun écran ne puisse l'afficher par accident.
+
+import { supabase } from "../../lib/supabase";
+import { type DayToken } from "./types";
+
+/** `MEAL_MODES` du moteur. Liste fermée: une valeur hors liste est refusée. */
+export const MEAL_MODES = ["from_pantry", "to_shop"] as const;
+export type MealMode = (typeof MEAL_MODES)[number];
+
+/** `MEAL_SCOPES`. `day` plafonne à 3 plats, `several_days` à 8. */
+export const MEAL_SCOPES = ["day", "several_days"] as const;
+export type MealScope = (typeof MEAL_SCOPES)[number];
+
+/**
+ * LES MOMENTS OÙ ON MANGE. Miroir de `EATING_OCCASIONS` côté moteur.
+ *
+ * Il y en a six et plus quatre parce qu'un seul jeton `snack` ne pouvait pas
+ * distinguer la faim de 10h de celle de 17h — donc un élève qui s'effondre à
+ * 17h n'avait aucun moyen de le dire, et le moteur choisissait pour lui.
+ *
+ * `snack` n'est PAS ici: il n'est plus proposé. Il reste rendu par
+ * `mealLabels` parce que des plats déjà composés le portent.
+ */
+export const EATING_OCCASIONS = [
+  "breakfast",
+  "snack_am",
+  "lunch",
+  "snack_pm",
+  "dinner",
+  "before_bed",
+] as const;
+export type EatingOccasion = (typeof EATING_OCCASIONS)[number];
+
+/** Le créneau qu'on peut DEMANDER. Même liste: on ne propose pas le legacy. */
+export const MEAL_SLOTS = EATING_OCCASIONS;
+export type MealSlot = EatingOccasion;
+
+/**
+ * Un moment de la journée de l'élève, avec son heure SI il l'a donnée.
+ *
+ * L'heure est facultative et le reste: « je grignote l'après-midi » est utile
+ * sans « à 17h », et une heure exigée serait une heure inventée — que le
+ * moteur, lui, traiterait comme une contrainte.
+ */
+export interface EatingOccasionSlot {
+  slot: EatingOccasion;
+  /** « 17:00 », ou `null`. */
+  at: string | null;
+}
+
+/**
+ * Le rythme lu depuis `student_goals.practical_constraints.eating_rhythm`.
+ *
+ * MÊMES RÈGLES QUE `parseEatingRhythm` DU MOTEUR, et c'est délibéré: les deux
+ * lisent la même colonne, et deux lectures qui divergent produiraient un écran
+ * qui affiche autre chose que ce avec quoi on a composé. Écarter plutôt que
+ * deviner, ordre de la journée plutôt qu'ordre de saisie, heure facultative.
+ */
+export function parseEatingRhythm(raw: unknown): EatingOccasionSlot[] {
+  if (!Array.isArray(raw)) return [];
+  const bySlot = new Map<EatingOccasion, string | null>();
+  for (const entry of raw) {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) continue;
+    const e = entry as Record<string, unknown>;
+    const slot = String(e.slot ?? "").trim().toLowerCase();
+    if (!(EATING_OCCASIONS as readonly string[]).includes(slot)) continue;
+    const at = String(e.at ?? "").trim();
+    bySlot.set(
+      slot as EatingOccasion,
+      /^([01]\d|2[0-3]):[0-5]\d$/.test(at) ? at : null,
+    );
+  }
+  return EATING_OCCASIONS.filter((s) => bySlot.has(s)).map((s) => ({
+    slot: s,
+    at: bySlot.get(s) ?? null,
+  }));
+}
+
+export const DAY_TOKENS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
+
+export interface DishIngredient {
+  term: string;
+  quantity: string | null;
+  /** Vrai quand l'élève l'a déjà. Calculé par le moteur, jamais par le modèle. */
+  in_pantry: boolean;
+}
+
+export interface DishBatch {
+  servings_made: number;
+  covers_days: string[];
+  cook_on: string | null;
+}
+
+/** Ce qui se CUISINE. Plusieurs plats y puisent — une cuisson, plusieurs repas. */
+export interface MealPreparation {
+  id: string;
+  title: string;
+  servings_made: number;
+  ingredients: DishIngredient[];
+  method: string;
+  cook_on: string | null;
+}
+
+/** Quand on cuisine, et dans quel ORDRE. Le déroulé est le champ qui compte. */
+export interface CookingSession {
+  day: string;
+  preparation_ids: string[];
+  run_through: string;
+}
+
+export interface GeneratedDish {
+  title: string;
+  slot: MealSlot | null;
+  day: string | null;
+  ingredients: DishIngredient[];
+  method: string;
+  why: string;
+  /**
+   * Ce que ce plat PRÉLÈVE sur des préparations déjà faites. Vide = il se fait
+   * de zéro, et ses `ingredients` sont pour une assiette.
+   */
+  uses: Array<{ preparation_id: string; servings: number }>;
+}
+
+export interface ShoppingItem {
+  term: string;
+  quantity: string | null;
+  aisle: string;
+}
+
+export interface GeneratedMealResult {
+  mealId: string | null;
+  dishes: GeneratedDish[];
+  /** Ce qui se CUISINE. Plusieurs plats y puisent. */
+  preparations: MealPreparation[];
+  /** Quand on cuisine, et dans quel ordre. */
+  cookingSessions: CookingSession[];
+  shoppingList: ShoppingItem[];
+  /**
+   * LE CONTEXTE QUI A PRODUIT CETTE COMPOSITION, tel qu'il a été demandé.
+   *
+   * Il est renvoyé pour être REPROPOSÉ: « cantine le midi », « je m'entraîne
+   * mardi et jeudi », « le week-end je suis chez mes parents » ne changent pas
+   * d'une semaine sur l'autre, et les retaper à chaque génération est le genre
+   * de friction qui fait qu'on ne les redit plus du tout — après quoi le moteur
+   * compose pour une vie que l'élève n'a pas.
+   */
+  context: string | null;
+  /**
+   * QUAND CETTE COMPOSITION A ÉTÉ FAITE — l'ancre de sa semaine.
+   *
+   * Un plat ne nomme qu'un jour (« tue »), jamais une date. Le moteur remplit
+   * sept jours À PARTIR DU JOUR OÙ ON GÉNÈRE, donc c'est cet instant, et lui
+   * seul, qui dit à quelle date « mardi » correspond. Sans lui, l'écran ne peut
+   * ni ranger les jours dans l'ordre du plan, ni savoir si un plat est déjà
+   * passé (`api/mealStretch.ts`).
+   *
+   * `null` sur une composition qu'on vient de recevoir: elle commence
+   * aujourd'hui, ce qui est vrai par construction.
+   */
+  createdAt: string | null;
+}
+
+export interface PantryItem {
+  term: string;
+  quantity?: string | null;
+}
+
+export interface GenerateMealInput {
+  mode: MealMode;
+  scope: MealScope;
+  slot: MealSlot | null;
+  servings: number;
+  /** Le contexte du MOMENT, en prose libre. C'est la demande produit. */
+  context: string | null;
+  pantry: PantryItem[];
+}
+
+/**
+ * Demande une composition. Le JWT de l'élève décide de qui il s'agit: aucun
+ * `user_id` n'est envoyé, et le moteur n'en accepterait pas.
+ *
+ * Les erreurs métier du moteur (`mode_required`, `pantry_required`,
+ * `empty_meal`) remontent telles quelles: elles sont NOMMÉES, et les traduire
+ * en « une erreur est survenue » ferait perdre la seule information utile.
+ */
+export async function generateMeal(
+  input: GenerateMealInput,
+): Promise<GeneratedMealResult> {
+  const { data, error } = await supabase.functions.invoke("generate-meal-v1", {
+    body: {
+      mode: input.mode,
+      scope: input.scope,
+      meal_slot: input.slot,
+      servings: input.servings,
+      context: input.context,
+      pantry: input.pantry,
+    },
+  });
+  if (error) {
+    // `FunctionsHttpError` porte le corps: on va y chercher le motif nommé
+    // plutôt que de rendre « non-2xx status code », qui n'apprend rien.
+    const detail = await readInvokeError(error);
+    throw new Error(detail || `[keel/mealGeneration] ${error.message}`);
+  }
+  const payload = (data ?? {}) as Record<string, unknown>;
+  const dishes = Array.isArray(payload.dishes) ? payload.dishes : [];
+  const shopping = Array.isArray(payload.shopping_list) ? payload.shopping_list : [];
+  const meal = payload.meal as { id?: string } | null | undefined;
+  return {
+    mealId: meal?.id ?? null,
+    preparations: readPreparations(payload.preparations),
+    cookingSessions: readSessions(payload.cooking_sessions),
+    // Ce qu'on a DEMANDÉ, pas ce que la réponse raconte: c'est la même valeur
+    // que la ligne vient d'enregistrer, et elle est connue à coup sûr ici.
+    context: input.context,
+    // Elle vient d'être composée: sa semaine commence aujourd'hui, et
+    // `stretchStartDate(null)` le dit sans avoir à lire une horloge ici.
+    createdAt: null,
+    // On ne recopie QUE les champs de l'écran. `honours_belief_keys` est
+    // volontairement laissé de côté: la doctrine du coach ne s'affiche pas.
+    dishes: dishes.map((raw) => {
+      const d = (raw ?? {}) as Record<string, unknown>;
+      const ingredients = Array.isArray(d.ingredients) ? d.ingredients : [];
+      return {
+        title: String(d.title ?? ""),
+        slot: (d.slot ?? null) as MealSlot | null,
+        day: d.day === null || d.day === undefined ? null : String(d.day),
+        method: String(d.method ?? ""),
+        why: String(d.why ?? ""),
+        uses: Array.isArray(d.uses)
+          ? d.uses.map((raw) => {
+            const u = (raw ?? {}) as Record<string, unknown>;
+            return {
+              preparation_id: String(u.preparation_id ?? ""),
+              servings: Number(u.servings) || 1,
+            };
+          }).filter((u) => u.preparation_id !== "")
+          : [],
+        ingredients: ingredients.map((rawItem) => {
+          const i = (rawItem ?? {}) as Record<string, unknown>;
+          return {
+            term: String(i.term ?? ""),
+            quantity: i.quantity === null || i.quantity === undefined
+              ? null
+              : String(i.quantity),
+            in_pantry: i.in_pantry === true,
+          };
+        }),
+      };
+    }),
+    shoppingList: shopping.map((raw) => {
+      const s = (raw ?? {}) as Record<string, unknown>;
+      return {
+        term: String(s.term ?? ""),
+        quantity: s.quantity === null || s.quantity === undefined
+          ? null
+          : String(s.quantity),
+        aisle: String(s.aisle ?? "other"),
+      };
+    }),
+  };
+}
+
+function readPreparations(raw: unknown): MealPreparation[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((entry) => {
+    const p = (entry ?? {}) as Record<string, unknown>;
+    const ingredients = Array.isArray(p.ingredients) ? p.ingredients : [];
+    return {
+      id: String(p.id ?? ""),
+      title: String(p.title ?? ""),
+      servings_made: Number(p.servings_made) || 0,
+      method: String(p.method ?? ""),
+      cook_on: p.cook_on === null || p.cook_on === undefined ? null : String(p.cook_on),
+      ingredients: ingredients.map((rawItem) => {
+        const i = (rawItem ?? {}) as Record<string, unknown>;
+        return {
+          term: String(i.term ?? ""),
+          quantity: i.quantity === null || i.quantity === undefined
+            ? null
+            : String(i.quantity),
+          in_pantry: i.in_pantry === true,
+        };
+      }),
+    };
+  }).filter((p) => p.id !== "" && p.title !== "");
+}
+
+function readSessions(raw: unknown): CookingSession[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((entry) => {
+    const sess = (entry ?? {}) as Record<string, unknown>;
+    return {
+      day: String(sess.day ?? ""),
+      preparation_ids: Array.isArray(sess.preparation_ids)
+        ? sess.preparation_ids.map((v) => String(v))
+        : [],
+      run_through: String(sess.run_through ?? ""),
+    };
+  }).filter((s) => s.day !== "" && s.preparation_ids.length > 0);
+}
+
+async function readInvokeError(error: unknown): Promise<string | null> {
+  const context = (error as { context?: unknown })?.context;
+  if (!context || typeof (context as Response).json !== "function") return null;
+  try {
+    const body = await (context as Response).json();
+    const named = String((body as Record<string, unknown>)?.error ?? "").trim();
+    const detail = String((body as Record<string, unknown>)?.detail ?? "").trim();
+    if (!named) return null;
+    return detail ? `${named}: ${detail}` : named;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * La dernière composition de l'élève, pour que l'écran ne s'ouvre pas vide.
+ *
+ * `notBefore` — UNE DATE LOCALE, ET C'EST UNE QUESTION D'HONNÊTETÉ, PAS DE
+ * PERFORMANCE. `/app/plan` montre la dernière composition quel que soit son
+ * âge: c'est « ce que tu as demandé la dernière fois », et une date au-dessus
+ * suffirait à le situer. `/app/today` dit « aujourd'hui »: y afficher le dîner
+ * du mardi d'une composition vieille de trois semaines présenterait un plat
+ * périmé comme le plat du jour. La table ne porte AUCUNE `week_start` — un plat
+ * ne nomme qu'un jour de semaine (`tue`), jamais une date — donc la seule
+ * ancre disponible est `created_at`, et l'appelant qui a besoin d'une fenêtre
+ * la nomme.
+ *
+ * Un seul lecteur de la table, une seule définition de « ma dernière
+ * composition »: deux requêtes séparées auraient fini par diverger sur les
+ * colonnes lues.
+ */
+export async function loadLatestGeneratedMeal(
+  userId: string,
+  options: { notBefore?: string } = {},
+): Promise<GeneratedMealResult | null> {
+  let query = supabase
+    .from("student_generated_meals")
+    .select("id, dishes, preparations, cooking_sessions, shopping_list, context, created_at")
+    .eq("user_id", userId);
+  if (options.notBefore) {
+    query = query.gte("created_at", localMidnightInstant(options.notBefore));
+  }
+  const result = await query
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (result.error) {
+    throw new Error(`[keel/mealGeneration] load failed: ${result.error.message}`);
+  }
+  if (!result.data) return null;
+  const row = result.data as unknown as {
+    id: string;
+    dishes: unknown;
+    preparations: unknown;
+    cooking_sessions: unknown;
+    shopping_list: unknown;
+    context: unknown;
+    created_at: unknown;
+  };
+  return {
+    mealId: row.id,
+    dishes: (Array.isArray(row.dishes) ? row.dishes : []) as GeneratedDish[],
+    preparations: readPreparations(row.preparations),
+    cookingSessions: readSessions(row.cooking_sessions),
+    shoppingList: (Array.isArray(row.shopping_list)
+      ? row.shopping_list
+      : []) as ShoppingItem[],
+    context: typeof row.context === "string" && row.context.trim() !== ""
+      ? row.context
+      : null,
+    createdAt: typeof row.created_at === "string" ? row.created_at : null,
+  };
+}
+
+/**
+ * Minuit LOCAL de cette date, en instant.
+ *
+ * Volontairement l'horloge du NAVIGATEUR, la même que celle qui calcule le
+ * lundi de la semaine (`weekPlan.currentMonday`). Envoyer `2026-08-03` brut à
+ * PostgREST ferait comparer un `timestamptz` à une date interprétée dans le
+ * fuseau du SERVEUR: la nuit du dimanche au lundi, une composition faite à
+ * 23h30 tomberait du mauvais côté de la semaine.
+ *
+ * `new Date("2026-08-03T00:00:00")` — sans `Z` et sans décalage — est lu en
+ * heure locale par la spec, ce qui est exactement ce qu'on veut ici.
+ */
+function localMidnightInstant(localDate: string): string {
+  const at = new Date(`${localDate}T00:00:00`);
+  if (Number.isNaN(at.getTime())) {
+    throw new Error(`[keel/mealGeneration] invalid local date "${localDate}"`);
+  }
+  return at.toISOString();
+}
+
+/**
+ * LES PLATS DU JOUR, séparés de ceux qui ne nomment aucun jour.
+ *
+ * `day: null` n'est pas une anomalie: la portée « un jour » produit des plats
+ * sans jour nommé, et le modèle en produit aussi en portée « plusieurs jours »
+ * quand il ne place pas. Les glisser dans la liste du jour ferait lire « c'est
+ * pour aujourd'hui » à quelqu'un à qui personne ne l'a dit; les jeter ferait
+ * disparaître un plat qu'on a composé pour lui. Ils sont donc mis à part —
+ * même règle que `weekPlanDaySplit` sur l'autre source.
+ *
+ * Les plats des AUTRES jours ne sortent pas d'ici: c'est l'écran d'aujourd'hui,
+ * et la semaine entière se lit sur `/app/plan`.
+ */
+export function dishDaySplit(
+  dishes: readonly GeneratedDish[],
+  day: DayToken,
+): { today: GeneratedDish[]; anyDay: GeneratedDish[] } {
+  const today: GeneratedDish[] = [];
+  const anyDay: GeneratedDish[] = [];
+  for (const dish of dishes) {
+    if (!dish.day) anyDay.push(dish);
+    else if (dish.day === day) today.push(dish);
+  }
+  return { today, anyDay };
+}

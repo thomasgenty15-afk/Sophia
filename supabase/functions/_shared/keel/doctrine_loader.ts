@@ -5,26 +5,38 @@
  * ailleurs dans `_shared/keel/`: la décision est pure et testable, la lecture
  * ne l'est pas.
  *
- * ── L'ARBITRAGE DE PANNE, ET IL N'EST PAS SYMÉTRIQUE ─────────────────────
- * Que fait-on quand la doctrine ne se lit pas ?
+ * ── L'ARBITRAGE D'ABSENCE, CORRIGÉ LE 2026-08-05 ─────────────────────────
+ * Que fait-on quand il n'y a pas de doctrine à injecter ?
  *
- *   Refuser de répondre  → on casse le produit pour l'élève à cause d'un
- *                          incident qui ne le concerne pas.
- *   Répondre normalement → l'agent redevient un assistant nutrition générique
- *                          et peut contredire le coach — précisément le seul
- *                          risque que §3.3 existe pour éliminer.
+ * La première réponse de ce module était un bloc de PRUDENCE qui disait au
+ * modèle « ne donne pas de conseil nutritionnel prescriptif, dis que c'est au
+ * coach de trancher et invite l'élève à lui demander ». Mesuré en conversation
+ * réelle, ça donne ceci, mot pour mot:
  *
- * Aucune des deux. Le troisième chemin: `reason_code` non nul + un bloc de
- * PRUDENCE injecté à la place de la doctrine (`FALLBACK_PRUDENCE_BLOCK`), qui
- * dit au modèle de rester factuel et de déférer au coach au lieu de
- * prescrire. On dégrade la richesse de la réponse, jamais son autorité.
+ *   élève  : « I need some food advices »
+ *   Sophia : « there isn't a coach method loaded right now, so I can't give
+ *             you a prescribed nutrition protocol. Ask your coach. »
+ *
+ * Trois choses fausses dans une seule phrase, et la troisième est structurelle:
+ *   1. l'élève repart sans réponse à une question qu'un livre de nutrition
+ *      règle en deux lignes;
+ *   2. « demande à ton coach » désigne une porte qui n'existe pas — il n'y a
+ *      AUCUN canal 1:1 coach → élève (docs/keel/MODEL.md);
+ *   3. la prudence protégeait le coach d'être CONTREDIT. Sans doctrine, il n'y
+ *      a rien à contredire. On payait le prix d'un risque absent.
+ *
+ * Le bloc dit donc maintenant l'inverse: RÉPONDS, avec tes propres
+ * connaissances, exactement comme si cet élève n'avait pas de coach. Ce qui
+ * reste interdit est le seul vrai risque de la situation, et il est étroit:
+ * mettre ses mots dans la bouche du coach. On répond en son nom propre, jamais
+ * au nom d'une méthode qu'on n'a pas lue.
  *
  * Corollaire IMPORTANT côté verrou: quand la doctrine est absente, la ceinture
  * de sortie ne peut évidemment pas vérifier des interdits qu'elle n'a pas.
  * Le verrou MÉDICAL, lui, ne dépend pas de cette lecture (il vient de
  * `student_safety_constraints`) et reste armé. C'est l'asymétrie voulue: la
  * sécurité de l'élève ne s'appuie jamais sur la disponibilité d'une table du
- * coach.
+ * coach — et c'est ELLE, pas le bâillon, qui protège l'élève.
  */
 
 import {
@@ -88,27 +100,34 @@ export interface DoctrineLoadOptions {
 /**
  * Injecté à la place du bloc doctrine quand il n'y en a pas.
  *
- * Ce n'est PAS un bloc vide: sans instruction, le modèle comble le vide avec
- * sa culture nutritionnelle générale, qui est exactement la voix que le
- * produit ne vend pas.
+ * Ce n'est PAS un bloc vide, et ce n'est plus un bâillon (voir l'en-tête). Sans
+ * instruction, le modèle hésite entre deux mauvaises réponses: prescrire au nom
+ * du coach, ou refuser. Le bloc tranche: il répond en son nom propre.
  */
-export const FALLBACK_PRUDENCE_BLOCK = [
-  "== NO COACH METHOD AVAILABLE THIS TURN ==",
+export const NO_COACH_METHOD_BLOCK = [
+  "== NO COACH METHOD LOADED THIS TURN ==",
   "",
-  "You could not load this coach's method. Until it is available:",
-  "- Do NOT give prescriptive nutrition advice, and do not invent a method.",
-  "- Answer what is factual and already written in this student's protocol.",
-  "- For anything the protocol does not settle, say it is the coach's call and",
-  "  invite the student to ask them. Deferring is correct here; guessing is not.",
+  "This student's coach has not published a method, or it could not be read.",
+  "There is nothing of theirs to apply here, and nothing of theirs to contradict.",
+  "",
+  "- ANSWER THE QUESTION, from your own nutrition knowledge, exactly as you would",
+  "  for someone who has no coach at all. Being useful is the job. Refusing to",
+  "  answer protects nobody: an absent method is not an instruction to stay quiet.",
+  "- Speak in your own name. Never present what you say as the coach's method,",
+  "  and never say they teach it, prescribe it, or forbid it.",
+  "- Do not comment on the state of the coach's method, and do not send the",
+  "  student off to ask them in your place: there is no channel for that.",
+  "- What is already written in this student's protocol still wins over anything",
+  "  you know in general, whenever the two meet.",
 ].join("\n");
 
 /**
  * Le repli quand la doctrine a bien été lue mais que rien n'y vise cet élève.
  *
- * POURQUOI PAS `FALLBACK_PRUDENCE_BLOCK`. Il commence par « You could not load
- * this coach's method », et ce serait un mensonge: on l'a lue, elle est
- * complète, et c'est le coach qui a restreint tout ce qu'il a écrit à d'autres
- * objectifs que celui de cet élève. La prudence à tenir est la même; la phrase
+ * POURQUOI PAS `NO_COACH_METHOD_BLOCK`. Il dit « le coach n'a pas publié de
+ * méthode », et ce serait un mensonge: on l'a lue, elle est complète, et c'est
+ * le coach qui a restreint tout ce qu'il a écrit à d'autres objectifs que celui
+ * de cet élève. La posture est la même — on répond en son nom propre; la phrase
  * qui l'explique, non. Écrire la mauvaise cause dans le prompt, c'est la
  * retrouver mot pour mot dans la bouche de l'agent.
  */
@@ -116,10 +135,16 @@ export const NO_DOCTRINE_FOR_THIS_GOAL_BLOCK = [
   "== THIS COACH'S METHOD DOES NOT COVER THIS STUDENT'S GOAL ==",
   "",
   "This coach has published a method, but every part of it is written for other",
-  "goals than this student's. Nothing of his applies here. So:",
-  "- Do NOT give prescriptive nutrition advice, and do not invent a method for him.",
-  "- Answer what is factual and already written in this student's protocol.",
-  "- Never suggest the coach has no method, and never improvise one in his name.",
+  "goals than this student's. Nothing of theirs applies here. So:",
+  "",
+  "- ANSWER THE QUESTION, from your own nutrition knowledge, as you would for",
+  "  someone whose coach has said nothing on the subject.",
+  "- Speak in your own name. Never present what you say as the coach's method,",
+  "  and never improvise one in their name.",
+  "- Never suggest the coach has no method: they have one, it simply speaks to",
+  "  other goals than this student's.",
+  "- What is already written in this student's protocol still wins over anything",
+  "  you know in general, whenever the two meet.",
 ].join("\n");
 
 /** Structural type: tests inject a fake, production injects a SupabaseClient. */
@@ -302,7 +327,7 @@ export async function loadPublishedDoctrine(
     coachId,
     // A published-but-empty doctrine is a real state (the coach clicked
     // publish on a blank form) and it must not be reported as "loaded": the
-    // prudence block is the right injection, exactly as if none existed.
+    // no-method block is the right injection, exactly as if none existed.
     //
     // `empty_for_goal` s'en sépare: la doctrine EXISTE, elle est simplement
     // toute entière écrite pour d'autres objectifs. Même prudence, autre
@@ -316,13 +341,18 @@ export async function loadPublishedDoctrine(
 
 /**
  * Le bloc à injecter dans la couche `[DOCTRINE COACH]`, quel que soit le
- * résultat de la lecture. Un seul appel, jamais de `?? ""` chez l'appelant —
- * c'est là que le vide se remplirait de culture générale.
+ * résultat de la lecture. Un seul appel, jamais de `?? ""` chez l'appelant.
+ *
+ * Le `?? ""` reste interdit, mais pour la raison INVERSE d'avant. On ne craint
+ * plus que le modèle réponde de sa culture générale — c'est exactement ce qu'on
+ * lui demande quand il n'y a pas de méthode. On craint qu'il le fasse SANS
+ * cadre: sans ce bloc, rien ne lui dit de parler en son nom propre plutôt qu'au
+ * nom d'un coach qu'il n'a pas lu.
  */
 export function doctrineBlockFor(loaded: LoadedDoctrine): string {
   if (loaded.reason === "loaded" && loaded.compiled) return loaded.compiled.text;
   if (loaded.reason === "empty_for_goal") return NO_DOCTRINE_FOR_THIS_GOAL_BLOCK;
-  return FALLBACK_PRUDENCE_BLOCK;
+  return NO_COACH_METHOD_BLOCK;
 }
 
 /**

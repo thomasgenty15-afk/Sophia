@@ -27,12 +27,42 @@ export const CHAT_SCOPE = "app";
 
 export type ChatButton = { payload: string; label: string };
 
+/**
+ * La photo portée par un message, quand il y en a une.
+ *
+ * `path` est une clé de bucket PRIVÉ, pas une URL: `meal-photos` n'a aucune
+ * policy (W1.4 R3), donc le navigateur ne peut pas la lire directement. C'est
+ * `signMealPhotoUrls` qui échange ce chemin contre une URL signée courte.
+ *
+ * `previewUrl` n'existe que sur l'écho optimiste — un `URL.createObjectURL` sur
+ * le fichier local, pour que l'élève voie SA photo à la seconde où il l'envoie
+ * plutôt qu'après l'aller-retour serveur + vision (6 à 9 s).
+ */
+export type ChatMedia = {
+  path: string;
+  contentType: string | null;
+  previewUrl?: string;
+};
+
 export type ChatMessage = {
   id: string;
   role: "user" | "assistant";
   content: string;
   createdAt: string;
   buttons: ChatButton[];
+  /**
+   * `true` quand Sophia a écrit SANS que l'élève ait parlé — le tap du soir,
+   * le point du dimanche, la relance après un silence.
+   *
+   * Le serveur écrivait déjà `metadata.is_proactive` à chaque livraison
+   * (`delivery.ts`) et PERSONNE ne le lisait: une relance arrivée seule à 21h
+   * était rendue exactement comme une réponse, donc elle ressemblait à la
+   * réponse à quelque chose que l'élève n'avait pas dit. Le champ existait, le
+   * sens était perdu entre la base et l'œil.
+   */
+  proactive: boolean;
+  /** La photo de ce message, quand il en porte une. */
+  media?: ChatMedia;
   /** `true` tant que le serveur n'a pas confirmé l'écriture. */
   pending?: boolean;
   /** Non nul quand l'envoi a échoué : la bulle propose de réessayer. */
@@ -48,6 +78,24 @@ type ChatMessageRow = {
   created_at: string;
   metadata: Record<string, unknown> | null;
 };
+
+/**
+ * La photo écrite par `meal-photo-upload-v1` sur la ligne de conversation.
+ *
+ * Elle voyageait déjà dans `metadata.media_ref` — la couture est en place
+ * depuis le chantier de-whatsapp — et PERSONNE ne la lisait: l'élève voyait
+ * « [photo] » en texte à la place de son assiette. Lire ici plutôt que dans la
+ * page garantit que l'historique et le flux Realtime en font la même lecture.
+ */
+function readMedia(metadata: Record<string, unknown> | null): ChatMedia | null {
+  const raw = metadata?.media_ref;
+  if (!raw || typeof raw !== "object") return null;
+  const ref = raw as Record<string, unknown>;
+  const path = String(ref.path ?? "").trim();
+  if (!path) return null;
+  const contentType = String(ref.content_type ?? "").trim();
+  return { path, contentType: contentType || null };
+}
 
 function readButtons(metadata: Record<string, unknown> | null): ChatButton[] {
   const raw = metadata?.buttons;
@@ -72,12 +120,19 @@ export function toChatMessage(row: ChatMessageRow): ChatMessage {
   // React et une livraison Realtime. C'est le pattern « 6 des 8 défauts n'étaient
   // visibles qu'à l'exécution » de ce dépôt, appliqué au front.
   const clientMessageId = String(row.metadata?.client_message_id ?? "").trim();
+  const media = readMedia(row.metadata);
   return {
     id: row.id,
     role: row.role === "assistant" ? "assistant" : "user",
     content: row.content,
     createdAt: row.created_at,
     buttons: readButtons(row.metadata),
+    // Un message de l'élève n'est jamais proactif, quoi qu'en dise la
+    // metadata: le drapeau vient de la décision de livraison, qui ne concerne
+    // que les sortants. Le lire sur un entrant serait lire un champ qui n'a
+    // pas de sens de ce côté-là.
+    proactive: row.role === "assistant" && row.metadata?.is_proactive === true,
+    ...(media ? { media } : {}),
     ...(clientMessageId ? { clientMessageId } : {}),
   };
 }
@@ -171,17 +226,41 @@ export async function sendChatMessage(
  *      reconnexion) ne doublent pas.
  * N'en faire qu'une laisse un doublon visible dans l'autre cas.
  */
+/**
+ * L'APERÇU LOCAL SURVIT À SON ÉCHO.
+ *
+ * La ligne réelle porte un CHEMIN de bucket, pas une URL — il faut encore la
+ * faire signer (un aller-retour). L'écho, lui, portait déjà un `blob:` affiché
+ * à l'écran. Sans ce report, la photo DISPARAÎT à la seconde où le serveur
+ * confirme, puis revient une fraction de seconde plus tard: un clignotement
+ * pile au moment où l'élève regarde son assiette.
+ *
+ * Même famille que le report de `clientMessageId`: ce que l'écho savait et que
+ * la ligne réelle ignore doit traverser la fusion, sinon on régresse en
+ * confirmant.
+ */
+function carryPreview(incoming: ChatMessage, echo: ChatMessage | undefined): ChatMessage {
+  const preview = echo?.media?.previewUrl;
+  if (!preview || !incoming.media || incoming.media.previewUrl) return incoming;
+  return { ...incoming, media: { ...incoming.media, previewUrl: preview } };
+}
+
 export function mergeMessage(
   list: ChatMessage[],
   incoming: ChatMessage,
 ): ChatMessage[] {
+  const echo = incoming.clientMessageId
+    ? list.find((m) =>
+      m.clientMessageId === incoming.clientMessageId && m.id !== incoming.id
+    )
+    : undefined;
   const withoutEcho = incoming.clientMessageId
     ? list.filter((m) =>
       !(m.clientMessageId === incoming.clientMessageId && m.id !== incoming.id)
     )
     : list;
   if (withoutEcho.some((m) => m.id === incoming.id)) return withoutEcho;
-  const next = [...withoutEcho, incoming];
+  const next = [...withoutEcho, carryPreview(incoming, echo)];
   next.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
   return next;
 }
@@ -204,9 +283,116 @@ export function mergeHistoryPage(
     (m.pending || m.failed) &&
     !(m.clientMessageId && landed.has(m.clientMessageId))
   );
-  const merged = [...page, ...inFlight];
+  // Même report que dans `mergeMessage`: c'est CE chemin que la photo emprunte
+  // en pratique (`onPickPhoto` finit par un `refetch`), donc l'oublier ici
+  // suffirait à faire clignoter chaque envoi.
+  const echoes = new Map(
+    previous
+      .filter((m) => m.clientMessageId && m.media?.previewUrl)
+      .map((m) => [m.clientMessageId as string, m]),
+  );
+  const merged = [
+    ...page.map((m) =>
+      m.clientMessageId ? carryPreview(m, echoes.get(m.clientMessageId)) : m
+    ),
+    ...inFlight,
+  ];
   merged.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
   return merged;
+}
+
+// ── LES RÉGLAGES DE LA BULLE, ET L'ÉTAT DE LECTURE ──────────────────────────
+//
+// Deux colonnes de `profiles`, écrites par le propriétaire de la ligne:
+//   * `proactive_muted_at` — l'ancien STOP, re-fondé en réglage produit. La
+//     politique de livraison le respectait scrupuleusement depuis le chantier
+//     de-whatsapp et AUCUN écran ne pouvait le poser: le seul chemin était un
+//     UPDATE SQL. Une garde que l'utilisateur ne peut pas atteindre est une
+//     garde qui n'existe pas pour lui.
+//   * `chat_last_read_at` — l'ancre du compteur de non-lus (migration
+//     `20260805160000`).
+//
+// Aucune RPC: la RLS `..._self` est déjà la frontière, et un aller-retour de
+// plus par-dessus ne protégerait rien.
+
+export type ChatSettings = {
+  /** L'élève a coupé les relances proactives. Les réponses continuent. */
+  muted: boolean;
+  /** Dernière ouverture de la conversation. `null` = jamais ouverte. */
+  lastReadAt: string | null;
+};
+
+export async function loadChatSettings(userId: string): Promise<ChatSettings> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("proactive_muted_at,chat_last_read_at")
+    .eq("id", userId)
+    .maybeSingle();
+  if (error) throw error;
+  const row = (data ?? {}) as {
+    proactive_muted_at?: string | null;
+    chat_last_read_at?: string | null;
+  };
+  return {
+    muted: Boolean(row.proactive_muted_at),
+    lastReadAt: row.chat_last_read_at ?? null,
+  };
+}
+
+/**
+ * Coupe ou rallume les relances.
+ *
+ * Le serveur lit la PRÉSENCE d'une date, pas un booléen: rallumer écrit `null`,
+ * jamais `false`. Un booléen aurait perdu QUAND l'élève a coupé, et cette date
+ * est ce qui rend l'arbitrage lisible plus tard.
+ */
+export async function setProactiveMuted(
+  userId: string,
+  muted: boolean,
+): Promise<void> {
+  const { error } = await supabase
+    .from("profiles")
+    .update({ proactive_muted_at: muted ? new Date().toISOString() : null })
+    .eq("id", userId);
+  if (error) throw error;
+}
+
+/**
+ * Combien de messages de Sophia depuis la dernière ouverture.
+ *
+ * `head: true` — on veut le nombre, pas les lignes. `sinceIso === null` compte
+ * TOUT, ce qui est le sens exact de « jamais ouvert » (voir le backfill
+ * asymétrique de la migration).
+ */
+export async function countUnreadAssistantMessages(
+  sinceIso: string | null,
+): Promise<number> {
+  let query = supabase
+    .from("chat_messages")
+    .select("id", { count: "exact", head: true })
+    .eq("scope", CHAT_SCOPE)
+    .eq("role", "assistant");
+  if (sinceIso) query = query.gt("created_at", sinceIso);
+  const { count, error } = await query;
+  if (error) throw error;
+  return count ?? 0;
+}
+
+/**
+ * Marque la conversation comme lue, et rend l'horodatage écrit.
+ *
+ * L'appelant DOIT réutiliser cette valeur comme nouvelle ancre plutôt que de
+ * refabriquer un `new Date()` de son côté: entre les deux, un message peut être
+ * arrivé, et il serait alors compté comme lu sans l'avoir été.
+ */
+export async function markChatRead(userId: string): Promise<string> {
+  const atIso = new Date().toISOString();
+  const { error } = await supabase
+    .from("profiles")
+    .update({ chat_last_read_at: atIso })
+    .eq("id", userId);
+  if (error) throw error;
+  return atIso;
 }
 
 export type ChatSubscription = { unsubscribe: () => void };

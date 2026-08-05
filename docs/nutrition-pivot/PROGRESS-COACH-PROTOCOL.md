@@ -227,9 +227,187 @@ supabase migration up --local           → 20260805100000 appliquée
 
 ---
 
+## 2026-08-05 13:xxZ — « Recommended food »: le coach parle en ALIMENTS
+
+### Le défaut, et il tenait en un mot
+
+L'écran demandait une posture sur **30 groupes abstraits** (« matière grasse
+ajoutée », « légumes non féculents »), en pastilles tri-état qu'on faisait
+défiler d'un tap. Deux reproches du produit, et c'était le même: **illisible**
+ET **peu de choix**. Un coach ne pense pas en groupes. Il pense « huile de
+coco », « carotte », « saumon ».
+
+### La ligne de partage qui porte tout le lot: GRAMMAIRE vs OPINION
+
+L'observation qui a débloqué la conception: *« l'huile de coco ce n'est pas
+vraiment du timing, c'est plutôt un nombre de centilitres — mais l'huile
+d'avocat peut être ok. En fait c'est la fréquence d'utilisation. »*
+
+Elle sépare deux choses qu'on avait tendance à mélanger:
+
+| | porte | exemple |
+|---|---|---|
+| `food_items` (global, curé) | **la grammaire** — groupe + AXE DE COMPTAGE | « une huile se compte en ml » |
+| `coach_food_items` (par coach) | **l'opinion** — posture, fréquence, pourquoi | « max 2 c. à s./semaine, parce que… » |
+
+Huile de coco et huile d'avocat ont la **même grammaire** (`volume`, ml) et
+portent des opinions opposées. Aucune colonne du catalogue ne juge un aliment —
+à une exception assumée, `default_why`, traitée plus bas.
+
+### ⚠️ Ce qu'une règle par ALIMENT ne peut pas faire, et qui est écrit à l'écran
+
+Elle n'est **pas vérifiable sur une photo**. L'analyse photo rend des GROUPES:
+elle ne dira jamais « c'était de l'huile de coco » plutôt que « de la matière
+grasse ajoutée ». Compiler « max 2 c. à s. d'huile de coco » en « max 2
+portions de matière grasse ajoutée » donnerait au coach une **garantie fausse**.
+
+D'où la séparation, dite dans `coach.food.freq.scope_note` **là où le coach
+écrit la règle**, pas en note de bas de page:
+
+* règles par **aliment** → ce que Sophia **construit** et **dit**;
+* règles par **catégorie** → ce que Sophia **vérifie** dans l'assiette.
+
+### La dérivation, et son cas difficile
+
+`_shared/keel/food_items.ts` — pur, 17 tests. Que du « pour » ⇒ `encouraged`;
+que du « contre » ⇒ la sévérité la plus forte gagne; **les deux à la fois ⇒
+AUCUNE règle de groupe**, et un conflit rendu à l'écran.
+
+Ce dernier cas est le seul qui pouvait fabriquer une opinion. Un coach qui
+recommande le saumon et écarte le thon n'a pas d'avis sur « les poissons gras »:
+il en a deux, opposés, sur deux aliments. Le test « un groupe en conflit ne
+produit AUCUN engagement en bout de chaîne » le verrouille **à travers le vrai
+compilateur**, pas sur `rules`.
+
+### `default_why` — l'exception, assumée, et ses garde-fous
+
+Un « pourquoi » livré par KEEL sous le nom du coach fait de KEEL l'autorité
+nutritionnelle — ce que `coachProtocol.ts` interdit noir sur blanc
+(« des préréglages de STRUCTURE et jamais de CONTENU »). L'objection a été
+posée, **l'arbitrage produit est de le garder**: un champ vide sur 127 aliments
+ne serait jamais rempli.
+
+Trois garde-fous, tous **structurels**:
+
+1. `default_why` décrit un **rôle dans l'assiette**, jamais un effet santé,
+   jamais un chiffre. Aucune ligne du seed n'en contient.
+2. Rien n'atteint l'élève avant **publication**, geste explicite avec diff. Un
+   texte non retouché mais publié est un texte que le coach a validé.
+3. `why_source` (`seeded`/`ai`/`coach`) est un **cliquet**: l'écriture IA porte
+   `where why_source <> 'coach'`. Une régénération ne peut pas écraser une
+   édition du coach, **y compris si l'écran a un bug**. Ce dépôt a payé ce
+   défaut exact sur la carte de défense.
+
+### Deux défauts trouvés en EXÉCUTANT, invisibles à la relecture
+
+1. **`as` sur un type étranger = typecheck désarmé.** `generateWithGemini` rend
+   `string | {tool,args}`; je l'avais casté en `{text?: string}`. `deno check`
+   passait, les appels LLM rendaient 200 dans les logs, et les deux actions
+   rendaient `null` **en silence**. Corrigé par une fonction `modelText()` qui
+   lit la vraie union — le cast est retiré, pas réparé.
+
+2. **Une écriture ratée était invisible.** `setErrorText` n'était rendu que
+   sous `phase === "error"`: un insert refusé laissait une pastille qui ne
+   colle pas et zéro message. C'est l'accusé fantôme servi à l'envers — le
+   coach reclique. Séparé en `writeError`, rendu en bandeau **sans effacer la
+   page**: une lecture ratée remplace l'écran (on ne sait pas quoi montrer),
+   une écriture ratée ne doit pas faire perdre ce qu'il regardait.
+
+### Les gardes de schéma, éprouvées sur la base réelle
+
+```
+G1 every_meal traînant un cutoff              → REFUSÉ (coach_food_items_slots_match_frequency)
+G2 le même sans le trou en trop               → accepté
+G3 amount_per_period sans direction           → REFUSÉ (même contrainte)
+G4 slug de groupe hors vocabulaire            → REFUSÉ (FK food_groups)
+G5 le même aliment de catalogue deux fois     → REFUSÉ (unique per protocol)
+G6 « Kombucha » puis «  kombucha  »           → REFUSÉ (libellé replié)
+G7 règle portant un AUTRE coach               → REFUSÉ (trigger coach_rule_matches_protocol, réutilisé)
+G8 axe volume qui n'annonce pas des ml        → REFUSÉ (food_items_volume_is_ml)
+```
+
+`rowsecurity = t` sur les deux tables; `has_table_privilege('anon', …)` = false
+— vérifié sur **`anon`**, jamais sur `public`.
+
+### L'épreuve de réel (navigateur + edge function servie en local)
+
+Écran, coach QA, brouillon créé à la première écriture (v2):
+
+* recherche « oil » → déplie **Fats**, 5 huiles;
+* tap **Coconut oil** → ligne en base, `why_source='seeded'`, pourquoi
+  pré-rempli, panneau déplié;
+* « Set a rule » → unité **ml** en tête (portions et g toujours offerts),
+  montant **15** lu du catalogue, phrase « at least 15 ml per week », persistée;
+* aperçu compilé: « added fat — at least 1 serving a day, flexible »;
+* Coconut oil → *Never* + Avocado oil → *Build with it* ⇒ **SPLIT CATEGORIES**
+  rendu, et l'aperçu repasse à « Nothing yet ». La catégorie ne compile plus, et
+  le coach l'apprend là plutôt que chez son élève.
+
+`coach-protocol-v1`, quatre chemins:
+
+```
+classify_food  kefir           → dairy_yogurt   / volume   + why cite la conviction du coach
+classify_food  coconut aminos  → sauce_dressing / volume
+classify_food  avocado oil spray → other_added_fat / volume
+draft_why      why_source='coach'  → coach_owned   (texte du coach INTACT en base)
+draft_why      why_source='seeded' → réécrit depuis la doctrine
+draft_why      coach sans doctrine → no_doctrine   (refus, pas d'invention)
+draft_why      item d'un autre coach → not_found
+```
+
+Aucune des sorties IA ne porte d'allégation de santé ni de chiffre.
+
+### Suite immédiate: « Timing rules » et « Your words » retirés de l'écran
+
+Arbitrage produit du même jour, après l'avoir vu en vrai: l'écran ne parle que
+d'aliments. Les deux éditeurs sont supprimés, leurs 18 clés i18n avec eux.
+
+Ce que ça ne coûte rien: **ni l'un ni l'autre n'a jamais rien écrit en base**.
+`TimingRulesEditor` et `CoachTermsEditor` passaient tous les deux par
+`onChange={setState}` — de l'état React local, perdu au rechargement. Aucune
+donnée de coach ne disparaît.
+
+Ce que l'écran continue de faire, et **exprès**: il CHARGE toujours
+`coach_timing_rules` et `coach_terms`, et il les passe au compilateur.
+`coach_terms` décide même du TITRE des engagements produits (`labelForGroup`).
+Cesser de les lire changerait en silence ce que « What Sophia will check »
+annonce, alors qu'aucune ligne n'a été supprimée en base. Personne ne perd une
+règle parce qu'un écran a maigri.
+
+### Sortie
+
+```
+deno test food_items_test.ts            → 17 passed
+deno test _shared/ (hors doctrine_loader_test, cassé par une autre session)
+                                        → 1509 passed | 2 failed
+   (les 2 rouges = meal_generation_test, 199 lignes non committées d'autrui)
+frontend: npx tsc -b --noEmit           → aucune erreur
+frontend: npx vitest run                → 336 passed | 20 skipped
+migration 20260805140000 appliquée en local, 127 aliments, 30 groupes couverts
+```
+
+### ⚠️ Blocage préexistant, non résolu par ce lot
+
+`supabase migration up` reste **inapplicable**: `20260805090000` et
+`20260805120000` existent chacun en **deux fichiers**, et pour `090000` les
+**deux sont committés**. Ce lot n'y touche pas (fichiers d'autrui) et applique
+sa propre migration directement, enregistrée à la main dans
+`supabase_migrations.schema_migrations`. À trancher par quelqu'un qui possède
+ces deux fichiers.
+
+---
+
 ## Reste à faire
 
-3. L'écran `/coach/protocol` (§2), et son remplacement de `/coach/templates`.
+3. **La PUBLICATION.** L'écran écrit et lit son brouillon, l'aperçu compile en
+   direct — mais le bouton « Publish to my students » n'a toujours **aucun
+   `onClick`**, et rien ne relie le compilateur à `plan-publish-v1`. Aucun élève
+   ne reçoit quoi que ce soit de cet écran. C'est le trou le plus important qui
+   reste, et il précède le lot « Recommended food ».
+   Concrètement: écrire les `coach_food_rules` **dérivés** au moment de publier
+   (la dérivation est prête et testée), passer le protocole en `published`,
+   superseder l'ancien.
+3bis. Le remplacement de `/coach/templates`.
 4. L'absorption de `/coach/import` en action d'amorçage.
 5. La fin de la publication par élève (`plan_versions.student_id`) — **trois**
    épreuves d'absence: code applicatif, `pg_proc.prosrc`, vues.

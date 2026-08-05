@@ -8,6 +8,13 @@ import {
   aggregateWeekInFood,
   type FoodEventRow,
 } from "../lib/weekInFood";
+import {
+  aggregateRhythm,
+  MOMENT_LABELS,
+  MOMENTS,
+  type RhythmEventRow,
+} from "../lib/mealRhythm";
+import { signMealPhotoUrls } from "../api/mealPhoto";
 
 /**
  * PIVOT N3 — `/app/progress` : l'avancée, semaine et mois.
@@ -85,6 +92,8 @@ export default function StudentProgressPage() {
   // vegetables than the week before») — jamais affichée en tant que telle.
   const [prevEvents, setPrevEvents] = React.useState<FoodEventRow[]>([]);
   const [reviews, setReviews] = React.useState<ReviewRow[]>([]);
+  /** chemin de bucket -> URL signée, pour les vignettes du journal. */
+  const [photoUrls, setPhotoUrls] = React.useState<Record<string, string>>({});
 
   React.useEffect(() => {
     let cancelled = false;
@@ -118,7 +127,25 @@ export default function StudentProgressPage() {
             // C8: le contenu alimentaire voyage avec la ligne. On remonte 7
             // jours PLUS LOIN que la fenêtre affichée quand elle est
             // hebdomadaire: la semaine d'avant ne sert qu'à la direction.
-            .select("local_date, slot_key, portion_band, food_group_ref, recognized")
+            //
+            // `occurred_at` est ce qui rend le RYTHME possible: `slot_key` est
+            // NULL sur 71 % des lignes (mesuré), donc une grille bâtie dessus
+            // perdrait les deux tiers des repas. Voir `lib/mealRhythm.ts`.
+            // `media_path` sert la vignette: revoir son assiette À CÔTÉ de ce
+            // qui en a été lu est la réponse la plus directe à « pourquoi je
+            // prends des photos ». C'est un chemin de bucket privé, pas une
+            // URL — il est signé plus bas.
+            .select(
+              "local_date, occurred_at, slot_key, portion_band, food_group_ref, " +
+                "recognized, disqualified_reason, media_path",
+            )
+            // LE FILTRE DE SUJET, à la source. `disqualified_reason` existe
+            // pour que les lecteurs qui comptent des repas filtrent une colonne
+            // au lieu de ré-implémenter « est-ce que ceci est un repas ». Cet
+            // écran ne le faisait pas: une photo de menu ou de rayon comptait
+            // comme un repas dans « X meals logged » et dans la distribution
+            // des portions.
+            .is("disqualified_reason", null)
             .gte("local_date", range === "week" ? isoDaysAgo(14) : since),
           supabase
             .from("weekly_reviews")
@@ -135,7 +162,11 @@ export default function StudentProgressPage() {
         // Le découpage en deux fenêtres se fait ICI, pas dans les cartes: les
         // cartes existantes (régularité, assiettes) ne doivent voir QUE la
         // fenêtre affichée, sinon leurs chiffres changent en silence.
-        const allEvents = (eventRes.data ?? []) as FoodEventRow[];
+        // `as unknown as` et pas `as`: le client navigateur n'a pas de
+        // générique `Database`, donc PostgREST type ce `.select(...)` en
+        // `GenericStringError[]`, qui ne recouvre pas assez `FoodEventRow[]`
+        // pour un cast direct. Même traversée que partout ailleurs.
+        const allEvents = (eventRes.data ?? []) as unknown as FoodEventRow[];
         setEvents(allEvents.filter((e) => e.local_date >= since));
         setPrevEvents(
           range === "week" ? allEvents.filter((e) => e.local_date < since) : [],
@@ -184,6 +215,75 @@ export default function StudentProgressPage() {
   });
   const dayName = (iso: string) =>
     new Date(`${iso}T00:00:00`).toLocaleDateString("en-GB", { weekday: "short" });
+
+  // 3ter. LE RYTHME — la même semaine, mais sur l'axe du TEMPS.
+  //
+  // Le fuseau vient de l'appareil: c'est l'élève qui regarde son propre écran,
+  // et son navigateur est la source la plus proche de sa journée vécue. Le
+  // module reste pur — il reçoit le fuseau, il ne le devine pas.
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+  const rhythmDates = range === "week"
+    ? windowDates
+    : Array.from({ length: 30 }, (_, i) => isoDaysAgo(29 - i));
+  const rhythm = aggregateRhythm(events as RhythmEventRow[], {
+    dates: rhythmDates,
+    timeZone,
+  });
+  // La taille du bloc dit la BANDE, jamais une quantité. Une case vide reste
+  // visible: les trous d'une semaine sont la moitié de son information.
+  const BAND_FILL: Record<string, string> = {
+    small: "h-2 w-2",
+    moderate: "h-3 w-3",
+    large: "h-4 w-4",
+    unclear: "h-2.5 w-2.5",
+  };
+  // `unclear` n'a PAS de mot: dire « unclear portion » à quelqu'un qui a
+  // photographié son assiette n'ajoute rien et sonne comme un reproche. On se
+  // tait sur la taille et on garde les aliments, qui eux sont lus.
+  const BAND_WORD: Record<string, string> = {
+    small: "small",
+    moderate: "regular",
+    large: "large",
+  };
+  // Les jours qui portent réellement quelque chose, du plus récent au plus
+  // ancien: un journal se lit par le haut, et la semaine dernière n'est pas ce
+  // qu'on vient vérifier après avoir envoyé une photo.
+  const loggedDaysDetail = [...rhythm.days]
+    .reverse()
+    .map((d) => ({
+      date: d.date,
+      entries: MOMENTS
+        .map((m) => ({ moment: m, cell: d.cells[m] }))
+        .filter((e) => e.cell !== null),
+    }))
+    .filter((d) => d.entries.length > 0);
+
+  // LES VIGNETTES. Même chaîne que la conversation: le bucket est privé et sans
+  // policy, donc un chemin ne devient affichable qu'après signature. Un échec
+  // est avalé — une ligne sans vignette reste une ligne lisible, et perdre
+  // l'écran entier pour une image serait le mauvais arbitrage.
+  React.useEffect(() => {
+    const paths = [
+      ...new Set(
+        loggedDaysDetail.flatMap((d) =>
+          d.entries.flatMap((e) => e.cell!.mediaPaths)
+        ),
+      ),
+    ].filter((p) => !(p in photoUrls));
+    if (paths.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const urls = await signMealPhotoUrls(paths);
+        if (!cancelled && Object.keys(urls).length > 0) {
+          setPhotoUrls((prev) => ({ ...prev, ...urls }));
+        }
+      } catch {
+        // Muet par conception: voir ci-dessus.
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [loggedDaysDetail, photoUrls]);
 
   // 4. POIDS — la pesée du point du dimanche. Voir `displayWeights`.
   const weights = displayWeights(reviews);
@@ -337,6 +437,210 @@ export default function StudentProgressPage() {
                 calories here: the logging itself is what moves the needle.
               </p>
             </div>
+          )}
+        </Card>
+
+        {/* 3bis-b. CE QUE TU AS MANGÉ — le journal, nommément.
+            LE DÉFAUT QUE CETTE CARTE CORRIGE, mesuré sur une vraie ligne: un
+            bol d'avoine au fromage blanc, lu par le modèle avec 0,95 et 0,98
+            de confiance, ne produisait à l'écran que « 1 meal logged » et une
+            ligne de zéros. Les aliments n'étaient nommés nulle part, parce que
+            le seul endroit qui les nommait (`topFoods`) exige de les avoir vus
+            DEUX fois — donc jamais sur une photo. L'élève faisait le geste et
+            ne recevait rien qui prouve qu'on avait regardé. */}
+        <Card>
+          <SectionLabel>What you ate</SectionLabel>
+          {loggedDaysDetail.length === 0 ? (
+            <p className="mt-2 text-sm text-gray-600">
+              Nothing logged in this period yet. Send a plate in Chat, or just
+              tell me what you had — both end up here.
+            </p>
+          ) : (
+            <>
+              <div className="mt-3 space-y-3">
+                {loggedDaysDetail.map((d) => (
+                  <div key={d.date}>
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
+                      {dayName(d.date)}
+                    </p>
+                    <ul className="mt-1 space-y-2">
+                      {d.entries.map((e) => {
+                        const thumb = e.cell!.mediaPaths
+                          .map((p) => photoUrls[p])
+                          .find(Boolean) ?? null;
+                        return (
+                          <li key={e.moment} className="flex gap-3">
+                            {/* LA VIGNETTE, à gauche de ce qui en a été lu.
+                                C'est la preuve que la photo a servi à quelque
+                                chose — et le seul endroit du produit où l'élève
+                                peut relire sa propre semaine. */}
+                            {thumb
+                              ? (
+                                <img
+                                  src={thumb}
+                                  alt=""
+                                  data-testid="log-thumb"
+                                  className="h-12 w-12 shrink-0 rounded-lg object-cover"
+                                />
+                              )
+                              : null}
+                            <div className="min-w-0 text-sm text-gray-800">
+                              <p>
+                                <span className="text-gray-500">
+                                  {MOMENT_LABELS[e.moment]}
+                                </span>{" "}
+                                —{" "}
+                                {e.cell!.foods.length > 0
+                                  ? e.cell!.foods.join(", ")
+                                  : "logged, nothing readable in the photo"}
+                                {e.cell!.band && BAND_WORD[e.cell!.band]
+                                  ? (
+                                    <span className="text-gray-500">
+                                      {" "}· {BAND_WORD[e.cell!.band]} portion
+                                    </span>
+                                  )
+                                  : null}
+                              </p>
+                              {/* CE QUE LE MODÈLE A VU DE LA TAILLE, dans ses
+                                  mots. Une phrase observable, jamais un nombre:
+                                  elle dit POURQUOI la portion est classée
+                                  ainsi, là où le jeton seul ressemble à un
+                                  verdict tombé de nulle part. */}
+                              {e.cell!.rationale
+                                ? (
+                                  <p className="mt-0.5 text-xs leading-5 text-gray-500">
+                                    {e.cell!.rationale}
+                                  </p>
+                                )
+                                : null}
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-3 text-xs leading-5 text-gray-500">
+                This is what was read from your photos and from what you told
+                me. If something is wrong, say so in Chat and it gets corrected
+                on the spot.
+              </p>
+            </>
+          )}
+        </Card>
+
+        {/* 3ter. LE RYTHME — quand tu manges, jour par jour.
+            `weekInFood` dit CE QUI a été mangé; ceci dit QUAND. Une grille et
+            pas une moyenne: un coach lit un rythme d'un coup d'œil, il ne le
+            lit pas dans un chiffre. Aucun kcal ici non plus — la taille du
+            bloc est la BANDE de portion, dont le jeton est la barre d'erreur. */}
+        <Card>
+          <SectionLabel>Your rhythm</SectionLabel>
+          {rhythm.meals === 0 ? (
+            <p className="mt-2 text-sm text-gray-600">
+              Nothing logged in this period yet. Tell me what you ate in Chat,
+              or send a plate — both land here.
+            </p>
+          ) : (
+            <>
+              {range === "week" ? (
+                <div className="mt-3 overflow-x-auto">
+                  <table className="w-full border-separate border-spacing-1 text-xs">
+                    <thead>
+                      <tr>
+                        <th className="w-20" />
+                        {rhythm.days.map((d) => (
+                          <th
+                            key={d.date}
+                            className="pb-1 text-center font-medium text-gray-500"
+                          >
+                            {dayName(d.date)}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {MOMENTS.map((moment) => (
+                        <tr key={moment}>
+                          <th className="pr-2 text-right font-normal text-gray-500">
+                            {MOMENT_LABELS[moment]}
+                          </th>
+                          {rhythm.days.map((d) => {
+                            const cell = d.cells[moment];
+                            return (
+                              <td key={d.date} className="text-center">
+                                <div
+                                  data-testid="rhythm-cell"
+                                  data-count={cell?.count ?? 0}
+                                  title={cell
+                                    ? [
+                                      cell.foods.join(", ") ||
+                                      `${cell.count} logged`,
+                                      cell.band && BAND_WORD[cell.band]
+                                        ? `${BAND_WORD[cell.band]} portion`
+                                        : null,
+                                    ].filter(Boolean).join(" · ")
+                                    : "nothing logged"}
+                                  className="flex h-7 w-full items-center justify-center rounded-md bg-gray-100"
+                                >
+                                  {cell ? (
+                                    <span
+                                      className={`rounded-full bg-gray-900 ${
+                                        BAND_FILL[cell.band ?? "unclear"]
+                                      }`}
+                                    />
+                                  ) : null}
+                                  {cell && cell.count > 1 ? (
+                                    <span className="ml-1 text-[10px] text-gray-500">
+                                      ×{cell.count}
+                                    </span>
+                                  ) : null}
+                                </div>
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="mt-3 space-y-1 text-sm text-gray-800">
+                  {MOMENTS.map((moment) => (
+                    <p key={moment}>
+                      <span className="inline-block w-24 text-gray-500">
+                        {MOMENT_LABELS[moment]}
+                      </span>
+                      {rhythm.byMoment[moment]}
+                    </p>
+                  ))}
+                </div>
+              )}
+              {rhythm.busiest ? (
+                <p className="mt-3 text-sm text-gray-700">
+                  Most of what you log lands in the{" "}
+                  <span className="font-medium">
+                    {MOMENT_LABELS[rhythm.busiest].toLowerCase()}
+                  </span>.
+                </p>
+              ) : null}
+              {rhythm.unplaced > 0 ? (
+                // On le DIT plutôt que de ranger ces faits dans une case au
+                // hasard: une grille qui invente un horaire est pire qu'une
+                // grille incomplète.
+                <p className="mt-1 text-sm text-gray-700">
+                  {rhythm.unplaced} log{rhythm.unplaced > 1 ? "s" : ""} without a
+                  time of day — not placed above.
+                </p>
+              ) : null}
+              <p className="mt-2 text-xs leading-5 text-gray-500">
+                The block size is how big the plate looked — small, regular or
+                large. That is the whole scale, and it is deliberately the whole
+                scale: a number here would be wrong in a direction we can
+                predict.
+              </p>
+            </>
           )}
         </Card>
 

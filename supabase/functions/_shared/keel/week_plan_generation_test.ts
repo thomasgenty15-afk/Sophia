@@ -483,6 +483,8 @@ Deno.test("the prompt carries the convictions and forbids numbers", () => {
       goal: "fat_loss",
       situation: "I eat at a canteen at midday",
       context: "I have a wedding on Tuesday",
+      aspiration: null,
+      focusAxis: null,
       practicalConstraints: {},
       // Corps inconnu: ce test porte sur les convictions et l'interdiction des
       // chiffres, pas sur ce que le corps module. Voir `student_body_test.ts`
@@ -527,4 +529,60 @@ Deno.test("a non-JSON model output throws instead of shipping an empty plan", ()
       maxNutrition: 4,
     })
   );
+});
+
+// ---------------------------------------------------------------------------
+// L'ASPIRATION ET L'AXE — deux entrées qui doivent MÉRITER d'être passées
+// ---------------------------------------------------------------------------
+
+function promptWith(over: Record<string, unknown>): string {
+  return buildWeekPlanPrompt({
+    principles: PRINCIPLES,
+    situation: {
+      goal: "health",
+      situation: null,
+      context: null,
+      aspiration: null,
+      focusAxis: null,
+      practicalConstraints: {},
+      body: UNKNOWN_BODY,
+      ...over,
+    },
+    doctrineBlock: "== MARC'S METHOD ==",
+    weekStart: "2026-08-03",
+    safetyConstraints: null,
+  }).userMessage;
+}
+
+Deno.test("l'aspiration ARRIVE dans la consigne, et avant les contraintes", () => {
+  // Le test d'existence de ce module: « est-ce que cette information change ce
+  // que l'élève trouvera dans son assiette ? ». Une colonne qu'on demande à
+  // l'élève et que la consigne ne porte pas est décorative, et pire que son
+  // absence — elle fait croire que le produit en tient compte.
+  const msg = promptWith({
+    aspiration: "play football with my kids without being wrecked",
+    situation: "I eat at a canteen at midday",
+  });
+  assert(msg.includes("play football with my kids"));
+  assert(
+    msg.indexOf("play football") < msg.indexOf("canteen"),
+    "ce qu'il veut doit être lu AVANT ce qui l'empêche",
+  );
+});
+
+Deno.test("l'axe désigné est nommé EN CLAIR, pas en jeton", () => {
+  // « sleep » est notre vocabulaire interne. Le modèle reçoit le libellé que
+  // l'élève a lui-même vu au point du dimanche.
+  const msg = promptWith({ focusAxis: "sleep" });
+  assert(msg.includes("Sleep quality"), msg);
+  // Et la limite est accrochée à l'entrée: pas de conseil inventé sur l'axe.
+  assert(msg.includes("do NOT invent advice"), msg);
+});
+
+Deno.test("CONDITION DE DÉSARMEMENT: sans aspiration ni axe, la consigne le DIT", () => {
+  // Le cas de 100 % des élèves d'avant ce lot. On ne laisse pas un trou muet:
+  // « not stated » est une information, une ligne absente est une ambiguïté.
+  const msg = promptWith({});
+  assert(msg.includes("what they are after: not stated"));
+  assert(msg.includes("no single axis singled out"));
 });

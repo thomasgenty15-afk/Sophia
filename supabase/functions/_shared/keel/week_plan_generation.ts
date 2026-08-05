@@ -60,6 +60,8 @@ import {
   safetyConstraintsPromptBlock,
   type StudentSafetyConstraint,
 } from "./safety_constraints.ts";
+import { GOAL_TOKENS, type GoalToken } from "./tokens.ts";
+import { type WeeklyAxis, WEEKLY_AXIS_LABELS_EN } from "./weekly_flow.ts";
 
 // ---------------------------------------------------------------------------
 // Entrées
@@ -78,14 +80,21 @@ export interface CoachPrinciple {
   rationale: string | null;
 }
 
-export const STUDENT_GOALS = [
-  "fat_loss",
-  "recomposition",
-  "performance",
-  "health",
-  "maintenance",
-] as const;
-export type StudentGoal = (typeof STUDENT_GOALS)[number];
+/**
+ * LE VOCABULAIRE DES OBJECTIFS — UN SEUL, ET IL N'EST PAS ÉCRIT ICI.
+ *
+ * Ces cinq valeurs étaient RECOPIÉES ici, à côté de `GOAL_TOKENS` dans
+ * `tokens.ts`, avec rien pour les tenir d'accord. Et l'en-tête de `tokens.ts`
+ * décrivait déjà, mot pour mot, la panne que cette copie garantissait: « ils
+ * sont d'accord jusqu'au jour où l'un gagne une sixième valeur, et alors une
+ * conviction portée sur elle atteint tout le monde par un module et personne
+ * par l'autre ». Le sixième objectif est arrivé le 2026-08-05.
+ *
+ * `STUDENT_GOALS` reste exporté sous ce nom: c'est celui que les tests et les
+ * appelants connaissent, et le renommer n'aurait rien prouvé de plus.
+ */
+export const STUDENT_GOALS = GOAL_TOKENS;
+export type StudentGoal = GoalToken;
 
 export interface StudentSituation {
   goal: StudentGoal;
@@ -106,6 +115,32 @@ export interface StudentSituation {
    * plus dire la seule chose qui comptait cette semaine-là.
    */
   context: string | null;
+  /**
+   * CE QUE L'ÉLÈVE VEUT, DANS SES MOTS. Pas ce qui l'empêche — ça, c'est
+   * `situation`.
+   *
+   * Les deux étaient confondus, et le résultat était qu'on ne demandait jamais
+   * l'aspiration: un élève décrivait sa cantine et ses horaires, et rien nulle
+   * part ne disait « je veux pouvoir jouer au foot avec mes gosses sans être
+   * mort ». Or c'est CE dont on a besoin pour argumenter au lieu d'asséner, et
+   * c'est ce qu'un coach lit en premier sur sa cohorte.
+   *
+   * Non structuré, exprès: dès qu'on met une aspiration en cases, il ne reste
+   * que celles qu'on a prévues.
+   */
+  aspiration: string | null;
+  /**
+   * L'AXE QUE L'ÉLÈVE VEUT VOIR MONTER — un des six du point du dimanche.
+   *
+   * C'est l'objectif des dynamiques qui n'ont pas de chiffre (`health`,
+   * `performance`): « mon sommeil est à 2, je veux le voir à 4 » est un
+   * objectif vrai, mesurable avec ce qu'on collecte déjà, et qui ne prétend
+   * rien sur le plan clinique.
+   *
+   * Ce qu'il change ici: il oriente le CHOIX des convictions du coach à
+   * remonter. Il n'ajoute aucun contenu — la méthode reste celle du coach.
+   */
+  focusAxis: WeeklyAxis | null;
   practicalConstraints: Record<string, unknown>;
   /**
    * CE QU'ON SAIT DU CORPS: bande d'âge et tendances des mesures.
@@ -198,6 +233,22 @@ export function focusFor(goal: StudentGoal): { maxNutrition: number; emphasis: s
       return {
         maxNutrition: 4,
         emphasis: "satiety and protein at each meal, so the week is livable rather than merely restrictive",
+      };
+    case "muscle_gain":
+      // L'ACCENT EST « ASSEZ », PAS « PLUS DE PROTÉINES ».
+      // L'obstacle d'un élève en prise de masse n'est presque jamais la
+      // protéine, qu'il surveille déjà: c'est le total sur la journée les
+      // jours sans appétit, sans entraînement, ou où il saute un repas. C'est
+      // la seule chose que la semaine peut réellement changer pour lui.
+      //
+      // Aucun chiffre ici, et ce n'est pas une pudeur: `NUMERIC_TARGET_PATTERNS`
+      // rejette en sortie toute masse accolée à une macro. Un accent qui
+      // demanderait « 2 g/kg » produirait des lignes systématiquement filtrées,
+      // c'est-à-dire une semaine vide pour ce seul objectif.
+      return {
+        maxNutrition: 4,
+        emphasis: "eating enough across the whole day — including days with " +
+          "no training and days with little appetite — with protein at each meal",
       };
     case "recomposition":
       return { maxNutrition: 4, emphasis: "protein regularity and training-day meals" };
@@ -448,9 +499,25 @@ export function buildWeekPlanPrompt(args: {
     `goal: ${args.situation.goal}`,
     `emphasis for this goal: ${focus.emphasis}`,
     `maximum nutrition lines: ${focus.maxNutrition}`,
+    // L'ASPIRATION AVANT LA SITUATION: ce qu'il veut, puis ce qui l'empêche.
+    // L'ordre n'est pas cosmétique — un modèle qui lit d'abord les contraintes
+    // écrit une semaine qui les contourne, et une semaine qui ne fait que
+    // contourner n'emmène nulle part.
+    args.situation.aspiration
+      ? `what they are actually after, in their words: ${args.situation.aspiration}. ` +
+        `Choose the coach's convictions that serve THIS, and say so in the rationale ` +
+        `when it is honest to — never invent a link that is not there.`
+      : "what they are after: not stated.",
     args.situation.situation
       ? `their situation, in their words: ${args.situation.situation}`
       : "their situation: not stated — keep the week simple and low-effort.",
+    args.situation.focusAxis
+      ? `the one thing they want to see improve: ${
+        WEEKLY_AXIS_LABELS_EN[args.situation.focusAxis] ?? args.situation.focusAxis
+      }. Bring forward the coach's convictions that bear on it, if he has any. ` +
+        `If he has none, do NOT invent advice about it — say nothing about it rather ` +
+        `than teaching something he never taught.`
+      : "no single axis singled out.",
     args.situation.context
       ? `what is going on for them THIS WEEK: ${args.situation.context}`
       : "nothing special going on this week.",

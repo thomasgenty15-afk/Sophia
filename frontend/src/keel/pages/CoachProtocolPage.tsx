@@ -13,75 +13,84 @@ import {
   AXES_BY_GOAL,
   type CoachTerm,
   type CoachTimingRule,
-  type CompiledCommitment,
   compileProtocol,
   type FoodGroupRow,
   type GoalToken,
-  groupByClass,
-  matchesSearch,
-  nextStance,
+  type Stance,
+  type StoredTimingRule,
+  toProtocolInput,
   previewSentence,
   publishImpact,
-  type Stance,
-  type StanceOrNeutral,
-  type StoredTimingRule,
-  suggestAttachment,
-  toProtocolInput,
+  type CompiledCommitment,
 } from "../api/coachProtocol";
 
+import {
+  buildFoodClasses,
+  canRewriteWhy,
+  type CoachFoodItem,
+  defaultFrequency,
+  deriveFoodRules,
+  type DisplayFood,
+  type FoodItemRow,
+  type FrequencyRule,
+  frequencyFromRow,
+  frequencySentence,
+  frequencyToRow,
+  matchesFoodSearch,
+  unitsForAxis,
+} from "../api/coachFoodItems";
+
 /**
- * `/coach/protocol` — LE COACH EXPRIME SA MÉTHODE, EN MOINS DE TROIS MINUTES.
+ * `/coach/protocol` — « RECOMMENDED FOOD »: LES ALIMENTS AVEC LESQUELS LE
+ * COACH CONSTRUIT.
  *
  * ---------------------------------------------------------------------------
  * CE QUE CET ÉCRAN REMPLACE, ET POURQUOI
  * ---------------------------------------------------------------------------
- * Avant, pour que Sophia sache quoi vérifier dans une assiette, un coach devait
- * remplir des engagements structurés: polarité, groupe, `target_op`,
- * `target_min`, `evaluation_grain`, `autonomy`, créneau. Quinze lignes de ce
- * genre pour dire « je pousse les légumes, pas d'huiles de graines, des
- * protéines à chaque repas ». Un formulaire d'expert pour des phrases simples —
- * et il vivait sur DEUX écrans qui faisaient le même travail.
+ * Il demandait une posture sur 30 GROUPES abstraits — « matière grasse
+ * ajoutée », « légumes non féculents » — en pastilles tri-état qu'on faisait
+ * défiler d'un tap. Deux reproches, et c'était le même: illisible ET peu de
+ * choix. Un coach ne pense pas en groupes, il pense en aliments.
  *
- * Ici il coche. Les engagements sont DÉRIVÉS
- * (`_shared/keel/protocol_compiler.ts`), et il ne les écrit ni ne les connaît.
- *
- * ---------------------------------------------------------------------------
- * POURQUOI DES PASTILLES TRI-ÉTAT, ET PAS UNE LISTE DE 30 LIGNES
- * ---------------------------------------------------------------------------
- * Le vocabulaire est FERMÉ et PETIT: 30 groupes, 9 classes. Trente, ce n'est
- * pas cinq cents — on peut donc tout montrer, et le montrer a une vertu: ça
- * fait exprimer au coach des opinions qu'il n'aurait pas pensé à formuler
- * devant un champ de recherche vide.
- *
- *   - UN TAP PAR DÉCISION. Trente décisions à un tap se font en deux minutes;
- *     trente menus déroulants, jamais.
- *   - GROUPÉ PAR CLASSE, parce que c'est comme ça qu'un coach pense (« les
- *     matières grasses », « les féculents »), et parce que ça permet de ne
- *     déplier que ce qui l'intéresse.
- *   - AU POUCE. Un coach édite depuis son téléphone entre deux clients; un
- *     tableau large ne survit pas à 375 px, une grille de pastilles si.
- *
- * Les alternatives écartées et leur motif sont dans le STATUS — écrites, parce
- * que non motivées elles reviendront.
+ * Il voit maintenant ~127 ALIMENTS concrets rangés dans ses catégories, il en
+ * ajoute avec un « + », et chaque aliment coché ouvre un panneau où il peut —
+ * S'IL VEUT — dire à quelle fréquence et pourquoi. La posture de groupe que le
+ * pipeline lit est DÉRIVÉE (`_shared/keel/food_items.ts`), et l'aperçu montre
+ * en permanence ce qu'elle produit.
  *
  * ---------------------------------------------------------------------------
- * L'APERÇU VIT À CÔTÉ DE L'ÉDITION, ET IL N'EST PAS DÉCORATIF
+ * DEUX ÉCHELLES SUR UN ÉCRAN, ET LA PHRASE QUI LES SÉPARE
  * ---------------------------------------------------------------------------
- * Puisque les engagements deviennent dérivés, le coach doit voir en permanence
- * les lignes qui sortent de ses coches. Sans ça il coche à l'aveugle dans une
- * boîte noire qui écrit sa méthode à sa place, et il ne fera pas confiance au
- * résultat.
+ * Une règle sur UN aliment n'est pas vérifiable sur une photo: l'analyse photo
+ * rend des GROUPES, elle ne dira jamais « c'était de l'huile de coco ». Donc:
  *
- * Ces phrases ne sont pas une reformulation: elles sortent de `compileProtocol`,
- * le module que `plan-publish-v1` exécutera. Voir `api/coachProtocol.ts`.
+ *   * règles par ALIMENT   -> ce que Sophia CONSTRUIT et DIT;
+ *   * règles par CATÉGORIE -> ce que Sophia VÉRIFIE dans l'assiette.
+ *
+ * `coach.food.freq.scope_note` le dit LÀ OÙ le coach écrit la règle. Sans
+ * cette phrase, deux niveaux de réglage sur le même écran redeviennent
+ * exactement le « pas clair » qu'on vient de corriger.
  *
  * ---------------------------------------------------------------------------
- * BROUILLON ≠ PUBLICATION
+ * LE « POURQUOI » PRÉ-REMPLI — ARBITRAGE ASSUMÉ, GARDE-FOUS STRUCTURELS
  * ---------------------------------------------------------------------------
- * Le mapping se sauvegarde en continu, mais il ne s'applique pas en continu: un
- * coach au milieu d'une modification ne doit pas pousser une demi-méthode à 200
- * élèves. Et au moment de publier, il lit le diff en langage humain — publier à
- * l'aveugle sur une cohorte est le geste le plus risqué de cet écran.
+ * Un « pourquoi » livré par KEEL et affiché sous le nom du coach fait de KEEL
+ * l'autorité nutritionnelle. Arbitrage produit du 2026-08-05, pris en
+ * connaissance de cause: un champ vide sur 127 aliments ne serait jamais
+ * rempli, et le coach sera d'accord l'essentiel du temps.
+ *
+ * Ce qui rend ça tenable est structurel, pas déclaratif:
+ *   1. rien n'atteint l'élève avant PUBLICATION, geste explicite avec diff;
+ *   2. `why_source` trace l'origine, et l'écriture IA est CONDITIONNÉE dessus
+ *      côté base — une régénération ne peut pas écraser ce que le coach a
+ *      écrit. Ce dépôt a payé ce défaut exact sur la carte de défense.
+ *
+ * ---------------------------------------------------------------------------
+ * LE BROUILLON N'EST CRÉÉ QU'À LA PREMIÈRE ÉCRITURE
+ * ---------------------------------------------------------------------------
+ * Ouvrir l'écran ne crée rien. Un coach qui vient regarder ne doit pas laisser
+ * derrière lui un brouillon vide qui apparaîtra plus tard comme « une méthode
+ * commencée » dans un diff de publication.
  */
 
 const CLASS_LABEL: Readonly<Record<string, MessageKey>> = {
@@ -96,19 +105,20 @@ const CLASS_LABEL: Readonly<Record<string, MessageKey>> = {
   discretionary: "coach.protocol.class.discretionary",
 };
 
-const STANCE_STYLE: Readonly<Record<Stance | "neutral", string>> = {
-  neutral: "border-gray-300 bg-white text-gray-600",
+const STANCES: readonly { readonly value: Stance; readonly labelKey: MessageKey }[] = [
+  { value: "encouraged", labelKey: "coach.food.stance.encouraged" },
+  { value: "discouraged", labelKey: "coach.food.stance.discouraged" },
+  { value: "excluded", labelKey: "coach.food.stance.excluded" },
+];
+
+const STANCE_PILL: Readonly<Record<Stance, string>> = {
   encouraged: "border-emerald-500 bg-emerald-50 text-emerald-800 font-medium",
   discouraged: "border-amber-500 bg-amber-50 text-amber-800 font-medium",
   excluded: "border-rose-500 bg-rose-50 text-rose-800 font-medium",
 };
+const NEUTRAL_PILL = "border-gray-300 bg-white text-gray-600";
 
-const STANCE_LABEL: Readonly<Record<Stance | "neutral", MessageKey>> = {
-  neutral: "coach.protocol.stance.neutral",
-  encouraged: "coach.protocol.stance.encouraged",
-  discouraged: "coach.protocol.stance.discouraged",
-  excluded: "coach.protocol.stance.excluded",
-};
+const FN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/coach-protocol-v1`;
 
 type Phase = "loading" | "ready" | "error";
 
@@ -117,11 +127,24 @@ export function CoachProtocolPage() {
   const [errorText, setErrorText] = React.useState<string | null>(null);
 
   const [coachId, setCoachId] = React.useState<string | null>(null);
-  const [rows, setRows] = React.useState<FoodGroupRow[]>([]);
+  const [protocolId, setProtocolId] = React.useState<string | null>(null);
+  const [groups, setGroups] = React.useState<FoodGroupRow[]>([]);
+  const [catalog, setCatalog] = React.useState<FoodItemRow[]>([]);
+  const [picked, setPicked] = React.useState<CoachFoodItem[]>([]);
   const [activeStudents, setActiveStudents] = React.useState(0);
   const [goal, setGoal] = React.useState<GoalToken>("fat_loss");
 
-  const [stances, setStances] = React.useState<Record<string, Stance>>({});
+  // LUS, PLUS ÉDITÉS ICI — et lus exprès.
+  //
+  // Les éditeurs « Timing rules » et « Your words » ont été retirés de cet
+  // écran (2026-08-05): il ne parle plus que d'aliments. Mais les deux tables
+  // existent, le compilateur les lit toujours, et `coach_terms` décide même du
+  // TITRE des engagements produits.
+  //
+  // Cesser de les charger changerait donc en silence ce que « What Sophia will
+  // check » annonce, sans qu'aucune ligne n'ait été supprimée en base. On les
+  // charge, on les passe au compilateur, et l'aperçu continue de dire la
+  // vérité. Personne ne perd de règle parce qu'un écran a maigri.
   const [timingRules, setTimingRules] = React.useState<StoredTimingRule[]>([]);
   const [terms, setTerms] = React.useState<CoachTerm[]>([]);
   const [published, setPublished] = React.useState<CompiledCommitment[]>([]);
@@ -129,22 +152,22 @@ export function CoachProtocolPage() {
 
   const [query, setQuery] = React.useState("");
   const [openClasses, setOpenClasses] = React.useState<Set<string>>(new Set());
+  const [openFood, setOpenFood] = React.useState<string | null>(null);
   const [confirming, setConfirming] = React.useState(false);
 
-  const label = React.useCallback(
+  const groupLabel = React.useCallback(
     (slug: string) => {
-      const row = rows.find((r) => r.slug === slug);
-      if (!row) return slug;
-      return t(row.label_i18n_key as MessageKey);
+      const row = groups.find((g) => g.slug === slug);
+      return row ? t(row.label_i18n_key as MessageKey) : slug;
     },
-    [rows],
+    [groups],
   );
 
   // ---- chargement -------------------------------------------------------
   // FAIL LOUD, SHOW NOTHING. Une lecture ratée rend l'erreur, jamais un état
-  // vide: « vous n'avez pas encore de méthode » et « nous n'avons pas pu lire
-  // votre méthode » sont deux phrases différentes, et montrer la première pour
-  // la seconde invite un coach à tout réécrire.
+  // vide: « vous n'avez rien coché » et « nous n'avons pas pu lire votre
+  // liste » sont deux phrases différentes, et montrer la première pour la
+  // seconde invite un coach à tout refaire.
   React.useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -160,14 +183,21 @@ export function CoachProtocolPage() {
           .maybeSingle();
         if (coach.error) throw new Error(coach.error.message);
 
-        const groups = await supabase
-          .from("food_groups")
-          .select("slug, class, label_i18n_key");
-        if (groups.error) throw new Error(groups.error.message);
+        const [groupRows, itemRows] = await Promise.all([
+          supabase.from("food_groups").select("slug, class, label_i18n_key"),
+          supabase
+            .from("food_items")
+            .select(
+              "slug, food_group_ref, label, count_axis, typical_amount, typical_unit, default_why, sort_order",
+            ),
+        ]);
+        if (groupRows.error) throw new Error(groupRows.error.message);
+        if (itemRows.error) throw new Error(itemRows.error.message);
 
         if (cancelled) return;
         setCoachId(coach.data?.id ?? null);
-        setRows((groups.data ?? []) as FoodGroupRow[]);
+        setGroups((groupRows.data ?? []) as FoodGroupRow[]);
+        setCatalog((itemRows.data ?? []) as FoodItemRow[]);
 
         if (coach.data?.id) {
           const clients = await supabase
@@ -203,32 +233,26 @@ export function CoachProtocolPage() {
 
     const draft = (protocols.data ?? []).find((p) => p.status === "draft");
     const live = (protocols.data ?? []).find((p) => p.status === "published");
+    if (!cancelled) setProtocolId(draft?.id ?? null);
 
     const ids = [draft?.id, live?.id].filter(Boolean) as string[];
     if (ids.length === 0) return;
 
-    const [food, timing, coachTerms] = await Promise.all([
-      supabase
-        .from("coach_food_rules")
-        .select("protocol_id, food_group_ref, stance, goal_scope, rationale")
-        .in("protocol_id", ids),
-      supabase
-        .from("coach_timing_rules")
-        .select("*")
-        .in("protocol_id", ids),
+    const [foodItems, timing, coachTerms] = await Promise.all([
+      supabase.from("coach_food_items").select("*").in("protocol_id", ids),
+      supabase.from("coach_timing_rules").select("*").in("protocol_id", ids),
       supabase.from("coach_terms").select("term, food_group_ref").eq("coach_id", cid),
     ]);
-    if (food.error) throw new Error(food.error.message);
+    if (foodItems.error) throw new Error(foodItems.error.message);
     if (timing.error) throw new Error(timing.error.message);
     if (coachTerms.error) throw new Error(coachTerms.error.message);
     if (cancelled) return;
 
-    const loadedTerms = (coachTerms.data ?? []) as CoachTerm[];
-    setTerms(loadedTerms);
-
-    const draftFood = (food.data ?? []).filter((r) => r.protocol_id === draft?.id);
-    setStances(
-      Object.fromEntries(draftFood.map((r) => [r.food_group_ref, r.stance as Stance])),
+    setTerms((coachTerms.data ?? []) as CoachTerm[]);
+    setPicked(
+      (foodItems.data ?? [])
+        .filter((r) => r.protocol_id === draft?.id)
+        .map(rowToFoodItem),
     );
     setTimingRules(
       (timing.data ?? [])
@@ -238,23 +262,19 @@ export function CoachProtocolPage() {
 
     if (live) {
       setPublishedAt(live.published_at as string | null);
+      const liveItems = (foodItems.data ?? [])
+        .filter((r) => r.protocol_id === live.id)
+        .map(rowToFoodItem);
       setPublished([
         ...compileProtocol(
           {
             coachId: cid,
             contentLocale: "en-GB",
-            foodRules: (food.data ?? [])
-              .filter((r) => r.protocol_id === live.id)
-              .map((r) => ({
-                food_group_ref: r.food_group_ref,
-                stance: r.stance as Stance,
-                goal_scope: (r.goal_scope ?? []) as GoalToken[],
-                rationale: r.rationale as string | null,
-              })),
+            foodRules: deriveFoodRules(liveItems).rules,
             timingRules: (timing.data ?? [])
               .filter((r) => r.protocol_id === live.id)
               .map(rowToTimingRule),
-            terms: loadedTerms,
+            terms: (coachTerms.data ?? []) as CoachTerm[],
           },
           null,
         ),
@@ -262,14 +282,201 @@ export function CoachProtocolPage() {
     }
   }
 
+  // ---- le brouillon, créé à la PREMIÈRE écriture seulement ---------------
+  async function ensureDraft(): Promise<string> {
+    if (protocolId) return protocolId;
+    if (!coachId) throw new Error("no coach");
+    // `coach_protocols_one_draft_per_coach_idx` garantit qu'il n'y en a qu'un.
+    // Deux onglets qui écrivent en même temps doivent se disputer LA MÊME
+    // ligne, pas fabriquer deux brouillons divergents.
+    const existing = await supabase
+      .from("coach_protocols")
+      .select("id")
+      .eq("coach_id", coachId)
+      .eq("status", "draft")
+      .maybeSingle();
+    if (existing.data?.id) {
+      setProtocolId(existing.data.id);
+      return existing.data.id;
+    }
+    const versions = await supabase
+      .from("coach_protocols")
+      .select("version")
+      .eq("coach_id", coachId)
+      .order("version", { ascending: false })
+      .limit(1);
+    const next = (versions.data?.[0]?.version ?? 0) + 1;
+    const created = await supabase
+      .from("coach_protocols")
+      .insert({ coach_id: coachId, version: next, status: "draft", content_locale: "en-GB" })
+      .select("id")
+      .single();
+    if (created.error) throw new Error(created.error.message);
+    setProtocolId(created.data.id);
+    return created.data.id;
+  }
+
+  // ---- les écritures ----------------------------------------------------
+  // Chacune relit sa ligne écrite et remonte CE QUE LA BASE A ACCEPTÉ, jamais
+  // ce qu'on croit avoir envoyé. C'est la leçon « accusé fantôme » de ce
+  // dépôt: un écran qui affiche un état qu'aucune ligne ne porte est un
+  // mensonge qui se découvre plus tard, ailleurs.
+  const [busy, setBusy] = React.useState(false);
+
+  // UNE ÉCRITURE RATÉE SE VOIT, ET N'EFFACE PAS L'ÉCRAN.
+  //
+  // Deux erreurs distinctes, deux rendus distincts, et les confondre coûte
+  // cher dans les deux sens. Une LECTURE ratée remplace la page: on ne sait
+  // pas ce que le coach a écrit, donc on ne montre rien plutôt qu'un état
+  // faux. Une ÉCRITURE ratée, elle, laisse une page parfaitement valide — la
+  // remplacer ferait perdre au coach tout ce qu'il regardait pour un insert
+  // refusé.
+  //
+  // Ce qu'on ne fait SURTOUT pas, c'est ce que faisait la première version de
+  // cet écran: ranger l'erreur dans un état que rien ne rend. La pastille ne
+  // collait pas, aucun message n'apparaissait, et le coach recliquait. C'est
+  // l'accusé fantôme servi à l'envers.
+  const [writeError, setWriteError] = React.useState<string | null>(null);
+
+  async function pickFood(food: DisplayFood) {
+    if (food.picked) {
+      setOpenFood(openFood === food.key ? null : food.key);
+      return;
+    }
+    setBusy(true);
+    try {
+      const pid = await ensureDraft();
+      const source = catalog.find((c) => c.slug === food.catalogSlug);
+      const inserted = await supabase
+        .from("coach_food_items")
+        .insert({
+          protocol_id: pid,
+          coach_id: coachId,
+          food_item_ref: food.catalogSlug,
+          label: food.label,
+          food_group_ref: food.foodGroupRef,
+          stance: "encouraged",
+          // Le pré-remplissage. `seeded` et pas `coach`: tant que le coach n'y
+          // a pas touché, ce ne sont pas ses mots — et c'est ce qui autorise
+          // l'IA à les réécrire.
+          why: source?.default_why ?? null,
+          why_source: source?.default_why ? "seeded" : "coach",
+        })
+        .select("*")
+        .single();
+      if (inserted.error) throw new Error(inserted.error.message);
+      setWriteError(null);
+      setPicked((prev) => [...prev, rowToFoodItem(inserted.data)]);
+      setOpenFood(food.key);
+    } catch (e) {
+      setWriteError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function patchItem(item: CoachFoodItem, patch: Record<string, unknown>) {
+    const updated = await supabase
+      .from("coach_food_items")
+      .update({ ...patch, updated_at: new Date().toISOString() })
+      .eq("id", item.id)
+      .select("*")
+      .single();
+    if (updated.error) {
+      setWriteError(updated.error.message);
+      return;
+    }
+    setWriteError(null);
+    const next = rowToFoodItem(updated.data);
+    setPicked((prev) => prev.map((p) => (p.id === item.id ? next : p)));
+  }
+
+  async function removeItem(item: CoachFoodItem) {
+    const del = await supabase.from("coach_food_items").delete().eq("id", item.id);
+    if (del.error) {
+      setWriteError(del.error.message);
+      return;
+    }
+    setWriteError(null);
+    setPicked((prev) => prev.filter((p) => p.id !== item.id));
+    setOpenFood(null);
+  }
+
+  async function addCustomFood(term: string, fallbackGroup: string) {
+    const pid = await ensureDraft();
+    let group = fallbackGroup;
+    let why: string | null = null;
+    let whySource: CoachFoodItem["why_source"] = "coach";
+    try {
+      const res = await callFn<{
+        food_group_ref?: string;
+        why?: string | null;
+      }>({ action: "classify_food", term });
+      if (res.food_group_ref && groups.some((g) => g.slug === res.food_group_ref)) {
+        group = res.food_group_ref;
+      }
+      if (res.why) {
+        why = res.why;
+        whySource = "ai";
+      }
+    } catch {
+      // Le classement rate: on n'abandonne PAS l'ajout. Le coach a demandé un
+      // aliment, il l'obtient — sur la catégorie qu'il a choisie lui-même, et
+      // l'écran le dit. Perdre son geste parce qu'un modèle n'a pas répondu
+      // serait lui faire payer notre panne.
+    }
+    const inserted = await supabase
+      .from("coach_food_items")
+      .insert({
+        protocol_id: pid,
+        coach_id: coachId,
+        food_item_ref: null,
+        label: term,
+        food_group_ref: group,
+        stance: "encouraged",
+        why,
+        why_source: whySource,
+      })
+      .select("*")
+      .single();
+    if (inserted.error) throw new Error(inserted.error.message);
+    const next = rowToFoodItem(inserted.data);
+    setPicked((prev) => [...prev, next]);
+    setOpenFood(next.id);
+  }
+
+  async function rewriteWhy(item: CoachFoodItem) {
+    const res = await callFn<{ why?: string | null; reason?: string }>({
+      action: "draft_why",
+      item_id: item.id,
+    });
+    if (!res.why) throw new Error(res.reason ?? "no_why");
+    // La ligne est relue depuis la base: l'écriture est conditionnée
+    // (`where why_source <> 'coach'`) côté serveur, donc l'écran ne doit pas
+    // supposer qu'elle a eu lieu.
+    const fresh = await supabase
+      .from("coach_food_items")
+      .select("*")
+      .eq("id", item.id)
+      .single();
+    if (fresh.data) {
+      setPicked((prev) => prev.map((p) => (p.id === item.id ? rowToFoodItem(fresh.data) : p)));
+    }
+  }
+
   // ---- la compilation, en direct ----------------------------------------
+  const derived = React.useMemo(() => deriveFoodRules(picked), [picked]);
+
   const compiled = React.useMemo(
     () =>
       compileProtocol(
-        toProtocolInput({ stances, timingRules, terms }, coachId ?? "", "en-GB"),
+        {
+          ...toProtocolInput({ stances: {}, timingRules, terms }, coachId ?? "", "en-GB"),
+          foodRules: derived.rules,
+        },
         null,
       ),
-    [stances, timingRules, terms, coachId],
+    [derived, timingRules, terms, coachId],
   );
 
   const impact = React.useMemo(
@@ -277,37 +484,19 @@ export function CoachProtocolPage() {
     [published, compiled, activeStudents],
   );
 
-  const classes = React.useMemo(() => groupByClass(rows), [rows]);
-
-  const visible = React.useCallback(
-    (row: FoodGroupRow) => matchesSearch(row, label(row.slug), terms, query),
-    [label, terms, query],
+  const classes = React.useMemo(
+    () => buildFoodClasses(catalog, groups, picked),
+    [catalog, groups, picked],
   );
 
   const searching = query.trim().length > 0;
-  const anyMatch = rows.some(visible);
-
-  function cycle(slug: string) {
-    setStances((prev) => {
-      const next: StanceOrNeutral = nextStance(prev[slug]);
-      const copy = { ...prev };
-      // Neutre = ABSENCE de ligne. C'est une valeur, pas un « non rempli »:
-      // l'écrasante majorité des groupes n'appelle aucune opinion.
-      if (next === undefined) delete copy[slug];
-      else copy[slug] = next;
-      return copy;
-    });
-  }
-
-  function openAxis(axisClasses: readonly string[]) {
-    setOpenClasses((prev) => new Set([...prev, ...axisClasses]));
-  }
+  const anyMatch = classes.some((c) => c.foods.some((f) => matchesFoodSearch(f, query)));
 
   const shell = {
     variant: "coach",
-    // `wide` parce que l'aperçu vit À CÔTÉ de l'édition (§2.4): en `narrow` la
-    // seconde colonne n'a pas la place d'exister et l'aperçu retomberait sur un
-    // autre écran — exactement ce que le brief interdit.
+    // `wide` parce que l'aperçu vit À CÔTÉ de l'édition: en `narrow` la seconde
+    // colonne n'a pas la place d'exister et l'aperçu retomberait sur un autre
+    // écran — le coach cocherait à l'aveugle.
     width: "wide",
     title: t("coach.protocol.title"),
     subtitle: t("coach.protocol.subtitle"),
@@ -334,16 +523,17 @@ export function CoachProtocolPage() {
 
   return (
     <KeelAppShell {...shell}>
-      {/*
-        LA DISPOSITION. Une seule colonne sous 1024 px — au pouce, l'aperçu
-        passe SOUS l'édition et reste atteignable en scrollant. Deux colonnes
-        au-delà, l'aperçu collant à droite. Dans les deux cas il vit À CÔTÉ de
-        l'édition, jamais sur un autre écran.
-      */}
+      {writeError && (
+        <Card tone="warning" className="mb-4">
+          <p className="font-medium">{t("coach.food.write_failed")}</p>
+          <p className="mt-1 text-sm text-gray-600">{writeError}</p>
+        </Card>
+      )}
+
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="min-w-0">
           {/* ── LES AXES: des QUESTIONS, jamais des réponses ──────────────── */}
-          {compiled.length === 0 && (
+          {picked.length === 0 && (
             <Card className="mb-4">
               <SectionLabel>{t("coach.protocol.axes.title")}</SectionLabel>
               <div className="mb-3 flex flex-wrap gap-2">
@@ -351,7 +541,8 @@ export function CoachProtocolPage() {
                   <Button
                     key={axis.labelKey}
                     size="sm"
-                    onClick={() => openAxis(axis.classes)}
+                    onClick={() =>
+                      setOpenClasses((prev) => new Set([...prev, ...axis.classes]))}
                   >
                     {t(axis.labelKey)}
                   </Button>
@@ -377,7 +568,6 @@ export function CoachProtocolPage() {
             </Card>
           )}
 
-          {/* ── LA RECHERCHE: complément, jamais remplacement ─────────────── */}
           <input
             type="search"
             value={query}
@@ -393,18 +583,17 @@ export function CoachProtocolPage() {
             </p>
           )}
 
-          <p className="mb-3 text-xs text-gray-500">{t("coach.protocol.stance.hint")}</p>
+          <p className="mb-3 text-xs text-gray-500">{t("coach.food.pick_hint")}</p>
 
-          {/* ── LES NEUF CARTES DE CLASSE ─────────────────────────────────── */}
+          {/* ── LES CATÉGORIES ────────────────────────────────────────────── */}
           <div className="space-y-3">
-            {classes.map(({ className, groups }) => {
-              const shown = groups.filter(visible);
+            {classes.map(({ className, foods, pickedCount }) => {
+              const shown = foods.filter((f) => matchesFoodSearch(f, query));
               if (shown.length === 0) return null;
-              // Une recherche ouvre d'office les cartes qui matchent: laisser
-              // le coach chercher puis cliquer pour déplier serait deux gestes
-              // là où il en a demandé un.
+              // Une recherche ouvre d'office les catégories qui matchent:
+              // chercher puis cliquer pour déplier serait deux gestes là où le
+              // coach en a demandé un.
               const open = searching || openClasses.has(className);
-              const marked = groups.filter((g) => stances[g.slug]).length;
               return (
                 <Card key={className} padded={false}>
                   <button
@@ -423,34 +612,64 @@ export function CoachProtocolPage() {
                       {CLASS_LABEL[className] ? t(CLASS_LABEL[className]) : className}
                     </span>
                     <span className="flex items-center gap-2">
-                      {marked > 0 && <Badge tone="info">{marked}</Badge>}
-                      <span aria-hidden className="text-gray-400">
-                        {open ? "−" : "+"}
-                      </span>
+                      {pickedCount > 0 && <Badge tone="info">{pickedCount}</Badge>}
+                      <span aria-hidden className="text-gray-400">{open ? "−" : "+"}</span>
                     </span>
                   </button>
+
                   {open && (
-                    <div className="flex flex-wrap gap-2 px-4 pb-4">
-                      {shown.map((row) => {
-                        const stance = stances[row.slug];
-                        const key = stance ?? "neutral";
-                        return (
-                          <button
-                            key={row.slug}
-                            type="button"
-                            onClick={() => cycle(row.slug)}
-                            // Au pouce: 44 px de haut minimum, la cible tactile
-                            // en deçà de laquelle on rate une pastille sur deux.
-                            className={`min-h-[44px] rounded-full border px-3 py-2 text-sm ${
-                              STANCE_STYLE[key]
-                            }`}
-                            aria-pressed={stance !== undefined}
-                            aria-label={`${label(row.slug)} — ${t(STANCE_LABEL[key])}`}
-                          >
-                            {label(row.slug)}
-                          </button>
-                        );
-                      })}
+                    <div className="px-4 pb-4">
+                      <div className="flex flex-wrap gap-2">
+                        {shown.map((food) => {
+                          const stance = food.picked?.stance;
+                          return (
+                            <button
+                              key={food.key}
+                              type="button"
+                              disabled={busy}
+                              onClick={() => pickFood(food)}
+                              // Au pouce: 44 px de haut minimum, la cible
+                              // tactile en deçà de laquelle on rate une
+                              // pastille sur deux.
+                              className={`min-h-[44px] rounded-full border px-3 py-2 text-sm ${
+                                stance ? STANCE_PILL[stance] : NEUTRAL_PILL
+                              } ${openFood === food.key ? "ring-2 ring-gray-900" : ""}`}
+                              aria-pressed={Boolean(food.picked)}
+                              aria-expanded={openFood === food.key}
+                            >
+                              {food.label}
+                              {food.catalogSlug === null && (
+                                <span className="ml-1 text-[10px] uppercase tracking-wide opacity-60">
+                                  {t("coach.food.custom_badge")}
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <AddFoodRow
+                        className={className}
+                        groups={groups}
+                        onAdd={addCustomFood}
+                        groupLabel={groupLabel}
+                      />
+
+                      {/* LE PANNEAU — un seul ouvert à la fois. Deux panneaux
+                          dépliés sur 375 px poussent les pastilles hors de
+                          l'écran et le coach perd le fil de ce qu'il cochait. */}
+                      {shown
+                        .filter((f) => f.picked && openFood === f.key)
+                        .map((f) => (
+                          <FoodPanel
+                            key={`panel-${f.key}`}
+                            food={f}
+                            item={f.picked!}
+                            onPatch={patchItem}
+                            onRemove={removeItem}
+                            onRewrite={rewriteWhy}
+                          />
+                        ))}
                     </div>
                   )}
                 </Card>
@@ -458,20 +677,23 @@ export function CoachProtocolPage() {
             })}
           </div>
 
-          <TimingRulesEditor
-            rows={rows}
-            rules={timingRules}
-            label={label}
-            onChange={setTimingRules}
-          />
+          {derived.conflicts.length > 0 && (
+            <Card className="mt-4" tone="warning">
+              <SectionLabel>{t("coach.food.conflict.title")}</SectionLabel>
+              <ul className="mt-2 space-y-2 text-sm text-gray-800">
+                {derived.conflicts.map((c) => (
+                  <li key={c.food_group_ref}>
+                    {t("coach.food.conflict.line", {
+                      group: groupLabel(c.food_group_ref),
+                      forList: c.forLabels.join(", "),
+                      againstList: c.againstLabels.join(", "),
+                    })}
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
 
-          <CoachTermsEditor
-            rows={rows}
-            terms={terms}
-            coachId={coachId}
-            label={label}
-            onChange={setTerms}
-          />
         </div>
 
         {/* ── L'APERÇU ─────────────────────────────────────────────────────── */}
@@ -483,7 +705,7 @@ export function CoachProtocolPage() {
               : (
                 <ul className="space-y-2 text-sm">
                   {compiled.map((line) => {
-                    const s = previewSentence(line.preview, label);
+                    const s = previewSentence(line.preview, groupLabel);
                     return (
                       <li key={line.template_commitment_key} className="text-gray-800">
                         {t(s.key, s.params)}
@@ -513,8 +735,6 @@ export function CoachProtocolPage() {
                 : confirming
                 ? (
                   <div className="space-y-2">
-                    {/* LA PHRASE QUI REND LE GESTE RÉVERSIBLE DANS SA TÊTE
-                        AVANT DE L'ÊTRE DANS LA BASE. */}
                     <p className="text-sm text-gray-800">
                       {t("coach.protocol.publish.impact", {
                         added: impact.added,
@@ -547,221 +767,480 @@ export function CoachProtocolPage() {
 }
 
 // ---------------------------------------------------------------------------
-// LES RÈGLES TEMPORELLES — quatre gabarits fermés, à trous
+// LE PANNEAU D'UN ALIMENT — posture, fréquence, pourquoi
 // ---------------------------------------------------------------------------
-// Pas de texte libre: le texte libre ne se compile pas de façon déterministe.
-// Pas d'éditeur de règles générique non plus — elles se comptent sur les doigts
-// d'une main.
+// Tout y est FACULTATIF sauf la posture, et l'écran le dit. Un panneau qui a
+// l'air d'un formulaire à remplir transforme 127 aliments en 127 corvées, et
+// le coach s'arrête au troisième.
 
-const TEMPLATES: readonly {
-  readonly key: CoachTimingRule["template"];
-  readonly labelKey: MessageKey;
-}[] = [
-  {
-    key: "portions_per_period",
-    labelKey: "coach.protocol.timing.tpl.portions_per_period",
-  },
-  { key: "group_every_meal", labelKey: "coach.protocol.timing.tpl.group_every_meal" },
-  { key: "no_group_after", labelKey: "coach.protocol.timing.tpl.no_group_after" },
-  { key: "group_at_slot", labelKey: "coach.protocol.timing.tpl.group_at_slot" },
-];
-
-function TimingRulesEditor({
-  rows,
-  rules,
-  label,
-  onChange,
+function FoodPanel({
+  food,
+  item,
+  onPatch,
+  onRemove,
+  onRewrite,
 }: {
-  rows: readonly FoodGroupRow[];
-  rules: readonly StoredTimingRule[];
-  label: (slug: string) => string;
-  onChange: (next: StoredTimingRule[]) => void;
+  food: DisplayFood;
+  item: CoachFoodItem;
+  onPatch: (item: CoachFoodItem, patch: Record<string, unknown>) => Promise<void>;
+  onRemove: (item: CoachFoodItem) => Promise<void>;
+  onRewrite: (item: CoachFoodItem) => Promise<void>;
 }) {
-  const [adding, setAdding] = React.useState(false);
+  const [why, setWhy] = React.useState(item.why ?? "");
+  const [rewriting, setRewriting] = React.useState(false);
+  const [whyError, setWhyError] = React.useState<string | null>(null);
 
-  function add(template: CoachTimingRule["template"]) {
-    // Le slug vient de `food_groups`, donc du vocabulaire fermé lui-même — la
-    // FK est la vérité, cette assertion ne fait que le dire au typeur.
-    const group = (rows[0]?.slug ?? "leafy_greens") as CoachTimingRule["food_group_ref"];
-    const base = { food_group_ref: group, goal_scope: [], rationale: null } as const;
-    const rule: CoachTimingRule = template === "portions_per_period"
-      ? { ...base, template, direction: "at_least", portions: 1, period: "day" }
-      : template === "group_every_meal"
-      ? { ...base, template }
-      : template === "no_group_after"
-      ? { ...base, template, cutoff_local: "21:00" }
-      : { ...base, template, slot_key: "breakfast" };
-    onChange([...rules, { id: `new-${rules.length}-${template}`, rule }]);
-    setAdding(false);
-  }
+  // La ligne peut changer sous nos pieds (réécriture IA): on resynchronise sur
+  // l'identité de la ligne ET sur son texte, sinon le champ garderait
+  // l'ancienne valeur et la prochaine frappe écraserait la nouvelle.
+  React.useEffect(() => {
+    setWhy(item.why ?? "");
+  }, [item.id, item.why]);
 
-  return (
-    <Card className="mt-4">
-      <SectionLabel>{t("coach.protocol.timing.title")}</SectionLabel>
-      {rules.length === 0 && (
-        <p className="mb-3 text-sm text-gray-500">{t("coach.protocol.timing.empty")}</p>
-      )}
-      <ul className="mb-3 space-y-2">
-        {rules.map((r) => (
-          <li key={r.id} className="flex items-center justify-between gap-2 text-sm">
-            <span>{describeRule(r.rule, label)}</span>
-            <button
-              type="button"
-              className="text-xs text-gray-500 underline"
-              onClick={() => onChange(rules.filter((x) => x.id !== r.id))}
-            >
-              {t("coach.protocol.timing.remove")}
-            </button>
-          </li>
-        ))}
-      </ul>
-      {adding
-        ? (
-          <div className="flex flex-wrap gap-2">
-            {TEMPLATES.map((tpl) => (
-              <Button key={tpl.key} size="sm" onClick={() => add(tpl.key)}>
-                {t(tpl.labelKey)}
-              </Button>
-            ))}
-          </div>
-        )
-        : (
-          <Button size="sm" onClick={() => setAdding(true)}>
-            {t("coach.protocol.timing.add")}
-          </Button>
-        )}
-    </Card>
-  );
-}
-
-function describeRule(rule: CoachTimingRule, label: (slug: string) => string): string {
-  const g = label(rule.food_group_ref);
-  switch (rule.template) {
-    case "portions_per_period":
-      return `${g} — ${rule.direction === "at_least" ? "≥" : "≤"} ${rule.portions}/${rule.period}`;
-    case "group_every_meal":
-      return `${g} — every meal`;
-    case "no_group_after":
-      return `${g} — not after ${rule.cutoff_local}`;
-    case "group_at_slot":
-      return `${g} — at ${rule.slot_key}`;
-  }
-}
-
-// ---------------------------------------------------------------------------
-// LES TERMES DU COACH — le rattachement n'est JAMAIS silencieux
-// ---------------------------------------------------------------------------
-
-function CoachTermsEditor({
-  rows,
-  terms,
-  coachId,
-  label,
-  onChange,
-}: {
-  rows: readonly FoodGroupRow[];
-  terms: readonly CoachTerm[];
-  coachId: string | null;
-  label: (slug: string) => string;
-  onChange: (next: CoachTerm[]) => void;
-}) {
-  const [draft, setDraft] = React.useState("");
-  const [requested, setRequested] = React.useState<string[]>([]);
-
-  const suggestion = React.useMemo(
-    () => suggestAttachment(draft, rows, label),
-    [draft, rows, label],
-  );
-
-  async function requestExtension(term: string) {
-    if (!coachId) return;
-    // Le vocabulaire partagé grandit GLOBALEMENT et de façon curée, jamais par
-    // coach. On enregistre la demande; l'ajout effectif d'un slug reste une
-    // migration.
-    await supabase.from("vocabulary_extension_requests").insert({
-      coach_id: coachId,
-      term,
-      content_locale: "en-GB",
-      status: "open",
+  // Le « pourquoi » se sauve à la SORTIE du champ, pas à chaque frappe: un
+  // update par caractère fabrique une file d'écritures dont la dernière n'est
+  // pas forcément la plus récente.
+  function commitWhy() {
+    const next = why.trim();
+    if (next === (item.why ?? "").trim()) return;
+    // Toucher au texte le fait passer en `coach` — c'est ce qui verrouille
+    // l'IA côté base. Effacer le champ le rend à nouveau réécrivable.
+    void onPatch(item, {
+      why: next || null,
+      why_source: next ? "coach" : "seeded",
     });
-    setRequested((prev) => [...prev, term]);
-    setDraft("");
   }
 
+  const freq = item.frequency;
+
   return (
-    <Card className="mt-4">
-      <SectionLabel>{t("coach.protocol.terms.title")}</SectionLabel>
-      <p className="mb-3 text-sm text-gray-600">{t("coach.protocol.terms.help")}</p>
-
-      <ul className="mb-3 space-y-1 text-sm">
-        {terms.map((term) => (
-          <li key={term.term} className="flex items-center gap-2">
-            <span className="font-medium">{term.term}</span>
-            {/* LA TRANSPARENCE: un rattachement muet est un mensonge sur ce que
-                Sophia vérifiera vraiment. */}
-            <span className="text-gray-500">
-              {t("coach.protocol.terms.treated_as", {
-                group: label(term.food_group_ref),
-              })}
-            </span>
-            <button
-              type="button"
-              className="text-xs text-gray-500 underline"
-              onClick={() => onChange(terms.filter((x) => x.term !== term.term))}
-            >
-              {t("coach.protocol.terms.change")}
-            </button>
-          </li>
-        ))}
-      </ul>
-
-      <div className="flex flex-wrap items-center gap-2">
-        <input
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          placeholder={t("coach.protocol.terms.placeholder")}
-          className={inputClass}
-          aria-label={t("coach.protocol.terms.title")}
-        />
-        {suggestion
-          ? (
-            <Button
-              size="sm"
-              onClick={() => {
-                onChange([
-                  ...terms,
-                  { term: draft.trim(), food_group_ref: suggestion as CoachTerm["food_group_ref"] },
-                ]);
-                setDraft("");
-              }}
-            >
-              {t("coach.protocol.terms.add")} — {t("coach.protocol.terms.treated_as", {
-                group: label(suggestion),
-              })}
-            </Button>
-          )
-          : draft.trim().length > 0
-          ? (
-            <div className="text-sm">
-              <p className="text-gray-600">
-                {t("coach.protocol.terms.unmatched", { term: draft.trim() })}
-              </p>
-              <Button size="sm" onClick={() => requestExtension(draft.trim())}>
-                {t("coach.protocol.terms.request_extension")}
-              </Button>
-            </div>
-          )
-          : null}
+    <div className="mt-4 rounded-lg border border-gray-300 bg-gray-50 p-4">
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <span className="font-medium">{food.label}</span>
+        <button
+          type="button"
+          className="text-xs text-gray-500 underline"
+          onClick={() => void onRemove(item)}
+        >
+          {t("coach.food.remove")}
+        </button>
       </div>
 
-      {requested.length > 0 && (
-        <p className="mt-2 text-xs text-gray-500">{t("coach.protocol.terms.requested")}</p>
-      )}
-    </Card>
+      {/* La posture — trois boutons explicites, pas un cycle. Un tap qui fait
+          défiler quatre états oblige à taper trois fois pour revenir en
+          arrière, et personne ne devine l'ordre. */}
+      <div className="mb-4 flex flex-wrap gap-2">
+        {STANCES.map((s) => (
+          <button
+            key={s.value}
+            type="button"
+            onClick={() => void onPatch(item, { stance: s.value })}
+            aria-pressed={item.stance === s.value}
+            className={`min-h-[36px] rounded-full border px-3 py-1.5 text-sm ${
+              item.stance === s.value ? STANCE_PILL[s.value] : NEUTRAL_PILL
+            }`}
+          >
+            {t(s.labelKey)}
+          </button>
+        ))}
+      </div>
+
+      {/* La fréquence */}
+      <div className="mb-4">
+        <p className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-500">
+          {t("coach.food.freq.title")}
+        </p>
+        {freq
+          ? (
+            <FrequencyEditor
+              food={food}
+              rule={freq}
+              onChange={(next) => void onPatch(item, frequencyToRow(next))}
+            />
+          )
+          : (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm text-gray-500">{t("coach.food.freq.none")}</span>
+              <Button
+                size="sm"
+                onClick={() =>
+                  void onPatch(
+                    item,
+                    frequencyToRow(
+                      defaultFrequency(
+                        { count_axis: food.countAxis, typical_amount: food.typicalAmount },
+                        item.stance,
+                      ),
+                    ),
+                  )}
+              >
+                {t("coach.food.freq.set")}
+              </Button>
+            </div>
+          )}
+        <p className="mt-2 text-xs leading-5 text-gray-500">
+          {t("coach.food.freq.scope_note")}
+        </p>
+      </div>
+
+      {/* Le pourquoi */}
+      <div>
+        <p className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-500">
+          {t("coach.food.why.title")}
+        </p>
+        <textarea
+          className={inputClass}
+          rows={3}
+          value={why}
+          placeholder={t("coach.food.why.placeholder")}
+          onChange={(e) => setWhy(e.target.value)}
+          onBlur={commitWhy}
+          aria-label={t("coach.food.why.title")}
+        />
+        <div className="mt-1 flex flex-wrap items-center gap-2">
+          {item.why_source === "seeded" && (
+            <span className="text-xs text-gray-500">{t("coach.food.why.seeded")}</span>
+          )}
+          {item.why_source === "ai" && (
+            <span className="text-xs text-gray-500">{t("coach.food.why.ai")}</span>
+          )}
+          {canRewriteWhy(item) && (
+            <Button
+              size="sm"
+              disabled={rewriting}
+              onClick={async () => {
+                setRewriting(true);
+                setWhyError(null);
+                try {
+                  await onRewrite(item);
+                } catch (e) {
+                  setWhyError(
+                    String(e instanceof Error ? e.message : e) === "no_doctrine"
+                      ? t("coach.food.why.no_doctrine")
+                      : t("coach.food.why.failed"),
+                  );
+                } finally {
+                  setRewriting(false);
+                }
+              }}
+            >
+              {rewriting ? t("coach.food.why.rewriting") : t("coach.food.why.rewrite")}
+            </Button>
+          )}
+        </div>
+        {whyError && <p className="mt-1 text-xs text-amber-800">{whyError}</p>}
+      </div>
+    </div>
   );
 }
 
 // ---------------------------------------------------------------------------
+// L'ÉDITEUR DE FRÉQUENCE — quatre gabarits, les unités de l'ALIMENT
+// ---------------------------------------------------------------------------
+
+const FREQ_TEMPLATES: readonly {
+  readonly key: FrequencyRule["template"];
+  readonly labelKey: MessageKey;
+}[] = [
+  { key: "amount_per_period", labelKey: "coach.food.freq.tpl.amount_per_period" },
+  { key: "every_meal", labelKey: "coach.food.freq.tpl.every_meal" },
+  { key: "not_after", labelKey: "coach.food.freq.tpl.not_after" },
+  { key: "at_slot", labelKey: "coach.food.freq.tpl.at_slot" },
+];
+
+function FrequencyEditor({
+  food,
+  rule,
+  onChange,
+}: {
+  food: DisplayFood;
+  rule: FrequencyRule;
+  onChange: (next: FrequencyRule | null) => void;
+}) {
+  function switchTemplate(template: FrequencyRule["template"]) {
+    if (template === rule.template) return;
+    // Changer de gabarit remplace la règle ENTIÈRE. Un merge laisserait
+    // traîner le trou du gabarit précédent, et la CHECK de la base refuserait
+    // l'écriture — le coach perdrait son geste sans comprendre pourquoi.
+    switch (template) {
+      case "amount_per_period":
+        onChange(
+          defaultFrequency(
+            { count_axis: food.countAxis, typical_amount: food.typicalAmount },
+            "encouraged",
+          ),
+        );
+        return;
+      case "every_meal":
+        onChange({ template });
+        return;
+      case "not_after":
+        onChange({ template, cutoff_local: "21:00" });
+        return;
+      case "at_slot":
+        onChange({ template, slot_key: "breakfast" });
+        return;
+    }
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap gap-1.5">
+        {FREQ_TEMPLATES.map((tpl) => (
+          <button
+            key={tpl.key}
+            type="button"
+            onClick={() => switchTemplate(tpl.key)}
+            aria-pressed={rule.template === tpl.key}
+            className={`rounded-full border px-2 py-1 text-xs ${
+              rule.template === tpl.key
+                ? "border-gray-900 bg-gray-900 text-white"
+                : "border-gray-300 bg-white text-gray-600"
+            }`}
+          >
+            {t(tpl.labelKey)}
+          </button>
+        ))}
+      </div>
+
+      {rule.template === "amount_per_period" && (
+        <div className="flex flex-wrap items-center gap-2">
+          <select
+            className={`${inputClass} w-auto`}
+            value={rule.direction}
+            onChange={(e) =>
+              onChange({ ...rule, direction: e.target.value as "at_least" | "at_most" })}
+            aria-label={t("coach.food.freq.title")}
+          >
+            <option value="at_least">{t("coach.food.freq.at_least")}</option>
+            <option value="at_most">{t("coach.food.freq.at_most")}</option>
+          </select>
+          <input
+            type="number"
+            min={1}
+            step="any"
+            className={`${inputClass} w-20`}
+            value={rule.amount}
+            onChange={(e) => {
+              const n = Number(e.target.value);
+              if (Number.isFinite(n) && n > 0) onChange({ ...rule, amount: n });
+            }}
+            aria-label={t("coach.food.freq.title")}
+          />
+          {/* L'unité de l'AXE en tête — c'est tout l'intérêt du catalogue: le
+              coach qui ouvre le panneau d'une huile voit des millilitres, pas
+              des « portions » à convertir dans sa tête. */}
+          <select
+            className={`${inputClass} w-auto`}
+            value={rule.amount_unit}
+            onChange={(e) =>
+              onChange({
+                ...rule,
+                amount_unit: e.target.value as "portion" | "g" | "ml" | "unit",
+              })}
+            aria-label={t("coach.food.freq.title")}
+          >
+            {unitsForAxis(food.countAxis).map((u) => (
+              <option key={u} value={u}>
+                {u === "portion"
+                  ? t("coach.food.freq.unit.portion.many")
+                  : u === "unit"
+                  ? "×"
+                  : u}
+              </option>
+            ))}
+          </select>
+          <select
+            className={`${inputClass} w-auto`}
+            value={rule.period}
+            onChange={(e) => onChange({ ...rule, period: e.target.value as "day" | "week" })}
+            aria-label={t("coach.food.freq.title")}
+          >
+            <option value="day">{t("coach.food.freq.period.day")}</option>
+            <option value="week">{t("coach.food.freq.period.week")}</option>
+          </select>
+        </div>
+      )}
+
+      {rule.template === "not_after" && (
+        <input
+          type="time"
+          className={`${inputClass} w-auto`}
+          value={rule.cutoff_local}
+          onChange={(e) => onChange({ ...rule, cutoff_local: e.target.value })}
+          aria-label={t("coach.food.freq.tpl.not_after")}
+        />
+      )}
+
+      {rule.template === "at_slot" && (
+        <select
+          className={`${inputClass} w-auto`}
+          value={rule.slot_key}
+          onChange={(e) => onChange({ ...rule, slot_key: e.target.value })}
+          aria-label={t("coach.food.freq.tpl.at_slot")}
+        >
+          <option value="breakfast">breakfast</option>
+          <option value="lunch">lunch</option>
+          <option value="dinner">dinner</option>
+        </select>
+      )}
+
+      <div className="flex items-center gap-3">
+        <span className="text-sm text-gray-700">{frequencySentence(rule, t)}</span>
+        <button
+          type="button"
+          className="text-xs text-gray-500 underline"
+          onClick={() => onChange(null)}
+        >
+          {t("coach.food.freq.clear")}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// LE « + » — un aliment que le catalogue ne connaît pas
+// ---------------------------------------------------------------------------
+// Le rattachement est PROPOSÉ par le serveur et AFFICHÉ, jamais imposé en
+// silence: un rattachement muet est un mensonge sur ce que Sophia vérifiera
+// vraiment. Le fallback est la catégorie sous laquelle le coach a cliqué —
+// c'est déjà une intention, et elle est meilleure qu'un défaut arbitraire.
+
+function AddFoodRow({
+  className,
+  groups,
+  onAdd,
+  groupLabel,
+}: {
+  className: string;
+  groups: readonly FoodGroupRow[];
+  onAdd: (term: string, fallbackGroup: string) => Promise<void>;
+  groupLabel: (slug: string) => string;
+}) {
+  const [open, setOpen] = React.useState(false);
+  const [term, setTerm] = React.useState("");
+  const [working, setWorking] = React.useState(false);
+  const [failed, setFailed] = React.useState<string | null>(null);
+
+  const inClass = groups.filter((g) => g.class === className);
+  const [group, setGroup] = React.useState(inClass[0]?.slug ?? "");
+
+  React.useEffect(() => {
+    if (!group && inClass[0]) setGroup(inClass[0].slug);
+  }, [group, inClass]);
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        className="mt-3 text-sm text-gray-600 underline"
+        onClick={() => setOpen(true)}
+      >
+        {t("coach.food.add")}
+      </button>
+    );
+  }
+
+  return (
+    <div className="mt-3 space-y-2 rounded-lg border border-dashed border-gray-300 p-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <input
+          value={term}
+          onChange={(e) => setTerm(e.target.value)}
+          placeholder={t("coach.food.add.placeholder")}
+          className={`${inputClass} w-auto flex-1`}
+          aria-label={t("coach.food.add")}
+        />
+        <select
+          className={`${inputClass} w-auto`}
+          value={group}
+          onChange={(e) => setGroup(e.target.value)}
+          aria-label={t("coach.food.add.treated_as", { group: "" })}
+        >
+          {inClass.map((g) => (
+            <option key={g.slug} value={g.slug}>{groupLabel(g.slug)}</option>
+          ))}
+        </select>
+        <Button
+          size="sm"
+          variant="primary"
+          disabled={working || term.trim().length === 0}
+          onClick={async () => {
+            setWorking(true);
+            setFailed(null);
+            try {
+              await onAdd(term.trim(), group);
+              setTerm("");
+              setOpen(false);
+            } catch {
+              setFailed(term.trim());
+            } finally {
+              setWorking(false);
+            }
+          }}
+        >
+          {working ? t("coach.food.add.thinking") : t("coach.food.add.submit")}
+        </Button>
+        <button
+          type="button"
+          className="text-xs text-gray-500 underline"
+          onClick={() => {
+            setOpen(false);
+            setTerm("");
+            setFailed(null);
+          }}
+        >
+          {t("coach.food.add.cancel")}
+        </button>
+      </div>
+      <p className="text-xs text-gray-500">
+        {t("coach.food.add.treated_as", { group: groupLabel(group) })}
+      </p>
+      {failed && (
+        <p className="text-xs text-amber-800">
+          {t("coach.food.add.failed", { term: failed })}
+        </p>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+
+async function callFn<T>(payload: Record<string, unknown>): Promise<T> {
+  const { data: session } = await supabase.auth.getSession();
+  const token = session?.session?.access_token;
+  const res = await fetch(FN_URL, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      apikey: import.meta.env.VITE_SUPABASE_ANON_KEY as string,
+      authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok || json?.ok === false) {
+    // Le code de raison du serveur voyage jusqu'à l'écran: `no_doctrine` et
+    // « ça a raté » ne veulent pas dire la même chose au coach qui lit.
+    throw new Error(String(json?.reason ?? json?.error ?? `HTTP ${res.status}`));
+  }
+  return json as T;
+}
+
+function rowToFoodItem(row: Record<string, unknown>): CoachFoodItem {
+  return {
+    id: String(row.id),
+    food_item_ref: (row.food_item_ref ?? null) as string | null,
+    label: String(row.label),
+    food_group_ref: row.food_group_ref as CoachFoodItem["food_group_ref"],
+    stance: row.stance as Stance,
+    frequency: frequencyFromRow(row),
+    why: (row.why ?? null) as string | null,
+    why_source: (row.why_source ?? "coach") as CoachFoodItem["why_source"],
+  };
+}
 
 function rowToTimingRule(r: Record<string, unknown>): CoachTimingRule {
   const base = {
@@ -787,7 +1266,10 @@ function rowToTimingRule(r: Record<string, unknown>): CoachTimingRule {
       return {
         ...base,
         template,
-        slot_key: r.slot_key as Extract<CoachTimingRule, { template: "group_at_slot" }>["slot_key"],
+        slot_key: r.slot_key as Extract<
+          CoachTimingRule,
+          { template: "group_at_slot" }
+        >["slot_key"],
       };
   }
 }

@@ -52,6 +52,21 @@ export const VEG_GROUPS: readonly string[] = [
   "non_starchy_veg",
   "starchy_veg",
 ];
+/**
+ * LES SOURCES DE PROTÉINES — les laitages inclus, et c'était un défaut.
+ *
+ * Mesuré sur une vraie ligne: un bol d'avoine au fromage blanc, identifié par
+ * le modèle avec 0,95 et 0,98 de confiance, rendait « protein at 0 of 1 meals »
+ * — parce que `dairy_yogurt` et `dairy_cheese` n'appartenaient à AUCUN des
+ * trois paniers. Ce n'est pas un manque d'affichage, c'est une affirmation
+ * fausse: le yaourt grec est l'une des sources de protéines les plus courantes
+ * d'un petit-déjeuner, et l'élève lisait qu'il n'en avait pas eu.
+ *
+ * La liste suit les classes du catalogue serveur (`FOOD_GROUP_CLASSES` dans
+ * `_shared/keel/meal_analysis.ts`), qui range `legumes` en `legume` et les
+ * laitages en `dairy`: on regroupe ici par ce que l'aliment APPORTE, ce qui est
+ * la question que l'élève se pose, et pas par la taxonomie du catalogue.
+ */
 export const PROTEIN_GROUPS: readonly string[] = [
   "lean_protein",
   "fatty_fish",
@@ -62,6 +77,8 @@ export const PROTEIN_GROUPS: readonly string[] = [
   "eggs",
   "legumes",
   "tofu_tempeh",
+  "dairy_yogurt",
+  "dairy_cheese",
 ];
 export const FRUIT_GROUPS: readonly string[] = ["berries", "citrus", "other_fruit"];
 

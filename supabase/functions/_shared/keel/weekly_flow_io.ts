@@ -8,6 +8,7 @@
 
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import {
+  type MeasureOrigin,
   parseWeeklyFlowResponse,
   weeklyBiofeedbackPayload,
   type WeeklyFlowReply,
@@ -63,9 +64,16 @@ export async function writeWeeklyFlowReply(
     weekStart: string;
     responseJson: unknown;
     contentLocale?: string;
+    /**
+     * REQUIS. Deux écrans écrivent cette colonne — le point du dimanche et la
+     * carte des mesures de `/app/plan` — et ils ne demandent pas la même
+     * chose. Le rendre obligatoire force chaque appelant à DIRE ce qu'il est,
+     * plutôt que de laisser un défaut décider à sa place.
+     */
+    origin: MeasureOrigin;
   },
 ): Promise<WeeklyFlowWriteResult> {
-  const reply = parseWeeklyFlowResponse(args.responseJson);
+  const reply = parseWeeklyFlowResponse(args.responseJson, args.origin);
 
   async function readExisting() {
     const res = await admin
@@ -84,7 +92,7 @@ export async function writeWeeklyFlowReply(
   // remplit que six champs ne doit pas effacer ce qu'il ne connaît pas.
   function mergedWith(row: { biofeedback: unknown } | null): Record<string, unknown> {
     const previous = (row?.biofeedback ?? {}) as Record<string, unknown>;
-    return { ...previous, ...weeklyBiofeedbackPayload(reply) };
+    return { ...previous, ...weeklyBiofeedbackPayload(reply, args.origin) };
   }
 
   async function updateRow(id: string, merged: Record<string, unknown>) {

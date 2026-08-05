@@ -154,12 +154,27 @@ function ageClause(band: AgeBand | null): string | null {
  * l'objectif n'AJOUTE pas de ligne. Ce serait punir l'élève d'un résultat, dans
  * un produit qui a supprimé les scores et les séries exprès.
  */
-function directionIsWorking(goal: StudentGoal, body: BodyInputs): boolean {
+export function directionIsWorking(goal: StudentGoal, body: BodyInputs): boolean {
   switch (goal) {
     case "fat_loss":
       // Le tour de taille suffit: perdre du tour de taille à poids constant est
       // exactement ce qu'on cherche, et un poids seul le manquerait.
       return body.weightTrend === "falling" || body.waistTrend === "falling";
+    case "muscle_gain":
+      // Le poids qui MONTE est la victoire, pas le symptôme. C'est l'exact
+      // symétrique de `fat_loss`, et c'est ce que l'absence de cet objectif
+      // coûtait: un élève en prise de masse n'avait que `performance`, dont la
+      // branche ci-dessous rend `false` — son poids montait, ce qu'il voulait,
+      // et le produit lui répondait que ses mesures ne disaient rien.
+      //
+      // ON N'EXIGE PAS que le tour de taille reste stable, alors que « prendre
+      // sans prendre de gras » serait la lecture savante. Deux raisons: le tour
+      // de taille est facultatif, donc l'exiger désarmerait la branche pour la
+      // majorité des élèves qui ne le saisissent pas; et la seule conséquence
+      // de cette branche est de RETIRER une ligne. Son faux positif allège une
+      // semaine, il ne prescrit rien — le prix d'une exigence de plus est plus
+      // élevé que celui de l'erreur qu'elle éviterait.
+      return body.weightTrend === "rising";
     case "recomposition":
       // La signature de la recomposition: la taille descend pendant que le
       // poids ne descend pas. C'est la mesure qui porte cet objectif — sans

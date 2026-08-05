@@ -16,6 +16,7 @@ import {
   protocolBlockFor,
 } from "../_shared/keel/protocol_loader.ts";
 import { loadStudentSafetyConstraints } from "../_shared/keel/safety_constraints.ts";
+import { dayTokenInZone, daysFrom } from "../_shared/keel/local_date.ts";
 import {
   buildMealPrompt,
   MEAL_MODES,
@@ -26,8 +27,11 @@ import {
   type MealScope,
   type MealSlot,
   mealDishesPayload,
+  mealPreparationsPayload,
+  mealSessionsPayload,
   mealShoppingPayload,
   type PantryItem,
+  parseEatingRhythm,
   parseGeneratedMeal,
 } from "../_shared/keel/meal_generation.ts";
 
@@ -90,6 +94,41 @@ function readPantry(raw: unknown, issues: string[]): PantryItem[] {
     out.push({ term, quantity });
   }
   return out;
+}
+
+/**
+ * Les quatre contraintes de cuisine, lues DÉFENSIVEMENT.
+ *
+ * Une valeur hors liste est ignorée plutôt que transmise: le prompt afficherait
+ * « recipe level they want: <n'importe quoi> » et le modèle ferait ce qu'il veut
+ * de cette phrase. Absent vaut mieux que faux.
+ */
+function readCookingCapacity(pc: Record<string, unknown> | null): {
+  cookDays: string[];
+  cookingTimeMin: number | null;
+  recipeDifficulty: string | null;
+  variety: string | null;
+  budgetBand: string | null;
+} {
+  const DAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+  const pick = (value: unknown, allowed: readonly string[]): string | null => {
+    const raw = String(value ?? "").trim();
+    return allowed.includes(raw) ? raw : null;
+  };
+  const time = Number(pc?.cooking_time_min);
+  return {
+    cookDays: Array.isArray(pc?.cook_days)
+      ? (pc!.cook_days as unknown[]).map((d) => String(d)).filter((d) =>
+        DAYS.includes(d)
+      )
+      : [],
+    cookingTimeMin: Number.isFinite(time) && time > 0
+      ? Math.min(240, Math.round(time))
+      : null,
+    recipeDifficulty: pick(pc?.recipe_difficulty, ["simple", "normal", "keen"]),
+    variety: pick(pc?.variety, ["repeat", "some", "varied"]),
+    budgetBand: pick(pc?.budget_band, ["tight", "normal", "comfortable"]),
+  };
 }
 
 Deno.serve(async (req) => {
@@ -158,10 +197,15 @@ Deno.serve(async (req) => {
       }, { status: 409 });
     }
 
-    // --- l'objectif et la situation ---------------------------------------
+    // --- l'objectif, la situation et le RYTHME ----------------------------
+    // `practical_constraints` existait depuis le premier jour du pivot, avec
+    // son propre commentaire: « Séparées de la prose parce que le générateur
+    // BRANCHE dessus ». Ce générateur-ci ne la lisait pas. Il composait donc
+    // pour une journée de trois repas qu'il inventait lui-même, quelles que
+    // soient les heures auxquelles l'élève a réellement faim.
     const goalRes = await admin
       .from("student_goals")
-      .select("goal, situation, content_locale")
+      .select("goal, situation, practical_constraints, content_locale")
       .eq("user_id", userId)
       .maybeSingle();
     if (goalRes.error) throw goalRes.error;
@@ -220,6 +264,48 @@ Deno.serve(async (req) => {
       console.warn(`[${FN_NAME}] safety constraints unavailable`, error);
     }
 
+    // ── LE JOUR OÙ L'ÉLÈVE EST, DANS SON FUSEAU ────────────────────────────
+    //
+    // Défaut mesuré: un plan généré le mercredi commençait lundi — trois jours
+    // déjà passés, livrés comme neufs. Le prompt n'avait AUCUNE notion de date,
+    // donc le modèle repartait du lundi par habitude.
+    //
+    // Le fuseau vient du plan publié, et à défaut du profil. R7: un fuseau
+    // illisible ne se replie PAS sur UTC en silence — on renonce à contraindre
+    // les jours plutôt que de contraindre les mauvais, et le modèle retrouve
+    // son comportement d'avant.
+    let todayToken: string | null = null;
+    let daysToFill: string[] = [];
+    try {
+      const tzRes = await admin
+        .from("plan_versions")
+        .select("timezone")
+        .eq("student_id", userId)
+        .eq("status", "published")
+        .maybeSingle();
+      const profileRes = tzRes.data
+        ? null
+        : await admin.from("profiles").select("timezone").eq("id", userId)
+          .maybeSingle();
+      const timezone = String(
+        (tzRes.data as { timezone?: unknown } | null)?.timezone ??
+          (profileRes?.data as { timezone?: unknown } | null)?.timezone ?? "",
+      ).trim();
+      if (timezone) {
+        const token = dayTokenInZone(timezone, new Date());
+        todayToken = token;
+        // `day` remplit aujourd'hui seulement; `several_days` va jusqu'à
+        // dimanche prochain inclus — sept jours à partir d'aujourd'hui.
+        daysToFill = scope === "day" ? [token] : daysFrom(token, 7);
+      }
+    } catch (error) {
+      issues.push(
+        `local day unresolved, the model picks its own days: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+    }
+
     const { systemPrompt, userMessage } = buildMealPrompt({
       doctrineBlock: doctrineBlockFor(doctrine),
       protocolBlock,
@@ -232,6 +318,27 @@ Deno.serve(async (req) => {
       slot,
       servings,
       pantry,
+      todayToken,
+      daysToFill,
+      // Un rythme illisible rend `[]`, et `buildMealPrompt` retombe alors sur
+      // les trois repas d'avant. Une contrainte qu'on ne sait pas lire ne doit
+      // pas produire une journée vide.
+      eatingRhythm: parseEatingRhythm(
+        (goalRow.practical_constraints as Record<string, unknown> | null)
+          ?.eating_rhythm,
+      ),
+      // CE QUE L'ÉLÈVE PEUT VRAIMENT FAIRE. Quatre entrées qui décidaient de
+      // tout et que le moteur devinait: le jour de cuisine, le temps, le niveau
+      // de recette, le budget. `cooking_time_min` et `budget_band` existaient
+      // dans cette colonne depuis le premier jour du pivot, lues ici, remplies
+      // par personne — jusqu'à `CookingCapacityCard`.
+      //
+      // Chacune est OPTIONNELLE et absente par défaut: un élève qui n'a rien
+      // rempli reçoit exactement la semaine d'hier. C'est ce qui rend l'ajout
+      // additif plutôt que régressif.
+      ...readCookingCapacity(
+        goalRow.practical_constraints as Record<string, unknown> | null,
+      ),
     });
 
     const result = await generateWithGemini(
@@ -284,6 +391,8 @@ Deno.serve(async (req) => {
         context,
         pantry,
         dishes: mealDishesPayload(meal),
+        preparations: mealPreparationsPayload(meal),
+        cooking_sessions: mealSessionsPayload(meal),
         shopping_list: mealShoppingPayload(meal),
         generated_from: {
           coach_id: doctrine.coachId,
@@ -315,6 +424,8 @@ Deno.serve(async (req) => {
       // aucune erreur, aucun log, juste un champ vide chez le lecteur. Une seule
       // forme désormais, celle de la base.
       dishes: mealDishesPayload(meal),
+      preparations: mealPreparationsPayload(meal),
+      cooking_sessions: mealSessionsPayload(meal),
       shopping_list: mealShoppingPayload(meal),
       rejected_numeric: meal.rejected_numeric,
       rejected_aisles: meal.rejected_aisles,

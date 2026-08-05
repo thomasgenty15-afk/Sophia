@@ -32,6 +32,12 @@ import {
   countMealPrecisionQuestionsToday,
   recordMealPrecisionQuestion,
 } from "../_shared/keel/meal_precision_cap.ts";
+import { loadPlannedDishContext } from "../_shared/keel/planned_dish_io.ts";
+import {
+  matchPlannedDish,
+  type PlannedDishMatch,
+} from "../_shared/keel/planned_dish_match.ts";
+import { mealTickKey } from "../_shared/keel/meal_tick.ts";
 
 /**
  * L'AXE DE LA QUESTION PHOTO, dans le vocabulaire UNIFIÉ (§P5.3).
@@ -320,7 +326,14 @@ Deno.serve(async (req) => {
       }, { includeCors: false });
     }
 
-    // ---- 3. the day's prescription = THE allowlist ------------------------
+    // ---- 3. the day's prescription, WHEN THERE IS ONE = THE allowlist -----
+    //
+    // Il n'y en a pas dans le modèle KEEL: le coach écrit une doctrine pour sa
+    // cohorte et ne publie rien par élève (docs/keel/MODEL.md). Cette lecture
+    // ne sert donc plus que le mode 1:1, gardé exprès. Une liste vide n'est pas
+    // une dégradation — c'est le cas normal, et `buildMealAnalysisPrompt` change
+    // alors de consigne: il demande une DESCRIPTION de l'assiette au lieu d'une
+    // comparaison avec un objet vide.
     const planRead = await admin
       .from("plan_versions")
       .select("id, timezone")
@@ -349,9 +362,9 @@ Deno.serve(async (req) => {
         .filter((row) => isOnPlanForDay(row, dayToken))
         .map(toCommitmentContext);
     }
-    // No published plan, or no line scheduled today: the allowlist is empty and
-    // EVERY match the model returns will be rejected. That is the correct
-    // behaviour, not a degradation -- there is no line to evidence.
+    // No published plan, or no line scheduled today: the allowlist is empty,
+    // the model is asked to describe rather than to compare, and EVERY match it
+    // returns anyway is rejected. Belt and prompt, in that order.
 
     // ---- 4. the bytes -----------------------------------------------------
     const inlineBase64 = cleanText(body.base64);
@@ -427,7 +440,57 @@ Deno.serve(async (req) => {
       model,
       studentCommitmentId,
       credit,
-    });
+    }) as Record<string, unknown>;
+
+    // ---- 6bis. LE PLAT PRÉVU — rapprocher l'assiette de ce qui était au plan
+    //
+    // L'élève compose sa semaine sur `/app/plan`, puis photographie ce qu'il
+    // mange, et les deux ne se parlaient pas. Le rapprochement est PUR
+    // (`planned_dish_match.ts`); ici on ne fait que lui donner à manger et
+    // ranger son verdict sur la ligne.
+    //
+    // BEST-EFFORT PAR CONTRAT: une panne de lecture ne coûte que la
+    // proposition. La photo est déjà analysée, et perdre une assiette pour un
+    // plat qu'on n'a pas su charger serait le mauvais arbitrage.
+    let plannedMatch: PlannedDishMatch | null = null;
+    let plannedContext: Awaited<ReturnType<typeof loadPlannedDishContext>> | null =
+      null;
+    try {
+      plannedContext = await loadPlannedDishContext(admin, {
+        userId: event.user_id,
+        localDate: event.local_date,
+      });
+      if (plannedContext.dishes.length > 0) {
+        plannedMatch = matchPlannedDish({
+          plate: {
+            groups: analysis.food_groups_present,
+            labels: analysis.detected_foods.map((f) => f.label),
+            slot: event.slot_key,
+          },
+          dishes: plannedContext.dishes.map((d) => d.dish),
+          catalogue: plannedContext.catalogue,
+        });
+      }
+    } catch (error) {
+      console.warn("[analyze-meal-photo] planned dish match unavailable", error);
+    }
+    if (plannedMatch && plannedMatch.best) {
+      // Le verdict est TRACÉ sur la ligne, y compris quand il est `probable`:
+      // c'est ce qui permettra au tour de confirmation de savoir de quel plat
+      // on parlait, et à un audit de relire pourquoi une coche est partie.
+      recognized.planned_dish = {
+        verdict: plannedMatch.verdict,
+        reason: plannedMatch.reason,
+        meal_id: plannedContext?.mealId ?? null,
+        // L'index d'ORIGINE dans la composition, pas la position dans la liste
+        // du jour: c'est lui qui identifie la coche (`mealTickKey`).
+        dish_index: plannedContext?.dishes[plannedMatch.best.dishIndex]?.dishIndex ??
+          null,
+        title: plannedMatch.best.title,
+        coverage: plannedMatch.best.coverage,
+        missing_groups: plannedMatch.best.missingGroups,
+      };
+    }
 
     // ---- 7. write-through --------------------------------------------------
     // NOTE, deliberately: `quantity` and `unit` are NOT in this UPDATE. A photo
@@ -531,6 +594,72 @@ Deno.serve(async (req) => {
     const titles: Record<string, string> = {};
     for (const c of commitments) titles[c.id] = c.title;
 
+    // ---- 7bis. LA COCHE AUTOMATIQUE, et seulement sur un match FRANC --------
+    //
+    // `confident` veut dire: UN seul plat candidat ce jour-là, créneau d'accord,
+    // et TOUS ses groupes visibles sur l'assiette. C'est le seul cas où une
+    // machine peut trancher sans demander — deux plats qui se ressemblent, ou
+    // un ingrédient manquant, et c'est l'élève qui sait.
+    //
+    // On COCHE PUIS ON LE DIT, avec la porte de correction ouverte: c'est la
+    // doctrine §3.3bis (hypothèse annoncée + porte de correction), la même qui
+    // gouverne déjà les `assumptions`. Le décochage existe et ne supprime rien
+    // (`meal_tick.ts`), donc l'erreur est réparable d'un geste.
+    //
+    // BEST-EFFORT: une coche qui n'part pas ne défait pas une photo analysée.
+    // Elle est SILENCIEUSE côté élève dans ce cas — `tickedDishTitle` reste
+    // null, donc l'accusé ne prétend rien. Aucun accusé sans effet committé.
+    let tickedDishTitle: string | null = null;
+    if (
+      plannedMatch?.verdict === "confident" &&
+      plannedContext?.mealId &&
+      disqualifiedReason === null
+    ) {
+      const dishIndex =
+        plannedContext.dishes[plannedMatch.best!.dishIndex]?.dishIndex ?? null;
+      if (dishIndex !== null) {
+        try {
+          const tick = await admin
+            .from("protocol_events")
+            .insert({
+              user_id: readBack.user_id,
+              occurred_at: new Date().toISOString(),
+              // LA DATE DU FAIT PHOTO, pas l'horloge du serveur: la coche
+              // rapporte le MÊME repas que la photo, et deux dates
+              // différentes pour un seul repas feraient deux jours.
+              local_date: readBack.local_date,
+              slot_key: readBack.slot_key,
+              source: "quick_tap",
+              content_locale: readBack.content_locale ?? "en-GB",
+              // Le titre du plat, tel quel — comme la coche de l'écran. C'est
+              // ce que l'élève a mangé, et le coach doit pouvoir le lire.
+              student_note: plannedMatch.best!.title,
+              // SCHEMA.md, échelle de preuve: une tape vaut 0.4. La même valeur
+              // que `mealTicks.ts` côté écran — deux chiffres différents pour le
+              // même geste feraient diverger la couverture selon le chemin.
+              evidence_weight: 0.4,
+              source_message_id: mealTickKey(plannedContext.mealId, dishIndex),
+            })
+            .select("id")
+            .maybeSingle();
+          // Une violation d'unicité veut dire que l'élève avait DÉJÀ coché ce
+          // plat depuis l'écran. Ce n'est pas une erreur, et surtout ce n'est
+          // pas une raison de le lui annoncer une seconde fois.
+          if (!tick.error && tick.data) {
+            tickedDishTitle = plannedMatch.best!.title;
+          } else if (tick.error && (tick.error as { code?: string }).code !== "23505") {
+            console.warn(JSON.stringify({
+              tag: "planned_dish_tick_failed",
+              user_id: readBack.user_id,
+              error: tick.error.message,
+            }));
+          }
+        } catch (error) {
+          console.warn("[analyze-meal-photo] planned dish tick failed", error);
+        }
+      }
+    }
+
     // LE PLAFOND EST PARTAGÉ AVEC LE CHEMIN TEXTE, et c'est le point de la
     // §P5.2. Deux compteurs séparés donneraient QUATRE questions par jour à un
     // élève qui envoie des photos ET écrit — soit exactement l'interrogatoire
@@ -630,6 +759,14 @@ Deno.serve(async (req) => {
         binding,
         credit,
         commitmentTitles: titles,
+        // Y AVAIT-IL QUELQUE CHOSE À QUOI COMPARER. Faux pour tout élève du
+        // modèle KEEL (le coach n'écrit rien par élève), et l'accusé se tait
+        // alors sur les lignes, les crédits et « ton plan » — il décrit
+        // l'assiette, ce qui est tout ce qu'une photo établit.
+        hasPrescription: commitments.length > 0,
+        // Non nul UNIQUEMENT après un insert relu (étape 7bis): l'accusé ne
+        // parle que d'une coche qui existe en base.
+        tickedDish: tickedDishTitle,
         // Le token de la ligne, plus une constante en dur: c'est la donnée qui
         // décide, et `renderMealPhotoAck` accepte désormais la famille `en`.
         locale: String(readBack.content_locale ?? "en-GB"),

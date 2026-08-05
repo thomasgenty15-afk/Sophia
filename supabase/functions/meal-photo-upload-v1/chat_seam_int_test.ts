@@ -77,9 +77,13 @@ async function makeStudent(): Promise<Student> {
 }
 
 /**
- * Un plan PUBLIÉ. Sans lui, la fonction refuse en 409: « pas de plan, rien à
- * quoi rattacher la photo, et aucun fuseau pour résoudre le jour ». C'est une
- * règle produit, pas un obstacle de test — d'où un cas dédié plus bas.
+ * Un plan PUBLIÉ — c'est-à-dire le mode 1:1, celui que le modèle KEEL n'utilise
+ * pas mais que le dépôt garde exprès (docs/keel/MODEL.md).
+ *
+ * La photo n'en a PLUS besoin: le fuseau se replie sur `profiles.timezone` et
+ * rien n'est comparé à une ligne prescrite. Les cas qui l'appellent encore sont
+ * ceux qui exercent ce mode-là; le cas SANS plan est un test à part entière,
+ * plus bas, et c'est lui qui décrit le modèle réel.
  */
 async function publishPlan(userId: string): Promise<string> {
   // `coach_id` est NOT NULL: un plan sans coach n'existe pas dans ce modèle.
@@ -358,13 +362,19 @@ Deno.test({
 });
 
 Deno.test({
-  name: "réel: PHOTO SANS PLAN ACTIF — l'élève reçoit une réponse, pas un silence",
+  name: "réel: PHOTO SANS PLAN PUBLIÉ — elle est ENREGISTRÉE, pas refusée",
   ignore: SKIP,
   fn: async () => {
-    // Pattern adversarial exigé par le chantier. Le 409 reste le contrat de
-    // l'API — l'écran du jour le lit très bien. Mais un élève qui envoie une
-    // photo DANS LA BULLE ne lit pas un code HTTP: sans un mot, il voit sa
-    // photo partir et rien revenir, ce qui est indiscernable d'une panne.
+    // LA RÉGRESSION QUE CE TEST TIENT, et elle a été livrée: la fonction
+    // exigeait un `plan_versions` publié et répondait sinon 409 + « your coach
+    // hasn't published your plan ». Or dans le modèle KEEL le coach ne publie
+    // JAMAIS de plan par élève (docs/keel/MODEL.md): la condition attendue
+    // n'arrive pas, et le geste le plus coûteux du produit était refusé à tout
+    // le monde en désignant un geste que personne ne fera.
+    //
+    // L'ancienne version de ce test assertait le 409 et le message de refus.
+    // Elle prouvait que le refus était bien rendu; elle ne pouvait pas voir que
+    // le refus lui-même était le défaut.
     const student = await makeStudent(); // volontairement SANS plan publié
     try {
       const clientId = crypto.randomUUID();
@@ -374,8 +384,23 @@ Deno.test({
         client_upload_id: clientId,
         chat_client_message_id: clientId,
       });
-      assertEquals(res.status, 409, "le contrat d'API ne change pas");
+      assertEquals(res.status, 200, JSON.stringify(res.json));
 
+      // Le FAIT existe, daté dans le fuseau du PROFIL (le plan n'en fournit
+      // plus): sans ce repli, la photo n'aurait aucun jour où se ranger.
+      const { data: eventRow } = await admin()
+        .from("protocol_events")
+        .select("id,local_date,source")
+        .eq("user_id", student.id)
+        .maybeSingle();
+      const event = eventRow as
+        | { id: string; local_date: string; source: string }
+        | null;
+      assert(event, "la photo écrit bien un fait");
+      assertEquals(event!.source, "photo");
+      assert(/^\d{4}-\d{2}-\d{2}$/.test(event!.local_date));
+
+      // Et l'élève reçoit un ACCUSÉ, pas un refus.
       const { data } = await admin()
         .from("chat_messages")
         .select("role,content,metadata")
@@ -386,11 +411,12 @@ Deno.test({
         | { content: string; metadata: Record<string, unknown> }
         | null;
       assert(row, "l'élève reçoit un message");
-      assertEquals(row!.metadata.purpose, "keel_meal_photo_no_plan");
-      // Et le message ne lui reproche rien: ne pas avoir de plan publié est le
-      // fait de son coach, pas le sien.
+      assertEquals(row!.metadata.purpose, "keel_meal_photo_ack");
       const text = row!.content.toLowerCase();
-      assert(text.includes("plan"), "il explique POURQUOI");
+      assert(
+        !text.includes("hasn't published") && !text.includes("has not published"),
+        `plus aucune attente d'un plan du coach, reçu: ${row!.content}`,
+      );
       assert(
         !/you (?:should|must|need to|failed|forgot)/.test(text),
         `aucun reproche attendu, reçu: ${row!.content}`,

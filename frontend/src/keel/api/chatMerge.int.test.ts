@@ -27,6 +27,7 @@ function msg(over: Partial<ChatMessage> & { id: string }): ChatMessage {
     content: "hello",
     createdAt: "2026-08-04T12:00:00.000Z",
     buttons: [],
+    proactive: false,
     ...over,
   };
 }
@@ -54,6 +55,44 @@ describe("toChatMessage", () => {
       metadata: {},
     });
     expect(m.clientMessageId).toBeUndefined();
+  });
+
+  it("lit `is_proactive` — le champ que le serveur écrivait pour personne", () => {
+    // `delivery.ts` pose `is_proactive` sur CHAQUE livraison depuis le premier
+    // jour du canal in-app, et aucun code client ne le lisait: une relance
+    // arrivée seule à 21h était rendue exactement comme une réponse. Le champ
+    // existait, le sens se perdait entre la base et l'œil.
+    const m = toChatMessage({
+      id: "row-1",
+      role: "assistant",
+      content: "How was today?",
+      created_at: "2026-08-04T20:10:00.000Z",
+      metadata: { is_proactive: true, purpose: "keel_daily_pulse" },
+    });
+    expect(m.proactive).toBe(true);
+  });
+
+  it("une réponse n'est pas proactive, et un message de l'élève jamais", () => {
+    const reply = toChatMessage({
+      id: "row-2",
+      role: "assistant",
+      content: "Got it.",
+      created_at: "2026-08-04T20:11:00.000Z",
+      metadata: { is_proactive: false },
+    });
+    expect(reply.proactive).toBe(false);
+
+    // Le drapeau vient de la décision de LIVRAISON, qui ne concerne que les
+    // sortants. Le lire sur un entrant serait lire un champ sans sens de ce
+    // côté-là — et l'élève se verrait étiqueté « Sophia a écrit ».
+    const inbound = toChatMessage({
+      id: "row-3",
+      role: "user",
+      content: "rough day",
+      created_at: "2026-08-04T20:12:00.000Z",
+      metadata: { is_proactive: true },
+    });
+    expect(inbound.proactive).toBe(false);
   });
 
   it("lit les boutons, et ignore ceux qui sont mal formés", () => {
@@ -160,5 +199,121 @@ describe("mergeHistoryPage", () => {
     // compte — sinon chaque refetch doublerait tout l'historique.
     const real = msg({ id: "row-1", clientMessageId: "c1" });
     expect(mergeHistoryPage([real], [real])).toHaveLength(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// LA PHOTO DANS LA BULLE
+//
+// Ce que ces tests protègent, et c'est un défaut qui a été livré: la photo
+// voyageait déjà dans `metadata.media_ref` et PERSONNE ne la lisait. L'élève
+// envoyait son assiette et voyait « [photo] » en texte.
+//
+// Le second défaut est plus subtil et n'apparaît qu'à l'exécution: la ligne
+// réelle porte un CHEMIN de bucket, pas une URL. Si la fusion jette l'aperçu
+// local, l'image disparaît à la seconde où le serveur confirme et revient
+// après l'aller-retour de signature — un clignotement pile au mauvais moment.
+// ---------------------------------------------------------------------------
+
+describe("la photo du message", () => {
+  it("toChatMessage lit media_ref", () => {
+    const m = toChatMessage({
+      id: "row-1",
+      role: "user",
+      content: "[photo]",
+      created_at: "2026-08-04T12:00:00.000Z",
+      metadata: {
+        kind: "media",
+        media_ref: {
+          path: "user-1/2026-08-04/abc.jpg",
+          content_type: "image/jpeg",
+          size_bytes: 1234,
+        },
+      },
+    });
+    expect(m.media).toEqual({
+      path: "user-1/2026-08-04/abc.jpg",
+      contentType: "image/jpeg",
+    });
+  });
+
+  it("un media_ref sans chemin n'est pas une photo", () => {
+    // Un chemin vide produirait une <img src=""> — une icône cassée dans la
+    // conversation, ce qui est pire que pas d'image du tout.
+    for (const media_ref of [{ path: "" }, { path: "   " }, {}, null, "nope"]) {
+      const m = toChatMessage({
+        id: "row-1",
+        role: "user",
+        content: "[photo]",
+        created_at: "2026-08-04T12:00:00.000Z",
+        metadata: { media_ref },
+      });
+      expect(m.media).toBeUndefined();
+    }
+  });
+
+  it("un message sans photo n'a pas de champ media", () => {
+    const m = toChatMessage({
+      id: "row-1",
+      role: "assistant",
+      content: "Got it 👌",
+      created_at: "2026-08-04T12:00:00.000Z",
+      metadata: {},
+    });
+    expect(m.media).toBeUndefined();
+  });
+
+  it("mergeMessage: l'aperçu local survit à la ligne réelle", () => {
+    const echo = msg({
+      id: "pending-c1",
+      clientMessageId: "c1",
+      pending: true,
+      media: { path: "", contentType: "image/jpeg", previewUrl: "blob:local" },
+    });
+    const real = msg({
+      id: "row-1",
+      clientMessageId: "c1",
+      media: { path: "user-1/2026-08-04/abc.jpg", contentType: "image/jpeg" },
+    });
+    const merged = mergeMessage([echo], real);
+    expect(merged).toHaveLength(1);
+    expect(merged[0].id).toBe("row-1");
+    // Le chemin de la ligne réelle ET l'aperçu de l'écho: c'est le chemin qui
+    // sera signé, et l'aperçu qui empêche le trou visuel entre les deux.
+    expect(merged[0].media).toEqual({
+      path: "user-1/2026-08-04/abc.jpg",
+      contentType: "image/jpeg",
+      previewUrl: "blob:local",
+    });
+  });
+
+  it("mergeHistoryPage: l'aperçu survit aussi au refetch", () => {
+    // C'est CE chemin que la photo emprunte en pratique — `onPickPhoto` finit
+    // par un refetch, pas par une livraison Realtime.
+    const echo = msg({
+      id: "pending-c1",
+      clientMessageId: "c1",
+      pending: true,
+      media: { path: "", contentType: "image/jpeg", previewUrl: "blob:local" },
+    });
+    const page = [msg({
+      id: "row-1",
+      clientMessageId: "c1",
+      media: { path: "user-1/2026-08-04/abc.jpg", contentType: "image/jpeg" },
+    })];
+    const merged = mergeHistoryPage([echo], page);
+    expect(merged.map((m) => m.id)).toEqual(["row-1"]);
+    expect(merged[0].media?.previewUrl).toBe("blob:local");
+    expect(merged[0].media?.path).toBe("user-1/2026-08-04/abc.jpg");
+  });
+
+  it("un message sans aperçu n'invente pas de previewUrl", () => {
+    const echo = msg({ id: "pending-c1", clientMessageId: "c1", pending: true });
+    const real = msg({
+      id: "row-1",
+      clientMessageId: "c1",
+      media: { path: "user-1/2026-08-04/abc.jpg", contentType: null },
+    });
+    expect(mergeMessage([echo], real)[0].media?.previewUrl).toBeUndefined();
   });
 });

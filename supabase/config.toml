@@ -469,6 +469,11 @@ verify_jwt = false
 # `meal-photo-upload-v1` authenticates the student in-function via
 # auth.getUser() (same ES256-on-local reason as the account-* functions);
 # `analyze-meal-photo-v1` is internal-only (X-Internal-Secret).
+# `meal-photo-upload-v1` porte AUSSI l'action `sign`, qui rend les URLs
+# permettant d'AFFICHER une photo déjà envoyée: le bucket est privé et sans
+# policy, donc la lecture passe forcément par une URL signée en service_role.
+# Une seule fonction possède le bucket — même arbitrage que
+# `coach-recipe-image-v1`, qui réunit upload et sign pour la même raison.
 [functions.meal-photo-upload-v1]
 verify_jwt = false
 [functions.analyze-meal-photo-v1]

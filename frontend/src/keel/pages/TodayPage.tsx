@@ -2,6 +2,7 @@ import React from "react";
 import { useAuth } from "../../context/AuthContext";
 import {
   addDays,
+  dayTokenOf,
   localDateIn,
   weekDatesFrom,
   weekStartFor,
@@ -55,9 +56,25 @@ import {
   type PlanVersionRow,
   type SlotVocabularyRow,
 } from "../api/types";
+import {
+  currentMonday,
+  loadWeekPlan,
+  weekPlanDaySplit,
+  type WeekPlanItem,
+  type WeekPlanRow,
+} from "../api/weekPlan";
+import {
+  dishDaySplit,
+  type GeneratedMealResult,
+  loadLatestGeneratedMeal,
+} from "../api/mealGeneration";
+import { mealCopy } from "../api/mealLabels";
+import { browserLocalDate, useMealTicks } from "../lib/useMealTicks";
 import CommitmentLine, { ActivityChip } from "../components/CommitmentLine";
 import DeviationDialog from "../components/DeviationDialog";
+import DishCard from "../components/DishCard";
 import KeelAppShell from "../components/KeelAppShell";
+import { Badge } from "../components/ui/Badge";
 import { ButtonLink } from "../components/ui/Button";
 import { Card, SectionLabel } from "../components/ui/Card";
 import { t } from "../i18n/t";
@@ -72,10 +89,13 @@ import { t } from "../i18n/t";
  * someone to wait when the next move is theirs is the worst thing an empty
  * screen can do, so the block now carries the way out.
  *
- * WHAT IT STILL DOES NOT PROMISE: that THIS page fills in. `loadPublishedPlanVersion`
- * reads `plan_versions` and nothing else — `student_week_plans`, the table the
- * button below writes, has no reader here. So the copy points at where the week
- * lives and stops; "your day fills in here" would just be a newer lie.
+ * AND THIS PAGE DOES FILL IN NOW. This block used to add "we are not promising
+ * this screen fills in", because `/app/today` read `plan_versions` and nothing
+ * else. It now reads both of the things `/app/plan` actually writes — the meals
+ * (`student_generated_meals`) and, when there is one, the adopted method week
+ * (`student_week_plans`) — so the copy is free to point at the way out and mean
+ * it. The reason the caveat is gone is that the reader exists, not that the
+ * copy got braver.
  *
  * It shows the SPACE rather than a dead end: the shell, the day's real slot
  * headings, and greyed placeholders. The placeholders are bars, never invented
@@ -126,6 +146,215 @@ function NoPlanYet() {
         {t("today.no_plan_footer")}
       </p>
     </div>
+  );
+}
+
+/**
+ * LA JOURNÉE QUE L'ÉLÈVE S'EST COMPOSÉE — le rendu de ce que `/app/plan` écrit.
+ *
+ * ---------------------------------------------------------------------------
+ * DEUX SOURCES, PARCE QUE « MY WEEK'S PLAN » EN ÉCRIT DEUX
+ * ---------------------------------------------------------------------------
+ * Cet écran ne lisait que `plan_versions` — le plan publié par un coach — et,
+ * par la règle du modèle, aucun coach n'en publie jamais. Un élève pouvait donc
+ * composer toute sa semaine et lire « tu n'as pas encore de plan » tous les
+ * jours. Il lit maintenant ce que l'écran d'à côté produit RÉELLEMENT:
+ *
+ *   `student_generated_meals`  — les PLATS (`MealBuilder`). C'est ce que
+ *                                l'élève vient chercher: le dîner de mardi.
+ *   `student_week_plans`       — la semaine de MÉTHODE, quand elle existe et
+ *                                qu'elle a été adoptée. Des lignes de
+ *                                comportement, pas des plats.
+ *
+ * L'ORDRE EST CELUI DU SOUS-TITRE — « what you eat, then what you do ». Les
+ * plats d'abord: c'est la question de la journée.
+ *
+ * ---------------------------------------------------------------------------
+ * CE QU'IL N'Y A PAS ICI, ET C'EST LE POINT
+ * ---------------------------------------------------------------------------
+ * Pas de case à cocher, pas de « Log it », pas de compteur, pas de série, pas
+ * de pourcentage. La semaine de l'élève n'est pas une prescription: personne ne
+ * lui a rien prescrit, donc « l'a-t-il suivie » n'a pas d'objet et l'évaluateur
+ * KEEL est débranché sur cet axe (PLAN-NUIT, amendement 3).
+ *
+ * C'est la différence de fond avec le rendu du plan publié plus bas, qui LUI
+ * compte — parce que là un coach a signé quelque chose.
+ *
+ * ---------------------------------------------------------------------------
+ * LA DOCTRINE: CITÉE SUR UNE LIGNE DE MÉTHODE, JAMAIS SUR UN PLAT
+ * ---------------------------------------------------------------------------
+ * Ce n'est pas une incohérence, c'est la même règle appliquée à deux objets.
+ * Une LIGNE DE MÉTHODE est une lecture de la conviction du coach: la citer
+ * dessous est la seule façon honnête de la présenter (le coach n'a pas écrit
+ * cette ligne, un badge « écrit par ton coach » serait un mensonge). Un PLAT
+ * n'est pas une lecture de la méthode, c'est un dîner qu'elle a servi à
+ * composer — et afficher la méthode dessus transformerait un repas en leçon.
+ * `DishCard` n'a donc rien à citer, et `GeneratedDish` ne porte même pas de
+ * quoi le faire.
+ *
+ * LES LIGNES ET LES PLATS SANS JOUR NOMMÉ SONT MIS À PART. Une ligne qui vaut
+ * pour la semaine entière, lue dans la liste du jour, fait croire qu'on est en
+ * retard tous les jours. Le plan publié applique déjà cette séparation
+ * (`splitByGrain`); celle-ci est la même règle sur les deux autres sources.
+ */
+function OwnDay({
+  plan,
+  meals,
+  day,
+}: {
+  plan: WeekPlanRow | null;
+  meals: GeneratedMealResult | null;
+  day: DayToken;
+}) {
+  const { user } = useAuth();
+  const dishes = meals ? dishDaySplit(meals.dishes, day) : null;
+  const lines = plan ? weekPlanDaySplit(plan.items, day) : null;
+  // LES COCHES, SUR L'ÉCRAN OÙ ON MANGE. Même liaison que `/app/plan` — le plat
+  // est le même objet, la case doit être la même case.
+  //
+  // TOUT CE QUE CET ÉCRAN REND EST DATÉ D'AUJOURD'HUI, et ce n'est pas un
+  // raccourci: il ne montre que les plats du jour (`dishes.today`) ou ceux qui
+  // ne nomment aucun jour (`dishes.anyDay`), qu'on rapporte le jour où on les
+  // mange. Le rattrapage des jours écoulés vit sur `/app/plan`, qui est le seul
+  // écran à montrer la semaine entière.
+  const todayDate = browserLocalDate();
+  const ticks = useMealTicks({
+    userId: user?.id ?? "",
+    mealId: meals?.mealId ?? null,
+    dishes: meals?.dishes ?? [],
+  });
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge tone="info">{t("today.own_week_badge")}</Badge>
+        </div>
+        <p className="mt-2 text-sm leading-6 text-gray-600">
+          {t("today.own_week_hint")}
+        </p>
+        <div className="mt-4">
+          <ButtonLink to="/app/plan" size="sm">
+            {t("today.own_week_open_plan")}
+          </ButtonLink>
+        </div>
+      </Card>
+
+      {/* CE QUE JE MANGE. Le plat entier, ingrédients et méthode compris: on
+          cuisine sur cet écran-là, pas sur l'autre. */}
+      {dishes && (
+        <section>
+          <SectionLabel>{t("today.own_meals_label")}</SectionLabel>
+          {ticks.error && (
+            <p className="mb-3 text-sm text-red-600">
+              {mealCopy("meals.tick.failed")}
+            </p>
+          )}
+          {dishes.today.length > 0
+            ? (
+              <div className="space-y-3">
+                {dishes.today.map((dish, i) => (
+                  <DishCard
+                    key={`d${i}-${dish.title}`}
+                    dish={dish}
+                    tick={ticks.bind(dish, todayDate)}
+                  />
+                ))}
+              </div>
+            )
+            : (
+              <Card tone="dashed">
+                <p className="text-sm leading-6 text-gray-600">
+                  {dishes.anyDay.length > 0
+                    ? t("today.own_meals_empty")
+                    : t("today.own_meals_other_days")}
+                </p>
+              </Card>
+            )}
+
+          {dishes.anyDay.length > 0 && (
+            <div className="mt-5">
+              <SectionLabel>{t("today.own_meals_anyday")}</SectionLabel>
+              <div className="space-y-3">
+                {dishes.anyDay.map((dish, i) => (
+                  <DishCard
+                    key={`a${i}-${dish.title}`}
+                    dish={dish}
+                    tick={ticks.bind(dish, todayDate)}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* CE QUE JE ME SUIS FIXÉ. La semaine de méthode, quand elle existe: elle
+          n'est plus produite par `/app/plan`, mais une semaine déjà adoptée ne
+          doit pas disparaître de l'écran parce qu'on a changé de moteur. */}
+      {lines && (
+        <section>
+          <SectionLabel>{t("today.own_lines_label")}</SectionLabel>
+          {lines.today.length > 0
+            ? (
+              <Card padded={false}>
+                <ul className="divide-y divide-gray-100">
+                  {lines.today.map((item, i) => <OwnWeekLine key={`l${i}`} item={item} />)}
+                </ul>
+              </Card>
+            )
+            : (
+              <Card tone="dashed">
+                <p className="text-sm leading-6 text-gray-600">
+                  {lines.anyDay.length > 0
+                    ? t("today.own_week_empty")
+                    : t("today.own_week_nothing")}
+                </p>
+              </Card>
+            )}
+
+          {lines.anyDay.length > 0 && (
+            <div className="mt-5">
+              <SectionLabel>{t("today.own_week_anyday")}</SectionLabel>
+              <Card padded={false}>
+                <ul className="divide-y divide-gray-100">
+                  {lines.anyDay.map((item, i) => <OwnWeekLine key={`n${i}`} item={item} />)}
+                </ul>
+              </Card>
+            </div>
+          )}
+        </section>
+      )}
+    </div>
+  );
+}
+
+/** Une ligne: ce qu'elle demande, pourquoi, et d'où elle vient. */
+function OwnWeekLine({ item }: { item: WeekPlanItem }) {
+  return (
+    <li className="px-4 py-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-sm font-medium text-gray-900">{item.label}</span>
+        <Badge tone={item.kind === "nutrition" ? "info" : "neutral"}>
+          {item.kind === "nutrition"
+            ? t("today.own_week_from_coach")
+            : t("today.own_week_from_sophia")}
+        </Badge>
+      </div>
+      {item.rationale ? (
+        <p className="mt-1 text-xs leading-5 text-gray-600">{item.rationale}</p>
+      ) : null}
+      {/* La conviction du coach, CITÉE. Le code garantit que la ligne en nomme
+          une réelle (CHECK en base); il ne peut pas garantir que
+          l'interprétation soit fidèle. La montrer est la seule façon honnête de
+          présenter une lecture générée de la méthode de quelqu'un d'autre —
+          l'élève peut juger, et le coach par-dessus son épaule aussi. */}
+      {item.source_belief_claim ? (
+        <blockquote className="mt-2 border-l-2 border-gray-300 pl-3 text-xs italic leading-5 text-gray-500">
+          {item.source_belief_claim}
+        </blockquote>
+      ) : null}
+    </li>
   );
 }
 
@@ -476,6 +705,20 @@ type LoadState =
   | { kind: "loading" }
   | { kind: "error"; message: string }
   | { kind: "no_plan" }
+  // LA SEMAINE QUE L'ÉLÈVE S'EST COMPOSÉE. Un état à part entière, et pas une
+  // variante de `ready`: rien de la machinerie du plan publié ne s'applique ici
+  // — pas de créneau, pas d'engagement à cocher, pas de dénominateur. Les
+  // mélanger aurait fait passer des lignes sans créneau dans un rendu qui en
+  // exige un, et surtout aurait rendu tentant de leur coller un score.
+  //
+  // `plan` et `meals` sont tous deux nullables, mais PAS ENSEMBLE: l'état n'est
+  // construit que si l'un des deux existe (sinon c'est `no_plan`).
+  | {
+    kind: "own_week";
+    plan: WeekPlanRow | null;
+    meals: GeneratedMealResult | null;
+    day: DayToken;
+  }
   | { kind: "ready"; data: ReadyData };
 
 interface ReadyData {
@@ -533,6 +776,47 @@ export default function TodayPage() {
         loadPublishedPlanVersion(userId),
       ]);
       if (!planVersion) {
+        // PAS DE PLAN PUBLIÉ — CE QUI EST LE CAS NOMINAL, PAS L'EXCEPTION.
+        // Dans le modèle qu'on livre, le coach enseigne une méthode et ne
+        // publie aucun `plan_versions` (docs/keel/MODEL.md). Ce chemin est donc
+        // le SEUL emprunté en pratique, et il rendait un écran vide à un élève
+        // qui venait de composer toute sa semaine dans `/app/plan`.
+        //
+        // ON LIT LES DEUX CHOSES QUE `/app/plan` ÉCRIT, et dans cet ordre-là:
+        //  - LES PLATS (`student_generated_meals`), qui sont ce que cet écran
+        //    produit aujourd'hui — `MealBuilder` est tout ce qu'il monte;
+        //  - LA SEMAINE DE MÉTHODE (`student_week_plans`), quand une ancienne
+        //    existe. On ne retient que `adopted`: générer n'est pas adopter, et
+        //    un brouillon rendu ici comme la journée de quelqu'un serait le
+        //    plan de la machine porté par l'élève.
+        //
+        // Les deux lectures partent ensemble: elles ne dépendent pas l'une de
+        // l'autre, et les enchaîner ne ferait qu'ajouter un aller-retour.
+        const weekStart = currentMonday();
+        const [ownWeek, ownMeals] = await Promise.all([
+          loadWeekPlan(weekStart),
+          // FENÊTRE SUR LA SEMAINE EN COURS. La table ne porte pas de
+          // `week_start` et un plat ne nomme qu'un jour de semaine (« tue »),
+          // jamais une date: sans borne, le dîner du mardi d'une composition
+          // vieille de trois semaines s'afficherait comme le plat du jour.
+          loadLatestGeneratedMeal(userId, { notBefore: weekStart }),
+        ]);
+        const adopted = ownWeek && ownWeek.status === "adopted" ? ownWeek : null;
+        const composed = ownMeals && ownMeals.dishes.length > 0 ? ownMeals : null;
+        if (adopted || composed) {
+          setState({
+            kind: "own_week",
+            plan: adopted,
+            meals: composed,
+            // Le jour dans l'horloge du navigateur, la même que celle qui a
+            // écrit `week_start`: sans plan publié il n'y a aucun fuseau à
+            // lire, et en inventer un ferait lire mardi un lundi soir.
+            day: dayTokenOf(localDateIn(
+              Intl.DateTimeFormat().resolvedOptions().timeZone,
+            )),
+          });
+          return;
+        }
         setState({ kind: "no_plan" });
         return;
       }
@@ -732,6 +1016,14 @@ export default function TodayPage() {
           {t("today.error")}
         </p>
         <p className="mt-2 font-mono text-xs text-gray-400">{state.message}</p>
+      </KeelAppShell>
+    );
+  }
+
+  if (state.kind === "own_week") {
+    return (
+      <KeelAppShell title={t("today.title")} subtitle={t("today.subtitle")}>
+        <OwnDay plan={state.plan} meals={state.meals} day={state.day} />
       </KeelAppShell>
     );
   }

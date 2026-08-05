@@ -1,0 +1,296 @@
+import React from "react";
+
+import { supabase } from "../../lib/supabase";
+import {
+  EATING_OCCASIONS,
+  type EatingOccasion,
+  type EatingOccasionSlot,
+} from "../api/mealGeneration";
+import { mealCopy } from "../api/mealLabels";
+import { Button } from "./ui/Button";
+import { Card, SectionLabel } from "./ui/Card";
+
+// LA FORME DE SA JOURNÉE — à quels moments cet élève mange, vraiment.
+//
+// ── LE DÉFAUT QUE ÇA CORRIGE, ET IL N'ÉTAIT PAS « ON NE DEMANDE PAS » ─────
+// Le moteur imposait, en dur, trois repas par jour à tout le monde: « every day
+// of the stretch needs breakfast, lunch and dinner ». Quelqu'un qui mange deux
+// fois recevait un repas de trop; quelqu'un qui s'effondre à 17h n'avait aucun
+// endroit où le dire, et sa journée s'arrêtait au déjeuner pour reprendre au
+// dîner. Une faim qu'un plan ne nomme pas est une faim qu'on comble ailleurs —
+// et c'est là que le plan le plus juste du monde s'écroule.
+//
+// ── POURQUOI CETTE CARTE EST À CÔTÉ DE L'OBJECTIF ET PAS DANS LE FORMULAIRE ─
+// Le nombre de fois qu'on mange dans une journée est une propriété d'une VIE,
+// pas d'une semaine. Le redemander à chaque génération serait la même friction
+// que retaper son contexte à chaque fois — et la friction, sur une question
+// stable, finit par produire des réponses bâclées. Elle se range donc dans
+// `student_goals.practical_constraints`, la colonne prévue depuis le premier
+// jour du pivot pour les contraintes STRUCTURÉES sur lesquelles le générateur
+// branche (par opposition à `situation`, qu'il ne fait que lire).
+//
+// ── L'HEURE EST FACULTATIVE, ET CE N'EST PAS DE LA MOLLESSE ───────────────
+// « Je grignote l'après-midi » est une information utile sans « à 17h ». Exiger
+// l'heure ferait inventer une précision que l'élève n'a pas, et le moteur
+// traiterait cette invention comme une contrainte. Cocher sans remplir est donc
+// un état complet, pas un formulaire à moitié rempli.
+//
+// ── ELLE SE REPLIE — même règle que l'objectif juste au-dessus ────────────
+// Six cases à cocher dépliées en permanence au-dessus du constructeur donnent
+// l'impression qu'il reste quelque chose à remplir, et repoussent vers le bas
+// la seule chose que l'élève vient voir: ses repas. Une fois son rythme écrit,
+// c'est une propriété stable de sa vie — il n'y revient qu'en cas de
+// changement. Elle s'ouvre donc d'elle-même tant que RIEN n'est écrit (c'est
+// alors la question elle-même, et personne ne clique pour découvrir une
+// question qu'il ignore) et reste repliée dès qu'il y a un rythme.
+//
+// Repliée, elle affiche CE QUI EST ENREGISTRÉ, jamais le brouillon en cours:
+// une ligne pliée qui listerait des cases cochées non sauvegardées dirait que
+// le moteur connaît ce créneau de 17h alors qu'aucune ligne ne le porte. Le
+// brouillon divergent est signalé comme tel, et il survit au repli.
+
+const COPY = {
+  title: "How your day runs",
+  intro:
+    "Tick the moments you actually eat on an ordinary day. Your week gets built " +
+    "around those — no meal you did not name, and none of yours dropped.",
+  time_hint: "Time is optional. Leave it blank if it moves around.",
+  time_label: "around",
+  save: "Save",
+  saving: "…",
+  saved: "Saved. Your next plan is built around this.",
+  none:
+    "Nothing ticked. Your week falls back to breakfast, lunch and dinner — the " +
+    "ordinary assumption, not something you chose.",
+  needs_goal: "Set your goal above first — this is saved alongside it.",
+  open: "Change",
+  close: "Close",
+  summary_none: "Not set — your week falls back to breakfast, lunch and dinner.",
+  unsaved: "Changed but not saved. Your week still runs on what is shown above.",
+} as const;
+
+/** `mealLabels` nomme déjà chaque créneau: pas de seconde table de libellés. */
+function occasionLabel(slot: EatingOccasion): string {
+  return mealCopy(`meals.slot.${slot}` as Parameters<typeof mealCopy>[0]);
+}
+
+export interface EatingRhythmCardProps {
+  /** `null` tant qu'aucune ligne `student_goals` n'existe: rien à mettre à jour. */
+  hasGoal: boolean;
+  /** Les autres clés de `practical_constraints`, à ne pas écraser. */
+  practicalConstraints: Record<string, unknown>;
+  rhythm: readonly EatingOccasionSlot[];
+  onSaved: () => void | Promise<void>;
+}
+
+export default function EatingRhythmCard(props: EatingRhythmCardProps) {
+  // L'état de saisie porte les SIX moments, cochés ou non, plus leur heure. On
+  // ne dérive pas « décoché » de l'absence dans un tableau: décocher puis
+  // recocher doit retrouver l'heure qu'on avait tapée.
+  const [picked, setPicked] = React.useState<Set<EatingOccasion>>(
+    () => new Set(props.rhythm.map((o) => o.slot)),
+  );
+  const [times, setTimes] = React.useState<Record<string, string>>(
+    () => Object.fromEntries(props.rhythm.filter((o) => o.at).map((o) => [o.slot, o.at!])),
+  );
+  const [busy, setBusy] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [flash, setFlash] = React.useState<string | null>(null);
+  // La page monte cette carte APRÈS son chargement (`state.kind === "loading"`
+  // rend un écran à part), donc l'initialiseur voit le vrai rythme et non un
+  // tableau vide transitoire.
+  const [open, setOpen] = React.useState(() => props.rhythm.length === 0);
+
+  /** Ce que la carte repliée dit: le rythme ENREGISTRÉ, dans l'ordre du jour. */
+  const savedSummary = React.useMemo(() => {
+    const parts = EATING_OCCASIONS.flatMap((slot) => {
+      const saved = props.rhythm.find((o) => o.slot === slot);
+      if (!saved) return [];
+      const label = occasionLabel(slot);
+      return [saved.at ? `${label} ${COPY.time_label} ${saved.at}` : label];
+    });
+    return parts.length > 0 ? parts.join(" · ") : null;
+  }, [props.rhythm]);
+
+  /** Le brouillon s'écarte-t-il de ce qui est en base ? (repli ≠ perte) */
+  const dirty = React.useMemo(() => {
+    const fingerprint = (pick: (slot: EatingOccasion) => string | null | undefined) =>
+      EATING_OCCASIONS.map((slot) => {
+        const at = pick(slot);
+        return at === undefined ? "" : `${slot}@${at ?? ""}`;
+      }).join("|");
+    const saved = fingerprint((slot) => {
+      const row = props.rhythm.find((o) => o.slot === slot);
+      return row ? row.at : undefined;
+    });
+    const draft = fingerprint((slot) =>
+      picked.has(slot) ? times[slot]?.trim() || null : undefined,
+    );
+    return saved !== draft;
+  }, [props.rhythm, picked, times]);
+
+  const toggle = (slot: EatingOccasion) => {
+    setFlash(null);
+    setPicked((prev) => {
+      const next = new Set(prev);
+      if (next.has(slot)) next.delete(slot);
+      else next.add(slot);
+      return next;
+    });
+  };
+
+  async function save() {
+    setBusy(true);
+    setError(null);
+    setFlash(null);
+    try {
+      const { data: sess } = await supabase.auth.getUser();
+      const uid = sess.user?.id;
+      if (!uid) throw new Error("not_signed_in");
+
+      // L'ORDRE DE LA JOURNÉE, pas celui des clics. On lit sa journée du réveil
+      // au coucher, et le moteur la relit dans l'ordre reçu.
+      const eating_rhythm = EATING_OCCASIONS
+        .filter((slot) => picked.has(slot))
+        .map((slot) => ({ slot, at: times[slot]?.trim() || null }));
+
+      // UPDATE et pas UPSERT: un upsert partiel écraserait `goal` et
+      // `content_locale`, qui sont NOT NULL et n'ont rien à faire ici. Les
+      // autres clés pratiques sont conservées par l'étalement.
+      const { error: err } = await supabase
+        .from("student_goals")
+        .update({
+          practical_constraints: { ...props.practicalConstraints, eating_rhythm },
+        })
+        .eq("user_id", uid);
+      if (err) throw new Error(err.message);
+      setFlash(COPY.saved);
+      await props.onSaved();
+      // Enregistré => la carte se replie, comme celle de l'objectif. Le geste
+      // suivant est de composer ses repas, pas de relire les cases qu'on vient
+      // de cocher. Le `flash` reste visible SOUS le résumé: replier ne doit pas
+      // effacer la confirmation de ce qu'on vient d'écrire.
+      setOpen(false);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Card>
+      <div className="flex items-start justify-between gap-3">
+        <SectionLabel>{COPY.title}</SectionLabel>
+        <button
+          type="button"
+          onClick={() => {
+            setFlash(null);
+            setOpen((o) => !o);
+          }}
+          aria-expanded={open}
+          aria-controls="eating-rhythm-editor"
+          className="shrink-0 text-xs font-medium text-gray-700 underline underline-offset-2 hover:text-gray-900"
+        >
+          {open ? COPY.close : COPY.open}
+        </button>
+      </div>
+
+      {/* REPLIÉE, ELLE DOIT ENCORE DIRE CE QU'ELLE CONTIENT. Un bloc plié qui
+          n'affiche qu'un titre oblige à l'ouvrir pour savoir sur quoi sa semaine
+          est construite — et « rien d'écrit » est une réponse à afficher, pas un
+          vide: c'est le repli sur trois repas, et l'élève doit le lire sans
+          déplier. */}
+      {!open && (
+        <div className="mt-2">
+          <p className="text-sm text-gray-900">{savedSummary ?? COPY.summary_none}</p>
+          {dirty && <p className="mt-1 text-xs text-amber-700">{COPY.unsaved}</p>}
+        </div>
+      )}
+
+      {open && (
+      <div id="eating-rhythm-editor">
+      <p className="mt-2 text-xs leading-5 text-gray-500">{COPY.intro}</p>
+
+      <ul className="mt-4 space-y-2">
+        {EATING_OCCASIONS.map((slot) => {
+          const on = picked.has(slot);
+          return (
+            <li
+              key={slot}
+              className={`flex flex-wrap items-center gap-3 rounded-lg border px-3 py-2 ${
+                on ? "border-gray-900 bg-gray-50" : "border-gray-200"
+              }`}
+            >
+              <label className="flex flex-1 cursor-pointer items-center gap-2.5">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4"
+                  checked={on}
+                  onChange={() => toggle(slot)}
+                />
+                <span className="text-sm font-medium text-gray-900">
+                  {occasionLabel(slot)}
+                </span>
+              </label>
+              {/* L'heure n'apparaît QUE sur un moment coché: un champ d'heure à
+                  côté d'un moment qu'on ne prend pas est une question sans
+                  objet, et six d'entre elles font une carte illisible. */}
+              {on && (
+                <label className="flex items-center gap-2 text-xs text-gray-500">
+                  {COPY.time_label}
+                  <input
+                    type="time"
+                    className="rounded-lg border border-gray-300 px-2 py-1 text-sm text-gray-900"
+                    value={times[slot] ?? ""}
+                    onChange={(e) => {
+                      setFlash(null);
+                      setTimes((prev) => ({ ...prev, [slot]: e.target.value }));
+                    }}
+                  />
+                </label>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+
+      <p className="mt-2 text-xs leading-5 text-gray-500">{COPY.time_hint}</p>
+
+      {/* NE RIEN COCHER EST UN ÉTAT VALIDE, et l'écran dit ce qu'il produit
+          plutôt que de refuser d'enregistrer. Le repli est le comportement du
+          moteur avant qu'on pose la question — donc une hypothèse ordinaire, et
+          la copie le nomme comme telle au lieu de la faire passer pour un
+          choix. */}
+      {picked.size === 0 && (
+        <p className="mt-3 rounded-lg bg-gray-50 p-3 text-xs leading-5 text-gray-600">
+          {COPY.none}
+        </p>
+      )}
+
+      {!props.hasGoal && (
+        <p className="mt-3 rounded-lg bg-amber-50 p-3 text-xs leading-5 text-amber-900">
+          {COPY.needs_goal}
+        </p>
+      )}
+
+      <div className="mt-4">
+        <Button
+          variant="secondary"
+          disabled={busy || !props.hasGoal}
+          onClick={() => void save()}
+        >
+          {busy ? COPY.saving : COPY.save}
+        </Button>
+      </div>
+      </div>
+      )}
+
+      {/* Hors du bloc dépliable: un échec d'écriture, comme la confirmation
+          qui suit le repli automatique, doit rester lisible dans les deux
+          états. */}
+      {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+      {flash && <p className="mt-3 text-xs text-emerald-700">{flash}</p>}
+    </Card>
+  );
+}

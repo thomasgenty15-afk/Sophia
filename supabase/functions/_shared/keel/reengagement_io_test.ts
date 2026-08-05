@@ -7,6 +7,7 @@
 import { assert, assertEquals } from "jsr:@std/assert@1";
 
 import {
+  composeReengageBody,
   decideForCandidates,
   KEEL_EPISODE_SOURCE,
   loadReengageCandidates,
@@ -324,6 +325,100 @@ Deno.test("an episode carries its producer, and dates its touch only after the s
   // sur trois touches et referme les siens en lisant le contenu de la réponse.
   assert(close.includes('.eq("source", KEEL_EPISODE_SOURCE)'));
   assert(close.includes('.is("closed_at", null)'));
+});
+
+// ---------------------------------------------------------------------------
+// LA VOIX DU COACH, ET SON REPLI
+//
+// La relance était le SEUL message du produit composé nulle part: un texte figé,
+// parce que Meta imposait un template hors fenêtre 24 h. La contrainte est
+// partie avec Meta et l'écart lui a survécu six semaines. Ces tests portent la
+// propriété qui compte maintenant: **le repli existe, il part, et il se
+// NOMME.** Un composeur qui ne sert jamais et un composeur qui marche
+// produisent le même envoi réussi — c'est exactement la panne que ce dépôt a
+// déjà payée avec `toneDelivered`.
+// ---------------------------------------------------------------------------
+
+/**
+ * Une base qui répond correctement, et qui n'a rien à dire.
+ *
+ * Distincte de `fakeDb` EXPRÈS: `fakeDb` ne connaît pas `.maybeSingle()`, donc
+ * il éprouve le cas « la lecture explose ». Celle-ci éprouve le cas nominal —
+ * l'élève n'a pas de coach — et les deux doivent produire le même repli, par
+ * deux chemins différents. Les confondre laisserait un des deux sans test.
+ */
+function emptyDoctrineDb() {
+  const chain: Record<string, unknown> = {
+    select: () => chain,
+    eq: () => chain,
+    gt: () => chain,
+    is: () => chain,
+    order: () => chain,
+    limit: () => chain,
+    maybeSingle: () => Promise.resolve({ data: null, error: null }),
+    then: (resolve: (r: unknown) => void) =>
+      Promise.resolve({ data: [], error: null }).then(resolve),
+  };
+  return { from: () => chain };
+}
+
+Deno.test("pas de coach ⇒ repli, sans jamais consulter le modèle", async () => {
+  // Il n'y a pas de voix à porter: un appel de modèle paierait pour réécrire un
+  // texte figé, en moins bien et sans le déterminisme qui allait avec. Le test
+  // tourne d'ailleurs sans réseau joignable — un appel produirait une erreur
+  // dans le motif au lieu de `no_doctrine`.
+  const out = await composeReengageBody(emptyDoctrineDb(), {
+    userId: "s1",
+    firstName: "Iris",
+    tone: "gentle",
+  });
+
+  assertEquals(out.source, "fallback");
+  assertEquals(out.body, renderReengageNudge("Iris"));
+  assert(
+    out.reason.startsWith("no_doctrine:"),
+    `motif inattendu: ${out.reason}`,
+  );
+});
+
+Deno.test("une lecture de doctrine qui explose ne fait pas taire la relance", async () => {
+  // `fakeDb` ne sait pas répondre à `.maybeSingle()`. Le chargeur est fail-soft
+  // (il journalise et rend `no_coach`), et ce test épingle la conséquence qui
+  // nous intéresse: la boucle de décrochage garde son message. Une panne de
+  // lecture côté COACH ne doit jamais coûter le message à l'ÉLÈVE.
+  const out = await composeReengageBody(fakeDb({}), {
+    userId: "s1",
+    firstName: "Iris",
+    tone: "gentle",
+  });
+
+  assertEquals(out.source, "fallback");
+  assertEquals(out.body, renderReengageNudge("Iris"));
+  // LE MOTIF EST OBLIGATOIRE. Un repli muet est indiscernable d'une réussite,
+  // et c'est comme ça qu'on découvre six semaines plus tard que la voix du
+  // coach n'a jamais porté.
+  assert(out.reason.length > 0, "un repli doit toujours nommer sa cause");
+});
+
+Deno.test("l'ordre est composer → ceinture → livrer, et il n'est pas commutatif", async () => {
+  // Même famille que « la relance part avec le corps EXACT qu'on a rendu »: ce
+  // qui est vérifié ici est un ORDRE, et un ordre ne se teste pas en observant
+  // une sortie. Composer APRÈS la ceinture ferait passer un texte que personne
+  // n'a inspecté; livrer avant la ceinture la rendrait décorative.
+  const src = await Deno.readTextFile(
+    new URL("./reengagement_io.ts", import.meta.url),
+  );
+  const send = src.slice(
+    src.indexOf("export async function sendReengageNudge"),
+    src.indexOf("export async function closeKeelReengagementEpisodeOnInbound"),
+  );
+  const composeAt = send.indexOf("composeReengageBody(db, args)");
+  const beltAt = send.indexOf("assertNoGuiltTripping(body)");
+  const deliverAt = send.indexOf("deliverChatMessage");
+
+  assert(composeAt > 0, "la relance doit passer par le composeur");
+  assert(composeAt < beltAt, "la ceinture doit inspecter le texte COMPOSÉ");
+  assert(beltAt < deliverAt, "la ceinture doit mordre avant l'envoi");
 });
 
 Deno.test("the gates still apply through the IO layer", () => {

@@ -36,20 +36,22 @@ import { toneInstruction } from "../_shared/keel/reengagement.ts";
  * jamais reçu — donc chaque élève passé une fois par ce job en sortait
  * DÉFINITIVEMENT. Le job se fabriquait sa propre population vide.
  *
- * ── CE QUI COMPOSE LE TEXTE, ET L'ÉCART ASSUMÉ ──────────────────────────
- * L'ancienne version de cet en-tête disait que la génération passerait par le
- * composeur, porteur de la doctrine du coach. C'est toujours la cible et ce
- * n'est pas ce qui tourne: le texte vient de `renderReengageMessage`, qui est
- * neutre et pas dans la voix du coach. Le pourquoi est écrit en entier au-dessus
- * de cette fonction — en deux mots, une relance part hors fenêtre 24h, donc
- * `whatsapp-send` la délivre obligatoirement en TEMPLATE, et un template est un
- * texte figé approuvé par Meta qu'aucune composition ne peut changer.
+ * ── CE QUI COMPOSE LE TEXTE (l'écart assumé est refermé) ────────────────
+ * Cet en-tête a longtemps dit que la génération DEVRAIT passer par le composeur
+ * porteur de la doctrine du coach, et que ce n'était pas ce qui tournait. La
+ * raison était bonne: hors fenêtre 24 h, Meta imposait un template — un texte
+ * figé qu'aucune composition ne peut changer. **Meta est parti, la raison avec
+ * lui, et l'écart a survécu six semaines à sa cause.** C'est le vrai
+ * enseignement de ce fichier: une contrainte externe honnêtement documentée
+ * devient une décision de conception que plus personne ne rouvre.
  *
- * ── CE QUI RESTE BLOQUÉ EN AVAL, ET QUE CE FICHIER NE PEUT PAS RÉGLER ────
- * Aucun template Meta n'est approuvé pour KEEL. `whatsapp-send` retombe donc
- * sur le template de check-in par défaut, et si celui-ci n'est pas approuvé non
- * plus l'envoi échoue — proprement, en `failures`, plus jamais en « armé ».
- * C'est une dépendance externe, pas une ligne de code manquante.
+ * Depuis, `composeReengageBody` charge la doctrine publiée du coach, compose,
+ * et fait juger le texte par la ceinture de `reengage_composer.ts`. Tout échec
+ * — pas de doctrine, modèle en panne, verdict négatif — rend le texte
+ * déterministe: un message générique qui PART vaut mieux qu'un message
+ * personnalisé qui ne part jamais. `body_sources` dans le compte-rendu dit
+ * lequel des deux chemins a servi, parce que les deux produisent un envoi
+ * réussi et qu'ils ne valent pas la même chose.
  *
  * `dry_run: true` décide sans rien ouvrir ni envoyer: c'est le mode qui permet
  * d'observer qui SERAIT relancé avant d'envoyer quoi que ce soit.
@@ -107,6 +109,9 @@ Deno.serve(async (req) => {
     // template `gentle` tant qu'aucun second template n'est approuvé. Le compter
     // évite qu'un « ton adouci » existe uniquement dans nos journaux.
     let toneNotDelivered = 0;
+    /** D'où venait le texte des relances parties: composé / repli. */
+    const bodySources: Record<string, number> = {};
+    const fallbackReasons: Record<string, number> = {};
     const failures: string[] = [];
     const armed: Array<{ user_id: string; tone: string; hours_silent: number | "never_wrote" }> = [];
     const byUserId = new Map(candidates.map((c) => [c.userId, c]));
@@ -208,6 +213,16 @@ Deno.serve(async (req) => {
           requestId,
         });
         if (!res.toneDelivered) toneNotDelivered++;
+        // « Composé » et « replié » produisent le même envoi réussi. Sans ce
+        // compte, un composeur qui ne sert JAMAIS — doctrine absente sur toute
+        // la cohorte, modèle en panne, ceinture qui refuse tout — se lit comme
+        // un composeur qui marche. C'est la panne silencieuse par excellence,
+        // et ce dépôt l'a déjà payée avec `toneDelivered`.
+        bodySources[res.bodySource] = (bodySources[res.bodySource] ?? 0) + 1;
+        if (res.bodySource === "fallback" && res.bodyReason) {
+          const key = res.bodyReason.split(":").slice(0, 2).join(":");
+          fallbackReasons[key] = (fallbackReasons[key] ?? 0) + 1;
+        }
         if (!res.ok) {
           // L'asymétrie décrite dans `rollbackReengagementEpisode`: un refus
           // net d'avant-livraison (config absente = 0, garde interne = 4xx)
@@ -266,6 +281,10 @@ Deno.serve(async (req) => {
       // Relances parties dans le template `gentle` alors que le décideur avait
       // choisi `lighter`. Non nul = il manque un template approuvé, pas un bug.
       tone_not_delivered: toneNotDelivered,
+      // La voix du coach a-t-elle porté ? `{"composed":8,"fallback":2}` se lit;
+      // `sent: 10` ne dit rien de ce que les élèves ont reçu.
+      body_sources: bodySources,
+      body_fallback_reasons: fallbackReasons,
       skipped_by_reason: bySkipReason,
       failures: failures.slice(0, 50),
       // L'instruction de ton part avec l'armement: c'est elle qui porte

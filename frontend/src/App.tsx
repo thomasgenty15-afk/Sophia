@@ -47,6 +47,7 @@ import StudentHealthPage from "./keel/pages/StudentHealthPage";
 import NotFoundPage from "./keel/pages/NotFoundPage";
 import CoachBillingPage from "./keel/pages/CoachBillingPage";
 import TemplatesPage from "./keel/pages/TemplatesPage";
+import CoachMealsPage from "./keel/pages/CoachMealsPage";
 import { CoachRoute } from "./keel/components/CoachRoute";
 
 function App() {
@@ -209,6 +210,23 @@ function App() {
                 element={
                   <CoachRoute>
                     <CoachProtocolPage />
+                  </CoachRoute>
+                }
+              />
+              {/* KEEL — la bibliothèque de recettes du coach. Elle existait en
+                  base, en fonction edge et en API cliente depuis le 04/08 sans
+                  aucune surface: six fonctions exportées, zéro appelant. Le
+                  coach écrit un plat UNE fois et toute sa cohorte le lit — rien
+                  ici n'assigne quoi que ce soit à un élève nommé, c'est
+                  précisément le 1:1 que le pivot a retiré (docs/keel/MODEL.md).
+                  Même garde que le reste de l'espace coach; `meal_ideas` porte
+                  une policy `for all` qui borne le coach à ses propres lignes,
+                  donc la base est la vraie frontière. */}
+              <Route
+                path="/coach/meals"
+                element={
+                  <CoachRoute>
+                    <CoachMealsPage />
                   </CoachRoute>
                 }
               />

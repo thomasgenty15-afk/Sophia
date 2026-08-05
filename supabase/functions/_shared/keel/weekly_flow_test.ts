@@ -11,8 +11,10 @@
 import { assert, assertEquals } from "jsr:@std/assert@1";
 
 import {
+  buildMeasuresToken,
   buildWeeklyFlowToken,
   decideWeeklyFlow,
+  parseMeasuresToken,
   WEEKLY_FLOW_SKIP_REASONS,
   parseWeeklyFlowResponse,
   parseWeeklyFlowToken,
@@ -392,4 +394,68 @@ Deno.test("the fallback token is read back by the SAME parser as the native path
   const params = components[0].parameters as Array<Record<string, unknown>>;
   const action = params[0].action as Record<string, unknown>;
   assertEquals(parseWeeklyFlowToken(String(action.flow_token)), "2026-08-03");
+});
+
+// ---------------------------------------------------------------------------
+// LA CARTE DES MESURES — le second formulaire qui écrit `biofeedback`
+// ---------------------------------------------------------------------------
+
+Deno.test("les deux jetons ne se confondent PAS", () => {
+  // Deux préfixes, deux branches. Si l'un relisait l'autre, une saisie de poids
+  // depuis /app/plan serait comptée comme le point du dimanche — donc
+  // `hasAnsweredWeek` deviendrait vrai et l'élève ne serait plus sollicité.
+  const measures = buildMeasuresToken("2026-08-03");
+  const weekly = buildWeeklyFlowToken("2026-08-03");
+  assertEquals(parseMeasuresToken(measures), "2026-08-03");
+  assertEquals(parseWeeklyFlowToken(weekly), "2026-08-03");
+  assertEquals(parseMeasuresToken(weekly), null);
+  assertEquals(parseWeeklyFlowToken(measures), null);
+
+  // Et le jeton de mesures ne porte pas plus d'identité que l'autre.
+  assert(!measures.includes("@"));
+  assertEquals(measures, "KEEL_MEASURES_2026-08-03");
+});
+
+Deno.test("un jeton de mesures malformé n'est pas relu", () => {
+  for (const bad of ["KEEL_MEASURES_", "KEEL_MEASURES_2026-8-3", "KEEL_MEASURES_x", null, ""]) {
+    assertEquals(parseMeasuresToken(bad), null, String(bad));
+  }
+});
+
+Deno.test("la carte des mesures ne réclame PAS les six axes", () => {
+  // Sans ce mode, chaque poids saisi depuis /app/plan cracherait six
+  // « energy: missing, dropped ». Ce canal a un seul travail — signaler un
+  // formulaire qui a divergé du code — et le noyer de bruit attendu le rend
+  // inutile pour le jour où il aura raison.
+  const r = parseWeeklyFlowResponse(
+    JSON.stringify({ weight_kg: "78,4" }),
+    "measures_card",
+  );
+  assertEquals(r.issues, []);
+  assertEquals(r.weightKg, 78.4);
+  assertEquals(r.biofeedback, {});
+
+  // CONTRE-FACTUEL: le point du dimanche, lui, continue de le dire.
+  const weekly = parseWeeklyFlowResponse(JSON.stringify({ weight_kg: "78,4" }));
+  assert(weekly.issues.length > 0, "le mode weekly_form doit encore signaler les axes absents");
+});
+
+Deno.test("les bornes mordent AUSSI depuis la carte des mesures", () => {
+  // Le mode ne relâche que les axes. Une faute de frappe reste écartée et
+  // nommée — jamais ramenée dans les bornes.
+  const r = parseWeeklyFlowResponse(
+    JSON.stringify({ weight_kg: "500", waist_cm: "12" }),
+    "measures_card",
+  );
+  assertEquals(r.weightKg, null);
+  assertEquals(r.waistCm, null);
+  assertEquals(r.issues.length, 2);
+});
+
+Deno.test("la provenance distingue les deux gestes", () => {
+  const r = parseWeeklyFlowResponse(JSON.stringify({ weight_kg: "78" }), "measures_card");
+  assertEquals(weeklyBiofeedbackPayload(r, "measures_card").source, "in_app_measures_card");
+  assertEquals(weeklyBiofeedbackPayload(r, "weekly_form").source, "in_app_weekly_form");
+  // Le défaut reste ce que tout appelant écrit avant ce lot voulait dire.
+  assertEquals(weeklyBiofeedbackPayload(r).source, "in_app_weekly_form");
 });

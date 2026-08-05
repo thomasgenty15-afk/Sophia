@@ -51,9 +51,11 @@ import { sniffImageMime } from "../_shared/keel/image_sniff.ts";
  *   3. verify the mime by MAGIC BYTES, not by the declared header. A client that
  *      says "image/png" over an arbitrary payload must not get it stored and fed
  *      to a model.
- *   4. resolve the local date SERVER-SIDE from the plan timezone. A client-
+ *   4. resolve the local date SERVER-SIDE from the student's timezone (their
+ *      published plan when one exists, else `profiles.timezone`). A client-
  *      supplied date is a client-supplied fact: it would let a student file
- *      today's plate on a day the evaluator has not closed yet.
+ *      today's plate on a day the evaluator has not closed yet. NOTHING here
+ *      requires a published plan any more -- see the block at step 4.
  *   5. upload, then READ THE OBJECT BACK, then insert the row, then read THAT
  *      back. Nothing is announced that is not a re-read row (execution truth).
  *   6. call `analyze-meal-photo-v1`. Its failure NEVER fails the upload: the
@@ -100,7 +102,54 @@ const MIME_EXTENSIONS: Record<string, string> = {
   "image/webp": "webp",
 };
 
-const REQUEST_SCHEMA = z.object({
+/**
+ * L'ACTION DE LECTURE — rendre affichables des photos déjà envoyées.
+ *
+ * ── POURQUOI ELLE VIT ICI ET PAS DANS UNE FONCTION À ELLE ─────────────────
+ * L'en-tête de ce fichier énonce déjà l'arbitrage: il n'existe AUCUNE policy
+ * sur `storage.objects`, donc tout accès au bucket est une fonction edge en
+ * service_role qui a déjà vérifié la propriété. Ça vaut dans les deux sens —
+ * écrire ET lire. Une seconde fonction aurait dupliqué l'authentification, la
+ * constante de bucket et la règle de propriété; `coach-recipe-image-v1` a
+ * tranché la même question de la même façon (upload + sign réunis).
+ *
+ * LE DÉFAUT QUE ÇA CORRIGE: `meal-photo-upload-v1` écrivait déjà
+ * `metadata.media_ref` sur la ligne de conversation, et personne ne pouvait le
+ * relire. L'élève envoyait son assiette et voyait « [photo] » en texte — le
+ * geste central du produit ne laissait aucune trace de ce qu'il avait envoyé.
+ *
+ * LA PROPRIÉTÉ EST LUE, JAMAIS DÉDUITE. Le chemin commence par l'id du
+ * propriétaire (invariant RGPD d'`objectPath`), et il serait tentant de s'en
+ * contenter: un préfixe est une AFFIRMATION du client sur la forme d'une
+ * chaîne, pas une preuve. La liste signable vient de `protocol_events` pour CE
+ * user_id. Un chemin absent est OMIS — pas de 403, parce que « ce chemin
+ * existe mais n'est pas à toi » est déjà une information sur un autre élève.
+ */
+const SIGN_SCHEMA = z.object({
+  action: z.literal("sign"),
+  paths: z.array(z.string().trim().min(1).max(300)).min(1).max(100),
+});
+
+/**
+ * Courte, et ré-émise à chaque affichage. La stocker la ferait expirer dans le
+ * stockage; l'allonger la ferait survivre à une suppression de compte —
+ * `purge-deleted-accounts` efface l'objet, pas les liens déjà distribués.
+ */
+const SIGNED_URL_TTL_SECONDS = 3600;
+
+/** Signer ne coûte ni stockage ni appel modèle: bien plus large que l'upload. */
+const SIGN_RATE_WINDOWS = [
+  { limit: 120, windowSeconds: 600 },
+  { limit: 1000, windowSeconds: 86_400 },
+];
+
+const UPLOAD_SCHEMA = z.object({
+  /**
+   * Absent sur le chemin historique, et c'est voulu: le client d'upload n'a
+   * jamais envoyé d'action, et lui en imposer une pour ajouter une LECTURE
+   * casserait l'écriture. L'absence vaut « upload ».
+   */
+  action: z.literal("upload").optional(),
   mime_type: z.string().trim().min(1).max(80),
   base64: z.string().min(1).max(12_000_000),
   slot_key: z.string().trim().min(1).max(40).nullable().optional(),
@@ -141,6 +190,39 @@ const REQUEST_SCHEMA = z.object({
    */
   chat_client_message_id: z.string().trim().min(8).max(128).optional(),
 });
+
+// L'ORDRE DE L'UNION EST LE CONTRAT: `sign` d'abord, parce qu'il est
+// discriminé par une valeur littérale et que le schéma d'upload accepterait
+// sinon une charge de signature en la trouvant simplement incomplète — donc
+// avec un message d'erreur qui parlerait de `mime_type` manquant.
+const REQUEST_SCHEMA = z.union([SIGN_SCHEMA, UPLOAD_SCHEMA]);
+
+/**
+ * L'URL signée, PRIVÉE DE SON ORIGINE — et c'est un correctif, pas un détail.
+ *
+ * `createSignedUrl` compose l'URL à partir du `SUPABASE_URL` que la FONCTION
+ * voit. En local, c'est `http://kong:8000`: le nom d'hôte interne du réseau
+ * Docker. Mesuré au navigateur — la signature réussissait, l'URL revenait, et
+ * l'image ne chargeait jamais (`dns error: failed to lookup address
+ * information: kong`). Le défaut est silencieux côté serveur: rien n'échoue là
+ * où on regarde.
+ *
+ * Plutôt que d'introduire une variable « origine publique » de plus (qu'un
+ * environnement futur oubliera de poser), on rend le chemin RELATIF. Le seul
+ * composant qui connaisse à coup sûr son origine publique est celui qui a fait
+ * la requête: le navigateur. Il recolle, et ça vaut dans tous les
+ * environnements sans configuration.
+ */
+function relativeSignedUrl(signedUrl: string): string {
+  try {
+    const u = new URL(signedUrl);
+    return `${u.pathname}${u.search}`;
+  } catch {
+    // Déjà relative (ou illisible): on rend tel quel plutôt que de perdre le
+    // jeton. Le client ne joindra rien de plus qu'une chaîne déjà jointe.
+    return signedUrl;
+  }
+}
 
 function adminClient(): SupabaseClient {
   return createClient(
@@ -305,6 +387,49 @@ Deno.serve(async (req) => {
     }
     const userId = user.id;
 
+    // ---- 1bis. LA LECTURE — rendre affichables des photos déjà envoyées ----
+    // Avant tout le reste: elle ne partage rien avec l'écriture au-delà de
+    // l'identité, et elle ne doit surtout pas consommer le plafond d'upload
+    // (afficher une conversation demande un lot d'URLs, envoyer une photo est
+    // un geste rare et coûteux — deux compteurs, deux natures).
+    if ("action" in body && body.action === "sign") {
+      const signLimited = await enforceRateLimit(req, requestId, {
+        key: `meal-photo-sign:${userId}`,
+        windows: SIGN_RATE_WINDOWS,
+      });
+      if (signLimited) return signLimited;
+
+      const admin = adminClient();
+      // Dédupliqué: une conversation peut porter deux fois le même chemin
+      // (rejeu, doublon exact accusé), et signer deux fois coûte deux fois.
+      const wanted = [...new Set(body.paths)];
+      const owned = await admin
+        .from("protocol_events")
+        .select("media_path")
+        .eq("user_id", userId)
+        .in("media_path", wanted);
+      if (owned.error) {
+        throw new Error(`protocol_events read failed: ${owned.error.message}`);
+      }
+      const allowed = new Set(
+        ((owned.data ?? []) as Array<{ media_path: string | null }>)
+          .map((r) => String(r.media_path ?? "").trim())
+          .filter(Boolean),
+      );
+
+      const urls: Record<string, string> = {};
+      for (const path of wanted) {
+        if (!allowed.has(path)) continue;
+        const signed = await admin.storage
+          .from(MEAL_PHOTO_BUCKET)
+          .createSignedUrl(path, SIGNED_URL_TTL_SECONDS);
+        if (!signed.error && signed.data?.signedUrl) {
+          urls[path] = relativeSignedUrl(signed.data.signedUrl);
+        }
+      }
+      return jsonResponse(req, { ok: true, urls, request_id: requestId });
+    }
+
     // ---- 2. rate limit, keyed on the identity -----------------------------
     const limited = await enforceRateLimit(req, requestId, {
       key: `meal-photo-upload-v1:${userId}`,
@@ -356,7 +481,28 @@ Deno.serve(async (req) => {
 
     const admin = adminClient();
 
-    // ---- 4. the day, resolved in the PLAN's timezone -----------------------
+    // ---- 4. the day, resolved in the STUDENT's timezone --------------------
+    //
+    // ── LE REFUS QUI ÉTAIT ICI, ET POURQUOI IL N'Y EST PLUS (2026-08-05) ─────
+    // Cette fonction exigeait un `plan_versions` PUBLIÉ et répondait sinon un
+    // 409 doublé, dans la bulle, de: « your coach hasn't published your plan,
+    // so there's nothing for it to count toward ».
+    //
+    // C'est le modèle produit à l'envers (docs/keel/MODEL.md): LE COACH NE
+    // PUBLIE PAS DE PLAN PAR ÉLÈVE. La condition attendue n'arrive donc jamais,
+    // et la phrase demandait à l'élève d'attendre un geste que personne ne fera.
+    // Autrement dit: le geste le plus coûteux du produit était refusé à tout
+    // élève du modèle réel, avec pour motif l'absence d'un artefact hors modèle.
+    //
+    // Le plan n'était de toute façon requis ici que pour DEUX choses:
+    //   - un fuseau, pour classer la photo au bon jour. Il y en a un autre, et
+    //     il appartient à l'élève: `profiles.timezone` (écrit à l'inscription);
+    //   - une ligne à créditer. Il n'y en a pas, et il n'y a plus à en chercher:
+    //     une photo n'est comparée à rien (voir `analyze-meal-photo-v1`).
+    //
+    // R7 tient toujours sur le fuseau: on ne se replie JAMAIS sur une date
+    // fournie par le client (l'horloge du navigateur n'est pas un fait), et un
+    // fuseau illisible échoue bruyamment plutôt que de ranger un dîner la veille.
     const planRead = await admin
       .from("plan_versions")
       .select("id, timezone")
@@ -367,36 +513,33 @@ Deno.serve(async (req) => {
       throw new Error(`plan_versions read failed: ${planRead.error.message}`);
     }
     const planVersion = planRead.data as { id: string; timezone: string } | null;
-    if (!planVersion) {
-      // Without a published plan there is no timezone to resolve the day in and
-      // no line to evidence. Trusting a client date instead would be a fact
-      // whose origin is the browser clock.
-      //
-      // ── DE-WHATSAPP: DANS LA CONVERSATION, UN REFUS SE DIT ─────────────────
-      // Le 409 reste le contrat de l'API, et l'écran du jour le lit très bien.
-      // Mais un élève qui vient d'envoyer une photo DANS LA BULLE ne lit pas un
-      // code HTTP: sans un mot, il voit sa photo partir et rien revenir, ce qui
-      // est indiscernable d'une panne. On lui répond, dans la bulle, ce que le
-      // 409 dit à l'API — et sans lui reprocher quoi que ce soit: ne pas avoir
-      // encore de plan n'est pas sa faute.
-      if (body.chat_client_message_id) {
-        await deliverChatMessage(admin, {
-          userId,
-          content:
-            "I can't file that photo yet — your coach hasn't published your plan, " +
-            "so there's nothing for it to count toward. Send it again once your " +
-            "plan is live and I'll log it.",
-          isReply: true,
-          purpose: "keel_meal_photo_no_plan",
-          requestId,
-        }).catch(() => {});
+    let timezone = String(planVersion?.timezone ?? "").trim();
+    if (!timezone) {
+      const profileRead = await admin
+        .from("profiles")
+        .select("timezone")
+        .eq("id", userId)
+        .maybeSingle();
+      if (profileRead.error) {
+        throw new Error(`profiles read failed: ${profileRead.error.message}`);
       }
-      return jsonResponse(req, {
-        error: "No published plan: there is nothing to log this photo against yet.",
-        request_id: requestId,
-      }, { status: 409 });
+      timezone = String(
+        (profileRead.data as { timezone?: unknown } | null)?.timezone ?? "",
+      ).trim();
     }
-    const localDate = localDateInZone(planVersion.timezone, new Date());
+    if (!timezone) {
+      // Ni plan ni profil: on ne SAIT pas quel jour il est pour cet élève. UTC
+      // est le seul repli honnête — c'est « on ne sait pas » et non « il vit à
+      // Paris » — et il est TRACÉ, parce qu'un profil sans fuseau est un défaut
+      // d'inscription à corriger, pas un état normal.
+      console.warn(JSON.stringify({
+        tag: "meal_photo_timezone_unknown",
+        user_id: userId,
+        detail: "no published plan and no profiles.timezone; filing the day in UTC",
+      }));
+      timezone = "UTC";
+    }
+    const localDate = localDateInZone(timezone, new Date());
 
     // ---- 5. the two client-supplied tokens, both verified ------------------
     let slotKey: string | null = null;
@@ -418,6 +561,17 @@ Deno.serve(async (req) => {
       // client: a commitment id that is not on THIS student's published plan is
       // rejected, because `recognized.commitment_id` is the evaluator's explicit
       // binding and would otherwise write a grade onto an arbitrary line.
+      //
+      // Sans plan publié il n'existe AUCUNE ligne à lier: l'id est forcément
+      // faux, et il est refusé — ce qui reste un 400 et non un blocage de la
+      // photo, puisque seul le mode 1:1 en envoie un.
+      if (!planVersion) {
+        return badRequest(
+          req,
+          requestId,
+          "commitment_id was supplied but you have no published plan to bind it to",
+        );
+      }
       const check = await admin
         .from("plan_commitments")
         .select("id")

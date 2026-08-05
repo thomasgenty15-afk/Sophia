@@ -23,6 +23,7 @@ import {
   loadStudentBody,
 } from "../_shared/keel/student_body_io.ts";
 import { localDateFor } from "../_shared/keel/reengagement_io.ts";
+import type { WeeklyAxis } from "../_shared/keel/weekly_flow.ts";
 import {
   buildWeekPlanPrompt,
   type CoachPrinciple,
@@ -102,7 +103,7 @@ Deno.serve(async (req) => {
     // --- l'objectif et la situation de l'élève ----------------------------
     const goalRes = await admin
       .from("student_goals")
-      .select("goal, situation, practical_constraints, content_locale")
+      .select("goal, situation, aspiration, focus_axis, practical_constraints, content_locale")
       .eq("user_id", userId)
       .maybeSingle();
     if (goalRes.error) throw goalRes.error;
@@ -296,6 +297,12 @@ Deno.serve(async (req) => {
         // dans `generated_from` pour qu'on puisse relire, trois semaines plus
         // tard, pourquoi cette semaine-là avait cette forme.
         context: weekContext,
+        // Ce que l'élève VEUT, et l'axe qu'il a désigné. Les deux sont lus par
+        // `buildWeekPlanPrompt` — sans ça ce seraient deux colonnes qu'on
+        // demande à l'élève de remplir sans que rien ne s'en serve, ce que ce
+        // module appelle une entrée décorative.
+        aspiration: goalRow.aspiration ? String(goalRow.aspiration) : null,
+        focusAxis: (goalRow.focus_axis ?? null) as WeeklyAxis | null,
         practicalConstraints: (goalRow.practical_constraints ?? {}) as Record<string, unknown>,
         // Ce que chaque entrée ALTÈRE est documenté dans `student_body.ts`. Une
         // bande d'âge (pas un nombre) et des TENDANCES (pas des valeurs): le

@@ -359,24 +359,24 @@ export const REENGAGE_TEMPLATE_NAME_DEFAULT = "keel_reengage_v1";
 export const REENGAGE_TEMPLATE_LANG_DEFAULT = "en_GB";
 
 /**
- * Le corps du template, rendu avec le prénom — le texte EXACT que l'élève lit.
+ * LE TEXTE DE SECOURS — rendu avec le prénom, neutre, et toujours délivrable.
  *
- * ── POURQUOI CE N'EST PAS LE COMPOSEUR, ET CE QUE ÇA COÛTE ───────────────
- * L'en-tête de `keel-reengage-v1` dit que la génération doit passer par le
- * composeur, qui porte la doctrine du coach. C'est la bonne cible et ça reste
- * la cible. Ce n'est pas ce qui est câblé, et la raison n'est pas la paresse:
- * une relance part APRÈS 72h de silence, donc TOUJOURS hors fenêtre 24h — c'est
- * un entrant qui ouvre cette fenêtre, et le seuil de ce module dit précisément
- * qu'il n'y en a pas eu. `whatsapp-send` bascule alors obligatoirement en
- * template (`mustUseTemplate = !isIn24h`), et un template est un texte figé
- * approuvé par Meta. Un texte libre composé pour l'occasion NE SERAIT PAS
- * DÉLIVRÉ. Le composer ici serait du code mort déguisé en fonctionnalité.
+ * ── CE QU'IL ÉTAIT, ET CE QU'IL EST DEVENU ───────────────────────────────
+ * Il a longtemps été le SEUL texte possible, et cet en-tête expliquait
+ * pourquoi: une relance part après 72 h de silence, donc toujours hors de la
+ * fenêtre de 24 h de Meta, donc `whatsapp-send` basculait obligatoirement en
+ * template — un texte figé approuvé, qu'aucune composition ne pouvait changer.
+ * Le raisonnement était juste et concluait: composer ici serait du code mort.
  *
- * CE QUE ÇA COÛTE, dit franchement: ce message n'est PAS dans la voix du coach,
- * il est neutre. C'est un écart au modèle, assumé, parce qu'un message
- * générique qui part vaut mieux qu'un message personnalisé qui ne part jamais —
- * ce que faisait ce chemin jusqu'ici. La voix du coach revient au tour SUIVANT,
- * quand l'élève répond: là, c'est le cerveau qui répond, avec la doctrine.
+ * Meta est parti. La contrainte aussi. `composeReengageBody`
+ * (`reengagement_io.ts`) compose maintenant dans la voix du coach, et cette
+ * fonction est le REPLI: pas de doctrine publiée, modèle en panne, ou verdict
+ * de ceinture négatif. C'est le bon arbitrage, inchangé depuis le premier jour
+ * — un message générique qui PART vaut mieux qu'un message personnalisé qui ne
+ * part jamais.
+ *
+ * Le garder neutre est donc une propriété, pas un reliquat: c'est le texte qui
+ * doit pouvoir partir quand tout le reste a échoué.
  *
  * ── POURQUOI CETTE COPIE LOCALE DU CORPS ─────────────────────────────────
  * Sans elle, la ceinture anti-culpabilisation n'a rien à mordre:

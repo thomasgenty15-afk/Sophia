@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { GOAL_TOKENS } from "../../../../supabase/functions/_shared/keel/tokens.ts";
 import {
   AXES_BY_GOAL,
   type CoachTerm,
@@ -310,14 +311,19 @@ describe("les axes suggeres", () => {
     expect(classes.size).toBeGreaterThan(0);
   });
 
-  it("les cinq objectifs ont des axes", () => {
-    expect(Object.keys(AXES_BY_GOAL).sort()).toEqual([
-      "fat_loss",
-      "health",
-      "maintenance",
-      "performance",
-      "recomposition",
-    ]);
+  it("CHAQUE objectif du vocabulaire a des axes, et aucun n'en a zéro", () => {
+    // Les cinq jetons étaient recopiés ici. Un sixième est arrivé
+    // (`muscle_gain`), et ce test tombait en disant « il y en a un de trop » —
+    // alors que le défaut qu'il doit attraper est l'INVERSE: un objectif du
+    // vocabulaire à qui l'écran ne pose aucune question, donc un coach qui ne
+    // peut rien écrire pour cette cohorte-là.
+    //
+    // Dérivé de `GOAL_TOKENS`, il attrape maintenant le vrai défaut, et il
+    // l'attrapera pour le septième objectif sans qu'on y repense.
+    expect(Object.keys(AXES_BY_GOAL).sort()).toEqual([...GOAL_TOKENS].sort());
+    for (const goal of GOAL_TOKENS) {
+      expect(AXES_BY_GOAL[goal].length, goal).toBeGreaterThan(0);
+    }
   });
 });
 

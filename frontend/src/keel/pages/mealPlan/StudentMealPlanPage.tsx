@@ -1,42 +1,77 @@
 import React from "react";
 
-import { foodGroupLabel, slotLabel } from "../../api/labels";
-import { loadSlotVocabulary } from "../../api/keelClient";
 import { type MealIdea, loadStudentRecipes } from "../../api/mealPlanModel";
 import KeelAppShell from "../../components/KeelAppShell";
+import { Badge } from "../../components/ui/Badge";
 import { Card, SectionLabel } from "../../components/ui/Card";
-import { c } from "./copy";
 
-// KEEL — /app/meals. L'ÉLÈVE LIT LES RECETTES DE SON COACH.
+// KEEL — /app/meals. LES IDÉES DU COACH, et rien d'autre.
 //
-// CE QUE CET ÉCRAN MONTRAIT AVANT, ET POURQUOI IL NE LE PEUT PLUS.
-// Il affichait une SEMAINE: chaque recette épinglée sur un jour et un créneau,
-// via `meal_plan_entries`. Cette table a disparu (20260804210000) et le motif
-// est le pivot lui-même — KEEL est 1:N, le coach écrit UNE méthode et c'est
-// l'élève qui compose sa semaine; un coach de quarante élèves ne compose pas
-// quarante semaines. Pire, la policy de lecture EXIGEAIT ce placement, donc une
-// recette non épinglée n'était visible par personne: la bibliothèque était
-// structurellement invisible, et l'écran disait « votre coach n'a pas encore
-// proposé d'idées » à l'élève d'un coach qui en avait écrit vingt.
+// CE QUE CET ÉCRAN EST, ET CE QU'IL N'EST PLUS
+// --------------------------------------------
+// Il montrait une SEMAINE composée par le coach pour CET élève, via
+// `meal_plan_entries`. Cette table a disparu (20260804210000): KEEL est 1:N, le
+// coach écrit UNE méthode et UNE bibliothèque pour toute sa cohorte — un coach
+// de quarante élèves ne compose pas quarante semaines. Pire, la policy de
+// lecture EXIGEAIT ce placement, donc une recette non épinglée n'était visible
+// par personne: la bibliothèque était structurellement invisible.
 //
-// L'écran lit donc maintenant les recettes ACTIVES du coach, sans placement —
-// exactement ce que la migration décrit.
+// Il a ensuite porté, brièvement, le CONSTRUCTEUR DE REPAS. C'était le mauvais
+// écran: la génération produit la semaine de l'élève, donc elle vit sur
+// `/app/plan`. Ici on montre ce que le COACH a déposé.
 //
-// CE QUI NE CHANGE PAS, ET C'EST L'ESSENTIEL DE CET ÉCRAN.
-// Rien ici n'est cochable, badgé, compté ou complétable. Pas une case, pas un
-// statut, pas une série. Il n'y a rien à terminer parce qu'il n'y a rien qui
-// compte — le sous-titre le dit avec des mots, et l'absence totale de contrôle
-// le dit d'une façon qu'on ne peut pas discuter. Le regroupement par créneau
-// ci-dessous est un classement de lecture, jamais une prescription d'horaire.
+// LA FRONTIÈRE, EN UNE PHRASE:
+//   /app/plan  — ce que l'IA compose POUR TOI, en plats et en ingrédients;
+//   /app/meals — ce que TON COACH a mis à disposition, tel qu'il l'a écrit.
 //
-// READ-ONLY PAR LA BASE, PAS PAR CE FICHIER. L'élève a un SELECT sur les
-// recettes actives de son coach et aucune policy d'écriture nulle part; si ce
-// composant tentait d'écrire, PostgREST refuserait.
+// CE QUI NE CHANGE PAS. Rien ici n'est cochable, badgé, compté ou complétable.
+// Pas une case, pas un statut, pas une série. Le sous-titre le dit avec des
+// mots, et l'absence totale de contrôle le dit d'une façon qu'on ne peut pas
+// discuter.
+//
+// I18N HAND-OFF (W9 possède `i18n/en.ts`; ce fichier ne l'écrit pas).
+
+const COPY = {
+  "meals.title": "Meal ideas",
+  "meals.subtitle":
+    "Dishes your coach put up for everyone they work with. Ideas only — nothing here is tracked and none of it counts for or against you.",
+  "meals.list.title": "From your coach",
+  "meals.list.empty":
+    "Your coach has not put any meal ideas up yet. Your week is unaffected — build it from the plan screen.",
+  "meals.loading": "Loading…",
+  "meals.error": "These could not be loaded just now.",
+  "meals.slot.breakfast": "Breakfast",
+  "meals.slot.lunch": "Lunch",
+  "meals.slot.dinner": "Dinner",
+  "meals.slot.snack": "Snack",
+  "meals.slot.snack_am": "Morning snack",
+  "meals.slot.snack_pm": "Afternoon snack",
+  "meals.slot.any_meal": "Any meal",
+} as const;
+
+type CopyKey = keyof typeof COPY;
+
+function c(key: CopyKey): string {
+  return COPY[key];
+}
+
+/**
+ * Le libellé d'un créneau, ou le token tel quel.
+ *
+ * On ne JETTE PAS sur un token inconnu, contrairement à `labels.ts`: le coach
+ * choisit le créneau de sa recette dans un vocabulaire qui peut grandir, et une
+ * recette qu'on refuse d'afficher est une recette que l'élève croit absente.
+ */
+function slotLabel(slot: string | null): string | null {
+  if (!slot) return null;
+  const key = `meals.slot.${slot}` as CopyKey;
+  return key in COPY ? c(key) : slot.replace(/_/g, " ");
+}
 
 type LoadState =
   | { kind: "loading" }
-  | { kind: "error"; message: string }
-  | { kind: "ready"; recipes: MealIdea[]; slotOrder: string[] };
+  | { kind: "error" }
+  | { kind: "ready"; recipes: MealIdea[] };
 
 export default function StudentMealPlanPage() {
   const [state, setState] = React.useState<LoadState>({ kind: "loading" });
@@ -45,22 +80,13 @@ export default function StudentMealPlanPage() {
     let cancelled = false;
     (async () => {
       try {
-        const [recipes, slots] = await Promise.all([
-          loadStudentRecipes(),
-          loadSlotVocabulary(),
-        ]);
-        if (cancelled) return;
-        setState({
-          kind: "ready",
-          recipes,
-          slotOrder: (slots as unknown as { key: string }[]).map((s) => s.key),
-        });
-      } catch (error) {
-        if (cancelled) return;
-        setState({
-          kind: "error",
-          message: error instanceof Error ? error.message : String(error),
-        });
+        const recipes = await loadStudentRecipes();
+        if (!cancelled) setState({ kind: "ready", recipes });
+      } catch {
+        // R7 à la frontière: une lecture en panne est DITE, jamais rendue comme
+        // une liste vide. « Ton coach n'a rien mis » et « je n'ai pas pu lire »
+        // ne doivent pas se ressembler à l'écran.
+        if (!cancelled) setState({ kind: "error" });
       }
     })();
     return () => {
@@ -69,97 +95,47 @@ export default function StudentMealPlanPage() {
   }, []);
 
   return (
-    <KeelAppShell
-      variant="student"
-      width="narrow"
-      title={c("meals.student.title")}
-      subtitle={c("meals.student.subtitle")}
-    >
+    <KeelAppShell title={c("meals.title")} subtitle={c("meals.subtitle")}>
       {state.kind === "loading" && (
-        <p className="text-sm text-gray-500">{c("meals.student.loading")}</p>
+        <p className="text-sm text-gray-500">{c("meals.loading")}</p>
       )}
 
       {state.kind === "error" && (
         <Card tone="warning">
-          <p className="text-sm text-amber-900">
-            {c("meals.student.error", { message: state.message })}
-          </p>
+          <p className="text-sm text-amber-900">{c("meals.error")}</p>
         </Card>
       )}
 
-      {state.kind === "ready" && state.recipes.length === 0 && (
-        <Card tone="dashed">
-          <p className="text-sm text-gray-600">{c("meals.student.empty")}</p>
-        </Card>
-      )}
-
-      {state.kind === "ready" && state.recipes.length > 0 && (
-        <RecipeList recipes={state.recipes} slotOrder={state.slotOrder} />
+      {state.kind === "ready" && (
+        <section>
+          <SectionLabel>{c("meals.list.title")}</SectionLabel>
+          {state.recipes.length === 0
+            ? (
+              <Card tone="dashed">
+                <p className="text-sm text-gray-500">{c("meals.list.empty")}</p>
+              </Card>
+            )
+            : (
+              <div className="space-y-3">
+                {state.recipes.map((recipe) => (
+                  <Card key={recipe.id}>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-medium text-gray-900">{recipe.title}</span>
+                      {recipe.slot_key && (
+                        <Badge tone="neutral">{slotLabel(recipe.slot_key)}</Badge>
+                      )}
+                    </div>
+                    {recipe.description && (
+                      <p className="mt-1 text-sm leading-6 text-gray-600">
+                        {recipe.description}
+                      </p>
+                    )}
+                  </Card>
+                ))}
+              </div>
+            )}
+        </section>
       )}
     </KeelAppShell>
-  );
-}
-
-/**
- * Groupé par créneau, dans l'ordre du vocabulaire.
- *
- * Une liste à plat de vingt recettes ne répond pas à la question que l'élève se
- * pose, qui est « qu'est-ce que je mange MAINTENANT ». Le créneau y répond sans
- * rien prescrire: c'est le coach qui a écrit « petit-déjeuner » sur sa recette,
- * pas nous qui plaçons sa semaine.
- *
- * Les recettes SANS créneau ne sont pas perdues — elles sont rassemblées à la
- * fin. Les masquer parce qu'elles ne rentrent pas dans une case reviendrait à
- * refaire, en plus discret, le défaut que la migration vient de corriger.
- */
-function RecipeList(props: { recipes: MealIdea[]; slotOrder: string[] }) {
-  const groups = React.useMemo(() => {
-    const bySlot = new Map<string, MealIdea[]>();
-    for (const recipe of props.recipes) {
-      const key = recipe.slot_key ?? "";
-      const list = bySlot.get(key) ?? [];
-      list.push(recipe);
-      bySlot.set(key, list);
-    }
-    const ordered: { slot: string; recipes: MealIdea[] }[] = [];
-    for (const key of props.slotOrder) {
-      const list = bySlot.get(key);
-      if (list && list.length > 0) ordered.push({ slot: key, recipes: list });
-    }
-    // Un créneau que le vocabulaire ne connaît pas ne fait pas disparaître ses
-    // recettes: il les envoie avec les sans-créneau plutôt que de les avaler.
-    const placed = new Set(props.slotOrder);
-    const leftovers = [...bySlot.entries()]
-      .filter(([key]) => key === "" || !placed.has(key))
-      .flatMap(([, list]) => list);
-    if (leftovers.length > 0) ordered.push({ slot: "", recipes: leftovers });
-    return ordered;
-  }, [props.recipes, props.slotOrder]);
-
-  return (
-    <div className="space-y-3">
-      {groups.map((group) => (
-        <Card key={group.slot || "unslotted"}>
-          {group.slot !== "" && (
-            <SectionLabel>{slotLabel(group.slot)}</SectionLabel>
-          )}
-          <ul className="divide-y divide-gray-100">
-            {group.recipes.map((recipe) => (
-              <li key={recipe.id} className="py-2 first:pt-0 last:pb-0">
-                <p className="text-sm text-gray-900">{recipe.title}</p>
-                {recipe.description && (
-                  <p className="mt-0.5 text-sm text-gray-600">{recipe.description}</p>
-                )}
-                {recipe.food_group_refs.length > 0 && (
-                  <p className="mt-0.5 text-xs text-gray-400">
-                    {recipe.food_group_refs.map(foodGroupLabel).join(" · ")}
-                  </p>
-                )}
-              </li>
-            ))}
-          </ul>
-        </Card>
-      ))}
-    </div>
   );
 }

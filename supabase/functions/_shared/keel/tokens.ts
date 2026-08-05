@@ -530,14 +530,37 @@ export const parseFoodGroupRef = makeParser<FoodGroupRef>(
 //
 // WHY THE VOCABULARY LIVES HERE AND NOT IN THE TWO MODULES THAT SCOPE ON IT.
 // The coach's food mapping (`protocol_compiler.ts`) and the coach's doctrine
-// (`doctrine.ts`) both carry per-goal scope, on the same five values, with the
-// same "empty means everyone" rule. Two copies of a closed vocabulary is the
-// exact failure this file's header describes: they agree until the day one of
-// them gains a sixth value, and then a belief scoped to it reaches everybody
-// through one module and nobody through the other. One list, one predicate.
+// (`doctrine.ts`) both carry per-goal scope, on the same values, with the same
+// "empty means everyone" rule. Two copies of a closed vocabulary is the exact
+// failure this file's header describes: they agree until the day one of them
+// gains a value, and then a belief scoped to it reaches everybody through one
+// module and nobody through the other. One list, one predicate.
+//
+// THE SIXTH VALUE ARRIVED (2026-08-05), and it arrived exactly as predicted
+// above: `week_plan_generation.ts` held a SECOND copy of these tokens, under
+// another name (`STUDENT_GOALS`), with nothing tying the two together. It now
+// re-exports this list rather than restating it — the warning three lines up
+// was true of this very repository, not hypothetical.
+//
+// WHAT THE VALUES MEAN, AND WHY THEY ARE THE ONES THEY ARE. The axis that
+// actually branches a generated week is the DIRECTION OF THE SCALE: down
+// (`fat_loss`), up (`muscle_gain`), or neither. "Neither" then splits by what
+// the student is after instead: shape at constant weight (`recomposition`),
+// training (`performance`), eating better with body weight beside the point
+// (`health`), holding a place already reached (`maintenance`).
+//
+// `muscle_gain` was MISSING until 2026-08-05, and its absence was not benign:
+// `performance` was the nearest-looking home, and `focusFor('performance')`
+// fuels sessions and recovery — never a surplus — while `directionIsWorking`
+// returns false for it, so a gaining student's rising weight, which is his
+// win, read as "no measure says anything". The coach-side i18n had meanwhile
+// labelled `recomposition` "Muscle gain", so a coach restricting a rule to
+// muscle gain was in fact restricting it to waist-down-at-constant-weight —
+// the opposite instruction. Both are fixed; the label is now its own token.
 
 export const GOAL_TOKENS = [
   "fat_loss",
+  "muscle_gain",
   "recomposition",
   "performance",
   "health",

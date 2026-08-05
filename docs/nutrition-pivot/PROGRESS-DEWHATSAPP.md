@@ -1007,3 +1007,136 @@ deno test _shared/chat/ chat-inbound-v1/ meal-photo-upload-v1/  → 101 passed |
 deno test simulated_week_test.ts            → 1 passed (13 steps) | 0 failed
 frontend: tsc → 0 erreur ; vitest → 218 passed | 20 skipped
 ```
+
+---
+
+## P9 — CE QUI AVERTIT, CE QUI SE VOIT, CE QUI SE COUPE (2026-08-05)
+
+Lot suivant, ouvert sur une question simple : *quand Sophia écrit d'elle-même,
+qu'est-ce que l'élève en sait ?* La réponse mesurée était : **rien, sauf s'il a
+`/app/chat` ouvert à cet instant.**
+
+En sortant de WhatsApp on a gardé le message et **perdu l'avertissement**. La
+notification venait du transport ; elle était gratuite, et elle n'a été
+remplacée par rien. Les trois boucles proactives (tap du soir, point du
+dimanche, relance à 72 h) partaient donc vers un écran que personne ne
+regardait — y compris la boucle « celle pour laquelle le coach paie ».
+
+### P9.1 — Quatre trous, et ce qu'ils avaient en commun
+
+| # | Trou | Nature |
+|---|---|---|
+| 1 | `metadata.is_proactive` écrit à chaque livraison, **lu par personne** | un champ dont le sens se perd entre la base et l'œil |
+| 2 | Aucun badge, aucun compteur, aucune notification | une fonction du transport, jamais réimplémentée |
+| 3 | `proactive_muted_at` respecté par la politique, **posable par aucun écran** | une garde que l'utilisateur ne peut pas atteindre |
+| 4 | La relance n'est pas dans la voix du coach | une contrainte Meta qui a survécu six semaines à Meta |
+
+Le quatrième est le plus instructif, et il n'est pas un oubli. L'en-tête de
+`renderReengageNudge` explique **en huit lignes, très bien**, pourquoi composer
+serait « du code mort déguisé en fonctionnalité » : hors fenêtre 24 h, Meta
+impose un template, donc un texte figé. Le raisonnement était juste. Il a cessé
+de l'être le jour où Meta est parti, et personne ne l'a rouvert.
+
+> **Une contrainte externe honnêtement documentée devient, quelques semaines
+> plus tard, une décision de conception que plus personne ne rediscute.** Le
+> commentaire qui l'explique si bien est exactement ce qui la fait survivre à sa
+> cause. Il faut donc relire les justifications quand leur cause disparaît — ici,
+> le chantier de-whatsapp aurait dû emporter cet écart avec les templates.
+
+### P9.2 — Ce qui est construit
+
+**Le message proactif se voit** (`chat.ts`, `ChatPage.tsx`) : `is_proactive`
+remonte en `ChatMessage.proactive`, et la bulle porte « Sophia reached out ».
+Le drapeau est forcé à `false` sur un entrant : il vient de la décision de
+livraison, qui ne concerne que les sortants.
+
+**Le non-lu existe** (migration `20260805160000`, `lib/chatUnread.ts`) :
+`profiles.chat_last_read_at` + un compteur côté client (la RLS est déjà la
+frontière, donc ni RPC ni edge function). Badge sur l'entrée de nav, compteur
+dans le titre de l'onglet — le seul avertissement qui traverse un onglet en
+arrière-plan **sans permission, sans service worker, sans secret**.
+
+Backfill asymétrique **exprès**, même arbitrage que `20260804121000` : profils
+existants → `now()` (« ce qui est passé est lu », sinon badge à 30 au premier
+chargement et un compteur qui ment une fois n'est plus jamais cru) ; profils
+neufs → `null`, qui se lit « rien n'a été lu ».
+
+**Le mute a un écran** : deux interrupteurs repliés au-dessus de la
+conversation. Le libellé dit ce que le mute NE coupe PAS (« She always answers
+when you write ») — parce que `delivery_policy.ts` place la garde `muted` APRÈS
+la garde `isReply`, et ne pas le dire ferait croire qu'on se coupe de Sophia.
+
+**La notification système est locale, et opt-in sur geste.** Le réglage vit dans
+`localStorage`, pas en base : une permission navigateur est accordée par origine
+ET par appareil, et la ranger en base promettrait ce que le navigateur n'accorde
+pas. La permission n'est demandée que sur un clic — un refus est définitif pour
+l'origine, donc demander trop tôt ferme la porte pour de bon.
+
+**La relance est composée** (`reengage_composer.ts`, `composeReengageBody`) :
+doctrine publiée du coach → prompt → ceinture → livraison. Tout échec retombe
+sur le texte déterministe, qui reste neutre **par propriété** : c'est le texte
+qui doit pouvoir partir quand tout le reste a échoué. `body_sources` dans le
+compte-rendu du cron dit lequel des deux chemins a servi — sans ça, « le
+composeur ne sert jamais » et « le composeur marche » produisent le même
+`sent: 10`.
+
+### P9.3 — 🔴 Trouvé en écrivant la ceinture : la garde n'existait que pour la langue qu'on n'envoie plus
+
+`findGuiltTripping` a un motif pour « ça fait 5 jours que tu n'... » et **aucun
+équivalent anglais**, alors que le pilote ne produit que de l'anglais. Or
+`toneInstruction('gentle')` dit depuis le premier jour « Do not mention how many
+days it has been » : l'instruction existait, rien ne la vérifiait, et le seul
+vérificateur écrit couvrait la langue morte.
+
+Tant que le texte était figé, ça ne coûtait rien. Depuis qu'il est composé,
+c'est la différence entre une relance douce et un décompte d'absence.
+
+Ajouté avec **sa condition de désarmement** (doctrine P9) : la ceinture ne mord
+que sur une durée rapportée à l'absence ou à la dernière conversation. « How
+have the last few days been? » doit passer — c'est une question sur la vie de
+l'élève, pas sur son silence. Quatre cas de prémisse fausse le pinnent.
+
+### P9.4 — La langue : le verrou du pilote est respecté, pas contourné
+
+Le bloc de doctrine porte déjà `write in <language>`. Il aurait donc suffi de ne
+pas ajouter le bloc RESPONSE_LANGUAGE pour que la relance sorte en français
+quand le coach le demande. **Refusé** : `locale.ts` dit que le pilote force
+`en-US` et qu'il est LE point de changement unique. Une relance dans une autre
+langue que la conversation qu'elle relance serait une incohérence de plus, pas
+une correction. Le jour où le verrou saute, la relance suivra sans qu'on touche
+au composeur.
+
+### P9.5 — Preuves
+
+```
+deno test _shared/keel/reengage_composer_test.ts        → 13 passed | 0 failed
+deno test _shared/keel/reengagement*_test.ts + _shared/chat/
+                                                        → 117 passed | 0 failed | 17 ignored
+deno check keel-reengage-v1 + reengagement_io + reengage_composer  → 0 erreur
+frontend: tsc --noEmit → 0 erreur ; vitest src/keel/ → 363 passed | 0 failed
+frontend: npm run build → ✓ 1895 modules
+```
+
+⚠️ **Deux rouges pré-existants, non miens** : `meal_generation_test.ts`
+(« every scope has a named cap », « the dish cap holds », 4 ≠ 3) échouent sur le
+chantier meal-precision en cours — les deux fichiers étaient déjà modifiés dans
+l'arbre avant ce lot, et rien ici ne touche à la génération de repas.
+
+### P9.6 — ⚠️ Ce qui n'est PAS éprouvé, et ce qui reste ouvert
+
+**La migration n'a pas été appliquée** : pas d'accès à la base locale depuis
+cette session. Son contrôle final rejoue l'écriture des deux colonnes de réglage
+**sous une vraie identité d'élève** (`set_config('role','authenticated')` +
+claims), parce que la garde de `profiles` ne s'exécute QUE pour
+`authenticated`/`anon` et que tout ce qui éprouve ce dépôt écrit en
+`service_role` — c'est la leçon de `20260804181000`. Il **avertit** au lieu
+d'échouer quand la RLS ne reconnaît pas l'identité posée : une migration qui
+casse la lignée pour une raison sans rapport avec ce qu'elle livre est pire
+qu'un contrôle non concluant qui s'annonce.
+
+**Le hors-app reste entier.** Badge et titre d'onglet couvrent l'élève qui a
+l'app ouverte quelque part ; la notification système couvre l'onglet en
+arrière-plan. Un téléphone verrouillé ne reçoit toujours rien. Le vrai push
+demande un service worker, des clés VAPID (secrets — hors de ce qu'un agent
+pose seul) et une table d'abonnements : c'est un lot à part, et c'est une
+décision produit avant d'être une décision technique.

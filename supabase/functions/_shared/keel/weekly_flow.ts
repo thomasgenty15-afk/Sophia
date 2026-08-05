@@ -122,6 +122,31 @@ export function parseWeeklyFlowToken(token: string | null | undefined): string |
   return /^\d{4}-\d{2}-\d{2}$/.test(week) ? week : null;
 }
 
+/**
+ * LE JETON DE LA CARTE DES MESURES — un préfixe distinct, et pas un drapeau.
+ *
+ * L'origine d'une écriture doit être lisible SUR LE JETON, pas déduite d'un
+ * paramètre que l'appelant pourrait oublier: le serveur n'a rien d'autre pour
+ * savoir quel formulaire il lit. Deux préfixes, deux branches nommées, et un
+ * jeton inconnu tombe dans la même réponse honnête que jusqu'ici.
+ *
+ * La semaine reste dans le jeton pour la même raison qu'au point du dimanche:
+ * c'est elle qui décide QUELLE ligne de `weekly_reviews` est fusionnée, et une
+ * mesure saisie le mardi appartient à la semaine en cours.
+ */
+export const MEASURES_TOKEN_PREFIX = "KEEL_MEASURES_";
+
+export function buildMeasuresToken(weekStart: string): string {
+  return `${MEASURES_TOKEN_PREFIX}${weekStart}`;
+}
+
+export function parseMeasuresToken(token: string | null | undefined): string | null {
+  const raw = String(token ?? "").trim();
+  if (!raw.startsWith(MEASURES_TOKEN_PREFIX)) return null;
+  const week = raw.slice(MEASURES_TOKEN_PREFIX.length);
+  return /^\d{4}-\d{2}-\d{2}$/.test(week) ? week : null;
+}
+
 // ---------------------------------------------------------------------------
 // La définition du formulaire (à publier chez Meta)
 // ---------------------------------------------------------------------------
@@ -328,13 +353,43 @@ function readMeasure(
 }
 
 /**
- * Interprète le `response_json` d'un `nfm_reply`.
+ * D'OÙ VIENT UNE MESURE. Deux écrans écrivent maintenant `biofeedback`.
  *
- * Tolérant sur la forme (Meta rend tout en chaînes, et une clé peut manquer),
- * strict sur le sens: une valeur illisible est ÉCARTÉE ET NOMMÉE, jamais
- * devinée ni ramenée dans les bornes.
+ *   'weekly_form'   · le point du dimanche: six axes vécus + deux mesures.
+ *   'measures_card' · la carte de `/app/plan`, où l'élève corrige son poids
+ *                     entre deux dimanches. Aucun axe: l'écran ne les demande
+ *                     pas, donc leur absence n'est pas une anomalie.
+ *
+ * Ce n'est pas de la décoration: `source` est LU (par la synthèse coach et par
+ * `/app/progress`), et deux origines confondues rendent l'historique
+ * inexploitable le jour où on voudra comparer les deux gestes.
  */
-export function parseWeeklyFlowResponse(responseJson: unknown): WeeklyFlowReply {
+export type MeasureOrigin = "weekly_form" | "measures_card";
+
+/**
+ * Interprète le `response_json` d'un formulaire.
+ *
+ * Tolérant sur la forme (une clé peut manquer, et tout peut arriver en
+ * chaînes), strict sur le sens: une valeur illisible est ÉCARTÉE ET NOMMÉE,
+ * jamais devinée ni ramenée dans les bornes.
+ *
+ * ── POURQUOI `origin` N'EST PAS UNE GARDE OPTIONNELLE DÉGUISÉE ────────────
+ * Ce dépôt a une leçon écrite: « un paramètre de garde optionnel est une garde
+ * désarmée » (`safetyBand`, jamais passé par les crons). `origin` n'en est pas
+ * une — il ne protège rien, il dit QUEL FORMULAIRE on lit. Son défaut est
+ * `weekly_form`, qui était le seul mode existant, donc chaque appelant écrit
+ * avant ce lot continue de dire exactement ce qu'il disait.
+ *
+ * Ce qu'il change: la carte des mesures ne demande PAS les six axes, et sans
+ * lui chaque saisie de poids depuis `/app/plan` cracherait six
+ * « energy: missing, dropped ». Or ce canal-là a un seul travail — signaler un
+ * formulaire qui a divergé du code. Le remplir de bruit attendu, c'est le
+ * rendre inutile pour le jour où il aura raison.
+ */
+export function parseWeeklyFlowResponse(
+  responseJson: unknown,
+  origin: MeasureOrigin = "weekly_form",
+): WeeklyFlowReply {
   const issues: string[] = [];
   let parsed: unknown = responseJson;
   if (typeof responseJson === "string") {
@@ -350,9 +405,11 @@ export function parseWeeklyFlowResponse(responseJson: unknown): WeeklyFlowReply 
   const obj = parsed as Record<string, unknown>;
 
   const biofeedback: Partial<Record<WeeklyAxis, number>> = {};
-  for (const axis of WEEKLY_AXES) {
-    const v = readScale(obj[axis], axis, issues);
-    if (v !== null) biofeedback[axis] = v;
+  if (origin === "weekly_form") {
+    for (const axis of WEEKLY_AXES) {
+      const v = readScale(obj[axis], axis, issues);
+      if (v !== null) biofeedback[axis] = v;
+    }
   }
 
   return {
@@ -371,15 +428,20 @@ export function parseWeeklyFlowResponse(responseJson: unknown): WeeklyFlowReply 
  * pour une même grandeur finissent toujours par diverger. `/app/progress` lit
  * déjà ici.
  */
-export function weeklyBiofeedbackPayload(reply: WeeklyFlowReply): Record<string, unknown> {
+export function weeklyBiofeedbackPayload(
+  reply: WeeklyFlowReply,
+  origin: MeasureOrigin = "weekly_form",
+): Record<string, unknown> {
   const payload: Record<string, unknown> = { ...reply.biofeedback };
   if (reply.weightKg !== null) payload.weight_kg = reply.weightKg;
   if (reply.waistCm !== null) payload.waist_cm = reply.waistCm;
-  // La provenance, honnête: ce n'est plus un Flow WhatsApp mais le formulaire
-  // in-app. Le champ est LU (par la synthèse et par /app/progress) — le laisser
-  // mentir sur son origine rendrait l'historique inexploitable le jour où on
-  // voudra comparer les deux canaux.
-  payload.source = "in_app_weekly_form";
+  // La provenance, honnête: ce n'est plus un Flow WhatsApp mais un formulaire
+  // in-app — et il y en a maintenant DEUX. Le champ est LU (par la synthèse et
+  // par /app/progress); le laisser mentir sur son origine rendrait l'historique
+  // inexploitable le jour où on voudra comparer les deux gestes.
+  payload.source = origin === "measures_card"
+    ? "in_app_measures_card"
+    : "in_app_weekly_form";
   return payload;
 }
 

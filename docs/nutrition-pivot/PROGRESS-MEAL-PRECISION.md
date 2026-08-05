@@ -246,3 +246,127 @@ du même message, 3 ont émis l'effet `log_protocol_event` et 2 n'ont rien émis
 Les runs sans effet ne prouvent rien sur ce chantier (le gate rend
 `no_committed_fact`, ce qui est correct) ; ils disent juste que la mesure demande
 plusieurs essais. Aucun run n'a produit de doublon.
+
+---
+
+## 2026-08-05 — LE CHANTIER A CHANGÉ D'OBJET : le plan de repas
+
+Ce qui suit ne relève plus de la précision de repas. C'est consigné ici parce
+que c'est la suite directe de la même conversation, et qu'un journal qui
+s'arrête au milieu d'une nuit ne sert à personne.
+
+### La découverte qui a tout réorienté
+
+`generate-meal-v1` **existait, complet, avec ZÉRO appelant**. Modes
+`from_pantry` / `to_shop`, portées `day` / `several_days`, les quatre créneaux,
+le garde-manger, la doctrine publiée, les contraintes de sécurité, la liste de
+courses par rayon, le PDF. Écrit, testé, déployable, et rien dans le produit ne
+le déclenchait :
+
+```
+=== qui APPELLE generate-meal-v1 ? (commentaires retirés) ===
+1  frontend/src/edge/coverage-guard.int.test.ts     ← une liste de noms
+1  supabase/functions/generate-meal-v1/index.ts     ← lui-même
+```
+
+Exactement ce que notait la mémoire du 3 août : « 5 moteurs testés non câblés ».
+
+Pendant ce temps `/app/plan` affichait des LIGNES DE MÉTHODE avec la conviction
+du coach citée en italique et un badge « From your coach's method ». Deux
+défauts : ce n'est pas ce que l'élève vient chercher, et **la doctrine du coach
+était affichée** alors qu'elle doit servir à composer sans être montrée.
+
+### Les écrans ont été échangés
+
+| | avant | après |
+|---|---|---|
+| `/app/plan` | lignes de méthode + citations de doctrine | **la génération** : plats, ingrédients, jour par jour |
+| `/app/meals` | (rien d'atteignable) | **« Meal ideas »** : la bibliothèque du coach |
+
+Vérifié dans le DOM : aucune conviction, aucune clé, aucun badge de méthode sur
+les plats. Les convictions restent dans `generated_from.belief_keys` en base
+pour l'audit, et le client `api/mealGeneration.ts` **ne recopie même pas**
+`honours_belief_keys` — aucun rendu ne peut l'afficher par accident.
+
+### Les défauts mesurés, et ce qui les causait
+
+**Portions énormes.** `people at the table: 1` était dans le prompt, mais rien
+ne liait les quantités à ce nombre. Mesuré : « salmon 2 fillets, potatoes 500 g »
+pour une personne. Après : « yogurt 200 g, oats 50 g, rice 75 g ».
+
+**Semaine trouée.** `dishCapFor("several_days")` valait 8. L'ancien commentaire
+le justifiait — « une semaine de vingt plats est une semaine qu'on abandonne le
+mercredi » — et c'était vrai TANT QU'UN PLAT COÛTAIT UNE SESSION DE CUISINE.
+
+**Le plan partait de lundi.** `buildMealPrompt` n'avait aucune notion de date.
+Un plan généré le mercredi rendait trois jours déjà passés. Le jour vient
+maintenant du fuseau de l'élève, et les jours à remplir sont énumérés.
+
+### Le modèle : préparations, sessions, plats
+
+Le lot était un attribut du PLAT, ce qui forçait les jours couverts à manger le
+MÊME plat — quatre bowls poulet-riz-brocoli identiques. Techniquement du batch
+cooking, humainement une punition.
+
+Ce qu'on cuisine une fois n'est pas un plat, c'est une **préparation** :
+
+```
+PRÉPARATION   ingrédients du lot entier + méthode + portions
+SESSION       le jour + le DÉROULÉ (l'ordre des gestes ENTRE les préparations)
+PLAT          uses[] → une référence, + ce qu'on ajoute au moment de manger
+```
+
+Run réel, contraintes serrées (cuisine mer/dim, 30 min, simple, budget serré) :
+
+```
+plats=21  preparations=4  sessions=2
+  WED — Turkey chilli + Batch rice
+     « Start the rice first, then get the chilli going while the rice cooks… »
+  SUN — Roast chicken thighs + Roast vegetables
+  Roast chicken → 4 repas DIFFÉRENTS (bowl, wrap, stir-fry, bowl aux légumes)
+```
+
+L'ancien modèle `batch` a été retiré : 0 occurrence dans les 21 plats stockés.
+
+### Trois bugs trouvés en mesurant, pas en relisant
+
+1. **La réponse HTTP renvoyait `servingsMade` quand la base stocke
+   `servings_made`.** Le lot n'atteignait jamais l'écran. Deux formes pour une
+   donnée : aucune erreur, aucun log, juste un champ vide chez le lecteur.
+2. **La consigne de batch se perdait dans le prompt système** — deux runs à zéro
+   lot. Déplacée près de la demande avec un budget CHIFFRÉ : 0 → 5 lots.
+   « Peu de sessions » se négocie, « au plus sept » non.
+3. **Les quantités du lot étaient répétées sur chaque jour couvert.**
+   `chicken thighs 1,200 g` quatre fois — 4,8 kg à l'œil. Un plat qui puise dans
+   une préparation n'affiche plus ni recette ni quantités.
+
+### Les coches, et le mensonge silencieux qu'elles ont révélé
+
+Cocher un repas écrit un FAIT (`protocol_events`, `source='quick_tap'`, poids
+0.4). Aucun `food_group_ref`, aucun `substance_ref` : la coche compte pour la
+COUVERTURE et ne crédite aucune ligne du plan.
+
+Premier run :
+
+```
+decocher: ok — lignes restantes=1, motif=null
+```
+
+Succès rapporté, **rien changé**. `protocol_events` n'avait aucune policy
+UPDATE, et PostgREST rend 204 sur zéro ligne touchée. La case se serait
+décochée à l'écran pendant que le fait continuait de compter chez le coach.
+
+Corrigé par une policy ET un trigger — une policy porte sur des lignes, pas sur
+des colonnes : sans le trigger, l'UPDATE ouvrait la réécriture de
+`food_group_ref` et `local_date`, c'est-à-dire la fabrication de faits.
+Décocher ne supprime pas : `disqualified_reason='food_not_eaten'`.
+
+### Ce que l'élève peut vraiment faire
+
+`CookingCapacityCard` : `cook_days`, `cooking_time_min`, `recipe_difficulty`,
+`variety`, `budget_band`. Les deux premières existaient dans
+`practical_constraints` **depuis le premier jour du pivot — lues par le
+générateur, remplies par personne**.
+
+Lecture défensive : une valeur hors liste est ignorée, pas transmise. Un élève
+qui n'a rien rempli reçoit exactement la semaine d'avant.

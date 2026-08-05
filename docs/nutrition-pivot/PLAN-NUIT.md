@@ -31,6 +31,10 @@
 > Ce que le coach lit le lundi : **couverture · vivabilité · portions · intentions**.
 >
 > Journal complet des décisions : `PROGRESS.md`. État livré : `STATUS-MORNING.md`.
+>
+> **Le point 2 a sa forme lisible et permanente dans [`docs/keel/MODEL.md`](../keel/MODEL.md).**
+> Enterré ici, dans un plan de nuit que personne n'ouvre, il a dû être réexpliqué à la main
+> plusieurs fois. C'est MODEL.md qu'on cite désormais, pas cet encadré.
 
 
 > **Charte d'exécution pour l'agent de nuit.** Tu n'as pas le droit de t'arrêter tant que ce plan

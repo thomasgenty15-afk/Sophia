@@ -1135,7 +1135,7 @@ function GlobalEditor({
 
       <EditorSection
         title="Foods you keep off the plate"
-        hint="Give the phrasings too — 'seed oil' almost never appears as those two words in a real sentence, and a bare term is a filter that catches nothing. What you BUILD with is set on your Method screen, not here."
+        hint="Give the phrasings too — 'seed oil' almost never appears as those two words in a real sentence, and a bare term is a filter that catches nothing. What you BUILD with is set on your Recommended food screen, not here."
         {...open("foods")}
         summary={
           <SummaryList

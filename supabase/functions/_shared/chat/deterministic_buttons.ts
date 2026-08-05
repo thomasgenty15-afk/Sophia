@@ -33,6 +33,7 @@ import {
 import { writePulseAxis, writePulseLevel } from "../keel/daily_pulse_io.ts";
 import { localDateFor } from "../keel/reengagement_io.ts";
 import {
+  parseMeasuresToken,
   parseWeeklyFlowToken,
   renderWeeklyFlowAck,
 } from "../keel/weekly_flow.ts";
@@ -80,14 +81,92 @@ async function ack(
   });
 }
 
+/**
+ * LA CARTE DES MESURES DE `/app/plan` — poids et tour de taille, hors dimanche.
+ *
+ * ── POURQUOI L'ACCUSÉ NE RENVOIE PAS LE CHIFFRE ───────────────────────────
+ * « Noté: 78,4 kg » semble serviable et ne l'est pas. Cet écran est le même
+ * que celui qui se RETIRE quand la garde restrictive est armée, et un produit
+ * qui refuse de montrer un poids à un élève à risque ne doit pas le lui
+ * renvoyer par la bulle d'à côté. On accuse le geste, pas la valeur.
+ *
+ * ── LA SEMAINE VIENT DU JETON, PAS DE L'HORLOGE SERVEUR ───────────────────
+ * L'élève est dans son fuseau; le serveur est en UTC. Un lundi 00h30 à Paris
+ * est encore dimanche pour le serveur, et la mesure atterrirait sur la semaine
+ * précédente — donc sur la ligne que le point du dimanche vient de remplir.
+ */
+async function writeMeasures(
+  admin: SupabaseClient,
+  args: { message: InboundMessage; requestId: string; week: string },
+): Promise<InboundStepOutcome> {
+  const { message } = args;
+  try {
+    const written = await writeWeeklyFlowReply(admin, {
+      userId: message.user_id,
+      weekStart: args.week,
+      responseJson: message.form_response,
+      origin: "measures_card",
+    });
+    // Rien de lisible dans ce que l'élève a envoyé: on le DIT, au lieu
+    // d'accuser réception d'une écriture qui n'a rien écrit.
+    const nothing = written.reply.weightKg === null && written.reply.waistCm === null;
+    await ack(admin, {
+      userId: message.user_id,
+      requestId: args.requestId,
+      purpose: "keel_measures_ack",
+      body: nothing
+        ? "I couldn't read a measurement in that — nothing was saved."
+        : "Got it, noted.",
+    });
+  } catch (error) {
+    const err = error as { message?: string; code?: string; details?: string };
+    console.error(JSON.stringify({
+      tag: "keel.measures.write_failed",
+      user_id: message.user_id,
+      week: args.week,
+      error: error instanceof Error
+        ? error.message
+        : [err?.code, err?.message, err?.details].filter(Boolean).join(" — ") ||
+          String(error),
+    }));
+    await ack(admin, {
+      userId: message.user_id,
+      requestId: args.requestId,
+      purpose: "keel_measures_ack",
+      body: "Something went wrong on my side and I couldn't save that. Sorry — could you try again?",
+    });
+  }
+  return handled("keel_measures");
+}
+
 export async function handleDeterministicButton(
   admin: SupabaseClient,
   args: { message: InboundMessage; requestId: string },
 ): Promise<InboundStepOutcome> {
   const { message } = args;
 
-  // ── LE POINT HEBDOMADAIRE ─────────────────────────────────────────────────
+  // ── LE POINT HEBDOMADAIRE, ET LA CARTE DES MESURES ────────────────────────
+  //
+  // Deux formulaires écrivent `weekly_reviews.biofeedback`, et ils partagent
+  // TOUT sauf ce qu'ils demandent: même parseur, mêmes bornes, même fusion
+  // dans la même ligne (élève, semaine). Ce qui les distingue est le jeton,
+  // donc l'origine est LISIBLE sur la requête au lieu d'être devinée.
+  //
+  // Deux écrivains pour une même colonne, c'est le défaut n°1 de ce dépôt —
+  // sauf qu'ici il n'y en a qu'UN: la carte de `/app/plan` ne touche pas la
+  // base, elle passe par ce chemin. `weekly_reviews` reste d'ailleurs en
+  // lecture seule côté élève (aucune policy d'écriture), donc ce n'est pas une
+  // discipline mais une impossibilité.
   if (message.kind === "form") {
+    const measuresWeek = parseMeasuresToken(message.form_token);
+    if (measuresWeek) {
+      return await writeMeasures(admin, {
+        message,
+        requestId: args.requestId,
+        week: measuresWeek,
+      });
+    }
+
     const week = parseWeeklyFlowToken(message.form_token);
     if (!week) {
       // Un jeton illisible ne fait PAS retomber le tour sur le dispatcher :
@@ -113,6 +192,7 @@ export async function handleDeterministicButton(
         userId: message.user_id,
         weekStart: week,
         responseJson: message.form_response,
+        origin: "weekly_form",
       });
       await ack(admin, {
         userId: message.user_id,
