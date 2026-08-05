@@ -180,11 +180,17 @@ Refait après retour en cours de lot. **Deux parties, ni plus ni moins.**
 * **Spécifique par dynamique** — un sélecteur, un compteur par dynamique, et
   des champs directs pour les croyances et les cas durs de cette dynamique.
   Pas de portée multiple à cocher, pas de cinq colonnes vides.
-* **L'aperçu par objectif** n'est pas une reconstitution : c'est
-  `compileDoctrineBlock` lui-même, importé depuis le module Deno. Ce que le
-  coach lit est mot pour mot ce que l'élève recevra. Les objectifs qui
-  reçoivent le **même** bloc sont nommés — c'est ce qui lui apprend si sa
-  saisie a séparé ce qu'il croyait séparer.
+* **L'interview est une option qu'on ouvre**, pas un formulaire qu'on croise.
+  Dépliée tant qu'il n'y a rien d'écrit — c'est alors la seule porte — repliée
+  derrière un lien dès qu'il y a une doctrine. Elle reste ouverte juste après
+  une compilation : c'est le moment où le coach vérifie que l'IA l'a bien lu.
+* **L'aperçu par objectif a été retiré**, et les fonctions qui le produisaient
+  restent (avec leurs tests) dans `api/coachDoctrine.ts`. Deux raisons : le bloc
+  est reçu par l'**agent**, pas par l'élève — le présenter comme « ce que reçoit
+  ton élève » ferait croire à un coach que ses élèves lisent un prompt système ;
+  et d'une variante à l'autre, ce qui bouge tient en deux ou trois lignes au
+  milieu d'un bloc identique, donc le coach faisait un diff à l'œil. S'il
+  revient, il devra dire « ton agent » et montrer ce qui **diffère**.
 
 ---
 
@@ -250,6 +256,12 @@ déjà.
 * **Une entrée à portée multiple** (seule l'IA en produit) apparaît dans la
   partie de chaque dynamique qu'elle vise, et l'éditer dans l'une l'édite pour
   toutes. C'est correct — c'est une seule entrée — mais l'écran ne le dit pas.
+* **Le coach n'a plus de moyen de voir le bloc compilé** depuis son écran, l'
+  aperçu ayant été retiré. C'est assumé pour l'instant ; la capacité serveur
+  existe toujours (`preview_goal` sur `compile`, `goal` sur `replay`) et le
+  `replay` — rejouer un échange passé sous une variante choisie — reste la
+  bonne forme de vérification à câbler, parce qu'il montre une **réponse**
+  plutôt qu'un prompt.
 * **La langue de la réponse ignore `voice.language`** : le modèle répond en
   anglais à une question française quand la locale de l'élève est anglaise.
   Antérieur à ce lot et hors périmètre, mais il fausse toute lecture de

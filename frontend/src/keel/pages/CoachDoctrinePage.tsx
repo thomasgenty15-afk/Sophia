@@ -7,20 +7,15 @@ import { Card, SectionLabel } from "../components/ui/Card";
 import { Field, inputClass } from "../components/ui/Field";
 import {
   addEntry,
-  cacheFootprint,
-  draftToDoctrine,
   entriesForScope,
   GOAL_LABELS,
   GOAL_TOKENS,
   type GoalToken,
   joinForms,
   patchEntry,
-  PREVIEW_VARIANTS,
-  previewVariants,
   pruneDraft,
   removeEntry,
   splitForms,
-  variantLabel,
 } from "../api/coachDoctrine";
 
 /**
@@ -160,6 +155,13 @@ export default function CoachDoctrinePage() {
    */
   const [draftOrigin, setDraftOrigin] = React.useState<"compiled" | "loaded" | null>(null);
   const [issues, setIssues] = React.useState<string[]>([]);
+  /**
+   * L'interview est dépliée tant qu'il n'y a rien d'écrit, et repliée après.
+   * L'état est ici et pas dans la carte pour que `onCompile` puisse la laisser
+   * ouverte: le coach vient de la lancer, il veut relire ses réponses à côté de
+   * ce que l'IA en a fait.
+   */
+  const [interviewOpen, setInterviewOpen] = React.useState(false);
   const [busy, setBusy] = React.useState<string | null>(null);
   const [notice, setNotice] = React.useState<string | null>(null);
   const [failure, setFailure] = React.useState<string | null>(null);
@@ -252,6 +254,12 @@ export default function CoachDoctrinePage() {
       setDraft(out.draft ?? null);
       setDraftOrigin(out.draft ? "compiled" : null);
       setIssues(out.issues ?? []);
+      // L'interview reste OUVERTE après une compilation. Elle se replie parce
+      // qu'un coach qui revient corriger une phrase n'en a pas besoin — pas
+      // parce qu'un `draft` existe. Se refermer sur les réponses qu'il vient
+      // d'écrire, au moment précis où il doit vérifier que l'IA l'a bien lu,
+      // serait le contraire de ce que le repli cherche à faire.
+      setInterviewOpen(true);
       setNotice("Read it back before saving - the AI transcribes, it does not decide.");
     });
 
@@ -390,54 +398,84 @@ export default function CoachDoctrinePage() {
             </Card>
 
             <SpecificEditor draft={draft} onChange={setDraft} />
-            {/*
-              L'aperçu suit IMMÉDIATEMENT les deux parties, parce qu'il est ce
-              qui les relie: le coach vient d'écrire quelque chose de spécifique,
-              et la question suivante est « qu'est-ce que mon élève reçoit
-              maintenant ? ». La réponse est un écran plus bas, pas trois.
-            */}
-            <VariantPreviewCard draft={draft} />
           </>
         ) : null}
 
         {/*
-          L'INTERVIEW EST LE CHEMIN DU PREMIER JOUR, et elle est passée SOUS
-          l'édition une fois qu'il y a quelque chose à éditer: un coach qui
-          revient corriger une phrase ne doit pas retomber sur onze questions.
+          L'INTERVIEW EST LE CHEMIN DU PREMIER JOUR, ET SEULEMENT ÇA.
+
+          Tant qu'il n'y a rien d'écrit, elle est l'écran: il n'y a pas d'autre
+          porte. Dès qu'il y a une doctrine, elle se replie derrière un lien en
+          bas de page — un coach qui revient corriger une phrase ne doit pas
+          faire défiler onze questions dépliées pour arriver à ses cases, et
+          onze textareas vides au-dessus de son travail donnent l'impression
+          qu'il reste quelque chose à remplir.
+
+          Et elle reste DESTRUCTRICE: la relancer remplace ce qui est écrit.
+          C'est pour ça qu'elle est une option qu'on ouvre, pas un formulaire
+          qu'on croise.
         */}
         <Card>
           <SectionLabel>
             {draft ? "Start over from an interview" : "The interview"}
           </SectionLabel>
-          <p className="mt-2 text-xs leading-5 text-gray-500">
-            {draft
-              ? "Answering these again REPLACES what is in the card above. Use it when you want to rethink your method, not to fix a sentence."
-              : "Answer in your own words. Three of them ask for your sentence, word for word — that is what makes the agent sound like you rather than like a nutrition textbook."}
-          </p>
-          <div className="mt-4 space-y-4">
-            {questions.map((q, i) => (
-              <Field
-                key={`${q.section}-${i}`}
-                label={q.question}
-                htmlFor={`q-${i}`}
-                hint={q.section === "hard_cases" ? "Word for word." : undefined}
+          {draft && !interviewOpen ? (
+            <>
+              <p className="mt-2 text-xs leading-5 text-gray-500">
+                Rethinking your method from scratch? Answer the interview again
+                and the AI rewrites everything above. To fix a sentence, edit it
+                directly instead.
+              </p>
+              <button
+                type="button"
+                onClick={() => setInterviewOpen(true)}
+                className="mt-3 text-xs text-gray-700 underline decoration-dotted underline-offset-2 hover:text-gray-900"
               >
-                <textarea
-                  id={`q-${i}`}
-                  className={inputClass}
-                  rows={3}
-                  value={answers[i] ?? ""}
-                  onChange={(e) =>
-                    setAnswers((prev) => ({ ...prev, [i]: e.target.value }))}
-                />
-              </Field>
-            ))}
-          </div>
-          <div className="mt-4">
-            <Button onClick={onCompile} disabled={busy !== null}>
-              {busy === "compile" ? "Reading you…" : "Turn this into my method"}
-            </Button>
-          </div>
+                Open the interview
+              </button>
+            </>
+          ) : (
+            <>
+              <p className="mt-2 text-xs leading-5 text-gray-500">
+                {draft
+                  ? "Answering these again REPLACES what is in the card above. Use it when you want to rethink your method, not to fix a sentence."
+                  : "Answer in your own words. Three of them ask for your sentence, word for word — that is what makes the agent sound like you rather than like a nutrition textbook."}
+              </p>
+              <div className="mt-4 space-y-4">
+                {questions.map((q, i) => (
+                  <Field
+                    key={`${q.section}-${i}`}
+                    label={q.question}
+                    htmlFor={`q-${i}`}
+                    hint={q.section === "hard_cases" ? "Word for word." : undefined}
+                  >
+                    <textarea
+                      id={`q-${i}`}
+                      className={inputClass}
+                      rows={3}
+                      value={answers[i] ?? ""}
+                      onChange={(e) =>
+                        setAnswers((prev) => ({ ...prev, [i]: e.target.value }))}
+                    />
+                  </Field>
+                ))}
+              </div>
+              <div className="mt-4 flex gap-2">
+                <Button onClick={onCompile} disabled={busy !== null}>
+                  {busy === "compile" ? "Reading you…" : "Turn this into my method"}
+                </Button>
+                {draft ? (
+                  <Button
+                    variant="secondary"
+                    onClick={() => setInterviewOpen(false)}
+                    disabled={busy !== null}
+                  >
+                    Close
+                  </Button>
+                ) : null}
+              </div>
+            </>
+          )}
         </Card>
 
         <Card>
@@ -496,90 +534,23 @@ export default function CoachDoctrinePage() {
 }
 
 
-/**
- * L'APERÇU PAR OBJECTIF — la vérification des deux parties, en un endroit.
- *
- * Le bloc affiché n'est pas une reconstitution: c'est `compileDoctrineBlock`,
- * le module que le tour exécute (voir `api/coachDoctrine.ts`). Ce que le coach
- * lit ici est, mot pour mot, ce que l'élève de cet objectif recevra — le global
- * et le spécifique fondus comme ils le seront dans le prompt.
- *
- * Les objectifs qui reçoivent le MÊME bloc sont nommés, et c'est la moitié
- * utile: un coach qui vient d'écrire trois lignes pour la perte de gras et qui
- * lit « identical to: Health, Maintenance » sur la variante par défaut voit
- * exactement ce que sa saisie a séparé — et ce qu'elle n'a pas séparé.
- */
-function VariantPreviewCard({ draft }: { draft: DoctrineDraft }) {
-  const [goal, setGoal] = React.useState<GoalToken | null>(null);
-  const { doctrine, issues } = React.useMemo(
-    () => draftToDoctrine(draft, null, "en"),
-    [draft],
-  );
-  const variants = React.useMemo(() => previewVariants(doctrine), [doctrine]);
-  const footprint = React.useMemo(() => cacheFootprint(doctrine), [doctrine]);
-  const shown = variants.find((v) => v.goal === goal) ?? variants[0];
-
-  return (
-    <Card>
-      <SectionLabel>What a student actually receives</SectionLabel>
-      <p className="mt-2 text-xs leading-5 text-gray-500">
-        Your voice, your words, your red lines and your foods go to every
-        student — they are you, and they cannot be narrowed. Only what you
-        believe and how you answer can be aimed at one kind of student.
-      </p>
-
-      <div className="mt-3 flex flex-wrap gap-1.5">
-        {PREVIEW_VARIANTS.map((g) => (
-          <button
-            key={g ?? "default"}
-            type="button"
-            onClick={() => setGoal(g)}
-            className={`rounded-full border px-3 py-1 text-xs ${
-              g === goal
-                ? "border-gray-900 bg-gray-900 text-white"
-                : "border-gray-200 bg-white text-gray-600"
-            }`}
-          >
-            {variantLabel(g)}
-          </button>
-        ))}
-      </div>
-
-      {shown ? (
-        <>
-          <p className="mt-3 text-xs text-gray-500">
-            {shown.sharesCacheWith.length > 0
-              ? `Identical to: ${
-                shown.sharesCacheWith.map((g) => variantLabel(g)).join(", ")
-              }`
-              : "This block goes to no other goal."}
-          </p>
-          {shown.compiled.emptyForGoal ? (
-            <p className="mt-2 text-xs text-amber-800">
-              Everything you wrote is aimed at other goals, so a student here
-              gets nothing of your method. Your agent will say so rather than
-              improvise one in your name.
-            </p>
-          ) : null}
-          <pre className="mt-3 max-h-96 overflow-auto whitespace-pre-wrap rounded-md bg-gray-50 p-3 text-xs leading-5 text-gray-800">
-            {shown.compiled.text || "Nothing yet."}
-          </pre>
-        </>
-      ) : null}
-
-      <p className="mt-3 text-xs text-gray-400">
-        {footprint.variants} variants · {footprint.entries}{" "}
-        distinct block{footprint.entries === 1 ? "" : "s"}
-      </p>
-
-      {issues.length > 0 ? (
-        <ul className="mt-3 list-disc space-y-1 pl-5 text-xs text-amber-800">
-          {issues.map((issue) => <li key={issue}>{issue}</li>)}
-        </ul>
-      ) : null}
-    </Card>
-  );
-}
+// ── L'APERÇU PAR OBJECTIF A ÉTÉ RETIRÉ, ET C'EST DÉLIBÉRÉ ────────────────
+//
+// Il montrait le bloc compilé, variante par variante, sous le titre « what a
+// student actually receives ». Deux raisons de le retirer:
+//
+//   · le bloc est reçu par l'AGENT, pas par l'élève. Un coach qui lit un
+//     prompt système présenté comme « ce que reçoit ton élève » en conclut
+//     que ses élèves lisent ça — et c'est faux;
+//   · d'une variante à l'autre, ce qui bouge tient en deux ou trois lignes
+//     au milieu d'un bloc identique. Le coach fait un diff à l'œil pour
+//     retrouver ce qu'il vient d'écrire.
+//
+// Les fonctions qui le produisaient (`previewVariants`, `cacheFootprint`)
+// restent dans `api/coachDoctrine.ts` avec leurs tests: elles prouvent que
+// le front exécute LE compilateur du serveur et pas une copie. Le jour où
+// l'aperçu revient, il devra dire « ton agent », montrer ce qui DIFFÈRE, et
+// pas un mur de prompt.
 
 // ---------------------------------------------------------------------------
 // LES BRIQUES D'ÉDITION
