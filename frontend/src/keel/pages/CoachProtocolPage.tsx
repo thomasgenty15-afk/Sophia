@@ -192,7 +192,6 @@ export function CoachProtocolPage() {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function loadProtocol(cid: string, cancelled: boolean) {
