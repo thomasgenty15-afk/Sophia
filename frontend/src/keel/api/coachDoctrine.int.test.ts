@@ -14,6 +14,8 @@ import { describe, expect, it } from "vitest";
 import {
   addEntry,
   ALWAYS_SHARED_SECTIONS,
+  cancelSection,
+  closeSection,
   cacheFootprint,
   type DoctrineDraft,
   draftToDoctrine,
@@ -22,10 +24,12 @@ import {
   joinForms,
   patchEntry,
   PREVIEW_VARIANTS,
+  openSection,
   previewVariants,
   pruneDraft,
   removeEntry,
   scopeSentence,
+  SECTION_CLOSED,
   splitForms,
   variantLabel,
 } from "./coachDoctrine";
@@ -218,6 +222,43 @@ describe("l'édition — une partie globale, une partie par dynamique", () => {
     const clean = pruneDraft(DRAFT);
     expect(entriesForScope(clean.beliefs, "fat_loss")).toHaveLength(1);
     expect(entriesForScope(clean.arbitrations, "fat_loss")).toHaveLength(1);
+  });
+
+  it("« Cancel » REND ce qu'il y avait avant, il ne ferme pas en gardant les dégâts", () => {
+    // C'est le seul geste de l'écran qui puisse détruire du travail. Un
+    // « annuler » qui garde les modifications est un bouton qui ment sur son
+    // nom, et le coach ne s'en aperçoit qu'après avoir enregistré.
+    const before: DoctrineDraft = { beliefs: [{ claim: "Original." }] };
+    const opened = openSection("global:beliefs", before);
+    expect(opened.open).toBe("global:beliefs");
+
+    // Le coach tape, puis se ravise.
+    const mangled: DoctrineDraft = { beliefs: [{ claim: "Oops, wrong." }] };
+    const out = cancelSection(opened, mangled);
+    expect(out.draft).toEqual(before);
+    expect(out.section).toEqual(SECTION_CLOSED);
+  });
+
+  it("« Done » ferme en GARDANT ce qui a été tapé", () => {
+    expect(closeSection()).toEqual(SECTION_CLOSED);
+  });
+
+  it("ouvrir une AUTRE section ne défait pas la première", () => {
+    // L'instantané suit la section ouverte, jamais l'écran entier: sinon
+    // annuler la deuxième rendrait aussi l'état d'avant la première.
+    const v1: DoctrineDraft = { beliefs: [{ claim: "v1" }] };
+    expect(openSection("global:beliefs", v1).snapshot).toEqual(v1);
+    // Le coach modifie, puis ouvre une autre section sans annuler: v2 est acquis.
+    const v2: DoctrineDraft = { beliefs: [{ claim: "v2 — édité et gardé" }] };
+    const second = openSection("global:vocabulary", v2);
+    expect(second.open).toBe("global:vocabulary");
+    // Annuler la SECONDE rend v2, pas v1.
+    expect(cancelSection(second, { beliefs: [{ claim: "v3" }] }).draft).toEqual(v2);
+  });
+
+  it("annuler sans instantané ne remplace JAMAIS l'état réel par du vide", () => {
+    const current: DoctrineDraft = { beliefs: [{ claim: "bien réel" }] };
+    expect(cancelSection(SECTION_CLOSED, current).draft).toEqual(current);
   });
 
   it("les formulations se coupent à la virgule ET au retour à la ligne", () => {

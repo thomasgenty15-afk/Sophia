@@ -7,14 +7,19 @@ import { Card, SectionLabel } from "../components/ui/Card";
 import { Field, inputClass } from "../components/ui/Field";
 import {
   addEntry,
+  cancelSection,
+  closeSection,
   entriesForScope,
   GOAL_LABELS,
   GOAL_TOKENS,
   type GoalToken,
   joinForms,
+  openSection,
   patchEntry,
   pruneDraft,
   removeEntry,
+  SECTION_CLOSED,
+  type SectionState,
   splitForms,
 } from "../api/coachDoctrine";
 
@@ -122,6 +127,14 @@ type LoadState =
   | { kind: "error"; message: string }
   | { kind: "ready" };
 
+/** Qui ouvre et ferme les sections. Une seule est éditable à la fois. */
+interface SectionApi {
+  isEditing: (key: string) => boolean;
+  edit: (key: string) => void;
+  done: () => void;
+  cancel: () => void;
+}
+
 async function callDoctrine<T>(payload: Record<string, unknown>): Promise<T> {
   const { data: sessionData } = await supabase.auth.getSession();
   const token = sessionData.session?.access_token ?? "";
@@ -168,6 +181,31 @@ export default function CoachDoctrinePage() {
    * ce que l'IA en a fait.
    */
   const [interviewOpen, setInterviewOpen] = React.useState(false);
+  /**
+   * LA SECTION OUVERTE — une seule à la fois.
+   *
+   * Une par une, parce que c'est le geste réel: un coach revient corriger SA
+   * phrase sur les féculents, pas relire ses sept sections. Et parce que deux
+   * sections ouvertes rendent « Cancel » ambigu — on annulerait quoi.
+   *
+   * L'instantané est pris à l'OUVERTURE et rendu au `Cancel`. Sans lui,
+   * « annuler » ne pourrait qu'être un bouton qui ferme la section en gardant
+   * les dégâts — c'est-à-dire un bouton qui ment sur son nom.
+   */
+  const [sectionState, setSectionState] = React.useState<SectionState>(SECTION_CLOSED);
+  /**
+   * CE QUI EST À L'ÉCRAN ET PAS ENCORE EN BASE.
+   *
+   * Le bouton « Done » d'une section ferme l'éditeur — il n'enregistre rien. Le
+   * mot suggère pourtant le contraire, et c'est MON changement qui a créé
+   * l'ambiguïté: avant, tout était un formulaire, et « Save as draft » était le
+   * seul geste possible. Un coach qui ferme sa section, quitte l'écran et perd
+   * sa phrase n'a rien fait de faux — c'est l'écran qui lui a menti.
+   *
+   * On compare donc à la dernière version ENREGISTRÉE, et le bouton le dit.
+   */
+  const [savedSnapshot, setSavedSnapshot] = React.useState<string | null>(null);
+  const dirty = draft !== null && JSON.stringify(draft) !== savedSnapshot;
   const [busy, setBusy] = React.useState<string | null>(null);
   const [notice, setNotice] = React.useState<string | null>(null);
   const [failure, setFailure] = React.useState<string | null>(null);
@@ -202,6 +240,9 @@ export default function CoachDoctrinePage() {
     setVersions(v.versions ?? []);
     if (c.doctrine) {
       setDraft((existing) => existing ?? c.doctrine);
+      // Ce qui vient de la base EST enregistré: sans cette ligne, l'écran
+      // s'ouvrirait en annonçant des modifications que personne n'a faites.
+      setSavedSnapshot((existing) => existing ?? JSON.stringify(c.doctrine));
       setDraftOrigin((existing) => existing ?? "loaded");
     }
   }, []);
@@ -227,6 +268,20 @@ export default function CoachDoctrinePage() {
   }, [refresh]);
 
   const published = versions.find((v) => v.published_at) ?? null;
+
+  // Les quatre gestes sont des fonctions PURES testées dans
+  // `coachDoctrine.int.test.ts`: c'est `cancel` qui porte le risque réel — un
+  // « annuler » qui garderait les dégâts serait un bouton qui ment sur son nom.
+  const section: SectionApi = {
+    isEditing: (key) => sectionState.open === key,
+    edit: (key) => setSectionState(openSection(key, draft ?? {})),
+    done: () => setSectionState(closeSection()),
+    cancel: () => {
+      const out = cancelSection(sectionState, draft ?? {});
+      setDraft(out.draft);
+      setSectionState(out.section);
+    },
+  };
 
   async function run(label: string, fn: () => Promise<void>) {
     setBusy(label);
@@ -278,6 +333,7 @@ export default function CoachDoctrinePage() {
       const clean = pruneDraft(draft);
       await callDoctrine({ action: "save", doctrine: clean });
       setDraft(clean);
+      setSavedSnapshot(JSON.stringify(clean));
       await refresh();
       setNotice("Saved as a draft. It is not live until you publish it.");
     });
@@ -394,16 +450,27 @@ export default function CoachDoctrinePage() {
                 </ul>
               ) : null}
 
-              <GlobalEditor draft={draft} onChange={setDraft} />
+              <GlobalEditor draft={draft} onChange={setDraft} section={section} />
 
-              <div className="mt-5 flex gap-2">
-                <Button onClick={onSave} disabled={busy !== null}>
+              {/*
+                « Done » ferme une section, il n'enregistre pas. Le seul geste
+                qui écrit est ici, et il DIT quand il reste quelque chose à
+                écrire — sinon un coach ferme sa section, quitte l'écran, et
+                perd sa phrase sans avoir rien fait de faux.
+              */}
+              <div className="mt-5 flex items-center gap-3">
+                <Button onClick={onSave} disabled={busy !== null || !dirty}>
                   {busy === "save" ? "Saving…" : "Save as draft"}
                 </Button>
+                <span className="text-xs text-gray-500">
+                  {dirty
+                    ? "You have changes that are not saved yet."
+                    : "Everything here is saved."}
+                </span>
               </div>
             </Card>
 
-            <SpecificEditor draft={draft} onChange={setDraft} />
+            <SpecificEditor draft={draft} onChange={setDraft} section={section} />
           </>
         ) : null}
 
@@ -626,26 +693,90 @@ function AddButton({ label, onClick }: { label: string; onClick: () => void }) {
   );
 }
 
+/**
+ * UNE SECTION QUI SE LIT D'ABORD, ET QUI S'OUVRE À LA DEMANDE.
+ *
+ * ── LE DÉFAUT QUE ÇA FERME ──────────────────────────────────────────────
+ * L'écran affichait TOUT en champs de saisie, en permanence: une trentaine de
+ * cases blanches empilées. Deux conséquences, et la seconde est la pire:
+ *
+ *   · on ne peut pas LIRE sa propre méthode. Un formulaire n'est pas un
+ *     document; le coach n'a nulle part où voir ce que son agent porte;
+ *   · un champ ouvert est une invitation à écrire. Trente champs ouverts
+ *     donnent l'impression permanente d'un travail inachevé, exactement
+ *     l'effet que « neutre est une valeur » évite ailleurs dans le produit.
+ *
+ * Donc: lecture par défaut, et UNE section à la fois en écriture.
+ *
+ * ── POURQUOI UN BOUTON NOMMÉ ET PAS UN CRAYON ───────────────────────────
+ * Une icône seule ne se voit pas — c'est le reproche exact qui a produit ce
+ * changement. Le contrôle porte donc le MOT « Edit » à côté du crayon, dans une
+ * bordure: la cible est large, le libellé dit ce qui va se passer, et l'icône
+ * n'est là que pour la reconnaissance.
+ */
 function EditorSection({
   title,
   hint,
+  summary,
+  editing,
+  onEdit,
+  onDone,
+  onCancel,
   children,
 }: {
   title: string;
   hint?: string;
+  /** Ce que le coach LIT quand la section est fermée. */
+  summary: React.ReactNode;
+  editing: boolean;
+  onEdit: () => void;
+  onDone: () => void;
+  onCancel: () => void;
   children: React.ReactNode;
 }) {
   return (
-    <div>
-      <p className="text-xs font-medium uppercase tracking-wide text-gray-500">{title}</p>
-      {hint ? <p className="mt-1 text-xs leading-5 text-gray-400">{hint}</p> : null}
-      <div className="mt-2">{children}</div>
+    <div className={editing ? "rounded-lg border border-gray-900/15 bg-white p-3 -mx-3" : ""}>
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-xs font-medium uppercase tracking-wide text-gray-500">{title}</p>
+        {editing ? null : (
+          <button
+            type="button"
+            onClick={onEdit}
+            className="flex shrink-0 items-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-xs text-gray-700 hover:border-gray-400 hover:text-gray-900"
+          >
+            {/* Le crayon accompagne le mot, il ne le remplace pas. */}
+            <svg viewBox="0 0 16 16" aria-hidden="true" className="h-3 w-3 fill-current">
+              <path d="M11.5 1.5a2.1 2.1 0 0 1 3 3l-.8.8-3-3 .8-.8ZM9.9 3.1l3 3L6 13H3v-3l6.9-6.9Z" />
+            </svg>
+            Edit
+          </button>
+        )}
+      </div>
+      {editing && hint ? <p className="mt-1 text-xs leading-5 text-gray-400">{hint}</p> : null}
+      <div className="mt-2">{editing ? children : summary}</div>
+      {editing ? (
+        <div className="mt-3 flex gap-2">
+          <Button size="sm" onClick={onDone}>Done</Button>
+          <Button size="sm" variant="secondary" onClick={onCancel}>Cancel</Button>
+        </div>
+      ) : null}
     </div>
   );
 }
 
+/** Le rendu de lecture d'une section: des lignes, ou la phrase du vide. */
+function SummaryList({ items, empty }: { items: React.ReactNode[]; empty: string }) {
+  if (items.length === 0) return <p className="text-sm text-gray-400">{empty}</p>;
+  return (
+    <ul className="space-y-1.5 text-sm leading-6 text-gray-800">
+      {items.map((item, i) => (
+        <li key={i} className="border-l-2 border-gray-100 pl-3">{item}</li>
+      ))}
+    </ul>
+  );
+}
 /**
- * LES CROYANCES ET LES CAS DURS, ÉDITABLES — la brique commune aux deux parties.
+ * LES CROYANCES ET LES CAS DURS — la brique commune aux deux parties.
  *
  * Elle est partagée par la partie GLOBALE et par chaque DYNAMIQUE, parce que
  * c'est littéralement la même donnée: une conviction est une conviction, et la
@@ -656,14 +787,20 @@ function BeliefsAndAnswers({
   draft,
   onChange,
   goal,
+  section,
+  keyPrefix,
 }: {
   draft: DoctrineDraft;
   onChange: (next: DoctrineDraft) => void;
   goal: GoalToken | null;
+  section: SectionApi;
+  /** Préfixe de clé de section: les deux parties éditent les mêmes listes. */
+  keyPrefix: string;
 }) {
   const scope = goal === null ? undefined : [goal];
   const beliefs = entriesForScope(draft.beliefs, goal);
   const arbitrations = entriesForScope(draft.arbitrations, goal);
+  const forWhom = goal === null ? "every student" : GOAL_LABELS[goal].toLowerCase();
 
   return (
     <div className="space-y-5">
@@ -672,10 +809,25 @@ function BeliefsAndAnswers({
         hint={goal === null
           ? "One conviction per line. The 'why' is what lets your agent explain instead of assert."
           : `Only students on ${GOAL_LABELS[goal]} will ever read these.`}
+        editing={section.isEditing(`${keyPrefix}:beliefs`)}
+        onEdit={() => section.edit(`${keyPrefix}:beliefs`)}
+        onDone={section.done}
+        onCancel={section.cancel}
+        summary={
+          <SummaryList
+            empty={`Nothing yet — what do you believe that you'd tell ${forWhom}?`}
+            items={beliefs.map(({ entry }) => (
+              <>
+                {String(entry.claim ?? "")}
+                {String(entry.rationale ?? "").trim()
+                  ? <span className="text-gray-500">{` — ${entry.rationale}`}</span>
+                  : null}
+              </>
+            ))}
+          />
+        }
       >
-        {beliefs.length === 0 ? (
-          <p className="text-sm text-gray-400">Nothing here yet.</p>
-        ) : (
+        {beliefs.length === 0 ? <p className="text-sm text-gray-400">Nothing here yet.</p> : (
           <ul className="space-y-2">
             {beliefs.map(({ index, entry }) => (
               <Row
@@ -693,10 +845,7 @@ function BeliefsAndAnswers({
                   label="Why (optional)"
                   value={String(entry.rationale ?? "")}
                   onChange={(rationale) =>
-                    onChange({
-                      ...draft,
-                      beliefs: patchEntry(draft.beliefs, index, { rationale }),
-                    })}
+                    onChange({ ...draft, beliefs: patchEntry(draft.beliefs, index, { rationale }) })}
                 />
               </Row>
             ))}
@@ -717,10 +866,24 @@ function BeliefsAndAnswers({
         hint={goal === null
           ? "The situation, and your sentence — word for word. It is what makes the agent sound like you."
           : `The hard cases that only come up with ${GOAL_LABELS[goal]} students.`}
+        editing={section.isEditing(`${keyPrefix}:arbitrations`)}
+        onEdit={() => section.edit(`${keyPrefix}:arbitrations`)}
+        onDone={section.done}
+        onCancel={section.cancel}
+        summary={
+          <SummaryList
+            empty="Nothing yet — add a hard case and the answer you give, word for word."
+            items={arbitrations.map(({ entry }) => (
+              <>
+                <span className="text-gray-500">{String(entry.situation ?? "")}</span>
+                <br />
+                {`“${String(entry.coach_answer ?? "")}”`}
+              </>
+            ))}
+          />
+        }
       >
-        {arbitrations.length === 0 ? (
-          <p className="text-sm text-gray-400">Nothing here yet.</p>
-        ) : (
+        {arbitrations.length === 0 ? <p className="text-sm text-gray-400">Nothing here yet.</p> : (
           <ul className="space-y-2">
             {arbitrations.map(({ index, entry }) => (
               <Row
@@ -773,15 +936,17 @@ function BeliefsAndAnswers({
  *
  * Elle porte les croyances et les cas durs SANS portée, plus les quatre
  * sections qui n'en prennent jamais: la voix, le vocabulaire, les interdits et
- * les aliments. Ces quatre-là ne sont pas « pas encore ciblables »: un interdit
- * borné à un objectif serait une préférence, pas un interdit.
+ * les aliments écartés. Ces quatre-là ne sont pas « pas encore ciblables »: un
+ * interdit borné à un objectif serait une préférence, pas un interdit.
  */
 function GlobalEditor({
   draft,
   onChange,
+  section,
 }: {
   draft: DoctrineDraft;
   onChange: (next: DoctrineDraft) => void;
+  section: SectionApi;
 }) {
   const voice = (draft.voice ?? {}) as Record<string, unknown>;
   const setVoice = (patch: Record<string, unknown>) =>
@@ -789,72 +954,110 @@ function GlobalEditor({
   const foods = draft.foods ?? {};
   const setFoods = (patch: Partial<NonNullable<DoctrineDraft["foods"]>>) =>
     onChange({ ...draft, foods: { ...foods, ...patch } });
+  const open = (key: string) => ({
+    editing: section.isEditing(key),
+    onEdit: () => section.edit(key),
+    onDone: section.done,
+    onCancel: section.cancel,
+  });
+
+  const voiceLine = [
+    voice.address ? `you say “${voice.address}”` : null,
+    voice.length === "short" ? "short replies" : voice.length === "medium" ? "a short paragraph" : null,
+    voice.emojis === "none" ? "no emojis" : voice.emojis === "light" ? "at most one emoji" : null,
+    voice.language ? `written in ${voice.language}` : null,
+  ].filter(Boolean).join(" · ");
 
   return (
     <div className="mt-4 space-y-6">
-      <BeliefsAndAnswers draft={draft} onChange={onChange} goal={null} />
+      <BeliefsAndAnswers
+        draft={draft}
+        onChange={onChange}
+        goal={null}
+        section={section}
+        keyPrefix="global"
+      />
 
       <EditorSection
         title="What your agent must never say"
         hint="A token your code can branch on, the phrasings a model would actually write, and — the important one — what you say INSTEAD. Without an 'instead', a student gets a flat refusal rather than your answer."
-      >
-        {(draft.forbidden ?? []).length === 0 ? (
-          <p className="text-sm text-gray-400">Nothing here yet.</p>
-        ) : (
-          <ul className="space-y-2">
-            {(draft.forbidden ?? []).map((f, index) => (
-              <Row
-                key={`forb-${index}`}
-                onRemove={() =>
-                  onChange({ ...draft, forbidden: removeEntry(draft.forbidden, index) })}
-              >
-                <TextRow
-                  label="The thing itself"
-                  value={String(f.token ?? "")}
-                  placeholder="six_small_meals"
-                  onChange={(token) =>
-                    onChange({ ...draft, forbidden: patchEntry(draft.forbidden, index, { token }) })}
-                />
-                <TextRow
-                  label="How people actually write it (comma-separated)"
-                  value={joinForms(f.surface_forms)}
-                  placeholder="6 petits repas, six small meals, grazing all day"
-                  onChange={(raw) =>
-                    onChange({
-                      ...draft,
-                      forbidden: patchEntry(draft.forbidden, index, {
-                        surface_forms: splitForms(raw),
-                      }),
-                    })}
-                />
-                <TextRow
-                  label="Why you refuse it (optional)"
-                  value={String(f.reason ?? "")}
-                  onChange={(reason) =>
-                    onChange({
-                      ...draft,
-                      forbidden: patchEntry(draft.forbidden, index, { reason }),
-                    })}
-                />
-                <TextRow
-                  label="What you say INSTEAD — this exact text reaches your students"
-                  value={String(f.instead ?? "")}
-                  rows={2}
-                  onChange={(instead) =>
-                    onChange({
-                      ...draft,
-                      forbidden: patchEntry(draft.forbidden, index, { instead }),
-                    })}
-                />
-                {!String(f.instead ?? "").trim() ? (
-                  <p className="text-xs text-amber-800">
-                    No replacement set — students get a flat refusal here.
-                  </p>
-                ) : null}
-              </Row>
+        {...open("forbidden")}
+        summary={
+          <SummaryList
+            empty="Nothing yet — what would you be embarrassed to see your agent say?"
+            items={(draft.forbidden ?? []).map((f) => (
+              <>
+                {String(f.token ?? "")}
+                {String(f.instead ?? "").trim()
+                  ? <span className="text-gray-500">{` — instead: “${f.instead}”`}</span>
+                  : <span className="text-amber-800">{" — no replacement set"}</span>}
+              </>
             ))}
-          </ul>
-        )}
+          />
+        }
+      >
+        {(draft.forbidden ?? []).length === 0
+          ? <p className="text-sm text-gray-400">Nothing here yet.</p>
+          : (
+            <ul className="space-y-2">
+              {(draft.forbidden ?? []).map((f, index) => (
+                <Row
+                  key={`forb-${index}`}
+                  onRemove={() =>
+                    onChange({ ...draft, forbidden: removeEntry(draft.forbidden, index) })}
+                >
+                  <TextRow
+                    label="The thing itself"
+                    value={String(f.token ?? "")}
+                    placeholder="six_small_meals"
+                    onChange={(token) =>
+                      onChange({
+                        ...draft,
+                        forbidden: patchEntry(draft.forbidden, index, { token }),
+                      })}
+                  />
+                  <TextRow
+                    label="How people actually write it (comma-separated)"
+                    value={joinForms(f.surface_forms)}
+                    placeholder="6 petits repas, six small meals, grazing all day"
+                    onChange={(raw) =>
+                      onChange({
+                        ...draft,
+                        forbidden: patchEntry(draft.forbidden, index, {
+                          surface_forms: splitForms(raw),
+                        }),
+                      })}
+                  />
+                  <TextRow
+                    label="Why you refuse it (optional)"
+                    value={String(f.reason ?? "")}
+                    onChange={(reason) =>
+                      onChange({
+                        ...draft,
+                        forbidden: patchEntry(draft.forbidden, index, { reason }),
+                      })}
+                  />
+                  <TextRow
+                    label="What you say INSTEAD — this exact text reaches your students"
+                    value={String(f.instead ?? "")}
+                    rows={2}
+                    onChange={(instead) =>
+                      onChange({
+                        ...draft,
+                        forbidden: patchEntry(draft.forbidden, index, { instead }),
+                      })}
+                  />
+                  {!String(f.instead ?? "").trim()
+                    ? (
+                      <p className="text-xs text-amber-800">
+                        No replacement set — students get a flat refusal here.
+                      </p>
+                    )
+                    : null}
+                </Row>
+              ))}
+            </ul>
+          )}
         <AddButton
           label="Add a red line"
           onClick={() =>
@@ -870,95 +1073,143 @@ function GlobalEditor({
         />
       </EditorSection>
 
-      <EditorSection title="Your words" hint="The terms that are yours, and what they mean exactly.">
-        {(draft.vocabulary ?? []).length === 0 ? (
-          <p className="text-sm text-gray-400">Nothing here yet.</p>
-        ) : (
-          <ul className="space-y-2">
-            {(draft.vocabulary ?? []).map((v, index) => (
-              <Row
-                key={`vocab-${index}`}
-                onRemove={() =>
-                  onChange({ ...draft, vocabulary: removeEntry(draft.vocabulary, index) })}
-              >
-                <TextRow
-                  label="The word"
-                  value={String(v.term ?? "")}
-                  onChange={(term) =>
-                    onChange({
-                      ...draft,
-                      vocabulary: patchEntry(draft.vocabulary, index, { term }),
-                    })}
-                />
-                <TextRow
-                  label="What it means"
-                  value={String(v.meaning ?? "")}
-                  onChange={(meaning) =>
-                    onChange({
-                      ...draft,
-                      vocabulary: patchEntry(draft.vocabulary, index, { meaning }),
-                    })}
-                />
-              </Row>
+      <EditorSection
+        title="Your words"
+        hint="The terms that are yours, and what they mean exactly."
+        {...open("vocabulary")}
+        summary={
+          <SummaryList
+            empty="Nothing yet — which words are yours?"
+            items={(draft.vocabulary ?? []).map((v) => (
+              <>
+                “{String(v.term ?? "")}”
+                {String(v.meaning ?? "").trim()
+                  ? <span className="text-gray-500">{` — ${v.meaning}`}</span>
+                  : null}
+              </>
             ))}
-          </ul>
-        )}
+          />
+        }
+      >
+        {(draft.vocabulary ?? []).length === 0
+          ? <p className="text-sm text-gray-400">Nothing here yet.</p>
+          : (
+            <ul className="space-y-2">
+              {(draft.vocabulary ?? []).map((v, index) => (
+                <Row
+                  key={`vocab-${index}`}
+                  onRemove={() =>
+                    onChange({ ...draft, vocabulary: removeEntry(draft.vocabulary, index) })}
+                >
+                  <TextRow
+                    label="The word"
+                    value={String(v.term ?? "")}
+                    onChange={(term) =>
+                      onChange({
+                        ...draft,
+                        vocabulary: patchEntry(draft.vocabulary, index, { term }),
+                      })}
+                  />
+                  <TextRow
+                    label="What it means"
+                    value={String(v.meaning ?? "")}
+                    onChange={(meaning) =>
+                      onChange({
+                        ...draft,
+                        vocabulary: patchEntry(draft.vocabulary, index, { meaning }),
+                      })}
+                  />
+                </Row>
+              ))}
+            </ul>
+          )}
         <AddButton
           label="Add a word"
           onClick={() =>
-            onChange({ ...draft, vocabulary: addEntry(draft.vocabulary, { term: "", meaning: "" }) })}
+            onChange({
+              ...draft,
+              vocabulary: addEntry(draft.vocabulary, { term: "", meaning: "" }),
+            })}
         />
       </EditorSection>
 
       <EditorSection
         title="Foods you keep off the plate"
-        hint="Give the phrasings too — 'seed oil' almost never appears as those two words in a real sentence, and a bare term is a filter that catches nothing."
-      >
-        {(foods.discouraged ?? []).length === 0 ? (
-          <p className="text-sm text-gray-400">Nothing here yet.</p>
-        ) : (
-          <ul className="space-y-2">
-            {(foods.discouraged ?? []).map((f, index) => (
-              <Row
-                key={`food-d-${index}`}
-                onRemove={() => setFoods({ discouraged: removeEntry(foods.discouraged, index) })}
-              >
-                <TextRow
-                  label="Food"
-                  value={String(f.term ?? "")}
-                  onChange={(term) =>
-                    setFoods({ discouraged: patchEntry(foods.discouraged, index, { term }) })}
-                />
-                <TextRow
-                  label="How people write it (comma-separated)"
-                  value={joinForms(f.surface_forms)}
-                  onChange={(raw) =>
-                    setFoods({
-                      discouraged: patchEntry(foods.discouraged, index, {
-                        surface_forms: splitForms(raw),
-                      }),
-                    })}
-                />
-              </Row>
+        hint="Give the phrasings too — 'seed oil' almost never appears as those two words in a real sentence, and a bare term is a filter that catches nothing. What you BUILD with is set on your Method screen, not here."
+        {...open("foods")}
+        summary={
+          <SummaryList
+            empty="Nothing yet — anything you never want on a plate?"
+            items={(foods.discouraged ?? []).map((f) => (
+              <>
+                {String(f.term ?? "")}
+                {(f.surface_forms ?? []).length > 0
+                  ? <span className="text-gray-500">{` — also: ${joinForms(f.surface_forms)}`}</span>
+                  : <span className="text-amber-800">{" — no phrasings, hard to catch"}</span>}
+              </>
             ))}
-          </ul>
-        )}
+          />
+        }
+      >
+        {(foods.discouraged ?? []).length === 0
+          ? <p className="text-sm text-gray-400">Nothing here yet.</p>
+          : (
+            <ul className="space-y-2">
+              {(foods.discouraged ?? []).map((f, index) => (
+                <Row
+                  key={`food-d-${index}`}
+                  onRemove={() => setFoods({ discouraged: removeEntry(foods.discouraged, index) })}
+                >
+                  <TextRow
+                    label="Food"
+                    value={String(f.term ?? "")}
+                    onChange={(term) =>
+                      setFoods({ discouraged: patchEntry(foods.discouraged, index, { term }) })}
+                  />
+                  <TextRow
+                    label="How people write it (comma-separated)"
+                    value={joinForms(f.surface_forms)}
+                    onChange={(raw) =>
+                      setFoods({
+                        discouraged: patchEntry(foods.discouraged, index, {
+                          surface_forms: splitForms(raw),
+                        }),
+                      })}
+                  />
+                </Row>
+              ))}
+            </ul>
+          )}
         <AddButton
           label="Add a food"
           onClick={() =>
-            setFoods({
-              discouraged: addEntry(foods.discouraged, { term: "", surface_forms: [] }),
-            })}
+            setFoods({ discouraged: addEntry(foods.discouraged, { term: "", surface_forms: [] }) })}
         />
       </EditorSection>
 
-      <EditorSection title="What you have already answered">
-        {(draft.qa ?? []).length === 0 ? (
-          <p className="text-sm text-gray-400">Nothing here yet.</p>
-        ) : (
+      <EditorSection
+        title="What you have already answered"
+        {...open("qa")}
+        summary={
+          <SummaryList
+            empty="Nothing yet — what do your students ask over and over?"
+            items={(draft.qa ?? []).map((q) => (
+              <>
+                <span className="text-gray-500">{String(q.question ?? "")}</span>
+                <br />
+                {String(q.answer ?? "")}
+              </>
+            ))}
+          />
+        }
+      >
+        {(draft.qa ?? []).length === 0 ? <p className="text-sm text-gray-400">Nothing here yet.</p> : (
           <ul className="space-y-2">
             {(draft.qa ?? []).map((q, index) => (
-              <Row key={`qa-${index}`} onRemove={() => onChange({ ...draft, qa: removeEntry(draft.qa, index) })}>
+              <Row
+                key={`qa-${index}`}
+                onRemove={() => onChange({ ...draft, qa: removeEntry(draft.qa, index) })}
+              >
                 <TextRow
                   label="They ask"
                   value={String(q.question ?? "")}
@@ -982,7 +1233,13 @@ function GlobalEditor({
         />
       </EditorSection>
 
-      <EditorSection title="Your voice">
+      <EditorSection
+        title="Your voice"
+        {...open("voice")}
+        summary={voiceLine
+          ? <p className="text-sm leading-6 text-gray-800">{voiceLine}</p>
+          : <p className="text-sm text-gray-400">Nothing set — your agent picks its own register.</p>}
+      >
         <div className="grid gap-2 sm:grid-cols-2">
           <TextRow
             label="How you address them (tu / vous)"
@@ -1027,23 +1284,19 @@ function GlobalEditor({
 /**
  * LA PARTIE SPÉCIFIQUE — ce qui ne s'adresse qu'à une sorte d'élève.
  *
- * ── POURQUOI UN SÉLECTEUR ET PAS CINQ COLONNES ──────────────────────────
- * Cinq colonnes montreraient en permanence quatre saisies vides à un coach dont
- * l'essentiel du travail est commun. Un sélecteur montre UNE dynamique à la
- * fois, et le compteur à côté de chaque bouton dit où il a déjà écrit quelque
- * chose — c'est tout ce dont il a besoin pour savoir ce qu'il lui reste à faire.
- *
- * Ce qu'il tape ici est stocké tel quel, avec la portée de la dynamique
- * choisie. Aucun modèle entre lui et sa base: la partie globale passe par
- * l'interview parce qu'il y raconte sa méthode; ici il complète, et il n'y a
- * rien à transcrire.
+ * Un sélecteur et pas N colonnes: N colonnes montreraient en permanence N-1
+ * saisies vides à un coach dont l'essentiel du travail est commun. Le compteur
+ * à côté de chaque bouton dit où il a déjà écrit quelque chose — c'est tout ce
+ * dont il a besoin pour savoir ce qu'il lui reste à faire.
  */
 function SpecificEditor({
   draft,
   onChange,
+  section,
 }: {
   draft: DoctrineDraft;
   onChange: (next: DoctrineDraft) => void;
+  section: SectionApi;
 }) {
   const [goal, setGoal] = React.useState<GoalToken>(GOAL_TOKENS[0]);
   const countFor = (g: GoalToken) =>
@@ -1080,7 +1333,13 @@ function SpecificEditor({
       </div>
 
       <div className="mt-4">
-        <BeliefsAndAnswers draft={draft} onChange={onChange} goal={goal} />
+        <BeliefsAndAnswers
+          draft={draft}
+          onChange={onChange}
+          goal={goal}
+          section={section}
+          keyPrefix={goal}
+        />
       </div>
     </Card>
   );

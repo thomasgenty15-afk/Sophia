@@ -179,6 +179,57 @@ export function scopeSentence(scope: readonly string[] | undefined): string {
 //                qu'en perte de gras.
 // Ni plus, ni moins: pas de troisième niveau, pas de portée multiple à cocher.
 
+// ---------------------------------------------------------------------------
+// LIRE D'ABORD, ÉCRIRE UNE SECTION À LA FOIS
+// ---------------------------------------------------------------------------
+//
+// L'écran affichait TOUT en champs de saisie. On ne pouvait pas LIRE sa propre
+// méthode — un formulaire n'est pas un document — et trente cases ouvertes
+// donnent l'impression permanente d'un travail inachevé.
+//
+// L'état tient en deux choses: quelle section est ouverte, et ce qu'il y avait
+// dedans à l'ouverture. La seconde est ce qui rend « Cancel » honnête.
+
+export interface SectionState {
+  /** La clé de la section ouverte, ou `null` si tout est en lecture. */
+  readonly open: string | null;
+  /** Le brouillon COMPLET tel qu'il était à l'ouverture. */
+  readonly snapshot: DoctrineDraft | null;
+}
+
+export const SECTION_CLOSED: SectionState = { open: null, snapshot: null };
+
+/**
+ * Ouvrir une section. L'instantané est pris MAINTENANT.
+ *
+ * Ouvrir une autre section referme la première en gardant ses modifications
+ * (c'est un « Done » implicite): l'instantané suit la section ouverte, jamais
+ * l'écran entier, sinon annuler la deuxième défairait aussi la première.
+ */
+export function openSection(key: string, draft: DoctrineDraft): SectionState {
+  return { open: key, snapshot: draft };
+}
+
+/** Fermer en GARDANT ce qui a été tapé. Ne persiste rien — c'est `save` qui écrit. */
+export function closeSection(): SectionState {
+  return SECTION_CLOSED;
+}
+
+/**
+ * Fermer en RENDANT ce qu'il y avait avant.
+ *
+ * Sans instantané, « annuler » ne pourrait qu'être un bouton qui ferme la
+ * section en gardant les dégâts — c'est-à-dire un bouton qui ment sur son nom.
+ * Le brouillon rendu est celui de l'appelant s'il n'y a pas d'instantané: on ne
+ * remplace jamais un état réel par `null`.
+ */
+export function cancelSection(
+  state: SectionState,
+  current: DoctrineDraft,
+): { section: SectionState; draft: DoctrineDraft } {
+  return { section: SECTION_CLOSED, draft: state.snapshot ?? current };
+}
+
 /** Une entrée du brouillon, avec sa position dans le tableau qui la porte. */
 export interface IndexedEntry<T> {
   index: number;
