@@ -32,7 +32,7 @@
 
 import {
   type CoachDoctrine,
-  compileDoctrineBlock,
+  compileAllDoctrineVariants,
   type DoctrineArbitration,
   type DoctrineBelief,
   type DoctrineForbidden,
@@ -44,10 +44,10 @@ import {
 // ---------------------------------------------------------------------------
 
 /**
- * Les cinq couches que l'interview couvre (§1.4: croyances → interdits →
- * vocabulaire → 3 cas durs → ton). Exportées parce que l'écran et le prompt
- * doivent poser LES MÊMES questions: deux listes divergeraient au premier
- * ajout.
+ * Les couches que l'interview couvre (§1.4: croyances → interdits →
+ * vocabulaire → 3 cas durs → portée → ton). Exportées parce que l'écran et le
+ * prompt doivent poser LES MÊMES questions: deux listes divergeraient au
+ * premier ajout.
  */
 export const INTERVIEW_SECTIONS = [
   "beliefs",
@@ -60,6 +60,13 @@ export const INTERVIEW_SECTIONS = [
   // verbatim pour chaque aliment qu'il n'aime pas — donc à ne rien remplir.
   "foods",
   "hard_cases",
+  // LA PORTÉE. Section à part, et pas une quatrième question de `hard_cases`:
+  // les trois cas durs demandent une PHRASE du coach, mot pour mot, et une
+  // question qui demande « pour qui ? » ne demande pas la même chose du tout.
+  // Les confondre casserait aussi l'invariant de l'interview — les cas durs
+  // demandent tous des mots — qui est ce qui fait que le few-shot sonne comme
+  // lui.
+  "scope",
   // LES QUESTIONS/RÉPONSES. Distinctes des cas durs: un cas dur demande son
   // TON dans un moment difficile, un Q/R demande son CONTENU sur une question
   // factuelle. Confondre les deux fait répondre par du réconfort à quelqu'un
@@ -144,6 +151,20 @@ export const INTERVIEW_QUESTIONS: ReadonlyArray<
       "A student says your plan is too much food. You answer what, word for word?",
   },
   {
+    // LA PORTÉE SE DEMANDE SUR LE MOMENT, PAS DANS UN FORMULAIRE APRÈS COUP.
+    //
+    // UNE seule question, et elle arrive juste après les cas durs — au moment
+    // où le coach a ces réponses en tête et où « ça, c'est pour ceux qui
+    // sèchent » lui vient naturellement. Le §5 du lot est explicite: multiplier
+    // la saisie par cinq (un onglet par objectif) produirait un écran qu'on ne
+    // remplit pas. La divulgation progressive commence ici: on demande, et si
+    // le coach répond « tout le monde » — la réponse la plus fréquente — il n'a
+    // rien de plus à faire.
+    section: "scope",
+    question:
+      "Does any of what you just said only apply to certain students — the ones cutting, the ones trying to gain, the ones just here for their health? Say which, in your own words. If it all holds for everyone, say so.",
+  },
+  {
     section: "qa",
     question:
       "What do your students ask you over and over? Write the question and your usual answer, as many as come to mind.",
@@ -164,10 +185,10 @@ THE HARD RULE: you never invent a belief, an interdiction, a word or an answer t
 Output a single JSON object, nothing else.
 
 {
-  "beliefs":     [{ "claim": "...", "rationale": "..."|null }],
+  "beliefs":     [{ "claim": "...", "rationale": "..."|null, "goal_scope": [] }],
   "forbidden":   [{ "token": "snake_case_ascii", "surface_forms": ["..."], "reason": "..."|null, "instead": "..."|null }],
   "vocabulary":  [{ "term": "...", "meaning": "..."|null }],
-  "arbitrations":[{ "situation": "...", "coach_answer": "..." }],
+  "arbitrations":[{ "situation": "...", "coach_answer": "...", "goal_scope": [] }],
   "foods":       { "recommended": [{ "term": "...", "reason": "..."|null }],
                    "discouraged": [{ "term": "...", "surface_forms": ["..."], "reason": "..."|null }] },
   "qa":          [{ "question": "...", "answer": "..." }],
@@ -189,6 +210,8 @@ RULES PER FIELD:
 - foods.recommended: only foods he actually named as ones he uses. This list is an INVITATION for the meal generator to reach for, so a food he merely tolerated does not belong in it.
 - qa: the questions his students actually ask, with HIS answer. Keep the answer close to verbatim, same rule as arbitrations. A qa entry is FACTUAL ("can I have coffee in the morning?"); if what he gave you is a reply to someone in distress, it is an arbitration, not a qa — putting it here would make the agent answer a technical question with reassurance.
 - voice: only fill a field the coach actually indicated. Guessing "tu" because the interview was in French is exactly the kind of invention this prompt forbids.
+- goal_scope (beliefs and arbitrations ONLY): an EMPTY list means the entry applies to every student, and empty is the default you use unless the coach restricted it himself. Allowed values, and no others: "fat_loss", "recomposition", "performance", "health", "maintenance". Fill it only when the coach's own words name who it is for — "when someone is cutting", "for my guys who are trying to put on size", "if they're just here to feel better". Do NOT infer a scope from the subject matter: "don't panic over the scale" SOUNDS like fat loss and may well be what he tells everyone, and guessing would silently take the sentence away from four fifths of his students. Restricting an entry the coach meant for everyone is worse than leaving it open, because he cannot see what his agent is not saying.
+- goal_scope is NOT available on forbidden, foods or vocabulary, and you must never emit it there. An interdiction that only holds for some students is a preference, not an interdiction: the coach would watch his own red line come out of his agent's mouth for a student with a different goal.
 
 If the coach said something that is a belief AND an interdiction ("I never do six small meals, it breaks the fast"), record it in BOTH: the belief explains, the interdiction enforces.`;
 
@@ -303,6 +326,15 @@ export interface DoctrineDiffEntry {
   label: string;
 }
 
+/**
+ * La portée d'une entrée, en une chaîne comparable. Triée, parce que l'ordre
+ * dans lequel un coach a coché deux objectifs n'est pas un changement.
+ */
+function scopeLabel(item: unknown): string {
+  const scope = (item as { goalScope?: readonly string[] } | null)?.goalScope ?? [];
+  return [...scope].sort().join(", ");
+}
+
 function labelOf(field: DoctrineDiffEntry["field"], item: unknown): string {
   const o = (item ?? {}) as Record<string, unknown>;
   switch (field) {
@@ -338,13 +370,39 @@ export function diffDoctrines(
     ["arbitrations", before?.arbitrations ?? [], after.arbitrations],
   ];
   for (const [field, oldItems, newItems] of fields) {
-    const oldLabels = new Set(oldItems.map((i) => labelOf(field, i)).filter(Boolean));
-    const newLabels = new Set(newItems.map((i) => labelOf(field, i)).filter(Boolean));
-    for (const label of newLabels) {
-      if (!oldLabels.has(label)) out.push({ field, change: "added", label });
+    const oldByLabel = new Map<string, unknown>();
+    for (const i of oldItems) {
+      const label = labelOf(field, i);
+      if (label) oldByLabel.set(label, i);
     }
-    for (const label of oldLabels) {
-      if (!newLabels.has(label)) out.push({ field, change: "removed", label });
+    const newByLabel = new Map<string, unknown>();
+    for (const i of newItems) {
+      const label = labelOf(field, i);
+      if (label) newByLabel.set(label, i);
+    }
+    for (const [label, item] of newByLabel) {
+      if (!oldByLabel.has(label)) {
+        out.push({ field, change: "added", label });
+        continue;
+      }
+      // LA PORTÉE EST UN CHANGEMENT, ET IL ÉTAIT INVISIBLE.
+      //
+      // Restreindre une croyance globale à `fat_loss` ne touche ni son texte ni
+      // sa clé: le diff par libellé ne voyait donc RIEN, alors que tous les
+      // élèves des quatre autres objectifs viennent de la perdre. C'est
+      // exactement le geste que le coach doit relire avant de publier.
+      const oldScope = scopeLabel(oldByLabel.get(label));
+      const newScope = scopeLabel(item);
+      if (oldScope !== newScope) {
+        out.push({
+          field,
+          change: "changed",
+          label: newScope === "" ? `${label} — now for everyone` : `${label} — now ${newScope} only`,
+        });
+      }
+    }
+    for (const label of oldByLabel.keys()) {
+      if (!newByLabel.has(label)) out.push({ field, change: "removed", label });
     }
   }
   const beforeVoice = JSON.stringify(before?.voice ?? {});
@@ -389,7 +447,18 @@ export function buildReplayPrompt(args: {
   };
 }
 
-/** Le hash de la doctrine courante — l'invalidation de cache, en une valeur. */
+/**
+ * Le hash de la doctrine courante — l'invalidation de cache, en une valeur.
+ *
+ * ── IL COUVRE TOUTES LES VARIANTES, PAS LA `default` ─────────────────────
+ * Depuis que les croyances et les arbitrages portent une portée, hasher la
+ * seule variante `default` rendrait la même empreinte à deux doctrines qui ne
+ * diffèrent que par une croyance ciblée `fat_loss` — c'est-à-dire à deux
+ * doctrines dont les élèves en perte de gras reçoivent des blocs différents.
+ * L'empreinte doit bouger dès que N'IMPORTE QUEL élève reçoit autre chose.
+ */
 export function doctrineFingerprint(doctrine: CoachDoctrine): string {
-  return compileDoctrineBlock(doctrine).hash;
+  return compileAllDoctrineVariants(doctrine)
+    .map((v) => `${v.key}:${v.compiled.hash}`)
+    .join("|");
 }

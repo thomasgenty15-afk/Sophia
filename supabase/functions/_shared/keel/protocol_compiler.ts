@@ -68,6 +68,7 @@
  * les deux sens.
  */
 
+import { type GoalToken, goalScopeApplies } from "./tokens.ts";
 import type { FoodGroupRef } from "./tokens.ts";
 import type { SlotKey } from "./tokens.ts";
 
@@ -75,13 +76,15 @@ import type { SlotKey } from "./tokens.ts";
 // LES ENTRÉES — exactement ce que les tables du coach portent
 // ---------------------------------------------------------------------------
 
-/** `student_goals.goal`. Une entrée sans portée vise tout le monde. */
-export type GoalToken =
-  | "fat_loss"
-  | "recomposition"
-  | "performance"
-  | "health"
-  | "maintenance";
+/**
+ * `student_goals.goal`. Une entrée sans portée vise tout le monde.
+ *
+ * La liste vit dans `tokens.ts` depuis que la DOCTRINE porte la même portée
+ * (lot doctrine-by-goal): deux copies d'un vocabulaire fermé finissent par
+ * diverger, et le jour où elles divergent une croyance visant un sixième
+ * objectif atteint tout le monde d'un côté et personne de l'autre.
+ */
+export type { GoalToken };
 
 export type Stance = "encouraged" | "discouraged" | "excluded";
 
@@ -286,14 +289,17 @@ export function commitmentKey(
  * `goal === null` (un élève qui n'a pas encore déclaré d'objectif) reçoit les
  * lignes globales et RIEN d'autre: lui appliquer une règle écrite pour
  * `fat_loss` serait lui prêter un but qu'il n'a pas énoncé.
+ *
+ * DÉLÈGUE, et ce n'est pas une indirection gratuite: la doctrine du coach porte
+ * exactement la même portée (`doctrine.ts`), et le jour où l'une des deux se
+ * mettrait à lire « portée inconnue » comme « pour tout le monde », un coach
+ * verrait sa règle tenir sur ses aliments et fuir sur ses croyances.
  */
 export function ruleAppliesTo(
   goalScope: readonly GoalToken[],
   goal: GoalToken | null,
 ): boolean {
-  if (goalScope.length === 0) return true;
-  if (goal === null) return false;
-  return goalScope.includes(goal);
+  return goalScopeApplies(goalScope, goal);
 }
 
 // ---------------------------------------------------------------------------

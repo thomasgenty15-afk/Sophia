@@ -522,3 +522,56 @@ export const parseFoodGroupRef = makeParser<FoodGroupRef>(
     citrus_fruit: "citrus",
   },
 );
+
+// ---------------------------------------------------------------------------
+// GOAL TOKENS — `student_goals.goal`, and the SCOPE of everything a coach
+// writes that does not apply to every student he has.
+// ---------------------------------------------------------------------------
+//
+// WHY THE VOCABULARY LIVES HERE AND NOT IN THE TWO MODULES THAT SCOPE ON IT.
+// The coach's food mapping (`protocol_compiler.ts`) and the coach's doctrine
+// (`doctrine.ts`) both carry per-goal scope, on the same five values, with the
+// same "empty means everyone" rule. Two copies of a closed vocabulary is the
+// exact failure this file's header describes: they agree until the day one of
+// them gains a sixth value, and then a belief scoped to it reaches everybody
+// through one module and nobody through the other. One list, one predicate.
+
+export const GOAL_TOKENS = [
+  "fat_loss",
+  "recomposition",
+  "performance",
+  "health",
+  "maintenance",
+] as const;
+export type GoalToken = (typeof GOAL_TOKENS)[number];
+
+export const parseGoalToken = makeParser<GoalToken>("goal", GOAL_TOKENS);
+
+/**
+ * Does an entry scoped to `goalScope` apply to a student whose goal is `goal`?
+ *
+ * TWO ASYMMETRIES, BOTH DELIBERATE:
+ *
+ *   empty scope  → applies to EVERYONE. It is the default a coach never has to
+ *                  think about, and the overwhelming majority of what he
+ *                  writes. Absent must never mean "reaches nobody", or a
+ *                  doctrine written before scope existed would go silent.
+ *
+ *   goal === null → gets the GLOBAL entries and nothing else. A student who
+ *                  has not declared a goal is not a student with every goal:
+ *                  serving him a claim written for fat loss lends him an
+ *                  intention he never stated.
+ *
+ * `goalScope` is `readonly string[]` and not `readonly GoalToken[]` on purpose:
+ * a scope read back from jsonb may carry a token this build does not know, and
+ * the safe reading of an unknown scope is "reaches nobody" — never "reaches
+ * everybody", which is what dropping the unknown token would produce.
+ */
+export function goalScopeApplies(
+  goalScope: readonly string[],
+  goal: GoalToken | null,
+): boolean {
+  if (goalScope.length === 0) return true;
+  if (goal === null) return false;
+  return goalScope.includes(goal);
+}

@@ -80,6 +80,8 @@ const DOCTRINE_CTX = keel({
     coachId: "coach-1",
     reason: "loaded",
     issues: [],
+    goal: null,
+    goalSource: "none",
   },
 });
 
@@ -156,7 +158,7 @@ Deno.test("a non-KEEL turn is not touched at all", () => {
 
 Deno.test("the doctrine block is injected AT THE HEAD of the composer context", () => {
   const doctrine = DOCTRINE_CTX.doctrine!.doctrine!;
-  const compiled = compileDoctrineBlock(doctrine);
+  const compiled = compileDoctrineBlock(doctrine, null);
   const ctx = withKeelDoctrineBlock("=== PLAN ===\nweek 2", {
     ...DOCTRINE_CTX,
     doctrine: { ...DOCTRINE_CTX.doctrine!, compiled },
@@ -181,6 +183,8 @@ Deno.test("no doctrine loaded -> the PRUDENCE block, never an empty layer", () =
       coachId: null,
       reason: "no_published_doctrine",
       issues: [],
+      goal: null,
+      goalSource: "none",
     },
   });
   assert(ctx.includes(FALLBACK_PRUDENCE_BLOCK));

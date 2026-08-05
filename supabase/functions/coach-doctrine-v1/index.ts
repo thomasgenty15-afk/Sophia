@@ -6,7 +6,13 @@ import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
 import { getRequestId, jsonResponse } from "../_shared/http.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
 import { generateWithGemini } from "../_shared/gemini.ts";
-import { compileDoctrineBlock, parseCoachDoctrine } from "../_shared/keel/doctrine.ts";
+import {
+  compileAllDoctrineVariants,
+  compileDoctrineBlock,
+  doctrineCacheFootprint,
+  parseCoachDoctrine,
+} from "../_shared/keel/doctrine.ts";
+import { GOAL_TOKENS, type GoalToken } from "../_shared/keel/tokens.ts";
 import {
   buildInterviewCompilePrompt,
   buildReplayPrompt,
@@ -140,11 +146,24 @@ function toEditorShape(row: Record<string, unknown>): Record<string, unknown> {
     const raw = e.surface_forms ?? e.surfaceForms;
     return Array.isArray(raw) ? raw.map((x) => String(x ?? "")).filter(Boolean) : [];
   };
+  // LA PORTÉE FAIT L'ALLER-RETOUR, ET SON OUBLI SERAIT SILENCIEUX.
+  //
+  // Cet écran RELIT la doctrine publiée pour la modifier, et le premier
+  // « enregistrer » réécrit ce qu'il a relu. Une portée que `toEditorShape`
+  // laisserait tomber serait donc effacée de toutes les entrées du coach au
+  // premier retour sur son écran — sans message, et sans qu'il puisse le
+  // deviner: à l'écran, une croyance globale et une croyance ciblée se
+  // ressemblent, c'est le marqueur qui les distingue.
+  const scope = (e: Record<string, unknown>): string[] => {
+    const raw = e.goal_scope ?? e.goalScope;
+    return Array.isArray(raw) ? raw.map((x) => String(x ?? "")).filter(Boolean) : [];
+  };
   const foods = (row.foods ?? {}) as Record<string, unknown>;
   return {
     beliefs: arr(row.beliefs).map((b) => ({
       claim: String(b.claim ?? ""),
       rationale: b.rationale == null ? null : String(b.rationale),
+      goal_scope: scope(b),
     })),
     forbidden: arr(row.forbidden).map((f) => ({
       token: String(f.token ?? ""),
@@ -159,6 +178,7 @@ function toEditorShape(row: Record<string, unknown>): Record<string, unknown> {
     arbitrations: arr(row.arbitrations).map((a) => ({
       situation: String(a.situation ?? ""),
       coach_answer: String(a.coach_answer ?? a.coachAnswer ?? ""),
+      goal_scope: scope(a),
     })),
     foods: {
       recommended: arr(foods.recommended).map((f) => ({
@@ -178,6 +198,98 @@ function toEditorShape(row: Record<string, unknown>): Record<string, unknown> {
     })),
     voice: (row.voice ?? {}) as Record<string, unknown>,
   };
+}
+
+/**
+ * L'objectif demandé pour un APERÇU ou un mode test. Absent = variante
+ * `default`. Un jeton inconnu est REFUSÉ plutôt que ramené sur la default:
+ * montrer au coach un aperçu qui n'est pas celui qu'il a demandé est la
+ * définition d'un aperçu qui ment.
+ */
+function readGoalParam(value: unknown): GoalToken | null | Response {
+  const raw = String(value ?? "").trim();
+  if (!raw || raw === "default") return null;
+  if ((GOAL_TOKENS as readonly string[]).includes(raw)) return raw as GoalToken;
+  return new Response(null, { status: 400 });
+}
+
+/**
+ * LA VALIDATION D'ÉCRITURE — au bord, et fail loud.
+ *
+ * Le parseur de lecture est TOLÉRANT (il garde un jeton inconnu pour que
+ * l'entrée n'atteigne personne). L'écriture, elle, refuse: l'éditeur ne peut
+ * produire que les cinq jetons, donc un jeton inconnu ici vient d'un appel API
+ * malformé, et l'accepter écrirait dans la base une croyance muette dont
+ * personne ne saurait qu'elle l'est. Le CHECK de la base dirait non de toute
+ * façon — mais avec une erreur Postgres brute au lieu d'un code lisible.
+ */
+function invalidGoalScopes(payload: Record<string, unknown>): string[] {
+  const bad: string[] = [];
+  for (const field of ["beliefs", "arbitrations"] as const) {
+    const entries = Array.isArray(payload[field]) ? payload[field] as unknown[] : [];
+    for (const [i, raw] of entries.entries()) {
+      const e = (raw ?? {}) as Record<string, unknown>;
+      const scope = e.goal_scope ?? e.goalScope;
+      if (scope === undefined || scope === null) continue;
+      if (!Array.isArray(scope)) {
+        bad.push(`${field}[${i}]: goal_scope must be a list of goals`);
+        continue;
+      }
+      for (const g of scope) {
+        const token = String(g ?? "").trim();
+        if (!(GOAL_TOKENS as readonly string[]).includes(token)) {
+          bad.push(`${field}[${i}]: unknown goal ${JSON.stringify(token)}`);
+        }
+      }
+    }
+  }
+  return bad;
+}
+
+/**
+ * RECOMPILE ET REMPLACE TOUTES LES VARIANTES D'UNE DOCTRINE.
+ *
+ * « Une variante périmée qui survit est indétectable. » Elle ne peut pas
+ * survivre: on ne calcule pas ce qui a changé, on remplace le jeu entier, et
+ * le remplacement est une seule transaction côté base
+ * (`keel_replace_doctrine_compilations`).
+ *
+ * ÉCHOUER ICI NE DOIT PAS ANNULER LA PUBLICATION. Le tour ne lit pas cette
+ * table — `doctrine_loader.ts` recompile depuis les colonnes jsonb — donc une
+ * écriture d'artefact ratée dégrade la mesure et l'aperçu, jamais ce que
+ * l'élève reçoit. Refuser de publier pour ça punirait le coach d'un incident
+ * qui ne le concerne pas.
+ */
+async function rewriteCompilations(
+  admin: SupabaseClient,
+  doctrineId: string,
+  doctrine: Parameters<typeof compileAllDoctrineVariants>[0],
+): Promise<{ variants: number; distinctHashes: number } | null> {
+  const variants = compileAllDoctrineVariants(doctrine);
+  const rows = variants.map((v) => ({
+    goal: v.key,
+    compiled_prompt: v.compiled.text,
+    compiled_prompt_hash: v.compiled.hash,
+  }));
+  const { error } = await admin.rpc("keel_replace_doctrine_compilations", {
+    p_doctrine_id: doctrineId,
+    p_rows: rows,
+  });
+  if (error) {
+    console.error("keel.doctrine.compilations_write_failed", {
+      doctrine_id: doctrineId,
+      detail: error.message,
+    });
+    return null;
+  }
+  const footprint = doctrineCacheFootprint(doctrine);
+  console.info("keel.doctrine.compiled_variants", {
+    doctrine_id: doctrineId,
+    variants: footprint.variants,
+    distinct_cache_entries: footprint.distinctHashes,
+    reuse_ratio: footprint.reuseRatio,
+  });
+  return { variants: footprint.variants, distinctHashes: footprint.distinctHashes };
 }
 
 Deno.serve(async (req) => {
@@ -293,7 +405,17 @@ Deno.serve(async (req) => {
         version: 0,
         content_locale: String(body.content_locale ?? "en"),
       });
-      const compiled = compileDoctrineBlock({ ...doctrine, coachDisplayName: displayName });
+      // L'aperçu de compilation est celui de la variante DEMANDÉE, `default`
+      // par défaut. Un coach qui vient de décrire un cas dur propre à la perte
+      // de gras veut voir le bloc que recevra un élève en perte de gras.
+      const previewGoal = readGoalParam(body.preview_goal);
+      if (previewGoal instanceof Response) {
+        return jsonResponse(req, { error: "unknown_goal", request_id: requestId }, { status: 400 });
+      }
+      const compiled = compileDoctrineBlock(
+        { ...doctrine, coachDisplayName: displayName },
+        previewGoal,
+      );
       return jsonResponse(req, {
         ok: true,
         // NOT saved: the coach validates before anything is written. "L'IA
@@ -301,6 +423,7 @@ Deno.serve(async (req) => {
         draft: parsed,
         issues,
         preview_block: compiled.text,
+        preview_goal: compiled.goal ?? "default",
         request_id: requestId,
       });
     }
@@ -310,6 +433,14 @@ Deno.serve(async (req) => {
       const versions = await loadVersions(admin, coachId);
       const version = nextVersionNumber(versions);
       const payload = (body.doctrine ?? {}) as Record<string, unknown>;
+      const badScopes = invalidGoalScopes(payload);
+      if (badScopes.length > 0) {
+        return jsonResponse(req, {
+          error: "unknown_goal_scope",
+          detail: badScopes.join("; "),
+          request_id: requestId,
+        }, { status: 400 });
+      }
       const { data, error } = await admin
         .from("coach_doctrines")
         .insert({
@@ -349,6 +480,30 @@ Deno.serve(async (req) => {
       // partiel. On dépublie donc AVANT, sinon l'insert/So update viole
       // l'index — et cet ordre est la seule raison pour laquelle il n'y a pas
       // de fenêtre à deux doctrines publiées.
+      // Les variantes de la version qu'on dépublie s'en vont avec elle.
+      // `coach_doctrine_compilations` doit vouloir dire « ce qui est servi en
+      // ce moment »: y laisser les compilés d'une version retirée ferait
+      // mesurer la fragmentation sur des blocs que plus personne ne reçoit, et
+      // afficherait un aperçu périmé au coach.
+      const previouslyPublished = await admin
+        .from("coach_doctrines")
+        .select("id")
+        .eq("coach_id", coachId)
+        .not("published_at", "is", null);
+      if (previouslyPublished.error) throw previouslyPublished.error;
+      for (const prev of (previouslyPublished.data ?? []) as { id: string }[]) {
+        const cleared = await admin
+          .from("coach_doctrine_compilations")
+          .delete()
+          .eq("doctrine_id", prev.id);
+        if (cleared.error) {
+          console.warn("keel.doctrine.stale_variants_not_cleared", {
+            doctrine_id: prev.id,
+            detail: cleared.error.message,
+          });
+        }
+      }
+
       const unpub = await admin
         .from("coach_doctrines")
         .update({ published_at: null })
@@ -366,20 +521,38 @@ Deno.serve(async (req) => {
         .single();
       if (error) throw error;
 
-      const { doctrine } = parseCoachDoctrine(row);
-      const compiled = compileDoctrineBlock({ ...doctrine, coachDisplayName: displayName });
+      const { doctrine: parsedDoctrine } = parseCoachDoctrine(row);
+      const named = { ...parsedDoctrine, coachDisplayName: displayName };
       // Le hash EST l'invalidation: la clé de cache change parce que le
       // contenu a changé. Rien à purger, donc rien à oublier de purger.
+      //
+      // Les colonnes `compiled_prompt*` de `coach_doctrines` portent la
+      // variante `default`, qui est ce qu'elles ont toujours porté pour une
+      // doctrine sans portée. Les SIX variantes vivent dans
+      // `coach_doctrine_compilations`.
+      const defaultVariant = compileDoctrineBlock(named, null);
       await admin
         .from("coach_doctrines")
-        .update({ compiled_prompt: compiled.text, compiled_prompt_hash: compiled.hash })
+        .update({
+          compiled_prompt: defaultVariant.text,
+          compiled_prompt_hash: defaultVariant.hash,
+        })
         .eq("coach_id", coachId)
         .eq("version", version);
+
+      // TOUTES les variantes, en une transaction. Publier sans recompiler
+      // laisserait un jeu qui décrit la version précédente.
+      const footprint = await rewriteCompilations(admin, String(row.id ?? ""), named);
 
       return jsonResponse(req, {
         ok: true,
         published: data,
-        cache_key: compiled.hash,
+        cache_key: defaultVariant.hash,
+        // La mesure de §3.2.3, rendue à l'appelant plutôt que devinée: combien
+        // de variantes compilées, et combien d'entrées de cache distinctes
+        // elles occupent réellement.
+        variants: footprint?.variants ?? null,
+        distinct_cache_entries: footprint?.distinctHashes ?? null,
         request_id: requestId,
       });
     }
@@ -408,6 +581,15 @@ Deno.serve(async (req) => {
           forbidden: source.forbidden ?? [],
           vocabulary: source.vocabulary ?? [],
           arbitrations: source.arbitrations ?? [],
+          // `foods` et `qa` MANQUAIENT ICI, et c'est une perte de données
+          // trouvée en passant sur ce lot (hors périmètre, corrigée parce que
+          // la laisser aurait coûté deux sections au premier coach qui revient
+          // en arrière). Un rollback COPIE une version: il doit la copier en
+          // entier, sinon « retour en un clic » retire au coach ses aliments
+          // et ses questions/réponses sans rien lui dire. Même raison que le
+          // `save` qui les avait oubliés avant lui.
+          foods: source.foods ?? { recommended: [], discouraged: [] },
+          qa: source.qa ?? [],
           voice: source.voice ?? {},
           content_locale: String(source.content_locale ?? "en"),
           created_from_version: plan.sourceVersion,
@@ -466,8 +648,22 @@ Deno.serve(async (req) => {
       if (!row) {
         return jsonResponse(req, { error: "unknown_version", request_id: requestId }, { status: 404 });
       }
+      // LE MODE TEST CHOISIT SA VARIANTE (§3.3).
+      //
+      // Le coach qui rejoue un échange n'a pas d'objectif — c'est lui, pas un
+      // élève. Lui servir la `default` en silence l'empêcherait de vérifier
+      // précisément ce qu'il veut vérifier avant d'exposer un élève: « qu'est-ce
+      // que MON agent répond à ça, à quelqu'un en perte de gras ? ». Sans
+      // `goal`, la `default` reste le comportement.
+      const replayGoal = readGoalParam(body.goal);
+      if (replayGoal instanceof Response) {
+        return jsonResponse(req, { error: "unknown_goal", request_id: requestId }, { status: 400 });
+      }
       const { doctrine } = parseCoachDoctrine(row);
-      const compiled = compileDoctrineBlock({ ...doctrine, coachDisplayName: displayName });
+      const compiled = compileDoctrineBlock(
+        { ...doctrine, coachDisplayName: displayName },
+        replayGoal,
+      );
       const prompt = buildReplayPrompt({
         doctrineBlock: compiled.text,
         studentMessage,
@@ -491,6 +687,7 @@ Deno.serve(async (req) => {
       return jsonResponse(req, {
         ok: true,
         version: target,
+        goal: compiled.goal ?? "default",
         before: previousReply,
         after: result.trim(),
         request_id: requestId,

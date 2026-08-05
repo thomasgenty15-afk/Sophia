@@ -52,6 +52,49 @@ import {
   type ForbiddenMatchOptions,
   type ForbiddenTerm,
 } from "./forbidden_matcher.ts";
+import { GOAL_TOKENS, type GoalToken, goalScopeApplies } from "./tokens.ts";
+
+export type { GoalToken };
+
+// ---------------------------------------------------------------------------
+// LA PORTÉE PAR OBJECTIF — une doctrine écrite, N doctrines servies
+// ---------------------------------------------------------------------------
+//
+// LE PARTAGE N'EST PAS UNIFORME, ET C'EST LE CŒUR DU MODÈLE.
+//
+//   voice, vocabulary, forbidden  →  le COACH. Ils ne prennent pas de portée.
+//   beliefs, arbitrations         →  ce qu'il dit à QUI. Ils en prennent une.
+//
+// Un coach ne change pas de voix ni de vocabulaire parce que son élève veut
+// prendre du muscle plutôt que perdre du gras. En revanche « ne t'affole pas
+// d'un plateau sur la balance » ne s'adresse qu'à quelqu'un en perte de gras,
+// et l'arbitrage « qu'est-ce que je réponds quand on ne perd plus » n'existe
+// que dans ce cas-là.
+//
+// ⚠️ `forbidden` RESTE GLOBAL, et ce n'est pas un raccourci d'implémentation.
+// Un interdit borné à un objectif veut dire que l'agent peut dire à un élève ce
+// qu'il a interdiction de dire à un autre — c'est-à-dire une préférence, pas un
+// interdit. Le jour où « jeûne intermittent » serait interdit pour `fat_loss`
+// seulement, la même phrase sortirait pour un élève `health`, le coach
+// constaterait que son interdit ne tient pas, et il aurait raison.
+// COROLLAIRE VÉRIFIÉ PAR TEST: `findDoctrineViolations` ne prend pas
+// d'objectif, et l'ensemble des règles du verrou est identique pour les six
+// variantes. La portée ne peut donc pas désarmer une ceinture.
+//
+// ── CE QUI N'ENTRE PAS DANS LE BLOC, ET POURQUOI C'EST DÉLIBÉRÉ ───────────
+// Le bloc compilé ne NOMME jamais l'objectif de l'élève, et n'étiquette jamais
+// une croyance « (pour les élèves en perte de gras) ». Deux raisons, dont une
+// économique:
+//
+//   1. L'élève reçoit ce qui le concerne. Lui dire qu'il existe d'autres
+//      variantes de la méthode de son coach ne lui apprend rien d'utile.
+//   2. UNE DOCTRINE SANS AUCUNE PORTÉE COMPILE OCTET POUR OCTET À L'IDENTIQUE
+//      POUR LES SIX VARIANTES. C'est à la fois la preuve de non-régression
+//      (§6.6: l'existant continue de fonctionner à l'identique) et la propriété
+//      qui rend le cache viable: six variantes identiques ont le même hash de
+//      contenu, donc UNE seule entrée de cache. Injecter « objectif: perte de
+//      gras » dans l'en-tête fragmenterait le cache par six pour tous les
+//      coachs, y compris ceux qui n'ont rien ciblé.
 
 // ---------------------------------------------------------------------------
 // The doctrine, as stored in `coach_doctrines`
@@ -79,6 +122,8 @@ export interface DoctrineBelief {
   key: string;
   claim: string;
   rationale?: string | null;
+  /** Vide = pour tout le monde. Voir `goalScopeApplies`. */
+  goalScope: readonly string[];
 }
 
 /**
@@ -122,6 +167,8 @@ export interface DoctrineArbitration {
   situation: string;
   coachAnswer: string;
   source?: "interview" | "weekly_suggestion" | "test_mode" | null;
+  /** Vide = pour tout le monde. C'est le champ le plus souvent rempli des deux. */
+  goalScope: readonly string[];
 }
 
 export interface DoctrineVoice {
@@ -211,6 +258,85 @@ function str(value: unknown): string {
  * coach's screen and in violation reports, and a forty-character key is a key
  * nobody checks.
  */
+/**
+ * Un jeton qui n'est aucun objectif, donc qui n'atteint personne.
+ *
+ * C'est la valeur de repli d'une portée MALFORMÉE, et le choix du repli est la
+ * seule décision de sécurité de ce parseur (voir `parseGoalScope`).
+ */
+const MALFORMED_SCOPE: readonly string[] = ["!malformed"];
+
+/**
+ * Lire la portée d'une entrée. Absente = globale; illisible = personne.
+ *
+ * ── LA DIRECTION DE L'ÉCHEC EST TOUT ────────────────────────────────────
+ * Il y a deux façons de rater la lecture d'une portée, et elles ne coûtent pas
+ * la même chose:
+ *
+ *   lâcher le jeton inconnu  → la portée devient vide, donc GLOBALE, donc la
+ *                              croyance ciblée part chez tout le monde. C'est
+ *                              exactement la fuite que ce lot existe pour
+ *                              fermer, et elle serait silencieuse.
+ *   garder le jeton inconnu  → la portée reste non vide et ne matche aucun
+ *                              objectif: l'entrée n'atteint personne. Le coach
+ *                              perd une croyance, et il le lit dans `issues`.
+ *
+ * On garde. Une croyance muette est un défaut visible; une croyance servie au
+ * mauvais élève ne se voit que le jour où le coach lit la conversation.
+ *
+ * ABSENT ≠ VIDE-ET-ILLISIBLE: une entrée SANS champ `goal_scope` (toute
+ * doctrine écrite avant ce lot) est globale, et c'est la rétrocompatibilité.
+ * Une entrée AVEC un `goal_scope` qu'on n'arrive pas à lire (un objet, un
+ * nombre, un tableau de chaînes vides) n'est pas la même chose: le coach a
+ * voulu restreindre, on ne sait pas à quoi, et le repli est « personne ».
+ */
+function parseGoalScope(
+  raw: unknown,
+  where: string,
+  issues: string[],
+): readonly string[] {
+  if (raw === undefined || raw === null) return [];
+
+  let candidates: unknown[];
+  if (Array.isArray(raw)) {
+    candidates = raw;
+  } else if (typeof raw === "string") {
+    // Une chaîne seule est une intention lisible ("fat_loss"), pas une erreur.
+    candidates = raw.trim() ? [raw] : [];
+  } else {
+    issues.push(
+      `${where}: goal_scope is not a list, kept as unreachable — this entry reaches nobody`,
+    );
+    return MALFORMED_SCOPE;
+  }
+
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const value of candidates) {
+    const token = str(value);
+    if (!token || seen.has(token)) continue;
+    seen.add(token);
+    if (!(GOAL_TOKENS as readonly string[]).includes(token)) {
+      issues.push(
+        `${where}: unknown goal ${JSON.stringify(token)} in goal_scope, ` +
+          `kept — this entry reaches nobody until you fix it`,
+      );
+    }
+    out.push(token);
+  }
+
+  // Le coach a écrit une portée, et il n'en reste rien de lisible. Retomber sur
+  // « globale » ici publierait la croyance à toute la cohorte au motif qu'on
+  // n'a pas su lire la restriction.
+  if (out.length === 0 && candidates.length > 0) {
+    issues.push(
+      `${where}: goal_scope has no readable goal, kept as unreachable — this entry reaches nobody`,
+    );
+    return MALFORMED_SCOPE;
+  }
+  return out;
+}
+
 export function deriveBeliefKey(claim: string): string {
   const words = claim
     .normalize("NFD")
@@ -262,7 +388,12 @@ export function parseCoachDoctrine(
       key = `${key}_${n}`;
     }
     beliefKeys.add(key);
-    beliefs.push({ key, claim, rationale: str(b.rationale) || null });
+    beliefs.push({
+      key,
+      claim,
+      rationale: str(b.rationale) || null,
+      goalScope: parseGoalScope(b.goal_scope ?? b.goalScope, `beliefs[${i}]`, issues),
+    });
   }
 
   const forbidden: DoctrineForbidden[] = [];
@@ -314,6 +445,7 @@ export function parseCoachDoctrine(
       source: (["interview", "weekly_suggestion", "test_mode"].includes(source)
         ? source
         : null) as DoctrineArbitration["source"],
+      goalScope: parseGoalScope(a.goal_scope ?? a.goalScope, `arbitrations[${i}]`, issues),
     });
   }
 
@@ -415,10 +547,40 @@ export interface CompiledDoctrine {
    * Content hash. THE cache key, and THE invalidation signal: it moves when and
    * only when the compiled text moves, so a coach who edits at 14:02 is served
    * by a different key at 14:03 without anybody remembering to bump a version.
+   *
+   * ── POURQUOI LE HASH N'EST PAS SALÉ AVEC L'OBJECTIF ─────────────────────
+   * L'exigence est qu'une variante ne puisse jamais recevoir la clé d'une
+   * AUTRE variante. Un hash de CONTENU la tient par construction: deux textes
+   * différents donnent deux clés différentes, sans qu'aucun appelant n'ait à y
+   * penser. Saler avec l'objectif ferait strictement pire: six variantes
+   * IDENTIQUES (le cas de tout coach qui n'a rien ciblé, c'est-à-dire la
+   * majorité) recevraient six clés distinctes et paieraient six fois la
+   * relecture du même bloc. On garderait la lettre de l'exigence en cassant sa
+   * raison d'être. L'identité de la variante voyage dans `goal`, qui est tracé
+   * à chaque tour — c'est là qu'on répond à « quelle doctrine a servi ».
    */
   hash: string;
   /** True when the coach has published nothing usable yet. */
   isEmpty: boolean;
+  /**
+   * L'IDENTITÉ DE LA VARIANTE. `null` = la variante `default` (noyau + entrées
+   * sans portée), celle que reçoit un élève sans objectif déclaré.
+   *
+   * Elle est portée par la valeur de retour et pas seulement connue de
+   * l'appelant, parce que c'est elle qu'on trace: le jour où un coach dit
+   * « Sophia ne dit pas ça à mes élèves », la question est « laquelle a servi »,
+   * et une sélection implicite est indébogable.
+   */
+  goal: GoalToken | null;
+  /**
+   * Le bloc est vide POUR CET OBJECTIF alors que le coach a écrit des
+   * croyances ou des arbitrages — ils ont tous été filtrés par la portée.
+   *
+   * C'est une situation différente de « ce coach n'a rien publié », et la
+   * confondre ferait dire à l'agent qu'il n'a pas pu lire la méthode de son
+   * coach, ce qui est faux. Voir `doctrine_loader.ts`.
+   */
+  emptyForGoal: boolean;
 }
 
 /**
@@ -440,16 +602,32 @@ function contentHash(text: string): string {
 }
 
 /**
- * Compile the doctrine into the prompt block, deterministically.
+ * Compile the doctrine into the prompt block, deterministically, FOR ONE GOAL.
  *
  * DETERMINISM IS A REQUIREMENT, not a nicety: the hash is the cache key, so a
  * compilation that reordered anything between two calls would miss the cache on
  * every turn and quietly multiply the bill. Nothing here iterates an object's
- * key order or depends on anything outside its argument.
+ * key order or depends on anything outside its arguments.
+ *
+ * ── `goal` EST OBLIGATOIRE, ET C'EST VOULU ──────────────────────────────
+ * Un paramètre de portée facultatif serait une portée désarmée: l'appelant qui
+ * l'oublie recevrait silencieusement la variante `default` et servirait à un
+ * élève `fat_loss` une doctrine amputée de tout ce que son coach a écrit pour
+ * lui. Ce dépôt a déjà expédié une garde neutralisée par un paramètre optionnel
+ * que personne ne passait. Ici, ne pas savoir se dit `null`, explicitement.
  */
-export function compileDoctrineBlock(doctrine: CoachDoctrine): CompiledDoctrine {
+export function compileDoctrineBlock(
+  doctrine: CoachDoctrine,
+  goal: GoalToken | null,
+): CompiledDoctrine {
   const who = doctrine.coachDisplayName || "the coach";
   const lines: string[] = [];
+
+  // LA SÉLECTION, en un endroit et pas deux. `beliefs` et `arbitrations` sont
+  // les seules listes filtrées; toutes les autres traversent intactes, ce qui
+  // est la définition du noyau partagé.
+  const beliefs = doctrine.beliefs.filter((b) => goalScopeApplies(b.goalScope, goal));
+  const arbitrations = doctrine.arbitrations.filter((a) => goalScopeApplies(a.goalScope, goal));
 
   lines.push(`== ${who.toUpperCase()}'S METHOD — YOU SPEAK AS THIS COACH'S AGENT ==`);
   lines.push("");
@@ -459,10 +637,10 @@ export function compileDoctrineBlock(doctrine: CoachDoctrine): CompiledDoctrine 
       "You never modify, soften or extend the coach's protocol.",
   );
 
-  if (doctrine.beliefs.length > 0) {
+  if (beliefs.length > 0) {
     lines.push("");
     lines.push("-- WHAT THIS COACH BELIEVES --");
-    for (const b of doctrine.beliefs) {
+    for (const b of beliefs) {
       lines.push(b.rationale ? `- ${b.claim} (${b.rationale})` : `- ${b.claim}`);
     }
   }
@@ -532,10 +710,10 @@ export function compileDoctrineBlock(doctrine: CoachDoctrine): CompiledDoctrine 
     }
   }
 
-  if (doctrine.arbitrations.length > 0) {
+  if (arbitrations.length > 0) {
     lines.push("");
     lines.push("-- HOW THIS COACH ANSWERS (follow these, they are his own words) --");
-    for (const a of doctrine.arbitrations) {
+    for (const a of arbitrations) {
       lines.push(`- Situation: ${a.situation}`);
       lines.push(`  He answers: ${a.coachAnswer}`);
     }
@@ -601,16 +779,96 @@ export function compileDoctrineBlock(doctrine: CoachDoctrine): CompiledDoctrine 
   // doctrine. Les deux nouvelles sections y entrent: un coach qui n'a rempli
   // QUE ses aliments a bel et bien publié une méthode, et servir le repli
   // « aucune méthode disponible » à ses élèves serait faux.
-  const isEmpty = doctrine.beliefs.length === 0 &&
+  //
+  // Il porte sur la VARIANTE (les listes filtrées), pas sur la doctrine brute:
+  // un bloc qui ne contient plus que son en-tête n'instruit le modèle sur rien.
+  const isEmpty = beliefs.length === 0 &&
     doctrine.forbidden.length === 0 &&
     doctrine.vocabulary.length === 0 &&
-    doctrine.arbitrations.length === 0 &&
+    arbitrations.length === 0 &&
     doctrine.foods.recommended.length === 0 &&
     doctrine.foods.discouraged.length === 0 &&
     doctrine.qa.length === 0 &&
     voiceBits.length === 0;
 
-  return { text, hash: contentHash(text), isEmpty };
+  // Vide POUR CET OBJECTIF: la variante ne dit rien alors que le coach, lui, a
+  // écrit quelque chose — tout est parti à la portée. Local et exact, sans
+  // recompiler la variante globale pour comparer.
+  const emptyForGoal = isEmpty &&
+    (doctrine.beliefs.length > 0 || doctrine.arbitrations.length > 0);
+
+  return { text, hash: contentHash(text), isEmpty, goal, emptyForGoal };
+}
+
+// ---------------------------------------------------------------------------
+// LES N COMPILATIONS D'UNE ÉCRITURE
+// ---------------------------------------------------------------------------
+
+/**
+ * Les variantes à stocker pour une doctrine: la `default` plus une par
+ * objectif. `null` en tête parce que c'est le repli de tous les chemins qui
+ * n'ont pas d'élève (mode test, cron, élève sans `student_goals`).
+ */
+export const DOCTRINE_VARIANT_GOALS: readonly (GoalToken | null)[] = [
+  null,
+  ...GOAL_TOKENS,
+];
+
+/** Le nom de stockage d'une variante. `null` n'est pas une clé primaire. */
+export function variantKey(goal: GoalToken | null): string {
+  return goal ?? "default";
+}
+
+/** L'inverse de `variantKey`, pour relire une ligne stockée. */
+export function variantGoal(key: string): GoalToken | null {
+  const k = String(key ?? "").trim();
+  if (!k || k === "default") return null;
+  if (!(GOAL_TOKENS as readonly string[]).includes(k)) {
+    throw new Error(
+      `[keel/doctrine] Unknown doctrine variant key: ${JSON.stringify(key)}. ` +
+        `Expected "default" or one of: ${GOAL_TOKENS.join(", ")}`,
+    );
+  }
+  return k as GoalToken;
+}
+
+/**
+ * Compile TOUTES les variantes d'une doctrine, en une passe.
+ *
+ * C'EST CE QUI REND UNE VARIANTE PÉRIMÉE IMPOSSIBLE. La publication ne
+ * recompile pas « les variantes qui ont changé »: elle recompile la liste
+ * entière et remplace tout le jeu. Il n'y a donc pas de variante qu'on pourrait
+ * oublier de recalculer, et pas de calcul de ce qui a changé à se tromper.
+ */
+export function compileAllDoctrineVariants(
+  doctrine: CoachDoctrine,
+): ReadonlyArray<{ goal: GoalToken | null; key: string; compiled: CompiledDoctrine }> {
+  return DOCTRINE_VARIANT_GOALS.map((goal) => ({
+    goal,
+    key: variantKey(goal),
+    compiled: compileDoctrineBlock(doctrine, goal),
+  }));
+}
+
+/**
+ * LA FRAGMENTATION DU CACHE, MESURÉE ET PAS SUPPOSÉE (§3.2.3).
+ *
+ * `variants` est le nombre de blocs compilés, `distinctHashes` le nombre
+ * d'entrées de cache qu'ils occupent RÉELLEMENT — deux variantes au texte
+ * identique partagent la leur. `reuseRatio` est la part des variantes qui
+ * retombent sur un bloc déjà vu: 0 quand les six diffèrent, 5/6 quand le coach
+ * n'a rien ciblé.
+ */
+export function doctrineCacheFootprint(
+  doctrine: CoachDoctrine,
+): { variants: number; distinctHashes: number; reuseRatio: number } {
+  const all = compileAllDoctrineVariants(doctrine);
+  const hashes = new Set(all.map((v) => v.compiled.hash));
+  return {
+    variants: all.length,
+    distinctHashes: hashes.size,
+    reuseRatio: all.length === 0 ? 0 : (all.length - hashes.size) / all.length,
+  };
 }
 
 // ---------------------------------------------------------------------------

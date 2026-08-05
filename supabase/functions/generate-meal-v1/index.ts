@@ -6,7 +6,11 @@ import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
 import { getRequestId, jsonResponse } from "../_shared/http.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
 import { generateWithGemini } from "../_shared/gemini.ts";
-import { doctrineBlockFor, loadPublishedDoctrine } from "../_shared/keel/doctrine_loader.ts";
+import {
+  doctrineBeliefsFor,
+  doctrineBlockFor,
+  loadPublishedDoctrine,
+} from "../_shared/keel/doctrine_loader.ts";
 import { loadStudentSafetyConstraints } from "../_shared/keel/safety_constraints.ts";
 import {
   buildMealPrompt,
@@ -175,7 +179,11 @@ Deno.serve(async (req) => {
     // un plat est une application libre, et `doctrineBlockFor` injecte le bloc
     // de prudence quand il n'y a pas de méthode. On refuse de composer une
     // LIGNE DE MÉTHODE sans conviction; on sait très bien faire à dîner sans.
-    const beliefKeys = (doctrine.doctrine?.beliefs ?? [])
+    // Filtré par l'objectif de l'élève, comme le bloc. Une ligne de méthode
+    // d'un plat se réclame d'une conviction; se réclamer d'une conviction que
+    // le coach a écrite pour un autre objectif, c'est faire dire au coach ce
+    // qu'il n'a pas dit à CET élève.
+    const beliefKeys = doctrineBeliefsFor(doctrine)
       .map((b) => String(b.key ?? "").trim())
       .filter(Boolean);
 

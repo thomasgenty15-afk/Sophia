@@ -9,9 +9,11 @@
 import { assert, assertEquals } from "jsr:@std/assert@1";
 
 import {
+  doctrineBeliefsFor,
   doctrineBlockFor,
   FALLBACK_PRUDENCE_BLOCK,
   loadPublishedDoctrine,
+  NO_DOCTRINE_FOR_THIS_GOAL_BLOCK,
 } from "./doctrine_loader.ts";
 
 type Outcome = { data?: unknown; error?: unknown; throws?: boolean };
@@ -49,7 +51,7 @@ function fakeDb(byTable: Record<string, Outcome>) {
 const DOCTRINE_ROW = {
   coach_id: "coach-1",
   version: 3,
-  beliefs: [{ key: "intermittent_fasting_is_the_backbone", claim: "Intermittent fasting is the backbone" }],
+  beliefs: [{ key: "intermittent_fasting_is_the_backbone", claim: "Intermittent fasting is the backbone", goalScope: [] }],
   forbidden: [{ token: "six_small_meals", surface_forms: ["6 petits repas"] }],
   vocabulary: [],
   arbitrations: [],
@@ -153,4 +155,191 @@ Deno.test("malformed doctrine entries are dropped AND reported", async () => {
   const loaded = await loadPublishedDoctrine(db, "student-1");
   assertEquals(loaded.doctrine?.forbidden.length, 1);
   assert(loaded.issues.some((i) => i.includes("unenforceable")));
+});
+
+// ===========================================================================
+// LA SÉLECTION DE VARIANTE — lot doctrine-by-goal
+//
+// Elle est DANS le chargeur et pas chez l'appelant, pour une raison que ce
+// dépôt a déjà payée: « la doctrine ne gouvernait qu'une lane sur trois ». Un
+// objectif passé en argument est un objectif qu'un quatrième consommateur
+// oubliera. Ces tests tiennent l'invariant côté chargeur, donc pour tous.
+// ===========================================================================
+
+const SCOPED_ROW = {
+  ...DOCTRINE_ROW,
+  beliefs: [
+    { claim: "Protein at every meal." },
+    { claim: "Do not panic over a plateau.", goal_scope: ["fat_loss"] },
+  ],
+};
+
+Deno.test("le chargeur lit l'objectif de l'élève et sert SA variante", async () => {
+  const { db } = fakeDb({
+    coach_clients: { data: { coach_id: "coach-1" } },
+    coach_doctrines: { data: SCOPED_ROW },
+    student_goals: { data: { goal: "fat_loss" } },
+  });
+  const loaded = await loadPublishedDoctrine(db, "student-1");
+  assertEquals(loaded.goal, "fat_loss");
+  assertEquals(loaded.goalSource, "student_goals");
+  assert(doctrineBlockFor(loaded).includes("Do not panic over a plateau."));
+});
+
+Deno.test("deux élèves du MÊME coach dans le même intervalle reçoivent deux blocs", async () => {
+  // L'épreuve du §7.2: aucun état ne survit d'un chargement à l'autre. Le
+  // chargeur est sans mémoire, et c'est ce qui rend deux tours concurrents
+  // indépendants.
+  const doctrines = { coach_clients: { data: { coach_id: "coach-1" } }, coach_doctrines: { data: SCOPED_ROW } };
+  const [a, b] = await Promise.all([
+    loadPublishedDoctrine(fakeDb({ ...doctrines, student_goals: { data: { goal: "fat_loss" } } }).db, "s-a"),
+    loadPublishedDoctrine(fakeDb({ ...doctrines, student_goals: { data: { goal: "health" } } }).db, "s-b"),
+  ]);
+  assertEquals(a.goal, "fat_loss");
+  assertEquals(b.goal, "health");
+  assert(doctrineBlockFor(a).includes("Do not panic"));
+  assert(!doctrineBlockFor(b).includes("Do not panic"));
+  // La voix, elle, est la même — c'est le même coach.
+  assert(doctrineBlockFor(a).includes("Protein at every meal."));
+  assert(doctrineBlockFor(b).includes("Protein at every meal."));
+});
+
+Deno.test("un élève SANS student_goals reçoit la variante default, jamais une ciblée", async () => {
+  const { db } = fakeDb({
+    coach_clients: { data: { coach_id: "coach-1" } },
+    coach_doctrines: { data: SCOPED_ROW },
+    student_goals: { data: null },
+  });
+  const loaded = await loadPublishedDoctrine(db, "student-1");
+  assertEquals(loaded.goal, null);
+  assertEquals(loaded.goalSource, "none");
+  assert(doctrineBlockFor(loaded).includes("Protein at every meal."));
+  assert(!doctrineBlockFor(loaded).includes("Do not panic"));
+});
+
+Deno.test("un objectif ILLISIBLE dégrade vers la default et n'interrompt pas le tour", async () => {
+  for (const outcome of [{ throws: true }, { error: { message: "boom" } }, { data: { goal: "bulking" } }]) {
+    const { db } = fakeDb({
+      coach_clients: { data: { coach_id: "coach-1" } },
+      coach_doctrines: { data: SCOPED_ROW },
+      student_goals: outcome,
+    });
+    const loaded = await loadPublishedDoctrine(db, "student-1");
+    // Le tour continue: la doctrine est bien chargée.
+    assertEquals(loaded.reason, "loaded");
+    assertEquals(loaded.goal, null);
+    assertEquals(loaded.goalSource, "none");
+    // Direction sûre: on perd les croyances ciblées, on n'en sert jamais une
+    // qui ne vise pas cet élève.
+    assert(!doctrineBlockFor(loaded).includes("Do not panic"));
+  }
+});
+
+Deno.test("le mode test du coach choisit la variante, et ça se voit dans la trace", async () => {
+  const tables = {
+    coach_clients: { data: { coach_id: "coach-1" } },
+    coach_doctrines: { data: SCOPED_ROW },
+    // Volontairement contradictoire avec l'override: c'est le coach qui décide.
+    student_goals: { data: { goal: "health" } },
+  };
+  const chosen = await loadPublishedDoctrine(fakeDb(tables).db, "student-1", {
+    goalOverride: "fat_loss",
+  });
+  assertEquals(chosen.goal, "fat_loss");
+  assertEquals(chosen.goalSource, "override");
+  assert(doctrineBlockFor(chosen).includes("Do not panic"));
+
+  // Et « default » est une variante qu'il peut demander explicitement.
+  const asDefault = await loadPublishedDoctrine(fakeDb(tables).db, "student-1", {
+    goalOverride: null,
+  });
+  assertEquals(asDefault.goal, null);
+  assertEquals(asDefault.goalSource, "none");
+  assert(!doctrineBlockFor(asDefault).includes("Do not panic"));
+});
+
+Deno.test("l'override n'existe QUE s'il est passé — l'oublier donne le comportement correct", async () => {
+  // Une option dont l'omission désarme quelque chose est une option qui
+  // désarme. Ici l'omission = le chemin normal.
+  const { db } = fakeDb({
+    coach_clients: { data: { coach_id: "coach-1" } },
+    coach_doctrines: { data: SCOPED_ROW },
+    student_goals: { data: { goal: "fat_loss" } },
+  });
+  const loaded = await loadPublishedDoctrine(db, "student-1", {});
+  assertEquals(loaded.goalSource, "student_goals");
+  assertEquals(loaded.goal, "fat_loss");
+});
+
+Deno.test("une doctrine entièrement ciblée ailleurs ne dit PAS qu'elle n'a pas pu être lue", async () => {
+  const { db } = fakeDb({
+    coach_clients: { data: { coach_id: "coach-1" } },
+    coach_doctrines: {
+      data: {
+        ...DOCTRINE_ROW,
+        beliefs: [{ claim: "Only for fat loss.", goal_scope: ["fat_loss"] }],
+        forbidden: [],
+        vocabulary: [],
+        arbitrations: [],
+        voice: {},
+      },
+    },
+    student_goals: { data: { goal: "health" } },
+  });
+  const loaded = await loadPublishedDoctrine(db, "student-1");
+  assertEquals(loaded.reason, "empty_for_goal");
+  const block = doctrineBlockFor(loaded);
+  assertEquals(block, NO_DOCTRINE_FOR_THIS_GOAL_BLOCK);
+  // La phrase qui compte: on ne dit pas au modèle une cause fausse, parce
+  // qu'il la répète mot pour mot à l'élève.
+  assert(!block.includes("could not load"));
+  assert(block.includes("Do NOT give prescriptive nutrition advice"));
+});
+
+Deno.test("les croyances RENDUES aux générateurs sont exactement celles du bloc", async () => {
+  // Le trou que ça ferme: `generate-week-plan-v1` et `generate-meal-v1` ne
+  // lisent pas le bloc, ils lisent la LISTE de convictions pour tracer chaque
+  // ligne produite. Une liste non filtrée bâtirait le plan d'un élève `health`
+  // sur une conviction écrite pour `fat_loss`.
+  const tables = { coach_clients: { data: { coach_id: "coach-1" } }, coach_doctrines: { data: SCOPED_ROW } };
+
+  const fatLoss = await loadPublishedDoctrine(
+    fakeDb({ ...tables, student_goals: { data: { goal: "fat_loss" } } }).db,
+    "s",
+  );
+  assertEquals(doctrineBeliefsFor(fatLoss).map((b) => b.claim), [
+    "Protein at every meal.",
+    "Do not panic over a plateau.",
+  ]);
+
+  const health = await loadPublishedDoctrine(
+    fakeDb({ ...tables, student_goals: { data: { goal: "health" } } }).db,
+    "s",
+  );
+  assertEquals(doctrineBeliefsFor(health).map((b) => b.claim), ["Protein at every meal."]);
+  // La doctrine PARSÉE, elle, reste entière — c'est elle qui arme le verrou.
+  assertEquals(health.doctrine?.beliefs.length, 2);
+
+  // Toute lecture ratée rend une liste vide: un générateur ne peut pas citer
+  // une conviction dont on n'a pas su lire la doctrine.
+  const failed = await loadPublishedDoctrine(fakeDb({ coach_clients: { throws: true } }).db, "s");
+  assertEquals(doctrineBeliefsFor(failed), []);
+});
+
+Deno.test("un changement d'objectif entre deux tours change le bloc, pas la mémoire", async () => {
+  // §3.4: la variante servie change au tour suivant. Rien dans le chargeur ne
+  // touche à la conversation — il rend un bloc, et c'est tout ce qu'il rend.
+  const tables = { coach_clients: { data: { coach_id: "coach-1" } }, coach_doctrines: { data: SCOPED_ROW } };
+  const turn1 = await loadPublishedDoctrine(
+    fakeDb({ ...tables, student_goals: { data: { goal: "fat_loss" } } }).db,
+    "student-1",
+  );
+  const turn2 = await loadPublishedDoctrine(
+    fakeDb({ ...tables, student_goals: { data: { goal: "maintenance" } } }).db,
+    "student-1",
+  );
+  assertEquals(turn1.goal, "fat_loss");
+  assertEquals(turn2.goal, "maintenance");
+  assert(turn1.compiled!.hash !== turn2.compiled!.hash, "la clé de cache doit suivre la variante");
+  assertEquals(Object.keys(turn2).sort(), Object.keys(turn1).sort());
 });

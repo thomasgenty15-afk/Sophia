@@ -6,7 +6,11 @@ import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
 import { getRequestId, jsonResponse } from "../_shared/http.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
 import { generateWithGemini } from "../_shared/gemini.ts";
-import { doctrineBlockFor, loadPublishedDoctrine } from "../_shared/keel/doctrine_loader.ts";
+import {
+  doctrineBeliefsFor,
+  doctrineBlockFor,
+  loadPublishedDoctrine,
+} from "../_shared/keel/doctrine_loader.ts";
 import { loadStudentSafetyConstraints } from "../_shared/keel/safety_constraints.ts";
 import { ageBandOf, usableAge, weekPlanAgeGate } from "../_shared/keel/student_age.ts";
 import {
@@ -140,7 +144,15 @@ Deno.serve(async (req) => {
     // est la clé de conviction.
     const doctrine = await loadPublishedDoctrine(admin, userId);
 
-    const principles: CoachPrinciple[] = (doctrine.doctrine?.beliefs ?? [])
+    // LA PORTÉE PAR OBJECTIF PASSE PAR ICI AUSSI, et pas seulement par le bloc.
+    //
+    // Chaque ligne de semaine est tracée à la clé de la conviction qui la
+    // produit. Lire `doctrine.doctrine.beliefs` en direct construirait le plan
+    // d'un élève `health` sur une conviction que son coach a écrite pour
+    // `fat_loss` — la portée tiendrait dans la conversation et fuirait dans le
+    // plan. `doctrineBeliefsFor` rend exactement ce que le bloc injecté
+    // contient, ni plus ni moins.
+    const principles: CoachPrinciple[] = doctrineBeliefsFor(doctrine)
       // Une conviction SANS clé serait intraçable: le CHECK de la base
       // refuserait toute ligne qui s'en réclame. `parseCoachDoctrine` en
       // dérive une systématiquement, donc ce filtre ne devrait jamais mordre —
@@ -154,12 +166,22 @@ Deno.serve(async (req) => {
       }));
 
     if (principles.length === 0) {
-      // Distinct de `no_coach`: l'élève A un coach, ce coach n'a simplement
-      // pas encore publié sa méthode. Les deux appellent des gestes très
-      // différents côté produit, donc deux codes.
+      // TROIS SITUATIONS, ET PAS UN SEUL CODE POUR LES TROIS.
+      //
+      // `no_coach` (plus haut) — l'élève n'a pas de coach.
+      // `coach_has_no_doctrine` — le coach n'a rien publié.
+      // `coach_doctrine_excludes_goal` — le coach a publié, et TOUT ce qu'il a
+      //    écrit vise d'autres objectifs que celui de cet élève. Le geste
+      //    produit est le sien: changer d'objectif, ou demander au coach
+      //    d'élargir. Servir « ton coach n'a pas publié de méthode » lui
+      //    ferait attendre quelque chose qui existe déjà.
+      const hasSomeBeliefs = (doctrine.doctrine?.beliefs.length ?? 0) > 0;
       return jsonResponse(req, {
-        error: "coach_has_no_doctrine",
-        detail: "The coach has not published any convictions yet.",
+        error: hasSomeBeliefs ? "coach_doctrine_excludes_goal" : "coach_has_no_doctrine",
+        detail: hasSomeBeliefs
+          ? "This coach's published convictions are all written for other goals."
+          : "The coach has not published any convictions yet.",
+        goal: doctrine.goal,
         request_id: requestId,
       }, { status: 409 });
     }
