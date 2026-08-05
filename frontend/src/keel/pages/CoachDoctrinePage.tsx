@@ -121,18 +121,53 @@ export default function CoachDoctrinePage() {
   const [versions, setVersions] = React.useState<VersionRow[]>([]);
   const [answers, setAnswers] = React.useState<Record<number, string>>({});
   const [draft, setDraft] = React.useState<DoctrineDraft | null>(null);
+  /**
+   * D'OÙ VIENT CE QUI EST À L'ÉCRAN — et ce n'est pas cosmétique.
+   *
+   * La carte disait « Nothing here is saved yet » quoi qu'il arrive, parce
+   * qu'elle n'existait que pour un brouillon fraîchement compilé. Affichée
+   * au-dessus d'une doctrine PUBLIÉE, rechargée depuis la base, cette phrase est
+   * fausse — et fausse dans le sens dangereux: elle dit à un coach que ce que
+   * ses élèves reçoivent déjà n'est pas enregistré.
+   */
+  const [draftOrigin, setDraftOrigin] = React.useState<"compiled" | "loaded" | null>(null);
   const [issues, setIssues] = React.useState<string[]>([]);
   const [busy, setBusy] = React.useState<string | null>(null);
   const [notice, setNotice] = React.useState<string | null>(null);
   const [failure, setFailure] = React.useState<string | null>(null);
 
+  /**
+   * ── LA DOCTRINE EXISTANTE EST ROUVERTE, PAS REDEMANDÉE ──────────────────
+   *
+   * LE DÉFAUT, SIGNALÉ PAR UN COACH (2026-08-05): « je ne peux pas accéder à ce
+   * qui est déjà écrit », et « le coach ne va pas tout réécrire à chaque fois ».
+   * Il avait raison sur les deux, et c'était la même cause: cet écran ne
+   * chargeait que les QUESTIONS et la liste des VERSIONS (numéro, date, note).
+   * Le contenu, lui, n'était lisible par aucune action. Une doctrine déjà
+   * publiée était donc invisible sur son propre écran, et la seule façon d'en
+   * produire une était de refaire l'interview de zéro — pour corriger une
+   * phrase.
+   *
+   * `current` rend la doctrine publiée (à défaut, le dernier brouillon) dans la
+   * forme de l'éditeur. On la met dans `draft`, donc l'écran s'ouvre PRÉ-REMPLI
+   * et modifiable, et l'interview redevient ce qu'elle aurait dû rester: le
+   * chemin du premier jour, pas le seul chemin.
+   *
+   * `draft` n'est écrasé que s'il est vide: un rafraîchissement déclenché par
+   * un enregistrement ne doit pas jeter les modifications en cours.
+   */
   const refresh = React.useCallback(async () => {
-    const [q, v] = await Promise.all([
+    const [q, v, c] = await Promise.all([
       callDoctrine<{ questions: InterviewQuestion[] }>({ action: "questions" }),
       callDoctrine<{ versions: VersionRow[] }>({ action: "list" }),
+      callDoctrine<{ doctrine: DoctrineDraft | null }>({ action: "current" }),
     ]);
     setQuestions(q.questions ?? []);
     setVersions(v.versions ?? []);
+    if (c.doctrine) {
+      setDraft((existing) => existing ?? c.doctrine);
+      setDraftOrigin((existing) => existing ?? "loaded");
+    }
   }, []);
 
   React.useEffect(() => {
@@ -187,6 +222,7 @@ export default function CoachDoctrinePage() {
         answers: payload,
       });
       setDraft(out.draft ?? null);
+      setDraftOrigin(out.draft ? "compiled" : null);
       setIssues(out.issues ?? []);
       setNotice("Read it back before saving - the AI transcribes, it does not decide.");
     });
@@ -316,10 +352,15 @@ export default function CoachDoctrinePage() {
 
         {draft ? (
           <Card>
-            <SectionLabel>What I understood</SectionLabel>
+            <SectionLabel>
+              {draftOrigin === "loaded" ? "Your method" : "What I understood"}
+            </SectionLabel>
             <p className="mt-2 text-xs leading-5 text-gray-500">
-              Nothing here is saved yet. If a line is not yours, it should not be
-              here — edit your answers and run it again.
+              {draftOrigin === "loaded"
+                ? (published
+                  ? "This is what your agent is using right now. Run the interview above to change it — saving creates a new version, and your students keep reading this one until you publish the new one."
+                  : "This is your latest saved version. It is not published, so your agent is not using it yet.")
+                : "Nothing here is saved yet. If a line is not yours, it should not be here — edit your answers and run it again."}
             </p>
 
             {issues.length > 0 ? (

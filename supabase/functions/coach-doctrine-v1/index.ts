@@ -111,6 +111,75 @@ async function loadDoctrineRow(
   return (data ?? null) as Record<string, unknown> | null;
 }
 
+/**
+ * LA DOCTRINE COURANTE, DANS LA FORME QUE L'ÉDITEUR SAIT AFFICHER.
+ *
+ * LE DÉFAUT QUE ÇA FERME (signalé par un coach, 2026-08-05)
+ * ---------------------------------------------------------
+ * `list` ne rend que des MÉTADONNÉES (numéro de version, date, note). Aucune
+ * action ne rendait le CONTENU. Conséquence: une doctrine déjà écrite était
+ * invisible sur son propre écran, et la seule façon d'en produire une était de
+ * refaire l'interview de zéro. Un coach qui revient pour corriger UNE phrase
+ * devait tout redire.
+ *
+ * ── POURQUOI ON NORMALISE EN snake_case ICI ──────────────────────────────
+ * Deux écritures coexistent légitimement en base: `save` écrit verbatim ce que
+ * l'éditeur envoie (`surface_forms`, `coach_answer`), et un seed ou un import
+ * peut avoir écrit la forme camelCase que `parseCoachDoctrine` accepte aussi
+ * (`f.surface_forms ?? f.surfaceForms`). Le parseur de l'agent tolère les deux;
+ * l'ÉDITEUR, lui, ne lit qu'une seule forme.
+ *
+ * Renvoyer la forme camelCase telle quelle afficherait donc des champs VIDES
+ * sur des données présentes — et le premier « enregistrer » les écraserait pour
+ * de bon. On convertit, pour que ce que le coach voit soit ce qui est stocké.
+ */
+function toEditorShape(row: Record<string, unknown>): Record<string, unknown> {
+  const arr = (v: unknown): Record<string, unknown>[] =>
+    Array.isArray(v) ? (v as Record<string, unknown>[]) : [];
+  const forms = (e: Record<string, unknown>): string[] => {
+    const raw = e.surface_forms ?? e.surfaceForms;
+    return Array.isArray(raw) ? raw.map((x) => String(x ?? "")).filter(Boolean) : [];
+  };
+  const foods = (row.foods ?? {}) as Record<string, unknown>;
+  return {
+    beliefs: arr(row.beliefs).map((b) => ({
+      claim: String(b.claim ?? ""),
+      rationale: b.rationale == null ? null : String(b.rationale),
+    })),
+    forbidden: arr(row.forbidden).map((f) => ({
+      token: String(f.token ?? ""),
+      surface_forms: forms(f),
+      reason: f.reason == null ? null : String(f.reason),
+      instead: f.instead == null ? null : String(f.instead),
+    })),
+    vocabulary: arr(row.vocabulary).map((v) => ({
+      term: String(v.term ?? ""),
+      meaning: v.meaning == null ? null : String(v.meaning),
+    })),
+    arbitrations: arr(row.arbitrations).map((a) => ({
+      situation: String(a.situation ?? ""),
+      coach_answer: String(a.coach_answer ?? a.coachAnswer ?? ""),
+    })),
+    foods: {
+      recommended: arr(foods.recommended).map((f) => ({
+        term: String(f.term ?? ""),
+        surface_forms: forms(f),
+        reason: f.reason == null ? null : String(f.reason),
+      })),
+      discouraged: arr(foods.discouraged).map((f) => ({
+        term: String(f.term ?? ""),
+        surface_forms: forms(f),
+        reason: f.reason == null ? null : String(f.reason),
+      })),
+    },
+    qa: arr(row.qa).map((q) => ({
+      question: String(q.question ?? ""),
+      answer: String(q.answer ?? ""),
+    })),
+    voice: (row.voice ?? {}) as Record<string, unknown>,
+  };
+}
+
 Deno.serve(async (req) => {
   const requestId = getRequestId(req);
   // `handleCorsOptions` ALWAYS returns a Response — it is the preflight
@@ -140,6 +209,39 @@ Deno.serve(async (req) => {
     if (action === "list") {
       const versions = await loadVersions(admin, coachId);
       return jsonResponse(req, { ok: true, versions, request_id: requestId });
+    }
+
+    // ---- current — la doctrine à ROUVRIR, pas à réécrire ------------------
+    //
+    // La PUBLIÉE d'abord, sinon la dernière enregistrée. C'est ce que le coach
+    // considère comme « sa » doctrine: un brouillon plus récent qu'il n'a pas
+    // publié reste le travail en cours, et c'est bien lui qu'il veut retrouver.
+    // Une absence n'est pas une erreur — un coach neuf n'a rien: `doctrine`
+    // vaut null et l'écran ouvre l'interview.
+    if (action === "current") {
+      const versions = await loadVersions(admin, coachId);
+      if (versions.length === 0) {
+        return jsonResponse(req, {
+          ok: true,
+          doctrine: null,
+          version: null,
+          published_at: null,
+          request_id: requestId,
+        });
+      }
+      const published = versions.filter((v) => v.published_at !== null);
+      const pick = published.length > 0
+        ? published[published.length - 1]
+        : versions[versions.length - 1];
+      const row = await loadDoctrineRow(admin, coachId, pick.version);
+      return jsonResponse(req, {
+        ok: true,
+        doctrine: row ? toEditorShape(row) : null,
+        version: pick.version,
+        published_at: pick.published_at,
+        content_locale: row?.content_locale ?? null,
+        request_id: requestId,
+      });
     }
 
     // ---- compile (brique 1) ---------------------------------------------
@@ -397,7 +499,7 @@ Deno.serve(async (req) => {
 
     return jsonResponse(req, {
       error: "unknown_action",
-      known: ["questions", "list", "compile", "save", "publish", "rollback", "diff", "replay"],
+      known: ["questions", "list", "current", "compile", "save", "publish", "rollback", "diff", "replay"],
       request_id: requestId,
     }, { status: 400 });
   } catch (error) {
