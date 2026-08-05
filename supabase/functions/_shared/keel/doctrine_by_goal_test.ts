@@ -67,7 +67,7 @@ const ROW = {
       goal_scope: ["fat_loss"],
     },
   ],
-  foods: { recommended: [{ term: "eggs" }], discouraged: [{ term: "seed oil", surface_forms: ["huile de graines"] }] },
+  foods: { discouraged: [{ term: "seed oil", surface_forms: ["huile de graines"] }] },
   qa: [{ question: "Coffee?", answer: "Black, after food." }],
   voice: { address: "tu", length: "short", emojis: "none", language: "en" },
 };
@@ -161,7 +161,7 @@ Deno.test("une portée à plusieurs objectifs atteint chacun d'eux, et personne 
 // RÉTROCOMPATIBILITÉ (§6.6) — et c'est aussi la propriété du cache
 // ===========================================================================
 
-Deno.test("doctrine SANS aucune portée: les six variantes sont octet pour octet identiques", () => {
+Deno.test("doctrine SANS aucune portée: toutes les variantes sont octet pour octet identiques", () => {
   // Deux affirmations en une, et elles sont la même:
   //   1. un coach existant ne voit RIEN changer, quel que soit l'objectif de
   //      l'élève qui lui parle;
@@ -169,20 +169,25 @@ Deno.test("doctrine SANS aucune portée: les six variantes sont octet pour octet
   //      fragmentation pour l'écrasante majorité des coachs.
   const d = unscoped();
   const variants = compileAllDoctrineVariants(d);
-  assertEquals(variants.length, 6);
+  assertEquals(variants.length, GOAL_TOKENS.length + 1, "une variante par objectif, plus la default");
   const texts = new Set(variants.map((v) => v.compiled.text));
   const hashes = new Set(variants.map((v) => v.compiled.hash));
   assertEquals(texts.size, 1, "une doctrine sans portée doit compiler à UN seul texte");
   assertEquals(hashes.size, 1, "et donc occuper UNE seule entrée de cache");
 
   const footprint = doctrineCacheFootprint(d);
-  assertEquals(footprint, { variants: 6, distinctHashes: 1, reuseRatio: 5 / 6 });
+  // Dérivé du vocabulaire, jamais codé en dur: un sixième objectif est apparu
+  // pendant ce lot, et un « 6 » écrit ici aurait fait échouer un test qui a
+  // pourtant raison sur le fond.
+  const n = GOAL_TOKENS.length + 1;
+  assertEquals(footprint, { variants: n, distinctHashes: 1, reuseRatio: (n - 1) / n });
 });
 
 Deno.test("la variante default d'une doctrine sans portée EST le bloc d'avant ce lot", () => {
-  // Le test de non-régression au sens strict: le texte servi aujourd'hui à un
-  // élève quelconque est celui que le compilateur d'avant produisait — mêmes
-  // sections, même ordre, mêmes phrases.
+  // Le test de non-régression: le texte servi aujourd'hui à un élève quelconque
+  // est celui que le compilateur d'avant produisait, aux aliments RECOMMANDÉS
+  // près — eux ont migré vers le mapping du protocole, qui les dit dans le
+  // vocabulaire fermé et les porte jusqu'au générateur de repas.
   const text = compileDoctrineBlock(unscoped(), null).text;
   const expected = [
     "== MARLOW'S METHOD — YOU SPEAK AS THIS COACH'S AGENT ==",
@@ -190,7 +195,6 @@ Deno.test("la variante default d'une doctrine sans portée EST le bloc d'avant c
     "-- FORBIDDEN: NEVER RECOMMEND, NEVER ENDORSE --",
     "-- THIS COACH'S WORDS — use them, do not translate them away --",
     "-- HOW THIS COACH ANSWERS (follow these, they are his own words) --",
-    "-- FOODS THIS COACH LEANS ON — reach for these first --",
     "-- FOODS THIS COACH DOES NOT PUT ON A PLATE --",
     "-- WHAT THIS COACH HAS ALREADY ANSWERED --",
     "-- VOICE --",
@@ -201,6 +205,18 @@ Deno.test("la variante default d'une doctrine sans portée EST le bloc d'avant c
     assert(at > cursor, `section manquante ou déplacée: ${header}`);
     cursor = at;
   }
+  // ET UNE SECTION QUI NE DOIT PLUS JAMAIS REVENIR ICI.
+  //
+  // « Les aliments avec lesquels ce coach construit » se disait à deux
+  // endroits: ici en texte libre, et sur `/coach/protocol` en postures sur le
+  // vocabulaire fermé. C'est le mapping qui l'emporte — il atteint le
+  // générateur de repas par `protocol_loader.ts`, et il est ce contre quoi une
+  // photo se compare. La réintroduire ici rouvrirait les deux listes qui
+  // divergent.
+  assert(
+    !text.includes("LEANS ON"),
+    "« avec quoi je construis » appartient au mapping du protocole, pas à la doctrine",
+  );
   // Les trois croyances, les deux arbitrages: rien n'a été filtré.
   assert(text.includes("Do not panic over a plateau"));
   assert(text.includes("Eat more than you think you need."));
@@ -233,7 +249,7 @@ Deno.test("la fragmentation d'un coach qui cible: mesurée, pas supposée", () =
   // La fragmentation ne suit donc PAS le nombre d'objectifs, elle suit le
   // nombre de portées DISTINCTES que le coach a réellement écrites.
   const footprint = doctrineCacheFootprint(marlow());
-  assertEquals(footprint.variants, 6);
+  assertEquals(footprint.variants, GOAL_TOKENS.length + 1);
   assertEquals(footprint.distinctHashes, 3);
   assertEquals(
     compileDoctrineBlock(marlow(), "performance").hash,
@@ -251,7 +267,7 @@ Deno.test("la fragmentation d'un coach qui cible: mesurée, pas supposée", () =
 // §4 — LE VERROU DES INTERDITS RESTE GLOBAL
 // ===========================================================================
 
-Deno.test("le verrou des interdits est IDENTIQUE pour les six variantes", () => {
+Deno.test("le verrou des interdits est IDENTIQUE pour TOUTES les variantes", () => {
   // C'est la garantie structurelle de §4, et elle se démontre plutôt qu'elle
   // ne se promet: `findDoctrineViolations` ne prend pas d'objectif, donc
   // aucune variante ne peut se retrouver avec moins de règles qu'une autre.

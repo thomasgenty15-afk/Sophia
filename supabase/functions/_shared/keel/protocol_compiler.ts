@@ -695,3 +695,110 @@ export function diffCompiled(
 
   return { added, removed, changed };
 }
+
+// ---------------------------------------------------------------------------
+// LE BLOC DE PROMPT — le mapping du coach, dit au générateur de repas
+// ---------------------------------------------------------------------------
+//
+// POURQUOI CE RENDU EST ICI, DANS LE MODULE PUR
+// ---------------------------------------------
+// Le mapping d'aliments existait, était compilé, testé — et n'atteignait AUCUN
+// consommateur au runtime. Un coach cochait trente pastilles et Sophia
+// continuait de composer ses plats sans en rien savoir; sa méthode ne
+// gouvernait que l'écran sur lequel il l'avait écrite.
+//
+// Le rendu vit à côté de la compilation pour la même raison que l'aperçu du
+// coach appelle `compileProtocol` plutôt qu'une copie: deux formulations du
+// même mapping divergent au premier changement, et c'est le coach qui découvre
+// la divergence dans l'assiette d'un élève.
+//
+// ⚠️ CE BLOC N'EST PAS UN BLOC DE SÉCURITÉ, et le prompt le dit.
+// Un `excluded` de coach est la sévérité maximale d'une MÉTHODE. Les allergies
+// vivent dans `student_safety_constraints`, arrivent par un autre bloc, et sont
+// vérifiées par un verrou déterministe que rien d'ici ne touche. Formuler un
+// `excluded` comme un interdit vital apprendrait au modèle à confondre les deux
+// registres — et à traiter une aversion de coach comme un risque vital, ou pire,
+// l'inverse.
+
+/** Rendu sans locale (R2): le slug quand le coach n'a pas posé son propre mot. */
+function previewSentence(c: CompiledCommitment): string {
+  const p = c.preview;
+  const name = c.title;
+  switch (p.kind) {
+    case "encourage":
+      return `${name} — build with it, at least ${p.perDay} portion a day`;
+    case "discourage":
+      return `${name} — he steers away from it; swap it out when you can`;
+    case "exclude":
+      return `${name} — he does not build with it at all`;
+    case "portions":
+      return `${name} — ${p.direction === "at_least" ? "at least" : "at most"} ${p.portions} portion${
+        p.portions === 1 ? "" : "s"
+      } per ${p.period}`;
+    case "every_meal":
+      return `${name} — at every meal`;
+    case "not_after":
+      return `${name} — not after ${p.cutoff}`;
+    case "at_slot":
+      return `${name} — at ${p.slot}`;
+  }
+}
+
+/**
+ * Le bloc `[COACH FOOD MAPPING]` à injecter, pour UN élève et UN objectif.
+ *
+ * Rend `""` quand le coach n'a rien coché: un en-tête sans rien dessous se lit
+ * comme « ce coach a une méthode alimentaire, et elle est vide », ce qui est une
+ * affirmation différente de « ce coach n'en a pas écrit ».
+ *
+ * DÉTERMINISTE: `compileProtocol` trie déjà sa sortie, et ce rendu n'ajoute
+ * aucun tri qui dépendrait de l'ordre de lecture de la base.
+ */
+export function protocolFoodBlock(
+  compiled: readonly CompiledCommitment[],
+  coachDisplayName?: string | null,
+): string {
+  if (compiled.length === 0) return "";
+  const who = (coachDisplayName ?? "").trim() || "the coach";
+
+  const encouraged = compiled.filter((c) => c.preview.kind === "encourage");
+  const discouraged = compiled.filter((c) => c.preview.kind === "discourage");
+  const excluded = compiled.filter((c) => c.preview.kind === "exclude");
+  const timing = compiled.filter((c) =>
+    ["portions", "every_meal", "not_after", "at_slot"].includes(c.preview.kind)
+  );
+
+  const lines: string[] = [];
+  lines.push(`== ${who.toUpperCase()}'S FOOD MAPPING — WHAT HE BUILDS PLATES WITH ==`);
+  lines.push("");
+  lines.push(
+    "This is this coach's METHOD, not a medical restriction. The student's " +
+      "hard constraints arrive separately and always win over anything here.",
+  );
+
+  const section = (header: string, items: readonly CompiledCommitment[]) => {
+    if (items.length === 0) return;
+    lines.push("");
+    lines.push(header);
+    for (const c of items) {
+      // Le « pourquoi » du coach, quand il l'a écrit: c'est ce qui permet
+      // d'EXPLIQUER au lieu d'asséner, exactement comme le rationale d'une
+      // conviction.
+      const why = String(c.student_instruction ?? "").trim();
+      lines.push(why ? `- ${previewSentence(c)} (${why})` : `- ${previewSentence(c)}`);
+    }
+  };
+
+  section("-- REACH FOR THESE FIRST --", encouraged);
+  section(
+    "-- HE STEERS AWAY FROM THESE — do not build a meal around one --",
+    discouraged,
+  );
+  section(
+    "-- HE DOES NOT USE THESE — never put one in a meal you propose --",
+    excluded,
+  );
+  section("-- HIS RULES ON FREQUENCY AND TIMING --", timing);
+
+  return lines.join("\n");
+}

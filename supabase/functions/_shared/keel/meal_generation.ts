@@ -271,6 +271,20 @@ Day tokens are exactly: mon tue wed thu fri sat sun. Never translated.`;
 
 export function buildMealPrompt(args: {
   doctrineBlock: string;
+  /**
+   * LE MAPPING ALIMENTAIRE DU COACH — `protocolBlockFor()`, vide s'il n'a rien
+   * coché.
+   *
+   * Il est SÉPARÉ du bloc de doctrine, et ce n'est pas une commodité de
+   * plomberie: la doctrine dit ce que le coach PENSE, le mapping dit avec quoi
+   * il CONSTRUIT. Les fondre ferait deviner au modèle lequel est une conviction
+   * qu'il peut citer à l'élève et lequel est une contrainte de composition.
+   *
+   * Obligatoire et pas optionnel — un appelant qui l'oublie compose des plats
+   * en ignorant les trente pastilles que le coach a cochées, sans que rien
+   * n'échoue. C'était exactement l'état du produit avant ce câblage.
+   */
+  protocolBlock: string;
   /** Les clés offertes, pour que `honours_belief_keys` soit vérifiable. */
   beliefKeys: readonly string[];
   goal: string;
@@ -290,6 +304,10 @@ export function buildMealPrompt(args: {
 
   const userMessage = [
     args.doctrineBlock.trim(),
+    // Le mapping suit IMMÉDIATEMENT la doctrine, et avant tout ce qui est
+    // propre à l'élève: c'est la partie commune à toute la cohorte du coach,
+    // donc la partie cacheable, et le budget de prompt tronque par la queue.
+    ...(args.protocolBlock.trim() ? ["", args.protocolBlock.trim()] : []),
     "",
     "== THE CONVICTION KEYS YOU MAY NAME ==",
     JSON.stringify(args.beliefKeys),

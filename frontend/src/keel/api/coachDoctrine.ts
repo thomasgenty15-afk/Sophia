@@ -49,7 +49,6 @@ export interface DoctrineDraft {
   vocabulary?: Array<{ term?: string; meaning?: string | null }>;
   arbitrations?: Array<{ situation?: string; coach_answer?: string; goal_scope?: string[] }>;
   foods?: {
-    recommended?: Array<{ term?: string; reason?: string | null }>;
     discouraged?: Array<{ term?: string; surface_forms?: string[]; reason?: string | null }>;
   };
   qa?: Array<{ question?: string; answer?: string }>;
@@ -69,7 +68,12 @@ export const ALWAYS_SHARED_SECTIONS = ["voice", "vocabulary", "forbidden", "food
 /** Le libellé d'un objectif, dans les mots d'un coach. */
 export const GOAL_LABELS: Readonly<Record<GoalToken, string>> = {
   fat_loss: "Losing fat",
-  recomposition: "Recomposition",
+  muscle_gain: "Gaining muscle",
+  // « Recomposition » est du jargon: le coach connaît le mot, mais il choisit
+  // ici pour des élèves, et le mot ne dit pas ce que l'objectif fait. Le
+  // libellé porte donc la signature de l'objectif — le poids tient, la
+  // silhouette change — qui est aussi exactement ce que le générateur mesure.
+  recomposition: "Same weight, different shape",
   performance: "Performance",
   health: "Health",
   maintenance: "Maintenance",
@@ -262,7 +266,6 @@ export function pruneDraft(draft: DoctrineDraft): DoctrineDraft {
     // compte et lui laisse inventer la position du coach dessus.
     arbitrations: (draft.arbitrations ?? []).filter((a) => has(a.situation) && has(a.coach_answer)),
     foods: {
-      recommended: (draft.foods?.recommended ?? []).filter((f) => has(f.term)),
       discouraged: (draft.foods?.discouraged ?? []).filter((f) => has(f.term)),
     },
     qa: (draft.qa ?? []).filter((q) => has(q.question) && has(q.answer)),

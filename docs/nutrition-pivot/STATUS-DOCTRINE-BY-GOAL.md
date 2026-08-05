@@ -153,6 +153,36 @@ de variantes.
 | 5 | UI | `/coach/doctrine` refait: formulaire éditable + partie spécifique par dynamique + aperçu par objectif. |
 | 6 | Rétrocompatibilité prouvée | Une doctrine sans portée compile **octet pour octet à l'identique** pour les six variantes — test dédié, plus la mesure 6→1 en base. |
 
+### 🔴 Le second trou, fermé sur retour : le mapping n'atteignait personne
+
+`coach_food_rules` avait son écran (`/coach/protocol`), ses gardes de schéma et
+un compilateur couvert par trente tests — et **aucun lecteur au runtime**. Un
+coach cochait ses trente pastilles, et `generate-meal-v1` composait ses plats
+sans rien en savoir. Sa méthode alimentaire ne gouvernait que l'écran sur lequel
+il l'avait écrite.
+
+`_shared/keel/protocol_loader.ts` la charge et la compile **à la lecture** —
+comme `doctrine_loader.ts` fait pour la doctrine depuis le début, parce que le
+compilateur est pur. Attendre la publication vers `plan_commitments` (item 5 du
+lot voisin, non livré) aurait laissé le mapping muet jusque-là.
+
+Conséquence directe : **`foods.recommended` disparaît de la doctrine.** « Avec
+quoi je construis » se disait à deux endroits — ici en texte libre, et sur
+`/coach/protocol` en postures sur le vocabulaire fermé. Deux listes qui disent
+la même chose divergent, et le coach ne sait plus laquelle son agent lit. C'est
+le mapping qui gagne : c'est lui que la photo compare et que l'évaluateur note.
+
+`foods.discouraged` **reste**, et ce n'est pas une symétrie ratée : il porte des
+`surface_forms`, et c'est cette liste que le verrou déterministe matche dans la
+prose générée. Le vocabulaire fermé ne sait pas faire ce travail —
+`other_added_fat` n'est pas une phrase qu'un modèle écrit, « huile de tournesol »
+si.
+
+Mesuré en réel (D4) : le bloc arrive dans le prompt avec le **mot du coach** à
+la place du slug (« green volume », pas `leafy_greens`), son « pourquoi » voyage
+avec la règle, la portée par objectif mord ici aussi, et les huit plats générés
+ne contiennent aucun groupe exclu tout en reposant sur les groupes encouragés.
+
 ### 🔴 Le trou que le lot a fermé en chemin
 
 `generate-week-plan-v1` et `generate-meal-v1` **ne lisent pas le bloc** : ils
@@ -204,6 +234,7 @@ Refait après retour en cours de lot. **Deux parties, ni plus ni moins.**
 | **Épreuve de réel** (D1) | **7/7** |
 | **Passe adversariale** (D2) | **12/12** |
 | **Aller-retour de l'écran** (D3) | **13/13** |
+| **Le mapping atteint l'assiette** (D4) | **10/10** |
 
 Passe adversariale, cas par cas — chacun vérifié d'abord sur le **bloc servi**
 (lu par le vrai `loadPublishedDoctrine` contre la vraie base), puis en

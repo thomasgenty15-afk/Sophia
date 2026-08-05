@@ -181,11 +181,11 @@ function toEditorShape(row: Record<string, unknown>): Record<string, unknown> {
       goal_scope: scope(a),
     })),
     foods: {
-      recommended: arr(foods.recommended).map((f) => ({
-        term: String(f.term ?? ""),
-        surface_forms: forms(f),
-        reason: f.reason == null ? null : String(f.reason),
-      })),
+      // Pas de `recommended`: « avec quoi je construis » vit sur
+      // `/coach/protocol`, dans le vocabulaire fermé. Une ligne ancienne qui en
+      // porte encore une n'est pas rendue à l'éditeur — donc le prochain
+      // enregistrement la laisse tomber, ce qui est exactement le nettoyage
+      // qu'on veut, et il est visible dans le diff de version.
       discouraged: arr(foods.discouraged).map((f) => ({
         term: String(f.term ?? ""),
         surface_forms: forms(f),
@@ -453,7 +453,7 @@ Deno.serve(async (req) => {
           // Sans ces deux lignes, `compile` produisait les sections et `save`
           // les jetait en silence: le coach voyait ses aliments à l'écran de
           // validation, publiait, et l'agent n'en savait rien.
-          foods: payload.foods ?? { recommended: [], discouraged: [] },
+          foods: payload.foods ?? { discouraged: [] },
           qa: payload.qa ?? [],
           voice: payload.voice ?? {},
           content_locale: String(body.content_locale ?? "en"),
@@ -588,7 +588,7 @@ Deno.serve(async (req) => {
           // entier, sinon « retour en un clic » retire au coach ses aliments
           // et ses questions/réponses sans rien lui dire. Même raison que le
           // `save` qui les avait oubliés avant lui.
-          foods: source.foods ?? { recommended: [], discouraged: [] },
+          foods: source.foods ?? { discouraged: [] },
           qa: source.qa ?? [],
           voice: source.voice ?? {},
           content_locale: String(source.content_locale ?? "en"),

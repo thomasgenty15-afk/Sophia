@@ -43,7 +43,7 @@ function doctrine(over: Partial<CoachDoctrine> = {}): CoachDoctrine {
     beliefs: [{ key: "fasting_is_the_backbone", claim: "Fasting is the backbone", rationale: null, goalScope: [] }],
     forbidden: [{ token: "six_small_meals", surfaceForms: ["6 petits repas"], reason: null }],
     vocabulary: [{ term: "la fenêtre", meaning: "the eating window" }],
-    foods: { recommended: [], discouraged: [] },
+    foods: { discouraged: [] },
     qa: [],
     arbitrations: [{ situation: "cracked at night", coachAnswer: "One evening is data.", source: null, goalScope: [] }],
     voice: { address: "tu", length: "short", emojis: "none", language: "fr-FR" },

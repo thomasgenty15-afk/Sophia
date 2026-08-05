@@ -267,7 +267,7 @@ export function applyKeelOutputLocks(input: OutputLockInput): OutputLockResult {
       // dans un verrou. Un aliment CONSEILLÉ nommé dans une réponse est le
       // comportement voulu, et le passer à un moteur de correspondance qui
       // ignore la distinction bloquerait exactement les bonnes réponses.
-      foods: { recommended: [], discouraged: discouragedFoods },
+      foods: { discouraged: discouragedFoods },
     });
     if (doctrineViolations.length > 0) {
       const tokens = [...new Set(doctrineViolations.map((v) => v.token))];

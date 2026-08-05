@@ -11,6 +11,10 @@ import {
   doctrineBlockFor,
   loadPublishedDoctrine,
 } from "../_shared/keel/doctrine_loader.ts";
+import {
+  loadPublishedProtocol,
+  protocolBlockFor,
+} from "../_shared/keel/protocol_loader.ts";
 import { loadStudentSafetyConstraints } from "../_shared/keel/safety_constraints.ts";
 import {
   buildMealPrompt,
@@ -187,6 +191,27 @@ Deno.serve(async (req) => {
       .map((b) => String(b.key ?? "").trim())
       .filter(Boolean);
 
+    // --- LE MAPPING ALIMENTAIRE DU COACH ----------------------------------
+    //
+    // `coach_food_rules` existait, avec son écran, ses gardes et un compilateur
+    // couvert par trente tests — et aucun lecteur au runtime. Un coach cochait
+    // ses pastilles et le générateur composait sans rien en savoir.
+    //
+    // Ne bloque JAMAIS: un coach peut n'avoir jamais ouvert `/coach/protocol`
+    // et avoir une méthode complète dans sa doctrine. Pas de mapping = pas de
+    // bloc, et le reste du prompt est inchangé.
+    let protocolBlock = "";
+    try {
+      const protocol = await loadPublishedProtocol(admin, userId);
+      // Le nom du coach vient de la doctrine déjà chargée: le mapping ouvre
+      // sur « MARLOW'S FOOD MAPPING », pas sur « THE COACH'S ». Le produit
+      // qu'on vend est que l'élève parle à l'agent DE SON COACH — la même
+      // raison qui a fait ajouter cette lecture au chargeur de doctrine.
+      protocolBlock = protocolBlockFor(protocol, doctrine.doctrine?.coachDisplayName ?? null);
+    } catch (error) {
+      console.warn(`[${FN_NAME}] coach food mapping unavailable`, error);
+    }
+
     // --- contraintes dures de l'élève : le verrou qui ne dépend de personne
     let constraints = null;
     try {
@@ -197,6 +222,7 @@ Deno.serve(async (req) => {
 
     const { systemPrompt, userMessage } = buildMealPrompt({
       doctrineBlock: doctrineBlockFor(doctrine),
+      protocolBlock,
       beliefKeys,
       goal: String(goalRow.goal ?? "health"),
       situation: goalRow.situation ? String(goalRow.situation) : null,
@@ -276,8 +302,20 @@ Deno.serve(async (req) => {
     return jsonResponse(req, {
       ok: true,
       meal: written,
-      dishes: meal.dishes,
-      shopping_list: meal.shopping_list,
+      // LA MÊME FORME QUE CE QUI EST STOCKÉ, et c'est un correctif.
+      //
+      // La réponse rendait `meal.dishes`, la forme INTERNE du parseur
+      // (`servingsMade`, camelCase), pendant que la ligne écrite juste au-dessus
+      // passe par `mealDishesPayload` (`servings_made`, snake_case). Le client
+      // lisait donc `undefined` sur le lot et n'affichait jamais « cuisiné une
+      // fois pour trois jours » — l'élève voyait « 500 g de pommes de terre »
+      // sans l'explication qui la rend juste.
+      //
+      // Deux formes pour une donnée, c'est la divergence silencieuse habituelle:
+      // aucune erreur, aucun log, juste un champ vide chez le lecteur. Une seule
+      // forme désormais, celle de la base.
+      dishes: mealDishesPayload(meal),
+      shopping_list: mealShoppingPayload(meal),
       rejected_numeric: meal.rejected_numeric,
       rejected_aisles: meal.rejected_aisles,
       issues: [...issues, ...meal.issues],

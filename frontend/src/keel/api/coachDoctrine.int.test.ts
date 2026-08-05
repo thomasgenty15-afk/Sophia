@@ -41,14 +41,17 @@ const DRAFT: DoctrineDraft = {
     { situation: "cracked", coach_answer: "One evening is data." },
     { situation: "scale stuck", coach_answer: "Show me the waist.", goal_scope: ["fat_loss"] },
   ],
-  foods: { recommended: [{ term: "eggs" }], discouraged: [] },
+  foods: { discouraged: [] },
   qa: [{ question: "Coffee?", answer: "Black." }],
   voice: { address: "tu", length: "short" },
 };
 
 describe("l'aperçu par objectif", () => {
-  it("montre six variantes, la default en tête", () => {
-    expect(PREVIEW_VARIANTS).toHaveLength(6);
+  it("montre une variante par objectif plus la default, la default en tête", () => {
+    // DÉRIVÉ DU VOCABULAIRE, jamais codé en dur: un sixième objectif est apparu
+    // pendant ce lot, et un « 6 » écrit ici aurait fait échouer un test qui a
+    // pourtant raison sur le fond.
+    expect(PREVIEW_VARIANTS).toHaveLength(GOAL_TOKENS.length + 1);
     expect(PREVIEW_VARIANTS[0]).toBeNull();
     expect(variantLabel(null)).toBe("No goal set yet");
     expect(variantLabel("fat_loss")).toBe("Losing fat");
@@ -78,23 +81,21 @@ describe("l'aperçu par objectif", () => {
     const { doctrine } = draftToDoctrine(DRAFT, "Marlow", "en");
     const variants = previewVariants(doctrine);
     const dflt = variants.find((v) => v.goal === null)!;
-    expect(dflt.sharesCacheWith.sort()).toEqual([
-      "health",
-      "maintenance",
-      "performance",
-      "recomposition",
-    ]);
+    // Tous les objectifs qu'aucune portée ne vise retombent sur la default.
+    expect(dflt.sharesCacheWith.sort()).toEqual(
+      GOAL_TOKENS.filter((g) => g !== "fat_loss").slice().sort(),
+    );
     expect(variants.find((v) => v.goal === "fat_loss")!.sharesCacheWith).toEqual([]);
   });
 
-  it("une doctrine sans portée: six variantes, UN seul bloc", () => {
+  it("une doctrine sans portée: toutes les variantes, UN seul bloc", () => {
     const unscoped: DoctrineDraft = {
       ...DRAFT,
       beliefs: [{ claim: "Protein at every meal." }],
       arbitrations: [{ situation: "cracked", coach_answer: "One evening is data." }],
     };
     const { doctrine } = draftToDoctrine(unscoped, "Marlow", "en");
-    expect(cacheFootprint(doctrine)).toEqual({ variants: 6, entries: 1 });
+    expect(cacheFootprint(doctrine)).toEqual({ variants: GOAL_TOKENS.length + 1, entries: 1 });
     const texts = new Set(previewVariants(doctrine).map((v) => v.compiled.text));
     expect(texts.size).toBe(1);
   });
@@ -105,7 +106,7 @@ describe("l'aperçu par objectif", () => {
       forbidden: [],
       vocabulary: [],
       arbitrations: [],
-      foods: { recommended: [], discouraged: [] },
+      foods: { discouraged: [] },
       qa: [],
       voice: {},
     };
@@ -198,7 +199,7 @@ describe("l'édition — une partie globale, une partie par dynamique", () => {
         // Une demi-arbitration est trompeuse, pas seulement pauvre.
         { situation: "half", coach_answer: "" },
       ],
-      foods: { recommended: [{ term: "" }], discouraged: [{ term: "seed oil" }] },
+      foods: { discouraged: [{ term: "seed oil" }, { term: "  " }] },
       qa: [{ question: "q", answer: "" }],
       voice: { address: "tu" },
     };
@@ -207,7 +208,6 @@ describe("l'édition — une partie globale, une partie par dynamique", () => {
     expect(clean.forbidden?.map((f) => f.token)).toEqual(["keto"]);
     expect(clean.vocabulary).toEqual([]);
     expect(clean.arbitrations).toHaveLength(1);
-    expect(clean.foods?.recommended).toEqual([]);
     expect(clean.foods?.discouraged).toHaveLength(1);
     expect(clean.qa).toEqual([]);
     // La voix n'est pas une liste: elle traverse intacte.
@@ -252,10 +252,17 @@ describe("l'édition — une partie globale, une partie par dynamique", () => {
   });
 
   it("le vocabulaire d'objectifs du front EST celui du serveur", () => {
-    // Recopier les cinq jetons ici créerait une seconde source de vérité qui
-    // dériverait du CHECK de la base au premier ajout.
+    // Cette liste est recopiée EXPRÈS, et c'est le seul endroit où c'est vrai:
+    // elle n'est pas une seconde source de vérité, elle est le fil qui casse
+    // quand la première change. Un jeton ajouté au vocabulaire sans être ajouté
+    // au CHECK de la base donne un objectif que le front propose et que la base
+    // refuse — ce test tombe avant l'élève.
+    //
+    // 2026-08-05: `muscle_gain`, sixième jeton. Il a fait exactement son
+    // travail (migration 20260805120000).
     expect([...GOAL_TOKENS]).toEqual([
       "fat_loss",
+      "muscle_gain",
       "recomposition",
       "performance",
       "health",

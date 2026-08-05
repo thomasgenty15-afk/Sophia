@@ -103,8 +103,14 @@ interface DoctrineDraft {
   }>;
   vocabulary?: Array<{ term?: string; meaning?: string | null }>;
   arbitrations?: Array<{ situation?: string; coach_answer?: string; goal_scope?: string[] }>;
+  /**
+   * SEULEMENT ce que le coach garde HORS de l'assiette.
+   *
+   * « Avec quoi je construis » se dit sur `/coach/protocol`, en pastilles sur
+   * le vocabulaire fermé — c'est lui qui atteint le générateur de repas. La
+   * même affirmation à deux endroits, c'est deux listes qui divergent.
+   */
   foods?: {
-    recommended?: Array<{ term?: string; reason?: string | null }>;
     discouraged?: Array<{ term?: string; surface_forms?: string[]; reason?: string | null }>;
   };
   qa?: Array<{ question?: string; answer?: string }>;
@@ -901,38 +907,6 @@ function GlobalEditor({
           label="Add a word"
           onClick={() =>
             onChange({ ...draft, vocabulary: addEntry(draft.vocabulary, { term: "", meaning: "" }) })}
-        />
-      </EditorSection>
-
-      <EditorSection title="Foods you reach for">
-        {(foods.recommended ?? []).length === 0 ? (
-          <p className="text-sm text-gray-400">Nothing here yet.</p>
-        ) : (
-          <ul className="space-y-2">
-            {(foods.recommended ?? []).map((f, index) => (
-              <Row
-                key={`food-r-${index}`}
-                onRemove={() => setFoods({ recommended: removeEntry(foods.recommended, index) })}
-              >
-                <TextRow
-                  label="Food"
-                  value={String(f.term ?? "")}
-                  onChange={(term) =>
-                    setFoods({ recommended: patchEntry(foods.recommended, index, { term }) })}
-                />
-                <TextRow
-                  label="Why (optional)"
-                  value={String(f.reason ?? "")}
-                  onChange={(reason) =>
-                    setFoods({ recommended: patchEntry(foods.recommended, index, { reason }) })}
-                />
-              </Row>
-            ))}
-          </ul>
-        )}
-        <AddButton
-          label="Add a food"
-          onClick={() => setFoods({ recommended: addEntry(foods.recommended, { term: "", reason: "" }) })}
         />
       </EditorSection>
 

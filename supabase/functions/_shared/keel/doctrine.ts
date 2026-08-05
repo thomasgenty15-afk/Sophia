@@ -200,8 +200,27 @@ export interface DoctrineFood {
   reason?: string | null;
 }
 
+/**
+ * ── IL N'Y A PLUS DE LISTE `recommended` ICI, ET C'EST DÉLIBÉRÉ ──────────
+ *
+ * « Les aliments que ce coach met dans une assiette » se disait à DEUX
+ * endroits: ici, en texte libre, et sur `/coach/protocol` sous forme de
+ * posture `encouraged` sur un des trente groupes fermés. La même affirmation,
+ * deux fois, dans deux vocabulaires — donc deux listes qui divergent, et un
+ * coach qui ne sait plus laquelle Sophia lit.
+ *
+ * C'est le mapping qui gagne, parce qu'il est ce contre quoi une photo se
+ * compare et ce sur quoi l'évaluateur note; il atteint le générateur de repas
+ * par `protocol_loader.ts`. Un aliment qu'on RECOMMANDE n'a pas besoin de
+ * formulations de surface: c'est une invitation, et le générateur choisit tout
+ * seul comment la nommer.
+ *
+ * `discouraged` RESTE, et n'est pas symétrique: il porte des `surfaceForms`,
+ * et c'est cette liste que le verrou déterministe matche dans la PROSE
+ * générée. Le vocabulaire fermé ne sait pas faire ce travail — `other_added_fat`
+ * n'est pas une phrase qu'un modèle écrit, « huile de tournesol » si.
+ */
 export interface DoctrineFoods {
-  recommended: readonly DoctrineFood[];
   discouraged: readonly DoctrineFood[];
 }
 
@@ -482,7 +501,10 @@ export function parseCoachDoctrine(
 
   const foodsRaw = (row.foods ?? {}) as Record<string, unknown>;
   const foods: DoctrineFoods = {
-    recommended: parseFoodList(foodsRaw.recommended, "foods.recommended"),
+    // `foods.recommended` d'une ligne ancienne est IGNORÉ, sans bruit: la
+    // liste a migré vers le mapping du protocole, et signaler comme un défaut
+    // une donnée que le coach a légitimement écrite avant le déplacement lui
+    // ferait chercher une erreur qui n'existe pas.
     discouraged: parseFoodList(foodsRaw.discouraged, "foods.discouraged"),
   };
 
@@ -719,20 +741,12 @@ export function compileDoctrineBlock(
     }
   }
 
-  // ── LES ALIMENTS ────────────────────────────────────────────────────────
-  // Les deux listes sont émises SÉPARÉMENT et avec des verbes différents, pas
-  // fusionnées en un « voici les aliments ». Le conseillé est une INVITATION
-  // (le générateur de repas peut piocher dedans), le déconseillé est une
-  // BORNE (il ne peut pas). Les mettre sous un même titre laisserait au modèle
-  // le soin de deviner lequel est lequel.
-  if (doctrine.foods.recommended.length > 0) {
-    lines.push("");
-    lines.push("-- FOODS THIS COACH LEANS ON — reach for these first --");
-    for (const f of doctrine.foods.recommended) {
-      lines.push(f.reason ? `- ${f.term} — ${f.reason}` : `- ${f.term}`);
-    }
-  }
-
+  // ── LES ALIMENTS DÉCONSEILLÉS ───────────────────────────────────────────
+  // Une BORNE, et rien d'autre. L'INVITATION — « voilà avec quoi je construis »
+  // — a quitté la doctrine pour le mapping du protocole, qui la dit dans le
+  // vocabulaire fermé contre lequel une photo se compare. Ce qui reste ici est
+  // ce que le mapping ne sait pas porter: des formulations de surface que le
+  // verrou déterministe matche dans la prose générée.
   if (doctrine.foods.discouraged.length > 0) {
     lines.push("");
     lines.push("-- FOODS THIS COACH DOES NOT PUT ON A PLATE --");
@@ -786,7 +800,6 @@ export function compileDoctrineBlock(
     doctrine.forbidden.length === 0 &&
     doctrine.vocabulary.length === 0 &&
     arbitrations.length === 0 &&
-    doctrine.foods.recommended.length === 0 &&
     doctrine.foods.discouraged.length === 0 &&
     doctrine.qa.length === 0 &&
     voiceBits.length === 0;

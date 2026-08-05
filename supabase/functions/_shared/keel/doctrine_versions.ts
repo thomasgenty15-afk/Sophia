@@ -121,11 +121,17 @@ export const INTERVIEW_QUESTIONS: ReadonlyArray<
     question:
       "Which words do you use with your students that are yours - and what do they mean exactly?",
   },
-  {
-    section: "foods",
-    question:
-      "Which foods do you actually reach for with your students — the ones that keep showing up in your plans? Name them plainly.",
-  },
+  // LA QUESTION « AVEC QUOI TU CONSTRUIS » N'EST PLUS ICI.
+  //
+  // Elle se pose sur `/coach/protocol`, en trente pastilles à un tap, dans le
+  // vocabulaire fermé contre lequel une photo se compare et sur lequel
+  // l'évaluateur note. La poser AUSSI en texte libre produisait deux listes qui
+  // disent la même chose dans deux vocabulaires — donc deux listes qui
+  // divergent, et un coach qui ne sait plus laquelle son agent lit.
+  //
+  // Ce qui reste ci-dessous est ce que le mapping ne sait PAS porter: les
+  // formulations de surface d'un aliment déconseillé, que le verrou
+  // déterministe matche dans la prose générée.
   {
     // On demande les FORMULATIONS, pas seulement le nom, pour la même raison
     // que les `surface_forms` d'un interdit: « huiles de graines » ne s'écrit
@@ -189,8 +195,7 @@ Output a single JSON object, nothing else.
   "forbidden":   [{ "token": "snake_case_ascii", "surface_forms": ["..."], "reason": "..."|null, "instead": "..."|null }],
   "vocabulary":  [{ "term": "...", "meaning": "..."|null }],
   "arbitrations":[{ "situation": "...", "coach_answer": "...", "goal_scope": [] }],
-  "foods":       { "recommended": [{ "term": "...", "reason": "..."|null }],
-                   "discouraged": [{ "term": "...", "surface_forms": ["..."], "reason": "..."|null }] },
+  "foods":       { "discouraged": [{ "term": "...", "surface_forms": ["..."], "reason": "..."|null }] },
   "qa":          [{ "question": "...", "answer": "..." }],
   "voice":       { "address": "tu"|"vous"|null, "length": "short"|"medium"|null, "emojis": "none"|"light"|null, "language": "BCP-47"|null }
 }
@@ -207,7 +212,7 @@ RULES PER FIELD:
 - arbitrations.coach_answer: the coach's words, kept as close to verbatim as possible. Do NOT smooth them, do NOT make them more professional. Their value is that they sound like him.
 - foods.discouraged.surface_forms: the ACTUAL phrasings, in the coach's language AND in English, exactly like forbidden.surface_forms. A deterministic filter matches on these, and a bare term catches almost nothing in real prose ("seed oil" never appears as those two words in a French sentence). Give 2-4 per food.
 - foods vs forbidden: an INGREDIENT goes in foods ("seed oil", "protein bars"); a PRACTICE goes in forbidden ("six small meals", "intermittent fasting"). If the coach names an ingredient, do NOT invent a practice around it, and do not duplicate it into forbidden — the two lists are enforced by the same filter and a doubled entry doubles the incident report for one rule.
-- foods.recommended: only foods he actually named as ones he uses. This list is an INVITATION for the meal generator to reach for, so a food he merely tolerated does not belong in it.
+- foods holds ONLY what the coach keeps OFF a plate. There is no "recommended" list here and you must never emit one: what a coach builds with is said elsewhere, on a closed vocabulary of food groups. If he names foods he likes, that is not a doctrine entry — skip it rather than inventing a section for it.
 - qa: the questions his students actually ask, with HIS answer. Keep the answer close to verbatim, same rule as arbitrations. A qa entry is FACTUAL ("can I have coffee in the morning?"); if what he gave you is a reply to someone in distress, it is an arbitration, not a qa — putting it here would make the agent answer a technical question with reassurance.
 - voice: only fill a field the coach actually indicated. Guessing "tu" because the interview was in French is exactly the kind of invention this prompt forbids.
 - goal_scope (beliefs and arbitrations ONLY): an EMPTY list means the entry applies to every student, and empty is the default you use unless the coach restricted it himself. Allowed values, and no others: "fat_loss", "recomposition", "performance", "health", "maintenance". Fill it only when the coach's own words name who it is for — "when someone is cutting", "for my guys who are trying to put on size", "if they're just here to feel better". Do NOT infer a scope from the subject matter: "don't panic over the scale" SOUNDS like fat loss and may well be what he tells everyone, and guessing would silently take the sentence away from four fifths of his students. Restricting an entry the coach meant for everyone is worse than leaving it open, because he cannot see what his agent is not saying.

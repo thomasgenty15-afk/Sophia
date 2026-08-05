@@ -48,7 +48,6 @@ function doctrine(over: Partial<CoachDoctrine> = {}): CoachDoctrine {
       },
     ],
     foods: {
-      recommended: [{ term: "oeufs", surfaceForms: [], reason: "toujours dans ses petits-déjeuners" }],
       discouraged: [
         {
           term: "huile de graines",
@@ -297,7 +296,7 @@ Deno.test("an empty doctrine compiles to an empty-flagged block, not to junk", (
       forbidden: [],
       vocabulary: [],
       arbitrations: [],
-      foods: { recommended: [], discouraged: [] },
+      foods: { discouraged: [] },
       qa: [],
       voice: {},
     }),
@@ -311,6 +310,11 @@ Deno.test("a coach whose whole method is a food list has NOT published an empty 
   // méthode. Rater ce cas servirait « aucune méthode disponible » aux élèves
   // d'un coach qui a bel et bien rempli la sienne — la pire forme d'échec,
   // parce qu'elle est silencieuse et qu'elle ressemble à une panne.
+  //
+  // La liste porte désormais uniquement les aliments ÉCARTÉS: « avec quoi je
+  // construis » a migré vers le mapping du protocole. Un coach dont toute la
+  // méthode tient dans « voilà ce que je ne mets pas dans une assiette » est
+  // exactement le cas que ce test protège.
   const compiled = compileDoctrineBlock(
     doctrine({
       beliefs: [],
@@ -320,14 +324,13 @@ Deno.test("a coach whose whole method is a food list has NOT published an empty 
       qa: [],
       voice: {},
       foods: {
-        recommended: [{ term: "oeufs", surfaceForms: [], reason: null }],
-        discouraged: [],
+        discouraged: [{ term: "huile de graines", surfaceForms: ["seed oil"], reason: null }],
       },
     }),
     null,
   );
   assertEquals(compiled.isEmpty, false);
-  assert(compiled.text.includes("oeufs"));
+  assert(compiled.text.includes("huile de graines"));
 });
 
 Deno.test("a discouraged food is caught by the SAME lock as an interdit", () => {
