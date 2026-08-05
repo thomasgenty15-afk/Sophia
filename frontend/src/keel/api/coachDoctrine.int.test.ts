@@ -12,15 +12,21 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  addEntry,
   ALWAYS_SHARED_SECTIONS,
   cacheFootprint,
   type DoctrineDraft,
   draftToDoctrine,
+  entriesForScope,
   GOAL_TOKENS,
+  joinForms,
+  patchEntry,
   PREVIEW_VARIANTS,
   previewVariants,
+  pruneDraft,
+  removeEntry,
   scopeSentence,
-  toggleGoalScope,
+  splitForms,
   variantLabel,
 } from "./coachDoctrine";
 
@@ -119,13 +125,113 @@ describe("l'aperçu par objectif", () => {
   });
 });
 
-describe("le marqueur de portée", () => {
-  it("bascule un objectif sans muter le tableau d'origine", () => {
-    const scope = ["fat_loss"];
-    expect(toggleGoalScope(scope, "health")).toEqual(["fat_loss", "health"]);
-    expect(toggleGoalScope(scope, "fat_loss")).toEqual([]);
-    expect(scope).toEqual(["fat_loss"]);
-    expect(toggleGoalScope(undefined, "health")).toEqual(["health"]);
+describe("l'édition — une partie globale, une partie par dynamique", () => {
+  it("sépare le global du spécifique, et rend la POSITION avec l'entrée", () => {
+    // Les deux parties de l'écran éditent le MÊME tableau. Une vue filtrée qui
+    // perdrait sa position absolue écrirait dans la mauvaise entrée dès la
+    // première suppression.
+    const globals = entriesForScope(DRAFT.beliefs, null);
+    expect(globals.map((e) => e.index)).toEqual([0]);
+    expect(globals[0].entry.claim).toBe("Protein at every meal.");
+
+    const fatLoss = entriesForScope(DRAFT.beliefs, "fat_loss");
+    expect(fatLoss.map((e) => e.index)).toEqual([1]);
+    expect(entriesForScope(DRAFT.beliefs, "health")).toEqual([]);
+  });
+
+  it("une portée vide ou absente est GLOBALE — les deux, pas seulement l'une", () => {
+    const list = [{ claim: "a" }, { claim: "b", goal_scope: [] }, { claim: "c", goal_scope: ["health"] }];
+    expect(entriesForScope(list, null).map((e) => e.entry.claim)).toEqual(["a", "b"]);
+    expect(entriesForScope(list, "health").map((e) => e.entry.claim)).toEqual(["c"]);
+  });
+
+  it("écrire dans la partie d'une dynamique ne touche à rien d'autre", () => {
+    const before = DRAFT.beliefs!;
+    const after = patchEntry(before, 1, { claim: "Changed." });
+    expect(after[1].claim).toBe("Changed.");
+    expect(after[1].goal_scope).toEqual(["fat_loss"]);
+    expect(after[0]).toEqual(before[0]);
+    expect(before[1].claim).toBe("Do not panic over a plateau.");
+  });
+
+  it("ajouter et retirer rendent de nouveaux tableaux", () => {
+    const added = addEntry(DRAFT.beliefs, { claim: "New.", goal_scope: ["health"] });
+    expect(added).toHaveLength(3);
+    expect(entriesForScope(added, "health")).toHaveLength(1);
+    expect(DRAFT.beliefs).toHaveLength(2);
+
+    const removed = removeEntry(added, 1);
+    expect(removed.map((b) => b.claim)).toEqual(["Protein at every meal.", "New."]);
+    // Et la position rendue par la vue suit le retrait, sans décalage.
+    expect(entriesForScope(removed, "health").map((e) => e.index)).toEqual([1]);
+  });
+
+  it("une entrée écrite dans une dynamique n'atteint QUE cette dynamique", () => {
+    // Le bout en bout de l'écran: le coach ajoute une ligne pour la recomp,
+    // et l'élève en perte de gras ne doit jamais la lire.
+    const edited: DoctrineDraft = {
+      ...DRAFT,
+      beliefs: addEntry(DRAFT.beliefs, {
+        claim: "Eat more on training days.",
+        goal_scope: ["recomposition"],
+      }),
+    };
+    const { doctrine } = draftToDoctrine(edited, "Marlow", "en");
+    const variants = previewVariants(doctrine);
+    const text = (g: string | null) => variants.find((v) => v.goal === g)!.compiled.text;
+    expect(text("recomposition")).toContain("Eat more on training days.");
+    expect(text("fat_loss")).not.toContain("Eat more on training days.");
+    expect(text(null)).not.toContain("Eat more on training days.");
+  });
+
+  it("une ligne ouverte et jamais remplie ne part pas en base", () => {
+    // Un formulaire à « + » produit forcément des lignes vides. Enregistrées,
+    // elles reviennent à chaque relecture sous forme d'avertissements sur des
+    // lignes que le coach n'a jamais voulues — et chaque version recopie la
+    // précédente, donc elles s'accumulent.
+    const messy: DoctrineDraft = {
+      beliefs: [{ claim: "Real." }, { claim: "   ", rationale: "orphan" }],
+      forbidden: [{ token: "" , instead: "x" }, { token: "keto" }],
+      vocabulary: [{ term: "" }],
+      arbitrations: [
+        { situation: "s", coach_answer: "a" },
+        // Une demi-arbitration est trompeuse, pas seulement pauvre.
+        { situation: "half", coach_answer: "" },
+      ],
+      foods: { recommended: [{ term: "" }], discouraged: [{ term: "seed oil" }] },
+      qa: [{ question: "q", answer: "" }],
+      voice: { address: "tu" },
+    };
+    const clean = pruneDraft(messy);
+    expect(clean.beliefs).toHaveLength(1);
+    expect(clean.forbidden?.map((f) => f.token)).toEqual(["keto"]);
+    expect(clean.vocabulary).toEqual([]);
+    expect(clean.arbitrations).toHaveLength(1);
+    expect(clean.foods?.recommended).toEqual([]);
+    expect(clean.foods?.discouraged).toHaveLength(1);
+    expect(clean.qa).toEqual([]);
+    // La voix n'est pas une liste: elle traverse intacte.
+    expect(clean.voice).toEqual({ address: "tu" });
+  });
+
+  it("le nettoyage ne touche JAMAIS à une portée", () => {
+    const clean = pruneDraft(DRAFT);
+    expect(entriesForScope(clean.beliefs, "fat_loss")).toHaveLength(1);
+    expect(entriesForScope(clean.arbitrations, "fat_loss")).toHaveLength(1);
+  });
+
+  it("les formulations se coupent à la virgule ET au retour à la ligne", () => {
+    // Imposer l'un des deux ferait perdre la moitié des formulations au premier
+    // coach qui choisit l'autre — et une formulation perdue est un verrou qui
+    // ne reconnaît plus la phrase.
+    expect(splitForms("6 petits repas, six small meals")).toEqual([
+      "6 petits repas",
+      "six small meals",
+    ]);
+    expect(splitForms("a\nb\n\nc")).toEqual(["a", "b", "c"]);
+    expect(splitForms("   ")).toEqual([]);
+    expect(joinForms(["a", "b"])).toBe("a, b");
+    expect(joinForms(undefined)).toBe("");
   });
 
   it("« Everyone » est une valeur affichée, pas un champ vide", () => {

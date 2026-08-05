@@ -142,29 +142,129 @@ export function cacheFootprint(doctrine: CoachDoctrine): { variants: number; ent
 }
 
 /**
- * Bascule un objectif dans la portée d'une entrée. Rend TOUJOURS un nouveau
- * tableau: l'éditeur est en React, et muter en place ne re-rendrait rien.
- */
-export function toggleGoalScope(
-  scope: readonly string[] | undefined,
-  goal: GoalToken,
-): string[] {
-  const current = scope ?? [];
-  return current.includes(goal)
-    ? current.filter((g) => g !== goal)
-    : [...current, goal];
-}
-
-/**
  * Ce qu'une portée dit au coach, en une phrase.
  *
  * « Everyone » est affiché comme une VALEUR et pas comme un vide: la portée
  * vide est le cas de l'écrasante majorité des entrées, et un coach ne doit pas
- * avoir l'impression d'avoir laissé son travail inachevé. Même arbitrage que le
- * « neutre » du mapping alimentaire.
+ * avoir l'impression d'avoir laissé son travail inachevé.
  */
 export function scopeSentence(scope: readonly string[] | undefined): string {
   const goals = (scope ?? []).filter((g) => (GOAL_TOKENS as readonly string[]).includes(g));
   if (goals.length === 0) return "Everyone";
   return goals.map((g) => GOAL_LABELS[g as GoalToken]).join(", ");
+}
+
+// ---------------------------------------------------------------------------
+// L'ÉDITION — deux parties, et pas une de plus
+// ---------------------------------------------------------------------------
+//
+// LA DOCTRINE S'ÉDITE, ELLE NE SE REDEMANDE PAS.
+//
+// L'écran ne chargeait le contenu écrit nulle part: pour corriger UNE phrase, un
+// coach devait refaire l'interview entière et laisser l'IA tout recompiler. La
+// doctrine courante remplit donc maintenant des CASES, et ces cases sont la
+// source: ce qu'il tape est ce qui est stocké, sans passage par un modèle.
+// L'interview reste ce qu'elle aurait dû rester — le chemin du premier jour.
+//
+// DEUX PARTIES, PARCE QUE LE PARTAGE N'EST PAS UNIFORME:
+//   · GLOBALE  — sa voix, ses mots, ses interdits, ses aliments, et tout ce
+//                qu'il pense de tous ses élèves. Le coach ne change pas de voix
+//                parce qu'un élève veut prendre du muscle.
+//   · SPÉCIFIQUE PAR DYNAMIQUE — ce qui ne s'adresse qu'à une sorte d'élève.
+//                « Ne t'affole pas d'un plateau sur la balance » n'a de sens
+//                qu'en perte de gras.
+// Ni plus, ni moins: pas de troisième niveau, pas de portée multiple à cocher.
+
+/** Une entrée du brouillon, avec sa position dans le tableau qui la porte. */
+export interface IndexedEntry<T> {
+  index: number;
+  entry: T;
+}
+
+/**
+ * Les entrées d'une liste qui appartiennent à UNE partie de l'écran.
+ *
+ * `goal === null` rend la partie GLOBALE (portée absente ou vide). Un objectif
+ * rend ce qui le vise. L'index absolu voyage avec l'entrée: les deux parties
+ * éditent le même tableau, et une vue filtrée qui perdrait sa position
+ * écrirait dans la mauvaise entrée dès la première suppression.
+ */
+export function entriesForScope<T extends { goal_scope?: string[] }>(
+  list: readonly T[] | undefined,
+  goal: GoalToken | null,
+): IndexedEntry<T>[] {
+  return (list ?? [])
+    .map((entry, index) => ({ index, entry }))
+    .filter(({ entry }) => {
+      const scope = (entry.goal_scope ?? []).filter(Boolean);
+      return goal === null ? scope.length === 0 : scope.includes(goal);
+    });
+}
+
+/** Remplace une entrée. Rend un nouveau tableau — React ne re-rend pas une mutation. */
+export function patchEntry<T>(list: readonly T[] | undefined, index: number, patch: Partial<T>): T[] {
+  return (list ?? []).map((e, i) => (i === index ? { ...e, ...patch } : e));
+}
+
+/** Ajoute une entrée à la fin. */
+export function addEntry<T>(list: readonly T[] | undefined, entry: T): T[] {
+  return [...(list ?? []), entry];
+}
+
+/** Retire une entrée. */
+export function removeEntry<T>(list: readonly T[] | undefined, index: number): T[] {
+  return (list ?? []).filter((_, i) => i !== index);
+}
+
+/**
+ * Découpe une saisie de formulations en liste.
+ *
+ * Le coach tape « 6 petits repas, six small meals » sur une ligne; le verrou a
+ * besoin de deux entrées. La virgule ET le retour à la ligne coupent, parce que
+ * les deux sont naturels et qu'imposer l'un des deux ferait perdre la moitié
+ * des formulations au premier coach qui choisit l'autre.
+ */
+export function splitForms(raw: string): string[] {
+  return raw
+    .split(/[\n,;]+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+/** L'inverse, pour remplir la case. */
+export function joinForms(forms: readonly string[] | undefined): string {
+  return (forms ?? []).join(", ");
+}
+
+/**
+ * Retire les lignes VIDES avant d'enregistrer.
+ *
+ * Un formulaire à boutons « + » produit forcément des lignes qu'on ouvre et
+ * qu'on ne remplit pas. Sans ce nettoyage elles partent en base, `parseCoachDoctrine`
+ * les lâche à la lecture en écrivant une `issue`, et le coach lit à chaque
+ * ouverture une liste d'avertissements sur des lignes qu'il n'a jamais voulues.
+ * Elles s'accumuleraient de version en version, puisque chaque enregistrement
+ * copie la précédente.
+ *
+ * Le critère est le champ SANS LEQUEL l'entrée n'existe pas — la même règle
+ * que le parseur du serveur, pour que l'écran et lui soient d'accord sur ce
+ * qui compte comme une entrée.
+ */
+export function pruneDraft(draft: DoctrineDraft): DoctrineDraft {
+  const has = (v: unknown) => String(v ?? "").trim().length > 0;
+  return {
+    ...draft,
+    beliefs: (draft.beliefs ?? []).filter((b) => has(b.claim)),
+    forbidden: (draft.forbidden ?? []).filter((f) => has(f.token)),
+    vocabulary: (draft.vocabulary ?? []).filter((v) => has(v.term)),
+    // Une demi-arbitration n'est pas un exemple plus faible, c'est un exemple
+    // trompeur: une situation sans réponse apprend au modèle que le sujet
+    // compte et lui laisse inventer la position du coach dessus.
+    arbitrations: (draft.arbitrations ?? []).filter((a) => has(a.situation) && has(a.coach_answer)),
+    foods: {
+      recommended: (draft.foods?.recommended ?? []).filter((f) => has(f.term)),
+      discouraged: (draft.foods?.discouraged ?? []).filter((f) => has(f.term)),
+    },
+    qa: (draft.qa ?? []).filter((q) => has(q.question) && has(q.answer)),
+  };
 }

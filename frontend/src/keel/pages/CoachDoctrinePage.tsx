@@ -6,15 +6,20 @@ import { Button } from "../components/ui/Button";
 import { Card, SectionLabel } from "../components/ui/Card";
 import { Field, inputClass } from "../components/ui/Field";
 import {
+  addEntry,
   cacheFootprint,
   draftToDoctrine,
+  entriesForScope,
   GOAL_LABELS,
   GOAL_TOKENS,
   type GoalToken,
+  joinForms,
+  patchEntry,
   PREVIEW_VARIANTS,
   previewVariants,
-  scopeSentence,
-  toggleGoalScope,
+  pruneDraft,
+  removeEntry,
+  splitForms,
   variantLabel,
 } from "../api/coachDoctrine";
 
@@ -253,7 +258,12 @@ export default function CoachDoctrinePage() {
   const onSave = () =>
     run("save", async () => {
       if (!draft) return;
-      await callDoctrine({ action: "save", doctrine: draft });
+      // Les lignes ouvertes et non remplies ne partent pas en base: elles y
+      // seraient lâchées à la relecture avec un avertissement, et recopiées à
+      // chaque nouvelle version.
+      const clean = pruneDraft(draft);
+      await callDoctrine({ action: "save", doctrine: clean });
+      setDraft(clean);
       await refresh();
       setNotice("Saved as a draft. It is not live until you publish it.");
     });
@@ -340,12 +350,69 @@ export default function CoachDoctrinePage() {
           </Card>
         ) : null}
 
+        {/*
+          LA DOCTRINE S'ÉDITE ICI, DANS SES PROPRES CASES.
+          Le contenu écrit est la SOURCE, pas un compte rendu affiché sous
+          l'interview: corriger une phrase ne doit pas obliger à tout redire.
+        */}
+        {draft ? (
+          <>
+            <Card>
+              <SectionLabel>
+                {draftOrigin === "loaded" ? "Your method" : "What I understood"}
+              </SectionLabel>
+              <p className="mt-2 text-xs leading-5 text-gray-500">
+                {draftOrigin === "loaded"
+                  ? (published
+                    ? "This is what your agent is using right now, and you can edit it here. Saving creates a new version; your students keep reading this one until you publish the new one."
+                    : "This is your latest saved version. It is not published, so your agent is not using it yet.")
+                  : "Nothing here is saved yet. If a line is not yours, it should not be here — change it, or delete it."}
+              </p>
+              <p className="mt-2 text-xs leading-5 text-gray-500">
+                Everything in this card goes to <strong>every</strong>{" "}
+                student. Your voice, your words and your red lines are you — they
+                are never narrowed to one kind of student.
+              </p>
+
+              {issues.length > 0 ? (
+                <ul className="mt-3 list-disc space-y-1 pl-5 text-xs text-amber-800">
+                  {issues.map((issue) => <li key={issue}>{issue}</li>)}
+                </ul>
+              ) : null}
+
+              <GlobalEditor draft={draft} onChange={setDraft} />
+
+              <div className="mt-5 flex gap-2">
+                <Button onClick={onSave} disabled={busy !== null}>
+                  {busy === "save" ? "Saving…" : "Save as draft"}
+                </Button>
+              </div>
+            </Card>
+
+            <SpecificEditor draft={draft} onChange={setDraft} />
+            {/*
+              L'aperçu suit IMMÉDIATEMENT les deux parties, parce qu'il est ce
+              qui les relie: le coach vient d'écrire quelque chose de spécifique,
+              et la question suivante est « qu'est-ce que mon élève reçoit
+              maintenant ? ». La réponse est un écran plus bas, pas trois.
+            */}
+            <VariantPreviewCard draft={draft} />
+          </>
+        ) : null}
+
+        {/*
+          L'INTERVIEW EST LE CHEMIN DU PREMIER JOUR, et elle est passée SOUS
+          l'édition une fois qu'il y a quelque chose à éditer: un coach qui
+          revient corriger une phrase ne doit pas retomber sur onze questions.
+        */}
         <Card>
-          <SectionLabel>The interview</SectionLabel>
+          <SectionLabel>
+            {draft ? "Start over from an interview" : "The interview"}
+          </SectionLabel>
           <p className="mt-2 text-xs leading-5 text-gray-500">
-            Answer in your own words. The last three ask for your sentence, word
-            for word — that is what makes the agent sound like you rather than
-            like a nutrition textbook.
+            {draft
+              ? "Answering these again REPLACES what is in the card above. Use it when you want to rethink your method, not to fix a sentence."
+              : "Answer in your own words. Three of them ask for your sentence, word for word — that is what makes the agent sound like you rather than like a nutrition textbook."}
           </p>
           <div className="mt-4 space-y-4">
             {questions.map((q, i) => (
@@ -372,37 +439,6 @@ export default function CoachDoctrinePage() {
             </Button>
           </div>
         </Card>
-
-        {draft ? (
-          <Card>
-            <SectionLabel>
-              {draftOrigin === "loaded" ? "Your method" : "What I understood"}
-            </SectionLabel>
-            <p className="mt-2 text-xs leading-5 text-gray-500">
-              {draftOrigin === "loaded"
-                ? (published
-                  ? "This is what your agent is using right now. Run the interview above to change it — saving creates a new version, and your students keep reading this one until you publish the new one."
-                  : "This is your latest saved version. It is not published, so your agent is not using it yet.")
-                : "Nothing here is saved yet. If a line is not yours, it should not be here — edit your answers and run it again."}
-            </p>
-
-            {issues.length > 0 ? (
-              <ul className="mt-3 list-disc space-y-1 pl-5 text-xs text-amber-800">
-                {issues.map((issue) => <li key={issue}>{issue}</li>)}
-              </ul>
-            ) : null}
-
-            <DraftPreview draft={draft} onScopeChange={setDraft} />
-
-            <div className="mt-4 flex gap-2">
-              <Button onClick={onSave} disabled={busy !== null}>
-                {busy === "save" ? "Saving…" : "Save as draft"}
-              </Button>
-            </div>
-          </Card>
-        ) : null}
-
-        {draft ? <VariantPreviewCard draft={draft} /> : null}
 
         <Card>
           <SectionLabel>Versions</SectionLabel>
@@ -459,88 +495,19 @@ export default function CoachDoctrinePage() {
   );
 }
 
-/**
- * LE MARQUEUR DE PORTÉE — divulgation progressive, et rien d'autre.
- *
- * ── POURQUOI PAS UN ONGLET PAR OBJECTIF ─────────────────────────────────
- * Cinq onglets, ou cinq colonnes, multiplieraient par cinq une saisie dont
- * l'essentiel est COMMUN — et le lot voisin vise « une méthode écrite en moins
- * de trois minutes ». Une croyance est globale par défaut; ce marqueur ne
- * s'ouvre que si le coach a quelque chose à restreindre.
- *
- * « Everyone » est affiché comme une VALEUR, pas comme un champ vide: c'est le
- * cas de l'écrasante majorité des entrées, et un coach ne doit pas avoir
- * l'impression d'avoir laissé son travail inachevé. Même arbitrage que le
- * « neutre » des pastilles du mapping alimentaire.
- */
-function ScopeMarker({
-  scope,
-  onChange,
-}: {
-  scope: string[] | undefined;
-  onChange: (next: string[]) => void;
-}) {
-  const [open, setOpen] = React.useState(false);
-  const active = (scope ?? []).length > 0;
-  return (
-    <div className="mt-1">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className={`text-xs underline decoration-dotted underline-offset-2 ${
-          active ? "text-gray-900" : "text-gray-400"
-        }`}
-      >
-        {active ? `Only for: ${scopeSentence(scope)}` : "Everyone"}
-      </button>
-      {open ? (
-        <div className="mt-2 flex flex-wrap gap-1.5">
-          <button
-            type="button"
-            onClick={() => onChange([])}
-            className={`rounded-full border px-2.5 py-1 text-xs ${
-              active
-                ? "border-gray-200 bg-white text-gray-500"
-                : "border-gray-900 bg-gray-900 text-white"
-            }`}
-          >
-            Everyone
-          </button>
-          {GOAL_TOKENS.map((goal) => {
-            const on = (scope ?? []).includes(goal);
-            return (
-              <button
-                key={goal}
-                type="button"
-                onClick={() => onChange(toggleGoalScope(scope, goal))}
-                className={`rounded-full border px-2.5 py-1 text-xs ${
-                  on
-                    ? "border-gray-900 bg-gray-900 text-white"
-                    : "border-gray-200 bg-white text-gray-600"
-                }`}
-              >
-                {GOAL_LABELS[goal]}
-              </button>
-            );
-          })}
-        </div>
-      ) : null}
-    </div>
-  );
-}
 
 /**
- * L'APERÇU PAR OBJECTIF — le seul moyen de vérifier ce qu'un marqueur a produit.
+ * L'APERÇU PAR OBJECTIF — la vérification des deux parties, en un endroit.
  *
  * Le bloc affiché n'est pas une reconstitution: c'est `compileDoctrineBlock`,
  * le module que le tour exécute (voir `api/coachDoctrine.ts`). Ce que le coach
- * lit ici est, mot pour mot, ce que l'élève de cet objectif recevra.
+ * lit ici est, mot pour mot, ce que l'élève de cet objectif recevra — le global
+ * et le spécifique fondus comme ils le seront dans le prompt.
  *
  * Les objectifs qui reçoivent le MÊME bloc sont nommés, et c'est la moitié
- * utile: un coach qui vient de restreindre une croyance à la perte de gras et
- * qui lit « identical to: Health, Maintenance » sur la variante par défaut
- * apprend que sa restriction a fait exactement ce qu'il croyait — ou qu'elle
- * n'a rien fait du tout.
+ * utile: un coach qui vient d'écrire trois lignes pour la perte de gras et qui
+ * lit « identical to: Health, Maintenance » sur la variante par défaut voit
+ * exactement ce que sa saisie a séparé — et ce qu'elle n'a pas séparé.
  */
 function VariantPreviewCard({ draft }: { draft: DoctrineDraft }) {
   const [goal, setGoal] = React.useState<GoalToken | null>(null);
@@ -614,162 +581,562 @@ function VariantPreviewCard({ draft }: { draft: DoctrineDraft }) {
   );
 }
 
-/** Une section dont chaque entrée porte son marqueur de portée. */
-function ScopedSection({
+// ---------------------------------------------------------------------------
+// LES BRIQUES D'ÉDITION
+// ---------------------------------------------------------------------------
+
+/** Une ligne de formulaire: son contenu, et le bouton qui la retire. */
+function Row({ children, onRemove }: { children: React.ReactNode; onRemove: () => void }) {
+  return (
+    <li className="rounded-md border border-gray-100 bg-gray-50/60 p-3">
+      <div className="space-y-2">{children}</div>
+      <button
+        type="button"
+        onClick={onRemove}
+        className="mt-2 text-xs text-gray-400 underline decoration-dotted underline-offset-2 hover:text-gray-700"
+      >
+        Remove
+      </button>
+    </li>
+  );
+}
+
+function TextRow({
   label,
-  empty,
-  items,
+  value,
+  placeholder,
+  rows,
+  onChange,
 }: {
   label: string;
-  empty: string;
-  items: Array<{
-    key: string;
-    text: string;
-    scope: string[] | undefined;
-    onChange: (scope: string[]) => void;
-  }>;
+  value: string;
+  placeholder?: string;
+  rows?: number;
+  onChange: (v: string) => void;
 }) {
-  const visible = items.filter((i) => i.text.trim() && i.text.trim() !== "→");
+  return (
+    <label className="block">
+      <span className="text-xs font-medium text-gray-500">{label}</span>
+      {rows && rows > 1 ? (
+        <textarea
+          className={inputClass}
+          rows={rows}
+          value={value}
+          placeholder={placeholder}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      ) : (
+        <input
+          className={inputClass}
+          value={value}
+          placeholder={placeholder}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      )}
+    </label>
+  );
+}
+
+function AddButton({ label, onClick }: { label: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="mt-2 rounded-md border border-dashed border-gray-300 px-3 py-1.5 text-xs text-gray-600 hover:border-gray-400 hover:text-gray-900"
+    >
+      + {label}
+    </button>
+  );
+}
+
+function EditorSection({
+  title,
+  hint,
+  children,
+}: {
+  title: string;
+  hint?: string;
+  children: React.ReactNode;
+}) {
   return (
     <div>
-      <p className="text-xs font-medium uppercase tracking-wide text-gray-500">{label}</p>
-      {visible.length === 0 ? (
-        <p className="mt-1 text-sm text-gray-400">{empty}</p>
-      ) : (
-        <ul className="mt-1 space-y-2.5">
-          {visible.map((item) => (
-            <li key={item.key} className="border-l-2 border-gray-100 pl-3">
-              <p className="text-sm text-gray-800">{item.text}</p>
-              <ScopeMarker scope={item.scope} onChange={item.onChange} />
-            </li>
-          ))}
-        </ul>
-      )}
+      <p className="text-xs font-medium uppercase tracking-wide text-gray-500">{title}</p>
+      {hint ? <p className="mt-1 text-xs leading-5 text-gray-400">{hint}</p> : null}
+      <div className="mt-2">{children}</div>
     </div>
   );
 }
 
-/** Read-back of the compiled draft, in the coach's terms. */
-function DraftPreview({
+/**
+ * LES CROYANCES ET LES CAS DURS, ÉDITABLES — la brique commune aux deux parties.
+ *
+ * Elle est partagée par la partie GLOBALE et par chaque DYNAMIQUE, parce que
+ * c'est littéralement la même donnée: une conviction est une conviction, et la
+ * seule différence entre les deux parties est la portée que l'écran y attache.
+ * Deux implémentations divergeraient au premier champ ajouté.
+ */
+function BeliefsAndAnswers({
   draft,
-  onScopeChange,
+  onChange,
+  goal,
 }: {
   draft: DoctrineDraft;
-  onScopeChange: (next: DoctrineDraft) => void;
+  onChange: (next: DoctrineDraft) => void;
+  goal: GoalToken | null;
 }) {
-  // Les deux listes qui prennent une portée sont rendues à part, parce
-  // qu'elles sont les seules à porter un contrôle. Les autres restent du texte.
-  const setBeliefScope = (index: number, scope: string[]) =>
-    onScopeChange({
-      ...draft,
-      beliefs: (draft.beliefs ?? []).map((b, i) => i === index ? { ...b, goal_scope: scope } : b),
-    });
-  const setArbitrationScope = (index: number, scope: string[]) =>
-    onScopeChange({
-      ...draft,
-      arbitrations: (draft.arbitrations ?? []).map((a, i) =>
-        i === index ? { ...a, goal_scope: scope } : a
-      ),
-    });
-
-  const rows: Array<[string, string[]]> = [
-    [
-      "What your agent must never say",
-      (draft.forbidden ?? []).map((f) => {
-        const head = [String(f.token ?? ""), (f.surface_forms ?? []).join(" / ")]
-          .filter(Boolean)
-          .join(" — ");
-        // Shown, and shown as MISSING when it is: an interdit with no
-        // replacement is the one case where a student gets a flat refusal
-        // instead of your answer, and you should be able to see that at a
-        // glance rather than discover it from a student.
-        const instead = String(f.instead ?? "").trim();
-        return instead
-          ? `${head}  ·  instead: “${instead}”`
-          : `${head}  ·  no replacement set — students get a flat refusal here`;
-      }),
-    ],
-    [
-      "Your words",
-      (draft.vocabulary ?? []).map((v) =>
-        [String(v.term ?? ""), String(v.meaning ?? "")].filter(Boolean).join(": ")
-      ),
-    ],
-    [
-      "Foods you reach for",
-      (draft.foods?.recommended ?? []).map((f) =>
-        [String(f.term ?? ""), String(f.reason ?? "")].filter(Boolean).join(" — ")
-      ),
-    ],
-    [
-      "Foods you keep off the plate",
-      (draft.foods?.discouraged ?? []).map((f) => {
-        const head = [String(f.term ?? ""), (f.surface_forms ?? []).join(" / ")]
-          .filter(Boolean)
-          .join(" — ");
-        // Les formulations sont montrées, et leur ABSENCE est dite. Un aliment
-        // sans surface_forms est un aliment que le filtre ne reconnaîtra
-        // presque jamais dans une phrase réelle: mieux vaut le voir ici que le
-        // découvrir quand l'agent l'aura suggéré à un élève.
-        return (f.surface_forms ?? []).length > 0
-          ? head
-          : `${head}  ·  no phrasings recorded — this one will be hard to catch`;
-      }),
-    ],
-    [
-      "What you have already answered",
-      (draft.qa ?? []).map((q) =>
-        `${String(q.question ?? "")} → ${String(q.answer ?? "")}`
-      ),
-    ],
-  ];
-  const beliefs = draft.beliefs ?? [];
-  const arbitrations = draft.arbitrations ?? [];
+  const scope = goal === null ? undefined : [goal];
+  const beliefs = entriesForScope(draft.beliefs, goal);
+  const arbitrations = entriesForScope(draft.arbitrations, goal);
 
   return (
-    <div className="mt-4 space-y-4">
-      {/*
-        LES DEUX SECTIONS QUI PORTENT UNE PORTÉE, en tête et ensemble.
-        Elles sont les seules à en prendre une, et les mettre côte à côte
-        apprend cette règle sans avoir à l'écrire une deuxième fois.
-      */}
-      <ScopedSection
-        label="What you believe"
-        empty="Nothing — you did not say anything I could use here."
-        items={beliefs.map((b, i) => ({
-          key: `belief-${i}`,
-          text: String(b.claim ?? ""),
-          scope: b.goal_scope,
-          onChange: (scope: string[]) => setBeliefScope(i, scope),
-        }))}
-      />
-      <ScopedSection
-        label="How you answer"
-        empty="Nothing — you did not say anything I could use here."
-        items={arbitrations.map((a, i) => ({
-          key: `arb-${i}`,
-          text: `${String(a.situation ?? "")} → ${String(a.coach_answer ?? "")}`,
-          scope: a.goal_scope,
-          onChange: (scope: string[]) => setArbitrationScope(i, scope),
-        }))}
-      />
+    <div className="space-y-5">
+      <EditorSection
+        title="What you believe"
+        hint={goal === null
+          ? "One conviction per line. The 'why' is what lets your agent explain instead of assert."
+          : `Only students on ${GOAL_LABELS[goal]} will ever read these.`}
+      >
+        {beliefs.length === 0 ? (
+          <p className="text-sm text-gray-400">Nothing here yet.</p>
+        ) : (
+          <ul className="space-y-2">
+            {beliefs.map(({ index, entry }) => (
+              <Row
+                key={`belief-${index}`}
+                onRemove={() => onChange({ ...draft, beliefs: removeEntry(draft.beliefs, index) })}
+              >
+                <TextRow
+                  label="What you believe"
+                  value={String(entry.claim ?? "")}
+                  rows={2}
+                  onChange={(claim) =>
+                    onChange({ ...draft, beliefs: patchEntry(draft.beliefs, index, { claim }) })}
+                />
+                <TextRow
+                  label="Why (optional)"
+                  value={String(entry.rationale ?? "")}
+                  onChange={(rationale) =>
+                    onChange({
+                      ...draft,
+                      beliefs: patchEntry(draft.beliefs, index, { rationale }),
+                    })}
+                />
+              </Row>
+            ))}
+          </ul>
+        )}
+        <AddButton
+          label="Add a conviction"
+          onClick={() =>
+            onChange({
+              ...draft,
+              beliefs: addEntry(draft.beliefs, { claim: "", rationale: "", goal_scope: scope }),
+            })}
+        />
+      </EditorSection>
 
-      {rows.map(([label, items]) => (
-        <div key={label}>
-          <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
-            {label}
-          </p>
-          {items.filter(Boolean).length === 0 ? (
-            <p className="mt-1 text-sm text-gray-400">
-              Nothing — you did not say anything I could use here.
-            </p>
-          ) : (
-            <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-gray-800">
-              {items.filter(Boolean).map((item, i) => <li key={i}>{item}</li>)}
-            </ul>
-          )}
-        </div>
-      ))}
+      <EditorSection
+        title="How you answer"
+        hint={goal === null
+          ? "The situation, and your sentence — word for word. It is what makes the agent sound like you."
+          : `The hard cases that only come up with ${GOAL_LABELS[goal]} students.`}
+      >
+        {arbitrations.length === 0 ? (
+          <p className="text-sm text-gray-400">Nothing here yet.</p>
+        ) : (
+          <ul className="space-y-2">
+            {arbitrations.map(({ index, entry }) => (
+              <Row
+                key={`arb-${index}`}
+                onRemove={() =>
+                  onChange({ ...draft, arbitrations: removeEntry(draft.arbitrations, index) })}
+              >
+                <TextRow
+                  label="When a student…"
+                  value={String(entry.situation ?? "")}
+                  onChange={(situation) =>
+                    onChange({
+                      ...draft,
+                      arbitrations: patchEntry(draft.arbitrations, index, { situation }),
+                    })}
+                />
+                <TextRow
+                  label="You answer, word for word"
+                  value={String(entry.coach_answer ?? "")}
+                  rows={2}
+                  onChange={(coach_answer) =>
+                    onChange({
+                      ...draft,
+                      arbitrations: patchEntry(draft.arbitrations, index, { coach_answer }),
+                    })}
+                />
+              </Row>
+            ))}
+          </ul>
+        )}
+        <AddButton
+          label="Add a hard case"
+          onClick={() =>
+            onChange({
+              ...draft,
+              arbitrations: addEntry(draft.arbitrations, {
+                situation: "",
+                coach_answer: "",
+                goal_scope: scope,
+              }),
+            })}
+        />
+      </EditorSection>
     </div>
+  );
+}
+
+/**
+ * LA PARTIE GLOBALE — tout ce qui va à tous les élèves.
+ *
+ * Elle porte les croyances et les cas durs SANS portée, plus les quatre
+ * sections qui n'en prennent jamais: la voix, le vocabulaire, les interdits et
+ * les aliments. Ces quatre-là ne sont pas « pas encore ciblables »: un interdit
+ * borné à un objectif serait une préférence, pas un interdit.
+ */
+function GlobalEditor({
+  draft,
+  onChange,
+}: {
+  draft: DoctrineDraft;
+  onChange: (next: DoctrineDraft) => void;
+}) {
+  const voice = (draft.voice ?? {}) as Record<string, unknown>;
+  const setVoice = (patch: Record<string, unknown>) =>
+    onChange({ ...draft, voice: { ...voice, ...patch } });
+  const foods = draft.foods ?? {};
+  const setFoods = (patch: Partial<NonNullable<DoctrineDraft["foods"]>>) =>
+    onChange({ ...draft, foods: { ...foods, ...patch } });
+
+  return (
+    <div className="mt-4 space-y-6">
+      <BeliefsAndAnswers draft={draft} onChange={onChange} goal={null} />
+
+      <EditorSection
+        title="What your agent must never say"
+        hint="A token your code can branch on, the phrasings a model would actually write, and — the important one — what you say INSTEAD. Without an 'instead', a student gets a flat refusal rather than your answer."
+      >
+        {(draft.forbidden ?? []).length === 0 ? (
+          <p className="text-sm text-gray-400">Nothing here yet.</p>
+        ) : (
+          <ul className="space-y-2">
+            {(draft.forbidden ?? []).map((f, index) => (
+              <Row
+                key={`forb-${index}`}
+                onRemove={() =>
+                  onChange({ ...draft, forbidden: removeEntry(draft.forbidden, index) })}
+              >
+                <TextRow
+                  label="The thing itself"
+                  value={String(f.token ?? "")}
+                  placeholder="six_small_meals"
+                  onChange={(token) =>
+                    onChange({ ...draft, forbidden: patchEntry(draft.forbidden, index, { token }) })}
+                />
+                <TextRow
+                  label="How people actually write it (comma-separated)"
+                  value={joinForms(f.surface_forms)}
+                  placeholder="6 petits repas, six small meals, grazing all day"
+                  onChange={(raw) =>
+                    onChange({
+                      ...draft,
+                      forbidden: patchEntry(draft.forbidden, index, {
+                        surface_forms: splitForms(raw),
+                      }),
+                    })}
+                />
+                <TextRow
+                  label="Why you refuse it (optional)"
+                  value={String(f.reason ?? "")}
+                  onChange={(reason) =>
+                    onChange({
+                      ...draft,
+                      forbidden: patchEntry(draft.forbidden, index, { reason }),
+                    })}
+                />
+                <TextRow
+                  label="What you say INSTEAD — this exact text reaches your students"
+                  value={String(f.instead ?? "")}
+                  rows={2}
+                  onChange={(instead) =>
+                    onChange({
+                      ...draft,
+                      forbidden: patchEntry(draft.forbidden, index, { instead }),
+                    })}
+                />
+                {!String(f.instead ?? "").trim() ? (
+                  <p className="text-xs text-amber-800">
+                    No replacement set — students get a flat refusal here.
+                  </p>
+                ) : null}
+              </Row>
+            ))}
+          </ul>
+        )}
+        <AddButton
+          label="Add a red line"
+          onClick={() =>
+            onChange({
+              ...draft,
+              forbidden: addEntry(draft.forbidden, {
+                token: "",
+                surface_forms: [],
+                reason: "",
+                instead: "",
+              }),
+            })}
+        />
+      </EditorSection>
+
+      <EditorSection title="Your words" hint="The terms that are yours, and what they mean exactly.">
+        {(draft.vocabulary ?? []).length === 0 ? (
+          <p className="text-sm text-gray-400">Nothing here yet.</p>
+        ) : (
+          <ul className="space-y-2">
+            {(draft.vocabulary ?? []).map((v, index) => (
+              <Row
+                key={`vocab-${index}`}
+                onRemove={() =>
+                  onChange({ ...draft, vocabulary: removeEntry(draft.vocabulary, index) })}
+              >
+                <TextRow
+                  label="The word"
+                  value={String(v.term ?? "")}
+                  onChange={(term) =>
+                    onChange({
+                      ...draft,
+                      vocabulary: patchEntry(draft.vocabulary, index, { term }),
+                    })}
+                />
+                <TextRow
+                  label="What it means"
+                  value={String(v.meaning ?? "")}
+                  onChange={(meaning) =>
+                    onChange({
+                      ...draft,
+                      vocabulary: patchEntry(draft.vocabulary, index, { meaning }),
+                    })}
+                />
+              </Row>
+            ))}
+          </ul>
+        )}
+        <AddButton
+          label="Add a word"
+          onClick={() =>
+            onChange({ ...draft, vocabulary: addEntry(draft.vocabulary, { term: "", meaning: "" }) })}
+        />
+      </EditorSection>
+
+      <EditorSection title="Foods you reach for">
+        {(foods.recommended ?? []).length === 0 ? (
+          <p className="text-sm text-gray-400">Nothing here yet.</p>
+        ) : (
+          <ul className="space-y-2">
+            {(foods.recommended ?? []).map((f, index) => (
+              <Row
+                key={`food-r-${index}`}
+                onRemove={() => setFoods({ recommended: removeEntry(foods.recommended, index) })}
+              >
+                <TextRow
+                  label="Food"
+                  value={String(f.term ?? "")}
+                  onChange={(term) =>
+                    setFoods({ recommended: patchEntry(foods.recommended, index, { term }) })}
+                />
+                <TextRow
+                  label="Why (optional)"
+                  value={String(f.reason ?? "")}
+                  onChange={(reason) =>
+                    setFoods({ recommended: patchEntry(foods.recommended, index, { reason }) })}
+                />
+              </Row>
+            ))}
+          </ul>
+        )}
+        <AddButton
+          label="Add a food"
+          onClick={() => setFoods({ recommended: addEntry(foods.recommended, { term: "", reason: "" }) })}
+        />
+      </EditorSection>
+
+      <EditorSection
+        title="Foods you keep off the plate"
+        hint="Give the phrasings too — 'seed oil' almost never appears as those two words in a real sentence, and a bare term is a filter that catches nothing."
+      >
+        {(foods.discouraged ?? []).length === 0 ? (
+          <p className="text-sm text-gray-400">Nothing here yet.</p>
+        ) : (
+          <ul className="space-y-2">
+            {(foods.discouraged ?? []).map((f, index) => (
+              <Row
+                key={`food-d-${index}`}
+                onRemove={() => setFoods({ discouraged: removeEntry(foods.discouraged, index) })}
+              >
+                <TextRow
+                  label="Food"
+                  value={String(f.term ?? "")}
+                  onChange={(term) =>
+                    setFoods({ discouraged: patchEntry(foods.discouraged, index, { term }) })}
+                />
+                <TextRow
+                  label="How people write it (comma-separated)"
+                  value={joinForms(f.surface_forms)}
+                  onChange={(raw) =>
+                    setFoods({
+                      discouraged: patchEntry(foods.discouraged, index, {
+                        surface_forms: splitForms(raw),
+                      }),
+                    })}
+                />
+              </Row>
+            ))}
+          </ul>
+        )}
+        <AddButton
+          label="Add a food"
+          onClick={() =>
+            setFoods({
+              discouraged: addEntry(foods.discouraged, { term: "", surface_forms: [] }),
+            })}
+        />
+      </EditorSection>
+
+      <EditorSection title="What you have already answered">
+        {(draft.qa ?? []).length === 0 ? (
+          <p className="text-sm text-gray-400">Nothing here yet.</p>
+        ) : (
+          <ul className="space-y-2">
+            {(draft.qa ?? []).map((q, index) => (
+              <Row key={`qa-${index}`} onRemove={() => onChange({ ...draft, qa: removeEntry(draft.qa, index) })}>
+                <TextRow
+                  label="They ask"
+                  value={String(q.question ?? "")}
+                  onChange={(question) =>
+                    onChange({ ...draft, qa: patchEntry(draft.qa, index, { question }) })}
+                />
+                <TextRow
+                  label="You answer"
+                  value={String(q.answer ?? "")}
+                  rows={2}
+                  onChange={(answer) =>
+                    onChange({ ...draft, qa: patchEntry(draft.qa, index, { answer }) })}
+                />
+              </Row>
+            ))}
+          </ul>
+        )}
+        <AddButton
+          label="Add a question"
+          onClick={() => onChange({ ...draft, qa: addEntry(draft.qa, { question: "", answer: "" }) })}
+        />
+      </EditorSection>
+
+      <EditorSection title="Your voice">
+        <div className="grid gap-2 sm:grid-cols-2">
+          <TextRow
+            label="How you address them (tu / vous)"
+            value={String(voice.address ?? "")}
+            onChange={(address) => setVoice({ address })}
+          />
+          <TextRow
+            label="Language you write in (e.g. fr-FR)"
+            value={String(voice.language ?? "")}
+            onChange={(language) => setVoice({ language })}
+          />
+          <label className="block">
+            <span className="text-xs font-medium text-gray-500">Length</span>
+            <select
+              className={inputClass}
+              value={String(voice.length ?? "")}
+              onChange={(e) => setVoice({ length: e.target.value || null })}
+            >
+              <option value="">—</option>
+              <option value="short">Short — two or three sentences</option>
+              <option value="medium">A short paragraph</option>
+            </select>
+          </label>
+          <label className="block">
+            <span className="text-xs font-medium text-gray-500">Emojis</span>
+            <select
+              className={inputClass}
+              value={String(voice.emojis ?? "")}
+              onChange={(e) => setVoice({ emojis: e.target.value || null })}
+            >
+              <option value="">—</option>
+              <option value="none">None</option>
+              <option value="light">At most one</option>
+            </select>
+          </label>
+        </div>
+      </EditorSection>
+    </div>
+  );
+}
+
+/**
+ * LA PARTIE SPÉCIFIQUE — ce qui ne s'adresse qu'à une sorte d'élève.
+ *
+ * ── POURQUOI UN SÉLECTEUR ET PAS CINQ COLONNES ──────────────────────────
+ * Cinq colonnes montreraient en permanence quatre saisies vides à un coach dont
+ * l'essentiel du travail est commun. Un sélecteur montre UNE dynamique à la
+ * fois, et le compteur à côté de chaque bouton dit où il a déjà écrit quelque
+ * chose — c'est tout ce dont il a besoin pour savoir ce qu'il lui reste à faire.
+ *
+ * Ce qu'il tape ici est stocké tel quel, avec la portée de la dynamique
+ * choisie. Aucun modèle entre lui et sa base: la partie globale passe par
+ * l'interview parce qu'il y raconte sa méthode; ici il complète, et il n'y a
+ * rien à transcrire.
+ */
+function SpecificEditor({
+  draft,
+  onChange,
+}: {
+  draft: DoctrineDraft;
+  onChange: (next: DoctrineDraft) => void;
+}) {
+  const [goal, setGoal] = React.useState<GoalToken>(GOAL_TOKENS[0]);
+  const countFor = (g: GoalToken) =>
+    entriesForScope(draft.beliefs, g).length + entriesForScope(draft.arbitrations, g).length;
+
+  return (
+    <Card>
+      <SectionLabel>Specific to one kind of student</SectionLabel>
+      <p className="mt-2 text-xs leading-5 text-gray-500">
+        What you write here reaches <strong>only</strong>{" "}
+        students on that goal. Everything else you wrote above still reaches
+        them too — this adds, it never replaces.
+      </p>
+
+      <div className="mt-3 flex flex-wrap gap-1.5">
+        {GOAL_TOKENS.map((g) => {
+          const n = countFor(g);
+          return (
+            <button
+              key={g}
+              type="button"
+              onClick={() => setGoal(g)}
+              className={`rounded-full border px-3 py-1 text-xs ${
+                g === goal
+                  ? "border-gray-900 bg-gray-900 text-white"
+                  : "border-gray-200 bg-white text-gray-600"
+              }`}
+            >
+              {GOAL_LABELS[g]}
+              {n > 0 ? ` · ${n}` : ""}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="mt-4">
+        <BeliefsAndAnswers draft={draft} onChange={onChange} goal={goal} />
+      </div>
+    </Card>
   );
 }
