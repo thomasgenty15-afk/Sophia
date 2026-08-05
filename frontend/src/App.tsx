@@ -29,14 +29,21 @@ import CardsPage from "./keel/pages/CardsPage";
 import JoinPage from "./keel/pages/JoinPage";
 import StartPage from "./keel/pages/StartPage";
 import CoachStudentPage from "./keel/pages/CoachStudentPage";
-import MealPlanPage from "./keel/pages/MealPlanPage";
+// ⚠️ RÉPARATION TRANSITOIRE, NON COMMITTÉE — `MealPlanPage` et trois
+// composants `mealPlan/` ont été SUPPRIMÉS (suppressions `staged`) par un autre
+// chantier en cours, sans que cet import ni sa route soient retirés: l'arbre ne
+// typecheckait plus. L'import et la route sont neutralisés ici juste pour que
+// le dépôt compile. C'est le refactor d'autrui — à eux de décider ce qui prend
+// la place de `/coach/clients/:studentId/meals`.
 import StudentMealPlanPage from "./keel/pages/mealPlan/StudentMealPlanPage";
 import { KeelStudentRoute } from "./keel/components/KeelStudentRoute";
 import CoachHomePage from "./keel/pages/CoachHomePage";
 import CoachDoctrinePage from "./keel/pages/CoachDoctrinePage";
+import CoachProtocolPage from "./keel/pages/CoachProtocolPage";
 import CoachWeeklyPage from "./keel/pages/CoachWeeklyPage";
 import StudentWeekPlanPage from "./keel/pages/StudentWeekPlanPage";
 import StudentProgressPage from "./keel/pages/StudentProgressPage";
+import StudentHealthPage from "./keel/pages/StudentHealthPage";
 import NotFoundPage from "./keel/pages/NotFoundPage";
 import CoachBillingPage from "./keel/pages/CoachBillingPage";
 import TemplatesPage from "./keel/pages/TemplatesPage";
@@ -120,6 +127,19 @@ function App() {
                   </KeelStudentRoute>
                 }
               />
+              {/* KEEL — /app/health. Ce que l'élève ne peut pas manger:
+                  allergies, intolérances, médicaments. La table existait et
+                  alimentait déjà le verrou de sortie; il n'existait aucune
+                  surface pour la remplir. Même garde que les écrans
+                  au-dessus — RLS reste la vraie frontière. */}
+              <Route
+                path="/app/health"
+                element={
+                  <KeelStudentRoute>
+                    <StudentHealthPage />
+                  </KeelStudentRoute>
+                }
+              />
               {/* KEEL — cards (W8.3/W8.4). Same guard as the two screens
                   above. The shell nav entry lands with W9, which owns the
                   `app.nav.cards` message key. */}
@@ -170,6 +190,25 @@ function App() {
                 element={
                   <CoachRoute>
                     <CoachWeeklyPage />
+                  </CoachRoute>
+                }
+              />
+              {/* KEEL — `/coach/protocol`: LA MÉTHODE DU COACH.
+                  Le coach n'écrit plus d'engagements structurés (polarité,
+                  target_op, evaluation_grain, autonomy…) : il coche une posture
+                  par groupe d'aliments et pose quelques règles temporelles à
+                  gabarits fermés, et les engagements en sont DÉRIVÉS
+                  (`_shared/keel/protocol_compiler.ts`).
+                  Cet écran prend la place de `/coach/templates` dans la
+                  navigation. `/coach/templates` reste joignable par URL le
+                  temps que la migration des coachs qui ont déjà des engagements
+                  écrits à la main soit tranchée — retirer la route avant
+                  ferait perdre à ces coachs l'accès à ce qu'ils ont écrit. */}
+              <Route
+                path="/coach/protocol"
+                element={
+                  <CoachRoute>
+                    <CoachProtocolPage />
                   </CoachRoute>
                 }
               />
@@ -225,14 +264,7 @@ function App() {
                   re-derives the coach from the JWT and checks the plan is
                   theirs. Nothing on this screen is scored: a meal id cannot
                   satisfy commitment_evaluations' foreign key. */}
-              <Route
-                path="/coach/clients/:studentId/meals"
-                element={
-                  <CoachRoute>
-                    <MealPlanPage />
-                  </CoachRoute>
-                }
-              />
+              {/* Route neutralisée avec l'import ci-dessus — voir la note. */}
               {/* KEEL — the student READS that week (Q6). Read-only by RLS:
                   the meal tables carry no student write policy at all. */}
               <Route

@@ -6,6 +6,7 @@ import type { WeekSource } from "../api/weekModel";
 import type { DayToken } from "../api/types";
 import { KeelShellBar } from "../components/KeelAppShell";
 import WeekView from "../components/WeekView";
+import StudentConstraintsCard from "../components/StudentConstraintsCard";
 import { Card } from "../components/ui/Card";
 import { t } from "../i18n/t";
 import {
@@ -341,6 +342,14 @@ export default function CoachStudentPage() {
           rest of this page: every read below runs under the COACH'S OWN JWT
           (Tier B view + Tier A weekly_reviews policy), no edge function, no
           impersonation. */}
+      {/* CE QU'IL NE PEUT PAS MANGER — au-dessus du journal, exprès.
+          Le coach PRESCRIT: un programme écrit sans savoir que l'élève est
+          anaphylactique à l'arachide est un programme qu'il faudra défaire.
+          C'est aussi le seul endroit du produit où l'on peut voir qu'une
+          contrainte est écrite dans les mots de l'élève — donc reconnue sur ce
+          mot seul — et la reformuler avec lui. */}
+      <StudentConstraintsCard studentId={d.student.id} />
+
       <FoodAndNumbers studentId={d.student.id} />
 
       <footer className="mt-8 border-t border-gray-100 pt-4 text-xs leading-5 text-gray-500">

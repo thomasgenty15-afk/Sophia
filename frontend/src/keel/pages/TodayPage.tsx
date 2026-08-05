@@ -58,20 +58,29 @@ import {
 import CommitmentLine, { ActivityChip } from "../components/CommitmentLine";
 import DeviationDialog from "../components/DeviationDialog";
 import KeelAppShell from "../components/KeelAppShell";
+import { ButtonLink } from "../components/ui/Button";
 import { Card, SectionLabel } from "../components/ui/Card";
 import { t } from "../i18n/t";
 
 /**
- * The student has an account but no published plan — the normal state between
- * accepting an invitation and the coach publishing.
+ * The student has an account but no plan to open the day from.
+ *
+ * IT IS THE STUDENT'S TURN, NOT THE COACH'S. This block used to say the coach
+ * was "putting it together" and that the student had nothing to do until then.
+ * In the model we actually ship, the coach teaches a METHOD and never writes a
+ * per-student week — `/app/plan` is where the student builds their own. Telling
+ * someone to wait when the next move is theirs is the worst thing an empty
+ * screen can do, so the block now carries the way out.
+ *
+ * WHAT IT STILL DOES NOT PROMISE: that THIS page fills in. `loadPublishedPlanVersion`
+ * reads `plan_versions` and nothing else — `student_week_plans`, the table the
+ * button below writes, has no reader here. So the copy points at where the week
+ * lives and stops; "your day fills in here" would just be a newer lie.
  *
  * It shows the SPACE rather than a dead end: the shell, the day's real slot
- * headings, and greyed placeholders where the coach's lines will land. The
- * placeholders are bars, never invented commitments — this screen must not
- * suggest a plan that does not exist (the same rule as the landing's mock).
- *
- * NO NOTIFICATION IS PROMISED. `plan-publish-v1` sends nothing to the student
- * today, so the copy says the day fills in here, which is true, and stops there.
+ * headings, and greyed placeholders. The placeholders are bars, never invented
+ * commitments — this screen must not suggest a plan that does not exist (the
+ * same rule as the landing's mock).
  */
 function NoPlanYet() {
   const slots = ["breakfast", "lunch", "dinner"] as const;
@@ -84,6 +93,11 @@ function NoPlanYet() {
         <p className="mt-1 text-sm leading-6 text-gray-600">
           {t("today.no_plan_body")}
         </p>
+        <div className="mt-4">
+          <ButtonLink to="/app/plan" variant="primary">
+            {t("today.no_plan_cta")}
+          </ButtonLink>
+        </div>
       </Card>
 
       <section aria-hidden="true">

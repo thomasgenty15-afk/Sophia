@@ -97,6 +97,10 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       // the RPCs and the tenancy invariants by
       // coach-invite-student-v1/invitation_rls_test.sql.
       "coach-invite-student-v1",
+      // La photo d'une recette passe par la fonction edge, jamais par le bucket
+      // directement: elle vérifie les OCTETS du fichier (pas l'en-tête déclaré)
+      // et refuse un désaccord entre les deux.
+      "coach-recipe-image-v1",
       // KEEL W4.1 — pure evaluator + adherence formula; covered by
       // supabase/functions/evaluate-adherence-v1/snapshot_test.ts and by
       // _shared/keel/{evaluator,adherence}_test.ts.
@@ -117,11 +121,10 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       // chantier de-whatsapp elles livrent dans la bulle; couvertes par
       // _shared/chat/proactive_int_test.ts (9 cas contre le vrai cron).
       "keel-daily-pulse-v1",
-      // KEEL Q6 — the coach composes the student's week of meals. Every action
-      // is coach-gated from the JWT; there is no internal path and no model
-      // call. It writes to the two meal tables and to nothing else, which is
-      // what keeps the scaffolding off the adherence counter.
-      "keel-meal-plan-v1",
+      // `keel-meal-plan-v1` a disparu avec la composition 1:1 de la semaine de
+      // repas (20260804210000): le coach n'épingle plus une recette sur le jour
+      // et le créneau d'un élève nommé — il écrit une bibliothèque, et l'élève
+      // la lit sans placement. La fonction n'avait plus de table à écrire.
       "keel-reengage-v1",
       "keel-week-rollover-v1",
       "keel-weekly-flow-v1",
@@ -182,6 +185,13 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       // Régénéré au lot W2.B-1 (démolition legacy) : cette liste est le filet
       // des vagues suivantes — toute migration qui ajoute/supprime un trigger
       // doit la mettre à jour dans la même PR.
+      // `coach_id` est dénormalisé sur les deux tables de règles pour que la
+      // RLS reste une comparaison locale. Ces deux triggers sont ce qui
+      // empêche une règle de porter le coach A tout en pointant le protocole
+      // du coach B — la RLS de A laisserait passer, et la règle atterrirait
+      // chez B. (20260805100000_coach_protocol_mapping.sql)
+      "coach_food_rules_owner_check",
+      "coach_timing_rules_owner_check",
       "enforce_single_master_admin_trg",
       "guard_profiles_privileged_columns_biu",
       "guard_unlocked_principles_update",
@@ -214,6 +224,12 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       "meal_ideas_food_groups_valid",
       "meal_plan_entries_touch",
       "student_cards_render",
+      // `/app/health` (20260804190000): l'élève peut RETIRER une contrainte
+      // qu'il a déclarée, et rien d'autre. Une policy RLS porte sur des lignes,
+      // pas sur des colonnes — sans ce trigger, un `update` autorisé laissait
+      // réécrire `declared_by` et fabriquer une contrainte attribuée au coach,
+      // sur la table qui décide de ce que Sophia refuse de dire.
+      "student_safety_constraints_retraction_only",
       // DE-WHATSAPP: `sync_phone_verified_on_whatsapp_optin_trigger` est
       // supprime (20260804150000) — il posait phone_verified_at quand
       // whatsapp_opted_in passait a true, ce que plus personne ne fait.

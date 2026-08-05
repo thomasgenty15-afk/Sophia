@@ -326,14 +326,26 @@ export const en = {
   "today.subtitle": "What you eat, then what you do.",
   "today.loading": "Loading your day...",
   "today.error": "We could not load your day. Reload the page to try again.",
-  "today.no_plan_title": "Your plan isn't published yet",
-  "today.no_plan_preview_label": "What your day will look like",
-  "today.no_plan_preview_hint":
-    "Your coach writes each line. When they publish, your day fills in here, slot by slot.",
-  "today.no_plan_footer":
-    "Nothing is generated for you in the meantime — an empty space is the honest one until your coach has written your plan.",
+  // ── PAS DE PLAN: QUI EST CENSÉ L'ÉCRIRE ─────────────────────────────────
+  // Cette copie disait « votre coach est en train de le préparer, vous n'avez
+  // rien à faire d'ici là ». C'était faux dans le modèle qu'on a: le coach
+  // enseigne une MÉTHODE, il n'écrit pas la semaine de chaque élève — c'est
+  // l'élève qui construit la sienne dans « My week's plan ». Un écran qui dit
+  // « attendez » à quelqu'un dont c'est le tour est pire qu'un écran vide.
+  //
+  // Ce qu'on ne promet toujours PAS: que cette page se remplira. `/app/today`
+  // ne lit que `plan_versions` (le plan publié par un coach), jamais
+  // `student_week_plans`. Tant que ce lecteur n'existe pas, dire « ta journée
+  // se remplira ici » remplacerait un mensonge par un autre.
+  "today.no_plan_title": "You don't have a plan for this week yet",
   "today.no_plan_body":
-    "Your coach is putting it together. It appears here the moment they publish it — you don't have anything to do until then.",
+    "Your coach teaches the method — the week itself is yours to build. Say what you are after, and your eating for the week gets written from their method.",
+  "today.no_plan_cta": "Build my week's plan",
+  "today.no_plan_preview_label": "What a laid-out day looks like",
+  "today.no_plan_preview_hint":
+    "What you eat, then what you do — that is the shape a day takes once a plan exists.",
+  "today.no_plan_footer":
+    "Nothing is generated for you in the meantime — an empty space is the honest one until a plan exists.",
   "today.week_section": "This week, no fixed day",
   "today.week_section_hint": "These lines are satisfied any day before the week closes.",
   // The heading of the lines that name no occasion, INSIDE one of the coach's
@@ -548,6 +560,103 @@ export const en = {
   "day.long.sat": "Saturday",
   "day.long.sun": "Sunday",
   "common.list_pair": "{first} and {second}",
+
+  // ── /coach/protocol — la méthode du coach ────────────────────────────────
+  // Un écran d'écriture de méthode qui prend vingt minutes ne sera pas rempli.
+  // Chaque libellé ici est écrit pour être lu en diagonale par quelqu'un qui
+  // édite depuis son téléphone entre deux clients.
+  "coach.protocol.title": "Your method",
+  "coach.protocol.subtitle": "What you want on your students' plates — and what you don't.",
+  "coach.protocol.search_placeholder": "Search a food…",
+  "coach.protocol.search_empty": "No food matches “{query}”.",
+  "coach.protocol.class.protein": "Protein",
+  "coach.protocol.class.vegetable": "Vegetables",
+  "coach.protocol.class.fruit": "Fruit",
+  "coach.protocol.class.grain": "Grains",
+  "coach.protocol.class.legume": "Legumes",
+  "coach.protocol.class.dairy": "Dairy",
+  "coach.protocol.class.fat": "Fats",
+  "coach.protocol.class.beverage": "Drinks",
+  "coach.protocol.class.discretionary": "Treats & extras",
+
+  // Les quatre états de la pastille. « Neutral » est une VALEUR, pas un vide:
+  // l'écrasante majorité des groupes n'appelle aucune opinion, et un coach ne
+  // doit pas avoir l'impression de laisser le travail inachevé.
+  "coach.protocol.stance.neutral": "No opinion",
+  "coach.protocol.stance.encouraged": "Encouraged",
+  "coach.protocol.stance.discouraged": "Discouraged",
+  "coach.protocol.stance.excluded": "Excluded",
+  "coach.protocol.stance.hint": "Tap to cycle: no opinion → encouraged → discouraged → excluded.",
+
+  // L'aperçu. Ces phrases SONT ce que Sophia vérifiera — elles sortent du
+  // compilateur, pas d'une reformulation approximative.
+  "coach.protocol.preview.title": "What Sophia will check",
+  "coach.protocol.preview.empty": "Nothing yet. Tap a food to start.",
+  "coach.protocol.preview.encourage": "{group} — at least {n} serving a day, flexible",
+  "coach.protocol.preview.discourage": "{group} — go easy, swaps allowed",
+  "coach.protocol.preview.exclude": "{group} — avoid, strict",
+  "coach.protocol.preview.at_least_day": "{group} — at least {n} a day",
+  "coach.protocol.preview.at_least_week": "{group} — at least {n} a week",
+  "coach.protocol.preview.at_most_day": "{group} — at most {n} a day",
+  "coach.protocol.preview.at_most_week": "{group} — at most {n} a week",
+  "coach.protocol.preview.every_meal": "{group} — at every meal",
+  "coach.protocol.preview.not_after": "{group} — not after {time}",
+  "coach.protocol.preview.at_slot": "{group} — at {slot}",
+
+  // Les règles temporelles: ce qu'un mapping ne sait pas dire.
+  "coach.protocol.timing.title": "Timing rules",
+  "coach.protocol.timing.add": "Add a rule",
+  "coach.protocol.timing.empty": "No timing rules. Most methods have one or two.",
+  "coach.protocol.timing.remove": "Remove",
+  "coach.protocol.timing.tpl.portions_per_period": "Servings per day or week",
+  "coach.protocol.timing.tpl.group_every_meal": "At every meal",
+  "coach.protocol.timing.tpl.no_group_after": "Not after a given time",
+  "coach.protocol.timing.tpl.group_at_slot": "At a given meal",
+
+  // Les termes du coach. Le rattachement n'est JAMAIS silencieux.
+  "coach.protocol.terms.title": "Your words",
+  "coach.protocol.terms.help": "Add the words you actually use. Each one is handled as a food we already know.",
+  "coach.protocol.terms.placeholder": "e.g. kefir, seed oils…",
+  "coach.protocol.terms.add": "Add",
+  "coach.protocol.terms.treated_as": "handled as {group}",
+  "coach.protocol.terms.change": "Change",
+  "coach.protocol.terms.unmatched": "We have no food that matches “{term}”.",
+  "coach.protocol.terms.request_extension": "Ask us to add it",
+  "coach.protocol.terms.requested": "Requested. We review these by hand — your word stays usable meanwhile.",
+
+  // Objectifs: divulgation progressive. Une entrée est globale par défaut.
+  "coach.protocol.goal.all": "Everyone",
+  "coach.protocol.goal.limit": "Limit to a goal",
+  "coach.protocol.goal.fat_loss": "Fat loss",
+  "coach.protocol.goal.recomposition": "Muscle gain",
+  "coach.protocol.goal.performance": "Performance",
+  "coach.protocol.goal.health": "Health",
+  "coach.protocol.goal.maintenance": "Maintenance",
+
+  // Les axes: des QUESTIONS, jamais des réponses. KEEL ne prescrit pas.
+  "coach.protocol.axes.title": "Methods like yours usually have something to say about:",
+  "coach.protocol.axes.footer": "What do you think?",
+  "coach.protocol.axis.protein_every_meal": "protein at every meal",
+  "coach.protocol.axis.added_fats": "added fats",
+  "coach.protocol.axis.liquid_calories": "liquid calories",
+  "coach.protocol.axis.vegetable_volume": "vegetable volume",
+  "coach.protocol.axis.carbs_around_training": "carbs around training",
+  "coach.protocol.axis.hydration": "hydration",
+  "coach.protocol.axis.ultra_processed": "ultra-processed food",
+
+  // Brouillon et publication. Publier à l'aveugle sur une cohorte est le geste
+  // le plus risqué de cet écran.
+  "coach.protocol.draft.saved": "Draft saved",
+  "coach.protocol.draft.saving": "Saving…",
+  "coach.protocol.publish": "Publish to my students",
+  "coach.protocol.publish.noop": "Nothing to publish — your draft matches what's live.",
+  "coach.protocol.publish.impact":
+    "{added} added, {removed} removed, {changed} changed — this changes what Sophia checks for {students} active students.",
+  "coach.protocol.publish.confirm": "Publish",
+  "coach.protocol.publish.cancel": "Keep editing",
+  "coach.protocol.published_at": "Live since {date}",
+  "coach.protocol.never_published": "Not published yet. Your students see nothing from this screen until you do.",
+  "coach.protocol.load_error": "We could not read your method. Nothing has been changed.",
 
   // food_groups.label_i18n_key. The table has carried these keys since the P0
   // migration and nothing defined them; every food line therefore had to fall
@@ -1352,9 +1461,14 @@ export const en = {
   // App shell (connected chrome, coach + student)
   "shell.nav.students": "Students",
   "shell.nav.templates": "Templates",
+  // « Method » et pas « Protocol »: le mot que le coach emploie pour parler de
+  // ce qu'il fait, pas celui du schéma.
+  "shell.nav.protocol": "Method",
   "shell.nav.doctrine": "Doctrine",
   "shell.nav.weekly": "This week",
-  "app.nav.plan": "My week",
+  // « My week » ne disait pas ce qu'on y fait. L'écran est celui où l'élève
+  // CONSTRUIT sa semaine alimentaire; le nom doit porter le mot « plan ».
+  "app.nav.plan": "My week's plan",
   "shell.nav.account": "Account",
   "shell.nav.legal": "Legal",
   "shell.nav.sign_out": "Sign out",

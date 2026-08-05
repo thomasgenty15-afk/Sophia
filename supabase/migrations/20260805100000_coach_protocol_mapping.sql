@@ -200,7 +200,12 @@ create table if not exists public.coach_timing_rules (
   -- traîner un `cutoff_local` que le compilateur ignorerait en silence — le
   -- coach aurait écrit une heure que Sophia ne vérifierait jamais.
   -- Motif: `plan_commitments_anchor_check`.
-  constraint coach_timing_rules_template_check check (
+  --
+  -- ⚠️ PAS `coach_timing_rules_template_check`: c'est le nom que Postgres
+  -- génère TOUT SEUL pour le `check` de la colonne `template` ci-dessus
+  -- (`<table>_<colonne>_check`), et la collision fait échouer le CREATE TABLE
+  -- entier. Mesuré à l'application locale.
+  constraint coach_timing_rules_slots_match_template check (
     (template = 'portions_per_period'
       and direction is not null and portions is not null and period is not null
       and cutoff_local is null and slot_key is null)

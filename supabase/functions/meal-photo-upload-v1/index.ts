@@ -24,6 +24,7 @@ import { openMealPrecisionFlow } from "../_shared/keel/meal_precision_flow.ts";
 import { openMealPrecisionFlowState } from "../_shared/keel/meal_precision_flow_state.ts";
 import { protocolEventComponentKey } from "../_shared/keel/protocol_event_key.ts";
 import { studentBindingIn } from "../_shared/keel/meal_analysis.ts";
+import { sniffImageMime } from "../_shared/keel/image_sniff.ts";
 
 /**
  * KEEL W5 — `meal-photo-upload-v1`: the WEB path for a meal photo.
@@ -170,30 +171,15 @@ function decodeBase64(value: string): Uint8Array {
 }
 
 /**
- * THE mime check: what the bytes ARE, not what the caller says they are.
+ * Le contrôle par octets magiques a DÉMÉNAGÉ dans
+ * `_shared/keel/image_sniff.ts`, et il est ré-exporté ici pour que les
+ * appelants historiques (et les tests) ne bougent pas.
  *
- * Returns the sniffed mime, or null when the payload matches no supported
- * signature. The declared header is then compared against it -- a mismatch is a
- * refusal, not a correction, because the two disagreeing is itself the signal.
+ * Raison du déplacement, unique et suffisante: la bibliothèque de recettes du
+ * coach a besoin du même contrôle, et une fonction edge ne peut importer que
+ * `_shared`. Deux copies auraient divergé en silence.
  */
-export function sniffImageMime(bytes: Uint8Array): string | null {
-  if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
-    return "image/jpeg";
-  }
-  const PNG = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
-  if (bytes.length >= 8 && PNG.every((b, i) => bytes[i] === b)) {
-    return "image/png";
-  }
-  // RIFF....WEBP
-  if (
-    bytes.length >= 12 &&
-    bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 &&
-    bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50
-  ) {
-    return "image/webp";
-  }
-  return null;
-}
+export { sniffImageMime };
 
 /**
  * YYYY-MM-DD in the plan's timezone. Same technique as

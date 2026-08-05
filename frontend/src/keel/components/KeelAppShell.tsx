@@ -31,11 +31,24 @@ const NAV: Record<ShellVariant, { to: string; label: () => string; end?: boolean
     { to: "/app/plan", label: () => t("app.nav.plan") },
     { to: "/app/meals", label: () => t("app.nav.meals") },
     { to: "/app/progress", label: () => t("app.nav.progress") },
+    // UNE ROUTE SANS LIEN EST UNE FONCTIONNALITÉ QUE PERSONNE N'A (voir la note
+    // en tête de ce fichier). L'écran santé arrive avec son entrée de nav dans
+    // le même changement — et il compte double: une allergie que l'élève ne
+    // trouve pas où déclarer est une allergie que le produit ne connaît pas.
+    { to: "/app/health", label: () => t("app.nav.health") },
   ],
   coach: [
     // `end` so /coach/templates and /coach/clients/:id do not light "Students".
     { to: "/coach", label: () => t("shell.nav.students"), end: true },
-    { to: "/coach/templates", label: () => t("shell.nav.templates") },
+    // LA MÉTHODE prend la place des TEMPLATES. Le coach exprimait sa méthode
+    // sur deux écrans qui faisaient le même travail (`/coach/import` et
+    // `/coach/templates`), en engagements structurés qu'il n'a aucune raison de
+    // connaître. Il l'exprime maintenant ici, en postures et en règles, et les
+    // engagements en sont dérivés.
+    // `/coach/templates` garde sa route sans lien tant que la migration des
+    // coachs déjà équipés n'est pas tranchée: c'est le seul cas où une route
+    // sans entrée de nav est légitime ici, et il est temporaire.
+    { to: "/coach/protocol", label: () => t("shell.nav.protocol") },
     // A ROUTE WITH NO LINK IS A FEATURE NOBODY HAS (see the note above): the
     // doctrine screen ships with its nav entry in the same change.
     { to: "/coach/doctrine", label: () => t("shell.nav.doctrine") },

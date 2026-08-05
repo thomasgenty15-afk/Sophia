@@ -152,6 +152,81 @@ ok | 1463 passed | 0 failed | 17 ignored (19s)
 
 ---
 
+## 2026-08-05 02:3xZ — Phase 3: l'écran, et la migration appliquée pour de vrai
+
+### L'aperçu N'EST PAS une copie du compilateur — c'est le compilateur
+
+Le §2.4 rend l'aperçu non négociable. Un aperçu qui *ressemble* à la
+compilation serait pire que pas d'aperçu: deux implémentations divergent au
+premier changement, et le coach lirait une promesse que Sophia ne tiendrait pas.
+
+`frontend/src/keel/api/coachProtocol.ts` importe donc
+`supabase/functions/_shared/keel/protocol_compiler.ts` — le module Deno
+lui-même. C'est possible parce que le compilateur est pur (ses seuls imports
+sont des `import type`, effacés à la compilation) et que le front est en
+`allowImportingTsExtensions` + résolution `bundler`. Vérifié par une sonde
+avant d'écrire quoi que ce soit dessus. Si quelqu'un y ajoute un import Deno
+runtime, le typecheck du front casse — c'est le bon endroit pour l'apprendre.
+
+### Trois défauts trouvés en exécutant, pas en relisant
+
+1. **Collision de nom de contrainte.** `constraint
+   coach_timing_rules_template_check` porte exactement le nom que Postgres
+   génère tout seul pour le `check` de la colonne `template`
+   (`<table>_<colonne>_check`). Le `CREATE TABLE` entier échouait. Renommée
+   `coach_timing_rules_slots_match_template`. **Aucune relecture ne l'aurait
+   trouvé** — seule l'application réelle l'a dit.
+
+2. **La lignée de migrations était inapplicable.** Le doublon
+   `20260804190000` (deux fichiers, même version) faisait échouer
+   `migration up` à l'enregistrement, sans jamais atteindre la mienne — alors
+   que le SQL du second s'exécutait quand même (son trigger était posé en base,
+   non enregistré). Débloqué sur décision explicite: le fichier non committé de
+   l'autre session est renommé `20260804195000`, son contenu intact.
+
+3. **Le registre de triggers refusait les miens.** `coverage-guard.int.test.ts`
+   impose que tout trigger neuf soit déclaré. Rouge, à juste titre.
+
+### Les gardes de schéma, éprouvées sur la base réelle
+
+```
+G1 gabarit group_every_meal traînant un cutoff  → REFUSÉ (coach_timing_rules_slots_match_template)
+G2 le même sans le trou en trop                 → accepté
+G3 portions_per_period sans direction           → REFUSÉ (même contrainte)
+G4 slug hors vocabulaire ('kefir_maison')       → REFUSÉ (FK food_groups)
+G5 deux postures sur le même groupe             → REFUSÉ (unique protocol_id+food_group_ref)
+G6 règle portant un AUTRE coach que le protocole→ REFUSÉ (trigger coach_rule_matches_protocol)
+```
+
+`rowsecurity = t` sur les cinq tables; `has_table_privilege('anon', …, 'SELECT')
+= false` sur les cinq — vérifié sur **`anon`**, jamais sur `public`, parce que
+`revoke from public` ne retire rien aux rôles nommés.
+
+### Ce que je n'ai PAS fait, et pourquoi
+
+**`App.tsx` et `KeelAppShell.tsx` sont modifiés sur disque mais NON COMMITTÉS.**
+Ils portent encore le travail *staged* de l'autre session. La route
+`/coach/protocol` et l'entrée de nav « Method » sont donc **vivantes dans le
+serveur de dev** (Vite sert depuis le disque) sans qu'un commit de ce lot
+emporte le travail d'autrui.
+
+**`coverage-guard.int.test.ts`, lui, est committé avec 6 lignes qui ne sont pas
+de moi** (le trigger `student_safety_constraints_retraction_only` et son
+commentaire). C'est un registre partagé couplé à une migration déjà sur disque:
+le test n'est vert qu'avec les deux jeux de lignes, et livrer un test rouge
+serait pire. Rien n'est perdu — leur travail est préservé dans l'historique.
+
+### Sortie
+
+```
+frontend: npx tsc -b --noEmit           → aucune erreur
+frontend: npx vitest run                → 259 passed | 20 skipped
+dont      coachProtocol.int.test.ts     → 19 passed
+supabase migration up --local           → 20260805100000 appliquée
+```
+
+---
+
 ## Reste à faire
 
 3. L'écran `/coach/protocol` (§2), et son remplacement de `/coach/templates`.

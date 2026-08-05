@@ -42,6 +42,23 @@ import { Field, inputClass } from "../components/ui/Field";
 
 const FN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-week-plan-v1`;
 
+/**
+ * LE NOM DE L'ÉCRAN, ET POURQUOI IL A CHANGÉ.
+ *
+ * « My week » ne disait pas ce qu'on y fait. Un élève qui arrivait ici lisait
+ * un titre, un objectif et un bouton, sans jamais comprendre que c'est ICI
+ * qu'on écrit ce qu'il va manger de la semaine. Le titre porte donc le mot
+ * « plan », et le sous-titre dit ce que le bouton PRODUIT — pas ce qu'il est.
+ *
+ * Le sous-titre est aussi une limite: des lignes et des cadences, jamais des
+ * quantités. `WEEK_PLAN_SYSTEM_PROMPT` refuse toute calorie et tout macro, et
+ * un filtre en aval rejette les lignes qui en portent. Promettre un menu chiffré
+ * ici serait promettre ce que le serveur a le devoir de ne pas livrer.
+ */
+const PAGE_TITLE = "My week's plan";
+const PAGE_SUBTITLE =
+  "What you eat this week, written from your coach's method — plus one or two light habits. Lines and rhythms, never calorie counts.";
+
 interface PlanItem {
   kind: "nutrition" | "action";
   label: string;
@@ -251,14 +268,14 @@ export default function StudentWeekPlanPage() {
 
   if (state.kind === "loading") {
     return (
-      <KeelAppShell variant="student" title="My week">
+      <KeelAppShell variant="student" title={PAGE_TITLE}>
         <p className="text-sm text-gray-500">Loading…</p>
       </KeelAppShell>
     );
   }
   if (state.kind === "error") {
     return (
-      <KeelAppShell variant="student" title="My week">
+      <KeelAppShell variant="student" title={PAGE_TITLE}>
         <Card tone="warning">
           <p className="text-sm text-gray-900">We could not load your week.</p>
           <p className="mt-1 text-xs text-gray-600">{state.message}</p>
@@ -268,7 +285,7 @@ export default function StudentWeekPlanPage() {
   }
 
   return (
-    <KeelAppShell variant="student" title="My week">
+    <KeelAppShell variant="student" title={PAGE_TITLE} subtitle={PAGE_SUBTITLE}>
       <div className="space-y-6">
         {failure ? (
           <Card tone="warning">
@@ -314,10 +331,24 @@ export default function StudentWeekPlanPage() {
           </div>
         </Card>
 
+        {/*
+          LA CARTE OÙ ON NE COMPRENAIT RIEN.
+
+          Elle n'affichait qu'une date (« WEEK OF 2026-08-03 »), une phrase
+          creuse (« No plan yet this week ») et un bouton (« Build my week »).
+          Trois éléments dont aucun ne dit ce qu'on obtient en cliquant. Un
+          élève ne pouvait pas deviner qu'il repartirait avec ses repas de la
+          semaine.
+
+          La date reste — c'est bien la semaine en cours — mais elle passe en
+          second: le titre nomme la CHOSE, et le vide décrit ce que le bouton
+          fabrique plutôt que de constater son absence.
+        */}
         <Card>
           <div className="flex items-start justify-between gap-4">
             <div>
-              <SectionLabel>Week of {weekStart}</SectionLabel>
+              <SectionLabel>Your eating plan for this week</SectionLabel>
+              <p className="mt-1 text-xs text-gray-500">Week of {weekStart}</p>
               {plan ? (
                 <p className="mt-2 text-sm text-gray-700">
                   {plan.status === "adopted"
@@ -330,18 +361,21 @@ export default function StudentWeekPlanPage() {
               {busy === "generate"
                 ? "…"
                 : plan
-                ? "Regenerate"
-                : "Build my week"}
+                ? "Build it again"
+                : "Build my plan"}
             </Button>
           </div>
 
           {!goal ? (
             <p className="mt-4 text-sm text-gray-600">
-              Set your goal above, then build your week.
+              Set your goal above and save it — the plan is built around it.
             </p>
           ) : !plan ? (
-            <p className="mt-4 text-sm text-gray-600">
-              No plan yet this week.
+            <p className="mt-4 text-sm leading-6 text-gray-600">
+              Nothing built yet. Build it and you get a handful of lines for the
+              week — what to aim for at your meals, taken from your coach's
+              method and fitted to the situation you described — plus one or two
+              light habits. You read it first; nothing counts until you adopt it.
             </p>
           ) : (
             <>
