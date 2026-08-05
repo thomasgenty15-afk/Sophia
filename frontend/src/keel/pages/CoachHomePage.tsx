@@ -6,6 +6,12 @@ import { KeelAppShell } from "../components/KeelAppShell";
 import { Badge, type BadgeTone } from "../components/ui/Badge";
 import { Button, ButtonLink } from "../components/ui/Button";
 import { Card, SectionLabel } from "../components/ui/Card";
+import {
+  type InviteSendState,
+  inviteResendMessageKey,
+  inviteStateIsReassuring,
+  sendStudentInvitation,
+} from "../api/inviteStudent";
 import { t } from "../i18n/t";
 import {
   CONTACT_LABEL,
@@ -203,6 +209,18 @@ export function CoachHomePage() {
    * propre effet de bord ne se lit pas.
    */
   const [inviteOpen, setInviteOpen] = React.useState(false);
+  /**
+   * LE RÉSULTAT D'UN RENVOI VIT ICI, AU-DESSUS DU RECHARGEMENT.
+   *
+   * Renvoyer révoque l'invitation et en réémet une neuve, donc il FAUT recharger
+   * pour afficher la nouvelle date. Mais un état posé sur la ligne serait détruit
+   * par ce rechargement — exactement le défaut qui rendait invisible
+   * l'avertissement « aucun email n'est parti ». On le garde donc au-dessus, et
+   * on le retrouve par l'adresse, qui survit à la réémission.
+   */
+  const [resend, setResend] = React.useState<
+    { email: string; state: InviteSendState } | null
+  >(null);
 
   const userId = user?.id ?? null;
 
@@ -249,6 +267,11 @@ export function CoachHomePage() {
         <CoachHomeBody
           data={state.data}
           setInviteOpen={setInviteOpen}
+          resend={resend}
+          onResent={(outcome) => {
+            setResend(outcome);
+            setReloadKey((k) => k + 1);
+          }}
         />
       )}
 
@@ -264,9 +287,13 @@ export function CoachHomePage() {
 function CoachHomeBody({
   data,
   setInviteOpen,
+  resend,
+  onResent,
 }: {
   data: CoachHomeData;
   setInviteOpen: (open: boolean) => void;
+  resend: { email: string; state: InviteSendState } | null;
+  onResent: (outcome: { email: string; state: InviteSendState }) => void;
 }) {
   const activeSeats = countActiveSeats(data.clients);
   // `new Date()` une fois par rendu, passé aux deux appels: deux `now`
@@ -303,7 +330,12 @@ function CoachHomeBody({
           <Card padded={false}>
             <ul className="divide-y divide-gray-200">
               {invitations.map((invitation) => (
-                <InvitationRow key={invitation.id} invitation={invitation} />
+                <InvitationRow
+                  key={invitation.id}
+                  invitation={invitation}
+                  outcome={resend?.email === invitation.email ? resend.state : null}
+                  onResent={onResent}
+                />
               ))}
             </ul>
           </Card>
@@ -335,14 +367,12 @@ function CoachHomeBody({
       </section>
       )}
 
+      {/* L'invitation est la SEULE action de cet écran. Les raccourcis « Import
+          a plan » et « Plan templates » ont été retirés d'ici: l'import et la
+          bibliothèque restent atteignables par l'onglet « Templates » de la
+          nav, et cette page ne parle que de la cohorte. */}
       <div className="mt-6 flex flex-wrap gap-3">
-        <ButtonLink to="/coach/import" variant="primary">
-          {t("coach.home.import_cta")}
-        </ButtonLink>
-        <ButtonLink to="/coach/templates">
-          {t("coach.home.templates_cta")}
-        </ButtonLink>
-        <Button onClick={() => setInviteOpen(true)}>
+        <Button variant="primary" onClick={() => setInviteOpen(true)}>
           {t("coach.home.empty_cta")}
         </Button>
       </div>
@@ -365,15 +395,13 @@ function EmptyState({
         {t("coach.home.empty_body")}
       </p>
       <div className="mt-6 flex flex-wrap justify-center gap-3">
-        {/* W6.5 landed: the invitation is the first act, importing a plan the
-            second. Both are reachable from here — a coach with no student and
-            no way to invite one has no product. */}
+        {/* W6.5 landed: the invitation is the first act — a coach with no
+            student and no way to invite one has no product. Le raccourci
+            « Import a plan » qui l'accompagnait a été retiré: l'import se fait
+            depuis l'onglet « Templates », pas depuis l'écran cohorte. */}
         <Button variant="primary" onClick={() => setInviteOpen(true)}>
           {t("coach.home.empty_cta")}
         </Button>
-        <ButtonLink to="/coach/import">
-          {t("coach.home.import_cta")}
-        </ButtonLink>
       </div>
       {/* Plus de second `InviteDialog` ici: il est monté une fois par
           CoachHomePage, au-dessus de la bascule vide/non-vide. C'était le
@@ -397,23 +425,80 @@ function EmptyState({
  */
 function InvitationRow({
   invitation,
+  outcome,
+  onResent,
 }: {
   invitation: CoachInvitationRow & { state: InvitationState };
+  outcome: InviteSendState | null;
+  onResent: (outcome: { email: string; state: InviteSendState }) => void;
 }) {
   const expired = invitation.state === "expired";
+  const [busy, setBusy] = React.useState(false);
+  const [failure, setFailure] = React.useState<string | null>(null);
+
+  /**
+   * RENVOYER = RAPPELER LA MÊME FONCTION AVEC LA MÊME ADRESSE.
+   *
+   * `coach-invite-student-v1` révoque l'invitation pendante et en réémet une
+   * hors de sa fenêtre de 60 s — « The old link stops working, which is the
+   * correct behaviour for a resend », dit son propre commentaire. Un second
+   * endpoint aurait dupliqué la garde d'abus, la révocation et le journal.
+   */
+  const resend = async () => {
+    setBusy(true);
+    setFailure(null);
+    try {
+      const { data: sess } = await supabase.auth.getSession();
+      const token = sess.session?.access_token;
+      if (!token) throw new Error("Your session expired. Sign in again.");
+      const out = await sendStudentInvitation(invitation.email, token);
+      onResent({ email: out.email, state: out.state });
+    } catch (err) {
+      setFailure(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
-    <li className="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
-      <div className="min-w-0">
-        <p className="truncate text-sm font-medium text-gray-900">{invitation.email}</p>
-        <p className="mt-0.5 text-xs text-gray-500">
-          {expired
-            ? t("coach.home.invite_expired_at", { date: formatDay(invitation.expires_at) })
-            : t("coach.home.invite_expires_at", { date: formatDay(invitation.expires_at) })}
-        </p>
+    <li className="px-4 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="min-w-0">
+          <p className="truncate text-sm font-medium text-gray-900">{invitation.email}</p>
+          <p className="mt-0.5 text-xs text-gray-500">
+            {expired
+              ? t("coach.home.invite_expired_at", { date: formatDay(invitation.expires_at) })
+              : t("coach.home.invite_expires_at", { date: formatDay(invitation.expires_at) })}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge tone={expired ? "caution" : "neutral"}>
+            {expired
+              ? t("coach.home.invite_state_expired")
+              : t("coach.home.invite_state_pending")}
+          </Badge>
+          <Button size="sm" onClick={resend} disabled={busy}>
+            {busy
+              ? t("coach.home.invite_resending")
+              : expired
+                ? t("coach.home.invite_resend_expired")
+                : t("coach.home.invite_resend")}
+          </Button>
+        </div>
       </div>
-      <Badge tone={expired ? "caution" : "neutral"}>
-        {expired ? t("coach.home.invite_state_expired") : t("coach.home.invite_state_pending")}
-      </Badge>
+
+      {/* Le résultat, et il ne se félicite QUE quand un email est réellement
+          parti: `inviteStateIsReassuring` n'est vrai que pour `sent`. */}
+      {outcome && !failure && (
+        <p
+          className={`mt-2 text-xs leading-5 ${
+            inviteStateIsReassuring(outcome) ? "text-emerald-700" : "text-amber-800"
+          }`}
+        >
+          {t(inviteResendMessageKey(outcome))}
+        </p>
+      )}
+      {failure && <p className="mt-2 text-xs leading-5 text-rose-700">{failure}</p>}
     </li>
   );
 }

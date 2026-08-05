@@ -350,6 +350,20 @@ SECRET_KEY = "env(SECRET_KEY)"
 # INTERNAL_FUNCTION_SECRET when unset — see _shared/account_lifecycle.ts.
 CONFIRMATION_TOKEN_SECRET = "env(CONFIRMATION_TOKEN_SECRET)"
 MEGA_TEST_MODE = "env(MEGA_TEST_MODE)"
+# ── L'ENVOI D'EMAIL, ET POURQUOI CES TROIS LIGNES MANQUAIENT ──────────────
+# Ces clés existaient dans `supabase/.env` mais n'étaient déclarées NULLE PART
+# ici, donc le conteneur ne les recevait jamais. Conséquence mesurée le
+# 2026-08-05: un coach passe `EMAIL_DELIVERY_ENABLED=1`, redémarre, et rien ne
+# change — `sendResendEmail` continue de court-circuiter parce que la variable
+# n'a jamais franchi la frontière du conteneur. Rien dans le produit ne pouvait
+# le lui dire: l'invitation est créée, seul `communication_logs` porte le
+# `resend_DISABLED`.
+#
+# Une variable qu'on croit posée et qui n'est pas injectée est pire qu'une
+# variable absente: elle se lit comme un réglage qui a pris effet.
+EMAIL_DELIVERY_ENABLED = "env(EMAIL_DELIVERY_ENABLED)"
+RESEND_API_KEY = "env(RESEND_API_KEY)"
+SENDER_EMAIL = "env(SENDER_EMAIL)"
 GEMINI_API_KEY = "env(GEMINI_API_KEY)"
 OPENAI_API_KEY = "env(OPENAI_API_KEY)"
 OPENAI_BASE_URL = "env(OPENAI_BASE_URL)"

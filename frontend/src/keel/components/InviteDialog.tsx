@@ -1,5 +1,11 @@
 import React from "react";
 import { supabase } from "../../lib/supabase";
+import {
+  type InviteSendState,
+  inviteTitleKey,
+  inviteWarningKey,
+  sendStudentInvitation,
+} from "../api/inviteStudent";
 import { t } from "../i18n/t";
 
 // KEEL — invite a student (BUILD_PLAN W6.5).
@@ -18,48 +24,17 @@ import { t } from "../i18n/t";
 // already English, so nothing is mistranslated in the meantime — it is only
 // unreachable from the locale table.
 
-const FUNCTIONS_BASE = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`;
-const ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
-/**
- * Server refusal tokens (R1: ASCII, never translated) mapped to what a coach
- * should read. R7 in spirit: an unmapped code shows the raw token rather than
- * a soothing generic message, so an unhandled server state is visible instead
- * of smoothed over.
- */
-const REFUSALS: Record<string, string> = {
-  student_already_coached:
-    "This person already follows another coach's program. They can join you after they end that relationship from their account.",
-  already_your_student: "They are already your student.",
-  self_invitation: "That is your own address.",
-  not_an_active_coach: "Your coach account is not active, so invitations cannot be sent.",
-  invalid_email: "That does not look like an email address.",
-  invite_failed: "The invitation was not sent. Nothing was created — try again.",
-};
 
-/**
- * `send_state`, TEL QUE LE SERVEUR LE REND — et il le rendait déjà.
- *
- * LE DÉFAUT, RAPPORTÉ PAR UN COACH: il a invité quelqu'un, l'écran a affiché
- * « Invitation sent to … », et aucun email n'est parti.
- *
- * `coach-invite-student-v1` distingue exprès trois états, et son commentaire dit
- * pourquoi: « `skipped_delivery_disabled` EXISTE POUR NE PAS MENTIR EN LOCAL ».
- * Ce dialogue ne lisait pas le champ. Le serveur avait pris soin de séparer
- * « parti » de « supprimé », et l'écran jetait la distinction pour toujours
- * afficher la même phrase.
- *
- * Ce n'est pas cosmétique: un coach qui croit avoir invité quelqu'un attend une
- * réponse qui ne viendra jamais, et il n'a aucun moyen de le découvrir. Vérifié
- * en base sur l'invitation réelle: `communication_logs.status='skipped'`,
- * `resend_id='resend_DISABLED'`.
- */
-type ServerSendState = "sent" | "skipped_ephemeral" | "skipped_delivery_disabled";
+// L'état d'envoi et la table des refus vivent dans `api/inviteStudent.ts`:
+// le bouton « renvoyer » de l'accueil coach lit exactement la même, et c'est
+// la seule chose que ces deux surfaces ne doivent pas réimplémenter chacune
+// à sa façon — c'est là que cet écran avait déjà menti une fois.
 
 type SendState =
   | { kind: "idle" }
   | { kind: "sending" }
-  | { kind: "sent"; email: string; serverState: ServerSendState }
+  | { kind: "sent"; email: string; serverState: InviteSendState }
   | { kind: "error"; message: string };
 
 export function InviteDialog({
@@ -92,38 +67,8 @@ export function InviteDialog({
       if (!accessToken) {
         throw new Error("Your session expired. Sign in again to invite a student.");
       }
-      const res = await fetch(`${FUNCTIONS_BASE}/coach-invite-student-v1`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: ANON_KEY,
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({ email }),
-      });
-      const json = (await res.json().catch(() => ({}))) as {
-        ok?: boolean;
-        error?: string;
-        email?: string;
-        send_state?: string;
-      };
-      if (!res.ok || !json.ok) {
-        const code = String(json.error ?? `http_${res.status}`);
-        throw new Error(REFUSALS[code] ?? code);
-      }
-      // Announced only from what came back: the server states the normalised
-      // address it actually filed, not the one typed into the box.
-      // Un `send_state` inconnu est traité comme « parti » plutôt que comme une
-      // panne: l'invitation EST créée côté serveur (le 200 le dit), et refuser
-      // de l'annoncer pousserait le coach à réinviter — ce qui révoque le lien
-      // qui vient d'être émis. On penche vers l'état réel du produit, jamais
-      // vers l'alarme.
-      const serverState: ServerSendState =
-        json.send_state === "skipped_delivery_disabled" ||
-          json.send_state === "skipped_ephemeral"
-          ? json.send_state
-          : "sent";
-      setState({ kind: "sent", email: json.email ?? email, serverState });
+      const out = await sendStudentInvitation(email, accessToken);
+      setState({ kind: "sent", email: out.email, serverState: out.state });
       onInvited?.();
     } catch (err) {
       setState({
@@ -142,19 +87,15 @@ export function InviteDialog({
           ? (
             <div className="mt-4">
               <p className="text-sm text-gray-700">
-                {state.serverState === "sent"
-                  ? t("invite.sent", { email: state.email })
-                  : t("invite.created_not_sent", { email: state.email })}
+                {t(inviteTitleKey(state.serverState), { email: state.email })}
               </p>
-              {state.serverState !== "sent" && (
+              {inviteWarningKey(state.serverState) !== null && (
                 /* AMBRE, et pas rouge: rien n'a échoué. L'invitation existe, elle
                    est valable, et son lien marche — c'est l'ENVOI qui a été
                    supprimé par la configuration. Un ton d'erreur ferait croire
                    qu'il faut réinviter, ce qui révoquerait le jeton émis. */
                 <p className="mt-2 rounded-md bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">
-                  {state.serverState === "skipped_delivery_disabled"
-                    ? t("invite.not_sent_delivery_disabled")
-                    : t("invite.not_sent_ephemeral")}
+                  {t(inviteWarningKey(state.serverState)!)}
                 </p>
               )}
               <p className="mt-2 text-xs text-gray-500">

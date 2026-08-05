@@ -31,8 +31,9 @@ export const en = {
   "coach.home.empty_body":
     "Nothing is generated on its own here. You write the plan, you publish it, and your student's app starts following it.",
   "coach.home.empty_cta": "Invite a student",
-  "coach.home.import_cta": "Import a plan",
-  "coach.home.templates_cta": "Plan templates",
+  // `coach.home.import_cta` / `coach.home.templates_cta` ont disparu avec les
+  // deux boutons qu'elles nommaient sur l'écran cohorte. Une clé sans lecteur
+  // est du texte que personne ne voit mais que tout le monde traduit.
   "coach.home.open_student": "Open",
   "coach.home.list_title": "Students",
   // ── LES INVITATIONS EN ATTENTE ──────────────────────────────────────────
@@ -922,6 +923,7 @@ export const en = {
   "app.nav.meals": "Meals",
   "app.nav.progress": "Progress",
   "app.nav.chat": "Chat",
+  "app.nav.health": "Health",
 
   // DE-WHATSAPP — la bulle. C'est LE canal, plus un simulateur: la
   // conversation quotidienne avec Sophia vit ici, dans l'app.
@@ -982,6 +984,19 @@ export const en = {
     "Email delivery is switched off in this environment (EMAIL_DELIVERY_ENABLED), so nothing was sent. The invitation is on file, but its link only ever existed inside that email — nobody can retrieve it now. Turn delivery on, then invite this address again: that sends a fresh link and cancels this one.",
   "invite.not_sent_ephemeral":
     "This looks like a throwaway test address, so no email was sent on purpose. The invitation itself is real.",
+  // `already_sent`: la fenêtre de réutilisation de 60 s du serveur, c'est-à-dire
+  // un double-clic. Rien n'est parti CETTE fois, et le dire évite que le coach
+  // compte un envoi de plus qui n'a pas eu lieu.
+  "invite.already_sent":
+    "A link went out to {email} moments ago — nothing new was sent. Wait a minute if you want a fresh one.",
+  // Les lignes courtes, affichées SUR la ligne d'invitation après un renvoi.
+  "invite.resend_sent": "A fresh link is on its way.",
+  "invite.resend_already": "A link went out moments ago — nothing new was sent.",
+  "invite.resend_not_sent": "No email went out: delivery is switched off in this environment.",
+  "invite.resend_ephemeral": "Test address — no email sent, on purpose.",
+  "coach.home.invite_resend": "Resend",
+  "coach.home.invite_resend_expired": "Send a new link",
+  "coach.home.invite_resending": "Sending…",
   "invite.expired": "This invitation has expired. Ask your coach for a new one.",
   "invite.accept_title": "{coach} invited you to their coaching program",
   "invite.accept_button": "Accept invitation",
