@@ -3,6 +3,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2.87.3";
 import { ensureInternalRequest } from "../_shared/internal-auth.ts";
 import { deliverLegacyPurpose } from "../_shared/chat/send_compat.ts";
+import { CHAT_SCOPE } from "../_shared/chat/delivery.ts";
 import { getRequestId, jsonResponse } from "../_shared/http.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
 import { logMomentumObservabilityEvent } from "../_shared/momentum-observability.ts";
@@ -1183,12 +1184,34 @@ async function processPendingReengagementExtractions(params: {
         .toISOString();
       const untilIso = new Date(Date.parse(closedIso) + 5 * 60 * 1000)
         .toISOString();
+      // ── LE POST-MORTEM LISAIT UN CANAL QUI N'EXISTE PLUS ────────────────────
+      //
+      // `scope: "whatsapp"` en dur, survivant du chantier de-whatsapp. Mesuré:
+      // 0 ligne `chat_messages` en scope `whatsapp` sur 30 jours, 1 255 en
+      // scope `app`. Le transcript était donc TOUJOURS vide.
+      //
+      // Ce que ça produisait — et pourquoi ça ne ressemblait pas à une panne:
+      // l'extraction partait quand même, payait son appel Gemini, et le modèle
+      // rendait honnêtement `reason_category: "other"`, `confidence: "low"`,
+      // `reason_user_words: null`. La ligne passait ensuite en
+      // `extraction_status = "done"`. Vérifié en base: 100 % des épisodes
+      // extraits portent exactement ces trois valeurs.
+      //
+      // Un « done » qui n'a rien lu est pire qu'un échec: la boucle qui doit
+      // dire au coach POURQUOI ses élèves décrochent se déclarait terminée en
+      // ne sachant rien, et personne ne pouvait distinguer « aucune raison
+      // exprimée » de « aucune donnée lue ».
+      //
+      // `CHAT_SCOPE` plutôt qu'un littéral: c'est le même défaut que
+      // l'armement du cadre de reprise, qui écrivait `user_states`. Une
+      // constante partagée fait que l'écrivain et le lecteur se trompent
+      // ENSEMBLE, donc visiblement.
       const { data: messages, error: messagesError } = await params
         .supabaseAdmin
         .from("chat_messages")
         .select("role,content,created_at")
         .eq("user_id", userId)
-        .eq("scope", "whatsapp")
+        .eq("scope", CHAT_SCOPE)
         .in("role", ["user", "assistant"])
         .gte("created_at", sinceIso)
         .lte("created_at", untilIso)
@@ -1205,6 +1228,27 @@ async function processPendingReengagementExtractions(params: {
             created_at: cleanText(row.created_at),
           }))
           .filter((turn) => turn.content.trim().length > 0);
+
+      // RIEN À LIRE ⇒ RIEN À PAYER, ET SURTOUT RIEN À AFFIRMER.
+      //
+      // Sans ce garde, un transcript vide part quand même au modèle et revient
+      // en `done / other / low / null` — un verdict qui a l'air d'une réponse.
+      // `nothing_to_extract` dit la vérité: on n'avait pas de quoi conclure.
+      // C'est la même leçon que la relance, qui composait avant de vérifier son
+      // plafond: vérifier AVANT de payer, et ne jamais déguiser une absence de
+      // donnée en résultat.
+      if (turns.length === 0) {
+        const { error: emptyError } = await params.supabaseAdmin
+          .from("reengagement_episodes")
+          .update({
+            extraction_status: "nothing_to_extract",
+            updated_at: nowIso,
+          })
+          .eq("id", episodeId);
+        if (emptyError) throw emptyError;
+        continue;
+      }
+
       const { system, user } = buildReengagementExtractionPrompt({
         transcript: formatReengagementTranscript(turns),
         facts: {
