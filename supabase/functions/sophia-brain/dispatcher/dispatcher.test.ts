@@ -137,64 +137,6 @@ Deno.test("dispatcher routes product explanation to product_help only", async ()
   assertNoLegacyRouteFields(frame);
 });
 
-Deno.test("dispatcher keeps plan_too_light drift direction through runtime sanitizer (nina-r4 B03)", async () => {
-  const frame = await dispatch("Mon plan est trop mou, corse-le", {
-    skill_signals: {
-      plan_realignment: {
-        detected: true,
-        confidence_band: "high",
-        reason: "plan_too_light_realignment",
-        context: {
-          drift_type: "plan_too_light",
-          scope: "whole_plan",
-          explicit_adjust_request: true,
-          product_execution_allowed: false,
-          reason: "User says the plan is too easy and asks to raise the level.",
-        },
-      },
-    },
-  });
-
-  // Regression: le sanitizer runtime rabattait toute valeur hors liste sur
-  // "ambiguous" — la direction UP doit survivre jusqu'au turn frame.
-  assertEquals(
-    frame.skill_signals.plan_realignment?.context?.drift_type,
-    "plan_too_light",
-  );
-});
-
-Deno.test("dispatcher preserves plan realignment signal context without execution", async () => {
-  const frame = await dispatch(
-    "J'ai pris trop de retard sur mon plan, je crois qu'il faut le revoir.",
-    {
-      skill_signals: {
-        plan_realignment: {
-          detected: true,
-          confidence_band: "high",
-          reason: "plan_realignment_explicit_adjust",
-          context: {
-            drift_type: "late_on_plan",
-            scope: "whole_plan",
-            explicit_adjust_request: true,
-            product_execution_allowed: true,
-            reason: "User reports plan-level delay and wants to review it.",
-            action_patch: { unsafe: true },
-          },
-        },
-      },
-    },
-  );
-
-  const context = frame.skill_signals.plan_realignment?.context;
-  assertEquals(frame.skill_signals.plan_realignment?.detected, true);
-  assertEquals(context?.drift_type, "late_on_plan");
-  assertEquals(context?.scope, "whole_plan");
-  assertEquals(context?.explicit_adjust_request, true);
-  assertEquals(context?.product_execution_allowed, false);
-  assertEquals(Object.hasOwn(context ?? {}, "action_patch"), false);
-  assertNoLegacyRouteFields(frame);
-});
-
 // W2.B will delete this: la lane est désactivée en W2.A.
 Deno.test({
   name:

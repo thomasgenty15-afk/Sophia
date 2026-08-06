@@ -109,7 +109,6 @@ function route(turnFrame: TurnFrame) {
 
 const RETAINED_LOCAL_FLOW_IDS: ActiveLocalConversationFlowSkillId[] = [
   "product_help",
-  "plan_realignment",
   // W2.A: "feature_opportunity" n'est plus un flow local retenu.
   "safety_crisis",
 ];
@@ -391,29 +390,6 @@ Deno.test({
   assertEquals(decision.response_owner, "feature_opportunity");
   assertEquals(decision.selected_handler, "feature_opportunity");
   assertEquals(decision.reason_code, "feature_opportunity_signal");
-});
-
-Deno.test("global router routes plan realignment signal", () => {
-  const decision = route(frame({
-    skill_signals: {
-      plan_realignment: {
-        detected: true,
-        confidence_band: "high",
-        reason: "plan_drift_repair_need",
-        context: {
-          drift_type: "lost_rhythm",
-          scope: "week",
-          explicit_adjust_request: false,
-          product_execution_allowed: false,
-          reason: "User reports being disconnected from the weekly plan.",
-        },
-      },
-    },
-  }));
-
-  assertEquals(decision.response_owner, "plan_realignment");
-  assertEquals(decision.selected_handler, "plan_realignment");
-  assertEquals(decision.reason_code, "plan_realignment_signal");
 });
 
 // W2.A: la lane feature_opportunity a disparu; la priorité testée ici est
@@ -701,40 +677,6 @@ Deno.test({
   assertEquals(
     interrupted.active_flow_arbitration?.active_owner,
     "feature_opportunity",
-  );
-  assertEquals(
-    interrupted.active_flow_arbitration?.decision,
-    "continue_active",
-  );
-});
-
-Deno.test("global router keeps active plan realignment before product_help", () => {
-  const active = {
-    skill_id: "plan_realignment",
-    status: "active",
-    working_state: {},
-  };
-  const continued = runConversationRouters({
-    turn_frame: frame(),
-    active_skill_state: active,
-    safety_context_risk_band: "none",
-  });
-  assertEquals(continued.response_owner, "plan_realignment");
-
-  const interrupted = runConversationRouters({
-    turn_frame: frame({
-      skill_signals: {
-        product_help: { detected: true, confidence_band: "high" },
-      },
-    }),
-    active_skill_state: active,
-    safety_context_risk_band: "none",
-  });
-  assertEquals(interrupted.response_owner, "plan_realignment");
-  assertEquals(interrupted.reason_code, "active_plan_realignment");
-  assertEquals(
-    interrupted.active_flow_arbitration?.active_owner,
-    "plan_realignment",
   );
   assertEquals(
     interrupted.active_flow_arbitration?.decision,

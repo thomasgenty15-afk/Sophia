@@ -10,11 +10,10 @@ export type SkillId =
   | "disordered_eating_guard"
   | "product_help"
   | "feature_opportunity"
-  | "plan_realignment"
   // W4.4 — KEEL. Lane d'exécution résolue en Tier 0 déterministe (aucun modèle
   // sur le chemin de la permission).
   | "plan_question"
-  | "winback_reengagement_v1";
+;
 
 export type SkillMemoryItem = {
   id: string;

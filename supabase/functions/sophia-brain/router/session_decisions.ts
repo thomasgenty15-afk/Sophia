@@ -18,15 +18,11 @@
 // retenue) — c'est exactement le rejet de « courage » au profit
 // d'« apaisement » que le memorizer encodait deja correctement mais que la
 // couche in-turn ratait.
-import type { PlanRealignmentLocalState } from "../skills/plan_realignment/contract.ts";
 
 export type SessionDecisionStatus = "retained" | "dropped";
 
 export type SessionDecision = {
-  source:
-    | "coaching_recommendation"
-    | "feature_opportunity"
-    | "plan_realignment";
+  source: "coaching_recommendation" | "feature_opportunity";
   feature: string | null;
   lever: string | null;
   technique: string | null;
@@ -48,10 +44,7 @@ function text(value: unknown): string | null {
 function normalizeDecision(entry: unknown): SessionDecision | null {
   if (!entry || typeof entry !== "object") return null;
   const root = entry as Partial<SessionDecision>;
-  const source = root.source === "feature_opportunity" ||
-      root.source === "plan_realignment"
-    ? root.source
-    : "coaching_recommendation";
+  const source = root.source ?? "coaching_recommendation";
   return {
     source,
     feature: text(root.feature),
@@ -71,30 +64,6 @@ function normalizeDecision(entry: unknown): SessionDecision | null {
 // une valeur PERSISTEE dans `temp_memory.__session_decisions` de sessions
 // anterieures — la retirer ferait silencieusement re-etiqueter ces entrees en
 // `coaching_recommendation`.
-
-/** Hand-off plan_realignment (nina-r7 B04): un ajustement discute mais non
- * execute (jamais de patch depuis le chat) reste un fait de session que le
- * recap ne doit pas omettre. */
-export function sessionDecisionFromPlanRealignmentState(
-  localState: unknown,
-): SessionDecision | null {
-  const state = localState as
-    | Partial<PlanRealignmentLocalState>
-    | null
-    | undefined;
-  if (!state || typeof state !== "object") return null;
-  const drift = text(state.drift_type);
-  if (!drift || drift === "ambiguous") return null;
-  return {
-    source: "plan_realignment",
-    feature: "adjust_plan",
-    lever: null,
-    technique: null,
-    potion_type: null,
-    handoff: `ajustement du plan discute (${drift}) — a faire dans l'app`,
-    status: "retained",
-  };
-}
 
 /** Cle d'upsert/supersedence: la POSITION (source+feature+lever), pas la
  * valeur. Une nouvelle valeur sur la meme position remplace l'ancienne

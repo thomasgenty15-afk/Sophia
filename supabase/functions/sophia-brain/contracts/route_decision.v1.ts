@@ -5,7 +5,6 @@ export type ResponseOwner =
   // déterministe `_shared/keel/restriction_guard.ts` l'ouvre.
   | "disordered_eating_guard"
   | "product_help"
-  | "plan_realignment"
   // W4.4 — KEEL. Lane d'EXÉCUTION (« je peux remplacer X par Y ? »), distincte
   // de `plan_realignment` qui est la lane de DÉCROCHAGE. Non collante: aucune
   // branche de continuation, la question se répond en un tour.
@@ -13,7 +12,6 @@ export type ResponseOwner =
   // W2.A: "feature_opportunity" retiré de l'union — plus aucun owner possible.
   | "presence_conversation"
   | "attack_keyword_support"
-  | "winback_reengagement_v1"
   | "direct_effect"
   | "normal_reply";
 

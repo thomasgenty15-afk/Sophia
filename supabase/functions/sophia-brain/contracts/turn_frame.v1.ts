@@ -55,31 +55,6 @@ export type SkillSignal = {
 // Demolition B2C (2026-08-06): les types du signal `coaching_recommendation`
 // partent avec la lane.
 
-export type PlanRealignmentDriftType =
-  | "missed_plan"
-  | "late_on_plan"
-  | "lost_rhythm"
-  | "plan_too_heavy"
-  // nina-r4 B03 / paul-r6 B03: « trop mou / corse / plus d'ambition » etait
-  // collapse sur plan_too_heavy (direction OPPOSEE) faute de bucket dedie.
-  | "plan_too_light"
-  | "changed_context"
-  | "ambiguous";
-
-export type PlanRealignmentScope =
-  | "whole_plan"
-  | "week"
-  | "level"
-  | "unknown";
-
-export type PlanRealignmentSignalContext = {
-  drift_type: PlanRealignmentDriftType;
-  scope: PlanRealignmentScope;
-  explicit_adjust_request: boolean;
-  product_execution_allowed: false;
-  reason: string;
-};
-
 export type FeatureOpportunityKind =
   | "initiatives"
   | "coach_preferences";
@@ -147,9 +122,6 @@ export type PlanQuestionSignalContext = {
 
 export type DispatcherSkillSignals = {
   product_help?: SkillSignal;
-  plan_realignment?: SkillSignal & {
-    context?: PlanRealignmentSignalContext;
-  };
   // W2.A: `feature_opportunity` (initiatives / coach_preferences) est retiré
   // du contrat de signaux — la lane n'est plus routable. Le type de contexte
   // `FeatureOpportunitySignalContext` reste défini ci-dessus tant que le skill

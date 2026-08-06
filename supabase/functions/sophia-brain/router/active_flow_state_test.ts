@@ -17,7 +17,6 @@ function legacyKey(...parts: string[]): string {
 
 const RETAINED_LOCAL_FLOW_IDS: ActiveLocalConversationFlowSkillId[] = [
   "product_help",
-  "plan_realignment",
   // W2.A: "feature_opportunity" et "potion_support_admission_v1" ne sont plus
   // des flows locaux retenus (registre en dur retiré).
   "safety_crisis",
@@ -206,7 +205,7 @@ Deno.test("active_flow_state releases local flows stale for more than 4 hours", 
   // Flow périmé (dernier tour il y a 5h): relâché avant arbitration.
   const stale = {
     __active_skill_state: {
-      skill_id: "plan_realignment",
+      skill_id: "product_help",
       status: "active",
       updated_at: fiveHoursAgo,
     },
@@ -222,14 +221,14 @@ Deno.test("active_flow_state releases local flows stale for more than 4 hours", 
   // Anti-régression: flow récent (10 min) toujours actif.
   const fresh = {
     __active_skill_state: {
-      skill_id: "plan_realignment",
+      skill_id: "product_help",
       status: "active",
       updated_at: tenMinutesAgo,
     },
   };
   assertEquals(
     (readActiveFlowState(fresh).activeSkillState as any)?.skill_id,
-    "plan_realignment",
+    "product_help",
   );
 
   // Anti-régression: state sans timestamp exploitable conservé (state partiel

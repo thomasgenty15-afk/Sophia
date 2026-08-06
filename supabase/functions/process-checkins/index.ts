@@ -31,11 +31,6 @@ import {
   generateWithGemini,
   getGlobalAiModel,
 } from "../_shared/gemini.ts";
-import {
-  armWinbackReengagementForUser,
-  disarmWinbackReengagementForUser,
-  isWinbackReengagementFlowEnabled,
-} from "../sophia-brain/skills/winback_reengagement/context.ts";
 import { computeNextRetryAtIso } from "../_shared/retry_backoff.ts";
 import {
   pickMorningLightVariant,
@@ -1093,11 +1088,6 @@ async function sweepReengagementEpisodes(params: {
       // staleness 4h : si le sweep clôt l'épisode sans qu'aucun tour ne l'ait
       // consommé, il faut désarmer explicitement — sinon le flow reste armé
       // pour toujours et capterait une réponse sans épisode ouvert.
-      await disarmWinbackReengagementForUser({
-        admin: params.supabaseAdmin,
-        userId,
-        requestId: params.requestId,
-      });
       closed++;
       console.log(
         `[process-checkins] request_id=${params.requestId} reengagement_episode_swept episode_id=${episode.id} user_id=${userId} exit_status=${decision.exit_status}`,
@@ -1631,20 +1621,6 @@ async function processPendingProactiveTemplateCandidates(params: {
         1,
         Math.min(3, Number(winbackMeta.winback_step) || 1),
       ) as WinbackStep;
-      if (winbackEpisodeId && isWinbackReengagementFlowEnabled()) {
-        await armWinbackReengagementForUser({
-          admin: params.supabaseAdmin,
-          userId,
-          episodeId: winbackEpisodeId,
-          winbackStep,
-          daysInactiveAtSend: Math.max(
-            0,
-            Number(winbackMeta.inactivity_days) || 0,
-          ),
-          nowIso: new Date().toISOString(),
-          requestId: params.requestId,
-        });
-      }
     }
 
     if (!skipped) {

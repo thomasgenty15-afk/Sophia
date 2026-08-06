@@ -157,11 +157,6 @@ function productHelpDetected(turnFrame: TurnFrame): boolean {
 // W2.A: `featureOpportunityDetected` supprimé avec la lane initiatives /
 // coach_preferences (le signal n'existe plus dans le TurnFrame).
 
-function planRealignmentDetected(turnFrame: TurnFrame): boolean {
-  return turnFrame.skill_signals.plan_realignment?.detected === true &&
-    turnFrame.skill_signals.plan_realignment.confidence_band !== "low";
-}
-
 // W4.4 — KEEL. Le signal SEUL ne suffit pas: la lane ne peut rien résoudre
 // sans `plan_commitments` (swap_policy, food_group_ref, autonomy). Le gate
 // `keel_student` est calculé par le RUNTIME depuis `profiles.keel_role`,
@@ -201,8 +196,6 @@ function isActiveConversationSkill(
     | "safety_crisis"
     | "disordered_eating_guard"
     | "product_help"
-    | "plan_realignment"
-    | "winback_reengagement_v1"
     | "presence_conversation",
 ): boolean {
   const record = activeSkillState && typeof activeSkillState === "object" &&
@@ -485,47 +478,6 @@ export function runConversationRouters(input: {
     });
   }
 
-  // Flow réengagement winback actif (armé à l'envoi d'une touche winback,
-  // collant après la première réponse). Pas d'entrée fraîche par signal :
-  // seul l'armement hors conversation ouvre ce flow ; ses sorties passent par
-  // exit_to_global_dispatcher (re-dispatch le même tour).
-  if (
-    isActiveConversationSkill(
-      input.active_skill_state,
-      "winback_reengagement_v1",
-    )
-  ) {
-    return buildRouteDecision({
-      response_owner: "winback_reengagement_v1",
-      selected_handler: "winback_reengagement_v1",
-      direct_effects_to_run: directEffectsToRun,
-      blocked_paths: blockedPaths,
-      active_owner: "winback_reengagement_v1",
-      arbitration_decision: "continue_active",
-      resume_policy: "resume_active",
-      reason_code: directEffectsToRun.length > 0
-        ? "active_winback_reengagement_with_direct_effects"
-        : "active_winback_reengagement",
-    });
-  }
-
-  if (
-    isActiveConversationSkill(input.active_skill_state, "plan_realignment")
-  ) {
-    return buildRouteDecision({
-      response_owner: "plan_realignment",
-      selected_handler: "plan_realignment",
-      direct_effects_to_run: directEffectsToRun,
-      blocked_paths: blockedPaths,
-      active_owner: "plan_realignment",
-      arbitration_decision: "continue_active",
-      resume_policy: "resume_active",
-      reason_code: directEffectsToRun.length > 0
-        ? "active_plan_realignment_with_direct_effects"
-        : "active_plan_realignment",
-    });
-  }
-
   // W2.A: branche de CONTINUATION `feature_opportunity` retirée (l'ordre des
   // branches restantes est inchangé). Un état de flow résiduel en base ne peut
   // plus reprendre la main : `active_flow_state.ts` ne le reconnaît plus, le
@@ -624,16 +576,6 @@ export function runConversationRouters(input: {
   // `plan_realignment` renvoie vers l'écran d'ajustement de plan B2C. Un récap
   // read-only y a déjà été capté une fois (défaut connu), et un élève KEEL n'a
   // pas d'écran d'ajustement — sa semaine se compose, elle ne se réaligne pas.
-  if (!keelStudent && planRealignmentDetected(input.turn_frame)) {
-    return buildRouteDecision({
-      response_owner: "plan_realignment",
-      selected_handler: "plan_realignment",
-      direct_effects_to_run: directEffectsToRun,
-      blocked_paths: blockedPaths,
-      reason_code: "plan_realignment_signal",
-    });
-  }
-
   // W2.A: branche d'ENTRÉE `feature_opportunity` retirée — elle était la
   // dernière avant le repli normal_reply, l'ordre des branches précédentes est
   // donc strictement conservé.

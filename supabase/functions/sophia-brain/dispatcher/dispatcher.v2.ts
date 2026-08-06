@@ -11,9 +11,6 @@ import type {
   Explicitness,
   PlanQuestionKind,
   PlanQuestionSignalContext,
-  PlanRealignmentDriftType,
-  PlanRealignmentScope,
-  PlanRealignmentSignalContext,
   PresenceConversationKind,
   PresenceConversationSignalContext,
   RiskBand,
@@ -437,36 +434,6 @@ function enumString<T extends string>(
 // W2.A: `sanitizeFeatureOpportunitySignalContext` supprimé — le signal
 // feature_opportunity ne fait plus partie du contrat de sortie du dispatcher.
 
-function sanitizePlanRealignmentSignalContext(
-  raw: unknown,
-): PlanRealignmentSignalContext | undefined {
-  const root = objectRecord(raw);
-  if (!root) return undefined;
-  return {
-    drift_type: enumString<PlanRealignmentDriftType>(
-      root.drift_type,
-      [
-        "missed_plan",
-        "late_on_plan",
-        "lost_rhythm",
-        "plan_too_heavy",
-        "plan_too_light",
-        "changed_context",
-        "ambiguous",
-      ],
-      "ambiguous",
-    ),
-    scope: enumString<PlanRealignmentScope>(
-      root.scope,
-      ["whole_plan", "week", "level", "unknown"],
-      "unknown",
-    ),
-    explicit_adjust_request: root.explicit_adjust_request === true,
-    product_execution_allowed: false,
-    reason: optionalText(root.reason, 240) ?? "",
-  };
-}
-
 function sanitizePresenceConversationSignalContext(
   raw: unknown,
 ): PresenceConversationSignalContext | undefined {
@@ -653,7 +620,6 @@ function sanitizeSkillSignal(
   raw: unknown,
   kind?:
     | "coaching_recommendation"
-    | "plan_realignment"
     | "plan_question"
     | "presence_conversation"
     | "product_help",
@@ -663,7 +629,6 @@ function sanitizeSkillSignal(
   score?: number;
   reason?: string;
   context?:
-    | PlanRealignmentSignalContext
     | PlanQuestionSignalContext
     | PresenceConversationSignalContext;
 } | null {
@@ -677,9 +642,7 @@ function sanitizeSkillSignal(
     : "low";
   const score = optionalScore(signal.score);
   const reason = String(signal.reason ?? "").trim();
-  const context = kind === "plan_realignment"
-    ? sanitizePlanRealignmentSignalContext(signal.context)
-    : kind === "plan_question"
+  const context = kind === "plan_question"
     ? sanitizePlanQuestionSignalContext(signal.context)
     : kind === "presence_conversation"
     ? sanitizePresenceConversationSignalContext(signal.context)
@@ -707,10 +670,6 @@ function sanitizeSkillSignals(
     root.coaching_recommendation,
     "coaching_recommendation",
   );
-  const directPlanRealignment = sanitizeSkillSignal(
-    root.plan_realignment,
-    "plan_realignment",
-  );
   const directPlanQuestion = sanitizeSkillSignal(
     root.plan_question,
     "plan_question",
@@ -731,10 +690,6 @@ function sanitizeSkillSignals(
     entryRoot.coaching_recommendation,
     "coaching_recommendation",
   );
-  const entryPlanRealignment = sanitizeSkillSignal(
-    entryRoot.plan_realignment,
-    "plan_realignment",
-  );
   const entryPlanQuestion = sanitizeSkillSignal(
     entryRoot.plan_question,
     "plan_question",
@@ -746,16 +701,12 @@ function sanitizeSkillSignals(
   const productHelp = directProductHelp ?? entryProductHelp;
   const coachingRecommendation = directCoachingRecommendation ??
     entryCoachingRecommendation;
-  const planRealignment = directPlanRealignment ?? entryPlanRealignment;
   const planQuestion = directPlanQuestion ?? entryPlanQuestion;
   const presenceConversation = directPresenceConversation ??
     entryPresenceConversation;
   const signals: NonNullable<TurnFrame["skill_signals"]> = {};
   if (productHelp?.detected === true) {
     signals.product_help = productHelp;
-  }
-  if (planRealignment?.detected === true) {
-    signals.plan_realignment = planRealignment as any;
   }
   if (planQuestion?.detected === true) {
     signals.plan_question = planQuestion as any;
@@ -1017,8 +968,7 @@ function hasAllOriginalDirectEffects(
 }
 
 function hasEntrySkillSignal(frame: TurnFrame): boolean {
-  return frame.skill_signals?.product_help?.detected === true ||
-    frame.skill_signals?.plan_realignment?.detected === true;
+  return frame.skill_signals?.product_help?.detected === true;
 }
 
 function hasAdditionalStructuredSignal(

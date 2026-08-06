@@ -8,8 +8,6 @@ export type ActiveFlowState = {
 
 export type ActiveLocalConversationFlowSkillId =
   | "product_help"
-  | "plan_realignment"
-  | "winback_reengagement_v1"
   | "presence_conversation"
   | "safety_crisis";
 
@@ -21,8 +19,6 @@ const ACTIVE_LOCAL_CONVERSATION_FLOW_SKILL_IDS = new Set<
   ActiveLocalConversationFlowSkillId
 >([
   "product_help",
-  "plan_realignment",
-  "winback_reengagement_v1",
   "presence_conversation",
   "safety_crisis",
 ]);
@@ -119,14 +115,12 @@ export function isStaleActiveLocalFlowState(
     String(record.skill_id ?? "") === "potion_support_admission_v1" &&
     record.working_state?.potion_support_admission?.awaiting_first_reply === true
   ) return false;
-  // Même carve-out pour le réengagement winback : l'utilisateur peut répondre
-  // à la relance plusieurs jours après l'armement — l'ouverture proactive
-  // possède exactement une réponse sémantique, pas un timer de 4h.
-  if (
-    String(record.skill_id ?? "") === "winback_reengagement_v1" &&
-    record.working_state?.winback_reengagement_local_state
-        ?.awaiting_first_reply === true
-  ) return false;
+  // ⚠️ LE CARVE-OUT DU RÉENGAGEMENT EST PARTI AVEC `winback_reengagement_v1`,
+  // ET IL DEVRA REVENIR (chantier B, flow de reprise après relance KEEL).
+  // Sa raison n'a pas disparu avec la lane : un élève peut répondre à une
+  // relance PLUSIEURS JOURS après son armement. Une ouverture proactive
+  // possède exactement une réponse sémantique, pas un timer de 4 h — sans ce
+  // carve-out, le flow de reprise expirera avant que l'élève ne réponde.
   const touchedAt = Date.parse(
     String(record.updated_at ?? record.started_at ?? ""),
   );
@@ -257,10 +251,6 @@ export function buildLastLocalFlowExitContext(
       operation_type: "product_help",
       memo: temp.__last_product_help_exit_memo,
     },
-    {
-      operation_type: "winback_reengagement_v1",
-      memo: temp.__last_winback_reengagement_exit_memo,
-    },
     // W2.A: memos `feature_opportunity` et `potion_support_admission_v1`
     // retirés des candidats — un mémo résiduel en base ne doit plus produire de
     // hint de handoff vers une lane désactivée. Les clés restent purgées par
@@ -305,7 +295,6 @@ export function clearLastLocalFlowExitContext<
   delete next.__last_whatsapp_onboarding_exit_memo;
   delete next.__last_product_help_exit_memo;
   delete next.__last_potion_support_admission_exit_memo;
-  delete next.__last_winback_reengagement_exit_memo;
   delete next.__last_feature_opportunity_exit_memo;
   delete next.__last_safety_crisis_exit_memo;
   return next;
