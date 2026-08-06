@@ -15,7 +15,7 @@ Deno.test("conversation_route_replay loads and passes V1 fixtures", async () => 
   const fixtures = await loadReplayFixtures(
     FIXTURES_DIR,
   );
-  assertEquals(fixtures.length, 5);
+  assertEquals(fixtures.length, 4);
   const results = await runReplayFixtures(fixtures);
   assertEquals(results.every((result) => result.passed), true);
 });

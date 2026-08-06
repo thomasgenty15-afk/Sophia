@@ -108,10 +108,7 @@ function route(turnFrame: TurnFrame) {
 }
 
 const RETAINED_LOCAL_FLOW_IDS: ActiveLocalConversationFlowSkillId[] = [
-  "daily_action_review_v1",
-  "weekly_adaptive_review_v1",
   "product_help",
-  "coaching_recommendation",
   "plan_realignment",
   // W2.A: "feature_opportunity" n'est plus un flow local retenu.
   "safety_crisis",
@@ -366,37 +363,6 @@ Deno.test("global router can combine direct effect with product_help owner", () 
   ]);
 });
 
-Deno.test("global router routes coaching recommendation signal", () => {
-  const decision = route(frame({
-    skill_signals: {
-      coaching_recommendation: {
-        detected: true,
-        confidence_band: "high",
-        reason: "feature_choice",
-      },
-    },
-  }));
-
-  assertEquals(decision.response_owner, "coaching_recommendation");
-  assertEquals(decision.selected_handler, "coaching_recommendation");
-  assertEquals(decision.reason_code, "coaching_recommendation_signal");
-});
-
-Deno.test("global router does not invent active flow arbitration for standard routes", () => {
-  const decision = route(frame({
-    skill_signals: {
-      coaching_recommendation: {
-        detected: true,
-        confidence_band: "high",
-        reason: "feature_choice",
-      },
-    },
-  }));
-
-  assertEquals(decision.response_owner, "coaching_recommendation");
-  assertEquals(decision.active_flow_arbitration, undefined);
-});
-
 // W2.B will delete this: la lane est désactivée en W2.A.
 Deno.test({
   name:
@@ -453,95 +419,6 @@ Deno.test("global router routes plan realignment signal", () => {
 // W2.A: la lane feature_opportunity a disparu; la priorité testée ici est
 // désormais triviale. Le signal résiduel est passé en cast pour documenter
 // qu'un signal LLM legacy est simplement droppé (W2.B nettoie le test).
-Deno.test("global router keeps coaching recommendation before feature opportunity", () => {
-  const decision = route(frame({
-    skill_signals: {
-      coaching_recommendation: {
-        detected: true,
-        confidence_band: "high",
-        reason: "risk_moment_feature_recommendation",
-      },
-    },
-  }));
-
-  assertEquals(decision.response_owner, "coaching_recommendation");
-});
-
-Deno.test("global router keeps active coaching before product_help", () => {
-  const active = {
-    skill_id: "coaching_recommendation",
-    status: "active",
-    working_state: {},
-  };
-  const continued = runConversationRouters({
-    turn_frame: frame(),
-    active_skill_state: active,
-    safety_context_risk_band: "none",
-  });
-  assertEquals(continued.response_owner, "coaching_recommendation");
-
-  const interrupted = runConversationRouters({
-    turn_frame: frame({
-      skill_signals: {
-        product_help: { detected: true, confidence_band: "high" },
-      },
-    }),
-    active_skill_state: active,
-    safety_context_risk_band: "none",
-  });
-  assertEquals(interrupted.response_owner, "coaching_recommendation");
-  assertEquals(interrupted.reason_code, "active_coaching_recommendation");
-  assertEquals(
-    interrupted.active_flow_arbitration?.active_owner,
-    "coaching_recommendation",
-  );
-  assertEquals(
-    interrupted.active_flow_arbitration?.decision,
-    "continue_active",
-  );
-});
-
-Deno.test("readActiveFlowState active coaching prevents product_help ownership", () => {
-  const activeFlowState = readActiveFlowState({
-    [ACTIVE_CONVERSATION_SKILL_KEY]: {
-      version: 1,
-      skill_id: "coaching_recommendation",
-      status: "active",
-      turn_count: 1,
-      started_at: new Date(Date.now() - 120_000).toISOString(),
-      updated_at: new Date(Date.now() - 60_000).toISOString(),
-      working_state: {
-        coaching_recommendation_local_state: {
-          stage: "recommend",
-          recommendation_decision: {
-            primary_feature: "attack_card",
-          },
-        },
-      },
-    },
-  });
-  const decision = runConversationRouters({
-    turn_frame: frame({
-      skill_signals: {
-        product_help: {
-          detected: true,
-          confidence_band: "high",
-          reason: "where_is_feature",
-        },
-      },
-    }),
-    active_skill_state: activeFlowState.activeSkillState,
-    safety_context_risk_band: "none",
-  });
-
-  assertEquals(
-    (activeFlowState.activeSkillState as any)?.skill_id,
-    "coaching_recommendation",
-  );
-  assertEquals(decision.response_owner, "coaching_recommendation");
-  assertEquals(decision.reason_code, "active_coaching_recommendation");
-});
-
 Deno.test("readActiveFlowState active product_help keeps product_help ownership", () => {
   const activeFlowState = readActiveFlowState({
     [ACTIVE_CONVERSATION_SKILL_KEY]: {
@@ -578,43 +455,6 @@ Deno.test("readActiveFlowState active product_help keeps product_help ownership"
   assertEquals(decision.active_flow_arbitration?.decision, "continue_active");
 });
 
-Deno.test("readActiveFlowState active weekly keeps weekly ownership", () => {
-  const activeFlowState = readActiveFlowState({
-    [ACTIVE_CONVERSATION_SKILL_KEY]: {
-      version: 1,
-      skill_id: "weekly_adaptive_review_v1",
-      status: "open",
-      turn_count: 1,
-      started_at: new Date(Date.now() - 120_000).toISOString(),
-      updated_at: new Date(Date.now() - 60_000).toISOString(),
-      weekly_flow_state: {
-        stage: "week_experience",
-      },
-    },
-  });
-  const decision = runConversationRouters({
-    turn_frame: frame({
-      skill_signals: {
-        product_help: { detected: true, confidence_band: "high" },
-      },
-    }),
-    active_skill_state: activeFlowState.activeSkillState,
-    safety_context_risk_band: "none",
-  });
-
-  assertEquals(
-    (activeFlowState.activeSkillState as any)?.skill_id,
-    "weekly_adaptive_review_v1",
-  );
-  assertEquals(decision.response_owner, "weekly_adaptive_review_v1");
-  assertEquals(decision.selected_handler, "weekly_adaptive_review_v1");
-  assertEquals(decision.reason_code, "active_weekly_adaptive_review");
-  assertEquals(
-    decision.active_flow_arbitration?.active_owner,
-    "weekly_adaptive_review_v1",
-  );
-  assertEquals(decision.active_flow_arbitration?.decision, "continue_active");
-});
 
 Deno.test("readActiveFlowState active safety keeps safety ownership and skips product/help routes", () => {
   const activeFlowState = readActiveFlowState({
@@ -900,28 +740,6 @@ Deno.test("global router keeps active plan realignment before product_help", () 
     interrupted.active_flow_arbitration?.decision,
     "continue_active",
   );
-});
-
-Deno.test("global router can run one-shot direct effect during coaching", () => {
-  const decision = runConversationRouters({
-    turn_frame: frame({
-      direct_effects: [{
-        effect_type: "create_one_shot_reminder",
-        explicitness: "explicit",
-        target_status: "identified",
-        confidence_band: "high",
-        payload_hint: { raw_text: "demain a 9h" },
-      }],
-    }),
-    active_skill_state: {
-      skill_id: "coaching_recommendation",
-      status: "active",
-    },
-    safety_context_risk_band: "none",
-  });
-
-  assertEquals(decision.response_owner, "coaching_recommendation");
-  assertEquals(decision.direct_effects_to_run, ["create_one_shot_reminder"]);
 });
 
 Deno.test("global router allows one-shot direct effect during normal reply", () => {

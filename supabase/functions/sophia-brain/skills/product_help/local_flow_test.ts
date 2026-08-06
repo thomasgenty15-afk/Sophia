@@ -303,68 +303,6 @@ Deno.test("product_help exits to global for product action requests", () => {
   assertEquals(reduced.note_information?.target_dispatcher, "global");
 });
 
-Deno.test("product_help never targets coaching_recommendation directly", () => {
-  const output = dispatcherOutput({
-    flow_action: "exit_to_global_dispatcher",
-    product_help_intent: {
-      kind: "tool_action_request",
-      summary: "User asks which Sophia lever to use.",
-    },
-    visible_task: {
-      kind: "exit_ack",
-      instruction: "Exit to global.",
-      conversation_context: {},
-    },
-    note_information: {
-      source_flow_id: "product_help",
-      handoff_reason: "explicit_user_request",
-      target_dispatcher: "coaching_recommendation",
-      handoff_context_for_next_dispatcher:
-        "User asks which Sophia lever to use after product_help.",
-      structured_context: {
-        user_message_summary: "User asks which Sophia lever to use.",
-        recommended_next_focus: "coaching_recommendation",
-      },
-      confidence: "high",
-    },
-    exit_memo: {
-      needed: true,
-      reason: "normal_coaching",
-      user_intent_summary: "User asks which Sophia lever to use.",
-      local_flow_context: {
-        skill_id: "product_help",
-        mode: "standalone",
-        stage: "closing",
-        last_answer_summary: null,
-        parent_skill_id: null,
-        committed_effects: [],
-      },
-      handoff_hint_for_global_dispatcher: {
-        likely_intent: "normal_coaching",
-        why: "global decides the next owner",
-      },
-    },
-  });
-  const reduced = reduceProductHelpLocalDispatcherOutput({
-    previous: null,
-    output,
-    catalogCandidates: [],
-    parentFlowContext: null,
-    productSurfaces: [],
-    recentCommittedEffects: [],
-    userMessage: "je dois utiliser quoi ?",
-  });
-
-  assertEquals(reduced.status, "exit");
-  assertEquals(reduced.exit_to_global_dispatcher, true);
-  assertEquals(reduced.note_information?.target_dispatcher, "global");
-  assertEquals(
-    reduced.note_information?.structured_context
-      .sanitized_from_target_dispatcher,
-    "coaching_recommendation",
-  );
-});
-
 Deno.test("product_help safety_preempt exits to safety_crisis", () => {
   const reduced = reduceProductHelpLocalDispatcherOutput({
     previous: null,

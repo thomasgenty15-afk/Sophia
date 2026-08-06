@@ -13,10 +13,7 @@ export type NoteInformationTargetDispatcher =
   | "safety_crisis"
   | "create_one_shot_reminder"
   | "track_progress_plan_item"
-  | "product_help"
-  | "coaching_recommendation"
-  | "daily_action_review_v1"
-  | "weekly_adaptive_review_v1";
+  | "product_help";
 
 export type NoteInformation = {
   source_flow_id: string;
@@ -35,16 +32,10 @@ export const FLOW_PRESENTATIONS: Record<string, string> = {
     "Owns active safety/crisis turns and prioritizes immediate human safety, grounding, means distance, and support contact. Product/tool requests are deferred, not routed.",
   product_help:
     "Answers Sophia product, navigation, feature, and limit questions. It never creates, modifies, activates, cancels, or fills another flow's slots.",
-  coaching_recommendation:
-    "Short coaching recommendation flow that helps the user choose the right Sophia feature. It never executes legacy tools or creates platform objects from chat.",
   create_one_shot_reminder:
     "Runs the direct one-shot reminder lane when the user gives an explicit reminder request.",
   track_progress_plan_item:
     "Runs the direct plan-item progress lane when the user explicitly reports progress on a known action.",
-  daily_action_review_v1:
-    "Collects daily evidence for one or two targeted actions. It may commit a daily review entry only after reducer/executor validation.",
-  weekly_adaptive_review_v1:
-    "Runs the weekly strategic review, updates human signals, and may prepare a Plan handoff. It never applies plan changes from chat.",
 };
 
 function cleanString(value: unknown): string {
@@ -144,14 +135,10 @@ function normalizeTargetDispatcher(
     text === "global" || text === "safety_crisis" ||
     text === "create_one_shot_reminder" ||
     text === "track_progress_plan_item" ||
-    text === "product_help" ||
-    text === "coaching_recommendation" ||
-    text === "daily_action_review_v1" ||
-    text === "weekly_adaptive_review_v1"
+    text === "product_help"
   ) return text;
   if (text === "safety") return "safety_crisis";
-  return fallback === "safety_crisis" || fallback === "product_help" ||
-      fallback === "coaching_recommendation"
+  return fallback === "safety_crisis" || fallback === "product_help"
     ? fallback
     : "global";
 }
@@ -160,11 +147,8 @@ const LOCAL_EXIT_ALLOWED_TARGETS = new Set<NoteInformationTargetDispatcher>([
   "global",
   "safety_crisis",
   "product_help",
-  "coaching_recommendation",
   "create_one_shot_reminder",
   "track_progress_plan_item",
-  "daily_action_review_v1",
-  "weekly_adaptive_review_v1",
 ]);
 
 export function sanitizeLocalExitTargetDispatcher(

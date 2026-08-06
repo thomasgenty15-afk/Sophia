@@ -9,8 +9,6 @@ export type SkillId =
   // `_shared/keel/restriction_guard.ts`.
   | "disordered_eating_guard"
   | "product_help"
-  | "coaching_recommendation"
-  | "daily_action_coaching_recommendation_v1"
   | "feature_opportunity"
   | "plan_realignment"
   // W4.4 — KEEL. Lane d'exécution résolue en Tier 0 déterministe (aucun modèle

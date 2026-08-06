@@ -1,7 +1,4 @@
 import type {
-  CoachingRecommendationCategory,
-  CoachingRecommendationSignalContext,
-  CoachingRecommendationType,
   ConfidenceBand,
   ConversationChannel,
   ConversationRisk,
@@ -330,13 +327,11 @@ function sanitizeMemoryPlan(
   };
 }
 
-function activeReviewSkillId(input: RunDispatcherInput): string | null {
-  const skillId = String((input.active_skill_state as any)?.skill_id ?? "")
-    .trim();
-  return skillId === "daily_action_review_v1" ||
-      skillId === "weekly_adaptive_review_v1"
-    ? skillId
-    : null;
+// Demolition B2C (2026-08-06): `weekly_adaptive_review_v1` etait le dernier
+// flow de revue. Plus aucun skill n'active ce mode; la fonction reste pour ne
+// pas disperser ses trois appelants, et rend toujours `null`.
+function activeReviewSkillId(_input: RunDispatcherInput): string | null {
+  return null;
 }
 
 function suppressActionAndLevelMemoryDuringReview(
@@ -437,66 +432,7 @@ function enumString<T extends string>(
   return (allowed as readonly string[]).includes(value) ? value as T : fallback;
 }
 
-function coachingTypeFromLegacyCategory(
-  value: CoachingRecommendationCategory,
-): CoachingRecommendationType {
-  return value === "plan_action_coaching"
-    ? "plan_action"
-    : value === "free_action_coaching"
-    ? "no_plan_action"
-    : value === "emotional_state_coaching"
-    ? "emotional"
-    : "ambiguous";
-}
 
-function sanitizeCoachingRecommendationSignalContext(
-  raw: unknown,
-): CoachingRecommendationSignalContext | undefined {
-  const root = objectRecord(raw);
-  if (!root) return undefined;
-  const legacyCategory = enumString<CoachingRecommendationCategory>(
-    root.category,
-    [
-      "plan_action_coaching",
-      "free_action_coaching",
-      "emotional_state_coaching",
-      "ambiguous_coaching_need",
-    ],
-    "ambiguous_coaching_need",
-  );
-  const coachingType = enumString<CoachingRecommendationType>(
-    root.coaching_type,
-    [
-      "plan_action",
-      "no_plan_action",
-      "emotional",
-      "ambiguous",
-    ],
-    coachingTypeFromLegacyCategory(legacyCategory),
-  );
-  const actionRoot = objectRecord(root.action_context);
-  return {
-    coaching_type: coachingType,
-    confidence: optionalScore(root.confidence) ??
-      (root.confidence_band === "high" || root.confidence_band === "critical"
-        ? 0.9
-        : root.confidence_band === "medium"
-        ? 0.65
-        : 0.5),
-    reason: optionalText(root.reason, 240) ?? "",
-    action_context: actionRoot
-      ? {
-        source: enumString(
-          actionRoot.source,
-          ["plan", "free", "none", "ambiguous"],
-          "ambiguous",
-        ),
-        plan_item_id: optionalText(actionRoot.plan_item_id, 80),
-        action_title: optionalText(actionRoot.action_title, 160),
-      }
-      : null,
-  };
-}
 
 // W2.A: `sanitizeFeatureOpportunitySignalContext` supprimé — le signal
 // feature_opportunity ne fait plus partie du contrat de sortie du dispatcher.
@@ -727,7 +663,6 @@ function sanitizeSkillSignal(
   score?: number;
   reason?: string;
   context?:
-    | CoachingRecommendationSignalContext
     | PlanRealignmentSignalContext
     | PlanQuestionSignalContext
     | PresenceConversationSignalContext;
@@ -742,9 +677,7 @@ function sanitizeSkillSignal(
     : "low";
   const score = optionalScore(signal.score);
   const reason = String(signal.reason ?? "").trim();
-  const context = kind === "coaching_recommendation"
-    ? sanitizeCoachingRecommendationSignalContext(signal.context)
-    : kind === "plan_realignment"
+  const context = kind === "plan_realignment"
     ? sanitizePlanRealignmentSignalContext(signal.context)
     : kind === "plan_question"
     ? sanitizePlanQuestionSignalContext(signal.context)
@@ -820,9 +753,6 @@ function sanitizeSkillSignals(
   const signals: NonNullable<TurnFrame["skill_signals"]> = {};
   if (productHelp?.detected === true) {
     signals.product_help = productHelp;
-  }
-  if (coachingRecommendation?.detected === true) {
-    signals.coaching_recommendation = coachingRecommendation as any;
   }
   if (planRealignment?.detected === true) {
     signals.plan_realignment = planRealignment as any;
@@ -1088,7 +1018,6 @@ function hasAllOriginalDirectEffects(
 
 function hasEntrySkillSignal(frame: TurnFrame): boolean {
   return frame.skill_signals?.product_help?.detected === true ||
-    frame.skill_signals?.coaching_recommendation?.detected === true ||
     frame.skill_signals?.plan_realignment?.detected === true;
 }
 

@@ -9,7 +9,10 @@ import {
   planContentHasPlanifiableWeekStart,
   weekEndForWeekStart,
 } from "./weekly_progress_review.ts";
-import { DAILY_ACTION_REVIEW_SOURCE } from "./daily_action_review.ts";
+
+// Le flow qui écrivait ce jeton est supprimé; la valeur reste stockée en base.
+// Écrite en clair ici pour la même raison qu'elle est inlinée côté module.
+const DAILY_ACTION_REVIEW_SOURCE = "daily_action_review_v1";
 
 Deno.test("weekly date helpers derive week boundaries", () => {
   assertEquals(addDaysYmd("2026-04-27", 6), "2026-05-03");

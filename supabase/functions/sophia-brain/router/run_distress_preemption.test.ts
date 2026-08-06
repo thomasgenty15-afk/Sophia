@@ -39,42 +39,6 @@ const activeCoachingFlow = {
   updated_at: new Date().toISOString(),
 };
 
-Deno.test("worthlessness medium blocks recommendation lanes even under active coaching flow (paul-r3 T12)", () => {
-  const decision = runConversationRouters({
-    turn_frame: frame({
-      safety: {
-        risk_band: "medium",
-        reason_codes: ["emotional_distress", "worthlessness_thoughts"],
-        evidence: ["au fond du trou", "pas servir à grand-chose"],
-      },
-      skill_signals: {
-        coaching_recommendation: {
-          detected: true,
-          confidence_band: "high",
-          reason: "support_request",
-        },
-      },
-    }),
-    active_skill_state: activeCoachingFlow,
-    safety_context_risk_band: "none",
-  });
-
-  assertEquals(decision.response_owner, "normal_reply");
-  assertEquals(decision.reason_code, "distress_support_priority");
-  const blockedPaths = decision.blocked_paths.map((path) => path.path);
-  for (
-    const lane of [
-      "coaching_recommendation",
-      "product_help",
-      // W2.A: la lane "feature_opportunity" n'existe plus, elle a disparu des
-      // blocked_paths de la préemption détresse.
-      "plan_realignment",
-    ]
-  ) {
-    assertEquals(blockedPaths.includes(lane), true, `${lane} must be blocked`);
-  }
-});
-
 Deno.test("passive ideation medium routes to safety owner (paul-r3 T13 ownership)", () => {
   const decision = runConversationRouters({
     turn_frame: frame({
@@ -90,50 +54,6 @@ Deno.test("passive ideation medium routes to safety owner (paul-r3 T13 ownership
   assertEquals(decision.response_owner, "safety");
   assertEquals(decision.selected_handler, "safety_crisis");
   assertEquals(decision.reason_code, "distress_ideation_safety_priority");
-});
-
-Deno.test("simple discouragement stays untouched — no preemption (alex-r1 T10 green)", () => {
-  const decision = runConversationRouters({
-    turn_frame: frame({
-      safety: {
-        risk_band: "low",
-        reason_codes: ["emotional_distress", "demoralization"],
-        evidence: ["dégoûté d'avoir raté mon sas"],
-      },
-      skill_signals: {
-        coaching_recommendation: {
-          detected: true,
-          confidence_band: "high",
-          reason: "stuck_action",
-        },
-      },
-    }),
-    safety_context_risk_band: "none",
-  });
-
-  assertEquals(decision.response_owner, "coaching_recommendation");
-});
-
-Deno.test("medium WITHOUT distress codes keeps coaching available (substance urge doctrine 1c)", () => {
-  const decision = runConversationRouters({
-    turn_frame: frame({
-      safety: {
-        risk_band: "medium",
-        reason_codes: ["substance_use_urge", "imminent_relapse_risk"],
-        evidence: ["grosse envie de fumer là"],
-      },
-      skill_signals: {
-        coaching_recommendation: {
-          detected: true,
-          confidence_band: "high",
-          reason: "risk_moment",
-        },
-      },
-    }),
-    safety_context_risk_band: "none",
-  });
-
-  assertEquals(decision.response_owner, "coaching_recommendation");
 });
 
 Deno.test("distress support keeps legitimate direct effects runnable (no mute path)", () => {

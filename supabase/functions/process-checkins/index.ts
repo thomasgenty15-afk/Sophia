@@ -69,7 +69,6 @@ import {
   generateDynamicWhatsAppCheckinMessage,
 } from "../_shared/scheduled_checkins.ts";
 import {
-  ACTION_EVENING_REVIEW_EVENT_CONTEXT,
   ACTION_LATE_AFTERNOON_EVENT_CONTEXT,
   ACTION_MORNING_EVENT_CONTEXT,
   ACTION_MORNING_FOLLOWUP_EVENT_CONTEXT,
@@ -80,16 +79,6 @@ import {
   localDateYmdInTimezone,
   MORNING_LIGHT_GREETING_EVENT_CONTEXT,
 } from "../_shared/action_occurrences.ts";
-import {
-  buildDailyActionReviewActionIntelligence,
-  buildDailyActionReviewGrounding,
-  buildDailyActionReviewInstruction,
-  buildDailyActionReviewOpeningPlan,
-  buildInitialDailyActionReviewState,
-  dailyActionReviewFocusTargets,
-  type DailyActionReviewOpeningPlan,
-  formatDailyActionReviewActionIntelligenceForPrompt,
-} from "../_shared/daily_action_review.ts";
 import { loadMemoryV2Payload } from "../_shared/memory/runtime/loader.ts";
 import {
   loadMomentumSnapshotV2,
@@ -106,14 +95,6 @@ import {
   WEEKLY_PROGRESS_REVIEW_EVENT_CONTEXT,
   weeklyPlanningDashboardUrl,
 } from "../_shared/weekly_progress_review.ts";
-import {
-  buildWeeklyAdaptiveReview,
-  buildWeeklyAdaptiveReviewGrounding,
-  buildWeeklyAdaptiveReviewInstruction,
-} from "../_shared/weekly_adaptive_review.ts";
-import {
-  generateWeeklyAdaptiveReviewOpening,
-} from "../_shared/weekly_adaptive_review_opening.ts";
 import {
   getMomentumOutreachStateFromEventContext,
   isMomentumOutreachEventContext,
@@ -251,30 +232,6 @@ function parseStringArray(value: unknown): string[] {
     ? value.map((item) => cleanText(item)).filter(Boolean)
     : [];
 }
-
-type ActionEveningReviewTarget = {
-  occurrence_id: string;
-  cycle_id: string;
-  transformation_id: string;
-  plan_id: string;
-  plan_item_id: string;
-  title: string;
-  description?: string | null;
-  dimension: string | null;
-  kind: string;
-  tracking_type: string | null;
-  planned_day: string | null;
-  original_planned_day: string | null;
-  week_start_date: string | null;
-  time_of_day?: string | null;
-  reviewed_local_date?: string | null;
-};
-
-type AlreadyResolvedActionEveningReviewTarget = ActionEveningReviewTarget & {
-  resolved_status: string;
-  resolved_source: "entry" | "occurrence" | "entry_and_occurrence";
-};
-
 function dateFromLocalDateYmd(localDate: string): Date | null {
   const match = String(localDate ?? "").trim().match(
     /^(\d{4})-(\d{2})-(\d{2})$/,
@@ -484,326 +441,6 @@ async function markScheduledCheckinAwaitingTemplateUser(params: {
     draftMessage: params.draftMessage,
     errorMessage: null,
     requestId: params.requestId,
-  });
-}
-
-async function loadActionEveningReviewTargets(params: {
-  supabaseAdmin: ReturnType<typeof createClient>;
-  userId: string;
-  occurrenceIds: string[];
-  timezone: string;
-  reviewedLocalDate?: string | null;
-  now?: Date;
-}): Promise<{
-  openTargets: ActionEveningReviewTarget[];
-  alreadyResolvedTargets: AlreadyResolvedActionEveningReviewTarget[];
-}> {
-  const occurrenceIds = [...new Set(params.occurrenceIds)].filter(Boolean);
-  if (occurrenceIds.length === 0) {
-    return { openTargets: [], alreadyResolvedTargets: [] };
-  }
-
-  const { data: occurrences, error: occurrencesErr } = await params
-    .supabaseAdmin
-    .from("user_habit_week_occurrences")
-    .select(
-      "id,cycle_id,transformation_id,plan_id,plan_item_id,week_start_date,planned_day,original_planned_day,status",
-    )
-    .eq("user_id", params.userId)
-    .in("id", occurrenceIds);
-  if (occurrencesErr) throw occurrencesErr;
-
-  const rows = (occurrences ?? []) as Array<Record<string, unknown>>;
-  if (rows.length === 0) {
-    return { openTargets: [], alreadyResolvedTargets: [] };
-  }
-
-  const planItemIds = [
-    ...new Set(rows.map((row) => cleanText(row.plan_item_id)).filter(Boolean)),
-  ];
-  const reviewNow = dateFromLocalDateYmd(cleanText(params.reviewedLocalDate)) ??
-    params.now ?? new Date();
-  const dayStartIso = computeScheduledForFromLocal({
-    timezone: params.timezone,
-    dayOffset: 0,
-    localTimeHHMM: "00:00",
-    now: reviewNow,
-  });
-  const dayEndIso = computeScheduledForFromLocal({
-    timezone: params.timezone,
-    dayOffset: 1,
-    localTimeHHMM: "00:00",
-    now: reviewNow,
-  });
-
-  const [itemsResult, entriesResult] = await Promise.all([
-    params.supabaseAdmin
-      .from("user_plan_items")
-      .select(
-        "id,title,description,dimension,kind,tracking_type,status,time_of_day",
-      )
-      .eq("user_id", params.userId)
-      .in("id", planItemIds),
-    params.supabaseAdmin
-      .from("user_plan_item_entries")
-      .select("plan_item_id,outcome,entry_kind,effective_at,metadata")
-      .eq("user_id", params.userId)
-      .in("plan_item_id", planItemIds)
-      .gte("effective_at", dayStartIso)
-      .lt("effective_at", dayEndIso),
-  ]);
-  if (itemsResult.error) throw itemsResult.error;
-  if (entriesResult.error) throw entriesResult.error;
-
-  const itemById = new Map(
-    ((itemsResult.data ?? []) as Array<Record<string, unknown>>).map((row) => [
-      cleanText(row.id),
-      row,
-    ]),
-  );
-  const entryByItemId = new Map<string, Record<string, unknown>>();
-  for (
-    const row of (entriesResult.data ?? []) as Array<
-      Record<string, unknown>
-    >
-  ) {
-    const planItemId = cleanText(row.plan_item_id);
-    if (planItemId && !entryByItemId.has(planItemId)) {
-      entryByItemId.set(planItemId, row);
-    }
-  }
-
-  const openTargets: ActionEveningReviewTarget[] = [];
-  const alreadyResolvedTargets: AlreadyResolvedActionEveningReviewTarget[] = [];
-  for (const occurrence of rows) {
-    const planItemId = cleanText(occurrence.plan_item_id);
-    if (!planItemId) continue;
-    const item = itemById.get(planItemId);
-    if (!item) continue;
-    const status = cleanText(item.status);
-    const target = {
-      occurrence_id: cleanText(occurrence.id),
-      cycle_id: cleanText(occurrence.cycle_id),
-      transformation_id: cleanText(occurrence.transformation_id),
-      plan_id: cleanText(occurrence.plan_id),
-      plan_item_id: planItemId,
-      title: cleanText(item.title) || "Action",
-      description: cleanText(item.description) || null,
-      dimension: cleanText(item.dimension) || null,
-      kind: cleanText(item.kind),
-      tracking_type: cleanText(item.tracking_type) || null,
-      planned_day: cleanText(occurrence.planned_day) || null,
-      original_planned_day: cleanText(occurrence.original_planned_day) || null,
-      week_start_date: cleanText(occurrence.week_start_date) || null,
-      time_of_day: cleanText(item.time_of_day) || null,
-      reviewed_local_date: cleanText(params.reviewedLocalDate) || null,
-    };
-    const occurrenceStatus = cleanText(occurrence.status);
-    const entry = entryByItemId.get(planItemId);
-    const entryOutcome = cleanText(entry?.outcome);
-    const entryResolved = ["completed", "partial", "missed"].includes(
-      entryOutcome,
-    );
-    const occurrenceResolved = ["done", "partial", "missed"].includes(
-      occurrenceStatus,
-    );
-    if (entryResolved || occurrenceResolved) {
-      alreadyResolvedTargets.push({
-        ...target,
-        resolved_status: entryOutcome || occurrenceStatus,
-        resolved_source: entryResolved && occurrenceResolved
-          ? "entry_and_occurrence"
-          : entryResolved
-          ? "entry"
-          : "occurrence",
-      });
-      continue;
-    }
-    if (
-      ["planned", "rescheduled"].includes(occurrenceStatus) &&
-      ["active", "in_maintenance", "stalled"].includes(status)
-    ) {
-      openTargets.push(target);
-    }
-  }
-  return { openTargets, alreadyResolvedTargets };
-}
-
-function buildAlreadyResolvedDailyReviewAcknowledgement(
-  targets: AlreadyResolvedActionEveningReviewTarget[],
-): string {
-  const positiveTargets = targets.filter((target) =>
-    ["completed", "done", "partial"].includes(target.resolved_status)
-  );
-  if (positiveTargets.length === 0) return "";
-  const titles = positiveTargets.slice(0, 3).map((target) =>
-    `« ${target.title} »`
-  );
-  const suffix = positiveTargets.length > 3
-    ? ` et ${positiveTargets.length - 3} autre(s)`
-    : "";
-  const label = titles.length === 1
-    ? titles[0]
-    : `${titles.slice(0, -1).join(", ")} et ${titles[titles.length - 1]}`;
-  return `J'ai vu que ${label}${suffix} ${
-    positiveTargets.length === 1 ? "est déjà validée" : "sont déjà validées"
-  } aujourd'hui. Bien joué.`;
-}
-
-async function generateDailyActionReviewOpening(params: {
-  supabaseAdmin: ReturnType<typeof createClient>;
-  userId: string;
-  targets: ActionEveningReviewTarget[];
-  scheduledFor: string;
-  requestId: string;
-  allowGreeting: boolean;
-  includeConversationContext?: boolean;
-}): Promise<DailyActionReviewOpeningPlan> {
-  const provisionalState = buildInitialDailyActionReviewState(params.targets);
-  const provisionalFocusTargets = dailyActionReviewFocusTargets(
-    params.targets,
-    provisionalState,
-  );
-  let actionIntelligenceByOccurrenceId = {};
-  try {
-    const actionPayload = await loadMemoryV2Payload({
-      supabase: params.supabaseAdmin as any,
-      user_id: params.userId,
-      retrieval_mode: "cross_topic_lookup",
-      hints: ["action_related"],
-      message: provisionalFocusTargets.map((target) =>
-        `${target.plan_item_id} ${target.title}`
-      ).join("\n"),
-      limit: 4,
-      loader_plan: {
-        enabled: true,
-        reason: "daily_action_review_action_context",
-        retrieval_mode: "cross_topic_lookup",
-        budget: {
-          max_items: 4,
-          max_entities: 0,
-          topic_items: 0,
-          event_items: 0,
-          global_items: 0,
-          action_items: 4,
-          level_items: 0,
-        },
-        requested_scopes: ["action"],
-        topic_targets: [],
-        event_queries: [],
-        action_targets: provisionalFocusTargets.flatMap((target) => [
-          target.plan_item_id,
-          target.title,
-        ]),
-        domain_keys: [],
-        domain_prefixes: [],
-        retrieval_policy: "semantic_first",
-        requires_topic_router: false,
-        dispatcher_memory_plan_applied: true,
-        dispatcher_memory_mode: "targeted",
-        dispatcher_context_need: "daily_action_review",
-      },
-    });
-    actionIntelligenceByOccurrenceId = buildDailyActionReviewActionIntelligence(
-      {
-        targets: provisionalFocusTargets,
-        memoryItems: actionPayload.items,
-      },
-    );
-  } catch (error) {
-    console.warn(
-      `[process-checkins] request_id=${params.requestId} daily_action_review_action_context_failed`,
-      error,
-    );
-  }
-  const initialState = buildInitialDailyActionReviewState(params.targets, {
-    actionIntelligenceByOccurrenceId,
-  });
-  const focusTargets = dailyActionReviewFocusTargets(
-    params.targets,
-    initialState,
-  );
-  const attempts: string[] = [];
-  const baseInstruction = [
-    buildDailyActionReviewInstruction(focusTargets, {
-      allowGreeting: params.allowGreeting,
-    }),
-    formatDailyActionReviewActionIntelligenceForPrompt(
-      initialState.action_intelligence_by_occurrence_id,
-    ),
-  ].filter(Boolean).join("\n\n");
-  const eventGrounding = [
-    buildDailyActionReviewGrounding(focusTargets),
-    `current_focus_occurrence_ids=${
-      initialState.current_focus_occurrence_ids.join(",")
-    }`,
-    `remaining_occurrence_ids=${
-      initialState.remaining_occurrence_ids.join(",")
-    }`,
-  ].join("\n");
-  for (let attempt = 0; attempt < 4; attempt += 1) {
-    const body = await generateDynamicWhatsAppCheckinMessage({
-      admin: params.supabaseAdmin as any,
-      userId: params.userId,
-      eventContext: ACTION_EVENING_REVIEW_EVENT_CONTEXT,
-      scheduledFor: params.scheduledFor,
-      instruction: attempt === 0 ? baseInstruction : [
-        baseInstruction,
-        "",
-        "Correction obligatoire: les tentatives precedentes ne couvraient pas clairement toutes les actions selon le guard systeme.",
-        "Regenere une question naturelle qui couvre explicitement chaque action ciblee.",
-        "Ne reduis pas la question a une seule action.",
-        "Reprends suffisamment de mots distinctifs de chaque titre.",
-        `Tentatives precedentes: ${JSON.stringify(attempts)}`,
-      ].join("\n"),
-      eventGrounding,
-      source: attempt === 0
-        ? "process-checkins:daily_action_review"
-        : "process-checkins:daily_action_review_opening_repair",
-      requestId: params.requestId,
-      fallbackMessage: null,
-      includeConversationContext: params.includeConversationContext,
-    });
-    attempts.push(body);
-    if (
-      focusTargets.length <= 1 ||
-      openingCoversDailyReviewTargets(body, focusTargets)
-    ) {
-      return buildDailyActionReviewOpeningPlan({
-        targets: params.targets,
-        openingMessage: body,
-        actionIntelligenceByOccurrenceId,
-      });
-    }
-  }
-  throw new Error("daily_action_review_opening_missing_target_coverage");
-}
-
-function normalizeOpeningCoverageText(value: unknown): string {
-  return String(value ?? "")
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim();
-}
-
-function openingCoversDailyReviewTargets(
-  message: string,
-  targets: Array<{ title?: string | null }>,
-): boolean {
-  const normalizedMessage = normalizeOpeningCoverageText(message);
-  if (!normalizedMessage) return false;
-  return targets.every((target) => {
-    const titleTokens = normalizeOpeningCoverageText(target.title)
-      .split(" ")
-      .filter((token) => token.length >= 4);
-    if (titleTokens.length === 0) return true;
-    const requiredCount = Math.min(2, titleTokens.length);
-    const presentCount = titleTokens.filter((token) =>
-      normalizedMessage.includes(token)
-    ).length;
-    return presentCount >= requiredCount;
   });
 }
 
@@ -1071,53 +708,6 @@ async function persistWhatsappTempMemory(params: {
   );
 }
 
-function buildWeeklyAdaptiveReviewSkillState(params: {
-  weeklyProgressReview: unknown;
-  weeklyAdaptiveReview: unknown;
-  checkinId?: unknown;
-}) {
-  return {
-    skill_id: "weekly_adaptive_review_v1",
-    weekly_progress_review: params.weeklyProgressReview,
-    weekly_adaptive_review: params.weeklyAdaptiveReview,
-    scheduled_checkin_id: cleanText(params.checkinId) || null,
-    status: "open",
-    validation_unlock: {
-      status: "locked_until_weekly_complete",
-      meaning:
-        "La validation de la semaine suivante se debloque quand le point weekly est termine; sinon le rappel du lundi matin sert de fallback.",
-    },
-    weekly_flow_state: {
-      status: "open",
-      proposal_status: "none",
-      validation_unlock_status: "locked_until_weekly_complete",
-      updated_at: new Date().toISOString(),
-    },
-    turn_count: 0,
-    updated_at: new Date().toISOString(),
-  };
-}
-
-async function activateWeeklyAdaptiveReviewState(params: {
-  supabaseAdmin: ReturnType<typeof createClient>;
-  userId: string;
-  weeklyProgressReview: unknown;
-  weeklyAdaptiveReview: unknown;
-  checkinId?: unknown;
-}) {
-  const tempMemory = await fetchWhatsappTempMemory(
-    params.supabaseAdmin,
-    params.userId,
-  ).catch(() => ({}));
-  await persistWhatsappTempMemory({
-    supabaseAdmin: params.supabaseAdmin,
-    userId: params.userId,
-    tempMemory: {
-      ...tempMemory,
-      __active_skill_state: buildWeeklyAdaptiveReviewSkillState(params),
-    },
-  });
-}
 
 async function consumeUnansweredRecurringProbe(params: {
   supabaseAdmin: ReturnType<typeof createClient>;
@@ -2911,8 +2501,6 @@ Deno.serve(async (req) => {
         eventContext === ACTION_LATE_AFTERNOON_EVENT_CONTEXT;
       const isActionNightPrep =
         eventContext === ACTION_NIGHT_PREP_EVENT_CONTEXT;
-      const isActionEveningReview =
-        eventContext === ACTION_EVENING_REVIEW_EVENT_CONTEXT;
       const isWeeklyPlanningValidationPrompt =
         eventContext === WEEKLY_PLANNING_VALIDATION_PROMPT_EVENT_CONTEXT;
       const isWeeklyProgressReview =
@@ -2974,7 +2562,7 @@ Deno.serve(async (req) => {
       // 16:00 because delivery backed off is not a late message, it is a wrong one.
       const isPeremptibleProactiveCheckin = isMomentumMorningNudge ||
         isActionMorningEncouragement || isMorningLightGreeting ||
-        isActionEveningReview || isWeeklyProgressReview || isMomentumOutreach ||
+        isWeeklyProgressReview || isMomentumOutreach ||
         isKeelProactive;
       if (isPeremptibleProactiveCheckin) {
         const stalenessPayload =
@@ -3701,410 +3289,6 @@ Deno.serve(async (req) => {
           );
         }
       }
-      if (isActionEveningReview) {
-        const attemptCount = Math.max(
-          1,
-          Number((checkin as any)?.delivery_attempt_count ?? 0) + 1,
-        );
-        const occurrenceIds = parseStringArray(payload?.occurrence_ids);
-        if (occurrenceIds.length === 0) {
-          await markScheduledCheckinDeliveryState({
-            supabaseAdmin,
-            checkinId: checkin.id,
-            status: "cancelled",
-            attemptCount,
-            errorMessage: "action_evening_review_no_occurrences",
-            requestId,
-          });
-          continue;
-        }
-
-        const targetLoad = await loadActionEveningReviewTargets({
-          supabaseAdmin,
-          userId: String(checkin.user_id),
-          occurrenceIds,
-          timezone: userTimezone,
-          reviewedLocalDate: cleanText(payload?.local_date),
-        });
-        const targets = targetLoad.openTargets;
-        const alreadyResolvedTargets = targetLoad.alreadyResolvedTargets;
-        if (targets.length === 0) {
-          const alreadyResolvedAck =
-            buildAlreadyResolvedDailyReviewAcknowledgement(
-              alreadyResolvedTargets,
-            );
-          if (alreadyResolvedAck) {
-            try {
-              const resp = await callWhatsappSend({
-                user_id: checkin.user_id,
-                message: {
-                  type: "text",
-                  body: alreadyResolvedAck,
-                },
-                purpose: "action_evening_review",
-                require_opted_in: true,
-                force_template: !in24hConversationWindow,
-                metadata_extra: {
-                  source: "scheduled_checkin",
-                  event_context: checkin.event_context,
-                  original_checkin_id: checkin.id,
-                  purpose: "action_evening_review_already_resolved",
-                  occurrence_ids: alreadyResolvedTargets.map((target) =>
-                    target.occurrence_id
-                  ),
-                  plan_item_ids: [
-                    ...new Set(
-                      alreadyResolvedTargets.map((target) =>
-                        target.plan_item_id
-                      ),
-                    ),
-                  ],
-                },
-              });
-              const skipped = Boolean((resp as any)?.skipped);
-              if (skipped) {
-                await markScheduledCheckinDeliveryState({
-                  supabaseAdmin,
-                  checkinId: checkin.id,
-                  status: "cancelled",
-                  attemptCount,
-                  draftMessage: alreadyResolvedAck,
-                  errorMessage: String(
-                    (resp as any)?.skip_reason ??
-                      "action_evening_review_already_resolved_skipped",
-                  ),
-                  requestId: String((resp as any)?.request_id ?? requestId),
-                });
-                continue;
-              }
-              if (Boolean((resp as any)?.used_template)) {
-                await markScheduledCheckinAwaitingTemplateUser({
-                  supabaseAdmin,
-                  checkin: checkin as Record<string, unknown>,
-                  attemptCount,
-                  draftMessage: alreadyResolvedAck,
-                  requestId: String((resp as any)?.request_id ?? requestId),
-                });
-                processedCount++;
-                continue;
-              }
-              await markScheduledCheckinDeliveryState({
-                supabaseAdmin,
-                checkinId: checkin.id,
-                status: "sent",
-                attemptCount,
-                draftMessage: alreadyResolvedAck,
-                errorMessage: null,
-                requestId: String((resp as any)?.request_id ?? requestId),
-              });
-              processedCount++;
-              continue;
-            } catch (e) {
-              const status = (e as any)?.status;
-              const msg = e instanceof Error ? e.message : String(e);
-              const nextStatus = shouldRetryScheduledCheckinDelivery(status)
-                ? "retrying"
-                : "failed";
-              await markScheduledCheckinDeliveryState({
-                supabaseAdmin,
-                checkinId: checkin.id,
-                status: nextStatus,
-                attemptCount,
-                draftMessage: alreadyResolvedAck,
-                errorMessage: msg,
-                requestId,
-              });
-              continue;
-            }
-          }
-          await markScheduledCheckinDeliveryState({
-            supabaseAdmin,
-            checkinId: checkin.id,
-            status: "cancelled",
-            attemptCount,
-            errorMessage: "action_evening_review_already_answered",
-            requestId,
-          });
-          continue;
-        }
-
-        let openingPlan: DailyActionReviewOpeningPlan | null = null;
-        let reviewBody = "";
-        try {
-          const { data: profileForGreeting } = await supabaseAdmin
-            .from("profiles")
-            .select("chat_last_inbound_at, chat_last_outbound_at")
-            .eq("id", checkin.user_id)
-            .maybeSingle();
-          const allowRelaunchGreeting = allowRelaunchGreetingFromLastMessage({
-            lastInboundAt: (profileForGreeting as any)
-              ?.chat_last_inbound_at,
-            lastOutboundAt: (profileForGreeting as any)
-              ?.chat_last_outbound_at,
-            thresholdHours: PROACTIVE_GREETING_RELAUNCH_THRESHOLD_HOURS,
-          });
-          openingPlan = await generateDailyActionReviewOpening({
-            supabaseAdmin,
-            userId: String(checkin.user_id),
-            targets,
-            scheduledFor: String((checkin as any)?.scheduled_for ?? ""),
-            requestId,
-            allowGreeting: allowRelaunchGreeting,
-            includeConversationContext: in24hConversationWindow,
-          });
-          reviewBody = openingPlan.opening_message;
-          const alreadyResolvedAck =
-            buildAlreadyResolvedDailyReviewAcknowledgement(
-              alreadyResolvedTargets,
-            );
-          if (alreadyResolvedAck) {
-            reviewBody = `${alreadyResolvedAck}\n\n${reviewBody}`;
-            openingPlan = {
-              ...openingPlan,
-              opening_message: reviewBody,
-            };
-          }
-          if (!allowRelaunchGreeting) {
-            reviewBody = applyScheduledCheckinGreetingPolicy({
-              text: reviewBody,
-              allowRelaunchGreeting: false,
-            });
-            openingPlan = {
-              ...openingPlan,
-              opening_message: reviewBody,
-            };
-          }
-        } catch (e) {
-          const msg = e instanceof Error ? e.message : String(e);
-          console.warn(
-            `[process-checkins] request_id=${requestId} daily_action_review_generation_failed checkin_id=${checkin.id}`,
-            e,
-          );
-          await markScheduledCheckinDeliveryState({
-            supabaseAdmin,
-            checkinId: checkin.id,
-            status: "retrying",
-            attemptCount,
-            errorMessage: `daily_action_review_generation_failed:${msg}`,
-            requestId,
-          });
-          continue;
-        }
-        if (!reviewBody.trim()) {
-          await markScheduledCheckinDeliveryState({
-            supabaseAdmin,
-            checkinId: checkin.id,
-            status: "retrying",
-            attemptCount,
-            errorMessage: "daily_action_review_generation_empty",
-            requestId,
-          });
-          continue;
-        }
-        try {
-          const resp = await callWhatsappSend({
-            user_id: checkin.user_id,
-            message: {
-              type: "text",
-              body: reviewBody,
-            },
-            purpose: "action_evening_review",
-            require_opted_in: true,
-            force_template: !in24hConversationWindow,
-            metadata_extra: {
-              source: "scheduled_checkin",
-              event_context: checkin.event_context,
-              original_checkin_id: checkin.id,
-              purpose: "action_evening_review",
-              occurrence_ids: targets.map((target) => target.occurrence_id),
-              already_resolved_occurrence_ids: alreadyResolvedTargets.map((
-                target,
-              ) => target.occurrence_id),
-              plan_item_ids: [
-                ...new Set(targets.map((target) => target.plan_item_id)),
-              ],
-            },
-          });
-          const skipped = Boolean((resp as any)?.skipped);
-          if (skipped) {
-            await markScheduledCheckinDeliveryState({
-              supabaseAdmin,
-              checkinId: checkin.id,
-              status: "cancelled",
-              attemptCount,
-              draftMessage: reviewBody,
-              errorMessage: String(
-                (resp as any)?.skip_reason ?? "action_evening_review_skipped",
-              ),
-              requestId: String((resp as any)?.request_id ?? requestId),
-            });
-            continue;
-          }
-          const usedTemplate = Boolean((resp as any)?.used_template);
-
-          const initialDailyReviewNoteInformation = {
-            source_flow_id: "process_checkins.action_evening_review_v2",
-            source_flow: "process_checkins",
-            source_flow_presentation:
-              "Evening system event opened the daily action review for selected planned actions.",
-            source_flow_state_summary:
-              "Daily action review pending action is active and waiting for the user's outcome evidence.",
-            handoff_reason: "bridge",
-            target_dispatcher: "daily_action_review_v1",
-            handoff_context_for_next_dispatcher:
-              "Consume the user's reply as the first active daily review turn. Do not call the global dispatcher unless the local dispatcher returns exit_to_global_dispatcher.",
-            target_local_dispatcher_hint: "daily_action_review_v1",
-            user_message_summary: null,
-            active_flow_summary:
-              "System opened daily review for the selected action targets.",
-            collected_state: {
-              scheduled_checkin_id: checkin.id,
-              event_context: checkin.event_context,
-              local_date: cleanText(payload?.local_date),
-              week_start_date: cleanText(payload?.week_start_date),
-              timezone: userTimezone,
-              target_occurrence_ids: targets.map((target) =>
-                target.occurrence_id
-              ),
-              target_titles: targets.map((target) => target.title),
-              already_resolved_occurrence_ids: alreadyResolvedTargets.map((
-                target,
-              ) => target.occurrence_id),
-            },
-            unresolved_questions: [
-              "Which selected actions were done or not done today.",
-              "If not done, the reason and whether the action remains relevant.",
-            ],
-            confidence: "high",
-            evidence: [
-              "event_context=action_evening_review_v2",
-              "process-checkins selected and persisted daily review targets",
-            ],
-            recommended_next_focus:
-              "Classify the current user reply against the selected daily review targets and produce a stage-specific visible_task.",
-            structured_context: {
-              source_flow: "process_checkins",
-              pending_action_kind: "scheduled_checkin",
-              chat_capability: "daily_action_review",
-              event_context: checkin.event_context,
-              targets: targets.map((target) => ({
-                occurrence_id: target.occurrence_id,
-                plan_item_id: target.plan_item_id,
-                title: target.title,
-                description: target.description ?? null,
-                kind: target.kind ?? null,
-                dimension: target.dimension ?? null,
-              })),
-            },
-            risk_score: 0,
-          };
-
-          if (usedTemplate) {
-            await markScheduledCheckinAwaitingTemplateUser({
-              supabaseAdmin,
-              checkin: checkin as Record<string, unknown>,
-              attemptCount,
-              draftMessage: reviewBody,
-              requestId: String((resp as any)?.request_id ?? requestId),
-              extraPayload: {
-                action_evening_review: true,
-                event_context: checkin.event_context,
-                message_mode: "template_gate",
-                chat_capability: "daily_action_review",
-                occurrence_ids: targets.map((target) => target.occurrence_id),
-                targets,
-                already_resolved_targets: alreadyResolvedTargets,
-                initial_note_information: initialDailyReviewNoteInformation,
-                review_state: openingPlan?.initial_skill_state ?? null,
-                asked_occurrence_ids: openingPlan?.asked_occurrence_ids ?? [],
-                not_yet_asked_occurrence_ids:
-                  openingPlan?.not_yet_asked_occurrence_ids ?? [],
-                grouping_reason: openingPlan?.grouping_reason ?? null,
-                local_date: cleanText(payload?.local_date),
-                week_start_date: cleanText(payload?.week_start_date),
-                timezone: userTimezone,
-              },
-            });
-            processedCount++;
-            continue;
-          }
-
-          const { error: pendErr } = await supabaseAdmin
-            .from("pending_actions")
-            .insert({
-              user_id: checkin.user_id,
-              kind: "scheduled_checkin",
-              status: "pending",
-              scheduled_checkin_id: checkin.id,
-              payload: {
-                action_evening_review: true,
-                event_context: checkin.event_context,
-                draft_message: reviewBody,
-                message_mode: "conversation",
-                chat_capability: "daily_action_review",
-                occurrence_ids: targets.map((target) => target.occurrence_id),
-                targets,
-                already_resolved_targets: alreadyResolvedTargets,
-                initial_note_information: initialDailyReviewNoteInformation,
-                review_state: openingPlan?.initial_skill_state ?? null,
-                asked_occurrence_ids: openingPlan?.asked_occurrence_ids ?? [],
-                not_yet_asked_occurrence_ids:
-                  openingPlan?.not_yet_asked_occurrence_ids ?? [],
-                grouping_reason: openingPlan?.grouping_reason ?? null,
-                local_date: cleanText(payload?.local_date),
-                week_start_date: cleanText(payload?.week_start_date),
-                timezone: userTimezone,
-              },
-              expires_at: new Date(Date.now() + 18 * 60 * 60 * 1000)
-                .toISOString(),
-            });
-          if (pendErr) throw pendErr;
-
-          await markScheduledCheckinDeliveryState({
-            supabaseAdmin,
-            checkinId: checkin.id,
-            status: "awaiting_user",
-            attemptCount,
-            draftMessage: reviewBody,
-            errorMessage: null,
-            requestId: String((resp as any)?.request_id ?? requestId),
-          });
-          processedCount++;
-          continue;
-        } catch (e) {
-          const status = (e as any)?.status;
-          const msg = e instanceof Error ? e.message : String(e);
-          const nextStatus = shouldRetryScheduledCheckinDelivery(status)
-            ? "retrying"
-            : "failed";
-          await logEdgeFunctionError({
-            functionName: "process-checkins",
-            error: msg,
-            requestId,
-            userId: checkin.user_id,
-            source: "whatsapp",
-            metadata: {
-              checkin_id: checkin.id,
-              event_context: checkin.event_context,
-              checkin_purpose: "action_evening_review",
-              downstream_status: status ?? null,
-              downstream_error: (e as any)?.data ?? null,
-            },
-          });
-          await markScheduledCheckinDeliveryState({
-            supabaseAdmin,
-            checkinId: checkin.id,
-            status: nextStatus,
-            attemptCount,
-            scheduledFor: nextStatus === "retrying"
-              ? computeNextRetryAtIso(attemptCount)
-              : null,
-            errorMessage: msg,
-            requestId,
-          });
-          continue;
-        }
-      }
       if (isWeeklyPlanningValidationPrompt) {
         const attemptCount = Math.max(
           1,
@@ -4211,7 +3395,6 @@ Deno.serve(async (req) => {
           weekStartDate,
           dashboardUrl,
         });
-        const adaptiveReview = buildWeeklyAdaptiveReview(review);
         const summary = review.transformations.reduce(
           (acc, transformation) => {
             acc.done += transformation.summary.done_count;
@@ -4250,23 +3433,14 @@ Deno.serve(async (req) => {
         }
         const weeklyReviewPayload = {
           ...payload,
-          source: "process_checkins:weekly_adaptive_review_v1",
+          source: "process_checkins:weekly_progress_review",
           weekly_progress_review: review,
-          weekly_adaptive_review: adaptiveReview,
           momentum_snapshot_v2: momentumSnapshot,
-          instruction: buildWeeklyAdaptiveReviewInstruction(adaptiveReview),
           event_grounding: momentumSnapshot
             ? `${
               buildWeeklyProgressReviewGrounding(review)
-            }\n\nweekly_adaptive_review=${
-              buildWeeklyAdaptiveReviewGrounding(adaptiveReview)
             }\n\nmomentum_snapshot_v2=${JSON.stringify(momentumSnapshot)}`
-            : `${
-              buildWeeklyProgressReviewGrounding(review)
-            }\n\nweekly_adaptive_review=${
-              buildWeeklyAdaptiveReviewGrounding(adaptiveReview)
-            }`,
-          chat_capability: "weekly_adaptive_review",
+            : buildWeeklyProgressReviewGrounding(review),
         };
         let weeklyReviewIntro = "";
         try {
@@ -4281,16 +3455,11 @@ Deno.serve(async (req) => {
             lastOutboundAt: (profileForGreeting as any)
               ?.chat_last_outbound_at,
           });
-          weeklyReviewIntro = await generateWeeklyAdaptiveReviewOpening({
-            supabaseAdmin,
-            userId: String(checkin.user_id),
-            scheduledFor: String((checkin as any)?.scheduled_for ?? ""),
-            requestId,
-            review,
-            adaptiveReview,
-            momentumSnapshot,
-            allowGreeting: allowRelaunchGreeting,
-          });
+          // Demolition B2C (2026-08-06): l'ouverture etait composee par le
+          // flow `weekly_adaptive_review_v1`, supprime. Le check-in part avec
+          // son gabarit, sans intro generee.
+          void allowRelaunchGreeting;
+          weeklyReviewIntro = "";
         } catch (e) {
           const msg = e instanceof Error ? e.message : String(e);
           console.warn(
@@ -4347,8 +3516,9 @@ Deno.serve(async (req) => {
                 done_count: summary.done,
                 partial_count: summary.partial,
                 missed_count: summary.missed,
-                habit_verdict: adaptiveReview.habit_verdict.status,
-                week_strategy: adaptiveReview.week_strategy.decision,
+                // Demolition B2C (2026-08-06): `habit_verdict` et
+                // `week_strategy` venaient de la revue ADAPTATIVE, supprimee.
+                // Les compteurs ci-dessus, eux, viennent de `review`.
               },
             });
             if (Boolean((resp as any)?.skipped)) {
@@ -4806,20 +3976,6 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        if (isWeeklyProgressReview && !usedTemplate) {
-          await activateWeeklyAdaptiveReviewState({
-            supabaseAdmin,
-            userId: String(checkin.user_id),
-            weeklyProgressReview: payload?.weekly_progress_review ?? null,
-            weeklyAdaptiveReview: payload?.weekly_adaptive_review ?? null,
-            checkinId: checkin.id,
-          }).catch((error) => {
-            console.warn(
-              `[process-checkins] request_id=${requestId} weekly_active_state_persist_failed checkin_id=${checkin.id}`,
-              error,
-            );
-          });
-        }
 
         // Règle B: un message doux envoyé → les autres nudges d'action de la
         // journée se taisent (marqueur jour dans la temp memory WhatsApp).

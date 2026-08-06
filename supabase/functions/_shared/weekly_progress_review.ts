@@ -5,8 +5,21 @@ import {
   mondayWeekStartForLocalDate,
   weekdayKeyForLocalDate,
 } from "./action_occurrences.ts";
-import { DAILY_ACTION_REVIEW_SOURCE } from "./daily_action_review.ts";
 import { computeScheduledForFromLocal } from "./scheduled_checkins.ts";
+
+/**
+ * LA VALEUR STOCKÉE SURVIT AU FLOW QUI L'A ÉCRITE.
+ *
+ * Le flow `daily_action_review_v1` a été supprimé (démolition B2C, 2026-08-06)
+ * et ce jeton était jusque-là importé de son module. Il reste ici parce qu'il
+ * est écrit dans `scheduled_checkins.metadata.source` de lignes DÉJÀ EN BASE :
+ * ce module ne produit plus rien, il ne sert qu'à les reconnaître pour les
+ * annuler et les purger.
+ *
+ * À supprimer avec ce module, une fois les lignes résiduelles balayées — même
+ * condition que `WEEKLY_PLANNING_VALIDATION_PROMPT_EVENT_CONTEXT` ci-dessous.
+ */
+const DAILY_ACTION_REVIEW_SOURCE = "daily_action_review_v1";
 
 export const WEEKLY_PROGRESS_REVIEW_EVENT_CONTEXT = "weekly_progress_review_v2";
 // LEGACY (W2.B): la machine de validation hebdo est supprimée — plus rien ne

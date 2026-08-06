@@ -60,31 +60,6 @@ Deno.test("dispatcher prompt is minimal and documents normal reply fallback", ()
   );
 });
 
-Deno.test("dispatcher prompt keeps action-linked emotion in action coaching", () => {
-  assertEquals(
-    DISPATCHER_V2_SYSTEM_PROMPT.includes(
-      "Si la tension, peur, pression, boule au ventre",
-    ),
-    true,
-  );
-  const prompt = JSON.parse(buildDispatcherPrompt({
-    user_message:
-      "Le plus dur c'est le mail: je suis tendu avant de m'y mettre.",
-    recent_messages: [],
-    plan_snapshot: { items: [] },
-  }));
-  assertEquals(
-    JSON.stringify(prompt).includes("action_linked_emotional_friction"),
-    true,
-  );
-  assertEquals(
-    JSON.stringify(prompt).includes(
-      "The emotional friction is anchored to starting a concrete action",
-    ),
-    true,
-  );
-});
-
 Deno.test("dispatcher prompt excludes active local runtime state from input", () => {
   const removedOperation = ["prepare", "attack", "card"].join("_");
   const prompt = JSON.parse(buildDispatcherPrompt({
@@ -162,26 +137,6 @@ Deno.test("dispatcher routes product explanation to product_help only", async ()
   assertNoLegacyRouteFields(frame);
 });
 
-Deno.test("dispatcher keeps coaching recommendation signal", async () => {
-  const frame = await dispatch(
-    "Je n'y arrive pas sur cette action, je fais quoi ?",
-    {
-      skill_signals: {
-        coaching_recommendation: {
-          detected: true,
-          confidence_band: "high",
-          reason: "stuck_action_feature_recommendation",
-        },
-      },
-    },
-  );
-
-  assertEquals(frame.skill_signals.coaching_recommendation?.detected, true);
-  assertEquals(frame.skill_signals.product_help, undefined);
-  assertEquals(frame.direct_effects, []);
-  assertNoLegacyRouteFields(frame);
-});
-
 Deno.test("dispatcher keeps plan_too_light drift direction through runtime sanitizer (nina-r4 B03)", async () => {
   const frame = await dispatch("Mon plan est trop mou, corse-le", {
     skill_signals: {
@@ -206,53 +161,6 @@ Deno.test("dispatcher keeps plan_too_light drift direction through runtime sanit
     frame.skill_signals.plan_realignment?.context?.drift_type,
     "plan_too_light",
   );
-});
-
-Deno.test("dispatcher normalizes coaching recommendation activation context", async () => {
-  const frame = await dispatch("J'oublie mon action du soir du plan", {
-    skill_signals: {
-      coaching_recommendation: {
-        detected: true,
-        confidence_band: "high",
-        reason: "plan_action_coaching_need",
-          context: {
-            coaching_type: "plan_action",
-            confidence: 0.88,
-            activation_checks: {
-            is_coaching_need: true,
-            is_about_plan_action: true,
-            is_about_non_plan_action: false,
-            is_about_emotional_state: false,
-            has_concrete_plan_action: true,
-            needs_type_confirmation: false,
-          },
-          action_context: {
-            source: "plan",
-            plan_item_id: "walk",
-            action_title: "marche",
-            action_type: "habit",
-          },
-          emotional_state_context: null,
-          category: "plan_action_coaching",
-          failure_mode: "forgetting",
-          priority_features: ["attack_card"],
-          reason: "User asks for coaching on a concrete plan action.",
-        },
-      },
-    },
-  });
-
-  const context = frame.skill_signals.coaching_recommendation?.context;
-  assertEquals(context?.coaching_type, "plan_action");
-  assertEquals(context?.confidence, 0.88);
-  assertEquals(context?.action_context?.plan_item_id, "walk");
-  assertEquals(Object.hasOwn(context ?? {}, "activation_checks"), false);
-  assertEquals(Object.hasOwn(context ?? {}, "needs_type_confirmation"), false);
-  assertEquals(Object.hasOwn(context ?? {}, "emotional_state_context"), false);
-  assertEquals(Object.hasOwn(context ?? {}, "category"), false);
-  assertEquals(Object.hasOwn(context ?? {}, "failure_mode"), false);
-  assertEquals(Object.hasOwn(context ?? {}, "priority_features"), false);
-  assertEquals(Object.hasOwn(context?.action_context ?? {}, "action_type"), false);
 });
 
 Deno.test("dispatcher preserves plan realignment signal context without execution", async () => {
@@ -338,30 +246,6 @@ Deno.test("dispatcher keeps initiative product question as product_help", async 
     (frame.skill_signals as Record<string, unknown>).feature_opportunity,
     undefined,
   );
-});
-
-Deno.test("dispatcher normalizes legacy entry coaching signal", async () => {
-  const frame = await dispatch(
-    "Je ne sais pas si je dois changer l'action ou mettre un rappel",
-    {
-      skill_signals: {
-        entry: {
-          coaching_recommendation: {
-            detected: true,
-            confidence_band: "medium",
-            reason: "feature_choice",
-          },
-        },
-      },
-    },
-  );
-
-  assertEquals(frame.skill_signals.coaching_recommendation?.detected, true);
-  assertEquals(
-    frame.skill_signals.coaching_recommendation?.confidence_band,
-    "medium",
-  );
-  assertEquals((frame.skill_signals as any).entry, undefined);
 });
 
 Deno.test("dispatcher treats personal active-state requests as normal fallback", async () => {

@@ -38,7 +38,6 @@ export type EffectLedgerEntry = {
     | "executor"
     | "memory_runtime"
     | "guard"
-    | "weekly_review"
     | "conversation_skill"
     | "status_projection";
   payload_summary?: Record<string, unknown> | null;

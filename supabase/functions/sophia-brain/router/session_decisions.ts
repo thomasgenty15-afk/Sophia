@@ -18,10 +18,6 @@
 // retenue) — c'est exactement le rejet de « courage » au profit
 // d'« apaisement » que le memorizer encodait deja correctement mais que la
 // couche in-turn ratait.
-import type {
-  CoachingPotionType,
-  CoachingRecommendationLocalState,
-} from "../skills/coaching_recommendation/contract.ts";
 import type { PlanRealignmentLocalState } from "../skills/plan_realignment/contract.ts";
 
 export type SessionDecisionStatus = "retained" | "dropped";
@@ -40,17 +36,6 @@ export type SessionDecision = {
   handoff: string | null;
   status: SessionDecisionStatus;
 };
-
-/** Miroir type-verifie de l'union CoachingPotionType: un ajout au contrat qui
- * manquerait ici casse le typecheck (jamais de catalogue stale silencieux). */
-const POTION_CATALOGUE: readonly CoachingPotionType[] = [
-  "apaisement",
-  "amour",
-  "courage",
-  "clarte",
-  "guerison",
-  "anti_decrochage",
-] as const;
 
 const SESSION_DECISIONS_KEY = "__session_decisions";
 const MAX_DECISIONS = 8;
@@ -79,31 +64,6 @@ function normalizeDecision(entry: unknown): SessionDecision | null {
   };
 }
 
-export function sessionDecisionFromCoachingState(
-  localState: unknown,
-): SessionDecision | null {
-  const state = localState as
-    | Partial<CoachingRecommendationLocalState>
-    | null
-    | undefined;
-  if (!state || typeof state !== "object") return null;
-  const visible = state.last_visible_decision ?? null;
-  const feature = text(state.current_recommendation?.feature) ??
-    text(state.recommendation_decision?.primary_feature);
-  const lever = text(visible?.lever);
-  const technique = text(visible?.variant);
-  const potionType = text(visible?.potion_type);
-  if (!feature && !lever && !technique && !potionType) return null;
-  return {
-    source: "coaching_recommendation",
-    feature,
-    lever,
-    technique,
-    potion_type: potionType,
-    handoff: null,
-    status: "retained",
-  };
-}
 
 // W2.B: le producteur `sessionDecisionFromFeatureOpportunityState` est parti
 // avec le skill `feature_opportunity`. La valeur `"feature_opportunity"` reste
@@ -222,10 +182,9 @@ export function sessionDecisionsPromptBlock(
         ...dropped.map(decisionLine),
       ]
       : []),
-    `Catalogue canonique des potions (les SEULS noms qui existent): ${
-      POTION_CATALOGUE.join(", ")
-    }.`,
-    "Pour tout recall, recap ou reparation portant sur ce qui a ete retenu/decide en session, reponds depuis cette liste — JAMAIS depuis ta memoire libre de la conversation. Un nom de potion rendu appartient TOUJOURS au catalogue ci-dessus; n'invente ni ne fusionne jamais un nom (ex. avec le titre d'une action du plan).",
+    // Demolition B2C (2026-08-06): le catalogue de potions partait avec la lane
+    // `coaching_recommendation`. Plus aucun nom de potion n'est produit.
+    "Pour tout recall, recap ou reparation portant sur ce qui a ete retenu/decide en session, reponds depuis cette liste — JAMAIS depuis ta memoire libre de la conversation.",
     "Une option ECARTEE ne se presente jamais comme retenue; si le user la mentionne, tranche explicitement ('on l'avait ecartee, on est parti sur ...').",
     "Si le user corrige avec une valeur presente ici, tranche explicitement ('tu as raison, c'etait ...') au lieu de proposer de re-choisir.",
     "Dans un recap/point de session, les decisions retenues non encore executees (potions/techniques a prendre, initiatives a creer, ajustements a faire dans l'app) se listent comme 'reste a faire de ton cote' — jamais omises.",

@@ -71,40 +71,10 @@ Deno.test("presence entry: strong signal from clean state enters presence", () =
 // à un signal présence fort. C'est le flow coaching lui-même qui rend la main
 // (exit_to_global_dispatcher sur dépôt discursif → re-dispatch global le même
 // tour, état purgé), et l'entrée présence se fait alors sur l'état propre.
-Deno.test("active coaching keeps the turn even on a strong presence signal (exit belongs to the local flow)", () => {
-  const d = runConversationRouters({
-    turn_frame: frame({ skill_signals: presenceSignal("critical") }),
-    active_skill_state: activeCoaching,
-    safety_context_risk_band: "none",
-    presence_flow_enabled: true,
-  });
-  assertEquals(d.response_owner, "coaching_recommendation");
-  assertEquals(d.reason_code, "active_coaching_recommendation");
-});
-
 Deno.test("post-exit re-dispatch: strong presence signal on a purged state enters presence", () => {
   const d = runConversationRouters({
     turn_frame: frame({ skill_signals: presenceSignal("critical") }),
     active_skill_state: null,
-    safety_context_risk_band: "none",
-    presence_flow_enabled: true,
-  });
-  assertEquals(d.response_owner, "presence_conversation");
-  assertEquals(d.reason_code, "presence_conversation_entry");
-});
-
-Deno.test("fresh presence entry outranks a concurrent fresh coaching signal", () => {
-  const d = runConversationRouters({
-    turn_frame: frame({
-      skill_signals: {
-        ...presenceSignal("high"),
-        coaching_recommendation: {
-          detected: true,
-          confidence_band: "high",
-          reason: "concurrent",
-        },
-      },
-    }),
     safety_context_risk_band: "none",
     presence_flow_enabled: true,
   });
@@ -153,15 +123,6 @@ Deno.test("safety high preempts even an active presence flow", () => {
   assertEquals(d.response_owner, "safety");
 });
 
-Deno.test("weekly review active blocks presence entry (hard lock)", () => {
-  const d = runConversationRouters({
-    turn_frame: frame({ skill_signals: presenceSignal("high") }),
-    active_skill_state: activeWeekly,
-    safety_context_risk_band: "none",
-    presence_flow_enabled: true,
-  });
-  assertEquals(d.response_owner, "weekly_adaptive_review_v1");
-});
 
 Deno.test("active presence passes direct effects through (parenthèse tâche)", () => {
   const d = runConversationRouters({
@@ -181,21 +142,4 @@ Deno.test("active presence passes direct effects through (parenthèse tâche)", 
   assertEquals(d.response_owner, "presence_conversation");
   assertEquals(d.direct_effects_to_run, ["create_one_shot_reminder"]);
   assertEquals(d.reason_code, "active_presence_conversation_with_direct_effects");
-});
-
-Deno.test("no regression: coaching signal without presence still routes coaching", () => {
-  const d = runConversationRouters({
-    turn_frame: frame({
-      skill_signals: {
-        coaching_recommendation: {
-          detected: true,
-          confidence_band: "high",
-          reason: "x",
-        },
-      },
-    }),
-    safety_context_risk_band: "none",
-    presence_flow_enabled: true,
-  });
-  assertEquals(d.response_owner, "coaching_recommendation");
 });

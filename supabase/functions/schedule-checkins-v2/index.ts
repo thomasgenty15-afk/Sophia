@@ -7,7 +7,6 @@ import { logEdgeFunctionError } from "../_shared/error-log.ts";
 import { getRequestId, jsonResponse } from "../_shared/http.ts";
 import { ensureInternalRequest } from "../_shared/internal-auth.ts";
 import {
-  ACTION_EVENING_REVIEW_EVENT_CONTEXT,
   ACTION_LATE_AFTERNOON_EVENT_CONTEXT,
   ACTION_MORNING_EVENT_CONTEXT,
   ACTION_NIGHT_PREP_EVENT_CONTEXT,
@@ -72,18 +71,11 @@ const WEEKLY_PROGRESS_REVIEW_LOCAL_TIME = "18:30";
 const MORNING_PENDING_STATUSES = ["pending", "retrying", "awaiting_user"];
 const LEGACY_ACTION_MORNING_FOLLOWUP_EVENT_CONTEXT =
   "action_morning_followup_v2";
-const EVENING_REVIEW_SUPPRESSES_MORNING_FOLLOWUP_STATUSES = [
-  "pending",
-  "retrying",
-  "awaiting_user",
-  "sent",
-];
 
 function cleanText(value: unknown, fallback = ""): string {
   const text = String(value ?? "").trim();
   return text || fallback;
 }
-
 
 function filterScheduleOccurrences(
   schedule: TodayActionOccurrenceSchedule,
@@ -108,40 +100,6 @@ function occurrenceCount(schedule: TodayActionOccurrenceSchedule): number {
     (total, transformation) => total + transformation.occurrences.length,
     0,
   );
-}
-
-async function loadOccurrenceIdsCoveredByEveningReview(params: {
-  supabaseAdmin: ReturnType<typeof createClient>;
-  userId: string;
-  reviewedLocalDate: string;
-}): Promise<Set<string>> {
-  const { data, error } = await params.supabaseAdmin
-    .from("scheduled_checkins")
-    .select("message_payload")
-    .eq("user_id", params.userId)
-    .eq("event_context", ACTION_EVENING_REVIEW_EVENT_CONTEXT)
-    .contains("message_payload", {
-      reviewed_local_date: params.reviewedLocalDate,
-    })
-    .in("status", EVENING_REVIEW_SUPPRESSES_MORNING_FOLLOWUP_STATUSES)
-    .limit(50);
-
-  if (error) throw error;
-
-  const occurrenceIds = new Set<string>();
-  for (const row of data ?? []) {
-    const payload = (row as { message_payload?: Record<string, unknown> })
-      .message_payload ?? {};
-    const ids = Array.isArray(payload.occurrence_ids)
-      ? payload.occurrence_ids
-      : [];
-    for (const id of ids) {
-      const occurrenceId = cleanText(id);
-      if (occurrenceId) occurrenceIds.add(occurrenceId);
-    }
-  }
-
-  return occurrenceIds;
 }
 
 function errorToMessage(error: unknown): string {
@@ -219,28 +177,6 @@ async function cancelFutureMorningCheckins(params: {
       LEGACY_ACTION_MORNING_FOLLOWUP_EVENT_CONTEXT,
       MORNING_LIGHT_GREETING_EVENT_CONTEXT,
     ])
-    .in("status", MORNING_PENDING_STATUSES)
-    .gte("scheduled_for", params.nowIso);
-
-  if (params.untilIso) {
-    query = query.lt("scheduled_for", params.untilIso);
-  }
-
-  const { error } = await query;
-  if (error) throw error;
-}
-
-async function cancelFutureActionEveningReviewCheckins(params: {
-  supabaseAdmin: ReturnType<typeof createClient>;
-  userId: string;
-  nowIso: string;
-  untilIso?: string | null;
-}): Promise<void> {
-  let query = params.supabaseAdmin
-    .from("scheduled_checkins")
-    .delete()
-    .eq("user_id", params.userId)
-    .eq("event_context", ACTION_EVENING_REVIEW_EVENT_CONTEXT)
     .in("status", MORNING_PENDING_STATUSES)
     .gte("scheduled_for", params.nowIso);
 
@@ -380,7 +316,6 @@ Deno.serve(async (req) => {
     let actionMorningScheduled = 0;
     let actionMorningFollowupScheduled = 0;
     let lightGreetingScheduled = 0;
-    let actionEveningReviewScheduled = 0;
     let actionLateAfternoonScheduled = 0;
     let actionNightPrepScheduled = 0;
     let weeklyProgressReviewScheduled = 0;
@@ -511,12 +446,6 @@ Deno.serve(async (req) => {
           nowIso,
           untilIso: new Date(pauseUntilMs).toISOString(),
         });
-        await cancelFutureActionEveningReviewCheckins({
-          supabaseAdmin,
-          userId,
-          nowIso,
-          untilIso: new Date(pauseUntilMs).toISOString(),
-        });
         await cancelFutureWeeklyCheckins({
           supabaseAdmin,
           userId,
@@ -529,11 +458,6 @@ Deno.serve(async (req) => {
 
       if (fullReset) {
         await cancelFutureMorningCheckins({
-          supabaseAdmin,
-          userId,
-          nowIso,
-        });
-        await cancelFutureActionEveningReviewCheckins({
           supabaseAdmin,
           userId,
           nowIso,
@@ -608,19 +532,6 @@ Deno.serve(async (req) => {
         ...yesterdayScheduleRaw,
         scheduled_for: todaySchedule.scheduled_for,
       };
-      const eveningReviewedOccurrenceIds =
-        await loadOccurrenceIdsCoveredByEveningReview({
-          supabaseAdmin,
-          userId,
-          reviewedLocalDate: yesterdaySchedule.local_date,
-        });
-      if (eveningReviewedOccurrenceIds.size > 0) {
-        yesterdaySchedule = filterScheduleOccurrences(
-          yesterdaySchedule,
-          (occurrence) =>
-            !eveningReviewedOccurrenceIds.has(occurrence.occurrence_id),
-        );
-      }
 
       const hasActionsToday = todaySchedule.transformations.some((entry) =>
         entry.occurrences.length > 0
@@ -842,101 +753,6 @@ Deno.serve(async (req) => {
             actionMorningScheduled++;
           } else {
             lightGreetingScheduled++;
-          }
-        }
-      }
-
-      if ((hasActionsToday || hasOpenActionsFromYesterday) && allowsEvening) {
-        const eveningReviewLocalTime = randomEveningReviewLocalTime({
-          userId,
-          localDate: todaySchedule.local_date,
-        });
-        const eveningSchedule = await loadTodayActionOccurrences(
-          supabaseAdmin as any,
-          {
-            userId,
-            timezone,
-            localTimeHHMM: eveningReviewLocalTime,
-            now,
-          },
-        );
-        const todayEligibleSchedule = filterScheduleOccurrences(
-          eveningSchedule,
-          (occurrence) => !isLateActionTimeOfDay(occurrence.time_of_day),
-        );
-        const yesterdayLateScheduleRaw = await loadTodayActionOccurrences(
-          supabaseAdmin as any,
-          {
-            userId,
-            timezone,
-            localTimeHHMM: eveningReviewLocalTime,
-            now: new Date(now.getTime() - 24 * 60 * 60 * 1000),
-          },
-        );
-        const yesterdayLateSchedule = filterScheduleOccurrences(
-          {
-            ...yesterdayLateScheduleRaw,
-            scheduled_for: eveningSchedule.scheduled_for,
-          },
-          (occurrence) => isLateActionTimeOfDay(occurrence.time_of_day),
-        );
-        const selectedEveningSchedule =
-          occurrenceCount(yesterdayLateSchedule) > 0
-            ? yesterdayLateSchedule
-            : todayEligibleSchedule;
-        const eveningOccurrenceIds = selectedEveningSchedule.transformations
-          .flatMap((
-            entry,
-          ) => entry.occurrences.map((occurrence) => occurrence.occurrence_id));
-        if (eveningOccurrenceIds.length > 0) {
-          const { error: eveningErr } = await supabaseAdmin
-            .from("scheduled_checkins")
-            .upsert(
-              {
-                user_id: userId,
-                origin: "action_review",
-                event_context: ACTION_EVENING_REVIEW_EVENT_CONTEXT,
-                draft_message: "",
-                message_mode: "dynamic",
-                message_payload: {
-                  source: "schedule_action_evening_review_v2",
-                  version: 2,
-                  timezone,
-                  local_date: selectedEveningSchedule.local_date,
-                  week_start_date: selectedEveningSchedule.week_start_date,
-                  weekday: selectedEveningSchedule.weekday,
-                  reviewed_local_date: selectedEveningSchedule.local_date,
-                  selected_review_window:
-                    occurrenceCount(yesterdayLateSchedule) >
-                        0
-                      ? "previous_evening_or_night"
-                      : "today_non_late",
-                  evening_review_local_time: eveningReviewLocalTime,
-                  transformations: selectedEveningSchedule.transformations,
-                  occurrence_ids: eveningOccurrenceIds,
-                  plan_item_ids: selectedEveningSchedule.transformations
-                    .flatMap((
-                      entry,
-                    ) =>
-                      entry.occurrences.map((occurrence) =>
-                        occurrence.plan_item_id
-                      )
-                    ),
-                  generated_at: nowIso,
-                },
-                scheduled_for: selectedEveningSchedule.scheduled_for,
-                status: "pending",
-              } as any,
-              { onConflict: "user_id,event_context,scheduled_for" },
-            );
-          if (eveningErr) {
-            console.error(
-              `[schedule-checkins-v2] request_id=${requestId} evening_upsert_failed user_id=${userId}`,
-              eveningErr,
-            );
-          } else {
-            scheduled++;
-            actionEveningReviewScheduled++;
           }
         }
       }
@@ -1201,7 +1017,6 @@ Deno.serve(async (req) => {
         action_morning_scheduled: actionMorningScheduled,
         action_morning_followup_scheduled: actionMorningFollowupScheduled,
         light_greeting_scheduled: lightGreetingScheduled,
-        action_evening_review_scheduled: actionEveningReviewScheduled,
         action_late_afternoon_scheduled: actionLateAfternoonScheduled,
         action_night_prep_scheduled: actionNightPrepScheduled,
         weekly_progress_review_scheduled: weeklyProgressReviewScheduled,

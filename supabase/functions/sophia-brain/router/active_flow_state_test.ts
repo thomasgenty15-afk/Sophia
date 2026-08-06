@@ -16,10 +16,7 @@ function legacyKey(...parts: string[]): string {
 }
 
 const RETAINED_LOCAL_FLOW_IDS: ActiveLocalConversationFlowSkillId[] = [
-  "daily_action_review_v1",
-  "weekly_adaptive_review_v1",
   "product_help",
-  "coaching_recommendation",
   "plan_realignment",
   // W2.A: "feature_opportunity" et "potion_support_admission_v1" ne sont plus
   // des flows locaux retenus (registre en dur retiré).
@@ -29,9 +26,9 @@ const RETAINED_LOCAL_FLOW_IDS: ActiveLocalConversationFlowSkillId[] = [
 Deno.test("active_flow_state resumes only retained conversation skills", () => {
   assertEquals(
     (readActiveFlowState({
-      __active_skill_state: { skill_id: "weekly_adaptive_review_v1" },
+      __active_skill_state: { skill_id: "safety_crisis" },
     }).activeSkillState as any)?.skill_id,
-    "weekly_adaptive_review_v1",
+    "safety_crisis",
   );
   assertEquals(
     (readActiveFlowState({
@@ -50,7 +47,7 @@ Deno.test("active_flow_state resumes only retained conversation skills", () => {
 Deno.test("active_flow_state canonical active conversation key wins over aliases", () => {
   const active = readActiveFlowState({
     [ACTIVE_CONVERSATION_SKILL_KEY]: {
-      skill_id: "coaching_recommendation",
+      skill_id: "product_help",
       status: "active",
     },
     __active_skill_state: { skill_id: "product_help", status: "active" },
@@ -58,7 +55,7 @@ Deno.test("active_flow_state canonical active conversation key wins over aliases
 
   assertEquals(
     (active.activeSkillState as any)?.skill_id,
-    "coaching_recommendation",
+    "product_help",
   );
 });
 
@@ -92,7 +89,7 @@ Deno.test("active_flow_state ignores retained local flows with terminal status",
   ) {
     const active = readActiveFlowState({
       __active_skill_state: {
-        skill_id: "weekly_adaptive_review_v1",
+        skill_id: "safety_crisis",
         status,
       },
     });
@@ -101,7 +98,7 @@ Deno.test("active_flow_state ignores retained local flows with terminal status",
     assertEquals(
       shouldSkipGlobalDispatcherForActiveLocalFlow({
         activeSkillState: {
-          skill_id: "weekly_adaptive_review_v1",
+          skill_id: "safety_crisis",
           status,
         },
       }),
@@ -126,19 +123,19 @@ Deno.test("active_flow_state does not skip global dispatcher for unknown legacy 
 Deno.test("active_flow_state clears all active conversation aliases after local exit", () => {
   const cleaned = clearActiveConversationSkillState({
     [ACTIVE_CONVERSATION_SKILL_KEY]: {
-      skill_id: "coaching_recommendation",
+      skill_id: "product_help",
       status: "active",
     },
-    __active_skill_state: { skill_id: "coaching_recommendation" },
-    active_skill_state: { skill_id: "coaching_recommendation" },
-    __last_coaching_recommendation_exit_memo: { reason: "topic_change" },
+    __active_skill_state: { skill_id: "product_help" },
+    active_skill_state: { skill_id: "product_help" },
+    __last_product_help_exit_memo: { reason: "topic_change" },
     kept: true,
   });
 
   assertEquals(cleaned[ACTIVE_CONVERSATION_SKILL_KEY], undefined);
   assertEquals(cleaned.__active_skill_state, undefined);
   assertEquals(cleaned.active_skill_state, undefined);
-  assertEquals(cleaned.__last_coaching_recommendation_exit_memo, {
+  assertEquals(cleaned.__last_product_help_exit_memo, {
     reason: "topic_change",
   });
   assertEquals(cleaned.kept, true);
@@ -195,34 +192,6 @@ Deno.test("active_flow_state keeps only retained local exit memos", () => {
 
   assertEquals(cleaned[removedMemoKey], undefined);
   assertEquals(cleaned.__last_product_help_exit_memo, undefined);
-  assertEquals(cleaned.kept, true);
-});
-
-Deno.test("active_flow_state exposes and clears coaching recommendation exit memo", () => {
-  const context = buildLastLocalFlowExitContext({
-    __last_coaching_recommendation_exit_memo: {
-      reason: "complete",
-      user_intent_summary: "choix de levier termine",
-      handoff_hint_for_global_dispatcher: {
-        likely_intent: "normal_coaching",
-        why: "recommendation-only flow completed",
-      },
-      at: "2026-06-17T10:00:00.000Z",
-    },
-  });
-
-  assertEquals(context?.operation_type, "coaching_recommendation");
-  assertEquals(context?.reason, "complete");
-  assertEquals(
-    context?.handoff_hint_for_global_dispatcher,
-    "normal_coaching: recommendation-only flow completed",
-  );
-
-  const cleaned = clearLastLocalFlowExitContext({
-    __last_coaching_recommendation_exit_memo: { reason: "complete" },
-    kept: true,
-  });
-  assertEquals(cleaned.__last_coaching_recommendation_exit_memo, undefined);
   assertEquals(cleaned.kept, true);
 });
 

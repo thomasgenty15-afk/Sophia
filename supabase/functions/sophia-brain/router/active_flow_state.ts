@@ -7,10 +7,7 @@ export type ActiveFlowState = {
 };
 
 export type ActiveLocalConversationFlowSkillId =
-  | "daily_action_review_v1"
-  | "weekly_adaptive_review_v1"
   | "product_help"
-  | "coaching_recommendation"
   | "plan_realignment"
   | "winback_reengagement_v1"
   | "presence_conversation"
@@ -23,10 +20,7 @@ export type ActiveLocalConversationFlowSkillId =
 const ACTIVE_LOCAL_CONVERSATION_FLOW_SKILL_IDS = new Set<
   ActiveLocalConversationFlowSkillId
 >([
-  "daily_action_review_v1",
-  "weekly_adaptive_review_v1",
   "product_help",
-  "coaching_recommendation",
   "plan_realignment",
   "winback_reengagement_v1",
   "presence_conversation",
@@ -260,32 +254,12 @@ export function buildLastLocalFlowExitContext(
       memo: temp.__last_whatsapp_onboarding_exit_memo,
     },
     {
-      operation_type: "daily_action_review",
-      memo: temp.__last_daily_action_review_exit_memo,
-    },
-    {
-      operation_type: "daily_action_review",
-      memo: temp.__last_daily_action_review_child_flow_handoff,
-    },
-    {
-      operation_type: "weekly_adaptive_review",
-      memo: temp.__last_weekly_adaptive_review_exit_memo,
-    },
-    {
-      operation_type: "weekly_adaptive_review",
-      memo: temp.__last_weekly_adaptive_review_child_flow_handoff,
-    },
-    {
       operation_type: "product_help",
       memo: temp.__last_product_help_exit_memo,
     },
     {
       operation_type: "winback_reengagement_v1",
       memo: temp.__last_winback_reengagement_exit_memo,
-    },
-    {
-      operation_type: "coaching_recommendation",
-      memo: temp.__last_coaching_recommendation_exit_memo,
     },
     // W2.A: memos `feature_opportunity` et `potion_support_admission_v1`
     // retirés des candidats — un mémo résiduel en base ne doit plus produire de
@@ -329,14 +303,9 @@ export function clearLastLocalFlowExitContext<
 >(tempMemory: T): Record<string, unknown> {
   const next = clearTempMemoryKeys(tempMemory, LEGACY_LOCAL_EXIT_MEMO_KEYS);
   delete next.__last_whatsapp_onboarding_exit_memo;
-  delete next.__last_daily_action_review_exit_memo;
-  delete next.__last_daily_action_review_child_flow_handoff;
-  delete next.__last_weekly_adaptive_review_exit_memo;
-  delete next.__last_weekly_adaptive_review_child_flow_handoff;
   delete next.__last_product_help_exit_memo;
   delete next.__last_potion_support_admission_exit_memo;
   delete next.__last_winback_reengagement_exit_memo;
-  delete next.__last_coaching_recommendation_exit_memo;
   delete next.__last_feature_opportunity_exit_memo;
   delete next.__last_safety_crisis_exit_memo;
   return next;

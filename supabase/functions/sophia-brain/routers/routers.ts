@@ -154,11 +154,6 @@ function productHelpDetected(turnFrame: TurnFrame): boolean {
     turnFrame.skill_signals.product_help.confidence_band !== "low";
 }
 
-function coachingRecommendationDetected(turnFrame: TurnFrame): boolean {
-  return turnFrame.skill_signals.coaching_recommendation?.detected === true &&
-    turnFrame.skill_signals.coaching_recommendation.confidence_band !== "low";
-}
-
 // W2.A: `featureOpportunityDetected` supprimé avec la lane initiatives /
 // coach_preferences (le signal n'existe plus dans le TurnFrame).
 
@@ -206,10 +201,7 @@ function isActiveConversationSkill(
     | "safety_crisis"
     | "disordered_eating_guard"
     | "product_help"
-    | "coaching_recommendation"
     | "plan_realignment"
-    | "daily_action_coaching_recommendation_v1"
-    | "weekly_adaptive_review_v1"
     | "winback_reengagement_v1"
     | "presence_conversation",
 ): boolean {
@@ -518,66 +510,6 @@ export function runConversationRouters(input: {
   }
 
   if (
-    isActiveConversationSkill(
-      input.active_skill_state,
-      "weekly_adaptive_review_v1",
-    )
-  ) {
-    return buildRouteDecision({
-      response_owner: "weekly_adaptive_review_v1",
-      selected_handler: "weekly_adaptive_review_v1",
-      direct_effects_to_run: directEffectsToRun,
-      blocked_paths: blockedPaths,
-      active_owner: "weekly_adaptive_review_v1",
-      arbitration_decision: "continue_active",
-      resume_policy: "resume_active",
-      reason_code: directEffectsToRun.length > 0
-        ? "active_weekly_adaptive_review_with_direct_effects"
-        : "active_weekly_adaptive_review",
-    });
-  }
-
-  if (
-    isActiveConversationSkill(
-      input.active_skill_state,
-      "daily_action_coaching_recommendation_v1",
-    )
-  ) {
-    return buildRouteDecision({
-      response_owner: "daily_action_coaching_recommendation_v1",
-      selected_handler: "daily_action_coaching_recommendation_v1",
-      direct_effects_to_run: directEffectsToRun,
-      blocked_paths: blockedPaths,
-      active_owner: "daily_action_coaching_recommendation_v1",
-      arbitration_decision: "continue_active",
-      resume_policy: "resume_active",
-      reason_code: directEffectsToRun.length > 0
-        ? "active_daily_action_coaching_recommendation_with_direct_effects"
-        : "active_daily_action_coaching_recommendation",
-    });
-  }
-
-  if (
-    isActiveConversationSkill(
-      input.active_skill_state,
-      "coaching_recommendation",
-    )
-  ) {
-    return buildRouteDecision({
-      response_owner: "coaching_recommendation",
-      selected_handler: "coaching_recommendation",
-      direct_effects_to_run: directEffectsToRun,
-      blocked_paths: blockedPaths,
-      active_owner: "coaching_recommendation",
-      arbitration_decision: "continue_active",
-      resume_policy: "resume_active",
-      reason_code: directEffectsToRun.length > 0
-        ? "active_coaching_recommendation_with_direct_effects"
-        : "active_coaching_recommendation",
-    });
-  }
-
-  if (
     isActiveConversationSkill(input.active_skill_state, "plan_realignment")
   ) {
     return buildRouteDecision({
@@ -665,16 +597,6 @@ export function runConversationRouters(input: {
       reason_code: directEffectsToRun.length > 0
         ? "product_help_with_direct_effects"
         : "product_help_signal",
-    });
-  }
-
-  if (!keelStudent && coachingRecommendationDetected(input.turn_frame)) {
-    return buildRouteDecision({
-      response_owner: "coaching_recommendation",
-      selected_handler: "coaching_recommendation",
-      direct_effects_to_run: directEffectsToRun,
-      blocked_paths: blockedPaths,
-      reason_code: "coaching_recommendation_signal",
     });
   }
 

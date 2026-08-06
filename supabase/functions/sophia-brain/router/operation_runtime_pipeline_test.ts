@@ -7,7 +7,6 @@ import {
   runOperationRuntimePipeline,
   turnFrameWithDirectEffectRuntime,
 } from "./operation_runtime_pipeline.ts";
-import { normalizeWeeklyReviewLocalDispatcherOutput } from "../skills/weekly_review/local_flow.ts";
 
 function fakeOneShotSupabase(opts: { onUpsert?: (row: any) => void } = {}) {
   return {
@@ -357,121 +356,6 @@ Deno.test("operation_runtime_pipeline product_help route allows one-shot reminde
   ]);
 });
 
-Deno.test("operation_runtime_pipeline active weekly commits local one-shot before visible weekly", async () => {
-  const message =
-    "Le plus dur c'est de choisir, et rappelle-moi demain a 18h de relire cette version allegee.";
-  const activeWeeklyState = {
-    skill_id: "weekly_adaptive_review_v1",
-    status: "open",
-    weekly_progress_review: {
-      transformations: [],
-    },
-    weekly_adaptive_review: {
-      week_strategy: { decision: "advance", reason: "test" },
-    },
-    weekly_flow_state: {
-      stage: "solution_fit",
-      validation_unlock_status: "locked_until_weekly_complete",
-      weekly_gates: {
-        week_experience_status: "captured",
-        action_review_status: "captured",
-        global_progress_status: "captured",
-        felt_progress_status: "captured",
-        solution_fit_status: "captured",
-        synthesis_status: "missing",
-        closure_status: "missing",
-      },
-      child_flow: { status: "none" },
-      detour_candidate: { kind: "none" },
-      turn_count: 2,
-      max_turns: 6,
-    },
-  };
-  let visibleInput: any = null;
-  const result = await runOperationRuntimePipeline(basePipelineInput({
-    supabase: fakeOneShotSupabase(),
-    userMessage: message,
-    tempMemory: {
-      __active_skill_state: activeWeeklyState,
-    },
-    turnFrame: baseTurnFrame(),
-    routeDecision: baseRouteDecision({
-      response_owner: "weekly_adaptive_review_v1",
-      selected_handler: "weekly_adaptive_review_v1",
-      reason_code: "active_weekly_adaptive_review",
-      active_flow_arbitration: {
-        decision: "continue_active",
-        active_owner: "weekly_adaptive_review_v1",
-        selected_owner: "weekly_adaptive_review_v1",
-        resume_policy: "resume_active",
-        reason_code: "active_weekly_adaptive_review",
-      },
-    }),
-    clientNow: new Date("2026-06-13T08:00:00.000Z"),
-    weeklyReviewLocalDispatcher: async () =>
-      normalizeWeeklyReviewLocalDispatcherOutput({
-        flow_action: "confirm_weekly_diagnostic",
-        confidence: "high",
-        weekly_intent: {
-          kind: "weekly_answer",
-          summary: "User identifies decision overload and asks a reminder.",
-        },
-        human_signal_updates: {
-          objective_delta: "slight_progress",
-          felt_progress: "neutral",
-          felt_state: "stable",
-        },
-        direct_effect_request: {
-          requested: true,
-          effect_type: "create_one_shot_reminder",
-          explicitness: "explicit",
-          target_status: "identified",
-          confidence_band: "high",
-          payload_hint: {
-            raw_text:
-              "rappelle-moi demain a 18h de relire cette version allegee",
-            when_hint: "demain a 18h",
-            UTC_time: "2026-06-14T16:00:00.000Z",
-            local_label: "demain a 18:00",
-            instruction_hint: "relire cette version allegee",
-          },
-          reason: "explicit one-shot reminder during weekly",
-        },
-        weekly_gates: {
-          global_progress_status: "captured",
-          felt_progress_status: "captured",
-          solution_fit_status: "captured",
-        },
-        state_updates: {
-          status: "open",
-          weekly_stage: "solution_fit",
-        },
-        visible_task: {
-          kind: "qualify_solution_fit",
-          instruction: "Continue weekly after committed reminder context.",
-        },
-        evidence: ["rappelle-moi demain a 18h"],
-      }),
-    weeklyReviewVisibleAgent: async (input: any) => {
-      visibleInput = input;
-      return "C'est programme. On continue le point weekly.";
-    },
-  }));
-
-  assertEquals(result.operationRuntime?.toolExecution, "success");
-  assertEquals(result.operationRuntime?.executedTools, [
-    "create_one_shot_reminder",
-  ]);
-  assertEquals(
-    visibleInput?.direct_effect_confirmation_context
-      ?.has_committed_one_shot_reminder,
-    true,
-  );
-  assertEquals(
-    result.routeDecision?.response_owner,
-    "weekly_adaptive_review_v1",
-  );
-});
 
 Deno.test("operation_runtime_pipeline executes one-shot reminder exactly once per turn outside weekly", async () => {
   // Auto-collision Alex r3 T5 / Nina r1 T7: la lane weekly tournait aussi hors

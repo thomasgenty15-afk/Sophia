@@ -589,7 +589,7 @@ Deno.test("routing — the floor is ARMED and EXECUTED in conversation, never se
 
   // (1) Every call site arms the floor, through the single shared builder.
   const callSites = runSource.split("runConversationRouters({").slice(1);
-  assertEquals(callSites.length, 4, "run.ts call-site count changed");
+  assertEquals(callSites.length, 3, "run.ts call-site count changed");
   for (const site of callSites) {
     const args = site.slice(0, site.indexOf("});"));
     assert(

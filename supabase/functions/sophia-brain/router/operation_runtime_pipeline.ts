@@ -5,11 +5,6 @@ import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import type { RouteDecision } from "../contracts/route_decision.v1.ts";
 import type { RiskBand, TurnFrame } from "../contracts/turn_frame.v1.ts";
 import type { ActiveTransformationRuntime } from "../../_shared/v2-runtime.ts";
-import {
-  buildCoachingRecommendationSkillSignal,
-  isLocalChildFlowHandoff,
-  turnFrameWithChildFlowHandoff,
-} from "../../_shared/local_child_flow_handoff.ts";
 import { blocksDirectEffects, isAtLeast } from "../safety/safety_thresholds.ts";
 import { DISTRESS_IDEATION_REASON_CODES } from "../routers/routers.ts";
 import {
@@ -23,13 +18,6 @@ import {
   clearLegacyRuntimeStateForDirectEffect,
   readActiveFlowState,
 } from "./active_flow_state.ts";
-import {
-  oneShotDirectEffectFromWeeklyReviewLocalDispatcherOutput,
-  readWeeklyReviewState,
-  recentMessagesFromHistory as weeklyRecentMessagesFromHistory,
-  runWeeklyReviewLocalDispatcher,
-  runWeeklyReviewLocalRuntime,
-} from "../skills/weekly_review/runtime.ts";
 import {
   applyOneShotReminderPendingClarification,
   clearSafetyDeferredReminderOnCommit,
@@ -77,10 +65,6 @@ export type OperationRuntimePipelineInput = {
   trackProgressBlockedReasonCode?: string | null;
   clientNow?: Date | null;
   allowDirectEffectMessageIntakeFallback?: boolean;
-  weeklyReviewLocalDispatcher?: typeof runWeeklyReviewLocalDispatcher;
-  weeklyReviewVisibleAgent?: Parameters<
-    typeof runWeeklyReviewLocalRuntime
-  >[0]["visibleAgent"];
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -173,26 +157,6 @@ function routeWithDirectEffect(args: {
       args.effectType,
     ],
     reason_code: args.reasonCode,
-  };
-}
-
-function routeWithCoachingChildFlowHandoff(
-  routeDecision: RouteDecision | null,
-): RouteDecision | null {
-  if (!routeDecision) return null;
-  return {
-    ...routeDecision,
-    response_owner: "coaching_recommendation",
-    selected_handler: "coaching_recommendation",
-    reason_code: "local_child_flow_handoff_to_coaching_recommendation",
-    active_flow_arbitration: {
-      decision: "handoff_to_child_flow",
-      active_owner: "weekly_adaptive_review_v1",
-      selected_owner: "coaching_recommendation",
-      resume_policy: "return_to_parent_after_child_flow",
-      reason_code:
-        "weekly_review_handoff_to_coaching_recommendation_child_flow",
-    },
   };
 }
 
@@ -804,8 +768,6 @@ export type OperationRuntimePipelineResult = {
   routeSafetyActive: boolean;
   runtimeSafetyRiskBand: RiskBand;
   runtimeSafetySignalContext: any;
-  weeklyReviewStateForTurn: unknown;
-  weeklyReviewBlocksToolSkillRuntime: boolean;
   routeOrFrameChanged: boolean;
 };
 
@@ -829,146 +791,9 @@ export async function runOperationRuntimePipeline(
     userMessage: args.userMessage,
   });
 
-  const activeFlowState = readActiveFlowState(tempMemory);
-  const weeklyState = !routeSafetyActive
-    ? readWeeklyReviewState({
-      activeSkillState: activeFlowState.activeSkillState,
-      tempMemory,
-    })
-    : null;
-  const weeklyDispatcherOutput = isRecord(weeklyState)
-    ? await (args.weeklyReviewLocalDispatcher ??
-      runWeeklyReviewLocalDispatcher)({
-        user_id: args.userId,
-        request_id: args.requestId ?? null,
-        user_message: args.userMessage,
-        recent_messages: weeklyRecentMessagesFromHistory(args.history),
-        weekly_state: weeklyState,
-        turn_frame: turnFrame,
-      }).catch((error) => {
-        console.warn("[WeeklyReview] pre-dispatch failed", error);
-        return null;
-      })
-    : null;
-  const weeklyOneShotDirectEffect =
-    oneShotDirectEffectFromWeeklyReviewLocalDispatcherOutput(
-      weeklyDispatcherOutput,
-      { turnFrame },
-    );
-  const turnFrameBeforeWeeklyDirectEffect = turnFrame;
-  turnFrame = turnFrameWithDirectEffectObject({
-    turnFrame,
-    effect: weeklyOneShotDirectEffect,
-  });
-  routeOrFrameChanged = routeOrFrameChanged ||
-    turnFrame !== turnFrameBeforeWeeklyDirectEffect;
-  // Cette lane n'appartient qu'au bilan hebdo: quand il est actif, le runtime
-  // weekly retourne plus bas sans passer par la lane principale (ligne ~711),
-  // donc elle doit couvrir les effets route pendant ce flow. Hors bilan hebdo,
-  // la lane principale s'en charge — la faire tourner ici aussi exécuterait le
-  // reminder deux fois dans le même tour (auto-collision: la 2e passe voit
-  // l'écriture de la 1re et rend un duplicate_pending contredisant le commit).
-  const weeklyShouldRunOneShotDirectEffect = Boolean(
-    weeklyOneShotDirectEffect,
-  ) || (isRecord(weeklyState) && routeRequestsDirectEffect({
-    routeDecision,
-    turnFrame,
-    effectType: "create_one_shot_reminder",
-  }));
-  const weeklyDirectEffectLane = weeklyShouldRunOneShotDirectEffect
-    ? await runDirectEffectLane({
-      ...args,
-      routeDecision,
-      turnFrame,
-      tempMemory,
-      allowMessageIntakeFallback: false,
-    })
-    : null;
-  if (weeklyDirectEffectLane) {
-    routeDecision = weeklyDirectEffectLane.routeDecision;
-    turnFrame = weeklyDirectEffectLane.turnFrame;
-    tempMemory = weeklyDirectEffectLane.tempMemory;
-    routeOrFrameChanged = routeOrFrameChanged ||
-      weeklyDirectEffectLane.routeOrFrameChanged;
-    turnFrame = turnFrameWithDirectEffectRuntime(
-      turnFrame,
-      weeklyDirectEffectLane.operationRuntime,
-    ) ??
-      (turnFrame ? withDirectEffectConfirmationContext(turnFrame) : turnFrame);
-  }
-  const weeklyReviewRuntime = isRecord(weeklyState)
-    ? await runWeeklyReviewLocalRuntime({
-      supabase: args.supabase,
-      userId: args.userId,
-      responseLocale: args.responseLocale,
-      tempMemory,
-      activeSkillState: activeFlowState.activeSkillState,
-      userMessage: args.userMessage,
-      history: args.history,
-      requestId: args.requestId ?? null,
-      v2Runtime: args.v2Runtime,
-      loggedMessageId: args.sourceMessageId ?? null,
-      turnFrame,
-      precomputedDispatcherOutput: weeklyDispatcherOutput,
-      visibleAgent: args.weeklyReviewVisibleAgent,
-    })
-    : null;
-  if (weeklyReviewRuntime) {
-    const mergedWeeklyRuntime = mergeDirectEffectRuntimeIntoVisibleRuntime({
-      directRuntime: weeklyDirectEffectLane?.operationRuntime ?? null,
-      visibleRuntime: weeklyReviewRuntime,
-    }) ?? weeklyReviewRuntime;
-    tempMemory = mergedWeeklyRuntime.nextTempMemory ?? tempMemory;
-    const run = mergedWeeklyRuntime.toolSkillRun ?? {};
-    const childFlowHandoff = isLocalChildFlowHandoff(run.child_flow_handoff)
-      ? run.child_flow_handoff
-      : null;
-    if (
-      childFlowHandoff &&
-      childFlowHandoff.child_flow === "coaching_recommendation"
-    ) {
-      routeDecision = routeWithCoachingChildFlowHandoff(routeDecision);
-      const activation = run.child_flow_note_information &&
-          typeof run.child_flow_note_information === "object"
-        ? {
-          handoff: childFlowHandoff,
-          skill_signal: buildCoachingRecommendationSkillSignal(
-            childFlowHandoff.child_flow_context,
-          ),
-          note_information: run.child_flow_note_information as any,
-        }
-        : null;
-      if (turnFrame && activation) {
-        turnFrame = turnFrameWithChildFlowHandoff(turnFrame, activation);
-      }
-      return {
-        operationRuntime: mergedWeeklyRuntime,
-        routeDecision,
-        turnFrame,
-        tempMemory,
-        statePatch: { temp_memory: tempMemory },
-        routeSafetyActive,
-        runtimeSafetyRiskBand,
-        runtimeSafetySignalContext,
-        weeklyReviewStateForTurn: tempMemory,
-        weeklyReviewBlocksToolSkillRuntime: true,
-        routeOrFrameChanged: true,
-      };
-    }
-    return {
-      operationRuntime: mergedWeeklyRuntime,
-      routeDecision,
-      turnFrame,
-      tempMemory,
-      statePatch: { temp_memory: tempMemory },
-      routeSafetyActive,
-      runtimeSafetyRiskBand,
-      runtimeSafetySignalContext,
-      weeklyReviewStateForTurn: tempMemory,
-      weeklyReviewBlocksToolSkillRuntime: true,
-      routeOrFrameChanged,
-    };
-  }
+  // DEMOLITION B2C (2026-08-06): toute la section du bilan hebdo (etat local,
+  // pre-dispatch, lane d'effet direct dediee, runtime visible et handoff vers
+  // le flow enfant coaching) est supprimee avec le skill `weekly_review`.
 
   const trackProgressRuntime: OperationRuntimeResult | null =
     !routeSafetyActive && turnFrame &&
@@ -1022,8 +847,6 @@ export async function runOperationRuntimePipeline(
     routeSafetyActive,
     runtimeSafetyRiskBand,
     runtimeSafetySignalContext,
-    weeklyReviewStateForTurn: null,
-    weeklyReviewBlocksToolSkillRuntime: false,
     routeOrFrameChanged,
   };
 }

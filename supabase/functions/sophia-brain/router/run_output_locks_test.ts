@@ -81,6 +81,7 @@ const DOCTRINE_CTX = keel({
     },
     compiled: null,
     coachId: "coach-1",
+    coachDisplayName: "Marc",
     reason: "loaded",
     issues: [],
     goal: null,
@@ -185,6 +186,9 @@ Deno.test("no doctrine loaded -> the NO-METHOD block, never an empty layer", () 
       doctrine: null,
       compiled: null,
       coachId: null,
+      // Pas de doctrine publiee ⇒ pas de nom de coach a poser. `null` est la
+      // valeur utile: un coach sans nom affiche ne se signe pas.
+      coachDisplayName: null,
       reason: "no_published_doctrine",
       issues: [],
       goal: null,

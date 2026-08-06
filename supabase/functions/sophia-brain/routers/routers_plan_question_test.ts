@@ -214,7 +214,7 @@ Deno.test("routing — plan_question is ARMED and EXECUTED, never served as a no
 
   // (1) Every call site arms the KEEL gate, through the single shared builder.
   const callSites = runSource.split("runConversationRouters({").slice(1);
-  assertEquals(callSites.length, 4, "run.ts call-site count changed");
+  assertEquals(callSites.length, 3, "run.ts call-site count changed");
   for (const site of callSites) {
     const args = site.slice(0, site.indexOf("});"));
     assertEquals(

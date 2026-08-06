@@ -23,17 +23,6 @@
     }
   },
   {
-    "fixture_id": "v1_active_coaching_continues",
-    "input": {
-      "active_skill_id": "coaching_recommendation"
-    },
-    "expected": {
-      "response_owner": "coaching_recommendation",
-      "selected_handler": "coaching_recommendation",
-      "direct_effects_to_run": []
-    }
-  },
-  {
     "fixture_id": "v1_normal_reply_with_direct_effect",
     "input": {
       "direct_effects": [
@@ -51,7 +40,9 @@
     "expected": {
       "response_owner": "normal_reply",
       "selected_handler": null,
-      "direct_effects_to_run": ["create_one_shot_reminder"]
+      "direct_effects_to_run": [
+        "create_one_shot_reminder"
+      ]
     }
   }
 ]

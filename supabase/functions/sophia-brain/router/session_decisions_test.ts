@@ -1,79 +1,10 @@
 import { assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import {
-  sessionDecisionFromCoachingState,
   sessionDecisionFromPlanRealignmentState,
   sessionDecisionsFromTempMemory,
   sessionDecisionsPromptBlock,
   withSessionDecision,
 } from "./session_decisions.ts";
-
-Deno.test("coaching state with a retained potion yields a session decision (nina-r6 B01)", () => {
-  const decision = sessionDecisionFromCoachingState({
-    current_recommendation: { feature: "state_potion" },
-    last_visible_decision: {
-      lever: "state_potion",
-      variant: null,
-      potion_type: "amour",
-      reason: "besoin de douceur",
-      confidence: "high",
-    },
-  });
-  assertEquals(decision?.potion_type, "amour");
-  assertEquals(decision?.feature, "state_potion");
-
-  // Anti-faux-positif: etat sans recommandation → rien.
-  assertEquals(sessionDecisionFromCoachingState({ turn_count: 2 }), null);
-  assertEquals(sessionDecisionFromCoachingState(null), null);
-});
-
-Deno.test("session decisions block carries the canonical potion catalogue and grounding rules", () => {
-  let tempMemory: Record<string, unknown> = {};
-  tempMemory = withSessionDecision(tempMemory, {
-    source: "coaching_recommendation",
-    feature: "state_potion",
-    lever: "state_potion",
-    technique: null,
-    potion_type: "amour",
-    handoff: null,
-    status: "retained" as const,
-  });
-  const block = sessionDecisionsPromptBlock(tempMemory);
-  assertEquals(block?.includes("DECISIONS DE SESSION"), true);
-  assertEquals(block?.includes("potion amour"), true);
-  assertEquals(
-    block?.includes(
-      "apaisement, amour, courage, clarte, guerison, anti_decrochage",
-    ),
-    true,
-  );
-  assertEquals(block?.includes("JAMAIS depuis ta memoire libre"), true);
-  assertEquals(block?.includes("tranche explicitement"), true);
-
-  // Upsert: la meme decision ne s'empile pas; une nouvelle s'ajoute.
-  tempMemory = withSessionDecision(tempMemory, {
-    source: "coaching_recommendation",
-    feature: "state_potion",
-    lever: "state_potion",
-    technique: null,
-    potion_type: "amour",
-    handoff: null,
-    status: "retained" as const,
-  });
-  tempMemory = withSessionDecision(tempMemory, {
-    source: "coaching_recommendation",
-    feature: "attack_card",
-    lever: "attack_card",
-    technique: "mot_de_bascule",
-    potion_type: null,
-    handoff: null,
-    status: "retained" as const,
-  });
-  const decisions = tempMemory.__session_decisions as unknown[];
-  assertEquals(decisions.length, 2);
-
-  // Aucune decision → aucun bloc (pas de bruit).
-  assertEquals(sessionDecisionsPromptBlock({}), null);
-});
 
 Deno.test("une nouvelle decision sur le meme levier supersede l'ancienne en 'ecartee' (rose-r7 B03)", () => {
   let tempMemory: Record<string, unknown> = {};

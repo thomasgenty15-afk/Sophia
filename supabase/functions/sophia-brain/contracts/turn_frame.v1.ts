@@ -52,44 +52,8 @@ export type SkillSignal = {
   reason?: string;
 };
 
-export type CoachingRecommendationCategory =
-  | "plan_action_coaching"
-  | "free_action_coaching"
-  | "emotional_state_coaching"
-  | "ambiguous_coaching_need";
-
-export type CoachingRecommendationType =
-  | "plan_action"
-  | "no_plan_action"
-  | "emotional"
-  | "ambiguous";
-
-export type CoachingFailureMode =
-  | "forgetting"
-  | "launch_blocker"
-  | "avoidance"
-  | "risk_moment"
-  | "too_hard"
-  | "rhythm_mismatch"
-  | "misaligned_action"
-  | "unclear";
-
-export type CoachingRecommendationPriorityFeature =
-  | "attack_card"
-  | "defense_card"
-  | "adjust_plan"
-  | "state_potion";
-
-export type CoachingRecommendationSignalContext = {
-  coaching_type: CoachingRecommendationType;
-  confidence: number;
-  reason: string;
-  action_context: {
-    source: "plan" | "free" | "none" | "ambiguous";
-    plan_item_id?: string | null;
-    action_title?: string | null;
-  } | null;
-};
+// Demolition B2C (2026-08-06): les types du signal `coaching_recommendation`
+// partent avec la lane.
 
 export type PlanRealignmentDriftType =
   | "missed_plan"
@@ -183,9 +147,6 @@ export type PlanQuestionSignalContext = {
 
 export type DispatcherSkillSignals = {
   product_help?: SkillSignal;
-  coaching_recommendation?: SkillSignal & {
-    context?: CoachingRecommendationSignalContext;
-  };
   plan_realignment?: SkillSignal & {
     context?: PlanRealignmentSignalContext;
   };

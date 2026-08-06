@@ -6,7 +6,6 @@ export type ReplayFixture = {
   input: {
     safety_risk_band?: TurnFrame["safety"]["risk_band"];
     product_help?: boolean;
-    coaching_recommendation?: boolean;
     active_skill_id?: string | null;
     direct_effects?: TurnFrame["direct_effects"];
     memory_response_intent?: TurnFrame["memory_plan"]["response_intent"];
@@ -43,13 +42,6 @@ function turnFrame(fixture: ReplayFixture): TurnFrame {
     direct_effects: fixture.input.direct_effects ?? [],
     skill_signals: {
       product_help: fixture.input.product_help
-        ? {
-          detected: true,
-          confidence_band: "high",
-          reason: "fixture",
-        }
-        : undefined,
-      coaching_recommendation: fixture.input.coaching_recommendation
         ? {
           detected: true,
           confidence_band: "high",
